@@ -9,7 +9,8 @@
 #
 # Native or OTA: decide-build-mode fingerprints the pushed commit with @expo/fingerprint and
 # compares it against the native baseline, which is the fingerprint of the last SUCCESSFUL
-# native RC build on this branch, stored in a sticky comment on the release PR.
+# native RC build on this branch, stored in a sticky comment on the release PR. This only
+# happens on branches that opted in with the 'rc-auto-ota' label (see below).
 #
 #   equal      -> nothing native changed, publish an OTA update to the `rc` channel. No new
 #                 binaries, no build number consumed, and no state written.
@@ -28,6 +29,18 @@
 # the same commit.
 #
 # The RC build comment includes an AI-generated test plan (inline with collapsible sections).
+#
+# Enabling OTA delivery:
+#   Add the 'rc-auto-ota' label to the release PR to let JS-only pushes ship as OTA updates to
+#   the `rc` channel. Without the label every push builds native binaries, which is the
+#   behaviour from before this feature existed; removing the label returns to it from the next
+#   push onward.
+#
+#   Toggling is safe in both directions. Successful native builds advance the baseline whether
+#   the label is present or not, so it always describes the binary testers actually have, and
+#   re-adding the label never compares against a native build that has since been superseded.
+#   A run that has already decided its mode keeps it, so removing the label does not retract
+#   an OTA publish that is already in flight.
 #
 # Freezing auto RC builds:
 #   Add the 'rc-freeze' label to the release PR to stop auto RC builds.
@@ -63,6 +76,7 @@ jobs:
       branch-name: ${{ steps.extract-version.outputs.branch-name }}
       pr-number: ${{ steps.find-pr.outputs.pr-number }}
       rc-frozen: ${{ steps.find-pr.outputs.rc-frozen }}
+      ota-enabled: ${{ steps.find-pr.outputs.ota-enabled }}
     permissions:
       pull-requests: read
     steps:
@@ -104,8 +118,11 @@ jobs:
 
           if [[ -z "$PR_NUMBER" ]]; then
             echo "No PR found for branch $BRANCH_NAME. Skipping."
-            echo "has-pr=false" >> "$GITHUB_OUTPUT"
-            echo "rc-frozen=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "has-pr=false"
+              echo "rc-frozen=false"
+              echo "ota-enabled=false"
+            } >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -122,8 +139,22 @@ jobs:
             echo "rc-frozen=false" >> "$GITHUB_OUTPUT"
           fi
 
-          echo "pr-number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
-          echo "has-pr=true" >> "$GITHUB_OUTPUT"
+          # Check for the rc-auto-ota label — OTA delivery is opt-in per release branch.
+          # Without it every push builds native, which is the behaviour from before this
+          # feature existed. Removing it returns the branch to that behaviour.
+          OTA_ENABLED=$(echo "$PR_JSON" | jq -r '[.labels[].name] | map(select(. == "rc-auto-ota")) | length > 0')
+
+          if [[ "$OTA_ENABLED" == "true" ]]; then
+            echo "PR #$PR_NUMBER has the 'rc-auto-ota' label - JS-only pushes may ship as OTA updates"
+          else
+            echo "PR #$PR_NUMBER has no 'rc-auto-ota' label - every push builds native"
+          fi
+
+          {
+            echo "ota-enabled=$OTA_ENABLED"
+            echo "pr-number=$PR_NUMBER"
+            echo "has-pr=true"
+          } >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -207,6 +238,7 @@ jobs:
           FINGERPRINT: ${{ steps.fingerprint.outputs.fingerprint }}
           BASELINE: ${{ steps.baseline.outputs.fingerprint }}
           BASELINE_SHORT_SHA: ${{ steps.baseline.outputs.short-sha }}
+          OTA_ENABLED: ${{ needs.validate-and-find-pr.outputs.ota-enabled }}
         run: |
           set -euo pipefail
           # Compared against the last SUCCESSFUL native build, never against the previous
@@ -215,7 +247,17 @@ jobs:
           # here no matter which of the batched commits introduced it. A native change that
           # was introduced and reverted within the batch correctly reads as OTA, because the
           # binary already on testers' devices matches this commit's native state.
-          if [[ -z "$BASELINE" ]]; then
+          #
+          # The label is checked first, and only ever forces native: OTA is the sole outcome
+          # it can suppress. The fingerprint is still computed and the baseline is still
+          # advanced by successful native builds while the label is off, so re-adding it
+          # compares against the binary testers actually have rather than a stale one.
+          LABEL_STATE=present
+          if [[ "$OTA_ENABLED" != "true" ]]; then
+            LABEL_STATE=absent
+            MODE=native
+            REASON="release PR is not labelled 'rc-auto-ota', so every push builds native"
+          elif [[ -z "$BASELINE" ]]; then
             MODE=native
             REASON="no baseline recorded yet (first build on this release branch)"
           elif [[ "$FINGERPRINT" == "$BASELINE" ]]; then
@@ -237,6 +279,7 @@ jobs:
             echo "| :--- | :--- |"
             echo "| This commit | \`${FINGERPRINT}\` |"
             echo "| Native baseline | \`${BASELINE:-none}\` |"
+            echo "| \`rc-auto-ota\` label | ${LABEL_STATE} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
   generate_rc_build_version:
