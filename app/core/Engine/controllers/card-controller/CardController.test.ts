@@ -234,6 +234,64 @@ function buildControllerWithMockMessenger(
   return { controller, messenger };
 }
 
+const ACCOUNT_A = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
+const ACCOUNT_A_CHECKSUMMED = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';
+const ACCOUNT_B = '0x742d35Cc6634C0532925a3b844Bc454e4438f44e';
+
+/** `'unavailable'` models AccountsController not being reachable yet (the
+ * messenger call throws); `'none'` models it being reachable with no selected
+ * EVM account. Anything else is the selected address. */
+type SelectableEvmAccount = 'unavailable' | 'none' | string;
+
+function buildControllerWithSelectableAccount(
+  provider: ICardProvider,
+  initialAccount: SelectableEvmAccount,
+  stateOverrides: Partial<typeof defaultCardControllerState> = {},
+) {
+  let selected = initialAccount;
+  const messenger = buildMockMessenger();
+  (messenger.call as jest.Mock).mockImplementation((action: string) => {
+    if (action === 'AccountsController:getState') {
+      if (selected === 'unavailable') {
+        throw new Error('AccountsController:getState has no handler');
+      }
+      if (selected === 'none') {
+        return { internalAccounts: { accounts: {}, selectedAccount: '' } };
+      }
+      return {
+        internalAccounts: {
+          accounts: {
+            'id-1': {
+              address: selected,
+              type: 'eip155:eoa',
+              scopes: ['eip155:0'],
+            },
+          },
+          selectedAccount: 'id-1',
+        },
+      };
+    }
+    if (action === 'RemoteFeatureFlagController:getState') {
+      return { remoteFeatureFlags: {} };
+    }
+    return undefined;
+  });
+
+  const controller = new CardController({
+    messenger,
+    providers: { baanx: provider },
+    cardService: buildMockCardService(),
+    state: { activeProviderId: 'baanx', ...stateOverrides },
+  });
+
+  return {
+    controller,
+    selectAccount: (next: SelectableEvmAccount) => {
+      selected = next;
+    },
+  };
+}
+
 const mockCard = {
   id: 'card-1',
   status: CardStatus.ACTIVE,
@@ -333,6 +391,7 @@ describe('CardController', () => {
       cardholderAccounts: [],
       providerData: {},
       cardHomeData: null,
+      cardHomeDataAddress: null,
       cardHomeDataStatus: 'idle',
       cardHomeDataFetchedThisSession: false,
       moneyAccountCardLinkInProgress: false,
@@ -542,6 +601,30 @@ describe('CardController — auth methods', () => {
       // Cleared before the post-connect refetch, so the restored card is never
       // shown against the newly connected account.
       expect(controller.state.cardHomeData).not.toStrictEqual(mockCardHomeData);
+    });
+
+    it('clears the persisted card home address on connect', async () => {
+      const provider = buildMockProvider();
+      provider.initiateAuth.mockResolvedValue(mockSession);
+      provider.submitCredentials.mockResolvedValue({
+        done: true,
+        tokenSet: mockTokenSet,
+      });
+      mockTokenStore.set.mockResolvedValue(true);
+      const controller = buildController(provider, {
+        cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+        cardHomeDataAddress: ACCOUNT_A,
+        cardHomeDataStatus: 'success',
+      });
+
+      await controller.initiateAuth('US');
+      await controller.submitCredentials({
+        type: 'email_password',
+        email: 'a@b.com',
+        password: 'pass',
+      });
+
+      expect(controller.state.cardHomeDataAddress).toBeNull();
     });
 
     it('drops in-flight unauthenticated card home data after successful auth', async () => {
@@ -819,6 +902,23 @@ describe('CardController — auth methods', () => {
 
       expect(controller.state.cardHomeData).toBeNull();
       expect(controller.state.cardHomeDataStatus).toBe('idle');
+    });
+
+    it('clears the persisted card home address on logout', async () => {
+      const provider = buildMockProvider();
+      provider.logout.mockResolvedValue(undefined);
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      mockTokenStore.remove.mockResolvedValue(true);
+      const controller = buildController(provider, {
+        isAuthenticated: true,
+        cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+        cardHomeDataAddress: ACCOUNT_A,
+        cardHomeDataStatus: 'success',
+      });
+
+      await controller.logout();
+
+      expect(controller.state.cardHomeDataAddress).toBeNull();
     });
   });
 
@@ -2153,6 +2253,244 @@ describe('CardController — fetchCardHomeData', () => {
     expect(provider.getCardHomeData).not.toHaveBeenCalled();
     expect(controller.state.cardHomeDataStatus).toBe('error');
   });
+
+  it('does not mark the session as fetched when no EVM address is selected', async () => {
+    const provider = buildMockProvider();
+    const { controller } = buildControllerWithSelectableAccount(
+      provider,
+      'none',
+    );
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('error');
+    expect(controller.state.cardHomeDataFetchedThisSession).toBe(false);
+  });
+
+  it('fetches once an address exists rather than treating the skipped attempt as fresh', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
+    const { controller, selectAccount } = buildControllerWithSelectableAccount(
+      provider,
+      'none',
+    );
+
+    await controller.fetchCardHomeData();
+    expect(provider.getCardHomeData).not.toHaveBeenCalled();
+
+    selectAccount(ACCOUNT_A);
+    await controller.fetchCardHomeData();
+
+    expect(provider.getCardHomeData).toHaveBeenCalledTimes(1);
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+  });
+
+  it('writes nothing over restored data when no EVM address is selected yet', async () => {
+    const provider = buildMockProvider();
+    // Constructed before AccountsController was reachable, so the restored
+    // cache survives to a first fetch that still has no address to fetch for.
+    const { controller, selectAccount } = buildControllerWithSelectableAccount(
+      provider,
+      'unavailable',
+      {
+        cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+        cardHomeDataAddress: ACCOUNT_A,
+        cardHomeDataStatus: 'success',
+      },
+    );
+    selectAccount('none');
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+    expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+    expect(controller.state.cardHomeDataFetchedThisSession).toBe(false);
+    expect(provider.getCardHomeData).not.toHaveBeenCalled();
+  });
+});
+
+describe('CardController — cardHomeData account scoping', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  function buildAuthenticatedProvider() {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    return provider;
+  }
+
+  function buildRestoredState(
+    cardHomeDataAddress: string | null,
+  ): Partial<typeof defaultCardControllerState> {
+    return {
+      cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+      cardHomeDataAddress,
+      cardHomeDataStatus: 'success',
+    };
+  }
+
+  it('records the address the fetched data belongs to', async () => {
+    const provider = buildAuthenticatedProvider();
+    provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
+    const { controller } = buildControllerWithSelectableAccount(
+      provider,
+      ACCOUNT_A,
+    );
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataAddress).toBe(ACCOUNT_A);
+  });
+
+  it('revalidates restored data silently when it belongs to the selected account', async () => {
+    const provider = buildAuthenticatedProvider();
+    let resolveFetch: (data: CardHomeData) => void = () => undefined;
+    provider.getCardHomeData.mockReturnValue(
+      new Promise<CardHomeData>((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+    const { controller } = buildControllerWithSelectableAccount(
+      provider,
+      ACCOUNT_A,
+      buildRestoredState(ACCOUNT_A),
+    );
+
+    const pending = controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+
+    resolveFetch(mockCardHomeData);
+    await pending;
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+  });
+
+  it('matches a checksummed persisted address against the lowercase selected account', async () => {
+    const provider = buildAuthenticatedProvider();
+    let resolveFetch: (data: CardHomeData) => void = () => undefined;
+    provider.getCardHomeData.mockReturnValue(
+      new Promise<CardHomeData>((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+    const { controller } = buildControllerWithSelectableAccount(
+      provider,
+      ACCOUNT_A,
+      buildRestoredState(ACCOUNT_A_CHECKSUMMED),
+    );
+
+    const pending = controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+
+    resolveFetch(mockCardHomeData);
+    await pending;
+
+    expect(controller.state.cardHomeDataAddress).toBe(ACCOUNT_A);
+  });
+
+  it('shows the loading state when restored data belongs to another account', async () => {
+    const provider = buildAuthenticatedProvider();
+    let resolveFetch: (data: CardHomeData) => void = () => undefined;
+    provider.getCardHomeData.mockReturnValue(
+      new Promise<CardHomeData>((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+    const { controller, selectAccount } = buildControllerWithSelectableAccount(
+      provider,
+      'unavailable',
+      buildRestoredState(ACCOUNT_B),
+    );
+    selectAccount(ACCOUNT_A);
+
+    const pending = controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('loading');
+
+    resolveFetch(mockCardHomeData);
+    await pending;
+
+    expect(controller.state.cardHomeDataAddress).toBe(ACCOUNT_A);
+  });
+
+  it('discards restored data that belongs to another account on construction', () => {
+    const { controller } = buildControllerWithSelectableAccount(
+      buildMockProvider(),
+      ACCOUNT_A,
+      buildRestoredState(ACCOUNT_B),
+    );
+
+    expect(controller.state.cardHomeData).toBeNull();
+    expect(controller.state.cardHomeDataAddress).toBeNull();
+    expect(controller.state.cardHomeDataStatus).toBe('idle');
+  });
+
+  it('keeps restored data that belongs to the selected account on construction', () => {
+    const { controller } = buildControllerWithSelectableAccount(
+      buildMockProvider(),
+      ACCOUNT_A,
+      buildRestoredState(ACCOUNT_A),
+    );
+
+    expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+    expect(controller.state.cardHomeDataAddress).toBe(ACCOUNT_A);
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+  });
+
+  it('keeps restored data when only the persisted address casing differs', () => {
+    const { controller } = buildControllerWithSelectableAccount(
+      buildMockProvider(),
+      ACCOUNT_A,
+      buildRestoredState(ACCOUNT_A_CHECKSUMMED),
+    );
+
+    expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+  });
+
+  it('discards restored data persisted before the address was recorded', () => {
+    const { controller } = buildControllerWithSelectableAccount(
+      buildMockProvider(),
+      ACCOUNT_A,
+      buildRestoredState(null),
+    );
+
+    expect(controller.state.cardHomeData).toBeNull();
+    expect(controller.state.cardHomeDataAddress).toBeNull();
+    expect(controller.state.cardHomeDataStatus).toBe('idle');
+  });
+
+  it('leaves an empty cache untouched on construction', () => {
+    const { controller } = buildControllerWithSelectableAccount(
+      buildMockProvider(),
+      ACCOUNT_A,
+      { cardHomeDataStatus: 'error' },
+    );
+
+    expect(controller.state.cardHomeDataStatus).toBe('error');
+  });
+
+  it('keeps restored data when the account state is not reachable on construction', () => {
+    const { controller } = buildControllerWithSelectableAccount(
+      buildMockProvider(),
+      'unavailable',
+      buildRestoredState(ACCOUNT_A),
+    );
+
+    expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+    expect(controller.state.cardHomeDataAddress).toBe(ACCOUNT_A);
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+  });
 });
 
 describe('CardController — freezeCard', () => {
@@ -2763,6 +3101,47 @@ describe('CardController — account switch (#handleAccountSwitch)', () => {
     await handler?.('');
 
     expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('clears the persisted card home address when the account changes', async () => {
+    const provider = buildMockProvider();
+    const { controller, messenger } = buildControllerWithMockMessenger(
+      provider,
+      {
+        cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+        cardHomeDataAddress: ACCOUNT_A,
+        cardHomeDataStatus: 'success',
+      },
+      ACCOUNT_A,
+    );
+    jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+
+    (messenger.call as jest.Mock).mockImplementation((action: string) => {
+      if (action === 'AccountsController:getState') {
+        return {
+          internalAccounts: {
+            accounts: {
+              'id-2': {
+                address: ACCOUNT_B,
+                type: 'eip155:eoa',
+                scopes: ['eip155:0'],
+              },
+            },
+            selectedAccount: 'id-2',
+          },
+        };
+      }
+      if (action === 'RemoteFeatureFlagController:getState') {
+        return { remoteFeatureFlags: {} };
+      }
+      return undefined;
+    });
+
+    await getAccountTreeHandler(messenger)?.('');
+
+    expect(controller.state.cardHomeData).toBeNull();
+    expect(controller.state.cardHomeDataAddress).toBeNull();
+    expect(controller.state.cardHomeDataStatus).toBe('idle');
   });
 });
 

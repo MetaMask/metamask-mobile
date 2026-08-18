@@ -87,7 +87,10 @@ import { cardNetworkInfos } from '../../../../components/UI/Card/constants';
 import { readErc20AllowanceAndBalance } from '../../../../components/UI/Card/util/onChainAllowance';
 import { toCardFundingToken } from '../../../../components/UI/Card/util/toCardTokenAllowance';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { safeToChecksumAddress } from '../../../../util/address';
+import {
+  areAddressesEqual,
+  safeToChecksumAddress,
+} from '../../../../util/address';
 import { toTokenMinimalUnit } from '../../../../util/number/bigint';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import {
@@ -162,6 +165,12 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: false,
     usedInUi: true,
   },
+  cardHomeDataAddress: {
+    persist: true,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
   cardHomeDataStatus: {
     persist: true,
     includeInDebugSnapshot: false,
@@ -191,6 +200,7 @@ export const defaultCardControllerState: CardControllerState = {
   cardholderAccounts: [],
   providerData: {},
   cardHomeData: null,
+  cardHomeDataAddress: null,
   cardHomeDataStatus: 'idle',
   cardHomeDataFetchedThisSession: false,
   moneyAccountCardLinkInProgress: false,
@@ -246,10 +256,35 @@ export class CardController extends BaseController<
     this.cardService = cardService;
     try {
       this.previousEvmAddress = this.#getSelectedEvmAddress();
+      this.#discardCardHomeDataFromOtherAccount(this.previousEvmAddress);
     } catch {
       this.previousEvmAddress = null;
     }
     this.#subscribeToEvents();
+  }
+
+  /**
+   * Seeding `previousEvmAddress` above means a cold start under a different
+   * account never looks like a switch, so `#handleAccountSwitch` will not clear
+   * the restored cache. A non-cardholder compounds it: `useCardHomeData` never
+   * fetches, so nothing else would ever clear it either. Discard here instead,
+   * or Money Home renders another account's card details.
+   */
+  #discardCardHomeDataFromOtherAccount(selectedAddress: string | null): void {
+    if (this.state.cardHomeData === null) return;
+
+    const { cardHomeDataAddress } = this.state;
+    const belongsToSelectedAccount =
+      selectedAddress !== null &&
+      cardHomeDataAddress !== null &&
+      areAddressesEqual(cardHomeDataAddress, selectedAddress);
+    if (belongsToSelectedAccount) return;
+
+    this.update((s) => {
+      s.cardHomeData = null;
+      s.cardHomeDataAddress = null;
+      s.cardHomeDataStatus = 'idle';
+    });
   }
 
   #subscribeToEvents(): void {
@@ -320,6 +355,7 @@ export class CardController extends BaseController<
     this.invalidateFetch();
     this.update((s) => {
       s.cardHomeData = null;
+      s.cardHomeDataAddress = null;
       s.cardHomeDataStatus = 'idle';
     });
   }
@@ -581,7 +617,7 @@ export class CardController extends BaseController<
     // `selectIsCardStateResolved` gates on 'success', so a blip would blank the
     // card persistence just restored. Requires 'success' specifically — a
     // 'loading' persisted by a process death has to stay clearable.
-    this.#silentRevalidation =
+    const hasRestoredCardHomeData =
       !force &&
       !this.state.cardHomeDataFetchedThisSession &&
       this.state.cardHomeData !== null &&
@@ -589,15 +625,28 @@ export class CardController extends BaseController<
 
     const address = this.#getSelectedEvmAddress();
     if (!address) {
-      this.update((s) => {
-        if (!this.#silentRevalidation) {
+      // Accounts may simply not be ready yet, so nothing here may be recorded
+      // as a completed fetch: marking the session flag or the freshness stamp
+      // would stop `useCardHomeData` retrying once an address exists, leaving
+      // restored data stale until a forced refresh.
+      if (!hasRestoredCardHomeData) {
+        this.update((s) => {
           s.cardHomeDataStatus = 'error';
-        }
-        s.cardHomeDataFetchedThisSession = true;
-      });
-      this.#lastFetchedAt = Date.now();
+        });
+      }
       return;
     }
+
+    // Restored data from another account is not the data being fetched:
+    // revalidating it silently would leave the wrong card on screen for the
+    // whole request.
+    const { cardHomeDataAddress } = this.state;
+    const restoredDataBelongsToAddress =
+      cardHomeDataAddress !== null &&
+      areAddressesEqual(cardHomeDataAddress, address);
+
+    this.#silentRevalidation =
+      hasRestoredCardHomeData && restoredDataBelongsToAddress;
 
     // Marked before the request resolves, not after: the flag exists to stop
     // `useCardHomeData` re-triggering while this fetch is still in flight.
@@ -613,6 +662,7 @@ export class CardController extends BaseController<
         this.update((s) => {
           (s as unknown as CardControllerState).cardHomeData =
             data as unknown as Record<string, Json>;
+          s.cardHomeDataAddress = address;
           s.cardHomeDataStatus = 'success';
         });
         this.#lastFetchedAt = Date.now();
@@ -754,6 +804,7 @@ export class CardController extends BaseController<
           tokenSet.providerUserId ?? tokenSet.cardholderAccountId ?? null;
         s.lastUnauthenticatedReason = null;
         s.cardHomeData = null;
+        s.cardHomeDataAddress = null;
         s.cardHomeDataStatus = 'idle';
         (s.providerData as unknown as Record<string, Record<string, string>>)[
           pid
@@ -813,6 +864,7 @@ export class CardController extends BaseController<
       s.providerUserId = null;
       s.lastUnauthenticatedReason = reason;
       s.cardHomeData = null;
+      s.cardHomeDataAddress = null;
       s.cardHomeDataStatus = 'idle';
       if (pid) {
         (s.providerData as unknown as Record<string, Record<string, string>>)[

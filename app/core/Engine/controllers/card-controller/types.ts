@@ -70,6 +70,12 @@ export type CardControllerState = {
    */
   cardHomeData: Record<string, Json> | null;
   /**
+   * EVM address `cardHomeData` was fetched for. Persisted with it so a cold
+   * start under a different account discards the cache instead of rendering
+   * another account's card details.
+   */
+  cardHomeDataAddress: string | null;
+  /**
    * Persisted alongside the data it describes — restoring data without its
    * status leaves `selectIsCardStateResolved` false and the card in 'loading'.
    */
