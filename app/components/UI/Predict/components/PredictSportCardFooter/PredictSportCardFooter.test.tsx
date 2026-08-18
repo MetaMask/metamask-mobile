@@ -415,10 +415,31 @@ describe('PredictSportCardFooter', () => {
   });
 
   describe('claimable positions - resolved market', () => {
-    it('renders claim button when positions are claimable', () => {
+    it('does not render claim actions for a resolved losing position', () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
       const claimablePositions = [
-        createMockPosition({ claimable: true, currentValue: 50 }),
+        createMockPosition({
+          claimable: true,
+          status: PredictPositionStatus.LOST,
+          currentValue: 0,
+        }),
+      ];
+      setupPositionsMock({ claimablePositions });
+
+      render(<PredictSportCardFooter market={market} testID="footer" />);
+
+      expect(screen.queryByTestId('footer-action-buttons')).toBeNull();
+      expect(screen.queryByText(/Claim/)).toBeNull();
+    });
+
+    it('renders claim button for a claimable winning position', () => {
+      const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
+      const claimablePositions = [
+        createMockPosition({
+          claimable: true,
+          status: PredictPositionStatus.WON,
+          currentValue: 50,
+        }),
       ];
       setupPositionsMock({
         activePositions: claimablePositions,
@@ -430,10 +451,14 @@ describe('PredictSportCardFooter', () => {
       expect(screen.getByText('Claim $50')).toBeOnTheScreen();
     });
 
-    it('renders claimable positions with claim button when claimable', () => {
+    it('renders winning positions with the claim button', () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
       const claimablePositions = [
-        createMockPosition({ claimable: true, currentValue: 50 }),
+        createMockPosition({
+          claimable: true,
+          status: PredictPositionStatus.WON,
+          currentValue: 50,
+        }),
       ];
       setupPositionsMock({
         activePositions: [],
@@ -446,18 +471,29 @@ describe('PredictSportCardFooter', () => {
       expect(screen.getByTestId('footer-action-buttons')).toBeOnTheScreen();
     });
 
-    it('calculates total claimable amount from claimable positions only', () => {
+    it('calculates total claimable amount from winning positions only', () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
       const allPositions = [
-        createMockPosition({ id: 'pos-1', claimable: true, currentValue: 30 }),
-        createMockPosition({ id: 'pos-2', claimable: true, currentValue: 20 }),
+        createMockPosition({
+          id: 'pos-1',
+          claimable: true,
+          status: PredictPositionStatus.WON,
+          currentValue: 30,
+        }),
+        createMockPosition({
+          id: 'pos-2',
+          claimable: true,
+          status: PredictPositionStatus.WON,
+          currentValue: 20,
+        }),
         createMockPosition({
           id: 'pos-3',
-          claimable: false,
+          claimable: true,
+          status: PredictPositionStatus.LOST,
           currentValue: 100,
         }),
       ];
-      const claimablePositions = allPositions.filter((p) => p.claimable);
+      const claimablePositions = allPositions;
       setupPositionsMock({
         activePositions: allPositions,
         claimablePositions,
@@ -471,7 +507,11 @@ describe('PredictSportCardFooter', () => {
     it('does not render bet buttons when market is resolved', () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
       const claimablePositions = [
-        createMockPosition({ claimable: true, currentValue: 50 }),
+        createMockPosition({
+          claimable: true,
+          status: PredictPositionStatus.WON,
+          currentValue: 50,
+        }),
       ];
       setupPositionsMock({
         activePositions: claimablePositions,
@@ -640,7 +680,11 @@ describe('PredictSportCardFooter', () => {
     it('calls claim function when claim button is pressed', async () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
       const claimablePositions = [
-        createMockPosition({ claimable: true, currentValue: 50 }),
+        createMockPosition({
+          claimable: true,
+          status: PredictPositionStatus.WON,
+          currentValue: 50,
+        }),
       ];
       setupPositionsMock({
         activePositions: claimablePositions,
@@ -664,7 +708,11 @@ describe('PredictSportCardFooter', () => {
     it('executes claim through guarded action', async () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
       const claimablePositions = [
-        createMockPosition({ claimable: true, currentValue: 50 }),
+        createMockPosition({
+          claimable: true,
+          status: PredictPositionStatus.WON,
+          currentValue: 50,
+        }),
       ];
       setupPositionsMock({
         activePositions: claimablePositions,
@@ -698,9 +746,15 @@ describe('PredictSportCardFooter', () => {
       const claimablePositions = [
         createMockPosition({
           claimable: true,
+          status: PredictPositionStatus.WON,
           currentValue: undefined as unknown as number,
         }),
-        createMockPosition({ id: 'pos-2', claimable: true, currentValue: 30 }),
+        createMockPosition({
+          id: 'pos-2',
+          claimable: true,
+          status: PredictPositionStatus.WON,
+          currentValue: 30,
+        }),
       ];
       setupPositionsMock({
         activePositions: claimablePositions,
@@ -734,7 +788,11 @@ describe('PredictSportCardFooter', () => {
     it('renders claim button without testID when testID prop is not provided', () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
       const claimablePositions = [
-        createMockPosition({ claimable: true, currentValue: 50 }),
+        createMockPosition({
+          claimable: true,
+          status: PredictPositionStatus.WON,
+          currentValue: 50,
+        }),
       ];
       setupPositionsMock({
         activePositions: claimablePositions,

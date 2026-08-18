@@ -37,9 +37,10 @@ import {
   buildMockPredictPosition,
 } from '../../../../../../tests/component-view/fixtures/predict';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from '../../components/PredictGameDetailsContent/PredictGameDetailsContent.testIds';
-import type {
+import {
   PredictMarket,
   PredictPosition,
+  PredictPositionStatus,
   PredictPriceHistoryPoint,
 } from '../../types';
 
@@ -652,6 +653,8 @@ describe('PredictMarketDetails', () => {
         buildMockPredictPosition({
           marketId: MOCK_PREDICT_CLOSED_MARKET.id,
           claimable: true,
+          status: PredictPositionStatus.WON,
+          currentValue: 60,
           percentPnl: 42,
         }),
       ]);
@@ -671,6 +674,28 @@ describe('PredictMarketDetails', () => {
       await waitFor(() => {
         expect(claimSpy).toHaveBeenCalled();
       });
+    });
+
+    it('does not show the claim button for a resolved losing position', async () => {
+      givenMarket(MOCK_PREDICT_CLOSED_MARKET);
+      givenPositions([
+        buildMockPredictPosition({
+          marketId: MOCK_PREDICT_CLOSED_MARKET.id,
+          claimable: true,
+          status: PredictPositionStatus.LOST,
+          currentValue: 0,
+          percentPnl: -100,
+        }),
+      ]);
+
+      const { findByTestId, queryByTestId } = renderPredictMarketDetailsView({
+        initialParams: { marketId: MOCK_PREDICT_CLOSED_MARKET.id },
+      });
+
+      await findByTestId(PredictMarketDetailsSelectorsIDs.SCREEN);
+      expect(
+        queryByTestId(PredictMarketDetailsSelectorsIDs.CLAIM_WINNINGS_BUTTON),
+      ).not.toBeOnTheScreen();
     });
   });
 

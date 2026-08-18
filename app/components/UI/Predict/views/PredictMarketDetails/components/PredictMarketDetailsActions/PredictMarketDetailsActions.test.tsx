@@ -55,7 +55,7 @@ const createProps = (
   > = {},
 ) => ({
   isClaimablePositionsLoading: false,
-  hasPositivePnl: false,
+  hasClaimableWinnings: false,
   marketStatus: PredictMarketStatus.OPEN,
   singleOutcomeMarket: true,
   isMarketLoading: false,
@@ -109,7 +109,7 @@ describe('PredictMarketDetailsActions', () => {
   it('renders claim button when claimable pnl is available', () => {
     const onClaimPress = jest.fn();
     const props = createProps({
-      hasPositivePnl: true,
+      hasClaimableWinnings: true,
       onClaimPress,
     });
 
@@ -131,7 +131,7 @@ describe('PredictMarketDetailsActions', () => {
       ],
     });
     const props = createProps({
-      hasPositivePnl: false,
+      hasClaimableWinnings: false,
       onBuyPress,
       openOutcomes: [openOutcome],
     });
@@ -246,7 +246,7 @@ describe('PredictMarketDetailsActions', () => {
     const props = createProps({
       marketStatus: PredictMarketStatus.CLOSED,
       singleOutcomeMarket: false,
-      hasPositivePnl: false,
+      hasClaimableWinnings: false,
       isClaimablePositionsLoading: false,
       isMarketLoading: false,
     });

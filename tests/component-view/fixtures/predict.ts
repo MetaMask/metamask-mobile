@@ -106,8 +106,8 @@ export const MOCK_PREDICT_PARTIALLY_RESOLVED_MARKET: PredictMarket = {
 };
 
 /**
- * Builds a position for the default market fixture. Override `claimable` and
- * `percentPnl` to drive the claim CTA (shown for claimable positions in profit).
+ * Builds a position for the default market fixture. Override `claimable`,
+ * `status`, and `currentValue` to drive the claim CTA.
  */
 export const buildMockPredictPosition = (
   overrides: Partial<PredictPosition> = {},

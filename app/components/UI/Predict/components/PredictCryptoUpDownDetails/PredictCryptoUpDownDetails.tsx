@@ -116,7 +116,7 @@ export interface PredictCryptoUpDownDetailsProps {
   ) => void;
   onClaimPress?: () => void;
   isClaimablePositionsLoading?: boolean;
-  hasPositivePnl?: boolean;
+  hasClaimableWinnings?: boolean;
   isMarketLoading?: boolean;
   isClaimPending?: boolean;
 }
@@ -129,7 +129,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   onRefresh,
   refreshing = false,
   isClaimablePositionsLoading = false,
-  hasPositivePnl = false,
+  hasClaimableWinnings = false,
   isMarketLoading = false,
   isClaimPending = false,
 }) => {
@@ -309,7 +309,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const { openOutcomes: selectedOpenOutcomes } = useOpenOutcomes({
     market: selectedMarket,
   });
-  const canClaim = Boolean(onClaimPress && hasPositivePnl);
+  const canClaim = Boolean(onClaimPress && hasClaimableWinnings);
   const shouldRenderActions = Boolean(onBetPress || canClaim);
 
   const handleCurrentPriceChange = useCallback((value: number | undefined) => {
@@ -697,7 +697,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         <Box twClassName="px-4 pb-8">
           <PredictMarketDetailsActions
             isClaimablePositionsLoading={isClaimablePositionsLoading}
-            hasPositivePnl={canClaim}
+            hasClaimableWinnings={canClaim}
             marketStatus={selectedMarket.status as PredictMarketStatus}
             singleOutcomeMarket={selectedMarket.outcomes.length === 1}
             isMarketLoading={isMarketLoading}
