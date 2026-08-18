@@ -284,11 +284,14 @@ const mockStartHomepageReadyTrace = jest.fn(
   (..._args: unknown[]) => HOMEPAGE_READY_TRACE_TOKEN,
 );
 const mockCancelHomepageReadyTrace = jest.fn();
+const mockMarkHomepageAuthenticationEnd = jest.fn();
 jest.mock('../../../core/Performance/HomepageReady', () => ({
   startHomepageReadyTrace: (...args: unknown[]) =>
     mockStartHomepageReadyTrace(...args),
   cancelHomepageReadyTrace: (...args: unknown[]) =>
     mockCancelHomepageReadyTrace(...args),
+  markHomepageAuthenticationEnd: (...args: unknown[]) =>
+    mockMarkHomepageAuthenticationEnd(...args),
 }));
 
 jest.mock('@react-native-community/netinfo', () => ({
@@ -1862,6 +1865,9 @@ describe('Login', () => {
         },
         expect.any(Function),
       );
+      expect(mockMarkHomepageAuthenticationEnd).toHaveBeenCalledWith(
+        HOMEPAGE_READY_TRACE_TOKEN,
+      );
     });
 
     it('ends LoginUserInteraction on device authentication unlock', async () => {
@@ -1910,6 +1916,9 @@ describe('Login', () => {
         },
         expect.any(Function),
       );
+      expect(mockMarkHomepageAuthenticationEnd).toHaveBeenCalledWith(
+        HOMEPAGE_READY_TRACE_TOKEN,
+      );
     });
 
     it('cancels Homepage Ready when password unlock fails', async () => {
@@ -1926,6 +1935,7 @@ describe('Login', () => {
         reason: 'unlock_failed',
         traceToken: HOMEPAGE_READY_TRACE_TOKEN,
       });
+      expect(mockMarkHomepageAuthenticationEnd).not.toHaveBeenCalled();
     });
 
     it('cancels Homepage Ready when device authentication fails', async () => {
@@ -1953,6 +1963,7 @@ describe('Login', () => {
         reason: 'unlock_failed',
         traceToken: HOMEPAGE_READY_TRACE_TOKEN,
       });
+      expect(mockMarkHomepageAuthenticationEnd).not.toHaveBeenCalled();
     });
   });
 

@@ -7,6 +7,8 @@ import { useSectionPerformance } from './useSectionPerformance';
 jest.mock('../../../../util/trace', () => ({
   trace: jest.fn(),
   endTrace: jest.fn(),
+  getTraceContext: jest.fn(),
+  annotateTrace: jest.fn(),
   TraceName: {
     HomepageSectionTimeToContent: 'Homepage Section Time To Content',
     HomepageSectionDataFetch: 'Homepage Section Data Fetch',
@@ -21,9 +23,12 @@ jest.mock('react-native-performance', () => ({
   now: jest.fn(() => mockPerfNowValue),
 }));
 
-const { trace: mockTrace, endTrace: mockEndTrace } = jest.requireMock(
-  '../../../../util/trace',
-);
+const {
+  trace: mockTrace,
+  endTrace: mockEndTrace,
+  getTraceContext: mockGetTraceContext,
+  annotateTrace: mockAnnotateTrace,
+} = jest.requireMock('../../../../util/trace');
 const mockAddBreadcrumb = addBreadcrumb as jest.MockedFunction<
   typeof addBreadcrumb
 >;
@@ -38,6 +43,7 @@ describe('useSectionPerformance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPerfNowValue = 0;
+    mockGetTraceContext.mockReturnValue({ spanId: 'section-span' });
   });
 
   describe('Time to Content', () => {
@@ -424,6 +430,156 @@ describe('useSectionPerformance', () => {
       unmount();
 
       expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('spreads bounded tags onto both existing traces and data onto their ends', () => {
+      const tags = {
+        content_variant: 'trending',
+        market_source: 'unknown',
+        account_source: 'memory_cache',
+        lifecycle_context: 'cold_process',
+      };
+      const data = { perps_session_id: 'session-id-1' };
+
+      const { rerender } = renderHook(
+        ({ isLoading, contentReady }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady,
+            isLoading,
+            tags,
+            data,
+          }),
+        { initialProps: { isLoading: true, contentReady: false } },
+      );
+
+      rerender({ isLoading: false, contentReady: true });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          tags: expect.objectContaining({
+            section_id: HomeSectionNames.TOKENS,
+            ...tags,
+          }),
+        }),
+      );
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionDataFetch,
+          tags: expect.objectContaining({
+            section_id: HomeSectionNames.TOKENS,
+            ...tags,
+          }),
+        }),
+      );
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({
+            success: true,
+            content_state: 'filled',
+            perps_session_id: 'session-id-1',
+          }),
+        }),
+      );
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionDataFetch,
+          data: expect.objectContaining({
+            success: true,
+            content_state: 'filled',
+            perps_session_id: 'session-id-1',
+          }),
+        }),
+      );
+    });
+
+    it('annotates the same pending span with later resolved tags and does not restart the trace', () => {
+      const initialTags = {
+        content_variant: 'trending',
+        market_source: 'unknown',
+        account_source: 'unknown',
+        lifecycle_context: 'cold_process',
+      };
+      const resolvedTags = {
+        content_variant: 'positions',
+        market_source: 'terminal_v2',
+        account_source: 'fresh_socket',
+        lifecycle_context: 'cold_process',
+      };
+      const span = { spanId: 'ttc-span' };
+      mockGetTraceContext.mockReturnValue(span);
+
+      const { rerender } = renderHook(
+        ({ contentReady, tags }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady,
+            tags,
+            data: { perps_session_id: 'session-id-1' },
+          }),
+        { initialProps: { contentReady: false, tags: initialTags } },
+      );
+
+      const ttcStart = (mockTrace as jest.Mock).mock.calls.find(
+        (call: [{ name: string }]) =>
+          call[0].name === TraceName.HomepageSectionTimeToContent,
+      )?.[0] as { id: string };
+
+      rerender({ contentReady: true, tags: resolvedTags });
+
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+      expect(mockGetTraceContext).toHaveBeenCalledWith({
+        name: TraceName.HomepageSectionTimeToContent,
+        id: ttcStart.id,
+      });
+      expect(mockAnnotateTrace).toHaveBeenCalledWith(span, resolvedTags);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          id: ttcStart.id,
+        }),
+      );
+    });
+
+    it('keeps existing error success and content_state when bounded tags are present', () => {
+      const { rerender } = renderHook(
+        ({ contentReady }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady,
+            contentStateForTrace: 'error',
+            tags: {
+              content_variant: 'error',
+              market_source: 'unknown',
+              account_source: 'unknown',
+              lifecycle_context: 'cold_process',
+            },
+            data: { perps_session_id: 'session-id-1' },
+          }),
+        { initialProps: { contentReady: false } },
+      );
+
+      rerender({ contentReady: true });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({
+            success: true,
+            content_state: 'error',
+            perps_session_id: 'session-id-1',
+          }),
+        }),
+      );
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tags: expect.not.objectContaining({
+            perps_session_id: 'session-id-1',
+          }),
+        }),
+      );
     });
 
     it('ends TTC with success when enabled becomes true while contentReady is already true', () => {

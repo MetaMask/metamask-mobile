@@ -101,6 +101,7 @@ import {
 } from './loginPerformanceTags';
 import {
   cancelHomepageReadyTrace,
+  markHomepageAuthenticationEnd,
   startHomepageReadyTrace,
   type HomepageReadyTraceToken,
 } from '../../../core/Performance/HomepageReady';
@@ -359,6 +360,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           }
         },
       );
+      markHomepageAuthenticationEnd(homepageReadyTraceToken);
     } catch (loginErr) {
       cancelHomepageReadyTrace({
         reason: 'unlock_failed',
@@ -407,6 +409,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           await unlockWallet();
         },
       );
+      markHomepageAuthenticationEnd(homepageReadyTraceToken);
     } catch (loginerror) {
       cancelHomepageReadyTrace({
         reason: 'unlock_failed',

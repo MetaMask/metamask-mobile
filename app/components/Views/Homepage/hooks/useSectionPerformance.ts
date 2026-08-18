@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import {
+  annotateTrace,
   endTrace,
+  getTraceContext,
   trace,
   TraceName,
   TraceOperation,
@@ -37,6 +39,17 @@ interface UseSectionPerformanceConfig {
   reRenderThreshold?: number;
   /** Sliding window in ms for re-render detection. @default 500 */
   reRenderWindowMs?: number;
+  /** Bounded cohort tags applied to the existing TTC and DFD starts. */
+  tags?: {
+    content_variant?: string;
+    market_source?: string;
+    account_source?: string;
+    lifecycle_context?: string;
+  };
+  /** Trace data/context applied to the existing TTC and DFD ends. */
+  data?: {
+    perps_session_id?: string;
+  };
 }
 
 const DEFAULT_RE_RENDER_THRESHOLD = 3;
@@ -61,7 +74,19 @@ export const useSectionPerformance = ({
   enabled = true,
   reRenderThreshold = DEFAULT_RE_RENDER_THRESHOLD,
   reRenderWindowMs = DEFAULT_RE_RENDER_WINDOW_MS,
+  tags,
+  data,
 }: UseSectionPerformanceConfig) => {
+  const tagsRef = useRef(tags);
+  tagsRef.current = tags;
+
+  const annotateLatestTags = (name: TraceName, id: string) => {
+    if (!tagsRef.current) {
+      return;
+    }
+    annotateTrace(getTraceContext({ name, id }), tagsRef.current);
+  };
+
   // --- Time to Content refs ---
   const ttcTraceId = useRef(uuidv4());
   const ttcStarted = useRef(false);
@@ -98,7 +123,7 @@ export const useSectionPerformance = ({
       name: TraceName.HomepageSectionTimeToContent,
       op: TraceOperation.HomepageSectionPerformance,
       id: ttcTraceId.current,
-      tags: { section_id: sectionId },
+      tags: { section_id: sectionId, ...tagsRef.current },
     });
     ttcStarted.current = true;
 
@@ -125,6 +150,10 @@ export const useSectionPerformance = ({
   // Time to Content — end span when content is ready
   useEffect(() => {
     if (enabled && contentReady && ttcStarted.current && !ttcEnded.current) {
+      annotateLatestTags(
+        TraceName.HomepageSectionTimeToContent,
+        ttcTraceId.current,
+      );
       endTrace({
         name: TraceName.HomepageSectionTimeToContent,
         id: ttcTraceId.current,
@@ -132,11 +161,12 @@ export const useSectionPerformance = ({
           success: true,
           section_id: sectionId,
           content_state: traceContentState,
+          ...data,
         },
       });
       ttcEnded.current = true;
     }
-  }, [enabled, contentReady, sectionId, traceContentState]);
+  }, [enabled, contentReady, sectionId, traceContentState, data]);
 
   // ──────────────────────────────────────────────
   // 2. Data Fetch Latency — track isLoading transitions
@@ -154,7 +184,7 @@ export const useSectionPerformance = ({
         name: TraceName.HomepageSectionDataFetch,
         op: TraceOperation.HomepageSectionPerformance,
         id: fetchTraceId.current,
-        tags: { section_id: sectionId },
+        tags: { section_id: sectionId, ...tagsRef.current },
       });
       fetchStarted.current = true;
     }
@@ -166,6 +196,10 @@ export const useSectionPerformance = ({
       fetchStarted.current &&
       !fetchEnded.current
     ) {
+      annotateLatestTags(
+        TraceName.HomepageSectionDataFetch,
+        fetchTraceId.current,
+      );
       endTrace({
         name: TraceName.HomepageSectionDataFetch,
         id: fetchTraceId.current,
@@ -173,10 +207,11 @@ export const useSectionPerformance = ({
           success: true,
           section_id: sectionId,
           content_state: traceContentState,
+          ...data,
         },
       });
       fetchStarted.current = false;
       fetchEnded.current = true;
     }
-  }, [enabled, isLoading, sectionId, traceContentState]);
+  }, [enabled, isLoading, sectionId, traceContentState, data]);
 };
