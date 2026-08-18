@@ -1,6 +1,5 @@
 import {
   capRecurringKeypadValue,
-  getEveryValueAfterUnitChange,
   parsePositiveInteger,
   RECURRING_MAX_DURATION_MINUTES,
   validateRecurringSchedule,
@@ -33,32 +32,6 @@ describe('parsePositiveInteger', () => {
       expect(result).toBeUndefined();
     },
   );
-});
-
-describe('getEveryValueAfterUnitChange', () => {
-  it('keeps the every value when it fits the new unit max', () => {
-    const everyValue = '2';
-
-    const result = getEveryValueAfterUnitChange(everyValue, 'day');
-
-    expect(result).toBe('2');
-  });
-
-  it('resets every value to 1 when it exceeds the new unit max', () => {
-    const everyValue = '60';
-
-    const result = getEveryValueAfterUnitChange(everyValue, 'hour');
-
-    expect(result).toBe('1');
-  });
-
-  it('resets every value to 1 when the current value is empty', () => {
-    const everyValue = '';
-
-    const result = getEveryValueAfterUnitChange(everyValue, 'minute');
-
-    expect(result).toBe('1');
-  });
 });
 
 describe('capRecurringKeypadValue', () => {

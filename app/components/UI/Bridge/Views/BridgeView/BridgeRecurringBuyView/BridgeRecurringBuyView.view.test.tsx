@@ -203,89 +203,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).toHaveTextContent(strings('bridge.recurring.unit.hour'));
   });
 
-  it('resets every to 1 when confirming a unit whose max the value exceeds', async () => {
-    const renderResult = renderBridgeView();
-
-    await openRecurringTab(renderResult);
-    await openEveryKeypad(renderResult);
-    fireEvent.press(
-      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
-    );
-    fireEvent.press(renderResult.getByTestId('keypad-key-6'));
-    fireEvent.press(renderResult.getByTestId('keypad-key-0'));
-    await waitFor(() => {
-      expect(
-        renderResult.getByTestId(
-          RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
-        ),
-      ).toHaveDisplayValue('60');
-    });
-
-    fireEvent.press(
-      renderResult.getByTestId(
-        RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
-      ),
-    );
-    await waitFor(() => {
-      expect(
-        renderResult.getByTestId(RecurringIntervalSheetSelectorsIDs.SHEET),
-      ).toBeOnTheScreen();
-    });
-    fireEvent.press(
-      renderResult.getByTestId(
-        RecurringIntervalSheetSelectorsIDs.OPTION('minute'),
-      ),
-    );
-    fireEvent.press(
-      renderResult.getByTestId(
-        RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
-      ),
-    );
-    await waitFor(() => {
-      expect(
-        renderResult.getByTestId(
-          RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
-        ),
-      ).toHaveTextContent(strings('bridge.recurring.unit.minute'));
-    });
-    expect(
-      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
-    ).toHaveDisplayValue('60');
-
-    fireEvent.press(
-      renderResult.getByTestId(
-        RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
-      ),
-    );
-    await waitFor(() => {
-      expect(
-        renderResult.getByTestId(RecurringIntervalSheetSelectorsIDs.SHEET),
-      ).toBeOnTheScreen();
-    });
-    fireEvent.press(
-      renderResult.getByTestId(
-        RecurringIntervalSheetSelectorsIDs.OPTION('hour'),
-      ),
-    );
-    fireEvent.press(
-      renderResult.getByTestId(
-        RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
-      ),
-    );
-
-    await waitFor(() => {
-      expect(
-        renderResult.getByTestId(
-          RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
-        ),
-      ).toHaveTextContent(strings('bridge.recurring.unit.hour'));
-    });
-    expect(
-      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
-    ).toHaveDisplayValue('1');
-  });
-
-  it('keeps the every value when confirming a unit that still fits', async () => {
+  it('resets every to 1 when confirming a unit change', async () => {
     const renderResult = renderBridgeView();
 
     await openRecurringTab(renderResult);
@@ -332,6 +250,6 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     });
     expect(
       renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
-    ).toHaveDisplayValue('2');
+    ).toHaveDisplayValue('1');
   });
 });

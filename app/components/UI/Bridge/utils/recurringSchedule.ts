@@ -67,20 +67,6 @@ export function parsePositiveInteger(value: string): number | undefined {
   return Number(value);
 }
 
-export function getEveryValueAfterUnitChange(
-  everyValue: string,
-  nextUnit: RecurringIntervalUnit,
-): string {
-  const parsed = parsePositiveInteger(everyValue);
-  const max = RECURRING_EVERY_MAX_BY_UNIT[nextUnit];
-
-  if (parsed === undefined || parsed > max) {
-    return DEFAULT_RECURRING_EVERY_VALUE;
-  }
-
-  return everyValue;
-}
-
 export function capRecurringKeypadValue(
   currentValue: string,
   nextValue: string,

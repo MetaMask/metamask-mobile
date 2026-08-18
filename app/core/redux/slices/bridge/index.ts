@@ -61,7 +61,7 @@ import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagControlle
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
 import { selectAnalyticsEnabled } from '../../../../selectors/analyticsController';
 import {
-  getEveryValueAfterUnitChange,
+  DEFAULT_RECURRING_EVERY_VALUE,
   initialRecurringState,
   validateRecurringSchedule,
   type RecurringIntervalUnit,
@@ -225,10 +225,7 @@ const slice = createSlice({
       action: PayloadAction<RecurringIntervalUnit>,
     ) => {
       state.recurring.everyUnit = action.payload;
-      state.recurring.everyValue = getEveryValueAfterUnitChange(
-        state.recurring.everyValue,
-        action.payload,
-      );
+      state.recurring.everyValue = DEFAULT_RECURRING_EVERY_VALUE;
     },
     setSelectedSourceChainIds: (
       state,

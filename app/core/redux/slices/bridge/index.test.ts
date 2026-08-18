@@ -1529,29 +1529,16 @@ describe('bridge slice', () => {
       expect(newState.recurring.repeatCount).toBe('20');
     });
 
-    it('keeps the every value when the new unit max still fits', () => {
+    it('resets the every value to 1 when the unit changes', () => {
       const state = reducer(initialState, setRecurringEveryValue('2'));
 
       const newState = reducer(state, setRecurringEveryUnit('day'));
 
       expect(newState.recurring).toEqual({
-        everyValue: '2',
+        everyValue: '1',
         everyUnit: 'day',
         repeatCount: '10',
       });
-    });
-
-    it('resets the every value to 1 when the new unit max is exceeded', () => {
-      const withMinutes = reducer(
-        initialState,
-        setRecurringEveryUnit('minute'),
-      );
-      const withValue = reducer(withMinutes, setRecurringEveryValue('60'));
-
-      const newState = reducer(withValue, setRecurringEveryUnit('hour'));
-
-      expect(newState.recurring.everyUnit).toBe('hour');
-      expect(newState.recurring.everyValue).toBe('1');
     });
 
     it('resets recurring fields when bridge state resets', () => {
