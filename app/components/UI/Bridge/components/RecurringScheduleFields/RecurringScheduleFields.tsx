@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import type { AccessibilityState } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -64,6 +65,9 @@ function RecurringNumberCard({
   hasError: boolean;
 }) {
   const tw = useTailwind();
+  const accessibilityState: AccessibilityState & { invalid: boolean } = {
+    invalid: hasError,
+  };
 
   return (
     <Box
@@ -96,7 +100,7 @@ function RecurringNumberCard({
           }`}
           testID={inputTestID}
           accessibilityLabel={label}
-          accessibilityState={{ invalid: hasError }}
+          accessibilityState={accessibilityState}
         />
         {accessory}
       </Box>
