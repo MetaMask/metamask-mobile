@@ -1410,7 +1410,11 @@ jobs:
       build_type: 'main'
       metamask_environment: 'e2e'
       source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
-      runner_provider: ${{ inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current' }}
+      runner_provider: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
       reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
     secrets: inherit
 
@@ -1486,24 +1490,17 @@ jobs:
     uses: ./.github/workflows/build-ios-e2e.yml
     with:
       source-fingerprint: ${{ needs.native-build-fingerprint.outputs.fingerprint }}
-      runner_provider: ${{ inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current' }}
+      runner_provider: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
       reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
     secrets: inherit
 
   ios-tests-ready:
     name: 'iOS Tests Ready'
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
-      }}
-    env:
-      # Effective provider for this job. Steps must test this, never inputs.runner_provider
-      # directly, or a provider set through the repo variables would be ignored.
-      RESOLVED_RUNNER_PROVIDER: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
-        }}
+    runs-on: ubuntu-latest
     if: ${{ !cancelled() && needs.build-ios-apps.result == 'success' }}
     needs: [build-ios-apps]
     steps:
@@ -1515,14 +1512,12 @@ jobs:
 
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
-    # Stays on Cirrus (`runner_provider: current` below) until Namespace artifact-store
-    # parity is ready. Skip when Android builds are on Namespace so this job cannot
-    # try to download Namespace-built APKs from GitHub's artifact store. Resolve the
-    # same way as build-android-apks (ANDROID → PROVIDER) so a platform-only flip skips too.
+    # Pinned to Cirrus until artifact-store parity. Run only when the Android build
+    # provider also resolves to current so this job can consume its artifacts.
     if: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current') != 'bitrise' &&
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current') != 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'current' &&
         !cancelled() &&
         needs.build-android-apks.result == 'success'
       }}
@@ -1547,16 +1542,16 @@ jobs:
 
   appium-smoke-tests-ios:
     name: 'Appium Smoke Tests (iOS)'
-    # Stays on Cirrus (`runner_provider: current` below) until Namespace artifact-store
-    # parity is ready. Skip when the parent CI run is on Namespace so this job cannot
-    # try to download Namespace-built IPAs from GitHub's artifact store.
+    # Pinned to Cirrus until artifact-store parity. Run only when the iOS build
+    # provider also resolves to current so this job can consume its artifacts.
     # Main/release push and main schedule: always run when the iOS build succeeded.
     # PRs: skipped by default; add run-appium-ios-tests, or change
     # page-objects/selectors/locators/framework/smoke-appium
     # (same smart-selected tags as other E2E jobs).
     if: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current') != 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'current' &&
         !cancelled() &&
         needs.ios-tests-ready.result == 'success' &&
         (
@@ -1599,11 +1594,12 @@ jobs:
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
-    # Pinned to Cirrus until Namespace artifact-store parity. Skip when iOS builds are
-    # on Namespace so this job cannot pull Namespace-built .app artifacts from GitHub.
+    # Pinned to Cirrus until artifact-store parity. Run only when the iOS build
+    # provider also resolves to current so this job can consume its artifacts.
     if: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current') != 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'current' &&
         needs.ios-tests-ready.result == 'success' &&
         github.event_name == 'pull_request'
       }}
@@ -1661,7 +1657,7 @@ jobs:
           path: fixture-results/
 
       - name: Report results
-        if: ${{ (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_PROVIDER || 'current') != 'bitrise' }}
+        if: ${{ inputs.runner_provider != 'bitrise' }}
         env:
           RESULTS_PATH: fixture-results
           VALIDATION_RESULT: ${{ needs.validate-e2e-fixtures.result }}
