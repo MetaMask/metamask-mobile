@@ -4,3 +4,7 @@
 
 # Shell scripts must keep LF so they run in WSL on Windows.
 *.sh text eol=lf
+
+# Vendored Material Symbols subset for the Icon Lab experiment. Collapsed in
+# review because it is a machine-copied asset set, not hand-written code.
+app/components/Views/Settings/IconLab/material/** linguist-generated=true

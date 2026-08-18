@@ -30,6 +30,8 @@ import NotificationsView from '../../Views/Notifications';
 import NotificationsDetails from '../../Views/Notifications/Details';
 import AppInformation from '../../Views/Settings/AppInformation';
 import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
+// ICON LAB — temporary scratch screen for the icon-library experiment.
+import IconLab from '../../Views/Settings/IconLab';
 import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
@@ -511,6 +513,15 @@ const SettingsFlow = () => {
         <NativeStack.Screen
           name={Routes.SETTINGS.DEVELOPER_OPTIONS}
           component={DeveloperOptions}
+        />
+      )}
+      {/* ICON LAB — temporary scratch screen for the icon-library experiment.
+          Gated like DEVELOPER_OPTIONS, its only entry point, so the route never
+          ships in production builds. */}
+      {process.env.MM_ENABLE_SETTINGS_PAGE_DEV_OPTIONS === 'true' && (
+        <NativeStack.Screen
+          name={Routes.SETTINGS.ICON_LAB}
+          component={IconLab}
         />
       )}
       <NativeStack.Screen name="ContactsSettings" component={Contacts} />
