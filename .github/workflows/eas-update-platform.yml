@@ -50,7 +50,7 @@ jobs:
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
          vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg'
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     environment: ${{ inputs.github_environment }}
     env:
