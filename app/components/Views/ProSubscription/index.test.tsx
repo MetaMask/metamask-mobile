@@ -4,7 +4,8 @@ import ProSubscription from './index';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
 const mockGoBack = jest.fn();
-const mockNavigation = { goBack: mockGoBack };
+const mockReplace = jest.fn();
+const mockNavigation = { goBack: mockGoBack, replace: mockReplace };
 const mockRoute = { params: {} };
 
 jest.mock('@react-navigation/native', () => ({
@@ -41,8 +42,8 @@ jest.mock('./screens/Benefits', () => {
 
 jest.mock('./screens/Success', () => {
   const { TouchableOpacity } = require('react-native');
-  return ({ onClose }: { onClose: () => void }) => (
-    <TouchableOpacity testID="mock-success" onPress={onClose} />
+  return ({ onSuccess }: { onSuccess: () => void }) => (
+    <TouchableOpacity testID="mock-success" onPress={onSuccess} />
   );
 });
 /* eslint-enable @typescript-eslint/no-require-imports */
@@ -129,7 +130,10 @@ describe('ProSubscription', () => {
       fireEvent.press(getByTestId('mock-benefits'));
       fireEvent.press(getByTestId('mock-success'));
 
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockReplace).toHaveBeenCalledWith('ProHub', {
+        source: 'pro_subscription_success',
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
 
