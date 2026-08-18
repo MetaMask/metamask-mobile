@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
@@ -186,7 +187,7 @@ const Transactions = (props) => {
   const [isQRHardwareAccount, setIsQRHardwareAccount] = useState(false);
   const [isLedgerAccount, setIsLedgerAccount] = useState(false);
   const mountedRef = useRef(false);
-  const existingTxRef = useRef(null);
+  const [existingTx, setExistingTx] = useState(null);
   const cancelTxIdRef = useRef(null);
   const speedUpTxIdRef = useRef(null);
   const selectedTxRef = useRef(null);
@@ -209,7 +210,7 @@ const Transactions = (props) => {
     setCancelIsOpen(false);
     speedUpTxIdRef.current = null;
     cancelTxIdRef.current = null;
-    existingTxRef.current = null;
+    setExistingTx(null);
   }, []);
 
   const updateBlockExplorer = useCallback(() => {
@@ -293,7 +294,9 @@ const Transactions = (props) => {
     },
     [headerHeight, scrollToIndex, skipScrollOnClick],
   );
-  toggleDetailsViewRef.current = toggleDetailsView;
+  useLayoutEffect(() => {
+    toggleDetailsViewRef.current = toggleDetailsView;
+  });
 
   useEffect(() => {
     latestMountPropsRef.current = { transactions, onRefSet };
@@ -336,12 +339,10 @@ const Transactions = (props) => {
   }, [updateBlockExplorer]);
 
   useEffect(() => {
-    if (
-      confirmedTransactions.some(({ id }) => id === existingTxRef.current?.id)
-    ) {
+    if (confirmedTransactions.some(({ id }) => id === existingTx?.id)) {
       closeSpeedUpCancelModal();
     }
-  }, [closeSpeedUpCancelModal, confirmedTransactions]);
+  }, [closeSpeedUpCancelModal, confirmedTransactions, existingTx]);
 
   const renderLoader = () => {
     const styles = createStyles(colors);
@@ -380,7 +381,11 @@ const Transactions = (props) => {
                 networkConfigurations,
               );
         if (!base) {
-          throw new Error('Missing block explorer for asset chain');
+          Logger.error(new Error('Missing block explorer for asset chain'), {
+            message: `can't get a block explorer link for network `,
+            type,
+          });
+          return;
         }
         url = `${base}/address/${selectedAddress}`;
         title = getBlockExplorerName(base);
@@ -397,7 +402,11 @@ const Transactions = (props) => {
         title = result.title;
       }
       if (!url) {
-        throw new Error('Missing block explorer URL');
+        Logger.error(new Error('Missing block explorer URL'), {
+          message: `can't get a block explorer link for network `,
+          type,
+        });
+        return;
       }
       trackBlockExplorerLinkClicked(
         analytics.trackEvent,
@@ -424,14 +433,14 @@ const Transactions = (props) => {
   };
 
   const getCancelOrSpeedupValues = useCallback(() => {
-    const existingGasPriceHex = existingTxRef.current?.txParams?.gasPrice;
+    const existingGasPriceHex = existingTx?.txParams?.gasPrice;
     if (existingGasPriceHex !== undefined && existingGasPriceHex !== '0x0') {
       if (parseInt(String(existingGasPriceHex), 16) !== 0) {
         return undefined;
       }
     }
     return { gasPrice: getMediumGasPriceHex(gasFeeEstimates) };
-  }, [gasFeeEstimates]);
+  }, [existingTx, gasFeeEstimates]);
 
   const getParamsToSend = useCallback(
     (transactionObject) => {
@@ -634,7 +643,7 @@ const Transactions = (props) => {
       return;
     }
     speedUpTxIdRef.current = tx.id;
-    existingTxRef.current = tx;
+    setExistingTx(tx);
     setSpeedUpIsOpen(true);
     setCancelIsOpen(false);
     setConfirmDisabled(
@@ -651,7 +660,7 @@ const Transactions = (props) => {
       return;
     }
     cancelTxIdRef.current = tx.id;
-    existingTxRef.current = tx;
+    setExistingTx(tx);
     setSpeedUpIsOpen(false);
     setCancelIsOpen(true);
     setConfirmDisabled(
@@ -807,7 +816,7 @@ const Transactions = (props) => {
               <CancelSpeedupModal
                 isVisible={speedUpIsOpen || cancelIsOpen}
                 isCancel={cancelIsOpen}
-                tx={existingTxRef.current}
+                tx={existingTx}
                 onConfirm={
                   cancelIsOpen ? cancelTransaction : speedUpTransaction
                 }

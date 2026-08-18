@@ -16,8 +16,10 @@ import {
   ACTIVITY_CV_RAMP_CREATED_AT,
   ACTIVITY_CV_RAMP_SELL_ORDER_ID,
   ACTIVITY_CV_RAMP_SELL_TX_HASH,
+  ACTIVITY_CV_SOLANA_ADDRESS,
   ACTIVITY_CV_SOLANA_CHAIN_ID,
   ACTIVITY_CV_SOLANA_SEND_ID,
+  ACTIVITY_CV_SOLANA_SWAP_ID,
   ACTIVITY_CV_USDC,
   activityCvBridgeEthToMusdLineaHistoryEntry,
   activityCvBridgeEthToSolHistoryEntry,
@@ -26,6 +28,7 @@ import {
   activityCvMusdConversionHistoryEntry,
   activityCvPendingCrossChainSwapBridgeHistoryEntry,
   activityCvSolanaSendStateOverrides,
+  activityCvSolanaSwapStateOverrides,
   activityLineaMusdTokenRatesOverride,
   activityLineaNetworkOverride,
   activityMusdTokenRatesOverride,
@@ -41,6 +44,7 @@ import {
   buildConfirmedLocalMusdConversionTransaction,
   buildConfirmedLocalMusdSendTransaction,
   buildConfirmedLocalSmartAccountUpgradeTransaction,
+  buildConfirmedLocalStakingDepositTransaction,
   buildConfirmedLocalUsdtIncreaseAllowanceTransaction,
   buildConfirmedLocalUsdtUnlimitedApproveTransaction,
   buildPendingLocalCrossChainSwapTransaction,
@@ -90,6 +94,7 @@ const {
   TOTAL_ROW,
   FEE_TOKEN_AVATAR,
   BLOCK_EXPLORER_BUTTON,
+  DO_IT_AGAIN_BUTTON,
 } = ActivityDetailsSelectorsIDs;
 
 const MAINNET_CAIP = 'eip155:1';
@@ -1185,6 +1190,88 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
   });
 });
 
+describeForPlatforms('ActivityDetails — stake', () => {
+  it('shows confirmed Staked Ethereum with fee, total, tx id, and explorer', async () => {
+    const stakeTransaction = buildConfirmedLocalStakingDepositTransaction();
+    const state = initialStateActivityWithLocalTransactions([stakeTransaction])
+      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
+      .build();
+
+    const {
+      findByTestId,
+      findByText,
+      getByTestId,
+      queryByTestId,
+      UNSAFE_getAllByType,
+    } = renderActivityDetailsView({
+      state,
+      params: {
+        chainId: MAINNET_CAIP,
+        txIdentifier: stakeTransaction.id,
+      },
+    });
+
+    expect(await findByTestId(SCREEN)).toBeOnTheScreen();
+    expect(await findByText('Staked Ethereum')).toBeOnTheScreen();
+    expect(getByTestId(HEADER)).toBeOnTheScreen();
+
+    const amountHeader = await findByTestId(AMOUNT_HEADER);
+    expect(
+      within(amountHeader).getByTestId(AMOUNT_AVATAR_SINGLE),
+    ).toBeOnTheScreen();
+    expect(within(amountHeader).getByText(/^-.*ETH/)).toBeOnTheScreen();
+    expect(findAmountTextColor(UNSAFE_getAllByType, /^-.*ETH/)).toBe(
+      TextColor.TextDefault,
+    );
+
+    expect(await findByTestId(STATUS_PILL)).toHaveTextContent(
+      strings('transaction.confirmed'),
+    );
+
+    const expectedDate = formatTimestampToDateTime(stakeTransaction.time);
+    expect(getByTestId(DATE_ROW)).toHaveTextContent(expectedDate as string, {
+      exact: false,
+    });
+
+    const accountRow = getByTestId(ACCOUNT_ROW);
+    expect(accountRow).toHaveTextContent('Group 1', { exact: false });
+    expect(accountRow).toHaveTextContent(
+      renderShortAddress(ACTIVITY_CV_ACCOUNT),
+      { exact: false },
+    );
+
+    expect(getByTestId(NETWORK_ROW)).toHaveTextContent(
+      'Ethereum Main Network',
+      { exact: false },
+    );
+
+    expect(getByTestId(TRANSACTION_ID_ROW)).toHaveTextContent(
+      renderShortAddress(stakeTransaction.hash as string),
+      { exact: false },
+    );
+    await act(async () => {
+      fireEvent.press(getByTestId(TRANSACTION_ID_COPY));
+    });
+
+    await waitFor(() => {
+      expect(getByTestId(FEE_ROW)).toHaveTextContent(/\$/);
+    });
+    expect(
+      within(getByTestId(FEE_ROW)).getByTestId(FEE_TOKEN_AVATAR),
+    ).toBeOnTheScreen();
+    expect(within(getByTestId(FEE_ROW)).getByText('ETH')).toBeOnTheScreen();
+    expect(getByTestId(TOTAL_ROW)).toHaveTextContent(/\$/);
+
+    expect(queryByTestId(DO_IT_AGAIN_BUTTON)).toBeNull();
+
+    const blockExplorer = getByTestId(BLOCK_EXPLORER_BUTTON);
+    expect(blockExplorer).toHaveTextContent(
+      strings('activity_details.view_on_block_explorer'),
+    );
+    fireEvent.press(blockExplorer);
+  });
+});
+
 /**
  * Details resolves local txs from TransactionController. Keep EVM networks
  * disabled so useTransactionsQuery does not hit the Accounts API.
@@ -1325,3 +1412,85 @@ describeForPlatforms(
     });
   },
 );
+
+describeForPlatforms('ActivityDetails — Solana swap', () => {
+  it('shows confirmed Swapped SOL → USDC with fee, explorer, and Swap again', async () => {
+    const state = initialStateActivity()
+      .withOverrides(activityCvSolanaSwapStateOverrides)
+      .build();
+
+    const { findByTestId, findByText, getByTestId, UNSAFE_getAllByType } =
+      renderActivityDetailsView({
+        state,
+        params: {
+          chainId: ACTIVITY_CV_SOLANA_CHAIN_ID,
+          txIdentifier: ACTIVITY_CV_SOLANA_SWAP_ID,
+        },
+      });
+
+    expect(await findByTestId(SCREEN)).toBeOnTheScreen();
+    expect(await findByText('Swapped')).toBeOnTheScreen();
+
+    const amountHeader = await findByTestId(AMOUNT_HEADER);
+    expect(
+      within(amountHeader).getByText(strings('activity_details.you_sent')),
+    ).toBeOnTheScreen();
+    expect(
+      within(amountHeader).getByText(strings('activity_details.you_received')),
+    ).toBeOnTheScreen();
+    expect(within(amountHeader).getByText(/^-.*SOL/)).toBeOnTheScreen();
+    expect(within(amountHeader).getByText(/^\+.*USDC/)).toBeOnTheScreen();
+    expect(findAmountTextColor(UNSAFE_getAllByType, /^\+.*USDC/)).toBe(
+      TextColor.SuccessDefault,
+    );
+
+    expect(await findByTestId(STATUS_PILL)).toHaveTextContent(
+      strings('transaction.confirmed'),
+    );
+
+    const expectedDate = formatTimestampToDateTime(1_716_367_796_000);
+    expect(getByTestId(DATE_ROW)).toHaveTextContent(expectedDate as string, {
+      exact: false,
+    });
+
+    const accountRow = getByTestId(ACCOUNT_ROW);
+    expect(accountRow).toHaveTextContent('AccountGroup 1', {
+      exact: false,
+    });
+    expect(accountRow).toHaveTextContent(
+      renderShortAddress(ACTIVITY_CV_SOLANA_ADDRESS),
+      { exact: false },
+    );
+
+    expect(getByTestId(NETWORK_ROW)).toHaveTextContent('Solana', {
+      exact: false,
+    });
+
+    expect(getByTestId(TRANSACTION_ID_ROW)).toHaveTextContent('activit', {
+      exact: false,
+    });
+    expect(getByTestId(TRANSACTION_ID_ROW)).toHaveTextContent('-swap', {
+      exact: false,
+    });
+    await act(async () => {
+      fireEvent.press(getByTestId(TRANSACTION_ID_COPY));
+    });
+
+    expect(await findByTestId(FEE_ROW)).toHaveTextContent('0.01', {
+      exact: false,
+    });
+    expect(within(getByTestId(FEE_ROW)).getByText('SOL')).toBeOnTheScreen();
+    // 1 SOL × multichain rate 4; Solana base fees stay token-denominated.
+    expect(getByTestId(TOTAL_ROW)).toHaveTextContent('$4.00', {
+      exact: false,
+    });
+
+    expect(getByTestId(BLOCK_EXPLORER_BUTTON)).toHaveTextContent(
+      strings('activity_details.view_on_block_explorer'),
+    );
+
+    const swapAgain = getByTestId(DO_IT_AGAIN_BUTTON);
+    expect(swapAgain).toHaveTextContent(strings('activity_details.swap_again'));
+    fireEvent.press(swapAgain);
+  });
+});
