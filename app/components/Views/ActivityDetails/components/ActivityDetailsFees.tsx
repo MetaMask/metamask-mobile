@@ -1,14 +1,15 @@
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
-import type {
-  ActivityListItem,
-  TokenAmount,
+import {
+  isFailedOrCancelledTransfer,
+  type ActivityListItem,
+  type TokenAmount,
 } from '../../../../util/activity-adapters';
 import {
   ActivityDetailRow,
   ActivityDetailSection,
 } from './ActivityDetailsLayout';
-import { formatActivityTokenAmount } from './activityTokenFormat';
+import { useFormatActivityTokenAmount } from './activityTokenFormat';
 import { ActivityDetailsFeeValue } from './ActivityDetailsFeeValue';
 import {
   useActivityAmountsFiat,
@@ -51,14 +52,16 @@ function getTotalRowValue({
   totalFiat,
   totalToken,
   fiatOnly,
+  formatTokenAmount,
 }: {
   totalFiat?: string;
   totalToken?: TokenAmount;
   fiatOnly: boolean;
+  formatTokenAmount: ReturnType<typeof useFormatActivityTokenAmount>;
 }) {
   return fiatOnly
     ? totalFiat
-    : (totalFiat ?? formatActivityTokenAmount(totalToken, { showPlus: false }));
+    : (totalFiat ?? formatTokenAmount(totalToken, { showPlus: false }));
 }
 
 function ActivityDetailsTotalRowContent({
@@ -70,10 +73,12 @@ function ActivityDetailsTotalRowContent({
   token?: TokenAmount;
   fiatOnly: boolean;
 }) {
+  const formatTokenAmount = useFormatActivityTokenAmount();
   const value = getTotalRowValue({
     totalFiat,
     totalToken: token,
     fiatOnly,
+    formatTokenAmount,
   });
 
   if (!value) {
@@ -90,6 +95,9 @@ function ActivityDetailsTotalRowContent({
 }
 
 function getDefaultTotalToken(item: ActivityListItem) {
+  if (isFailedOrCancelledTransfer(item)) {
+    return undefined;
+  }
   return 'token' in item.data
     ? (item.data.token as TokenAmount | undefined)
     : undefined;
@@ -143,8 +151,14 @@ export function ActivityDetailsFeesAndTotal({
   fiatOnly?: boolean;
 }) {
   const { feeRows, totalFiat } = useActivityAmountsFiat(item, token);
+  const formatTokenAmount = useFormatActivityTokenAmount();
   const totalToken = token ?? getDefaultTotalToken(item);
-  const totalValue = getTotalRowValue({ totalFiat, totalToken, fiatOnly });
+  const totalValue = getTotalRowValue({
+    totalFiat,
+    totalToken,
+    fiatOnly,
+    formatTokenAmount,
+  });
 
   if (!feeRows.length && !totalValue) {
     return null;

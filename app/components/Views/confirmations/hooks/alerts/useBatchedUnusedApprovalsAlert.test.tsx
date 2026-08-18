@@ -6,6 +6,7 @@ import {
   SimulationTokenBalanceChange,
   SimulationTokenStandard,
   TransactionMeta,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { waitFor } from '@testing-library/react-native';
@@ -29,6 +30,7 @@ import { ApproveMethod } from '../../types/approve';
 import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
 import { TokenStandard } from '../../../../UI/SimulationDetails/types';
 import { RootState } from '../../../../../reducers';
+import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 
 const TOKEN_ADDRESS_1 = '0x1234567890123456789012345678901234567890' as Hex;
 const TOKEN_ADDRESS_2 = '0x2345678901234567890123456789012345678901' as Hex;
@@ -792,6 +794,45 @@ describe('useBatchedUnusedApprovalsAlert', () => {
         ...batchApprovalConfirmation,
         origin: undefined,
       });
+      await waitFor(() => {
+        expect(result.current).toEqual([]);
+      });
+    });
+  });
+
+  describe('MM Pay transactions', () => {
+    beforeEach(() => {
+      jest
+        .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
+        .mockReturnValue({
+          name: ApproveMethod.APPROVE,
+          amountOrTokenId: new BigNumber('1000'),
+          tokenAddress: undefined,
+          isRevokeAll: false,
+        });
+    });
+
+    it.each(MM_PAY_TRANSACTION_TYPES)(
+      'returns no alerts for MM Pay transaction type %s',
+      async (transactionType: TransactionType) => {
+        const { result } = runHook({
+          ...batchApprovalConfirmation,
+          type: transactionType,
+        } as unknown as TransactionMeta);
+        await waitFor(() => {
+          expect(result.current).toEqual([]);
+        });
+      },
+    );
+
+    it('returns no alerts for MM Pay nested transaction type', async () => {
+      const { result } = runHook({
+        ...batchApprovalConfirmation,
+        nestedTransactions: [
+          ...(batchApprovalConfirmation.nestedTransactions ?? []),
+          { type: TransactionType.perpsDeposit },
+        ],
+      } as unknown as TransactionMeta);
       await waitFor(() => {
         expect(result.current).toEqual([]);
       });

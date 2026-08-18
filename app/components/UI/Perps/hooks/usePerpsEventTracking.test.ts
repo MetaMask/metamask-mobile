@@ -3,19 +3,33 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  PerpsMode,
 } from '@metamask/perps-controller';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { getPerpsUtmAttributionProperties } from '../utils/perpsAnalyticsAttribution';
+import { PERPS_MODE_ANALYTICS_PROPERTY } from '../utils/perpsModeAnalytics';
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
+jest.mock('../utils/perpsAnalyticsAttribution', () => ({
+  getPerpsUtmAttributionProperties: jest.fn(() => ({})),
+}));
+jest.mock('../utils/perpsModeAnalytics', () => ({
+  PERPS_MODE_ANALYTICS_PROPERTY: 'perps_mode',
+}));
+
+const mockGetPerpsUtmAttributionProperties = jest.mocked(
+  getPerpsUtmAttributionProperties,
+);
 
 describe('usePerpsEventTracking', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.spyOn(Date, 'now').mockReturnValue(1234567890);
+    mockGetPerpsUtmAttributionProperties.mockReturnValue({});
 
     mockCreateEventBuilder.mockImplementation(() => ({
       addProperties: jest.fn().mockReturnThis(),
@@ -71,6 +85,22 @@ describe('usePerpsEventTracking', () => {
       });
     });
 
+    it('passes through explicit perps_mode for enrichWithPerpsMode to honor', () => {
+      const { result } = renderHook(() => usePerpsEventTracking());
+
+      act(() => {
+        result.current.track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
+        });
+      });
+
+      const eventBuilder = mockCreateEventBuilder.mock.results[0].value;
+      expect(eventBuilder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
+        [PERPS_MODE_ANALYTICS_PROPERTY]: PerpsMode.Pro,
+      });
+    });
+
     it('tracks Asset Viewed when PERPS_SCREEN_VIEWED is tracked', () => {
       const { result } = renderHook(() => usePerpsEventTracking());
       const customProps = {
@@ -111,6 +141,52 @@ describe('usePerpsEventTracking', () => {
       expect(assetViewedProperties).not.toHaveProperty(
         PERPS_EVENT_PROPERTY.OPEN_POSITION,
       );
+    });
+
+    it('merges UTM attribution into PERPS_SCREEN_VIEWED props', () => {
+      mockGetPerpsUtmAttributionProperties.mockReturnValueOnce({
+        [PERPS_EVENT_PROPERTY.UTM_SOURCE]: 'newsletter',
+        [PERPS_EVENT_PROPERTY.UTM_MEDIUM]: 'email',
+      });
+      const { result } = renderHook(() => usePerpsEventTracking());
+      const customProps = {
+        screen_type: 'home',
+        // Explicit UTM should win over the stored attribution value.
+        [PERPS_EVENT_PROPERTY.UTM_MEDIUM]: 'push',
+      };
+
+      act(() => {
+        result.current.track(
+          MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          customProps,
+        );
+      });
+
+      const perpsBuilder = mockCreateEventBuilder.mock.results[0].value;
+      expect(perpsBuilder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.UTM_SOURCE]: 'newsletter',
+        [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
+        ...customProps,
+      });
+    });
+
+    it('does not merge UTM attribution into non-screen-viewed events', () => {
+      const { result } = renderHook(() => usePerpsEventTracking());
+
+      act(() => {
+        result.current.track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+        });
+      });
+
+      expect(mockGetPerpsUtmAttributionProperties).not.toHaveBeenCalled();
+      const builder = mockCreateEventBuilder.mock.results[0].value;
+      expect(builder.addProperties).toHaveBeenCalledWith({
+        [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+      });
     });
 
     it('does not track Asset Viewed for cancel_all_orders', () => {

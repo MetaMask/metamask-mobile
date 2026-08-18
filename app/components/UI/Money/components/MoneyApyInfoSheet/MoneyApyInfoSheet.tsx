@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -13,7 +14,6 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import styleSheet from './MoneyApyInfoSheet.styles';
 import { MoneyApyInfoSheetTestIds } from './MoneyApyInfoSheet.testIds';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
 import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
@@ -21,16 +21,15 @@ import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 type MoneyApyInfoSheetVariant = 'default' | 'deposit';
 
 interface MoneyApyInfoSheetParams {
-  apy: number;
+  apy?: number;
   variant?: MoneyApyInfoSheetVariant;
 }
 
 const MoneyApyInfoSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { apy, variant = 'default' } = useParams<MoneyApyInfoSheetParams>();
-  const surfaceClass = useElevatedSurface();
 
   const { trackBottomSheetViewed } = useMoneyAnalytics({
     bottom_sheet_name: BOTTOM_SHEET_NAMES.MONEY_APY_INFO_SHEET,
@@ -74,7 +73,6 @@ const MoneyApyInfoSheet = () => {
       goBack={handleGoBack}
       testID={MoneyApyInfoSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingSm}>

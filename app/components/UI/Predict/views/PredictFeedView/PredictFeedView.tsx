@@ -1,5 +1,11 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  useFocusEffect,
+} from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { FlashList } from '@shopify/flash-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -13,17 +19,19 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import {
   TabItem,
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
+import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import PredictOffline from '../../components/PredictOffline';
 import PredictChipList from '../../components/PredictChipList';
 import PredictSearchOverlay from '../../components/PredictSearchOverlay';
 import { usePredictFeedConfig } from '../../hooks/usePredictFeedConfig';
-import { usePredictMarketList } from '../../hooks/usePredictMarketList';
+import { usePredictFeedMarketList } from '../../hooks/usePredictFeedMarketList';
 import { usePredictSearch } from '../../hooks/usePredictSearch';
 import {
   PredictFeedViewSelectorsIDs,
@@ -31,6 +39,7 @@ import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
 } from '../../Predict.testIds';
+import { resolvePredictFilterLabel } from '../../utils/feed';
 import type { PredictNavigationParamList } from '../../types/navigation';
 import type { PredictMarket as PredictMarketType } from '../../types';
 
@@ -39,15 +48,15 @@ const INITIAL_SKELETON_COUNT = 4;
 /**
  * Generic, config-driven Predict feed screen.
  *
- * Powers every configured feed (Sports / Politics / Crypto / Live / Trending /
- * Popular Today) from one component. Presentational: it consumes
+ * Powers every configured feed (Sports / Politics / Crypto / Live / Trending)
+ * from one component. Presentational: it consumes
  * `usePredictFeedConfig` for the render-ready config + tab/filter selection
  * state and `usePredictMarketList` for the active tab/filter's market data —
  * it owns no hydration/dedup/fallback logic itself.
  */
 const PredictFeedView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictFeed'>>();
   const { feedId, initialTabId, initialFilterId, entryPoint } =
@@ -60,15 +69,34 @@ const PredictFeedView: React.FC = () => {
     header,
     tabs,
     showTabBar,
+    showFilterBar,
     activeTabId,
     setActiveTabId,
     filters,
+    dynamicFilters,
     activeFilterId,
     setActiveFilterId,
     activeFilter,
   } = usePredictFeedConfig(feedId, { initialTabId, initialFilterId });
 
   const isReady = status === 'ready';
+  const showSportsLiveFirst =
+    feedId === 'sports' && activeFilter?.showLiveFirst === true;
+
+  // True once the active filter state is stable enough to log.
+  // - No initialFilterId → settled immediately.
+  // - Otherwise block while dynamic filters are still loading.
+  // - Once loading is done, check whether the requested filter actually
+  //   appeared in the resolved list:
+  //   • If it did appear, wait for activeFilterId to catch up (usePredictFeedConfig
+  //     applies the pending filter one render after the fetch settles).
+  //   • If it never appeared (chip absent from the API response), fire with
+  //     the current fallback filter rather than blocking forever.
+  const isFilterSettled =
+    !initialFilterId ||
+    (dynamicFilters.status !== 'loading' &&
+      (!filters.some((f) => f.id === initialFilterId) ||
+        activeFilterId === initialFilterId));
 
   const {
     isSearchVisible,
@@ -86,7 +114,58 @@ const PredictFeedView: React.FC = () => {
     hasNextPage,
     refetch,
     fetchNextPage,
-  } = usePredictMarketList(activeFilter?.params ?? {}, { enabled: isReady });
+  } = usePredictFeedMarketList(activeFilter?.params ?? {}, {
+    enabled: isReady,
+    showLiveFirst: showSportsLiveFirst,
+    autoAdvanceEmptyPages: feedId === 'sports',
+    filterStaleGameMarkets: feedId === 'sports',
+    filterByVolume: activeFilter?.filterByVolume,
+  });
+
+  // Keep the latest tab/filter selection in a ref so the focus effect can read
+  // it without re-firing "feed viewed" every time the tab/filter changes (those
+  // have their own dedicated events).
+  const feedSelectionRef = useRef({ activeTabId, activeFilterId });
+  useEffect(() => {
+    feedSelectionRef.current = { activeTabId, activeFilterId };
+  }, [activeTabId, activeFilterId]);
+
+  // Tracks whether "feed viewed" has already fired in the current focus session.
+  // Prevents double-fires if isReady oscillates (e.g. config re-resolves) while
+  // the screen is focused, since useFocusEffect re-runs on each dep change.
+  const feedViewedFiredRef = useRef(false);
+
+  // Reset the guard on each new screen focus so return visits can re-fire.
+  useFocusEffect(
+    useCallback(() => {
+      feedViewedFiredRef.current = false;
+    }, []),
+  );
+
+  // Fire once per focus when the feed config is ready and the filter selection
+  // has settled. `isFilterSettled` delays the fire when `initialFilterId`
+  // targets a dynamic chip that hasn't resolved yet; `feedSelectionRef` carries
+  // the latest tab/filter at fire-time so they don't need to be effect deps.
+  useFocusEffect(
+    useCallback(() => {
+      if (
+        !isReady ||
+        !feedId ||
+        !isFilterSettled ||
+        feedViewedFiredRef.current
+      ) {
+        return;
+      }
+      feedViewedFiredRef.current = true;
+      Engine.context.PredictController.trackFeedViewed({
+        feedId,
+        tabId: feedSelectionRef.current.activeTabId,
+        filterId: feedSelectionRef.current.activeFilterId,
+        trackingMode: 'focus',
+        entryPoint,
+      });
+    }, [isReady, feedId, isFilterSettled, entryPoint]),
+  );
 
   const handleBack = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -95,6 +174,15 @@ const PredictFeedView: React.FC = () => {
     }
     navigation.navigate(Routes.PREDICT.ROOT);
   }, [navigation]);
+
+  const handleShowSearch = useCallback(() => {
+    Engine.context.PredictController.trackSearchInteracted({
+      interactionType: PredictEventValues.SEARCH_INTERACTION.OPENED,
+      predictFeedTab: activeTabId,
+      entryPoint,
+    });
+    showSearch();
+  }, [activeTabId, entryPoint, showSearch]);
 
   // Unknown feed -> bounce back so the user never lands on an empty shell.
   useEffect(() => {
@@ -107,7 +195,7 @@ const PredictFeedView: React.FC = () => {
     () =>
       tabs.map((tab) => ({
         key: tab.id,
-        label: strings(tab.titleKey),
+        label: resolvePredictFilterLabel(tab),
         content: null,
       })),
     [tabs],
@@ -121,20 +209,53 @@ const PredictFeedView: React.FC = () => {
   const handleTabPress = useCallback(
     (index: number) => {
       const tab = tabs[index];
-      if (tab) {
+      if (tab && tab.id !== activeTabId) {
         setActiveTabId(tab.id);
+        if (feedId) {
+          Engine.context.PredictController.trackFeedTabChanged({
+            feedId,
+            tabId: tab.id,
+            entryPoint,
+          });
+        }
       }
     },
-    [tabs, setActiveTabId],
+    [tabs, setActiveTabId, feedId, activeTabId, entryPoint],
+  );
+
+  const handleFilterSelect = useCallback(
+    (filterId: string) => {
+      if (filterId === activeFilterId) {
+        return;
+      }
+      setActiveFilterId(filterId);
+      if (feedId) {
+        const isDynamicFilter =
+          filters.find((filter) => filter.id === filterId)?.isDynamic ?? false;
+        Engine.context.PredictController.trackFeedFilterChanged({
+          feedId,
+          tabId: activeTabId,
+          filterId,
+          isDynamicFilter,
+          entryPoint,
+        });
+      }
+    },
+    [
+      setActiveFilterId,
+      filters,
+      feedId,
+      activeTabId,
+      activeFilterId,
+      entryPoint,
+    ],
   );
 
   const chips = useMemo(
     () =>
       filters.map((filter) => ({
         key: filter.id,
-        label: filter.titleKey
-          ? strings(filter.titleKey)
-          : (filter.label ?? ''),
+        label: resolvePredictFilterLabel(filter),
       })),
     [filters],
   );
@@ -260,7 +381,7 @@ const PredictFeedView: React.FC = () => {
             ? [
                 {
                   iconName: IconName.Search,
-                  onPress: showSearch,
+                  onPress: handleShowSearch,
                   testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
                 },
               ]
@@ -279,12 +400,14 @@ const PredictFeedView: React.FC = () => {
           />
         )}
 
-        <PredictChipList
-          chips={chips}
-          activeChipKey={activeFilterId ?? ''}
-          onChipSelect={setActiveFilterId}
-          testID={PredictFeedViewSelectorsIDs.FILTERS}
-        />
+        {showFilterBar && (
+          <PredictChipList
+            chips={chips}
+            activeChipKey={activeFilterId ?? ''}
+            onChipSelect={handleFilterSelect}
+            testID={PredictFeedViewSelectorsIDs.FILTERS}
+          />
+        )}
 
         {renderContent()}
       </Box>

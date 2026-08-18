@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
@@ -11,7 +12,7 @@ export function useMainNotificationToggle() {
   const { data: notificationsEnabled, switchNotifications } =
     useNotificationsToggle();
   const remoteValue = notificationsEnabled ?? false;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const basicFunctionalityEnabled = useSelector(
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );

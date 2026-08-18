@@ -3,17 +3,13 @@ import Gestures from '../../framework/Gestures';
 import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
 import {
   Assertions,
-  FrameworkDetector,
   PlatformDetector,
   Utilities,
-  resolve,
   EncapsulatedElementType,
   sleep,
 } from '../../framework';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 import { waitForWalletHomePlaywright } from '../../flows/wallet.flow';
-import { encapsulated } from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
 import AccountMenu from '../AccountMenu/AccountMenu';
@@ -31,19 +27,11 @@ class TabBarComponent {
   }
 
   get tabBarWalletButton(): EncapsulatedElementType {
-    return resolve({
-      detoxTestID: TabBarSelectorIDs.WALLET,
-      androidAppiumTestID: TabBarSelectorIDs.WALLET,
-      iosAppiumTestID: TabBarSelectorIDs.WALLET,
-    });
+    return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
   }
 
   get tabBarActionButton(): EncapsulatedElementType {
-    return resolve({
-      detoxTestID: TabBarSelectorIDs.TRADE,
-      androidAppiumTestID: TabBarSelectorIDs.ACTIONS,
-      iosAppiumTestID: TabBarSelectorIDs.ACTIONS,
-    });
+    return Matchers.getElementByID(TabBarSelectorIDs.ACTIONS);
   }
 
   get tabBarTradeButton(): EncapsulatedElementType {
@@ -62,21 +50,19 @@ class TabBarComponent {
     return Matchers.getElementByID(TabBarSelectorIDs.REWARDS);
   }
 
+  get tabBarMoneyButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(TabBarSelectorIDs.MONEY);
+  }
+
   get homeButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText('Home'),
-      appium: () =>
-        PlaywrightMatchers.getElementById(TabBarSelectorIDs.WALLET, {
-          exact: true,
-        }),
-    });
+    return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
   }
 
   async tapHome(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
         await Gestures.waitAndTap(this.homeButton, { timeout: 2000 });
-        if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+        if (PlatformDetector.isIOS()) {
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
         } else {
           await Assertions.expectElementToBeVisible(WalletView.container, {
@@ -95,12 +81,16 @@ class TabBarComponent {
   async tapWallet(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await Gestures.waitAndTap(this.tabBarWalletButton, { timeout: 2000 });
-        if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+        await Gestures.waitAndTap(this.tabBarWalletButton, {
+          elemDescription: 'Tab Bar - Wallet Button',
+          timeout: 5_000,
+        });
+
+        if (PlatformDetector.isIOS()) {
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
         } else {
           await Assertions.expectElementToBeVisible(WalletView.container, {
-            timeout: 500,
+            timeout: 5_000,
           });
         }
       },
@@ -152,7 +142,7 @@ class TabBarComponent {
     await Utilities.executeWithRetry(
       async () => {
         await Gestures.waitAndTap(this.tabBarWalletButton, { timeout: 2000 });
-        if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+        if (PlatformDetector.isIOS()) {
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
         } else {
           await Assertions.expectElementToBeVisible(WalletView.container, {
@@ -224,6 +214,13 @@ class TabBarComponent {
         description: 'Tap Rewards Button',
       },
     );
+  }
+
+  async tapMoney(): Promise<void> {
+    await Gestures.waitAndTap(this.tabBarMoneyButton, {
+      elemDescription: 'Tab Bar - Money Button',
+      timeout: 5000,
+    });
   }
 }
 

@@ -2,7 +2,6 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { SmokePerps } from '../../tags.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { placeLimitOrderAtPreset } from '../../flows/perps.flow.js';
-import PerpsView from '../../page-objects/Perps/PerpsView.js';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView.js';
 import PerpsOrderDetailsView from '../../page-objects/Perps/PerpsOrderDetailsView.js';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers.js';
@@ -40,23 +39,11 @@ appiumTest.describe(SmokePerps('Perps - Limit order cancel'), () => {
             'long',
             'Mid',
           );
-          await PerpsView.navigateToPerpsPortfolioHomeFromMarketOrderFlow();
 
-          await PerpsView.expectLimitOrderVisibleOnPortfolio({
-            symbol: PERPS_SMOKE_MARKET_SYMBOL,
-            direction: 'long',
-          });
-
-          await PerpsView.tapLimitOrderOnPortfolio({
-            symbol: PERPS_SMOKE_MARKET_SYMBOL,
-            direction: 'long',
-          });
           await PerpsMarketDetailsView.tapFirstCompactOrderRow();
           await PerpsOrderDetailsView.tapCancelOrderButton();
-          await PerpsView.navigateToPerpsPortfolioHomeFromMarketOrderFlow();
 
-          await PerpsView.expectLimitOrderNotVisibleOnPortfolio({
-            symbol: PERPS_SMOKE_MARKET_SYMBOL,
+          await PerpsMarketDetailsView.expectCompactOpenOrderNotVisible({
             direction: 'long',
           });
 
@@ -66,8 +53,7 @@ appiumTest.describe(SmokePerps('Perps - Limit order cancel'), () => {
             '2125.00',
           );
 
-          await PerpsView.expectLimitOrderNotVisibleOnPortfolio({
-            symbol: PERPS_SMOKE_MARKET_SYMBOL,
+          await PerpsMarketDetailsView.expectCompactOpenOrderNotVisible({
             direction: 'long',
           });
         },

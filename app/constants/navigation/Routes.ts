@@ -116,6 +116,7 @@ const Routes = {
   REWARDS_VIP_SPLASH_VIEW: 'RewardsVipSplashView',
   REWARDS_VIP_VIEW: 'RewardsVipView',
   REWARDS_VIP_TIERS_VIEW: 'RewardsVipTiersView',
+  REWARDS_VIP_TRANSACTIONS_VIEW: 'RewardsVipTransactionsView',
   REWARDS_VIP_REFEREE_SPLASH_VIEW: 'RewardsVipRefereeSplashView',
   REWARDS_VIP_REFEREE_VIEW: 'RewardsVipRefereeView',
   REWARDS_CAMPAIGNS_VIEW: 'RewardsCampaignsView',
@@ -182,11 +183,14 @@ const Routes = {
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
+    SUPPORT_CONSENT_SHEET: 'SupportConsentSheet',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
     SUCCESS_FLOW: 'OnboardingSuccessFlow',
     SUCCESS: 'OnboardingSuccess',
+    FIRST_PREDICT_ON_US_SPLASH: 'FirstPredictOnUsSplash',
+    FIRST_PREDICT_ON_US_ORDER_SHEET: 'FirstPredictOnUsOrderSheet',
     DEFAULT_SETTINGS: 'DefaultSettings',
     GENERAL_SETTINGS: 'GeneralSettings',
     ASSETS_SETTINGS: 'AssetsSettings',
@@ -240,12 +244,12 @@ const Routes = {
     REGION_SELECTOR: 'SettingsRegionSelector',
   },
   SHEET: {
-    ACCOUNT_SELECTOR: 'AccountSelector',
     ADDRESS_SELECTOR: 'AddressSelector',
     ADD_WALLET: 'AddWallet',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
     CONFIRM_TURN_ON_BACKUP_AND_SYNC: 'ConfirmTurnOnBackupAndSync',
+    FEATURE_NOTIFICATIONS_GATE: 'FeatureNotificationsGate',
     SDK_LOADING: 'SDKLoading',
     SDK_FEEDBACK: 'SDKFeedback',
     SDK_CONNECT_V2_OTP: 'SDKConnectV2Otp',
@@ -267,6 +271,9 @@ const Routes = {
     ORIGIN_SPAM_MODAL: 'OriginSpamModal',
     TOOLTIP_MODAL: 'tooltipModal',
     TOKEN_SORT: 'TokenSort',
+    ACTIVITY_TYPE_FILTER: 'ActivityTypeFilter',
+    ACTIVITY_PERPS_FILTER: 'ActivityPerpsFilter',
+    ACTIVITY_NETWORK_FILTER: 'ActivityNetworkFilter',
     MA_PICKER: 'MAPicker',
     NETWORK_MANAGER: 'NetworkManager',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
@@ -316,6 +323,7 @@ const Routes = {
     RWA_TOKENS_FULL_VIEW: 'RWATokensFullView',
     DEFI_FULL_VIEW: 'DeFiFullView',
     CASH_TOKENS_FULL_VIEW: 'CashTokensFullView',
+    WATCHLIST_FULL_VIEW: 'WatchlistFullView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
@@ -391,6 +399,7 @@ const Routes = {
       TOOLTIP: 'PerpsTooltip',
       CROSS_MARGIN_WARNING: 'PerpsCrossMarginWarning',
       SELECT_PROVIDER: 'PerpsSelectProvider',
+      MODE_SELECTION: 'PerpsModeSelection',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
@@ -405,6 +414,8 @@ const Routes = {
     VIEW: 'TopTradersView',
     PROFILE: 'TraderProfileView',
     POSITION: 'TraderPositionView',
+    ONBOARDING: 'SocialLeaderboardOnboarding',
+    TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
   PREDICT: {
     ROOT: 'Predict',
@@ -412,7 +423,6 @@ const Routes = {
     MARKET_DETAILS: 'PredictMarketDetails',
     POSITIONS: 'PredictPositions',
     ACTIVITY_DETAIL: 'PredictActivityDetail',
-    WORLD_CUP: 'PredictWorldCup',
     FEED: 'PredictFeed',
     MODALS: {
       ROOT: 'PredictModals',
@@ -420,7 +430,6 @@ const Routes = {
       SELL_PREVIEW: 'PredictSellPreview',
       UNAVAILABLE: 'PredictUnavailable',
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
-      GTM_MODAL: 'PredictGTMModal',
     },
   },
   LOCK_SCREEN: 'LockScreen',
@@ -498,6 +507,7 @@ const Routes = {
   },
   IMPORT_PRIVATE_KEY_VIEW: 'ImportPrivateKeyView',
   MULTICHAIN_ACCOUNTS: {
+    ACCOUNT_SELECTOR: 'AccountSelector',
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
     ACCOUNT_GROUP_DETAILS: 'MultichainAccountGroupDetails',
     WALLET_DETAILS: 'MultichainWalletDetails',
@@ -535,6 +545,8 @@ const Routes = {
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'CardCashback',
     CREDIT_REDEEM: 'CardCreditRedeem',
+    SET_PIN: 'CardSetPin',
+    CONFIRM_PIN: 'CardConfirmPin',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',
@@ -548,6 +560,8 @@ const Routes = {
       COMPLETE: 'CardOnboardingComplete',
       KYC_FAILED: 'CardOnboardingKYCFailed',
       KYC_PENDING: 'CardOnboardingKYCPending',
+      KYC_PROCESSING: 'CardOnboardingKYCProcessing',
+      FUNDING_APPROVAL: 'CardOnboardingFundingApproval',
     },
     MODALS: {
       ID: 'CardModals',
@@ -561,6 +575,7 @@ const Routes = {
       VIEW_PIN: 'CardViewPinModal',
       SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
       WAITLIST_FORM: 'CardWaitlistFormModal',
+      IMMERSVE_KYC: 'CardImmersveKYCModal',
       FORGOT_PASSWORD: 'CardForgotPasswordModal',
       CREDIT_BALANCE_TOOLTIP: 'CardCreditBalanceTooltipModal',
       CREDIT_REFUND_TOOLTIP: 'CardCreditRefundTooltipModal',
@@ -587,6 +602,10 @@ const Routes = {
   AGENTIC_CLI_APPROVAL: {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
+  },
+  PRO_SUBSCRIPTION: {
+    /** Root screen for the MetaMask Pro subscription flow. */
+    ROOT: 'ProSubscription',
   },
 } as const;
 

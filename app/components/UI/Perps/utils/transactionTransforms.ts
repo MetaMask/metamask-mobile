@@ -451,6 +451,10 @@ export function transformOrdersToTransactions(
       price,
       status,
       timestamp,
+      side,
+      reduceOnly,
+      isTrigger,
+      detailedOrderType,
     } = order;
 
     const isCancelled = status === 'canceled';
@@ -542,12 +546,17 @@ export function transformOrdersToTransactions(
       timestamp,
       asset: symbol,
       order: {
+        orderId,
         text: statusText,
         statusType: orderStatusType,
         type: orderTypeSlug.includes('limit') ? 'limit' : 'market',
         size: BigNumber(originalSize).multipliedBy(price).toString(),
         limitPrice: price,
         filled: `${filledPercent}%`,
+        side,
+        reduceOnly,
+        isTrigger,
+        detailedOrderType,
       },
     };
   });

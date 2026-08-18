@@ -7,6 +7,8 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { useCallback, useContext, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { ToastContext } from '../../../component-library/components/Toast';
@@ -36,6 +38,7 @@ import {
   useHardwareWallet,
   executeHardwareWalletOperation,
 } from '../../../core/HardwareWallet';
+import { skipHardwareWalletErrorIfReplacementSubmitted } from '../../../core/HardwareWallet/skipHardwareWalletErrorIfReplacementSubmitted';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 
 type Maybe<T> = T | null | undefined;
@@ -76,7 +79,7 @@ export type SpeedUpCancelModalState =
   (typeof SpeedUpCancelModalState)[keyof typeof SpeedUpCancelModalState];
 
 export function useUnifiedTxActions() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     ensureDeviceReady,
     setPendingOperationAddress,
@@ -148,6 +151,7 @@ export function useUnifiedTxActions() {
         showAwaitingConfirmation,
         hideAwaitingConfirmation,
         showHardwareWalletError,
+        onError: skipHardwareWalletErrorIfReplacementSubmitted(transaction.id),
         execute: async () => {
           if (
             transaction?.replacementParams?.type ===
@@ -322,8 +326,9 @@ export function useUnifiedTxActions() {
 
         if (isQRHardwareAccount) {
           const transactionId = speedUpTxId;
-          navigation.navigate(
-            ...createQRSigningTransactionModalNavDetails({
+          navigateWithDetails(
+            navigation,
+            createQRSigningTransactionModalNavDetails({
               transactionId,
               signMode: QRSignMode.SpeedUp,
               gasValues,
@@ -387,8 +392,9 @@ export function useUnifiedTxActions() {
 
         if (isQRHardwareAccount) {
           const transactionId = cancelTxId;
-          navigation.navigate(
-            ...createQRSigningTransactionModalNavDetails({
+          navigateWithDetails(
+            navigation,
+            createQRSigningTransactionModalNavDetails({
               transactionId,
               signMode: QRSignMode.Cancel,
               gasValues,
@@ -423,8 +429,9 @@ export function useUnifiedTxActions() {
 
   const signQRTransaction = useCallback(
     async (transactionMeta: TransactionMeta) => {
-      navigation.navigate(
-        ...createQRSigningTransactionModalNavDetails({
+      navigateWithDetails(
+        navigation,
+        createQRSigningTransactionModalNavDetails({
           transactionId: transactionMeta.id,
           onConfirmationComplete: () => {
             // Modal handles confirmation/rejection internally

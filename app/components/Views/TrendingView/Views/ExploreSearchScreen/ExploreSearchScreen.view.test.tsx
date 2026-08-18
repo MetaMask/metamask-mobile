@@ -38,6 +38,20 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     clearTrendingApiMocks();
   });
 
+  it('prefills the search input when initialQuery route param is provided', async () => {
+    const { findByTestId, getByDisplayValue } =
+      renderExploreSearchScreenWithRoutes({
+        initialParams: { initialQuery: 'ethereum' },
+      });
+
+    expect(getByDisplayValue('ethereum')).toBeOnTheScreen();
+
+    const allPill = await findByTestId(
+      ExploreSearchScreenSelectorsIDs.PILL_ALL,
+    );
+    expect(allPill).toBeOnTheScreen();
+  });
+
   it('pill row is visible after typing a search query', async () => {
     const { findByTestId, getByTestId } = renderExploreSearchScreenWithRoutes();
 
@@ -199,6 +213,25 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
       },
       { timeout: 5000 },
     );
+  });
+
+  it('holds back the keyboard and the results subtree until the screen transition settles', async () => {
+    const { getByTestId, queryByTestId, findByTestId } =
+      renderExploreSearchScreenWithRoutes();
+
+    const searchInput = getByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+    );
+
+    expect(searchInput.props.autoFocus).toBe(false);
+    expect(queryByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL)).toBeNull();
+
+    // Once settled, the input takes focus and the results mount.
+    await findByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
+    expect(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT).props
+        .autoFocus,
+    ).toBe(true);
   });
 
   it('"All" pill is selected by default and pill row is present on mount', async () => {

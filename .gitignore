@@ -141,9 +141,6 @@ scripts/reports/
 # PR description files (temporary, not to be committed)
 PR_DESC.md
 
-# Performance test results
-tests/smoke/performance/reports/*-performance-results.json
-
 # appwright
 appwright/report
 playwright-report/*
@@ -186,6 +183,7 @@ github-tools/
 
 # AI coding agents development files
 *.local.md
+*.local.json
 temp/
 /temp/
 .agent/
@@ -220,6 +218,8 @@ release-signoffs.json
 .claude/skills/
 .claude/commands/
 .agents/skills/
+.ai-pr-analyzer/skills/*
+.ai-pr-analyzer/flaky*
 .cursor/rules/*
 !.cursor/rules/*.mdc
 .cursor/skills/
@@ -239,3 +239,8 @@ build-env.json
 .tsccheck.log
 predict_tsc.log
 predict_tsc_summary.txt
+
+# mm CLI daemon
+.mm-server
+.mm-daemon.log
+test-artifacts/

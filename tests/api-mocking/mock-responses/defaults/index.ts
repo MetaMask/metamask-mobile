@@ -30,11 +30,13 @@ import { PERPS_HYPERLIQUID_MOCKS } from './perps-hyperliquid.ts';
 import { TRENDING_API_MOCKS } from '../trending-api-mocks.ts';
 import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map.ts';
 import { DIGEST_API_MOCKS } from './digest-api.ts';
+import { PRICE_ALERTS_API_MOCKS } from './price-alerts.ts';
 import { MONEY_ACCOUNT_MOCKS } from './money-account.ts';
 import { STATIC_ASSETS_MOCKS } from './static-assets.ts';
 import { SIGNATURE_INSIGHTS_MOCKS } from './signature-insights.ts';
 import { NFT_API_MOCKS } from './nft-api.ts';
 import { SOCIAL_API_MOCKS } from './social-api.ts';
+import { GEOLOCATION_API_MOCKS } from './geolocation-api.ts';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -62,10 +64,12 @@ export const DEFAULT_MOCKS = {
     ...(CONTENTFUL_BANNERS_MOCKS.GET || []),
     ...(TRENDING_API_MOCKS.GET || []),
     ...(DIGEST_API_MOCKS.GET || []),
+    ...(PRICE_ALERTS_API_MOCKS.GET || []),
     ...(MONEY_ACCOUNT_MOCKS.GET || []),
     ...(STATIC_ASSETS_MOCKS.GET || []),
     ...(NFT_API_MOCKS.GET || []),
     ...(SOCIAL_API_MOCKS.GET || []),
+    ...(GEOLOCATION_API_MOCKS.GET || []),
     ...(PERPS_HYPERLIQUID_MOCKS.GET || []),
     // Chains Network Mock - Provides blockchain network data
     {
@@ -213,6 +217,12 @@ export const DEFAULT_MOCKS = {
     },
     ...(DEFAULT_REWARDS_MOCKS.POST || []),
     ...(PERPS_HYPERLIQUID_MOCKS.POST || []),
+    {
+      urlEndpoint:
+        /^https:\/\/notification\.api\.cx\.metamask\.io\/api\/v4\/notifications$/,
+      responseCode: 200,
+      response: [],
+    },
   ],
   PUT: [
     ...(USER_STORAGE_MOCK.PUT || []),

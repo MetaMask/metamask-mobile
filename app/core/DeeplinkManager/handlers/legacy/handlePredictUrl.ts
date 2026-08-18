@@ -6,17 +6,7 @@ import {
   isPredictTabKey,
   type PredictTabKey,
 } from '../../../../components/UI/Predict/constants/feedTabs';
-import {
-  PREDICT_WORLD_CUP_FEED_PARAM,
-  resolvePredictWorldCupInitialTab,
-  type PredictWorldCupTabKey,
-} from '../../../../components/UI/Predict/constants/worldCupTabs';
-import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../../../components/UI/Predict/constants/flags';
-import {
-  selectPredictHomeRedesignEnabledFlag,
-  selectPredictWorldCupConfig,
-} from '../../../../components/UI/Predict/selectors/featureFlags';
-import type { PredictWorldCupConfig } from '../../../../components/UI/Predict/types/flags';
+import { selectPredictHomeRedesignEnabledFlag } from '../../../../components/UI/Predict/selectors/featureFlags';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 import {
@@ -36,10 +26,7 @@ interface PredictNavigationParams {
   market?: string; // Market ID
   utmSource?: string; // UTM source for analytics tracking
   tab?: PredictTabKey; // Feed tab (when no market param)
-  // TODO: `worldCupTab` holds the raw (unvalidated) tab value and is also reused
-  // by the generic feed. Remove/rename to a neutral field once the World Cup
-  // feature is sunset.
-  worldCupTab?: PredictWorldCupTabKey; // World Cup feed initial tab (raw tab value)
+  initialTabId?: string; // Generic feed initial tab id (raw tab value)
   feed?: string; // Dedicated feed key
   filter?: string; // Generic feed filter chip id (parsed separately from tab)
   query?: string; // Search query (when no market param)
@@ -69,23 +56,11 @@ const parsePredictNavigationParams = (
     market: marketId || undefined,
     utmSource: utmSource || undefined,
     tab,
-    worldCupTab: tabParam,
+    initialTabId: tabParam,
     feed: feed || undefined,
     filter: filter || undefined,
     query,
   };
-};
-
-const getPredictWorldCupConfig = (): PredictWorldCupConfig => {
-  try {
-    return selectPredictWorldCupConfig(ReduxService.store.getState());
-  } catch (error) {
-    DevLogger.log(
-      '[handlePredictUrl] Unable to read World Cup config, using default:',
-      error,
-    );
-    return DEFAULT_PREDICT_WORLD_CUP_FLAG;
-  }
 };
 
 const getPredictHomeRedesignEnabled = (): boolean => {
@@ -139,28 +114,6 @@ const marketListTarget = ({
     Routes.PREDICT.MARKET_LIST,
     getMarketListParams({ entryPoint, tab, query }),
   );
-
-const worldCupTarget = ({
-  requestedTab,
-  entryPoint,
-}: {
-  requestedTab?: PredictWorldCupTabKey;
-  entryPoint: string;
-}): DeeplinkIntent['target'] => {
-  const config = getPredictWorldCupConfig();
-
-  if (config.enabled && config.showWorldCupScreen) {
-    return predictTarget(Routes.PREDICT.WORLD_CUP, {
-      entryPoint,
-      initialTab: resolvePredictWorldCupInitialTab(requestedTab, config),
-    });
-  }
-
-  DevLogger.log(
-    '[handlePredictUrl] World Cup screen disabled, fallback to market list',
-  );
-  return marketListTarget({ entryPoint });
-};
 
 /**
  * Build the target for a generic, config-driven Predict feed (`PredictFeedView`).
@@ -232,11 +185,9 @@ const marketTarget = (
  * - https://link.metamask.io/predict?tab=crypto
  * - https://link.metamask.io/predict?q=bitcoin
  * - https://link.metamask.io/predict?query=bitcoin
- * - https://link.metamask.io/predict?feed=world-cup
- * - https://link.metamask.io/predict?feed=world-cup&tab=live
  * - https://link.metamask.io/predict?feed=sports
  * - https://link.metamask.io/predict?feed=sports&tab=all&filter=live
- * - https://link.metamask.io/predict?feed=popular-today&filter=elections
+ * - https://link.metamask.io/predict?feed=popular-today&filter=elections (redirects to Trending)
  * - https://link.metamask.io/predict?feed=trending&q=bitcoin
  *
  * Origin/EntryPoint handling:
@@ -247,8 +198,8 @@ const marketTarget = (
  * Navigation behavior:
  * - No market param: Navigate to market list
  * - market=X or marketId=X: Navigate directly to market details for market X
- * - feed=world-cup: Navigate to the dedicated World Cup feed when enabled
- * - feed=<known generic id> (sports/politics/crypto/live/trending/popular-today): Navigate to the generic PredictFeedView when the predictHomeRedesign flag is enabled (tab -> initialTabId, filter -> initialFilterId)
+ * - feed=<known generic id> (sports/politics/crypto/live/trending): Navigate to the generic PredictFeedView when the predictHomeRedesign flag is enabled (tab -> initialTabId, filter -> initialFilterId)
+ * - feed=popular-today: Redirect to the Trending feed while preserving its filter
  * - Unknown feed (or flag disabled): Fall back to the Predict market list
  * - Optional tab param when no market: Open feed on a specific tab
  * - query=X or q=X: Open feed with search overlay showing results for X
@@ -260,6 +211,8 @@ const resolvePredictTarget = ({
   // Parse navigation parameters from URL
   const navParams = parsePredictNavigationParams(predictPath);
   DevLogger.log('[handlePredictUrl] Parsed navigation parameters:', navParams);
+  const genericFeed =
+    navParams.feed === 'popular-today' ? 'trending' : navParams.feed;
 
   // Determine entry point:
   // - Base is origin if provided, otherwise 'deeplink'
@@ -276,20 +229,12 @@ const resolvePredictTarget = ({
 
   if (navParams.market) {
     return marketTarget(navParams.market, entryPoint);
-  } else if (navParams.feed === PREDICT_WORLD_CUP_FEED_PARAM) {
-    return worldCupTarget({
-      requestedTab: navParams.worldCupTab,
-      entryPoint,
-    });
-  } else if (
-    isPredictFeedId(navParams.feed) &&
-    getPredictHomeRedesignEnabled()
-  ) {
+  } else if (isPredictFeedId(genericFeed) && getPredictHomeRedesignEnabled()) {
     return genericFeedTarget({
-      feedId: navParams.feed,
-      // worldCupTab holds the raw (unvalidated) tab value; the generic feed's
-      // sub-tab ids (e.g. basketball/all/live) are resolved by the view.
-      initialTabId: navParams.worldCupTab,
+      feedId: genericFeed,
+      // The generic feed's sub-tab ids (e.g. basketball/all/live) are resolved
+      // by the view.
+      initialTabId: navParams.initialTabId,
       initialFilterId: navParams.filter,
       query: navParams.query,
       entryPoint,

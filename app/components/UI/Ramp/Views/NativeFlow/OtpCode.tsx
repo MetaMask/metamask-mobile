@@ -28,6 +28,7 @@ import {
 } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import {
   CodeField,
@@ -93,7 +94,7 @@ const ResendButton: FC<{
 };
 
 const V2OtpCode = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { email, stateToken, amount, currency, assetId, headlessSessionId } =
     useParams<V2OtpCodeParams>();

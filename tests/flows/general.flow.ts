@@ -1,6 +1,7 @@
 import { createLogger } from '../framework/logger';
 import Assertions from '../framework/Assertions';
 import {
+  FrameworkDetector,
   Gestures,
   PlaywrightAssertions,
   PlaywrightGestures,
@@ -12,12 +13,19 @@ import LoginView from '../page-objects/wallet/LoginView';
 import WalletView from '../page-objects/wallet/WalletView';
 import { PlatformDetector } from '../framework/PlatformLocator';
 import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
+import {
+  isLoginScreenDisplayed,
+  isWalletHomeReadyOnAndroidStable,
+  isWalletHomeReadyOnIOS,
+} from './wallet-home-readiness';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { execSync } from 'node:child_process';
 
 const logger = createLogger({
   name: 'GeneralFlow',
 });
+
+const DEV_MENU_PROBE_TIMEOUT_MS = 800;
 
 /**
  * Dismisses development build screens.
@@ -119,12 +127,12 @@ const closeDeveloperMenuPlaywright = async (): Promise<void> => {
       exact: true,
     });
     await PlaywrightAssertions.expectElementToBeVisible(closeButton, {
-      timeout: 2000,
+      timeout: DEV_MENU_PROBE_TIMEOUT_MS,
       description: 'Dev Menu Close Button should be visible',
     });
     await PlaywrightGestures.waitAndTap(closeButton);
     await PlaywrightAssertions.expectElementToNotBeVisible(closeButton, {
-      timeout: 5000,
+      timeout: 2000,
       description: 'Dev Menu Close Button should not be visible',
     });
     return;
@@ -141,12 +149,12 @@ const closeDeveloperMenuPlaywright = async (): Promise<void> => {
   try {
     const closeButton = await PlaywrightMatchers.getElementByText('Close');
     await PlaywrightAssertions.expectElementToBeVisible(closeButton, {
-      timeout: 2000,
+      timeout: DEV_MENU_PROBE_TIMEOUT_MS,
       description: 'Dev Menu Close Button should be visible',
     });
     await PlaywrightGestures.waitAndTap(closeButton);
     await PlaywrightAssertions.expectElementToNotBeVisible(closeButton, {
-      timeout: 5000,
+      timeout: 2000,
       description: 'Dev Menu Close Button should not be visible',
     });
     return;
@@ -166,7 +174,7 @@ const dismissDeveloperMenuOnboardingPlaywright = async (): Promise<void> => {
     const continueButton =
       await PlaywrightMatchers.getElementByText('Continue');
     await PlaywrightAssertions.expectElementToBeVisible(continueButton, {
-      timeout: 5000,
+      timeout: DEV_MENU_PROBE_TIMEOUT_MS,
       description: 'Dev Menu Continue Button should be visible',
     });
 
@@ -217,6 +225,8 @@ export const dismissAndroidSystemOverlaysPlaywright =
     }
   };
 
+export type AppReadyScreen = 'login' | 'wallet';
+
 /**
  * Waits for app initialization and rehydration to complete.
  * This ensures the app is in a stable state before proceeding with tests.
@@ -226,48 +236,79 @@ export const dismissAndroidSystemOverlaysPlaywright =
  * @async
  * @function waitForAppReady
  * @param {number} timeout - Maximum time to wait in milliseconds (default: 20000)
- * @returns {Promise<void>} Resolves when app is ready
+ * @returns {Promise<AppReadyScreen>} Which screen the app stabilized on
  * @throws {Error} Throws an error if app fails to stabilize within timeout
  */
 export const waitForAppReady = async (
   timeout: number = resolveE2EWaitTimeoutMs(60_000),
-): Promise<void> => {
+): Promise<AppReadyScreen> => {
   const startTime = Date.now();
   const deadline = startTime + timeout;
+  const pollIntervalMs = FrameworkDetector.isAppium() ? 500 : 2000;
 
   logger.debug('Waiting for app to reach login or wallet home...');
 
   while (Date.now() < deadline) {
-    try {
-      await Assertions.expectElementToBeVisible(WalletView.container, {
-        description: 'Wallet home should be visible',
-        timeout: 3000,
-      });
-      logger.debug(
-        `App on wallet home after ${Date.now() - startTime}ms — skipping login wait`,
-      );
-      return;
-    } catch {
-      // Not on wallet yet.
+    if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+      if (await isWalletHomeReadyOnIOS()) {
+        logger.debug(
+          `App on wallet home after ${Date.now() - startTime}ms (iOS readiness) — skipping login wait`,
+        );
+        return 'wallet';
+      }
+    } else if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
+      // Android Appium: probe login before wallet-screen. The wallet container
+      // may exist in the native tree while the lock screen is showing.
+      if (await isLoginScreenDisplayed()) {
+        await sleep(500);
+        if (await isLoginScreenDisplayed()) {
+          logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
+          return 'login';
+        }
+        // Login flickered during rehydration — skip wallet probe this iteration.
+        await sleep(pollIntervalMs);
+        continue;
+      }
+      if (await isWalletHomeReadyOnAndroidStable()) {
+        logger.debug(
+          `App on wallet home after ${Date.now() - startTime}ms — skipping login wait`,
+        );
+        return 'wallet';
+      }
+    } else {
+      try {
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          description: 'Wallet home should be visible',
+          timeout: 3000,
+        });
+        logger.debug(
+          `App on wallet home after ${Date.now() - startTime}ms — skipping login wait`,
+        );
+        return 'wallet';
+      } catch {
+        // Not on wallet yet.
+      }
     }
 
-    try {
-      await Assertions.expectElementToBeVisible(LoginView.container, {
-        description: 'Login view should be stable',
-        timeout: 3000,
-      });
-      await sleep(1500);
-      await Assertions.expectElementToBeVisible(LoginView.container, {
-        description: 'Login view should remain visible',
-        timeout: 2000,
-      });
-      logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
-      return;
-    } catch {
-      // Still booting — keep polling.
+    if (!(FrameworkDetector.isAppium() && PlatformDetector.isAndroid())) {
+      try {
+        await Assertions.expectElementToBeVisible(LoginView.container, {
+          description: 'Login view should be stable',
+          timeout: 3000,
+        });
+        await sleep(500);
+        await Assertions.expectElementToBeVisible(LoginView.container, {
+          description: 'Login view should remain visible',
+          timeout: 1500,
+        });
+        logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
+        return 'login';
+      } catch {
+        // Still booting — keep polling.
+      }
     }
 
-    await sleep(2000);
+    await sleep(pollIntervalMs);
   }
 
   throw new Error(

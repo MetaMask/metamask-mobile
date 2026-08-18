@@ -3,6 +3,7 @@ import {
   getPerpPositionDirection,
   getPerpTradeDirection,
   getSupportedXyzPerpMarketSymbol,
+  isClosedPosition,
   isPerpPosition,
   isPerpTrade,
 } from './perp';
@@ -137,6 +138,62 @@ describe('perp utils', () => {
           direction: 'sell',
         }),
       ).toBe('short');
+    });
+  });
+
+  describe('isClosedPosition', () => {
+    const openPerp = {
+      perpPositionType: 'long' as const,
+      chain: 'hyperliquid',
+      positionAmount: 275,
+      soldUsd: 0,
+      currentValueUSD: undefined,
+      marginUsd: 44_646,
+    };
+
+    it('returns false for an open perp when currentValueUSD is omitted but margin remains', () => {
+      expect(isClosedPosition(openPerp)).toBe(false);
+    });
+
+    it('returns true for a closed perp with an explicit zero currentValueUSD', () => {
+      expect(
+        isClosedPosition({
+          ...openPerp,
+          currentValueUSD: 0,
+          marginUsd: 0,
+          positionAmount: 0,
+        }),
+      ).toBe(true);
+    });
+
+    it('returns true for a closed perp when marginUsd is zero and currentValueUSD is omitted', () => {
+      expect(
+        isClosedPosition({
+          ...openPerp,
+          marginUsd: 0,
+          positionAmount: 0,
+        }),
+      ).toBe(true);
+    });
+
+    it('returns false for a spot position that still holds tokens', () => {
+      expect(
+        isClosedPosition({
+          ...basePosition,
+          positionAmount: 100,
+          soldUsd: 0,
+        }),
+      ).toBe(false);
+    });
+
+    it('returns true for a fully exited spot position', () => {
+      expect(
+        isClosedPosition({
+          ...basePosition,
+          positionAmount: 0,
+          soldUsd: 500,
+        }),
+      ).toBe(true);
     });
   });
 

@@ -2,7 +2,10 @@
 export { usePerpsCategories } from './usePerpsCategories';
 export { useHasNewMarkets } from './useHasNewMarkets';
 export { usePerpsMarkets } from './usePerpsMarkets';
-export { usePerpsTopMovers } from './usePerpsTopMovers';
+export {
+  usePerpsTopMovers,
+  isPerpsTopMoversSectionVisible,
+} from './usePerpsTopMovers';
 export { usePerpsNetwork } from './usePerpsNetwork';
 export { usePerpsProvider } from './usePerpsProvider';
 export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
@@ -18,6 +21,8 @@ export { usePerpsMarketListView } from './usePerpsMarketListView';
 export { usePerpsSearch } from './usePerpsSearch';
 export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
+export { usePerpsMode } from './usePerpsMode';
+export { usePerpsProChartExpanded } from './usePerpsProChartExpanded';
 
 // Connection management hooks
 export { usePerpsConnection } from './usePerpsConnection';
@@ -85,6 +90,7 @@ export { default as usePerpsToasts } from './usePerpsToasts';
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';
 export { usePerpsMarketFills } from './usePerpsMarketFills';
+export { usePerpsRecordedOrderFees } from './usePerpsRecordedOrderFees';
 export { usePerpsOrders } from './usePerpsOrders';
 export { usePerpsFunding } from './usePerpsFunding';
 export { useWithdrawalRequests } from './useWithdrawalRequests';
@@ -94,6 +100,7 @@ export { usePerpsTransactionHistory } from './usePerpsTransactionHistory';
 // Event tracking hook
 export { usePerpsEventTracking } from './usePerpsEventTracking';
 export { usePerpsHomeSectionTracking } from './usePerpsHomeSectionTracking';
+export { usePerpsMarketAboutTracking } from './usePerpsMarketAboutTracking';
 
 // Performance tracking hooks
 // Removed: usePerpsScreenTracking - migrated to usePerpsMeasurement

@@ -6,6 +6,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
@@ -19,10 +20,6 @@ import { AlignItems, FlexDirection } from '../../../Box/box.types';
 import { useStyles } from '../../../../hooks/useStyles';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 
-import {
-  selectCurrencyRates,
-  selectCurrentCurrency,
-} from '../../../../../selectors/currencyRateController';
 import {
   findBlockExplorerUrlForChain,
   getBlockExplorerTxUrl,
@@ -38,7 +35,6 @@ import Name from '../../../Name/Name';
 import { NameType } from '../../../Name/Name.types';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
-import { getUsdToFiatConversionRate } from '../../utils/moneyActivityFiat';
 import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
 import styleSheet from '../../../../Views/confirmations/components/activity/transaction-details/transaction-details.styles';
 import Button, {
@@ -81,7 +77,7 @@ type ActivityDetailsRoute = RouteProp<
 >;
 
 export function MoneyApiActivityDetailsView() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const activity = useRoute<ActivityDetailsRoute>().params?.activity;
 
   useEffect(() => {
@@ -103,10 +99,8 @@ function MoneyApiActivityDetailsContent({
   activity: AccountsApiActivity;
 }) {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const currencyRates = useSelector(selectCurrencyRates);
   const blockExplorerLinkEnabled = useSelector(
     selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   );
@@ -115,12 +109,8 @@ function MoneyApiActivityDetailsContent({
   const isCard = activity.kind === 'card';
 
   const display = useMemo(
-    () =>
-      accountsApiActivityDisplayInfo(activity, {
-        currentCurrency,
-        usdToCurrentCurrencyRate: getUsdToFiatConversionRate(currencyRates),
-      }),
-    [activity, currentCurrency, currencyRates],
+    () => accountsApiActivityDisplayInfo(activity),
+    [activity],
   );
 
   const formattedDate = useMemo(() => {

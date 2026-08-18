@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native';
 import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import { getElevatedSurfaceColor } from '../../../../util/theme/themeUtils';
 
 const createStyles = (theme) =>
   StyleSheet.create({
@@ -16,9 +15,10 @@ const createStyles = (theme) =>
     },
     viewContainer: {
       width: '100%',
-      backgroundColor: getElevatedSurfaceColor(theme),
-      borderWidth: 1,
+      backgroundColor: theme.colors.background.elevated1,
       borderRadius: 10,
+      borderWidth: 1,
+      borderColor: theme.colors.border.alternative,
     },
     actionHorizontalContainer: {
       flexDirection: 'row',

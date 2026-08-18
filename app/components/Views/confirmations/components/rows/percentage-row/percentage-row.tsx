@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Linking } from 'react-native';
+import { Linking } from 'react-native';
+import { TextButton } from '@metamask/design-system-react-native';
 import InfoRow from '../../UI/info-row';
 import { MUSD_CONVERSION_APY } from '../../../../../UI/Earn/constants/musd';
 import Text, {
@@ -12,19 +13,16 @@ import { strings } from '../../../../../../../locales/i18n';
 import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
 import AppConstants from '../../../../../../core/AppConstants';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { TransactionType } from '@metamask/transaction-controller';
-import { hasTransactionType } from '../../../utils/transaction';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../../UI/Earn/constants/events';
+import { PercentageRowTestIds } from './percentage-row.testIds';
 
 const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
-
-const styles = StyleSheet.create({
-  termsText: {
-    textDecorationLine: 'underline',
-  },
-});
 
 export function PercentageRow() {
   const isLoading = useIsTransactionPayLoading();
@@ -64,9 +62,12 @@ export function PercentageRow() {
       tooltip={
         <Text>
           {strings('earn.claimable_bonus_tooltip')}{' '}
-          <Text style={styles.termsText} onPress={redirectToBonusFaq}>
+          <TextButton
+            testID={PercentageRowTestIds.TERMS_APPLY_BUTTON}
+            onPress={redirectToBonusFaq}
+          >
             {strings('earn.musd_conversion.education.terms_apply')}
-          </Text>
+          </TextButton>
         </Text>
       }
     >

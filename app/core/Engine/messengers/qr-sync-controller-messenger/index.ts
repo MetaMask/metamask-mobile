@@ -6,7 +6,7 @@ import {
 
 import {
   QR_SYNC_CONTROLLER_NAME,
-  type QrSyncControllerMessenger,
+  QrSyncControllerMessenger,
 } from '../../../QrSync/controller-types';
 import type { RootMessenger } from '../../types';
 
@@ -16,7 +16,7 @@ import type { RootMessenger } from '../../types';
 export function getQrSyncControllerMessenger(
   rootMessenger: RootMessenger,
 ): QrSyncControllerMessenger {
-  return new Messenger<
+  const messenger = new Messenger<
     typeof QR_SYNC_CONTROLLER_NAME,
     MessengerActions<QrSyncControllerMessenger>,
     MessengerEvents<QrSyncControllerMessenger>,
@@ -25,4 +25,11 @@ export function getQrSyncControllerMessenger(
     namespace: QR_SYNC_CONTROLLER_NAME,
     parent: rootMessenger,
   });
+
+  rootMessenger.delegate({
+    messenger,
+    actions: ['QrSyncProvisioningService:importSecretsToVault'],
+  });
+
+  return messenger;
 }

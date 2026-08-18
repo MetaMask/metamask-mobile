@@ -18,20 +18,19 @@ import {
   selectAssetsByAccountGroupId,
   selectAssetsBySelectedAccountGroup,
   selectHasEligibleSwapSource,
+  makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance,
   selectSortedAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroupForChainIds,
   selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance,
   selectTronSpecialAssetsBySelectedAccountGroup,
 } from './assets-list';
-import {
-  ARC_USDC_TOKEN_ADDRESS,
-  NETWORKS_CHAIN_ID,
-} from '../../constants/network';
+import { NETWORKS_CHAIN_ID } from '../../constants/network';
 import {
   AccountGroupAssets,
   selectAssetsBySelectedAccountGroup as innerSelectAssetsBySelectedAccountGroup,
 } from '@metamask/assets-controllers';
 import I18n from '../../../locales/i18n';
+import { ARC_USDC_ERC20_TOKEN_ADDRESS } from '../../enablement/assets/networks-customization';
 
 // Wrap the inner assets-controllers selector in a jest.fn so the Arc
 // filtering describe block can override its return value without affecting
@@ -1326,6 +1325,24 @@ describe('selectSortedAssetsBySelectedAccountGroupForChainIds', () => {
 });
 
 describe('selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance', () => {
+  it('returns assets for the chain IDs bound to the selector factory', () => {
+    const state = mockState();
+    const chainIds = ['eip155:1', '0xa'];
+    const selectSortedAssets =
+      makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+        chainIds,
+      );
+
+    const result = selectSortedAssets(state);
+
+    expect(result).toEqual(
+      selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+        state,
+        chainIds,
+      ),
+    );
+  });
+
   it('filters assets by explicit chain IDs (same as ForChainIds)', () => {
     const state = mockState();
     const chainIds = ['eip155:1', '0xa'];
@@ -1978,10 +1995,10 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
               '2d89e6a0-b4e6-45a8-a707-f10cef143b42': [
                 'tron:728126428/slip44:energy',
                 'tron:728126428/slip44:bandwidth',
-                'tron:728126428/slip44:max-energy',
-                'tron:728126428/slip44:max-bandwidth',
-                'tron:728126428/slip44:strx-energy',
-                'tron:728126428/slip44:strx-bandwidth',
+                'tron:728126428/slip44:maximum-energy',
+                'tron:728126428/slip44:maximum-bandwidth',
+                'tron:728126428/slip44:195-staked-for-energy',
+                'tron:728126428/slip44:195-staked-for-bandwidth',
                 'tron:728126428/slip44:195-ready-for-withdrawal',
                 'tron:728126428/slip44:195-staking-rewards',
                 'tron:728126428/slip44:195-in-lock-period',
@@ -2005,7 +2022,7 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
                   { name: 'Bandwidth', symbol: 'BANDWIDTH', decimals: 0 },
                 ],
               },
-              'tron:728126428/slip44:max-energy': {
+              'tron:728126428/slip44:maximum-energy': {
                 name: 'Max Energy',
                 symbol: 'MAX-ENERGY',
                 fungible: true as const,
@@ -2014,7 +2031,7 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
                   { name: 'Max Energy', symbol: 'MAX-ENERGY', decimals: 0 },
                 ],
               },
-              'tron:728126428/slip44:max-bandwidth': {
+              'tron:728126428/slip44:maximum-bandwidth': {
                 name: 'Max Bandwidth',
                 symbol: 'MAX-BANDWIDTH',
                 fungible: true as const,
@@ -2027,28 +2044,28 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
                   },
                 ],
               },
-              'tron:728126428/slip44:strx-energy': {
+              'tron:728126428/slip44:195-staked-for-energy': {
                 name: 'Staked TRX Energy',
-                symbol: 'STRX-ENERGY',
+                symbol: 'sTRX-ENERGY',
                 fungible: true as const,
                 iconUrl: 'test-url',
                 units: [
                   {
                     name: 'Staked TRX Energy',
-                    symbol: 'STRX-ENERGY',
+                    symbol: 'sTRX-ENERGY',
                     decimals: 6,
                   },
                 ],
               },
-              'tron:728126428/slip44:strx-bandwidth': {
+              'tron:728126428/slip44:195-staked-for-bandwidth': {
                 name: 'Staked TRX Bandwidth',
-                symbol: 'STRX-BANDWIDTH',
+                symbol: 'sTRX-BANDWIDTH',
                 fungible: true as const,
                 iconUrl: 'test-url',
                 units: [
                   {
                     name: 'Staked TRX Bandwidth',
-                    symbol: 'STRX-BANDWIDTH',
+                    symbol: 'sTRX-BANDWIDTH',
                     decimals: 6,
                   },
                 ],
@@ -2113,21 +2130,21 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
                   amount: '560',
                   unit: 'BANDWIDTH',
                 },
-                'tron:728126428/slip44:max-energy': {
+                'tron:728126428/slip44:maximum-energy': {
                   amount: '200000',
                   unit: 'MAX-ENERGY',
                 },
-                'tron:728126428/slip44:max-bandwidth': {
+                'tron:728126428/slip44:maximum-bandwidth': {
                   amount: '1000',
                   unit: 'MAX-BANDWIDTH',
                 },
-                'tron:728126428/slip44:strx-energy': {
+                'tron:728126428/slip44:195-staked-for-energy': {
                   amount: '65.48463',
-                  unit: 'STRX-ENERGY',
+                  unit: 'sTRX-ENERGY',
                 },
-                'tron:728126428/slip44:strx-bandwidth': {
+                'tron:728126428/slip44:195-staked-for-bandwidth': {
                   amount: '65.48463',
-                  unit: 'STRX-BANDWIDTH',
+                  unit: 'sTRX-BANDWIDTH',
                 },
                 'tron:728126428/slip44:195-ready-for-withdrawal': {
                   amount: '25.5',
@@ -2174,15 +2191,17 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
     // All 9 special assets should be mapped
     expect(result.energy?.assetId).toBe('tron:728126428/slip44:energy');
     expect(result.bandwidth?.assetId).toBe('tron:728126428/slip44:bandwidth');
-    expect(result.maxEnergy?.assetId).toBe('tron:728126428/slip44:max-energy');
+    expect(result.maxEnergy?.assetId).toBe(
+      'tron:728126428/slip44:maximum-energy',
+    );
     expect(result.maxBandwidth?.assetId).toBe(
-      'tron:728126428/slip44:max-bandwidth',
+      'tron:728126428/slip44:maximum-bandwidth',
     );
     expect(result.stakedTrxForEnergy?.assetId).toBe(
-      'tron:728126428/slip44:strx-energy',
+      'tron:728126428/slip44:195-staked-for-energy',
     );
     expect(result.stakedTrxForBandwidth?.assetId).toBe(
-      'tron:728126428/slip44:strx-bandwidth',
+      'tron:728126428/slip44:195-staked-for-bandwidth',
     );
     expect(result.trxReadyForWithdrawal?.assetId).toBe(
       'tron:728126428/slip44:195-ready-for-withdrawal',
@@ -2437,7 +2456,7 @@ describe('selectAssetsBySelectedAccountGroup – Arc USDC ERC-20 filter', () => 
   const innerSelector = jest.mocked(innerSelectAssetsBySelectedAccountGroup);
 
   const ARC = NETWORKS_CHAIN_ID.ARC;
-  const ARC_ERC20 = ARC_USDC_TOKEN_ADDRESS;
+  const ARC_ERC20 = ARC_USDC_ERC20_TOKEN_ADDRESS;
   const NATIVE_ADDR = '0x0000000000000000000000000000000000000000';
   const DAI_ADDR = '0x6b175474e89094c44da98b954eedeac495271d0f';
 

@@ -106,5 +106,5 @@ export function useHomepageSparklines(
     setRefreshKey((k) => k + 1);
   }, []);
 
-  return { sparklines, refresh };
+  return useMemo(() => ({ sparklines, refresh }), [sparklines, refresh]);
 }

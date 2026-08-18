@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useEffect } from 'react';
 import { useTheme } from '../../../../../util/theme';
 import {
@@ -8,16 +9,18 @@ import {
 } from '../../components/UI/navbar/navbar';
 import { useConfirmActions } from '../useConfirmActions';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
+import { useConfirmationContext } from '../../context/confirmation-context';
 
 const useNavbar = (
   title: string,
   addBackButton = true,
   overrides?: NavbarOverrides,
 ) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { onReject } = useConfirmActions();
   const theme = useTheme();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const { mmPayRequestInProgressNavHandler } = useConfirmationContext();
 
   useEffect(() => {
     if (isFullScreenConfirmation) {
@@ -28,12 +31,14 @@ const useNavbar = (
           addBackButton,
           theme,
           overrides,
+          mmPayRequestInProgressNavHandler,
         }),
       );
     }
   }, [
     addBackButton,
     isFullScreenConfirmation,
+    mmPayRequestInProgressNavHandler,
     navigation,
     onReject,
     overrides,
@@ -43,7 +48,7 @@ const useNavbar = (
 };
 
 export function useModalNavbar() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const { onReject } = useConfirmActions();
 

@@ -2,22 +2,26 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { providerErrors } from '@metamask/rpc-errors';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import { ConfirmationFooterSelectorIDs } from '../../ConfirmationView.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonsAlignment } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
 import {
+  BottomSheetFooter,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+  ButtonsAlignment,
+  IconName,
+  TextButton,
+  TextVariant as DesignSystemTextVariant,
+} from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import AppConstants from '../../../../../core/AppConstants';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
+import { ScamQuestionnaire } from '../../../../product-safety/scam-questionnaire/scam-questionnaire';
+import { useSendScamQuestionnaire } from '../../../../product-safety/scam-questionnaire/useSendScamQuestionnaire';
 import { ResultType } from '../../constants/signatures';
 import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationContext } from '../../context/confirmation-context';
@@ -29,14 +33,18 @@ import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { isStakingConfirmation } from '../../utils/confirm';
 import styleSheet from './footer.styles';
 import Routes from '../../../../../constants/navigation/Routes';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import {
   MMM_ORIGIN,
+  MM_PAY_TRANSACTION_TYPES,
   TRANSFER_TRANSACTION_TYPES,
 } from '../../constants/confirmations';
-import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
+import { useIsTransactionPayAmountStale } from '../../hooks/pay/useIsTransactionPayAmountStale';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import { useIsConfirmationFromQrAccount } from '../../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
@@ -73,14 +81,27 @@ export const Footer = () => {
     TRANSFER_TRANSACTION_TYPES.includes(transactionType) &&
     transactionMetadata?.origin === MMM_ORIGIN;
   const isPayLoading = useIsTransactionPayLoading();
+  const isMMPayTransaction = hasTransactionType(
+    transactionMetadata,
+    MM_PAY_TRANSACTION_TYPES,
+  );
+  const isPayAmountStale = useIsTransactionPayAmountStale();
   const { isGaslessLoading } = useIsGaslessLoading();
   const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
     useConfirmationContext();
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const [confirmAlertModalVisible, setConfirmAlertModalVisible] =
     useState(false);
+
+  const {
+    isScamQuestionnaireRequired,
+    isScamQuestionnaireCompleted,
+    isScamQuestionnaireVisible,
+    showScamQuestionnaire,
+    scamQuestionnaireProps,
+  } = useSendScamQuestionnaire({ onReject });
 
   const showConfirmAlertModal = useCallback(() => {
     setConfirmAlertModalVisible(true);
@@ -105,12 +126,25 @@ export const Footer = () => {
   }, [hideConfirmAlertModal, onConfirm, navigation]);
 
   const onSignConfirm = useCallback(async () => {
-    if (hasDangerAlerts) {
+    if (isScamQuestionnaireRequired) {
+      showScamQuestionnaire();
+      return;
+    }
+    // A completed questionnaire stands in for the danger-alert checkbox modal,
+    // so don't surface it again after the user has been through that friction.
+    if (hasDangerAlerts && !isScamQuestionnaireCompleted) {
       showConfirmAlertModal();
       return;
     }
     await onConfirm();
-  }, [hasDangerAlerts, onConfirm, showConfirmAlertModal]);
+  }, [
+    isScamQuestionnaireRequired,
+    isScamQuestionnaireCompleted,
+    showScamQuestionnaire,
+    hasDangerAlerts,
+    onConfirm,
+    showConfirmAlertModal,
+  ]);
 
   useEffect(() => {
     trackAlertMetrics();
@@ -157,31 +191,8 @@ export const Footer = () => {
     hasBlockingAlerts ||
     isTransactionValueUpdating ||
     isPayLoading ||
+    (isMMPayTransaction && isPayAmountStale) ||
     isGaslessLoading;
-
-  const buttons = [
-    {
-      variant: ButtonVariants.Secondary,
-      label: strings('confirm.cancel'),
-      size: ButtonSize.Lg,
-      onPress: () =>
-        onReject(providerErrors.userRejectedRequest(), undefined, isMMSendReq),
-      testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
-    },
-    {
-      variant: ButtonVariants.Primary,
-      isDanger:
-        !isPayLoading &&
-        (securityAlertResponse?.result_type === ResultType.Malicious ||
-          hasDangerAlerts),
-      isDisabled: isConfirmDisabled,
-      label: confirmButtonLabel(),
-      size: ButtonSize.Lg,
-      onPress: onSignConfirm,
-      testID: ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
-      startIconName: getStartIcon(),
-    },
-  ];
 
   const isFooterVisible =
     isFooterVisibleFlag ??
@@ -207,9 +218,34 @@ export const Footer = () => {
           onConfirm={onHandleConfirm}
         />
       )}
+      {isScamQuestionnaireVisible && (
+        <ScamQuestionnaire {...scamQuestionnaireProps} />
+      )}
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
-        buttonPropsArray={buttons}
+        secondaryButtonProps={{
+          children: strings('confirm.cancel'),
+          size: ButtonSize.Lg,
+          onPress: () =>
+            onReject(
+              providerErrors.userRejectedRequest(),
+              undefined,
+              isMMSendReq,
+            ),
+          testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
+        }}
+        primaryButtonProps={{
+          children: confirmButtonLabel(),
+          size: ButtonSize.Lg,
+          onPress: onSignConfirm,
+          isDisabled: isConfirmDisabled,
+          isDanger:
+            !isPayLoading &&
+            (securityAlertResponse?.result_type === ResultType.Malicious ||
+              hasDangerAlerts),
+          startIconName: getStartIcon(),
+          testID: ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+        }}
         style={styles.base}
       />
       {isStakingConfirmationBool && (
@@ -218,28 +254,30 @@ export const Footer = () => {
             <Text variant={TextVariant.BodySM}>
               {strings('confirm.staking_footer.part1')}
             </Text>
-            <Text
-              variant={TextVariant.BodySM}
-              style={styles.linkText}
+            <TextButton
+              testID={ConfirmationFooterSelectorIDs.STAKING_TERMS_OF_USE_BUTTON}
+              variant={DesignSystemTextVariant.BodySm}
               onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
             >
               {strings('confirm.staking_footer.terms_of_use')}
-            </Text>
+            </TextButton>
           </View>
           <View style={styles.bottomTextContainerLine}>
             <Text variant={TextVariant.BodySM}>
               {strings('confirm.staking_footer.part2')}
               {'\n'}
             </Text>
-            <Text
-              variant={TextVariant.BodySM}
-              style={styles.linkText}
+            <TextButton
+              testID={
+                ConfirmationFooterSelectorIDs.STAKING_RISK_DISCLOSURE_BUTTON
+              }
+              variant={DesignSystemTextVariant.BodySm}
               onPress={() =>
                 Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
               }
             >
               {strings('confirm.staking_footer.risk_disclosure')}
-            </Text>
+            </TextButton>
             <Text variant={TextVariant.BodySM}>
               {strings('confirm.staking_footer.part3')}
             </Text>

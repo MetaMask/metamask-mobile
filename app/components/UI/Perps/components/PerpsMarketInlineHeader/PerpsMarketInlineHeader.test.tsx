@@ -77,14 +77,12 @@ describe('PerpsMarketInlineHeader', () => {
     expect(onMorePress).toHaveBeenCalled();
   });
 
-  it('handles favorite and search button presses', () => {
+  it('handles favorite button press', () => {
     const onFavoritePress = jest.fn();
-    const onCategorySearchPress = jest.fn();
     const { getByTestId } = renderWithProvider(
       <PerpsMarketInlineHeader
         market={mockMarket}
         onFavoritePress={onFavoritePress}
-        onCategorySearchPress={onCategorySearchPress}
         isFavorite
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
         currentPrice={45000}
@@ -93,12 +91,8 @@ describe('PerpsMarketInlineHeader', () => {
     );
 
     fireEvent.press(getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON));
-    fireEvent.press(
-      getByTestId(PerpsMarketHeaderSelectorsIDs.CATEGORY_SEARCH_BUTTON),
-    );
 
     expect(onFavoritePress).toHaveBeenCalled();
-    expect(onCategorySearchPress).toHaveBeenCalled();
   });
 
   it('renders endAccessory when provided', () => {

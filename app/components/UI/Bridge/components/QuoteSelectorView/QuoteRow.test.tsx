@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { QuoteRow, QuoteRowProps } from './QuoteRow';
+import { QuoteRow, QuoteRowProps, QuoteRowView } from './QuoteRow';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -74,6 +74,12 @@ describe('QuoteRow', () => {
       } catch {
         return null;
       }
+    });
+  });
+
+  describe('memoization', () => {
+    it('memoizes QuoteRowView', () => {
+      expect(QuoteRowView).toHaveProperty('$$typeof', Symbol.for('react.memo'));
     });
   });
 

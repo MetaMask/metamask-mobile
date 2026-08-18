@@ -12,7 +12,7 @@ export interface ServiceProvider {
 
   /**
    * Time in milliseconds from session creation request to session ready.
-   * Only populated by providers that involve remote session allocation (e.g. BrowserStack).
+   * Populated by Emulator and BrowserStack providers after getDriver().
    */
   sessionCreationDurationMs?: number;
 
@@ -36,7 +36,20 @@ export interface ServiceProvider {
   }): Promise<void>;
 
   /**
-   * Cleanup resources (optional)
+   * Deletes the active WebDriver session and clears session metadata.
+   * Does not stop the Appium server.
+   */
+  cleanupSession?(drv?: Browser): Promise<void>;
+
+  /**
+   * Releases provider-level resources (e.g. stop local Appium server).
+   * Does not delete the WebDriver session.
+   */
+  cleanupProvider?(): Promise<void>;
+
+  /**
+   * Legacy cleanup — prefer `cleanupSession` then `cleanupProvider`.
+   * EmulatorProvider maps this to `cleanupProvider` only (historical behavior).
    */
   cleanup?(): Promise<void>;
 

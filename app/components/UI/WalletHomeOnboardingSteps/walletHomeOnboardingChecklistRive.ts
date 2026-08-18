@@ -1,7 +1,7 @@
 import type { WalletHomeOnboardingStepHeroKind } from './walletHomeOnboardingStepHero';
 
 /**
- * Names for `onboard_checklist_v05.riv` — must match Rive artboards / state machine inputs.
+ * Names for `onboard_checklist_v07.riv` — must match Rive artboards / state machine inputs.
  *
  * The file contains three artboards (`01_*` … `03_*`). We drive which one is shown from the
  * wallet-home post-onboarding step (`fund` → 1, `trade` → 2, `notifications` → 3) via
@@ -12,6 +12,9 @@ export const WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE =
 
 /** Trigger on {@link WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE} to enter the main (post-intro) pose. */
 export const WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER = 'Main';
+
+/** Linear animation used as the Android fallback while v07 has no `Main` trigger input. */
+export const WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_ANIMATION = 'Main';
 
 /** Trigger on {@link WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE} before leaving the step. */
 export const WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER = 'Outro';

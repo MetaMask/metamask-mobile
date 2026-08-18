@@ -22,6 +22,7 @@ import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import OptinMetrics from './index';
 import { AccountType } from '../../../constants/onboarding';
+import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 
 const ANALYTICS_PREFERENCE_SELECTED = 'Analytics Preference Selected';
 
@@ -61,6 +62,11 @@ function buildOnboardingState(
       onboarding: {
         events: [],
         accountType,
+      },
+      engine: {
+        backgroundState: {
+          QrSyncController: defaultQrSyncControllerState,
+        },
       },
     } as unknown as DeepPartial<RootState>)
     .build();

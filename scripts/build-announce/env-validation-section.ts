@@ -102,9 +102,10 @@ export function buildEnvValidationSection(
     lines.push(`- RAMP_DEV_BUILD: \`${rampDevBuild}\``);
   }
 
-  const bridgeDevApis = result.extractedValues.BRIDGE_USE_DEV_APIS;
-  if (bridgeDevApis) {
-    lines.push(`- BRIDGE_USE_DEV_APIS: \`${bridgeDevApis}\``);
+  const bridgeCustomBaseUrl =
+    result.extractedValues.BRIDGE_USE_CUSTOM_BASE_URL;
+  if (bridgeCustomBaseUrl) {
+    lines.push(`- BRIDGE_USE_CUSTOM_BASE_URL: \`${bridgeCustomBaseUrl}\``);
   }
 
   lines.push('\n</details>\n');

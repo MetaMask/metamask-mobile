@@ -12,6 +12,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { Camera } from 'react-native-vision-camera';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -153,9 +154,11 @@ const styles = StyleSheet.create({
  * @property currentStep - The current step number in the multi-step signing flow (1-based).
  * @property totalSteps - The total number of steps in the signing flow.
  */
-interface HwQrScannerRouteParams {
+export interface HwQrScannerRouteParams {
   currentStep: number;
   totalSteps: number;
+  /** Preserve scanner-owned completion for Send; Bridge returns to its lifecycle. */
+  completeOnScan?: boolean;
 }
 
 /**
@@ -173,7 +176,7 @@ interface HwQrScannerRouteParams {
 export function HwQrScanner() {
   const tw = useTailwind();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const isFocused = useIsFocused();
   const toastRef = useContext(ToastContext)?.toastRef;
@@ -189,8 +192,11 @@ export function HwQrScanner() {
     string | null
   >(null);
 
-  const { currentStep = 1, totalSteps = 1 } =
-    (route.params as HwQrScannerRouteParams) ?? {};
+  const {
+    currentStep = 1,
+    totalSteps = 1,
+    completeOnScan = false,
+  } = (route.params as HwQrScannerRouteParams) ?? {};
 
   const isLastStep = currentStep >= totalSteps;
 
@@ -206,17 +212,14 @@ export function HwQrScanner() {
             cbor: Buffer.from(ur.cbor).toString('hex'),
           });
           setRequestCompleted();
-          // Last-step: complete success here (toast + Redux reset + navigate)
-          // instead of goBack()-ing to HardwareWalletsSwaps. Ledger flows do
-          // this via `useHwSwapLifecycle.navigateOnSuccess`, which is disabled
-          // for QR to avoid two native view insertions in the same frame on
-          // Android (addViewAt crash).
-          if (isLastStep) {
+          if (isLastStep && completeOnScan) {
             if (!hasCompletedOnSuccessRef.current) {
               hasCompletedOnSuccessRef.current = true;
               completeHwSwapSuccess({ dispatch, navigation, toastRef });
             }
           } else {
+            // Bridge returns to its lifecycle, which waits for submit settlement
+            // and this screen's transitionEnd before opening post-trade.
             navigation.goBack();
           }
           return true;
@@ -242,6 +245,7 @@ export function HwQrScanner() {
       pendingScanRequest,
       setRequestCompleted,
       isLastStep,
+      completeOnScan,
       dispatch,
       navigation,
       toastRef,

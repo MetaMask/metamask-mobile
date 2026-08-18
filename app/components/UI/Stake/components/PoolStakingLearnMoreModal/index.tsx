@@ -6,7 +6,7 @@ import BottomSheet, {
 import { ScrollView } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { POOLED_STAKING_FAQ_URL } from '../../constants';
 import styleSheet from './PoolStakingLearnMoreModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -34,6 +34,10 @@ import {
   StakingInfoBodyText,
   StakingInfoStrings,
 } from '../LearnMoreModal';
+import { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 
 interface PoolStakingLearnMoreModalRouteParams {
   chainId: Hex;
@@ -52,6 +56,10 @@ const PoolStakingLearnMoreModal = () => {
   const { chainId: routeChainId } = route.params;
 
   const sheetRef = useRef<BottomSheetRef>(null);
+
+  const navigation = useNavigation<AppStackNavigationProp>();
+
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { vaultApys, isLoadingVaultApys } = useVaultApys(
     getDecimalChainId(routeChainId),
@@ -85,6 +93,27 @@ const PoolStakingLearnMoreModal = () => {
 
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
+  };
+
+  const handleLearnMorePress = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
+        .addProperties({
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
+          text: 'Learn More',
+          location: EVENT_LOCATIONS.LEARN_MORE_MODAL,
+        })
+        .build(),
+    );
+
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: POOLED_STAKING_FAQ_URL,
+        },
+      });
+    });
   };
 
   useEffect(() => {
@@ -164,7 +193,7 @@ const PoolStakingLearnMoreModal = () => {
       </ScrollView>
       <LearnMoreModalFooter
         onClose={handleClose}
-        learnMoreUrl={POOLED_STAKING_FAQ_URL}
+        onLearnMorePress={handleLearnMorePress}
         style={styles.footer}
       />
     </BottomSheet>

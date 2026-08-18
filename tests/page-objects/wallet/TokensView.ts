@@ -5,7 +5,8 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
 import NetworkManager from './NetworkManager';
-import { EncapsulatedElementType } from '../../framework';
+import { EncapsulatedElementType, PlatformDetector } from '../../framework';
+import Assertions from '../../framework/Assertions';
 
 class TokensView {
   get networkFilter(): EncapsulatedElementType {
@@ -13,10 +14,11 @@ class TokensView {
   }
 
   earnCtaForToken(tokenSymbol: string): EncapsulatedElementType {
-    return Matchers.getElementIDWithAncestor(
-      SECONDARY_BALANCE_BUTTON_TEST_ID,
-      getAssetTestId(tokenSymbol),
-    );
+    const assetTestId = getAssetTestId(tokenSymbol);
+    const xpath = PlatformDetector.isIOS()
+      ? `//*[@name='${assetTestId}']/descendant::*[@name='${SECONDARY_BALANCE_BUTTON_TEST_ID}']`
+      : `//*[@resource-id='${assetTestId}' or contains(@resource-id,'${assetTestId}')]/descendant::*[@resource-id='${SECONDARY_BALANCE_BUTTON_TEST_ID}' or contains(@resource-id,'${SECONDARY_BALANCE_BUTTON_TEST_ID}')]`;
+    return Matchers.getElementByNativeXPath(xpath);
   }
 
   async tapNetworkFilter(): Promise<void> {
@@ -46,10 +48,26 @@ class TokensView {
     timeout = 30000,
   ): Promise<void> {
     const assetTestId = getAssetTestId(tokenSymbol);
-    const zeroBalance = element(
-      by.text(`0 ${tokenSymbol}`).withAncestor(by.id(assetTestId)),
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID(assetTestId),
+      {
+        timeout,
+        description: `${tokenSymbol} token row`,
+      },
     );
-    await waitFor(zeroBalance).not.toBeVisible().withTimeout(timeout);
+
+    const zeroBalanceText = `0 ${tokenSymbol}`;
+    const zeroBalanceXPath = PlatformDetector.isIOS()
+      ? `//*[@name='${assetTestId}']/descendant::*[@label='${zeroBalanceText}' or @name='${zeroBalanceText}' or @value='${zeroBalanceText}']`
+      : `//*[@resource-id='${assetTestId}' or contains(@resource-id,'${assetTestId}')]/descendant::*[@text='${zeroBalanceText}']`;
+
+    await Assertions.expectElementToNotBeVisible(
+      Matchers.getElementByNativeXPath(zeroBalanceXPath),
+      {
+        timeout,
+        description: `${tokenSymbol} balance should be non-zero`,
+      },
+    );
   }
 
   async tapToken(tokenSymbol: string): Promise<void> {

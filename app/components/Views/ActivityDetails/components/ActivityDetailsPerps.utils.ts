@@ -1,6 +1,9 @@
 import BigNumber from 'bignumber.js';
 import { strings } from '../../../../../locales/i18n';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
+import type {
+  ActivityListItem,
+  PerpsOrderKind,
+} from '../../../../util/activity-adapters';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuse Perps UI utilities until shared perps utilities are extracted. */
 import {
   formatTransactionDate as formatPerpsTransactionDate,
@@ -35,11 +38,7 @@ export type PerpsActivityType =
   | 'perpsReceivedFundingFees'
   | 'perpsCloseShortTakeProfit'
   | 'perpsCloseLongTakeProfit'
-  | 'marketShort'
-  | 'stopMarketCloseShort'
-  | 'marketCloseShort'
-  | 'limitShort'
-  | 'limitCloseShort';
+  | PerpsOrderKind;
 
 export type PerpsActivityListItem = ActivityListItem & {
   type: PerpsActivityType;
@@ -113,8 +112,8 @@ export function shouldShowPerpsPnl(fill: PerpsTransaction['fill']): boolean {
   );
 }
 
-export function formatPerpsOrderFee(fee: number, isFilled: boolean): string {
-  return formatPerpsFiat(isFilled ? fee : 0, {
+export function formatPerpsOrderFee(fee: number): string {
+  return formatPerpsFiat(fee, {
     ranges: PRICE_RANGES_UNIVERSAL,
   });
 }

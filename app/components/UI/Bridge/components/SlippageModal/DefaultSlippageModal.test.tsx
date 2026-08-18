@@ -141,6 +141,22 @@ describe('DefaultSlippageModal', () => {
       );
     });
 
+    it('keeps slippage undefined for EVM options without auto', () => {
+      mockSelector.mockReturnValue(undefined);
+      mockUseSlippageConfig.mockReturnValue({
+        ...mockSlippageConfig,
+        default_slippage_options: ['0.5', '2', '3'],
+      });
+
+      render(<DefaultSlippageModal />);
+
+      expect(mockUseGetSlippageOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          slippage: undefined,
+        }),
+      );
+    });
+
     it('uses redux slippage value when defined', () => {
       mockSelector.mockReturnValue('2');
 
@@ -257,6 +273,33 @@ describe('DefaultSlippageModal', () => {
   });
 
   describe('handleSubmit', () => {
+    it('disables submit when EVM slippage is undefined', () => {
+      mockSelector.mockReturnValue(undefined);
+      mockUseSlippageConfig.mockReturnValue({
+        ...mockSlippageConfig,
+        default_slippage_options: ['0.5', '2', '3'],
+      });
+      const { getByRole } = render(<DefaultSlippageModal />);
+
+      const submitButton = getByRole('button', { name: 'Submit' });
+
+      expect(submitButton.props.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('does not dispatch when EVM slippage is undefined', () => {
+      mockSelector.mockReturnValue(undefined);
+      mockUseSlippageConfig.mockReturnValue({
+        ...mockSlippageConfig,
+        default_slippage_options: ['0.5', '2', '3'],
+      });
+      const { getByRole } = render(<DefaultSlippageModal />);
+      const submitButton = getByRole('button', { name: 'Submit' });
+
+      fireEvent.press(submitButton);
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
     it('dispatches undefined when auto is selected', () => {
       mockSelector.mockReturnValue(undefined);
 

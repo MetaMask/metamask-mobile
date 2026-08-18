@@ -27,12 +27,18 @@ import {
   type SetMusdConversionAssetDetailCtaSeenAction,
   type ClearMusdConversionAssetDetailCtasSeenAction,
   type SetMoneyOnboardingSeenAction,
+  type SetMoneyEarnBannerDismissedAction,
+  type ClearMoneyEarnBannerDismissedTokensAction,
   type SetTokenOverviewChartTypeAction,
   type SetTokenOverviewChartIntervalAction,
   type SetTokenIndicatorsAction,
   type SetOnboardingStepperStepAction,
+  type SetAppInstallEventFiredAction,
+  type SetPendingAppInstallAction,
+  type ClearPendingAppInstallAction,
   UserActionType,
 } from './types';
+import { type PendingAppInstall } from '../../reducers/user/types';
 
 export * from './types';
 
@@ -242,6 +248,24 @@ export function setMoneyOnboardingSeen(
   };
 }
 
+export function setMoneyEarnBannerDismissed(
+  key: string,
+): SetMoneyEarnBannerDismissedAction {
+  return {
+    type: UserActionType.SET_MONEY_EARN_BANNER_DISMISSED,
+    payload: { key },
+  };
+}
+
+/**
+ * Clears persisted Earn banner dismissals (fresh-install behavior for the banner).
+ */
+export function clearMoneyEarnBannerDismissedTokens(): ClearMoneyEarnBannerDismissedTokensAction {
+  return {
+    type: UserActionType.CLEAR_MONEY_EARN_BANNER_DISMISSED_TOKENS,
+  };
+}
+
 /**
  * Action to set token overview chart type preference
  */
@@ -290,5 +314,32 @@ export function setOnboardingStepperStep(
   return {
     type: UserActionType.SET_ONBOARDING_STEPPER_STEP,
     payload: { stepperId, step },
+  };
+}
+
+export function setAppInstallEventFired(): SetAppInstallEventFiredAction {
+  return {
+    type: UserActionType.SET_APP_INSTALL_EVENT_FIRED,
+  };
+}
+
+/**
+ * Action to record an install that is waiting for an analytics consent decision.
+ */
+export function setPendingAppInstall(
+  pendingAppInstall: PendingAppInstall,
+): SetPendingAppInstallAction {
+  return {
+    type: UserActionType.SET_PENDING_APP_INSTALL,
+    payload: { pendingAppInstall },
+  };
+}
+
+/**
+ * Action to drop a pending install, used when the user declines analytics.
+ */
+export function clearPendingAppInstall(): ClearPendingAppInstallAction {
+  return {
+    type: UserActionType.CLEAR_PENDING_APP_INSTALL,
   };
 }

@@ -12,6 +12,8 @@ import { ActivitiesViewSelectorsIDs } from './ActivitiesView.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter enum; route-isolation backlog
+import { ActivityTypeFilter } from '../ActivityScreen/types';
 
 let mockMoneyAccountEnabled = false;
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
@@ -731,6 +733,38 @@ describe('ActivityView', () => {
 
       expect(getByTestId('tab-predict')).toBeOnTheScreen();
       expect(getRenderedTabs()).toContain('predict');
+    });
+
+    it('uses Predict as the initial tab when deep-linked via initialTypeFilter and clears the param', () => {
+      mockPredictEnabled = true;
+      mockPerpsEnabled = true;
+      mockIsEvmSelected = true;
+      mockRoute.params = {
+        initialTypeFilter: ActivityTypeFilter.Predictions,
+        showBackButton: true,
+      };
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      // Perps enabled -> Predict is tab index 3
+      expect(getLastInitialActiveIndex()).toBe(3);
+      expect(getByTestId('predict-visibility').props.children).toBe('visible');
+      expect(mockNavigation.setParams).toHaveBeenCalledWith({
+        initialTypeFilter: undefined,
+      });
+    });
+
+    it('does not force the Predict tab for a non-Predict initialTypeFilter', () => {
+      mockPredictEnabled = true;
+      mockPerpsEnabled = true;
+      mockIsEvmSelected = true;
+      mockRoute.params = {
+        initialTypeFilter: ActivityTypeFilter.Transactions,
+      };
+
+      renderComponent(mockInitialState);
+
+      expect(getLastInitialActiveIndex()).toBe(0);
     });
   });
 

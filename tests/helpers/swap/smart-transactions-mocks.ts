@@ -1,6 +1,6 @@
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
-import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers';
+import { getDecodedProxiedURL } from '../../smoke-appium/notifications/utils/helpers';
 import PortManager, { ResourceType } from '../../framework/PortManager';
 
 const STX_UUID = '0d506aaa-5e38-4cab-ad09-2039cb7a0f33';
@@ -263,8 +263,9 @@ export async function setupSmartTransactionsMocks(
     }));
 
   // Mock GET /getTxStatus – fallback for same-chain swap tests.
-  // Registered at priority 1 so bridge-mocks.ts (priority 999) always wins
-  // for bridge tests, where src and dest tx hashes legitimately differ.
+  // Priority 2 is above mockttp's DEFAULT (1), which the MockServer /proxy
+  // passthrough uses, and below bridge-mocks.ts (priority 999) so that always
+  // wins for bridge tests, where src and dest tx hashes legitimately differ.
   // For same-chain swaps srcChainId == destChainId so reusing srcTxHash for
   // both chains is correct.
   await mockServer
@@ -273,7 +274,7 @@ export async function setupSmartTransactionsMocks(
       const url = getDecodedProxiedURL(request.url);
       return url.includes('getTxStatus');
     })
-    .asPriority(1)
+    .asPriority(2)
     .thenCallback((request) => {
       const decodedUrl = getDecodedProxiedURL(request.url);
       const urlObj = new URL(decodedUrl);

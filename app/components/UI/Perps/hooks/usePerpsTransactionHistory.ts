@@ -5,6 +5,7 @@ import { BigNumber } from 'bignumber.js';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import {
   PERPS_TRANSACTIONS_HISTORY_CONSTANTS,
@@ -33,7 +34,6 @@ import {
   PerpsTransaction,
   PerpsTransactionType,
 } from '../types/transactionHistory';
-import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
 import { useUserHistory } from './useUserHistory';
 import { usePerpsLiveFills } from './stream/usePerpsLiveFills';
 import {

@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import OnboardingSheet from '.';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
+import Routes from '../../../constants/navigation/Routes';
 
 // Mock callback functions
 const mockOnPressCreate = jest.fn();
@@ -12,6 +13,28 @@ const mockOnPressContinueWithApple = jest.fn();
 
 const mockNavigate = jest.fn();
 const mockUseRoute = jest.fn();
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { forwardRef, useImperativeHandle } = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockBottomSheet = forwardRef(
+    (
+      { children }: { children: React.ReactNode },
+      ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
+    ) => {
+      useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: jest.fn(),
+        onOpenBottomSheet: jest.fn(),
+      }));
+      return <View>{children}</View>;
+    },
+  );
+  return {
+    ...actual,
+    BottomSheet: MockBottomSheet,
+  };
+});
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -155,12 +178,9 @@ describe('OnboardingSheet', () => {
         const termsLink = getByTestId('terms-of-use-link');
         fireEvent.press(termsLink);
 
-        expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-          screen: 'SimpleWebview',
-          params: {
-            url: AppConstants.URLS.TERMS_OF_USE_URL,
-            title: strings('onboarding.terms_of_use'),
-          },
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.SIMPLE, {
+          url: AppConstants.URLS.TERMS_OF_USE_URL,
+          title: strings('onboarding.terms_of_use'),
         });
       });
 
@@ -170,12 +190,9 @@ describe('OnboardingSheet', () => {
         const privacyLink = getByTestId('privacy-notice-link');
         fireEvent.press(privacyLink);
 
-        expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-          screen: 'SimpleWebview',
-          params: {
-            url: AppConstants.URLS.PRIVACY_NOTICE,
-            title: strings('onboarding.privacy_notice'),
-          },
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.SIMPLE, {
+          url: AppConstants.URLS.PRIVACY_NOTICE,
+          title: strings('onboarding.privacy_notice'),
         });
       });
     });

@@ -8,7 +8,7 @@ import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors
 import { selectAllConfiguredEvmCaipNetworks } from '../../../selectors/networkController';
 import { selectApiEvmTransactions } from './helpers/transformations';
 import { MINUTE } from '../../../constants/time';
-import { selectRequiredTransactionHashes } from '../../../selectors/transactionController';
+import { selectExcludedActivityTransactionHashes } from '../../../selectors/transactionController';
 
 export const useTransactionsQuery = () => {
   const groupEvmAccount = useSelector(
@@ -21,7 +21,7 @@ export const useTransactionsQuery = () => {
   // NetworkEnablementController so enabling/disabling a single network (e.g.
   // Predict enabling Polygon) never collapses the Activity feed to one network.
   const networks = useSelector(selectAllConfiguredEvmCaipNetworks);
-  const excludedTxHashes = useSelector(selectRequiredTransactionHashes);
+  const excludedTxHashes = useSelector(selectExcludedActivityTransactionHashes);
   const accountAddresses = evmAddress
     ? [toCaipAccountId(KnownCaipNamespace.Eip155, '0', evmAddress)]
     : [];

@@ -50,24 +50,7 @@ import {
   EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
 } from './abTestConfig';
 import { useQuickBuySearchKeyboard } from '../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
-
-const POPULAR_ASSETS: TrendingAsset[] = [
-  {
-    assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
-    symbol: 'BTC',
-    name: 'Bitcoin',
-  },
-  {
-    assetId: 'eip155:1/slip44:60',
-    symbol: 'ETH',
-    name: 'Ethereum',
-  },
-  {
-    assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-    symbol: 'SOL',
-    name: 'Solana',
-  },
-] as TrendingAsset[];
+import { POPULAR_SEARCH_ASSETS } from './popularSearchAssets';
 
 const pressedStyle = StyleSheet.create({
   pressable: {
@@ -173,28 +156,30 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
             }}
             endAccessory={
               viewMoreLabel !== null ? (
-                <Pressable
-                  onPress={() => handleViewMore(section)}
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${viewMoreLabel} ${item.title}`}
-                  style={({ pressed }) => [
-                    pressedStyle.pressable,
-                    pressed && { opacity: 0.5 },
-                  ]}
-                >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
+                <Box twClassName="flex-1 justify-end items-end">
+                  <Pressable
+                    onPress={() => handleViewMore(section)}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${viewMoreLabel} ${item.title}`}
+                    style={({ pressed }) => [
+                      pressedStyle.pressable,
+                      pressed && { opacity: 0.5 },
+                    ]}
                   >
-                    {viewMoreLabel}
-                  </Text>
-                  <Icon
-                    name={IconName.ArrowRight}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
-                </Pressable>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {viewMoreLabel}
+                    </Text>
+                    <Icon
+                      name={IconName.ArrowRight}
+                      size={IconSize.Sm}
+                      color={IconColor.IconAlternative}
+                    />
+                  </Pressable>
+                </Box>
               ) : undefined
             }
           />
@@ -345,7 +330,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
                 alignItems={BoxAlignItems.Center}
                 twClassName="gap-2 mt-2"
               >
-                {POPULAR_ASSETS.map((token, index) => (
+                {POPULAR_SEARCH_ASSETS.map((token, index) => (
                   <CryptoMoversPillItem
                     key={token.assetId}
                     token={token}

@@ -1,10 +1,10 @@
 import React from 'react';
 import type { PredictMarket } from '../../../../../UI/Predict/types';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import type { UseHomepagePredictWorldCupMarketsResult } from '../hooks/useHomepagePredictWorldCupMarkets';
+import type { UseHomepagePredictMarketSlotsResult } from '../hooks/useHomepagePredictMarketSlots';
 import type { PredictionsTrendingHeaderTestId } from '../predictionsSectionTypes';
 import type { PredictEmptyStateCtaName } from '../../../abTestConfig';
-import HomepagePredictWorldCupDiscovery from './HomepagePredictWorldCupDiscovery';
+import HomepagePredictDiscovery from './HomepagePredictDiscovery';
 import HomepagePredictTrendingCarousel from './HomepagePredictTrendingCarousel';
 
 export interface HomepagePredictTrendingMarketsProps {
@@ -17,11 +17,8 @@ export interface HomepagePredictTrendingMarketsProps {
   isLoadingMarkets: boolean;
   markets: PredictMarket[];
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  /** Required when `discoveryLayout` is `list` (World Cup discovery rail). */
-  worldCupHomepage?: UseHomepagePredictWorldCupMarketsResult;
-  /** Required when `discoveryLayout` is `list` (World Cup live games rail item). */
-  liveWorldCupHomepage?: UseHomepagePredictWorldCupMarketsResult;
-  worldCupEventCount?: number;
+  /** Required when `discoveryLayout` is `list`. */
+  marketSlots?: UseHomepagePredictMarketSlotsResult;
   emptyStateTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
   onEmptyStateTreatmentCtaClick?: (
     ctaName: PredictEmptyStateCtaName,
@@ -37,9 +34,7 @@ const HomepagePredictTrendingMarkets = ({
   isLoadingMarkets,
   markets,
   transactionActiveAbTests,
-  worldCupHomepage,
-  liveWorldCupHomepage,
-  worldCupEventCount,
+  marketSlots,
   emptyStateTransactionActiveAbTests,
   onEmptyStateTreatmentCtaClick,
 }: HomepagePredictTrendingMarketsProps) => {
@@ -56,18 +51,16 @@ const HomepagePredictTrendingMarkets = ({
     );
   }
 
-  if (!worldCupHomepage || !liveWorldCupHomepage) {
+  if (!marketSlots) {
     return null;
   }
 
   return (
-    <HomepagePredictWorldCupDiscovery
+    <HomepagePredictDiscovery
       title={title}
       onViewAll={onViewAll}
       headerTestIdKey={headerTestIdKey}
-      worldCup={worldCupHomepage}
-      liveWorldCup={liveWorldCupHomepage}
-      worldCupEventCount={worldCupEventCount}
+      marketSlots={marketSlots}
       transactionActiveAbTests={emptyStateTransactionActiveAbTests}
       onTreatmentCtaClick={onEmptyStateTreatmentCtaClick}
     />

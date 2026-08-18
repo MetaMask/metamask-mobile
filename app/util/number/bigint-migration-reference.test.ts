@@ -322,8 +322,8 @@ describe('Migration: earnController selectors', () => {
 
 /*
  * --------------------------------------------------------------------------
- * Migration Site 6: send context utils
- * File: app/components/Views/confirmations/context/send-context/utils.ts
+ * Migration Site 6: send utils
+ * File: app/components/Views/confirmations/utils/send.ts
  *
  * BEFORE:
  *   trxnParams.value = BNToHex(toWei(value ?? '0') as unknown as BN);
@@ -342,7 +342,7 @@ describe('Migration: earnController selectors', () => {
  *   });
  * --------------------------------------------------------------------------
  */
-describe('Migration: send-context utils', () => {
+describe('Migration: send utils', () => {
   it('native ETH: bigIntToHex(toWei(value)) matches BNToHex(toWei(value))', () => {
     const values = ['0', '1', '0.5', '0.000000000000001337'];
     for (const value of values) {

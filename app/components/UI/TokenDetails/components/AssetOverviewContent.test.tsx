@@ -92,7 +92,7 @@ jest.mock('../../Perps/hooks/usePerpsPositionForAsset', () => ({
     mockUsePerpsPositionForAsset(...args),
 }));
 
-jest.mock('../../Perps/components/PerpsPositionCard', () => ({
+jest.mock('../../Perps/components/PerpsCard', () => ({
   __esModule: true,
   default: ({ testID }: { testID?: string }) => <MockView testID={testID} />,
 }));
@@ -184,7 +184,6 @@ const defaultProps: AssetOverviewContentProps = {
   timePeriod: '1d',
   setTimePeriod: jest.fn(),
   chartNavigationButtons: ['1d', '1w', '1m', '3m', '1y', '3y'],
-  isPerpsEnabled: true,
   currentCurrency: 'USD',
   onBuy: jest.fn(),
   onSend: jest.fn().mockResolvedValue(undefined),
@@ -240,7 +239,6 @@ describe('AssetOverviewContent', () => {
   const defaultPerpsPositionResult = {
     position: null,
     hasFundsInPerps: false,
-    accountState: null,
     isLoading: false,
   };
 
@@ -531,7 +529,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue({
         position: null,
         hasFundsInPerps: false,
-        accountState: null,
         isLoading: false,
       });
     });
@@ -540,7 +537,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue({
         position: { symbol: 'ETH', size: '1', side: 'long' },
         hasFundsInPerps: true,
-        accountState: null,
         isLoading: false,
       });
 
@@ -577,7 +573,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue({
         position: { symbol: 'ETH', size: '1', side: 'long' },
         hasFundsInPerps: true,
-        accountState: null,
         isLoading: false,
       });
 
@@ -837,7 +832,6 @@ describe('AssetOverviewContent', () => {
       mockUsePerpsPositionForAsset.mockReturnValue({
         position: null,
         hasFundsInPerps: false,
-        accountState: null,
         isLoading: false,
       });
       tokenDetailsActionsSpy = jest.spyOn(

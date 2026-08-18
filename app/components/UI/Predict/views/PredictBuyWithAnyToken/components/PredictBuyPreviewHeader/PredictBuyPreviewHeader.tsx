@@ -11,8 +11,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import React from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { strings } from '../../../../../../../../locales/i18n';
 import {
   OrderPreview,
@@ -127,7 +129,7 @@ export function PredictBuyPreviewHeaderBack({
 }: {
   onBack?: () => void;
 }) {
-  const { goBack } = useNavigation();
+  const { goBack } = useNavigation<AppNavigationProp>();
 
   return (
     <TouchableOpacity testID="back-button" onPress={onBack ?? goBack}>

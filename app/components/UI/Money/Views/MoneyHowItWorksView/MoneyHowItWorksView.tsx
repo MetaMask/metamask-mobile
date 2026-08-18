@@ -1,7 +1,8 @@
 import React, { useCallback, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   BoxAlignItems,
@@ -28,11 +29,12 @@ import Animated, {
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { selectMoneyNoFeeDepositTokens } from '../../selectors/featureFlags';
 import { formatNoFeeTokenBullets } from '../../utils/depositFaqTokens';
 import AppConstants from '../../../../../core/AppConstants';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
+import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import useMountEffect from '../../hooks/useMountEffect';
 import {
   COMPONENT_NAMES,
@@ -137,10 +139,10 @@ const FaqItem = ({
 };
 
 const MoneyHowItWorksView = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { colors: themeColors } = useTheme();
-  const { apyPercent } = useMoneyAccountBalance();
+  const { apyPercent } = useMoneyVaultApy();
 
   const noFeeTokens = useSelector(selectMoneyNoFeeDepositTokens);
   const tokenBullets = formatNoFeeTokenBullets(noFeeTokens);
@@ -163,8 +165,8 @@ const MoneyHowItWorksView = () => {
       label_key: 'money.how_it_works_page.faq_a4_link',
       redirect_target: MONEY_URLS.CARD_FEES,
     });
-    Linking.openURL(AppConstants.CARD.CARD_FEES_URL);
-  }, [trackButtonClicked]);
+    openInAppBrowser(navigation, AppConstants.CARD.CARD_FEES_URL);
+  }, [navigation, trackButtonClicked]);
 
   return (
     <Box

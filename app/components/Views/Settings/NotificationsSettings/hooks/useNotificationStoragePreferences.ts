@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import { useQueryClient } from '@tanstack/react-query';
 import type {
@@ -7,12 +8,17 @@ import type {
 } from '@metamask/authenticated-user-storage';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { selectAiSocialAusCacheRefreshEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 
 const CLIENT_TYPE = 'mobile' as const;
 const GET_ACTION =
   'AuthenticatedUserStorageService:getNotificationPreferences' as const;
 const PUT_ACTION =
   'AuthenticatedUserStorageService:putNotificationPreferences' as const;
+// Tells the social API to re-read this user's preferences from AUS and refresh
+// its cache so the change is honoured near-instantly (see @metamask/social-controllers).
+const REFRESH_SOCIAL_CACHE_ACTION =
+  'SocialService:refreshNotificationPreferencesCache' as const;
 
 type NotificationPreferencesResult = Awaited<
   ReturnType<
@@ -74,6 +80,9 @@ export const useNotificationStoragePreferences =
         queryKey: QUERY_KEY,
         refetchOnWindowFocus: false,
       });
+    const isSocialCacheRefreshEnabled = useSelector(
+      selectAiSocialAusCacheRefreshEnabled,
+    );
     const queryClient = useQueryClient();
     const [pendingWrites, setPendingWrites] = useState(0);
     const pendingWritesRef = useRef(0);
@@ -166,6 +175,24 @@ export const useNotificationStoragePreferences =
         try {
           await persistWrite;
           lastConfirmedPreferencesRef.current = nextPreferences;
+          // Best-effort: nudge the Social API to refresh its cached copy so
+          // the change is honoured immediately rather than after its cache
+          // TTL. Gated behind the aiSocialAusCacheRefreshEnabled flag so it
+          // only runs once the Social API cache-refresh endpoint is rolled out.
+          // Fire-and-forget — the AUS write above is the source of truth and
+          // has already succeeded, so a failure here must not roll back the
+          // change or surface to the user, hence the swallowed catch.
+          if (isSocialCacheRefreshEnabled) {
+            Engine.controllerMessenger
+              .call(REFRESH_SOCIAL_CACHE_ACTION)
+              .catch((refreshError) => {
+                Logger.error(
+                  refreshError as Error,
+                  'Failed to refresh Social API notification preferences cache',
+                );
+              });
+          }
+          finishWrite();
         } catch (err) {
           Logger.error(
             err as Error,
@@ -177,12 +204,18 @@ export const useNotificationStoragePreferences =
               lastConfirmedPreferencesRef.current ?? previousSnapshot,
             );
           }
-          throw err;
-        } finally {
           finishWrite();
+          throw err;
         }
       },
-      [beginWrite, data, finishWrite, getCachedPreferences, queryClient],
+      [
+        beginWrite,
+        data,
+        finishWrite,
+        getCachedPreferences,
+        isSocialCacheRefreshEnabled,
+        queryClient,
+      ],
     );
 
     const updateSectionChannel = useCallback(

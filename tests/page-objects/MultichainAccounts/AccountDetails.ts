@@ -2,11 +2,8 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { AccountDetailsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails.testIds';
 import { ExportCredentialsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails/ExportCredentials.testIds';
-import { EncapsulatedElementType, asPlaywrightElement } from '../../framework';
-import { FrameworkDetector } from '../../framework/FrameworkDetector';
+import { EncapsulatedElementType, getDriver } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import { getDriver } from '../../framework/PlaywrightUtilities';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 class AccountDetails {
   get container(): EncapsulatedElementType {
@@ -75,19 +72,18 @@ class AccountDetails {
     });
   }
 
+  /**
+   * Appium iOS: XCTest often reports `isDisplayed() === false` on native-stack
+   * screens even when page source shows `visible="true"`. Skip displayed checks
+   * and tap by testID directly (same pattern as AddressList.tapBackButton).
+   */
   async tapBackButton(): Promise<void> {
-    if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
-      const container = await asPlaywrightElement(this.container);
-      const isOnAccountDetails = await container.isVisible().catch(() => false);
-      if (!isOnAccountDetails) {
-        return;
-      }
-
-      const backEl = await asPlaywrightElement(this.backButton);
+    if (PlatformDetector.isIOS()) {
       try {
-        await PlaywrightGestures.waitAndTap(backEl, {
-          timeout: 5_000,
+        await Gestures.waitAndTap(this.backButton, {
+          timeout: 10_000,
           checkForDisplayed: false,
+          elemDescription: 'Back Button in Account Details',
         });
       } catch {
         const drv = getDriver();

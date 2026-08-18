@@ -88,6 +88,7 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.PhishingController;
   delete fullState.engine.backgroundState.AssetsContractController;
   delete fullState.engine.backgroundState.DeFiPositionsController;
+  delete fullState.engine.backgroundState.DeFiPositionsControllerV2;
   delete fullState.engine.backgroundState.PredictController;
 
   // Strip cardHomeData to avoid leaking user PII (wallet addresses, holder names)
@@ -164,13 +165,13 @@ export const downloadStateLogs = async (
     // a filename and JSON mime type lets Android offer "Save to Files"/Drive.
     await RNFS.writeFile(path, stateLogsWithReleaseDetails, 'utf8');
 
-    // Pass the plain file path (no `file://` scheme). react-native-share
-    // copies it into its own FileProvider and shares a `content://` URI;
-    // passing a raw `file://` URI crashes Android with FileUriExposedException.
+    // Pass a `file://` URI so react-native-share treats this as a file
+    // attachment on Android (plain paths are shared as EXTRA_TEXT). The
+    // library converts the path to a `content://` URI via FileProvider.
     await Share.open({
       subject: `${appName} State logs -  v${appVersion} (${buildNumber})`,
       title: `${appName} State logs -  v${appVersion} (${buildNumber})`,
-      url: path,
+      url: `file://${path}`,
       filename,
       type: 'application/json',
       failOnCancel: false,

@@ -14,6 +14,7 @@ import styleSheet from './VerifyIdentity.styles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import VerifyIdentityImage from '../../assets/verifyIdentityIllustration.png';
 import PoweredByTransak from '../../components/PoweredByTransak';
@@ -29,6 +30,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../util/navigation/navUtils';
 import { useDispatch } from 'react-redux';
 import { createV2EnterEmailNavDetails } from './EnterEmail';
@@ -53,7 +55,7 @@ export const createV2VerifyIdentityNavDetails =
 
 const V2VerifyIdentity = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { userRegion } = useRampsUserRegion();
@@ -68,8 +70,9 @@ const V2VerifyIdentity = () => {
   const { headlessRampProps } = useHeadlessRampProps(headlessSessionId);
 
   const navigateToEnterEmail = useCallback(() => {
-    navigation.navigate(
-      ...createV2EnterEmailNavDetails({
+    navigateWithDetails(
+      navigation,
+      createV2EnterEmailNavDetails({
         amount,
         currency,
         assetId,

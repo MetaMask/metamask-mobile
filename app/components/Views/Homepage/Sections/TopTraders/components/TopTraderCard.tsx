@@ -12,7 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { TopTrader } from '../types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -61,60 +61,60 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
   const isPnlPositive = trader.pnlValue >= 0;
 
   return (
-    <Box
-      twClassName={`relative w-[${TOP_TRADER_CARD_WIDTH}px] rounded-xl bg-muted overflow-hidden`}
+    <Pressable
+      onPress={
+        onTraderPress
+          ? () => onTraderPress(trader.id, trader.username, trader.overallRank)
+          : undefined
+      }
+      disabled={!onTraderPress}
+      accessibilityRole={onTraderPress ? 'button' : undefined}
       testID={testID ?? `top-trader-card-${trader.id}`}
+      style={({ pressed }) =>
+        tw.style(
+          `relative w-[${TOP_TRADER_CARD_WIDTH}px] rounded-xl overflow-hidden`,
+          pressed && onTraderPress ? 'bg-muted-pressed' : 'bg-muted',
+        )
+      }
     >
-      <TouchableOpacity
-        activeOpacity={onTraderPress ? 0.7 : 1}
-        onPress={
-          onTraderPress
-            ? () =>
-                onTraderPress(trader.id, trader.username, trader.overallRank)
-            : undefined
-        }
-        disabled={!onTraderPress}
-        testID={`top-trader-card-pressable-${trader.id}`}
-      >
-        <Box twClassName="gap-4 p-4">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
-          >
-            <TraderAvatar
-              imageUrl={trader.avatarUri}
-              address={trader.address}
-              size={AVATAR_SIZE}
-              testID={`top-trader-avatar-${trader.id}`}
-            />
+      <Box twClassName="gap-4 p-4">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-2"
+        >
+          <TraderAvatar
+            imageUrl={trader.avatarUri}
+            address={trader.address}
+            size={AVATAR_SIZE}
+            testID={`top-trader-avatar-${trader.id}`}
+          />
 
-            <Box twClassName="flex-1 min-w-0">
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {trader.username}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                numberOfLines={1}
-                twClassName={
-                  isPnlPositive ? 'text-success-default' : 'text-error-default'
-                }
-              >
-                {pnlText}
-              </Text>
-            </Box>
+          <Box twClassName="flex-1 min-w-0">
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {trader.username}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              numberOfLines={1}
+              twClassName={
+                isPnlPositive ? 'text-success-default' : 'text-error-default'
+              }
+            >
+              {pnlText}
+            </Text>
           </Box>
-
-          <Box style={{ height: FOLLOW_BUTTON_HEIGHT }} />
         </Box>
-      </TouchableOpacity>
+
+        <Box style={{ height: FOLLOW_BUTTON_HEIGHT }} />
+      </Box>
 
       <View
         pointerEvents="box-none"
@@ -133,7 +133,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
             : strings('social_leaderboard.follow')}
         </Button>
       </View>
-    </Box>
+    </Pressable>
   );
 };
 

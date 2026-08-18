@@ -1,8 +1,10 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
+import ReactTestRenderer from 'react-test-renderer';
 import { Animated } from 'react-native';
 import { ANIMATION_TIMINGS } from '../animations/animationTimings';
 import { StackCardEmpty } from './StackCardEmpty';
+import { __mockRiveFireState } from '../../../../__mocks__/rive-react-native';
 
 // Mock dependencies
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -47,13 +49,6 @@ jest.mock('react-native', () => ({
   },
 }));
 
-jest.mock('rive-react-native', () => ({
-  __esModule: true,
-  default: 'Rive',
-  Alignment: { Center: 'Center' },
-  Fit: { Cover: 'Cover' },
-}));
-
 describe('StackCardEmpty', () => {
   const createAnimatedValue = (initialValue = 0) =>
     new Animated.Value(initialValue);
@@ -68,6 +63,7 @@ describe('StackCardEmpty', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    __mockRiveFireState.mockReset();
     jest.useFakeTimers();
   });
 
@@ -115,6 +111,29 @@ describe('StackCardEmpty', () => {
       jest.advanceTimersByTime(ANIMATION_TIMINGS.EMPTY_STATE_IDLE_TIME + 100);
 
       expect(defaultProps.onTransitionToEmpty).not.toHaveBeenCalled();
+    });
+
+    it('calls the latest onTransitionToEmpty after callback updates', () => {
+      const firstCallback = jest.fn();
+      const secondCallback = jest.fn();
+      const { rerender } = render(
+        <StackCardEmpty
+          {...defaultProps}
+          onTransitionToEmpty={firstCallback}
+        />,
+      );
+
+      rerender(
+        <StackCardEmpty
+          {...defaultProps}
+          onTransitionToEmpty={secondCallback}
+        />,
+      );
+
+      jest.advanceTimersByTime(ANIMATION_TIMINGS.EMPTY_STATE_IDLE_TIME + 100);
+
+      expect(secondCallback).toHaveBeenCalledTimes(1);
+      expect(firstCallback).not.toHaveBeenCalled();
     });
 
     it('clears dismiss timer on unmount before timeout completes', () => {
@@ -240,6 +259,66 @@ describe('StackCardEmpty', () => {
       jest.clearAllTimers();
 
       expect(defaultProps.onTransitionToEmpty).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('confetti animation', () => {
+    it('fires Rive confetti when empty card becomes visible', () => {
+      render(<StackCardEmpty {...defaultProps} />);
+
+      act(() => {
+        jest.advanceTimersByTime(50);
+      });
+
+      expect(__mockRiveFireState).toHaveBeenCalledWith('Confetti', 'Start');
+    });
+
+    it('logs a warning when Rive confetti fireState throws', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      __mockRiveFireState.mockImplementation(() => {
+        throw new Error('confetti failed');
+      });
+
+      render(<StackCardEmpty {...defaultProps} />);
+
+      act(() => {
+        jest.advanceTimersByTime(50);
+      });
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Error triggering Rive confetti animation:',
+        expect.any(Error),
+      );
+
+      warnSpy.mockRestore();
+    });
+
+    it('hides Rive layer when animation load fails', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      let riveRenderer: ReactTestRenderer.ReactTestRenderer | undefined;
+
+      act(() => {
+        riveRenderer = ReactTestRenderer.create(
+          <StackCardEmpty {...defaultProps} />,
+        );
+      });
+
+      const riveNode = riveRenderer?.root.findByProps({
+        artboardName: 'Artboard',
+      });
+      act(() => {
+        riveNode?.props.onError(new Error('load failed'));
+      });
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Rive animation failed to load:',
+        expect.any(Error),
+      );
+      expect(
+        riveRenderer?.root.findAllByProps({ artboardName: 'Artboard' }),
+      ).toHaveLength(0);
+
+      warnSpy.mockRestore();
     });
   });
 

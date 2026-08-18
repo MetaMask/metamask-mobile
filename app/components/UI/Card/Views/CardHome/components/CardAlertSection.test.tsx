@@ -29,12 +29,22 @@ jest.mock('../../../components/CardMessageBox/CardMessageBox', () => {
 const mockOnNavigateToSpendingLimit = jest.fn();
 const mockOnDismissSpendingLimitWarning = jest.fn();
 
-function renderComponent(alerts: CardAlert[]) {
+function renderComponent(
+  alerts: CardAlert[],
+  extras?: {
+    hasPendingVerification?: boolean;
+    onContinueVerification?: () => void;
+    isReconcilingProvisioning?: boolean;
+  },
+) {
   return render(
     <CardAlertSection
       alerts={alerts}
       onNavigateToSpendingLimit={mockOnNavigateToSpendingLimit}
       onDismissSpendingLimitWarning={mockOnDismissSpendingLimitWarning}
+      hasPendingVerification={extras?.hasPendingVerification}
+      onContinueVerification={extras?.onContinueVerification}
+      isReconcilingProvisioning={extras?.isReconcilingProvisioning}
     />,
   );
 }
@@ -91,6 +101,42 @@ describe('CardAlertSection', () => {
     const props = JSON.parse(box.props.accessibilityLabel);
     expect(props.hasOnConfirm).toBe(false);
     expect(props.hasOnDismiss).toBe(false);
+  });
+
+  it('renders PendingVerification CardMessageBox with CTA when verification is pending', () => {
+    const onContinue = jest.fn();
+    const { getByTestId, queryByTestId } = renderComponent(
+      [{ type: 'card_provisioning', dismissable: false }],
+      { hasPendingVerification: true, onContinueVerification: onContinue },
+    );
+
+    const box = getByTestId(
+      `card-message-box-${CardMessageBoxType.PendingVerification}`,
+    );
+    expect(box).toBeOnTheScreen();
+    expect(
+      queryByTestId(`card-message-box-${CardMessageBoxType.CardProvisioning}`),
+    ).not.toBeOnTheScreen();
+
+    const props = JSON.parse(box.props.accessibilityLabel);
+    expect(props.hasOnConfirm).toBe(true);
+  });
+
+  it('renders a skeleton while provisioning status is being reconciled', () => {
+    const { getByTestId, queryByTestId } = renderComponent(
+      [{ type: 'card_provisioning', dismissable: false }],
+      { isReconcilingProvisioning: true, hasPendingVerification: true },
+    );
+
+    expect(getByTestId('card-provisioning-alert-skeleton')).toBeOnTheScreen();
+    expect(
+      queryByTestId(`card-message-box-${CardMessageBoxType.CardProvisioning}`),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        `card-message-box-${CardMessageBoxType.PendingVerification}`,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders nothing for unknown alert type', () => {

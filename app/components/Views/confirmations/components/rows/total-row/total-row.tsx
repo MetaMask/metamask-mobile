@@ -7,7 +7,10 @@ import InfoRow from '../../UI/info-row';
 import { strings } from '../../../../../../../locales/i18n';
 import { View } from 'react-native';
 import { BigNumber } from 'bignumber.js';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import {
   useIsTransactionPayLoading,
   useTransactionPayTotals,
@@ -17,7 +20,6 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../../utils/transaction';
 
 const HIDE_TYPES = [TransactionType.musdConversion];
 

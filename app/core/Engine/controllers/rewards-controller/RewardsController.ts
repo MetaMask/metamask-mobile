@@ -51,15 +51,22 @@ import {
   type OffDeviceSubscriptionAccountsState,
   type ClientVersionRequirementDto,
   type ClientVersionRequirementState,
+  type FirstPredictOnUsDto,
+  type FirstPredictOnUsCacheState,
   type CampaignState,
   type CampaignDtoState,
   type SubscriptionBenefitsState,
   type VipDashboardDto,
   type VipDashboardState,
+  type VipEquityMultiplierDto,
   type VipRefereeMeDto,
   type VipRefereeMeState,
   type VipFeesResponseDto,
   type VipPerpsFeesState,
+  type GetVipTransactionsDto,
+  type PaginatedVipTransactionsDto,
+  type VipTransactionDto,
+  type VipTransactionsState,
   CampaignType,
 } from './types';
 import {
@@ -122,10 +129,16 @@ const BENEFITS_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
 // VIP dashboard cache threshold — re-fetched on every dashboard screen focus,
 // so cache for 5 minutes to avoid redundant backend calls.
 const VIP_DASHBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
+/** Holdings-keyed display cache for POST /vip/equity-multiplier (not program truth). */
+const VIP_EQUITY_MULTIPLIER_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
 
 // VIP perps fees cache threshold — read on every perps trade UI render, so
 // cache for the same 5-minute window as the legacy public-discount path.
 const VIP_PERPS_FEES_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
+
+// VIP transactions cache threshold (first page only).
+// Disabled so each first-page read checks the backend last-updated timestamp.
+const VIP_TRANSACTIONS_CACHE_THRESHOLD_MS = 0;
 
 // Active boosts cache threshold
 const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
@@ -189,6 +202,9 @@ const PREDICT_THE_PITCH_PRIZE_POOL_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minu
 
 // Client version requirements cache threshold
 const CLIENT_VERSION_REQUIREMENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 30; // 30 minutes
+
+// First predict on us cache threshold — matches API Cache-Control max-age=60
+const FIRST_PREDICT_ON_US_CACHE_THRESHOLD_MS = 1000 * 60; // 1 minute
 
 // Opt-in status stale threshold for not opted-in accounts to force a fresh check
 const NOT_OPTED_IN_OIS_STALE_CACHE_THRESHOLD_MS = 1000 * 60 * 60; // 1 hour
@@ -350,6 +366,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  firstPredictOnUs: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   pointsEstimateHistory: {
     includeInStateLogs: true,
     persist: true,
@@ -385,6 +407,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     persist: true,
     includeInDebugSnapshot: false,
     usedInUi: false,
+  },
+  vipTransactions: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
   },
 };
 
@@ -519,6 +547,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'getCampaigns',
   'getCandidateSubscriptionId',
   'getClientVersionRequirements',
+  'getFirstPredictOnUs',
   'getDefaultRewardsEnvUrl',
   'getFirstSubscriptionId',
   'getGeoRewardsMetadata',
@@ -542,6 +571,9 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPredictThePitchPrizePool',
   'getPerpsDiscountForAccount',
   'getVipTierForAccount',
+  'getVipTransactions',
+  'getVipTransactionsIfChanged',
+  'getVipTransactionsLastUpdated',
   'getPointsEvents',
   'getPointsEventsIfChanged',
   'getPointsEventsLastUpdated',
@@ -552,11 +584,13 @@ const MESSENGER_EXPOSED_METHODS = [
   'getSeasonStatus',
   'getUnlockedRewards',
   'getVIPDashboard',
+  'getVipEquityMultiplier',
   'getVipRefereeDashboard',
   'handleAuthenticationTrigger',
   'hasActiveSeason',
   'hasActivityChanged',
   'hasPointsEventsChanged',
+  'hasVipTransactionsChanged',
   'invalidateReferralDetailsCache',
   'invalidateSubscriptionAndAccounts',
   'invalidateSubscriptionCache',
@@ -565,6 +599,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'isVipFeatureEnabled',
   'linkAccountsToSubscriptionCandidate',
   'linkAccountToSubscriptionCandidate',
+  'lookupVipTransaction',
   'logout',
   'optIn',
   'optInToCampaign',
@@ -597,12 +632,25 @@ export class RewardsController extends BaseController<
   > = new Map();
   #isDisabled: () => boolean;
   #isVipDisabled: () => boolean;
+  #isFirstPredictOnUsDisabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
 
   // Deduplicates concurrent /vip/fees fetches for the same subscriptionId.
   // Cleared when the promise settles (success or failure).
   #vipFeesFetchInFlight: Map<string, Promise<VipFeesResponseDto | 0>> =
     new Map();
+  /**
+   * In-memory display cache for equity multiplier. Keyed by
+   * `${subscriptionId}::${holdingsUsd}`. Not Redux / not program truth.
+   */
+  #vipEquityMultiplierCache: Map<
+    string,
+    { payload: VipEquityMultiplierDto; lastFetched: number }
+  > = new Map();
+  #vipEquityMultiplierInFlight: Map<
+    string,
+    Promise<VipEquityMultiplierDto | null>
+  > = new Map();
   #perpsTradingParticipantOutcomeCache: Map<
     string,
     {
@@ -760,16 +808,43 @@ export class RewardsController extends BaseController<
     };
   }
 
+  #convertVipTransactionsToState(
+    transactions: PaginatedVipTransactionsDto,
+  ): VipTransactionsState {
+    return {
+      results: transactions.results.map((transaction) => ({
+        ...transaction,
+      })),
+      has_more: transactions.has_more,
+      cursor: transactions.cursor,
+      lastFetched: Date.now(),
+    };
+  }
+
+  #convertVipTransactionsStateToDto(
+    state: VipTransactionsState,
+  ): PaginatedVipTransactionsDto {
+    return {
+      results: state.results.map((transaction) => ({
+        ...transaction,
+      })),
+      has_more: state.has_more,
+      cursor: state.cursor,
+    };
+  }
+
   constructor({
     messenger,
     state,
     isDisabled,
     isVipDisabled,
+    isFirstPredictOnUsDisabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
     isVipDisabled?: () => boolean;
+    isFirstPredictOnUsDisabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -783,6 +858,8 @@ export class RewardsController extends BaseController<
 
     this.#isDisabled = isDisabled ?? (() => false);
     this.#isVipDisabled = isVipDisabled ?? (() => false);
+    this.#isFirstPredictOnUsDisabled =
+      isFirstPredictOnUsDisabled ?? (() => false);
 
     this.messenger.registerMethodActionHandlers(
       this,
@@ -815,6 +892,8 @@ export class RewardsController extends BaseController<
     this.#participantOutcomeCache.clear();
     this.#perpsTradingParticipantOutcomeCache.clear();
     this.#predictThePitchParticipantOutcomeCache.clear();
+    this.#vipEquityMultiplierCache.clear();
+    this.#vipEquityMultiplierInFlight.clear();
     this.update(() => ({
       ...getRewardsControllerDefaultState(),
       rewardsEnvUrl,
@@ -916,6 +995,16 @@ export class RewardsController extends BaseController<
     campaignId: string,
   ): string {
     return `${subscriptionId}:${campaignId}`;
+  }
+
+  /**
+   * Create VIP transactions composite key for state storage
+   */
+  #createVIPCompositeKey(
+    subscriptionId: string,
+    type: GetVipTransactionsDto['type'],
+  ): string {
+    return `${subscriptionId}:${type}`;
   }
 
   #matchesSeasonSubscriptionCacheKey(
@@ -2369,6 +2458,18 @@ export class RewardsController extends BaseController<
   isVipFeatureEnabled(): boolean {
     if (!this.isRewardsFeatureEnabled()) return false;
     if (this.#isVipDisabled()) return false;
+    return true;
+  }
+
+  /**
+   * Check if the First Predict On Us feature is enabled.
+   * First Predict On Us is a sub-feature of rewards, so it requires both
+   * the rewards feature and the dedicated feature flag to be enabled.
+   * @returns boolean - True if the First Predict On Us feature is enabled
+   */
+  isFirstPredictOnUsFeatureEnabled(): boolean {
+    if (!this.isRewardsFeatureEnabled()) return false;
+    if (this.#isFirstPredictOnUsDisabled()) return false;
     return true;
   }
 
@@ -4562,6 +4663,139 @@ export class RewardsController extends BaseController<
     });
   }
 
+  async getVipTransactions(
+    params: GetVipTransactionsDto,
+  ): Promise<PaginatedVipTransactionsDto> {
+    if (!this.isVipFeatureEnabled()) {
+      return { results: [], has_more: false, cursor: null };
+    }
+
+    const { subscriptionId, type, cursor, forceFresh } = params;
+    if (cursor) {
+      return this.#withAuthRetry(
+        () =>
+          this.messenger.call(
+            'RewardsDataService:getVipTransactions',
+            subscriptionId,
+            type,
+            cursor,
+          ),
+        subscriptionId,
+      );
+    }
+
+    if (forceFresh) {
+      return this.#withAuthRetry(
+        () => this.getVipTransactionsIfChanged(subscriptionId, type),
+        subscriptionId,
+      );
+    }
+
+    const key = this.#createVIPCompositeKey(subscriptionId, type);
+    return wrapWithCache<PaginatedVipTransactionsDto>({
+      key,
+      ttl: VIP_TRANSACTIONS_CACHE_THRESHOLD_MS,
+      readCache: (cacheKey) => {
+        const cached = this.state.vipTransactions[cacheKey];
+        return cached
+          ? {
+              payload: this.#convertVipTransactionsStateToDto(cached),
+              lastFetched: cached.lastFetched,
+            }
+          : undefined;
+      },
+      fetchFresh: () =>
+        this.#withAuthRetry(
+          () => this.getVipTransactionsIfChanged(subscriptionId, type),
+          subscriptionId,
+        ),
+      writeCache: (cacheKey, transactions) => {
+        this.update((state) => {
+          state.vipTransactions[cacheKey] =
+            this.#convertVipTransactionsToState(transactions);
+        });
+      },
+    });
+  }
+
+  async getVipTransactionsIfChanged(
+    subscriptionId: string,
+    type: GetVipTransactionsDto['type'],
+  ): Promise<PaginatedVipTransactionsDto> {
+    if (!this.isVipFeatureEnabled()) {
+      return { results: [], has_more: false, cursor: null };
+    }
+
+    const key = this.#createVIPCompositeKey(subscriptionId, type);
+    if (!(await this.hasVipTransactionsChanged(subscriptionId, type))) {
+      const cached = this.state.vipTransactions[key];
+      return cached
+        ? this.#convertVipTransactionsStateToDto(cached)
+        : { results: [], has_more: false, cursor: null };
+    }
+
+    return this.messenger.call(
+      'RewardsDataService:getVipTransactions',
+      subscriptionId,
+      type,
+      null,
+    );
+  }
+
+  async getVipTransactionsLastUpdated(
+    subscriptionId: string,
+    type: GetVipTransactionsDto['type'],
+  ): Promise<Date | null> {
+    if (!this.isVipFeatureEnabled()) return null;
+    return this.#withAuthRetry(
+      () =>
+        this.messenger.call(
+          'RewardsDataService:getVipTransactionsLastUpdated',
+          subscriptionId,
+          type,
+        ),
+      subscriptionId,
+    );
+  }
+
+  async hasVipTransactionsChanged(
+    subscriptionId: string,
+    type: GetVipTransactionsDto['type'],
+  ): Promise<boolean> {
+    if (!this.isVipFeatureEnabled()) return false;
+
+    const cached =
+      this.state.vipTransactions[
+        this.#createVIPCompositeKey(subscriptionId, type)
+      ];
+    const cachedLatestTimestamp = cached?.results[0]?.timestamp;
+    if (!cachedLatestTimestamp) return true;
+
+    const lastUpdated = await this.getVipTransactionsLastUpdated(
+      subscriptionId,
+      type,
+    );
+    return lastUpdated
+      ? lastUpdated.toISOString() !== cachedLatestTimestamp
+      : true;
+  }
+
+  async lookupVipTransaction(
+    subscriptionId: string,
+    key: string,
+  ): Promise<VipTransactionDto | null> {
+    if (!this.isVipFeatureEnabled()) return null;
+    return this.#withAuthRetry(
+      () =>
+        this.messenger.call(
+          'RewardsDataService:lookupVipTransaction',
+          subscriptionId,
+          key,
+        ),
+      subscriptionId,
+    );
+  }
+
   /**
    * Get the VIP dashboard with caching.
    * @param subscriptionId - The subscription ID for authentication
@@ -4639,6 +4873,64 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Display-only equity multiplier estimate from client-supplied holdings.
+   * Must never be persisted as program truth or feed warrant settlement
+   * (RWDS-1485). Client balance is untrusted; cache is holdings-keyed TTL only.
+   */
+  async getVipEquityMultiplier(
+    subscriptionId: string,
+    holdingsUsd: string,
+  ): Promise<VipEquityMultiplierDto | null> {
+    if (!this.isVipFeatureEnabled()) return null;
+
+    const cacheKey = `${subscriptionId}::${holdingsUsd}`;
+    const cached = this.#vipEquityMultiplierCache.get(cacheKey);
+    if (
+      cached &&
+      Date.now() - cached.lastFetched < VIP_EQUITY_MULTIPLIER_CACHE_THRESHOLD_MS
+    ) {
+      return cached.payload;
+    }
+
+    const inFlight = this.#vipEquityMultiplierInFlight.get(cacheKey);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const fetchPromise = (async (): Promise<VipEquityMultiplierDto | null> => {
+      try {
+        const result = await this.#withAuthRetry(
+          () =>
+            this.messenger.call(
+              'RewardsDataService:getVipEquityMultiplier',
+              subscriptionId,
+              holdingsUsd,
+            ),
+          subscriptionId,
+        );
+        if (result) {
+          this.#vipEquityMultiplierCache.set(cacheKey, {
+            payload: result,
+            lastFetched: Date.now(),
+          });
+        }
+        return result;
+      } catch (error) {
+        Logger.log(
+          'RewardsController: Failed to get VIP equity multiplier:',
+          error instanceof Error ? error.message : String(error),
+        );
+        throw error;
+      } finally {
+        this.#vipEquityMultiplierInFlight.delete(cacheKey);
+      }
+    })();
+
+    this.#vipEquityMultiplierInFlight.set(cacheKey, fetchPromise);
+    return fetchPromise;
+  }
+
+  /**
    * Get the VIP referee stats with caching.
    * @param subscriptionId - The subscription ID for authentication
    * @returns Promise<VipRefereeMeState | null> - The referee stats, or null when the user is not a VIP referee
@@ -4707,12 +4999,14 @@ export class RewardsController extends BaseController<
    * @param subscriptionId - The subscription ID for authentication
    * @param benefitId - The specific benefit ID that was impressed
    * @param benefitType - The type of the benefit that was impressed
+   * @param walletAddress - The wallet address that viewed the benefit (optional)
    * @returns Promise<SubscriptionBenefitsState> - The benefits data
    */
   async postBenefitImpression(
     subscriptionId: string,
     benefitId: number,
     benefitType: number,
+    walletAddress?: string,
   ): Promise<void> {
     try {
       Logger.log(
@@ -4726,6 +5020,7 @@ export class RewardsController extends BaseController<
             subscriptionId,
             benefitId,
             benefitType,
+            walletAddress,
           ),
         subscriptionId,
       );
@@ -4858,6 +5153,39 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Fetch the visible first predict on us content from the public API.
+   * Cached for 1 minute using controller state, matching the API Cache-Control header.
+   * Requires both the rewards feature and rewardsFirstPredictOnUsEnabled.
+   */
+  async getFirstPredictOnUs(): Promise<FirstPredictOnUsDto | null> {
+    if (!this.isFirstPredictOnUsFeatureEnabled()) return null;
+
+    const cached = this.state.firstPredictOnUs;
+    if (
+      cached &&
+      Date.now() - cached.lastFetched < FIRST_PREDICT_ON_US_CACHE_THRESHOLD_MS
+    ) {
+      return cached.data;
+    }
+
+    Logger.log(
+      'RewardsController: Fetching fresh first predict on us data via API call',
+    );
+    const result = (await this.messenger.call(
+      'RewardsDataService:getFirstPredictOnUs',
+    )) as FirstPredictOnUsDto | null;
+
+    this.update((state) => {
+      state.firstPredictOnUs = {
+        data: result,
+        lastFetched: Date.now(),
+      };
+    });
+
+    return result;
+  }
+
+  /**
    * Invalidate referral details cache for a subscription
    * @param subscriptionId - The subscription ID to invalidate cache for
    */
@@ -4911,6 +5239,11 @@ export class RewardsController extends BaseController<
         delete state.vipDashboard?.[subscriptionId];
         delete state.vipRefereeDashboard?.[subscriptionId];
         delete state.vipPerpsFees?.[subscriptionId];
+        deleteMatchingCacheEntries(
+          state.vipTransactions,
+          (key) =>
+            key === subscriptionId || key.startsWith(`${subscriptionId}:`),
+        );
         delete state.offDeviceSubscriptionAccounts?.[subscriptionId];
         delete state.subscriptionReferralDetails?.[subscriptionId];
       }

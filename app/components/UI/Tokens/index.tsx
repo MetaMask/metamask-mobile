@@ -26,6 +26,7 @@ import { TokenList } from './TokenList/TokenList';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { refreshTokens, goToAddEvmToken } from './util';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box } from '@metamask/design-system-react-native';
 import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
@@ -51,6 +52,8 @@ interface TokensProps {
    * Whether this is the full view (with header and safe area) or tab view
    */
   isFullView?: boolean;
+  /** Source used to attribute full-view analytics events. */
+  analyticsSource?: string;
   /**
    * When true, show only mUSD token positions (for Cash full view).
    * Hides add-token bar and uses cash-specific empty state when empty.
@@ -87,6 +90,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
   (
     {
       isFullView = false,
+      analyticsSource,
       showOnlyMusd = false,
       hasMusdBalanceOnAnyChain: hasMusdBalanceOnAnyChainProp,
       listHeaderComponent,
@@ -97,7 +101,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     },
     ref,
   ) => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const { bottom: bottomInset } = useSafeAreaInsets();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const tw = useTailwind();
@@ -121,10 +125,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     );
     const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
     const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-    const isCashSectionEnabled =
+    const shouldExcludeMusdFromMainList =
       isMusdConversionFlowEnabled && isMoneyHubEnabled && isGeoEligible;
-
-    const shouldExcludeMusdFromMainList = isCashSectionEnabled;
 
     const [hasInitialLoad, setHasInitialLoad] = useState(false);
     const hasTrackedScreenViewRef = useRef(false);
@@ -134,7 +136,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       selectSortedAssetsBySelectedAccountGroup,
     );
 
-    // When showOnlyMusd: only mUSD. When Cash section is enabled: exclude mUSD (shown in Cash section). Otherwise include all.
+    // When showOnlyMusd: only mUSD. Otherwise, exclude mUSD while it is surfaced
+    // in the Money hub.
     const tokenKeysForList = useMemo(
       () =>
         showOnlyMusd
@@ -176,6 +179,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
             location: 'homepage',
             is_empty: tokenKeysForList.length === 0,
             screen_type: showOnlyMusd ? 'cash' : 'tokens',
+            ...(analyticsSource ? { source: analyticsSource } : {}),
           })
           .build(),
       );
@@ -184,6 +188,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       hasInitialLoad,
       tokenKeysForList.length,
       showOnlyMusd,
+      analyticsSource,
       trackEvent,
       createEventBuilder,
     ]);

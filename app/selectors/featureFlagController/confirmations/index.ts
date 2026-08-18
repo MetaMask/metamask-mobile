@@ -24,6 +24,10 @@ export const PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT:
   | Record<string, string>
   | undefined = undefined;
 export const PAY_DEPOSIT_LIMITS_DEFAULT: Record<string, number> = {};
+export const PAY_PREFILLED_AMOUNT_DEFAULT: PrefilledAmountFlags = {
+  default: { enabled: false },
+  overrides: {},
+};
 export const SLIPPAGE_DEFAULT = 0.005;
 export const STX_DISABLED_DEFAULT = false;
 
@@ -62,10 +66,20 @@ export interface MetaMaskPayFlags {
   stxDisabled: boolean;
 }
 
+export interface PrefilledAmountConfig {
+  enabled: boolean;
+}
+
+export interface PrefilledAmountFlags {
+  default: PrefilledAmountConfig;
+  overrides: Record<string, PrefilledAmountConfig>;
+}
+
 export interface MetaMaskPayExtendedFlags {
   enableDepositWalletWithdraw: boolean;
   enableMoneyAccountTransactions: Record<string, boolean>;
   defaultPaySelectedSection?: Record<string, string>;
+  prefilledAmount: PrefilledAmountFlags;
 }
 
 export interface MetaMaskPayTokensFlags {
@@ -89,8 +103,13 @@ export interface MetaMaskPayFiatFlags {
   maxDelayMinutesForPaymentMethods: number;
 }
 
-export interface MetaMaskPayHardwareFlags {
-  enabled: boolean;
+export interface PayHardwareConfig {
+  enabled?: boolean;
+}
+
+export interface PayHardwareFlags {
+  default: PayHardwareConfig;
+  overrides?: Record<string, PayHardwareConfig>;
 }
 
 export const selectMetaMaskPayFlags = createSelector(
@@ -139,6 +158,19 @@ export const selectMetaMaskPayFlags = createSelector(
         string
       >) ?? PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT;
 
+    const rawPrefill = metaMaskPayExtendedFlags?.prefilledAmount as
+      | {
+          default?: PrefilledAmountConfig;
+          overrides?: Record<string, PrefilledAmountConfig>;
+        }
+      | undefined;
+
+    const prefilledAmount: PrefilledAmountFlags = {
+      default: rawPrefill?.default ?? PAY_PREFILLED_AMOUNT_DEFAULT.default,
+      overrides:
+        rawPrefill?.overrides ?? PAY_PREFILLED_AMOUNT_DEFAULT.overrides,
+    };
+
     return {
       attemptsMax,
       bufferInitial,
@@ -149,9 +181,34 @@ export const selectMetaMaskPayFlags = createSelector(
       enableDepositWalletWithdraw,
       enableMoneyAccountTransactions,
       defaultPaySelectedSection,
+      prefilledAmount,
     };
   },
 );
+
+/**
+ * Resolves the effective prefilledAmount config for a given transaction type.
+ * Override entries take precedence over default.
+ */
+export function selectPrefilledAmountConfig(
+  state: RootState,
+  transactionType?: string,
+): PrefilledAmountConfig {
+  const flags = selectMetaMaskPayFlags(state);
+  const { prefilledAmount } = flags;
+
+  const override = transactionType
+    ? prefilledAmount.overrides?.[transactionType]
+    : undefined;
+
+  if (override) {
+    return {
+      enabled: override.enabled ?? prefilledAmount.default.enabled,
+    };
+  }
+
+  return prefilledAmount.default;
+}
 
 export function selectDepositLimits(state: RootState): Record<string, number> {
   const featureFlags = selectRemoteFeatureFlags(state);
@@ -289,15 +346,47 @@ export const selectMetaMaskPayFiatFlags = createSelector(
   },
 );
 
+interface RawPayHardwareFlag {
+  default?: PayHardwareConfig;
+  overrides?: Record<string, PayHardwareConfig>;
+}
+
 export const selectMetaMaskPayHardwareFlags = createSelector(
   selectRemoteFeatureFlags,
-  (featureFlags): MetaMaskPayHardwareFlags => {
+  (featureFlags): PayHardwareFlags => {
     const raw = featureFlags?.confirmations_pay_hardware as
-      | Record<string, Json>
+      | RawPayHardwareFlag
       | undefined;
 
     return {
-      enabled: (raw?.enabled as boolean) ?? PAY_HARDWARE_ENABLED_DEFAULT,
+      default: {
+        enabled: raw?.default?.enabled ?? PAY_HARDWARE_ENABLED_DEFAULT,
+      },
+      overrides: raw?.overrides,
+    };
+  },
+);
+
+/**
+ * Resolves the effective hardware wallet config for a given transaction type.
+ * If the type has an override entry, unset properties fall back to default.
+ */
+export const selectPayHardwareConfig = createSelector(
+  [
+    selectMetaMaskPayHardwareFlags,
+    (_state: RootState, transactionType?: string) => transactionType,
+  ],
+  (flags, transactionType): PayHardwareConfig => {
+    const override = transactionType
+      ? flags.overrides?.[transactionType]
+      : undefined;
+
+    if (!override) {
+      return flags.default;
+    }
+
+    return {
+      enabled: override.enabled ?? flags.default.enabled,
     };
   },
 );

@@ -29,10 +29,6 @@ import confirmationMetricsReducer from '../core/redux/slices/confirmationMetrics
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
 import cronjobControllerReducer from '../core/redux/slices/cronjobController';
-import networkConnectionBannerReducer, {
-  NetworkConnectionBannerState,
-} from './networkConnectionBanner';
-
 import bannersReducer, { BannersState } from './banners';
 import bridgeReducer from '../core/redux/slices/bridge';
 import performanceReducer, {
@@ -46,6 +42,8 @@ import moneyBalanceReducer from '../core/redux/slices/moneyBalance';
 import rewardsReducer, { RewardsState } from './rewards';
 import { isTestEnvironment } from '../util/test/utils';
 import attributionReducer from '../core/redux/slices/attribution';
+import headlessOrderContextsReducer from '../core/redux/slices/headlessOrderContexts';
+import terminalOrderAnalyticsReducer from '../core/redux/slices/terminalOrderAnalytics';
 
 /**
  * Infer state from a reducer
@@ -134,8 +132,11 @@ export interface RootState {
   ///: END:ONLY_INCLUDE_IF
   cronjobController: StateFromReducer<typeof cronjobControllerReducer>;
   rewards: RewardsState;
-  networkConnectionBanner: NetworkConnectionBannerState;
   attribution: StateFromReducer<typeof attributionReducer>;
+  headlessOrderContexts: StateFromReducer<typeof headlessOrderContextsReducer>;
+  terminalOrderAnalytics: StateFromReducer<
+    typeof terminalOrderAnalyticsReducer
+  >;
 }
 
 const baseReducers = {
@@ -178,7 +179,6 @@ const baseReducers = {
   qrKeyringScanner: qrKeyringScannerReducer,
   cronjobController: cronjobControllerReducer,
   rewards: rewardsReducer,
-  networkConnectionBanner: networkConnectionBannerReducer,
 };
 
 if (isTestEnvironment) {
@@ -193,6 +193,8 @@ if (isTestEnvironment) {
 const rootReducer = combineReducers<RootState, any>({
   ...baseReducers,
   attribution: attributionReducer,
+  headlessOrderContexts: headlessOrderContextsReducer,
+  terminalOrderAnalytics: terminalOrderAnalyticsReducer,
 });
 
 export default rootReducer;

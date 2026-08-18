@@ -20,7 +20,7 @@ import {
   TransactionControllerUpdateTransactionAction,
 } from '@metamask/transaction-controller';
 import { getDeleGatorEnvironment } from '../../../core/Delegation';
-import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
+import { TransactionControllerInitMessenger } from '../../../core/Engine/wallet-init/messengers/transaction-controller-messenger';
 import {
   submitRelayTransaction,
   waitForRelaySuccess,
@@ -28,8 +28,13 @@ import {
 import { Delegation7702PublishHook } from './delegation-7702-publish';
 import { NetworkClientId } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
+import { recoverAuthorizationAddress } from 'viem/utils';
 
 jest.mock('../transaction-relay');
+jest.mock('viem/utils', () => ({
+  ...jest.requireActual('viem/utils'),
+  recoverAuthorizationAddress: jest.fn(),
+}));
 jest.mock('../../../core/Delegation/delegation', () => ({
   ...jest.requireActual('../../../core/Delegation/delegation'),
   encodeRedeemDelegations: jest.fn(() => '0xdeadbeef'),
@@ -89,6 +94,9 @@ const getRootMessenger = (): RootMessenger =>
 describe('Delegation 7702 Publish Hook', () => {
   const submitRelayTransactionMock = jest.mocked(submitRelayTransaction);
   const waitForRelaySuccessMock = jest.mocked(waitForRelaySuccess);
+  const recoverAuthorizationAddressMock = jest.mocked(
+    recoverAuthorizationAddress,
+  );
   let messenger: TransactionControllerInitMessenger;
   let hookClass: Delegation7702PublishHook;
 
@@ -678,6 +686,102 @@ describe('Delegation 7702 Publish Hook', () => {
             yParity: expect.any(String),
           },
         ],
+      }),
+    );
+  });
+
+  it('merges foreign Money Account authorization with EOA upgrade authorization', async () => {
+    const moneyAccountAuthorization = {
+      address: UPGRADE_CONTRACT_ADDRESS_MOCK as Hex,
+      chainId: TRANSACTION_META_MOCK.chainId as Hex,
+      nonce: '0x9' as Hex,
+      r: '0xaaa' as Hex,
+      s: '0xbbb' as Hex,
+      yParity: '0x1' as Hex,
+    };
+    const moneyAccountAddress =
+      '0x9999999999999999999999999999999999999999' as Hex;
+
+    recoverAuthorizationAddressMock.mockResolvedValueOnce(moneyAccountAddress);
+
+    isAtomicBatchSupportedMock.mockResolvedValueOnce([
+      {
+        chainId: TRANSACTION_META_MOCK.chainId,
+        delegationAddress: undefined,
+        isSupported: false,
+        upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+      },
+    ]);
+
+    await hookClass.getHook()(
+      {
+        ...TRANSACTION_META_MOCK,
+        gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+        selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+        txParams: {
+          ...TRANSACTION_META_MOCK.txParams,
+          authorizationList: [moneyAccountAuthorization],
+        },
+      },
+      SIGNED_TX_MOCK,
+    );
+
+    expect(submitRelayTransactionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authorizationList: [
+          moneyAccountAuthorization,
+          {
+            address: UPGRADE_CONTRACT_ADDRESS_MOCK,
+            chainId: TRANSACTION_META_MOCK.chainId,
+            nonce: TRANSACTION_META_MOCK.txParams.nonce,
+            r: expect.any(String),
+            s: expect.any(String),
+            yParity: expect.any(String),
+          },
+        ],
+      }),
+    );
+  });
+
+  it('includes foreign authorization when from is already upgraded', async () => {
+    const moneyAccountAuthorization = {
+      address: UPGRADE_CONTRACT_ADDRESS_MOCK as Hex,
+      chainId: TRANSACTION_META_MOCK.chainId as Hex,
+      nonce: '0x9' as Hex,
+      r: '0xaaa' as Hex,
+      s: '0xbbb' as Hex,
+      yParity: '0x1' as Hex,
+    };
+    const moneyAccountAddress =
+      '0x9999999999999999999999999999999999999999' as Hex;
+
+    recoverAuthorizationAddressMock.mockResolvedValueOnce(moneyAccountAddress);
+
+    isAtomicBatchSupportedMock.mockResolvedValueOnce([
+      {
+        chainId: TRANSACTION_META_MOCK.chainId,
+        delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+        isSupported: true,
+        upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+      },
+    ]);
+
+    await hookClass.getHook()(
+      {
+        ...TRANSACTION_META_MOCK,
+        gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+        selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+        txParams: {
+          ...TRANSACTION_META_MOCK.txParams,
+          authorizationList: [moneyAccountAuthorization],
+        },
+      },
+      SIGNED_TX_MOCK,
+    );
+
+    expect(submitRelayTransactionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authorizationList: [moneyAccountAuthorization],
       }),
     );
   });

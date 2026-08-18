@@ -8,6 +8,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Text from '../../../component-library/components/Texts/Text/Text';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useParams } from '../../../util/navigation/navUtils';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './NftDetails.styles';
@@ -58,7 +59,7 @@ import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const NftDetails = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { collectible, source } = useParams<NftDetailsParams>();
   const chainId = useSelector(selectChainId);
   const dispatch = useDispatch();

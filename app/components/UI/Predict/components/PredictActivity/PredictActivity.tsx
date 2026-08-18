@@ -13,11 +13,12 @@ import { formatPercentage, formatPrice } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { PredictActivityItem, PredictActivityType } from '../../types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../../../core/Analytics/events/transactions';
 import { POLYGON_MAINNET_CHAIN_ID } from '../../providers/polymarket/constants';
@@ -38,7 +39,7 @@ const PredictActivity: React.FC<PredictActivityProps> = ({
   containerStyle,
 }) => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isDebit = item.type === PredictActivityType.BUY;
   const signedAmount = `${isDebit ? '-' : '+'}${formatPrice(
@@ -56,7 +57,7 @@ const PredictActivity: React.FC<PredictActivityProps> = ({
 
   const handlePress = () => {
     trackEvent(
-      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+      createEventBuilder(ACTIVITY_DETAIL_EVENTS.OPENED)
         .addProperties({
           transaction_type: `predict_${item.type.toLowerCase()}`,
           transaction_status: 'confirmed',

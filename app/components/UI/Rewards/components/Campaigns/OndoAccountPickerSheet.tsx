@@ -31,7 +31,6 @@ import {
   type AccountPickerConfig,
 } from './OndoPortfolio';
 import { strings } from '../../../../../../locales/i18n';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface OndoAccountPickerSheetProps {
   pendingPicker: AccountPickerConfig;
@@ -48,14 +47,13 @@ const OndoAccountPickerSheet: React.FC<OndoAccountPickerSheetProps> = ({
 }) => {
   const selectedGroup = useSelector(selectResolvedSelectedAccountGroup);
   const { height: screenHeight } = useWindowDimensions();
-  const surfaceClass = useElevatedSurface();
   const listStyle = useMemo(
     () => ({ maxHeight: screenHeight * 0.4 }),
     [screenHeight],
   );
 
   return (
-    <BottomSheet onClose={onClose} ref={sheetRef} twClassName={surfaceClass}>
+    <BottomSheet onClose={onClose} ref={sheetRef}>
       <BottomSheetHeader
         onClose={() => sheetRef.current?.onCloseBottomSheet(onClose)}
       >

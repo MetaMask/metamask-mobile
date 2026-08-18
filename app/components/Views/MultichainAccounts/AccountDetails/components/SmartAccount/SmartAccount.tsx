@@ -22,6 +22,7 @@ import {
 import styleSheet from './SmartAccount.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { TouchableOpacity } from 'react-native';
 
 interface SmartAccountDetailsProps {
@@ -30,7 +31,7 @@ interface SmartAccountDetailsProps {
 
 export const SmartAccountDetails = ({ account }: SmartAccountDetailsProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const onSmartAccountPress = useCallback(() => {
     navigation.navigate('SmartAccountDetails', { account });

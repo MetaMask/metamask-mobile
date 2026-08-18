@@ -1,5 +1,6 @@
 import {
   GasFeeEstimateLevel,
+  UserFeeLevel,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
@@ -68,7 +69,10 @@ export function getGasMetricsProperties({
     properties: {
       gas_estimation_failed: !gasFeeEstimatesLoaded,
       gas_fee_presented: presentedGasFeeOption,
-      gas_fee_selected: userFeeLevel,
+      gas_fee_selected:
+        userFeeLevel === UserFeeLevel.DAPP_SUGGESTED
+          ? 'dapp_proposed'
+          : userFeeLevel,
       gas_insufficient_native_asset,
       gas_paid_with,
       gas_payment_tokens_available,

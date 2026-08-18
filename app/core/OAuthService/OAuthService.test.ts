@@ -4,7 +4,7 @@ import ReduxService, { ReduxStore } from '../redux';
 import Engine from '../Engine';
 import { OAuthError, OAuthErrorType } from './error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
-import { TraceName, TraceOperation } from '../../util/trace';
+import { TraceName, TraceOperation, TraceContext } from '../../util/trace';
 import { signOut as acmSignOut } from '@metamask/react-native-acm';
 import { SET_SEEDLESS_ONBOARDING } from '../../actions/onboarding';
 
@@ -148,6 +148,7 @@ const mockCreateLoginHandler = jest.fn().mockImplementation(() => ({
 jest.mock('../Engine', () => ({
   context: {
     SeedlessOnboardingController: {
+      preloadToprfNodeDetails: jest.fn().mockResolvedValue(undefined),
       authenticate: jest.fn().mockImplementation(() => ({
         nodeAuthTokens: [],
         isNewUser: false,
@@ -167,6 +168,10 @@ const mockAuthenticate = jest.fn().mockImplementation(() => ({
   nodeAuthTokens: [],
   isNewUser: true,
 }));
+const mockPreloadToprfNodeDetails = jest.fn().mockResolvedValue(undefined);
+jest
+  .spyOn(Engine.context.SeedlessOnboardingController, 'preloadToprfNodeDetails')
+  .mockImplementation(mockPreloadToprfNodeDetails);
 jest
   .spyOn(Engine.context.SeedlessOnboardingController, 'authenticate')
   .mockImplementation(mockAuthenticate);
@@ -193,6 +198,7 @@ describe('OAuth login service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockLoginHandlerResponse.mockImplementation(defaultLoginHandlerResponse);
+    mockPreloadToprfNodeDetails.mockResolvedValue(undefined);
     mockDispatch = jest.fn();
     mockDeviceIsAndroid.mockReturnValue(false);
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -231,6 +237,90 @@ describe('OAuth login service', () => {
       clientId: 'clientId',
       authConnection: AuthConnection.Google,
     });
+  });
+
+  it('preloads TOPRF node details while provider login is pending', async () => {
+    let resolveProviderLogin!: (
+      value: ReturnType<typeof defaultLoginHandlerResponse>,
+    ) => void;
+    const providerLogin = new Promise<
+      ReturnType<typeof defaultLoginHandlerResponse>
+    >((resolve) => {
+      resolveProviderLogin = resolve;
+    });
+    mockLoginHandlerResponse.mockReturnValue(providerLogin);
+    const loginHandler = mockCreateLoginHandler();
+
+    const loginPromise = OAuthLoginService.handleOAuthLogin(
+      loginHandler,
+      false,
+    );
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(mockPreloadToprfNodeDetails).toHaveBeenCalledTimes(1);
+    expect(mockGetAuthTokens).not.toHaveBeenCalled();
+
+    resolveProviderLogin(defaultLoginHandlerResponse());
+    await loginPromise;
+  });
+
+  it('waits for TOPRF node details before seedless authentication', async () => {
+    let resolvePreload!: () => void;
+    const preloadPromise = new Promise<void>((resolve) => {
+      resolvePreload = resolve;
+    });
+    mockPreloadToprfNodeDetails.mockReturnValue(preloadPromise);
+    const loginHandler = mockCreateLoginHandler();
+
+    const loginPromise = OAuthLoginService.handleOAuthLogin(
+      loginHandler,
+      false,
+    );
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(mockPreloadToprfNodeDetails).toHaveBeenCalledTimes(1);
+    expect(mockGetAuthTokens).toHaveBeenCalledTimes(1);
+    expect(mockAuthenticate).not.toHaveBeenCalled();
+
+    resolvePreload();
+    await loginPromise;
+
+    expect(mockAuthenticate).toHaveBeenCalledTimes(1);
+  });
+
+  it('nests auth spans under the provided parent trace context', async () => {
+    const loginHandler = mockCreateLoginHandler();
+    const parentTraceContext = {
+      _name: 'Onboarding - Social Login Attempt',
+    } as unknown as TraceContext;
+
+    await OAuthLoginService.handleOAuthLogin(
+      loginHandler,
+      false,
+      parentTraceContext,
+    );
+
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthProviderLogin,
+        parentContext: parentTraceContext,
+      }),
+    );
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+        parentContext: parentTraceContext,
+      }),
+    );
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+        parentContext: parentTraceContext,
+      }),
+    );
   });
 
   it('return a type success, existing user', async () => {

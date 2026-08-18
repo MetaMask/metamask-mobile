@@ -41,64 +41,43 @@ const refund: AccountsApiActivity = {
 
 describe('accountsApiActivityDisplayInfo', () => {
   it('renders a card spend as an outgoing row (negative, Card icon)', () => {
-    const info = accountsApiActivityDisplayInfo(card, {
-      currentCurrency: 'usd',
-      usdToCurrentCurrencyRate: 1,
-    });
+    const info = accountsApiActivityDisplayInfo(card);
 
     expect(info.isIncoming).toBe(false);
     expect(info.icon).toBe(IconName.Card);
     expect(info.label).toBe('Purchase');
     expect(info.description).toBe('Card');
     expect(info.primaryAmount).toBe('-5.38 mUSD');
-    expect(info.fiatAmount).toContain('5.38');
-    expect(info.fiatAmount.startsWith('-')).toBe(true);
+    expect(info.fiatAmount).toBe('-$5.38');
   });
 
   it('renders a cashback credit as an incoming row (positive)', () => {
-    const info = accountsApiActivityDisplayInfo(cashback, {
-      currentCurrency: 'usd',
-      usdToCurrentCurrencyRate: 1,
-    });
+    const info = accountsApiActivityDisplayInfo(cashback);
 
     expect(info.isIncoming).toBe(true);
     expect(info.icon).toBe(IconName.Card);
     expect(info.label).toBe('mUSD back');
     expect(info.description).toBe('Card');
     expect(info.primaryAmount).toBe('+0.30 mUSD');
-    expect(info.fiatAmount.startsWith('+')).toBe(true);
+    expect(info.fiatAmount).toBe('+$0.30');
   });
 
   it('renders a refund as an incoming row (positive, Card icon)', () => {
-    const info = accountsApiActivityDisplayInfo(refund, {
-      currentCurrency: 'usd',
-      usdToCurrentCurrencyRate: 1,
-    });
+    const info = accountsApiActivityDisplayInfo(refund);
 
     expect(info.isIncoming).toBe(true);
     expect(info.icon).toBe(IconName.Card);
     expect(info.label).toBe('Refund');
     expect(info.description).toBe('Card');
     expect(info.primaryAmount).toBe('+10.00 mUSD');
-    expect(info.fiatAmount.startsWith('+')).toBe(true);
+    expect(info.fiatAmount).toBe('+$10.00');
   });
 
-  it('converts the USD-pegged value into the user currency', () => {
-    // 2x rate doubles the fiat figure but not the token amount.
-    const info = accountsApiActivityDisplayInfo(cashback, {
-      currentCurrency: 'eur',
-      usdToCurrentCurrencyRate: 2,
-    });
+  it('always shows the fiat amount in USD, regardless of preferred currency', () => {
+    // mUSD is USD-pegged; the fiat line is dollars with proper $ formatting.
+    const info = accountsApiActivityDisplayInfo(cashback);
 
     expect(info.primaryAmount).toBe('+0.30 mUSD');
-    expect(info.fiatAmount).toContain('0.60');
-  });
-
-  it('omits the fiat amount when no conversion rate is available', () => {
-    const info = accountsApiActivityDisplayInfo(card, {
-      currentCurrency: 'usd',
-    });
-
-    expect(info.fiatAmount).toBe('');
+    expect(info.fiatAmount).toBe('+$0.30');
   });
 });

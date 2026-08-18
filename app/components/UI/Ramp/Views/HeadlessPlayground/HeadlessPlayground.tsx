@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Button,
@@ -285,7 +286,7 @@ function SelectableRow({
 type QuotesStatus = 'idle' | 'loading' | 'success' | 'error';
 
 function HeadlessPlayground() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
 
   // Setters live in the controller hook — `useHeadlessBuy` is read-only on

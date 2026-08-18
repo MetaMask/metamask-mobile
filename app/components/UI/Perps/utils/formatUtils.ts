@@ -7,6 +7,8 @@ import { getIntlDateTimeFormatter } from '../../../../util/intl';
 import {
   type FiatRangeConfig,
   formatPerpsFiat,
+  formatHyperLiquidPrice,
+  PRICE_RANGES_UNIVERSAL,
 } from '@metamask/perps-controller';
 
 // Decimal formatters moved to controller for cross-platform sharing
@@ -22,6 +24,44 @@ export {
   formatFundingRate,
 } from '@metamask/perps-controller';
 export { formatPerpsFiat }; // re-export via local import (needed by formatPositiveFiat below)
+
+/**
+ * Formats a perps market price for display using Hyperliquid price precision
+ * when market size decimals are known. Falls back to the shared fiat formatter
+ * for generic fiat display sites.
+ */
+export const formatPerpsPrice = (
+  price: number | string,
+  options?: {
+    szDecimals?: number | null;
+    includeCurrencySymbol?: boolean;
+  },
+): string => {
+  const includeCurrencySymbol = options?.includeCurrencySymbol ?? true;
+  const numericPrice =
+    typeof price === 'number' ? price : Number.parseFloat(String(price));
+
+  if (Number.isNaN(numericPrice) || !Number.isFinite(numericPrice)) {
+    return '$---';
+  }
+
+  const fallback = () =>
+    formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
+
+  if (options?.szDecimals === undefined || options.szDecimals === null) {
+    return fallback();
+  }
+
+  try {
+    const formattedPrice = formatHyperLiquidPrice({
+      price,
+      szDecimals: options.szDecimals,
+    });
+    return includeCurrencySymbol ? `$${formattedPrice}` : formattedPrice;
+  } catch {
+    return fallback();
+  }
+};
 
 /**
  * Truncates a number to 2 decimal places without rounding up.
@@ -412,6 +452,48 @@ export const formatOrderCardDate = (timestamp: number): string => {
     hour12: true,
   }).format(date);
   return `${dateStr} at ${timeStr}`;
+};
+
+const PRO_ORDER_CARD_MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const;
+
+const padTwoDigits = (value: number): string => String(value).padStart(2, '0');
+
+/**
+ * Formats an open-order placement timestamp for Pro order cards.
+ * Matches Figma: "06 Apr 26 • 19:13:54"
+ *
+ * Built only from Date getters — Hermes `formatToParts` often omits
+ * hour/minute/second and renders as "06 Apr 26 • ::".
+ *
+ * @param timestamp - Unix timestamp in milliseconds
+ */
+export const formatProOrderCardTimestamp = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const day = padTwoDigits(date.getDate());
+  const month = PRO_ORDER_CARD_MONTHS[date.getMonth()];
+  const year = String(date.getFullYear()).slice(-2);
+  const hours = padTwoDigits(date.getHours());
+  const minutes = padTwoDigits(date.getMinutes());
+  const seconds = padTwoDigits(date.getSeconds());
+
+  return `${day} ${month} ${year} • ${hours}:${minutes}:${seconds}`;
 };
 
 /**

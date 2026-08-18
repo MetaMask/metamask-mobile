@@ -10,6 +10,7 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useStyles } from '../../../../../component-library/hooks';
 import { createStyles } from './QuoteSelectorView.styles';
 import { useDispatch, useSelector } from 'react-redux';
@@ -31,10 +32,11 @@ import { startCase } from 'lodash';
 import { QUOTES_PLACEHOLDER_DATA } from './constants';
 import { useTrackAllQuotesSortedEvent } from '../../hooks/useTrackAllQuotesSortedEvent';
 import { fromTokenMinimalUnit } from '../../../../../util/number';
+import { sumAmounts } from '@metamask/bridge-controller';
 
 export const QuoteSelectorView = () => {
   const { styles } = useStyles(createStyles, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const selectedQuoteRequestId = useSelector(selectSelectedQuoteRequestId);
   const currency = useSelector(selectCurrentCurrency);
@@ -77,23 +79,26 @@ export const QuoteSelectorView = () => {
       (quote) =>
         ({
           formattedTotalCost: formatFiat(
-            new BigNumber(quote.sentAmount.valueInCurrency ?? '0').plus(
+            new BigNumber(quote.quote.src.valueInCurrency ?? '0').plus(
               isGaslessQuote(quote.quote)
-                ? (quote.includedTxFees?.valueInCurrency ?? '0')
-                : (quote.totalNetworkFee?.valueInCurrency ??
-                    quote.gasFee?.effective?.valueInCurrency ??
-                    '0'),
+                ? (sumAmounts(quote.quote.feeData?.txFee)?.valueInCurrency ??
+                    '0')
+                : (sumAmounts(
+                    quote.quote.feeData?.network,
+                    quote.quote.feeData?.relayer,
+                  )?.valueInCurrency ?? '0'),
             ),
             currency,
           ),
-          receiveAmount: destToken
-            ? fromTokenMinimalUnit(
-                quote.quote.destTokenAmount,
-                destToken.decimals,
-              )
-            : undefined,
+          receiveAmount:
+            destToken && quote.quote.dest.amount
+              ? fromTokenMinimalUnit(
+                  quote.quote.dest.amount,
+                  destToken.decimals,
+                )
+              : undefined,
           provider: {
-            name: startCase(quote.quote.bridges[0]),
+            name: startCase(quote.quote.protocols[0] ?? quote.quote.aggregator),
           },
           quoteRequestId: quote.quote.requestId,
           onPress: onQuoteSelect,

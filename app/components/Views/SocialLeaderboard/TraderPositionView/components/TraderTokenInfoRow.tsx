@@ -25,7 +25,7 @@ import {
 import { formatCompactUsd } from '../../../../UI/Rewards/utils/formatUtils';
 import PerpBadges from '../../components/PerpBadges';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
-import { formatPercent } from '../../utils/formatters';
+import { EM_DASH, formatPercent } from '../../utils/formatters';
 import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
 
 export interface TraderTokenInfoRowProps {
@@ -88,7 +88,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             numberOfLines={1}
-            twClassName="shrink"
+            twClassName="shrink leading-none"
           >
             {symbol}
           </Text>
@@ -100,11 +100,13 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
             />
           ) : null}
           {canCopyTokenAddress ? (
-            <Icon
-              name={IconName.Copy}
-              size={IconSize.Sm}
-              color={IconColor.PrimaryDefault}
-            />
+            <Box twClassName="translate-y-0.5">
+              <Icon
+                name={IconName.Copy}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            </Box>
           ) : null}
         </Box>
         {pricePercentChange != null ? (
@@ -127,7 +129,7 @@ const TraderTokenIdentity: React.FC<TraderTokenIdentityProps> = ({
           </Text>
         ) : (
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {'\u2014'}
+            {EM_DASH}
           </Text>
         )}
       </Box>
@@ -170,10 +172,10 @@ const TraderHeaderStat: React.FC<TraderHeaderStatProps> = ({
   const value = isPerp
     ? currentPrice != null
       ? formatPerpsFiat(currentPrice, { ranges: PRICE_RANGES_UNIVERSAL })
-      : '\u2014'
+      : EM_DASH
     : marketCap != null
       ? formatCompactUsd(marketCap)
-      : '\u2014';
+      : EM_DASH;
 
   return (
     <Box alignItems={BoxAlignItems.End}>

@@ -9,7 +9,9 @@ import {
   selectBalanceBySelectedAccountGroup,
   selectBalanceChangeBySelectedAccountGroup,
   selectAccountGroupBalanceForEmptyState,
+  selectUnifiedBalanceBySelectedAccountGroup,
 } from '../../../../../selectors/assets/balances';
+import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
 import {
   selectShouldShowWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingSkipInitialBalanceWait,
@@ -84,9 +86,16 @@ const AccountGroupBalance = ({
     [popularChainIdsKey],
   );
 
+  const isAssetsUnifyStateEnabled = useSelector(
+    selectIsAssetsUnifyStateEnabled,
+  );
+
   const groupBalanceSelector = useMemo(
-    () => selectBalanceBySelectedAccountGroup(chainIdsForBalance),
-    [chainIdsForBalance],
+    () =>
+      isAssetsUnifyStateEnabled
+        ? selectUnifiedBalanceBySelectedAccountGroup(chainIdsForBalance)
+        : selectBalanceBySelectedAccountGroup(chainIdsForBalance),
+    [chainIdsForBalance, isAssetsUnifyStateEnabled],
   );
   const balanceChange1dSelector = useMemo(
     () => selectBalanceChangeBySelectedAccountGroup('1d', chainIdsForBalance),
