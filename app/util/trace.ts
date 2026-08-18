@@ -276,6 +276,9 @@ export enum TraceName {
   // Money Home Data Fetches
   MoneyActivityFetch = 'Money Activity Fetch',
   CardHomeDataFetch = 'Card Home Data Fetch',
+  // Rewards
+  /** Tap Rewards tab → onboarding content or enrolled dashboard shell. */
+  RewardsTabTimeToContent = 'Rewards Tab Time To Content',
 }
 
 export enum TraceOperation {
@@ -343,6 +346,8 @@ export enum TraceOperation {
   // Money Home Performance
   MoneyHomePerformance = 'money.home.performance',
   MoneyAccountDataFetch = 'money.account.data_fetch',
+  // Rewards
+  RewardsPerformance = 'rewards.performance',
   RampOperation = 'ramp.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
