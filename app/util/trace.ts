@@ -360,14 +360,23 @@ const localBufferedTraces: BufferedTrace[] = [];
  */
 export const ONBOARDING_MACHINE_TIME_ATTRIBUTE = 'onboarding.machine.ms';
 
-/** Disjoint machine-time spans summed into `onboarding.machine.ms`. Must not overlap. */
+/**
+ * Disjoint machine-time spans summed into `onboarding.machine.ms`. Must not overlap.
+ *
+ * `OnboardingCreateKeyAndBackupSrp` is deliberately excluded: it nests inside
+ * `OnboardingSRPAccountCreationTime` on the SRP-create-wallet path
+ * (ChoosePassword -> Authentication.newWalletAndKeychain ->
+ * createAndBackupSeedPhrase), so summing both would double-count the overlap.
+ */
 const MACHINE_TIME_TRACE_NAMES: ReadonlySet<TraceName> = new Set([
   TraceName.OnboardingScreenTimeToContent,
   TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
   TraceName.OnboardingOAuthSeedlessAuthenticate,
-  TraceName.OnboardingPasswordLoginAttempt,
   TraceName.OnboardingSRPAccountCreationTime,
   TraceName.OnboardingSRPAccountImportTime,
+  TraceName.OnboardingFetchSrps,
+  TraceName.OnboardingAddSrp,
+  TraceName.OnboardingResetPassword,
 ]);
 
 let onboardingMachineTimeMs = 0;

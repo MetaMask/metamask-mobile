@@ -785,12 +785,13 @@ describe('Trace', () => {
         data: { success: true },
       });
       trace({
-        name: TraceName.OnboardingPasswordLoginAttempt,
+        name: TraceName.OnboardingFetchSrps,
         startTime: 4_000,
       });
       endTrace({
-        name: TraceName.OnboardingPasswordLoginAttempt,
+        name: TraceName.OnboardingFetchSrps,
         timestamp: 4_500,
+        data: { success: true },
       });
       endScreenTtc('choose_password', 5_000, 5_150);
       endTrace({ name: TraceName.OnboardingJourneyOverall });
