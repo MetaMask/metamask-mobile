@@ -8,8 +8,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  ButtonIcon,
-  ButtonIconSize,
   Icon,
   IconName,
   IconSize,
@@ -47,7 +45,7 @@ const Success = ({ onSuccess }: SuccessProps) => (
     </Box>
 
     {/* Title, subtitle and CTA anchored at the bottom */}
-    <Box twClassName="px-6 pb-10 gap-y-4">
+    <Box twClassName="px-6 pb-2 gap-y-4">
       <Box twClassName="gap-y-2">
         <Text
           variant={TextVariant.DisplayMd}

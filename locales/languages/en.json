@@ -1100,7 +1100,6 @@
   },
   "social_leaderboard": {
     "top_traders_view": {
-      "title": "Weekly top traders",
       "notifications_banner": {
         "description": "You'll get alerts when traders you follow make a move. Turn on notifications in your device settings.",
         "open_settings": "Open settings"

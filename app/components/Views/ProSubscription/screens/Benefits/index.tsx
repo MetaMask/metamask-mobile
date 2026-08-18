@@ -97,7 +97,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
       </ScrollView>
 
       {/* Plan selector */}
-      <Box twClassName="flex flex-col gap-y-4 px-4 pt-4 pb-8 border-t-2 border-border-muted">
+      <Box twClassName="flex flex-col gap-y-4 px-4 pt-4 pb-2 border-t-2 border-border-muted">
         {PLANS.map((plan) => (
           <PlanSelectorCard
             key={plan.id}
