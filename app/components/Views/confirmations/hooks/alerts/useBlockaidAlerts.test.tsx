@@ -30,9 +30,17 @@ jest.mock('./useSendingAssetsFiatTotal', () => ({
   useSendingAssetsFiatTotal: jest.fn(() => null),
 }));
 
+jest.mock('./useApprovedAmountFiat', () => ({
+  useApprovedAmountFiat: jest.fn(() => null),
+}));
+
 const mockUseSendingAssetsFiatTotal = jest.requireMock(
   './useSendingAssetsFiatTotal',
 ).useSendingAssetsFiatTotal;
+
+const mockUseApprovedAmountFiat = jest.requireMock(
+  './useApprovedAmountFiat',
+).useApprovedAmountFiat;
 
 describe('useBlockaidAlerts', () => {
   const mockSecurityAlertResponse: SecurityAlertResponse = {
@@ -54,6 +62,7 @@ describe('useBlockaidAlerts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSendingAssetsFiatTotal.mockReturnValue(null);
+    mockUseApprovedAmountFiat.mockReturnValue(null);
     (useSecurityAlertResponse as jest.Mock).mockReturnValue({
       securityAlertResponse: mockSecurityAlertResponse,
     });
@@ -202,6 +211,45 @@ describe('useBlockaidAlerts', () => {
       (result.current[0].content?.props as { sendingFiatTotal: string })
         .sendingFiatTotal,
     ).toBe('$1,234.56');
+  });
+
+  it('uses the spending-cap amount in the confirm modal for approval reasons', () => {
+    mockUseSendingAssetsFiatTotal.mockReturnValue('$2.50');
+    mockUseApprovedAmountFiat.mockReturnValue('$5,000.00');
+    (useSecurityAlertResponse as jest.Mock).mockReturnValue({
+      securityAlertResponse: {
+        ...mockSecurityAlertResponse,
+        reason: Reason.approvalFarming,
+      },
+    });
+
+    const { result } = renderHook(() => useBlockaidAlerts());
+
+    expect(result.current[0].message).toBe(
+      strings('alert_system.confirm_modal.blockaid_message_with_amount', {
+        requestType: strings('blockaid_banner.request_type.approval'),
+        amount: '$5,000.00',
+      }),
+    );
+  });
+
+  it('does not use simulated outgoing assets in the confirm modal for approval reasons', () => {
+    mockUseSendingAssetsFiatTotal.mockReturnValue('$2.50');
+    mockUseApprovedAmountFiat.mockReturnValue(null);
+    (useSecurityAlertResponse as jest.Mock).mockReturnValue({
+      securityAlertResponse: {
+        ...mockSecurityAlertResponse,
+        reason: Reason.approvalFarming,
+      },
+    });
+
+    const { result } = renderHook(() => useBlockaidAlerts());
+
+    expect(result.current[0].message).toBe(
+      strings('alert_system.confirm_modal.blockaid_message', {
+        requestType: strings('blockaid_banner.request_type.approval'),
+      }),
+    );
   });
 
   it.each`

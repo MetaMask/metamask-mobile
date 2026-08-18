@@ -4,6 +4,7 @@ import {
   getBlockaidBannerDescription,
   getBlockaidBannerTitle,
   getBlockaidConfirmModalMessage,
+  getBlockaidModalAmount,
 } from './BlockaidBanner.utils';
 
 const UNMAPPED_REASON = 'some_new_reason_from_the_provider' as Reason;
@@ -168,6 +169,30 @@ describe('BlockaidBanner.utils', () => {
           requestType: strings('blockaid_banner.request_type.transfer'),
         }),
       );
+    });
+  });
+
+  describe('getBlockaidModalAmount', () => {
+    it('uses the spending-cap amount for approval reasons', () => {
+      expect(
+        getBlockaidModalAmount(Reason.approvalFarming, '$2.50', '$5,000.00'),
+      ).toBe('$5,000.00');
+    });
+
+    it('does not fall back to simulated outgoing assets for approval reasons', () => {
+      expect(
+        getBlockaidModalAmount(Reason.seaportFarming, '$2.50', null),
+      ).toBeNull();
+    });
+
+    it('uses simulated outgoing assets for transfer reasons', () => {
+      expect(
+        getBlockaidModalAmount(
+          Reason.transferFarming,
+          '$1,234.56',
+          '$5,000.00',
+        ),
+      ).toBe('$1,234.56');
     });
   });
 });

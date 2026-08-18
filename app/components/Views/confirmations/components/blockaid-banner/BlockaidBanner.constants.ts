@@ -112,3 +112,16 @@ export const REASON_REQUEST_TYPE_I18N_KEY_MAP: Record<string, string> =
     [Reason.maliciousDomain]: 'blockaid_banner.request_type.request',
     [Reason.other]: 'blockaid_banner.request_type.request',
   });
+
+/**
+ * Reasons whose confirm-anyway modal should use the spending-cap fiat amount
+ * rather than simulated outgoing assets. Marketplace listings are included
+ * because they share the approval request-type noun.
+ */
+export const BLOCKAID_APPROVAL_REASONS: ReadonlySet<Reason> = new Set([
+  Reason.approvalFarming,
+  Reason.permitFarming,
+  Reason.setApprovalForAllFarming,
+  Reason.blurFarming,
+  Reason.seaportFarming,
+]);

@@ -4,6 +4,7 @@ import useBalanceChanges from '../../../../UI/SimulationDetails/useBalanceChange
 import { calculateTotalFiat } from '../../../../UI/SimulationDetails/FiatDisplay/FiatDisplay';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import useHideFiatForTestnet from '../../../../hooks/useHideFiatForTestnet';
+import { FIAT_UNAVAILABLE } from '../../../../UI/SimulationDetails/types';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 /**
@@ -20,8 +21,9 @@ export const SENDING_ASSETS_FIAT_DISPLAY_CEILING_USD = 10_000_000;
  *
  * Returns null when no amount should be displayed: signatures and other
  * confirmations without simulation data, zero/unavailable fiat or USD
- * conversion, fiat hidden on testnets, simulation still loading, or totals
- * above the display ceiling. Callers fall back to amount-less copy.
+ * conversion (including when any outgoing asset is unpriced), fiat hidden on
+ * testnets, simulation still loading, or totals above the display ceiling.
+ * Callers fall back to amount-less copy.
  */
 export function useSendingAssetsFiatTotal(): string | null {
   const transactionMetadata = useTransactionMetadataRequest();
@@ -50,6 +52,16 @@ export function useSendingAssetsFiatTotal(): string | null {
   );
 
   if (sendingAssets.length === 0) {
+    return null;
+  }
+
+  const hasUnavailableConversion = sendingAssets.some(
+    (change) =>
+      change.fiatAmount === FIAT_UNAVAILABLE ||
+      change.usdAmount === FIAT_UNAVAILABLE,
+  );
+
+  if (hasUnavailableConversion) {
     return null;
   }
 
