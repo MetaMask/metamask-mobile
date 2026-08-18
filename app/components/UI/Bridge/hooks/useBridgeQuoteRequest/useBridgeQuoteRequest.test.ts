@@ -297,8 +297,6 @@ describe('useBridgeQuoteRequest', () => {
       jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
-    spyUpdateBridgeQuoteRequestParams.mockClear();
-    mockTrace.mockClear();
     expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
     expect(mockTrace).not.toHaveBeenCalled();
   });
@@ -319,7 +317,6 @@ describe('useBridgeQuoteRequest', () => {
       jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
-    spyUpdateBridgeQuoteRequestParams.mockClear();
     expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
   });
 
@@ -339,13 +336,13 @@ describe('useBridgeQuoteRequest', () => {
       jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
-    spyUpdateBridgeQuoteRequestParams.mockClear();
     expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
   });
 
   it('skips update when destination chain ID is missing', async () => {
     const testState = createBridgeTestState({
       bridgeReducerOverrides: {
+        sourceToken: undefined,
         selectedDestChainId: undefined,
       },
     });
@@ -359,7 +356,6 @@ describe('useBridgeQuoteRequest', () => {
       jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
-    spyUpdateBridgeQuoteRequestParams.mockClear();
     expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
   });
 
