@@ -774,11 +774,6 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
 
   // Reset perps market state when the token changes so stale results from a
   // previously viewed token never reach TOKEN_DETAILS_OPENED for the new one.
-  // Kept as a render-time ref reset (not useEffect) since a useEffect version
-  // can race with AssetOverviewContent's perps-resolution effect and clobber
-  // isLoading back to true, breaking TOKEN_DETAILS_OPENED tracking. React
-  // Compiler flags this as a ref-during-render violation, but it's a
-  // blessed pattern: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
   const prevTokenKeyRef = useRef<string | null>(null);
   if (prevTokenKeyRef.current !== tokenKey) {
     prevTokenKeyRef.current = tokenKey;
