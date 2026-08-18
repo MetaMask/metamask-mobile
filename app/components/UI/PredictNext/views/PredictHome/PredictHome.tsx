@@ -18,6 +18,7 @@ import { useEventList } from '../../hooks/useEventList';
 import { useVenueStatus } from '../../hooks/useVenueStatus';
 import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
 import { EventCardStandard } from '../../components/EventCard/EventCardStandard';
+import { EventCardGame } from '../../components/EventCard/EventCardGame';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { PredictNextRoutes } from '../../navigation/routes';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -66,9 +67,16 @@ export const PredictHome = () => {
     [navigation],
   );
   const renderEvent = useCallback(
-    ({ item }: ListRenderItemInfo<PredictEvent>) => (
-      <EventCardStandard event={item} onPress={() => openEvent(item)} />
-    ),
+    ({ item }: ListRenderItemInfo<PredictEvent>) =>
+      item.sports?.sport.id === 'american-football' && item.sports.game ? (
+        <EventCardGame
+          event={item}
+          onPress={() => openEvent(item)}
+          variant="featured"
+        />
+      ) : (
+        <EventCardStandard event={item} onPress={() => openEvent(item)} />
+      ),
     [openEvent],
   );
   const retryAll = () => {
