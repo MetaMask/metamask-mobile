@@ -15,9 +15,7 @@ const app = (buildPath?: string) => ({
 export default defineConfig({
   testDir: './',
   fullyParallel: false,
-  workers: process.env.PLAYWRIGHT_WORKERS
-    ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10)
-    : 3,
+  workers: 1,
   timeout: 7 * 60 * 1000,
   grep: /@Performance\b/,
   reporter: [
