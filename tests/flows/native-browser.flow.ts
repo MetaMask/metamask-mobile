@@ -219,13 +219,13 @@ export const navigateToDappAndroid = async (url: string) => {
   }
 
   try {
-    await Gestures.typeText(ChromeBrowserView.chromeUrlBar, url);
+    await Gestures.appendText(ChromeBrowserView.chromeUrlBar, url);
   } catch {
     try {
       const editText = Matchers.getElementByNativeXPath(
         '//android.widget.EditText',
       );
-      await Gestures.typeText(editText, url);
+      await Gestures.appendText(editText, url);
     } catch {
       // No editable field (e.g. tab switcher) — VIEW-intent retry recovers below.
     }
@@ -255,7 +255,7 @@ export const navigateToDappAndroid = async (url: string) => {
  * @returns A promise that resolves when the navigation is complete
  */
 export const navigateToDappIOS = async (url: string) => {
-  await Gestures.typeText(
+  await Gestures.appendText(
     Matchers.getElementByNameiOS('TabBarItemTitle'),
     `${url}\n`,
   );
