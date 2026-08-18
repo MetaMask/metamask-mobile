@@ -12,6 +12,9 @@ const event: PredictEvent = {
   id: 'event-1' as PredictEvent['id'],
   title: 'Who wins the election?',
   subtitle: 'Election 2028',
+  category: 'Politics',
+  volume: '1500000',
+  imageUrl: 'https://example.com/event.png',
   markets: [
     {
       id: 'market-1' as PredictEvent['markets'][number]['id'],
@@ -121,6 +124,15 @@ describe('PredictHome', () => {
     expect(within(card).getByText('No')).toBeOnTheScreen();
     expect(within(card).getByText('1.72x')).toBeOnTheScreen();
     expect(within(card).getByText('58¢')).toBeOnTheScreen();
+    expect(
+      within(card).getByTestId(PredictHomeTestIds.image('event-1')),
+    ).toBeOnTheScreen();
+    expect(
+      within(card).getByTestId(PredictHomeTestIds.category('event-1')),
+    ).toBeOnTheScreen();
+    expect(
+      within(card).getByTestId(PredictHomeTestIds.volume('event-1')),
+    ).toHaveTextContent('$1.5M Vol');
   });
 
   it('does not navigate when an Outcome is pressed', async () => {

@@ -86,6 +86,17 @@ describe('EventCardStandard', () => {
     expect(screen.getByText('58¢')).toBeOnTheScreen();
   });
 
+  it('omits the hidden market count for a single-market Event', () => {
+    render(
+      <EventCardStandard
+        event={event([market('market-1')])}
+        onPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryByTestId('predict-next-event-more-event-1')).toBeNull();
+  });
+
   it('paints binary rows green and red', () => {
     render(
       <EventCardStandard
@@ -119,6 +130,7 @@ describe('EventCardStandard', () => {
     expect(screen.getByText('Candidate market-2')).toBeOnTheScreen();
     expect(screen.getByText('Candidate market-3')).toBeOnTheScreen();
     expect(screen.queryByText('Candidate market-4')).toBeNull();
+    expect(screen.getByLabelText('+1 more')).toBeOnTheScreen();
     expect(screen.queryByText('Question market-1')).toBeNull();
     expect(
       screen.getByTestId('predict-next-outcome-event-1-market-1-yes-bar'),
@@ -129,6 +141,40 @@ describe('EventCardStandard', () => {
     expect(
       screen.getByTestId('predict-next-outcome-event-1-market-3-yes-bar'),
     ).toHaveStyle({ backgroundColor: lightTheme.colors.error.default });
+  });
+
+  it('omits the hidden market count when three markets fit', () => {
+    render(
+      <EventCardStandard
+        event={event([
+          market('market-1'),
+          market('market-2'),
+          market('market-3'),
+        ])}
+        onPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryByTestId('predict-next-event-more-event-1')).toBeNull();
+  });
+
+  it('renders category and volume in the composed footer', () => {
+    render(
+      <EventCardStandard
+        event={event([market('market-1')], {
+          category: 'Politics',
+          volume: '1500000',
+        })}
+        onPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('predict-next-event-category-event-1'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('predict-next-event-volume-event-1'),
+    ).toHaveTextContent('$1.5M Vol');
   });
 
   it('keeps card navigation independent from an Outcome action', () => {
