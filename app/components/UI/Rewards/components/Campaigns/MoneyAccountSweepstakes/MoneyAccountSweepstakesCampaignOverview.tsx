@@ -12,14 +12,15 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type {
   CampaignDto,
+  MoneyAccountSweepstakesLocalizedTextDto,
   MoneyAccountSweepstakesStatsMeDto,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
-import { strings } from '../../../../../../../locales/i18n';
-import moneyAccountSweepstakesHeaderArtwork from '../../../../../../images/rewards/money-account-sweepstakes-header.png';
 import { formatUsd } from '../../../utils/formatUtils';
+import { AMOUNT_PLACEHOLDER, ENTRIES_COUNT_PLACEHOLDER } from './constants';
 
 interface MoneyAccountSweepstakesCampaignOverviewProps {
   campaign: CampaignDto;
+  localizedText: MoneyAccountSweepstakesLocalizedTextDto;
   isParticipating?: boolean;
   stats?: MoneyAccountSweepstakesStatsMeDto | null;
   children?: ReactNode;
@@ -27,14 +28,20 @@ interface MoneyAccountSweepstakesCampaignOverviewProps {
 
 const MoneyAccountSweepstakesCampaignOverview: React.FC<
   MoneyAccountSweepstakesCampaignOverviewProps
-> = ({ isParticipating = false, stats, children }) => {
+> = ({ campaign, localizedText, isParticipating = false, stats, children }) => {
   const tw = useTailwind();
+  const backgroundImageUrl = campaign.image?.lightModeUrl;
 
   if (isParticipating) {
     const balanceDisplay = stats
       ? formatUsd(Math.max(0, stats.currentBalanceUsd))
       : '—';
-    const entriesDisplay = stats ? `${stats.entryCount}/7 entries` : '—';
+    const entriesDisplay = stats
+      ? localizedText.entriesCountValue.replace(
+          ENTRIES_COUNT_PLACEHOLDER,
+          String(stats.entryCount),
+        )
+      : '—';
     const isQualified = stats?.todayStatus === 'on_track';
     const remainingBalance = stats
       ? Math.max(0, stats.qualifyingThresholdUsd - stats.currentBalanceUsd)
@@ -42,15 +49,14 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
     const qualificationMessage = (() => {
       switch (stats?.todayStatus) {
         case 'on_track':
-          return "On track for today's entry";
+          return localizedText.onTrackDescription;
         case 'not_yet_qualified':
-          return remainingBalance > 0
-            ? `Add ${formatUsd(remainingBalance)} to start earning entries`
-            : 'Make a qualifying deposit to start earning entries';
+          return localizedText.shortfallDescription.replace(
+            AMOUNT_PLACEHOLDER,
+            formatUsd(remainingBalance),
+          );
         case 'lost_today':
-          return remainingBalance > 0
-            ? `Add ${formatUsd(remainingBalance)} to resume earning tomorrow`
-            : 'Today’s entry is paused';
+          return localizedText.lostTodayDescription;
         default:
           return null;
       }
@@ -68,14 +74,16 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
             flexDirection={BoxFlexDirection.Row}
             twClassName="gap-2"
           >
-            <Text variant={TextVariant.HeadingSm}>Balance</Text>
+            <Text variant={TextVariant.HeadingSm}>
+              {localizedText.balanceTitle}
+            </Text>
             {isQualified && (
               <Box twClassName="rounded-md bg-success-muted px-2 py-1">
                 <Text
                   variant={TextVariant.BodyXs}
                   color={TextColor.SuccessDefault}
                 >
-                  Qualified
+                  {localizedText.qualifiedLabel}
                 </Text>
               </Box>
             )}
@@ -97,7 +105,7 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
               variant={TextVariant.BodyLg}
               color={TextColor.TextAlternative}
             >
-              · this week
+              · {localizedText.thisWeekLabel}
             </Text>
           </Box>
           {qualificationMessage && (
@@ -124,7 +132,7 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
     <Box twClassName="px-4 pb-5 pt-4" testID="campaign-status">
       <Box twClassName="h-32 overflow-hidden rounded-xl border border-border-muted bg-black">
         <ImageBackground
-          source={moneyAccountSweepstakesHeaderArtwork}
+          source={{ uri: backgroundImageUrl }}
           resizeMode="cover"
           style={tw.style('h-full w-full')}
           testID="money-account-sweepstakes-hero"
@@ -136,10 +144,10 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
           fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
         >
-          {strings('rewards.money_account_sweepstakes.prize_title')}
+          {localizedText.prizeTitle}
         </Text>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('rewards.money_account_sweepstakes.prize_description')}
+          {localizedText.prizeDescription}
         </Text>
       </Box>
     </Box>

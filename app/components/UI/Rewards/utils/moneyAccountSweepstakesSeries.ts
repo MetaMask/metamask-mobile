@@ -61,13 +61,11 @@ export function getMoneyAccountSweepstakesSeries(
   const first = sorted[0];
   const last = sorted[sorted.length - 1];
   const activeCampaign =
-    sorted.find((c) => getStatusAt(c, now) === 'active') ??
-    (now < new Date(first.startDate) ? first : null);
+    sorted.find((c) => getStatusAt(c, now) === 'active') ?? null;
 
   let seriesStatus: MoneyAccountSweepstakesSeriesStatus;
   if (now < new Date(first.startDate)) {
-    // Money Sweepstakes is only returned by the backend once it is live.
-    seriesStatus = 'active';
+    seriesStatus = 'upcoming';
   } else if (now >= new Date(last.endDate)) {
     seriesStatus = 'previous';
   } else {

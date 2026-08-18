@@ -10151,30 +10151,6 @@
       "view_details": "View details",
       "view_details_accessibility": "View details for {{campaignName}}"
     },
-    "money_account_sweepstakes": {
-      "campaign_title": "Money Sweepstakes",
-      "prize_title": "Win up to $2,500 mUSD",
-      "prize_description": "2 winners weekly · 4 weeks",
-      "draw_schedule": {
-        "summary": "4 weekly draws · 2 winners each",
-        "prize_range": "$2K guaranteed · Up to $5K in prizes",
-        "awarded": "$5,000 awarded",
-        "current_draw": "Current draw",
-        "entries_reset": "Entries reset after each weekly draw.",
-        "view_results": "View draw results"
-      },
-      "how_to_enter_title": "How to enter",
-      "rules_title": "Rules and eligibility",
-      "rules_description": "Deposit requirements, entries, and drawing details",
-      "view_rules": "View rules and eligibility",
-      "official_rules": "View official rules",
-      "current_balance_title": "Money Account balance",
-      "next_draw_title": "Next draw",
-      "days_remaining_one": "{{count}} day",
-      "days_remaining_other": "{{count}} days",
-      "qualified_today_description": "You're on track for today's entry. Keep at least $100 in your Money Account through the end of the day.",
-      "shortfall_description": "Add {{amount}} today to reach $100 and earn today's entry."
-    },
     "campaign_mechanics": {
       "title": "Rules and eligibility"
     },

@@ -43,6 +43,7 @@ import type {
   MoneyAccountSweepstakesCampaignDetails,
   MoneyAccountSweepstakesDrawProofDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { documentToPlainText } from '../components/ContentfulRichText/ContentfulRichText';
 
 export const MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW_TEST_IDS = {
   CONTAINER: 'money-account-sweepstakes-campaign-details-container',
@@ -136,12 +137,10 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
       Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_WINNING_VIEW,
       {
         campaignId: displayCampaign.id,
-        campaignName: strings(
-          'rewards.money_account_sweepstakes.campaign_title',
-        ),
+        campaignName: displayCampaign.name,
       },
     );
-  }, [displayCampaign?.id, navigation]);
+  }, [displayCampaign?.id, displayCampaign?.name, navigation]);
 
   return (
     <ErrorBoundary
@@ -156,11 +155,7 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
         }
       >
         <HeaderCompactStandard
-          title={
-            displayCampaign
-              ? strings('rewards.money_account_sweepstakes.campaign_title')
-              : ''
-          }
+          title={displayCampaign?.name ?? ''}
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
           backButtonProps={{
@@ -195,14 +190,15 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
             </Box>
           )}
 
-          {statusCampaign && (
+          {statusCampaign && localizedText && (
             <>
               <MoneyAccountSweepstakesCampaignOverview
                 campaign={statusCampaign}
+                localizedText={localizedText}
                 isParticipating={optedInAny}
                 stats={stats}
               >
-                {optedInAny && localizedText && (
+                {optedInAny && (
                   <MoneyAccountSweepstakesCampaignCTA
                     campaign={displayCampaign ?? statusCampaign}
                     seriesStatus={seriesStatus}
@@ -239,16 +235,18 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
                           IconName.Calendar,
                           IconName.Trophy,
                         ]}
-                        title={strings(
-                          'rewards.money_account_sweepstakes.how_to_enter_title',
-                        )}
+                        title={
+                          documentToPlainText(
+                            displayCampaign.details.howItWorks.title,
+                          ) || undefined
+                        }
                       />
                     </Box>
                     <Box twClassName="border-b border-border-muted" />
                   </>
                 )}
 
-              {campaigns.length > 0 && localizedText && (
+              {campaigns.length > 0 && (
                 <>
                   <Box twClassName="p-4">
                     <MoneyAccountSweepstakesDrawScheduleSection
@@ -268,6 +266,7 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
               {optedInAny && displayCampaign && (
                 <MoneyAccountSweepstakesLearnMoreRows
                   campaignId={displayCampaign.id}
+                  localizedText={localizedText}
                 />
               )}
             </>

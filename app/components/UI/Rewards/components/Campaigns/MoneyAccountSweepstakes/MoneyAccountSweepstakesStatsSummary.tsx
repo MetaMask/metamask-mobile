@@ -22,8 +22,7 @@ import type {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatUsd } from '../../../utils/formatUtils';
 import { StatCell } from '../OndoCampaignStatsSummary';
-import { ENTRIES_COUNT_PLACEHOLDER } from './constants';
-import { strings } from '../../../../../../../locales/i18n';
+import { AMOUNT_PLACEHOLDER, ENTRIES_COUNT_PLACEHOLDER } from './constants';
 
 export const MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS = {
   CONTAINER: 'money-account-sweepstakes-stats-summary-container',
@@ -45,6 +44,7 @@ interface MoneyAccountSweepstakesStatsSummaryProps {
 function getEligibleStatusDescription(
   todayStatus: MoneyAccountSweepstakesTodayStatus | undefined,
   localizedText: MoneyAccountSweepstakesLocalizedTextDto,
+  shortfallDescription: string,
 ): string {
   const base = localizedText.eligibleBalanceDescription;
   switch (todayStatus) {
@@ -52,7 +52,7 @@ function getEligibleStatusDescription(
       return `${base} ${localizedText.onTrackDescription}`;
     case 'not_yet_qualified':
       // Still winnable today: depositing the shortfall earns today's entry.
-      return `${base} ${localizedText.notYetQualifiedDescription}`;
+      return `${base} ${shortfallDescription}`;
     case 'lost_today':
       // Reached the threshold and fell below it — today is forfeit.
       return `${base} ${localizedText.lostTodayDescription}`;
@@ -95,9 +95,10 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
     ? formatUsd(Math.max(0, stats.currentBalanceUsd))
     : '—';
   const nextDrawDisplay = stats
-    ? strings('rewards.money_account_sweepstakes.days_remaining', {
-        count: stats.daysRemaining,
-      })
+    ? (stats.daysRemaining === 1
+        ? localizedText.dayRemainingValue
+        : localizedText.daysRemainingValue
+      ).replace(ENTRIES_COUNT_PLACEHOLDER, String(stats.daysRemaining))
     : '—';
   const qualificationShortfall = Math.max(0, thresholdUsd - qualifyingUsd);
   const entriesDisplay = stats
@@ -106,7 +107,10 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
         String(stats.entryCount),
       )
     : '—';
-
+  const shortfallDescription = localizedText.shortfallDescription.replace(
+    AMOUNT_PLACEHOLDER,
+    formatUsd(qualificationShortfall),
+  );
   const todayStatus = stats?.todayStatus;
   // `not_yet_qualified` is recoverable today, `lost_today` is not — only the
   // latter is a warning. Treating them alike is what the previous single
@@ -187,7 +191,11 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
             !showSkeleton
               ? infoSuffix(
                   localizedText.eligibleBalanceTitle,
-                  getEligibleStatusDescription(todayStatus, localizedText),
+                  getEligibleStatusDescription(
+                    todayStatus,
+                    localizedText,
+                    shortfallDescription,
+                  ),
                 )
               : undefined
           }
@@ -210,9 +218,7 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
       </Box>
       <Box flexDirection={BoxFlexDirection.Row}>
         <StatCell
-          label={strings(
-            'rewards.money_account_sweepstakes.current_balance_title',
-          )}
+          label={localizedText.currentBalanceTitle}
           value={currentBalanceDisplay}
           isLoading={showSkeleton}
           testID={
@@ -220,7 +226,7 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
           }
         />
         <StatCell
-          label={strings('rewards.money_account_sweepstakes.next_draw_title')}
+          label={localizedText.nextDrawTitle}
           value={nextDrawDisplay}
           isLoading={showSkeleton}
           testID={MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS.NEXT_DRAW}
@@ -239,13 +245,10 @@ const MoneyAccountSweepstakesStatsSummary: React.FC<
         >
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {todayStatus === 'on_track'
-              ? strings(
-                  'rewards.money_account_sweepstakes.qualified_today_description',
-                )
-              : strings(
-                  'rewards.money_account_sweepstakes.shortfall_description',
-                  { amount: formatUsd(qualificationShortfall) },
-                )}
+              ? localizedText.onTrackDescription
+              : todayStatus === 'lost_today'
+                ? localizedText.lostTodayDescription
+                : shortfallDescription}
           </Text>
         </Box>
       )}

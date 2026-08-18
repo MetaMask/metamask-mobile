@@ -3,11 +3,9 @@ import { fireEvent, render } from '@testing-library/react-native';
 import MoneyAccountSweepstakesStatsSummary, {
   MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS,
 } from './MoneyAccountSweepstakesStatsSummary';
-import type {
-  MoneyAccountSweepstakesLocalizedTextDto,
-  MoneyAccountSweepstakesStatsMeDto,
-} from '../../../../../../core/Engine/controllers/rewards-controller/types';
+import type { MoneyAccountSweepstakesStatsMeDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { createMoneyAccountSweepstakesLocalizedText } from './testUtils';
 
 const mockNavigate = jest.fn();
 
@@ -56,66 +54,9 @@ jest.mock('../../../utils/formatUtils', () => ({
     value == null ? '—' : `$${value.toFixed(2)}`,
 }));
 
-jest.mock('../../../../../../../locales/i18n', () => ({
-  strings: (key: string, params?: Record<string, string | number>) => {
-    const translations: Record<string, string> = {
-      'rewards.money_account_sweepstakes.current_balance_title':
-        'Money Account balance',
-      'rewards.money_account_sweepstakes.next_draw_title': 'Next draw',
-      'rewards.money_account_sweepstakes.days_remaining': `${params?.count} days`,
-      'rewards.money_account_sweepstakes.qualified_today_description':
-        "You're on track for today's entry.",
-      'rewards.money_account_sweepstakes.shortfall_description': `Add ${params?.amount} today to reach $100.`,
-    };
-    return translations[key] ?? key;
-  },
-}));
-
 const TEST_IDS = MONEY_ACCOUNT_SWEEPSTAKES_STATS_SUMMARY_TEST_IDS;
 
-const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
-  eligibleBalanceTitle: 'Qualifying deposits',
-  eligibleBalanceDescription:
-    "Net new deposits in your Money Account since you joined. Reach $100 and don't drop below it before midnight UTC to earn today's entry. Balance from before joining doesn't count.",
-  entriesTitle: 'Entries',
-  entriesDescription:
-    'One entry for each UTC day your qualifying deposits stayed at $100 or above. Max 7 per week.',
-  entriesCountValue: '{count} / 7',
-  drawScheduleTitle: 'Draw schedule',
-  addFundsTitle: 'Add funds',
-  addFundsNoBalanceTitle: 'No balance to deposit into Money Account',
-  addFundsNoBalanceDescription:
-    'Deposit crypto or mUSD in your wallet before transferring them to Money Account.',
-  weekTitle: 'Week {number}',
-  completeLabel: 'Complete',
-  activeLabel: 'Active',
-  joinTheSweepstakesTitle: 'Join the Sweepstakes',
-  drawPendingTitle: 'Draw pending',
-  drawCompleteTitle: 'Winners drawn',
-  drawProofTitle: 'Draw proof',
-  merkleRootLabel: 'Merkle root',
-  formulaLabel: 'Formula',
-  drawFormulaLabel: 'Weighted raffle (Efraimidis–Spirakis)',
-  drawFormulaDescription:
-    "Each day your qualifying deposits stayed at $100 or above earned an entry (counted from the day you joined). After the week ended, we locked everyone's entries and published a commitment (the Merkle root) before the random seed existed. The seed is a future block hash nobody can predict. We then run a weighted raffle: more entries improve your odds but don't guarantee a win. Anyone can re-check the commitment, seed, and formula to verify the ranking.",
-  seedBlockLabel: 'Seed block number',
-  seedBlockHashLabel: 'Seed block hash',
-  drawProofEntriesLabel: 'Entries',
-  winnersLabel: 'Winners',
-  reservesLabel: 'Reserves',
-  originalDrawTitle: 'Original draw',
-  reserveSuffix: '(reserve)',
-  refLabel: 'Ref',
-  weightLabel: 'Weight',
-  bindingConflictTitle: 'Money Account already linked',
-  bindingConflictDescription:
-    'Money Account already binds to another Rewards profile.',
-  onTrackDescription: "You are on track to earn today's entry.",
-  notYetQualifiedDescription:
-    "Deposit the shortfall to reach $100 and hold through midnight UTC for today's entry.",
-  lostTodayDescription:
-    "Today's entry is forfeit after dipping below $100. Get back to $100+ to earn again tomorrow.",
-};
+const localizedText = createMoneyAccountSweepstakesLocalizedText();
 
 const stats: MoneyAccountSweepstakesStatsMeDto = {
   entryCount: 3,
@@ -301,7 +242,7 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
       {
         title: 'Qualifying deposits',
         description:
-          "Net new deposits in your Money Account since you joined. Reach $100 and don't drop below it before midnight UTC to earn today's entry. Balance from before joining doesn't count. You are on track to earn today's entry.",
+          "Net new deposits in your Money Account since you joined. Reach $100 and don't drop below it before midnight UTC to earn today's entry. Balance from before joining doesn't count. You're on track for today's entry. Keep at least $100 in your Money Account through the end of the day.",
       },
     );
   });
@@ -309,7 +250,11 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
   it('opens eligible balance info with the not_yet_qualified description', () => {
     const { getAllByTestId } = render(
       <MoneyAccountSweepstakesStatsSummary
-        stats={{ ...stats, todayStatus: 'not_yet_qualified' }}
+        stats={{
+          ...stats,
+          todayStatus: 'not_yet_qualified',
+          qualifyingDepositsUsd: 40,
+        }}
         localizedText={localizedText}
         isLoading={false}
       />,
@@ -322,7 +267,7 @@ describe('MoneyAccountSweepstakesStatsSummary', () => {
       {
         title: 'Qualifying deposits',
         description:
-          "Net new deposits in your Money Account since you joined. Reach $100 and don't drop below it before midnight UTC to earn today's entry. Balance from before joining doesn't count. Deposit the shortfall to reach $100 and hold through midnight UTC for today's entry.",
+          "Net new deposits in your Money Account since you joined. Reach $100 and don't drop below it before midnight UTC to earn today's entry. Balance from before joining doesn't count. Add $60.00 today to reach $100 and earn today's entry.",
       },
     );
   });

@@ -158,7 +158,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.campaign.remind_me_success_toast': 'We will notify you.',
       'rewards.campaign.remind_me_save_error': 'Save failed.',
       'rewards.notifications_nudge.turn_on_button': 'Turn on',
-      'rewards.money_account_sweepstakes.campaign_title': 'Money Sweepstakes',
     };
     return translations[key] || key;
   },
@@ -616,7 +615,7 @@ describe('CampaignTile', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('lets users open details for a supported upcoming campaign', () => {
+    it('does not navigate for any campaign type when status is upcoming', () => {
       (getCampaignStatusInfo as jest.Mock).mockReturnValue({
         status: 'upcoming',
         statusLabel: 'Coming soon',
@@ -631,13 +630,10 @@ describe('CampaignTile', () => {
       const { getByTestId } = render(<CampaignTile campaign={campaign} />);
       fireEvent.press(getByTestId('campaign-tile-camp-ondo-upcoming'));
 
-      expect(mockNavigate).toHaveBeenCalledWith('RewardsFlow', {
-        screen: Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
-        params: { campaignId: 'camp-ondo-upcoming' },
-      });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('calls a custom press handler for an upcoming campaign', () => {
+    it('does not call onPress for any campaign type when status is upcoming', () => {
       (getCampaignStatusInfo as jest.Mock).mockReturnValue({
         status: 'upcoming',
         statusLabel: 'Coming soon',
@@ -655,7 +651,7 @@ describe('CampaignTile', () => {
       );
       fireEvent.press(getByTestId('campaign-tile-camp-season-upcoming'));
 
-      expect(mockOnPress).toHaveBeenCalledTimes(1);
+      expect(mockOnPress).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 

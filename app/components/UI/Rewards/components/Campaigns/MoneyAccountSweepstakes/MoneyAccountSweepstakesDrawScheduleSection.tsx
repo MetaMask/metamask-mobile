@@ -21,8 +21,10 @@ import {
   formatCampaignDateRange,
   getCampaignStatus,
 } from '../CampaignTile.utils';
-import { WEEK_NUMBER_PLACEHOLDER } from './constants';
-import { strings } from '../../../../../../../locales/i18n';
+import {
+  ENTRIES_COUNT_PLACEHOLDER,
+  WEEK_NUMBER_PLACEHOLDER,
+} from './constants';
 
 export const MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS = {
   CONTAINER: 'money-account-sweepstakes-draw-schedule-container',
@@ -165,7 +167,7 @@ const WeekRow: React.FC<WeekRowProps> = ({
   const formattedPrizePoolAmount = Math.round(prizePoolAmount)
     .toString()
     .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  const prizePoolLabel = `$${formattedPrizePoolAmount} prize pool`;
+  const prizePoolLabel = localizedText.prizePoolLabel;
 
   if (status === 'complete') {
     const hasProof = drawProof != null;
@@ -193,7 +195,7 @@ const WeekRow: React.FC<WeekRowProps> = ({
               color={TextColor.TextAlternative}
             >
               {hasProof || forceCompleteLabel
-                ? 'Awarded'
+                ? localizedText.awardedLabel
                 : localizedText.drawPendingTitle}
             </Text>
           </Box>
@@ -208,9 +210,7 @@ const WeekRow: React.FC<WeekRowProps> = ({
                 MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.DRAW_COMPLETE_BUTTON
               }
             >
-              {strings(
-                'rewards.money_account_sweepstakes.draw_schedule.view_results',
-              )}
+              {localizedText.drawScheduleViewResults}
             </Button>
           </Box>
         )}
@@ -226,10 +226,7 @@ const WeekRow: React.FC<WeekRowProps> = ({
             {dateRange}
           </Text>
           <Text variant={TextVariant.BodySm} color={TextColor.SuccessDefault}>
-            {weekTitle} ·{' '}
-            {strings(
-              'rewards.money_account_sweepstakes.draw_schedule.current_draw',
-            )}
+            {weekTitle} · {localizedText.drawScheduleCurrentDraw}
           </Text>
         </Box>
         <Box alignItems={BoxAlignItems.End} twClassName="flex-1 gap-1">
@@ -238,14 +235,17 @@ const WeekRow: React.FC<WeekRowProps> = ({
           </Text>
           {isParticipating ? (
             <Text variant={TextVariant.BodySm} color={TextColor.SuccessDefault}>
-              {`${entryCount ?? 0}/7 entries`}
+              {localizedText.entriesCountValue.replace(
+                ENTRIES_COUNT_PLACEHOLDER,
+                String(entryCount ?? 0),
+              )}
             </Text>
           ) : (
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
-              Prize pool
+              {prizePoolLabel}
             </Text>
           )}
         </Box>
@@ -268,7 +268,7 @@ const WeekRow: React.FC<WeekRowProps> = ({
           $2,500
         </Text>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          Prize pool
+          {prizePoolLabel}
         </Text>
       </Box>
     </Box>
@@ -306,7 +306,7 @@ const MoneyAccountSweepstakesDrawScheduleSection: React.FC<
           {localizedText.drawScheduleTitle}
         </Text>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('rewards.money_account_sweepstakes.draw_schedule.summary')}
+          {localizedText.drawScheduleSummary}
         </Text>
       </Box>
 
@@ -326,9 +326,7 @@ const MoneyAccountSweepstakesDrawScheduleSection: React.FC<
 
       <Box twClassName="border-t border-border-muted pt-3">
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-          {strings(
-            'rewards.money_account_sweepstakes.draw_schedule.entries_reset',
-          )}
+          {localizedText.drawScheduleEntriesReset}
         </Text>
       </Box>
     </Box>

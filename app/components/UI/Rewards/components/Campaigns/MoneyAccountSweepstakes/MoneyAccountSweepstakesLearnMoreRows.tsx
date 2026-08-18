@@ -17,10 +17,12 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import type { MoneyAccountSweepstakesLocalizedTextDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 
 interface MoneyAccountSweepstakesLearnMoreRowsProps {
   campaignId: string;
+  localizedText: MoneyAccountSweepstakesLocalizedTextDto;
 }
 
 interface LearnMoreRowProps {
@@ -75,7 +77,7 @@ const LearnMoreRow: React.FC<LearnMoreRowProps> = ({
 
 const MoneyAccountSweepstakesLearnMoreRows: React.FC<
   MoneyAccountSweepstakesLearnMoreRowsProps
-> = ({ campaignId }) => {
+> = ({ campaignId, localizedText }) => {
   const navigation = useNavigation<AppNavigationProp>();
 
   const openMechanics = useCallback(() => {
@@ -91,14 +93,14 @@ const MoneyAccountSweepstakesLearnMoreRows: React.FC<
   return (
     <Box twClassName="px-4 pt-2">
       <LearnMoreRow
-        title="How it works"
-        description="Learn how to earn entries"
+        title={localizedText.learnHowItWorksTitle}
+        description={localizedText.learnHowItWorksDescription}
         iconName={IconName.Chart}
         onPress={openMechanics}
       />
       <LearnMoreRow
-        title="MetaMask USD"
-        description="Learn more about mUSD"
+        title={localizedText.learnMusdTitle}
+        description={localizedText.learnMusdDescription}
         iconName={IconName.Coin}
         onPress={openMoneyAccount}
         hasTopBorder

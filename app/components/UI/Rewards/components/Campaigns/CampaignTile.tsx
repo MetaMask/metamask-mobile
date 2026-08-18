@@ -17,7 +17,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import NotificationIcon from '../../../../../images/rewards/notification.svg';
-import moneyAccountSweepstakesCampaignArtwork from '../../../../../images/rewards/money-account-sweepstakes-campaign-v2.png';
 import {
   CampaignType,
   type CampaignDto,
@@ -59,22 +58,14 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
 
+  const {
+    status: campaignStatus,
+    statusLabel,
+    dateLabel,
+  } = useMemo(() => getCampaignStatusInfo(campaign), [campaign]);
+
   const isMoneyAccountSweepstakes =
     campaign.type === CampaignType.MONEY_ACCOUNT_SWEEPSTAKES;
-  const campaignStatusInfo = useMemo(
-    () => getCampaignStatusInfo(campaign),
-    [campaign],
-  );
-  const campaignStatus = isMoneyAccountSweepstakes
-    ? 'active'
-    : campaignStatusInfo.status;
-  const statusLabel = isMoneyAccountSweepstakes
-    ? strings('rewards.campaign.pill_active')
-    : campaignStatusInfo.statusLabel;
-  const dateLabel = campaignStatusInfo.dateLabel;
-  const campaignDisplayName = isMoneyAccountSweepstakes
-    ? strings('rewards.money_account_sweepstakes.campaign_title')
-    : campaign.name;
 
   const { status: participantStatus, isLoading: isParticipantStatusLoading } =
     useGetCampaignParticipantStatus(
@@ -98,10 +89,9 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
     ? isSweepstakesParticipationLoading
     : isParticipantStatusLoading;
 
-  // Upcoming supported campaigns remain explorable so users can understand
-  // the offer, timing, eligibility, and rules before opting in.
   const isInteractive =
-    onPress != null || isCampaignTypeSupported(campaign.type);
+    campaignStatus !== 'upcoming' &&
+    (onPress != null || isCampaignTypeSupported(campaign.type));
 
   const reminderFeatureEnabled =
     campaignStatus === 'upcoming' &&
@@ -121,16 +111,13 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
     !isMoneyAccountSweepstakes &&
     (campaignStatus !== 'upcoming' || campaign.showUpcomingDate);
 
-  const displayedStatusLabel = statusLabel;
-
-  const backgroundImageSource = isMoneyAccountSweepstakes
-    ? moneyAccountSweepstakesCampaignArtwork
-    : {
-        uri:
-          colorScheme === 'dark'
-            ? campaign.image?.darkModeUrl
-            : campaign.image?.lightModeUrl,
-      };
+  const backgroundImageSource = {
+    uri: isMoneyAccountSweepstakes
+      ? campaign.image?.darkModeUrl
+      : colorScheme === 'dark'
+        ? campaign.image?.darkModeUrl
+        : campaign.image?.lightModeUrl,
+  };
 
   const hasTour = (campaign.details?.howItWorks?.tour?.length ?? 0) > 0;
   const shouldShowTour =
@@ -208,11 +195,11 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
         onPress={handlePress}
         disabled={!isInteractive}
         accessibilityRole={isInteractive ? 'button' : undefined}
-        accessibilityLabel={campaignDisplayName}
+        accessibilityLabel={campaign.name}
         accessibilityHint={
           isInteractive
             ? strings('rewards.campaign.view_details_accessibility', {
-                campaignName: campaignDisplayName,
+                campaignName: campaign.name,
               })
             : undefined
         }
@@ -314,7 +301,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
                   }
                   fontWeight={FontWeight.Medium}
                 >
-                  {displayedStatusLabel}
+                  {statusLabel}
                 </Text>
               )}
               {shouldShowDateLabel && (
@@ -346,7 +333,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
               }
               testID="campaign-tile-name"
             >
-              {campaignDisplayName}
+              {campaign.name}
             </Text>
           </Box>
           <Box

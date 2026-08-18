@@ -25,13 +25,11 @@ export const CAMPAIGN_STATUS_TEST_IDS = {
 interface CampaignStatusProps {
   campaign: CampaignDto;
   optedIn?: boolean;
-  title?: string;
 }
 
 const CampaignStatus: React.FC<CampaignStatusProps> = ({
   campaign,
   optedIn = false,
-  title,
 }) => {
   const tw = useTailwind();
   const colorScheme = useColorScheme();
@@ -46,19 +44,20 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
       ? campaign.image?.darkModeUrl
       : campaign.image?.lightModeUrl;
 
-  const displayTitle =
-    title ?? documentToPlainText(campaign.details?.howItWorks?.title);
+  const howItWorksTitle = documentToPlainText(
+    campaign.details?.howItWorks?.title,
+  );
 
   return (
     <Box twClassName="gap-4 p-4" testID={CAMPAIGN_STATUS_TEST_IDS.CONTAINER}>
       <Box>
-        {displayTitle ? (
+        {howItWorksTitle ? (
           <Text
             variant={TextVariant.HeadingLg}
             fontWeight={FontWeight.Bold}
             testID={CAMPAIGN_STATUS_TEST_IDS.HOW_IT_WORKS_TITLE}
           >
-            {displayTitle}
+            {howItWorksTitle}
           </Text>
         ) : null}
         <Box
