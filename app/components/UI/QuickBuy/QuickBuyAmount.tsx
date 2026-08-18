@@ -59,7 +59,10 @@ const QuickBuyAmount: React.FC = () => {
       isUnpricedSource={isUnpricedSource}
       sourceCryptoAmount={sourceAmountTokens}
       sourceSymbol={sourceToken?.symbol ?? target.tokenSymbol}
-      showCursor={isKeypadOpen}
+      // The keypad now stays expanded without funds, so the caret has to be
+      // suppressed explicitly — a blinking caret on a dead field would imply
+      // typing does something.
+      showCursor={isKeypadOpen && !hasNoPayWithFunds}
       hiddenInputRef={hiddenInputRef}
       // Omitting the handler drops the surrounding pressable entirely, so with
       // no funds the headline can neither reopen the keypad nor focus the

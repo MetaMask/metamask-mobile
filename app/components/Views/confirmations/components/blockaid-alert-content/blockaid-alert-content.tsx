@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { Linking, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { deflate } from 'react-native-gzip';
 import type { Hex } from '@metamask/utils';
+import {
+  Text,
+  TextButton,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
@@ -15,8 +20,6 @@ import Accordion, {
   AccordionHeaderHorizontalAlignment,
 } from '../../../../../component-library/components/Accordions/Accordion';
 import { useStyles } from '../../../../../component-library/hooks';
-// TODO: Remove legacy import
-import BlockaidBannerLink from '../../components/blockaid-banner/BlockaidBannerLink';
 import {
   FALSE_POSITIVE_REPOST_LINE_TEST_ID,
   REASON_DESCRIPTION_I18N_KEY_MAP,
@@ -26,7 +29,7 @@ import {
   SecurityAlertResponse,
 } from '../../components/blockaid-banner/BlockaidBanner.types';
 import styleSheet from './blockaid-alert-content.styles';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import { BlockaidAlertContentTestIds } from './blockaid-alert-content.testIds';
 
 interface BlockaidAlertContentProps {
   alertDetails?: string[];
@@ -118,11 +121,16 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
           >
             {strings('blockaid_banner.does_not_look_right')}
           </Text>
-          <BlockaidBannerLink
-            text={strings('blockaid_banner.report_an_issue')}
-            link={reportUrl}
-            onContactUsClicked={onContactUsClicked}
-          />
+          <TextButton
+            testID={BlockaidAlertContentTestIds.REPORT_ISSUE_BUTTON}
+            variant={TextVariant.BodySm}
+            onPress={() => {
+              onContactUsClicked();
+              Linking.openURL(reportUrl);
+            }}
+          >
+            {strings('blockaid_banner.report_an_issue')}
+          </TextButton>
         </View>
       </Accordion>
     </>

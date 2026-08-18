@@ -1,24 +1,31 @@
 import { Box } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import type { PerpsMarketData } from '@metamask/perps-controller';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import type { ScrollView } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip';
 import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomSheet';
 import PerpsMarginModeBottomSheet from '../../../components/PerpsMarginModeBottomSheet';
-import PerpsOrderTypeBottomSheetView from '../../../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheetView';
+import PerpsOrderTypeBottomSheet from '../../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
+import { selectPerpsProTriggeredOrdersEnabledFlag } from '../../../selectors/featureFlags';
+import { useIsPerpsProModeActive } from '../../../utils/perpsModeSwitch';
 import PerpsProModalPortal from './PerpsProModalPortal';
 import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
 import { createStyles } from './PerpsProOrderFormPanel.styles';
 import { usePerpsProOrderForm } from './PerpsProOrderForm/usePerpsProOrderForm';
+import { usePerpsProKeyboardScroll } from './PerpsProOrderForm/usePerpsProKeyboardScroll';
 
 export interface PerpsProOrderFormPanelProps {
   market: PerpsMarketData;
   isOrderBookCollapsed?: boolean;
   onExpandOrderBook?: () => void;
+  onRequestScrollBy?: (delta: number) => void;
+  scrollViewRef?: React.RefObject<ScrollView | null>;
 }
 
 /**
@@ -32,6 +39,8 @@ const PerpsProOrderFormPanel = ({
   market,
   isOrderBookCollapsed,
   onExpandOrderBook,
+  onRequestScrollBy,
+  scrollViewRef,
 }: PerpsProOrderFormPanelProps) => {
   const {
     direction,
@@ -81,10 +90,56 @@ const PerpsProOrderFormPanel = ({
   } = usePerpsProOrderForm({ market });
 
   const { styles } = useStyles(createStyles, {});
+  const isProModeActive = useIsPerpsProModeActive();
+  const isTriggeredOrdersEnabled = useSelector(
+    selectPerpsProTriggeredOrdersEnabledFlag,
+  );
+  const showTriggeredTypes = isProModeActive && isTriggeredOrdersEnabled;
 
   const [isMarginModeVisible, setIsMarginModeVisible] = useState(false);
   const openMarginMode = useCallback(() => setIsMarginModeVisible(true), []);
   const closeMarginMode = useCallback(() => setIsMarginModeVisible(false), []);
+
+  const {
+    cardRef: sizeCardRef,
+    onFocus: onSizeCardFocus,
+    onBlur: onSizeCardBlur,
+    realign: onSizeFieldPress,
+  } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
+
+  // One instance per field rather than a single shared handler: each keeps its
+  // own card measurement and stays inert unless its own field holds focus, so
+  // moving between fields needs no hand-off. The measured card here is the
+  // order-type card, which wraps the limit price row.
+  const {
+    cardRef: orderTypeCardRef,
+    onFocus: onLimitPriceFocus,
+    onBlur: onLimitPriceCardBlur,
+    realign: onLimitPriceFieldPress,
+  } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
+
+  // Composed, not replaced: the form's own handlers clear the slider preview
+  // and drive the focused-size styling.
+  const sizeInputWithKeyboardScroll = useMemo(
+    () => ({
+      ...sizeInput,
+      onFocus: () => {
+        sizeInput.onFocus();
+        onSizeCardFocus();
+      },
+      onBlur: () => {
+        sizeInput.onBlur();
+        onSizeCardBlur();
+      },
+    }),
+    [sizeInput, onSizeCardFocus, onSizeCardBlur],
+  );
+
+  // Likewise composed: the form's blur finalizes the typed limit price.
+  const onLimitPriceBlurWithKeyboardScroll = useCallback(() => {
+    onLimitPriceBlur();
+    onLimitPriceCardBlur();
+  }, [onLimitPriceBlur, onLimitPriceCardBlur]);
 
   return (
     <Box
@@ -105,10 +160,15 @@ const PerpsProOrderFormPanel = ({
         onOrderTypeButtonPress={onOrderTypeButtonPress}
         limitPrice={limitPrice}
         onLimitPriceChange={onLimitPriceChange}
-        onLimitPriceBlur={onLimitPriceBlur}
+        onLimitPriceFocus={onLimitPriceFocus}
+        onLimitPriceBlur={onLimitPriceBlurWithKeyboardScroll}
+        orderTypeCardRef={orderTypeCardRef}
+        onLimitPriceFieldPress={onLimitPriceFieldPress}
         onUseMidPricePress={onUseMidPricePress}
-        sizeInput={sizeInput}
+        sizeInput={sizeInputWithKeyboardScroll}
         sizeSlider={sizeSlider}
+        sizeCardRef={sizeCardRef}
+        onSizeFieldPress={onSizeFieldPress}
         availableBalance={availableBalance}
         onAddFundsPress={onAddFundsPress}
         reduceOnly={reduceOnly}
@@ -137,13 +197,16 @@ const PerpsProOrderFormPanel = ({
           animationType="fade"
           onRequestClose={closeOrderType}
         >
-          <PerpsOrderTypeBottomSheetView
+          <PerpsOrderTypeBottomSheet
             isVisible
             onClose={closeOrderType}
             onSelect={onOrderTypeSelect}
             currentOrderType={orderType}
+            asset={market.symbol}
+            direction={direction}
             title={strings('perps.pro_order_form.choose_order_type')}
             showSelectedIcon
+            showTriggeredTypes={showTriggeredTypes}
           />
         </PerpsProModalPortal>
       )}

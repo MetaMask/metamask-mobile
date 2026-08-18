@@ -12,6 +12,7 @@ import {
   ButtonsAlignment,
   IconName,
   Text,
+  TextButton,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -251,28 +252,30 @@ export const Footer = () => {
             <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part1')}
             </Text>
-            <Text
+            <TextButton
+              testID={ConfirmationFooterSelectorIDs.STAKING_TERMS_OF_USE_BUTTON}
               variant={TextVariant.BodySm}
-              style={styles.linkText}
               onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
             >
               {strings('confirm.staking_footer.terms_of_use')}
-            </Text>
+            </TextButton>
           </View>
           <View style={styles.bottomTextContainerLine}>
             <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part2')}
               {'\n'}
             </Text>
-            <Text
+            <TextButton
+              testID={
+                ConfirmationFooterSelectorIDs.STAKING_RISK_DISCLOSURE_BUTTON
+              }
               variant={TextVariant.BodySm}
-              style={styles.linkText}
               onPress={() =>
                 Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
               }
             >
               {strings('confirm.staking_footer.risk_disclosure')}
-            </Text>
+            </TextButton>
             <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part3')}
             </Text>

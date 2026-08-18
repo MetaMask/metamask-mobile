@@ -129,11 +129,19 @@ export async function withImplicitWait<T>(
   fn: () => Promise<T>,
 ): Promise<T> {
   const drv = getDriver();
+  const configureStart = Date.now();
   await drv.setTimeout({ implicit: timeoutMs });
+  if (isOverheadTrackingActive()) {
+    recordInfrastructureCommand(Date.now() - configureStart);
+  }
   try {
     return await fn();
   } finally {
+    const restoreStart = Date.now();
     await drv.setTimeout({ implicit: DEFAULT_IMPLICIT_WAIT_MS });
+    if (isOverheadTrackingActive()) {
+      recordInfrastructureCommand(Date.now() - restoreStart);
+    }
   }
 }
 
@@ -275,6 +283,7 @@ export function boxedStep<This, Args extends unknown[], Return>(
 export interface OverheadAccumulatorState {
   directMs: number;
   sleepMs: number;
+  infrastructureCommandDurationsMs: number[];
   failedPollDurationsMs: number[];
   successPollMs: number | null;
   probeMs: number | null;
@@ -296,6 +305,7 @@ export const MEASURING_POLL_INTERVAL_MAX_MS = 300;
 let _tracking = false;
 let _directMs = 0;
 let _sleepMs = 0;
+let _infrastructureCommandDurationsMs: number[] = [];
 let _failedPollDurationsMs: number[] = [];
 let _successPollMs: number | null = null;
 let _probeMs: number | null = null;
@@ -303,6 +313,7 @@ let _probeMs: number | null = null;
 function resetOverheadState(): void {
   _directMs = 0;
   _sleepMs = 0;
+  _infrastructureCommandDurationsMs = [];
   _failedPollDurationsMs = [];
   _successPollMs = null;
   _probeMs = null;
@@ -316,19 +327,25 @@ function resetOverheadState(): void {
  * inside `isExisting` is not mistaken for network overhead.
  *
  * `directMs` / `sleepMs` are intentionally excluded — resolution and sleeps
- * are treated as app time.
+ * are treated as app time. Timeout configuration commands are pure Appium
+ * overhead and are subtracted in full.
  *
  * Exported for unit tests.
  */
 export function computeAppiumInfraOverheadMs(
   state: OverheadAccumulatorState,
 ): number {
+  const configurationMs = state.infrastructureCommandDurationsMs.reduce(
+    (total, durationMs) => total + Math.max(0, durationMs),
+    0,
+  );
+
   if (state.probeMs == null || state.probeMs <= 0) {
-    return 0;
+    return configurationMs;
   }
 
   const rttCap = state.probeMs;
-  let infraMs = rttCap;
+  let infraMs = configurationMs + rttCap;
 
   for (const durationMs of state.failedPollDurationsMs) {
     if (durationMs > 0) {
@@ -400,6 +417,12 @@ export function addOverheadSleep(ms: number): void {
   if (_tracking && ms > 0) _sleepMs += ms;
 }
 
+export function recordInfrastructureCommand(durationMs: number): void {
+  if (_tracking && durationMs >= 0) {
+    _infrastructureCommandDurationsMs.push(durationMs);
+  }
+}
+
 export function recordFailedPollCommand(durationMs: number): void {
   if (_tracking && durationMs >= 0) {
     _failedPollDurationsMs.push(durationMs);
@@ -423,6 +446,7 @@ export function stopOverheadTracking(): OverheadTrackingResult {
   const infraMs = computeAppiumInfraOverheadMs({
     directMs: _directMs,
     sleepMs: _sleepMs,
+    infrastructureCommandDurationsMs: _infrastructureCommandDurationsMs,
     failedPollDurationsMs: _failedPollDurationsMs,
     successPollMs: _successPollMs,
     probeMs: _probeMs,

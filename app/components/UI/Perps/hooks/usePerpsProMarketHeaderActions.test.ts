@@ -9,6 +9,7 @@ import { usePerpsProMarketHeaderActions } from './usePerpsProMarketHeaderActions
 
 const mockNavigateBack = jest.fn();
 const mockNavigateToWallet = jest.fn();
+const mockNavigateToHome = jest.fn();
 const mockNavigateToMarketList = jest.fn();
 const mockNavigateToMarketListFromHeader = jest.fn();
 let mockCanGoBack = true;
@@ -17,6 +18,7 @@ jest.mock('./usePerpsNavigation', () => ({
   usePerpsNavigation: jest.fn(() => ({
     navigateBack: mockNavigateBack,
     navigateToWallet: mockNavigateToWallet,
+    navigateToHome: mockNavigateToHome,
     navigateToMarketList: mockNavigateToMarketList,
     navigateToMarketListFromHeader: mockNavigateToMarketListFromHeader,
     get canGoBack() {
@@ -105,6 +107,27 @@ describe('usePerpsProMarketHeaderActions', () => {
     });
 
     expect(mockNavigateToWallet).toHaveBeenCalledTimes(1);
+    expect(mockNavigateBack).not.toHaveBeenCalled();
+    expect(mockNavigateToHome).not.toHaveBeenCalled();
+  });
+
+  it('falls back to Perps Home when backFallback is home and the stack cannot go back', () => {
+    mockCanGoBack = false;
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({
+        symbol: 'BTC',
+        backFallback: 'home',
+      }),
+    );
+
+    act(() => {
+      result.current.handleBackPress();
+    });
+
+    expect(mockNavigateToHome).toHaveBeenCalledWith(
+      PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+    );
+    expect(mockNavigateToWallet).not.toHaveBeenCalled();
     expect(mockNavigateBack).not.toHaveBeenCalled();
   });
 

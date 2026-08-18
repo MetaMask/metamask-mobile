@@ -5,6 +5,7 @@ import {
   resolvePredictMarketListLane,
   resolvePredictRootLane,
 } from './laneResolution';
+import { createActiveABTestAssignment } from '../../../../util/analytics/activeABTestAssignments';
 
 const config = (polymarket: boolean, kalshi: boolean): PredictConfig => ({
   enabled: true,
@@ -58,6 +59,19 @@ describe('temporary Predict lane resolution', () => {
 
   it('routes a generic market list to Kalshi', () => {
     const result = resolvePredictMarketListLane(config(false, true));
+
+    expect(result).toBe('kalshi');
+  });
+
+  it('does not change venue for transaction attribution metadata', () => {
+    const result = resolvePredictMarketListLane(config(false, true), {
+      transactionActiveAbTests: [
+        createActiveABTestAssignment(
+          'homeTMCU1209AbtestHomepageBalanceBreakdown',
+          'icons',
+        ),
+      ],
+    });
 
     expect(result).toBe('kalshi');
   });

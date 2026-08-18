@@ -11,22 +11,17 @@ import {
   ButtonVariant,
   IconName as DesignSystemIconName,
 } from '@metamask/design-system-react-native';
-import {
-  ButtonSize as ButtonLinkSize,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../../../../component-library/components/Checkbox';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { TextVariant as LegacyTextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import { useAlerts } from '../../../context/alert-system-context';
-import ButtonLink from '../../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import styleSheet from './confirm-alert-modal.styles';
 import { AlertKeys } from '../../../constants/alerts';
+import { ConfirmAlertModalSelectorsIDs } from '../../../ConfirmationView.testIds';
 
 export interface ConfirmAlertModalProps {
   /** Callback function that is called when the reject button is clicked. */
@@ -77,7 +72,10 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
 
   return (
     <BottomModal onClose={handleReject}>
-      <View style={styles.modalContainer} testID="confirm-alert-modal">
+      <View
+        style={styles.modalContainer}
+        testID={ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_MODAL}
+      >
         <View>
           <Icon
             name={IconName.Danger}
@@ -102,15 +100,16 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
             : strings('alert_system.confirm_modal.message')}
         </Text>
         {hasFieldAlerts && (
-          <ButtonLink
+          <Button
             style={styles.reviewAlertsLink}
             onPress={showAlertModal}
-            label={strings('alert_system.confirm_modal.review_alerts')}
-            startIconName={IconName.SecuritySearch}
-            width={ButtonWidthTypes.Auto}
-            size={ButtonLinkSize.Lg}
-            labelTextVariant={LegacyTextVariant.BodyMD}
-          />
+            startIconName={DesignSystemIconName.SecuritySearch}
+            size={ButtonSize.Lg}
+            variant={ButtonVariant.Tertiary}
+            testID={ConfirmAlertModalSelectorsIDs.REVIEW_ALERTS_BUTTON}
+          >
+            {strings('alert_system.confirm_modal.review_alerts')}
+          </Button>
         )}
         <TouchableOpacity
           style={styles.checkboxContainer}
@@ -120,7 +119,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
           <Checkbox
             onPress={handleConfirmCheckbox}
             isChecked={confirmCheckbox}
-            testID="confirm-alert-checkbox"
+            testID={ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_CHECKBOX}
           />
           <Text style={styles.checkboxText}>
             {strings('alert_system.confirm_modal.checkbox_label')}
@@ -133,7 +132,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
             size={ButtonSize.Lg}
             variant={ButtonVariant.Secondary}
             isFullWidth
-            testID="confirm-alert-cancel-button"
+            testID={ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_CANCEL_BUTTON}
           >
             {strings('confirm.cancel')}
           </Button>
@@ -147,7 +146,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
             isDisabled={!confirmCheckbox}
             startIconName={DesignSystemIconName.Danger}
             isDanger
-            testID="confirm-alert-confirm-button"
+            testID={ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_BUTTON}
           >
             {strings('confirm.confirm')}
           </Button>
