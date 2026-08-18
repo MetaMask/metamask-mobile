@@ -90,6 +90,7 @@ export { default as usePerpsToasts } from './usePerpsToasts';
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';
 export { usePerpsMarketFills } from './usePerpsMarketFills';
+export { usePerpsRecordedOrderFees } from './usePerpsRecordedOrderFees';
 export { usePerpsOrders } from './usePerpsOrders';
 export { usePerpsFunding } from './usePerpsFunding';
 export { useWithdrawalRequests } from './useWithdrawalRequests';

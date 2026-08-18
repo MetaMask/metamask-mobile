@@ -19,6 +19,7 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import type { RootState } from '../../../../../reducers';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -35,10 +36,13 @@ import {
   selectAllowedChainRanking,
   selectBridgeFeatureFlags,
   selectTokenSelectorNetworkFilter,
+  setDestToken,
   setIsSelectingToken,
+  setSourceToken,
   setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import {
+  assetIdsMatch,
   FeatureId,
   formatChainIdToCaip,
   UnifiedSwapBridgeEventName,
@@ -66,6 +70,7 @@ import { usePopularTokens } from '../../hooks/usePopularTokens';
 import { useSearchTokens } from '../../hooks/useSearchTokens';
 import { useTokensWithBalances } from '../../hooks/useTokensWithBalances';
 import { useTokenSelection } from '../../hooks/useTokenSelection';
+import { getDefaultTokenPairForChains } from '../../utils/tokenUtils';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
@@ -99,6 +104,11 @@ import {
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
+  /**
+   * When provided, restricts the network list to these chains instead
+   * of the default allowed chainRanking.
+   */
+  enabledChainIds?: CaipChainId[];
 }
 
 const MIN_SEARCH_LENGTH = 3;
@@ -229,7 +239,10 @@ export const BridgeTokenSelector: React.FC = () => {
     [searchString],
   );
 
-  const enabledChainRanking = useSelector(selectAllowedChainRanking);
+  const enabledChainIds = route.params?.enabledChainIds;
+  const enabledChainRanking = useSelector((state: RootState) =>
+    selectAllowedChainRanking(state, enabledChainIds),
+  );
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isRWAEnabled = useSelector(selectRWAEnabledFlag);
   const { variant: balanceLayoutConfig } = useABTest(
@@ -344,21 +357,74 @@ export const BridgeTokenSelector: React.FC = () => {
     });
   }, [dispatch, selectedChainId]);
 
+  // A selectedChainId can come from sources (initialFilter, stale Redux
+  // filter) that predate/ignore this picker's enabledChainIds override, so
+  // it must be validated against enabledChainRanking before being trusted.
+  const isSelectedChainInEnabledRanking = useMemo(
+    () =>
+      Boolean(selectedChainId) &&
+      enabledChainRanking.some(
+        (chain: { chainId: CaipChainId }) => chain.chainId === selectedChainId,
+      ),
+    [selectedChainId, enabledChainRanking],
+  );
+
+  // If the current filter falls outside this picker's allowed chain set,
+  // clear it in Redux so pills, the network modal, and the fetched token
+  // list all agree on "All networks" instead of silently diverging (token
+  // list matching an all-chains fetch while no pill appears selected).
+  // The stale selection also means the actual source/dest pair is no longer
+  // valid for this picker's chain scope (e.g. a Limit Order flow scoped to
+  // Ethereum with a dest token left over from a broader Polygon session), so
+  // re-anchor both tokens to a sane default pair on the fallback chain.
+  useEffect(() => {
+    if (
+      !selectedChainId ||
+      enabledChainRanking.length === 0 ||
+      isSelectedChainInEnabledRanking
+    ) {
+      return;
+    }
+
+    dispatch(setTokenSelectorNetworkFilter(undefined));
+
+    const defaultPair = getDefaultTokenPairForChains(
+      enabledChainRanking.map(
+        (chain: { chainId: CaipChainId }) => chain.chainId,
+      ),
+    );
+    if (!defaultPair) {
+      return;
+    }
+
+    dispatch(setSourceToken(defaultPair.sourceToken));
+    if (defaultPair.destToken) {
+      dispatch(setDestToken(defaultPair.destToken));
+    }
+  }, [
+    selectedChainId,
+    enabledChainRanking,
+    isSelectedChainInEnabledRanking,
+    dispatch,
+  ]);
+
   const chainIdsToFetch = useMemo(() => {
     if (!enabledChainRanking || enabledChainRanking.length === 0) {
       return [];
     }
 
-    // If a specific chain is selected, use only that chain
-    if (selectedChainId) {
+    // If a specific chain is selected and it's part of the allowed chain
+    // set, use only that chain.
+    if (selectedChainId && isSelectedChainInEnabledRanking) {
       return [selectedChainId];
     }
 
-    // If "All" is selected, use all chains from filtered chainRanking
+    // If "All" is selected, or the selected chain isn't part of the
+    // allowed chain set, use all chains from filtered chainRanking.
     return enabledChainRanking.map(
       (chain: { chainId: CaipChainId }) => chain.chainId,
     );
-  }, [selectedChainId, enabledChainRanking]);
+  }, [selectedChainId, enabledChainRanking, isSelectedChainInEnabledRanking]);
 
   const {
     includeAssets,
@@ -480,8 +546,8 @@ export const BridgeTokenSelector: React.FC = () => {
       )
       .filter(
         (token) =>
-          token.assetId !== ARC_NATIVE_ASSET_ID &&
-          token.assetId !== ARC_NATIVE_ASSET_ID_LEGACY,
+          !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID) &&
+          !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID_LEGACY),
       );
 
     return filterWatchlistBridgeTokens(mappedTokens, {
@@ -921,9 +987,11 @@ export const BridgeTokenSelector: React.FC = () => {
           showWatchlistFilter={isWatchlistEnabled}
           isWatchlistFilterActive={isWatchlistFilterActive}
           onWatchlistFilterPress={handleWatchlistFilterPress}
+          enabledChainIds={enabledChainIds}
           onMorePress={() =>
             navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
               screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
+              params: { enabledChainIds },
             })
           }
         />

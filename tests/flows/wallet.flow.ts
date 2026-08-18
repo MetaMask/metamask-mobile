@@ -744,8 +744,17 @@ export const dismissPushNotificationExistingUserSheet =
  * No-ops when the modal is absent (removed builds / flag off).
  * @returns true when dismissed, false when it did not appear in time
  */
-export const closePredictModal = async (): Promise<boolean> => {
+export const closePredictModal = async (
+  options: { timeoutMs?: number } = {},
+): Promise<boolean> => {
+  const timeoutMs = options.timeoutMs ?? 2_000;
+
   try {
+    const predictTitle = await asPlaywrightElement(
+      PlaywrightMatchers.getElementByText('PREDICT AND WIN', true),
+    );
+    await predictTitle.unwrap().waitForDisplayed({ timeout: timeoutMs });
+
     const notNow = await asPlaywrightElement(
       PlaywrightMatchers.getElementByText('Not now', true),
     );

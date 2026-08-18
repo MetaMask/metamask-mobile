@@ -350,6 +350,11 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         return;
       }
       try {
+        // onboard_checklist_v07.riv does not expose the Main input on every artboard.
+        // Unlike the old runtime (Android JNI abort), Nitro surfaces a missing input
+        // as a catchable JS error, and it cannot play a named linear animation as a
+        // fallback — so always fire the trigger and let the catch below absorb a miss.
+        // TODO(#33825): Re-export v07 with Main on every artboard.
         rive.triggerInput(WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER);
         rive.play();
       } catch (error) {

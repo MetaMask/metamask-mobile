@@ -470,6 +470,7 @@ describe('PersonalDetails Component', () => {
         MetaMetricsEvents.CARD_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.PERSONAL_DETAILS,
       });
       expect(mockTrackEvent).toHaveBeenCalled();

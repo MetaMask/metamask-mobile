@@ -63,6 +63,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Logger from '../../../../../util/Logger';
 import onboardingFlowV25Animation from '../../../../../animations/onboarding_flow_v25.riv';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -244,6 +245,7 @@ const MoneyOnboardingView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<MoneyOnboardingRouteProp>();
   const postOnboardingRedirect = route.params?.postOnboardingRedirect;
+  const entryPoint = route.params?.entryPoint;
 
   const isUsUnauthenticatedNonCardholder = useSelector(
     selectIsUsUnauthenticatedNonCardholder,
@@ -358,9 +360,12 @@ const MoneyOnboardingView = () => {
   const navigateToMoneyHome = useCallback(() => {
     navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
+      params: {
+        screen: Routes.MONEY.HOME,
+        ...(entryPoint ? { params: { entryPoint } } : {}),
+      },
     });
-  }, [navigation]);
+  }, [entryPoint, navigation]);
 
   const navigateToPostOnboardingDestination = useCallback(async () => {
     if (
@@ -557,4 +562,61 @@ const MoneyOnboardingView = () => {
   );
 };
 
-export default MoneyOnboardingView;
+// Used in E2E and performance tests to complete onboarding without rendering Rive.
+const MoneyOnboardingViewE2E = () => {
+  const dispatch = useDispatch();
+
+  const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<MoneyOnboardingRouteProp>();
+  const postOnboardingRedirect = route.params?.postOnboardingRedirect;
+  const { initiateDeposit } = useMoneyAccountDeposit();
+
+  const navigateToMoneyHome = useCallback(() => {
+    navigation.navigate(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+  }, [navigation]);
+
+  const navigateToPostOnboardingDestination = useCallback(async () => {
+    if (
+      postOnboardingRedirect?.type !== MoneyPostOnboardingRedirectType.DEPOSIT
+    ) {
+      navigateToMoneyHome();
+      return;
+    }
+
+    try {
+      await initiateDeposit({
+        preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
+        replaceConfirmation: true,
+        onDepositSetupFailure: navigateToMoneyHome,
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[Money Account] Failed to initiate deposit after onboarding',
+      );
+    }
+  }, [initiateDeposit, navigateToMoneyHome, postOnboardingRedirect]);
+
+  const completeOnboardingAndRedirect = useCallback(() => {
+    dispatch(setMoneyOnboardingSeen(true));
+    navigateToPostOnboardingDestination();
+  }, [dispatch, navigateToPostOnboardingDestination]);
+
+  useEffect(() => {
+    completeOnboardingAndRedirect();
+  }, [completeOnboardingAndRedirect]);
+
+  return null;
+};
+
+const MoneyOnboardingViewGate = () => {
+  if (isE2EOrPerformanceTest) {
+    return <MoneyOnboardingViewE2E />;
+  }
+  return <MoneyOnboardingView />;
+};
+
+export default MoneyOnboardingViewGate;

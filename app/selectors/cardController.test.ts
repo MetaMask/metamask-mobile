@@ -574,6 +574,28 @@ describe('selectIsCardStateResolved', () => {
     expect(selectIsCardStateResolved(state)).toBe(false);
   });
 
+  it('returns true while refreshing existing data for an authenticated user', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'loading',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: { verificationStatus: 'VERIFIED' },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('returns true when a background refresh fails with existing data', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'error',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: { verificationStatus: 'VERIFIED' },
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
   it('returns false while idle for a cardholder', () => {
     mockSelectSelectedInternalAccountByScope.mockReturnValue(
       jest.fn().mockReturnValue({

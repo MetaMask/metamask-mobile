@@ -8,6 +8,7 @@ import {
   selectGalileoGoogleWalletProvisioningEnabled,
   selectCardForgotPasswordFeatureEnabled,
   selectImmersveOnboardingEnabled,
+  selectCardTransactionHistoryEnabled,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
@@ -932,5 +933,80 @@ describe('selectImmersveOnboardingEnabled', () => {
         stateWithFlags({ cardFeature: { immersve: { enabled: true } } }),
       ),
     ).toBe(false);
+  });
+});
+
+describe('selectCardTransactionHistoryEnabled', () => {
+  const mockedValidatedVersionGatedFeatureFlag =
+    validatedVersionGatedFeatureFlag as jest.MockedFunction<
+      typeof validatedVersionGatedFeatureFlag
+    >;
+
+  const stateWithFlags = (remoteFeatureFlags: Record<string, unknown>) =>
+    ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags,
+            cacheTimestamp: 0,
+          },
+        },
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as any;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    delete process.env.MM_CARD_TRANSACTION_HISTORY_ENABLED;
+  });
+
+  it('returns false when feature flag state is empty and env is unset', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+
+    const result = selectCardTransactionHistoryEnabled(mockedEmptyFlagsState);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true when feature flag is enabled and version requirement is met', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(true);
+
+    const result = selectCardTransactionHistoryEnabled(
+      stateWithFlags({
+        cardTransactionHistory: {
+          enabled: true,
+          minimumVersion: '7.0.0',
+        },
+      }),
+    );
+
+    expect(result).toBe(true);
+    expect(mockedValidatedVersionGatedFeatureFlag).toHaveBeenCalledWith({
+      enabled: true,
+      minimumVersion: '7.0.0',
+    });
+  });
+
+  it('returns false when feature flag is disabled', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(false);
+
+    expect(
+      selectCardTransactionHistoryEnabled(
+        stateWithFlags({
+          cardTransactionHistory: {
+            enabled: false,
+            minimumVersion: '7.0.0',
+          },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('falls back to env when remote flag is absent', () => {
+    mockedValidatedVersionGatedFeatureFlag.mockReturnValue(undefined);
+    process.env.MM_CARD_TRANSACTION_HISTORY_ENABLED = 'true';
+
+    // resultFunc bypasses createSelector memoization after env changes.
+    expect(selectCardTransactionHistoryEnabled.resultFunc({})).toBe(true);
   });
 });
