@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { isTPSLOrder, type Order } from '@metamask/perps-controller';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import {
   createHomepagePerpsDelivery,
   isHomepagePerformanceProbeActive,
@@ -53,8 +53,8 @@ export function usePerpsLiveOrders(
   } = options;
   const stream = usePerpsStream();
   const selectedAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  )?.toLowerCase();
+    selectSelectedAccountGroupEvmInternalAccount,
+  )?.address.toLowerCase();
   const initialChannelOrders = stream.orders.getSnapshot();
   const [orders, setOrders] = useState<Order[]>(() => {
     const cached =
