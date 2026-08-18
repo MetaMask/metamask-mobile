@@ -25,6 +25,7 @@ const QuickBuyAmount: React.FC = () => {
     handleAmountChange,
     setIsKeypadOpen,
     isKeypadOpen,
+    hasNoPayWithFunds,
   } = useQuickBuyContext();
 
   // Tapping the headline (re)opens the keypad and aligns the display mode.
@@ -58,9 +59,15 @@ const QuickBuyAmount: React.FC = () => {
       isUnpricedSource={isUnpricedSource}
       sourceCryptoAmount={sourceAmountTokens}
       sourceSymbol={sourceToken?.symbol ?? target.tokenSymbol}
-      showCursor={isKeypadOpen}
+      // The keypad now stays expanded without funds, so the caret has to be
+      // suppressed explicitly — a blinking caret on a dead field would imply
+      // typing does something.
+      showCursor={isKeypadOpen && !hasNoPayWithFunds}
       hiddenInputRef={hiddenInputRef}
-      onAmountAreaPress={handleHeadlinePress}
+      // Omitting the handler drops the surrounding pressable entirely, so with
+      // no funds the headline can neither reopen the keypad nor focus the
+      // hidden input — there is no amount to type against (TSA-984).
+      onAmountAreaPress={hasNoPayWithFunds ? undefined : handleHeadlinePress}
       onAmountChange={handleAmountChange}
     />
   );

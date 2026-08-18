@@ -1,9 +1,4 @@
-import {
-  asPlaywrightElement,
-  PlatformDetector,
-  PlaywrightGestures,
-  PlaywrightMatchers,
-} from '../framework';
+import { Gestures, Matchers, PlatformDetector } from '../framework';
 import { CHROME_PACKAGE } from '../framework/Constants';
 import PlaywrightUtilities, {
   withTimeout,
@@ -42,14 +37,11 @@ const dismissChromeAdPrivacyIfPresent = async (
       return;
     }
     try {
-      if ((await PlaywrightMatchers.countElementsByText(text, true)) === 0) {
+      if ((await Matchers.countElementsByText(text, true)) === 0) {
         continue;
       }
-      const dismissControl = await PlaywrightMatchers.getElementByText(
-        text,
-        true,
-      );
-      await PlaywrightGestures.waitAndTap(dismissControl, { timeout: 1500 });
+      const dismissControl = Matchers.getElementByExactText(text);
+      await Gestures.waitAndTap(dismissControl, { timeout: 1500 });
       return;
     } catch {
       // Try the next label.
@@ -63,11 +55,11 @@ const dismissChromeAdPrivacyIfPresent = async (
  * @returns void
  */
 const dismissChromeNotificationsIfPresent = async () => {
-  if ((await PlaywrightMatchers.countElementsByText('No thanks')) === 0) {
+  if ((await Matchers.countElementsByText('No thanks')) === 0) {
     return;
   }
-  const noThanks = await PlaywrightMatchers.getElementByText('No thanks');
-  await PlaywrightGestures.waitAndTap(noThanks, { timeout: 1500 });
+  const noThanks = Matchers.getElementByText('No thanks');
+  await Gestures.waitAndTap(noThanks, { timeout: 1500 });
 };
 
 /**
@@ -110,12 +102,19 @@ const safelyOnboardChromeBrowser = async () => {
   }
 };
 
+interface ChromeUrlBarElement {
+  isVisible: () => Promise<boolean>;
+  getText: () => Promise<string | undefined>;
+  getAttribute: (name: string) => Promise<string | undefined>;
+}
+
 /**
  * Returns true when the Chrome URL bar appears to show the target URL.
  */
 const chromeUrlBarShowsTarget = async (url: string): Promise<boolean> => {
   try {
-    const urlBar = await asPlaywrightElement(ChromeBrowserView.chromeUrlBar);
+    const urlBar =
+      (await ChromeBrowserView.chromeUrlBar) as ChromeUrlBarElement;
     if (!(await urlBar.isVisible())) {
       return false;
     }
@@ -143,7 +142,7 @@ export const launchMobileBrowser = async ({
   safelyOnboardChrome = false,
 }: { safelyOnboardChrome?: boolean } = {}) => {
   if (await PlatformDetector.isIOS()) {
-    await PlaywrightGestures.activateApp(undefined, 'com.apple.mobilesafari');
+    await Gestures.activateApp(undefined, 'com.apple.mobilesafari');
     return;
   }
 
@@ -153,7 +152,7 @@ export const launchMobileBrowser = async ({
   PlaywrightUtilities.grantChromeNotificationPermission();
   PlaywrightUtilities.forceStopChrome();
 
-  await PlaywrightGestures.activateApp(undefined, CHROME_PACKAGE);
+  await Gestures.activateApp(undefined, CHROME_PACKAGE);
   if (safelyOnboardChrome) {
     await safelyOnboardChromeBrowser();
   }
@@ -169,9 +168,9 @@ export const launchMobileBrowser = async ({
  */
 export const switchToMobileBrowser = async () => {
   if (await PlatformDetector.isIOS()) {
-    await PlaywrightGestures.activateApp(undefined, 'com.apple.mobilesafari');
+    await Gestures.activateApp(undefined, 'com.apple.mobilesafari');
   } else {
-    await PlaywrightGestures.activateApp(undefined, CHROME_PACKAGE);
+    await Gestures.activateApp(undefined, CHROME_PACKAGE);
   }
 };
 
@@ -206,11 +205,8 @@ export const navigateToDappAndroid = async (url: string) => {
   } catch {
     try {
       // Newer Chrome on google_apis images may not expose search_box_text.
-      await PlaywrightGestures.waitAndTap(
-        await PlaywrightMatchers.getElementByText(
-          'Search or type web address',
-          true,
-        ),
+      await Gestures.waitAndTap(
+        Matchers.getElementByExactText('Search or type web address'),
       );
     } catch {
       // NTP search box not present — tap URL bar directly
@@ -223,16 +219,13 @@ export const navigateToDappAndroid = async (url: string) => {
   }
 
   try {
-    await PlaywrightGestures.typeText(
-      await asPlaywrightElement(ChromeBrowserView.chromeUrlBar),
-      url,
-    );
+    await Gestures.appendText(ChromeBrowserView.chromeUrlBar, url);
   } catch {
     try {
-      const editText = await PlaywrightMatchers.getElementByXPath(
+      const editText = Matchers.getElementByNativeXPath(
         '//android.widget.EditText',
       );
-      await PlaywrightGestures.typeText(editText, url);
+      await Gestures.appendText(editText, url);
     } catch {
       // No editable field (e.g. tab switcher) — VIEW-intent retry recovers below.
     }
@@ -241,7 +234,7 @@ export const navigateToDappAndroid = async (url: string) => {
     await ChromeBrowserView.tapSelectDappUrl();
   } catch {
     // Suggestion row resource IDs vary; Enter submits the omnibox URL.
-    await PlaywrightGestures.submitAndroidUrlBar();
+    await Gestures.submitAndroidUrlBar();
   }
 
   // Recover from the tab switcher (CDP downstream verifies the load).
@@ -262,10 +255,8 @@ export const navigateToDappAndroid = async (url: string) => {
  * @returns A promise that resolves when the navigation is complete
  */
 export const navigateToDappIOS = async (url: string) => {
-  await PlaywrightGestures.typeText(
-    await asPlaywrightElement(
-      PlaywrightMatchers.getElementByNameiOS('TabBarItemTitle'),
-    ),
+  await Gestures.appendText(
+    Matchers.getElementByNameiOS('TabBarItemTitle'),
     `${url}\n`,
   );
 };

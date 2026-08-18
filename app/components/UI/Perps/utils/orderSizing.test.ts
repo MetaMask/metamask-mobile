@@ -1,5 +1,5 @@
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
-import { deriveOrderSizing } from './orderSizing';
+import { deriveOrderSizing, getReduceOnlyMaxUsdAmount } from './orderSizing';
 
 describe('deriveOrderSizing', () => {
   const base = {
@@ -97,5 +97,42 @@ describe('deriveOrderSizing', () => {
 
     // Assert
     expect(result.positionSize).not.toBe(PERPS_CONSTANTS.FallbackDataDisplay);
+  });
+});
+
+describe('getReduceOnlyMaxUsdAmount', () => {
+  it('returns the USD notional of a long position', () => {
+    const result = getReduceOnlyMaxUsdAmount({
+      positionSize: '0.5',
+      price: 90000,
+    });
+
+    expect(result).toBe(45000);
+  });
+
+  it('uses the absolute size of a short position', () => {
+    const result = getReduceOnlyMaxUsdAmount({
+      positionSize: '-1',
+      price: 90000,
+    });
+
+    expect(result).toBe(90000);
+  });
+
+  it('returns 0 when size is missing, zero, or non-numeric', () => {
+    expect(getReduceOnlyMaxUsdAmount({ price: 90000 })).toBe(0);
+    expect(getReduceOnlyMaxUsdAmount({ positionSize: '0', price: 90000 })).toBe(
+      0,
+    );
+    expect(
+      getReduceOnlyMaxUsdAmount({ positionSize: 'abc', price: 90000 }),
+    ).toBe(0);
+  });
+
+  it('returns 0 when price is missing or non-positive', () => {
+    expect(getReduceOnlyMaxUsdAmount({ positionSize: '1', price: 0 })).toBe(0);
+    expect(
+      getReduceOnlyMaxUsdAmount({ positionSize: '1', price: Number.NaN }),
+    ).toBe(0);
   });
 });

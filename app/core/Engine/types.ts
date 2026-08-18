@@ -91,6 +91,12 @@ import {
   AddressBookControllerEvents,
   AddressBookControllerState,
 } from '@metamask/address-book-controller';
+import type {
+  NetworkConnectionBannerController,
+  NetworkConnectionBannerControllerState,
+  NetworkConnectionBannerControllerActions,
+  NetworkConnectionBannerControllerEvents,
+} from '@metamask/network-connection-banner-controller';
 import {
   ConnectivityController,
   ConnectivityControllerActions,
@@ -402,6 +408,33 @@ import type {
   StorageServiceEvents,
 } from '@metamask/storage-service';
 import {
+  SubscriptionController,
+  type SubscriptionControllerActions,
+  type SubscriptionControllerEvents,
+  type SubscriptionControllerState,
+  SubscriptionService,
+  type SubscriptionServiceActions,
+  type SubscriptionServiceEvents,
+} from '@metamask/subscription-controller';
+import {
+  ShieldController,
+  type ShieldControllerActions,
+  type ShieldControllerEvents,
+  type ShieldControllerState,
+  ShieldApiService,
+  type ShieldApiServiceActions,
+  type ShieldApiServiceEvents,
+} from '@metamask/shield-controller';
+import {
+  ClaimsController,
+  type ClaimsControllerActions,
+  type ClaimsControllerStateChangeEvent,
+  type ClaimsControllerState,
+  ClaimsService,
+  type ClaimsServiceActions,
+  type ClaimsServiceEvents,
+} from '@metamask/claims-controller';
+import {
   AccountTreeController,
   AccountTreeControllerState,
   AccountTreeControllerActions,
@@ -530,6 +563,9 @@ type RequiredControllers = Omit<
   | 'MultichainRoutingService'
   | 'RewardsDataService'
   | 'StorageService'
+  | 'SubscriptionService'
+  | 'ShieldApiService'
+  | 'ClaimsService'
   | 'ComplianceService'
   | 'ChompApiService'
 >;
@@ -543,6 +579,9 @@ type OptionalControllers = Pick<
   | 'MultichainRoutingService'
   | 'RewardsDataService'
   | 'StorageService'
+  | 'SubscriptionService'
+  | 'ShieldApiService'
+  | 'ClaimsService'
   | 'ComplianceService'
   | 'ChompApiService'
 >;
@@ -581,6 +620,7 @@ export type GlobalActions =
   | KeyringControllerActions
   | NetworkControllerActions
   | NetworkEnablementControllerActions
+  | NetworkConnectionBannerControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
   | LoggingControllerActions
@@ -644,6 +684,12 @@ export type GlobalActions =
   | DeFiPositionsControllerActions
   | DeFiPositionsControllerV2Actions
   | StorageServiceActions
+  | SubscriptionControllerActions
+  | SubscriptionServiceActions
+  | ShieldControllerActions
+  | ShieldApiServiceActions
+  | ClaimsControllerActions
+  | ClaimsServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
   | NftDetectionControllerActions
@@ -683,6 +729,7 @@ export type GlobalEvents =
   | KeyringControllerEvents
   | NetworkControllerEvents
   | NetworkEnablementControllerEvents
+  | NetworkConnectionBannerControllerEvents
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | SnapsGlobalEvents
@@ -709,6 +756,12 @@ export type GlobalEvents =
   | LoggingControllerEvents
   | AnalyticsControllerEvents
   | StorageServiceEvents
+  | SubscriptionControllerEvents
+  | SubscriptionServiceEvents
+  | ShieldControllerEvents
+  | ShieldApiServiceEvents
+  | ClaimsControllerStateChangeEvent
+  | ClaimsServiceEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
   | TokenBalancesControllerEvents
@@ -808,6 +861,7 @@ export type MessengerClients = {
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
   ConnectivityController: ConnectivityController;
+  NetworkConnectionBannerController: NetworkConnectionBannerController;
   ConfigRegistryController: ConfigRegistryController;
   ConfigRegistryApiService: ConfigRegistryApiService;
   SentinelApiService: SentinelApiService;
@@ -843,6 +897,12 @@ export type MessengerClients = {
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
   StorageService: StorageService;
+  SubscriptionController: SubscriptionController;
+  SubscriptionService: SubscriptionService;
+  ShieldController: ShieldController;
+  ShieldApiService: ShieldApiService;
+  ClaimsController: ClaimsController;
+  ClaimsService: ClaimsService;
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   ExecutionService: ExecutionService;
   SnapController: SnapController;
@@ -922,6 +982,7 @@ export type EngineState = {
   AssetsController: AssetsControllerState;
   AppMetadataController: AppMetadataControllerState;
   ConnectivityController: ConnectivityControllerState;
+  NetworkConnectionBannerController: NetworkConnectionBannerControllerState;
   ConfigRegistryController: ConfigRegistryControllerState;
   NftController: NftControllerState;
   CurrencyRateController: CurrencyRateState;
@@ -939,6 +1000,9 @@ export type EngineState = {
   SmartTransactionsController: SmartTransactionsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
+  SubscriptionController: SubscriptionControllerState;
+  ShieldController: ShieldControllerState;
+  ClaimsController: ClaimsControllerState;
   DeFiPositionsController: DeFiPositionsControllerState;
   DeFiPositionsControllerV2: DeFiPositionsControllerV2State;
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -1024,6 +1088,7 @@ export type MessengerClientsToInitialize =
   | 'AccountTrackerController'
   | 'AssetsContractController'
   | 'AssetsController'
+  | 'NetworkConnectionBannerController'
   | 'ConfigRegistryController'
   | 'ConfigRegistryApiService'
   | 'SentinelApiService'

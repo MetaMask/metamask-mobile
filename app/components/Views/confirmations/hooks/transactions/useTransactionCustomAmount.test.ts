@@ -48,7 +48,8 @@ import {
   selectDepositLimits,
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { isRouteToken } from '../../utils/relayFixedSpread';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
+import { resolveABTestAssignment } from '../../../../../util/abTest';
 
 jest.mock(
   '../../../../../selectors/featureFlagController/confirmations',
@@ -64,9 +65,11 @@ jest.mock('../../utils/relayFixedSpread', () => ({
   ...jest.requireActual('../../utils/relayFixedSpread'),
   isRouteToken: jest.fn(),
 }));
-jest.mock('../../../../UI/Money/hooks/useMoneyAccount', () => ({
-  ...jest.requireActual('../../../../UI/Money/hooks/useMoneyAccount'),
+jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
   getMoneyAccountDepositIntent: jest.fn(),
+}));
+jest.mock('../../../../../util/abTest', () => ({
+  resolveABTestAssignment: jest.fn(),
 }));
 
 jest.mock('../tokens/useTokenFiatRates');
@@ -79,7 +82,10 @@ jest.mock('../../../../UI/Ramp/hooks/useRampsBuyLimits');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../util/navigation/navUtils');
 jest.mock('../../../../UI/Predict/hooks/usePredictBalance');
-jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
+jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({ balanceFiatNumber: 0 })),
+}));
 jest.mock('../metrics/useConfirmationMetricEvents');
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -176,6 +182,7 @@ describe('useTransactionCustomAmount', () => {
   );
   const useMMPayFiatConfigMock = jest.mocked(useMMPayFiatConfig);
   const useRampsBuyLimitsMock = jest.mocked(useRampsBuyLimits);
+  const resolveABTestAssignmentMock = jest.mocked(resolveABTestAssignment);
 
   const updateTransactionPayAmountMock = jest.fn(
     (_amountHuman: string): Promise<boolean | undefined> =>
@@ -186,6 +193,11 @@ describe('useTransactionCustomAmount', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    resolveABTestAssignmentMock.mockReturnValue({
+      variantName: 'treatment',
+      isActive: true,
+    });
 
     updateTransactionPayAmountMock.mockResolvedValue(true);
     useTokenFiatRateMock.mockReturnValue(2);
@@ -1857,7 +1869,8 @@ describe('useTransactionCustomAmount', () => {
 
       expect(setConfirmationMetricMock).toHaveBeenCalledWith({
         properties: {
-          mm_pay_amount_input_type: '100%',
+          mm_pay_amount_input_type: 'prefilled_max',
+          mm_pay_amount_input_prefill_presented: true,
         },
       });
     });
@@ -1883,7 +1896,8 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('500');
       expect(setConfirmationMetricMock).toHaveBeenCalledWith({
         properties: {
-          mm_pay_amount_input_type: '50%',
+          mm_pay_amount_input_type: 'prefilled_50',
+          mm_pay_amount_input_prefill_presented: true,
         },
       });
 
@@ -1921,6 +1935,13 @@ describe('useTransactionCustomAmount', () => {
         return cfg.isMaxAmount === true;
       });
       expect(isMaxCall).toBeUndefined();
+
+      expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+        properties: {
+          mm_pay_amount_input_type: 'prefilled',
+          mm_pay_amount_input_prefill_presented: true,
+        },
+      });
     });
 
     it('does not prefill when flag is disabled', async () => {

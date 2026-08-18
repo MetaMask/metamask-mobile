@@ -19,19 +19,18 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 
+import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+} from '@metamask/design-system-react-native';
+import { Hex } from '@metamask/utils';
+import { useSelector } from 'react-redux';
+
 // Internal dependecies
 import styleSheet from './AddressElement.styles';
 import { AddressElementProps } from './AddressElement.types';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
-import { useSelector } from 'react-redux';
-
-import { Hex } from '@metamask/utils';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../../../../../UI/AssetOverview/Balance/Balance';
 
 const AddressElement: React.FC<AddressElementProps> = ({
@@ -59,16 +58,20 @@ const AddressElement: React.FC<AddressElementProps> = ({
 
   const renderIdenticon = useCallback(() => {
     if (shouldDisplayNetworkBadge) {
+      const networkImageSource = NetworkBadgeSource(chainId as Hex);
+
       return (
         <BadgeWrapper
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={NetworkBadgeSource(chainId as Hex)}
-              name={addressElementNetwork?.name}
-            />
+          position={BadgeWrapperPosition.BottomRight}
+          badge={
+            networkImageSource ? (
+              <BadgeNetwork
+                src={networkImageSource}
+                name={addressElementNetwork?.name}
+                testID="address-element-network-badge"
+              />
+            ) : null
           }
-          badgePosition={BadgePosition.BottomRight}
         >
           <Identicon address={address} diameter={28} />
         </BadgeWrapper>

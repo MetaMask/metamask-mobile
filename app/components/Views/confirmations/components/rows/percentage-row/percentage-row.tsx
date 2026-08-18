@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Linking } from 'react-native';
 import { MUSD_CONVERSION_APY } from '../../../../../UI/Earn/constants/musd';
 import {
   KeyValueRow,
   KeyValueRowVariant,
   Text,
+  TextButton,
   TextColor,
 } from '@metamask/design-system-react-native';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
@@ -20,6 +21,7 @@ import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../../../UI/Earn/constants/events';
 import { KeyValueRowSkeleton } from '../key-value-row-skeleton';
+import { PercentageRowTestIds } from './percentage-row.testIds';
 
 const { EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
@@ -63,9 +65,12 @@ export function PercentageRow() {
           content={
             <Text>
               {strings('earn.claimable_bonus_tooltip')}{' '}
-              <Text twClassName="underline" onPress={redirectToBonusFaq}>
+              <TextButton
+                testID={PercentageRowTestIds.TERMS_APPLY_BUTTON}
+                onPress={redirectToBonusFaq}
+              >
                 {strings('earn.musd_conversion.education.terms_apply')}
-              </Text>
+              </TextButton>
             </Text>
           }
           title={strings('earn.claimable_bonus')}

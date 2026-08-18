@@ -42,7 +42,8 @@ import { useImmersveFunding } from '../../hooks/useImmersveFunding';
 import { useImmersveOnboardingRouter } from '../../hooks/useImmersveOnboardingRouter';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   KYC_REDIRECT_URL,
   BAANX_MAX_LIMIT,
@@ -180,7 +181,11 @@ const ImmersveFundingApproval = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({ screen: CardScreens.FUNDING_APPROVAL })
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            screen: CardScreens.FUNDING_APPROVAL,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -219,7 +224,7 @@ const ImmersveFundingApproval = () => {
     }
   }, [createCard, fundingSourceId, navigation]);
 
-  const handleApprove = useCallback(() => {
+  const runApprove = useCallback(() => {
     if (!nextAction || nextAction.type !== 'funding') {
       return;
     }
@@ -229,6 +234,19 @@ const ImmersveFundingApproval = () => {
       .then(() => refresh())
       .catch(() => setIsSettling(false));
   }, [nextAction, executeFunding, refresh]);
+
+  const handleApprove = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            action: CardActions.FUNDING_APPROVAL_CONFIRM,
+          }),
+        )
+        .build(),
+    );
+    runApprove();
+  }, [runApprove, trackEvent, createEventBuilder]);
 
   useEffect(() => {
     if (!nextAction) {
@@ -252,12 +270,28 @@ const ImmersveFundingApproval = () => {
   // just self-heals on the next tick, it must not flash the button into an
   // error/retry state while a submit is still legitimately in flight.
   const handleRetry = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            action: CardActions.FUNDING_APPROVAL_RETRY,
+            next_action: nextAction?.type,
+          }),
+        )
+        .build(),
+    );
     if (nextAction?.type === 'active') {
       handleCreateCard();
     } else {
-      handleApprove();
+      runApprove();
     }
-  }, [nextAction, handleCreateCard, handleApprove]);
+  }, [
+    nextAction,
+    handleCreateCard,
+    runApprove,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const busy = fundingIsLoading || isSettling;
   const displayError = fundingError;

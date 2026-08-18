@@ -576,6 +576,21 @@ describe('useABTest', () => {
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
+    it('does not emit Experiment Viewed when trackExposure is false', () => {
+      const flagKey = `${experimentFlagKey}NoExposure`;
+      setMockFeatureFlags({
+        [flagKey]: { name: 'treatment' },
+      });
+
+      const { result } = renderHook(() =>
+        useABTest(flagKey, experimentVariants, { trackExposure: false }),
+      );
+
+      expect(result.current.variantName).toBe('treatment');
+      expect(result.current.isActive).toBe(true);
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
     it('emits once per experiment/variation assignment across multiple mounts', async () => {
       const flagKey = `${experimentFlagKey}MultiMount`;
       setMockFeatureFlags({

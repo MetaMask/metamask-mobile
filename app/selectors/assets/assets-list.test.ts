@@ -1995,10 +1995,10 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
               '2d89e6a0-b4e6-45a8-a707-f10cef143b42': [
                 'tron:728126428/slip44:energy',
                 'tron:728126428/slip44:bandwidth',
-                'tron:728126428/slip44:max-energy',
-                'tron:728126428/slip44:max-bandwidth',
-                'tron:728126428/slip44:strx-energy',
-                'tron:728126428/slip44:strx-bandwidth',
+                'tron:728126428/slip44:maximum-energy',
+                'tron:728126428/slip44:maximum-bandwidth',
+                'tron:728126428/slip44:195-staked-for-energy',
+                'tron:728126428/slip44:195-staked-for-bandwidth',
                 'tron:728126428/slip44:195-ready-for-withdrawal',
                 'tron:728126428/slip44:195-staking-rewards',
                 'tron:728126428/slip44:195-in-lock-period',
@@ -2022,7 +2022,7 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
                   { name: 'Bandwidth', symbol: 'BANDWIDTH', decimals: 0 },
                 ],
               },
-              'tron:728126428/slip44:max-energy': {
+              'tron:728126428/slip44:maximum-energy': {
                 name: 'Max Energy',
                 symbol: 'MAX-ENERGY',
                 fungible: true as const,
@@ -2031,7 +2031,7 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
                   { name: 'Max Energy', symbol: 'MAX-ENERGY', decimals: 0 },
                 ],
               },
-              'tron:728126428/slip44:max-bandwidth': {
+              'tron:728126428/slip44:maximum-bandwidth': {
                 name: 'Max Bandwidth',
                 symbol: 'MAX-BANDWIDTH',
                 fungible: true as const,
@@ -2044,28 +2044,28 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
                   },
                 ],
               },
-              'tron:728126428/slip44:strx-energy': {
+              'tron:728126428/slip44:195-staked-for-energy': {
                 name: 'Staked TRX Energy',
-                symbol: 'STRX-ENERGY',
+                symbol: 'sTRX-ENERGY',
                 fungible: true as const,
                 iconUrl: 'test-url',
                 units: [
                   {
                     name: 'Staked TRX Energy',
-                    symbol: 'STRX-ENERGY',
+                    symbol: 'sTRX-ENERGY',
                     decimals: 6,
                   },
                 ],
               },
-              'tron:728126428/slip44:strx-bandwidth': {
+              'tron:728126428/slip44:195-staked-for-bandwidth': {
                 name: 'Staked TRX Bandwidth',
-                symbol: 'STRX-BANDWIDTH',
+                symbol: 'sTRX-BANDWIDTH',
                 fungible: true as const,
                 iconUrl: 'test-url',
                 units: [
                   {
                     name: 'Staked TRX Bandwidth',
-                    symbol: 'STRX-BANDWIDTH',
+                    symbol: 'sTRX-BANDWIDTH',
                     decimals: 6,
                   },
                 ],
@@ -2130,21 +2130,21 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
                   amount: '560',
                   unit: 'BANDWIDTH',
                 },
-                'tron:728126428/slip44:max-energy': {
+                'tron:728126428/slip44:maximum-energy': {
                   amount: '200000',
                   unit: 'MAX-ENERGY',
                 },
-                'tron:728126428/slip44:max-bandwidth': {
+                'tron:728126428/slip44:maximum-bandwidth': {
                   amount: '1000',
                   unit: 'MAX-BANDWIDTH',
                 },
-                'tron:728126428/slip44:strx-energy': {
+                'tron:728126428/slip44:195-staked-for-energy': {
                   amount: '65.48463',
-                  unit: 'STRX-ENERGY',
+                  unit: 'sTRX-ENERGY',
                 },
-                'tron:728126428/slip44:strx-bandwidth': {
+                'tron:728126428/slip44:195-staked-for-bandwidth': {
                   amount: '65.48463',
-                  unit: 'STRX-BANDWIDTH',
+                  unit: 'sTRX-BANDWIDTH',
                 },
                 'tron:728126428/slip44:195-ready-for-withdrawal': {
                   amount: '25.5',
@@ -2191,15 +2191,17 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
     // All 9 special assets should be mapped
     expect(result.energy?.assetId).toBe('tron:728126428/slip44:energy');
     expect(result.bandwidth?.assetId).toBe('tron:728126428/slip44:bandwidth');
-    expect(result.maxEnergy?.assetId).toBe('tron:728126428/slip44:max-energy');
+    expect(result.maxEnergy?.assetId).toBe(
+      'tron:728126428/slip44:maximum-energy',
+    );
     expect(result.maxBandwidth?.assetId).toBe(
-      'tron:728126428/slip44:max-bandwidth',
+      'tron:728126428/slip44:maximum-bandwidth',
     );
     expect(result.stakedTrxForEnergy?.assetId).toBe(
-      'tron:728126428/slip44:strx-energy',
+      'tron:728126428/slip44:195-staked-for-energy',
     );
     expect(result.stakedTrxForBandwidth?.assetId).toBe(
-      'tron:728126428/slip44:strx-bandwidth',
+      'tron:728126428/slip44:195-staked-for-bandwidth',
     );
     expect(result.trxReadyForWithdrawal?.assetId).toBe(
       'tron:728126428/slip44:195-ready-for-withdrawal',

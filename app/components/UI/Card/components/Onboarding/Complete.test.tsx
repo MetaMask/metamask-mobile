@@ -273,6 +273,7 @@ describe('Complete Component', () => {
         MetaMetricsEvents.CARD_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.COMPLETE,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
@@ -293,6 +294,7 @@ describe('Complete Component', () => {
         );
       });
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         action: CardActions.COMPLETE_BUTTON,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
@@ -358,7 +360,9 @@ describe('Complete Component', () => {
       fireEvent.press(button);
 
       await waitFor(() => {
-        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME, {
+          fromCardOnboarding: true,
+        });
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ routeName: Routes.CARD.HOME }),
         );
@@ -379,7 +383,9 @@ describe('Complete Component', () => {
 
       await waitFor(() => {
         expect(mockNavigationDispatch).toHaveBeenCalledTimes(2);
-        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME, {
+          fromCardOnboarding: true,
+        });
       });
     });
 
@@ -419,7 +425,9 @@ describe('Complete Component', () => {
       fireEvent.press(button);
 
       await waitFor(() => {
-        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME, {
+          fromCardOnboarding: true,
+        });
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ routeName: Routes.CARD.HOME }),
         );
@@ -552,7 +560,9 @@ describe('Complete Component', () => {
 
       // Verify navigation to final destination
       await waitFor(() => {
-        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME, {
+          fromCardOnboarding: true,
+        });
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ routeName: Routes.CARD.HOME }),
         );
@@ -570,7 +580,9 @@ describe('Complete Component', () => {
       fireEvent.press(button);
 
       await waitFor(() => {
-        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME, {
+          fromCardOnboarding: true,
+        });
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ routeName: Routes.CARD.HOME }),
         );
@@ -689,7 +701,9 @@ describe('Complete Component', () => {
 
       await waitFor(() => {
         expect(getCardBaanxToken).toHaveBeenCalled();
-        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME, {
+          fromCardOnboarding: true,
+        });
       });
     });
   });

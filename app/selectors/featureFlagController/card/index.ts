@@ -100,6 +100,18 @@ export const selectMetalCardCheckoutFeatureFlag = createSelector(
   },
 );
 
+/** Kill-switch for the card arrival reveal. Defaults to ON. */
+export const selectCardArrivalAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.cardArrivalAnimationEnabled as unknown as GateVersionedFeatureFlag;
+    const local = process.env.MM_CARD_ARRIVAL_ANIMATION_ENABLED !== 'false';
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
 export const selectGalileoAppleWalletProvisioningEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
@@ -137,5 +149,17 @@ export const selectCardFiatCreditFeatureEnabled = createSelector(
       remoteFeatureFlags?.cardFiatCreditFeature as unknown as GateVersionedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+export const selectCardTransactionHistoryEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_CARD_TRANSACTION_HISTORY_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.cardTransactionHistory as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
