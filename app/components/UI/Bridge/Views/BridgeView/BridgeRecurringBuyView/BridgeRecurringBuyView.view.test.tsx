@@ -61,9 +61,8 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         .props.accessibilityState?.invalid,
     ).toBe(false);
     expect(
-      renderResult.getByTestId(
-        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
-      ).props.accessibilityState?.invalid,
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT)
+        .props.accessibilityState?.invalid,
     ).toBe(false);
   });
 
@@ -207,9 +206,8 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ),
     ).toHaveDisplayValue('0');
     expect(
-      renderResult.getByTestId(
-        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
-      ).props.accessibilityState?.invalid,
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT)
+        .props.accessibilityState?.invalid,
     ).toBe(true);
   });
 
@@ -229,7 +227,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toHaveDisplayValue('0');
     });
 
-    fireEvent.press(renderResult.getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+    fireEvent.press(
+      renderResult.getByTestId(BridgeViewSelectorsIDs.MARKET_TAB),
+    );
     await waitFor(() => {
       expect(
         renderResult.queryByTestId(
@@ -402,9 +402,8 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         .props.accessibilityState?.invalid,
     ).toBe(true);
     expect(
-      renderResult.getByTestId(
-        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
-      ).props.accessibilityState?.invalid,
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT)
+        .props.accessibilityState?.invalid,
     ).toBe(false);
   });
 
@@ -438,9 +437,8 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     });
 
     expect(
-      renderResult.getByTestId(
-        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
-      ).props.accessibilityState?.invalid,
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT)
+        .props.accessibilityState?.invalid,
     ).toBe(true);
     expect(
       renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT)
