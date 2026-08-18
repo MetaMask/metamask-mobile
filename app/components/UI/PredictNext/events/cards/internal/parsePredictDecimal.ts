@@ -1,5 +1,5 @@
 import type { BigNumber } from 'bignumber.js';
-import { safeParseBigNumber } from '../../../../../util/number/bignumber';
+import { safeParseBigNumber } from '../../../../../../util/number/bignumber';
 
 export const parsePredictDecimal = (value?: string): BigNumber | undefined => {
   if (value === undefined) {

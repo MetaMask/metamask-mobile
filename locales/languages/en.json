@@ -2727,6 +2727,15 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "game_status": {
+      "live": "LIVE",
+      "scheduled": "SCHEDULED",
+      "delayed": "DELAYED",
+      "suspended": "SUSPENDED",
+      "postponed": "POSTPONED",
+      "final": "FINAL",
+      "canceled": "CANCELED"
+    },
     "send_to_predictions": "Send to Predictions",
     "select_predict_account": "Select predict account",
     "search_account": "Search an account",
@@ -4025,7 +4034,7 @@
     "notifications_title": "Notifications",
     "notifications_desc": "Manage your notifications",
     "allow_notifications": "Allow notifications",
-    "enable_push_notifications": "Enable push notifications",
+    "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "Choose what you're notified about and how.",
     "notifications_opts": {
       "preferences_title": "Preferences",
@@ -6126,7 +6135,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "Withdrawal requested",
     "prompt_title": "Receive push notifications",
     "notifications_enabled_error_title": "Something went wrong",
-    "notifications_enabled_error_desc": "We couldn't enable notifications. Please try again later.",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Please try again later.",
     "prompt_desc": "Turn on notifications from Settings to get important alerts on wallet activity and more.",
     "prompt_ok": "Turn on",
     "prompt_cancel": "Maybe later",
@@ -6174,7 +6183,7 @@
       "new_user": {
         "title": "Never miss a move",
         "body": "Get real-time alerts on price moves, trade confirmations, portfolio activity, and rewards based on how you use MetaMask.",
-        "button_yes": "Enable notifications",
+        "button_yes": "Turn on notifications",
         "button_not_now": "Not now",
         "preview_card_1": {
           "time": "now",
@@ -6216,7 +6225,7 @@
         }
       },
       "toast_enabled": "Notifications enabled",
-      "toast_settings_hint": "You can enable notifications any time in Settings > Notifications"
+      "toast_settings_hint": "You can turn on notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -9726,12 +9735,12 @@
     },
     "notifications_nudge": {
       "title": "Don't miss out",
-      "description": "Enable notifications to stay informed on campaigns.",
+      "description": "Turn on notifications to stay informed on campaigns.",
       "turn_on_button": "Turn on",
-      "loading": "Enabling notifications...",
+      "loading": "Turning on notifications...",
       "loading_description": "This may take a moment.",
-      "enable_error": "Failed to enable notifications",
-      "success": "Notifications enabled"
+      "enable_error": "Failed to turn on notifications",
+      "success": "Notifications turned on"
     },
     "version_guard": {
       "title": "Update required",
@@ -10529,7 +10538,7 @@
     "push_nudge": {
       "title": "Never miss a transaction",
       "description": "Get real-time alerts to review and approve transactions from your CLI session.",
-      "turn_on_button": "Enable notifications",
+      "turn_on_button": "Turn on notifications",
       "preview_title": "Transaction request",
       "preview_message": "Your agent needs approval on a new limit.",
       "preview_timestamp": "now"
@@ -10627,7 +10636,7 @@
     "view_all": "View all",
     "view_more": "View more",
     "view_x_more": "View {{count}} more",
-    "enable_basic_functionality": "Enable basic functionality",
+    "enable_basic_functionality": "Turn on basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
     "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
     "empty_error_trending_state": {
@@ -10880,6 +10889,12 @@
     "activate_error": "Something went wrong while adding this trustline. Try again.",
     "deactivate_error": "Something went wrong while removing this trustline. Try again.",
     "deactivate_error_non_zero_balance_stellar": "You still have {{balance}} {{symbol}} in this wallet. You must send or swap it all before deactivating this asset on Stellar."
+  },
+  "pro_hub": {
+    "title": "MetaMask Pro",
+    "subtitle": "Your Pro membership",
+    "manage": "Manage subscription",
+    "explore_benefits": "Explore benefits"
   },
   "pro_subscription": {
     "title": "Earn more with Pro",

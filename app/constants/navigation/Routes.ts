@@ -607,6 +607,10 @@ const Routes = {
     /** Root screen for the MetaMask Pro subscription flow. */
     ROOT: 'ProSubscription',
   },
+  PRO_HUB: {
+    /** Root screen for the MetaMask Pro hub — reachable from anywhere in the app. */
+    ROOT: 'ProHub',
+  },
 } as const;
 
 export default Routes;

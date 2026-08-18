@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import type { PredictDecimal } from '../../types';
+import type { PredictDecimal } from '../../../types';
 import { parsePredictDecimal } from './parsePredictDecimal';
 
 export const formatAskPrice = (
