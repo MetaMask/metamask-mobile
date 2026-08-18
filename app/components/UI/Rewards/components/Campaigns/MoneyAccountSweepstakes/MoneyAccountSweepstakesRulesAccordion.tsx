@@ -1,5 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+} from 'react-native-reanimated';
 import type { Json } from '@metamask/utils';
 import {
   Box,
@@ -37,6 +42,17 @@ const isHeading = (block: RichTextBlock): boolean =>
 
 const asDocument = (blocks: RichTextBlock[]): Json =>
   ({ nodeType: 'document', data: {}, content: blocks }) as Json;
+
+const RULES_ACCORDION_ANIMATION_DURATION_MS = 180;
+const rulesAccordionLayoutTransition = LinearTransition.duration(
+  RULES_ACCORDION_ANIMATION_DURATION_MS,
+);
+const rulesAccordionContentEntering = FadeIn.duration(
+  RULES_ACCORDION_ANIMATION_DURATION_MS,
+);
+const rulesAccordionContentExiting = FadeOut.duration(
+  RULES_ACCORDION_ANIMATION_DURATION_MS,
+);
 
 const parseRules = (
   rulesDocument: Json,
@@ -118,50 +134,63 @@ const MoneyAccountSweepstakesRulesAccordion: React.FC<
       <Box>
         {sections.map((section, index) => {
           const isExpanded = expandedIndex === index;
+          const isLastSection = index === sections.length - 1;
           return (
-            <Box
+            <Animated.View
               key={`${section.title}-${index}`}
-              twClassName="border-b border-border-muted"
+              layout={rulesAccordionLayoutTransition}
             >
-              <Pressable
-                onPress={() => setExpandedIndex(isExpanded ? null : index)}
-                accessibilityRole="button"
-                accessibilityState={{ expanded: isExpanded }}
-                testID={`money-sweepstakes-rule-${index}`}
-                style={({ pressed }) =>
-                  tw.style('py-4', pressed && 'opacity-70')
+              <Box
+                twClassName={
+                  isLastSection ? undefined : 'border-b border-border-muted'
                 }
               >
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Between}
-                  twClassName="gap-3"
+                <Pressable
+                  onPress={() => setExpandedIndex(isExpanded ? null : index)}
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: isExpanded }}
+                  testID={`money-sweepstakes-rule-${index}`}
+                  style={({ pressed }) =>
+                    tw.style('py-4', pressed && 'opacity-70')
+                  }
                 >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    twClassName="min-w-0 flex-1"
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Between}
+                    twClassName="gap-3"
                   >
-                    {section.title}
-                  </Text>
-                  <Icon
-                    name={isExpanded ? IconName.ArrowUp : IconName.ArrowDown}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
-                </Box>
-                {isExpanded && section.blocks.length > 0 ? (
-                  <Box twClassName="pt-3">
-                    <ContentfulRichText
-                      document={asDocument(section.blocks)}
-                      textVariant={TextVariant.BodySm}
-                      bodyClassName="text-alternative"
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      twClassName="min-w-0 flex-1"
+                    >
+                      {section.title}
+                    </Text>
+                    <Icon
+                      name={isExpanded ? IconName.ArrowUp : IconName.ArrowDown}
+                      size={IconSize.Sm}
+                      color={IconColor.IconAlternative}
                     />
                   </Box>
+                </Pressable>
+                {isExpanded && section.blocks.length > 0 ? (
+                  <Animated.View
+                    entering={rulesAccordionContentEntering}
+                    exiting={rulesAccordionContentExiting}
+                    layout={rulesAccordionLayoutTransition}
+                  >
+                    <Box twClassName="pb-4">
+                      <ContentfulRichText
+                        document={asDocument(section.blocks)}
+                        textVariant={TextVariant.BodySm}
+                        bodyClassName="text-alternative"
+                      />
+                    </Box>
+                  </Animated.View>
                 ) : null}
-              </Pressable>
-            </Box>
+              </Box>
+            </Animated.View>
           );
         })}
       </Box>

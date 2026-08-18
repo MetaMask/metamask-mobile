@@ -241,23 +241,40 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
       case BLOCK_TYPES.UL_LIST:
       case BLOCK_TYPES.OL_LIST:
         return (
-          <Box key={key} twClassName="gap-1">
+          <Box key={key} twClassName="gap-2 my-1">
             {(node.content ?? []).map((item, i) => {
               const bullet =
                 node.nodeType === BLOCK_TYPES.OL_LIST ? `${i + 1}. ` : '• ';
+              const itemBlocks =
+                item.nodeType === BLOCK_TYPES.LIST_ITEM
+                  ? (item.content ?? [])
+                  : [item];
+
               return (
-                <Box key={`${key}-li-${i}`} twClassName="flex-row">
-                  <Text variant={textVariant} twClassName={bodyClassName}>
+                <Box key={`${key}-li-${i}`} twClassName="flex-row gap-2">
+                  <Text
+                    variant={textVariant}
+                    twClassName={`min-w-5 text-right ${bodyClassName}`}
+                  >
                     {bullet}
                   </Text>
-                  <Box twClassName="flex-1 flex-shrink">
-                    {(item.content ?? []).map((block, j) =>
+                  <Box twClassName="min-w-0 flex-1 gap-1">
+                    {itemBlocks.map((block, j) =>
                       renderBlock(block, `${key}-li-${i}-${j}`),
                     )}
                   </Box>
                 </Box>
               );
             })}
+          </Box>
+        );
+
+      case BLOCK_TYPES.LIST_ITEM:
+        return (
+          <Box key={key} twClassName="gap-1">
+            {(node.content ?? []).map((block, i) =>
+              renderBlock(block, `${key}-${i}`),
+            )}
           </Box>
         );
 
