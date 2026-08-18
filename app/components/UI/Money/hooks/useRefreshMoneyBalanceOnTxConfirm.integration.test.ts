@@ -27,7 +27,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
-import { selectHasPendingMoneyBalanceUserOp } from '../../../../core/redux/slices/moneyBalance';
+import { selectMoneyBalanceUserOpStatus } from '../../../../core/redux/slices/moneyBalance';
 import { useRefreshMoneyBalanceOnTxConfirm } from './useRefreshMoneyBalanceOnTxConfirm';
 
 const BASELINE_BALANCE = '3000000';
@@ -66,10 +66,17 @@ describe('Money balance refresh on tx confirm — integration', () => {
       money.confirmTransaction(makeTx(TransactionType.moneyAccountDeposit));
 
       // Assert
+      expect(selectMoneyBalanceUserOpStatus(money.getState())).toBe(
+        'refreshing',
+      );
       await waitFor(() =>
         expect(money.readBalance()?.totalBalance).toBe(SETTLED_BALANCE),
       );
-      expect(selectHasPendingMoneyBalanceUserOp(money.getState())).toBe(true);
+      await waitFor(() =>
+        expect(selectMoneyBalanceUserOpStatus(money.getState())).toBe(
+          'pending',
+        ),
+      );
       expect(money.mocks.invalidateBalanceServiceQueries).toHaveBeenCalled();
       expect(money.mocks.invalidateApiDataServiceQueries).toHaveBeenCalled();
     });
@@ -90,7 +97,11 @@ describe('Money balance refresh on tx confirm — integration', () => {
       await waitFor(() =>
         expect(money.readBalance()?.totalBalance).toBe(SETTLED_BALANCE),
       );
-      expect(selectHasPendingMoneyBalanceUserOp(money.getState())).toBe(true);
+      await waitFor(() =>
+        expect(selectMoneyBalanceUserOpStatus(money.getState())).toBe(
+          'pending',
+        ),
+      );
     });
 
     it('refreshes the balance for a Perps deposit funded with mUSD via MetaMask Pay', async () => {
@@ -111,7 +122,11 @@ describe('Money balance refresh on tx confirm — integration', () => {
       await waitFor(() =>
         expect(money.readBalance()?.totalBalance).toBe(SETTLED_BALANCE),
       );
-      expect(selectHasPendingMoneyBalanceUserOp(money.getState())).toBe(true);
+      await waitFor(() =>
+        expect(selectMoneyBalanceUserOpStatus(money.getState())).toBe(
+          'pending',
+        ),
+      );
     });
   });
 
@@ -129,7 +144,7 @@ describe('Money balance refresh on tx confirm — integration', () => {
       money.confirmTransaction(makeTx(TransactionType.contractInteraction));
 
       // Assert
-      expect(selectHasPendingMoneyBalanceUserOp(money.getState())).toBe(false);
+      expect(selectMoneyBalanceUserOpStatus(money.getState())).toBe('none');
       expect(
         money.mocks.invalidateBalanceServiceQueries,
       ).not.toHaveBeenCalled();
@@ -153,7 +168,7 @@ describe('Money balance refresh on tx confirm — integration', () => {
       );
 
       // Assert
-      expect(selectHasPendingMoneyBalanceUserOp(money.getState())).toBe(false);
+      expect(selectMoneyBalanceUserOpStatus(money.getState())).toBe('none');
       expect(
         money.mocks.invalidateBalanceServiceQueries,
       ).not.toHaveBeenCalled();
@@ -172,7 +187,7 @@ describe('Money balance refresh on tx confirm — integration', () => {
       money.confirmTransaction(makeTx(TransactionType.moneyAccountDeposit));
 
       // Assert
-      expect(selectHasPendingMoneyBalanceUserOp(money.getState())).toBe(false);
+      expect(selectMoneyBalanceUserOpStatus(money.getState())).toBe('none');
       expect(
         money.mocks.invalidateBalanceServiceQueries,
       ).not.toHaveBeenCalled();
@@ -194,7 +209,7 @@ describe('Money balance refresh on tx confirm — integration', () => {
       money.confirmTransaction(makeTx(TransactionType.moneyAccountDeposit));
 
       // Assert
-      expect(selectHasPendingMoneyBalanceUserOp(money.getState())).toBe(false);
+      expect(selectMoneyBalanceUserOpStatus(money.getState())).toBe('none');
       expect(
         money.mocks.invalidateBalanceServiceQueries,
       ).not.toHaveBeenCalled();
@@ -221,7 +236,11 @@ describe('Money balance refresh on tx confirm — integration', () => {
       await waitFor(() =>
         expect(money.readBalance()?.totalBalance).toBe(SETTLED_BALANCE),
       );
-      expect(selectHasPendingMoneyBalanceUserOp(money.getState())).toBe(true);
+      await waitFor(() =>
+        expect(selectMoneyBalanceUserOpStatus(money.getState())).toBe(
+          'pending',
+        ),
+      );
     });
   });
 
@@ -245,11 +264,15 @@ describe('Money balance refresh on tx confirm — integration', () => {
       await waitFor(() =>
         expect(money.readBalance()?.totalBalance).toBe(SETTLED_BALANCE),
       );
-      expect(selectHasPendingMoneyBalanceUserOp(money.getState())).toBe(true);
+      await waitFor(() =>
+        expect(selectMoneyBalanceUserOpStatus(money.getState())).toBe(
+          'pending',
+        ),
+      );
       expect(money.mocks.logger.error).not.toHaveBeenCalled();
     });
 
-    it('clears the signal and reports when the balance never moves', async () => {
+    it('hands the signal to the auto-poll and reports when the balance never moves', async () => {
       // Arrange
       const money = buildMoneyIntegrationHarness({
         totalBalance: BASELINE_BALANCE,
@@ -263,8 +286,8 @@ describe('Money balance refresh on tx confirm — integration', () => {
       // Assert
       await waitFor(
         () =>
-          expect(selectHasPendingMoneyBalanceUserOp(money.getState())).toBe(
-            false,
+          expect(selectMoneyBalanceUserOpStatus(money.getState())).toBe(
+            'pending',
           ),
         { timeout: 15000 },
       );
@@ -277,7 +300,7 @@ describe('Money balance refresh on tx confirm — integration', () => {
   });
 
   describe('failed refresh', () => {
-    it('clears the signal when the refresh rejects, so a later poll cannot animate it', async () => {
+    it('settles the signal when the refresh rejects, leaving the figure to the auto-poll', async () => {
       // Arrange
       const money = buildMoneyIntegrationHarness({
         totalBalance: BASELINE_BALANCE,
@@ -292,10 +315,12 @@ describe('Money balance refresh on tx confirm — integration', () => {
       money.confirmTransaction(makeTx(TransactionType.moneyAccountDeposit));
 
       // Assert
-      expect(selectHasPendingMoneyBalanceUserOp(money.getState())).toBe(true);
+      expect(selectMoneyBalanceUserOpStatus(money.getState())).toBe(
+        'refreshing',
+      );
       await waitFor(() =>
-        expect(selectHasPendingMoneyBalanceUserOp(money.getState())).toBe(
-          false,
+        expect(selectMoneyBalanceUserOpStatus(money.getState())).toBe(
+          'pending',
         ),
       );
       expect(money.mocks.logger.error).toHaveBeenCalledWith(

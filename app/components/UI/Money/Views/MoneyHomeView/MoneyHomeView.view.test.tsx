@@ -57,7 +57,7 @@ const persistedBalance = (address: string, amount: number): Override => ({
 });
 
 const pendingUserOp = (): Override => ({
-  moneyBalance: { hasPendingUserOp: true },
+  moneyBalance: { userOpStatus: 'pending' },
 });
 
 const renderMoneyHome = (overrides: Override[]) =>
@@ -167,7 +167,7 @@ describe('MoneyHomeView balance animation', () => {
       within(balance).getByLabelText(FRESH_BALANCE_TEXT),
     ).toBeOnTheScreen();
     await waitFor(() =>
-      expect(store.getState().moneyBalance.hasPendingUserOp).toBe(false),
+      expect(store.getState().moneyBalance.userOpStatus).toBe('none'),
     );
   });
 });

@@ -179,9 +179,7 @@ const MoneyBalanceSummary = ({
       testID={MoneyBalanceSummaryTestIds.CONTAINER}
     >
       {renderBalanceSlot()}
-      {isBalanceAnimationEnabled && displayState.kind !== 'balance' && (
-        <MoneyBalanceMetricsWarmer />
-      )}
+      {isBalanceAnimationEnabled && <MoneyBalanceMetricsWarmer />}
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}

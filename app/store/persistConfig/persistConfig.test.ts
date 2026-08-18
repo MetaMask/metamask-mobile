@@ -405,16 +405,16 @@ describe('persistConfig', () => {
 
     it('does not carry the user-op signal across launches', () => {
       const moneyBalanceTransform = persistConfig.transforms[3] as Transform<
-        { lastKnownBalance: null; hasPendingUserOp: boolean },
+        { lastKnownBalance: null; userOpStatus: string },
         { lastKnownBalance: null }
       >;
 
       const persisted = moneyBalanceTransform.in(
-        { lastKnownBalance: null, hasPendingUserOp: true },
+        { lastKnownBalance: null, userOpStatus: 'pending' },
         'moneyBalance',
         {},
       );
-      expect(persisted).not.toHaveProperty('hasPendingUserOp');
+      expect(persisted).not.toHaveProperty('userOpStatus');
 
       const rehydrated = moneyBalanceTransform.out(
         persisted,
@@ -423,7 +423,7 @@ describe('persistConfig', () => {
       );
       expect(rehydrated).toEqual({
         lastKnownBalance: null,
-        hasPendingUserOp: false,
+        userOpStatus: 'none',
       });
     });
   });

@@ -9,8 +9,8 @@ import ReactQueryService from '../../../../core/ReactQueryService';
 import { store } from '../../../../store';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import {
-  clearMoneyBalanceUserOp,
   markMoneyBalanceUserOp,
+  settleMoneyBalanceUserOp,
 } from '../../../../core/redux/slices/moneyBalance';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
 import {
@@ -75,10 +75,6 @@ const refreshMoneyBalanceQueries = async (address: string) => {
     if (changed) return;
   }
 
-  // The balance never moved, so nothing will consume the signal that this
-  // transaction raised.
-  store.dispatch(clearMoneyBalanceUserOp());
-
   Logger.error(
     new Error(
       `${LOG_PREFIX} Balance unchanged after ${MAX_RETRIES} retries; awaiting 30s auto-poll`,
@@ -104,10 +100,18 @@ export const useRefreshMoneyBalanceOnTxConfirm = () => {
 
       store.dispatch(markMoneyBalanceUserOp());
 
-      refreshMoneyBalanceQueries(address).catch((error) => {
-        store.dispatch(clearMoneyBalanceUserOp());
-        Logger.error(error, `${LOG_PREFIX} Balance refresh failed`);
-      });
+      refreshMoneyBalanceQueries(address)
+        .catch((error) => {
+          Logger.error(error, `${LOG_PREFIX} Balance refresh failed`);
+        })
+        // However the refresh ended, it is no longer the reason a figure has
+        // not arrived: the post-transaction balance is either already in the
+        // cache or left to the 30s auto-poll. From here the signal is only
+        // waiting to be rendered, and the UI drops it if the figure it would
+        // have rolled to is already on screen.
+        .finally(() => {
+          store.dispatch(settleMoneyBalanceUserOp());
+        });
     };
 
     Engine.controllerMessenger.subscribe(

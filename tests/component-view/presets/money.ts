@@ -138,6 +138,6 @@ export const initialStateMoney = () =>
       },
       moneyBalance: {
         lastKnownBalance: null,
-        hasPendingUserOp: false,
+        userOpStatus: 'none',
       },
     } as unknown as DeepPartial<RootState>);

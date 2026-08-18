@@ -4,8 +4,8 @@ import { selectCurrentCurrency } from '../../../../selectors/currencyRateControl
 import {
   clearMoneyBalanceUserOp,
   isPersistedMoneyBalanceUsable,
-  selectHasPendingMoneyBalanceUserOp,
   selectLastKnownMoneyBalance,
+  selectMoneyBalanceUserOpStatus,
 } from '../../../../core/redux/slices/moneyBalance';
 import {
   shouldAnimateBalanceChange,
@@ -44,7 +44,7 @@ const useMoneyBalanceAnimation = (
   const address = primaryMoneyAccount?.address;
   const currency = useSelector(selectCurrentCurrency);
   const lastKnownBalance = useSelector(selectLastKnownMoneyBalance);
-  const hasPendingUserOp = useSelector(selectHasPendingMoneyBalanceUserOp);
+  const userOpStatus = useSelector(selectMoneyBalanceUserOpStatus);
 
   const identity = `${address ?? ''}|${currency}`;
   const identityRef = useRef(identity);
@@ -79,8 +79,17 @@ const useMoneyBalanceAnimation = (
     const isInitialResolution = !hasResolvedRef.current;
     hasResolvedRef.current = true;
 
+    const hasUserOpSignal = userOpStatus !== 'none';
     const previousAmount = renderedRef.current?.amount;
     if (previousAmount === nextAmount) {
+      // The figure a settled operation produced was already in the anchor —
+      // another surface refreshed it while Money home was away — so nothing is
+      // left to roll and the signal is dropped rather than spent by a later
+      // poll. A refresh still running, or a balance already being watched, has
+      // its figure still to come.
+      if (isInitialResolution && userOpStatus === 'pending') {
+        dispatch(clearMoneyBalanceUserOp());
+      }
       return undefined;
     }
 
@@ -89,13 +98,13 @@ const useMoneyBalanceAnimation = (
       previousAmount,
       isIdentityChange,
       isInitialResolution,
-      hasPendingUserOp,
+      hasUserOpSignal,
     });
 
     const commit = () => {
       renderedRef.current = { amount: nextAmount, animated };
       setRendered(renderedRef.current);
-      if (hasPendingUserOp) {
+      if (hasUserOpSignal) {
         dispatch(clearMoneyBalanceUserOp());
       }
     };
@@ -107,7 +116,7 @@ const useMoneyBalanceAnimation = (
 
     const frame = requestAnimationFrame(commit);
     return () => cancelAnimationFrame(frame);
-  }, [amount, identity, hasPendingUserOp, dispatch]);
+  }, [amount, identity, userOpStatus, dispatch]);
 
   const isStaleIdentity = identityRef.current !== identity;
 

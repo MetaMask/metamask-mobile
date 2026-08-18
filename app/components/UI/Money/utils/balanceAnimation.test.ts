@@ -32,7 +32,7 @@ describe('shouldAnimateBalanceChange', () => {
     previousAmount: 100,
     isIdentityChange: false,
     isInitialResolution: false,
-    hasPendingUserOp: false,
+    hasUserOpSignal: false,
     ...overrides,
   });
 
@@ -51,7 +51,7 @@ describe('shouldAnimateBalanceChange', () => {
   });
 
   it('rolls a change the user caused', () => {
-    expect(shouldAnimateBalanceChange(params({ hasPendingUserOp: true }))).toBe(
+    expect(shouldAnimateBalanceChange(params({ hasUserOpSignal: true }))).toBe(
       true,
     );
   });
@@ -63,7 +63,7 @@ describe('shouldAnimateBalanceChange', () => {
   it('does not roll when the rendered figure is unchanged', () => {
     expect(
       shouldAnimateBalanceChange(
-        params({ nextAmount: 100, hasPendingUserOp: true }),
+        params({ nextAmount: 100, hasUserOpSignal: true }),
       ),
     ).toBe(false);
   });
@@ -74,7 +74,7 @@ describe('shouldAnimateBalanceChange', () => {
         params({
           isIdentityChange: true,
           isInitialResolution: true,
-          hasPendingUserOp: true,
+          hasUserOpSignal: true,
         }),
       ),
     ).toBe(false);
@@ -83,7 +83,7 @@ describe('shouldAnimateBalanceChange', () => {
   it('rolls downwards for a withdrawal', () => {
     expect(
       shouldAnimateBalanceChange(
-        params({ nextAmount: 50, hasPendingUserOp: true }),
+        params({ nextAmount: 50, hasUserOpSignal: true }),
       ),
     ).toBe(true);
   });

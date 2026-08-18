@@ -15,14 +15,26 @@ export interface PersistedMoneyBalance {
   updatedAt: number;
 }
 
+/**
+ * Lifecycle of the signal a Money-affecting transaction raises.
+ *
+ * `refreshing` is the transaction confirmed with the balance refresh still
+ * running, so a figure that has not moved yet means nothing. `pending` is that
+ * refresh over and its figure waiting to be rendered; if the figure turns out
+ * to already be on screen there is nothing left to roll, so the signal is
+ * dropped rather than left for a later poll to spend. `none` is no user
+ * operation outstanding.
+ */
+export type MoneyBalanceUserOpStatus = 'none' | 'refreshing' | 'pending';
+
 export interface MoneyBalanceSliceState {
   lastKnownBalance: PersistedMoneyBalance | null;
-  hasPendingUserOp: boolean;
+  userOpStatus: MoneyBalanceUserOpStatus;
 }
 
 export const initialState: MoneyBalanceSliceState = {
   lastKnownBalance: null,
-  hasPendingUserOp: false,
+  userOpStatus: 'none',
 };
 
 const name = 'moneyBalance';
@@ -41,10 +53,16 @@ const slice = createSlice({
       state.lastKnownBalance = null;
     },
     markMoneyBalanceUserOp: (state) => {
-      state.hasPendingUserOp = true;
+      state.userOpStatus = 'refreshing';
+    },
+    settleMoneyBalanceUserOp: (state) => {
+      // Only an operation that was still refreshing has a figure to hand over.
+      if (state.userOpStatus === 'refreshing') {
+        state.userOpStatus = 'pending';
+      }
     },
     clearMoneyBalanceUserOp: (state) => {
-      state.hasPendingUserOp = false;
+      state.userOpStatus = 'none';
     },
   },
 });
@@ -60,9 +78,9 @@ export const selectLastKnownMoneyBalance = createSelector(
   (moneyBalance) => moneyBalance.lastKnownBalance,
 );
 
-export const selectHasPendingMoneyBalanceUserOp = createSelector(
+export const selectMoneyBalanceUserOpStatus = createSelector(
   selectMoneyBalanceState,
-  (moneyBalance) => moneyBalance.hasPendingUserOp,
+  (moneyBalance) => moneyBalance.userOpStatus,
 );
 
 /**
@@ -84,5 +102,6 @@ export const {
   setLastKnownMoneyBalance,
   clearLastKnownMoneyBalance,
   markMoneyBalanceUserOp,
+  settleMoneyBalanceUserOp,
   clearMoneyBalanceUserOp,
 } = actions;

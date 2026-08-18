@@ -10,7 +10,7 @@
  * ─────────────────────────────────────────────────────────────────────────
  * REAL (runs production code paths):
  *   - `moneyBalance` Redux slice — real reducer and real selectors over a real
- *     store, so `hasPendingUserOp` transitions are observed through state
+ *     store, so user-op signal transitions are observed through state
  *   - `selectPrimaryMoneyAccount` over real MoneyAccountController +
  *     KeyringController background state
  *   - Money transaction guards (`isMoneyAccountTx`,

@@ -5,6 +5,8 @@ import {
 } from '../../../../util/test/renderWithProvider';
 import {
   markMoneyBalanceUserOp,
+  settleMoneyBalanceUserOp,
+  type MoneyBalanceUserOpStatus,
   type PersistedMoneyBalance,
 } from '../../../../core/redux/slices/moneyBalance';
 import useMoneyBalanceAnimation from './useMoneyBalanceAnimation';
@@ -31,7 +33,7 @@ const ANCHOR: PersistedMoneyBalance = {
 
 const arrangeState = ({
   lastKnownBalance = ANCHOR as PersistedMoneyBalance | null,
-  hasPendingUserOp = false,
+  userOpStatus = 'none' as MoneyBalanceUserOpStatus,
   currency = 'usd',
 } = {}): ProviderValues['state'] =>
   ({
@@ -44,7 +46,7 @@ const arrangeState = ({
         RemoteFeatureFlagController: { remoteFeatureFlags: {} },
       },
     },
-    moneyBalance: { lastKnownBalance, hasPendingUserOp },
+    moneyBalance: { lastKnownBalance, userOpStatus },
   }) as ProviderValues['state'];
 
 const renderBalance = (state: ProviderValues['state'] = arrangeState()) =>
@@ -113,28 +115,53 @@ describe('useMoneyBalanceAnimation', () => {
 
     await waitFor(() => expect(result.current.amount).toBe(220.5));
     expect(result.current.animated).toBe(true);
-    expect(store.getState().moneyBalance.hasPendingUserOp).toBe(false);
+    expect(store.getState().moneyBalance.userOpStatus).toBe('none');
   });
 
-  it('keeps the user-op signal while the balance has not visibly moved', () => {
+  it('keeps a refreshing signal while the balance has not visibly moved', () => {
     const { rerender, store } = renderBalance(
-      arrangeState({ hasPendingUserOp: true }),
+      arrangeState({ userOpStatus: 'refreshing' }),
     );
 
     rerender(100);
 
-    expect(store.getState().moneyBalance.hasPendingUserOp).toBe(true);
+    expect(store.getState().moneyBalance.userOpStatus).toBe('refreshing');
   });
 
   it('keeps the signal through drift that does not move the rendered figure', () => {
     const { rerender, store } = renderBalance(
-      arrangeState({ hasPendingUserOp: true }),
+      arrangeState({ userOpStatus: 'refreshing' }),
     );
     rerender(100);
 
     rerender(100.004);
 
-    expect(store.getState().moneyBalance.hasPendingUserOp).toBe(true);
+    expect(store.getState().moneyBalance.userOpStatus).toBe('refreshing');
+  });
+
+  it('drops a settled signal whose figure is already the one being restored', () => {
+    const { rerender, store } = renderBalance(
+      arrangeState({ userOpStatus: 'pending' }),
+    );
+
+    rerender(100);
+
+    expect(store.getState().moneyBalance.userOpStatus).toBe('none');
+  });
+
+  it('keeps a signal that settles while the balance is on screen, so the auto-poll still rolls', async () => {
+    const { result, rerender, store } = renderBalance();
+    rerender(100);
+
+    act(() => {
+      store.dispatch(markMoneyBalanceUserOp());
+      store.dispatch(settleMoneyBalanceUserOp());
+    });
+    expect(store.getState().moneyBalance.userOpStatus).toBe('pending');
+    rerender(150);
+
+    await waitFor(() => expect(result.current.amount).toBe(150));
+    expect(result.current.animated).toBe(true);
   });
 
   it('ignores drift below the rendered precision', () => {

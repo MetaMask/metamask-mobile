@@ -4,8 +4,9 @@ import reducer, {
   clearLastKnownMoneyBalance,
   selectLastKnownMoneyBalance,
   markMoneyBalanceUserOp,
+  settleMoneyBalanceUserOp,
   clearMoneyBalanceUserOp,
-  selectHasPendingMoneyBalanceUserOp,
+  selectMoneyBalanceUserOpStatus,
   isPersistedMoneyBalanceUsable,
   PersistedMoneyBalance,
   MoneyBalanceSliceState,
@@ -42,35 +43,59 @@ describe('moneyBalance slice', () => {
 
   describe('user op signal', () => {
     it('starts clear', () => {
-      expect(initialState.hasPendingUserOp).toBe(false);
+      expect(initialState.userOpStatus).toBe('none');
     });
 
-    it('markMoneyBalanceUserOp raises the signal', () => {
+    it('markMoneyBalanceUserOp raises the signal while the refresh runs', () => {
       const state = reducer(initialState, markMoneyBalanceUserOp());
 
-      expect(state.hasPendingUserOp).toBe(true);
+      expect(state.userOpStatus).toBe('refreshing');
+    });
+
+    it('settleMoneyBalanceUserOp hands the figure over to the UI', () => {
+      const marked = reducer(initialState, markMoneyBalanceUserOp());
+      const state = reducer(marked, settleMoneyBalanceUserOp());
+
+      expect(state.userOpStatus).toBe('pending');
+    });
+
+    it('settleMoneyBalanceUserOp does nothing with no operation outstanding', () => {
+      const state = reducer(initialState, settleMoneyBalanceUserOp());
+
+      expect(state.userOpStatus).toBe('none');
+    });
+
+    it('settleMoneyBalanceUserOp does not revive a consumed signal', () => {
+      const consumed = reducer(
+        reducer(initialState, markMoneyBalanceUserOp()),
+        clearMoneyBalanceUserOp(),
+      );
+
+      const state = reducer(consumed, settleMoneyBalanceUserOp());
+
+      expect(state.userOpStatus).toBe('none');
     });
 
     it('clearMoneyBalanceUserOp lowers the signal', () => {
       const marked = reducer(initialState, markMoneyBalanceUserOp());
       const state = reducer(marked, clearMoneyBalanceUserOp());
 
-      expect(state.hasPendingUserOp).toBe(false);
+      expect(state.userOpStatus).toBe('none');
     });
 
-    it('selectHasPendingMoneyBalanceUserOp reads the signal', () => {
+    it('selectMoneyBalanceUserOpStatus reads the signal', () => {
       const state = {
-        moneyBalance: { lastKnownBalance: null, hasPendingUserOp: true },
+        moneyBalance: { lastKnownBalance: null, userOpStatus: 'pending' },
       } as RootState;
 
-      expect(selectHasPendingMoneyBalanceUserOp(state)).toBe(true);
+      expect(selectMoneyBalanceUserOpStatus(state)).toBe('pending');
     });
   });
 
   it('clearLastKnownMoneyBalance resets the balance to null', () => {
     const populated: MoneyBalanceSliceState = {
       lastKnownBalance: balance,
-      hasPendingUserOp: false,
+      userOpStatus: 'none',
     };
 
     const state = reducer(populated, clearLastKnownMoneyBalance());

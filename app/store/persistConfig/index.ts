@@ -202,22 +202,19 @@ const persistCardTransform = createTransform<
   { whitelist: ['card'] },
 );
 
-type PersistedMoneyBalanceState = Omit<
-  MoneyBalanceSliceState,
-  'hasPendingUserOp'
->;
+type PersistedMoneyBalanceState = Omit<MoneyBalanceSliceState, 'userOpStatus'>;
 
 const persistMoneyBalanceTransform = createTransform<
   MoneyBalanceSliceState,
   PersistedMoneyBalanceState
 >(
   (inboundState) => {
-    const { hasPendingUserOp: _omitSession, ...state } = inboundState;
+    const { userOpStatus: _omitSession, ...state } = inboundState;
     return state;
   },
   (outboundState) => ({
     ...outboundState,
-    hasPendingUserOp: false,
+    userOpStatus: 'none',
   }),
   { whitelist: ['moneyBalance'] },
 );

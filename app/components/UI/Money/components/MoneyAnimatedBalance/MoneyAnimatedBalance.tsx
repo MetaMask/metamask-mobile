@@ -38,7 +38,9 @@ const BalanceDigits = ({ value, animated }: BalanceDigitsProps) => {
 
 /**
  * Measures the balance typography while the balance is still loading, so
- * NumberFlow is measured by the time the first figure lands.
+ * NumberFlow is measured by the time the first figure lands. It stays mounted
+ * for the life of the summary rather than only for the loading states: a cached
+ * balance resolves on the first render, which skips those states entirely.
  */
 export const MoneyBalanceMetricsWarmer = () => (
   <View

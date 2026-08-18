@@ -20,7 +20,8 @@ export interface BalanceAnimationParams {
   previousAmount: number | undefined;
   isIdentityChange: boolean;
   isInitialResolution: boolean;
-  hasPendingUserOp: boolean;
+  /** Whether a user operation is still owed a figure. */
+  hasUserOpSignal: boolean;
 }
 
 /**
@@ -36,7 +37,7 @@ export const shouldAnimateBalanceChange = ({
   previousAmount,
   isIdentityChange,
   isInitialResolution,
-  hasPendingUserOp,
+  hasUserOpSignal,
 }: BalanceAnimationParams): boolean => {
   if (isIdentityChange || previousAmount === undefined) {
     return false;
@@ -44,5 +45,5 @@ export const shouldAnimateBalanceChange = ({
   if (nextAmount === previousAmount) {
     return false;
   }
-  return isInitialResolution || hasPendingUserOp;
+  return isInitialResolution || hasUserOpSignal;
 };
