@@ -31,7 +31,7 @@ describe('SauceLabsConfigBuilder', () => {
       },
     } as never).build();
 
-    expect(config.hostname).toBe('ondemand.us-west-1.saucelabs.com');
+    expect(config.hostname).toBe('ondemand.eu-central-1.saucelabs.com');
     expect(config.capabilities['appium:deviceName']).toBe(
       'Google_Pixel_7_POC49',
     );

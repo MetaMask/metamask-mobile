@@ -44,7 +44,7 @@ export class SauceLabsConfigBuilder {
     return {
       protocol: 'https' as const,
       hostname:
-        process.env.SAUCE_HOSTNAME || 'ondemand.us-west-1.saucelabs.com',
+        process.env.SAUCE_HOSTNAME || 'ondemand.eu-central-1.saucelabs.com',
       port: 443,
       path: '/wd/hub',
       user: username,
