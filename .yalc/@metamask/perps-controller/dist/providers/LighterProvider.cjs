@@ -74,6 +74,26 @@ const toSignerWireInteger = (value, decimals) => {
     }
     return scaled;
 };
+/**
+ * Snap a base size onto the market's size grid exactly as wire
+ * integerization will (round to nearest step). Minimum-size checks must
+ * judge the SNAPPED size: a raw USD/price quotient one hair under the
+ * minimum still reaches the venue as the valid minimum step, and
+ * rejecting the raw quotient refuses orders the venue accepts.
+ *
+ * @param size - Raw base size (human units).
+ * @param supportedSizeDecimals - Market size decimals.
+ * @returns The grid-snapped size, or the input unchanged when it cannot
+ * be integerized (range overflow) — later wire conversion fails closed.
+ */
+const snapToLighterSizeGrid = (size, supportedSizeDecimals) => {
+    try {
+        return (0, lighterConfig_js_1.fromLighterInteger)((0, lighterConfig_js_1.toLighterInteger)(size, supportedSizeDecimals), supportedSizeDecimals);
+    }
+    catch {
+        return size;
+    }
+};
 /** The pinned signer casts price fields to uint32. */
 const LIGHTER_MAX_WIRE_PRICE = 4294967295;
 /**
@@ -3237,9 +3257,11 @@ class LighterProvider {
                 executionPrice = referencePrice;
             }
             if (referencePrice > 0) {
+                // USD-derived sizes snap onto the venue grid (placement parity);
+                // explicit size strings stay verbatim.
                 const requestedSize = usdAmount === undefined
                     ? parseFloat(params.size)
-                    : usdAmount / referencePrice;
+                    : snapToLighterSizeGrid(usdAmount / referencePrice, market.supportedSizeDecimals);
                 const minSize = (0, lighterConfig_js_1.computeLighterMinOrderSize)(market, referencePrice);
                 if (requestedSize < minSize) {
                     // EXACTLY the placement rule: only reduce-only orders may bump to
@@ -3368,8 +3390,10 @@ class LighterProvider {
             }
             if (referencePrice > 0) {
                 const usdAmount = parseFloat(params.usdAmount ?? '');
+                // USD-derived sizes snap onto the venue grid (placement parity);
+                // explicit size strings stay verbatim.
                 const requestedSize = Number.isFinite(usdAmount) && usdAmount > 0
-                    ? usdAmount / referencePrice
+                    ? snapToLighterSizeGrid(usdAmount / referencePrice, market.supportedSizeDecimals)
                     : parseFloat(params.size ?? String(held));
                 const minSize = (0, lighterConfig_js_1.computeLighterMinOrderSize)(market, referencePrice);
                 if (requestedSize < minSize && !(requestedSize >= held * (1 - 1e-9))) {
@@ -4647,7 +4671,11 @@ class LighterProvider {
                         error: `Invalid usdAmount ${params.usdAmount}: must be a positive number`,
                     };
                 }
-                requestedSize = usdAmount / referencePrice;
+                // A USD amount is approximate by contract (converted at the
+                // reference price), so it is snapped onto the venue size grid the
+                // way wire integerization will round it — an explicit size string
+                // is exact user intent and is never adjusted here.
+                requestedSize = snapToLighterSizeGrid(usdAmount / referencePrice, market.supportedSizeDecimals);
             }
             if (!(requestedSize > 0)) {
                 return { success: false, error: 'Order size must be positive' };

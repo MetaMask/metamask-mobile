@@ -267,6 +267,74 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.amount).toBe('125');
     });
 
+    it('clamps a restored pending amount below the venue minimum up to the minimum', () => {
+      // Regression: a saved $10 HyperLiquid default replayed onto a venue
+      // with a higher per-market minimum (Lighter) seeded an amount the
+      // venue rejects, and save-on-unmount re-persisted it forever.
+      mockUsePerpsMarketData.mockReturnValue({
+        marketData: {
+          szDecimals: 6,
+          name: 'BTC',
+          maxLeverage: 10,
+          marginTableId: 1,
+          minimumOrderSize: 130,
+        },
+        refetch: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+      const mockStoreWithLowPendingConfig = configureStore({
+        reducer: {
+          engine: (
+            state = {
+              backgroundState: {
+                PerpsController: {
+                  isTestnet: false,
+                  tradeConfigurations: {
+                    mainnet: {
+                      BTC: {
+                        pendingConfig: {
+                          amount: '125',
+                          timestamp: Date.now(),
+                        },
+                      },
+                    },
+                    testnet: {},
+                  },
+                },
+              },
+            },
+          ) => state,
+        },
+      });
+      const WrapperWithLowPendingConfig = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const streamProvider = React.createElement(PerpsStreamProvider, {
+          testStreamManager: createMockStreamManager(),
+          children,
+        } as React.ComponentProps<typeof PerpsStreamProvider>);
+
+        return React.createElement(Provider, {
+          store: mockStoreWithLowPendingConfig,
+          children: streamProvider,
+        });
+      };
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            fallbackAmount: '',
+          }),
+        { wrapper: WrapperWithLowPendingConfig },
+      );
+
+      expect(result.current.orderForm.amount).toBe('130');
+    });
+
     it('prioritizes existing position leverage over saved config', () => {
       // Mock existing position with 10x leverage
       mockUsePerpsLivePositions.mockReturnValue({

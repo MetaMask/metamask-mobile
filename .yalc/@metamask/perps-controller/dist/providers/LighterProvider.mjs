@@ -24,7 +24,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
 var _LighterProvider_deps, _LighterProvider_clientService, _LighterProvider_walletService, _LighterProvider_messenger, _LighterProvider_signerBridge, _LighterProvider_isTestnet, _LighterProvider_apiKeyIndex, _LighterProvider_configuredAccountIndex, _LighterProvider_marketsBySymbol, _LighterProvider_marketsById, _LighterProvider_accountIndex, _LighterProvider_boundAddress, _LighterProvider_sessionGeneration, _LighterProvider_priceSubscribers, _LighterProvider_pricePollTimer, _LighterProvider_priceWs, _LighterProvider_pricePollCycle, _LighterProvider_webSocketCtor, _LighterProvider_wsWantedChannels, _LighterProvider_wsKeepaliveTimer, _LighterProvider_connectionState, _LighterProvider_wsReconnectAttempts, _LighterProvider_connectionListeners, _LighterProvider_setConnectionState, _LighterProvider_wsReconnectTimer, _LighterProvider_lastPriceBySymbol, _LighterProvider_wsPositions, _LighterProvider_wsOrders, _LighterProvider_oiCapSubscribers, _LighterProvider_accountSubscribers, _LighterProvider_positionSubscribers, _LighterProvider_orderSubscribers, _LighterProvider_fillSubscribers, _LighterProvider_orderBookSubscribers, _LighterProvider_orderBookState, _LighterProvider_candleSubscribers, _LighterProvider_candleSeries, _LighterProvider_accountChannelsPromise, _LighterProvider_venuePublicKey, _LighterProvider_signerReadyPromise, _LighterProvider_authToken, _LighterProvider_getErrorContext, _LighterProvider_rawSignerBridge, _LighterProvider_getSignerBridge, _LighterProvider_invalidateSignerSession, _LighterProvider_clearBridgeOwnership, _LighterProvider_ensureSessionBinding, _LighterProvider_rebuildStreamForSubscribers, _LighterProvider_ensureAccountIndex, _LighterProvider_assertStandardAccount, _LighterProvider_isUnsupportedCapabilityError, _LighterProvider_isDataIntegrityError, _LighterProvider_tpslUnsettled, _LighterProvider_nonceReservations, _LighterProvider_tpslOperationCounter, _LighterProvider_signerIdentity, _LighterProvider_signerRecreateParams, _LighterProvider_nonceLedgerKey, _LighterProvider_readNonceLedger, _LighterProvider_writeNonceLedger, _LighterProvider_withLedgerLock, _LighterProvider_resolveEntryPostDispatch, _LighterProvider_resolveNonceLedger, _LighterProvider_resolveNonceLedgerLocked, _LighterProvider_releaseNonceReservationIfUnconsumed, _LighterProvider_tpslJournalKey, _LighterProvider_tpslJournalOpKey, _LighterProvider_loadTpslJournal, _LighterProvider_tpslJournalIndexKey, _LighterProvider_readTpslJournalIndex, _LighterProvider_tpslManualKey, _LighterProvider_tpslManualIndexKey, _LighterProvider_readTpslManualIndex, _LighterProvider_writeTpslManualRecovery, _LighterProvider_loadTpslManualRecovery, _LighterProvider_clearTpslManualRecovery, _LighterProvider_persistTpslJournal, _LighterProvider_clearTpslJournal, _LighterProvider_makeInactiveReader, _LighterProvider_tpslRecoveryGeneration, _LighterProvider_tpslRecoveryInFlight, _LighterProvider_tpslRecoveryKickPending, _LighterProvider_kickTpslRecovery, _LighterProvider_recoverPendingTpslJournals, _LighterProvider_recoverTpslSymbol, _LighterProvider_settleTpslObligation, _LighterProvider_settleTpslObligationLocked, _LighterProvider_reconcilePriorTpsl, _LighterProvider_releaseNonceReservation, _LighterProvider_awaitTpslVisibility, _LighterProvider_assertSession, _LighterProvider_invalidateSessionState, _LighterProvider_ensureSignerReady, _LighterProvider_setupSigner, _LighterProvider_isVenueKeyRegistered, _LighterProvider_registerVenueKey, _LighterProvider_writeChain, _LighterProvider_issuedClientOrderIds, _LighterProvider_allocateClientOrderIndexes, _LighterProvider_withVenueWriteLock, _LighterProvider_withVenueNonce, _LighterProvider_reestablishSignerClient, _LighterProvider_getAuthToken, _LighterProvider_ensureMarkets, _LighterProvider_readOpenOrdersStrict, _LighterProvider_resolveLeverageIntent, _LighterProvider_resolveMarketReferencePrice, _LighterProvider_normalizeCloseParams, _LighterProvider_validateCloseShape, _LighterProvider_isVerifiedFullClose, _LighterProvider_validateOrderChecks, _LighterProvider_validateClosePositionChecks, _LighterProvider_marginBySymbol, _LighterProvider_maxLeverageForMarketId, _LighterProvider_requireMarketMaxLeverage, _LighterProvider_marginFetchedAt, _LighterProvider_marginRefreshInFlight, _LighterProvider_ensureMarketMargins, _LighterProvider_ensureAccountChannels, _LighterProvider_hasAnySubscriber, _LighterProvider_requestChannel, _LighterProvider_sendSubscribe, _LighterProvider_releaseChannelIfUnused, _LighterProvider_ensureStream, _LighterProvider_connectWs, _LighterProvider_handleWsMessage, _LighterProvider_handleOrderBookMessage, _LighterProvider_handleCandleMessage, _LighterProvider_handleTradesMessage, _LighterProvider_dispatchOICaps, _LighterProvider_emitToOrderSubscribers, _LighterProvider_logSubscriberError, _LighterProvider_startPricePolling, _LighterProvider_emitPolledPrices, _LighterProvider_dispatchPriceUpdates, _LighterProvider_deliverPrices, _LighterProvider_clearKeepalive, _LighterProvider_teardownStream, _LighterProvider_bridgeRoute;
-import { computeLighterMinOrderSize, getLighterChainId, LIGHTER_RESOLUTION_MS, LIGHTER_SUPPORTED_RESOLUTIONS, LIGHTER_DEFAULT_API_KEY_INDEX, LIGHTER_MAX_LEVERAGE, LIGHTER_NO_TRIGGER_PRICE, LIGHTER_ORDER_EXPIRY_NONE, LIGHTER_ORDER_TYPE_LIMIT, LIGHTER_ORDER_TYPE_MARKET, LIGHTER_TIME_IN_FORCE_GOOD_TILL_TIME, getLighterWsEndpoint, LIGHTER_PRICE_POLLING_INTERVAL_MS, LIGHTER_TIME_IN_FORCE_IMMEDIATE_OR_CANCEL, LIGHTER_BRIDGE_CONFIG, LIGHTER_TX_TYPE_CANCEL_ORDER, LIGHTER_TX_TYPE_CHANGE_PUB_KEY, LIGHTER_GROUPING_ONE_CANCELS_THE_OTHER, LIGHTER_ORDER_TYPE_STOP_LOSS, LIGHTER_ORDER_TYPE_TAKE_PROFIT, LIGHTER_TX_TYPE_CREATE_GROUPED_ORDERS, LIGHTER_TX_TYPE_CREATE_ORDER, LIGHTER_TX_TYPE_UPDATE_LEVERAGE, LIGHTER_TX_TYPE_UPDATE_MARGIN, LIGHTER_TX_TYPE_WITHDRAW, LIGHTER_MARGIN_MODE_CROSS, LIGHTER_UNSUPPORTED_CAPABILITY_PREFIX, LIGHTER_USDC_ASSET_INDEX, LIGHTER_DATA_INTEGRITY_PREFIX, LIGHTER_MARGIN_METADATA_TTL_MS, parseLighterStrictDecimal, toLighterInteger } from "../constants/lighterConfig.mjs";
+import { computeLighterMinOrderSize, fromLighterInteger, getLighterChainId, LIGHTER_RESOLUTION_MS, LIGHTER_SUPPORTED_RESOLUTIONS, LIGHTER_DEFAULT_API_KEY_INDEX, LIGHTER_MAX_LEVERAGE, LIGHTER_NO_TRIGGER_PRICE, LIGHTER_ORDER_EXPIRY_NONE, LIGHTER_ORDER_TYPE_LIMIT, LIGHTER_ORDER_TYPE_MARKET, LIGHTER_TIME_IN_FORCE_GOOD_TILL_TIME, getLighterWsEndpoint, LIGHTER_PRICE_POLLING_INTERVAL_MS, LIGHTER_TIME_IN_FORCE_IMMEDIATE_OR_CANCEL, LIGHTER_BRIDGE_CONFIG, LIGHTER_TX_TYPE_CANCEL_ORDER, LIGHTER_TX_TYPE_CHANGE_PUB_KEY, LIGHTER_GROUPING_ONE_CANCELS_THE_OTHER, LIGHTER_ORDER_TYPE_STOP_LOSS, LIGHTER_ORDER_TYPE_TAKE_PROFIT, LIGHTER_TX_TYPE_CREATE_GROUPED_ORDERS, LIGHTER_TX_TYPE_CREATE_ORDER, LIGHTER_TX_TYPE_UPDATE_LEVERAGE, LIGHTER_TX_TYPE_UPDATE_MARGIN, LIGHTER_TX_TYPE_WITHDRAW, LIGHTER_MARGIN_MODE_CROSS, LIGHTER_UNSUPPORTED_CAPABILITY_PREFIX, LIGHTER_USDC_ASSET_INDEX, LIGHTER_DATA_INTEGRITY_PREFIX, LIGHTER_MARGIN_METADATA_TTL_MS, parseLighterStrictDecimal, toLighterInteger } from "../constants/lighterConfig.mjs";
 import { PERPS_CONSTANTS } from "../constants/perpsConfig.mjs";
 import { convertKeysToCamelCase, LighterClientService } from "../services/LighterClientService.mjs";
 import { LighterWalletService } from "../services/LighterWalletService.mjs";
@@ -70,6 +70,26 @@ const toSignerWireInteger = (value, decimals) => {
         throw new Error(`Value ${value} rounds to zero at ${decimals} decimals`);
     }
     return scaled;
+};
+/**
+ * Snap a base size onto the market's size grid exactly as wire
+ * integerization will (round to nearest step). Minimum-size checks must
+ * judge the SNAPPED size: a raw USD/price quotient one hair under the
+ * minimum still reaches the venue as the valid minimum step, and
+ * rejecting the raw quotient refuses orders the venue accepts.
+ *
+ * @param size - Raw base size (human units).
+ * @param supportedSizeDecimals - Market size decimals.
+ * @returns The grid-snapped size, or the input unchanged when it cannot
+ * be integerized (range overflow) — later wire conversion fails closed.
+ */
+const snapToLighterSizeGrid = (size, supportedSizeDecimals) => {
+    try {
+        return fromLighterInteger(toLighterInteger(size, supportedSizeDecimals), supportedSizeDecimals);
+    }
+    catch {
+        return size;
+    }
 };
 /** The pinned signer casts price fields to uint32. */
 const LIGHTER_MAX_WIRE_PRICE = 4294967295;
@@ -3234,9 +3254,11 @@ export class LighterProvider {
                 executionPrice = referencePrice;
             }
             if (referencePrice > 0) {
+                // USD-derived sizes snap onto the venue grid (placement parity);
+                // explicit size strings stay verbatim.
                 const requestedSize = usdAmount === undefined
                     ? parseFloat(params.size)
-                    : usdAmount / referencePrice;
+                    : snapToLighterSizeGrid(usdAmount / referencePrice, market.supportedSizeDecimals);
                 const minSize = computeLighterMinOrderSize(market, referencePrice);
                 if (requestedSize < minSize) {
                     // EXACTLY the placement rule: only reduce-only orders may bump to
@@ -3365,8 +3387,10 @@ export class LighterProvider {
             }
             if (referencePrice > 0) {
                 const usdAmount = parseFloat(params.usdAmount ?? '');
+                // USD-derived sizes snap onto the venue grid (placement parity);
+                // explicit size strings stay verbatim.
                 const requestedSize = Number.isFinite(usdAmount) && usdAmount > 0
-                    ? usdAmount / referencePrice
+                    ? snapToLighterSizeGrid(usdAmount / referencePrice, market.supportedSizeDecimals)
                     : parseFloat(params.size ?? String(held));
                 const minSize = computeLighterMinOrderSize(market, referencePrice);
                 if (requestedSize < minSize && !(requestedSize >= held * (1 - 1e-9))) {
@@ -4644,7 +4668,11 @@ export class LighterProvider {
                         error: `Invalid usdAmount ${params.usdAmount}: must be a positive number`,
                     };
                 }
-                requestedSize = usdAmount / referencePrice;
+                // A USD amount is approximate by contract (converted at the
+                // reference price), so it is snapped onto the venue size grid the
+                // way wire integerization will round it — an explicit size string
+                // is exact user intent and is never adjusted here.
+                requestedSize = snapToLighterSizeGrid(usdAmount / referencePrice, market.supportedSizeDecimals);
             }
             if (!(requestedSize > 0)) {
                 return { success: false, error: 'Order size must be positive' };
