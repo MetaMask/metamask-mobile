@@ -38,6 +38,21 @@ const decimal = refine(
   'PredictDecimal',
   (value) => /^(?:0(?:\.\d+)?|1(?:\.0+)?)$/.test(value) && Number(value) <= 1,
 );
+const amount = refine(string(), 'PredictAmount', (value) =>
+  /^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(value),
+);
+const httpsUrl = refine(string(), 'PredictHttpsUrl', (value) => {
+  if (!/^https:\/\//i.test(value)) {
+    return false;
+  }
+
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && url.hostname.length > 0;
+  } catch {
+    return false;
+  }
+});
 const status = enums([
   'upcoming',
   'open',
@@ -67,6 +82,8 @@ const marketSchema = object({
   question: string(),
   outcomes: binaryOutcomes,
   status,
+  volume: optional(amount),
+  volume24h: optional(amount),
   createdAt: optional(timestamp),
   updatedAt: optional(timestamp),
   opensAt: optional(timestamp),
@@ -89,6 +106,10 @@ const eventSchema = object({
   closesAt: optional(timestamp),
   updatedAt: optional(timestamp),
   description: optional(string()),
+  category: optional(string()),
+  volume: optional(amount),
+  volume24h: optional(amount),
+  imageUrl: optional(httpsUrl),
   markets: nonEmptyMarkets,
 });
 
