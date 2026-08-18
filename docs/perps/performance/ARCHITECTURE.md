@@ -8,7 +8,8 @@ This document is the target cross-PR contract. The Homepage/Sentry foundation
 implements Homepage Ready and existing section TTC/DFD reuse. The
 `perps_bootstrap_start` session and Mobile milestone producers are delivered by
 the next loading-session PR in the declared stack; dashboard rows for them stay
-`release pending` until that layer and its Core dependency ship.
+`recipe pending` until that layer has runtime proof, then `release pending`
+until the proven instrumentation and its Core dependency ship.
 
 ## Two clocks, no assumed ordering
 
