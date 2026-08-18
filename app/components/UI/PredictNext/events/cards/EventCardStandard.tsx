@@ -6,9 +6,9 @@ import {
   EVENT_CARD_VISIBLE_MARKET_COUNT,
   EventCard,
   MULTI_OUTCOME_ROW_COLORS,
-} from './EventCard';
+} from './internal/EventCard';
 
-interface EventCardContentProps {
+export interface EventCardStandardProps {
   event: PredictEvent;
   onPress: () => void;
   onOrder?: (
@@ -25,7 +25,7 @@ export const EventCardStandard = ({
   event,
   onPress,
   onOrder,
-}: EventCardContentProps) => {
+}: EventCardStandardProps) => {
   const isSingleMarket = event.markets.length === 1;
   const visibleMarkets = event.markets.slice(
     0,

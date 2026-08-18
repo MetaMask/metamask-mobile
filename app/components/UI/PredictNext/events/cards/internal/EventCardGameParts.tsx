@@ -13,9 +13,9 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Image as ExpoImage } from 'expo-image';
 import BigNumber from 'bignumber.js';
-import I18n, { strings } from '../../../../../../locales/i18n';
-import { getIntlDateTimeFormatter } from '../../../../../util/intl';
-import { useTheme } from '../../../../../util/theme';
+import I18n, { strings } from '../../../../../../../locales/i18n';
+import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
+import { useTheme } from '../../../../../../util/theme';
 import type {
   PredictEntityId,
   PredictEvent,
@@ -24,7 +24,7 @@ import type {
   PredictMarket,
   PredictOutcome,
   PredictTeam,
-} from '../../types';
+} from '../../../types';
 import { EventCard } from './EventCard';
 import { formatAskPrice } from './formatAskPrice';
 import { formatMultiplier } from './formatMultiplier';
