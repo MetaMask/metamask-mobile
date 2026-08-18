@@ -14,6 +14,7 @@ export declare const PERPS_EVENT_PROPERTY: {
     readonly LOCATION: "location";
     readonly LEVERAGE: "leverage";
     readonly LEVERAGE_USED: "leverage_used";
+    readonly PREVIOUS_LEVERAGE: "previous_leverage";
     readonly ORDER_SIZE: "order_size";
     readonly MARGIN_USED: "margin_used";
     readonly ORDER_TYPE: "order_type";
@@ -343,6 +344,10 @@ export declare const PERPS_EVENT_VALUE: {
         readonly ORDER_TYPE_SELECTED: "order_type_selected";
         /** @deprecated Use LEVERAGE_CHANGED instead for clarity */
         readonly SETTING_CHANGED: "setting_changed";
+        /**
+         * Perp UI Interaction `leverage_changed`. Properties include `leverage`
+         * and `previous_leverage`.
+         */
         readonly LEVERAGE_CHANGED: "leverage_changed";
         readonly TUTORIAL_STARTED: "tutorial_started";
         readonly TUTORIAL_COMPLETED: "tutorial_completed";
