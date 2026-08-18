@@ -109,11 +109,8 @@ describe('TransactionDetailsAccountRow', () => {
       transactionMeta: { ...TRANSACTION_META_MOCK, type },
     });
 
-    const { getByTestId, UNSAFE_getByProps } = render();
+    const { UNSAFE_getByProps } = render();
     expect(UNSAFE_getByProps({ accountAddress: ADDRESS_MOCK })).toBeDefined();
-    expect(
-      getByTestId('transaction-details-account-network-badge'),
-    ).toBeOnTheScreen();
   });
 
   it('renders "From" row with money account label for moneyAccountWithdraw', () => {

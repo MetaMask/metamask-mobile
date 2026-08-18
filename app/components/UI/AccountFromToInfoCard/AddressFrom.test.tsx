@@ -110,20 +110,19 @@ describe('AddressFrom', () => {
   it('renders network badge when network image is provided', () => {
     const { getByTestId, getByText } = renderAddressFrom();
 
-    expect(getByTestId('account-base-network-badge')).toBeOnTheScreen();
+    expect(getByTestId('network-avatar-image')).toBeOnTheScreen();
     expect(getByText(MOCK_NETWORK_NAME)).toBeOnTheScreen();
   });
 
-  it('hides network badge when network image is missing', () => {
+  it('still renders account when network image is missing', () => {
     useNetworkInfoMock.mockReturnValue({
       networkName: MOCK_NETWORK_NAME,
       networkImage: undefined,
       networkNativeCurrency: 'ETH',
     } as unknown as ReturnType<typeof useNetworkInfo>);
 
-    const { queryByTestId, getByText } = renderAddressFrom();
+    const { getByText } = renderAddressFrom();
 
     expect(getByText(MOCK_NETWORK_NAME)).toBeOnTheScreen();
-    expect(queryByTestId('account-base-network-badge')).not.toBeOnTheScreen();
   });
 });

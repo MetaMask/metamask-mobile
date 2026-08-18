@@ -1,16 +1,12 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { NativeSyntheticEvent, TextLayoutEventData, View } from 'react-native';
-import {
-  BadgeNetwork,
-  BadgeWrapper,
-  BadgeWrapperPosition,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
-import BigNumber from 'bignumber.js';
 import { useStyles } from '../../../../hooks/useStyles';
+import Badge, {
+  BadgeVariant,
+} from '../../../../../component-library/components/Badges/Badge';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import Text, {
@@ -18,6 +14,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import BigNumber from 'bignumber.js';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { AssetType } from '../../types/token';
 import styleSheet from './token-conversion-asset-header.styles';
@@ -25,6 +22,12 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayTotals,
 } from '../../hooks/pay/useTransactionPayData';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { useNetworkName } from '../../hooks/useNetworkName';
 
@@ -153,12 +156,6 @@ export const TokenConversionAssetHeader = ({
 
   const inputNetworkName = useNetworkName(inputToken?.chainId as Hex);
   const outputNetworkName = useNetworkName(outputToken?.chainId as Hex);
-  const inputNetworkImageSource = getNetworkImageSource({
-    chainId: inputToken?.chainId ?? '',
-  });
-  const outputNetworkImageSource = getNetworkImageSource({
-    chainId: outputToken?.chainId ?? '',
-  });
 
   const formatAmount = (amount?: string) => {
     if (!amount) {
@@ -213,14 +210,15 @@ export const TokenConversionAssetHeader = ({
         testID={TokenConversionAssetHeaderTestIds.ASSET_HEADER_INPUT}
       >
         <BadgeWrapper
-          position={BadgeWrapperPosition.BottomRight}
-          badge={
-            inputNetworkImageSource ? (
-              <BadgeNetwork
-                name={inputNetworkName}
-                src={inputNetworkImageSource}
-              />
-            ) : null
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              name={inputNetworkName}
+              imageSource={getNetworkImageSource({
+                chainId: inputToken?.chainId ?? '',
+              })}
+            />
           }
         >
           <AvatarToken
@@ -273,14 +271,15 @@ export const TokenConversionAssetHeader = ({
         testID={TokenConversionAssetHeaderTestIds.ASSET_HEADER_OUTPUT}
       >
         <BadgeWrapper
-          position={BadgeWrapperPosition.BottomRight}
-          badge={
-            outputNetworkImageSource ? (
-              <BadgeNetwork
-                name={outputNetworkName}
-                src={outputNetworkImageSource}
-              />
-            ) : null
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              name={outputNetworkName}
+              imageSource={getNetworkImageSource({
+                chainId: outputToken?.chainId ?? '',
+              })}
+            />
           }
         >
           <AvatarToken

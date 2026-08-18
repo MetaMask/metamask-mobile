@@ -1,12 +1,9 @@
 import React from 'react';
 import { View } from 'react-native';
-import {
-  BadgeNetwork,
-  BadgeWrapper,
-  BadgeWrapperPosition,
-} from '@metamask/design-system-react-native';
 
+import Badge from '../../../../component-library/components/Badges/Badge';
 import Avatar, { AvatarVariant } from '../../../components/Avatars/Avatar';
+import BadgeWrapper from '../../../components/Badges/BadgeWrapper';
 import Text, { TextVariant } from '../../../components/Texts/Text';
 import {
   ACCOUNT_BALANCE_AVATAR_TEST_ID,
@@ -30,16 +27,7 @@ const AccountBase = ({
   <View style={styles.body} testID={ACCOUNT_BASE_TEST_ID}>
     <View style={styles.container}>
       <BadgeWrapper
-        position={BadgeWrapperPosition.BottomRight}
-        badge={
-          badgeProps.src ? (
-            <BadgeNetwork
-              src={badgeProps.src}
-              name={badgeProps.name}
-              testID="account-base-network-badge"
-            />
-          ) : null
-        }
+        badgeElement={<Badge {...badgeProps} />}
         style={styles.badgeWrapper}
         testID={ACCOUNT_BALANCE_AVATAR_TEST_ID}
       >
