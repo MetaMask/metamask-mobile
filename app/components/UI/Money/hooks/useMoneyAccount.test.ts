@@ -28,6 +28,7 @@ import {
 } from './useMoneyAccount';
 import { showDevErrorAlert } from '../utils/devErrorAlert';
 import useMoneyToasts from './useMoneyToasts';
+import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmations/hooks/transactions/useMoneyAccountDepositPrefillEnabled';
 
 jest.mock('react-redux');
 jest.mock('@react-navigation/native', () => ({
@@ -78,6 +79,7 @@ jest.mock(
     ConfirmationLoader: {
       CustomAmount: 'customAmount',
       AdvancedCustomAmount: 'advancedCustomAmount',
+      PrefillCustomAmount: 'prefillCustomAmount',
     },
   }),
 );
@@ -87,6 +89,13 @@ jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
     navigateToConfirmation: jest.fn(),
   }),
 }));
+
+jest.mock(
+  '../../../Views/confirmations/hooks/transactions/useMoneyAccountDepositPrefillEnabled',
+  () => ({
+    useMoneyAccountDepositPrefillEnabled: jest.fn(),
+  }),
+);
 
 const mockUseConfirmNavigation = useConfirmNavigation as jest.MockedFunction<
   typeof useConfirmNavigation
@@ -129,6 +138,26 @@ const mockFindNetworkClientIdByChainId = Engine.context.NetworkController
   .findNetworkClientIdByChainId as jest.MockedFunction<
   typeof Engine.context.NetworkController.findNetworkClientIdByChainId
 >;
+const mockUseMoneyAccountDepositPrefillEnabled = jest.mocked(
+  useMoneyAccountDepositPrefillEnabled,
+);
+const mockIsDepositPrefillEnabled = jest.fn(
+  (intent?: 'convert' | 'addMusd' | 'card') => intent === 'addMusd',
+);
+
+function mockDepositPrefillEnabled(
+  isEnabled: boolean | ((intent?: 'convert' | 'addMusd' | 'card') => boolean),
+) {
+  mockIsDepositPrefillEnabled.mockImplementation(
+    typeof isEnabled === 'function'
+      ? isEnabled
+      : (intent?: 'convert' | 'addMusd' | 'card') =>
+          intent === 'addMusd' ? true : isEnabled,
+  );
+  mockUseMoneyAccountDepositPrefillEnabled.mockReturnValue(
+    mockIsDepositPrefillEnabled,
+  );
+}
 
 const MOCK_VAULT_CONFIG = {
   chainId: '0xa4b1',
@@ -173,6 +202,8 @@ function setupSelectors(options: SelectorOptions = {}) {
     if (selector === selectMoneyAccountVaultConfig) return vaultConfig;
     if (selector === selectPrimaryMoneyAccount) return primaryMoneyAccount;
     if (selector === selectEvmAddress) return recipient;
+    // Invoke inline selectors so module-level mocks resolve correctly.
+    if (typeof selector === 'function') return selector(undefined);
     return undefined;
   });
 }
@@ -180,6 +211,7 @@ function setupSelectors(options: SelectorOptions = {}) {
 describe('useMoneyAccountDeposit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockDepositPrefillEnabled(false);
     mockContainsUserRejectedError.mockReturnValue(false);
     mockUseNavigation.mockReturnValue({ goBack: mockGoBack } as never);
     mockGetCurrentRoute.mockReturnValue({
@@ -283,6 +315,7 @@ describe('useMoneyAccountDeposit', () => {
         amount: BigInt(0),
         chainId: MOCK_VAULT_CONFIG.chainId,
         boringVault: MOCK_VAULT_CONFIG.boringVault,
+        initialiseWithoutData: true,
       }),
     );
 
@@ -305,6 +338,7 @@ describe('useMoneyAccountDeposit', () => {
         disableHook: true,
         disableSequential: true,
         disableUpgrade: true,
+        skipInitialGasEstimate: true,
       }),
     );
   });
@@ -349,7 +383,7 @@ describe('useMoneyAccountDeposit', () => {
     });
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.AdvancedCustomAmount,
+      loader: ConfirmationLoader.PrefillCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken,
       autoSelectFiatPayment: undefined,
@@ -358,6 +392,57 @@ describe('useMoneyAccountDeposit', () => {
     expect(observedBatchId).toMatch(/^0x[0-9a-f]+$/);
     expect(intentAtCallTime).toBe('addMusd');
     clearMoneyAccountDepositIntent(observedBatchId);
+  });
+
+  it('uses PrefillCustomAmount loader when deposit prefill is enabled', async () => {
+    mockDepositPrefillEnabled(true);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit();
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
+      expect.objectContaining({
+        loader: ConfirmationLoader.PrefillCustomAmount,
+      }),
+    );
+  });
+
+  it('uses AdvancedCustomAmount loader when deposit prefill is disabled', async () => {
+    mockDepositPrefillEnabled(false);
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit();
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
+      expect.objectContaining({
+        loader: ConfirmationLoader.AdvancedCustomAmount,
+      }),
+    );
+  });
+
+  it('uses AdvancedCustomAmount loader for card intent even when prefill is enabled', async () => {
+    mockDepositPrefillEnabled((intent) => intent !== 'card');
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({
+        autoSelectFiatPayment: true,
+        intent: 'card',
+      });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
+      expect.objectContaining({
+        loader: ConfirmationLoader.AdvancedCustomAmount,
+      }),
+    );
   });
 
   it('registers no intent when omitted, leaving it to be derived from the transaction', async () => {
@@ -482,6 +567,25 @@ describe('useMoneyAccountDeposit', () => {
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith(
       expect.objectContaining({
         replace: true,
+      }),
+    );
+  });
+
+  it('always sets skipInitialGasEstimate to true regardless of chain', async () => {
+    setupSelectors({
+      vaultConfig: { ...MOCK_VAULT_CONFIG, chainId: '0x8f' },
+    });
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit();
+    });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGasFeeSponsored: true,
+        skipInitialGasEstimate: true,
       }),
     );
   });
@@ -671,7 +775,7 @@ describe('useMoneyAccountWithdrawal', () => {
     );
   });
 
-  it('sets isGasFeeSponsored to false when vault chain is not Monad', async () => {
+  it('sets isGasFeeSponsored to false but skipInitialGasEstimate to true when vault chain is not Monad', async () => {
     const { result } = renderHook(() => useMoneyAccountWithdrawal());
 
     await act(async () => {
@@ -681,6 +785,7 @@ describe('useMoneyAccountWithdrawal', () => {
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
       expect.objectContaining({
         isGasFeeSponsored: false,
+        skipInitialGasEstimate: true,
       }),
     );
   });

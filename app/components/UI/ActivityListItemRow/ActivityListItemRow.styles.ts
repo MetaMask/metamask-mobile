@@ -130,6 +130,15 @@ export const createStyles = (
       alignItems: 'center',
       marginTop: 0,
     },
+    subtitleRowSpaced: {
+      marginTop: 4,
+    },
+    subtitleAccountAvatar: {
+      marginRight: 4,
+    },
+    subtitleAccountName: {
+      flexShrink: 1,
+    } as TextStyle,
     subtitleLeadingIcon: {
       height: 16,
       justifyContent: 'center',

@@ -2,13 +2,11 @@ import {
   PERPS_ORDER_KINDS,
   type ActivityKind,
 } from '../../../util/activity-adapters';
+import type { ActivityScreenEntryPoint } from '../../../core/Analytics/events/activity';
 
 export type { ActivityKind };
 
-/**
- * Top-level "Types" filter buckets shown in the Activity screen filter sheet.
- * Each bucket maps to a set of `ActivityKind`s via `ACTIVITY_TYPE_FILTER_KINDS`.
- */
+/** Top-level "Types" filter buckets, mapped to kinds by `ACTIVITY_TYPE_FILTER_KINDS`. */
 export enum ActivityTypeFilter {
   All = 'all',
   Transactions = 'transactions',
@@ -19,29 +17,21 @@ export enum ActivityTypeFilter {
 }
 
 /**
- * Secondary "Perps" filter buckets, shown in place of the network selector when
- * the top-level Type filter is `Perps`. Each maps to a subset of the Perps
- * `ActivityKind`s, derived from the perps source `transaction.type`
- * (trade / order / funding / deposit|withdrawal) — see `perps-transaction.ts`.
- *
- * String values mirror metamask-extension's `PerpsTransactionFilter`
- * (`trade | order | funding | deposit`) for cross-platform parity. Display
- * labels intentionally follow the mobile ticket (Trades / Order / Fundings /
- * Deposits) — see PERPS_ACTIVITY_FILTER_LABEL_KEY.
+ * Secondary "Perps" buckets, shown in place of the network selector when the
+ * Type filter is `Perps`. Values stay singular to mirror extension's
+ * `PerpsTransactionFilter`, even where the member and label are plural.
  */
 export enum PerpsActivityFilter {
   Trades = 'trade',
-  Order = 'order',
+  Orders = 'order',
   Fundings = 'funding',
   Deposits = 'deposit',
 }
 
 /**
- * Bucket → kinds mapping for the Perps sub-filter. This is the single source of
- * truth for which kinds count as "Perps": `ACTIVITY_TYPE_FILTER_KINDS[Perps]`
- * is derived from the union of these buckets, so a new Perps kind only needs to
- * be added here (in exactly one bucket). Withdrawals are grouped under
- * `Deposits` (funds movements) per product.
+ * Single source of truth for which kinds count as "Perps" — add a new kind here
+ * (in exactly one bucket) and the top-level bucket picks it up. Withdrawals sit
+ * under `Deposits` per product.
  */
 export const PERPS_ACTIVITY_FILTER_KINDS: Record<
   PerpsActivityFilter,
@@ -60,7 +50,7 @@ export const PERPS_ACTIVITY_FILTER_KINDS: Record<
     'perpsCloseShortTakeProfit',
   ]),
 
-  [PerpsActivityFilter.Order]: new Set<ActivityKind>(PERPS_ORDER_KINDS),
+  [PerpsActivityFilter.Orders]: new Set<ActivityKind>(PERPS_ORDER_KINDS),
   [PerpsActivityFilter.Fundings]: new Set<ActivityKind>([
     'perpsPaidFundingFees',
     'perpsReceivedFundingFees',
@@ -74,21 +64,18 @@ export const PERPS_ACTIVITY_FILTER_KINDS: Record<
 // `Trades` is the default selection (per design).
 export const PERPS_ACTIVITY_FILTER_ORDER: PerpsActivityFilter[] = [
   PerpsActivityFilter.Trades,
-  PerpsActivityFilter.Order,
+  PerpsActivityFilter.Orders,
   PerpsActivityFilter.Fundings,
   PerpsActivityFilter.Deposits,
 ];
 
-/**
- * Every kind that counts as "Perps", derived from the sub-buckets so the
- * top-level Perps bucket and the sub-filter buckets can never drift.
- */
+/** Derived from the sub-buckets so the two can never drift. */
 const PERPS_ACTIVITY_KINDS: ReadonlySet<ActivityKind> = new Set(
   Object.values(PERPS_ACTIVITY_FILTER_KINDS).flatMap((kinds) => [...kinds]),
 );
 
 /**
- * Bucket → kinds mapping. `null` means "no filtering" (matches everything).
+ * Bucket → kinds. `null` matches everything.
  *
  * TODO: refine bucket membership with product/design once adapters land —
  * Money/MetaMask Card definitions are best-guess based on the Figma options.
@@ -140,8 +127,7 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
 };
 
 // TODO: re-enable `ActivityTypeFilter.All` once the data sources are unified
-// (deduped, time-sorted across EVM tx controller, non-EVM keyrings, perps,
-// predict, etc.). Until then we ship type-only filtering — see TMCU thread.
+// (deduped and time-sorted across EVM, non-EVM, perps and predict).
 export const ACTIVITY_TYPE_FILTER_ORDER: ActivityTypeFilter[] = [
   // ActivityTypeFilter.All,
   ActivityTypeFilter.Transactions,
@@ -163,9 +149,11 @@ export function activityKindMatchesTypeFilter(
 }
 
 /**
- * Resolves the set of kinds for an active Perps sub-filter, or `undefined` when
- * there is no/unknown sub-filter (callers then apply no narrowing). Returning
- * `undefined` for an unknown value degrades gracefully instead of crashing.
+ * Kinds for an active Perps sub-filter.
+ *
+ * @param filter - Active sub-filter, if any.
+ * @returns Matching kinds, or `undefined` when there is no or an unknown
+ * sub-filter, so callers narrow nothing rather than crash.
  */
 export function getPerpsSubFilterKinds(
   filter: PerpsActivityFilter | undefined,
@@ -178,11 +166,9 @@ export function getPerpsSubFilterKinds(
 
 /** Route params the redesigned Activity screen reads to become context-aware. */
 export interface ActivityScreenParams {
-  /**
-   * Pre-selects the Type filter when navigating into Activity from a context
-   * (e.g. Perps → Perps, Predict → Predictions).
-   */
+  /** Pre-selects the Type filter, e.g. Perps → Perps, Predict → Predictions. */
   initialTypeFilter?: ActivityTypeFilter;
+  entryPoint?: ActivityScreenEntryPoint;
   initialPerpsFilter?: PerpsActivityFilter;
   /** Legacy redirect hints, mapped to a Type filter for back-compat. */
   redirectToPerpsTransactions?: boolean;
@@ -190,10 +176,9 @@ export interface ActivityScreenParams {
 }
 
 /**
- * Resolves the initial Type filter for the Activity screen from its route
- * params: an explicit, selectable `initialTypeFilter` wins; otherwise the
- * legacy redirect hints map to a bucket (Perps / Buy-Sell); otherwise the
- * default Transactions filter.
+ * @param params - Route params for the Activity screen.
+ * @returns A selectable `initialTypeFilter` if given, else the bucket implied
+ * by the legacy redirect hints, else `Transactions`.
  */
 export function resolveInitialActivityTypeFilter(
   params: ActivityScreenParams | undefined,

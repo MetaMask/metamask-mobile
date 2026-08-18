@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import configureMockStore from 'redux-mock-store';
 import {
   type INotification,
@@ -42,6 +43,7 @@ jest.mock('@react-navigation/native');
 describe('NotificationsDetails', () => {
   const mockStore = configureMockStore();
   const store = mockStore(mockInitialState);
+  const queryClient = new QueryClient();
 
   let navigation: NavigationProp<ParamListBase>;
 
@@ -56,13 +58,19 @@ describe('NotificationsDetails', () => {
       .mockReturnValue({ markNotificationAsRead: jest.fn(), loading: false });
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   const renderDetailsPage = (notification: INotification) =>
     render(
       <Provider store={store}>
-        <NotificationsDetails
-          navigation={navigation}
-          route={{ params: { notification } }}
-        />
+        <QueryClientProvider client={queryClient}>
+          <NotificationsDetails
+            navigation={navigation}
+            route={{ params: { notification } }}
+          />
+        </QueryClientProvider>
       </Provider>,
     );
 

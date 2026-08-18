@@ -1,6 +1,5 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
   TokenOverviewSelectorsIDs,
   TokenOverviewSelectorsText,
@@ -8,29 +7,11 @@ import {
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class TokenOverview {
   get container(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            TokenOverviewSelectorsIDs.CONTAINER,
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TokenOverviewSelectorsIDs.CONTAINER,
-          ),
-      },
-    });
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.CONTAINER);
   }
 
   get tokenPrice(): EncapsulatedElementType {
@@ -38,57 +19,23 @@ class TokenOverview {
   }
 
   get sendButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(TokenOverviewSelectorsIDs.SEND_BUTTON),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            TokenOverviewSelectorsIDs.SEND_BUTTON,
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            TokenOverviewSelectorsIDs.SEND_BUTTON,
-          ),
-      },
-    });
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.SEND_BUTTON);
   }
 
   /** Today's change display (e.g. "+2.5% Today") - used by performance tests */
   get todaysChange(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(TokenOverviewSelectorsIDs.TODAYS_CHANGE),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          TokenOverviewSelectorsIDs.TODAYS_CHANGE,
-        ),
-    });
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.TODAYS_CHANGE);
   }
 
   get priceChartDotEnd(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(TokenOverviewSelectorsIDs.PRICE_CHART_DOT_END),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          TokenOverviewSelectorsIDs.TOKEN_PRICE,
-        ),
-    });
+    // Appium historically matched TOKEN_PRICE for this marker.
+    return Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE);
   }
 
   get priceChartContainer(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER,
-        ),
-    });
+    return Matchers.getElementByID(
+      TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER,
+    );
   }
 
   get unstakeButton(): EncapsulatedElementType {
@@ -162,37 +109,51 @@ class TokenOverview {
   }
 
   async tapSendButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.sendButton, {
-      description: 'Send Button',
+    await Gestures.waitAndTap(this.sendButton, {
+      elemDescription: 'Send Button',
     });
   }
 
   async tapActionSheetSendButton(): Promise<void> {
-    await Gestures.waitAndTap(this.actionSheetSendButton);
+    await Gestures.waitAndTap(this.actionSheetSendButton, {
+      elemDescription: 'Action sheet send button',
+    });
   }
 
   async tapBridgeButton(): Promise<void> {
-    await Gestures.waitAndTap(this.bridgeButton);
+    await Gestures.waitAndTap(this.bridgeButton, {
+      elemDescription: 'Bridge button',
+    });
   }
 
   async tapSwapButton(): Promise<void> {
-    await Gestures.waitAndTap(this.swapButton);
+    await Gestures.waitAndTap(this.swapButton, {
+      elemDescription: 'Swap button',
+    });
   }
 
   async tapStakeMoreButton(): Promise<void> {
-    await Gestures.waitAndTap(this.stakeMoreButton);
+    await Gestures.waitAndTap(this.stakeMoreButton, {
+      elemDescription: 'Stake more button',
+    });
   }
 
   async tapUnstakeButton(): Promise<void> {
-    await Gestures.waitAndTap(this.unstakeButton);
+    await Gestures.waitAndTap(this.unstakeButton, {
+      elemDescription: 'Unstake button',
+    });
   }
 
   async tapBackButton(): Promise<void> {
-    await Gestures.waitAndTap(this.closeButton);
+    await Gestures.waitAndTap(this.closeButton, {
+      elemDescription: 'Token overview back button',
+    });
   }
 
   async tapClaimButton(): Promise<void> {
-    await Gestures.waitAndTap(this.claimButton);
+    await Gestures.waitAndTap(this.claimButton, {
+      elemDescription: 'Claim button',
+    });
   }
 
   async scrollOnScreen(): Promise<void> {

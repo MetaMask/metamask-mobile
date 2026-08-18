@@ -33,6 +33,7 @@ import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
   CryptoPriceHistoryPoint,
+  CryptoPriceSubscriptionOptions,
   GetCryptoPriceHistoryParams,
   GetPriceHistoryParams,
   GetCryptoTargetPriceParams,
@@ -80,6 +81,7 @@ import {
   PrepareDepositResponse,
   PrepareWithdrawParams,
   PrepareWithdrawResponse,
+  PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   PriceUpdateCallback,
   PublishClaimParams,
@@ -133,6 +135,7 @@ import {
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
+  previewMaxBuyOrder,
   searchEventsFromPolymarketApi,
 } from './utils';
 import { PredictFeatureFlags } from '../../types/flags';
@@ -176,6 +179,7 @@ import {
   waitForDepositWalletDeployed,
   waitForDepositWalletTransaction,
 } from './depositWallet';
+import { fetchWithTimeout } from './fetchWithTimeout';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -389,6 +393,18 @@ export class PolymarketProvider implements PredictProvider {
     return this.#getFeatureFlags().enabledSportsMarketTypes;
   }
 
+  #canGroupAllActiveMarkets(event: PolymarketApiEvent): boolean {
+    const enabledMarketTypes = new Set(this.#getEnabledSportsMarketTypes());
+
+    return event.markets
+      .filter((market) => market.active !== false)
+      .every(
+        (market) =>
+          Boolean(market.sportsMarketType) &&
+          enabledMarketTypes.has(market.sportsMarketType?.toLowerCase() ?? ''),
+      );
+  }
+
   #createTeamLookup(
     enabled: boolean,
   ):
@@ -477,6 +493,16 @@ export class PolymarketProvider implements PredictProvider {
       return { resolvedEvent: event };
     }
 
+    // Preserve direct child pages until every active market can render in the
+    // curated parent view. Remove this guard once all sports types are grouped.
+    if (
+      event.parentEventId !== undefined &&
+      event.parentEventId !== null &&
+      !this.#canGroupAllActiveMarkets(event)
+    ) {
+      return { resolvedEvent: event };
+    }
+
     const resolvedEventId = event.parentEventId ?? event.id;
 
     try {
@@ -549,6 +575,36 @@ export class PolymarketProvider implements PredictProvider {
       this.#hasPermit2Config({ permit2Enabled, executors }) &&
       fakOrdersEnabled === true
     );
+  }
+
+  #decorateOrderPreview({
+    preview,
+    feeCollection,
+    fakOrdersEnabled,
+    signer,
+  }: {
+    preview: OrderPreview;
+    feeCollection: PredictFeatureFlags['feeCollection'];
+    fakOrdersEnabled: boolean;
+    signer: Signer;
+  }): OrderPreview {
+    const orderType = this.#shouldUseFakOrderType({
+      permit2Enabled: feeCollection.permit2Enabled,
+      executors: feeCollection.executors,
+      fakOrdersEnabled,
+    })
+      ? OrderType.FAK
+      : OrderType.FOK;
+
+    const decoratedPreview: OrderPreview = {
+      ...preview,
+      feeRateBps: getPreviewFeeRateBpsForProtocol(),
+      orderType,
+    };
+
+    return this.isRateLimited(signer.address)
+      ? { ...decoratedPreview, rateLimited: true }
+      : decoratedPreview;
   }
 
   #getProtocol(): PolymarketProtocolDefinition {
@@ -1027,7 +1083,7 @@ export class PolymarketProvider implements PredictProvider {
         }),
       );
 
-      return { markets: [], nextCursor: null };
+      throw error;
     }
   }
 
@@ -1054,7 +1110,7 @@ export class PolymarketProvider implements PredictProvider {
         }),
       );
 
-      return { markets: [], nextCursor: null };
+      throw error;
     }
   }
 
@@ -1120,7 +1176,7 @@ export class PolymarketProvider implements PredictProvider {
         }),
       );
 
-      return { markets: [], totalResults: 0 };
+      throw error;
     }
   }
 
@@ -1140,7 +1196,7 @@ export class PolymarketProvider implements PredictProvider {
         ascending: 'true',
       });
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${GAMMA_API_ENDPOINT}/events/keyset?${queryParams.toString()}`,
       );
 
@@ -1184,7 +1240,7 @@ export class PolymarketProvider implements PredictProvider {
         }),
       );
 
-      return [];
+      throw error;
     }
   }
 
@@ -1271,7 +1327,7 @@ export class PolymarketProvider implements PredictProvider {
         searchParams.set('interval', interval);
       }
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${CLOB_ENDPOINT}/prices-history?${searchParams.toString()}`,
         {
           method: 'GET',
@@ -1340,7 +1396,7 @@ export class PolymarketProvider implements PredictProvider {
         limit: String(limit),
       });
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${CHAINLINK_CANDLES_ENDPOINT}?${searchParams.toString()}`,
         { method: 'GET' },
       );
@@ -1435,7 +1491,7 @@ export class PolymarketProvider implements PredictProvider {
       const { CRYPTO_PRICE_ENDPOINT } = getPolymarketEndpoints();
       const url = `${CRYPTO_PRICE_ENDPOINT}?symbol=${encodeURIComponent(params.symbol)}&eventStartTime=${encodeURIComponent(params.eventStartTime)}&variant=${encodeURIComponent(params.variant)}&endDate=${encodeURIComponent(params.endDate)}`;
 
-      const response = await fetch(url);
+      const response = await fetchWithTimeout(url);
       if (!response.ok) {
         throw new Error(`Crypto target price API returned ${response.status}`);
       }
@@ -1484,7 +1540,7 @@ export class PolymarketProvider implements PredictProvider {
         { token_id: query.outcomeTokenId, side: Side.SELL },
       ]);
 
-      const response = await fetch(`${CLOB_ENDPOINT}/prices`, {
+      const response = await fetchWithTimeout(`${CLOB_ENDPOINT}/prices`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1963,7 +2019,7 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     const positionsUrl = `${DATA_API_ENDPOINT}/positions?${queryParams.toString()}`;
-    const response = await fetch(positionsUrl, {
+    const response = await fetchWithTimeout(positionsUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -2034,7 +2090,7 @@ export class PolymarketProvider implements PredictProvider {
         offset: String(offset),
       });
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${DATA_API_ENDPOINT}/activity?${queryParams.toString()}`,
         {
           method: 'GET',
@@ -2086,7 +2142,7 @@ export class PolymarketProvider implements PredictProvider {
       this.#getCachedAccountState(address)?.address ??
       (await this.getAccountState({ ownerAddress: address })).address;
 
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${DATA_API_ENDPOINT}/upnl?user=${predictAddress}`,
       {
         method: 'GET',
@@ -2119,32 +2175,37 @@ export class PolymarketProvider implements PredictProvider {
       ...params,
       feeCollection,
     });
-    const normalizedPreview = {
-      ...basePreview,
-      feeRateBps: getPreviewFeeRateBpsForProtocol(),
-    };
 
-    let orderType = OrderType.FOK;
+    return this.#decorateOrderPreview({
+      preview: basePreview,
+      feeCollection,
+      fakOrdersEnabled,
+      signer: params.signer,
+    });
+  }
 
-    if (
-      this.#shouldUseFakOrderType({
-        permit2Enabled: feeCollection.permit2Enabled,
-        executors: feeCollection.executors,
-        fakOrdersEnabled,
-      })
-    ) {
-      orderType = OrderType.FAK;
+  public async previewMaxBuyOrder(
+    params: PreviewMaxBuyOrderParams & {
+      signer: Signer;
+    },
+  ): Promise<OrderPreview | null> {
+    const { signer, ...previewParams } = params;
+    const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
+    const basePreview = await previewMaxBuyOrder({
+      ...previewParams,
+      feeCollection,
+    });
+
+    if (!basePreview) {
+      return null;
     }
 
-    if (params.signer && this.isRateLimited(params.signer.address)) {
-      return {
-        ...normalizedPreview,
-        orderType,
-        rateLimited: true,
-      };
-    }
-
-    return { ...normalizedPreview, orderType };
+    return this.#decorateOrderPreview({
+      preview: basePreview,
+      feeCollection,
+      fakOrdersEnabled,
+      signer,
+    });
   }
 
   public async placeOrder(
@@ -2543,7 +2604,7 @@ export class PolymarketProvider implements PredictProvider {
     const result: GeoBlockResponse = { isEligible: false };
 
     try {
-      const res = await fetch(GEOBLOCK_API_ENDPOINT);
+      const res = await fetchWithTimeout(GEOBLOCK_API_ENDPOINT);
       const data = (await res.json()) as {
         blocked?: boolean;
         country?: string;
@@ -2729,7 +2790,7 @@ export class PolymarketProvider implements PredictProvider {
       user: address,
       limit: '1',
     });
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${DATA_API_ENDPOINT}/activity?${queryParams.toString()}`,
     );
 
@@ -2806,6 +2867,31 @@ export class PolymarketProvider implements PredictProvider {
         depositWalletAddress,
         numberToHex(POLYGON_MAINNET_CHAIN_ID),
       );
+
+      if (legacySafeIsDeployed && !depositWalletIsDeployed) {
+        const protocol = this.#getProtocol();
+        const [legacyPusdBalance, legacyUsdceBalance] = await Promise.all([
+          getRawBalance({
+            address: legacySafeAddress,
+            tokenAddress: protocol.collateral.tradingToken,
+          }),
+          getRawBalance({
+            address: legacySafeAddress,
+            tokenAddress: protocol.collateral.legacyUsdceToken,
+          }),
+        ]);
+
+        if (legacyPusdBalance > 0n || legacyUsdceBalance > 0n) {
+          const accountState: AccountState = {
+            address: legacySafeAddress,
+            isDeployed: true,
+            walletType: 'safe',
+          };
+          this.#setCachedAccountState(normalizedOwnerAddress, accountState);
+          return accountState;
+        }
+      }
+
       const accountState: AccountState = {
         address: depositWalletAddress,
         isDeployed: depositWalletIsDeployed,
@@ -3273,20 +3359,28 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('Signer address is required');
     }
 
-    const safeAddress =
-      this.#getCachedAccountState(signer.address)?.address ??
-      computeProxyAddress(signer.address);
-
     const amount = getSafeTransferAmount(callData);
-    const requestedAmountRaw = getSafeTransferAmountRaw(callData);
+    const accountState =
+      this.#getCachedAccountState(signer.address) ??
+      (await this.getAccountState({ ownerAddress: signer.address }));
 
+    if (accountState.walletType === 'deposit-wallet') {
+      // Transaction Pay signs and publishes deposit-wallet batches externally.
+      return {
+        callData,
+        amount,
+        walletType: accountState.walletType,
+      };
+    }
+
+    const requestedAmountRaw = getSafeTransferAmountRaw(callData);
     const safeLegacyUsdceBalance = await this.#getLegacyUsdceBalance({
-      safeAddress,
+      safeAddress: accountState.address,
       protocol,
     });
     const signedWithdrawTransaction = await buildWithdrawTransaction({
       signer,
-      safeAddress,
+      safeAddress: accountState.address,
       requestedAmountRaw,
       protocol,
       safeLegacyUsdceBalance,
@@ -3295,6 +3389,7 @@ export class PolymarketProvider implements PredictProvider {
     return {
       callData: signedWithdrawTransaction.params.data,
       amount,
+      walletType: accountState.walletType,
     };
   }
 
@@ -3340,11 +3435,18 @@ export class PolymarketProvider implements PredictProvider {
   public subscribeToCryptoPrices(
     symbols: string[],
     callback: CryptoPriceUpdateCallback,
+    options?: CryptoPriceSubscriptionOptions,
   ): () => void {
-    return WebSocketManager.getInstance().subscribeToCryptoPrices(
-      symbols,
-      callback,
-    );
+    return options
+      ? WebSocketManager.getInstance().subscribeToCryptoPrices(
+          symbols,
+          callback,
+          options,
+        )
+      : WebSocketManager.getInstance().subscribeToCryptoPrices(
+          symbols,
+          callback,
+        );
   }
 
   public subscribeToConnectionStatus(

@@ -49,6 +49,20 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock(
+  '../MarketInsights/components/MarketInsightsEntryCard/MarketInsightsDisclaimerBottomSheet',
+  () => ({
+    __esModule: true,
+    default: ({ onClose }: { onClose: () => void }) => {
+      const { View, Pressable } = jest.requireActual('react-native');
+      return (
+        <View testID="mock-ai-disclaimer-bottom-sheet">
+          <Pressable testID="mock-ai-disclaimer-close" onPress={onClose} />
+        </View>
+      );
+    },
+  }),
+);
 const mockUseWhatsHappening = jest.requireMock('./hooks').useWhatsHappening;
 const mockSelectWhatsHappeningEnabled = jest.requireMock(
   '../../../selectors/featureFlagController/whatsHappening',
@@ -135,6 +149,65 @@ describe('WhatsHappeningSection', () => {
       screen.getByTestId(WhatsHappeningSelectorsIDs.CAROUSEL),
     ).toBeOnTheScreen();
     expect(screen.getByText(mockItem.title)).toBeOnTheScreen();
+  });
+
+  it('renders the AI Generated label as a section subtitle when items are available', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
+    expect(screen.getByText('AI Generated')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(WhatsHappeningSelectorsIDs.AI_GENERATED_LABEL),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the AI disclaimer bottom sheet when the info button is pressed', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
+
+    fireEvent.press(
+      screen.getByTestId(WhatsHappeningSelectorsIDs.AI_GENERATED_LABEL),
+    );
+
+    expect(
+      screen.getByTestId('mock-ai-disclaimer-bottom-sheet'),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the AI disclaimer bottom sheet when onClose is called', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
+    fireEvent.press(
+      screen.getByTestId(WhatsHappeningSelectorsIDs.AI_GENERATED_LABEL),
+    );
+    fireEvent.press(screen.getByTestId('mock-ai-disclaimer-close'));
+
+    expect(screen.queryByTestId('mock-ai-disclaimer-bottom-sheet')).toBeNull();
+  });
+
+  it('does not render the AI Generated label while loading', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [],
+      isLoading: true,
+      error: null,
+      refresh: jest.fn(),
+    });
+    renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
+    expect(screen.queryByText('AI Generated')).toBeNull();
   });
 
   it('renders error state when fetch fails', () => {

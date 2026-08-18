@@ -184,7 +184,7 @@ describe('hasExistingMoneyBalance', () => {
 
     expect(result).toBe(true);
     expect(mockedGetQueryData).toHaveBeenCalledWith([
-      MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
+      MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK,
       MOCK_MONEY_ACCOUNT_ADDRESS,
     ]);
   });

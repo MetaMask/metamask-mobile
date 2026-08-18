@@ -14,6 +14,7 @@ import { strings } from '../../../../../locales/i18n';
 import { TokenListItem } from './TokenListItem/TokenListItem';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   Box,
@@ -92,7 +93,7 @@ const TokenListComponent = ({
 
   const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Apply maxItems limit if specified

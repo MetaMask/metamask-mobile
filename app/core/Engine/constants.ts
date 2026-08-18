@@ -10,6 +10,9 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'NftDetectionController',
   'RewardsDataService',
   'StorageService',
+  'SubscriptionService',
+  'ShieldApiService',
+  'ClaimsService',
   'TokenDetectionController',
   'WebSocketService',
   'BackendWebSocketService',
@@ -27,8 +30,11 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'SocialService',
   'AuthenticatedUserStorageService',
   'MoneyAccountBalanceService',
+  'MoneyAccountApiDataService',
   'ConfigRegistryApiService',
   'ChompApiService',
+  'SentinelApiService',
+  'PredictNextController',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -40,7 +46,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AppMetadataController:stateChange',
   'AssetsController:stateChange',
   'ConnectivityController:stateChange',
-  'ConfigRegistryController:stateChange',
+  'ConfigRegistryController:stateChanged',
   'ApprovalController:stateChange',
   'CurrencyRateController:stateChange',
   'GasFeeController:stateChange',
@@ -57,6 +63,9 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'SelectedNetworkController:stateChange',
   'SignatureController:stateChange',
   'SmartTransactionsController:stateChange',
+  'SubscriptionController:stateChange',
+  'ShieldController:stateChange',
+  'ClaimsController:stateChange',
   'TokenBalancesController:stateChange',
   'TokenRatesController:stateChange',
   'TokensController:stateChange',
@@ -90,10 +99,12 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'PerpsController:stateChange',
   'RewardsController:stateChange',
   'DeFiPositionsController:stateChange',
+  'DeFiPositionsControllerV2:stateChanged',
   'SeedlessOnboardingController:stateChange',
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   'SamplePetnamesController:stateChange',
   ///: END:ONLY_INCLUDE_IF
+  'NetworkConnectionBannerController:stateChanged',
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
   'CardController:stateChange',

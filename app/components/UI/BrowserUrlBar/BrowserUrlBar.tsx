@@ -36,6 +36,7 @@ import { selectNetworkConfigurations } from '../../../selectors/networkControlle
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Routes from '../../../constants/navigation/Routes';
 import URLParse from 'url-parse';
 import ButtonIcon, {
@@ -68,7 +69,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
     const accountsLength = useSelector(selectAccountsLength);
     const networkConfigurations = useSelector(selectNetworkConfigurations);
     const { trackEvent, createEventBuilder } = useAnalytics();
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const selectedAddress = connectedAccounts?.[0];
     const dappOrigin = useMemo(() => {
       if (!activeUrl) {
@@ -194,6 +195,13 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       dappOrigin,
     ]);
 
+    const dismissEditing = useCallback(() => {
+      shouldTriggerBlurCallbackRef.current = false;
+      inputRef?.current?.blur();
+      unfocusInput();
+      onBlur();
+    }, [unfocusInput, onBlur]);
+
     useImperativeHandle(ref, () => ({
       hide: () => onCancelInput(),
       blur: () => inputRef?.current?.blur(),
@@ -206,6 +214,10 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
         }
         inputRef?.current?.setNativeProps(props);
       },
+      suppressNextBlur: () => {
+        shouldTriggerBlurCallbackRef.current = false;
+      },
+      dismissEditing,
     }));
 
     /**
@@ -305,6 +317,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
             />
             <TouchableWithoutFeedback onPress={onPressUrlText}>
               <Text
+                testID={BrowserURLBarSelectorsIDs.URL_DISPLAY_TEXT}
                 style={styles.urlBarText}
                 numberOfLines={1}
                 ellipsizeMode="head"

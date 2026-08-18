@@ -1,6 +1,7 @@
 export const SocialTradersTabsViewSelectorsIDs = {
   CONTAINER: 'social-traders-tabs-view-container',
   HEADER: 'social-traders-tabs-view-header',
+  HEADER_TITLE: 'social-traders-tabs-view-header-title',
   TITLE: 'social-traders-tabs-view-title',
   TABS: 'social-traders-tabs-view-tabs',
   PAGER: 'social-traders-tabs-view-pager',
@@ -8,4 +9,5 @@ export const SocialTradersTabsViewSelectorsIDs = {
   FEED_PAGE: 'social-traders-tabs-view-feed-page',
   NOTIFICATION_BUTTON: 'social-traders-tabs-view-notification-button',
   BACK_BUTTON: 'social-traders-tabs-view-back-button',
+  NOTIFICATIONS_BANNER: 'social-traders-tabs-view-notifications-banner',
 } as const;

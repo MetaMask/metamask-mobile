@@ -13,6 +13,7 @@ export interface MoneyPreferredPaymentToken {
 }
 
 export interface MoneyOnboardingParams {
+  entryPoint?: string;
   postOnboardingRedirect?: {
     type: MoneyPostOnboardingRedirectType;
     preferredPaymentToken?: MoneyPreferredPaymentToken;
@@ -25,7 +26,7 @@ export interface MoneyOnboardingParams {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyScreensStackParamList = {
-  MoneyHome: undefined;
+  MoneyHome: { entryPoint?: string } | undefined;
   MoneyActivity: undefined;
   MoneyHowItWorks: undefined;
 };
@@ -50,11 +51,13 @@ export type MoneyModalsNavigationParamList = {
   MoneyAddMoneySheet: undefined;
   MoneyMoreSheet: undefined;
   MoneyTransferSheet: undefined;
-  MoneyApyInfoSheet: { apy: number; variant?: 'default' | 'deposit' };
-  MoneyEarningsInfoSheet: undefined;
+  MoneyApyInfoSheet: { apy?: number; variant?: 'default' | 'deposit' };
+  MoneyEarningsInfoSheet: { variant: 'monthly' | 'lifetime' };
   MoneyBalanceInfoSheet: undefined;
   MoneyLinkCardSheet: { entrypoint?: string } | undefined;
-  MoneyEarnCryptoInfoSheet: { variant?: 'default' | 'deposit' } | undefined;
+  MoneyEarnCryptoInfoSheet:
+    | { variant?: 'default' | 'deposit'; showMoneyHomeCta?: boolean }
+    | undefined;
   MoneyGeoBlockSheet: undefined;
 };
 

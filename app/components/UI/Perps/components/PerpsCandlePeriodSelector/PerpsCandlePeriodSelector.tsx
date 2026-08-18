@@ -8,17 +8,23 @@ import {
   SelectButton,
   SelectButtonSize,
   SelectButtonVariant,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { CandlePeriod, CANDLE_PERIODS } from '@metamask/perps-controller';
 import { getPerpsCandlePeriodSelector } from '../../Perps.testIds';
 
-const DEFAULT_CANDLE_PERIODS = [
+export interface PerpsCandlePeriodOption {
+  label: string;
+  value: CandlePeriod;
+}
+
+export const DEFAULT_CANDLE_PERIODS = [
   { label: '1min', value: CandlePeriod.OneMinute },
   { label: '3min', value: CandlePeriod.ThreeMinutes },
   { label: '5min', value: CandlePeriod.FiveMinutes },
   { label: '15min', value: CandlePeriod.FifteenMinutes },
-] as const;
+] as const satisfies readonly PerpsCandlePeriodOption[];
 
 const getCandlePeriodLabel = (period: CandlePeriod | string): string => {
   const candlePeriod = CANDLE_PERIODS.find(
@@ -31,6 +37,13 @@ interface PerpsCandlePeriodSelectorProps {
   selectedPeriod: CandlePeriod | string;
   onPeriodChange?: (period: CandlePeriod) => void;
   onMorePress?: () => void;
+  visiblePeriods?: readonly PerpsCandlePeriodOption[];
+  twClassName?: string;
+  groupTwClassName?: string;
+  filterVariant?: FilterButtonVariant;
+  periodButtonTwClassName?: string;
+  moreButtonTwClassName?: string;
+  textVariant?: TextVariant;
   testID?: string;
 }
 
@@ -38,11 +51,18 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
   selectedPeriod,
   onPeriodChange,
   onMorePress,
+  visiblePeriods = DEFAULT_CANDLE_PERIODS,
+  twClassName = 'w-full items-center py-3',
+  groupTwClassName = 'gap-1 grow justify-center',
+  filterVariant = FilterButtonVariant.Primary,
+  periodButtonTwClassName,
+  moreButtonTwClassName,
+  textVariant,
   testID,
 }) => {
   const normalizedSelectedPeriod = selectedPeriod?.toLowerCase();
 
-  const isMorePeriodSelected = !DEFAULT_CANDLE_PERIODS.some(
+  const isMorePeriodSelected = !visiblePeriods.some(
     (period) => period.value?.toLowerCase() === normalizedSelectedPeriod,
   );
 
@@ -52,11 +72,11 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
     }
 
     return (
-      DEFAULT_CANDLE_PERIODS.find(
+      visiblePeriods.find(
         (period) => period.value?.toLowerCase() === normalizedSelectedPeriod,
       )?.value ?? ''
     );
-  }, [isMorePeriodSelected, normalizedSelectedPeriod]);
+  }, [isMorePeriodSelected, normalizedSelectedPeriod, visiblePeriods]);
 
   const handleFilterChange = useCallback(
     (value: string) => {
@@ -70,18 +90,21 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
     : null;
 
   return (
-    <Box twClassName="w-full items-center py-3" testID={testID}>
+    <Box twClassName={twClassName} testID={testID}>
       <FilterButtonGroup
         value={groupValue}
         onChange={handleFilterChange}
-        variant={FilterButtonVariant.Primary}
-        twClassName="gap-1 grow justify-center"
+        variant={filterVariant}
+        twClassName={groupTwClassName}
+        testID={testID ? getPerpsCandlePeriodSelector.group(testID) : undefined}
       >
-        {DEFAULT_CANDLE_PERIODS.map((period) => (
+        {visiblePeriods.map((period) => (
           <FilterButton
             key={period.value}
             value={period.value}
             size={FilterButtonSize.Sm}
+            twClassName={periodButtonTwClassName}
+            textProps={textVariant ? { variant: textVariant } : undefined}
             testID={
               testID
                 ? getPerpsCandlePeriodSelector.periodButton(
@@ -103,6 +126,8 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
               : SelectButtonVariant.Tertiary
           }
           size={SelectButtonSize.Sm}
+          twClassName={moreButtonTwClassName}
+          textProps={textVariant ? { variant: textVariant } : undefined}
           onPress={onMorePress}
           testID={
             testID ? getPerpsCandlePeriodSelector.moreButton(testID) : undefined

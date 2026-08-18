@@ -1,4 +1,5 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useEffect } from 'react';
 import { Image, StatusBar, View, useWindowDimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -13,7 +14,8 @@ import { CardWelcomeSelectors } from './CardWelcome.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { selectHasCardholderAccounts } from '../../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
@@ -40,7 +42,7 @@ interface StatusBarNavigation {
 
 const CardWelcome = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { goBack, navigate } = navigation;
   const hasCardholderAccounts = useSelector(selectHasCardholderAccounts);
   const postAuthRedirect = useCardPostAuthRedirect();
@@ -51,9 +53,11 @@ const CardWelcome = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.WELCOME,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.WELCOME,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -101,9 +105,11 @@ const CardWelcome = () => {
   const handleButtonPress = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.VERIFY_ACCOUNT_BUTTON,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.VERIFY_ACCOUNT_BUTTON,
+          }),
+        )
         .build(),
     );
 

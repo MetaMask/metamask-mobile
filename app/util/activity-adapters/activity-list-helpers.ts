@@ -4,6 +4,7 @@ import {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
 } from './adapters/environment';
+import { mergeActivityItemSponsoredFees } from './fees';
 import type { ActivityListItem, TokenAmount } from './types';
 
 export const SPENDING_CAP_KINDS = new Set<ActivityListItem['type']>([
@@ -101,7 +102,7 @@ export function preferLocalOrApiActivityItem(
   }
   return shouldPreferLocalActivityItem(localItem, apiItem)
     ? localItem
-    : apiItem;
+    : mergeActivityItemSponsoredFees(localItem, apiItem);
 }
 
 export type ActivityListFilter =

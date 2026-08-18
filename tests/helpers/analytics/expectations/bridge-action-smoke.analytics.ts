@@ -1,5 +1,4 @@
 import type { AnalyticsExpectations } from '../../../framework';
-import Assertions from '../../../framework/Assertions';
 import { filterEvents } from '../helpers';
 
 const BRIDGE_BUTTON_CLICKED = 'Unified SwapBridge Button Clicked';
@@ -9,6 +8,14 @@ const QUOTES_REQUESTED = 'Unified SwapBridge Quotes Requested';
 const SUBMITTED = 'Unified SwapBridge Submitted';
 const COMPLETED = 'Unified SwapBridge Completed';
 
+/**
+ * Bridge ETH→Base smoke MetaMetrics expectations.
+ *
+ * Do not pin `expectedTotalCount`: backend-suggested slippage hydration
+ * (#33431) may emit an extra `INPUT_CHANGED` with `input=slippage` after the
+ * first quote, so successful runs are often 9 filtered events rather than 8.
+ * Match swap-action: assert required named events + Input Changed contents.
+ */
 export const bridgeActionAnalyticsExpectations: AnalyticsExpectations = {
   eventNames: [
     BRIDGE_BUTTON_CLICKED,
@@ -18,7 +25,6 @@ export const bridgeActionAnalyticsExpectations: AnalyticsExpectations = {
     SUBMITTED,
     COMPLETED,
   ],
-  expectedTotalCount: 9,
   events: [
     {
       name: BRIDGE_BUTTON_CLICKED,
@@ -62,7 +68,7 @@ export const bridgeActionAnalyticsExpectations: AnalyticsExpectations = {
         chain_id_source: 'eip155:1',
         chain_id_destination: 'eip155:8453',
         token_address_source: 'eip155:1/slip44:60',
-        token_address_destination: 'eip155:8453/slip44:8453',
+        token_address_destination: 'eip155:8453/slip44:60',
         token_symbol_source: 'ETH',
         token_symbol_destination: 'ETH',
       },
@@ -71,20 +77,31 @@ export const bridgeActionAnalyticsExpectations: AnalyticsExpectations = {
   validate: async ({ events }) => {
     const inputChanged = filterEvents(events, INPUT_CHANGED);
 
-    await Assertions.checkIfArrayHasLength(inputChanged, 4);
+    // Always: token_destination, chain_source, chain_destination.
+    // Often +1: slippage after backend-suggested slippage hydration from quote.
+    if (inputChanged.length < 3 || inputChanged.length > 4) {
+      throw new Error(
+        `Expected 3–4 ${INPUT_CHANGED} events (optional slippage hydration), got ${String(inputChanged.length)}`,
+      );
+    }
 
     const inputs = inputChanged.map((e) => e.properties.input);
     for (const expected of [
       'token_destination',
       'chain_source',
       'chain_destination',
-      'slippage',
     ]) {
       if (!inputs.includes(expected)) {
         throw new Error(
           `Expected input=${expected} in ${INPUT_CHANGED} events. Found: ${inputs.join(', ')}`,
         );
       }
+    }
+
+    if (inputChanged.length === 4 && !inputs.includes('slippage')) {
+      throw new Error(
+        `Expected input=slippage when 4 ${INPUT_CHANGED} events are present. Found: ${inputs.join(', ')}`,
+      );
     }
   },
 };

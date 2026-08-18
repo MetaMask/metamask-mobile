@@ -33,6 +33,7 @@ const mockSelectors = (showFullAssetNames: boolean) => {
 jest.mock('@metamask/design-system-react-native', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
     SectionDivider: () => <View testID="section-divider" />,
     SectionHeader: ({
       title,

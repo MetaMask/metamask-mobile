@@ -24,6 +24,7 @@ import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 import useMoneyAccountCardLinkage from './useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../../Money/hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
 import { useCardHomeData } from './useCardHomeData';
 
 // Mock dependencies
@@ -117,6 +118,10 @@ jest.mock('../../Money/hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
+jest.mock('../../Money/hooks/useMoneyVaultApy', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
 jest.mock('./useCardHomeData', () => ({
   useCardHomeData: jest.fn(),
@@ -154,6 +159,9 @@ const mockUseMoneyAccountCardLinkage =
   >;
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
+const mockUseMoneyVaultApy = useMoneyVaultApy as jest.MockedFunction<
+  typeof useMoneyVaultApy
+>;
 const mockUseCardHomeData = useCardHomeData as jest.MockedFunction<
   typeof useCardHomeData
 >;
@@ -198,17 +206,24 @@ const buildBalanceReturn = (
 ) =>
   ({
     moneyBalanceQuery: {} as never,
-    vaultApyQuery: {} as never,
     isBalanceLoading: false,
     tokenTotal: new BigNumber(0),
     totalFiatFormatted: '$0.00',
     totalFiatRaw: '0',
     withdrawableMusd: undefined,
+    ...overrides,
+  }) as ReturnType<typeof useMoneyAccountBalance>;
+
+const buildApyReturn = (
+  overrides: Partial<ReturnType<typeof useMoneyVaultApy>> = {},
+) =>
+  ({
+    vaultApyQuery: {} as never,
     apyDecimal: undefined,
     apyPercent: 4,
     apyPercentFormatted: '4%',
     ...overrides,
-  }) as ReturnType<typeof useMoneyAccountBalance>;
+  }) as ReturnType<typeof useMoneyVaultApy>;
 
 // Helper functions
 const createMockToken = (
@@ -364,6 +379,7 @@ describe('useSpendingLimit', () => {
     mockConfirmLinkInBackground.mockReset().mockResolvedValue(true);
     mockUseMoneyAccountCardLinkage.mockReturnValue(buildLinkageReturn());
     mockUseMoneyAccountBalance.mockReturnValue(buildBalanceReturn());
+    mockUseMoneyVaultApy.mockReturnValue(buildApyReturn());
     mockUseCardHomeData.mockReturnValue(buildCardHomeDataReturn());
   });
 
@@ -1076,7 +1092,7 @@ describe('useSpendingLimit', () => {
       });
 
       expect(mockNavigation.dispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.CARD.HOME),
+        StackActions.replace(Routes.CARD.HOME, { fromCardOnboarding: true }),
       );
     });
 
@@ -2508,6 +2524,10 @@ describe('useSpendingLimit', () => {
         buildBalanceReturn({
           tokenTotal: new BigNumber('12.34'),
           totalFiatFormatted: '$12.34',
+        }),
+      );
+      mockUseMoneyVaultApy.mockReturnValue(
+        buildApyReturn({
           apyPercent: undefined,
           apyPercentFormatted: undefined,
         }),

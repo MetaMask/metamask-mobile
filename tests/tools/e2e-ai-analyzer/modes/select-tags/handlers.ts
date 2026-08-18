@@ -19,6 +19,7 @@ import {
   getFrameworkInfraChanges,
   getChangedSpecFiles,
   getChangedSharedInfraFiles,
+  isIgnorableSharedInfraCompanion,
   isSpecFile,
   SPEC_PATH_PREFIXES,
 } from './test-infrastructure-paths';
@@ -313,6 +314,9 @@ function extractTagsFromSpecFile(
   }
 }
 
+/** English locale file consumed by UI copy and by E2E text/label selectors (enContent). */
+const EN_LOCALE_FILE = 'locales/languages/en.json';
+
 const HARD_RULES: HardRule[] = [
   {
     name: 'controller-version-update',
@@ -345,6 +349,23 @@ const HARD_RULES: HardRule[] = [
     },
   },
   {
+    name: 'en-locale-change',
+    description:
+      'Changes to locales/languages/en.json — copy feeds UI and E2E text/label selectors; not cosmetic',
+    check: (changedFiles) => {
+      const localeChanged = changedFiles.some(
+        (file) =>
+          file.replace(/\\/g, '/').replace(/^\.\//, '') === EN_LOCALE_FILE,
+      );
+      if (!localeChanged) return null;
+
+      return makeConservativeResult(
+        'en-locale-change',
+        `${EN_LOCALE_FILE} changed — UI strings and E2E text/label selectors may diverge (including platform casing like Android textAllCaps)`,
+      );
+    },
+  },
+  {
     name: 'global-infrastructure-change',
     description:
       'Changes to globally-mounted hooks, contexts, Redux store, or Engine wiring',
@@ -374,11 +395,13 @@ const HARD_RULES: HardRule[] = [
       const infraFiles = getChangedSharedInfraFiles(changedFiles);
       if (infraFiles.length === 0) return null;
 
-      // Only apply when all changes are within tests/ — app changes go to AI
-      const hasNonTestChanges = changedFiles.some(
-        (f) => !f.startsWith('tests/'),
+      // App changes and E2E-relevant workflow changes go to AI so their wider
+      // impact is considered. Documentation, assets, locale files, and
+      // performance-only workflow changes do not affect smoke-tag reachability.
+      const hasNonIgnorableNonTestChanges = changedFiles.some(
+        (f) => !f.startsWith('tests/') && !isIgnorableSharedInfraCompanion(f),
       );
-      if (hasNonTestChanges) return null;
+      if (hasNonIgnorableNonTestChanges) return null;
 
       const validTags = new Set(SELECT_TAGS_CONFIG.map((c) => c.tag));
 

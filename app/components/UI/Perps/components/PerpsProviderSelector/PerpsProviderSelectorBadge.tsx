@@ -6,6 +6,8 @@ import {
   SelectButtonVariant,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
@@ -23,7 +25,7 @@ import { PROVIDER_DISPLAY_INFO } from './PerpsProviderSelector.constants';
 const PerpsProviderSelectorBadge: React.FC<PerpsProviderSelectorBadgeProps> = ({
   testID,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { activeProvider, isMultiProviderEnabled } = usePerpsProvider();
   const network = useSelector(selectPerpsNetwork);
   const isTestnet = network === 'testnet';

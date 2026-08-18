@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { InteractionManager, StyleSheet, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import WebView, { WebViewNavigation } from '@metamask/react-native-webview';
 import AppConstants from '../../../core/AppConstants';
@@ -120,7 +121,7 @@ function FiatOrders() {
   useFetchRampNetworks();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const pendingOrders = useSelector(getPendingOrders);
   const forceUpdateOrders = useSelector(getForceUpdateOrders);
   const customOrderIds = useSelector(getCustomOrderIds);

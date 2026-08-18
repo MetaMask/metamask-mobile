@@ -8,6 +8,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -61,7 +62,7 @@ export interface PerpsPayRowProps {
 }
 
 export const PerpsPayRow = ({ onPayWithInfoPress }: PerpsPayRowProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { track } = usePerpsEventTracking();
   const { payToken } = useTransactionPayToken();

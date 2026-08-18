@@ -14,19 +14,36 @@ import { qrSyncControllerInit } from './qr-sync-controller-init';
 import { getQrSyncControllerMessenger } from '../messengers/qr-sync-controller-messenger';
 import { KeyManager } from '../../SDKConnectV2/services/key-manager';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { registerE2EQrSyncDeepLinkHandler } from '../../QrSync/e2eBridgeQrSync';
 
 jest.mock('../../SDKConnectV2/services/key-manager', () => ({
   KeyManager: jest.fn(),
 }));
 
+const mockHasTestOverrides = jest.fn(() => false);
+
+jest.mock('../../../util/test/utils', () => ({
+  get hasTestOverrides() {
+    return mockHasTestOverrides();
+  },
+}));
+
+jest.mock('../../QrSync/e2eBridgeQrSync', () => ({
+  registerE2EQrSyncDeepLinkHandler: jest.fn(),
+}));
+
 describe('qrSyncControllerInit', () => {
   const keyManagerClassMock = jest.mocked(KeyManager);
+  const registerE2EQrSyncDeepLinkHandlerMock = jest.mocked(
+    registerE2EQrSyncDeepLinkHandler,
+  );
   let initRequestMock: jest.Mocked<
     MessengerClientInitRequest<QrSyncControllerMessenger>
   >;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHasTestOverrides.mockReturnValue(false);
 
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
@@ -111,5 +128,24 @@ describe('qrSyncControllerInit', () => {
       'QrSyncController:completeProvisioning',
       expect.any(Function),
     );
+  });
+
+  it('registers the E2E deep-link handler when test overrides are enabled', () => {
+    mockHasTestOverrides.mockReturnValue(true);
+
+    const { controller } = qrSyncControllerInit(initRequestMock);
+
+    expect(registerE2EQrSyncDeepLinkHandlerMock).toHaveBeenCalledTimes(1);
+    const resolveController =
+      registerE2EQrSyncDeepLinkHandlerMock.mock.calls[0][0];
+    expect(resolveController()).toBe(controller);
+  });
+
+  it('skips E2E deep-link registration when test overrides are disabled', () => {
+    mockHasTestOverrides.mockReturnValue(false);
+
+    qrSyncControllerInit(initRequestMock);
+
+    expect(registerE2EQrSyncDeepLinkHandlerMock).not.toHaveBeenCalled();
   });
 });

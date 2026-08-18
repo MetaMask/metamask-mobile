@@ -50,8 +50,7 @@ export interface TrendingTokensListProps {
    */
   onQuickTrade?: (token: TrendingAsset) => void;
   /**
-   * Token Details `source` for MetaMetrics when navigating from a row.
-   * @default TokenDetailsSource.Trending
+   * Token Details analytics source for row taps.
    */
   tokenDetailsSource?: TokenDetailsSource;
 }
@@ -71,7 +70,7 @@ const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
     onLoadMore,
     isLoadingMore,
     onQuickTrade,
-    tokenDetailsSource = TokenDetailsSource.Trending,
+    tokenDetailsSource,
   }) => {
     const renderItem = useCallback(
       ({ item, index }: { item: TrendingAsset; index: number }) => (

@@ -2,6 +2,7 @@ import { merge } from 'lodash';
 import {
   TransactionType,
   type TransactionMeta,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 
 import type {
@@ -15,7 +16,6 @@ import {
   isValidHexAddress,
 } from '../../../../../util/address';
 import { getMethodData } from '../../../../../util/transactions';
-import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
 
 export async function getBaseMetricsProperties({
   transactionMeta,

@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import React, { useRef } from 'react';
 import { Linking, View } from 'react-native';
 import { useStyles } from '../../../component-library/hooks';
@@ -20,7 +21,7 @@ import { trackExternalLinkClicked } from '../../../util/analytics/externalLinkTr
 const DeprecatedNetworkModal = () => {
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const dismissModal = (): void => {
     navigation.goBack();

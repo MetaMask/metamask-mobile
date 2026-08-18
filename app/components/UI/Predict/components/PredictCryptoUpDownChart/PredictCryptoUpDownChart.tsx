@@ -83,10 +83,12 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
   );
 
   useEffect(() => {
-    if (data.length > 0 && Number.isFinite(value)) {
+    if (connectionError || data.length === 0) {
+      onCurrentPriceChange?.(undefined);
+    } else if (data.length > 0 && Number.isFinite(value)) {
       onCurrentPriceChange?.(value);
     }
-  }, [data.length, onCurrentPriceChange, value]);
+  }, [connectionError, data.length, onCurrentPriceChange, value]);
 
   return (
     <Box
@@ -158,4 +160,8 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
   );
 };
 
-export default PredictCryptoUpDownChart;
+// Memoized: the parent details screen re-renders on every live price tick
+// (which this chart itself triggers via `onCurrentPriceChange`). The chart
+// re-renders from its own hook state; parent-driven re-renders with unchanged
+// props would only re-serialize chart props for the WebView.
+export default React.memo(PredictCryptoUpDownChart);

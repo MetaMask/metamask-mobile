@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
 import { Hex } from '@metamask/utils';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -69,7 +71,7 @@ export function usePerpsWithdrawConfirmation() {
     selectSelectedInternalAccountByScope,
   )('eip155:0')?.address;
   const { navigateToConfirmation } = useConfirmNavigation();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const { networkClientId } =
@@ -97,6 +99,7 @@ export function usePerpsWithdrawConfirmation() {
           networkClientId,
           disableHook: true,
           disableSequential: true,
+          overwriteUpgrade: true,
           transactions: [
             {
               params: {
@@ -120,9 +123,7 @@ export function usePerpsWithdrawConfirmation() {
         navigation.goBack();
         showToast(
           PerpsToastOptions.accountManagement.withdrawal.withdrawalStartFailed(
-            () => {
-              runWithdrawWithConfirmation().catch(() => undefined);
-            },
+            () => runWithdrawWithConfirmation().catch(() => undefined),
           ),
         );
         throw errorObj;

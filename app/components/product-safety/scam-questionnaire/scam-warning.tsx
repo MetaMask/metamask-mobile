@@ -17,6 +17,11 @@ import { useStyles } from '../../../component-library/hooks';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import {
+  confirmSupportConsent,
+  rejectSupportConsent,
+} from '../../../util/support';
+import StandaloneSupportConsentModal from '../../UI/SupportConsentSheet/StandaloneSupportConsentModal';
 import { PROCEED_DELAY_SECONDS } from './scam-questionnaire.constants';
 import styleSheet from './scam-questionnaire.styles';
 
@@ -33,6 +38,8 @@ export const ScamWarning: React.FC<ScamWarningProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
+
+  const [isConsentModalVisible, setIsConsentModalVisible] = useState(false);
 
   // Gate the bypass link for a few seconds so the warning can't be dismissed
   // instantly.
@@ -51,10 +58,38 @@ export const ScamWarning: React.FC<ScamWarningProps> = ({
     return () => clearInterval(intervalId);
   }, [secondsRemaining]);
 
+  // The questionnaire renders inside a full-screen React Native Modal, which
+  // sits above the navigation host. A navigation-pushed consent sheet would
+  // render behind it and never be seen, so use the navigation-free standalone
+  // consent modal (as ErrorBoundary does) to keep the consent UI above the
+  // questionnaire.
   const handleContactSupport = useCallback(() => {
-    onContactSupport();
-    Linking.openURL(METAMASK_SUPPORT_URL);
+    setIsConsentModalVisible(true);
+  }, []);
+
+  // Defer tracking to when support is actually opened (consent confirm/reject),
+  // rather than firing on the mere press that only shows the consent sheet.
+  const handleConfirmConsent = useCallback(() => {
+    setIsConsentModalVisible(false);
+    confirmSupportConsent(
+      (url) => Linking.openURL(url),
+      METAMASK_SUPPORT_URL,
+      onContactSupport,
+    );
   }, [onContactSupport]);
+
+  const handleRejectConsent = useCallback(() => {
+    setIsConsentModalVisible(false);
+    rejectSupportConsent(
+      (url) => Linking.openURL(url),
+      METAMASK_SUPPORT_URL,
+      onContactSupport,
+    );
+  }, [onContactSupport]);
+
+  const handleDismissConsent = useCallback(() => {
+    setIsConsentModalVisible(false);
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -138,6 +173,12 @@ export const ScamWarning: React.FC<ScamWarningProps> = ({
           testID="scam-warning-contact-support"
         />
       </View>
+      <StandaloneSupportConsentModal
+        visible={isConsentModalVisible}
+        onConfirm={handleConfirmConsent}
+        onReject={handleRejectConsent}
+        onDismiss={handleDismissConsent}
+      />
     </View>
   );
 };

@@ -33,6 +33,7 @@ import { whatsNewList } from './';
 import { WhatsNewModalSelectorsIDs } from './WhatsNewModal.testIds';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import createStyles from './WhatsNewModal.styles';
 import Device from '../../../util/device';
 import { SlideContent, SlideContentType } from './types';
@@ -56,7 +57,7 @@ const WhatsNewModal = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { styles } = useStyles(createStyles, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const imageCarouselIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const imageProgressAnimations = useRef<Animated.Value[]>([]).current;

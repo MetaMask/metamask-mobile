@@ -35,11 +35,19 @@ jest.mock('./useWalletHomeOnboardingBalanceRefreshEffect', () => ({
 jest.mock('../../../../../selectors/assets/balances', () => ({
   // Factory: selectBalanceBySelectedAccountGroup(popularChainIds?) -> (state) => value
   selectBalanceBySelectedAccountGroup: jest.fn(() => () => null),
+  selectUnifiedBalanceBySelectedAccountGroup: jest.fn(() => () => null),
   // Factory: selectBalanceChangeBySelectedAccountGroup(period, popularChainIds?) -> (state) => value
   selectBalanceChangeBySelectedAccountGroup: jest.fn(() => () => null),
   // This selector is used to display the BalanceEmptyState
   selectAccountGroupBalanceForEmptyState: jest.fn(() => null),
 }));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/assetsUnifyState',
+  () => ({
+    selectIsAssetsUnifyStateEnabled: jest.fn(() => false),
+  }),
+);
 
 // Mock onboarding selectors (BalanceEmptyState and AccountGroupBalance use these)
 jest.mock('../../../../../selectors/onboarding', () => ({

@@ -35,6 +35,9 @@ const styleSheet = (params: { theme: Theme }) => {
     stakingEarningsContent: {
       paddingBottom: 24,
     },
+    earningsHistory: {
+      marginTop: 16,
+    },
   });
 };
 

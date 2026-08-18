@@ -100,6 +100,25 @@ describe('TeamsCache', () => {
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledWith(
         'https://gamma-api.polymarket.com/teams?league=nfl',
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      );
+    });
+
+    it.each([
+      ['cs2', 'csgo'],
+      ['val', 'valorant'],
+    ] as const)('uses the %s team API alias %s', async (league, teamLeague) => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+      });
+      const cache = TeamsCache.getInstance();
+
+      await cache.ensureLeagueLoaded(league);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://gamma-api.polymarket.com/teams?league=${teamLeague}`,
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
       );
     });
 
@@ -242,6 +261,25 @@ describe('TeamsCache', () => {
       expect(callUrl).toContain('abbreviation=den');
       expect(callUrl).toContain('league=nfl');
     });
+
+    it.each([
+      ['cs2', 'csgo'],
+      ['val', 'valorant'],
+    ] as const)(
+      'uses the %s team API alias %s for batch requests',
+      async (league, teamLeague) => {
+        mockFetch.mockResolvedValueOnce({
+          ok: true,
+          json: async () => [],
+        });
+        const cache = TeamsCache.getInstance();
+
+        await cache.ensureTeamsLoaded(league, ['team']);
+
+        const callUrl = mockFetch.mock.calls[0][0] as string;
+        expect(callUrl).toContain(`league=${teamLeague}`);
+      },
+    );
 
     it('skips fetch when all teams are already cached', async () => {
       mockFetch.mockResolvedValueOnce({

@@ -20,8 +20,8 @@ jest.mock('../../../../UI/Ramp/hooks/useAnalytics', () => ({
   __esModule: true,
   default: () => mockRampsTrackEvent,
 }));
-jest.mock('../../../../UI/Ramp/hooks/useHasNativeFiatProvider', () => ({
-  useHasNativeFiatProvider: () => true,
+jest.mock('../../../../UI/Ramp/hooks/useHasFiatProvider', () => ({
+  useHasFiatProvider: () => true,
 }));
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../../../../core/Engine', () => ({
@@ -201,7 +201,7 @@ describe('useFiatPaymentHighlightedActions', () => {
       position: 'outside_of_asset_list',
       icon: 'card-icon',
       paymentType: 'debit-credit-card',
-      name: 'Credit Card',
+      name: 'Debit',
       isSelected: false,
     });
   });

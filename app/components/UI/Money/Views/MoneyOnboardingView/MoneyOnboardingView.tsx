@@ -23,7 +23,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
+import { apyDigitCount } from '../../utils/riveApy';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { setMoneyOnboardingSeen } from '../../../../../actions/user';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -58,8 +59,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Logger from '../../../../../util/Logger';
-import onboardingFlowV24Animation from '../../../../../animations/onboarding_flow_v24.riv';
+import onboardingFlowV25Animation from '../../../../../animations/onboarding_flow_v25.riv';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -69,6 +71,15 @@ const RIVE_STATE_MACHINE_NAME = 'State Machine 1';
 const RIVE_ARTBOARD_NAME = 'Money_Account';
 const CARD_CASHBACK_PERCENTAGE = 3;
 const CLOSE_TRIGGER = 'close';
+
+/** Data binding holding the full APY, percent sign included, e.g. "4.6%". */
+const RIVE_APY_VALUE_PATH = 'apyValue';
+
+/**
+ * Data binding holding how many digits that APY has, which the artboard uses
+ * to pick the layout for its APY container on the second step.
+ */
+const RIVE_APY_AMOUNT_DIGIT_PATH = 'apyAmountDigit';
 
 /**
  * The keys in this mapping refer to the step state names in the Rive file.
@@ -252,6 +263,7 @@ const MoneyOnboardingView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<MoneyOnboardingRouteProp>();
   const postOnboardingRedirect = route.params?.postOnboardingRedirect;
+  const entryPoint = route.params?.entryPoint;
 
   const isUsUnauthenticatedNonCardholder = useSelector(
     selectIsUsUnauthenticatedNonCardholder,
@@ -264,7 +276,8 @@ const MoneyOnboardingView = () => {
     component_name: COMPONENT_NAMES.RIVE_ONBOARDING_STEPPER,
   });
 
-  const { apyPercent } = useMoneyAccountBalance();
+  const { apyPercent, apyPercentFormatted } = useMoneyVaultApy();
+  const riveApyValue = apyPercentFormatted ?? `${FALLBACK_APY}%`;
   const { initiateDeposit } = useMoneyAccountDeposit();
 
   const [ref, riveRef] = useRive();
@@ -275,6 +288,11 @@ const MoneyOnboardingView = () => {
 
   const [, setButtonText] = useRiveString(riveRef, 'button');
   const [, setTransitionSpeed] = useRiveNumber(riveRef, 'transitionSpeed');
+  const [, setApyValue] = useRiveString(riveRef, RIVE_APY_VALUE_PATH);
+  const [, setApyAmountDigit] = useRiveNumber(
+    riveRef,
+    RIVE_APY_AMOUNT_DIGIT_PATH,
+  );
 
   // Hardcoded to English to simplify event tracking.
   const stepTitlesEnglish: string[] = useMemo(
@@ -336,12 +354,24 @@ const MoneyOnboardingView = () => {
     );
   }, [riveRef, setTransitionSpeed, setButtonText, overlayOpacity]);
 
+  // Kept out of the config effect above so a rate change re-pushes the APY
+  // without replaying the one-off setup.
+  useEffect(() => {
+    if (!riveRef) return;
+
+    setApyValue(riveApyValue);
+    setApyAmountDigit(apyDigitCount(riveApyValue));
+  }, [riveRef, riveApyValue, setApyValue, setApyAmountDigit]);
+
   const navigateToMoneyHome = useCallback(() => {
     navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
+      params: {
+        screen: Routes.MONEY.HOME,
+        ...(entryPoint ? { params: { entryPoint } } : {}),
+      },
     });
-  }, [navigation]);
+  }, [entryPoint, navigation]);
 
   const navigateToPostOnboardingDestination = useCallback(async () => {
     if (
@@ -485,7 +515,7 @@ const MoneyOnboardingView = () => {
     <View style={styles.root}>
       <Rive
         ref={ref}
-        source={onboardingFlowV24Animation}
+        source={onboardingFlowV25Animation}
         artboardName={RIVE_ARTBOARD_NAME}
         stateMachineName={RIVE_STATE_MACHINE_NAME}
         dataBinding={AutoBind(true)}
@@ -504,4 +534,61 @@ const MoneyOnboardingView = () => {
   );
 };
 
-export default MoneyOnboardingView;
+// Used in E2E and performance tests to complete onboarding without rendering Rive.
+const MoneyOnboardingViewE2E = () => {
+  const dispatch = useDispatch();
+
+  const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<MoneyOnboardingRouteProp>();
+  const postOnboardingRedirect = route.params?.postOnboardingRedirect;
+  const { initiateDeposit } = useMoneyAccountDeposit();
+
+  const navigateToMoneyHome = useCallback(() => {
+    navigation.navigate(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+  }, [navigation]);
+
+  const navigateToPostOnboardingDestination = useCallback(async () => {
+    if (
+      postOnboardingRedirect?.type !== MoneyPostOnboardingRedirectType.DEPOSIT
+    ) {
+      navigateToMoneyHome();
+      return;
+    }
+
+    try {
+      await initiateDeposit({
+        preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
+        replaceConfirmation: true,
+        onDepositSetupFailure: navigateToMoneyHome,
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[Money Account] Failed to initiate deposit after onboarding',
+      );
+    }
+  }, [initiateDeposit, navigateToMoneyHome, postOnboardingRedirect]);
+
+  const completeOnboardingAndRedirect = useCallback(() => {
+    dispatch(setMoneyOnboardingSeen(true));
+    navigateToPostOnboardingDestination();
+  }, [dispatch, navigateToPostOnboardingDestination]);
+
+  useEffect(() => {
+    completeOnboardingAndRedirect();
+  }, [completeOnboardingAndRedirect]);
+
+  return null;
+};
+
+const MoneyOnboardingViewGate = () => {
+  if (isE2EOrPerformanceTest) {
+    return <MoneyOnboardingViewE2E />;
+  }
+  return <MoneyOnboardingView />;
+};
+
+export default MoneyOnboardingViewGate;

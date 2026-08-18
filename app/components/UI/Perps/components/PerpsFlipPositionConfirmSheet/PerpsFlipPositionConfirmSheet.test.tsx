@@ -222,31 +222,6 @@ jest.mock(
   },
 );
 
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const ReactModule = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: function MockText({
-      children,
-      testID,
-    }: {
-      children: React.ReactNode;
-      testID?: string;
-    }) {
-      return ReactModule.createElement(Text, { testID }, children);
-    },
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-      BodyMD: 'BodyMD',
-    },
-    TextColor: {
-      Default: 'Default',
-      Alternative: 'Alternative',
-    },
-  };
-});
-
 jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
   __esModule: true,
   default: () => null,

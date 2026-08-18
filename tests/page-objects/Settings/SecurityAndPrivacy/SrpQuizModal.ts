@@ -9,7 +9,18 @@ import {
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import { EncapsulatedElementType } from '../../../framework';
-import UnifiedGestures from '../../../framework/UnifiedGestures';
+import { PlatformDetector } from '../../../framework/PlatformLocator';
+import type { TapOptions } from '../../../framework/types';
+
+/** Appium iOS: skip displayed/enabled checks when XCTest falsely reports hidden. */
+const iosAppiumTapOptions = (elemDescription: string): TapOptions => {
+  const skipDisplayedChecks = PlatformDetector.isIOSAppium();
+  return {
+    elemDescription,
+    checkForDisplayed: !skipDisplayedChecks,
+    checkEnabled: !skipDisplayedChecks,
+  };
+};
 
 class SrpQuizModal {
   get getStartedContainer(): EncapsulatedElementType {
@@ -113,9 +124,10 @@ class SrpQuizModal {
   }
 
   async tapGetStartedButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.getStartedButton, {
-      description: 'Srp Quiz - Get Started Button',
-    });
+    await Gestures.waitAndTap(
+      this.getStartedButton,
+      iosAppiumTapOptions('Srp Quiz - Get Started Button'),
+    );
   }
 
   async tapQuestionDismiss(questionNumber: number): Promise<void> {
@@ -142,20 +154,18 @@ class SrpQuizModal {
   }
 
   async tapQuestionRightAnswerButton(questionNumber: number): Promise<void> {
-    await UnifiedGestures.waitAndTap(
+    await Gestures.waitAndTap(
       this.getQuestionRightAnswerButton(questionNumber),
-      {
-        description: `Srp Quiz - Question ${questionNumber} Right Answer`,
-      },
+      iosAppiumTapOptions(`Srp Quiz - Question ${questionNumber} Right Answer`),
     );
   }
 
   async tapQuestionContinueButton(questionNumber: number): Promise<void> {
-    await UnifiedGestures.waitAndTap(
+    await Gestures.waitAndTap(
       this.getQuestionRightContinueButton(questionNumber),
-      {
-        description: `Srp Quiz - Question ${questionNumber} Right Continue`,
-      },
+      iosAppiumTapOptions(
+        `Srp Quiz - Question ${questionNumber} Right Continue`,
+      ),
     );
   }
 }

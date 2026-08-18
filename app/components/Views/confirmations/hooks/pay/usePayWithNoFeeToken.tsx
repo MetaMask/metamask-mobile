@@ -1,13 +1,16 @@
 import React, { ReactNode, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
+import {
+  CHAIN_IDS,
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
 import {
   isSubsidizedRoute,
   isSubsidizedSource,
 } from '../../utils/relayFixedSpread';
-import { hasTransactionType } from '../../utils/transaction';
 import { safeFormatChainIdToHex } from '../../../../UI/Card/util/safeFormatChainIdToHex';
 import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';

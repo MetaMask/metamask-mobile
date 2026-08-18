@@ -1,14 +1,14 @@
 import { useSelector } from 'react-redux';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { ConfirmationParams } from '../../components/confirm/confirm-component';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import {
-  getTransactionType,
-  hasTransactionType,
-} from '../../utils/transaction';
+import { getTransactionType } from '../../utils/transaction';
 
 const PERPS_PREDICT_TRANSACTION_TYPES: TransactionType[] = [
   TransactionType.perpsDeposit,

@@ -3,6 +3,7 @@
 
 'use strict';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { parse } from 'eth-url-parser';
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import {
@@ -104,7 +105,7 @@ const QRScanner = ({
   origin?: string;
   shouldDismissOnScan?: boolean;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const mountedRef = useRef<boolean>(true);
   const shouldReadBarCodeRef = useRef<boolean>(true);

@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, ScrollView } from 'react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -21,10 +22,7 @@ import type {
   PredictFilterOption,
   PredictFilterOptionsParams,
 } from '../../../../types';
-import type {
-  PredictFeedRouteParams,
-  PredictNavigationParamList,
-} from '../../../../types/navigation';
+import type { PredictFeedRouteParams } from '../../../../types/navigation';
 import { PredictHomeSelectorsIDs } from '../../../../Predict.testIds';
 
 /**
@@ -108,8 +106,7 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
   rowCount = DEFAULT_CHIP_ROW_COUNT,
 }) => {
   const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { filterOptions, isLoading } = usePredictFilterOptions(
     POPULAR_TODAY_FILTER_PARAMS,
   );

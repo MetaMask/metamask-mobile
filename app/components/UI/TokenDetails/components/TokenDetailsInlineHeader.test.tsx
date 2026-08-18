@@ -302,5 +302,27 @@ describe('TokenDetailsInlineHeader', () => {
 
       expect(queryByTestId('share-button')).toBeNull();
     });
+
+    it('renders end-accessory icons left-to-right as watchlist, price alert, then share', () => {
+      const { Text } = jest.requireActual('react-native');
+      const { toJSON, getByTestId } = renderHeader({
+        starButton: <Text testID="watchlist-star-button">★</Text>,
+        onPriceAlertPress: jest.fn(),
+        onSharePress: jest.fn(),
+      });
+
+      expect(getByTestId('watchlist-star-button')).toBeOnTheScreen();
+      expect(getByTestId('token-price-alert-button')).toBeOnTheScreen();
+      expect(getByTestId('share-button')).toBeOnTheScreen();
+
+      const serialized = JSON.stringify(toJSON());
+      const starIndex = serialized.indexOf('watchlist-star-button');
+      const alertIndex = serialized.indexOf('token-price-alert-button');
+      const shareIndex = serialized.indexOf('share-button');
+
+      expect(starIndex).toBeGreaterThanOrEqual(0);
+      expect(alertIndex).toBeGreaterThan(starIndex);
+      expect(shareIndex).toBeGreaterThan(alertIndex);
+    });
   });
 });

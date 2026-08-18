@@ -154,7 +154,7 @@ export function usePerpsHomeSectionTracking() {
 
   /**
    * Handler for scroll events to check section visibility.
-   * Bridge from Reanimated worklet via useDiscoveryScrollManager.
+   * Bridge from the Reanimated scroll worklet.
    */
   const handleScroll = useCallback(
     (event: { nativeEvent: NativeScrollEvent }) => {

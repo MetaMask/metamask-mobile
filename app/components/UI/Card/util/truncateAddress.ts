@@ -21,7 +21,7 @@ export const truncateAddress = (
     return `${address.slice(0, chars)}...${address.slice(-chars)}`;
   }
 
-  if (!isHexAddress(address)) {
+  if (!isHexAddress(address.toLowerCase())) {
     return address;
   }
 

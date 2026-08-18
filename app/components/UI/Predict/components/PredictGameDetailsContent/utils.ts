@@ -8,17 +8,21 @@ import type { PredictBetButtonVariant } from '../PredictActionButtons/PredictAct
 import type { PredictSportOutcomeButton } from '../PredictSportOutcomeCard';
 import { formatVolume } from '../../utils/format';
 import { isValidPrice } from '../../utils/prices';
-import { isMoneylineLikeMarketType } from '../../constants/sports';
+import {
+  isEsportsRoundHandicapMarketType,
+  isEsportsRoundOverUnderMarketType,
+  isMoneylineLikeMarketType,
+} from '../../constants/sports';
 import {
   getSportTeamColorForLabel,
   getSportTeamDisplayOrder,
   outcomeMatchesTeam,
 } from '../../utils/sports';
+import { isMissingTranslation } from '../../utils/translations';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
 
 const I18N_PREFIX = 'predict.sports_market_types';
-const MISSING_TRANSLATION_PREFIX = '[missing';
 const DYNAMIC_SPORTS_MARKET_TYPE_PREFIXES = [
   'soccer_player_goals-',
   'soccer_team_totals-',
@@ -45,9 +49,6 @@ const toTitleCase = (str: string): string =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 
-const isMissingTranslation = (value: string, key: string): boolean =>
-  value === key || value.startsWith(MISSING_TRANSLATION_PREFIX);
-
 const isDynamicSportsMarketTypeKey = (type: string): boolean => {
   const normalizedType = type.toLowerCase();
   return DYNAMIC_SPORTS_MARKET_TYPE_PREFIXES.some((prefix) =>
@@ -67,10 +68,26 @@ const warnMissingSportsMarketTypeTranslation = (
   Logger.log(message, { key, type });
 };
 
+/**
+ * Maps numbered esports round types onto a shared base key so a single i18n
+ * entry covers `round_*_game_1`, `round_*_game_6`, etc.
+ */
+const getSportsMarketTypeTranslationKey = (type: string): string => {
+  const normalizedType = type.toLowerCase();
+  if (isEsportsRoundHandicapMarketType(normalizedType)) {
+    return 'round_handicap_game';
+  }
+  if (isEsportsRoundOverUnderMarketType(normalizedType)) {
+    return 'round_over_under_game';
+  }
+  return type;
+};
+
 export const getTranslatedSportsMarketTypeLabel = (
   type: string,
 ): string | undefined => {
-  const key = `${I18N_PREFIX}.${type}`;
+  const translationKey = getSportsMarketTypeTranslationKey(type);
+  const key = `${I18N_PREFIX}.${translationKey}`;
   const label = strings(key);
   if (typeof label !== 'string' || isMissingTranslation(label, key)) {
     if (!isDynamicSportsMarketTypeKey(type)) {

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -23,8 +23,17 @@ export interface FilterOptionSheetProps<T extends string> {
   selected: T;
   /** Resolves an option's display label. */
   getLabel: (option: T) => string;
+  /**
+   * Called when the user picks an option (OptionsSheet pattern: callback
+   * first, then close the sheet).
+   */
   onSelect: (option: T) => void;
   onClose: () => void;
+  /**
+   * When hosted as a navigation screen (e.g. ROOT_MODAL_FLOW), pass
+   * `() => navigation.goBack()` so dismiss pops the modal route.
+   */
+  goBack?: () => void;
   /** testID for the sheet container. */
   sheetTestID: string;
   /** Resolves an option row's testID. */
@@ -43,14 +52,24 @@ export function FilterOptionSheet<T extends string>({
   getLabel,
   onSelect,
   onClose,
+  goBack,
   sheetTestID,
   getOptionTestID,
 }: FilterOptionSheetProps<T>) {
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
+  // ROOT_MODAL_FLOW uses animation: 'none', so the opening tap can land on the
+  // overlay and immediately dismiss (goBack). Keep the sheet non-interactive
+  // until it has fully opened.
+  const [isReady, setIsReady] = useState(false);
+
+  const handleOpen = useCallback(() => {
+    setIsReady(true);
+  }, []);
 
   const handleSelect = useCallback(
     (option: T) => {
+      // OptionsSheet pattern: invoke callback first, then close (goBack).
       onSelect(option);
       sheetRef.current?.onCloseBottomSheet();
     },
@@ -58,7 +77,17 @@ export function FilterOptionSheet<T extends string>({
   );
 
   return (
-    <BottomSheet ref={sheetRef} onClose={onClose} testID={sheetTestID}>
+    <BottomSheet
+      ref={sheetRef}
+      onClose={onClose}
+      onOpen={handleOpen}
+      // Always wire goBack so select-then-close works even if the user taps an
+      // option before onOpen. Only the overlay/swipe stays gated by isReady
+      // (press-through guard for ROOT_MODAL_FLOW animation: 'none').
+      goBack={goBack}
+      isInteractable={isReady}
+      testID={sheetTestID}
+    >
       <BottomSheetHeader>{title}</BottomSheetHeader>
       <Box twClassName="pb-2">
         {options.map((option) => {

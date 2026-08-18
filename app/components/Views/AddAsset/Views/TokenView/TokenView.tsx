@@ -7,6 +7,7 @@ import ScrollableTabView, {
 } from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import { Hex } from '@metamask/utils';
 import {
@@ -33,7 +34,7 @@ const TokenView = ({
   networkConfigurations,
 }: TokenViewProps) => {
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const renderTabBar = (props: typeof TabBarProps) => <TabBar {...props} />;
 
   // Probe the search API with a test query to check if the selected network supports token search.

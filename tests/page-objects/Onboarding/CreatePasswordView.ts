@@ -3,18 +3,10 @@ import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import enContent from '../../../locales/languages/en.json';
-import {
-  asDetoxElement,
-  asPlaywrightElement,
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
+import type { PlaywrightElement } from '../../framework';
 
 class CreatePasswordView {
   get container(): EncapsulatedElementType {
@@ -22,122 +14,67 @@ class CreatePasswordView {
   }
 
   get newPasswordInput(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        device.getPlatform() === 'ios'
-          ? Matchers.getElementByID(
-              ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-            )
-          : Matchers.getElementByLabel(
-              ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-            ),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementByAndroidUIAutomator(
-            `.description("${ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}")`,
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByCatchAll(
-            ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-          ),
-      },
-    });
+    // Android: match the inner EditText via content-desc (UiAutomator).
+    // iOS: catch-all XPath (testID may land on a wrapper).
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByAndroidUIAutomator(
+        `.description("${ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}")`,
+      );
+    }
+    return Matchers.getElementByNativeXPath(
+      this.getCatchAllXPath(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+    );
   }
+
   get passwordVisibilityIcon(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
-        ),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByCatchAll(
-            ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
-          ),
-      },
-    });
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByID(
+        ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
+      );
+    }
+    return Matchers.getElementByNativeXPath(
+      this.getCatchAllXPath(
+        ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
+      ),
+    );
   }
 
   get confirmPasswordVisibilityIcon(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID,
-        ),
-    });
+    return Matchers.getElementByID(
+      ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID,
+    );
   }
 
   get confirmPasswordInput(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        device.getPlatform() === 'ios'
-          ? Matchers.getElementByID(
-              ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-            )
-          : Matchers.getElementByLabel(
-              ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-            ),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementByAndroidUIAutomator(
-            `.description("${ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID}")`,
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByCatchAll(
-            ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-          ),
-      },
-    });
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByAndroidUIAutomator(
+        `.description("${ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID}")`,
+      );
+    }
+    return Matchers.getElementByNativeXPath(
+      this.getCatchAllXPath(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      ),
+    );
   }
 
   get newWalletConfirmPasswordInput(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        device.getPlatform() === 'ios'
-          ? Matchers.getElementByID(
-              ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-            )
-          : Matchers.getElementByLabel(
-              ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-            ),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-            {
-              exact: true,
-            },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByCatchAll(
-            ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-          ),
-      },
-    });
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByID(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+    }
+    return Matchers.getElementByNativeXPath(
+      this.getCatchAllXPath(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      ),
+    );
   }
 
   get iUnderstandCheckbox(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-          {
-            exact: true,
-          },
-        ),
-    });
+    return Matchers.getElementByID(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
   }
 
   get iUnderstandCheckboxNewWallet(): EncapsulatedElementType {
@@ -147,36 +84,27 @@ class CreatePasswordView {
   }
 
   get submitButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-            {
-              exact: true,
-            },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-          ),
-      },
-    });
+    return Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
   }
 
   get passwordError(): EncapsulatedElementType {
     return Matchers.getElementByText(enContent.import_from_seed.password_error);
   }
 
+  private getCatchAllXPath(identifier: string): string {
+    if (PlatformDetector.isAndroid()) {
+      return `//*[@resource-id='${identifier}' or contains(@text,'${identifier}') or contains(@content-desc,'${identifier}')]`;
+    }
+    return `//*[contains(@name,'${identifier}') or contains(@label,'${identifier}') or contains(@text,'${identifier}')]`;
+  }
+
   async resetPasswordInputs(): Promise<void> {
-    await Gestures.typeText(asDetoxElement(this.newPasswordInput), '', {
+    await Gestures.typeText(this.newPasswordInput, '', {
       hideKeyboard: true,
       clearFirst: true,
       checkVisibility: false,
     });
-    await Gestures.typeText(asDetoxElement(this.confirmPasswordInput), '', {
+    await Gestures.typeText(this.confirmPasswordInput, '', {
       hideKeyboard: true,
       clearFirst: true,
       checkVisibility: false,
@@ -184,73 +112,24 @@ class CreatePasswordView {
   }
 
   async enterPassword(password: string): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.typeText(
-          asDetoxElement(this.newPasswordInput),
-          password,
-          {
-            elemDescription: 'Create Password New Password Input',
-            hideKeyboard: true,
-            checkVisibility: false,
-            checkEnabled: false,
-          },
-        );
-      },
-      appium: async () => {
-        const isIOS = await PlatformDetector.isIOS();
-        await UnifiedGestures.typeText(
-          this.newPasswordInput,
-          isIOS ? `${password}\n` : password,
-          {
-            // once merged, remove me and create a typeText in Playwright Gestures
-            description: 'Create Password New Password Input',
-          },
-        );
-      },
+    const text = PlatformDetector.isIOS() ? `${password}\n` : password;
+    await Gestures.typeText(this.newPasswordInput, text, {
+      elemDescription: 'Create Password New Password Input',
+      hideKeyboard: false,
     });
   }
 
   async reEnterPassword(password: string): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.typeText(
-          asDetoxElement(this.confirmPasswordInput),
-          password,
-          {
-            elemDescription: 'Create Password Confirm Password Input',
-            hideKeyboard: true,
-            checkVisibility: false,
-            checkEnabled: false,
-          },
-        );
-      },
-      appium: async () => {
-        const isIOS = await PlatformDetector.isIOS();
-        await UnifiedGestures.typeText(
-          this.confirmPasswordInput,
-          isIOS ? `${password}\n` : password,
-          {
-            description: 'Create Password Confirm Password Input',
-          },
-        );
-      },
+    const text = PlatformDetector.isIOS() ? `${password}\n` : password;
+    await Gestures.typeText(this.confirmPasswordInput, text, {
+      elemDescription: 'Create Password Confirm Password Input',
+      hideKeyboard: false,
     });
   }
 
   async tapIUnderstandCheckBox(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.tap(asDetoxElement(this.iUnderstandCheckbox), {
-          elemDescription: 'Create Password - I Understand Checkbox',
-          checkVisibility: false,
-        });
-      },
-      appium: async () => {
-        await UnifiedGestures.waitAndTap(this.iUnderstandCheckbox, {
-          description: 'Create Password - I Understand Checkbox',
-        });
-      },
+    await Gestures.waitAndTap(this.iUnderstandCheckbox, {
+      elemDescription: 'Create Password - I Understand Checkbox',
     });
   }
 
@@ -301,30 +180,26 @@ class CreatePasswordView {
   }
 
   private async readMarketingCheckboxChecked(
-    el: Detox.IndexableNativeElement,
+    checkbox: PlaywrightElement,
   ): Promise<boolean | undefined> {
-    try {
-      const attributes = (await el.getAttributes()) as Record<string, unknown>;
-      return this.parseMarketingCheckboxCheckedState(attributes);
-    } catch {
-      return undefined;
-    }
-  }
+    // Fetch attributes independently. Android UiAutomator2 does not support
+    // `aria-checked` (only `checked` / `value`); requesting it floods WARN/ERROR
+    // logs and used to abort the whole read when tried first.
+    const attributes: Record<string, unknown> = {};
+    const attributeNames: ('checked' | 'value' | 'aria-checked')[] =
+      PlatformDetector.isIOS()
+        ? ['checked', 'value', 'aria-checked']
+        : ['checked'];
 
-  private async readMarketingCheckboxCheckedAppium(
-    checkbox: Awaited<ReturnType<typeof asPlaywrightElement>>,
-  ): Promise<boolean | undefined> {
-    try {
-      const attributes: Record<string, unknown> = {
-        'aria-checked': await checkbox.getAttribute('aria-checked'),
-        checked: await checkbox.getAttribute('checked'),
-        value: await checkbox.getAttribute('value'),
-      };
-
-      return this.parseMarketingCheckboxCheckedState(attributes);
-    } catch {
-      return undefined;
+    for (const name of attributeNames) {
+      try {
+        attributes[name] = await checkbox.getAttribute(name);
+      } catch {
+        // Unsupported on this platform/driver — try the next candidate.
+      }
     }
+
+    return this.parseMarketingCheckboxCheckedState(attributes);
   }
 
   /**
@@ -332,106 +207,47 @@ class CreatePasswordView {
    * toggling it off when already selected (e.g. USA locale default, TO-776).
    */
   async ensureMarketingOptInChecked(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        const checkbox = asDetoxElement(this.iUnderstandCheckbox);
-        const el = (await checkbox) as Detox.IndexableNativeElement;
-        const isChecked = await this.readMarketingCheckboxChecked(el);
+    const checkbox = (await Promise.resolve(
+      this.iUnderstandCheckbox,
+    )) as PlaywrightElement;
+    const isChecked = await this.readMarketingCheckboxChecked(checkbox);
 
-        // Only tap when explicitly unchecked. Ambiguous state keeps the default
-        // (USA devices start checked per TO-776).
-        if (isChecked === false) {
-          await Gestures.tap(checkbox, {
-            elemDescription: 'Create Password - Marketing opt-in checkbox',
-            checkVisibility: false,
-          });
-        }
-      },
-      appium: async () => {
-        const checkbox = await asPlaywrightElement(this.iUnderstandCheckbox);
-        const isChecked =
-          await this.readMarketingCheckboxCheckedAppium(checkbox);
+    if (isChecked === false) {
+      await Gestures.waitAndTap(this.iUnderstandCheckbox, {
+        elemDescription: 'Create Password - Marketing opt-in checkbox',
+      });
+      return;
+    }
 
-        if (isChecked === false) {
-          await UnifiedGestures.waitAndTap(this.iUnderstandCheckbox, {
-            description: 'Create Password - Marketing opt-in checkbox',
-          });
-          return;
-        }
-
-        if (isChecked === undefined) {
-          throw new Error(
-            'Unable to determine marketing opt-in checkbox state in Appium',
-          );
-        }
-      },
-    });
+    if (isChecked === undefined) {
+      throw new Error(
+        'Unable to determine marketing opt-in checkbox state in Appium',
+      );
+    }
   }
 
   async tapCreatePasswordButton(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(asDetoxElement(this.submitButton), {
-          elemDescription: 'Create Password Submit Button',
-          checkVisibility: false,
-        });
-      },
-      appium: async () => {
-        await UnifiedGestures.waitAndTap(this.submitButton, {
-          description: 'Create Password Submit Button',
-        });
-      },
+    await Gestures.waitAndTap(this.submitButton, {
+      elemDescription: 'Create Password Submit Button',
     });
   }
+
   async tapPasswordVisibilityIcon(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.tap(asDetoxElement(this.passwordVisibilityIcon), {
-          elemDescription: 'Create Password Password Visibility Icon',
-        });
-      },
-      appium: async () => {
-        await UnifiedGestures.waitAndTap(this.passwordVisibilityIcon, {
-          description: 'Create Password Password Visibility Icon',
-        });
-      },
+    await Gestures.waitAndTap(this.passwordVisibilityIcon, {
+      elemDescription: 'Create Password Password Visibility Icon',
     });
   }
 
   async tapConfirmPasswordVisibilityIcon(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.tap(asDetoxElement(this.confirmPasswordVisibilityIcon), {
-          elemDescription: 'Create Password Confirm Password Visibility Icon',
-        });
-      },
-      appium: async () => {
-        await UnifiedGestures.waitAndTap(this.confirmPasswordVisibilityIcon, {
-          description: 'Create Password Confirm Password Visibility Icon',
-        });
-      },
+    await Gestures.waitAndTap(this.confirmPasswordVisibilityIcon, {
+      elemDescription: 'Create Password Confirm Password Visibility Icon',
     });
   }
 
   async isVisible(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Assertions.expectElementToBeVisible(
-          asDetoxElement(this.newPasswordInput),
-          {
-            description: 'Create password input should be visible',
-          },
-        );
-      },
-      appium: async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(this.newPasswordInput),
-          {
-            timeout: 10000,
-            description: 'Create password input should be visible',
-          },
-        );
-      },
+    await Assertions.expectElementToBeVisible(this.newPasswordInput, {
+      timeout: 10000,
+      description: 'Create password input should be visible',
     });
   }
 
@@ -444,28 +260,9 @@ class CreatePasswordView {
   }
 
   async inputConfirmPasswordField(password: string): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.typeText(
-          asDetoxElement(this.newWalletConfirmPasswordInput),
-          password,
-          {
-            elemDescription: 'Create Password Confirm Password Input',
-            hideKeyboard: true,
-            checkVisibility: false,
-            checkEnabled: false,
-          },
-        );
-      },
-      appium: async () => {
-        await UnifiedGestures.typeText(
-          this.newWalletConfirmPasswordInput,
-          password,
-          {
-            description: 'Create Password Confirm Password Input',
-          },
-        );
-      },
+    await Gestures.typeText(this.newWalletConfirmPasswordInput, password, {
+      elemDescription: 'Create Password Confirm Password Input',
+      hideKeyboard: false,
     });
   }
 }

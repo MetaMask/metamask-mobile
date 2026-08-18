@@ -21,6 +21,7 @@ const mockTrackOnboardingEvent = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 let mockIsUsUnauthenticatedNonCardholder = false;
+let mockIsE2EOrPerformanceTest = false;
 let mockRouteParams:
   | {
       postOnboardingRedirect?: {
@@ -73,9 +74,13 @@ jest.mock('react-redux', () => ({
     .mockImplementation(() => mockIsUsUnauthenticatedNonCardholder),
 }));
 
-jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+let mockApy: { apyPercent?: number; apyPercentFormatted?: string } = {
+  apyPercent: 4,
+  apyPercentFormatted: '4%',
+};
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
-  default: () => ({ apyPercent: 4 }),
+  default: () => mockApy,
 }));
 
 jest.mock('../../hooks/useMoneyAccount', () => ({
@@ -91,6 +96,12 @@ jest.mock('../../../../../util/haptics', () => ({
     PageNavigation: 'pageNavigation',
   },
   playImpact: jest.fn(),
+}));
+
+jest.mock('../../../../../util/test/utils', () => ({
+  get isE2EOrPerformanceTest() {
+    return mockIsE2EOrPerformanceTest;
+  },
 }));
 
 jest.mock('react-native-reanimated', () => {
@@ -140,8 +151,14 @@ jest.mock('rive-react-native', () => {
       return <View {...props} />;
     }),
     useRive: () => [jest.fn(), mockRiveRef],
-    useRiveNumber: () => [undefined, mockSetNumber],
-    useRiveString: () => [undefined, mockSetString],
+    useRiveNumber: (_riveRef: unknown, path: string) => [
+      undefined,
+      (value: number) => mockSetNumber(path, value),
+    ],
+    useRiveString: (_riveRef: unknown, path: string) => [
+      undefined,
+      (value: string) => mockSetString(path, value),
+    ],
     useRiveTrigger: (_riveRef: unknown, path: string, callback: () => void) => {
       mockTriggerCallbacks[path] = callback;
     },
@@ -154,7 +171,9 @@ describe('MoneyOnboardingView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTriggerCallbacks = {};
+    mockApy = { apyPercent: 4, apyPercentFormatted: '4%' };
     mockIsUsUnauthenticatedNonCardholder = false;
+    mockIsE2EOrPerformanceTest = false;
     mockRouteParams = undefined;
     mockInitiateDeposit.mockResolvedValue(undefined);
     jest.mocked(useMoneyAccountDeposit).mockReturnValue({
@@ -229,6 +248,37 @@ describe('MoneyOnboardingView', () => {
           getByTestId(MoneyOnboardingViewTestIds.OVERLAY_FOOTER).props.style,
         ).fontSize,
       ).toBe(10);
+    });
+  });
+
+  describe('Onboarding view gate', () => {
+    it('renders the standard onboarding view outside E2E and performance tests', () => {
+      mockIsE2EOrPerformanceTest = false;
+
+      const { getByTestId } = renderMoneyOnboardingView();
+
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION),
+      ).toBeOnTheScreen();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('completes onboarding and redirects to Money home during E2E and performance tests', () => {
+      mockIsE2EOrPerformanceTest = true;
+
+      renderMoneyOnboardingView();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'SET_MONEY_ONBOARDING_SEEN',
+          payload: { seen: true },
+        }),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
     });
   });
 
@@ -513,15 +563,41 @@ describe('MoneyOnboardingView', () => {
     it('sets transition speed in Rive', () => {
       renderMoneyOnboardingView();
 
-      expect(mockSetNumber).toHaveBeenCalledWith(300);
+      expect(mockSetNumber).toHaveBeenCalledWith('transitionSpeed', 300);
     });
 
     it('sets Rive button text from localized onboarding button label', () => {
       renderMoneyOnboardingView();
 
       expect(mockSetString).toHaveBeenCalledWith(
+        'button',
         strings('money.rive_onboarding.button_text'),
       );
+    });
+
+    it('binds the live APY, percent sign included, to the animation', () => {
+      mockApy = { apyPercent: 4.6, apyPercentFormatted: '4.6%' };
+
+      renderMoneyOnboardingView();
+
+      expect(mockSetString).toHaveBeenCalledWith('apyValue', '4.6%');
+    });
+
+    it('binds the APY digit count so the artboard picks the matching layout', () => {
+      mockApy = { apyPercent: 4.6, apyPercentFormatted: '4.6%' };
+
+      renderMoneyOnboardingView();
+
+      expect(mockSetNumber).toHaveBeenCalledWith('apyAmountDigit', 2);
+    });
+
+    it('binds the fallback APY when the rate has not loaded yet', () => {
+      mockApy = {};
+
+      renderMoneyOnboardingView();
+
+      expect(mockSetString).toHaveBeenCalledWith('apyValue', '4%');
+      expect(mockSetNumber).toHaveBeenCalledWith('apyAmountDigit', 1);
     });
 
     it('starts the overlay hidden and fades it in after Rive initializes', () => {

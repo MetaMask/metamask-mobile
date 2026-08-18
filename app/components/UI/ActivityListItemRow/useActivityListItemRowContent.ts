@@ -1,4 +1,5 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import type { Formatters } from '@metamask/client-utils';
 import type { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -10,6 +11,7 @@ import {
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
+import { getFormatters, useFormatters } from '../../hooks/useFormatters';
 import { useTokensData } from '../../hooks/useTokensData/useTokensData';
 import {
   MUSD_DECIMALS,
@@ -26,6 +28,7 @@ import {
   type ActivityKind,
   type ActivityListItem,
   enrichTokenFromApi,
+  formatTokenDisplayAmount,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
   isFailedOrCancelledTransfer,
@@ -40,10 +43,11 @@ import type { MarketRateLookupToken } from '../../../util/activity-adapters/fiat
 import {
   addCurrencySymbol,
   balanceToFiatNumber,
-  renderFiat,
 } from '../../../util/number/bigint';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import { useAccountNames } from '../../hooks/DisplayName/useAccountNames';
+import { NameType } from '../Name/Name.types';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
 import {
   ACTIVITY_FALLBACK_TITLE_RESOLVERS,
@@ -133,7 +137,7 @@ function normalizeBridgeQuoteChainId(
     return `0x${Number.parseInt(chainId, 10).toString(16)}`;
   }
 
-  return chainId.toLowerCase();
+  return chainId.startsWith('0x') ? chainId.toLowerCase() : chainId;
 }
 
 function getBridgeQuoteNetworkName(
@@ -214,6 +218,18 @@ function shortAddress(address?: string): string | undefined {
   return address ? renderShortAddress(address) : undefined;
 }
 
+function bridgeAmountTokens(
+  sourceToken?: TokenAmount,
+  destinationToken?: TokenAmount,
+): { primaryToken?: TokenAmount; secondaryToken?: TokenAmount } {
+  const primaryToken = destinationToken?.amount
+    ? destinationToken
+    : sourceToken;
+  const secondaryToken =
+    primaryToken === destinationToken ? sourceToken : destinationToken;
+  return { primaryToken, secondaryToken };
+}
+
 function formatProtocolName(protocol: string): string {
   return protocol
     .toLowerCase()
@@ -222,7 +238,10 @@ function formatProtocolName(protocol: string): string {
     .join(' ');
 }
 
-function perpsPositionSubtitle(item: ActivityListItem): string | undefined {
+function perpsPositionSubtitle(
+  item: ActivityListItem,
+  formatters: Formatters,
+): string | undefined {
   const sourceToken =
     'sourceToken' in item.data ? item.data.sourceToken : undefined;
   if (!sourceToken?.symbol) {
@@ -232,7 +251,11 @@ function perpsPositionSubtitle(item: ActivityListItem): string | undefined {
   if (sourceToken.amount === undefined) {
     return displaySymbol;
   }
-  return `${formatTokenQuantity(sourceToken.amount)} ${displaySymbol}`;
+  return formatTokenDisplayAmount(
+    formatters,
+    sourceToken.amount,
+    displaySymbol,
+  );
 }
 
 function getPredictActivity(item: ActivityListItem) {
@@ -324,6 +347,7 @@ function uniqueTokens(tokens: (TokenAmount | undefined)[]): TokenAmount[] {
 function enrichStablecoinTokenMetadata(
   token: TokenAmount | undefined,
   chainId: string | undefined,
+  options?: { preserveHumanReadableAmount?: boolean },
 ): TokenAmount | undefined {
   const hexChainId = getHexChainId(chainId);
   const isMusd =
@@ -334,9 +358,14 @@ function enrichStablecoinTokenMetadata(
     return token;
   }
 
+  // Ramp buy/sell amounts are already human-readable. Injecting mUSD decimals
+  // would make getHumanReadableTokenAmount treat e.g. "30" as 30 atomic units
+  // (→ 0.00003 mUSD). Still fill assetId for avatars.
   return {
     ...token,
-    decimals: token.decimals ?? MUSD_DECIMALS,
+    ...(options?.preserveHumanReadableAmount
+      ? {}
+      : { decimals: token.decimals ?? MUSD_DECIMALS }),
     assetId: token.assetId ?? MUSD_TOKEN_ASSET_ID_BY_CHAIN[hexChainId],
   };
 }
@@ -465,7 +494,9 @@ function isNamelessNftToken(token: TokenAmount | undefined): boolean {
 
 function resolveCoreContent(
   item: ActivityListItem,
+  formatters: Formatters,
   bridgeHistoryItem?: BridgeHistoryItem,
+  counterpartyName?: string,
 ): Omit<
   ActivityListItemRowContent,
   'avatarTokens' | 'primaryAmount' | 'secondaryAmount'
@@ -483,6 +514,10 @@ function resolveCoreContent(
       const cancelledLabel =
         item.type === 'receive' ? 'Receive cancelled' : 'Send cancelled';
       const subtitlePrefix = item.type === 'receive' ? 'From' : 'To';
+      const counterpartyLabel =
+        counterpartyName ||
+        shortAddress(address) ||
+        strings('transactions.unavailable');
 
       return {
         title: statusTitle(item, {
@@ -491,28 +526,31 @@ function resolveCoreContent(
           failed: failedLabel,
           cancelled: cancelledLabel,
         }),
-        subtitle: `${subtitlePrefix}: ${shortAddress(address) ?? strings('transactions.unavailable')}`,
+        subtitle: `${subtitlePrefix}: ${counterpartyLabel}`,
+        ...(counterpartyName && address
+          ? {
+              subtitleAccount: {
+                prefix: subtitlePrefix,
+                address,
+                name: counterpartyName,
+              },
+            }
+          : {}),
         primaryToken: token,
       };
     }
     case 'swap': {
       const { sourceToken, destinationToken } = item.data;
-      const sourceSymbol = sourceToken?.symbol ?? '';
-      const destinationSymbol = destinationToken?.symbol ?? '';
 
       return {
         title: statusTitle(item, {
-          success:
-            sourceSymbol && destinationSymbol
-              ? `Swapped ${sourceSymbol} to ${destinationSymbol}`
-              : strings('transactions.swaps_transaction'),
-          pending:
-            sourceSymbol && destinationSymbol
-              ? `Swapping ${sourceSymbol} to ${destinationSymbol}`
-              : strings('transactions.swap'),
-          failed: 'Swap failed',
+          success: strings('transactions.activity_swapped'),
+          pending: strings('transactions.activity_swapping'),
+          failed: strings('transactions.activity_swap_failed'),
         }),
-        subtitle: protocolSubtitle(item),
+        subtitle:
+          tokenPairSubtitle(sourceToken, destinationToken) ??
+          protocolSubtitle(item),
         primaryToken: destinationToken,
         secondaryToken: sourceToken,
       };
@@ -521,9 +559,15 @@ function resolveCoreContent(
       const { sourceToken } = item.data;
       return {
         title: statusTitle(item, {
-          success: withOptionalSymbol('Swapped', sourceToken?.symbol),
-          pending: withOptionalSymbol('Swapping', sourceToken?.symbol),
-          failed: 'Swap failed',
+          success: withOptionalSymbol(
+            strings('transactions.activity_swapped'),
+            sourceToken?.symbol,
+          ),
+          pending: withOptionalSymbol(
+            strings('transactions.activity_swapping'),
+            sourceToken?.symbol,
+          ),
+          failed: strings('transactions.activity_swap_failed'),
         }),
         subtitle: protocolSubtitle(item),
         primaryToken: sourceToken,
@@ -573,32 +617,33 @@ function resolveCoreContent(
       const destinationSymbol = destinationToken?.symbol;
       const isSourceOnlyApiBridge =
         !bridgeHistoryItem && sourceToken && !destinationToken;
-      const isCrossTokenBridge =
-        sourceSymbol && destinationSymbol && sourceSymbol !== destinationSymbol;
       const subtitle =
         bridgeRouteSubtitle(bridgeHistoryItem) ??
-        (isCrossTokenBridge
-          ? tokenPairSubtitle(sourceToken, destinationToken)
-          : undefined);
+        tokenPairSubtitle(sourceToken, destinationToken);
 
       return {
         title: statusTitle(item, {
           success: isSourceOnlyApiBridge
-            ? withOptionalSymbol('Sent', sourceSymbol)
-            : isCrossTokenBridge
-              ? 'Swapped'
-              : withOptionalSymbol(
-                  'Bridged',
-                  destinationSymbol ?? sourceSymbol,
-                ),
+            ? withOptionalSymbol(strings('transactions.sent'), sourceSymbol)
+            : withOptionalSymbol(
+                strings('transactions.activity_bridged'),
+                destinationSymbol ?? sourceSymbol,
+              ),
           pending: isSourceOnlyApiBridge
-            ? withOptionalSymbol('Sending', sourceSymbol)
-            : withOptionalSymbol('Bridging', destinationSymbol ?? sourceSymbol),
-          failed: isSourceOnlyApiBridge ? 'Send failed' : 'Bridge failed',
+            ? withOptionalSymbol(
+                strings('transactions.activity_sending'),
+                sourceSymbol,
+              )
+            : withOptionalSymbol(
+                strings('transactions.activity_bridging'),
+                destinationSymbol ?? sourceSymbol,
+              ),
+          failed: isSourceOnlyApiBridge
+            ? strings('transactions.activity_send_failed')
+            : strings('transactions.activity_bridge_failed'),
         }),
         subtitle,
-        primaryToken: sourceToken,
-        secondaryToken: destinationToken,
+        ...bridgeAmountTokens(sourceToken, destinationToken),
       };
     }
     case 'buy':
@@ -827,22 +872,28 @@ function resolveCoreContent(
     default:
       return {
         title: resolveFallbackTitle(item),
-        subtitle: perpsPositionSubtitle(item) ?? protocolSubtitle(item),
+        subtitle:
+          perpsPositionSubtitle(item, formatters) ?? protocolSubtitle(item),
         primaryToken: 'token' in item.data ? item.data.token : undefined,
       };
   }
 }
 
+/**
+ * Resolves the title of an activity row. Callable outside React — uses
+ * {@link getFormatters} rather than the hook.
+ */
 export function resolveActivityListItemTitle(
   item: ActivityListItem,
-  titleOverride?: string,
+  bridgeHistoryItem?: BridgeHistoryItem,
 ): string {
-  return titleOverride ?? resolveCoreContent(item).title;
+  return resolveCoreContent(item, getFormatters(), bridgeHistoryItem).title;
 }
 
 function resolveAmount(
   token: TokenAmount | undefined,
   activityType: ActivityListItem['type'],
+  formatters: Formatters,
 ): string | undefined {
   if (!token) return undefined;
 
@@ -852,12 +903,11 @@ function resolveAmount(
   if (displayAmount === undefined) {
     return undefined;
   }
-  const formattedAmount = token.isUnlimitedApproval
-    ? displayAmount
-    : formatTokenQuantity(displayAmount);
-  const amount = token.symbol
-    ? `${formattedAmount} ${token.symbol}`
-    : formattedAmount;
+
+  const amount = token.isUnlimitedApproval
+    ? withOptionalSymbol(displayAmount, token.symbol)
+    : formatTokenDisplayAmount(formatters, displayAmount, token.symbol);
+
   const isSpendingCapActivity =
     activityType === 'approveSpendingCap' ||
     activityType === 'increaseSpendingCap' ||
@@ -878,39 +928,6 @@ function shouldUsePrimaryFiatFallback(
   }
 
   return !['swap', 'bridge', 'wrap', 'unwrap', 'convert'].includes(itemType);
-}
-
-function formatTokenQuantity(amount: string): string {
-  const value = Number(amount);
-  const absoluteValue = Math.abs(value);
-
-  if (!Number.isFinite(value)) return amount;
-  if (value === 0) return '0';
-
-  if (absoluteValue < 0.00001) {
-    return '<0.00001';
-  }
-
-  if (absoluteValue < 1) {
-    return new Intl.NumberFormat(undefined, {
-      minimumSignificantDigits: 1,
-      maximumSignificantDigits: 4,
-    }).format(value);
-  }
-
-  if (absoluteValue < 1000000) {
-    return new Intl.NumberFormat(undefined, {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 4,
-    }).format(value);
-  }
-
-  return new Intl.NumberFormat(undefined, {
-    notation: 'compact',
-    compactDisplay: 'short',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(value);
 }
 
 function getHexChainId(chainId: string | undefined): Hex | undefined {
@@ -996,6 +1013,7 @@ function resolveFiatAmount({
   contractExchangeRates,
   conversionRate,
   currentCurrency,
+  formatters,
   hexChainId,
   token,
   usdConversionRate,
@@ -1006,6 +1024,7 @@ function resolveFiatAmount({
     | undefined;
   conversionRate: number | null | undefined;
   currentCurrency: string | undefined;
+  formatters: Formatters;
   hexChainId: Hex | undefined;
   token: TokenAmount | undefined;
   usdConversionRate: number | null | undefined;
@@ -1030,14 +1049,13 @@ function resolveFiatAmount({
 
   if (!conversionRate || !exchangeRate) return undefined;
 
-  const fiatAmount = renderFiat(
+  const fiatAmount = formatters.formatCurrencyWithMinThreshold(
     balanceToFiatNumber(
       Number.parseFloat(humanAmount),
       conversionRate,
       exchangeRate,
     ),
-    currentCurrency as Parameters<typeof renderFiat>[1],
-    2,
+    currentCurrency,
   );
 
   if (!fiatAmount) return undefined;
@@ -1063,12 +1081,14 @@ function resolveFiatFromUsdAmount({
   conversionRate,
   usdConversionRate,
   currentCurrency,
+  formatters,
   precise = false,
 }: {
   token: TokenAmount | undefined;
   conversionRate: number | null | undefined;
   usdConversionRate: number | null | undefined;
   currentCurrency: string | undefined;
+  formatters: Formatters;
   precise?: boolean;
 }): string | undefined {
   const humanAmount = token ? getHumanReadableTokenAmount(token) : undefined;
@@ -1101,7 +1121,7 @@ function resolveFiatFromUsdAmount({
         true,
         true,
       )
-    : renderFiat(
+    : formatters.formatCurrencyWithMinThreshold(
         conversionRate && usdConversionRate
           ? balanceToFiatNumber(
               usdAmount,
@@ -1109,8 +1129,7 @@ function resolveFiatFromUsdAmount({
               1 / usdConversionRate,
             )
           : usdAmount,
-        displayCurrencyCode as Parameters<typeof renderFiat>[1],
-        2,
+        displayCurrencyCode,
       );
 
   return fiat ? applyDisplaySign(fiat, signPrefix) : undefined;
@@ -1118,11 +1137,16 @@ function resolveFiatFromUsdAmount({
 
 function fundsTokenSecondaryAmount(
   token: TokenAmount | undefined,
+  formatters: Formatters,
 ): string | undefined {
   const humanAmount = token ? getHumanReadableTokenAmount(token) : undefined;
   if (!token || humanAmount === undefined || !token.symbol) return undefined;
 
-  const display = `${formatTokenQuantity(humanAmount)} ${token.symbol}`;
+  const display = formatTokenDisplayAmount(
+    formatters,
+    humanAmount,
+    token.symbol,
+  );
   return applyDisplaySign(
     display,
     getDisplaySignPrefix(token.direction, { showPlus: false }),
@@ -1137,6 +1161,7 @@ export function useActivityListItemRowContent(
   const networkChainId = chainId ?? item.chainId;
   const hexChainId = getHexChainId(networkChainId);
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const formatters = useFormatters();
   const conversionRate = useSelector((state: RootState) =>
     hexChainId
       ? selectConversionRateByChainId(state, hexChainId, true)
@@ -1190,7 +1215,33 @@ export function useActivityListItemRowContent(
   }
   const lendingTokenData = useTokensData(lendingAssetIds);
 
-  const content = resolveCoreContent(item, bridgeHistoryItem);
+  // The send/receive subtitle names the counterparty. Resolve it against the
+  // user's own accounts so transfers between their accounts read as
+  // "To: <account name>" instead of a hex address.
+  const counterpartyAddress =
+    item.type === 'receive'
+      ? item.data.from
+      : item.type === 'send'
+        ? item.data.to
+        : undefined;
+  const counterpartyName = useAccountNames(
+    counterpartyAddress
+      ? [
+          {
+            value: counterpartyAddress,
+            variation: '',
+            type: NameType.EthereumAddress,
+          },
+        ]
+      : [],
+  )[0];
+
+  const content = resolveCoreContent(
+    item,
+    formatters,
+    bridgeHistoryItem,
+    counterpartyName,
+  );
 
   let basePrimaryToken: TokenAmount | undefined;
   if (isSpendingCap) {
@@ -1203,9 +1254,15 @@ export function useActivityListItemRowContent(
   } else {
     basePrimaryToken = content.primaryToken;
   }
+  // buy/sell rows today come from ramp orders whose cryptoAmount is human-
+  // readable; do not inject token decimals that would re-scale the amount.
+  const preserveHumanReadableAmount =
+    item.type === 'buy' || item.type === 'sell';
+
   const primaryToken = enrichStablecoinTokenMetadata(
     basePrimaryToken,
     networkChainId,
+    { preserveHumanReadableAmount },
   );
 
   const baseSecondaryToken = isLending
@@ -1214,6 +1271,7 @@ export function useActivityListItemRowContent(
   const secondaryToken = enrichStablecoinTokenMetadata(
     baseSecondaryToken,
     networkChainId,
+    { preserveHumanReadableAmount },
   );
   const isPerpsFunding = isPerpsFundingKind(item.type);
   const isFundsRow = isDomainFundsKind(item.type);
@@ -1228,18 +1286,24 @@ export function useActivityListItemRowContent(
         conversionRate,
         usdConversionRate,
         currentCurrency,
+        formatters,
         precise: isPerpsFunding,
       })
     : undefined;
 
   // Non-domain fiat fallbacks (from main): token amount first, then secondary
   // fiat, then a primary fiat fallback for kinds that warrant it.
-  const resolvedSecondaryAmount = resolveAmount(secondaryToken, item.type);
+  const resolvedSecondaryAmount = resolveAmount(
+    secondaryToken,
+    item.type,
+    formatters,
+  );
   const secondaryFiatAmount = resolveFiatAmount({
     activityType: item.type,
     contractExchangeRates,
     conversionRate,
     currentCurrency,
+    formatters,
     hexChainId,
     token: secondaryToken,
     usdConversionRate,
@@ -1253,6 +1317,7 @@ export function useActivityListItemRowContent(
         contractExchangeRates,
         conversionRate,
         currentCurrency,
+        formatters,
         hexChainId,
         token: primaryToken,
         usdConversionRate,
@@ -1262,13 +1327,15 @@ export function useActivityListItemRowContent(
   const isOrderRow = isPerpsOrderKind(item.type);
 
   const rawPrimaryAmount =
-    domainFiatAmount ?? resolveAmount(primaryToken, item.type);
+    domainFiatAmount ?? resolveAmount(primaryToken, item.type, formatters);
 
   const resolveRawSecondaryAmount = (): string | undefined => {
     // USD-denominated (perps/predict) rows: the token line only makes sense for
     // funds movements; other domain rows have no secondary line.
     if (domainFiatAmount) {
-      return isFundsRow ? fundsTokenSecondaryAmount(primaryToken) : undefined;
+      return isFundsRow
+        ? fundsTokenSecondaryAmount(primaryToken, formatters)
+        : undefined;
     }
     // Non-domain rows: prefer the secondary token amount, then its fiat, then a
     // primary fiat fallback.

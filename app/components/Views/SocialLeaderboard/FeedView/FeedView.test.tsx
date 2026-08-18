@@ -12,9 +12,10 @@ import {
   getFeedTraderTestId,
 } from './FeedView.testIds';
 import {
+  TimeframeFilterSelectorsIDs,
   TypeFilterSelectorsIDs,
   getTypeFilterOptionTestId,
-} from '../components/TypeFilter';
+} from '../components/Filters';
 import type { FeedItem, FeedSection, FeedTypeFilter } from './types';
 import type { UseTraderFeedResult } from './hooks/useTraderFeed';
 
@@ -30,8 +31,8 @@ const spotItem: FeedItem = {
   username: 'dutchiono',
   traderAddress: '0x1111111111111111111111111111111111111111',
   action: 'bought',
-  timestamp: Date.now() - 1000,
-  subHeader: '$120K',
+  timestamp: 1722470400000 - 1000,
+  subHeader: { sizeLabel: '$120K' },
   valueLabel: '$123,000.5',
   pnlLabel: '+12%',
   hasValueData: true,
@@ -58,8 +59,8 @@ const perpItem: FeedItem = {
   username: 'aparjey',
   traderAddress: '0x2222222222222222222222222222222222222222',
   action: 'closed',
-  timestamp: Date.now() - 2000,
-  subHeader: '$88K',
+  timestamp: 1722470400000 - 2000,
+  subHeader: { sizeLabel: '$88K' },
   valueLabel: '$88,000.5',
   pnlLabel: '+12%',
   hasValueData: true,
@@ -111,6 +112,7 @@ jest.mock('./hooks/useTraderFeed', () => ({
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
+  useRoute: () => ({ params: { source: 'home_banner' } }),
 }));
 
 jest.mock('../../../../util/haptics', () => ({
@@ -123,8 +125,6 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
-let mockQuickBuyAnalyticsContext: { source?: string } | undefined;
-
 const mockTrack = jest.fn();
 jest.mock('../analytics', () => {
   const actual = jest.requireActual('../analytics');
@@ -134,30 +134,11 @@ jest.mock('../analytics', () => {
   };
 });
 
-jest.mock('../TraderPositionView/components/QuickBuy', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    QuickBuy: {
-      Root: ({
-        isVisible,
-        analyticsContext,
-      }: {
-        isVisible: boolean;
-        analyticsContext?: { source?: string };
-      }) => {
-        mockQuickBuyAnalyticsContext = analyticsContext;
-        return isVisible ? <View testID="mock-quick-buy-open" /> : null;
-      },
-    },
-    TOP_TRADERS_QUICK_BUY_FEATURES: {},
-  };
-});
-
 let handleTypeFilterChange: ((value: FeedTypeFilter) => void) | undefined;
 
-jest.mock('../components/TypeFilter', () => {
+jest.mock('../components/Filters', () => {
   const ReactActual = jest.requireActual('react');
-  const Actual = jest.requireActual('../components/TypeFilter');
+  const Actual = jest.requireActual('../components/Filters');
   return {
     ...Actual,
     TypeFilterSheet: (
@@ -173,7 +154,6 @@ describe('FeedView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFeedResult = buildResult();
-    mockQuickBuyAnalyticsContext = undefined;
     handleTypeFilterChange = undefined;
   });
 
@@ -187,6 +167,14 @@ describe('FeedView', () => {
       screen.getByTestId(FeedViewSelectorsIDs.AUDIENCE_TOGGLE),
     ).toBeOnTheScreen();
     expect(screen.getByTestId(FeedViewSelectorsIDs.LIST)).toBeOnTheScreen();
+  });
+
+  it('does not offer a time frame filter', () => {
+    renderWithProvider(<FeedView />);
+
+    expect(
+      screen.queryByTestId(TimeframeFilterSelectorsIDs.SELECTOR),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows the skeleton loading state on the initial fetch', () => {
@@ -225,14 +213,21 @@ describe('FeedView', () => {
     expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the QuickBuy sheet with a CTA haptic when a spot Trade is pressed', () => {
-    renderWithProvider(<FeedView />);
+  it('requests QuickBuy with a CTA haptic when a spot Trade is pressed', () => {
+    const onQuickBuy = jest.fn();
+    renderWithProvider(<FeedView onQuickBuy={onQuickBuy} />);
 
     fireEvent.press(screen.getByTestId(getFeedTradeButtonTestId('feed-1')));
 
     expect(mockPlayImpact).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId('mock-quick-buy-open')).toBeOnTheScreen();
-    expect(mockQuickBuyAnalyticsContext).toEqual({ source: 'trader_feed' });
+    expect(onQuickBuy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokenAddress: spotItem.tokenAddress,
+        tokenSymbol: spotItem.tokenSymbol,
+        tokenName: spotItem.tokenName,
+        chain: spotItem.chain,
+      }),
+    );
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED,
@@ -248,6 +243,22 @@ describe('FeedView', () => {
         caip19: expect.stringContaining('eip155:1/erc20:'),
       }),
     );
+  });
+
+  it('reports spot availability to the parent', () => {
+    const onSpotAvailabilityChange = jest.fn();
+
+    const { rerender } = renderWithProvider(
+      <FeedView onSpotAvailabilityChange={onSpotAvailabilityChange} />,
+    );
+
+    expect(onSpotAvailabilityChange).toHaveBeenLastCalledWith(true);
+
+    onSpotAvailabilityChange.mockClear();
+    mockFeedResult = buildResult({ items: [perpItem] });
+    rerender(<FeedView onSpotAvailabilityChange={onSpotAvailabilityChange} />);
+
+    expect(onSpotAvailabilityChange).toHaveBeenLastCalledWith(false);
   });
 
   it('navigates to the Perps market detail page when a perps Trade is pressed', () => {
@@ -325,8 +336,55 @@ describe('FeedView', () => {
     );
   });
 
+  it('tracks Trader Feed Screen Viewed when the feed becomes active', () => {
+    renderWithProvider(<FeedView isActive />);
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_SCREEN_VIEWED,
+      {
+        source: 'home_banner',
+        feed_audience: 'following',
+        feed_type_filter: 'all',
+      },
+    );
+  });
+
+  it('does not track Trader Feed Screen Viewed while the feed tab is inactive', () => {
+    renderWithProvider(<FeedView isActive={false} />);
+
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_SCREEN_VIEWED,
+      expect.anything(),
+    );
+  });
+
+  it('tracks Trader Feed Screen Viewed once when the feed tab becomes active', () => {
+    const { rerender } = renderWithProvider(<FeedView isActive={false} />);
+
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_SCREEN_VIEWED,
+      expect.anything(),
+    );
+
+    rerender(<FeedView isActive />);
+
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_TRADER_FEED_SCREEN_VIEWED,
+      {
+        source: 'home_banner',
+        feed_audience: 'following',
+        feed_type_filter: 'all',
+      },
+    );
+
+    rerender(<FeedView isActive />);
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+  });
+
   it('navigates to TraderPositionView when a spot position card is pressed', () => {
     renderWithProvider(<FeedView />);
+    mockTrack.mockClear();
 
     fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('feed-1')));
 
@@ -345,6 +403,7 @@ describe('FeedView', () => {
 
   it('navigates to TraderPositionView when a perps position card is pressed', () => {
     renderWithProvider(<FeedView />);
+    mockTrack.mockClear();
 
     fireEvent.press(screen.getByTestId(getFeedTradeCardTestId('feed-2')));
 
@@ -363,6 +422,7 @@ describe('FeedView', () => {
 
   it('tracks chained type filter changes with the correct previous value', () => {
     renderWithProvider(<FeedView />);
+    mockTrack.mockClear();
 
     act(() => {
       handleTypeFilterChange?.('tokens');
@@ -405,15 +465,15 @@ describe('FeedView', () => {
       expect(refreshControl.props.refreshing).toBe(false);
       expect(typeof refreshControl.props.onRefresh).toBe('function');
 
+      // Await the async onRefresh (J1) and flush the 1s min-duration timer so
+      // the promise can settle under fake timers.
       await act(async () => {
-        refreshControl.props.onRefresh();
+        const refreshPromise = refreshControl.props.onRefresh();
+        jest.runAllTimers();
+        await refreshPromise;
       });
 
       expect(mockRefresh).toHaveBeenCalledTimes(1);
-
-      await act(async () => {
-        jest.runAllTimers();
-      });
     } finally {
       jest.useRealTimers();
     }

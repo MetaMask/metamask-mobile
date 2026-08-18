@@ -1,0 +1,129 @@
+import {
+  Box,
+  Input,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import React, { useRef } from 'react';
+import { Platform, Pressable, type TextInput } from 'react-native';
+
+export const getPerpsProInputAccessoryID = (testID: string) =>
+  `${testID}-input-accessory`;
+
+interface PerpsProCompactInputProps {
+  label: string;
+  value: string;
+  onChangeText: (value: string) => void;
+  testID: string;
+  variant?: 'stacked' | 'inline';
+  startAccessory?: React.ReactNode;
+  endAccessory?: React.ReactNode;
+  footer?: React.ReactNode;
+  placeholder?: string;
+  placeholderColor?: 'default' | 'muted';
+  onFocus?: () => void;
+  onBlur?: () => void;
+  /** Fires on every field tap, including while already focused. Idempotent. */
+  onFieldPress?: () => void;
+}
+
+const PerpsProCompactInput = ({
+  label,
+  value,
+  onChangeText,
+  testID,
+  variant = 'stacked',
+  startAccessory,
+  endAccessory,
+  footer,
+  placeholder = '0',
+  placeholderColor = 'muted',
+  onFocus,
+  onBlur,
+  onFieldPress,
+}: PerpsProCompactInputProps) => {
+  const tw = useTailwind();
+  const inputRef = useRef<TextInput>(null);
+  const inputAccessoryViewID =
+    Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
+  const focusInput = () => {
+    inputRef.current?.focus();
+    onFieldPress?.();
+  };
+
+  const input = (
+    <Input
+      ref={inputRef}
+      value={value}
+      onChangeText={onChangeText}
+      keyboardType="decimal-pad"
+      onFocus={onFocus}
+      onBlur={onBlur}
+      // A tap landing here is consumed by the input, so neither the inline
+      // variant's wrapping pressable nor the stacked variant's label fires.
+      onPressIn={onFieldPress}
+      inputAccessoryViewID={inputAccessoryViewID}
+      placeholder={placeholder}
+      placeholderTextColor={tw.color(`text-${placeholderColor}`)}
+      textVariant={TextVariant.BodySm}
+      isStateStylesDisabled
+      twClassName="flex-1 border-0 bg-transparent p-0"
+      testID={testID}
+      accessibilityLabel={label}
+    />
+  );
+
+  if (variant === 'inline') {
+    return (
+      <Box
+        twClassName="h-12 flex-row items-center border-t border-muted px-3"
+        testID={`${testID}-container`}
+      >
+        {/* The input's text occupies only ~20px of this 48px row, so most of
+            the row is dead space. Without a pressable filling it, taps there
+            reach the enclosing ScrollView instead, and its
+            `keyboardShouldPersistTaps="handled"` treats an unhandled tap as a
+            request to dismiss the keyboard. `endAccessory` stays outside so the
+            mid-price button keeps its own press. */}
+        <Pressable
+          onPress={focusInput}
+          accessible={false}
+          style={tw`h-full min-w-0 flex-1 flex-row items-center`}
+          testID={`${testID}-field`}
+        >
+          {startAccessory}
+          {input}
+        </Pressable>
+        {endAccessory}
+      </Box>
+    );
+  }
+
+  return (
+    <Box twClassName="rounded-xl bg-muted p-3" testID={`${testID}-container`}>
+      <Box twClassName="flex-row items-center justify-between">
+        {/* Tapping the label focuses the input and opens the keyboard, same
+            as tapping the (visually small) input row itself. */}
+        <Pressable onPress={focusInput}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {label}
+          </Text>
+        </Pressable>
+        {endAccessory}
+      </Box>
+      <Box twClassName="flex-row items-center">
+        {startAccessory}
+        {input}
+      </Box>
+      {footer ? (
+        <Box twClassName="mt-3" testID={`${testID}-footer`}>
+          {footer}
+        </Box>
+      ) : null}
+    </Box>
+  );
+};
+
+export default PerpsProCompactInput;

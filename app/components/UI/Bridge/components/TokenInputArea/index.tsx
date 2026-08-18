@@ -41,13 +41,18 @@ import OldButton, {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
 } from '../../../../../core/redux/slices/bridge';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
-import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import {
+  CaipChainId,
+  isCaipAssetType,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 import {
@@ -121,6 +126,9 @@ const createStyles = ({
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
+      alignSelf: 'flex-start',
+      paddingVertical: 4,
+      paddingHorizontal: 4,
     },
     currencyContainer: {
       flex: 1,
@@ -182,6 +190,11 @@ interface TokenInputAreaProps {
   onAmountTypeTogglePress?: () => void;
   amountTypeToggleTestID?: string;
   showFiatAmountAsPrimary?: boolean;
+  /**
+   * When provided, restricts the network list to these chains instead
+   * of the default allowed chainRanking.
+   */
+  enabledChainIds?: CaipChainId[];
 }
 
 export const TokenInputArea = forwardRef<
@@ -215,6 +228,7 @@ export const TokenInputArea = forwardRef<
       onAmountTypeTogglePress,
       amountTypeToggleTestID,
       showFiatAmountAsPrimary = false,
+      enabledChainIds,
     },
     ref,
   ) => {
@@ -248,7 +262,7 @@ export const TokenInputArea = forwardRef<
       isFocused: () => !!inputRef.current?.isFocused(),
     }));
 
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const tokenSelectorType =
       tokenType === TokenInputAreaType.Source || isSourceToken
         ? TokenSelectorType.Source
@@ -274,6 +288,7 @@ export const TokenInputArea = forwardRef<
       trackAssetPickerOpened(TokenSelectorType.Dest);
       navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
         type: TokenSelectorType.Dest,
+        enabledChainIds,
       });
     };
 
@@ -281,6 +296,7 @@ export const TokenInputArea = forwardRef<
       trackAssetPickerOpened(TokenSelectorType.Source);
       navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
         type: TokenSelectorType.Source,
+        enabledChainIds,
       });
     };
 

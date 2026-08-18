@@ -70,25 +70,6 @@ jest.mock(
   },
 );
 
-jest.mock(
-  '../../../../../../../component-library/components/Texts/Text',
-  () => {
-    const { Text: RNText } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        children,
-        testID,
-      }: {
-        children: React.ReactNode;
-        testID?: string;
-      }) => <RNText testID={testID}>{children}</RNText>,
-      TextVariant: { BodyMD: 'BodyMD', BodySM: 'BodySM' },
-      TextColor: { Alternative: 'Alternative', Default: 'Default' },
-    };
-  },
-);
-
 describe('PerpsMarketFiltersBar', () => {
   const mockOnSortPress = jest.fn();
   const mockOnCategorySelect = jest.fn();

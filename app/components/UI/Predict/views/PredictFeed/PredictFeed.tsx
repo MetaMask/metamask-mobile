@@ -37,6 +37,7 @@ import {
   RouteProp,
   useFocusEffect,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   PredictMarketListSelectorsIDs,
   PredictSearchSelectorsIDs,
@@ -67,7 +68,7 @@ import PredictWithdrawUnavailableSheet, {
 } from '../../components/PredictWithdrawUnavailableSheet';
 import PredictOffline from '../../components/PredictOffline';
 import FeaturedCarousel from '../../components/FeaturedCarousel';
-import PredictWorldCupMainFeedBanner from '../../components/PredictWorldCupMainFeedBanner';
+import PredictFeedBanner from '../../components/PredictFeedBanner';
 import {
   selectPredictFeaturedCarouselEnabledFlag,
   selectPredictPortfolioEnabledFlag,
@@ -85,6 +86,7 @@ import {
   TabsBar,
 } from '../../../../../component-library/components-temp/Tabs';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { PredictFeedBannerPosition } from '../../constants/feedBanner';
 
 type PredictFlashListRef = FlashListRef<PredictMarketType>;
 type PredictFlashListProps = FlashListProps<PredictMarketType> & {
@@ -97,16 +99,10 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
 
 const PredictFeedHeader: React.FC<{
   onDepositWalletWithdrawPress?: () => void;
-  topInset?: number;
-  hideTitle?: boolean;
-}> = ({ onDepositWalletWithdrawPress, topInset = 0, hideTitle = false }) => (
-  <Box
-    twClassName="pb-4"
-    style={topInset > 0 ? { paddingTop: topInset } : undefined}
-  >
+}> = ({ onDepositWalletWithdrawPress }) => (
+  <Box twClassName="pb-4">
     <PredictBalance
       onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
-      hideTitle={hideTitle}
     />
   </Box>
 );
@@ -153,8 +149,6 @@ interface AnimatedHeaderProps {
   onHeaderLayout: (event: LayoutChangeEvent) => void;
   onTabBarLayout: (event: LayoutChangeEvent) => void;
   onDepositWalletWithdrawPress?: () => void;
-  topInset?: number;
-  hideTitle?: boolean;
 }
 
 const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
@@ -168,8 +162,6 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
   onHeaderLayout,
   onTabBarLayout,
   onDepositWalletWithdrawPress,
-  topInset = 0,
-  hideTitle = false,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -209,15 +201,20 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
       >
         <PredictFeedHeader
           onDepositWalletWithdrawPress={onDepositWalletWithdrawPress}
-          topInset={topInset}
-          hideTitle={hideTitle}
+        />
+        <PredictFeedBanner
+          position={PredictFeedBannerPosition.AfterBalance}
+          containerClassName="px-4 pb-3"
         />
         {isFeaturedCarouselEnabled && (
           <Box twClassName="pb-3">
             <FeaturedCarousel />
           </Box>
         )}
-        <PredictWorldCupMainFeedBanner variant="compact" />
+        <PredictFeedBanner
+          position={PredictFeedBannerPosition.AfterFeaturedCarousel}
+          containerClassName="px-4 pb-3"
+        />
       </Animated.View>
       <View
         ref={tabBarRef}
@@ -242,20 +239,22 @@ interface PredictMarketListItemProps {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
-const PredictMarketListItem: React.FC<PredictMarketListItemProps> = ({
-  market,
-  entryPoint,
-  testID,
-  predictFeedTab,
-  transactionActiveAbTests,
-}) => (
-  <PredictMarket
-    market={market}
-    entryPoint={entryPoint}
-    testID={testID}
-    predictFeedTab={predictFeedTab}
-    transactionActiveAbTests={transactionActiveAbTests}
-  />
+const PredictMarketListItem: React.FC<PredictMarketListItemProps> = React.memo(
+  ({
+    market,
+    entryPoint,
+    testID,
+    predictFeedTab,
+    transactionActiveAbTests,
+  }) => (
+    <PredictMarket
+      market={market}
+      entryPoint={entryPoint}
+      testID={testID}
+      predictFeedTab={predictFeedTab}
+      transactionActiveAbTests={transactionActiveAbTests}
+    />
+  ),
 );
 
 interface PredictTabContentProps {
@@ -536,32 +535,17 @@ const PredictFeedTabs: React.FC<PredictFeedTabsProps> = ({
 };
 
 interface PredictFeedProps {
-  hideHeader?: boolean;
-  /**
-   * Top padding before the title/balance header when embedded in
-   * HomepageDiscoveryTabs — keeps the predict background flush under the
-   * discovery tab bar and adds spacing before the screen title (32px).
-   */
-  topInset?: number;
   entryPoint?: PredictEntryPoint;
-  onHeaderHiddenChange?: (hidden: boolean) => void;
-  walletHeaderTranslateY?: SharedValue<number>;
-  walletHeaderHeight?: number;
 }
 
 const PredictFeed: React.FC<PredictFeedProps> = ({
-  hideHeader = false,
-  topInset = 0,
   entryPoint: propEntryPoint,
-  onHeaderHiddenChange,
-  walletHeaderTranslateY,
-  walletHeaderHeight,
 }) => {
   const { tabs, activeIndex, setActiveIndex, initialTabKey } = usePredictTabs();
 
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketList'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
@@ -638,9 +622,6 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     headerRef,
     tabBarRef,
     setActiveIndex,
-    onHeaderHiddenChange,
-    walletHeaderTranslateY,
-    walletHeaderHeight,
   });
 
   const handleTabPress = useCallback(
@@ -676,11 +657,9 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
     showSearch();
   }, [tabs, activeIndex, listEntryPoint, showSearch]);
 
-  const headerTopInset = hideHeader ? topInset : 0;
-
   return (
     <SafeAreaView
-      edges={hideHeader ? [] : { bottom: 'additive' }}
+      edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
       <Box
@@ -688,28 +667,26 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
         twClassName="flex-1"
         style={{ backgroundColor: colors.background.default }}
       >
-        {!hideHeader && (
-          <Box
-            style={tw.style('z-20', {
-              backgroundColor: colors.background.default,
-            })}
-          >
-            <HeaderStandard
-              includesTopInset
-              onBack={handleBackPress}
-              backButtonProps={{
-                testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
-              }}
-              endButtonIconProps={[
-                {
-                  iconName: IconName.Search,
-                  onPress: handleShowSearch,
-                  testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
-                },
-              ]}
-            />
-          </Box>
-        )}
+        <Box
+          style={tw.style('z-20', {
+            backgroundColor: colors.background.default,
+          })}
+        >
+          <HeaderStandard
+            includesTopInset
+            onBack={handleBackPress}
+            backButtonProps={{
+              testID: PredictMarketListSelectorsIDs.BACK_BUTTON,
+            }}
+            endButtonIconProps={[
+              {
+                iconName: IconName.Search,
+                onPress: handleShowSearch,
+                testID: PredictSearchSelectorsIDs.SEARCH_BUTTON,
+              },
+            ]}
+          />
+        </Box>
 
         <Box twClassName="flex-1 relative overflow-hidden">
           <AnimatedHeader
@@ -723,8 +700,6 @@ const PredictFeed: React.FC<PredictFeedProps> = ({
             onHeaderLayout={onHeaderLayout}
             onTabBarLayout={onTabBarLayout}
             onDepositWalletWithdrawPress={handleDepositWalletWithdrawPress}
-            topInset={headerTopInset}
-            hideTitle={hideHeader}
           />
 
           {layoutReady && (

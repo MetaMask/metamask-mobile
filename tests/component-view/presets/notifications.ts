@@ -43,7 +43,6 @@ interface NotificationsPresetOptions {
   featureAnnouncementsEnabled?: boolean;
   pushEnabled?: boolean;
   socialLeaderboardEnabled?: boolean;
-  priceAlertsEnabled?: boolean;
   notifications?: typeof MOCK_NOTIFICATIONS;
 }
 
@@ -65,7 +64,6 @@ export function buildNotificationsState(
     featureAnnouncementsEnabled = true,
     pushEnabled = true,
     socialLeaderboardEnabled = false,
-    priceAlertsEnabled = false,
     notifications = MOCK_NOTIFICATIONS,
   } = options;
 
@@ -99,10 +97,6 @@ export function buildNotificationsState(
             assetsNotificationsEnabled: true,
             aiSocialLeaderboardEnabled: {
               enabled: socialLeaderboardEnabled,
-              minimumVersion: '0.0.1',
-            },
-            priceAlertsEnabled: {
-              enabled: priceAlertsEnabled,
               minimumVersion: '0.0.1',
             },
           },

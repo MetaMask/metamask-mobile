@@ -17,13 +17,14 @@ import { SubscriptionBenefitDto } from '../../../../core/Engine/controllers/rewa
 import BenefitCard from '../components/Benefits/BenefitCard.tsx';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import TheMiracleFooter from '../components/Benefits/TheMiracleFooter.tsx';
 import BenefitEmptyList from '../components/Benefits/BenefitEmptyList.tsx';
 
 const BenefitsFullView = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   useTrackRewardsPageView({ page_type: 'benefits' });
 

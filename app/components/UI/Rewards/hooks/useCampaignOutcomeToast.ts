@@ -1,10 +1,6 @@
 import { useCallback, useContext, useMemo } from 'react';
-import {
-  useFocusEffect,
-  useNavigation,
-  type NavigationProp,
-  type ParamListBase,
-} from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { ToastContext } from '../../../../component-library/components/Toast';
@@ -53,7 +49,7 @@ export function useCampaignOutcomeToast(
   const dispatch = useDispatch();
   const { toastRef } = useContext(ToastContext);
   const { showToast, RewardsToastOptions } = useRewardsToast();
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const campaigns = useSelector(selectCampaigns);

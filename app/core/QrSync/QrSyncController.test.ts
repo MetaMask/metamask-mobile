@@ -705,6 +705,46 @@ describe('QrSyncController', () => {
       );
     });
 
+    it('importRemainingSecrets imports primary mnemonic for existing-user sync', async () => {
+      const walletClient = buildMockWalletClient();
+      const messenger = buildMessenger();
+      const callSpy = jest
+        .spyOn(messenger, 'call')
+        .mockResolvedValue(undefined);
+
+      const orchestratingController = new QrSyncController({
+        messenger,
+        keyManager: {} as IKeyManager,
+        relayUrl: TEST_RELAY_URL,
+        getIsOnboardingCompleted: () => true,
+      });
+
+      await startSession(orchestratingController, walletClient);
+      walletClient.emit('message', createSyncReadyWireMessage());
+      await flushPromises();
+
+      expect(orchestratingController.state.syncFlow).toBe(
+        QrSyncSyncFlows.EXISTING_USER,
+      );
+
+      await orchestratingController.importRemainingSecrets();
+
+      expect(callSpy).toHaveBeenCalledWith(
+        'QrSyncProvisioningService:importSecretsToVault',
+        [
+          {
+            index: 0,
+            value: 'word1 word2 word3',
+            type: QrSyncSecretTypes.MNEMONIC,
+            isPrimary: true,
+          },
+        ],
+      );
+      expect(orchestratingController.state.provisioningStatus).toBe(
+        QrSyncProvisioningStatuses.SECRETS_IMPORTED,
+      );
+    });
+
     it('importRemainingSecrets no-ops when not awaiting_password', async () => {
       const messenger = buildMessenger();
       const callSpy = jest.spyOn(messenger, 'call');

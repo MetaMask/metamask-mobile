@@ -43,7 +43,7 @@ export interface MultichainTransactionDisplayData {
   baseFee?: AggregatedMovementDisplayData;
   priorityFee?: AggregatedMovementDisplayData;
   isRedeposit: boolean;
-  isUnlimitedApproval: boolean;
+  isUnlimitedApproval?: boolean;
 }
 
 // Mirrors EVM TOKEN_VALUE_UNLIMITED_THRESHOLD: amounts above 10^15 are treated as unlimited.

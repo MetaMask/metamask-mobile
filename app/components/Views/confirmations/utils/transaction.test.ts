@@ -11,7 +11,6 @@ import {
   getSeverity,
   hasGasFeeTokenSelected,
   getTransactionType,
-  hasTransactionType,
   isRevokeDelegationTransaction,
   isTransactionMarkedAsGasFeeSponsored,
   isTransactionPayWithdraw,
@@ -232,49 +231,6 @@ describe('getTransactionType', () => {
     } as unknown as TransactionMeta;
 
     expect(getTransactionType(txMeta)).toBe(TransactionType.perpsDeposit);
-  });
-});
-
-describe('hasTransactionType', () => {
-  it('returns true if transaction type matches', () => {
-    const txMeta = {
-      type: TransactionType.simpleSend,
-    } as TransactionMeta;
-
-    expect(
-      hasTransactionType(txMeta, [
-        TransactionType.bridge,
-        TransactionType.simpleSend,
-      ]),
-    ).toBe(true);
-  });
-
-  it('returns true if nested transaction type matches', () => {
-    const txMeta = {
-      type: TransactionType.batch,
-      nestedTransactions: [{ type: TransactionType.simpleSend }],
-    } as TransactionMeta;
-
-    expect(
-      hasTransactionType(txMeta, [
-        TransactionType.bridge,
-        TransactionType.simpleSend,
-      ]),
-    ).toBe(true);
-  });
-
-  it('returns false if neither transaction type nor nested transaction types match', () => {
-    const txMeta = {
-      type: TransactionType.batch,
-      nestedTransactions: [{ type: TransactionType.bridge }],
-    } as TransactionMeta;
-
-    expect(
-      hasTransactionType(txMeta, [
-        TransactionType.simpleSend,
-        TransactionType.cancel,
-      ]),
-    ).toBe(false);
   });
 });
 

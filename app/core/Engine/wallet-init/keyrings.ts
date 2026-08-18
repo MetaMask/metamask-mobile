@@ -14,10 +14,12 @@ import {
 import { QrKeyring as QrKeyringV2 } from '@metamask/eth-qr-keyring/v2';
 import {
   LedgerKeyring,
+  LedgerDmkBridge,
   LedgerMobileBridge,
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
 import { LedgerKeyring as LedgerKeyringV2 } from '@metamask/eth-ledger-bridge-keyring/v2';
+import { RNBleTransportFactory } from '@ledgerhq/device-transport-kit-react-native-ble';
 import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { HdKeyring as HdKeyringV2 } from '@metamask/eth-hd-keyring/v2';
 import { MoneyKeyring } from '@metamask/eth-money-keyring';
@@ -27,6 +29,8 @@ import { pbkdf2 } from '../../Encryptor';
 import { getLegacySnapKeyringBuilderMessenger } from '../messengers/accounts/snap-keyring-builder-messenger';
 import { getSnapKeyringV2BuilderMessenger } from '../messengers/accounts/snap-keyring-v2-builder-messenger';
 import { store } from '../../../store';
+import { selectRemoteFeatureFlags } from '../../../selectors/featureFlagController';
+import { isDmkEnabled } from '../../Ledger/dmk';
 import {
   scanCompleted,
   scanRequested,
@@ -36,6 +40,7 @@ import {
   snapKeyringV2Builder,
 } from '../../SnapKeyring/SnapKeyringV2';
 import { legacySnapKeyringBuilder } from '../../SnapKeyring/SnapKeyring';
+import type { RootState } from '../../../reducers';
 
 // This is initialized globally as it is used in lots of UI contexts.
 export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
@@ -78,8 +83,15 @@ export function getKeyringBuilders(
 
   keyrings.push(qrKeyringBuilder);
 
-  const bridge = new LedgerMobileBridge(new LedgerTransportMiddleware());
-  const ledgerKeyringBuilder = () => new LedgerKeyring({ bridge });
+  // Bridge type is fixed at Engine init. Adapter factory must use the same
+  // `isDmkEnabled` decision so discovery/connect share one DMK instance.
+  const ledgerBridge = isDmkEnabled(
+    selectRemoteFeatureFlags(store.getState() as RootState),
+  )
+    ? new LedgerDmkBridge({ transportFactory: RNBleTransportFactory })
+    : new LedgerMobileBridge(new LedgerTransportMiddleware());
+  const ledgerKeyringBuilder = () =>
+    new LedgerKeyring({ bridge: ledgerBridge });
   ledgerKeyringBuilder.type = LedgerKeyring.type;
 
   keyrings.push(ledgerKeyringBuilder);

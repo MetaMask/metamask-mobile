@@ -1,15 +1,8 @@
 import { AppState, AppStateStatus } from 'react-native';
 import {
-  array,
-  create,
-  optional,
-  string,
-  type as structType,
-  type Infer,
-} from '@metamask/superstruct';
-import {
   ConnectionStatus,
   ConnectionStatusCallback,
+  CryptoPriceSubscriptionOptions,
   CryptoPriceUpdate,
   CryptoPriceUpdateCallback,
   GameUpdate,
@@ -39,8 +32,17 @@ const PING_INTERVAL_MS = 50000;
 
 const RTDS_WS_URL = 'wss://ws-live-data.polymarket.com';
 const RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC = 'crypto_prices_chainlink';
+const RTDS_CRYPTO_PRICES_TWAP_TOPICS = {
+  30: 'crypto_prices_twap_thirty',
+  60: 'crypto_prices_twap_sixty',
+} as const;
 const RTDS_PING_INTERVAL_MS = 5000;
-const DEFAULT_THROTTLE_INTERVAL_MS = 16;
+// Crypto price ticks (RTDS chainlink) can arrive many times per second per
+// symbol, while the UI only needs a few updates per second. Each flush fans
+// out through React state updates (chart data rebuild, screen re-render,
+// WebView postMessage), so this is deliberately aligned with
+// MARKET_PRICE_EMIT_THROTTLE_MS instead of a per-frame 16ms interval.
+const CRYPTO_PRICE_EMIT_THROTTLE_MS = 250;
 const ORDERBOOK_EMIT_THROTTLE_MS = 250;
 const MARKET_PRICE_EMIT_THROTTLE_MS = 250;
 
@@ -62,29 +64,64 @@ interface SportsWebSocketEvent {
   ended: boolean;
 }
 
-const MarketOrderbookLevelSchema = structType({
-  price: string(),
-  size: string(),
-});
+interface MarketOrderbookLevel {
+  price: string;
+  size: string;
+}
 
-const MarketPriceChangeSchema = structType({
-  asset_id: string(),
-  price: string(),
-  best_bid: string(),
-  best_ask: string(),
-});
+interface MarketPriceChange {
+  asset_id: string;
+  price: string;
+  best_bid: string;
+  best_ask: string;
+}
 
-const MarketWebSocketEventSchema = structType({
-  event_type: string(),
-  market: optional(string()),
-  asset_id: optional(string()),
-  bids: optional(array(MarketOrderbookLevelSchema)),
-  asks: optional(array(MarketOrderbookLevelSchema)),
-  price_changes: optional(array(MarketPriceChangeSchema)),
-  timestamp: optional(string()),
-});
+interface MarketWebSocketEvent {
+  event_type: string;
+  market?: string;
+  asset_id?: string;
+  bids?: MarketOrderbookLevel[];
+  asks?: MarketOrderbookLevel[];
+  price_changes?: MarketPriceChange[];
+  timestamp?: string;
+}
 
-type MarketWebSocketEvent = Infer<typeof MarketWebSocketEventSchema>;
+/**
+ * Lightweight structural guard for market WebSocket messages.
+ *
+ * This runs on EVERY message of a very chatty socket (order book snapshots
+ * can carry hundreds of levels), so schema-library validation (superstruct
+ * `create`) is deliberately avoided here — per-element validation of
+ * `bids`/`asks`/`price_changes` dominated JS CPU profiles of the Crypto
+ * Up/Down flow. Only top-level field shapes are checked; array elements are
+ * validated defensively at their single consumption sites
+ * (`handleBookEvent` and the price-change mapping in `handleMarketMessage`).
+ */
+const toMarketWebSocketEvent = (
+  parsed: unknown,
+): MarketWebSocketEvent | undefined => {
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    return undefined;
+  }
+  const candidate = parsed as Record<string, unknown>;
+  if (typeof candidate.event_type !== 'string') {
+    return undefined;
+  }
+  if (
+    (candidate.market !== undefined && typeof candidate.market !== 'string') ||
+    (candidate.asset_id !== undefined &&
+      typeof candidate.asset_id !== 'string') ||
+    (candidate.timestamp !== undefined &&
+      typeof candidate.timestamp !== 'string') ||
+    (candidate.bids !== undefined && !Array.isArray(candidate.bids)) ||
+    (candidate.asks !== undefined && !Array.isArray(candidate.asks)) ||
+    (candidate.price_changes !== undefined &&
+      !Array.isArray(candidate.price_changes))
+  ) {
+    return undefined;
+  }
+  return candidate as unknown as MarketWebSocketEvent;
+};
 
 interface RtdsWebSocketEvent {
   topic: string;
@@ -95,11 +132,41 @@ interface RtdsWebSocketEvent {
     timestamp?: number;
     value?: number;
     full_accuracy_value?: string;
+    window_s?: number;
     data?: {
       timestamp?: number;
       value?: number;
     }[];
   };
+}
+
+const getRtdsTopic = (options?: CryptoPriceSubscriptionOptions): string =>
+  options?.twapWindowSeconds
+    ? RTDS_CRYPTO_PRICES_TWAP_TOPICS[options.twapWindowSeconds]
+    : RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC;
+
+const getCryptoSubscriptionKey = (
+  symbols: string[],
+  options?: CryptoPriceSubscriptionOptions,
+): string =>
+  `${getRtdsTopic(options)}|${[...symbols]
+    .sort((a, b) => a.localeCompare(b))
+    .join(',')}`;
+
+const parseCryptoSubscriptionKey = (key: string) => {
+  const separatorIndex = key.indexOf('|');
+  return {
+    topic: key.slice(0, separatorIndex),
+    symbols: key
+      .slice(separatorIndex + 1)
+      .split(',')
+      .filter(Boolean),
+  };
+};
+
+interface RtdsSubscription {
+  topic: string;
+  type: string;
 }
 
 export class WebSocketManager {
@@ -157,6 +224,8 @@ export class WebSocketManager {
   private rtdsLastMessageAt = 0;
   private rtdsHeartbeatInterval: ReturnType<typeof setInterval> | null = null;
   private cryptoPriceBuffer: Map<string, CryptoPriceUpdate> = new Map();
+  private latestCryptoObservationByTopicAndSymbol: Map<string, number> =
+    new Map();
   private throttleTimer: ReturnType<typeof setInterval> | null = null;
 
   private appStateSubscription: { remove: () => void } | null = null;
@@ -762,10 +831,13 @@ export class WebSocketManager {
   subscribeToCryptoPrices(
     symbols: string[],
     callback: CryptoPriceUpdateCallback,
+    options?: CryptoPriceSubscriptionOptions,
   ): () => void {
-    const subscriptionKey = [...symbols]
-      .sort((a, b) => a.localeCompare(b))
-      .join(',');
+    const subscriptionKey = getCryptoSubscriptionKey(symbols, options);
+    const topic = getRtdsTopic(options);
+    const topicAlreadySubscribed = Array.from(
+      this.cryptoPriceSubscriptions.keys(),
+    ).some((key) => parseCryptoSubscriptionKey(key).topic === topic);
 
     let callbacks = this.cryptoPriceSubscriptions.get(subscriptionKey);
     if (!callbacks) {
@@ -774,7 +846,9 @@ export class WebSocketManager {
     }
     callbacks.add(callback);
 
-    this.ensureRtdsConnection(symbols);
+    this.ensureRtdsConnection(
+      topicAlreadySubscribed ? [] : [{ topic, type: 'update' }],
+    );
 
     return () => {
       const _callbacks = this.cryptoPriceSubscriptions.get(subscriptionKey);
@@ -782,12 +856,11 @@ export class WebSocketManager {
         _callbacks.delete(callback);
         if (_callbacks.size === 0) {
           this.cryptoPriceSubscriptions.delete(subscriptionKey);
-          const remainingSymbols = this.getSubscribedCryptoSymbols();
-          const symbolsToUnsubscribe = symbols.filter(
-            (symbol) => !remainingSymbols.has(symbol),
-          );
-          if (symbolsToUnsubscribe.length > 0) {
-            this.sendRtdsUnsubscribe(new Set(symbolsToUnsubscribe));
+          const topicStillSubscribed = Array.from(
+            this.cryptoPriceSubscriptions.keys(),
+          ).some((key) => parseCryptoSubscriptionKey(key).topic === topic);
+          if (!topicStillSubscribed) {
+            this.sendRtdsUnsubscribe([{ topic, type: 'update' }]);
           }
         }
       }
@@ -879,15 +952,13 @@ export class WebSocketManager {
       return undefined;
     }
 
-    try {
-      return create(parsedMessage, MarketWebSocketEventSchema);
-    } catch (error) {
+    const data = toMarketWebSocketEvent(parsedMessage);
+    if (!data) {
       DevLogger.log('WebSocketManager: Ignoring invalid market message', {
-        error,
         bodySnippet: message.slice(0, 200),
       });
-      return undefined;
     }
+    return data;
   }
 
   private handleMarketMessage = (event: WebSocketMessageEvent): void => {
@@ -909,12 +980,20 @@ export class WebSocketManager {
         return;
       }
 
-      const updates: PriceUpdate[] = data.price_changes.map((change) => ({
-        tokenId: change.asset_id,
-        price: parseFloat(change.price) || 0,
-        bestBid: parseFloat(change.best_bid) || 0,
-        bestAsk: parseFloat(change.best_ask) || 0,
-      }));
+      const updates: PriceUpdate[] = [];
+      for (const change of data.price_changes) {
+        // Elements are not schema-validated in the hot parse path (see
+        // `toMarketWebSocketEvent`) — guard here instead.
+        if (!change || typeof change.asset_id !== 'string') {
+          continue;
+        }
+        updates.push({
+          tokenId: change.asset_id,
+          price: parseFloat(change.price) || 0,
+          bestBid: parseFloat(change.best_bid) || 0,
+          bestAsk: parseFloat(change.best_ask) || 0,
+        });
+      }
 
       updates.forEach((update) => {
         this.marketPriceCache.set(update.tokenId, update);
@@ -951,8 +1030,13 @@ export class WebSocketManager {
       return;
     }
 
+    // Levels are not schema-validated in the hot parse path (see
+    // `toMarketWebSocketEvent`) — guard each level here instead.
     const bids = new Map<string, number>();
     data.bids?.forEach((level) => {
+      if (!level || typeof level.price !== 'string') {
+        return;
+      }
       const size = parseFloat(level.size);
       if (Number.isFinite(size) && size > 0) {
         bids.set(level.price, size);
@@ -960,6 +1044,9 @@ export class WebSocketManager {
     });
     const asks = new Map<string, number>();
     data.asks?.forEach((level) => {
+      if (!level || typeof level.price !== 'string') {
+        return;
+      }
       const size = parseFloat(level.size);
       if (Number.isFinite(size) && size > 0) {
         asks.set(level.price, size);
@@ -1156,11 +1243,9 @@ export class WebSocketManager {
     this.orderbookPendingEmit.clear();
   }
 
-  private ensureRtdsConnection(symbols?: string[]): void {
+  private ensureRtdsConnection(subscriptions: RtdsSubscription[]): void {
     if (this.rtdsWs?.readyState === WebSocket.OPEN) {
-      this.sendRtdsSubscribe(
-        new Set(symbols?.length ? symbols : this.getSubscribedCryptoSymbols()),
-      );
+      this.sendRtdsSubscribe(subscriptions);
       return;
     }
     if (this.rtdsWs?.readyState === WebSocket.CONNECTING) {
@@ -1225,7 +1310,10 @@ export class WebSocketManager {
       const data: RtdsWebSocketEvent = JSON.parse(event.data);
 
       if (
-        data.topic !== RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC ||
+        (data.topic !== RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC &&
+          !Object.values(RTDS_CRYPTO_PRICES_TWAP_TOPICS).includes(
+            data.topic as (typeof RTDS_CRYPTO_PRICES_TWAP_TOPICS)[30 | 60],
+          )) ||
         data.type !== 'update' ||
         !data.payload
       ) {
@@ -1233,10 +1321,18 @@ export class WebSocketManager {
       }
 
       const { symbol, timestamp, value } = data.payload;
+      const twapWindowSeconds =
+        data.topic === RTDS_CRYPTO_PRICES_TWAP_TOPICS[30]
+          ? 30
+          : data.topic === RTDS_CRYPTO_PRICES_TWAP_TOPICS[60]
+            ? 60
+            : undefined;
       if (
         typeof symbol !== 'string' ||
         typeof timestamp !== 'number' ||
-        typeof value !== 'number'
+        typeof value !== 'number' ||
+        (twapWindowSeconds !== undefined &&
+          data.payload.window_s !== twapWindowSeconds)
       ) {
         return;
       }
@@ -1244,13 +1340,28 @@ export class WebSocketManager {
       trace({ name: TraceName.CryptoUpDownWsMessage, op: 'rtds.message' });
       traceStarted = true;
 
+      const bufferKey = `${data.topic}|${symbol}`;
+      const latestObservation = twapWindowSeconds
+        ? this.latestCryptoObservationByTopicAndSymbol.get(bufferKey)
+        : undefined;
+      if (
+        typeof latestObservation === 'number' &&
+        timestamp <= latestObservation
+      ) {
+        return;
+      }
+      if (twapWindowSeconds) {
+        this.latestCryptoObservationByTopicAndSymbol.set(bufferKey, timestamp);
+      }
+
       const update: CryptoPriceUpdate = {
         symbol,
         price: value,
         timestamp,
+        ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
       };
 
-      this.cryptoPriceBuffer.set(update.symbol, update);
+      this.cryptoPriceBuffer.set(bufferKey, update);
       this.ensureThrottleTimer();
     } catch (error) {
       DevLogger.log('WebSocketManager: Failed to parse RTDS message', {
@@ -1274,7 +1385,7 @@ export class WebSocketManager {
 
     this.throttleTimer = setInterval(() => {
       this.flushCryptoPriceBuffer();
-    }, DEFAULT_THROTTLE_INTERVAL_MS);
+    }, CRYPTO_PRICE_EMIT_THROTTLE_MS);
   }
 
   private flushCryptoPriceBuffer(): void {
@@ -1293,10 +1404,14 @@ export class WebSocketManager {
       traceStarted = true;
 
       this.cryptoPriceSubscriptions.forEach((callbacks, key) => {
-        const subscribedSymbols = new Set(key.split(','));
+        const { topic, symbols } = parseCryptoSubscriptionKey(key);
+        const subscribedSymbols = new Set(symbols);
 
-        this.cryptoPriceBuffer.forEach((update, symbol) => {
-          if (subscribedSymbols.has(symbol)) {
+        this.cryptoPriceBuffer.forEach((update, bufferKey) => {
+          const separatorIndex = bufferKey.indexOf('|');
+          const updateTopic = bufferKey.slice(0, separatorIndex);
+          const symbol = bufferKey.slice(separatorIndex + 1);
+          if (topic === updateTopic && subscribedSymbols.has(symbol)) {
             callbacks.forEach((callback) => {
               try {
                 callback(update);
@@ -1327,39 +1442,22 @@ export class WebSocketManager {
     }
   }
 
-  private getSubscribedCryptoSymbols(): Set<string> {
-    const allSymbols = new Set<string>();
+  private getRtdsCryptoSubscriptions(): RtdsSubscription[] {
+    const subscriptions = new Map<string, RtdsSubscription>();
     this.cryptoPriceSubscriptions.forEach((_, key) => {
-      key.split(',').forEach((symbol) => {
-        if (symbol) {
-          allSymbols.add(symbol);
-        }
-      });
+      const { topic } = parseCryptoSubscriptionKey(key);
+      subscriptions.set(topic, { topic, type: 'update' });
     });
-    return allSymbols;
+    return Array.from(subscriptions.values()).sort((a, b) =>
+      a.topic.localeCompare(b.topic),
+    );
   }
 
-  private getRtdsCryptoSubscriptions(symbols: Set<string>): {
-    topic: string;
-    type: string;
-    filters: string;
-  }[] {
-    return Array.from(symbols)
-      .filter(Boolean)
-      .sort((a, b) => a.localeCompare(b))
-      .map((symbol) => ({
-        topic: RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC,
-        type: 'update',
-        filters: JSON.stringify({ symbol }),
-      }));
-  }
-
-  private sendRtdsSubscribe(symbols: Set<string>): void {
+  private sendRtdsSubscribe(subscriptions: RtdsSubscription[]): void {
     if (this.rtdsWs?.readyState !== WebSocket.OPEN) {
       return;
     }
 
-    const subscriptions = this.getRtdsCryptoSubscriptions(symbols);
     if (subscriptions.length === 0) {
       return;
     }
@@ -1371,12 +1469,11 @@ export class WebSocketManager {
     this.rtdsWs.send(msg);
   }
 
-  private sendRtdsUnsubscribe(symbols: Set<string>): void {
+  private sendRtdsUnsubscribe(subscriptions: RtdsSubscription[]): void {
     if (this.rtdsWs?.readyState !== WebSocket.OPEN) {
       return;
     }
 
-    const subscriptions = this.getRtdsCryptoSubscriptions(symbols);
     if (subscriptions.length === 0) {
       return;
     }
@@ -1390,10 +1487,10 @@ export class WebSocketManager {
   }
 
   private resubscribeAllRtds(): void {
-    const allSymbols = this.getSubscribedCryptoSymbols();
+    const subscriptions = this.getRtdsCryptoSubscriptions();
 
-    if (allSymbols.size > 0) {
-      this.sendRtdsSubscribe(allSymbols);
+    if (subscriptions.length > 0) {
+      this.sendRtdsSubscribe(subscriptions);
     }
   }
 
@@ -1492,6 +1589,7 @@ export class WebSocketManager {
       this.throttleTimer = null;
     }
     this.cryptoPriceBuffer.clear();
+    this.latestCryptoObservationByTopicAndSymbol.clear();
 
     if (this.rtdsReconnectTimeout) {
       clearTimeout(this.rtdsReconnectTimeout);

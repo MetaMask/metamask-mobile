@@ -106,6 +106,14 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
       name,
       screen ? { screen, params } : params,
     ],
+  navigateWithDetails: (
+    navigation: { navigate: (...args: unknown[]) => void },
+    details: unknown[],
+  ) => navigation.navigate(...details),
+  resetWithRoutes: (
+    navigation: { reset: (state: unknown) => void },
+    state: unknown,
+  ) => navigation.reset(state),
 }));
 
 jest.mock('../../hooks/useRampsController', () => ({
@@ -319,12 +327,14 @@ describe('createBuildQuoteNavDetails', () => {
 });
 
 const mockSetSelectedProvider = jest.fn();
+const mockSetSelectedProviderForAsset = jest.fn();
 
 const buildRampsControllerResult = (overrides = {}) => ({
   userRegion: USER_REGION,
   providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
   selectedProvider: WIDGET_PROVIDER,
   setSelectedProvider: mockSetSelectedProvider,
+  setSelectedProviderForAsset: mockSetSelectedProviderForAsset,
   selectedToken: SELECTED_TOKEN,
   paymentMethods: [SELECTED_PAYMENT_METHOD],
   getBuyWidgetData: mockGetBuyWidgetData,
@@ -1517,6 +1527,7 @@ describe('BuildQuote', () => {
         providers: [transakProvider, WIDGET_PROVIDER],
         selectedProvider: transakProvider,
         setSelectedProvider: mockSetSelectedProvider,
+        setSelectedProviderForAsset: mockSetSelectedProviderForAsset,
         selectedToken: SELECTED_TOKEN,
         paymentMethods: [],
         getBuyWidgetData: mockGetBuyWidgetData,
@@ -1534,6 +1545,7 @@ describe('BuildQuote', () => {
     beforeEach(() => {
       jest.useFakeTimers();
       mockUseParams.mockReturnValue({ assetId: TOKEN_ASSET });
+      mockSetSelectedProviderForAsset.mockReset();
     });
 
     afterEach(() => {
@@ -1622,7 +1634,7 @@ describe('BuildQuote', () => {
     });
 
     it('does not open payment selection when token unavailable disables pill', () => {
-      mockUnavailableController({});
+      mockUnavailableController({ providers: [transakProvider] });
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
@@ -1635,6 +1647,28 @@ describe('BuildQuote', () => {
         'RampModals',
         expect.objectContaining({
           screen: 'RampPaymentSelectionModal',
+        }),
+      );
+    });
+
+    it('switches to another supporting provider when current has empty payment methods', () => {
+      mockSetSelectedProviderForAsset.mockReturnValue(false);
+      mockUnavailableController({
+        selectedProvider: transakProvider,
+        providers: [transakProvider, WIDGET_PROVIDER],
+      });
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(TOKEN_ASSET);
+      expect(mockSetSelectedProvider).toHaveBeenCalledWith(WIDGET_PROVIDER, {
+        autoSelected: true,
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
         }),
       );
     });
@@ -1748,15 +1782,14 @@ describe('BuildQuote', () => {
           },
         });
         mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+        mockSetSelectedProviderForAsset.mockReturnValue(true);
 
         renderWithProvider(<BuildQuote />, { state: autoSelectedState });
         act(() => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProvider).toHaveBeenCalledWith(coinbaseProvider, {
-          autoSelected: true,
-        });
+        expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(BTC_ASSET);
         expect(mockNavigate).not.toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({
@@ -1782,7 +1815,7 @@ describe('BuildQuote', () => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+        expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(BTC_ASSET);
         expect(mockNavigate).toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({
@@ -1802,15 +1835,14 @@ describe('BuildQuote', () => {
           },
         });
         mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+        mockSetSelectedProviderForAsset.mockReturnValue(true);
 
         renderWithProvider(<BuildQuote />, { state: initialRootState });
         act(() => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProvider).toHaveBeenCalledWith(coinbaseProvider, {
-          autoSelected: true,
-        });
+        expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(BTC_ASSET);
         expect(mockNavigate).not.toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({

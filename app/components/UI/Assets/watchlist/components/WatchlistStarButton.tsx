@@ -15,6 +15,7 @@ import { IconName as LegacyIconName } from '../../../../../component-library/com
 import { strings } from '../../../../../../locales/i18n';
 import { selectTokenWatchlistEnabled } from '../../selectors/featureFlags';
 import { useTokenWatchlist } from '../hooks/useTokenWatchlist';
+import { WatchlistStarButtonTestIds } from './WatchlistStarButton.testIds';
 
 interface WatchlistStarButtonProps {
   assetId: CaipAssetType | null;
@@ -52,7 +53,6 @@ const WatchlistStarButton = ({
       variant: ToastVariants.Icon,
       iconName: LegacyIconName.Confirmation,
       iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.background.section,
       labelOptions: [
         {
           label: wasWatched
@@ -71,6 +71,7 @@ const WatchlistStarButton = ({
       createEventBuilder(eventName)
         .addProperties({
           source,
+          asset_id: assetId,
           asset_type: assetType,
           ...(wasWatched ? {} : { has_balance: hasBalance }),
         })
@@ -82,10 +83,10 @@ const WatchlistStarButton = ({
     trackEvent,
     createEventBuilder,
     source,
+    assetId,
     assetType,
     hasBalance,
     theme.colors.success.default,
-    theme.colors.background.section,
   ]);
 
   if (!isWatchlistEnabled || !assetId) {
@@ -97,7 +98,7 @@ const WatchlistStarButton = ({
       iconName={isWatched ? IconName.StarFilled : IconName.Star}
       size={ButtonIconSize.Md}
       onPress={handlePress}
-      testID="watchlist-star-button"
+      testID={WatchlistStarButtonTestIds.BUTTON}
       accessibilityLabel={
         isWatched ? 'Remove from watchlist' : 'Add to watchlist'
       }

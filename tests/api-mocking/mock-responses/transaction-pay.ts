@@ -406,7 +406,8 @@ export async function mockRelayQuote(mockServer: Mockttp) {
       return Boolean(
         url?.includes('api.relay.link/quote') ||
           url?.includes('bridge.api.cx.metamask.io/relay/quote') ||
-          url?.includes('bridge.dev-api.cx.metamask.io/relay/quote'),
+          url?.includes('bridge.dev-api.cx.metamask.io/relay/quote') ||
+          url?.includes('intents.api.cx.metamask.io/relay/quote'),
       );
     })
     .thenCallback(() => ({
@@ -427,9 +428,18 @@ export async function mockRelayQuoteMainnetMusd(mockServer: Mockttp) {
       return Boolean(
         url?.includes('api.relay.link/quote') ||
           url?.includes('bridge.api.cx.metamask.io/relay/quote') ||
-          url?.includes('bridge.dev-api.cx.metamask.io/relay/quote'),
+          url?.includes('bridge.dev-api.cx.metamask.io/relay/quote') ||
+          url?.includes('intents.api.cx.metamask.io/relay/quote'),
       );
     })
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: MAINNET_MUSD_RELAY_QUOTE_MOCK,
+    }));
+
+  // Direct (non-proxied) quote host used by current client-config relayQuoteUrl
+  await mockServer
+    .forPost(/intents\.api\.cx\.metamask\.io\/relay\/quote/)
     .thenCallback(() => ({
       statusCode: 200,
       json: MAINNET_MUSD_RELAY_QUOTE_MOCK,
@@ -444,9 +454,17 @@ export async function mockRelayStatus(mockServer: Mockttp) {
       return Boolean(
         url?.includes('api.relay.link/intents/status') ||
           url?.includes('bridge.api.cx.metamask.io/relay/intents/status') ||
-          url?.includes('bridge.dev-api.cx.metamask.io/relay/intents/status'),
+          url?.includes('bridge.dev-api.cx.metamask.io/relay/intents/status') ||
+          url?.includes('intents.api.cx.metamask.io/relay/intents/status'),
       );
     })
+    .thenCallback(() => ({
+      statusCode: 200,
+      json: RELAY_STATUS_MOCK,
+    }));
+
+  await mockServer
+    .forGet(/intents\.api\.cx\.metamask\.io\/relay\/intents\/status/)
     .thenCallback(() => ({
       statusCode: 200,
       json: RELAY_STATUS_MOCK,

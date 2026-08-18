@@ -17,6 +17,7 @@ import {
 import { useQuickBuySearchKeyboard } from '../../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
@@ -41,6 +42,7 @@ import {
 import PerpsSectionProvider from '../../feeds/perps/PerpsSectionProvider';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { strings } from '../../../../../../locales/i18n';
+import { useScreenTransitionComplete } from '../../../../hooks/useScreenTransitionComplete';
 import { MAX_ITEMS_PER_SECTION } from '../../search/viewMoreLabel';
 import type { ExploreSearchRouteParams } from './ExploreSearchScreen.types';
 
@@ -309,12 +311,15 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
 const ExploreSearchScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<{ params: ExploreSearchRouteParams }, 'params'>>();
   const [searchQuery, setSearchQuery] = useState(
     () => route.params?.initialQuery?.trim() ?? '',
   );
+  // Gates the keyboard, which iOS paints dark grey mid-push, and the results
+  // subtree, whose mount blocks the JS thread while the screen slides in.
+  const isTransitionComplete = useScreenTransitionComplete();
 
   const handleSearchCancel = useCallback(() => {
     setSearchQuery('');
@@ -333,12 +338,15 @@ const ExploreSearchScreen: React.FC = () => {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           onCancel={handleSearchCancel}
+          autoFocus={isTransitionComplete}
         />
       </Box>
 
-      <PerpsSectionProvider>
-        <ExploreSearchContent searchQuery={searchQuery} />
-      </PerpsSectionProvider>
+      {isTransitionComplete ? (
+        <PerpsSectionProvider>
+          <ExploreSearchContent searchQuery={searchQuery} />
+        </PerpsSectionProvider>
+      ) : null}
     </Box>
   );
 };

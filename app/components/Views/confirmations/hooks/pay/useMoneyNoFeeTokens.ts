@@ -1,8 +1,10 @@
 import { useSelector } from 'react-redux';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../utils/transaction';
 import { selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
 import { isSubsidizedSource } from '../../utils/relayFixedSpread';
 

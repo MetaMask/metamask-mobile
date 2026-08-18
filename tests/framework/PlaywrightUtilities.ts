@@ -129,11 +129,19 @@ export async function withImplicitWait<T>(
   fn: () => Promise<T>,
 ): Promise<T> {
   const drv = getDriver();
+  const configureStart = Date.now();
   await drv.setTimeout({ implicit: timeoutMs });
+  if (isOverheadTrackingActive()) {
+    recordInfrastructureCommand(Date.now() - configureStart);
+  }
   try {
     return await fn();
   } finally {
+    const restoreStart = Date.now();
     await drv.setTimeout({ implicit: DEFAULT_IMPLICIT_WAIT_MS });
+    if (isOverheadTrackingActive()) {
+      recordInfrastructureCommand(Date.now() - restoreStart);
+    }
   }
 }
 
@@ -262,19 +270,133 @@ export function boxedStep<This, Args extends unknown[], Return>(
  * Lightweight Appium overhead accumulator for performance measurements.
  *
  * Problem: every WebDriver HTTP call (findElement, isExisting, click …) adds
- * infrastructure latency — on BrowserStack this can be 3-18 s per command.
- * Without compensation a 3 s app-load would be reported as 20+ s.
+ * infrastructure latency — on cloud device farms this can dominate the timer.
  *
- * Solution: framework methods call `addOverhead(ms)` for operations whose
- * duration is *pure infra cost* (element resolution, post-detection probes).
- * `TimerHelper.measure()` activates tracking before the action and subtracts
- * the accumulated value after the timer stops.
+ * Conservative model while `TimerHelper.measure()` is active (click stays outside):
+ * - Post-detect probe (`isExisting` after visible) — pure Appium/network RTT.
+ * - Failed + success poll command durations, each capped at the probe RTT so
+ * implicit-wait / app-load time inside those commands stays in app time.
+ * - Poll sleeps and element-resolution (`directMs`) stay in app time.
  *
- * When no `measure()` is active (`_tracking === false`) all functions are
- * no-ops, so regular (non-performance) tests pay zero cost.
+ * When no `measure()` is active all functions are no-ops.
  */
-let _overheadMs = 0;
+export interface OverheadAccumulatorState {
+  directMs: number;
+  sleepMs: number;
+  infrastructureCommandDurationsMs: number[];
+  failedPollDurationsMs: number[];
+  successPollMs: number | null;
+  probeMs: number | null;
+}
+
+export interface OverheadTrackingResult {
+  infraMs: number;
+  sleepMs: number;
+}
+
+/** Minimum poll gap while measuring — still allows snappy local detection. */
+export const MEASURING_POLL_INTERVAL_MIN_MS = 50;
+/**
+ * Upper bound matches the non-measuring poll interval so adaptive backing-off
+ * never becomes slower than a normal wait.
+ */
+export const MEASURING_POLL_INTERVAL_MAX_MS = 300;
+
 let _tracking = false;
+let _directMs = 0;
+let _sleepMs = 0;
+let _infrastructureCommandDurationsMs: number[] = [];
+let _failedPollDurationsMs: number[] = [];
+let _successPollMs: number | null = null;
+let _probeMs: number | null = null;
+
+function resetOverheadState(): void {
+  _directMs = 0;
+  _sleepMs = 0;
+  _infrastructureCommandDurationsMs = [];
+  _failedPollDurationsMs = [];
+  _successPollMs = null;
+  _probeMs = null;
+}
+
+/**
+ * Computes infra ms to subtract from wall-clock.
+ *
+ * Uses the post-detect probe as the RTT cap. Each failed/success poll may
+ * contribute at most that cap (not its full duration), so implicit-wait time
+ * inside `isExisting` is not mistaken for network overhead.
+ *
+ * `directMs` / `sleepMs` are intentionally excluded — resolution and sleeps
+ * are treated as app time. Timeout configuration commands are pure Appium
+ * overhead and are subtracted in full.
+ *
+ * Exported for unit tests.
+ */
+export function computeAppiumInfraOverheadMs(
+  state: OverheadAccumulatorState,
+): number {
+  const configurationMs = state.infrastructureCommandDurationsMs.reduce(
+    (total, durationMs) => total + Math.max(0, durationMs),
+    0,
+  );
+
+  if (state.probeMs == null || state.probeMs <= 0) {
+    return configurationMs;
+  }
+
+  const rttCap = state.probeMs;
+  let infraMs = configurationMs + rttCap;
+
+  for (const durationMs of state.failedPollDurationsMs) {
+    if (durationMs > 0) {
+      infraMs += Math.min(durationMs, rttCap);
+    }
+  }
+
+  if (state.successPollMs != null && state.successPollMs > 0) {
+    // Success path may include isExisting + isVisible (~2 commands). Cap at
+    // one probe RTT so we under-subtract rather than invent near-zero app time.
+    infraMs += Math.min(state.successPollMs, rttCap);
+  }
+
+  return infraMs;
+}
+
+/**
+ * Caps infra subtraction so reported app time cannot collapse to 0ms when the
+ * wall-clock wait had real content (poll sleeps, or any positive duration).
+ *
+ * Exported for unit tests.
+ */
+export function clampInfraSubtractionMs(
+  wallClockMs: number,
+  infraMs: number,
+  sleepMs: number,
+): number {
+  if (wallClockMs <= 0) {
+    return 0;
+  }
+  const appFloorMs = Math.max(sleepMs, 1);
+  return Math.min(Math.max(0, infraMs), Math.max(0, wallClockMs - appFloorMs));
+}
+
+/**
+ * Adaptive poll gap while measuring: never poll faster than the last command
+ * took (cloud RTT), and never slower than a normal non-measuring wait.
+ *
+ * Exported for unit tests.
+ */
+export function nextMeasuringPollIntervalMs(
+  lastCommandDurationMs: number,
+): number {
+  if (!Number.isFinite(lastCommandDurationMs) || lastCommandDurationMs <= 0) {
+    return MEASURING_POLL_INTERVAL_MIN_MS;
+  }
+  return Math.min(
+    MEASURING_POLL_INTERVAL_MAX_MS,
+    Math.max(MEASURING_POLL_INTERVAL_MIN_MS, Math.ceil(lastCommandDurationMs)),
+  );
+}
 
 export function startOverheadTracking(): void {
   if (_tracking) {
@@ -283,19 +405,55 @@ export function startOverheadTracking(): void {
     );
     return;
   }
-  _overheadMs = 0;
+  resetOverheadState();
   _tracking = true;
 }
 
 export function addOverhead(ms: number): void {
-  if (_tracking) _overheadMs += ms;
+  if (_tracking) _directMs += ms;
 }
 
-export function stopOverheadTracking(): number {
+export function addOverheadSleep(ms: number): void {
+  if (_tracking && ms > 0) _sleepMs += ms;
+}
+
+export function recordInfrastructureCommand(durationMs: number): void {
+  if (_tracking && durationMs >= 0) {
+    _infrastructureCommandDurationsMs.push(durationMs);
+  }
+}
+
+export function recordFailedPollCommand(durationMs: number): void {
+  if (_tracking && durationMs >= 0) {
+    _failedPollDurationsMs.push(durationMs);
+  }
+}
+
+export function recordSuccessPollCommand(durationMs: number): void {
+  if (_tracking && durationMs >= 0) {
+    _successPollMs = durationMs;
+  }
+}
+
+export function recordOverheadProbe(durationMs: number): void {
+  if (_tracking && durationMs >= 0) {
+    _probeMs = durationMs;
+  }
+}
+
+export function stopOverheadTracking(): OverheadTrackingResult {
   _tracking = false;
-  const result = _overheadMs;
-  _overheadMs = 0;
-  return result;
+  const infraMs = computeAppiumInfraOverheadMs({
+    directMs: _directMs,
+    sleepMs: _sleepMs,
+    infrastructureCommandDurationsMs: _infrastructureCommandDurationsMs,
+    failedPollDurationsMs: _failedPollDurationsMs,
+    successPollMs: _successPollMs,
+    probeMs: _probeMs,
+  });
+  const sleepMs = _sleepMs;
+  resetOverheadState();
+  return { infraMs, sleepMs };
 }
 
 export function isOverheadTrackingActive(): boolean {
@@ -453,6 +611,96 @@ class PlaywrightUtilities {
         `Could not clear Chrome data (Chrome may open with existing tabs): ${message}`,
       );
     }
+  }
+
+  /**
+   * Force-stop Chrome so the next launch reads `/data/local/tmp/chrome-command-line`.
+   */
+  static forceStopChrome(): void {
+    try {
+      execSync(`adb shell am force-stop ${CHROME_PACKAGE}`, { stdio: 'pipe' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(`Could not force-stop Chrome: ${message}`);
+    }
+  }
+
+  /**
+   * Open a URL in Chrome via VIEW intent (bypasses omnibox UI flakiness on CI).
+   * Uses `-p` (package) — a bare trailing package name is treated as a component
+   * and fails on google_apis emulator Chrome.
+   */
+  static openUrlInChrome(url: string): void {
+    const escapedUrl = url.replace(/"/g, '\\"');
+    const attempts = [
+      `adb shell am start -a android.intent.action.VIEW -d "${escapedUrl}" -p ${CHROME_PACKAGE}`,
+      `adb shell am start -a android.intent.action.VIEW -d "${escapedUrl}" -n ${CHROME_PACKAGE}/com.google.android.apps.chrome.Main`,
+    ];
+    let lastMessage = '';
+    for (const command of attempts) {
+      try {
+        execSync(command, { stdio: 'pipe' });
+        return;
+      } catch (error) {
+        lastMessage = error instanceof Error ? error.message : String(error);
+      }
+    }
+    throw new Error(`Failed to open URL in Chrome via intent: ${lastMessage}`);
+  }
+
+  /**
+   * Grant notification permission so Chrome does not block the NTP with the
+   * "Chrome notifications make things easier" dialog on google_apis emulators.
+   */
+  static grantChromeNotificationPermission(): void {
+    try {
+      execSync(
+        `adb shell pm grant ${CHROME_PACKAGE} android.permission.POST_NOTIFICATIONS`,
+        { stdio: 'pipe' },
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      logger.warn(
+        `Could not grant Chrome POST_NOTIFICATIONS (dialog may show): ${message}`,
+      );
+    }
+  }
+
+  /**
+   * Collapse the status bar so heads-up notifications (e.g. Play services)
+   * do not cover Chrome's omnibox on CI emulators.
+   */
+  static collapseStatusBar(): void {
+    PlaywrightUtilities.dismissAndroidHeadsUpNotifications();
+  }
+
+  /**
+   * Dismiss visible heads-up notifications on CI google_apis emulators.
+   * The persistent "Enable Google Play services" banner covers in-app controls
+   * (e.g. Unlock) and makes UiAutomator2 report them as non-interactive.
+   */
+  static dismissAndroidHeadsUpNotifications(): void {
+    const serial = process.env.ANDROID_DEVICE_UDID?.trim();
+    const adb = serial ? `adb -s ${serial}` : 'adb';
+    const run = (shellCommand: string): void => {
+      try {
+        execSync(`${adb} shell ${shellCommand}`, { stdio: 'pipe' });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.debug(
+          `dismissAndroidHeadsUpNotifications (${shellCommand}) best-effort failed: ${message}`,
+        );
+      }
+    };
+
+    run('cmd statusbar collapse');
+    run('settings put global heads_up_notifications_enabled 0');
+    run('am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS');
+    // Cancel any posted notifications (Play services banner may already be showing).
+    run('cmd notification cancel-all');
+    // Swipe the typical heads-up position up to dismiss a visible banner.
+    run('input swipe 540 200 540 40 150');
+    run('cmd statusbar collapse');
   }
 
   /**

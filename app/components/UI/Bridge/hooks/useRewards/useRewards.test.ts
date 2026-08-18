@@ -5,7 +5,14 @@ import { getUsdPricePerToken, useRewards } from './useRewards';
 import Engine from '../../../../../core/Engine';
 import { waitFor } from '@testing-library/react-native';
 import { CaipAssetType, Hex } from '@metamask/utils';
-
+import {
+  validateQuoteResponseV1,
+  QuoteMetadata,
+  toQuoteResponseV2,
+  mergeQuoteMetadata,
+  type QuoteResponseV1,
+} from '@metamask/bridge-controller';
+import { merge } from 'lodash';
 // Mock dependencies
 jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
@@ -16,7 +23,7 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 // Mock useBridgeQuoteData hook
-const mockActiveQuote = {
+const mockQuoteV1: QuoteResponseV1 = {
   quote: {
     requestId:
       '0xd12f19d577efae2b92748c1abc32d8be78a5e73a99d74e16cada270a2ad99516' as Hex,
@@ -24,7 +31,6 @@ const mockActiveQuote = {
     srcChainId: 1,
     destChainId: 1,
     aggregator: '1inch',
-    aggregatorType: 'AGG',
     srcAsset: {
       address: '0x0000000000000000000000000000000000000000',
       chainId: 1,
@@ -32,12 +38,8 @@ const mockActiveQuote = {
       symbol: 'ETH',
       decimals: 18,
       name: 'Ethereum',
-      coingeckoId: 'ethereum',
-      aggregators: [],
-      occurrences: 100,
       iconUrl:
         'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-      metadata: {},
     },
     srcTokenAmount: '991250000000000000',
     destAsset: {
@@ -48,35 +50,8 @@ const mockActiveQuote = {
       symbol: 'USDC',
       decimals: 6,
       name: 'USDC',
-      coingeckoId: 'usd-coin',
-      aggregators: [
-        'uniswapLabs',
-        'metamask',
-        'aave',
-        'coinGecko',
-        'openSwap',
-        'zerion',
-        'oneInch',
-        'liFi',
-        'xSwap',
-        'socket',
-        'rubic',
-        'squid',
-        'rango',
-        'sonarwatch',
-        'sushiSwap',
-        'pmm',
-        'bancor',
-      ],
-      occurrences: 17,
       iconUrl:
         'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
-      metadata: {
-        storage: {
-          balance: 9,
-          approval: 10,
-        },
-      },
     },
     destTokenAmount: '4437209427',
     minDestTokenAmount: '4348465238',
@@ -92,12 +67,8 @@ const mockActiveQuote = {
           symbol: 'ETH',
           decimals: 18,
           name: 'Ethereum',
-          coingeckoId: 'ethereum',
-          aggregators: [],
-          occurrences: 100,
           iconUrl:
             'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-          metadata: {},
         },
       },
     },
@@ -115,6 +86,8 @@ const mockActiveQuote = {
     gasLimit: 266281,
   } as const,
   estimatedProcessingTimeInSeconds: 0,
+};
+const metadata: QuoteMetadata = {
   sentAmount: {
     amount: '1',
     valueInCurrency: '4470.66',
@@ -136,26 +109,11 @@ const mockActiveQuote = {
     valueInCurrency: '1.94986624707319270464',
     usd: '1.94986624707319270464',
   },
-  totalMaxNetworkFee: {
-    amount: '0.000908611296073614',
-    valueInCurrency: '4.06209217690446316524',
-    usd: '4.06209217690446316524',
-  },
   gasFee: {
-    effective: {
-      amount: '0.000436147290796704',
-      valueInCurrency: '1.94986624707319270464',
-      usd: '1.94986624707319270464',
-    },
     total: {
       amount: '0.000436147290796704',
       valueInCurrency: '1.94986624707319270464',
       usd: '1.94986624707319270464',
-    },
-    max: {
-      amount: '0.000908611296073614',
-      valueInCurrency: '4.06209217690446316524',
-      usd: '4.06209217690446316524',
     },
   },
   adjustedReturn: {
@@ -166,8 +124,13 @@ const mockActiveQuote = {
     valueInCurrency: '36.24350903820319270464',
     usd: '36.24350903820319270464',
   },
-  includedTxFees: null,
 };
+
+validateQuoteResponseV1(mockQuoteV1);
+const mockActiveQuote = mergeQuoteMetadata(
+  toQuoteResponseV2(mockQuoteV1),
+  metadata,
+);
 
 describe('useRewards', () => {
   const mockCall = Engine.controllerMessenger.call as jest.Mock;
@@ -414,7 +377,7 @@ describe('useRewards', () => {
             swapContext: {
               srcAsset: {
                 id: 'eip155:1/slip44:60',
-                amount: '991250000000000000',
+                amount: '1000000000000000000',
               },
               destAsset: {
                 id: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',

@@ -135,10 +135,12 @@ export default class PlaywrightMatchers {
       const escaped = isAndroid
         ? this.escapeRegexPatternForUiAutomator(text)
         : this.escapeRegexPattern(text);
-      this.logFind('text pattern', text.source);
+      // RegExp flags are not in .source — embed (?i) for Appium/Java/ICU engines.
+      const pattern = text.ignoreCase ? `(?i)${escaped}` : escaped;
+      this.logFind('text pattern', pattern);
       const locator = isAndroid
-        ? `android=new UiSelector().textMatches("${escaped}")`
-        : `-ios predicate string:label MATCHES "${escaped}" OR name MATCHES "${escaped}"`;
+        ? `android=new UiSelector().textMatches("${pattern}")`
+        : `-ios predicate string:label MATCHES "${pattern}" OR name MATCHES "${pattern}"`;
 
       const drv = getDriver();
       if (!drv) throw new Error('Driver is not available');
@@ -154,19 +156,47 @@ export default class PlaywrightMatchers {
     }
 
     this.logFind('text', `${text}${exactMatch ? ' (exact)' : ''}`);
+    const xpath = await this.buildTextXPath(text, exactMatch);
+    return await this.getElementByXPath(xpath, options);
+  }
+
+  /**
+   * Builds the text-match XPath shared by getElementByText and countElementsByText.
+   */
+  private static async buildTextXPath(
+    text: string,
+    exactMatch: boolean,
+  ): Promise<string> {
     const isAndroid = await PlatformDetector.isAndroid();
     const escapedText = text.replace(/'/g, "\\'");
-    let xpath: string;
     if (exactMatch) {
-      xpath = isAndroid
+      return isAndroid
         ? `//*[@name='${escapedText}' or @label='${escapedText}' or @text='${escapedText}' or @content-desc='${escapedText}']`
         : `//*[@name='${escapedText}' or @label='${escapedText}' or @text='${escapedText}']`;
-    } else {
-      xpath = isAndroid
-        ? `//*[contains(@name,'${escapedText}') or contains(@label,'${escapedText}') or contains(@text,'${escapedText}') or contains(@content-desc,'${escapedText}')]`
-        : `//*[contains(@name,'${escapedText}') or contains(@label,'${escapedText}') or contains(@text,'${escapedText}')]`;
     }
-    return await this.getElementByXPath(xpath, options);
+    return isAndroid
+      ? `//*[contains(@name,'${escapedText}') or contains(@label,'${escapedText}') or contains(@text,'${escapedText}') or contains(@content-desc,'${escapedText}')]`
+      : `//*[contains(@name,'${escapedText}') or contains(@label,'${escapedText}') or contains(@text,'${escapedText}')]`;
+  }
+
+  /**
+   * Counts elements currently matching the given text via a single `$$`
+   * snapshot (no polling). Returns 0 when absent, so callers can fast-fail
+   * instead of waiting out a `waitForDisplayed` timeout.
+   * @param text - The text to search for
+   * @param exactMatch - Whether to match the text exactly
+   * @returns The number of matching elements (0 when none)
+   */
+  static async countElementsByText(
+    text: string,
+    exactMatch: boolean = false,
+  ): Promise<number> {
+    this.logFind('count by text', `${text}${exactMatch ? ' (exact)' : ''}`);
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+    const xpath = await this.buildTextXPath(text, exactMatch);
+    const elements = await drv.$$(xpath);
+    return await elements.length;
   }
 
   private static escapeRegexPattern(pattern: RegExp): string {

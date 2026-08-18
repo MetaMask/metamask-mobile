@@ -3,6 +3,12 @@ export { default as Assertions } from './Assertions.ts';
 export { default as Gestures } from './Gestures.ts';
 export { default as Matchers } from './Matchers.ts';
 export { default as Utilities, BASE_DEFAULTS, sleep } from './Utilities.ts';
+export {
+  default as WebView,
+  type AndroidWebViewScrollOptions,
+  type AndroidWebViewTapOptions,
+  type WebViewByIdOptions,
+} from './WebView.ts';
 export { Logger, createLogger, LogLevel, logger } from './logger.ts';
 export { default as PortManager, ResourceType } from './PortManager.ts';
 export * from './types.ts';

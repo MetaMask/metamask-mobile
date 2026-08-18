@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import {
+  DefaultTheme,
   NavigationContainer,
   NavigationContainerRef,
   ParamListBase,
-  Theme,
 } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { onNavigationReady } from '../../../actions/navigation';
@@ -18,6 +18,7 @@ import {
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { NavigationProviderProps } from './types';
+import { getNavIntegration } from '../../../util/sentry/utils';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -53,7 +54,8 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   };
 
   /**
-   * Sets the navigation ref on the NavigationService
+   * Sets the navigation ref on the NavigationService and registers it with
+   * Sentry's reactNavigationIntegration so onboarding screens emit TTID/TTFD spans.
    */
   const setNavigationRef = (ref: NavigationContainerRef<ParamListBase>) => {
     // This condition only happens on unmount. But that should never happen since this is meant to always be mounted.
@@ -61,13 +63,30 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
       return;
     }
     NavigationService.navigation = ref;
+    // registerNavigationContainer is safe to call before Sentry.init completes:
+    // the SDK stores the ref and attaches listeners immediately; afterAllSetup
+    // (called by Sentry.init) picks up the container when it eventually runs.
+    // Calling it unconditionally removes the race where NavigationProvider mounts
+    // before the fire-and-forget setupSentry() in index.js finishes awaiting
+    // consent storage, which would otherwise silently drop TTID/ui.load wiring.
+    // E2E / test builds are handled inside getNavIntegration(), which returns a
+    // no-op stub when hasTestOverrides is true.
+    getNavIntegration().registerNavigationContainer(ref);
   };
 
   return (
     <NavigationContainer
       // Using transparent background to support transparent modals
-      // The actual app background is handled by individual screens
-      theme={{ colors: { background: 'transparent' } } as Theme}
+      // The actual app background is handled by individual screens.
+      // Spread DefaultTheme so required fields (e.g. fonts in v7) stay defined —
+      // casting a partial object as Theme would hide that at compile time.
+      theme={{
+        ...DefaultTheme,
+        colors: {
+          ...DefaultTheme.colors,
+          background: 'transparent',
+        },
+      }}
       onReady={onReady}
       ref={setNavigationRef}
     >

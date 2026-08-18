@@ -14,7 +14,12 @@ import {
   setSelectedQuoteRequestId,
   selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
-import { RequestStatus, isNonEvmChainId } from '@metamask/bridge-controller';
+import {
+  RequestStatus,
+  isNonEvmChainId,
+  formatChainIdToCaip,
+  formatAddressToCaipReference,
+} from '@metamask/bridge-controller';
 import { areAddressesEqual } from '../../../../../util/address';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
 import { fromTokenMinimalUnit } from '../../../../../util/number';
@@ -30,7 +35,9 @@ import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBri
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useFormattedNetworkFee } from '../useFormattedNetworkFee';
 import AppConstants from '../../../../../core/AppConstants';
+import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
 import { usePriceImpactFiat } from '../usePriceImpactFiat';
+import { parseCaipAssetType } from '@metamask/utils';
 
 interface UseBridgeQuoteDataParams {
   latestSourceAtomicBalance?: EthersBigNumber;
@@ -135,14 +142,21 @@ export const useBridgeQuoteData = ({
   const isQuoteSourceTokenMatch = useMemo(() => {
     if (!activeQuote || !sourceToken) return false;
 
-    const { srcAsset } = activeQuote.quote;
+    const {
+      src: { asset: srcAsset },
+    } = activeQuote.quote;
+
+    const srcChainId = activeQuote.chainId;
 
     const quoteSourceAddress = isNonEvmChainId(sourceToken.chainId)
-      ? (srcAsset.assetId ?? srcAsset.address)
-      : srcAsset.address;
+      ? srcAsset.assetId
+      : formatAddressToCaipReference(srcAsset.assetId);
 
     const selectedSourceAddress = sourceToken.address;
-    return areAddressesEqual(quoteSourceAddress, selectedSourceAddress);
+    return (
+      srcChainId === formatChainIdToCaip(sourceToken.chainId) &&
+      areAddressesEqual(quoteSourceAddress, selectedSourceAddress)
+    );
   }, [activeQuote, sourceToken]);
 
   // Helper to validate that a quote's destination asset matches the selected destination token
@@ -151,7 +165,10 @@ export const useBridgeQuoteData = ({
     (quote: (typeof allQuotes)[number] | undefined | null): boolean => {
       if (!quote || !destToken) return false;
 
-      const { destAsset } = quote.quote;
+      const {
+        dest: { asset: destAsset },
+      } = quote.quote;
+      const destChainId = parseCaipAssetType(destAsset.assetId).chainId;
 
       // For non-EVM chains (e.g., Solana), destAsset.address is in raw format (e.g., "EPj...")
       // or zero address for native tokens, while destToken.address uses CAIP format
@@ -159,11 +176,14 @@ export const useBridgeQuoteData = ({
       // Use destAsset.assetId (CAIP format) for comparison.
       // For EVM chains, use the original address comparison.
       const quoteDestAddress = isNonEvmChainId(destToken.chainId)
-        ? (destAsset.assetId ?? destAsset.address)
-        : destAsset.address;
+        ? destAsset.assetId
+        : formatAddressToCaipReference(destAsset.assetId);
 
       const selectedDestAddress = destToken.address;
-      return areAddressesEqual(quoteDestAddress, selectedDestAddress);
+      return (
+        destChainId === formatChainIdToCaip(destToken.chainId) &&
+        areAddressesEqual(quoteDestAddress, selectedDestAddress)
+      );
     },
     [destToken],
   );
@@ -190,10 +210,7 @@ export const useBridgeQuoteData = ({
 
   const destTokenAmount =
     activeQuote && destToken && isQuoteSourceTokenMatch && isQuoteDestTokenMatch
-      ? fromTokenMinimalUnit(
-          activeQuote.quote.destTokenAmount,
-          destToken.decimals,
-        )
+      ? fromTokenMinimalUnit(activeQuote.quote.dest.amount, destToken.decimals)
       : undefined;
 
   const quoteRate =
@@ -208,7 +225,7 @@ export const useBridgeQuoteData = ({
 
     const { quote, estimatedProcessingTimeInSeconds } = activeQuote;
 
-    const priceImpact = quote.priceData?.priceImpact;
+    const priceImpact = quote.priceData?.priceImpact?.amount;
     let priceImpactPercentage;
 
     if (priceImpact) {
@@ -263,9 +280,9 @@ export const useBridgeQuoteData = ({
     isExpired && !isSubmittingTx && (!isLoading || !activeQuote);
 
   const shouldShowPriceImpactWarning = Boolean(
-    activeQuote?.quote.priceData?.priceImpact !== undefined &&
+    activeQuote?.quote.priceData?.priceImpact?.amount !== undefined &&
       bridgeFeatureFlags?.priceImpactThreshold &&
-      Number(activeQuote?.quote.priceData?.priceImpact) >=
+      parsePriceImpact(activeQuote?.quote.priceData?.priceImpact?.amount) >=
         (bridgeFeatureFlags.priceImpactThreshold.warning ??
           AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD),
   );

@@ -11,6 +11,8 @@ import createStyles from './styles';
 import { ISelectOptionSheet } from './types';
 import { createOptionsSheetNavDetails } from './OptionsSheet';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { SELECT_DROP_DOWN } from './constants';
 
 const SelectOptionSheet = ({
@@ -22,7 +24,7 @@ const SelectOptionSheet = ({
 }: ISelectOptionSheet) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const renderDisplayValue = () => {
     const selectedOptions = options?.filter((o) => o.value === selectedValue);
@@ -36,8 +38,9 @@ const SelectOptionSheet = ({
   };
 
   const showPicker = () => {
-    navigation.navigate(
-      ...createOptionsSheetNavDetails({
+    navigateWithDetails(
+      navigation,
+      createOptionsSheetNavDetails({
         label,
         options,
         selectedValue,

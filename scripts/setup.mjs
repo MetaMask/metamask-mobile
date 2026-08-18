@@ -251,7 +251,7 @@ const expoBuildLinks = {
 
      Step 1: Install EXPO Executable
       📱 iOS simulator: ${hyperlink('yarn install:ios:dev', 'https://github.com/MetaMask/metamask-mobile/blob/main/README.md#download-and-install-the-development-build')} (requires gh auth login)
-      📱 iOS device (.ipa): download ${hyperlink('ios-ipa-main-dev-expo', 'https://github.com/MetaMask/metamask-mobile/actions/workflows/expo-dev-build.yml')} from Expo Dev Build on GitHub Actions
+      📱 iOS device (.ipa): ${hyperlink('yarn install:ios:dev:device', 'https://github.com/MetaMask/metamask-mobile/blob/main/README.md#download-and-install-the-development-build')} (requires gh auth login + device UDID in provisioning profile)
       🤖 Android (.apk): ${hyperlink('yarn install:android:dev', 'https://github.com/MetaMask/metamask-mobile/blob/main/README.md#download-and-install-the-development-build')} (requires gh auth login)
      Step 2: 👀 yarn watch or yarn watch:clean
      Step 3: 🚀 launch app on emulator or scan QR code in terminal

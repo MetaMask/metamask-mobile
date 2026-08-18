@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { Image, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -23,7 +24,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BenefitFullViewRouteProp } from './BenefitFullView.types.ts';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants.ts';
-import { formatDateRemaining } from '../utils/formatUtils.ts';
+import {
+  formatDateRemaining,
+  resolveBenefitEndDate,
+} from '../utils/formatUtils.ts';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import Routes from '../../../../constants/navigation/Routes.ts';
@@ -35,7 +39,7 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const BENEFIT_CLAIM_BUTTON_TYPE = 'claim';
-const BENEFIT_URL_WALLET_PARAM = 'wallet';
+const BENEFIT_URL_WALLET_PARAM = 'trackingWallet';
 
 const getBenefitWalletAddress = (url: string): string | undefined => {
   if (!url) return undefined;
@@ -49,7 +53,7 @@ const getBenefitWalletAddress = (url: string): string | undefined => {
 
 const BenefitFullView = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<BenefitFullViewRouteProp>();
   const { benefit } = route.params;
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
@@ -109,13 +113,10 @@ const BenefitFullView = () => {
     }
   };
 
-  const remainingTime = useMemo(
-    () =>
-      benefit.actionDate == null
-        ? null
-        : formatDateRemaining(benefit.actionDate, Date.now()),
-    [benefit.actionDate],
-  );
+  const remainingTime = useMemo(() => {
+    const endDate = resolveBenefitEndDate(benefit.validTo, benefit.actionDate);
+    return endDate == null ? null : formatDateRemaining(endDate, Date.now());
+  }, [benefit.actionDate, benefit.validTo]);
   const companyName = benefit.companyName?.trim();
 
   return (
@@ -186,7 +187,7 @@ const BenefitFullView = () => {
                 )}
                 {companyName ? (
                   <Text
-                    variant={TextVariant.BodyMd}
+                    variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
                     twClassName="max-w-[55%]"
                     numberOfLines={1}

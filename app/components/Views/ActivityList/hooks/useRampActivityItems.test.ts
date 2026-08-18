@@ -111,10 +111,11 @@ describe('useRampActivityItems', () => {
     expect(result.current[0].hash).toBe('0xbuyhash');
   });
 
-  it('includes v2 controller orders resolved by canonical order id', () => {
+  it('includes v2 controller orders with native RampsOrder in raw.data', () => {
     const v2Order = createV2Order({
       id: '/providers/transak/orders/v2-order-1',
       providerOrderId: 'v2-order-1',
+      cryptoCurrency: { symbol: 'mUSD', decimals: 6 },
     });
     mockedUseRampsOrders.mockReturnValue({
       orders: [v2Order],
@@ -134,7 +135,13 @@ describe('useRampActivityItems', () => {
     expect(result.current[0]).toMatchObject({
       type: 'buy',
       hash: '0xbuyhash',
+      raw: { type: 'rampOrder', data: v2Order },
+      data: { token: { amount: '5.01', symbol: 'mUSD', direction: 'in' } },
     });
+    expect(result.current[0].raw?.data).not.toHaveProperty(
+      'provider',
+      FIAT_ORDER_PROVIDERS.RAMPS_V2,
+    );
   });
 
   it('includes v2 orders with non-EVM CAIP-2 network metadata', () => {
@@ -164,6 +171,7 @@ describe('useRampActivityItems', () => {
       type: 'buy',
       chainId: solanaChainId,
       hash: '0xbuyhash',
+      raw: { type: 'rampOrder', data: v2Order },
     });
   });
 });

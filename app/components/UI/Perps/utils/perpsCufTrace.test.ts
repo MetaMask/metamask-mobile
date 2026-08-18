@@ -16,6 +16,7 @@ import {
   watchPerpsCufPositionClosed,
   watchPerpsCufTpSlChanged,
   watchPerpsCufOrderAbsent,
+  watchPerpsCufOrderPriceUpdated,
   watchPerpsCufLimitRendered,
   watchPerpsCufAnyPositions,
   acceptPerpsCufRequest,
@@ -29,8 +30,11 @@ import {
   PERPS_CUF_TAG,
   PERPS_CUF_VARIANT,
   PERPS_CUF_BOUNDARY,
+  PERPS_CUF_END_REASON,
 } from '../constants/perpsCufTags';
 import {
+  getPerpsLifecycleContext,
+  handlePerpsAppStateChange,
   markPerpsForegroundSettled,
   resetPerpsLifecycleContextForTests,
   PERPS_LIFECYCLE_CONTEXT,
@@ -50,6 +54,10 @@ describe('perpsCufTrace', () => {
     jest.clearAllMocks();
     resetPerpsLifecycleContextForTests();
     resetPerpsCufTraceForTests();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('isPerpsFillRendered (shared fill predicate)', () => {
@@ -150,6 +158,41 @@ describe('perpsCufTrace', () => {
     endPerpsCufTrace({ id: opId });
 
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not settle background_resume when a reconnect trace fails', () => {
+    handlePerpsAppStateChange('active', 'unknown');
+    handlePerpsAppStateChange('active', 'background');
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsWebSocketReconnectToFreshData,
+    });
+
+    endPerpsCufTrace({
+      id: opId,
+      data: {
+        [PERPS_CUF_TAG.SUCCESS]: false,
+        [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.DISCONNECTED,
+      },
+    });
+
+    expect(getPerpsLifecycleContext()).toBe(
+      PERPS_LIFECYCLE_CONTEXT.BACKGROUND_RESUME,
+    );
+  });
+
+  it('settles background_resume when a reconnect trace succeeds', () => {
+    handlePerpsAppStateChange('active', 'unknown');
+    handlePerpsAppStateChange('active', 'background');
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsWebSocketReconnectToFreshData,
+    });
+
+    endPerpsCufTrace({
+      id: opId,
+      data: { [PERPS_CUF_TAG.SUCCESS]: true },
+    });
+
+    expect(getPerpsLifecycleContext()).toBe(PERPS_LIFECYCLE_CONTEXT.WARM);
   });
 
   it('scheduled fallback ends its own span when nothing else does', () => {
@@ -894,5 +937,80 @@ describe('perpsCufTrace', () => {
     handlePerpsCufOrdersDelivered([{ orderId: 'o-1' }], flush);
 
     expect(flush).not.toHaveBeenCalled();
+  });
+
+  describe('PerpsEditOrder ORDER_PRICE_UPDATED', () => {
+    it('ends the edit span once the order reflects the expected price', () => {
+      const opId = startPerpsCufTrace({ name: TraceName.PerpsEditOrder });
+      watchPerpsCufOrderPriceUpdated(opId, 'o-1', '51000');
+      acceptPerpsCufRequest(opId);
+
+      handlePerpsCufOrdersDelivered([{ orderId: 'o-1', price: '50000' }]);
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      handlePerpsCufOrdersDelivered([{ orderId: 'o-1', price: '51000' }]);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: opId,
+          data: expect.objectContaining({
+            [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
+          }),
+        }),
+      );
+    });
+
+    it('treats financially equal prices as a match', () => {
+      const opId = startPerpsCufTrace({ name: TraceName.PerpsEditOrder });
+      watchPerpsCufOrderPriceUpdated(opId, 'o-1', '51000.00');
+      acceptPerpsCufRequest(opId);
+
+      handlePerpsCufOrdersDelivered([{ orderId: 'o-1', price: '51000' }]);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({ id: opId }),
+      );
+    });
+
+    it('does not end when the delivered price is non-finite', () => {
+      const opId = startPerpsCufTrace({ name: TraceName.PerpsEditOrder });
+      watchPerpsCufOrderPriceUpdated(opId, 'o-1', '51000');
+      acceptPerpsCufRequest(opId);
+
+      handlePerpsCufOrdersDelivered([{ orderId: 'o-1', price: 'not-a-price' }]);
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('defers ending until the edit request is accepted', () => {
+      const opId = startPerpsCufTrace({ name: TraceName.PerpsEditOrder });
+      watchPerpsCufOrderPriceUpdated(opId, 'o-1', '51000');
+
+      handlePerpsCufOrdersDelivered([{ orderId: 'o-1', price: '51000' }]);
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      acceptPerpsCufRequest(opId);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({ id: opId }),
+      );
+    });
+
+    it('ends the edit span when the order fills and leaves the stream', () => {
+      const opId = startPerpsCufTrace({ name: TraceName.PerpsEditOrder });
+      watchPerpsCufOrderPriceUpdated(opId, 'o-1', '51000');
+      acceptPerpsCufRequest(opId);
+
+      // Order is absent — it filled immediately at the marketable price.
+      handlePerpsCufOrdersDelivered([]);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({ id: opId }),
+      );
+    });
+
+    it('does not end on fill when the edit request is still awaiting acceptance', () => {
+      const opId = startPerpsCufTrace({ name: TraceName.PerpsEditOrder });
+      watchPerpsCufOrderPriceUpdated(opId, 'o-1', '51000');
+      // Not yet accepted — do not end even if order is absent.
+
+      handlePerpsCufOrdersDelivered([]);
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
   });
 });
