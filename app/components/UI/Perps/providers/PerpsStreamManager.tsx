@@ -68,6 +68,29 @@ function getEvmAccountFromSelectedAccountGroup() {
   return findEvmAccount(accounts as InternalAccount[]);
 }
 
+type LoadingSessionTraceData = ReturnType<
+  typeof getActivePerpsLoadingSessionTraceData
+>;
+const loadingSessionDataByTraceId = new Map<string, LoadingSessionTraceData>();
+
+function captureLoadingSessionTraceData(
+  traceId: string,
+): LoadingSessionTraceData {
+  const data = getActivePerpsLoadingSessionTraceData();
+  loadingSessionDataByTraceId.set(traceId, data);
+  return data;
+}
+
+function getCapturedLoadingSessionTraceData(
+  traceId: string,
+): LoadingSessionTraceData {
+  return loadingSessionDataByTraceId.get(traceId);
+}
+
+function clearCapturedLoadingSessionTraceData(traceId: string): void {
+  loadingSessionDataByTraceId.delete(traceId);
+}
+
 // Generic subscription parameters
 interface StreamSubscription<T> {
   id: string;
@@ -643,11 +666,12 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         name: TraceName.PerpsWebSocketFirstPrice,
         id: this.firstDataTraceId,
         data: {
-          ...getActivePerpsLoadingSessionTraceData(),
+          ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
           success: false,
           reason: 'disconnected',
         },
       });
+      clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
       this.firstDataTraceId = undefined;
     }
   }
@@ -718,7 +742,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
       tags: buildPerpsCufStartTags(),
-      data: getActivePerpsLoadingSessionTraceData(),
+      data: captureLoadingSessionTraceData(this.firstDataTraceId),
     });
     this.wsConnectionStartTime = performance.now();
 
@@ -742,12 +766,13 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
             name: TraceName.PerpsWebSocketFirstPrice,
             id: this.firstDataTraceId,
             data: {
-              ...getActivePerpsLoadingSessionTraceData(),
+              ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
               success: true,
               duration: firstDataDuration,
             },
           });
           this.wsConnectionStartTime = null;
+          clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
           this.firstDataTraceId = undefined;
         }
 
@@ -908,7 +933,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           id: this.firstDataTraceId,
           op: TraceOperation.PerpsOperation,
           tags: buildPerpsCufStartTags(),
-          data: getActivePerpsLoadingSessionTraceData(),
+          data: captureLoadingSessionTraceData(this.firstDataTraceId),
         });
         this.wsConnectionStartTime = performance.now();
 
@@ -937,12 +962,13 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
                 name: TraceName.PerpsWebSocketFirstPrice,
                 id: this.firstDataTraceId,
                 data: {
-                  ...getActivePerpsLoadingSessionTraceData(),
+                  ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
                   success: true,
                   duration: firstDataDuration,
                 },
               });
               this.wsConnectionStartTime = null;
+              clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
               this.firstDataTraceId = undefined;
             }
 
@@ -1021,11 +1047,12 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
         name: TraceName.PerpsWebSocketFirstOrders,
         id: this.firstDataTraceId,
         data: {
-          ...getActivePerpsLoadingSessionTraceData(),
+          ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
           success: false,
           reason: 'disconnected',
         },
       });
+      clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
       this.firstDataTraceId = undefined;
     }
   }
@@ -1041,7 +1068,7 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
       name: TraceName.PerpsWebSocketFirstOrders,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
-      data: getActivePerpsLoadingSessionTraceData(),
+      data: captureLoadingSessionTraceData(this.firstDataTraceId),
     });
 
     // Track WebSocket connection start time for duration calculation
@@ -1080,13 +1107,14 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
             name: TraceName.PerpsWebSocketFirstOrders,
             id: this.firstDataTraceId,
             data: {
-              ...getActivePerpsLoadingSessionTraceData(),
+              ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
               success: true,
               duration: firstDataDuration,
             },
           });
 
           this.wsConnectionStartTime = null;
+          clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
           this.firstDataTraceId = undefined;
         }
 
@@ -1258,11 +1286,12 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
         name: TraceName.PerpsWebSocketFirstPositions,
         id: this.firstDataTraceId,
         data: {
-          ...getActivePerpsLoadingSessionTraceData(),
+          ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
           success: false,
           reason: 'disconnected',
         },
       });
+      clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
       this.firstDataTraceId = undefined;
     }
   }
@@ -1278,7 +1307,7 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
       name: TraceName.PerpsWebSocketFirstPositions,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
-      data: getActivePerpsLoadingSessionTraceData(),
+      data: captureLoadingSessionTraceData(this.firstDataTraceId),
     });
 
     // Track WebSocket connection start time for duration calculation
@@ -1321,13 +1350,14 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
             name: TraceName.PerpsWebSocketFirstPositions,
             id: this.firstDataTraceId,
             data: {
-              ...getActivePerpsLoadingSessionTraceData(),
+              ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
               success: true,
               duration: firstDataDuration,
             },
           });
 
           this.wsConnectionStartTime = null;
+          clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
           this.firstDataTraceId = undefined;
         }
 
@@ -1574,11 +1604,12 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
         name: TraceName.PerpsWebSocketFirstAccount,
         id: this.firstDataTraceId,
         data: {
-          ...getActivePerpsLoadingSessionTraceData(),
+          ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
           success: false,
           reason: 'disconnected',
         },
       });
+      clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
       this.firstDataTraceId = undefined;
     }
   }
@@ -1594,7 +1625,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
       name: TraceName.PerpsWebSocketFirstAccount,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
-      data: getActivePerpsLoadingSessionTraceData(),
+      data: captureLoadingSessionTraceData(this.firstDataTraceId),
     });
 
     // Track WebSocket connection start time for duration calculation
@@ -1636,13 +1667,14 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
             name: TraceName.PerpsWebSocketFirstAccount,
             id: this.firstDataTraceId,
             data: {
-              ...getActivePerpsLoadingSessionTraceData(),
+              ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
               success: true,
               duration: firstDataDuration,
             },
           });
 
           this.wsConnectionStartTime = null;
+          clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
           this.firstDataTraceId = undefined;
         }
 

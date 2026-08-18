@@ -28,6 +28,7 @@ jest.mock('../../../../UI/Perps/utils/perpsLoadingSession', () => ({
     mockStartPerpsLoadingSession(options),
   finishPerpsLoadingSession: (data: unknown) =>
     mockFinishPerpsLoadingSession(data),
+  preparePerpsLoadingSession: jest.fn(),
   getActivePerpsLoadingSessionContext: () => ({
     id: 'session-id-1',
     marketSource: 'provider',

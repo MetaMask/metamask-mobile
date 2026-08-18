@@ -889,6 +889,7 @@ class PerpsConnectionManagerClass {
 
     this.initPromise = (async () => {
       const traceId = uuidv4();
+      const loadingSessionTraceData = getActivePerpsLoadingSessionTraceData();
       const connectionStartTime = performance.now();
       let traceData: Record<string, string | number | boolean> | undefined;
 
@@ -897,7 +898,7 @@ class PerpsConnectionManagerClass {
           name: TraceName.PerpsConnectionEstablishment,
           id: traceId,
           op: TraceOperation.PerpsOperation,
-          data: getActivePerpsLoadingSessionTraceData(),
+          data: loadingSessionTraceData,
         });
 
         DevLogger.log('PerpsConnectionManager: Initializing connection');
@@ -1038,7 +1039,7 @@ class PerpsConnectionManagerClass {
           name: TraceName.PerpsConnectionEstablishment,
           id: traceId,
           data: {
-            ...getActivePerpsLoadingSessionTraceData(),
+            ...loadingSessionTraceData,
             ...traceData,
           },
         });

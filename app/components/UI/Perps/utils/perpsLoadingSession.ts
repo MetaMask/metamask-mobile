@@ -115,6 +115,16 @@ let preSessionEvents: {
 }[] = [];
 let preSessionFinishData: Record<string, string | number | boolean> | null =
   null;
+let preSessionBufferArmed = true;
+
+export function preparePerpsLoadingSession(): void {
+  if (activeSessionId) {
+    return;
+  }
+  preSessionEvents = [];
+  preSessionFinishData = null;
+  preSessionBufferArmed = true;
+}
 
 export function startPerpsLoadingSession(
   options: StartPerpsLoadingSessionOptions = {},
@@ -175,6 +185,7 @@ export function startPerpsLoadingSession(
   attachHomepageReadyDistance();
   const bufferedEvents = preSessionEvents;
   preSessionEvents = [];
+  preSessionBufferArmed = false;
   bufferedEvents.forEach((event) => {
     recordValuesReady(event);
   });
@@ -194,6 +205,9 @@ export function recordPerpsLoadingSessionValuesReady(
 ): void {
   const recordedAtMs = performance.now();
   if (!activeSessionId || sessionStartedAtMs === null) {
+    if (!preSessionBufferArmed) {
+      return;
+    }
     preSessionEvents.push({
       stream,
       source,
@@ -406,6 +420,9 @@ function endActiveLoadingSession(
   accountCacheSource = null;
   homepageDistanceRecorded = false;
   pendingFinishData = null;
+  preSessionEvents = [];
+  preSessionFinishData = null;
+  preSessionBufferArmed = false;
 }
 
 export function recordHomepageReadyAt(monotonicMs: number): void {
@@ -457,7 +474,9 @@ export function finishPerpsLoadingSession(
   data: Record<string, string | number | boolean> = {},
 ): void {
   if (!activeSessionId) {
-    preSessionFinishData = data;
+    if (preSessionBufferArmed) {
+      preSessionFinishData = data;
+    }
     return;
   }
   if (!pendingFinishData || data.success === false) {
@@ -483,4 +502,5 @@ export function resetPerpsLoadingSessionForTesting(): void {
   }
   preSessionEvents = [];
   preSessionFinishData = null;
+  preSessionBufferArmed = true;
 }

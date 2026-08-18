@@ -62,6 +62,7 @@ import { getPerpsLifecycleContext } from '../../../../UI/Perps/utils/perpsLifecy
 import {
   finishPerpsLoadingSession,
   getActivePerpsLoadingSessionContext,
+  preparePerpsLoadingSession,
   resolvePerpsMarketSource,
   resolvePerpsLoadingLifecycle,
   startPerpsLoadingSession,
@@ -85,6 +86,11 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     },
     ref,
   ) => {
+    const loadingSessionPrepared = useRef(false);
+    if (!loadingSessionPrepared.current) {
+      preparePerpsLoadingSession();
+      loadingSessionPrepared.current = true;
+    }
     const sectionViewRef = useRef<View>(null);
     const baseTitle = strings('homepage.sections.perps');
     const usesPillsEmptyState = emptyStateContent === 'pills';

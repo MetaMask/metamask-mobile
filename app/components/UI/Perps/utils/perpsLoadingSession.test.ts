@@ -13,6 +13,7 @@ import {
   finishPerpsLoadingSession,
   getActivePerpsLoadingSessionContext,
   HOMEPAGE_READY_DISTANCE_FROM_PERPS_BOOTSTRAP_START_MS,
+  preparePerpsLoadingSession,
   resolvePerpsMarketSource,
   recordHomepageReadyAt,
   recordPerpsLoadingSessionValuesReady,
@@ -270,6 +271,28 @@ describe('perpsLoadingSession', () => {
 
       expect(setMeasurement).toHaveBeenCalledTimes(2);
       expect(valuesReadyRecords()).toHaveLength(2);
+    });
+
+    it('does not carry post-completion live ticks into the next generation', () => {
+      startPerpsLoadingSession();
+      recordHomepageReadyAt(500);
+      finishPerpsLoadingSession({
+        success: true,
+        content_state: 'empty',
+        content_variant: 'trending',
+      });
+      jest.clearAllMocks();
+
+      recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 1);
+      preparePerpsLoadingSession();
+      startPerpsLoadingSession();
+
+      expect(setMeasurement).not.toHaveBeenCalledWith(
+        expect.anything(),
+        'positions_live_ms',
+        expect.anything(),
+        expect.anything(),
+      );
     });
   });
 
