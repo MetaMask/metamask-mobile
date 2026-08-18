@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { render, fireEvent, within } from '@testing-library/react-native';
 import Benefits from './index';
 import { BenefitsTestIds } from './Benefits.testIds';
@@ -250,6 +251,24 @@ describe('Benefits', () => {
       ).toBeOnTheScreen();
       expect(getByText(strings(protectionDetail.learnMore))).toBeOnTheScreen();
       expect(getByText(strings(protectionDetail.notes))).toBeOnTheScreen();
+    });
+
+    it('opens the learn more URL when the link is pressed', () => {
+      const protectionDetail = BENEFIT_DETAILS.find(
+        (d) => d.id === 'protection',
+      );
+      if (!protectionDetail)
+        throw new Error('protection detail not found in BENEFIT_DETAILS');
+      if (!protectionDetail.learnMore || !protectionDetail.learnMoreUrl)
+        throw new Error('protection.learnMore or learnMoreUrl missing');
+      const { getByTestId, getByText } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('protection')));
+      fireEvent.press(getByText(strings(protectionDetail.learnMore)));
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        protectionDetail.learnMoreUrl,
+      );
     });
 
     it('does not show points for benefits that have none (apy)', () => {
