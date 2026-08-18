@@ -121,7 +121,7 @@ describe('getTriggerPriceValidationIssue', () => {
 describe('getTriggerPriceValidationMessage', () => {
   it('maps required and positive issues to existing error keys', () => {
     expect(getTriggerPriceValidationMessage({ code: 'required' })).toBe(
-      'perps.errors.orderValidation.triggerPriceRequired',
+      'perps.order.validation.please_set_a_trigger_price',
     );
     expect(getTriggerPriceValidationMessage({ code: 'positive' })).toBe(
       'perps.errors.orderValidation.triggerPricePositive',
@@ -135,14 +135,14 @@ describe('getTriggerPriceValidationMessage', () => {
         family: 'stop',
         requiredSide: 'above',
       }),
-    ).toBe('perps.order.validation.stop_trigger_must_be_above_mid');
+    ).toBe('perps.order.validation.trigger_must_be_above_mid');
     expect(
       getTriggerPriceValidationMessage({
         code: 'wrong_side',
         family: 'take_profit',
         requiredSide: 'below',
       }),
-    ).toBe('perps.order.validation.take_trigger_must_be_below_mid');
+    ).toBe('perps.order.validation.trigger_must_be_below_mid');
   });
 });
 
@@ -193,12 +193,12 @@ describe('isTriggerFormPriceMessage', () => {
   it('recognizes trigger helper copy and omits unrelated notices', () => {
     expect(
       isTriggerFormPriceMessage(
-        'perps.errors.orderValidation.triggerPriceRequired',
+        'perps.order.validation.please_set_a_trigger_price',
       ),
     ).toBe(true);
     expect(
       isTriggerFormPriceMessage(
-        'perps.order.validation.stop_trigger_must_be_below_mid',
+        'perps.order.validation.trigger_must_be_below_mid',
       ),
     ).toBe(true);
     expect(

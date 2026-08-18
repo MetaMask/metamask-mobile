@@ -30,18 +30,14 @@ jest.mock('../../../../../locales/i18n', () => ({
       'perps.order.validation.high_leverage_warning': 'High leverage warning',
       'perps.order.validation.limit_price_required': 'Limit price required',
       'perps.order.validation.error': 'Validation error',
-      'perps.errors.orderValidation.triggerPriceRequired':
-        'Trigger price required',
+      'perps.order.validation.please_set_a_trigger_price':
+        'Please set a trigger price',
       'perps.errors.orderValidation.triggerPricePositive':
         'Trigger price must be positive',
-      'perps.order.validation.stop_trigger_must_be_above_mid':
-        'Stop order price must be higher than mid',
-      'perps.order.validation.stop_trigger_must_be_below_mid':
-        'Stop order price must be lower than mid',
-      'perps.order.validation.take_trigger_must_be_above_mid':
-        'Take profit price must be higher than mid',
-      'perps.order.validation.take_trigger_must_be_below_mid':
-        'Take profit price must be lower than mid',
+      'perps.order.validation.trigger_must_be_above_mid':
+        'Trigger price must be higher than mid',
+      'perps.order.validation.trigger_must_be_below_mid':
+        'Trigger price must be lower than mid',
     };
     return translations[key] || key;
   }),
@@ -579,7 +575,7 @@ describe('usePerpsOrderValidation', () => {
 
       expect(result.current.isValid).toBe(false);
       expect(result.current.errors).toContain(
-        'Stop order price must be higher than mid',
+        'Trigger price must be higher than mid',
       );
     });
 

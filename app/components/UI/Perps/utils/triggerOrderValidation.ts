@@ -33,14 +33,8 @@ export interface LimitPriceCrossingWarningInput {
 }
 
 const TRIGGER_WRONG_SIDE_KEYS = {
-  stop: {
-    above: 'perps.order.validation.stop_trigger_must_be_above_mid',
-    below: 'perps.order.validation.stop_trigger_must_be_below_mid',
-  },
-  take_profit: {
-    above: 'perps.order.validation.take_trigger_must_be_above_mid',
-    below: 'perps.order.validation.take_trigger_must_be_below_mid',
-  },
+  above: 'perps.order.validation.trigger_must_be_above_mid',
+  below: 'perps.order.validation.trigger_must_be_below_mid',
 } as const;
 
 /**
@@ -120,12 +114,12 @@ export const getTriggerPriceValidationMessage = (
   issue: TriggerPriceValidationIssue,
 ): string => {
   if (issue.code === 'required') {
-    return strings('perps.errors.orderValidation.triggerPriceRequired');
+    return strings('perps.order.validation.please_set_a_trigger_price');
   }
   if (issue.code === 'positive') {
     return strings('perps.errors.orderValidation.triggerPricePositive');
   }
-  return strings(TRIGGER_WRONG_SIDE_KEYS[issue.family][issue.requiredSide]);
+  return strings(TRIGGER_WRONG_SIDE_KEYS[issue.requiredSide]);
 };
 
 /**
@@ -167,12 +161,10 @@ export const getLimitPriceCrossingWarning = ({
  * @param message - Localized validation string.
  */
 export const isTriggerFormPriceMessage = (message: string): boolean =>
-  message === strings('perps.errors.orderValidation.triggerPriceRequired') ||
+  message === strings('perps.order.validation.please_set_a_trigger_price') ||
   message === strings('perps.errors.orderValidation.triggerPricePositive') ||
   message === strings('perps.errors.orderValidation.limitPriceRequired') ||
   message === strings('perps.order.validation.limit_price_required') ||
   message === strings('perps.order.validation.please_set_a_limit_price') ||
-  message === strings(TRIGGER_WRONG_SIDE_KEYS.stop.above) ||
-  message === strings(TRIGGER_WRONG_SIDE_KEYS.stop.below) ||
-  message === strings(TRIGGER_WRONG_SIDE_KEYS.take_profit.above) ||
-  message === strings(TRIGGER_WRONG_SIDE_KEYS.take_profit.below);
+  message === strings(TRIGGER_WRONG_SIDE_KEYS.above) ||
+  message === strings(TRIGGER_WRONG_SIDE_KEYS.below);

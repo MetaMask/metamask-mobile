@@ -97,6 +97,13 @@ describe('PerpsProOrderForm', () => {
       expect(onLimitPriceChange).toHaveBeenCalledWith('.123');
     });
 
+    it('omits the Mid chip when onUseMidPricePress is not provided', () => {
+      renderForm({ orderType: 'limit' });
+
+      expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.MID_PRICE_BUTTON)).not.toBeOnTheScreen();
+    });
+
     it('wires limit price blur to onLimitPriceBlur', () => {
       const onLimitPriceBlur = jest.fn();
       renderForm({ orderType: 'limit', onLimitPriceBlur });
@@ -152,10 +159,15 @@ describe('PerpsProOrderForm', () => {
     });
 
     it('renders trigger and limit price inputs for stop-limit orders', () => {
-      renderForm({ orderType: 'stop_limit', triggerPrice: '91000' });
+      renderForm({
+        orderType: 'stop_limit',
+        triggerPrice: '91000',
+        onUseMidPricePress: jest.fn(),
+      });
 
       expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
       expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.MID_PRICE_BUTTON)).toBeOnTheScreen();
       expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
         'Stop limit',
       );
@@ -166,6 +178,7 @@ describe('PerpsProOrderForm', () => {
 
       expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.MID_PRICE_BUTTON)).not.toBeOnTheScreen();
       expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
     });
 
@@ -201,12 +214,12 @@ describe('PerpsProOrderForm', () => {
         orderType: 'stop_market',
         priceCardMessage: {
           severity: 'error',
-          message: 'Stop order price must be higher than mid',
+          message: 'Trigger price must be higher than mid',
         },
       });
 
       expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
-        'Stop order price must be higher than mid',
+        'Trigger price must be higher than mid',
       );
     });
 
@@ -489,7 +502,6 @@ describe('PerpsProOrderForm', () => {
 
     it.each([
       ['leverage', ids.LEVERAGE_BUTTON],
-      ['Mid price', ids.MID_PRICE_BUTTON],
       ['size denomination', ids.SIZE_UNIT_BUTTON],
       ['Add funds', ids.ADD_FUNDS_BUTTON],
       ['TP/SL', ids.TPSL],
@@ -501,7 +513,6 @@ describe('PerpsProOrderForm', () => {
         sizeInput: createSizeInput({ canToggleDenomination: false }),
         onAddFundsPress: undefined,
         onTPSLPress: undefined,
-        onUseMidPricePress: undefined,
         onLeveragePress: undefined,
         summary: {
           margin: '--',

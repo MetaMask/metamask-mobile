@@ -88,7 +88,6 @@ export interface PerpsProOrderFormProps {
   onTriggerPriceFocus?: () => void;
   onTriggerPriceBlur?: () => void;
   onTriggerPriceFieldPress?: () => void;
-  onUseTriggerMidPricePress?: () => void;
   /**
    * Helper or warning shown under the grouped price card after blur.
    * Error blocks the CTA; warning does not.

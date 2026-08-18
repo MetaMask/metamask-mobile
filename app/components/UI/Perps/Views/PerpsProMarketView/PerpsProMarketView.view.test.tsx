@@ -357,7 +357,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       await waitFor(
         () => {
           expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
-            strings('perps.order.validation.stop_trigger_must_be_above_mid'),
+            strings('perps.order.validation.trigger_must_be_above_mid'),
           );
           expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
         },

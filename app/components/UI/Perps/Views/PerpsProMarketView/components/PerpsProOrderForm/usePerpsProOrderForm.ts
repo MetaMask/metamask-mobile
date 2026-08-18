@@ -249,7 +249,6 @@ export interface UsePerpsProOrderFormResult {
   triggerPrice: string;
   onTriggerPriceChange: (value: string) => void;
   onTriggerPriceBlur: () => void;
-  onUseTriggerMidPricePress: () => void;
   priceCardMessage?: {
     severity: 'error' | 'warning';
     message: string;
@@ -1211,17 +1210,6 @@ export const usePerpsProOrderForm = ({
     setHasBlurredTriggerPrice(true);
   }, [setTriggerPrice, triggerPrice]);
 
-  const onUseTriggerMidPricePress = useCallback(() => {
-    if (assetData.price > 0) {
-      setTriggerPrice(
-        formatWithSignificantDigits(
-          assetData.price,
-          DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
-        ).value.toString(),
-      );
-    }
-  }, [assetData.price, setTriggerPrice]);
-
   const priceCardMessage = useMemo(() => {
     const triggerIssue = getTriggerPriceValidationIssue({
       orderType: orderForm.type,
@@ -1369,7 +1357,6 @@ export const usePerpsProOrderForm = ({
     triggerPrice: triggerPrice ?? '',
     onTriggerPriceChange,
     onTriggerPriceBlur,
-    onUseTriggerMidPricePress,
     priceCardMessage,
     sizeInput,
     sizeSlider,

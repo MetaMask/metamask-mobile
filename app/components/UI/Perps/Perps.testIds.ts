@@ -551,7 +551,6 @@ export const PerpsProOrderFormSelectorsIDs = {
   MID_PRICE_BUTTON: 'perps-pro-order-form-mid-price',
   TRIGGER_PRICE_INPUT: 'perps-pro-order-form-trigger-price-input',
   TRIGGER_PRICE_PREFIX: 'perps-pro-order-form-trigger-price-prefix',
-  TRIGGER_MID_PRICE_BUTTON: 'perps-pro-order-form-trigger-mid-price',
   PRICE_CARD_MESSAGE: 'perps-pro-order-form-price-card-message',
   MARGIN_SETTINGS_ROW: 'perps-pro-order-form-margin-settings',
   SIZE_CARD: 'perps-pro-order-form-size-card',

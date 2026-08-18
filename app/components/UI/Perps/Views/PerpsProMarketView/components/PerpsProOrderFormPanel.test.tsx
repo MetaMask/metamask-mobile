@@ -71,7 +71,6 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   triggerPrice: '',
   onTriggerPriceChange: jest.fn(),
   onTriggerPriceBlur: jest.fn(),
-  onUseTriggerMidPricePress: jest.fn(),
   sizeInput: DEFAULT_SIZE_INPUT,
   sizeSlider: DEFAULT_SIZE_SLIDER,
   availableBalance: '$500 available',

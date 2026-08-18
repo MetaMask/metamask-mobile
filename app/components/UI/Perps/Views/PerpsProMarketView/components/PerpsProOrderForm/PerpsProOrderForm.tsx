@@ -138,7 +138,7 @@ interface PriceFieldProps {
   onUseMidPress?: () => void;
   testID: string;
   prefixTestID: string;
-  midButtonTestID: string;
+  midButtonTestID?: string;
 }
 
 const PriceField = ({
@@ -173,22 +173,23 @@ const PriceField = ({
       </Text>
     }
     endAccessory={
-      <Box twClassName="h-full shrink-0 justify-center">
-        <ButtonBase
-          size={ButtonBaseSize.Sm}
-          onPress={onUseMidPress}
-          isDisabled={!onUseMidPress}
-          twClassName="h-[26px] shrink-0 rounded bg-subsection px-2 py-0.5"
-          contentWrapperProps={{ twClassName: 'justify-end' }}
-          textProps={{
-            variant: TextVariant.BodySm,
-            fontWeight: FontWeight.Medium,
-          }}
-          testID={midButtonTestID}
-        >
-          {strings('perps.order.limit_price_modal.mid_price')}
-        </ButtonBase>
-      </Box>
+      onUseMidPress ? (
+        <Box twClassName="h-full shrink-0 justify-center">
+          <ButtonBase
+            size={ButtonBaseSize.Sm}
+            onPress={onUseMidPress}
+            twClassName="h-[26px] shrink-0 rounded bg-subsection px-2 py-0.5"
+            contentWrapperProps={{ twClassName: 'justify-end' }}
+            textProps={{
+              variant: TextVariant.BodySm,
+              fontWeight: FontWeight.Medium,
+            }}
+            testID={midButtonTestID}
+          >
+            {strings('perps.order.limit_price_modal.mid_price')}
+          </ButtonBase>
+        </Box>
+      ) : undefined
     }
   />
 );
@@ -345,7 +346,6 @@ const PerpsProOrderForm = ({
   onTriggerPriceFocus,
   onTriggerPriceBlur,
   onTriggerPriceFieldPress,
-  onUseTriggerMidPricePress,
   priceCardMessage,
   sizeInput,
   sizeSlider,
@@ -485,10 +485,8 @@ const PerpsProOrderForm = ({
                 onFocus={onTriggerPriceFocus}
                 onBlur={onTriggerPriceBlur}
                 onFieldPress={onTriggerPriceFieldPress}
-                onUseMidPress={onUseTriggerMidPricePress}
                 testID={ids.TRIGGER_PRICE_INPUT}
                 prefixTestID={ids.TRIGGER_PRICE_PREFIX}
-                midButtonTestID={ids.TRIGGER_MID_PRICE_BUTTON}
               />
             ) : null}
             {showsLimitPrice ? (

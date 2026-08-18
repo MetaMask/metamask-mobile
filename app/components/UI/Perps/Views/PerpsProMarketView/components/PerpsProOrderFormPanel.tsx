@@ -56,7 +56,6 @@ const PerpsProOrderFormPanel = ({
     triggerPrice,
     onTriggerPriceChange,
     onTriggerPriceBlur,
-    onUseTriggerMidPricePress,
     priceCardMessage,
     sizeInput,
     sizeSlider,
@@ -180,7 +179,6 @@ const PerpsProOrderFormPanel = ({
         onTriggerPriceFocus={onLimitPriceFocus}
         onTriggerPriceBlur={onTriggerPriceBlurWithKeyboardScroll}
         onTriggerPriceFieldPress={onLimitPriceFieldPress}
-        onUseTriggerMidPricePress={onUseTriggerMidPricePress}
         priceCardMessage={priceCardMessage}
         sizeInput={sizeInputWithKeyboardScroll}
         sizeSlider={sizeSlider}
