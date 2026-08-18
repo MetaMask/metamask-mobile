@@ -81,7 +81,7 @@ const compareByKey = (
 /**
  * Projects the CAIP-19-deduplicated catalogue produced by buildEarnAssets into
  * fixed homepage slots. Held assets rank before discovery assets, and missing
- * assets are padded so the section always renders slots by default.
+ * assets are padded so the section always renders five slots by default.
  *
  * Rates are compared as displayed numeric percentages; APR and APY values are
  * not normalized to a common yield type.
