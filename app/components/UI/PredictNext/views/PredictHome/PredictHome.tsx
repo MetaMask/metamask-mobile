@@ -17,12 +17,15 @@ import {
 import { useEventList } from '../../hooks/useEventList';
 import { useVenueStatus } from '../../hooks/useVenueStatus';
 import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
-import { EventCardContent } from '../../components/EventCard/EventCardContent';
+import { EventCardGame, EventCardStandard } from '../../events/cards';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { PredictNextRoutes } from '../../navigation/routes';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Engine from '../../../../../core/Engine';
 
 const PAGE_SIZE = 20;
+
+const EventSeparator = () => <Box twClassName="h-3" />;
 
 export const PredictHome = () => {
   const navigation =
@@ -51,6 +54,7 @@ export const PredictHome = () => {
     () => eventsQuery.data?.pages.flatMap((page) => page.items) ?? [],
     [eventsQuery.data],
   );
+  const tw = useTailwind();
 
   const openEvent = useCallback(
     (event: PredictEvent) =>
@@ -62,9 +66,12 @@ export const PredictHome = () => {
     [navigation],
   );
   const renderEvent = useCallback(
-    ({ item }: ListRenderItemInfo<PredictEvent>) => (
-      <EventCardContent event={item} onPress={() => openEvent(item)} />
-    ),
+    ({ item }: ListRenderItemInfo<PredictEvent>) =>
+      item.sports?.sport.id === 'american-football' && item.sports.game ? (
+        <EventCardGame event={item} onPress={() => openEvent(item)} />
+      ) : (
+        <EventCardStandard event={item} onPress={() => openEvent(item)} />
+      ),
     [openEvent],
   );
   const retryAll = () => {
@@ -131,6 +138,8 @@ export const PredictHome = () => {
           keyExtractor={(event) => `${event.venueId}:${event.id}`}
           onEndReached={loadNextPage}
           onEndReachedThreshold={0.5}
+          ItemSeparatorComponent={EventSeparator}
+          contentContainerStyle={tw.style('px-4')}
           ListFooterComponent={
             eventsQuery.isFetchingNextPage ? (
               <Text testID="predict-next-footer-loading">Loading…</Text>

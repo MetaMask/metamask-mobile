@@ -23,8 +23,7 @@ import {
   selectPendingMoneyAccountCardLink,
   setPendingMoneyAccountCardLink,
 } from '../../../../core/redux/slices/card';
-import { selectIsMoneyAccountGeoEligible } from '../../Money/selectors/eligibility';
-import { selectMoneyEnableMoneyAccountFlag } from '../../Money/selectors/featureFlags';
+import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
 import { resolveMoneyAccountCardToken } from '../../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import Routes from '../../../../constants/navigation/Routes';
 import { BAANX_MAX_LIMIT } from '../constants';
@@ -129,6 +128,10 @@ jest.mock('../../../../util/theme', () => {
   };
 });
 
+jest.mock('../../Money/selectors/visibility', () => ({
+  selectIsMoneyAccountVisible: jest.fn(),
+}));
+
 const mockUseSelector = useSelector as unknown as jest.Mock;
 const mockResolveMoneyAccountCardToken =
   resolveMoneyAccountCardToken as jest.Mock;
@@ -224,9 +227,8 @@ const applySelectorMocks = (state: ReturnType<typeof buildSelectors>) => {
     if (selector === selectPrimaryMoneyAccount)
       return state.primaryMoneyAccount;
     if (selector === selectMoneyAccountVaultConfig) return state.vaultConfig;
-    if (selector === selectMoneyEnableMoneyAccountFlag)
+    if (selector === selectIsMoneyAccountVisible)
       return state.isMoneyAccountVisible;
-    if (selector === selectIsMoneyAccountGeoEligible) return true;
     if (selector === selectIsCardAuthenticated)
       return state.isCardAuthenticated;
     if (selector === selectIsCardVerified) return state.isCardVerified;
@@ -328,7 +330,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(result.current.canLink).toBe(false);
     });
 
-    it('reports canLink=false when the feature flag is off', () => {
+    it('reports canLink=false when the Money account is not visible', () => {
       applySelectorMocks(buildSelectors({ isMoneyAccountVisible: false }));
       const { result } = renderLinkageHook();
       expect(result.current.canLink).toBe(false);
