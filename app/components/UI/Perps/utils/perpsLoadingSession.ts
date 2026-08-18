@@ -56,7 +56,6 @@ export type PerpsLoadingSurface = 'homepage';
 interface StartPerpsLoadingSessionOptions {
   lifecycle?: PerpsLoadingLifecycle;
   surface?: PerpsLoadingSurface;
-  contentVariant?: string;
   restart?: boolean;
 }
 export interface PerpsLoadingSessionContext {
@@ -167,19 +166,23 @@ export function startPerpsLoadingSession(
     data: {
       lifecycle: activeLifecycle,
       surface: options.surface ?? 'homepage',
-      ...(options.contentVariant
-        ? { content_variant: options.contentVariant }
-        : {}),
     },
   });
 
   sessionTimeout = setTimeout(() => {
-    endActiveLoadingSession({
-      success: false,
-      content_state: 'error',
-      failure_stage: 'loading_session_timeout',
-      required_live_streams_complete: false,
-    });
+    const deadlineMs =
+      (sessionStartedAtMs ?? performance.now()) +
+      PERPS_LOADING_SESSION_TIMEOUT_MS;
+    const lateByMs = Math.max(0, performance.now() - deadlineMs);
+    endActiveLoadingSession(
+      {
+        success: false,
+        content_state: 'error',
+        failure_stage: 'loading_session_timeout',
+        required_live_streams_complete: false,
+      },
+      Date.now() - lateByMs,
+    );
   }, PERPS_LOADING_SESSION_TIMEOUT_MS);
 
   attachHomepageReadyDistance();
@@ -393,6 +396,7 @@ function attachHomepageReadyDistance(): void {
 
 function endActiveLoadingSession(
   data: Record<string, string | number | boolean>,
+  timestamp?: number,
 ): void {
   if (!activeSessionId) {
     return;
@@ -401,6 +405,7 @@ function endActiveLoadingSession(
   endTrace({
     name: TraceName.PerpsLoadingSession,
     id: activeSessionId,
+    timestamp,
     data: {
       success: data.success ?? true,
       content_state: data.content_state ?? 'filled',
@@ -418,6 +423,8 @@ function endActiveLoadingSession(
   cacheObservedBySource.clear();
   marketsReadySource = null;
   accountCacheSource = null;
+  // Homepage Ready belongs to the app lifecycle, so later surface/context
+  // generations still measure their distance from that same readiness point.
   homepageDistanceRecorded = false;
   pendingFinishData = null;
   preSessionEvents = [];
@@ -479,9 +486,10 @@ export function finishPerpsLoadingSession(
     }
     return;
   }
-  if (!pendingFinishData || data.success === false) {
-    pendingFinishData = data;
+  if (pendingFinishData?.success === false && data.success !== false) {
+    return;
   }
+  pendingFinishData = data;
   tryFinishPendingSession();
 }
 

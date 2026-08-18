@@ -390,7 +390,6 @@ describe('PerpsSection', () => {
     expect(mockStartPerpsLoadingSession).toHaveBeenCalledWith({
       lifecycle: 'cold_no_cache',
       surface: 'homepage',
-      contentVariant: 'trending',
     });
     expect(mockUseSectionPerformance).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -403,6 +402,21 @@ describe('PerpsSection', () => {
         data: { perps_session_id: 'session-id-1' },
       }),
     );
+  });
+
+  it('does not start a new session when content changes in place', () => {
+    const view = renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+    expect(mockStartPerpsLoadingSession).toHaveBeenCalledTimes(1);
+
+    usePerpsLivePositions.mockReturnValue({
+      positions: [makePosition()],
+      isInitialLoading: false,
+    });
+    view.rerender(<PerpsSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    expect(mockStartPerpsLoadingSession).toHaveBeenCalledTimes(1);
   });
 
   it('finishes a visible error even while loading remains true', () => {

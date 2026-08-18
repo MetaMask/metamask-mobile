@@ -396,12 +396,19 @@ describe('perpsLoadingSession', () => {
 
     it('ends and releases a session at the bounded timeout', () => {
       jest.useFakeTimers();
+      const startedAtWallMs = Date.now();
       startPerpsLoadingSession();
+      const expectedDeadline = startedAtWallMs + 90_000;
+      jest.mocked(performance.now).mockReturnValue(120_400);
+      const dateNow = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(startedAtWallMs + 120_000);
 
-      jest.advanceTimersByTime(90_000);
+      jest.advanceTimersByTime(120_000);
 
       expect(endTrace).toHaveBeenCalledWith(
         expect.objectContaining({
+          timestamp: expectedDeadline,
           data: expect.objectContaining({
             success: false,
             failure_stage: 'loading_session_timeout',
@@ -409,6 +416,7 @@ describe('perpsLoadingSession', () => {
         }),
       );
       expect(getActivePerpsLoadingSessionContext()).toBeNull();
+      dateNow.mockRestore();
       jest.useRealTimers();
     });
 
@@ -526,7 +534,7 @@ describe('perpsLoadingSession', () => {
       );
     });
 
-    it('buffers finish until Homepage Ready and ends exactly once', () => {
+    it('uses the latest pending content requirement before Homepage Ready', () => {
       startPerpsLoadingSession();
       finishPerpsLoadingSession(finishData);
       finishPerpsLoadingSession({
@@ -538,12 +546,19 @@ describe('perpsLoadingSession', () => {
 
       recordHomepageReadyAt(480);
 
+      expect(endTrace).not.toHaveBeenCalled();
+
+      recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 1);
+      recordPerpsLoadingSessionValuesReady('orders', 'fresh_socket', 0);
+      recordPerpsLoadingSessionValuesReady('account', 'fresh_socket', 1);
+
       expect(endTrace).toHaveBeenCalledTimes(1);
       expect(endTrace).toHaveBeenCalledWith({
         name: TraceName.PerpsLoadingSession,
         id: 'session-id-1',
         data: {
           ...finishData,
+          content_variant: 'positions',
           required_live_streams_complete: true,
         },
       });

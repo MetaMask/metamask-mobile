@@ -767,6 +767,30 @@ describe('PerpsConnectionManager', () => {
       });
     });
 
+    it('starts a new account generation while disconnected', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      await PerpsConnectionManager.connect();
+      const callback = storeCallbacks[storeCallbacks.length - 1];
+      (
+        PerpsConnectionManager as unknown as { isConnected: boolean }
+      ).isConnected = false;
+      jest.mocked(startPerpsLoadingSession).mockClear();
+
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xdisconnected' }));
+      callback();
+
+      expect(startPerpsLoadingSession).toHaveBeenCalledWith({
+        restart: true,
+        lifecycle: 'account_switch',
+        surface: 'homepage',
+      });
+      expect(
+        mockStreamManagerInstance.positions.clearCache,
+      ).not.toHaveBeenCalled();
+    });
+
     it('debounces rapid state changes into a single reconnection', async () => {
       // Arrange
       jest.useFakeTimers();

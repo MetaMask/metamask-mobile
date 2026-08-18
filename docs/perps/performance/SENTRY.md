@@ -145,9 +145,10 @@ Core trace-targeting API in MetaMask/core#9906 plus its Mobile adapter. Their
 dashboard rows must remain empty/pending until that released API is wired; they
 must not be inferred from ambient spans.
 
-`disk_cache` remains a reserved source value until Core exposes durable-cache
-provenance to Mobile. Cold-disk-cache recipe evidence is currently excluded,
-so production widgets must not label memory-hydrated rows as disk cache.
+`disk_cache` and the `cold_disk_cache` lifecycle remain reserved until Core
+exposes durable-cache provenance to Mobile. Cold-disk-cache recipe evidence is
+currently excluded, so production widgets must not label memory-hydrated rows
+as disk cache.
 
 Dashboards aggregate each authoritative transaction independently using the same bounded release/platform/lifecycle/source attributes. Bootstrap-relative cross-stage widgets query the slim loading session, which is why those offsets exist there.
 

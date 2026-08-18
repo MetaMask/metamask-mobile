@@ -639,9 +639,7 @@ export function getTraceContext(
   return tracesByKey.get(getTraceKey(request))?.span;
 }
 
-/**
- * Return the in-flight span for a pending manual trace with this id.
- */
+/** Write a measurement to an explicit pending trace, buffering until consent. */
 export function setTraceMeasurement(
   request: Pick<TraceRequest, 'name' | 'id'>,
   name: string,

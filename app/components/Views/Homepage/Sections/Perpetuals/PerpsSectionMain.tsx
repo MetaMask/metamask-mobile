@@ -334,12 +334,11 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       const currentId = startPerpsLoadingSession({
         lifecycle: proposedLifecycle,
         surface: 'homepage',
-        contentVariant,
       });
       if (currentId !== previousId) {
         setSessionRevision((revision) => revision + 1);
       }
-    }, [contentVariant, proposedLifecycle]);
+    }, [proposedLifecycle]);
 
     const sessionContext = getActivePerpsLoadingSessionContext();
     const lifecycle = sessionContext?.lifecycle ?? proposedLifecycle;
