@@ -536,6 +536,11 @@ describe('useSectionPerformance', () => {
           }),
         }),
       );
+      const start = (mockTrace as jest.Mock).mock.calls.find(
+        (call: [{ name: TraceName }]) => call[0].name === traceName,
+      )?.[0] as { tags: Record<string, unknown> };
+      expect(start.tags).not.toHaveProperty('success');
+      expect(start.tags).not.toHaveProperty('content_state');
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({
           name: traceName,
@@ -548,26 +553,48 @@ describe('useSectionPerformance', () => {
       );
     });
 
-    it('keeps hook-owned outcome fields authoritative', () => {
+    it.each([
+      TraceName.HomepageSectionTimeToContent,
+      TraceName.HomepageSectionDataFetch,
+    ])('keeps hook-owned fields authoritative on %s', (traceName) => {
       const { rerender } = renderHook(
-        ({ contentReady }) =>
+        ({ contentReady, isLoading }) =>
           useSectionPerformance({
             ...defaultConfig,
             contentReady,
-            tags: { section_id: 'wrong-section' },
+            isLoading,
+            tags: {
+              section_id: 'wrong-section',
+              success: false,
+              content_state: 'error',
+            },
             data: {
               section_id: 'wrong-section',
               success: false,
               content_state: 'error',
             },
           }),
-        { initialProps: { contentReady: false } },
+        { initialProps: { contentReady: false, isLoading: true } },
       );
 
-      rerender({ contentReady: true });
+      rerender({ contentReady: true, isLoading: false });
 
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: traceName,
+          tags: expect.objectContaining({
+            section_id: HomeSectionNames.TOKENS,
+          }),
+        }),
+      );
+      const start = (mockTrace as jest.Mock).mock.calls.find(
+        (call: [{ name: TraceName }]) => call[0].name === traceName,
+      )?.[0] as { tags: Record<string, unknown> };
+      expect(start.tags).not.toHaveProperty('success');
+      expect(start.tags).not.toHaveProperty('content_state');
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({
+          name: traceName,
           data: expect.objectContaining({
             section_id: HomeSectionNames.TOKENS,
             success: true,
@@ -621,6 +648,7 @@ describe('useSectionPerformance', () => {
         expect.objectContaining({
           name: TraceName.HomepageSectionTimeToContent,
           id: ttcStart.id,
+          data: expect.objectContaining(resolvedTags),
         }),
       );
     });

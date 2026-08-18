@@ -46,7 +46,8 @@ For a matched optimized arm, change only `source_strategy=full_bootstrap`, `samp
 The canonical recipe vocabulary below is the target stack contract. Mobile
 emission of `perps_bootstrap_start` and its loading-session milestones lands in
 the next stacked PR; runs against this foundation PR alone must mark those rows
-`release pending` rather than synthesizing them.
+`recipe pending` rather than synthesizing them. They become `release pending`
+only after the instrumentation is implemented and validated on-device.
 
 The recipe captures both clocks without mixing them:
 

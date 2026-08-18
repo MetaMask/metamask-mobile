@@ -47,6 +47,26 @@ interface UseSectionPerformanceConfig {
 
 const DEFAULT_RE_RENDER_THRESHOLD = 3;
 const DEFAULT_RE_RENDER_WINDOW_MS = 500;
+const RESERVED_METADATA_KEYS = new Set([
+  'section_id',
+  'success',
+  'content_state',
+  'reason',
+]);
+
+const sanitizeMetadata = (
+  metadata?: Record<string, string | number | boolean>,
+  excludeSessionId = false,
+) =>
+  metadata
+    ? Object.fromEntries(
+        Object.entries(metadata).filter(
+          ([key]) =>
+            !RESERVED_METADATA_KEYS.has(key) &&
+            (!excludeSessionId || key !== 'perps_session_id'),
+        ),
+      )
+    : undefined;
 
 /**
  * Reusable performance telemetry for homepage sections.
@@ -70,10 +90,10 @@ export const useSectionPerformance = ({
   tags,
   data,
 }: UseSectionPerformanceConfig) => {
-  const tagsRef = useRef(tags);
-  tagsRef.current = tags;
-  const dataRef = useRef(data);
-  dataRef.current = data;
+  const tagsRef = useRef(sanitizeMetadata(tags, true));
+  tagsRef.current = sanitizeMetadata(tags, true);
+  const dataRef = useRef(sanitizeMetadata(data));
+  dataRef.current = sanitizeMetadata(data);
 
   const annotateLatestTags = (name: TraceName, id: string) => {
     if (!tagsRef.current) {
