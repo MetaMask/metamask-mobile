@@ -22,9 +22,6 @@ interface SuccessProps {
 
 const ALY_NAME = 'Aly';
 
-/**
- * SUB-994: Post-purchase success screen.
- */
 const Success = ({ onSuccess }: SuccessProps) => (
   <Box
     twClassName="flex-1 bg-background-default"
