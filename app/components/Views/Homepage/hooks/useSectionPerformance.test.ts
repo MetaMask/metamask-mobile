@@ -160,6 +160,41 @@ describe('useSectionPerformance', () => {
       );
     });
 
+    it('keeps the latest TTC cohort metadata when unmounted', () => {
+      const { rerender, unmount } = renderHook(
+        ({ lifecycle, sessionId }: { lifecycle: string; sessionId: string }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            tags: { lifecycle },
+            data: { perps_session_id: sessionId },
+          }),
+        {
+          initialProps: {
+            lifecycle: 'cold_no_cache',
+            sessionId: 'session-id-1',
+          },
+        },
+      );
+
+      rerender({
+        lifecycle: 'background_reconnect',
+        sessionId: 'session-id-2',
+      });
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({
+            lifecycle: 'background_reconnect',
+            perps_session_id: 'session-id-2',
+            success: false,
+          }),
+        }),
+      );
+    });
+
     it('does not end with failure on unmount if content was already ready', () => {
       const { rerender, unmount } = renderHook(
         ({ contentReady }) =>
@@ -270,6 +305,42 @@ describe('useSectionPerformance', () => {
           data: expect.objectContaining({
             success: false,
             reason: 'unmounted',
+          }),
+        }),
+      );
+    });
+
+    it('keeps the latest DFD cohort metadata when unmounted', () => {
+      const { rerender, unmount } = renderHook(
+        ({ lifecycle, sessionId }: { lifecycle: string; sessionId: string }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            isLoading: true,
+            tags: { lifecycle },
+            data: { perps_session_id: sessionId },
+          }),
+        {
+          initialProps: {
+            lifecycle: 'cold_no_cache',
+            sessionId: 'session-id-1',
+          },
+        },
+      );
+
+      rerender({
+        lifecycle: 'background_reconnect',
+        sessionId: 'session-id-2',
+      });
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionDataFetch,
+          data: expect.objectContaining({
+            lifecycle: 'background_reconnect',
+            perps_session_id: 'session-id-2',
+            success: false,
           }),
         }),
       );
@@ -432,15 +503,16 @@ describe('useSectionPerformance', () => {
       expect(mockEndTrace).not.toHaveBeenCalled();
     });
 
-    it('spreads bounded tags onto both existing traces and data onto their ends', () => {
+    it.each([
+      TraceName.HomepageSectionTimeToContent,
+      TraceName.HomepageSectionDataFetch,
+    ])('applies bounded metadata to %s', (traceName) => {
       const tags = {
         content_variant: 'trending',
-        market_source: 'unknown',
+        market_source: 'provider',
         account_source: 'memory_cache',
-        lifecycle_context: 'cold_process',
+        lifecycle: 'cold_no_cache',
       };
-      const data = { perps_session_id: 'session-id-1' };
-
       const { rerender } = renderHook(
         ({ isLoading, contentReady }) =>
           useSectionPerformance({
@@ -448,7 +520,7 @@ describe('useSectionPerformance', () => {
             contentReady,
             isLoading,
             tags,
-            data,
+            data: { perps_session_id: 'session-id-1' },
           }),
         { initialProps: { isLoading: true, contentReady: false } },
       );
@@ -457,35 +529,21 @@ describe('useSectionPerformance', () => {
 
       expect(mockTrace).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: TraceName.HomepageSectionTimeToContent,
+          name: traceName,
           tags: expect.objectContaining({
-            section_id: HomeSectionNames.TOKENS,
             ...tags,
+            section_id: HomeSectionNames.TOKENS,
           }),
         }),
       );
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.HomepageSectionDataFetch,
-          tags: expect.objectContaining({
-            section_id: HomeSectionNames.TOKENS,
-            ...tags,
-          }),
-        }),
-      );
+      const start = (mockTrace as jest.Mock).mock.calls.find(
+        (call: [{ name: TraceName }]) => call[0].name === traceName,
+      )?.[0] as { tags: Record<string, unknown> };
+      expect(start.tags).not.toHaveProperty('success');
+      expect(start.tags).not.toHaveProperty('content_state');
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: TraceName.HomepageSectionTimeToContent,
-          data: expect.objectContaining({
-            success: true,
-            content_state: 'filled',
-            perps_session_id: 'session-id-1',
-          }),
-        }),
-      );
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.HomepageSectionDataFetch,
+          name: traceName,
           data: expect.objectContaining({
             success: true,
             content_state: 'filled',
@@ -495,18 +553,69 @@ describe('useSectionPerformance', () => {
       );
     });
 
-    it('annotates the same pending span with later resolved tags and does not restart the trace', () => {
+    it.each([
+      TraceName.HomepageSectionTimeToContent,
+      TraceName.HomepageSectionDataFetch,
+    ])('keeps hook-owned fields authoritative on %s', (traceName) => {
+      const { rerender } = renderHook(
+        ({ contentReady, isLoading }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady,
+            isLoading,
+            tags: {
+              section_id: 'wrong-section',
+              success: false,
+              content_state: 'error',
+            },
+            data: {
+              section_id: 'wrong-section',
+              success: false,
+              content_state: 'error',
+            },
+          }),
+        { initialProps: { contentReady: false, isLoading: true } },
+      );
+
+      rerender({ contentReady: true, isLoading: false });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: traceName,
+          tags: expect.objectContaining({
+            section_id: HomeSectionNames.TOKENS,
+          }),
+        }),
+      );
+      const start = (mockTrace as jest.Mock).mock.calls.find(
+        (call: [{ name: TraceName }]) => call[0].name === traceName,
+      )?.[0] as { tags: Record<string, unknown> };
+      expect(start.tags).not.toHaveProperty('success');
+      expect(start.tags).not.toHaveProperty('content_state');
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: traceName,
+          data: expect.objectContaining({
+            section_id: HomeSectionNames.TOKENS,
+            success: true,
+            content_state: 'filled',
+          }),
+        }),
+      );
+    });
+
+    it('updates later-resolved tags on the existing span', () => {
       const initialTags = {
         content_variant: 'trending',
-        market_source: 'unknown',
-        account_source: 'unknown',
-        lifecycle_context: 'cold_process',
+        market_source: 'memory_cache',
+        account_source: 'memory_cache',
+        lifecycle: 'cold_no_cache',
       };
       const resolvedTags = {
         content_variant: 'positions',
         market_source: 'terminal_v2',
         account_source: 'fresh_socket',
-        lifecycle_context: 'cold_process',
+        lifecycle: 'cold_no_cache',
       };
       const span = { spanId: 'ttc-span' };
       mockGetTraceContext.mockReturnValue(span);
@@ -539,6 +648,7 @@ describe('useSectionPerformance', () => {
         expect.objectContaining({
           name: TraceName.HomepageSectionTimeToContent,
           id: ttcStart.id,
+          data: expect.objectContaining(resolvedTags),
         }),
       );
     });
@@ -552,9 +662,9 @@ describe('useSectionPerformance', () => {
             contentStateForTrace: 'error',
             tags: {
               content_variant: 'error',
-              market_source: 'unknown',
-              account_source: 'unknown',
-              lifecycle_context: 'cold_process',
+              market_source: 'provider',
+              account_source: 'fresh_socket',
+              lifecycle: 'cold_no_cache',
             },
             data: { perps_session_id: 'session-id-1' },
           }),

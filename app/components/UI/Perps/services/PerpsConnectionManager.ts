@@ -61,6 +61,12 @@ import {
 } from '../selectors/perpsController';
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
 import { ensureError } from '../../../../util/errorUtils';
+import {
+  getActivePerpsLoadingSessionTraceData,
+  setPerpsLoadingSessionLifecycle,
+  startPerpsLoadingSession,
+} from '../utils/perpsLoadingSession';
+import { getPerpsLifecycleContext } from '../utils/perpsLifecycleContext';
 
 interface ConnectOptions {
   source?: string;
@@ -146,6 +152,25 @@ class PerpsConnectionManagerClass {
         this.previousProvider !== undefined &&
         this.previousProvider !== currentProvider;
       const hasHip3Changed = this.previousHip3Version !== currentHip3Version;
+      const accountOnly =
+        hasAccountChanged &&
+        !hasProviderChanged &&
+        !hasPerpsNetworkChanged &&
+        !hasHip3Changed;
+
+      if (hasPerpsNetworkChanged) {
+        startPerpsLoadingSession({
+          restart: true,
+          lifecycle: 'network_switch',
+          surface: 'homepage',
+        });
+      } else if (hasAccountChanged) {
+        startPerpsLoadingSession({
+          restart: true,
+          lifecycle: 'account_switch',
+          surface: 'homepage',
+        });
+      }
 
       if (hasAccountChanged) {
         markHomepagePerpsAccountSwitch();
@@ -196,12 +221,6 @@ class PerpsConnectionManagerClass {
 
         // Account-only switches keep market data visible (it's global, not account-specific).
         // Provider/network/HIP-3 switches must flush stale market data immediately.
-        const accountOnly =
-          hasAccountChanged &&
-          !hasProviderChanged &&
-          !hasPerpsNetworkChanged &&
-          !hasHip3Changed;
-
         // User-scoped data must reset on every account switch.
         streamManager.positions.clearCache();
         streamManager.orders.clearCache();
@@ -885,6 +904,7 @@ class PerpsConnectionManagerClass {
 
     this.initPromise = (async () => {
       const traceId = uuidv4();
+      const loadingSessionTraceData = getActivePerpsLoadingSessionTraceData();
       const connectionStartTime = performance.now();
       let traceData: Record<string, string | number | boolean> | undefined;
 
@@ -893,6 +913,7 @@ class PerpsConnectionManagerClass {
           name: TraceName.PerpsConnectionEstablishment,
           id: traceId,
           op: TraceOperation.PerpsOperation,
+          data: loadingSessionTraceData,
         });
 
         logHomepageConnectionStage('connection_attempt_started', {
@@ -1060,7 +1081,10 @@ class PerpsConnectionManagerClass {
         endTrace({
           name: TraceName.PerpsConnectionEstablishment,
           id: traceId,
-          data: traceData,
+          data: {
+            ...loadingSessionTraceData,
+            ...traceData,
+          },
         });
         this.initPromise = null;
       }
@@ -1130,6 +1154,10 @@ class PerpsConnectionManagerClass {
     const traceId = uuidv4();
     const reconnectionStartTime = performance.now();
     let traceData: Record<string, string | number | boolean> | undefined;
+
+    if (getPerpsLifecycleContext() === 'background_resume') {
+      setPerpsLoadingSessionLifecycle('background_reconnect');
+    }
 
     DevLogger.log(
       'PerpsConnectionManager: Reconnecting with new account/network context',

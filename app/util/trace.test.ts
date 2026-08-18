@@ -14,8 +14,9 @@ import {
   endTrace,
   trace,
   annotateTrace,
+  annotateTraceByRequest,
   getTraceContext,
-  getTraceContextById,
+  setTraceMeasurement,
   ONBOARDING_MACHINE_TIME_ATTRIBUTE,
   TraceName,
   TraceOperation,
@@ -419,8 +420,8 @@ describe('Trace', () => {
     });
   });
 
-  describe('getTraceContextById', () => {
-    it('returns the pending span for a matching manual trace id', () => {
+  describe('targeted trace metadata', () => {
+    it('writes a measurement to the matching pending span', () => {
       updateCachedConsent(true);
 
       const spanEndMock = jest.fn();
@@ -434,12 +435,52 @@ describe('Trace', () => {
 
       trace({ name: NAME_MOCK, id: ID_MOCK });
 
-      expect(getTraceContextById(ID_MOCK)).toBe(spanMock);
+      setTraceMeasurement(
+        { name: NAME_MOCK, id: ID_MOCK },
+        'ready_ms',
+        123,
+        'millisecond',
+      );
+
+      expect(setMeasurement).toHaveBeenCalledWith(
+        'ready_ms',
+        123,
+        'millisecond',
+        spanMock,
+      );
       endTrace({ name: NAME_MOCK, id: ID_MOCK });
     });
 
-    it('returns undefined when no pending trace has that id', () => {
-      expect(getTraceContextById(ID_MOCK)).toBeUndefined();
+    it('replays buffered measurements and attributes when consent becomes available', async () => {
+      trace({ name: NAME_MOCK, id: ID_MOCK });
+      setTraceMeasurement(
+        { name: NAME_MOCK, id: ID_MOCK },
+        'ready_ms',
+        123,
+        'millisecond',
+      );
+      annotateTraceByRequest(
+        { name: NAME_MOCK, id: ID_MOCK },
+        { lifecycle: 'cold_no_cache' },
+      );
+
+      updateCachedConsent(true);
+      await flushBufferedTraces();
+
+      expect(setMeasurement).toHaveBeenCalledWith(
+        'ready_ms',
+        123,
+        'millisecond',
+        expect.anything(),
+      );
+      expect(startSpanManualMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          attributes: expect.objectContaining({
+            lifecycle: 'cold_no_cache',
+          }),
+        }),
+        expect.any(Function),
+      );
     });
   });
 

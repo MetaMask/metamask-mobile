@@ -275,6 +275,12 @@ describe('PerpsAlwaysOnProvider', () => {
       mockAppStateListener?.('active');
     });
 
+    expect(startPerpsLoadingSession).toHaveBeenLastCalledWith({
+      restart: true,
+      lifecycle: 'background_short',
+      surface: 'homepage',
+    });
+
     // Should not reconnect immediately — uses a timer delay
     expect(mockResumeFromForeground).not.toHaveBeenCalled();
 

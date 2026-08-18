@@ -62,7 +62,10 @@ import { getPerpsLifecycleContext } from '../../../../UI/Perps/utils/perpsLifecy
 import {
   finishPerpsLoadingSession,
   getActivePerpsLoadingSessionContext,
+  preparePerpsLoadingSession,
   resolvePerpsMarketSource,
+  resolvePerpsLoadingLifecycle,
+  startPerpsLoadingSession,
 } from '../../../../UI/Perps/utils/perpsLoadingSession';
 import { useHomepagePerpsVisiblePerformance } from './hooks/useHomepagePerpsVisiblePerformance';
 
@@ -84,6 +87,11 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     },
     ref,
   ) => {
+    const loadingSessionPrepared = useRef(false);
+    if (!loadingSessionPrepared.current) {
+      preparePerpsLoadingSession();
+      loadingSessionPrepared.current = true;
+    }
     const sectionViewRef = useRef<View>(null);
     const baseTitle = strings('homepage.sections.perps');
     const usesPillsEmptyState = emptyStateContent === 'pills';
@@ -334,13 +342,40 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             : shouldShowPillsEmptyState
               ? 'pills'
               : 'trending';
+    const proposedLifecycle = resolvePerpsLoadingLifecycle(
+      getPerpsLifecycleContext(),
+    );
+    const [, setSessionRevision] = useState(0);
+    useEffect(() => {
+      const previousId = getActivePerpsLoadingSessionContext()?.id;
+      const currentId = startPerpsLoadingSession({
+        lifecycle: proposedLifecycle,
+        surface: 'homepage',
+      });
+      if (currentId !== previousId) {
+        setSessionRevision((revision) => revision + 1);
+      }
+    }, [proposedLifecycle]);
+
     const sessionContext = getActivePerpsLoadingSessionContext();
+    const lifecycle = sessionContext?.lifecycle ?? proposedLifecycle;
     const marketSource = resolvePerpsMarketSource(
       allCarouselMarkets.length > 0 ? allCarouselMarkets : markets,
       sessionContext?.marketSource,
     );
     const accountSource = sessionContext?.accountSource ?? 'unknown';
-    const lifecycleContext = getPerpsLifecycleContext();
+    const cohortTags = useMemo(
+      () => ({
+        content_variant: contentVariant,
+        lifecycle,
+        surface: 'homepage',
+        ...(marketSource === 'unknown' ? {} : { market_source: marketSource }),
+        ...(accountSource === 'unknown'
+          ? {}
+          : { account_source: accountSource }),
+      }),
+      [accountSource, contentVariant, lifecycle, marketSource],
+    );
 
     const onPerformanceLayout = useHomepagePerpsVisiblePerformance({
       sectionRef: sectionViewRef,
@@ -367,23 +402,28 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     useSectionPerformance({
       sectionId: HomeSectionNames.PERPS,
-      contentReady: !isLoadingSection,
+      contentReady: Boolean(connectionError) || !isLoadingSection,
       isEmpty: !hasItems,
       contentStateForTrace: connectionError ? 'error' : undefined,
       isLoading: isLoadingSection,
-      tags: {
-        content_variant: contentVariant,
-        market_source: marketSource,
-        account_source: accountSource,
-        lifecycle_context: lifecycleContext,
-      },
+      enabled: !pillsEmptyFeedHidden,
+      tags: cohortTags,
       data: sessionContext
         ? { perps_session_id: sessionContext.id }
         : undefined,
     });
 
     useEffect(() => {
-      if (isLoadingSection) return;
+      if (pillsEmptyFeedHidden) {
+        finishPerpsLoadingSession({
+          success: false,
+          content_state: 'error',
+          failure_stage: 'surface_not_rendered',
+          ...cohortTags,
+        });
+        return;
+      }
+      if (isLoadingSection && !connectionError) return;
       finishPerpsLoadingSession({
         success: !connectionError,
         content_state: connectionError
@@ -391,19 +431,14 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
           : hasItems
             ? 'filled'
             : 'empty',
-        content_variant: contentVariant,
-        market_source: marketSource,
-        account_source: accountSource,
-        lifecycle_context: lifecycleContext,
+        ...cohortTags,
       });
     }, [
-      accountSource,
+      cohortTags,
       connectionError,
-      contentVariant,
       hasItems,
       isLoadingSection,
-      lifecycleContext,
-      marketSource,
+      pillsEmptyFeedHidden,
     ]);
 
     const showsVerticalPositions = showSkeleton || pendingTrending || hasItems;

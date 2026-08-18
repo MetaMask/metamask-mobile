@@ -316,6 +316,23 @@ describe('HomepageReady', () => {
     unsubscribe();
   });
 
+  it('does not replay a completion from an earlier lifecycle generation', () => {
+    startHomepageReadyTrace({ source: 'app_open', appStartType: 'cold' });
+    jest.mocked(performance.now).mockReturnValue(500);
+    endHomepageReadyTrace({ contentState: 'filled' });
+
+    startHomepageReadyTrace({ source: 'unlock', appStartType: 'warm' });
+    const listener = jest.fn();
+    const unsubscribe = subscribeHomepageReadyCompletion(listener);
+
+    expect(listener).not.toHaveBeenCalled();
+
+    jest.mocked(performance.now).mockReturnValue(700);
+    endHomepageReadyTrace({ contentState: 'filled' });
+    expect(listener).toHaveBeenCalledWith(700);
+    unsubscribe();
+  });
+
   it('does not notify after unsubscribe', () => {
     const listener = jest.fn();
     const unsubscribe = subscribeHomepageReadyCompletion(listener);
