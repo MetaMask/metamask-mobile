@@ -92,7 +92,7 @@ export function MoneyApiActivityDetailsView() {
   }, [activity, cardTransaction, navigation]);
 
   if (cardTransaction) {
-    return <MoneyCardProviderDetailsContent transaction={cardTransaction} />;
+    return <MoneyDeclinedCardDetailsContent transaction={cardTransaction} />;
   }
 
   if (!activity) {
@@ -101,7 +101,7 @@ export function MoneyApiActivityDetailsView() {
 
   if (activity.kind === 'card') {
     return (
-      <MoneyCardActivityDetailsContent
+      <MoneySettledCardDetailsContent
         activity={activity}
         enrichment={enrichment}
       />
@@ -242,7 +242,7 @@ function MoneyCardDetailsContent({
   );
 }
 
-function MoneyCardProviderDetailsContent({
+function MoneyDeclinedCardDetailsContent({
   transaction,
 }: {
   transaction: CardTransaction;
@@ -271,7 +271,7 @@ function MoneyCardProviderDetailsContent({
   );
 }
 
-function MoneyCardActivityDetailsContent({
+function MoneySettledCardDetailsContent({
   activity,
   enrichment,
 }: {

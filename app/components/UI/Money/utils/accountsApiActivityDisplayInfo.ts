@@ -43,6 +43,8 @@ export function accountsApiActivityDisplayInfo(
     return base;
   }
 
+  // originalAmount is already the merchant-currency amount from the Card
+  // provider. formatCardAmount only formats it; USD stays on the mUSD line.
   const original = enrichment.originalAmount;
   const secondaryAmount =
     original && original.currency.toUpperCase() !== 'USD'

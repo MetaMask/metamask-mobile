@@ -188,19 +188,21 @@ export function useMoneyActivityItems({
     refetch,
   } = useMoneyAccountApiActivity();
 
-  const masterFlag = useSelector(selectCardTransactionHistoryEnabled);
-  const enrichmentFlag = useSelector(
+  const isCardTxHistoryEnabled = useSelector(
+    selectCardTransactionHistoryEnabled,
+  );
+  const isCardActivityEnrichmentEnabled = useSelector(
     selectMoneyEnableCardActivityEnrichmentFlag,
   );
-  const moneyAccountFlag = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isGeoEligible = useSelector(selectIsMoneyAccountGeoEligible);
   const capabilities = useCardCapabilities();
 
   const enrichmentEnabled =
     !mockDataEnabled &&
-    masterFlag &&
-    enrichmentFlag &&
-    moneyAccountFlag &&
+    isCardTxHistoryEnabled &&
+    isCardActivityEnrichmentEnabled &&
+    isMoneyAccountEnabled &&
     isGeoEligible &&
     (capabilities?.supportsTransactionHistory ?? false) &&
     (capabilities?.supportsMoneyAccountLinking ?? false);
