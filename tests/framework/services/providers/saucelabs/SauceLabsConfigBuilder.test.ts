@@ -40,6 +40,7 @@ describe('SauceLabsConfigBuilder', () => {
       app: 'storage:filename=app.apk',
       appiumVersion: 'latest',
       capturePerformance: true,
+      privateDevicesOnly: true,
     });
   });
 });

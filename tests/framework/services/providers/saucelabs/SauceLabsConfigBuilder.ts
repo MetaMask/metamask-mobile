@@ -37,6 +37,7 @@ export class SauceLabsConfigBuilder {
       capturePerformance: true,
       recordVideo: true,
       recordScreenshots: true,
+      privateDevicesOnly: true,
       ...(device.orientation ? { orientation: device.orientation } : {}),
     };
 
