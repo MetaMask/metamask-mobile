@@ -9,6 +9,7 @@ import {
   handleHomepagePerformanceAppStateChange,
   logHomepagePerformanceStage,
   markHomepagePerpsAccountSwitch,
+  markHomepagePerpsNavigateReturn,
   markHomepagePerformanceDemandComplete,
   recordHomepagePerpsVisibleFrame,
   resetHomepagePerformanceProbeForTests,
@@ -18,9 +19,8 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: { log: jest.fn() },
 }));
 
-jest.mock('uuid', () => ({
-  v4: jest.fn(() => 'demand-1'),
-}));
+const mockUuid = jest.fn();
+jest.mock('uuid', () => ({ v4: () => mockUuid() }));
 
 jest.mock('react-native-performance', () => ({
   __esModule: true,
@@ -55,6 +55,8 @@ describe('homepagePerformanceProbe', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    let uuidSequence = 0;
+    mockUuid.mockImplementation(() => `probe-id-${uuidSequence++}`);
     jest.mocked(performance.now).mockReturnValue(1000);
     resetHomepagePerformanceProbeForTests();
     activateHomepagePerformanceProbe();
@@ -99,6 +101,53 @@ describe('homepagePerformanceProbe', () => {
       'surface_resolved_recorded',
       'surface_live_recorded',
     ]);
+  });
+
+  it('rejects account deliveries from different atomic bundles', () => {
+    const demand = createHomepagePerformanceDemand();
+    const positions = createHomepagePerpsDelivery({
+      stream: 'positions',
+      source: 'provider_snapshot',
+      itemCount: 1,
+    });
+    const orders = createHomepagePerpsDelivery({
+      stream: 'orders',
+      source: 'provider_snapshot',
+      itemCount: 0,
+    });
+    createHomepagePerpsDelivery({
+      stream: 'positions',
+      source: 'provider_snapshot',
+      itemCount: 1,
+    });
+    const account = createHomepagePerpsDelivery({
+      stream: 'account',
+      source: 'provider_snapshot',
+      itemCount: 1,
+    });
+
+    recordHomepagePerpsVisibleFrame({
+      demand,
+      deliveries: [positions, orders, account],
+      contentVariant: 'positions',
+      reactCommitAtMonotonicMs: 1100,
+      frameCheckpointAtMonotonicMs: 1200,
+    });
+
+    expect(stages().map(({ stage }) => stage)).toEqual(['surface_demand']);
+  });
+
+  it('advances context generation for repeated lifecycle occurrences', () => {
+    const first = createHomepagePerformanceDemand();
+    markHomepagePerformanceDemandComplete(first);
+    const firstReturn = createHomepagePerformanceDemand();
+    markHomepagePerpsNavigateReturn();
+    const secondReturn = createHomepagePerformanceDemand();
+
+    expect(secondReturn.lifecycle).toBe('navigate_return');
+    expect(secondReturn.contextGeneration).toBeGreaterThan(
+      firstReturn.contextGeneration,
+    );
   });
 
   it('does not satisfy a demand with a prior-account delivery', () => {
@@ -199,7 +248,6 @@ describe('homepagePerformanceProbe', () => {
     expect(stages().map(({ stage }) => stage)).toEqual([
       'surface_demand',
       'surface_resolved_recorded',
-      'surface_live_recorded',
     ]);
   });
 
