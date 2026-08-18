@@ -34,6 +34,8 @@ describe('MoneyHeader', () => {
     expect(getByTestId(MoneyHeaderTestIds.TITLE)).toHaveTextContent(
       strings('money.title'),
     );
+
+    expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
   });
 
   it('calls onMenuPress when the menu button is pressed', () => {
@@ -99,7 +101,7 @@ describe('MoneyHeader', () => {
       );
 
       expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
-        strings('money.get_pro'),
+        strings('pro_subscription.join_pro'),
       );
     });
 
