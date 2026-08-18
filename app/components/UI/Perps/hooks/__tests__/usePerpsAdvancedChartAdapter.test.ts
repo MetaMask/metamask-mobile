@@ -339,14 +339,6 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.ohlcvData).toBe(previousBars);
 
-    const oneHourIntervalMs = INTERVAL_MS[INTERVAL];
-    if (oneHourIntervalMs === undefined) {
-      throw new Error('Expected 1h interval duration to be defined');
-    }
-    expect(result.current.ohlcvSeriesKey).toBe(`${SYMBOL}|${INTERVAL}`);
-    expect(result.current.visibleToMs).toBe(2000);
-    expect(result.current.visibleFromMs).toBe(2000 - oneHourIntervalMs * 45);
-
     act(() => {
       subscribeParams(1).callback({
         symbol: SYMBOL,
@@ -620,61 +612,5 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
       noData: true,
       error: 'Error: history down',
     });
-  });
-
-  it('refreshes ohlcvData when older candles are prepended via the subscription callback', () => {
-    const { result } = renderAdapter();
-
-    act(() => {
-      subscribeParams().callback({
-        symbol: SYMBOL,
-        interval: INTERVAL,
-        candles: [candle(3000), candle(4000)],
-      });
-    });
-    expect(result.current.ohlcvData).toHaveLength(2);
-    expect(result.current.ohlcvData[0].time).toBe(3000);
-
-    act(() => {
-      subscribeParams().callback({
-        symbol: SYMBOL,
-        interval: INTERVAL,
-        candles: [candle(1000), candle(2000), candle(3000), candle(4000)],
-      });
-    });
-
-    expect(result.current.ohlcvData).toHaveLength(4);
-    expect(result.current.ohlcvData[0].time).toBe(1000);
-    expect(result.current.realtimeBar).toBeUndefined();
-  });
-
-  it('syncs ohlcvData after handleFetchOlderBarsRequest when history expands', async () => {
-    const { result } = renderAdapter();
-
-    act(() => {
-      subscribeParams().callback({
-        symbol: SYMBOL,
-        interval: INTERVAL,
-        candles: [candle(3000), candle(4000)],
-      });
-    });
-
-    mockFetchHistoricalCandles.mockImplementation(async () => {
-      subscribeParams().callback({
-        symbol: SYMBOL,
-        interval: INTERVAL,
-        candles: [candle(1000), candle(2000), candle(3000), candle(4000)],
-      });
-    });
-
-    await act(async () => {
-      await result.current.handleFetchOlderBarsRequest(
-        fetchOlderRequest({ oldestLoadedTimeMs: 3000 }),
-      );
-    });
-
-    expect(result.current.ohlcvData.map((bar) => bar.time)).toEqual([
-      1000, 2000, 3000, 4000,
-    ]);
   });
 });

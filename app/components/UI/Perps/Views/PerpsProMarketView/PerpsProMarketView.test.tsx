@@ -201,9 +201,9 @@ jest.mock('./components/PerpsProOrderFormPanel', () => {
   };
 });
 
-jest.mock('../../components/PerpsCandlePeriodBottomSheet', () => ({
+jest.mock('../../../Charts/CandlePeriodSelector', () => ({
   __esModule: true,
-  default: (props: MockCandlePeriodBottomSheetProps) =>
+  CandlePeriodBottomSheet: (props: MockCandlePeriodBottomSheetProps) =>
     mockCandlePeriodBottomSheet(props),
 }));
 

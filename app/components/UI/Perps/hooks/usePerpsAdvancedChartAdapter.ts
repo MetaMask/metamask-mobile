@@ -93,7 +93,7 @@ export interface UsePerpsAdvancedChartAdapterResult {
  * Adapter hook that bridges the Perps CandleStreamChannel to the shared AdvancedChart.
  *
  * Correctly follows the Advanced Charts split:
- * - Full ohlcvData is set on first data, symbol/interval change, or historical expansion.
+ * - Full ohlcvData is set only on first data, symbol change, or interval change.
  * - realtimeBar is set only when the latest candle tick changes (OHLC or new candle).
  * - Historical older bars are fetched via handleFetchOlderBarsRequest (RN-backed path).
  */
@@ -111,15 +111,11 @@ export function usePerpsAdvancedChartAdapter({
   );
   const [isLoading, setIsLoading] = useState(true);
   const [cacheGeneration, setCacheGeneration] = useState(0);
-  /** Interval of the bars currently in `ohlcvData` — used for viewport/series key. */
-  const [appliedInterval, setAppliedInterval] = useState(interval);
 
   /** Always reflects the most recently received CandleData (unthrottled). */
   const latestCandleDataRef = useRef<CandleData | null>(null);
   /** Last bar emitted — used to detect ticks vs full loads. */
   const prevLastBarRef = useRef<OHLCVBar | null>(null);
-  /** Oldest bar time in the current React series — detects historical expansion. */
-  const prevFirstBarTimeRef = useRef<number | null>(null);
   /** Cleared once the first delivery (or an error) lands, so the skeleton never hangs. */
   const hasReceivedFirstUpdateRef = useRef(false);
   /** True once this chart has rendered at least one valid candle batch. */
@@ -154,11 +150,9 @@ export function usePerpsAdvancedChartAdapter({
     if (!isIntervalRefresh) {
       setOhlcvData([]);
       hasLoadedBarsRef.current = false;
-      setAppliedInterval(interval);
     }
     setRealtimeBar(undefined);
     prevLastBarRef.current = null;
-    prevFirstBarTimeRef.current = null;
     latestCandleDataRef.current = null;
     hasReceivedFirstUpdateRef.current = false;
 
@@ -175,7 +169,6 @@ export function usePerpsAdvancedChartAdapter({
           setOhlcvData([]);
           setRealtimeBar(undefined);
           setIsLoading(true);
-          setAppliedInterval(interval);
           setCacheGeneration((generation) => generation + 1);
           return;
         }
@@ -208,33 +201,18 @@ export function usePerpsAdvancedChartAdapter({
         if (prev === null) {
           // First data for this symbol+interval — send full dataset.
           setOhlcvData(converted);
-          setAppliedInterval(interval);
-          prevFirstBarTimeRef.current = converted[0]?.time ?? null;
           hasLoadedBarsRef.current = true;
           // realtimeBar stays undefined; AdvancedChart uses ohlcvData for initial render.
-        } else {
-          const newFirstTime = converted[0]?.time;
-          const historyExpanded =
-            newFirstTime != null &&
-            prevFirstBarTimeRef.current != null &&
-            newFirstTime < prevFirstBarTimeRef.current;
-
-          if (historyExpanded) {
-            // Older candles were prepended (pagination / historical fetch).
-            setOhlcvData(converted);
-            setRealtimeBar(undefined);
-            prevFirstBarTimeRef.current = newFirstTime;
-          } else if (
-            lastBar.time !== prev.time ||
-            lastBar.close !== prev.close ||
-            lastBar.high !== prev.high ||
-            lastBar.low !== prev.low ||
-            lastBar.volume !== prev.volume
-          ) {
-            // Tick update: only the last candle changed — emit realtimeBar only.
-            // Do NOT update ohlcvData; that would cause a full WebView data replacement.
-            setRealtimeBar(lastBar);
-          }
+        } else if (
+          lastBar.time !== prev.time ||
+          lastBar.close !== prev.close ||
+          lastBar.high !== prev.high ||
+          lastBar.low !== prev.low ||
+          lastBar.volume !== prev.volume
+        ) {
+          // Tick update: only the last candle changed — emit realtimeBar only.
+          // Do NOT update ohlcvData; that would cause a full WebView data replacement.
+          setRealtimeBar(lastBar);
         }
         // If nothing changed (e.g. throttle burst with same values), skip update.
 
@@ -259,13 +237,13 @@ export function usePerpsAdvancedChartAdapter({
   const ohlcvSeriesKey = useMemo(
     () =>
       cacheGeneration === 0
-        ? `${symbol}|${appliedInterval}`
-        : `${symbol}|${appliedInterval}|${cacheGeneration}`,
-    [symbol, appliedInterval, cacheGeneration],
+        ? `${symbol}|${interval}`
+        : `${symbol}|${interval}|${cacheGeneration}`,
+    [symbol, interval, cacheGeneration],
   );
 
   const lastBarTime = ohlcvData[ohlcvData.length - 1]?.time;
-  const intervalMs = INTERVAL_MS[appliedInterval as string];
+  const intervalMs = INTERVAL_MS[interval as string];
 
   const visibleToMs = lastBarTime;
   const visibleFromMs = useMemo(() => {
@@ -288,12 +266,6 @@ export function usePerpsAdvancedChartAdapter({
           throw new Error('no candle data after fetch');
         }
         const allBars = convertCandlesToOHLCVBars(current.candles);
-        if (allBars.length > 0) {
-          setOhlcvData(allBars);
-          setRealtimeBar(undefined);
-          prevFirstBarTimeRef.current = allBars[0]?.time ?? null;
-          prevLastBarRef.current = allBars[allBars.length - 1] ?? null;
-        }
         const olderBars = allBars.filter(
           (b) => b.time < req.oldestLoadedTimeMs,
         );

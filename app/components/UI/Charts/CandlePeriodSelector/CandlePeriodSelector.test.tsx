@@ -7,11 +7,12 @@ import {
   SelectButton,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import PerpsCandlePeriodSelector, {
-  type PerpsCandlePeriodOption,
-} from './PerpsCandlePeriodSelector';
 import { CandlePeriod } from '@metamask/perps-controller';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import CandlePeriodSelector, {
+  getCandlePeriodLabel,
+  type CandlePeriodOption,
+} from './CandlePeriodSelector';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 const mockOnPeriodChange = jest.fn();
 const mockOnMorePress = jest.fn();
@@ -19,17 +20,16 @@ const CUSTOM_CANDLE_PERIODS = [
   { label: '1m', value: CandlePeriod.OneMinute },
   { label: '1h', value: CandlePeriod.OneHour },
   { label: '1d', value: CandlePeriod.OneDay },
-] as const satisfies readonly PerpsCandlePeriodOption[];
+] as const satisfies readonly CandlePeriodOption[];
 
-describe('PerpsCandlePeriodSelector', () => {
+describe('CandlePeriodSelector', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('renders with default candle periods', () => {
-    // Arrange & Act
     const { getByText } = renderWithProvider(
-      <PerpsCandlePeriodSelector
+      <CandlePeriodSelector
         selectedPeriod={CandlePeriod.OneMinute}
         onPeriodChange={mockOnPeriodChange}
         onMorePress={mockOnMorePress}
@@ -37,7 +37,6 @@ describe('PerpsCandlePeriodSelector', () => {
       { state: { engine: { backgroundState: {} } } },
     );
 
-    // Assert
     expect(getByText('1min')).toBeOnTheScreen();
     expect(getByText('3min')).toBeOnTheScreen();
     expect(getByText('5min')).toBeOnTheScreen();
@@ -45,9 +44,8 @@ describe('PerpsCandlePeriodSelector', () => {
   });
 
   it('calls onPeriodChange when period button is pressed', () => {
-    // Arrange
     const { getByText } = renderWithProvider(
-      <PerpsCandlePeriodSelector
+      <CandlePeriodSelector
         selectedPeriod={CandlePeriod.OneMinute}
         onPeriodChange={mockOnPeriodChange}
         onMorePress={mockOnMorePress}
@@ -55,18 +53,15 @@ describe('PerpsCandlePeriodSelector', () => {
       { state: { engine: { backgroundState: {} } } },
     );
 
-    // Act
     fireEvent.press(getByText('3min'));
 
-    // Assert
     expect(mockOnPeriodChange).toHaveBeenCalledWith(CandlePeriod.ThreeMinutes);
   });
 
   it('calls onMorePress when more button is pressed', () => {
-    // Arrange
     const testID = 'test-candle-selector';
     const { getByTestId } = renderWithProvider(
-      <PerpsCandlePeriodSelector
+      <CandlePeriodSelector
         selectedPeriod={CandlePeriod.OneMinute}
         onPeriodChange={mockOnPeriodChange}
         onMorePress={mockOnMorePress}
@@ -75,34 +70,27 @@ describe('PerpsCandlePeriodSelector', () => {
       { state: { engine: { backgroundState: {} } } },
     );
 
-    // Act
     fireEvent.press(getByTestId(`${testID}-more-button`));
 
-    // Assert
     expect(mockOnMorePress).toHaveBeenCalled();
   });
 
   it('displays selected period label in more button when non-default period is selected', () => {
-    // Arrange
-    const customPeriod = CandlePeriod.OneHour;
-
-    // Act
     const { getByText } = renderWithProvider(
-      <PerpsCandlePeriodSelector
-        selectedPeriod={customPeriod}
+      <CandlePeriodSelector
+        selectedPeriod={CandlePeriod.OneHour}
         onPeriodChange={mockOnPeriodChange}
         onMorePress={mockOnMorePress}
       />,
       { state: { engine: { backgroundState: {} } } },
     );
 
-    // Assert - Should show the custom period label instead of "show more"
     expect(getByText('1h')).toBeOnTheScreen();
   });
 
   it('renders the configured visible periods', () => {
     const { getByText, queryByText } = renderWithProvider(
-      <PerpsCandlePeriodSelector
+      <CandlePeriodSelector
         selectedPeriod={CandlePeriod.OneMinute}
         onPeriodChange={mockOnPeriodChange}
         onMorePress={mockOnMorePress}
@@ -119,7 +107,7 @@ describe('PerpsCandlePeriodSelector', () => {
 
   it('routes configured period presses through onPeriodChange', () => {
     const { getByText } = renderWithProvider(
-      <PerpsCandlePeriodSelector
+      <CandlePeriodSelector
         selectedPeriod={CandlePeriod.OneMinute}
         onPeriodChange={mockOnPeriodChange}
         onMorePress={mockOnMorePress}
@@ -136,7 +124,7 @@ describe('PerpsCandlePeriodSelector', () => {
   it('centers the default candle period group', () => {
     const testID = 'test-candle-selector';
     const { UNSAFE_getByType } = renderWithProvider(
-      <PerpsCandlePeriodSelector
+      <CandlePeriodSelector
         selectedPeriod={CandlePeriod.OneMinute}
         testID={testID}
       />,
@@ -151,7 +139,7 @@ describe('PerpsCandlePeriodSelector', () => {
   it('applies a configured candle period group alignment', () => {
     const testID = 'test-candle-selector';
     const { UNSAFE_getByType } = renderWithProvider(
-      <PerpsCandlePeriodSelector
+      <CandlePeriodSelector
         selectedPeriod={CandlePeriod.OneMinute}
         groupTwClassName="gap-1 grow justify-start"
         testID={testID}
@@ -166,7 +154,7 @@ describe('PerpsCandlePeriodSelector', () => {
 
   it('applies configured compact period-button styling', () => {
     const { UNSAFE_getAllByType, UNSAFE_getByType } = renderWithProvider(
-      <PerpsCandlePeriodSelector
+      <CandlePeriodSelector
         selectedPeriod={CandlePeriod.OneMinute}
         filterVariant={FilterButtonVariant.Secondary}
         periodButtonTwClassName="h-7 rounded px-1"
@@ -189,5 +177,27 @@ describe('PerpsCandlePeriodSelector', () => {
     expect(moreButton.props.textProps).toEqual({
       variant: TextVariant.BodyXs,
     });
+  });
+});
+
+describe('getCandlePeriodLabel', () => {
+  it('resolves the label for known minute-scale periods', () => {
+    expect(getCandlePeriodLabel(CandlePeriod.OneMinute)).toBe('1m');
+    expect(getCandlePeriodLabel(CandlePeriod.FifteenMinutes)).toBe('15m');
+  });
+
+  it('resolves the label for known hour-scale periods', () => {
+    expect(getCandlePeriodLabel(CandlePeriod.OneHour)).toBe('1h');
+    expect(getCandlePeriodLabel(CandlePeriod.FourHours)).toBe('4h');
+  });
+
+  it('distinguishes 1m (minute) from 1M (month) using case-sensitive matching', () => {
+    // Regression: previously a case-insensitive compare returned '1m' for '1M'.
+    expect(getCandlePeriodLabel(CandlePeriod.OneMinute)).toBe('1m');
+    expect(getCandlePeriodLabel(CandlePeriod.OneMonth)).toBe('1M');
+  });
+
+  it('falls back to the raw string for unknown periods', () => {
+    expect(getCandlePeriodLabel('99z')).toBe('99z');
   });
 });

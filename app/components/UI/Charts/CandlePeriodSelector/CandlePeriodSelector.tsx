@@ -10,11 +10,11 @@ import {
   SelectButtonVariant,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../locales/i18n';
 import { CandlePeriod, CANDLE_PERIODS } from '@metamask/perps-controller';
-import { getPerpsCandlePeriodSelector } from '../../Perps.testIds';
+import { getCandlePeriodSelectorSelectors } from './testIds';
 
-export interface PerpsCandlePeriodOption {
+export interface CandlePeriodOption {
   label: string;
   value: CandlePeriod;
 }
@@ -24,20 +24,37 @@ export const DEFAULT_CANDLE_PERIODS = [
   { label: '3min', value: CandlePeriod.ThreeMinutes },
   { label: '5min', value: CandlePeriod.FiveMinutes },
   { label: '15min', value: CandlePeriod.FifteenMinutes },
-] as const satisfies readonly PerpsCandlePeriodOption[];
+] as const satisfies readonly CandlePeriodOption[];
 
-const getCandlePeriodLabel = (period: CandlePeriod | string): string => {
-  const candlePeriod = CANDLE_PERIODS.find(
-    (p) => p.value?.toLowerCase() === period?.toLowerCase(),
-  );
-  return candlePeriod?.label || period;
+/**
+ * Additional labels for candle-period values not present in
+ * `@metamask/perps-controller`'s CANDLE_PERIODS list. Keep entries here rather
+ * than lowercasing the comparison, because CandlePeriod values are
+ * case-sensitive (e.g. `1m` = one minute, `1M` = one month).
+ */
+const EXTRA_CANDLE_PERIOD_LABELS: Readonly<Record<string, string>> = {
+  [CandlePeriod.OneMonth]: '1M',
 };
 
-interface PerpsCandlePeriodSelectorProps {
+/**
+ * Resolves a display label for a `CandlePeriod` value. Uses case-sensitive
+ * matching to distinguish `1m` (minute) from `1M` (month). Falls back to the
+ * raw period string if no label is registered.
+ */
+export const getCandlePeriodLabel = (period: CandlePeriod | string): string => {
+  if (!period) return period;
+  const known = CANDLE_PERIODS.find((p) => p.value === period);
+  if (known) return known.label;
+  const extra = EXTRA_CANDLE_PERIOD_LABELS[period];
+  if (extra) return extra;
+  return period;
+};
+
+interface CandlePeriodSelectorProps {
   selectedPeriod: CandlePeriod | string;
   onPeriodChange?: (period: CandlePeriod) => void;
   onMorePress?: () => void;
-  visiblePeriods?: readonly PerpsCandlePeriodOption[];
+  visiblePeriods?: readonly CandlePeriodOption[];
   twClassName?: string;
   groupTwClassName?: string;
   filterVariant?: FilterButtonVariant;
@@ -47,7 +64,7 @@ interface PerpsCandlePeriodSelectorProps {
   testID?: string;
 }
 
-const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
+const CandlePeriodSelector: React.FC<CandlePeriodSelectorProps> = ({
   selectedPeriod,
   onPeriodChange,
   onMorePress,
@@ -60,23 +77,17 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
   textVariant,
   testID,
 }) => {
-  const normalizedSelectedPeriod = selectedPeriod?.toLowerCase();
-
   const isMorePeriodSelected = !visiblePeriods.some(
-    (period) => period.value?.toLowerCase() === normalizedSelectedPeriod,
+    (period) => period.value === selectedPeriod,
   );
 
   const groupValue = useMemo(() => {
-    if (isMorePeriodSelected) {
-      return '';
-    }
-
+    if (isMorePeriodSelected) return '';
     return (
-      visiblePeriods.find(
-        (period) => period.value?.toLowerCase() === normalizedSelectedPeriod,
-      )?.value ?? ''
+      visiblePeriods.find((period) => period.value === selectedPeriod)?.value ??
+      ''
     );
-  }, [isMorePeriodSelected, normalizedSelectedPeriod, visiblePeriods]);
+  }, [isMorePeriodSelected, selectedPeriod, visiblePeriods]);
 
   const handleFilterChange = useCallback(
     (value: string) => {
@@ -96,7 +107,9 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
         onChange={handleFilterChange}
         variant={filterVariant}
         twClassName={groupTwClassName}
-        testID={testID ? getPerpsCandlePeriodSelector.group(testID) : undefined}
+        testID={
+          testID ? getCandlePeriodSelectorSelectors.group(testID) : undefined
+        }
       >
         {visiblePeriods.map((period) => (
           <FilterButton
@@ -107,7 +120,7 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
             textProps={textVariant ? { variant: textVariant } : undefined}
             testID={
               testID
-                ? getPerpsCandlePeriodSelector.periodButton(
+                ? getCandlePeriodSelectorSelectors.periodButton(
                     testID,
                     period.value,
                   )
@@ -130,7 +143,9 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
           textProps={textVariant ? { variant: textVariant } : undefined}
           onPress={onMorePress}
           testID={
-            testID ? getPerpsCandlePeriodSelector.moreButton(testID) : undefined
+            testID
+              ? getCandlePeriodSelectorSelectors.moreButton(testID)
+              : undefined
           }
         />
       </FilterButtonGroup>
@@ -138,4 +153,4 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
   );
 };
 
-export default PerpsCandlePeriodSelector;
+export default CandlePeriodSelector;

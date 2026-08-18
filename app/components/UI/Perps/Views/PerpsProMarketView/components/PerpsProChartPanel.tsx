@@ -37,9 +37,10 @@ import { useIsPriceDeviatedAboveThreshold } from '../../../hooks/useIsPriceDevia
 import { usePerpsLiveCandles } from '../../../hooks/stream/usePerpsLiveCandles';
 import { getPerpsChartAnalyticsProperties } from '../../../utils/chartAnalytics';
 import PerpsAdvancedChart from '../../../components/PerpsAdvancedChart/PerpsAdvancedChart';
-import PerpsCandlePeriodSelector, {
-  type PerpsCandlePeriodOption,
-} from '../../../components/PerpsCandlePeriodSelector/PerpsCandlePeriodSelector';
+import {
+  CandlePeriodSelector,
+  type CandlePeriodOption,
+} from '../../../../Charts/CandlePeriodSelector';
 import PerpsChartFullscreenModal from '../../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import PerpsOHLCVBar from '../../../components/PerpsOHLCVBar';
 import PerpsPriceDeviationWarning from '../../../components/PerpsPriceDeviationWarning';
@@ -67,7 +68,7 @@ const PRO_CANDLE_PERIODS = [
   { label: '15m', value: CandlePeriod.FifteenMinutes },
   { label: '1h', value: CandlePeriod.OneHour },
   { label: '1d', value: CandlePeriod.OneDay },
-] as const satisfies readonly PerpsCandlePeriodOption[];
+] as const satisfies readonly CandlePeriodOption[];
 
 interface PerpsProChartPanelProps {
   symbol: string;
@@ -286,7 +287,7 @@ const PerpsProChartPanel = ({
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
               >
-                <PerpsCandlePeriodSelector
+                <CandlePeriodSelector
                   selectedPeriod={selectedCandlePeriod}
                   onPeriodChange={onCandlePeriodChange}
                   onMorePress={onMorePress}

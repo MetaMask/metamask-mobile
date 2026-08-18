@@ -41,7 +41,6 @@ import {
 } from '@metamask/design-system-react-native';
 import {
   CandlePeriod,
-  CANDLE_PERIODS,
   TimeDuration,
   getPerpsDisplaySymbol,
   type PerpsMarketData,
@@ -72,8 +71,11 @@ import TraderPositionChartSection, {
 import TraderTimePeriodSelector from './components/TraderTimePeriodSelector';
 import ChartTypeToggle from '../../../UI/Charts/AdvancedChart/ChartTypeToggle';
 import { ChartType } from '../../../UI/Charts/AdvancedChart/AdvancedChart.types';
-import PerpsCandlePeriodSelector from '../../../UI/Perps/components/PerpsCandlePeriodSelector';
-import PerpsCandlePeriodBottomSheet from '../../../UI/Perps/components/PerpsCandlePeriodBottomSheet';
+import {
+  CandlePeriodSelector,
+  CandlePeriodBottomSheet,
+  getCandlePeriodLabel,
+} from '../../../UI/Charts/CandlePeriodSelector';
 import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
 import TraderPositionPnLCard from './components/TraderPositionPnLCard';
 import TraderTradesSection, {
@@ -114,13 +116,6 @@ import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featu
 // sticky-header math are close before onLayout measures the real height — avoids
 // a first-frame jump and a premature/late sticky toggle.
 const INITIAL_CHART_BLOCK_HEIGHT = SOCIAL_POSITION_CHART_HEIGHT + 24 + 58;
-
-const getCandlePeriodLabel = (period: CandlePeriod | string): string => {
-  const candlePeriod = CANDLE_PERIODS.find(
-    (p) => p.value?.toLowerCase() === period?.toLowerCase(),
-  );
-  return candlePeriod?.label ?? String(period);
-};
 
 const TraderPositionView = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -777,7 +772,7 @@ const TraderPositionView = () => {
             >
               <Box twClassName="min-w-0 flex-1">
                 {isPerp ? (
-                  <PerpsCandlePeriodSelector
+                  <CandlePeriodSelector
                     selectedPeriod={selectedCandlePeriod}
                     onPeriodChange={setSelectedCandlePeriod}
                     onMorePress={() => setIsMoreCandlePeriodsVisible(true)}
@@ -791,10 +786,16 @@ const TraderPositionView = () => {
                   />
                 )}
               </Box>
-              <ChartTypeToggle
-                chartType={chartType}
-                onChartTypeSelect={setChartType}
-              />
+              {/* Chart-type toggle only applies to charts that back both a
+                  line and candle rendering (perp candles, or spot with a
+                  resolvable CAIP asset id feeding OHLCV). Hide it on spot
+                  positions that fall back to the price-only chart. */}
+              {(chartAssetId || isPerp) && (
+                <ChartTypeToggle
+                  chartType={chartType}
+                  onChartTypeSelect={setChartType}
+                />
+              )}
             </Box>
           </View>
 
@@ -895,14 +896,13 @@ const TraderPositionView = () => {
       ) : isPerp ? (
         <PerpsStreamProvider>
           {loadedPositionContent}
-          <PerpsCandlePeriodBottomSheet
+          <CandlePeriodBottomSheet
             isVisible={isMoreCandlePeriodsVisible}
             onClose={() => setIsMoreCandlePeriodsVisible(false)}
             selectedPeriod={selectedCandlePeriod}
             selectedDuration={TimeDuration.YearToDate}
             onPeriodChange={setSelectedCandlePeriod}
             showAllPeriods
-            asset={displayPosition?.tokenSymbol}
           />
         </PerpsStreamProvider>
       ) : (

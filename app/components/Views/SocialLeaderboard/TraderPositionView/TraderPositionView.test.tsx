@@ -10,7 +10,7 @@ import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { CandlePeriod } from '@metamask/perps-controller';
-import { PerpsCandlePeriodBottomSheetSelectorsIDs } from '../../../UI/Perps/Perps.testIds';
+import { CandlePeriodBottomSheetSelectorsIDs as PerpsCandlePeriodBottomSheetSelectorsIDs } from '../../../UI/Charts/CandlePeriodSelector';
 import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
@@ -181,11 +181,10 @@ jest.mock('../../../UI/Perps/providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => ({})),
 }));
 
-const mockUsePerpsAdvancedChartAdapter = jest.fn();
-jest.mock('../../../UI/Perps/hooks/usePerpsAdvancedChartAdapter', () => ({
-  ...jest.requireActual('../../../UI/Perps/hooks/usePerpsAdvancedChartAdapter'),
-  usePerpsAdvancedChartAdapter: (...args: unknown[]) =>
-    mockUsePerpsAdvancedChartAdapter(...args),
+const mockUseSocialPerpsChartAdapter = jest.fn();
+jest.mock('./hooks/useSocialPerpsChartAdapter', () => ({
+  useSocialPerpsChartAdapter: (...args: unknown[]) =>
+    mockUseSocialPerpsChartAdapter(...args),
 }));
 
 const mockSetPerpsChartPreferredCandlePeriod = jest.fn((period: string) => ({
@@ -334,7 +333,7 @@ const makePerpAdapterBars = () =>
 describe('TraderPositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+    mockUseSocialPerpsChartAdapter.mockReturnValue({
       ohlcvData: makePerpAdapterBars(),
       realtimeBar: undefined,
       latestBar: makePerpAdapterBars().at(-1),
@@ -403,6 +402,21 @@ describe('TraderPositionView', () => {
     expect(screen.queryByText('1min')).not.toBeOnTheScreen();
     expect(screen.getByLabelText('Line chart')).toBeOnTheScreen();
     expect(screen.getByLabelText('Candlestick chart')).toBeOnTheScreen();
+  });
+
+  it('hides the chart type toggle for spot positions on unsupported chains', () => {
+    // Unsupported chain -> chartAssetId is undefined and position is not perp,
+    // so there is no OHLCV feed to back a candlestick view. The toggle must
+    // stay hidden to avoid offering a chart mode the price chart cannot render.
+    mockRouteParams.position = {
+      ...makeDefaultPosition(),
+      chain: 'unsupported-chain',
+    };
+
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    expect(screen.queryByLabelText('Line chart')).toBeNull();
+    expect(screen.queryByLabelText('Candlestick chart')).toBeNull();
   });
 
   it('does not render the floating sticky day header at rest', () => {
@@ -774,7 +788,7 @@ describe('TraderPositionView', () => {
 
       fireEvent.press(screen.getByText('5min'));
 
-      expect(mockUsePerpsAdvancedChartAdapter).toHaveBeenCalledWith(
+      expect(mockUseSocialPerpsChartAdapter).toHaveBeenCalledWith(
         expect.objectContaining({
           interval: CandlePeriod.FiveMinutes,
         }),

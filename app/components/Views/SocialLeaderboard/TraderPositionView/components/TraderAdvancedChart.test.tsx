@@ -58,13 +58,10 @@ jest.mock('./TraderPriceChart', () => ({
 
 jest.mock('../../../../UI/Charts/AdvancedChart/useOHLCVChart');
 
-const mockUsePerpsAdvancedChartAdapter = jest.fn();
-jest.mock('../../../../UI/Perps/hooks/usePerpsAdvancedChartAdapter', () => ({
-  ...jest.requireActual(
-    '../../../../UI/Perps/hooks/usePerpsAdvancedChartAdapter',
-  ),
-  usePerpsAdvancedChartAdapter: (...args: unknown[]) =>
-    mockUsePerpsAdvancedChartAdapter(...args),
+const mockUseSocialPerpsChartAdapter = jest.fn();
+jest.mock('../hooks/useSocialPerpsChartAdapter', () => ({
+  useSocialPerpsChartAdapter: (...args: unknown[]) =>
+    mockUseSocialPerpsChartAdapter(...args),
 }));
 
 jest.mock('../../../../../util/theme', () => {
@@ -128,7 +125,7 @@ const defaultProps = {
 };
 
 const setPerpAdapter = (bars: OHLCVBar[], overrides = {}) => {
-  mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+  mockUseSocialPerpsChartAdapter.mockReturnValue({
     ohlcvData: bars,
     realtimeBar: undefined,
     latestBar: bars.at(-1),
@@ -277,7 +274,7 @@ describe('TraderAdvancedChart', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseOHLCVChart.mockReset();
-    mockUsePerpsAdvancedChartAdapter.mockReset();
+    mockUseSocialPerpsChartAdapter.mockReset();
     setPerpAdapter(makeBars(20));
   });
 
@@ -500,7 +497,7 @@ describe('TraderAdvancedChart', () => {
     expect(props.ohlcvData).toHaveLength(20);
     expect(props.chartType).toBe(ChartType.Candles);
     expect(props.showVolume).toBe(true);
-    expect(mockUsePerpsAdvancedChartAdapter).toHaveBeenCalledWith(
+    expect(mockUseSocialPerpsChartAdapter).toHaveBeenCalledWith(
       expect.objectContaining({
         symbol: 'BTC',
         interval: CandlePeriod.FifteenMinutes,
@@ -1245,7 +1242,7 @@ describe('TraderAdvancedChart', () => {
         .map(([opts]) => opts)
         .filter((opts) => opts.assetId !== '');
       expect(spotFetches).toHaveLength(0);
-      expect(mockUsePerpsAdvancedChartAdapter).toHaveBeenCalled();
+      expect(mockUseSocialPerpsChartAdapter).toHaveBeenCalled();
     });
   });
 });

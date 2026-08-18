@@ -33,10 +33,8 @@ import {
 } from '../../../../UI/Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../../../UI/Charts/AdvancedChart/useOHLCVChart';
 import { PERPS_CHART_CONFIG } from '../../../../UI/Perps/constants/chartConfig';
-import {
-  INTERVAL_MS,
-  usePerpsAdvancedChartAdapter,
-} from '../../../../UI/Perps/hooks/usePerpsAdvancedChartAdapter';
+import { INTERVAL_MS } from '../../../../UI/Perps/hooks/usePerpsAdvancedChartAdapter';
+import { useSocialPerpsChartAdapter } from '../hooks/useSocialPerpsChartAdapter';
 import { getPerpsVolumeColors } from '../../../../UI/Perps/utils/chartColors';
 import { useTheme } from '../../../../../util/theme';
 import { tradeTimestampToMs } from '../../utils/tradeTimestamp';
@@ -446,7 +444,7 @@ const TraderPerpAdvancedChart = ({
     visibleToMs,
     isLoading: chartLoading,
     handleFetchOlderBarsRequest,
-  } = usePerpsAdvancedChartAdapter({
+  } = useSocialPerpsChartAdapter({
     symbol: perpSymbol,
     interval: selectedCandlePeriod,
     visibleCandleCount: VISIBLE_CANDLE_COUNT,
