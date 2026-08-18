@@ -12,11 +12,14 @@ const styleSheet = (params: { theme: Theme }) => {
     detailsSection: {
       backgroundColor: colors.background.default,
       borderRadius: 12,
-      paddingHorizontal: 16,
       paddingVertical: 8,
+    },
+    assetHeader: {
+      paddingHorizontal: 16,
     },
     buttonContainer: {
       paddingTop: 32,
+      paddingHorizontal: 16,
     },
   });
 };

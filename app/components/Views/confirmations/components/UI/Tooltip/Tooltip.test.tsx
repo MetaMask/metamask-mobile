@@ -40,4 +40,26 @@ describe('Tooltip', () => {
     ).toBeOnTheScreen();
     expect(mockOnPress).toHaveBeenCalled();
   });
+
+  it('hides content when the close button is pressed', () => {
+    const { getByTestId, getByText, queryByText } = render(
+      <Tooltip
+        title="Tooltip title"
+        content={
+          <View>
+            <Text>Tooltip content to be displayed here!</Text>
+          </View>
+        }
+        tooltipTestId="tooltipTestId"
+      />,
+    );
+
+    fireEvent.press(getByTestId('tooltipTestId-open-btn'));
+    expect(
+      getByText('Tooltip content to be displayed here!'),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('tooltipTestId-close-btn'));
+    expect(queryByText('Tooltip content to be displayed here!')).toBeNull();
+  });
 });

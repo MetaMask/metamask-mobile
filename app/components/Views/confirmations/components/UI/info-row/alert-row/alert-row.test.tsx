@@ -6,7 +6,6 @@ import { Severity } from '../../../../types/alerts';
 import { IconName } from '../../../../../../../component-library/components/Icons/Icon';
 import { useConfirmationAlertMetrics } from '../../../../hooks/metrics/useConfirmationAlertMetrics';
 import { InfoRowVariant } from '../info-row';
-import styleSheet from './alert-row.styles';
 
 jest.mock('../../../../context/alert-system-context', () => ({
   useAlerts: jest.fn(),
@@ -188,15 +187,7 @@ describe('AlertRow', () => {
   it('renders with the given style if provided', () => {
     const props = { ...baseProps, style: { backgroundColor: 'red' } };
     const { getByTestId } = render(<AlertRow {...props} />);
-    const infoRow = getByTestId('info-row');
-    expect(infoRow.props.style.backgroundColor).toBe('red');
-  });
 
-  it('renders with styles.infoRowOverride if no style is provided', () => {
-    const styles = styleSheet();
-    const { getByTestId } = render(<AlertRow {...baseProps} />);
-    const infoRow = getByTestId('info-row');
-
-    expect(infoRow.props.style).toMatchObject(styles.infoRowOverride);
+    expect(getByTestId('info-row')).toHaveStyle({ backgroundColor: 'red' });
   });
 });

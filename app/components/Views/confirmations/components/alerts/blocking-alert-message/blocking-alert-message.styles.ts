@@ -4,6 +4,7 @@ const styleSheet = () =>
   StyleSheet.create({
     container: {
       paddingTop: 32,
+      paddingHorizontal: 16,
     },
     message: {
       textAlign: 'center',

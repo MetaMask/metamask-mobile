@@ -416,12 +416,10 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           twClassName={Platform.OS === 'android' ? 'pb-4' : 'pb-0'}
         >
           {stage !== CustomAmountStage.Loading && (
-            <Box twClassName="px-4">
-              <AlertMessage
-                content={alertContent}
-                alertMessage={alertMessage ?? headlessBuyError}
-              />
-            </Box>
+            <AlertMessage
+              content={alertContent}
+              alertMessage={alertMessage ?? headlessBuyError}
+            />
           )}
           {stage === CustomAmountStage.AmountInput && !isAddMusdIntent && (
             <>
@@ -493,11 +491,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             )}
           {(!hasPaymentOption || hasAccountNoFunds) &&
             !hideBuyForNoFunds &&
-            !isDepositPrefillEnabled && (
-              <Box twClassName="px-4">
-                <CustomAmountBuy />
-              </Box>
-            )}
+            !isDepositPrefillEnabled && <CustomAmountBuy />}
           {stage !== CustomAmountStage.AmountInput && (
             <Box twClassName="px-4">
               <CustomAmountConfirmButton

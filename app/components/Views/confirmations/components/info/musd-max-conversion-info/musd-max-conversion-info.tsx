@@ -92,11 +92,13 @@ export const MusdMaxConversionInfo = () => {
       style={styles.container}
       testID={MusdMaxConversionInfoTestIds.CONTAINER}
     >
-      <TokenConversionAssetHeader
-        inputToken={token}
-        outputToken={outputToken}
-        formatFiat={formatFiat}
-      />
+      <View style={styles.assetHeader}>
+        <TokenConversionAssetHeader
+          inputToken={token}
+          outputToken={outputToken}
+          formatFiat={formatFiat}
+        />
+      </View>
       <View style={styles.detailsSection}>
         <TokenConversionRateRow />
         <BridgeFeeRow />

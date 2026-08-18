@@ -19,6 +19,10 @@ const styleSheet = () =>
       alignItems: 'center',
       gap: 4,
     },
+    alertRowOverride: {
+      marginLeft: 0,
+      paddingLeft: 0,
+    },
   });
 
 export default styleSheet;

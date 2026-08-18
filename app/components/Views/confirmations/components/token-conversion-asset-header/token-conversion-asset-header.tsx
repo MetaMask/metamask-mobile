@@ -39,9 +39,9 @@ export const TokenConversionAssetHeaderTestIds = {
 
 export const TokenConversionAssetHeaderSkeleton = ({
   isStackedLayout = false,
-}: {
+}: Readonly<{
   isStackedLayout?: boolean;
-}) => {
+}>) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
@@ -135,11 +135,11 @@ export const TokenConversionAssetHeader = ({
   inputToken,
   outputToken,
   formatFiat,
-}: {
+}: Readonly<{
   inputToken: AssetType;
   outputToken: AssetType;
   formatFiat: (value: BigNumber) => string;
-}) => {
+}>) => {
   const { styles } = useStyles(styleSheet, {});
 
   const isLoading = useIsTransactionPayLoading();

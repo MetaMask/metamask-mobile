@@ -1,10 +1,6 @@
 import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import {
-  KeyValueRow,
-  KeyValueRowVariant,
-} from '@metamask/design-system-react-native';
-import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
   useTransactionPayTotals,
@@ -17,7 +13,7 @@ import {
 } from '@metamask/transaction-controller';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
-import { KeyValueRowSkeleton } from '../key-value-row-skeleton';
+import InfoRow, { InfoRowSkeleton } from '../../UI/info-row/info-row';
 
 const SAME_CHAIN_DURATION_SECONDS = '< 10';
 
@@ -45,19 +41,19 @@ export function BridgeTimeRow() {
   }
 
   if (isLoading) {
-    return <KeyValueRowSkeleton testID="bridge-time-row-skeleton" />;
+    return <InfoRowSkeleton testId="bridge-time-row-skeleton" />;
   }
   const formattedSeconds = formatSeconds(estimatedDuration ?? 0, isSameChain);
 
   return (
-    <KeyValueRow
-      variant={KeyValueRowVariant.Summary}
-      keyLabel={strings('confirm.label.bridge_estimated_time')}
-      value={formattedSeconds}
+    <InfoRow
+      label={strings('confirm.label.bridge_estimated_time')}
       valueTextProps={{
         testID: ConfirmationRowComponentIDs.BRIDGE_TIME,
       }}
-    />
+    >
+      {formattedSeconds}
+    </InfoRow>
   );
 }
 

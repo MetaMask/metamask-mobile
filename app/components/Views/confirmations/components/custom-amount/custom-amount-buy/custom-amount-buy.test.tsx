@@ -78,6 +78,14 @@ describe('CustomAmountBuy', () => {
     ).toBeOnTheScreen();
   });
 
+  it('applies 16px horizontal padding', () => {
+    const { getByTestId } = render();
+
+    expect(getByTestId('custom-amount-buy')).toHaveStyle({
+      paddingHorizontal: 16,
+    });
+  });
+
   it('calls goToBuy when the buy button is pressed', () => {
     useAccountTokensMock.mockReturnValue([
       {

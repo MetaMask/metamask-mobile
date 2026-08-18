@@ -26,7 +26,7 @@ import {
   selectAccountToGroupMap,
 } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
-import { KeyValueRowSkeleton } from '../rows/key-value-row-skeleton';
+import { KeyValueSelectSkeleton } from '../rows/key-value-select-skeleton';
 
 export const ACCOUNT_SELECTOR_TEST_IDS = {
   PILL: 'account-selector-pill',
@@ -218,7 +218,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
 };
 
 export function AccountSelectorSkeleton() {
-  return <KeyValueRowSkeleton testID="account-selector-skeleton" />;
+  return <KeyValueSelectSkeleton testID="account-selector-skeleton" />;
 }
 
 export default AccountSelector;

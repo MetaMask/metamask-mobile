@@ -16,14 +16,9 @@ import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/u
 import { Image } from 'react-native';
 import MoneyIcon from '../../../../../../images/money.png';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
   IconColor,
   KeyValueSelect,
   KeyValueSelectVariant,
-  Skeleton,
   TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -50,6 +45,7 @@ import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccou
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
 import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
+import { KeyValueSelectSkeleton } from '../key-value-select-skeleton';
 
 interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -57,7 +53,7 @@ interface PayWithRouteParams {
 
 function PayWithRowComponent({
   isResultReady,
-}: { isResultReady?: boolean } = {}) {
+}: Readonly<{ isResultReady?: boolean }> = {}) {
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
   const paymentOverride = useSelector((state: RootState) =>
@@ -105,7 +101,7 @@ function PayWithRowLayout({
   value,
   balance,
   placeholder,
-}: {
+}: Readonly<{
   label: string;
   disabled?: boolean;
   /**
@@ -121,14 +117,7 @@ function PayWithRowLayout({
   /** Optional balance shown after the value (e.g. "($8.92)"). */
   balance?: string;
   placeholder?: string;
-}) {
-  const handlePress = () => {
-    if (disabled) {
-      return;
-    }
-    onPress?.();
-  };
-
+}>) {
   // SelectButton cannot show both endAccessory and its built-in arrow, so append
   // balance to the string value and let selectButtonProps own the chevron.
   const selectValue =
@@ -151,7 +140,7 @@ function PayWithRowLayout({
           : {}),
       }}
       isDisabled={disabled}
-      onPress={handlePress}
+      onPress={onPress}
       selectButtonProps={{
         placeholder: placeholder ?? strings('confirm.label.select_token'),
         hideEndArrow: !endArrow,
@@ -293,13 +282,13 @@ function PayWithFiatPaymentMethodRow({
   disabled,
   hasFrom,
   onPress,
-}: {
+}: Readonly<{
   paymentMethod: PaymentMethod;
   label: string;
   disabled: boolean;
   hasFrom: boolean;
   onPress: () => void;
-}) {
+}>) {
   const { colors } = useTheme();
 
   return (
@@ -325,12 +314,12 @@ function PayWithRowEmpty({
   disabled,
   hasFrom,
   onPress,
-}: {
+}: Readonly<{
   label: string;
   disabled: boolean;
   hasFrom: boolean;
   onPress: () => void;
-}) {
+}>) {
   return (
     <PayWithRowLayout
       label={label}
@@ -384,23 +373,5 @@ function PayWithRowMoneyAccount() {
 }
 
 export function PayWithRowSkeleton() {
-  return (
-    <Box
-      testID="pay-with-row-skeleton"
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName="px-4 py-3"
-    >
-      <Skeleton height={18} width={60} />
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        gap={2}
-      >
-        <Skeleton height={32} width={32} twClassName="rounded-full" />
-        <Skeleton height={18} width={120} />
-      </Box>
-    </Box>
-  );
+  return <KeyValueSelectSkeleton testID="pay-with-row-skeleton" />;
 }

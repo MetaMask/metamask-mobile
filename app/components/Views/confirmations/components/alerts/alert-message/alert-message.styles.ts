@@ -8,6 +8,7 @@ const styleSheet = (params: { theme: Theme }) =>
       backgroundColor: params.theme.colors.error.muted,
       borderRadius: 4,
       overflow: 'hidden',
+      marginHorizontal: 16,
     },
     border: {
       width: 4,

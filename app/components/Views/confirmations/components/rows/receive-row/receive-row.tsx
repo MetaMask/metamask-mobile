@@ -1,8 +1,4 @@
 import React, { useMemo } from 'react';
-import {
-  KeyValueRow,
-  KeyValueRowVariant,
-} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { BigNumber } from 'bignumber.js';
 import {
@@ -13,7 +9,7 @@ import {
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
-import { KeyValueRowSkeleton } from '../key-value-row-skeleton';
+import InfoRow, { InfoRowSkeleton } from '../../UI/info-row/info-row';
 
 export interface ReceiveRowProps {
   /** The user's input amount in USD */
@@ -66,18 +62,18 @@ export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
   ]);
 
   if (isLoading) {
-    return <KeyValueRowSkeleton testID="receive-row-skeleton" />;
+    return <InfoRowSkeleton testId="receive-row-skeleton" />;
   }
 
   return (
-    <KeyValueRow
+    <InfoRow
       testID="receive-row"
-      variant={KeyValueRowVariant.Summary}
-      keyLabel={strings('confirm.label.you_receive')}
-      value={receiveUsd}
+      label={strings('confirm.label.you_receive')}
       valueTextProps={{
         testID: ConfirmationRowComponentIDs.RECEIVE,
       }}
-    />
+    >
+      {receiveUsd}
+    </InfoRow>
   );
 }

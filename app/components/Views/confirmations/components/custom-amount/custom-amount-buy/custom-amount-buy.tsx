@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { StyleSheet } from 'react-native';
 import {
   TransactionType,
   hasTransactionType,
@@ -22,6 +23,12 @@ import { RAMPS_BUY_CUF_SURFACE } from '../../../../../UI/Ramp/constants/rampsBuy
 import { useAccountTokens } from '../../../hooks/send/useAccountTokens';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 16,
+  },
+});
 
 export function CustomAmountBuy() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -63,7 +70,12 @@ export function CustomAmountBuy() {
   }
 
   return (
-    <Box alignItems={AlignItems.center} gap={20}>
+    <Box
+      testID="custom-amount-buy"
+      alignItems={AlignItems.center}
+      gap={20}
+      style={styles.container}
+    >
       {message && (
         <Text variant={TextVariant.BodySM} color={TextColor.Error}>
           {message}

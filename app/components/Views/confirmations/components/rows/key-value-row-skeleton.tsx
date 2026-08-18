@@ -1,23 +1,21 @@
 import React from 'react';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
+  KeyValueRow,
+  KeyValueRowVariant,
   Skeleton,
 } from '@metamask/design-system-react-native';
 
-export function KeyValueRowSkeleton({ testID }: { testID?: string }) {
+export const KEY_VALUE_TEXT_SKELETON_HEIGHT = 24;
+
+export function KeyValueRowSkeleton({ testID }: Readonly<{ testID?: string }>) {
   return (
-    <Box
+    <KeyValueRow
       testID={testID}
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName="px-4 h-10"
-    >
-      <Skeleton height={18} width={100} />
-      <Skeleton height={18} width={80} />
-    </Box>
+      variant={KeyValueRowVariant.Summary}
+      keyLabel={
+        <Skeleton height={KEY_VALUE_TEXT_SKELETON_HEIGHT} width={100} />
+      }
+      value={<Skeleton height={KEY_VALUE_TEXT_SKELETON_HEIGHT} width={80} />}
+    />
   );
 }

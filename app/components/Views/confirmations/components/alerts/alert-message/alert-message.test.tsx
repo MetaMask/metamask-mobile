@@ -11,8 +11,19 @@ describe('AlertMessage', () => {
     const { getByText, getByTestId } = render(
       <AlertMessage alertMessage={MESSAGE_MOCK} />,
     );
+
     expect(getByText(MESSAGE_MOCK)).toBeDefined();
     expect(getByTestId('alert-message-banner')).toBeDefined();
+  });
+
+  it('applies 16px horizontal margin', () => {
+    const { getByTestId } = render(
+      <AlertMessage alertMessage={MESSAGE_MOCK} />,
+    );
+
+    expect(getByTestId('alert-message-banner')).toHaveStyle({
+      marginHorizontal: 16,
+    });
   });
 
   it('renders nothing if no message or content is provided', () => {

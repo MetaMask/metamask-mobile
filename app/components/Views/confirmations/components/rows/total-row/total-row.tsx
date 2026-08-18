@@ -1,9 +1,5 @@
 import React, { useMemo } from 'react';
-import {
-  KeyValueRow,
-  KeyValueRowVariant,
-  TextColor,
-} from '@metamask/design-system-react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { BigNumber } from 'bignumber.js';
 import {
@@ -18,7 +14,7 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { KeyValueRowSkeleton } from '../key-value-row-skeleton';
+import InfoRow, { InfoRowSkeleton } from '../../UI/info-row/info-row';
 
 const HIDE_TYPES = [TransactionType.musdConversion];
 
@@ -43,7 +39,7 @@ export function TotalRow() {
   }
 
   if (isLoading) {
-    return <KeyValueRowSkeleton testID="total-row-skeleton" />;
+    return <InfoRowSkeleton testId="total-row-skeleton" />;
   }
 
   const textColor = isHeadlessBuyInProgress
@@ -51,20 +47,20 @@ export function TotalRow() {
     : TextColor.TextDefault;
 
   return (
-    <KeyValueRow
+    <InfoRow
       testID="total-row"
-      variant={KeyValueRowVariant.Summary}
-      keyLabel={strings('confirm.label.total')}
+      label={strings('confirm.label.total')}
       keyTextProps={{
         color: isHeadlessBuyInProgress
           ? TextColor.TextMuted
           : TextColor.TextAlternative,
       }}
-      value={totalUsd}
       valueTextProps={{
         color: textColor,
         testID: ConfirmationRowComponentIDs.TOTAL,
       }}
-    />
+    >
+      {totalUsd}
+    </InfoRow>
   );
 }
