@@ -120,7 +120,8 @@ jobs:
            inputs.platform != 'ios' && inputs.platform != 'android' && vars.NAMESPACE_RUNNER_LINUX) ||
           vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
-      CACHE_GENERATION: v1
+      # Must match build.yml's CACHE_GENERATION; the two compose the same cache key.
+      CACHE_GENERATION: v2
     outputs:
       artifact-name: ${{ steps.set-artifact-name.outputs.artifact-name }}
       cache-key: ${{ steps.cache-key.outputs.key }}

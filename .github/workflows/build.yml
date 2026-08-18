@@ -256,7 +256,8 @@ jobs:
            vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
           '/home/runner/_work/.gradle' || '/home/admin/_work/.gradle'
         }}
-      CACHE_GENERATION: v1
+      # Must match setup-node-modules.yml's CACHE_GENERATION; the two compose the same cache key.
+      CACHE_GENERATION: v2
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
