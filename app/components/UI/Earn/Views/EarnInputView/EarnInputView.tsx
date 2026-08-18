@@ -143,7 +143,7 @@ const EarnInputView = () => {
     confirmStake: tronConfirmStake,
     tronAccountId,
   } = useTronStake({ token });
-  useTronStakeApy();
+  const { apyPercent: tronApyPercent } = useTronStakeApy();
   ///: END:ONLY_INCLUDE_IF
 
   // Flag to conditionally show Tron-specific UI (false in non-Tron builds)
@@ -888,16 +888,28 @@ const EarnInputView = () => {
   ]);
 
   const handleInfoPress = useCallback(() => {
+    const isTronStakingExperience =
+      stakingExperienceType === EARN_EXPERIENCES.TRX_STAKING;
+    const apr = isTronStakingExperience
+      ? (tronApyPercent ?? undefined)
+      : earnToken?.experience?.apr !== undefined
+        ? `${earnToken.experience.apr}%`
+        : undefined;
+    const tooltipName =
+      stakingExperienceType === EARN_EXPERIENCES.STABLECOIN_LENDING
+        ? 'Lending Historic Market APY Graph'
+        : 'Staking Historic Market APY Graph';
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.TOOLTIP_OPENED)
         .addProperties({
           selected_provider: EVENT_PROVIDERS.CONSENSYS,
           text: 'Tooltip Opened',
           location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-          tooltip_name: 'Lending Historic Market APY Graph',
-          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          tooltip_name: tooltipName,
+          experience: stakingExperienceType,
           token: token.symbol,
-          apr: `${earnToken?.experience.apr}%`,
+          apr,
         })
         .build(),
     );
@@ -906,8 +918,10 @@ const EarnInputView = () => {
     trackEvent,
     createEventBuilder,
     token.symbol,
-    earnToken?.experience.apr,
+    earnToken?.experience?.apr,
     navigateToLearnMoreModal,
+    stakingExperienceType,
+    tronApyPercent,
   ]);
 
   const headerTitle = useMemo(() => {

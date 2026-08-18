@@ -51,6 +51,7 @@ import { TOKENS_WITH_DEFAULT_OPTIONS } from '../../../Stake/testUtils/testUtils.
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { useEarnMetadata } from '../../hooks/useEarnMetadata';
 import useEarnTokens from '../../hooks/useEarnTokens';
+import useTronStakeApy from '../../hooks/useTronStakeApy';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import EarnInputView from './EarnInputView';
 import { EarnInputViewProps } from './EarnInputView.types';
@@ -110,6 +111,13 @@ jest.mock('../../hooks/useEarnTokens', () => ({
   default: jest.fn(() => ({
     getEarnToken: jest.fn(),
     getOutputToken: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useTronStakeApy', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    apyPercent: null,
   })),
 }));
 
@@ -376,6 +384,7 @@ describe('EarnInputView', () => {
 
   const selectConversionRateMock = jest.mocked(selectConversionRate);
   const mockTrace = jest.mocked(trace);
+  const mockUseTronStakeApy = jest.mocked(useTronStakeApy);
 
   const baseProps: EarnInputViewProps = {
     route: {
@@ -403,6 +412,9 @@ describe('EarnInputView', () => {
 
     selectStablecoinLendingEnabledFlagMock.mockReturnValue(false);
     selectConversionRateMock.mockReturnValue(mockConversionRate);
+    mockUseTronStakeApy.mockReturnValue({
+      apyPercent: null,
+    } as ReturnType<typeof useTronStakeApy>);
 
     (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(false);
 
@@ -1950,6 +1962,31 @@ describe('EarnInputView', () => {
       );
     });
 
+    it('tracks TOOLTIP_OPENED event with pooled staking experience and APR', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+
+      const { getAllByTestId } = renderComponent();
+
+      mockTrackEvent.mockClear();
+
+      const infoButton = getAllByTestId('button-icon')[1];
+      await act(async () => {
+        fireEvent.press(infoButton);
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Tooltip Opened',
+          properties: expect.objectContaining({
+            tooltip_name: 'Staking Historic Market APY Graph',
+            experience: EARN_EXPERIENCES.POOLED_STAKING,
+            token: 'Ethereum',
+            apr: '50%',
+          }),
+        }),
+      );
+    });
+
     it('tracks EARN_INPUT_BACK_BUTTON_CLICKED event when back button is pressed for stablecoin lending', async () => {
       selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
 
@@ -2020,7 +2057,7 @@ describe('EarnInputView', () => {
           symbol: 'USDC',
           experience: {
             type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-            apr: '4.5%',
+            apr: '4.5',
           },
         })),
         getOutputToken: jest.fn(() => ({
@@ -2059,6 +2096,7 @@ describe('EarnInputView', () => {
             tooltip_name: 'Lending Historic Market APY Graph',
             experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
             token: 'USDC',
+            apr: '4.5%',
           }),
         }),
       );
@@ -2113,6 +2151,64 @@ describe('EarnInputView', () => {
       expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
         screen: Routes.STAKING.MODALS.TRX_LEARN_MORE,
       });
+    });
+
+    it('tracks TOOLTIP_OPENED event with TRX staking experience and Tron staking APY', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
+      mockUseTronStakeApy.mockReturnValue({
+        apyPercent: '2.44%',
+      } as ReturnType<typeof useTronStakeApy>);
+
+      const trxToken = {
+        name: 'TRON',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
+        isNative: true,
+        isETH: false,
+        decimals: 6,
+        balance: '100',
+        balanceFiat: '$100',
+      } as unknown as typeof MOCK_ETH_MAINNET_ASSET;
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...trxToken,
+          balanceMinimalUnit: '100000000',
+          balanceFormatted: '100 TRX',
+          balanceFiatNumber: 100,
+          tokenUsdExchangeRate: 1,
+          experiences: [{ type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' }],
+          experience: { type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' },
+        })),
+        getOutputToken: jest.fn(() => undefined),
+      });
+
+      const { getAllByTestId } = render(EarnInputView, {
+        params: { token: trxToken },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      mockTrackEvent.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getAllByTestId('button-icon')[1]);
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Tooltip Opened',
+          properties: expect.objectContaining({
+            tooltip_name: 'Staking Historic Market APY Graph',
+            experience: EARN_EXPERIENCES.TRX_STAKING,
+            token: 'TRX',
+            apr: '2.44%',
+          }),
+        }),
+      );
     });
   });
 });
