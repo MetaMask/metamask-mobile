@@ -26,7 +26,7 @@ const BenefitRow = ({ item, onPress }: BenefitRowProps) => (
   <TouchableOpacity
     onPress={() => onPress(item)}
     accessibilityRole="button"
-    accessibilityLabel={item.title}
+    accessibilityLabel={strings(item.title)}
     testID={BenefitsTestIds.BENEFIT_ROW(item.id)}
   >
     <Box

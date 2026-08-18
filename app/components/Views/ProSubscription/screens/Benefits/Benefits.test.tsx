@@ -31,7 +31,7 @@ describe('Benefits', () => {
   describe('Rendering', () => {
     it('renders the container', () => {
       const { getByTestId } = renderBenefits();
-      expect(getByTestId(BenefitsTestIds.CONTAINER)).toBeTruthy();
+      expect(getByTestId(BenefitsTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
     it('renders the title', () => {
@@ -54,33 +54,35 @@ describe('Benefits', () => {
       BENEFITS.forEach((benefit) => {
         expect(
           getByTestId(BenefitsTestIds.BENEFIT_ROW(benefit.id)),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
 
     it('renders each benefit row title and subtitle from i18n', () => {
       const { getByText } = renderBenefits();
       BENEFITS.forEach((benefit) => {
-        expect(getByText(strings(benefit.title))).toBeTruthy();
-        expect(getByText(strings(benefit.subtitle))).toBeTruthy();
+        expect(getByText(strings(benefit.title))).toBeOnTheScreen();
+        expect(getByText(strings(benefit.subtitle))).toBeOnTheScreen();
       });
     });
 
     it('renders both plan selector cards', () => {
       const { getByTestId } = renderBenefits();
       PLANS.forEach((plan) => {
-        expect(getByTestId(BenefitsTestIds.PLAN_CARD(plan.id))).toBeTruthy();
+        expect(
+          getByTestId(BenefitsTestIds.PLAN_CARD(plan.id)),
+        ).toBeOnTheScreen();
       });
     });
 
     it('renders the CTA button', () => {
       const { getByTestId } = renderBenefits();
-      expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toBeTruthy();
+      expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toBeOnTheScreen();
     });
 
     it('renders the close button', () => {
       const { getByTestId } = renderBenefits();
-      expect(getByTestId(BenefitsTestIds.CLOSE_BUTTON)).toBeTruthy();
+      expect(getByTestId(BenefitsTestIds.CLOSE_BUTTON)).toBeOnTheScreen();
     });
   });
 
@@ -163,7 +165,9 @@ describe('Benefits', () => {
     it('pre-selects the Monthly plan when initialPlan is "monthly"', () => {
       const { getByTestId } = renderBenefits('monthly');
 
-      expect(getByTestId(BenefitsTestIds.PLAN_CARD('monthly'))).toBeTruthy();
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD('monthly')),
+      ).toBeOnTheScreen();
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
         strings('pro_subscription.join_pro'),
       );

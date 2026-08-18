@@ -10923,6 +10923,10 @@
         "price": "$4.99/mo",
         "cta": "Join Pro for $4.99/month"
       }
+    },
+    "success": {
+      "title": "Welcome to Pro",
+      "cta": "Done"
     }
   }
 }
