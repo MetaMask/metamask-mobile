@@ -204,12 +204,19 @@ module.exports = {
       },
     },
     // MMQA-2230: allowlisted PO/flow dual-framework debt (warn until Phase 3)
-    {
-      files: dualFrameworkPoFlowBurndown,
-      rules: {
-        'no-restricted-imports': ['warn', dualFrameworkRestrictedImportOptions],
-      },
-    },
+    ...(dualFrameworkPoFlowBurndown.length > 0
+      ? [
+          {
+            files: dualFrameworkPoFlowBurndown,
+            rules: {
+              'no-restricted-imports': [
+                'warn',
+                dualFrameworkRestrictedImportOptions,
+              ],
+            },
+          },
+        ]
+      : []),
     // MMQA-2230: ban dual-framework imports in new smoke-appium files (error)
     {
       files: ['**/smoke-appium/**/*.{js,ts}'],
