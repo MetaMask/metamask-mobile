@@ -153,11 +153,14 @@ export function mapLocalTransaction(
       contractAddress,
       environment,
     );
+
     const decimals =
-      transaction.transferInformation?.amount === undefined
-        ? (tokenMetadata?.decimals ??
-          transactionGroup.contractTokenMetadata?.decimals)
-        : transaction.transferInformation.decimals;
+      (transaction.transferInformation?.amount === undefined
+        ? undefined
+        : transaction.transferInformation.decimals) ??
+      tokenMetadata?.decimals ??
+      transactionGroup.contractTokenMetadata?.decimals ??
+      environment.getKnownTokenDecimals?.(chainId, contractAddress);
     const tokenAmount = transaction.transferInformation?.amount ?? amount;
     const symbol =
       transaction.transferInformation?.symbol ??
@@ -169,7 +172,7 @@ export function mapLocalTransaction(
       direction,
       ...(symbol ? { symbol } : {}),
       ...(assetId ? { assetId } : {}),
-      ...(tokenAmount ? { amount: tokenAmount } : {}),
+      ...(tokenAmount && decimals !== undefined ? { amount: tokenAmount } : {}),
       ...(decimals === undefined ? {} : { decimals }),
     };
   };

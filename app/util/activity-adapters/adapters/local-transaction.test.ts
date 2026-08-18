@@ -454,7 +454,7 @@ describe('mapLocalTransaction', () => {
     ).toBe('out');
   });
 
-  it('leaves unknown token transfer symbols blank', () => {
+  it('leaves unknown token transfers blank, omitting the raw amount', () => {
     const tokenContractAddress = '0x1111111111111111111111111111111111111111';
     const transaction = {
       chainId: mainnet,
@@ -479,7 +479,6 @@ describe('mapLocalTransaction', () => {
     }
 
     expect(item.data.token).toStrictEqual({
-      amount: '100000',
       assetId: toAssetId(tokenContractAddress, 'eip155:1'),
       direction: 'out',
     });

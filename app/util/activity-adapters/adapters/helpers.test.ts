@@ -9,10 +9,12 @@ import {
   getLocalTransactionFees,
   getLocalTransactionStatus,
   getNetworkFeeAmount,
+  getTokenAmountFromTransfer,
   isTransactionGasFeeSponsored,
   parseValueTransfers,
   type ValueTransfer,
 } from './helpers';
+import { mobileActivityAdapterEnvironment } from './environment';
 import { GAS_FEE_SPONSORED } from '../fees';
 
 type LocalTransactionStatusInput = Parameters<
@@ -661,5 +663,99 @@ describe('parseValueTransfers', () => {
       sentNftTransfer: undefined,
       receivedNftTransfer: undefined,
     });
+  });
+});
+
+describe('getTokenAmountFromTransfer', () => {
+  // An address outside every static token list, so only the API payload and
+  // the injected host lookup can resolve decimals.
+  const chainId = 'eip155:42161' as const;
+  const contractAddress = '0x000000000000000000000000000000000000dead';
+
+  const makeEnvironment = (hostDecimals?: number) => ({
+    ...mobileActivityAdapterEnvironment,
+    getKnownTokenDecimals: jest.fn().mockReturnValue(hostDecimals),
+  });
+
+  const makeTransfer = (overrides: Record<string, unknown> = {}) =>
+    ({
+      from: '0xSubject',
+      to: '0xOther',
+      amount: '167121100',
+      contractAddress,
+      transferType: 'erc20',
+      ...overrides,
+    }) as unknown as ValueTransfer;
+
+  it('passes through an enriched ERC-20 transfer', () => {
+    const result = getTokenAmountFromTransfer(
+      makeTransfer({ decimal: 6, symbol: 'USDT' }),
+      'out',
+      chainId,
+      makeEnvironment(),
+    );
+
+    expect(result).toMatchObject({
+      amount: '167121100',
+      decimals: 6,
+      symbol: 'USDT',
+    });
+  });
+
+  it('resolves missing decimals from the host token entries', () => {
+    const environment = makeEnvironment(6);
+
+    const result = getTokenAmountFromTransfer(
+      makeTransfer(),
+      'out',
+      chainId,
+      environment,
+    );
+
+    expect(environment.getKnownTokenDecimals).toHaveBeenCalledWith(
+      chainId,
+      contractAddress,
+    );
+    expect(result).toMatchObject({ amount: '167121100', decimals: 6 });
+  });
+
+  it('omits the raw amount when decimals cannot be resolved anywhere', () => {
+    const result = getTokenAmountFromTransfer(
+      makeTransfer({ symbol: 'USDT' }),
+      'out',
+      chainId,
+      makeEnvironment(undefined),
+    );
+
+    expect(result?.symbol).toBe('USDT');
+    expect(result?.amount).toBeUndefined();
+    expect(result?.decimals).toBeUndefined();
+  });
+
+  it('trusts an explicit decimal of 0', () => {
+    const result = getTokenAmountFromTransfer(
+      makeTransfer({ decimal: 0, symbol: 'ZERO' }),
+      'out',
+      chainId,
+      makeEnvironment(),
+    );
+
+    expect(result).toMatchObject({ amount: '167121100', decimals: 0 });
+  });
+
+  it('defaults native transfers to 18 decimals when the payload omits them', () => {
+    const result = getTokenAmountFromTransfer(
+      makeTransfer({
+        contractAddress: undefined,
+        symbol: 'ETH',
+        transferType: 'normal',
+        amount: '1000000000000000',
+      }),
+      'out',
+      chainId,
+      makeEnvironment(undefined),
+    );
+
+    expect(result).toMatchObject({ amount: '1000000000000000', decimals: 18 });
   });
 });
