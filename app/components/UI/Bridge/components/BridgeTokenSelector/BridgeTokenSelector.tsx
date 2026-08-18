@@ -90,6 +90,7 @@ import {
   mapWatchlistTokenToBridgeToken,
 } from '../../utils/mapWatchlistTokenToBridgeToken';
 import { mergeBridgeTokensWithBalances } from '../../utils/mergeBridgeTokensWithBalances';
+import { filterOutRwaTokens } from '../../utils/filterOutRwaTokens';
 import { filterWatchlistBridgeTokens } from '../../utils/filterWatchlistBridgeTokens';
 import { prependWatchlistToSearchResults } from '../../utils/prependWatchlistToSearchResults';
 import { trackTokenListItemClicked } from '../../../Assets/watchlist/utils/trackTokenListItemClicked';
@@ -109,6 +110,11 @@ export interface BridgeTokenSelectorRouteParams {
    * of the default allowed chainRanking.
    */
   enabledChainIds?: CaipChainId[];
+  /**
+   * When true, real-world asset tokens are hidden from every list this
+   * picker renders (popular, search, and watchlist results).
+   */
+  excludeRwaTokens?: boolean;
 }
 
 const MIN_SEARCH_LENGTH = 3;
@@ -172,6 +178,15 @@ interface BridgeTokenSelectorSearchEmptyStateProps {
   containerStyle: StyleProp<ViewStyle>;
   NoSearchResultsIcon: React.ComponentType<{ width: number; height: number }>;
 }
+
+const useRwaFilteredTokens = (
+  tokens: BridgeToken[],
+  excludeRwaTokens: boolean,
+) =>
+  useMemo(
+    () => (excludeRwaTokens ? filterOutRwaTokens(tokens) : tokens),
+    [tokens, excludeRwaTokens],
+  );
 
 const BridgeTokenSelectorSearchEmptyState = React.memo(
   ({
@@ -240,6 +255,7 @@ export const BridgeTokenSelector: React.FC = () => {
   );
 
   const enabledChainIds = route.params?.enabledChainIds;
+  const excludeRwaTokens = route.params?.excludeRwaTokens ?? false;
   const enabledChainRanking = useSelector((state: RootState) =>
     selectAllowedChainRanking(state, enabledChainIds),
   );
@@ -519,13 +535,13 @@ export const BridgeTokenSelector: React.FC = () => {
   ]);
 
   // Use custom hook for merging balances
-  const popularTokensWithBalance = useTokensWithBalances(
-    popularTokens,
-    balancesByAssetId,
+  const popularTokensWithBalance = useRwaFilteredTokens(
+    useTokensWithBalances(popularTokens, balancesByAssetId),
+    excludeRwaTokens,
   );
-  const searchResultsWithBalance = useTokensWithBalances(
-    searchResults,
-    balancesByAssetId,
+  const searchResultsWithBalance = useRwaFilteredTokens(
+    useTokensWithBalances(searchResults, balancesByAssetId),
+    excludeRwaTokens,
   );
 
   const watchlistBridgeTokens = useMemo(() => {
@@ -550,10 +566,13 @@ export const BridgeTokenSelector: React.FC = () => {
           !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID_LEGACY),
       );
 
-    return filterWatchlistBridgeTokens(mappedTokens, {
-      selectedChainId,
-      searchQuery: isValidSearch ? searchString : undefined,
-    });
+    return filterWatchlistBridgeTokens(
+      excludeRwaTokens ? filterOutRwaTokens(mappedTokens) : mappedTokens,
+      {
+        selectedChainId,
+        searchQuery: isValidSearch ? searchString : undefined,
+      },
+    );
   }, [
     isWatchlistListMode,
     isValidSearch,
@@ -562,6 +581,7 @@ export const BridgeTokenSelector: React.FC = () => {
     watchlistData,
     balancesByAssetId,
     currentCurrency,
+    excludeRwaTokens,
   ]);
 
   const watchlistMergedSearchResults = useMemo(() => {
@@ -714,8 +734,11 @@ export const BridgeTokenSelector: React.FC = () => {
       searchCursor &&
       flatListHeight > 0
     ) {
+      // Measure the rows actually rendered, not the raw API page. A page whose
+      // results are all filtered out (e.g. RWAs) would otherwise look full and
+      // never fetch the next one.
       const estimatedContentHeight =
-        searchResults.length * ESTIMATED_ITEM_HEIGHT;
+        searchResultsWithBalance.length * ESTIMATED_ITEM_HEIGHT;
 
       // If estimated content doesn't fill the view, load more
       if (estimatedContentHeight < flatListHeight) {
@@ -725,6 +748,7 @@ export const BridgeTokenSelector: React.FC = () => {
   }, [
     isValidSearch,
     searchResults.length,
+    searchResultsWithBalance.length,
     isSearchLoading,
     isLoadingMore,
     searchCursor,

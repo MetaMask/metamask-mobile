@@ -144,6 +144,7 @@ const mockNavigationDispatch = jest.fn();
 let mockRouteParams: {
   type: 'source' | 'dest';
   enabledChainIds?: CaipChainId[];
+  excludeRwaTokens?: boolean;
 } = { type: 'source' };
 
 jest.mock('@react-navigation/native', () => ({
@@ -1201,6 +1202,138 @@ describe('BridgeTokenSelector', () => {
       const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
       await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
     });
+  });
+
+  describe('RWA filtering', () => {
+    const createRwaPopularToken = (symbol: string, name: string) =>
+      ({
+        ...createMockPopularToken({
+          assetId: `eip155:1/erc20:0x${symbol.toLowerCase()}` as never,
+          symbol,
+          name,
+        }),
+        rwaData: { instrumentType: 'stock' },
+      }) as never;
+
+    it('keeps RWA tokens when excludeRwaTokens is not set', async () => {
+      mockPopularTokensState = {
+        popularTokens: [
+          createMockPopularToken({ symbol: 'USDC', name: 'USD Coin' }),
+          createRwaPopularToken('AAPLX', 'Apple Inc'),
+        ],
+        isLoading: false,
+      };
+
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      expect(getByTestId('token-AAPLX')).toBeTruthy();
+    });
+
+    it('hides RWA popular tokens when excludeRwaTokens is set', async () => {
+      mockRouteParams = { type: 'source', excludeRwaTokens: true };
+      mockPopularTokensState = {
+        popularTokens: [
+          createMockPopularToken({ symbol: 'USDC', name: 'USD Coin' }),
+          createRwaPopularToken('AAPLX', 'Apple Inc'),
+        ],
+        isLoading: false,
+      };
+
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      expect(queryByTestId('token-AAPLX')).toBeNull();
+    });
+
+    it('hides Ondo Tokenized popular tokens matched by name', async () => {
+      mockRouteParams = { type: 'source', excludeRwaTokens: true };
+      mockPopularTokensState = {
+        popularTokens: [
+          createMockPopularToken({ symbol: 'USDC', name: 'USD Coin' }),
+          createMockPopularToken({
+            assetId: 'eip155:1/erc20:0xondo' as never,
+            symbol: 'TSLAon',
+            name: 'Ondo Tokenized Tesla',
+          }),
+        ],
+        isLoading: false,
+      };
+
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      expect(queryByTestId('token-TSLAon')).toBeNull();
+    });
+
+    it('hides RWA search results when excludeRwaTokens is set', async () => {
+      mockRouteParams = { type: 'source', excludeRwaTokens: true };
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [
+          createSearchToken('WETH'),
+          createRwaPopularToken('MSFTX', 'Microsoft Corp'),
+        ],
+        currentSearchQuery: 'WET',
+      };
+
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
+
+      await waitFor(() => expect(getByTestId('token-WETH')).toBeTruthy());
+      expect(queryByTestId('token-MSFTX')).toBeNull();
+    });
+
+    it.each([
+      { excludeRwaTokens: undefined, isRwaVisible: true },
+      { excludeRwaTokens: true, isRwaVisible: false },
+    ])(
+      'renders Ondo Tokenized watchlist tokens: $isRwaVisible when excludeRwaTokens is $excludeRwaTokens',
+      async ({ excludeRwaTokens, isRwaVisible }) => {
+        mockRouteParams = { type: 'source', excludeRwaTokens };
+        mockIsWatchlistEnabled = true;
+        mockUseTokenWatchlistQuery.mockReturnValue({
+          data: [
+            {
+              assetId: 'eip155:1/slip44:60',
+              name: 'Ethereum',
+              symbol: 'ETH',
+              decimals: 18,
+              balance: '1.5',
+              balanceFiat: 3000,
+              fiatCurrency: 'usd',
+              isInWallet: true,
+            },
+            {
+              assetId: 'eip155:1/erc20:0xondo',
+              name: 'Ondo Tokenized Tesla',
+              symbol: 'TSLAon',
+              decimals: 18,
+              balance: '2',
+              balanceFiat: 500,
+              fiatCurrency: 'usd',
+              isInWallet: true,
+            },
+          ],
+          isLoading: false,
+        });
+
+        const { getByTestId, queryByTestId } = renderWithReduxProvider(
+          <BridgeTokenSelector />,
+        );
+
+        fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+
+        await waitFor(() => expect(getByTestId('token-ETH')).toBeTruthy());
+        expect(Boolean(queryByTestId('token-TSLAon'))).toBe(isRwaVisible);
+      },
+    );
   });
 
   describe('chain selection', () => {
