@@ -1,4 +1,7 @@
 import type { Hex } from '@metamask/utils';
+import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
+import { MONEY_DERIVATION_PATH } from '@metamask/eth-money-keyring';
+import type { MoneyAccount } from '@metamask/money-account-controller';
 import Engine from '../../../core/Engine';
 import { whenMoneyAccountUpgradeReady } from '../../../core/Engine/controllers/money-account-upgrade-controller-init';
 import { toCardFundingToken } from '../../../components/UI/Card/util/toCardTokenAllowance';
@@ -9,8 +12,27 @@ import type { MigrationBlocker, MigrationInventory } from './types';
 
 const STUB_DESTINATION_ADDRESS =
   '0x2222222222222222222222222222222222222222' as Hex;
-const STUB_DESTINATION_PRIVATE_KEY =
-  '0x1111111111111111111111111111111111111111111111111111111111111111' as Hex;
+const STUB_DESTINATION_ACCOUNT: MoneyAccount = {
+  id: 'money-account-stub',
+  type: EthAccountType.Eoa,
+  address: STUB_DESTINATION_ADDRESS,
+  scopes: [EthScope.Eoa],
+  options: {
+    entropy: {
+      type: 'mnemonic',
+      id: 'entropy-stub',
+      groupIndex: 0,
+      derivationPath: MONEY_DERIVATION_PATH,
+    },
+    exportable: false,
+  },
+  methods: [
+    EthMethod.PersonalSign,
+    EthMethod.SignTypedDataV1,
+    EthMethod.SignTypedDataV3,
+    EthMethod.SignTypedDataV4,
+  ],
+};
 const DEFAULT_CHAIN_ID = '0x8f' as Hex;
 
 /**
@@ -46,12 +68,9 @@ export class MoneyAccountMigrationPocService {
     await this.verifyOldInert(inventory);
   }
 
-  // ponytail: dummy key until MoneyAccountController.createMoneyAccount(newEntropyId)
-  async createDestination(): Promise<{ address: Hex; privateKey: Hex }> {
-    return {
-      address: STUB_DESTINATION_ADDRESS,
-      privateKey: STUB_DESTINATION_PRIVATE_KEY,
-    };
+  // ponytail: stub MoneyAccount until MoneyAccountController.createMoneyAccount(entropySource)
+  async createDestination(): Promise<MoneyAccount> {
+    return STUB_DESTINATION_ACCOUNT;
   }
 
   async collectInventory(

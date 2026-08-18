@@ -1,4 +1,7 @@
 import { Hex } from '@metamask/utils';
+import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
+import type { MoneyAccount } from '@metamask/money-account-controller';
+import { MONEY_DERIVATION_PATH } from '@metamask/eth-money-keyring';
 import Engine from '../../../core/Engine';
 import { emptyCardHomeData } from '../../../core/Engine/controllers/card-controller/provider-types';
 import { whenMoneyAccountUpgradeReady } from '../../../core/Engine/controllers/money-account-upgrade-controller-init';
@@ -29,12 +32,32 @@ jest.mock(
 
 const SOURCE = '0x1111111111111111111111111111111111111111' as Hex;
 const DEST = '0x2222222222222222222222222222222222222222' as Hex;
-const PRIVATE_KEY =
-  '0x1111111111111111111111111111111111111111111111111111111111111111' as Hex;
 const INTENT_HASH =
   '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Hex;
 const DELEGATION_HASH =
   '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as Hex;
+
+const destinationAccount = (address: Hex = DEST): MoneyAccount => ({
+  id: 'money-account-stub',
+  type: EthAccountType.Eoa,
+  address,
+  scopes: [EthScope.Eoa],
+  options: {
+    entropy: {
+      type: 'mnemonic',
+      id: 'entropy-stub',
+      groupIndex: 0,
+      derivationPath: MONEY_DERIVATION_PATH,
+    },
+    exportable: false,
+  },
+  methods: [
+    EthMethod.PersonalSign,
+    EthMethod.SignTypedDataV1,
+    EthMethod.SignTypedDataV3,
+    EthMethod.SignTypedDataV4,
+  ],
+});
 
 const mockCall = Engine.controllerMessenger.call as jest.MockedFunction<
   typeof Engine.controllerMessenger.call
@@ -199,24 +222,21 @@ describe('MoneyAccountMigrationPocService', () => {
     expect(relink).toHaveBeenCalledWith(DEST);
   });
 
-  it('returns a dummy address and private key for the new account', async () => {
+  it('returns a MoneyAccount with address, id, and non-exportable options', async () => {
     const service = new MoneyAccountMigrationPocService();
 
     const created = await service.createDestination();
 
-    expect(created).toEqual({
-      address: DEST,
-      privateKey: PRIVATE_KEY,
-    });
+    expect(created).toEqual(destinationAccount());
+    expect(created).not.toHaveProperty('privateKey');
   });
 
   it('uses createDestination when migrate is called without a destination', async () => {
     const service = new MoneyAccountMigrationPocService();
     openGates(service);
-    const created = jest.spyOn(service, 'createDestination').mockResolvedValue({
-      address: DEST,
-      privateKey: PRIVATE_KEY,
-    });
+    const created = jest
+      .spyOn(service, 'createDestination')
+      .mockResolvedValue(destinationAccount());
     const collectInventory = jest
       .spyOn(service, 'collectInventory')
       .mockResolvedValue(plan());
