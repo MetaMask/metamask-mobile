@@ -8,7 +8,12 @@ export type ImmersveNextAction =
   | { type: 'contact'; needsEmail: boolean; needsPhone: boolean }
   | { type: 'kyc'; url?: string; ctaHint?: CardKycCtaHint }
   | { type: 'expected_spend' }
-  | { type: 'funding'; write: CardSmartContractWriteParams }
+  | {
+      type: 'funding';
+      write: CardSmartContractWriteParams;
+      /** Immersve network of the funding source (drives approve chain). */
+      network?: string;
+    }
   | { type: 'rejected'; retryUrl?: string }
   | { type: 'pending' }
   | { type: 'active' };
@@ -23,6 +28,7 @@ const findActionRequired = (
 
 export function deriveNextImmersveAction(
   prerequisites: CardSpendingPrerequisite[],
+  network?: string,
 ): ImmersveNextAction {
   const email = findActionRequired(prerequisites, 'submit_contact_email');
   const phone = findActionRequired(prerequisites, 'submit_contact_phone');
@@ -53,6 +59,7 @@ export function deriveNextImmersveAction(
     return {
       type: 'funding',
       write: funding.params as unknown as CardSmartContractWriteParams,
+      network,
     };
   }
 

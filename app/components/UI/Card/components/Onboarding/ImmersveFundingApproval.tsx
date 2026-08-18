@@ -230,7 +230,7 @@ const ImmersveFundingApproval = () => {
     }
 
     setIsSettling(true);
-    executeFunding(nextAction.write, BAANX_MAX_LIMIT)
+    executeFunding(nextAction.write, BAANX_MAX_LIMIT, nextAction.network)
       .then(() => refresh())
       .catch(() => setIsSettling(false));
   }, [nextAction, executeFunding, refresh]);

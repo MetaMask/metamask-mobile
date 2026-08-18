@@ -426,6 +426,8 @@ export interface CardSpendingPrerequisite {
 
 export interface CardSpendingPrerequisitesResult {
   prerequisites: CardSpendingPrerequisite[];
+  /** Immersve network of the funding source used for this request. */
+  network?: string;
 }
 
 export interface CardSpendingPrerequisitesParams {

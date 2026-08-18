@@ -217,4 +217,14 @@ export const DEFAULT_IMMERSVE_CHAINS: CardProviderChains = {
       },
     },
   },
+  'eip155:143': {
+    network: 'monad-mainnet',
+    fallbackRpcUrl: 'https://rpc.monad.xyz',
+    tokens: {
+      'eip155:143/erc20:0x754704bc059f8c67012fed69bc8a327a5aafb603': {
+        decimals: 6,
+        symbol: 'USDC',
+      },
+    },
+  },
 };

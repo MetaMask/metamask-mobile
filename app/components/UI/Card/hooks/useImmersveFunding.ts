@@ -29,6 +29,7 @@ import {
 } from '../util/immersveFunding';
 import { getCardProviderErrorMessage } from '../util/getCardProviderErrorMessage';
 import { withCardProvider } from '../util/metrics';
+import { getImmersveSignupNetwork } from '../util/immersveSignupNetwork';
 import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
 import { UserCancelledError } from './useCardDelegation';
 
@@ -75,6 +76,7 @@ export const useImmersveFunding = () => {
     async (
       write: CardSmartContractWriteParams,
       approveAmountBaseUnits?: string,
+      fundingNetwork?: string,
     ): Promise<string> => {
       setState({ isLoading: true, error: null });
       const metricsProps = withCardProvider(CardProviderIds.Immersve, {
@@ -94,7 +96,7 @@ export const useImmersveFunding = () => {
         }
 
         const caipChainId = immersveNetworkToCaipChainId(
-          immersveConfig?.network,
+          fundingNetwork ?? getImmersveSignupNetwork(immersveConfig),
         );
         const networkClientId = await ensureNetworkExists(caipChainId);
         const writeToEncode = approveAmountBaseUnits
@@ -166,11 +168,11 @@ export const useImmersveFunding = () => {
     },
     [
       selectAccountByScope,
-      immersveConfig?.network,
       ensureNetworkExists,
       TransactionController,
       trackEvent,
       createEventBuilder,
+      immersveConfig,
     ],
   );
 

@@ -26,6 +26,7 @@ import {
   type ImmersveNextAction,
 } from '../../../util/immersvePrerequisites';
 import { resolveImmersveFundingSourceId } from '../../../util/immersveResume';
+import { getImmersveSignupFundingChannelId } from '../../../util/immersveSignupNetwork';
 import { CardActions, withCardProvider } from '../../../util/metrics';
 import { useImmersveOnboardingRouter } from '../../../hooks/useImmersveOnboardingRouter';
 
@@ -43,9 +44,8 @@ export function useImmersveCardProvisioning(
 
   const reduxFundingSourceId = useSelector(selectImmersveFundingSourceId);
   const kycRegion = useSelector(selectCardSelectedCountry) ?? undefined;
-  const fundingChannelId = useSelector(
-    selectCardImmersveConfig,
-  ).fundingChannelId;
+  const immersveConfig = useSelector(selectCardImmersveConfig);
+  const fundingChannelId = getImmersveSignupFundingChannelId(immersveConfig);
   const route = useImmersveOnboardingRouter();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -106,12 +106,13 @@ export function useImmersveCardProvisioning(
         if (!existingId) {
           dispatch(setImmersveFundingSourceId(id));
         }
-        const { prerequisites } = await controller.getSpendingPrerequisites(
-          id,
-          { kycRegion, kycRedirectUrl: KYC_REDIRECT_URL },
-        );
+        const { prerequisites, network } =
+          await controller.getSpendingPrerequisites(id, {
+            kycRegion,
+            kycRedirectUrl: KYC_REDIRECT_URL,
+          });
         if (cancelled) return;
-        const action = deriveNextImmersveAction(prerequisites);
+        const action = deriveNextImmersveAction(prerequisites, network);
         if (action.type === 'active') {
           // Funding lifecycle only when we actually create the card.
           trackEventRef.current(

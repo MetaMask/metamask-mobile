@@ -23,6 +23,9 @@ export const BASE_SEPOLIA_USDC_TOKEN_ADDRESS =
   '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
 export const ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS =
   '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d';
+/** Native USDC on Monad mainnet (same address used by Baanx cardFeature). */
+export const MONAD_USDC_TOKEN_ADDRESS =
+  '0x754704bc059f8c67012fed69bc8a327a5aafb603';
 
 export const CARD_TOKEN_ICON_OVERRIDES: Record<string, string> = {
   [`eip155:84532:${BASE_SEPOLIA_USDC_TOKEN_ADDRESS.toLowerCase()}`]: `https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/erc20/${BASE_USDC_TOKEN_ADDRESS.toLowerCase()}.png`,

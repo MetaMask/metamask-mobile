@@ -117,6 +117,16 @@ describe('deriveNextImmersveAction', () => {
     if (result.type === 'funding') {
       expect(result.write.method).toBe('approve');
       expect(result.write.params._spender).toBe('0xSpender');
+      expect(result.network).toBeUndefined();
+    }
+  });
+
+  it('attaches the funding source network to a funding next action', () => {
+    const result = deriveNextImmersveAction([funding], 'monad-mainnet');
+    expect(result.type).toBe('funding');
+    if (result.type === 'funding') {
+      expect(result.network).toBe('monad-mainnet');
+      expect(result.write).toStrictEqual(funding.params);
     }
   });
 

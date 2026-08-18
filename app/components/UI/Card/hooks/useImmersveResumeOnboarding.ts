@@ -9,6 +9,7 @@ import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { KYC_REDIRECT_URL } from '../constants';
 import { deriveNextImmersveAction } from '../util/immersvePrerequisites';
 import { resolveImmersveFundingSourceId } from '../util/immersveResume';
+import { getImmersveSignupFundingChannelId } from '../util/immersveSignupNetwork';
 import { CardActions, CardEntryPoint, withCardProvider } from '../util/metrics';
 import { getSiweErrorType, useImmersveSiweAuth } from './useImmersveSiweAuth';
 import { useImmersveOnboardingRouter } from './useImmersveOnboardingRouter';
@@ -62,7 +63,7 @@ export const useImmersveResumeOnboarding = () => {
         const resume = await controller.getResumeCardInfo();
 
         const id = await resolveImmersveFundingSourceId({
-          fundingChannelId: immersveConfig.fundingChannelId,
+          fundingChannelId: getImmersveSignupFundingChannelId(immersveConfig),
           existingId: resume?.fundingSourceIds?.[0],
         });
         dispatch(setImmersveFundingSourceId(id));
@@ -72,19 +73,15 @@ export const useImmersveResumeOnboarding = () => {
           kycRedirectUrl: KYC_REDIRECT_URL,
         };
 
-        let { prerequisites } = await controller.getSpendingPrerequisites(
-          id,
-          prerequisitesParams,
-        );
-        let nextAction = deriveNextImmersveAction(prerequisites);
+        let { prerequisites, network } =
+          await controller.getSpendingPrerequisites(id, prerequisitesParams);
+        let nextAction = deriveNextImmersveAction(prerequisites, network);
 
         if (nextAction.type === 'contact' && (email || phone)) {
           await controller.patchContactDetails({ email, phone });
-          ({ prerequisites } = await controller.getSpendingPrerequisites(
-            id,
-            prerequisitesParams,
-          ));
-          nextAction = deriveNextImmersveAction(prerequisites);
+          ({ prerequisites, network } =
+            await controller.getSpendingPrerequisites(id, prerequisitesParams));
+          nextAction = deriveNextImmersveAction(prerequisites, network);
         }
 
         route(nextAction, {

@@ -178,6 +178,27 @@ describe('ImmersveProvider', () => {
       );
     });
 
+    it('routes login-init to Monad when monadConfig is present', async () => {
+      const { provider, service } = createProvider({
+        ...PROGRAM_CONFIG,
+        monadConfig: {
+          fundingChannelId: 'monad-channel',
+          cardProgramId: 'monad-program',
+        },
+      });
+      service.post.mockResolvedValue({
+        id: 'login-req-1',
+        signingChallenge: { message: 'msg' },
+      });
+
+      await provider.initiateAuth('GB', { address: '0xabc' });
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/auth/login-init',
+        expect.objectContaining({ network: 'monad-mainnet' }),
+      );
+    });
+
     it('prefers the feature-flag clientApplicationId over the env config', async () => {
       const { provider, service } = createProvider({
         ...PROGRAM_CONFIG,
@@ -540,6 +561,32 @@ describe('ImmersveProvider', () => {
       });
     });
 
+    it('createFundingSource posts the monadConfig channel when present', async () => {
+      const { provider, service } = createProvider({
+        ...PROGRAM_CONFIG,
+        monadConfig: {
+          fundingChannelId: 'monad-channel',
+          cardProgramId: 'monad-program',
+        },
+      });
+      service.post.mockResolvedValue({
+        id: 'fs-monad',
+        network: 'monad-mainnet',
+      });
+
+      await provider.createFundingSource(TOKENS);
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/funding-sources',
+        {
+          accountId: 'cardholder-1',
+          fundingChannelId: 'monad-channel',
+          fundingAddress: '0xabc',
+        },
+        TOKENS,
+      );
+    });
+
     it('createFundingSource throws when fundingChannelId is unconfigured', async () => {
       const { provider } = createProvider({ cardProgramId: 'p' });
       await expect(provider.createFundingSource(TOKENS)).rejects.toBeInstanceOf(
@@ -694,7 +741,7 @@ describe('ImmersveProvider', () => {
       const { provider, service } = createProvider();
       service.post.mockResolvedValue({ prerequisites: [] });
 
-      await provider.getSpendingPrerequisites(
+      const result = await provider.getSpendingPrerequisites(
         'fs-1',
         { kycRegion: 'GB', kycRedirectUrl: 'https://app/redirect' },
         TOKENS,
@@ -714,6 +761,79 @@ describe('ImmersveProvider', () => {
         }),
         TOKENS,
       );
+      expect(result.network).toBe('base-sepolia');
+    });
+
+    it('getSpendingPrerequisites uses the funding source network cardProgramId', async () => {
+      const { provider, service } = createProvider({
+        ...PROGRAM_CONFIG,
+        cardProgramId: 'flag-program',
+        monadConfig: {
+          fundingChannelId: 'monad-channel',
+          cardProgramId: 'monad-program',
+          spenderAddress: '0xMonadSpender',
+        },
+      });
+      service.get.mockResolvedValue({
+        id: 'fs-base',
+        accountId: 'cardholder-1',
+        network: 'base-mainnet',
+      });
+      service.post.mockResolvedValue({ prerequisites: [] });
+
+      const result = await provider.getSpendingPrerequisites(
+        'fs-base',
+        {},
+        TOKENS,
+      );
+
+      expect(service.get).toHaveBeenCalledWith(
+        '/api/funding-source/fs-base',
+        TOKENS,
+      );
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/spending-prerequisites',
+        expect.objectContaining({
+          // Base funding source keeps the top-level Base program id.
+          cardProgramId: 'flag-program',
+          fundingSourceId: 'fs-base',
+        }),
+        TOKENS,
+      );
+      expect(result.network).toBe('base-mainnet');
+    });
+
+    it('getSpendingPrerequisites uses monadConfig.cardProgramId for Monad sources', async () => {
+      const { provider, service } = createProvider({
+        ...PROGRAM_CONFIG,
+        cardProgramId: 'flag-program',
+        monadConfig: {
+          fundingChannelId: 'monad-channel',
+          cardProgramId: 'monad-program',
+        },
+      });
+      service.get.mockResolvedValue({
+        id: 'fs-monad',
+        accountId: 'cardholder-1',
+        network: 'monad-mainnet',
+      });
+      service.post.mockResolvedValue({ prerequisites: [] });
+
+      const result = await provider.getSpendingPrerequisites(
+        'fs-monad',
+        {},
+        TOKENS,
+      );
+
+      expect(service.post).toHaveBeenCalledWith(
+        '/api/spending-prerequisites',
+        expect.objectContaining({
+          cardProgramId: 'monad-program',
+          fundingSourceId: 'fs-monad',
+        }),
+        TOKENS,
+      );
+      expect(result.network).toBe('monad-mainnet');
     });
 
     it('getSpendingPrerequisites uses hardcoded constants when program fields are absent', async () => {
@@ -741,7 +861,8 @@ describe('ImmersveProvider', () => {
       await expect(
         provider.getSpendingPrerequisites('fs-1', {}, TOKENS),
       ).rejects.toMatchObject({
-        message: 'Immersve cardProgramId is not configured',
+        message:
+          'Immersve cardProgramId is not configured for network base-sepolia',
       });
     });
 

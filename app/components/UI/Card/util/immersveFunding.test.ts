@@ -8,6 +8,7 @@ import {
 import {
   BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
   BASE_USDC_TOKEN_ADDRESS,
+  MONAD_USDC_TOKEN_ADDRESS,
 } from '../constants';
 import type { CardSmartContractWriteParams } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
@@ -33,6 +34,10 @@ describe('immersveNetworkToCaipChainId', () => {
     expect(immersveNetworkToCaipChainId('base-sepolia')).toBe('eip155:84532');
   });
 
+  it('maps monad-mainnet to eip155:143', () => {
+    expect(immersveNetworkToCaipChainId('monad-mainnet')).toBe('eip155:143');
+  });
+
   it('throws for an unknown or missing network', () => {
     expect(() => immersveNetworkToCaipChainId('polygon')).toThrow();
     expect(() => immersveNetworkToCaipChainId(undefined)).toThrow();
@@ -52,6 +57,14 @@ describe('immersveNetworkToFundingToken', () => {
     expect(immersveNetworkToFundingToken('base-sepolia')).toStrictEqual({
       caipChainId: 'eip155:84532',
       tokenAddress: BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
+      decimals: 6,
+    });
+  });
+
+  it('maps monad-mainnet to Monad USDC token info', () => {
+    expect(immersveNetworkToFundingToken('monad-mainnet')).toStrictEqual({
+      caipChainId: 'eip155:143',
+      tokenAddress: MONAD_USDC_TOKEN_ADDRESS,
       decimals: 6,
     });
   });

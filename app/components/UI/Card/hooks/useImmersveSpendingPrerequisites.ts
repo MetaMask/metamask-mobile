@@ -50,11 +50,12 @@ export const useImmersveSpendingPrerequisites = ({
     }
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
     try {
-      const { prerequisites } = await getController().getSpendingPrerequisites(
-        fundingSourceId,
-        { kycRegion, kycRedirectUrl },
-      );
-      const nextAction = deriveNextImmersveAction(prerequisites);
+      const { prerequisites, network } =
+        await getController().getSpendingPrerequisites(fundingSourceId, {
+          kycRegion,
+          kycRedirectUrl,
+        });
+      const nextAction = deriveNextImmersveAction(prerequisites, network);
       setState({ prerequisites, nextAction, isLoading: false, error: null });
       return nextAction;
     } catch (e) {

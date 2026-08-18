@@ -47,6 +47,14 @@ export interface CardProgramIdOption {
  * Immersve provider config — the `cardImmersveConfig` flag. The on/off switch
  * is the separate `cardImmersve` flag, not a field in here.
  */
+export interface ImmersveMonadConfig {
+  /** Immersve network name, defaults to `monad-mainnet` when omitted. */
+  network?: string;
+  fundingChannelId?: string;
+  cardProgramId?: string;
+  spenderAddress?: string;
+}
+
 export interface ImmersveProgramConfig {
   network?: string;
   cardProgramId?: string;
@@ -60,6 +68,11 @@ export interface ImmersveProgramConfig {
   /** Separate Immersve secure host used for set-PIN (and similar) calls. */
   secureApiBaseUrl?: string;
   appUrl?: string;
+  /**
+   * When present, new Immersve onboarding is routed to Monad. Existing Base
+   * funding sources keep using the top-level fields above.
+   */
+  monadConfig?: ImmersveMonadConfig;
 }
 
 // -- Generic per-provider shapes --

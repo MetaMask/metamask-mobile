@@ -6,11 +6,17 @@ import {
   ARBITRUM_SEPOLIA_RPC_URL,
   BASE_MAINNET_RPC_URL,
   BASE_SEPOLIA_RPC_URL,
+  MONAD_MAINNET_RPC_URL,
 } from '../../../../../components/UI/Card/constants';
 import {
   immersveNetworkToFundingToken,
   type ImmersveFundingTokenInfo,
 } from '../../../../../components/UI/Card/util/immersveFunding';
+import {
+  getImmersveSignupNetwork,
+  resolveImmersveNetworkProgramValue,
+  type ImmersveNetworkProgramKey,
+} from '../../../../../components/UI/Card/util/immersveSignupNetwork';
 import { readErc20AllowanceAndBalance } from '../../../../../components/UI/Card/util/onChainAllowance';
 import { CardApiError } from '../services/BaanxService';
 import type { ImmersveService } from '../services/ImmersveService';
@@ -71,6 +77,11 @@ const IMMERSVE_FUNDING_NETWORK_RPC: Record<
     chainId: 421614,
     primaryRpcUrl: ARBITRUM_SEPOLIA_RPC_URL,
     publicFallback: 'https://sepolia-rollup.arbitrum.io/rpc',
+  },
+  'monad-mainnet': {
+    chainId: 143,
+    primaryRpcUrl: MONAD_MAINNET_RPC_URL,
+    publicFallback: 'https://rpc.monad.xyz',
   },
 };
 
@@ -261,7 +272,7 @@ export class ImmersveProvider implements ICardProvider {
     supportsOTP: false,
     supportsFundingApproval: true,
     supportsFundingLimits: false,
-    fundingChains: ['eip155:8453', 'eip155:84532'],
+    fundingChains: ['eip155:8453', 'eip155:84532', 'eip155:143'],
     supportsFreeze: true,
     supportsPushProvisioning: false,
     onboarding: { type: 'webview', url: '' },
@@ -278,6 +289,8 @@ export class ImmersveProvider implements ICardProvider {
   private readonly service: ImmersveService;
   private readonly config: ImmersveProviderConfig;
   private readonly getProgramConfig: () => ImmersveProgramConfig;
+  /** fundingSourceId → Immersve network name, filled from API responses. */
+  private readonly fundingSourceNetworks = new Map<string, string>();
 
   constructor({
     service,
@@ -297,8 +310,9 @@ export class ImmersveProvider implements ICardProvider {
     return this.getProgramConfig();
   }
 
+  /** Network used for SIWE signup and newly created funding sources. */
   private get network(): string {
-    return this.programConfig.network ?? DEFAULT_NETWORK;
+    return getImmersveSignupNetwork(this.programConfig, DEFAULT_NETWORK);
   }
 
   private get clientApplicationId(): string {
@@ -323,14 +337,61 @@ export class ImmersveProvider implements ICardProvider {
     return url;
   }
 
+  private rememberFundingSourceNetwork(
+    id: string,
+    network: string | undefined,
+  ): void {
+    if (network) {
+      this.fundingSourceNetworks.set(id, network);
+    }
+  }
+
+  private async resolveFundingSourceNetwork(
+    fundingSourceId: string,
+    tokens: CardAuthTokens,
+  ): Promise<string> {
+    const cached = this.fundingSourceNetworks.get(fundingSourceId);
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const detail = await this.service.get<ImmersveFundingSourceDetail>(
+        `/api/funding-source/${fundingSourceId}`,
+        tokens,
+      );
+      if (detail?.id) {
+        this.rememberFundingSourceNetwork(detail.id, detail.network);
+        if (detail.network) {
+          return detail.network;
+        }
+      }
+    } catch (error) {
+      if (isCardAuthTokenError(error)) {
+        throw error;
+      }
+      Logger.error(
+        error as Error,
+        getErrorContext('resolveFundingSourceNetwork', { fundingSourceId }),
+      );
+    }
+
+    return this.network;
+  }
+
   private requireProgramValue(
-    key: 'cardProgramId' | 'fundingChannelId',
+    key: ImmersveNetworkProgramKey,
+    network: string = this.network,
   ): string {
-    const value = this.programConfig[key];
+    const value = resolveImmersveNetworkProgramValue(
+      network,
+      key,
+      this.programConfig,
+    );
     if (!value) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
-        `Immersve ${key} is not configured`,
+        `Immersve ${key} is not configured for network ${network}`,
       );
     }
     return value;
@@ -519,6 +580,7 @@ export class ImmersveProvider implements ICardProvider {
         },
         tokens,
       );
+      this.rememberFundingSourceNetwork(response.id, response.network);
       return {
         id: response.id,
         network: response.network,
@@ -546,13 +608,16 @@ export class ImmersveProvider implements ICardProvider {
         `/api/accounts/${accountId}/funding-sources`,
         tokens,
       );
-      return (items ?? []).map((item) => ({
-        id: item.id,
-        network: item.network,
-        balance: item.balance,
-        balanceCurrency: item.balanceCurrency,
-        fundingChannelId: item.fundingChannelId,
-      }));
+      return (items ?? []).map((item) => {
+        this.rememberFundingSourceNetwork(item.id, item.network);
+        return {
+          id: item.id,
+          network: item.network,
+          balance: item.balance,
+          balanceCurrency: item.balanceCurrency,
+          fundingChannelId: item.fundingChannelId,
+        };
+      });
     } catch (error) {
       throw mapApiError(error, 'getFundingSources');
     }
@@ -594,10 +659,14 @@ export class ImmersveProvider implements ICardProvider {
     tokens: CardAuthTokens,
   ): Promise<CardSpendingPrerequisitesResult> {
     try {
-      return await this.service.post<CardSpendingPrerequisitesResult>(
+      const network = await this.resolveFundingSourceNetwork(
+        fundingSourceId,
+        tokens,
+      );
+      const result = await this.service.post<CardSpendingPrerequisitesResult>(
         '/api/spending-prerequisites',
         {
-          cardProgramId: this.requireProgramValue('cardProgramId'),
+          cardProgramId: this.requireProgramValue('cardProgramId', network),
           fundingSourceId,
           spendableAmount: '1',
           spendableCurrency: IMMERSVE_SPENDABLE_CURRENCY,
@@ -608,6 +677,7 @@ export class ImmersveProvider implements ICardProvider {
         },
         tokens,
       );
+      return { ...result, network };
     } catch (error) {
       throw mapApiError(error, 'getSpendingPrerequisites');
     }
@@ -618,10 +688,14 @@ export class ImmersveProvider implements ICardProvider {
     tokens: CardAuthTokens,
   ): Promise<CardCreateResult> {
     try {
+      const network = await this.resolveFundingSourceNetwork(
+        fundingSourceId,
+        tokens,
+      );
       return await this.service.post<CardCreateResult>(
         '/api/cards',
         {
-          cardProgramId: this.requireProgramValue('cardProgramId'),
+          cardProgramId: this.requireProgramValue('cardProgramId', network),
           fundingSourceId,
         },
         tokens,
@@ -895,6 +969,8 @@ export class ImmersveProvider implements ICardProvider {
     fundingSource: ImmersveFundingSourceDetail,
     tokens: CardAuthTokens,
   ): Promise<CardFundingAsset | null> {
+    this.rememberFundingSourceNetwork(fundingSource.id, fundingSource.network);
+
     let tokenInfo: ImmersveFundingTokenInfo;
     try {
       tokenInfo = immersveNetworkToFundingToken(fundingSource.network);
@@ -938,13 +1014,18 @@ export class ImmersveProvider implements ICardProvider {
     network: string | undefined,
   ): Promise<{ spendableBalance: string; spendingCap: string }> {
     const empty = { spendableBalance: '', spendingCap: '' };
-    const spender = this.programConfig.spenderAddress;
+    const resolvedNetwork = network ?? this.network;
+    const spender = resolveImmersveNetworkProgramValue(
+      resolvedNetwork,
+      'spenderAddress',
+      this.programConfig,
+    );
     if (!spender || !walletAddress || !ethers.utils.isAddress(walletAddress)) {
       return empty;
     }
 
     try {
-      const provider = await this.createFundingNetworkProvider(network);
+      const provider = await this.createFundingNetworkProvider(resolvedNetwork);
       if (!provider) return empty;
 
       const { spendableBalance, allowance } =
@@ -962,7 +1043,7 @@ export class ImmersveProvider implements ICardProvider {
         error as Error,
         getErrorContext('resolveOnChainSpendableBalance', {
           walletAddress,
-          network,
+          network: resolvedNetwork,
           token: tokenInfo.tokenAddress,
         }),
       );

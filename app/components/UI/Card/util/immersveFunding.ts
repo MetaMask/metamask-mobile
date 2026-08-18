@@ -4,6 +4,7 @@ import {
   BASE_USDC_TOKEN_ADDRESS,
   BASE_SEPOLIA_USDC_TOKEN_ADDRESS,
   ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS,
+  MONAD_USDC_TOKEN_ADDRESS,
 } from '../constants';
 
 export function immersveNetworkToCaipChainId(network?: string): string {
@@ -14,6 +15,8 @@ export function immersveNetworkToCaipChainId(network?: string): string {
       return 'eip155:84532';
     case 'arbitrum-sepolia':
       return 'eip155:421614';
+    case 'monad-mainnet':
+      return 'eip155:143';
     default:
       throw new Error(`Unsupported Immersve funding network: ${network}`);
   }
@@ -45,6 +48,12 @@ export function immersveNetworkToFundingToken(
       return {
         caipChainId: 'eip155:421614',
         tokenAddress: ARBITRUM_SEPOLIA_USDC_TOKEN_ADDRESS,
+        decimals: 6,
+      };
+    case 'monad-mainnet':
+      return {
+        caipChainId: 'eip155:143',
+        tokenAddress: MONAD_USDC_TOKEN_ADDRESS,
         decimals: 6,
       };
     default:
