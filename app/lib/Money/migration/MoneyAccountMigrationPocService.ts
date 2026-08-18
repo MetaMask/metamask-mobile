@@ -1,18 +1,36 @@
 import type { Hex } from '@metamask/utils';
-import type {
-  MigrateParams,
-  MigrationBlocker,
-  MigrationInventory,
-} from './types';
+import Engine from '../../../core/Engine';
+import { whenMoneyAccountUpgradeReady } from '../../../core/Engine/controllers/money-account-upgrade-controller-init';
+import { toCardFundingToken } from '../../../components/UI/Card/util/toCardTokenAllowance';
+import { getVedaTokenConfig } from '../../../components/UI/Card/util/vedaToken';
+import { isMoneyAccountDelegatedForCard } from '../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
+import { getMoneyAccountVaultConfig } from '../../../selectors/featureFlagController/moneyAccount';
+import type { MigrationBlocker, MigrationInventory } from './types';
+
+const STUB_DESTINATION_ADDRESS =
+  '0x2222222222222222222222222222222222222222' as Hex;
+const STUB_DESTINATION_PRIVATE_KEY =
+  '0x1111111111111111111111111111111111111111111111111111111111111111' as Hex;
+const DEFAULT_CHAIN_ID = '0x8f' as Hex;
 
 /**
  * Option B Money Account footprint migration (ADR 0006) for POC.
  * Linear: inventory → teardown → one exit batch → residual → re-provision.
- * No persist, resume, or abort. Destination must already exist.
+ * No persist, resume, or abort.
  */
 export class MoneyAccountMigrationPocService {
-  async migrate({ source, destination }: MigrateParams): Promise<void> {
-    const inventory = await this.collectInventory(source, destination);
+  #cardDelegationAmountHuman = '0';
+
+  async migrate({
+    source,
+    destination,
+  }: {
+    source: Hex;
+    destination?: Hex;
+  }): Promise<void> {
+    const dest =
+      destination ?? (await this.createDestination()).address;
+    const inventory = await this.collectInventory(source, dest);
     const blockers = await this.collectBlockers(inventory);
     if (blockers.length > 0) {
       throw new Error(blockers[0].kind);
@@ -28,28 +46,86 @@ export class MoneyAccountMigrationPocService {
     await this.verifyOldInert(inventory);
   }
 
+  // ponytail: dummy key until MoneyAccountController.createMoneyAccount(newEntropyId)
+  async createDestination(): Promise<{ address: Hex; privateKey: Hex }> {
+    return {
+      address: STUB_DESTINATION_ADDRESS,
+      privateKey: STUB_DESTINATION_PRIVATE_KEY,
+    };
+  }
+
   async collectInventory(
     source: Hex,
     destination: Hex,
   ): Promise<MigrationInventory> {
+    const messenger = Engine.controllerMessenger;
+    const [
+      flagState,
+      vmUsdBalance,
+      musdBalance,
+      intents,
+      delegations,
+      home,
+    ] = await Promise.all([
+      messenger.call('RemoteFeatureFlagController:getState'),
+      messenger.call('MoneyAccountBalanceService:getVmusdBalance', source),
+      messenger.call('MoneyAccountBalanceService:getMusdBalance', source),
+      messenger.call('ChompApiService:getIntentsByAddress', source),
+      messenger.call('AuthenticatedUserStorageService:listDelegations'),
+      Engine.context.CardController.getCardHomeData(source),
+    ]);
+
+    const vaultConfig = getMoneyAccountVaultConfig(
+      flagState.remoteFeatureFlags,
+    );
+    const vedaConfig = getVedaTokenConfig(home.delegationSettings);
+    const fundingTokens = home.fundingAssets.map((asset) =>
+      toCardFundingToken(asset),
+    );
+    const cardLinked = isMoneyAccountDelegatedForCard({
+      fundingTokens,
+      moneyAccountAddress: source,
+      vedaConfig,
+    });
+    if (cardLinked) {
+      const linked = fundingTokens.find(
+        (token) => token.walletAddress?.toLowerCase() === source.toLowerCase(),
+      );
+      this.#cardDelegationAmountHuman =
+        linked?.originalSpendingCap ?? linked?.spendingCap ?? '0';
+    }
+
+    const sourceLower = source.toLowerCase();
     return {
       source,
       destination,
-      chainId: '0x8f',
-      vmUsd: 0n,
-      musd: 0n,
+      chainId: (vaultConfig?.chainId as Hex | undefined) ?? DEFAULT_CHAIN_ID,
+      vmUsd: BigInt(vmUsdBalance.balance),
+      musd: BigInt(musdBalance.balance),
       nativeWei: 0n,
       vaultAllowance: 0n,
       cardAllowance: 0n,
-      chompIntentHashes: [],
-      chompDelegationHashes: [],
-      cardLinked: false,
+      chompIntentHashes: intents
+        .filter((intent) => intent.status === 'active')
+        .map((intent) => intent.delegationHash),
+      chompDelegationHashes: delegations
+        .filter(
+          (entry) =>
+            entry.signedDelegation.delegator.toLowerCase() === sourceLower,
+        )
+        .map((entry) => entry.metadata.delegationHash),
+      cardLinked,
     };
   }
 
   async collectBlockers(
     _inventory: MigrationInventory,
   ): Promise<MigrationBlocker[]> {
+    const { moneyAccountCardLinkInProgress } =
+      await Engine.controllerMessenger.call('CardController:getState');
+    if (moneyAccountCardLinkInProgress) {
+      return [{ kind: 'in-flight-card-spend' }];
+    }
     return [];
   }
 
@@ -66,15 +142,25 @@ export class MoneyAccountMigrationPocService {
   }
 
   async revokeChompIntents(_hashes: Hex[]): Promise<void> {
-    // not in mobile yet: ChompApiService.revokeIntents (POST /v1/intent/revoke)
+    // ponytail: ChompApiService.revokeIntents is not published yet
   }
 
-  async revokeStorageDelegations(_hashes: Hex[]): Promise<void> {
-    // AuthenticatedUserStorageService.revokeDelegation — skip residual hash.
+  async revokeStorageDelegations(hashes: Hex[]): Promise<void> {
+    await Promise.all(
+      hashes.map((hash) =>
+        Engine.controllerMessenger.call(
+          'AuthenticatedUserStorageService:revokeDelegation',
+          hash,
+        ),
+      ),
+    );
   }
 
-  async unlinkCard(_address: Hex): Promise<void> {
-    // CardController.linkMoneyAccountCard({ moneyAccountAddress, delegationAmountHuman: '0' })
+  async unlinkCard(address: Hex): Promise<void> {
+    await Engine.context.CardController.linkMoneyAccountCard({
+      moneyAccountAddress: address,
+      delegationAmountHuman: '0',
+    });
   }
 
   async executeExitBatch(inventory: MigrationInventory): Promise<void> {
@@ -112,12 +198,19 @@ export class MoneyAccountMigrationPocService {
     await this.setActiveMoneyAccountId(destination);
   }
 
-  async upgradeDestination(_destination: Hex): Promise<void> {
-    // MoneyAccountUpgradeController.upgradeAccount(destination)
+  async upgradeDestination(destination: Hex): Promise<void> {
+    await whenMoneyAccountUpgradeReady();
+    await Engine.controllerMessenger.call(
+      'MoneyAccountUpgradeController:upgradeAccount',
+      destination,
+    );
   }
 
-  async relinkCard(_destination: Hex): Promise<void> {
-    // CardController.linkMoneyAccountCard({ moneyAccountAddress: dest, cap })
+  async relinkCard(destination: Hex): Promise<void> {
+    await Engine.context.CardController.linkMoneyAccountCard({
+      moneyAccountAddress: destination,
+      delegationAmountHuman: this.#cardDelegationAmountHuman,
+    });
   }
 
   async setActiveMoneyAccountId(_destination: Hex): Promise<void> {
