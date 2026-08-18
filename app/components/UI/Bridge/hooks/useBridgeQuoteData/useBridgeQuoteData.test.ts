@@ -1581,8 +1581,9 @@ describe('useBridgeQuoteData', () => {
         state: testState,
       });
 
-      expect(result.current.formattedQuoteData?.rate).toMatch(/1 SOL = /);
-      expect(result.current.formattedQuoteData?.rate).toMatch(/ USDC/);
+      expect(result.current.formattedQuoteData?.rate).toStrictEqual(
+        '1 SOL = 57.06 USDC',
+      );
     });
 
     it('formats rate with 3 significant digits when rate is less than 1', () => {
@@ -1625,8 +1626,9 @@ describe('useBridgeQuoteData', () => {
         state: testState,
       });
 
-      expect(result.current.formattedQuoteData?.rate).toMatch(/1 SOL = /);
-      expect(result.current.formattedQuoteData?.rate).toMatch(/ USDC/);
+      expect(result.current.formattedQuoteData?.rate).toStrictEqual(
+        '1 SOL = 57.06 USDC',
+      );
     });
   });
 
