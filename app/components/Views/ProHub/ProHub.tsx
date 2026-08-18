@@ -67,7 +67,7 @@ const ProHub = () => {
       />
 
       {/* Content */}
-      <Box twClassName="flex-1 px-6 pt-6 gap-y-2">
+      <Box twClassName="flex-1 px-4 pt-6 gap-y-2">
         <Text
           variant={TextVariant.DisplayMd}
           fontWeight={FontWeight.Bold}
@@ -86,7 +86,7 @@ const ProHub = () => {
       </Box>
 
       {/* Action buttons */}
-      <Box twClassName="px-6 pb-2 gap-y-3">
+      <Box twClassName="px-4 pb-2 gap-y-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
