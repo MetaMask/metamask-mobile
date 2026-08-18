@@ -397,6 +397,10 @@ const MoneyHomeView = () => {
     });
   }, [navigation, trackButtonClicked]);
 
+  const handleGetProPress = useCallback(() => {
+    // TODO SUB-991: navigate to the Pro subscription flow entry point
+  }, []);
+
   const handleAddPress = useCallback(
     ({
       labelKey,
@@ -890,7 +894,10 @@ const MoneyHomeView = () => {
       twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      <MoneyHeader onMenuPress={handleMenuPress} />
+      <MoneyHeader
+        onMenuPress={handleMenuPress}
+        onGetProPress={handleGetProPress}
+      />
       <ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
         contentContainerStyle={styles.scrollContent}
