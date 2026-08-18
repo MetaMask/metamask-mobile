@@ -6,15 +6,12 @@ import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import {
-  ACTIVITY_CV_PERPS_WITHDRAW_ID,
-  ACTIVITY_CV_PERPS_WITHDRAW_TIME_MS,
   ACTIVITY_CV_PREDICT_DEPOSIT_TIME_MS,
   ACTIVITY_CV_PREDICT_MARKET_TITLE,
-  activityArbitrumNetworkEnablementOverride,
   activityPredictPayUsdcTokenOverride,
   activityPredictTradingEnabledFlag,
-  buildConfirmedLocalPerpsWithdrawTransaction,
   buildConfirmedLocalPredictDepositWithPayTransaction,
+  buildConfirmedLocalPredictWithdrawTransaction,
   buildFailedLocalPredictDepositWithPayTransaction,
   buildPendingLocalPredictDepositWithPayTransaction,
   buildPredictBuyActivity,
@@ -29,9 +26,12 @@ import {
 } from '../../../../tests/component-view/renderers/activity';
 import { mapPredictActivity } from '../../../util/activity-adapters';
 import type { PredictActivity } from '../../UI/Predict/types';
-import { formatPerpsTransactionDate } from './components/ActivityDetailsPerps.utils';
 import { formatPredictDate } from './templates/PredictDetails/PredictDetails.types';
-import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
+import {
+  ActivityDetailsSelectorsIDs,
+  getActivityDetailsStepIconTestId,
+  getActivityDetailsStepTestId,
+} from './ActivityDetails.testIds';
 
 const findAmountTextColor = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,6 +52,7 @@ const {
   STATUS_PILL,
   DATE_ROW,
   ACCOUNT_ROW,
+  NETWORK_ROW,
   NETWORK_FEE_ROW,
   BRIDGE_FEE_ROW,
   TOTAL_ROW,
@@ -61,7 +62,6 @@ const {
 } = ActivityDetailsSelectorsIDs;
 
 const MAINNET_CAIP = 'eip155:1';
-const ARBITRUM_CAIP = 'eip155:42161';
 const PREDICT_ACTIVITY_CHAIN_ID = 'eip155:137' as CaipChainId;
 const EXPECTED_DEPOSIT_DATE = formatPredictDate(
   ACTIVITY_CV_PREDICT_DEPOSIT_TIME_MS,
@@ -181,16 +181,20 @@ describeForPlatforms('ActivityDetails — Predict', () => {
       expect(
         getByText(strings('predict.transactions.steps.add_funds')),
       ).toBeOnTheScreen();
-      expect(getByTestId('activity-details-step-0')).toHaveTextContent(
+      expect(getByTestId(getActivityDetailsStepTestId(0))).toHaveTextContent(
         EXPECTED_DEPOSIT_DATE,
         { exact: false },
       );
-      expect(getByTestId('activity-details-step-1')).toHaveTextContent(
+      expect(getByTestId(getActivityDetailsStepTestId(1))).toHaveTextContent(
         EXPECTED_DEPOSIT_DATE,
         { exact: false },
       );
-      expect(getByTestId('activity-details-step-0-icon')).toBeOnTheScreen();
-      expect(getByTestId('activity-details-step-1-icon')).toBeOnTheScreen();
+      expect(
+        getByTestId(getActivityDetailsStepIconTestId(0)),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(getActivityDetailsStepIconTestId(1)),
+      ).toBeOnTheScreen();
 
       expect(queryByTestId(BLOCK_EXPLORER_BUTTON)).toBeNull();
 
@@ -243,12 +247,14 @@ describeForPlatforms('ActivityDetails — Predict', () => {
       expect(
         getByText(strings('predict.transactions.steps.add_funds')),
       ).toBeOnTheScreen();
-      expect(getByTestId('activity-details-step-0')).toHaveTextContent(
+      expect(getByTestId(getActivityDetailsStepTestId(0))).toHaveTextContent(
         EXPECTED_DEPOSIT_DATE,
         { exact: false },
       );
-      expect(getByTestId('activity-details-step-0-icon')).toBeOnTheScreen();
-      expect(getByTestId('activity-details-step-1')).toHaveTextContent(
+      expect(
+        getByTestId(getActivityDetailsStepIconTestId(0)),
+      ).toBeOnTheScreen();
+      expect(getByTestId(getActivityDetailsStepTestId(1))).toHaveTextContent(
         strings('transaction.pending'),
         { exact: false },
       );
@@ -307,16 +313,20 @@ describeForPlatforms('ActivityDetails — Predict', () => {
       expect(
         getByText(strings('predict.transactions.steps.add_funds')),
       ).toBeOnTheScreen();
-      expect(getByTestId('activity-details-step-0')).toHaveTextContent(
+      expect(getByTestId(getActivityDetailsStepTestId(0))).toHaveTextContent(
         EXPECTED_DEPOSIT_DATE,
         { exact: false },
       );
-      expect(getByTestId('activity-details-step-0-icon')).toBeOnTheScreen();
-      expect(getByTestId('activity-details-step-1')).toHaveTextContent(
+      expect(
+        getByTestId(getActivityDetailsStepIconTestId(0)),
+      ).toBeOnTheScreen();
+      expect(getByTestId(getActivityDetailsStepTestId(1))).toHaveTextContent(
         strings('transaction.failed'),
         { exact: false },
       );
-      expect(getByTestId('activity-details-step-1-icon')).toBeOnTheScreen();
+      expect(
+        getByTestId(getActivityDetailsStepIconTestId(1)),
+      ).toBeOnTheScreen();
 
       const blockExplorer = getByTestId(BLOCK_EXPLORER_BUTTON);
       expect(blockExplorer).toHaveTextContent(
@@ -331,27 +341,16 @@ describeForPlatforms('ActivityDetails — Predict', () => {
     });
   });
 
-  describe('Perps withdrawal', () => {
-    it('shows confirmed withdrawal with negative amount, account, and Withdraw CTA', async () => {
-      const withdraw = buildConfirmedLocalPerpsWithdrawTransaction();
-      const state = initialStateActivityWithLocalTransactions([withdraw])
-        .withOverrides(activityArbitrumNetworkEnablementOverride)
-        .build();
-
+  describe('Prediction withdrawal', () => {
+    it('shows confirmed withdrawal with negative amount, network, and Withdraw CTA', async () => {
+      const withdraw = buildConfirmedLocalPredictWithdrawTransaction();
       const {
         findByTestId,
-        findByText,
         getByTestId,
-        getByText,
         queryByTestId,
+        queryByText,
         UNSAFE_getAllByType,
-      } = renderActivityDetailsView({
-        state,
-        params: {
-          chainId: ARBITRUM_CAIP,
-          txIdentifier: ACTIVITY_CV_PERPS_WITHDRAW_ID,
-        },
-      });
+      } = renderPredictDepositDetails(withdraw);
 
       expect(await findByTestId(SCREEN)).toBeOnTheScreen();
 
@@ -366,40 +365,29 @@ describeForPlatforms('ActivityDetails — Predict', () => {
       expect(await findByTestId(STATUS_PILL)).toHaveTextContent(
         strings('transaction.confirmed'),
       );
-
-      const expectedDate = formatPerpsTransactionDate(
-        ACTIVITY_CV_PERPS_WITHDRAW_TIME_MS,
+      expect(getByTestId(DATE_ROW)).toHaveTextContent(
+        formatPredictDate(withdraw.time),
+        { exact: false },
       );
-      expect(getByTestId(DATE_ROW)).toHaveTextContent(expectedDate, {
-        exact: false,
-      });
       expect(getByTestId(ACCOUNT_ROW)).toBeOnTheScreen();
+      expect(getByTestId(NETWORK_ROW)).toBeOnTheScreen();
 
       expect(queryByTestId(NETWORK_FEE_ROW)).toBeNull();
       expect(queryByTestId(BRIDGE_FEE_ROW)).toBeNull();
       expect(queryByTestId(TOTAL_ROW)).toBeNull();
       expect(queryByTestId(BLOCK_EXPLORER_BUTTON)).toBeNull();
-
       expect(
-        await findByText(
-          strings('perps.transactions.steps.title_completed', {
-            completed: 3,
+        queryByText(
+          strings('predict.transactions.steps.title_completed', {
+            completed: 2,
           }),
         ),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(strings('perps.transactions.steps.initiate_withdrawal')),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(strings('perps.transactions.steps.process_withdrawal')),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(strings('perps.transactions.steps.receive_funds')),
-      ).toBeOnTheScreen();
+      ).toBeNull();
+      expect(queryByTestId(getActivityDetailsStepTestId(0))).toBeNull();
 
       const withdrawCta = getByTestId(DO_IT_AGAIN_BUTTON);
       expect(withdrawCta).toHaveTextContent(
-        strings('perps.withdrawal.withdraw'),
+        strings('predict.deposit.withdraw'),
       );
       fireEvent.press(withdrawCta);
     });

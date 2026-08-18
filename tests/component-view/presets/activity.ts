@@ -1018,56 +1018,6 @@ export const activityPredictPayUsdcTokenOverride = {
   },
 } as unknown as DeepPartial<RootState>;
 
-/** Native USDC on Arbitrum — Perps withdraw Activity Details CV. */
-export const ACTIVITY_CV_USDC_ARBITRUM =
-  '0xaf88d065e77c8cC2239327C5EDb3A432268e5831';
-
-export const ACTIVITY_CV_PERPS_WITHDRAW_ID = 'activity-cv-perps-withdraw';
-export const ACTIVITY_CV_PERPS_WITHDRAW_HASH = '0xactivitycvperpswithdraw';
-export const ACTIVITY_CV_PERPS_WITHDRAW_TIME_MS = 1_716_367_795_000;
-
-/**
- * Confirmed Perps withdraw → `perpsWithdraw` for Activity Details CV.
- */
-export const buildConfirmedLocalPerpsWithdrawTransaction =
-  (): TransactionMeta =>
-    ({
-      id: ACTIVITY_CV_PERPS_WITHDRAW_ID,
-      hash: ACTIVITY_CV_PERPS_WITHDRAW_HASH,
-      chainId: '0xa4b1',
-      status: TransactionStatus.confirmed,
-      time: ACTIVITY_CV_PERPS_WITHDRAW_TIME_MS,
-      type: TransactionType.perpsWithdraw,
-      txParams: {
-        from: ACTIVITY_CV_ACCOUNT,
-        to: ACTIVITY_CV_USDC_ARBITRUM,
-        value: '0x0',
-        nonce: '0xb',
-        data: buildErc20TransferCalldata(
-          ACTIVITY_CV_ACCOUNT,
-          ACTIVITY_CV_PREDICT_USDC_AMOUNT,
-        ),
-      },
-      txReceipt: { status: '0x1' },
-    }) as unknown as TransactionMeta;
-
-/** Enables Arbitrum so local Perps withdraw rows resolve in Activity Details CV. */
-export const activityArbitrumNetworkEnablementOverride = {
-  engine: {
-    backgroundState: {
-      NetworkEnablementController: {
-        enabledNetworkMap: {
-          eip155: {
-            '0x1': true,
-            '0xa4b1': true,
-          },
-          solana: {},
-        },
-      },
-    },
-  },
-} as unknown as DeepPartial<RootState>;
-
 /**
  * Confirmed Predict withdraw batch → `predictionsWithdrawFunds` under Predictions filter.
  */
