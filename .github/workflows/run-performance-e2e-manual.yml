@@ -56,7 +56,7 @@ on:
         description: 'Also run TestMu Standard using the TestMu device matrix'
         required: false
         type: boolean
-        default: true
+        default: false
       he_region:
         description: 'HyperExecute region (us or eu)'
         required: false
