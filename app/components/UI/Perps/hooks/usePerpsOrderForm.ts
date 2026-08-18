@@ -166,6 +166,22 @@ export function usePerpsOrderForm(
   const defaultAmount = Math.max(networkDefaultAmount, minimumOrderAmount);
   const fallbackAmount = fallbackAmountParam ?? defaultAmount.toString();
 
+  // A restored amount can predate the venue minimum (a saved $10 HyperLiquid
+  // default replayed onto Lighter): seeding it would render a form whose
+  // place button is disabled by validation, and the save-on-unmount snapshot
+  // would re-persist the invalid amount forever. Seeds are floored at the
+  // venue minimum; live user edits stay untouched (validation covers those).
+  const clampSeedToVenueMinimum = useCallback(
+    (value: string): string => {
+      const numeric = Number.parseFloat(value);
+      if (!Number.isFinite(numeric) || numeric >= minimumOrderAmount) {
+        return value;
+      }
+      return minimumOrderAmount.toString();
+    },
+    [minimumOrderAmount],
+  );
+
   // Priority for leverage: navigation param > existing position leverage > pending config > saved config > default (3x)
   const defaultLeverage =
     initialLeverage ||
@@ -179,11 +195,11 @@ export function usePerpsOrderForm(
   const initialAmountValue = useMemo(() => {
     // If we have a pending config with amount, use it (unless overridden by navigation param)
     if (initialAmount) {
-      return initialAmount;
+      return clampSeedToVenueMinimum(initialAmount);
     }
 
     if (pendingConfig?.amount) {
-      return pendingConfig.amount;
+      return clampSeedToVenueMinimum(pendingConfig.amount);
     }
 
     // Don't calculate if price is not available yet to avoid temporary 0 values
@@ -224,6 +240,7 @@ export function usePerpsOrderForm(
     currentPrice?.price,
     marketData?.szDecimals,
     defaultLeverage,
+    clampSeedToVenueMinimum,
   ]);
 
   // Navigation param > persisted global type > pending draft.
@@ -372,7 +389,9 @@ export function usePerpsOrderForm(
     if (!pendingConfig) return;
     setOrderForm((prev) => ({
       ...prev,
-      ...(pendingConfig.amount && { amount: pendingConfig.amount }),
+      ...(pendingConfig.amount && {
+        amount: clampSeedToVenueMinimum(pendingConfig.amount),
+      }),
       ...(pendingConfig.leverage && { leverage: pendingConfig.leverage }),
       ...(pendingConfig.takeProfitPrice !== undefined && {
         takeProfitPrice: pendingConfig.takeProfitPrice,
