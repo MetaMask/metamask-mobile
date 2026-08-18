@@ -18,7 +18,9 @@ interface BenefitDetailsProps {
 
 const BenefitDetails = ({ onClose, details }: BenefitDetailsProps) => {
   const handleLearnMorePress = useCallback(() => {
-    Linking.openURL(details.learnMoreUrl);
+    if (details.learnMoreUrl) {
+      Linking.openURL(details.learnMoreUrl);
+    }
   }, [details.learnMoreUrl]);
 
   return (
