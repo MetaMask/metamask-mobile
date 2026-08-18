@@ -1523,14 +1523,42 @@ describe('CardController — event subscriptions', () => {
     const validateSpy = jest
       .spyOn(controller, 'validateAndRefreshSession')
       .mockResolvedValue({ isAuthenticated: false });
+    const fetchSpy = jest
+      .spyOn(controller, 'fetchCardHomeData')
+      .mockResolvedValue();
 
     // Simulate unlock event
     const unlockHandler = (
       mockMessenger.subscribe as jest.Mock
     ).mock.calls.find(([event]) => event === 'KeyringController:unlock')?.[1];
     await unlockHandler?.();
+    await Promise.resolve();
 
     expect(validateSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('prefetches card home data on unlock when the Card session is authenticated', async () => {
+    const provider = buildMockProvider();
+    const mockMessenger = buildMessengerForUnlock();
+    const controller = new CardController({
+      cardService: buildMockCardService(),
+      messenger: mockMessenger,
+      providers: { baanx: provider },
+      state: { activeProviderId: 'baanx' },
+    });
+    jest
+      .spyOn(controller, 'validateAndRefreshSession')
+      .mockResolvedValue({ isAuthenticated: true });
+    const fetchSpy = jest
+      .spyOn(controller, 'fetchCardHomeData')
+      .mockResolvedValue();
+
+    getHandler(mockMessenger, 'KeyringController:unlock')?.();
+    await Promise.resolve();
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).toHaveBeenCalledWith({});
   });
 
   function buildMessengerForUnlock() {

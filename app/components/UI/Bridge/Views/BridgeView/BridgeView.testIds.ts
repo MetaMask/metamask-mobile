@@ -13,6 +13,8 @@ export const BridgeViewSelectorsIDs = {
   MISSING_PRICE_BANNER: 'bridge-missing-price-banner',
   NO_QUOTES_BANNER: 'bridge-no-quotes',
   TABS_BAR: 'bridge-tabs-bar',
+  TABS_CONTENT: 'bridge-tabs-content',
+  TABS_SWIPE_GESTURE: 'bridge-tabs-swipe-gesture',
   MARKET_TAB: 'bridge-market-tab',
   LIMIT_TAB: 'bridge-limit-tab',
   RECURRING_TAB: 'bridge-recurring-tab',
