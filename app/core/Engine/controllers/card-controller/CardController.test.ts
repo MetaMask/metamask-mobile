@@ -34,8 +34,13 @@ jest.mock('./CardTokenStore');
 jest.mock('./CardOnboardingStore');
 jest.mock('../../../../util/Logger');
 jest.mock('../../../../util/remoteFeatureFlag', () => ({
+  // Mirrors the real contract: `undefined` means "this flag has no opinion", so
+  // callers fall through to their own default. Returning `false` here instead
+  // would silently veto every fallback chain built on top of it.
   validatedVersionGatedFeatureFlag: (flag?: { enabled?: boolean }) =>
-    flag?.enabled ?? false,
+    flag && typeof flag === 'object' && 'enabled' in flag
+      ? (flag.enabled ?? false)
+      : undefined,
 }));
 jest.mock('../../../redux/slices/card', () => ({
   resetCardState: jest.fn(() => ({ type: 'card/resetCardState' })),
@@ -387,10 +392,8 @@ describe('CardController — setSelectedCountry', () => {
 
   it('routes an enabled Immersve country to the immersve provider', () => {
     const controller = build({
-      cardFeature: {
-        immersve: { enabled: true },
-        immersveCountries: ['GB'],
-      },
+      cardImmersve: { enabled: true, minimumVersion: '0.0.0' },
+      cardImmersveCountries: ['GB'],
     });
 
     controller.setSelectedCountry('GB');
@@ -401,10 +404,8 @@ describe('CardController — setSelectedCountry', () => {
 
   it('keeps the default provider when the kill-switch is off', () => {
     const controller = build({
-      cardFeature: {
-        immersve: { enabled: false },
-        immersveCountries: ['GB'],
-      },
+      cardImmersve: { enabled: false, minimumVersion: '0.0.0' },
+      cardImmersveCountries: ['GB'],
     });
 
     controller.setSelectedCountry('GB');
@@ -415,10 +416,8 @@ describe('CardController — setSelectedCountry', () => {
 
   it('keeps the default provider for a non-Immersve country', () => {
     const controller = build({
-      cardFeature: {
-        immersve: { enabled: true },
-        immersveCountries: ['GB'],
-      },
+      cardImmersve: { enabled: true, minimumVersion: '0.0.0' },
+      cardImmersveCountries: ['GB'],
     });
 
     controller.setSelectedCountry('FR');
@@ -1524,14 +1523,42 @@ describe('CardController — event subscriptions', () => {
     const validateSpy = jest
       .spyOn(controller, 'validateAndRefreshSession')
       .mockResolvedValue({ isAuthenticated: false });
+    const fetchSpy = jest
+      .spyOn(controller, 'fetchCardHomeData')
+      .mockResolvedValue();
 
     // Simulate unlock event
     const unlockHandler = (
       mockMessenger.subscribe as jest.Mock
     ).mock.calls.find(([event]) => event === 'KeyringController:unlock')?.[1];
     await unlockHandler?.();
+    await Promise.resolve();
 
     expect(validateSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('prefetches card home data on unlock when the Card session is authenticated', async () => {
+    const provider = buildMockProvider();
+    const mockMessenger = buildMessengerForUnlock();
+    const controller = new CardController({
+      cardService: buildMockCardService(),
+      messenger: mockMessenger,
+      providers: { baanx: provider },
+      state: { activeProviderId: 'baanx' },
+    });
+    jest
+      .spyOn(controller, 'validateAndRefreshSession')
+      .mockResolvedValue({ isAuthenticated: true });
+    const fetchSpy = jest
+      .spyOn(controller, 'fetchCardHomeData')
+      .mockResolvedValue();
+
+    getHandler(mockMessenger, 'KeyringController:unlock')?.();
+    await Promise.resolve();
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).toHaveBeenCalledWith({});
   });
 
   function buildMessengerForUnlock() {
@@ -2566,6 +2593,7 @@ describe('CardController — getCapabilities', () => {
     supportsCredit: true,
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
+    supportsMoneyAccountLinking: true,
     supportsTransactionHistory: true,
   };
 

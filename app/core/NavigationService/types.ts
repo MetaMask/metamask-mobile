@@ -94,6 +94,7 @@ import type { MarketInsightsRouteParams } from '../../components/UI/MarketInsigh
 import type { MoreTokenActionsMenuParams } from '../../components/UI/TokenDetails/components/MoreTokenActionsMenu';
 import type { SecurityBadgeBottomSheetParams } from '../../components/UI/TokenDetails/components/SecurityBadgeBottomSheet';
 import type { MAPickerSheetParams } from '../../components/UI/Charts/AdvancedChart/MAPickerSheet';
+import type { FeatureNotificationsGateSheetParams } from '../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGateSheet';
 import type { AgenticCliApprovalParams } from '../../components/Views/AgenticCliApproval/types';
 import type { AgenticCliDashboardWebviewParams } from '../../components/Views/AgenticCliDashboardWebview/types';
 import type { MoneyDeeplinkModalParams } from '../../components/UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
@@ -412,6 +413,7 @@ export type RootModalFlowParamList = {
   SDKConnectV2Otp: SDKConnectV2OtpModalParams;
   SDKManageConnections: SDKManageConnectionsParams | undefined;
   ExperienceEnhancer: undefined;
+  FeatureNotificationsGate: FeatureNotificationsGateSheetParams;
   DataCollection: undefined;
   SDKDisconnect: SDKDisconnectParams | undefined;
   AccountConnect: AccountConnectParams | undefined;
@@ -852,9 +854,9 @@ export type RootStackParamList = {
     | NavigatorScreenParams<WalletTabStackParamList>
     | undefined;
   WalletConnectSessionsView: undefined;
-  DeFiFullView: undefined;
+  DeFiFullView: { source?: string } | undefined;
   NftFullView: undefined;
-  TokensFullView: undefined;
+  TokensFullView: { source?: string } | undefined;
   CashTokensFullView: undefined;
   WatchlistFullView: undefined;
 
@@ -984,7 +986,6 @@ export type RootStackParamList = {
   PredictSellPreview: PredictNavigationParamList['PredictSellPreview'];
   PredictUnavailable: undefined;
   PredictAddFundsSheet: PredictModalsNavigationParamList['PredictAddFundsSheet'];
-  PredictGTMModal: undefined;
 
   // Social Leaderboard routes
   TopTradersView:
@@ -1031,6 +1032,7 @@ export type RootStackParamList = {
     | undefined;
   ConfirmationPayWithNetworkModal: undefined;
   SmartAccountOptIn: undefined;
+  ProSubscription: { source?: string; initialPlan?: string } | undefined;
 
   // Notification routes
   NotificationsView: undefined;
@@ -1114,7 +1116,6 @@ export type RootStackParamList = {
   CardCreditRedeem: CardScreensStackParamList['CardCreditRedeem'];
   CardSetPin: CardScreensStackParamList['CardSetPin'];
   CardConfirmPin: CardScreensStackParamList['CardConfirmPin'];
-  CardSetPinSuccess: CardScreensStackParamList['CardSetPinSuccess'];
   ReviewOrder: CardScreensStackParamList['ReviewOrder'];
   OrderCompleted: CardScreensStackParamList['OrderCompleted'];
   CardOnboarding: CardScreensStackParamList['CardOnboarding'];

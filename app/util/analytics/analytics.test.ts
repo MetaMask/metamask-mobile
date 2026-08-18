@@ -178,7 +178,7 @@ describe('analytics', () => {
               ...initialRootState.engine.backgroundState
                 .RemoteFeatureFlagController,
               remoteFeatureFlags: {
-                cardCARD338AbtestAttentionBadge: 'withBadge',
+                assetsASSETS3205AbtestAmbientPriceColor: 'treatment',
               },
               localOverrides: {},
             },
@@ -187,7 +187,7 @@ describe('analytics', () => {
       } as ReturnType<typeof store.getState>);
 
       const event = AnalyticsEventBuilder.createEventBuilder(
-        'Card Button Viewed',
+        'Token Details Opened',
       )
         .addProperties({ source: 'wallet' })
         .build();
@@ -197,14 +197,15 @@ describe('analytics', () => {
       expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
         'trackEvent',
         expect.objectContaining({
-          name: 'Card Button Viewed',
+          name: 'Token Details Opened',
           properties: {
             source: 'wallet',
             active_ab_tests: [
               {
-                key: 'cardCARD338AbtestAttentionBadge',
-                value: 'withBadge',
-                key_value_pair: 'cardCARD338AbtestAttentionBadge=withBadge',
+                key: 'assetsASSETS3205AbtestAmbientPriceColor',
+                value: 'treatment',
+                key_value_pair:
+                  'assetsASSETS3205AbtestAmbientPriceColor=treatment',
               },
             ],
           },

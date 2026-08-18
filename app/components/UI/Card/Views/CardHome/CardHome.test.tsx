@@ -646,6 +646,7 @@ const BAANX_CAPABILITIES = {
   supportsSensitiveDetailsView: false,
   supportsTravel: true,
   supportsTransactionHistory: true,
+  supportsMoneyAccountLinking: true,
 };
 
 const mockIsSolanaChainId = isSolanaChainId as jest.MockedFunction<
@@ -4520,9 +4521,9 @@ describe('CardHome Component', () => {
         ).toBeNull();
       });
 
-      it('does not show view pin button for international virtual card', () => {
-        // Given: International user with virtual card
-        mockGetCapabilities.mockReturnValue({ supportsPinView: false });
+      it('does not show view pin button when card hasPin is false', () => {
+        // Given: Card issued without a PIN (provider still supports PIN view)
+        mockGetCapabilities.mockReturnValue({ supportsPinView: true });
         setupMockSelectors({
           isAuthenticated: true,
           userLocation: 'international',
@@ -4530,7 +4531,7 @@ describe('CardHome Component', () => {
         setupLoadCardDataMock({
           isAuthenticated: true,
 
-          cardDetails: { type: CardType.VIRTUAL },
+          cardDetails: { type: CardType.VIRTUAL, hasPin: false },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
         });
@@ -4545,12 +4546,12 @@ describe('CardHome Component', () => {
       });
 
       it('shows view pin button for US user with virtual card', () => {
-        // Given: US user with virtual card
+        // Given: US user with virtual card that has a PIN
         setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
         setupLoadCardDataMock({
           isAuthenticated: true,
 
-          cardDetails: { type: CardType.VIRTUAL },
+          cardDetails: { type: CardType.VIRTUAL, hasPin: true },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
         });
@@ -4565,7 +4566,7 @@ describe('CardHome Component', () => {
       });
 
       it('shows view pin button for international user with metal card', () => {
-        // Given: International user with metal card
+        // Given: International user with metal card that has a PIN
         setupMockSelectors({
           isAuthenticated: true,
           userLocation: 'international',
@@ -4573,7 +4574,7 @@ describe('CardHome Component', () => {
         setupLoadCardDataMock({
           isAuthenticated: true,
 
-          cardDetails: { type: CardType.METAL },
+          cardDetails: { type: CardType.METAL, hasPin: true },
           isLoading: false,
           kycStatus: { verificationState: 'VERIFIED', userId: 'user-123' },
         });
@@ -4581,7 +4582,7 @@ describe('CardHome Component', () => {
         // When: component renders
         render();
 
-        // Then: view pin button is shown (non-virtual card)
+        // Then: view pin button is shown
         expect(
           screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON),
         ).toBeOnTheScreen();
@@ -4990,6 +4991,7 @@ describe('CardHome Component', () => {
           MetaMetricsEvents.CARD_BUTTON_CLICKED,
         );
         expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          provider: 'baanx',
           action: 'FREEZE_CARD_BUTTON',
         });
       });
@@ -5228,6 +5230,7 @@ describe('CardHome Component', () => {
           MetaMetricsEvents.CARD_BUTTON_CLICKED,
         );
         expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          provider: 'baanx',
           action: 'UNFREEZE_CARD_BUTTON',
         });
       });
@@ -5313,6 +5316,7 @@ describe('CardHome Component', () => {
           MetaMetricsEvents.CARD_BUTTON_CLICKED,
         );
         expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          provider: 'baanx',
           action: 'UNFREEZE_CARD_BUTTON',
         });
       });

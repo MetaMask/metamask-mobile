@@ -3,6 +3,7 @@
 import { Hex } from '@metamask/utils';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictMarketListOrder } from '../constants/flags';
+import type { PredictPaymentMethodValue } from '../constants/eventNames';
 
 export enum Side {
   BUY = 'BUY',
@@ -136,7 +137,10 @@ export type PredictMarket = {
   childMarketIds?: string[];
   isHighlighted?: boolean;
   priceToBeat?: number;
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
 };
+
+export type CryptoTwapWindowSeconds = 30 | 60;
 
 export type PredictSeries = {
   id: string;
@@ -219,6 +223,10 @@ export type PredictSportsLeague =
   | 'dfb'
   | 'cde'
   | 'fifwc'
+  | 'usc'
+  | 'efa'
+  | 'clf'
+  | 'saf1'
   | 'atp'
   | 'wta'
   | 'itf'
@@ -303,6 +311,11 @@ export interface CryptoPriceUpdate {
   symbol: string;
   price: number;
   timestamp: number;
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
+}
+
+export interface CryptoPriceSubscriptionOptions {
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
 }
 
 export interface OrderbookLevel {
@@ -779,12 +792,52 @@ export type OrderResult = Result<{
   txHashes?: string[];
 }>;
 
+export interface PredictBuyAttempt {
+  attemptId: string;
+  amountUsd: number;
+  paymentMethod: PredictPaymentMethodValue;
+}
+
 export interface PlaceOrderParams {
   preview: OrderPreview;
   address?: string;
   transactionId?: string;
   activeAbTests?: TransactionActiveAbTestEntry[];
   analyticsProperties?: PredictTradeAnalyticsProperties;
+  attempt?: PredictBuyAttempt;
+}
+
+/**
+ * Order context kept in memory between a pay-with-any-token deposit and the
+ * order leg that runs once the deposit confirms. `depositedAmount` is recorded
+ * at deposit confirmation because the amount is no longer available if the
+ * order leg later fails.
+ */
+export interface PendingOrderPreview {
+  preview: OrderPreview;
+  signerAddress: string;
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  activeAbTests?: PlaceOrderParams['activeAbTests'];
+  depositedAmount?: number;
+  attempt?: PlaceOrderParams['attempt'];
+}
+
+export interface PredictBuyAttemptContext {
+  attempt: PredictBuyAttempt;
+  address: string;
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  sharePrice?: number;
+  orderType?: OrderPreview['orderType'];
+  activeAbTests?: PlaceOrderParams['activeAbTests'];
+}
+
+export interface StartPredictBuyAttemptArgs {
+  amountUsd: number;
+  paymentMethod: PredictBuyAttempt['paymentMethod'];
+  analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+  sharePrice?: number;
+  orderType?: OrderPreview['orderType'];
+  activeAbTests?: PlaceOrderParams['activeAbTests'];
 }
 
 export interface PreviewOrderParams {
@@ -796,6 +849,13 @@ export interface PreviewOrderParams {
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
+}
+
+export interface PreviewMaxBuyOrderParams {
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+  availableBalance: number;
 }
 
 export type PredictWalletType = 'safe' | 'deposit-wallet';

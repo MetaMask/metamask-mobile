@@ -85,13 +85,9 @@ import { safeToChecksumAddress } from '../../../../util/address';
 import { toTokenMinimalUnit } from '../../../../util/number/bigint';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import {
-  resolveCardFeatureFlag,
-  type CardFeatureFlag,
+  readCardFeatureFlag,
+  resolveCardProviderForCountry,
 } from '../../../../selectors/featureFlagController/card';
-import {
-  deriveCountryProviderMap,
-  getProviderForCountry,
-} from './provider-map';
 import {
   ImmersveProvider,
   type CardResumeInfo,
@@ -245,12 +241,18 @@ export class CardController extends BaseController<
     this.messenger.subscribe('KeyringController:unlock', () => {
       if (this.resetInProgress) return;
       this.#triggerCardholderCheck();
-      this.validateAndRefreshSession().catch((error) =>
-        Logger.error(error as Error, {
-          tags: { feature: 'card' },
-          context: { name: 'CardController', data: { method: '#onUnlock' } },
-        }),
-      );
+      this.validateAndRefreshSession()
+        .then(({ isAuthenticated }) => {
+          if (isAuthenticated && !this.resetInProgress) {
+            this.#fetchCardHomeDataWithLogging('#onUnlock/fetchCardHomeData');
+          }
+        })
+        .catch((error) =>
+          Logger.error(error as Error, {
+            tags: { feature: 'card' },
+            context: { name: 'CardController', data: { method: '#onUnlock' } },
+          }),
+        );
     });
 
     // Re-check when the account tree changes (account added/removed).
@@ -349,11 +351,7 @@ export class CardController extends BaseController<
       const featureState = this.messenger.call(
         'RemoteFeatureFlagController:getState',
       );
-      const cardFeature = resolveCardFeatureFlag(
-        featureState.remoteFeatureFlags?.cardFeature as
-          | CardFeatureFlag
-          | undefined,
-      );
+      const cardFeature = readCardFeatureFlag(featureState.remoteFeatureFlags);
       const accountsApiUrl = cardFeature?.constants?.accountsApiUrl;
       if (!accountsApiUrl) return;
 
@@ -413,27 +411,10 @@ export class CardController extends BaseController<
       'RemoteFeatureFlagController:getState',
     );
 
-    const cardFeature = resolveCardFeatureFlag(
-      featureState.remoteFeatureFlags?.cardFeature as
-        | CardFeatureFlag
-        | undefined,
+    return resolveCardProviderForCountry(
+      featureState.remoteFeatureFlags,
+      country,
     );
-
-    if (cardFeature.immersve?.enabled) {
-      const immersveCountries = cardFeature.immersveCountries ?? [];
-      const map = deriveCountryProviderMap(
-        Object.fromEntries(
-          immersveCountries.map((c) => [c, true] as [string, boolean]),
-        ),
-        CardProviderIds.Immersve,
-      );
-      const provider = getProviderForCountry(country, map);
-      if (provider) {
-        return provider;
-      }
-    }
-
-    return DEFAULT_CARD_PROVIDER_ID;
   }
 
   /**

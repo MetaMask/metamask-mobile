@@ -183,6 +183,9 @@ jest.mock('../../../core/Engine', () => ({
     TransactionController: {
       cancelTransaction: jest.fn(),
       stopTransaction: jest.fn(),
+      state: {
+        transactions: [],
+      },
     },
   },
 }));
