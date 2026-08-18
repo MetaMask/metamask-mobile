@@ -57,6 +57,12 @@ export class DepositService {
         // Get deposit routes from provider
         const depositRoutes = provider.getDepositRoutes({ isTestnet: false });
         const route = depositRoutes[0];
+        if (!route) {
+            // Fail CLOSED with a routable message instead of a TypeError: some
+            // venues (Lighter testnet) settle on a chain the wallet cannot
+            // reach and advertise no deposit route at all.
+            throw new Error('The active perps provider has no deposit route on this network');
+        }
         const bridgeContractAddress = route.contractAddress;
         // Generate transfer data for ERC-20 token transfer (portable, no mobile imports)
         const transferData = generateERC20TransferData(bridgeContractAddress, '0x0');

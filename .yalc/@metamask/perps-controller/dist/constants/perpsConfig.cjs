@@ -483,7 +483,9 @@ exports.PROVIDER_CONFIG = {
     /**
      * Force Lighter to testnet only. Off: Lighter follows the global network
      * toggle so mainnet reads (full market catalog, prices, candles) work;
-     * writes stay testnet-gated inside LighterProvider (POC).
+     * every nonce-consuming write is refused on mainnet by the gate at the
+     * top of LighterProvider's venue write lock until mainnet trading is
+     * validated end-to-end.
      */
     LIGHTER_TESTNET_ONLY: false,
 };
