@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import { CardSpendingPrerequisitesResult } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { useImmersveSpendingPrerequisites } from './useImmersveSpendingPrerequisites';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -208,14 +209,13 @@ describe('useImmersveSpendingPrerequisites', () => {
     });
 
     it('does not restart fast polling while a cooldown retry is in flight', async () => {
-      let resolveRetry: (value: {
-        prerequisites: { stage: string; status: string }[];
-      }) => void = () => undefined;
-      const retryPromise = new Promise<{
-        prerequisites: { stage: string; status: string }[];
-      }>((resolve) => {
-        resolveRetry = resolve;
-      });
+      let resolveRetry: (value: CardSpendingPrerequisitesResult) => void = () =>
+        undefined;
+      const retryPromise = new Promise<CardSpendingPrerequisitesResult>(
+        (resolve) => {
+          resolveRetry = resolve;
+        },
+      );
 
       mockCard.getSpendingPrerequisites
         .mockResolvedValueOnce({
