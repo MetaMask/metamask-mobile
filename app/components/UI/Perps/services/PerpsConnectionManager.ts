@@ -896,6 +896,7 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
+
         // Validate connection with WebSocket health check ping before marking as connected
         // This ensures the WebSocket connection is actually responsive without expensive API calls
         DevLogger.log(
@@ -910,6 +911,7 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
+
         // Check if timeout fired during health check - respect timeout decision.
         // The timeout handler always sets isConnecting=false (even when
         // suppressError is true), so checking that flag detects the timeout
@@ -952,6 +954,7 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
+
         DevLogger.log('PerpsConnectionManager: Successfully connected');
 
         // Stage 3: Pre-load positions and orders subscriptions to populate cache
@@ -963,6 +966,7 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
+
         // Track total connection time including preload (user-perceived performance)
         const totalConnectionDuration = performance.now() - connectionStartTime;
 
@@ -981,6 +985,7 @@ class PerpsConnectionManagerClass {
           'millisecond',
           traceSpan,
         );
+
         traceData = {
           success: true,
         };
