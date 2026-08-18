@@ -16,6 +16,10 @@ import { Performance } from '../../core/Performance';
 import Device from '../device';
 import { TraceName, hasMetricsConsent } from '../trace';
 import { getTraceTags } from './tags';
+import {
+  groupDiskSpaceSentryReport,
+  isDiskSpaceSentryReport,
+} from './diskSpaceSentry';
 import { ReduxStore } from '../../core/redux';
 import { OTA_VERSION } from '../../constants/ota';
 
@@ -423,6 +427,10 @@ export function maskObject(
 
 export function rewriteReport(report: SentryEvent): SentryEvent {
   try {
+    if (isDiskSpaceSentryReport(report)) {
+      groupDiskSpaceSentryReport(report);
+    }
+
     // filter out SES from error stack trace
     removeSES(report);
     // simplify certain complex error messages (e.g. Ethjs)

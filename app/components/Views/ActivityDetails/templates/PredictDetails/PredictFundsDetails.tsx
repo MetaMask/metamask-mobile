@@ -13,8 +13,8 @@ import {
   ActivityDetailsPayNetworkRow,
   ActivityDetailsStepTimeline,
   ActivityDetailsTemplateFrame,
-  formatActivityTokenAmount,
   useActivityPayFiat,
+  useFormatActivityTokenAmount,
 } from '../../components';
 import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
 import {
@@ -65,13 +65,10 @@ export function PredictFundsDetails({
   item: PredictActivityListItem;
 }) {
   const openPredictHome = useOpenPredictHome();
+  const formatActivityTokenAmount = useFormatActivityTokenAmount();
   const isDeposit = item.type === 'predictionsAddFunds';
   const amount = formatActivityTokenAmount(item.data.token);
-  // The step timeline is deposit-only by design: the Predict step builder and
-  // locale keys (`steps.bridge_funds` / `steps.add_funds`) describe the
-  // bridge-deposit flow. Withdrawals have no defined step semantics or copy yet,
-  // so their timeline is intentionally omitted — the amount, account/network
-  // metadata and the withdraw CTA still render.
+
   const steps =
     isDeposit && item.status !== 'cancelled'
       ? getPredictFundsSteps(item.status, item.timestamp)

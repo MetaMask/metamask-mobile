@@ -65,6 +65,10 @@ export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = [
   'dfb',
   'cde',
   'fifwc',
+  'usc',
+  'efa',
+  'clf',
+  'saf1',
   'atp',
   'wta',
   'itf',
@@ -133,6 +137,10 @@ const DRAW_CAPABLE_LEAGUES: ReadonlySet<PredictSportsLeague> = new Set([
   'dfb',
   'cde',
   'fifwc',
+  'usc',
+  'efa',
+  'clf',
+  'saf1',
 ]);
 
 export const isDrawCapableLeague = (league: PredictSportsLeague): boolean =>

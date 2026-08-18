@@ -25,7 +25,7 @@ import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../../../core/Analytics/events/transactions';
 
@@ -55,7 +55,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
     (transaction: PerpsTransaction) => {
       if (transaction.fill) {
         trackEvent(
-          createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+          createEventBuilder(ACTIVITY_DETAIL_EVENTS.OPENED)
             .addProperties({
               transaction_type: `perps_${transaction.type}`,
               transaction_status: 'confirmed',

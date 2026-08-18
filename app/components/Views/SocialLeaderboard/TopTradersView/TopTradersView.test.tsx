@@ -14,6 +14,8 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ImpactMoment } from '../../../../util/haptics';
 import TopTradersView from './TopTradersView';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
+import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
+import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import {
   getSortFilterOptionTestId,
   getTimeframeFilterOptionTestId,
@@ -343,6 +345,24 @@ describe('TopTradersView', () => {
     expect(
       screen.getByTestId(TopTradersViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  describe('safe area layout', () => {
+    it('excludes bottom safe area so the scroll list extends to the screen edge', () => {
+      renderWithProvider(<TopTradersView />);
+
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.CONTAINER).props.edges,
+      ).toEqual(SCROLLABLE_SCREEN_SAFE_AREA_EDGES);
+    });
+
+    it('keeps the top inset on the header to prevent layout shift on push', () => {
+      renderWithProvider(<TopTradersView />);
+
+      expectHeaderIncludesTopInset(
+        screen.getByTestId(TopTradersViewSelectorsIDs.HEADER),
+      );
+    });
   });
 
   it('renders the Weekly top traders title in the scrollable title section', () => {

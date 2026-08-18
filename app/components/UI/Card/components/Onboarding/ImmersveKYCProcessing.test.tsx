@@ -62,6 +62,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock('../../util/metrics', () => ({
+  ...jest.requireActual('../../util/metrics'),
   CardScreens: { KYC_PROCESSING: 'KYC_PROCESSING' },
 }));
 

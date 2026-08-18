@@ -83,9 +83,7 @@ appiumTest.describe(
         });
     };
 
-    // 8.7.0: iOS `perps-market-details-view` isDisplayed is flaky (~1.5s).
-    // Main fixed this in #34454 (exist instead of visible). Not on this RC.
-    appiumTest.skip(
+    appiumTest(
       'Navigate to all sections full views via View All and return to feed',
       async ({ driver: _driver, currentDeviceDetails }) => {
         await withFixtures(

@@ -12,9 +12,21 @@ import {
   selectRelayFixedSpread,
   PrefilledAmountConfig,
 } from '../../../../../selectors/featureFlagController/confirmations';
+import {
+  selectFeatureFlagThresholdGroups,
+  selectRemoteFeatureFlags,
+} from '../../../../../selectors/featureFlagController';
 import { selectAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { RootState } from '../../../../../reducers';
+import { resolveABTestAssignment } from '../../../../../util/abTest';
 import { isRouteToken } from '../../utils/relayFixedSpread';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
+import {
+  MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
+  MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
+  MoneyAccountDepositPrefillVariant,
+} from './abTestConfig';
+import { isMoneyAccountDepositPrefillEnabled } from './isMoneyAccountDepositPrefillEnabled';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 
@@ -65,7 +77,48 @@ export function useDepositPrefillAmount(): DepositPrefillResult {
     return undefined;
   }, [transactionMeta, depositLimits]);
 
-  const enabled = prefilledAmountConfig.enabled;
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+  const depositIntent = getMoneyAccountDepositIntent(transactionMeta?.batchId);
+
+  const remoteFeatureFlags = useSelector(selectRemoteFeatureFlags);
+  const thresholdGroups = useSelector(selectFeatureFlagThresholdGroups);
+
+  // Scope the deposit-prefill experiment to moneyAccountDeposit only. Other
+  // CustomAmountInfo flows (perps/predict/withdraw) must not read or apply it.
+  // Experiment Viewed is emitted from MoneyAccountDepositInfo via useABTest.
+  const enabled = useMemo(() => {
+    if (!isMoneyAccountDeposit) {
+      return prefilledAmountConfig.enabled;
+    }
+
+    const { variantName } = resolveABTestAssignment(
+      remoteFeatureFlags,
+      MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
+      Object.values(MoneyAccountDepositPrefillVariant),
+      thresholdGroups,
+    );
+    const abTestPrefillEnabled =
+      MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS[
+        variantName as MoneyAccountDepositPrefillVariant
+      ]?.prefillEnabled ??
+      MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS[
+        MoneyAccountDepositPrefillVariant.Control
+      ].prefillEnabled;
+
+    return isMoneyAccountDepositPrefillEnabled({
+      remotePrefillEnabled: prefilledAmountConfig.enabled,
+      abTestPrefillEnabled,
+      intent: depositIntent,
+    });
+  }, [
+    depositIntent,
+    isMoneyAccountDeposit,
+    prefilledAmountConfig.enabled,
+    remoteFeatureFlags,
+    thresholdGroups,
+  ]);
 
   const transactionId = transactionMeta?.id ?? '';
   const accountOverride = useSelector((state: RootState) =>

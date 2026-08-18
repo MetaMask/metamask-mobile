@@ -407,6 +407,80 @@ describe('TransactionDetailsHero', () => {
       expect(getByText(/\+\$200/)).toBeDefined();
     });
 
+    describe('post-quote withdrawals (inflated totalFiat)', () => {
+      // The controller builds totalFiat as `source amount + fees`, but a
+      // post-quote withdrawal's source amount already includes the fees, so
+      // totalFiat overstates what left the account. The hero must reconstruct
+      // it from targetFiat + the fees the details screen lists.
+      it('shows the source amount rather than the inflated totalFiat for moneyAccountWithdraw', () => {
+        useTransactionDetailsMock.mockReturnValue({
+          transactionMeta: {
+            ...TRANSACTION_META_MOCK,
+            type: TransactionType.moneyAccountWithdraw,
+            metamaskPay: {
+              tokenAddress: TOKEN_ADDRESS_MOCK,
+              chainId: CHAIN_ID_MOCK,
+              isPostQuote: true,
+              targetFiat: '0.75',
+              bridgeFeeFiat: '0.25',
+              networkFeeFiat: '0',
+              totalFiat: '1.25',
+            },
+          } as unknown as TransactionMeta,
+        });
+
+        const { getByText, queryByText } = render();
+
+        expect(getByText(/^-\$1$/)).toBeDefined();
+        expect(getByText(/\+\$0\.75/)).toBeDefined();
+        expect(queryByText(/\$1\.25/)).toBeNull();
+      });
+
+      it('includes the network fee in the source amount', () => {
+        useTransactionDetailsMock.mockReturnValue({
+          transactionMeta: {
+            ...TRANSACTION_META_MOCK,
+            type: TransactionType.perpsWithdraw,
+            metamaskPay: {
+              tokenAddress: TOKEN_ADDRESS_MOCK,
+              chainId: CHAIN_ID_MOCK,
+              isPostQuote: true,
+              targetFiat: '50.00',
+              bridgeFeeFiat: '1.50',
+              networkFeeFiat: '0.84',
+              totalFiat: '54.68',
+            },
+          } as unknown as TransactionMeta,
+        });
+
+        const { getByText } = render();
+
+        expect(getByText(/-\$52\.34/)).toBeDefined();
+        expect(getByText(/\+\$50/)).toBeDefined();
+      });
+
+      it('keeps totalFiat for deposits, where fees are genuinely paid on top', () => {
+        useTransactionDetailsMock.mockReturnValue({
+          transactionMeta: {
+            ...TRANSACTION_META_MOCK,
+            type: TransactionType.perpsDeposit,
+            metamaskPay: {
+              tokenAddress: TOKEN_ADDRESS_MOCK,
+              chainId: CHAIN_ID_MOCK,
+              targetFiat: '123.46',
+              bridgeFeeFiat: '2.34',
+              totalFiat: '125.80',
+            },
+          } as unknown as TransactionMeta,
+        });
+
+        const { getByText } = render();
+
+        expect(getByText(/-\$125\.80/)).toBeDefined();
+        expect(getByText(/\+\$123\.46/)).toBeDefined();
+      });
+    });
+
     it('renders single-row hero with Money Account icon for mUSD-to-mUSD moneyAccountWithdraw', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {

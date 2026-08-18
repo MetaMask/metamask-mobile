@@ -80,30 +80,29 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
-  # Temporarily skip Perps Appium smoke on 8.7.1-ota (same as 8.7.0).
-  # Order screen / scrollIntoView flakes; not caused by the Rive cherry-pick.
-  #   if: >-
-  #     ${{
-  #       !cancelled() &&
-  #       (contains(fromJson(inputs.selected_tags), 'ALL') ||
-  #        contains(fromJson(inputs.selected_tags), 'SmokePerps'))
-  #     }}
-  #   strategy:
-  #     matrix:
-  #       split: [1, 2]
-  #     fail-fast: false
-  #   uses: ./.github/workflows/run-appium-e2e-workflow.yml
-  #   with:
-  #     test-suite-name: appium-perps-android-smoke-${{ matrix.split }}
-  #     platform: android
-  #     test_suite_tag: SmokePerps
-  #     split_number: ${{ matrix.split }}
-  #     total_splits: 2
-  #     test-timeout-minutes: 25
-  #     build_type: ${{ inputs.build_type }}
-  #     metamask_environment: ${{ inputs.metamask_environment }}
-  #     runner_provider: ${{ inputs.runner_provider }}
-  #   secrets: inherit
+  appium-perps-android-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags), 'ALL') ||
+         contains(fromJson(inputs.selected_tags), 'SmokePerps'))
+      }}
+    strategy:
+      matrix:
+        split: [1, 2]
+      fail-fast: false
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-perps-android-smoke-${{ matrix.split }}
+      platform: android
+      test_suite_tag: SmokePerps
+      split_number: ${{ matrix.split }}
+      total_splits: 2
+      test-timeout-minutes: 25
+      build_type: ${{ inputs.build_type }}
+      metamask_environment: ${{ inputs.metamask_environment }}
+      runner_provider: ${{ inputs.runner_provider }}
+    secrets: inherit
 
   appium-predictions-android-smoke:
     if: >-
@@ -172,7 +171,7 @@ jobs:
       split_number: ${{ matrix.split }}
       total_splits: 6
       # Session reuse + soft reload: denser shards; drop toward 25 after one green main.
-      test-timeout-minutes: 30
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -243,7 +242,7 @@ jobs:
       test_suite_tag: SmokeSwap
       split_number: ${{ matrix.split }}
       total_splits: 1
-      test-timeout-minutes: 30
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -291,7 +290,7 @@ jobs:
   #     test_suite_tag: SmokeMMConnect
   #     split_number: ${{ matrix.split }}
   #     total_splits: 1
-  #     test-timeout-minutes: 35
+  #     test-timeout-minutes: 25
   #     android-tag: google_apis
   #     build_type: ${{ inputs.build_type }}
   #     metamask_environment: ${{ inputs.metamask_environment }}
@@ -364,7 +363,7 @@ jobs:
       test_suite_tag: SmokeConfirmations
       split_number: ${{ matrix.split }}
       total_splits: 2
-      test-timeout-minutes: 35
+      test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
