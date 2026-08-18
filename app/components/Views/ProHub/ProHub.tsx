@@ -41,7 +41,7 @@ const ProHub = () => {
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
-      edges={['top']}
+      edges={['top', 'bottom']}
       testID={ProHubTestIds.CONTAINER}
     >
       {/* Header row */}
@@ -60,7 +60,7 @@ const ProHub = () => {
           <ButtonIcon
             iconName={IconName.Setting}
             onPress={handleManagePlans}
-            accessibilityLabel="Manage Plans"
+            accessibilityLabel={strings('pro_hub.manage')}
             testID={ProHubTestIds.MANAGE_PLANS_BUTTON}
           />
         }
@@ -86,7 +86,7 @@ const ProHub = () => {
       </Box>
 
       {/* Action buttons */}
-      <Box twClassName="px-6 pb-10 gap-y-3">
+      <Box twClassName="px-6 pb-2 gap-y-3">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
