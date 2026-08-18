@@ -1,6 +1,7 @@
 import {
   capRecurringKeypadValue,
   parsePositiveInteger,
+  restoreRecurringValueIfInvalid,
   RECURRING_MAX_DURATION_MINUTES,
   validateRecurringSchedule,
   type RecurringState,
@@ -32,6 +33,24 @@ describe('parsePositiveInteger', () => {
       expect(result).toBeUndefined();
     },
   );
+});
+
+describe('restoreRecurringValueIfInvalid', () => {
+  it('returns 1 when the value is not a positive integer', () => {
+    const value = '0';
+
+    const result = restoreRecurringValueIfInvalid(value);
+
+    expect(result).toBe('1');
+  });
+
+  it('keeps a valid positive integer', () => {
+    const value = '12';
+
+    const result = restoreRecurringValueIfInvalid(value);
+
+    expect(result).toBe('12');
+  });
 });
 
 describe('capRecurringKeypadValue', () => {

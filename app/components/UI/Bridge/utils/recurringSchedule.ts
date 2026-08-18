@@ -67,6 +67,14 @@ export function parsePositiveInteger(value: string): number | undefined {
   return Number(value);
 }
 
+export function restoreRecurringValueIfInvalid(value: string): string {
+  if (parsePositiveInteger(value) === undefined) {
+    return DEFAULT_RECURRING_EVERY_VALUE;
+  }
+
+  return value;
+}
+
 export function capRecurringKeypadValue(
   currentValue: string,
   nextValue: string,

@@ -120,6 +120,77 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     });
   });
 
+  it('snaps every back to 1 when the keypad is closed on 0', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    await openEveryKeypad(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
+        ),
+      ).toHaveDisplayValue('0');
+    });
+    fireEvent(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.CONTAINER),
+      'responderRelease',
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
+        ),
+      ).toHaveDisplayValue('1');
+    });
+  });
+
+  it('snaps repeat back to 1 when the keypad is closed on 0', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    fireEvent(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+      ),
+      'pressIn',
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+    fireEvent.press(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+        ),
+      ).toHaveDisplayValue('0');
+    });
+    fireEvent(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.CONTAINER),
+      'responderRelease',
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+        ),
+      ).toHaveDisplayValue('1');
+    });
+  });
+
   it('does not add a decimal when the period key is pressed', async () => {
     const renderResult = renderBridgeView();
 

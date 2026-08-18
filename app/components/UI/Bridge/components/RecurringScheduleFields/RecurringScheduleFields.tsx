@@ -30,6 +30,7 @@ import type { SwapsKeypadRef } from '../SwapsKeypad/types';
 import RecurringIntervalSheet from '../RecurringIntervalSheet';
 import {
   capRecurringKeypadValue,
+  restoreRecurringValueIfInvalid,
   RECURRING_EVERY_MAX_DIGITS,
   RECURRING_REPEAT_MAX_DIGITS,
   type RecurringIntervalUnit,
@@ -114,7 +115,17 @@ const RecurringScheduleFields = () => {
   const closeKeypad = useCallback(() => {
     keypadRef.current?.close();
     setFocusedField(null);
-  }, []);
+
+    const restoredEveryValue = restoreRecurringValueIfInvalid(everyValue);
+    if (restoredEveryValue !== everyValue) {
+      dispatch(setRecurringEveryValue(restoredEveryValue));
+    }
+
+    const restoredRepeatCount = restoreRecurringValueIfInvalid(repeatCount);
+    if (restoredRepeatCount !== repeatCount) {
+      dispatch(setRecurringRepeatCount(restoredRepeatCount));
+    }
+  }, [dispatch, everyValue, repeatCount]);
 
   const handleEveryPress = useCallback(() => {
     setFocusedField(FocusedScheduleField.Every);
