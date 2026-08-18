@@ -2,12 +2,23 @@ import { Hex } from '@metamask/utils';
 import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
 import type { MoneyAccount } from '@metamask/money-account-controller';
 import { MONEY_DERIVATION_PATH } from '@metamask/eth-money-keyring';
+import { Contract } from '@ethersproject/contracts';
+import { Web3Provider } from '@ethersproject/providers';
 import Engine from '../../../core/Engine';
 import { emptyCardHomeData } from '../../../core/Engine/controllers/card-controller/provider-types';
 import { whenMoneyAccountUpgradeReady } from '../../../core/Engine/controllers/money-account-upgrade-controller-init';
 import { MoneyAccountBalanceServiceQueryKeys } from '../../../components/UI/Money/queryKeys';
+import { MONEY_ACCOUNT_DELEGATION_NETWORK } from '../../../components/UI/Card/util/vedaToken';
 import { MoneyAccountMigrationPocService } from './MoneyAccountMigrationPocService';
 import type { MigrationInventory } from './types';
+
+jest.mock('@ethersproject/providers', () => ({
+  Web3Provider: jest.fn(),
+}));
+
+jest.mock('@ethersproject/contracts', () => ({
+  Contract: jest.fn(),
+}));
 
 jest.mock('../../../core/Engine', () => ({
   __esModule: true,
@@ -33,6 +44,8 @@ jest.mock(
 
 const SOURCE = '0x1111111111111111111111111111111111111111' as Hex;
 const DEST = '0x2222222222222222222222222222222222222222' as Hex;
+const BORING_VAULT = '0xb4563bcd3b7764ccbf497f515585f70b6c3ea5ae' as Hex;
+const CARD_DELEGATION = '0xc7f1b2228fbf28451c7bf791c4f610111f0f32cb' as Hex;
 const INTENT_HASH =
   '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Hex;
 const DELEGATION_HASH =
@@ -75,6 +88,8 @@ const mockWhenMoneyAccountUpgradeReady =
   whenMoneyAccountUpgradeReady as jest.MockedFunction<
     typeof whenMoneyAccountUpgradeReady
   >;
+const mockGetBalance = jest.fn();
+const mockAllowance = jest.fn();
 
 const plan = (
   overrides: Partial<MigrationInventory> = {},
@@ -115,6 +130,10 @@ const stubMessenger = () => {
         return undefined;
       case 'AuthenticatedUserStorageService:revokeDelegation':
         return undefined;
+      case 'NetworkController:findNetworkClientIdByChainId':
+        return 'monad';
+      case 'NetworkController:getNetworkClientById':
+        return { provider: {} };
       default:
         throw new Error(`unexpected action ${action}`);
     }
@@ -127,6 +146,14 @@ describe('MoneyAccountMigrationPocService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockWhenMoneyAccountUpgradeReady.mockResolvedValue(undefined);
+    mockGetBalance.mockResolvedValue({ toString: () => '0' });
+    mockAllowance.mockResolvedValue({ toString: () => '0' });
+    (Web3Provider as unknown as jest.Mock).mockImplementation(() => ({
+      getBalance: mockGetBalance,
+    }));
+    (Contract as unknown as jest.Mock).mockImplementation(() => ({
+      allowance: mockAllowance,
+    }));
     stubMessenger();
   });
 
@@ -276,6 +303,10 @@ describe('MoneyAccountMigrationPocService', () => {
           return undefined;
         case 'CardController:getState':
           return { moneyAccountCardLinkInProgress: false };
+        case 'NetworkController:findNetworkClientIdByChainId':
+          return 'monad';
+        case 'NetworkController:getNetworkClientById':
+          return { provider: {} };
         default:
           throw new Error(`unexpected action ${action}`);
       }
@@ -310,6 +341,10 @@ describe('MoneyAccountMigrationPocService', () => {
           return [];
         case 'AuthenticatedUserStorageService:listDelegations':
           return [];
+        case 'NetworkController:findNetworkClientIdByChainId':
+          return 'monad';
+        case 'NetworkController:getNetworkClientById':
+          return { provider: {} };
         default:
           throw new Error(`unexpected action ${action}`);
       }
@@ -363,6 +398,140 @@ describe('MoneyAccountMigrationPocService', () => {
     );
     expect(lastInvalidate).toBeGreaterThanOrEqual(0);
     expect(lastInvalidate).toBeLessThan(firstFetch);
+  });
+
+  it('reads native balance and mUSD allowances from RPC', async () => {
+    mockCall.mockImplementation(async (action: string) => {
+      switch (action) {
+        case 'RemoteFeatureFlagController:getState':
+          return {
+            remoteFeatureFlags: {
+              moneyAccountVaultConfig: {
+                chainId: '0x8f',
+                boringVault: BORING_VAULT,
+              },
+            },
+          };
+        case 'MoneyAccountBalanceService:getVmusdBalance':
+        case 'MoneyAccountBalanceService:getMusdBalance':
+          return { balance: '0' };
+        case 'ChompApiService:getIntentsByAddress':
+          return [];
+        case 'AuthenticatedUserStorageService:listDelegations':
+          return [];
+        case 'MoneyAccountBalanceService:invalidateQueries':
+        case 'ChompApiService:invalidateQueries':
+        case 'AuthenticatedUserStorageService:invalidateQueries':
+          return undefined;
+        case 'NetworkController:findNetworkClientIdByChainId':
+          return 'monad';
+        case 'NetworkController:getNetworkClientById':
+          return { provider: {} };
+        default:
+          throw new Error(`unexpected action ${action}`);
+      }
+    });
+    mockGetCardHomeData.mockResolvedValue({
+      ...emptyCardHomeData(),
+      delegationSettings: {
+        networks: [
+          {
+            network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+            environment: 'staging',
+            chainId: '143',
+            delegationContract: CARD_DELEGATION,
+            tokens: {
+              veda: {
+                symbol: 'veda',
+                decimals: 6,
+                address: BORING_VAULT,
+              },
+            },
+          },
+        ],
+        count: 1,
+        _links: { self: '' },
+      },
+    });
+    mockGetBalance.mockResolvedValue({ toString: () => '10000000000000000' });
+    mockAllowance.mockImplementation(async (_owner: string, spender: string) => {
+      if (spender.toLowerCase() === BORING_VAULT) {
+        return { toString: () => '7' };
+      }
+      if (spender.toLowerCase() === CARD_DELEGATION) {
+        return { toString: () => '9' };
+      }
+      return { toString: () => '0' };
+    });
+    const service = new MoneyAccountMigrationPocService();
+
+    const inventory = await service.collectInventory(SOURCE, DEST);
+
+    expect(inventory.nativeWei).toBe(10n ** 16n);
+    expect(inventory.vaultAllowance).toBe(7n);
+    expect(inventory.cardAllowance).toBe(9n);
+    expect(mockCall).toHaveBeenCalledWith(
+      'NetworkController:findNetworkClientIdByChainId',
+      '0x8f',
+    );
+    expect(mockGetBalance).toHaveBeenCalledWith(SOURCE, 'pending');
+    expect(mockAllowance).toHaveBeenCalledWith(
+      SOURCE,
+      BORING_VAULT,
+      { blockTag: 'pending' },
+    );
+    expect(mockAllowance).toHaveBeenCalledWith(
+      SOURCE,
+      CARD_DELEGATION,
+      { blockTag: 'pending' },
+    );
+  });
+
+  it('leaves cardAllowance at 0 when Card has no delegation contract', async () => {
+    mockCall.mockImplementation(async (action: string) => {
+      switch (action) {
+        case 'RemoteFeatureFlagController:getState':
+          return {
+            remoteFeatureFlags: {
+              moneyAccountVaultConfig: {
+                chainId: '0x8f',
+                boringVault: BORING_VAULT,
+              },
+            },
+          };
+        case 'MoneyAccountBalanceService:getVmusdBalance':
+        case 'MoneyAccountBalanceService:getMusdBalance':
+          return { balance: '0' };
+        case 'ChompApiService:getIntentsByAddress':
+          return [];
+        case 'AuthenticatedUserStorageService:listDelegations':
+          return [];
+        case 'MoneyAccountBalanceService:invalidateQueries':
+        case 'ChompApiService:invalidateQueries':
+        case 'AuthenticatedUserStorageService:invalidateQueries':
+          return undefined;
+        case 'NetworkController:findNetworkClientIdByChainId':
+          return 'monad';
+        case 'NetworkController:getNetworkClientById':
+          return { provider: {} };
+        default:
+          throw new Error(`unexpected action ${action}`);
+      }
+    });
+    mockGetBalance.mockResolvedValue({ toString: () => '1' });
+    mockAllowance.mockResolvedValue({ toString: () => '7' });
+    const service = new MoneyAccountMigrationPocService();
+
+    const inventory = await service.collectInventory(SOURCE, DEST);
+
+    expect(inventory.vaultAllowance).toBe(7n);
+    expect(inventory.cardAllowance).toBe(0n);
+    expect(mockAllowance).toHaveBeenCalledTimes(1);
+    expect(mockAllowance).toHaveBeenCalledWith(
+      SOURCE,
+      BORING_VAULT,
+      { blockTag: 'pending' },
+    );
   });
 
   it('returns in-flight-card-spend when Card link is in progress', async () => {

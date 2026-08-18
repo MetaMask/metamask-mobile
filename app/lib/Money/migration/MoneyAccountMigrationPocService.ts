@@ -1,7 +1,14 @@
 import type { Hex } from '@metamask/utils';
+import { Contract } from '@ethersproject/contracts';
+import { Web3Provider } from '@ethersproject/providers';
 import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
 import { MONEY_DERIVATION_PATH } from '@metamask/eth-money-keyring';
+import { abiERC20 } from '@metamask/metamask-eth-abis';
 import type { MoneyAccount } from '@metamask/money-account-controller';
+import {
+  MUSD_TOKEN_ADDRESS,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+} from '@metamask/money-account-utils';
 import Engine from '../../../core/Engine';
 import { whenMoneyAccountUpgradeReady } from '../../../core/Engine/controllers/money-account-upgrade-controller-init';
 import { toCardFundingToken } from '../../../components/UI/Card/util/toCardTokenAllowance';
@@ -35,6 +42,7 @@ const STUB_DESTINATION_ACCOUNT: MoneyAccount = {
   ],
 };
 const DEFAULT_CHAIN_ID = '0x8f' as Hex;
+const PENDING_READ = { blockTag: 'pending' } as const;
 
 /**
  * Option B Money Account footprint migration (ADR 0006) for POC.
@@ -136,15 +144,37 @@ export class MoneyAccountMigrationPocService {
     }
 
     const sourceLower = source.toLowerCase();
+    const chainId = (vaultConfig?.chainId as Hex | undefined) ?? DEFAULT_CHAIN_ID;
+    const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId] ?? MUSD_TOKEN_ADDRESS;
+    const networkClientId = await messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
+      chainId,
+    );
+    const { provider } = await messenger.call(
+      'NetworkController:getNetworkClientById',
+      networkClientId,
+    );
+    const ethersProvider = new Web3Provider(provider);
+    const musd = new Contract(musdAddress, abiERC20, ethersProvider);
+    const cardSpender = vedaConfig?.delegationContract;
+    const [nativeBalance, vaultAllowanceRaw, cardAllowanceRaw] =
+      await Promise.all([
+        ethersProvider.getBalance(source, 'pending'),
+        vaultConfig?.boringVault
+          ? musd.allowance(source, vaultConfig.boringVault, PENDING_READ)
+          : 0n,
+        cardSpender ? musd.allowance(source, cardSpender, PENDING_READ) : 0n,
+      ]);
+
     return {
       source,
       destination,
-      chainId: (vaultConfig?.chainId as Hex | undefined) ?? DEFAULT_CHAIN_ID,
+      chainId,
       vmUsd: BigInt(vmUsdBalance.balance),
       musd: BigInt(musdBalance.balance),
-      nativeWei: 0n,
-      vaultAllowance: 0n,
-      cardAllowance: 0n,
+      nativeWei: BigInt(nativeBalance.toString()),
+      vaultAllowance: BigInt(vaultAllowanceRaw.toString()),
+      cardAllowance: BigInt(cardAllowanceRaw.toString()),
       chompIntentHashes: intents
         .filter((intent) => intent.status === 'active')
         .map((intent) => intent.delegationHash),
