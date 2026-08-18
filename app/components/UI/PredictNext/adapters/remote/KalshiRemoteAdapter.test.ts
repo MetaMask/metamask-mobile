@@ -49,6 +49,7 @@ const createMarketHistory = (overrides = {}) => ({
     {
       timestamp: '2026-08-07T11:00:00Z',
       yesPrice: '0.42',
+      noPrice: '0.58',
     },
   ],
   ...overrides,
@@ -123,6 +124,7 @@ describe('KalshiRemoteAdapter', () => {
     const result = await adapter.marketData.fetchMarketHistory(marketId, range);
 
     expect(result.points[0].yesPrice).toBe('0.42');
+    expect(result.points[0].noPrice).toBe('0.58');
   });
 
   it('forwards Market history cancellation', async () => {

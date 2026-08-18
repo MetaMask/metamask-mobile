@@ -65,8 +65,8 @@ const marketHistory = (marketId: string, range: string) => ({
   range,
   observedAt: '2026-08-17T20:00:00Z',
   points: [
-    { timestamp: '2026-08-17T18:00:00Z', yesPrice: '0.40' },
-    { timestamp: '2026-08-17T20:00:00Z', yesPrice: '0.42' },
+    { timestamp: '2026-08-17T18:00:00Z', yesPrice: '0.40', noPrice: '0.60' },
+    { timestamp: '2026-08-17T20:00:00Z', yesPrice: '0.42', noPrice: '0.58' },
   ],
 });
 

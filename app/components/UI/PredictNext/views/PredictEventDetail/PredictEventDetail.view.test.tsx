@@ -57,8 +57,8 @@ const history = (marketId: string, range: string, points = 2) => ({
   range,
   observedAt: '2026-08-17T20:00:00Z',
   points: [
-    { timestamp: '2026-08-17T18:00:00Z', yesPrice: '0.40' },
-    { timestamp: '2026-08-17T20:00:00Z', yesPrice: '0.42' },
+    { timestamp: '2026-08-17T18:00:00Z', yesPrice: '0.40', noPrice: '0.60' },
+    { timestamp: '2026-08-17T20:00:00Z', yesPrice: '0.42', noPrice: '0.58' },
   ].slice(0, points),
 });
 
@@ -119,7 +119,9 @@ describe('PredictEventDetail', () => {
     fireEvent(firstChart, 'layout', {
       nativeEvent: { layout: { width: 400, height: 250 } },
     });
-    await view.findByLabelText('Market probability history. Candidate A 42%');
+    await view.findByLabelText(
+      'Market probability history. Candidate A 42%, No 58%',
+    );
     messengerCall.mockClear();
 
     fireEvent.press(
@@ -150,10 +152,14 @@ describe('PredictEventDetail', () => {
       nativeEvent: { layout: { width: 400, height: 250 } },
     });
     expect(
-      await view.findByLabelText('Market probability history. Candidate B 42%'),
+      await view.findByLabelText(
+        'Market probability history. Candidate B 42%, No 58%',
+      ),
     ).toBeOnTheScreen();
     expect(
-      view.queryByLabelText('Market probability history. Candidate A 42%'),
+      view.queryByLabelText(
+        'Market probability history. Candidate A 42%, No 58%',
+      ),
     ).not.toBeOnTheScreen();
   });
 

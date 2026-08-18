@@ -11,7 +11,7 @@ The agreed next-contract direction is documented in [`canonical-read-model-and-a
 - `PredictMarket` contains exactly two `PredictOutcome` values: one `yes` and one `no`.
 - Each Event, Market, and Outcome retains its own opaque ID. Only the root Event carries `venueId`; nested scope and parent relationships come from containment.
 - Each Outcome may contain independent `askPrice` and `bidPrice` decimal strings in the inclusive range `[0, 1]`. Missing means no current quote, not zero.
-- Event responses provide the initial Bid Price and Ask Price snapshot. Market history is read separately with `venueId + marketId + range`; it returns the last traded Yes probability observed by the backend.
+- Event responses provide the initial Bid Price and Ask Price snapshot. Market history is read separately with `venueId + marketId + range`; it returns the last traded Yes probability observed by the backend and its exact complementary No probability.
 - Market status is a small browse projection, not a lossless Venue lifecycle.
 - Event status is intentionally absent.
 - `PredictVenueStatus` contains the root `venueId`, an `available | degraded | unavailable` status, and the backend observation time as `PredictTimestamp`.

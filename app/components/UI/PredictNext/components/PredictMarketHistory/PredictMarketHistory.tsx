@@ -53,22 +53,38 @@ export const PredictMarketHistory = ({
   const [range, setRange] = useState<PredictMarketHistoryRange>('LIVE');
   const historyQuery = useMarketHistory(venueId, market.id, range);
   const yesOutcome = market.outcomes.find((outcome) => outcome.side === 'yes');
+  const noOutcome = market.outcomes.find((outcome) => outcome.side === 'no');
   const points = historyQuery.data?.points ?? [];
   const latestPoint = points[points.length - 1];
   const initialPoint = points[0];
-  const series = yesOutcome
-    ? [
-        {
-          id: yesOutcome.id,
-          label: yesOutcome.label || 'Yes',
-          color: colors.primary.default,
-          data: points.map((point) => ({
-            time: Date.parse(point.timestamp),
-            value: Number(point.yesPrice),
-          })),
-        },
-      ]
-    : [];
+  const series = [
+    ...(yesOutcome
+      ? [
+          {
+            id: yesOutcome.id,
+            label: yesOutcome.label || 'Yes',
+            color: colors.primary.default,
+            data: points.map((point) => ({
+              time: Date.parse(point.timestamp),
+              value: Number(point.yesPrice),
+            })),
+          },
+        ]
+      : []),
+    ...(noOutcome
+      ? [
+          {
+            id: noOutcome.id,
+            label: noOutcome.label || 'No',
+            color: colors.error.default,
+            data: points.map((point) => ({
+              time: Date.parse(point.timestamp),
+              value: Number(point.noPrice),
+            })),
+          },
+        ]
+      : []),
+  ];
   const latestProbability = latestPoint
     ? `${roundProbabilityToWhole(latestPoint.yesPrice)}%`
     : undefined;

@@ -105,10 +105,23 @@ const venueStatusSchema = object({
   checkedAt: timestamp,
 });
 
-const marketHistoryPointSchema = object({
-  timestamp,
-  yesPrice: decimal,
-});
+const marketHistoryPointSchema = refine(
+  object({
+    timestamp,
+    yesPrice: decimal,
+    noPrice: decimal,
+  }),
+  'ComplementaryMarketHistoryPrices',
+  ({ yesPrice, noPrice }) => {
+    const [yesWhole, yesFraction = ''] = yesPrice.split('.');
+    const [noWhole, noFraction = ''] = noPrice.split('.');
+    const scale = Math.max(yesFraction.length, noFraction.length);
+    const yesUnits = BigInt(`${yesWhole}${yesFraction.padEnd(scale, '0')}`);
+    const noUnits = BigInt(`${noWhole}${noFraction.padEnd(scale, '0')}`);
+
+    return yesUnits + noUnits === 10n ** BigInt(scale);
+  },
+);
 
 const marketHistorySchema = refine(
   object({

@@ -34,6 +34,7 @@ const marketHistory = {
     {
       timestamp: '2026-03-01T00:00:00.000Z',
       yesPrice: '0.42',
+      noPrice: '0.58',
     },
   ],
 };

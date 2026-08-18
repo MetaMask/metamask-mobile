@@ -42,6 +42,7 @@ const createMarketHistory = (overrides = {}) => ({
     {
       timestamp: '2026-08-07T11:00:00Z',
       yesPrice: '0.42',
+      noPrice: '0.58',
     },
   ],
   ...overrides,
@@ -219,6 +220,7 @@ describe('Predict API canonical response parsers', () => {
         {
           timestamp: '2026-08-07T11:00:00Z',
           yesPrice: '0.42',
+          noPrice: '0.58',
           pointAddition: 'discard',
         },
       ],
@@ -235,6 +237,7 @@ describe('Predict API canonical response parsers', () => {
         {
           timestamp: '2026-08-07T11:00:00Z',
           yesPrice: '0.42',
+          noPrice: '0.58',
         },
       ],
     });
@@ -248,7 +251,13 @@ describe('Predict API canonical response parsers', () => {
     [
       'points',
       createMarketHistory({
-        points: [{ timestamp: '2026-08-07T11:00:00Z', yesPrice: 0.42 }],
+        points: [
+          {
+            timestamp: '2026-08-07T11:00:00Z',
+            yesPrice: 0.42,
+            noPrice: '0.58',
+          },
+        ],
       }),
     ],
   ])('rejects malformed Market history %s', (_field, input) => {
@@ -258,8 +267,38 @@ describe('Predict API canonical response parsers', () => {
   });
 
   it.each([
-    ['timestamp', { timestamp: 'not-a-timestamp', yesPrice: '0.42' }],
-    ['yesPrice', { timestamp: '2026-08-07T11:00:00Z', yesPrice: '1.01' }],
+    [
+      'timestamp',
+      { timestamp: 'not-a-timestamp', yesPrice: '0.42', noPrice: '0.58' },
+    ],
+    [
+      'missing noPrice',
+      { timestamp: '2026-08-07T11:00:00Z', yesPrice: '0.42' },
+    ],
+    [
+      'yesPrice',
+      {
+        timestamp: '2026-08-07T11:00:00Z',
+        yesPrice: '1.01',
+        noPrice: '0',
+      },
+    ],
+    [
+      'noPrice',
+      {
+        timestamp: '2026-08-07T11:00:00Z',
+        yesPrice: '0.42',
+        noPrice: '1.01',
+      },
+    ],
+    [
+      'non-complementary prices',
+      {
+        timestamp: '2026-08-07T11:00:00Z',
+        yesPrice: '0.42',
+        noPrice: '0.57',
+      },
+    ],
   ])('rejects a malformed Market history point %s', (_field, point) => {
     const input = createMarketHistory({ points: [point] });
 
@@ -271,8 +310,16 @@ describe('Predict API canonical response parsers', () => {
   it('rejects Market history points that are not chronological', () => {
     const input = createMarketHistory({
       points: [
-        { timestamp: '2026-08-07T11:00:00Z', yesPrice: '0.42' },
-        { timestamp: '2026-08-07T10:00:00Z', yesPrice: '0.40' },
+        {
+          timestamp: '2026-08-07T11:00:00Z',
+          yesPrice: '0.42',
+          noPrice: '0.58',
+        },
+        {
+          timestamp: '2026-08-07T10:00:00Z',
+          yesPrice: '0.40',
+          noPrice: '0.60',
+        },
       ],
     });
 
@@ -285,6 +332,7 @@ describe('Predict API canonical response parsers', () => {
     const point = {
       timestamp: '2026-08-07T11:00:00Z',
       yesPrice: '0.42',
+      noPrice: '0.58',
     };
     const input = createMarketHistory({ points: [point, point] });
 
@@ -295,7 +343,13 @@ describe('Predict API canonical response parsers', () => {
 
   it('rejects Market history points after the backend observation time', () => {
     const input = createMarketHistory({
-      points: [{ timestamp: '2026-08-07T12:00:01Z', yesPrice: '0.42' }],
+      points: [
+        {
+          timestamp: '2026-08-07T12:00:01Z',
+          yesPrice: '0.42',
+          noPrice: '0.58',
+        },
+      ],
     });
 
     expect(() => parsePredictMarketHistory(input)).toThrow(
