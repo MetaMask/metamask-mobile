@@ -7,7 +7,9 @@ import { getSwapDestToken } from '../../utils/getSwapDestToken';
 import { SolScope, BtcScope } from '@metamask/keyring-api';
 import { selectChainId } from '../../../../../selectors/networkController';
 import {
+  selectBip44DefaultPair,
   selectBridgeViewMode,
+  selectSourceToken,
   setDestToken,
 } from '../../../../../core/redux/slices/bridge';
 
@@ -25,6 +27,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     setDestToken: jest.fn(actual.setDestToken),
     selectBridgeViewMode: jest.fn().mockReturnValue('Bridge'),
     selectBip44DefaultPair: jest.fn(actual.selectBip44DefaultPair),
+    selectSourceToken: jest.fn(actual.selectSourceToken),
   };
 });
 
@@ -67,6 +70,17 @@ describe('useInitialDestToken', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // clearAllMocks leaves implementations in place, so restore the selectors
+    // individual tests stub out to their real ones.
+    const actualSlice = jest.requireActual(
+      '../../../../../core/redux/slices/bridge',
+    );
+    (selectBip44DefaultPair as unknown as jest.Mock).mockImplementation(
+      actualSlice.selectBip44DefaultPair,
+    );
+    (selectSourceToken as unknown as jest.Mock).mockImplementation(
+      actualSlice.selectSourceToken,
+    );
   });
 
   it('should not set dest token when not in swap mode', () => {
@@ -112,6 +126,31 @@ describe('useInitialDestToken', () => {
       expect(setDestToken).toHaveBeenCalledWith(
         getSwapDestToken(SolScope.Mainnet),
       );
+    });
+  });
+
+  it('derives the dest token from the selected source token when none comes in on the route', async () => {
+    // A tab switch can leave the source token anchored to a chain other than
+    // the wallet's selected one, so the dest default must follow the source.
+    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+      BridgeViewMode.Unified,
+    );
+    (selectChainId as unknown as jest.Mock).mockReturnValue('0x1');
+    (selectBip44DefaultPair as unknown as jest.Mock).mockReturnValue(undefined);
+    (selectSourceToken as unknown as jest.Mock).mockReturnValue({
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'POL',
+      decimals: 18,
+      name: 'Polygon',
+      chainId: '0x89',
+    });
+
+    renderHookWithProvider(() => useInitialDestToken(), {
+      state: initialState,
+    });
+
+    await waitFor(() => {
+      expect(setDestToken).toHaveBeenCalledWith(getSwapDestToken('0x89'));
     });
   });
 

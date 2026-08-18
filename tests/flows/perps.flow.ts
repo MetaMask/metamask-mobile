@@ -1,12 +1,4 @@
-import {
-  asDetoxElement,
-  asPlaywrightElement,
-  Assertions,
-  encapsulatedAction,
-  PlaywrightGestures,
-} from '../framework';
-import Utilities from '../framework/Utilities';
-import PlaywrightMatchers from '../framework/PlaywrightMatchers';
+import { Assertions, Gestures, Matchers, Utilities } from '../framework';
 import { PerpsOrderViewSelectorsIDs } from '../../app/components/UI/Perps/Perps.testIds';
 import PerpsHomeView from '../page-objects/Perps/PerpsHomeView';
 import PerpsMarketDetailsView from '../page-objects/Perps/PerpsMarketDetailsView';
@@ -40,9 +32,10 @@ export const resolvePerpsGtmOnboardingModalEnabled = async (
 
   // Flags missing or disabled — tutorial may still appear; detect in UI.
   try {
-    await (await asPlaywrightElement(PerpsOnboarding.tutorialTitle))
-      .unwrap()
-      .waitForDisplayed({ timeout: PERPS_GTM_MODAL_FALLBACK_WAIT_MS });
+    await Assertions.expectElementToBeVisible(PerpsOnboarding.tutorialTitle, {
+      timeout: PERPS_GTM_MODAL_FALLBACK_WAIT_MS,
+      description: 'Perps GTM onboarding tutorial',
+    });
     return true;
   } catch {
     return false;
@@ -55,18 +48,19 @@ export const resolvePerpsGtmOnboardingModalEnabled = async (
 export const dismissPerpsOnboardingTutorialIfPresent =
   async (): Promise<void> => {
     try {
-      const skipButton = await asPlaywrightElement(PerpsOnboarding.skipButton);
-      await skipButton
-        .unwrap()
-        .waitForDisplayed({ timeout: PERPS_GTM_MODAL_FALLBACK_WAIT_MS });
-      await PlaywrightGestures.waitAndTap(skipButton, {
+      await Assertions.expectElementToBeVisible(PerpsOnboarding.skipButton, {
+        timeout: PERPS_GTM_MODAL_FALLBACK_WAIT_MS,
+        description: 'Perps onboarding skip button',
+      });
+      await Gestures.waitAndTap(PerpsOnboarding.skipButton, {
         checkForDisplayed: true,
-        checkForEnabled: true,
+        checkEnabled: true,
         timeout: 10_000,
       });
-      await skipButton
-        .unwrap()
-        .waitForDisplayed({ reverse: true, timeout: 10_000 });
+      await Assertions.expectElementToNotBeVisible(PerpsOnboarding.skipButton, {
+        timeout: 10_000,
+        description: 'Perps onboarding skip button should close',
+      });
     } catch {
       // Tutorial not shown or already dismissed.
     }
@@ -80,77 +74,31 @@ export const dismissPerpsNotificationTooltipIfPresent =
   async (): Promise<void> => {
     const turnOnTestId = PerpsOrderViewSelectorsIDs.TURN_ON_NOTIFICATION_BUTTON;
 
-    await encapsulatedAction({
-      detox: async () => {
-        try {
-          const turnOn = asDetoxElement(
-            PerpsOrderView.turnNotificationsOnButton,
-          );
-          await Assertions.expectElementToBeVisible(turnOn, {
-            timeout: PERPS_NOTIFICATION_TOOLTIP_WAIT_MS,
-            description: 'Perps notification tooltip',
-          });
-          await device.pressBack();
-        } catch {
-          // Tooltip not shown.
-        }
-      },
-      appium: async () => {
-        try {
-          const turnOnEl = await PlaywrightMatchers.getElementById(
-            turnOnTestId,
-            { exact: true },
-          );
-          await turnOnEl
-            .unwrap()
-            .waitForDisplayed({ timeout: PERPS_NOTIFICATION_TOOLTIP_WAIT_MS });
-          await PlaywrightGestures.waitAndTap(turnOnEl, {
-            checkForDisplayed: true,
-            timeout: 10_000,
-          });
-          await turnOnEl
-            .unwrap()
-            .waitForDisplayed({ reverse: true, timeout: 10_000 });
-        } catch {
-          // Tooltip not shown.
-        }
-      },
-    });
+    try {
+      const turnOnEl = Matchers.getElementByID(turnOnTestId);
+      await Assertions.expectElementToBeVisible(turnOnEl, {
+        timeout: PERPS_NOTIFICATION_TOOLTIP_WAIT_MS,
+        description: 'Perps notification tooltip',
+      });
+      await Gestures.waitAndTap(turnOnEl, {
+        checkForDisplayed: true,
+        timeout: 10_000,
+      });
+      await Assertions.expectElementToNotBeVisible(turnOnEl, {
+        timeout: 10_000,
+        description: 'Perps notification tooltip should close',
+      });
+    } catch {
+      // Tooltip not shown.
+    }
   };
 
 /**
  * Checks if the position is open by checking if the close button is visible.
  * @returns {Promise<boolean>} True if the position is open, false otherwise.
  */
-export const isPositionOpen = async (timeout = 5000): Promise<boolean> => {
-  let positionOpen = false;
-  await encapsulatedAction({
-    detox: async () => {
-      try {
-        const el = asDetoxElement(PerpsMarketDetailsView.closeButton);
-        await Assertions.expectElementToBeVisible(el, {
-          timeout,
-          description: 'Close position button',
-        });
-        positionOpen = true;
-      } catch {
-        positionOpen = false;
-      }
-    },
-    appium: async () => {
-      try {
-        const closeEl = await asPlaywrightElement(
-          PerpsMarketDetailsView.closeButton,
-        );
-        positionOpen = await closeEl.isVisible();
-      } catch {
-        // Element lookup timed out — position is not open
-        positionOpen = false;
-      }
-    },
-  });
-  return positionOpen;
-};
+export const isPositionOpen = async (timeout = 5000): Promise<boolean> =>
+  Utilities.isElementVisible(PerpsMarketDetailsView.closeButton, timeout);
 
 export const waitForPositionOpen = async (
   timeout = 20000,
@@ -166,36 +114,10 @@ export const waitForPositionOpen = async (
 
 /**
  * Checks if the place order button is visible.
- * @returns {Promise<boolean>} True if the place order button is visible, false otherwise.
+ * @returns {Promise<boolean>} True if the place order button is visible.
  */
-export const isPlaceOrderButtonVisible = async (): Promise<boolean> => {
-  let visible = false;
-  await encapsulatedAction({
-    detox: async () => {
-      try {
-        const el = asDetoxElement(PerpsOrderView.placeOrderButton);
-        await Assertions.expectElementToBeVisible(el, {
-          timeout: 5000,
-          description: 'Place order button',
-        });
-        visible = true;
-      } catch {
-        visible = false;
-      }
-    },
-    appium: async () => {
-      try {
-        const placeOrderButtonEl = await asPlaywrightElement(
-          PerpsOrderView.placeOrderButton,
-        );
-        visible = await placeOrderButtonEl.isVisible();
-      } catch {
-        visible = false;
-      }
-    },
-  });
-  return visible;
-};
+export const isPlaceOrderButtonVisible = async (): Promise<boolean> =>
+  Utilities.isElementVisible(PerpsOrderView.placeOrderButton, 5000);
 
 /**
  * Waits for the order screen to be visible.
