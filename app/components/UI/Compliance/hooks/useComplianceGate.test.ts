@@ -172,12 +172,9 @@ describe('useComplianceGate', () => {
       const { Wrapper } = createWrapper();
       renderHook(() => useComplianceGate(SAFE_ADDRESS), { wrapper: Wrapper });
 
-      await act(async () => {
-        await Promise.resolve();
+      await waitFor(() => {
+        expect(mockCheckWalletsCompliance).toHaveBeenCalledWith([SAFE_ADDRESS]);
       });
-
-      // No assertions needed beyond "did not throw"
-      expect(true).toBe(true);
     });
   });
 
