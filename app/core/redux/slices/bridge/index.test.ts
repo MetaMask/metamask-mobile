@@ -43,6 +43,11 @@ import reducer, {
   setBatchSellTokenSlippage,
   setBatchSellTokenSlippages,
   selectIsNonEvmSourced,
+  setRecurringEveryValue,
+  setRecurringRepeatCount,
+  setRecurringEveryUnit,
+  selectRecurring,
+  selectRecurringScheduleValidation,
 } from '.';
 import { FEATURE_FLAG_NAME } from '../../../../selectors/featureFlagController/rwa';
 import {
@@ -141,6 +146,11 @@ describe('bridge slice', () => {
         batchSellSourceTokenAmounts: {},
         batchSellDestToken: undefined,
         batchSellSlippages: {},
+        recurring: {
+          everyValue: '1',
+          everyUnit: 'hour',
+          repeatCount: '10',
+        },
       });
     });
   });
@@ -1499,6 +1509,98 @@ describe('bridge slice', () => {
     it('returns a falsy value when there is no source token', () => {
       const state = buildState(undefined);
       expect(selectIsNonEvmSourced(state)).toBeFalsy();
+    });
+  });
+
+  describe('recurring', () => {
+    it('sets the every value', () => {
+      const action = setRecurringEveryValue('6');
+
+      const newState = reducer(initialState, action);
+
+      expect(newState.recurring.everyValue).toBe('6');
+    });
+
+    it('sets the repeat count', () => {
+      const action = setRecurringRepeatCount('20');
+
+      const newState = reducer(initialState, action);
+
+      expect(newState.recurring.repeatCount).toBe('20');
+    });
+
+    it('keeps the every value when the new unit max still fits', () => {
+      const state = reducer(initialState, setRecurringEveryValue('2'));
+
+      const newState = reducer(state, setRecurringEveryUnit('day'));
+
+      expect(newState.recurring).toEqual({
+        everyValue: '2',
+        everyUnit: 'day',
+        repeatCount: '10',
+      });
+    });
+
+    it('resets the every value to 1 when the new unit max is exceeded', () => {
+      const withMinutes = reducer(
+        initialState,
+        setRecurringEveryUnit('minute'),
+      );
+      const withValue = reducer(withMinutes, setRecurringEveryValue('60'));
+
+      const newState = reducer(withValue, setRecurringEveryUnit('hour'));
+
+      expect(newState.recurring.everyUnit).toBe('hour');
+      expect(newState.recurring.everyValue).toBe('1');
+    });
+
+    it('resets recurring fields when bridge state resets', () => {
+      const withValue = reducer(initialState, setRecurringEveryValue('8'));
+
+      const newState = reducer(withValue, resetBridgeState());
+
+      expect(newState.recurring).toEqual(initialState.recurring);
+    });
+
+    it('selects the recurring object from state', () => {
+      const mockState = {
+        ...mockRootState,
+        bridge: {
+          ...initialState,
+          recurring: {
+            everyValue: '3',
+            everyUnit: 'day' as const,
+            repeatCount: '4',
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectRecurring(mockState);
+
+      expect(result).toEqual({
+        everyValue: '3',
+        everyUnit: 'day',
+        repeatCount: '4',
+      });
+    });
+
+    it('selects duration_exceeds_max when every times repeat is over 180 days', () => {
+      const mockState = {
+        ...mockRootState,
+        bridge: {
+          ...initialState,
+          recurring: {
+            everyValue: '1',
+            everyUnit: 'day' as const,
+            repeatCount: '181',
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectRecurringScheduleValidation(mockState);
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toContain('duration_exceeds_max');
     });
   });
 });

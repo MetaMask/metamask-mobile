@@ -1,0 +1,337 @@
+import '../../../../../../../tests/component-view/mocks';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import { strings } from '../../../../../../../locales/i18n';
+import { renderBridgeView } from '../../../../../../../tests/component-view/renderers/bridge';
+import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
+import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
+import { RecurringScheduleFieldsSelectorsIDs } from '../../../components/RecurringScheduleFields';
+import { RecurringIntervalSheetSelectorsIDs } from '../../../components/RecurringIntervalSheet';
+import { BuildQuoteSelectors } from '../../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
+
+async function openRecurringTab(
+  renderResult: ReturnType<typeof renderBridgeView>,
+) {
+  fireEvent.press(
+    renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB),
+  );
+
+  await waitFor(() => {
+    expect(
+      renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+    ).toBeOnTheScreen();
+  });
+}
+
+async function openEveryKeypad(
+  renderResult: ReturnType<typeof renderBridgeView>,
+) {
+  fireEvent(
+    renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    'pressIn',
+  );
+
+  await waitFor(() => {
+    expect(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    ).toBeOnTheScreen();
+  });
+}
+
+describeForPlatforms('BridgeRecurringBuyView', () => {
+  it('shows default every 1 hour and repeat 10 after opening the recurring tab', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    ).toHaveDisplayValue('1');
+    expect(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+      ),
+    ).toHaveTextContent(strings('bridge.recurring.unit.hour'));
+    expect(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+      ),
+    ).toHaveDisplayValue('10');
+  });
+
+  it('appends keypad digits to the every value', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    await openEveryKeypad(renderResult);
+    fireEvent.press(renderResult.getByTestId('keypad-key-2'));
+
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
+        ),
+      ).toHaveDisplayValue('12');
+    });
+  });
+
+  it('updates only the repeat value when the repeat input is focused', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    fireEvent(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+      ),
+      'pressIn',
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(renderResult.getByTestId('keypad-key-1'));
+
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+        ),
+      ).toHaveDisplayValue('101');
+    });
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    ).toHaveDisplayValue('1');
+  });
+
+  it('closes the keypad when tapping outside it', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    await openEveryKeypad(renderResult);
+    fireEvent(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.CONTAINER),
+      'responderRelease',
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.queryByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  it('does not add a decimal when the period key is pressed', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    await openEveryKeypad(renderResult);
+    fireEvent.press(renderResult.getByTestId('keypad-key-dot'));
+
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    ).toHaveDisplayValue('1');
+    expect(renderResult.queryByText('25%')).not.toBeOnTheScreen();
+    expect(renderResult.queryByText('Max')).not.toBeOnTheScreen();
+  });
+
+  it('commits the selected interval unit on confirm', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+      ),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(RecurringIntervalSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.OPTION('day'),
+      ),
+    );
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+        ),
+      ).toHaveTextContent(strings('bridge.recurring.unit.day'));
+    });
+  });
+
+  it('keeps the previous interval unit when the sheet is dismissed', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+      ),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(RecurringIntervalSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.OPTION('week'),
+      ),
+    );
+    fireEvent.press(
+      renderResult.getByTestId(RecurringIntervalSheetSelectorsIDs.CLOSE_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.queryByTestId(RecurringIntervalSheetSelectorsIDs.SHEET),
+      ).not.toBeOnTheScreen();
+    });
+    expect(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+      ),
+    ).toHaveTextContent(strings('bridge.recurring.unit.hour'));
+  });
+
+  it('resets every to 1 when confirming a unit whose max the value exceeds', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    await openEveryKeypad(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+    fireEvent.press(renderResult.getByTestId('keypad-key-6'));
+    fireEvent.press(renderResult.getByTestId('keypad-key-0'));
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
+        ),
+      ).toHaveDisplayValue('60');
+    });
+
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+      ),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(RecurringIntervalSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.OPTION('minute'),
+      ),
+    );
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
+      ),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+        ),
+      ).toHaveTextContent(strings('bridge.recurring.unit.minute'));
+    });
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    ).toHaveDisplayValue('60');
+
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+      ),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(RecurringIntervalSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.OPTION('hour'),
+      ),
+    );
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+        ),
+      ).toHaveTextContent(strings('bridge.recurring.unit.hour'));
+    });
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    ).toHaveDisplayValue('1');
+  });
+
+  it('keeps the every value when confirming a unit that still fits', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    await openEveryKeypad(renderResult);
+    fireEvent.press(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+    fireEvent.press(renderResult.getByTestId('keypad-key-2'));
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
+        ),
+      ).toHaveDisplayValue('2');
+    });
+
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+      ),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(RecurringIntervalSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.OPTION('day'),
+      ),
+    );
+    fireEvent.press(
+      renderResult.getByTestId(
+        RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+        ),
+      ).toHaveTextContent(strings('bridge.recurring.unit.day'));
+    });
+    expect(
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    ).toHaveDisplayValue('2');
+  });
+});
