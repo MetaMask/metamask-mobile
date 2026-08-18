@@ -57,6 +57,11 @@ on:
         required: false
         type: boolean
         default: false
+      enable_testmu_benchmark:
+        description: 'Run TestMu HyperExecute performance lanes'
+        required: false
+        type: boolean
+        default: true
       he_region:
         description: 'HyperExecute region (us or eu)'
         required: false
@@ -108,7 +113,7 @@ jobs:
     with:
       branch_name: ${{ github.ref_name }}
       build_variant: ${{ inputs.build_variant }}
-      enable_testmu_benchmark: true
+      enable_testmu_benchmark: ${{ inputs.enable_testmu_benchmark }}
       enable_browserstack: ${{ inputs.enable_browserstack }}
       enable_saucelabs: ${{ inputs.enable_saucelabs }}
       enable_testmu_standard: ${{ inputs.enable_testmu_standard }}
