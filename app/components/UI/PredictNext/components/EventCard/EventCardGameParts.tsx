@@ -460,7 +460,7 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
         accessibilityLabel={`${team.name}, price unavailable`}
         size={ButtonSize.Lg}
         twClassName="w-full px-3"
-        disabled
+        isDisabled
       >
         {label}
       </Button>
