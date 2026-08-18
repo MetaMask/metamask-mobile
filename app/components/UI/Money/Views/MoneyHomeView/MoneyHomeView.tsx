@@ -397,6 +397,12 @@ const MoneyHomeView = () => {
     });
   }, [navigation, trackButtonClicked]);
 
+  const handleGetProPress = useCallback(() => {
+    navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT, {
+      source: 'money_header',
+    });
+  }, [navigation]);
+
   const handleAddPress = useCallback(
     ({
       labelKey,
@@ -894,7 +900,10 @@ const MoneyHomeView = () => {
       twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      <MoneyHeader onMenuPress={handleMenuPress} />
+      <MoneyHeader
+        onMenuPress={handleMenuPress}
+        onGetProPress={handleGetProPress}
+      />
       <ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
         contentContainerStyle={styles.scrollContent}

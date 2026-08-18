@@ -11,10 +11,16 @@ import { useABTest } from '../../../../../hooks';
 import { useChainValueOrder } from '../../hooks/useChainValueOrder';
 
 const mockOnCloseBottomSheet = jest.fn();
+let mockRouteParams: { enabledChainIds?: CaipChainId[] } = {};
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   useDispatch: jest.fn(),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useRoute: () => ({ params: mockRouteParams }),
 }));
 
 jest.mock('../../../../../hooks', () => ({
@@ -118,6 +124,7 @@ jest.mock('../../../../../component-library/components/Cells/Cell', () => {
 describe('NetworkListModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = {};
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
     jest.mocked(useABTest).mockReturnValue({
       variant: { orderByValue: false },
@@ -125,16 +132,15 @@ describe('NetworkListModal', () => {
       isActive: true,
     });
     jest.mocked(useChainValueOrder).mockReturnValue(mockChainRanking);
-
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectAllowedChainRanking) {
-        return mockChainRanking;
-      }
-      if (selector === selectTokenSelectorNetworkFilter) {
-        return undefined;
-      }
-      return undefined;
-    });
+    jest.mocked(selectAllowedChainRanking).mockReturnValue(mockChainRanking);
+    jest.mocked(selectTokenSelectorNetworkFilter).mockReturnValue(undefined);
+    // NetworkListModal calls useSelector(selectTokenSelectorNetworkFilter)
+    // directly, and wraps selectAllowedChainRanking in an inline lambda (to
+    // forward the optional enabledChainIds route param) — invoke whatever
+    // selector is passed so both routes resolve through the mocks above.
+    mockUseSelector.mockImplementation(
+      (selector: (state: unknown) => unknown) => selector({}),
+    );
   });
 
   describe('rendering', () => {
@@ -185,6 +191,29 @@ describe('NetworkListModal', () => {
         'network-option-eip155:137',
         'network-option-eip155:1',
       ]);
+    });
+  });
+
+  describe('enabledChainIds route param', () => {
+    it('forwards enabledChainIds from route params to selectAllowedChainRanking', () => {
+      const enabledChainIds: CaipChainId[] = ['eip155:1', 'eip155:56'];
+      mockRouteParams = { enabledChainIds };
+
+      render(<NetworkListModal />);
+
+      expect(selectAllowedChainRanking).toHaveBeenCalledWith(
+        expect.anything(),
+        enabledChainIds,
+      );
+    });
+
+    it('calls selectAllowedChainRanking with undefined when no route params are provided', () => {
+      render(<NetworkListModal />);
+
+      expect(selectAllowedChainRanking).toHaveBeenCalledWith(
+        expect.anything(),
+        undefined,
+      );
     });
   });
 

@@ -256,12 +256,18 @@ export class CardController extends BaseController<
     this.messenger.subscribe('KeyringController:unlock', () => {
       if (this.resetInProgress) return;
       this.#triggerCardholderCheck();
-      this.validateAndRefreshSession().catch((error) =>
-        Logger.error(error as Error, {
-          tags: { feature: 'card' },
-          context: { name: 'CardController', data: { method: '#onUnlock' } },
-        }),
-      );
+      this.validateAndRefreshSession()
+        .then(({ isAuthenticated }) => {
+          if (isAuthenticated && !this.resetInProgress) {
+            this.#fetchCardHomeDataWithLogging('#onUnlock/fetchCardHomeData');
+          }
+        })
+        .catch((error) =>
+          Logger.error(error as Error, {
+            tags: { feature: 'card' },
+            context: { name: 'CardController', data: { method: '#onUnlock' } },
+          }),
+        );
     });
 
     // Re-check when the account tree changes (account added/removed).
