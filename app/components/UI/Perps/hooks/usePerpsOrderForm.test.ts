@@ -832,6 +832,36 @@ describe('usePerpsOrderForm', () => {
       expect(at100).toBe(result.current.maxPossibleAmount);
     });
 
+    it('does not clamp typed amounts while a max override is set', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.setMaxPossibleAmountOverride(1000);
+        result.current.setAmount('5000');
+      });
+
+      expect(result.current.maxPossibleAmount).toBe(1000);
+      expect(result.current.orderForm.amount).toBe('5000');
+    });
+
+    it('restores the margin-based max when the override is cleared', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      const marginMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setMaxPossibleAmountOverride(marginMax + 5000);
+      });
+      act(() => {
+        result.current.setMaxPossibleAmountOverride(null);
+      });
+
+      expect(result.current.maxPossibleAmount).toBe(marginMax);
+    });
+
     it('does not update amount when balance is 0', () => {
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {

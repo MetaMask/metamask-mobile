@@ -6,11 +6,8 @@ import {
 import type { Position } from '@metamask/social-controllers';
 import { getAssetImageUrl } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import PerpsTokenLogo from '../../../UI/Perps/components/PerpsTokenLogo';
-import {
-  chainNameToId,
-  getPositionNetworkBadge,
-  HYPERLIQUID_CHAIN_NAME,
-} from '../utils/chainMapping';
+import { chainNameToId, getPositionNetworkBadge } from '../utils/chainMapping';
+import { HYPERLIQUID_CHAIN_NAME } from '../utils/perp';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../component-library/components/Badges/BadgeWrapper';

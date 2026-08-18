@@ -100,6 +100,7 @@ interface MockReduxState {
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: Record<string, unknown>;
+        rawRemoteFeatureFlags: Record<string, unknown>;
         localOverrides: Record<string, unknown>;
       };
     };
@@ -114,7 +115,8 @@ const createMockStore = (
     engine: {
       backgroundState: {
         RemoteFeatureFlagController: {
-          remoteFeatureFlags: rawFlags,
+          remoteFeatureFlags: { ...rawFlags, ...overrides },
+          rawRemoteFeatureFlags: rawFlags,
           localOverrides: overrides,
         },
       },

@@ -47,6 +47,7 @@ import { getSamplePetnamesControllerMessenger } from '../../../features/SampleFe
 ///: END:ONLY_INCLUDE_IF
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
+import { getPredictNextControllerMessenger } from './predict-next-controller-messenger';
 import {
   getBridgeControllerMessenger,
   getBridgeControllerInitMessenger,
@@ -116,6 +117,7 @@ import {
 import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
+import { getNetworkConnectionBannerControllerMessenger } from './network-connection-banner-controller-messenger';
 import { getConfigRegistryControllerMessenger } from './config-registry-controller-messenger';
 import {
   getMultichainRoutingServiceInitMessenger,
@@ -169,6 +171,10 @@ export const MESSENGER_FACTORIES = {
   },
   ConfigRegistryController: {
     getMessenger: getConfigRegistryControllerMessenger,
+    getInitMessenger: noop,
+  },
+  NetworkConnectionBannerController: {
+    getMessenger: getNetworkConnectionBannerControllerMessenger,
     getInitMessenger: noop,
   },
   ConfigRegistryApiService: {
@@ -351,6 +357,10 @@ export const MESSENGER_FACTORIES = {
   },
   PredictController: {
     getMessenger: getPredictControllerMessenger,
+    getInitMessenger: noop,
+  },
+  PredictNextController: {
+    getMessenger: getPredictNextControllerMessenger,
     getInitMessenger: noop,
   },
   BridgeController: {

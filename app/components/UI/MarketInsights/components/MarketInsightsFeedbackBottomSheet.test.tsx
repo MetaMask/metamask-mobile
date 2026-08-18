@@ -93,6 +93,32 @@ describe('MarketInsightsFeedbackBottomSheet', () => {
     });
   });
 
+  it('does not submit "something else" without additional feedback text', () => {
+    const onSubmit = jest.fn();
+
+    const { getByTestId } = renderWithProvider(
+      <MarketInsightsFeedbackBottomSheet
+        isVisible
+        onClose={jest.fn()}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    fireEvent.press(
+      getByTestId(MarketInsightsSelectorsIDs.FEEDBACK_OPTION_SOMETHING_ELSE),
+    );
+
+    expect(
+      getByTestId(MarketInsightsSelectorsIDs.FEEDBACK_SUBMIT_BUTTON),
+    ).toBeDisabled();
+
+    fireEvent.press(
+      getByTestId(MarketInsightsSelectorsIDs.FEEDBACK_SUBMIT_BUTTON),
+    );
+
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it('does not submit stale additional feedback after switching reason', () => {
     const onSubmit = jest.fn();
 

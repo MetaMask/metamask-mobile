@@ -1,6 +1,7 @@
 import enContent from '../../../../../locales/languages/en.json';
 
 export const AdvancedViewSelectorsIDs = {
+  BACK_BUTTON: 'advanced-settings-back-button',
   CONTAINER: 'advanced-settings',
   ETH_SIGN_SWITCH: 'eth-sign-switch',
   TOKEN_DETECTION_TOGGLE: 'token-detection-toggle',

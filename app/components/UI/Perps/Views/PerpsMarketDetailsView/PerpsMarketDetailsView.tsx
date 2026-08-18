@@ -1,8 +1,5 @@
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
   Button as DSButton,
   ButtonIcon,
   ButtonIconSize,
@@ -42,7 +39,6 @@ import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
   CandlePeriod,
-  PerpsMode,
   TimeDuration,
   PERPS_CONSTANTS,
   type Position,
@@ -82,9 +78,6 @@ import PerpsMarketHeader, {
   createLiteMarketHeaderTestIDs,
 } from '../../components/PerpsMarketHeader';
 import PerpsMarketSummary from '../../components/PerpsMarketSummary';
-import PerpsModeToggle from '../../components/PerpsModeToggle';
-import { useDropPerpsHomeFromStackHistory } from '../../utils/perpsModeSwitch';
-import { openPerpsModeSelectionIfNeeded } from '../../utils/openPerpsModeSelection';
 import PerpsMarketAboutSection from '../../components/PerpsMarketAboutSection';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
@@ -122,9 +115,9 @@ import {
   usePositionManagement,
   usePerpsTrading,
   usePerpsMarketData,
-  usePerpsMode,
   usePerpsMarketAboutTracking,
 } from '../../hooks';
+import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import {
@@ -133,7 +126,6 @@ import {
   usePerpsLivePrices,
   usePerpsLiveFocusedPrice,
 } from '../../hooks/stream';
-import { usePerpsLiveCandles } from '../../hooks/stream/usePerpsLiveCandles';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { useIsPriceDeviatedAboveThreshold } from '../../hooks/useIsPriceDeviatedAboveThreshold';
 import {
@@ -145,6 +137,7 @@ import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsSyncedChartPrice } from '../../hooks/usePerpsSyncedChartPrice';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
@@ -168,10 +161,7 @@ import {
 } from '../../../MarketInsights';
 import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { selectMarketInsightsPerpsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
-import {
-  createSelectIsWatchlistMarket,
-  selectPerpsEligibility,
-} from '../../selectors/perpsController';
+import { selectPerpsEligibility } from '../../selectors/perpsController';
 import { useComplianceGate } from '../../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { useABTest } from '../../../../../hooks/useABTest';
@@ -203,15 +193,8 @@ interface MarketDetailsRouteParams {
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Use centralized navigation hook for all Perps navigation
-  const {
-    navigateToHome,
-    navigateToMarketListFromHeader,
-    navigateToOrder,
-    navigateToTutorial,
-    navigateToClosePosition,
-    navigateBack,
-    canGoBack,
-  } = usePerpsNavigation();
+  const { navigateToOrder, navigateToTutorial, navigateToClosePosition } =
+    usePerpsNavigation();
 
   // Use position management hook for bottom sheet state and handlers
   const {
@@ -348,42 +331,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     isLoading: isPerpsInsightsLoading,
   } = useMarketInsights(market?.symbol, isPerpsInsightsEnabled);
 
-  // Check if current market is in watchlist
-  const selectIsWatchlist = useMemo(
-    () => createSelectIsWatchlistMarket(market?.symbol || ''),
-    [market?.symbol],
-  );
-  // Source of truth for the favorite icon. The controller applies its own
-  // synchronous optimistic update (so the icon flips on the same tick the toggle
-  // fires) and reverts internally on remote-write failure, so no separate
-  // component-level optimistic copy is needed — a second copy could disagree with
-  // Redux if the controller's optimistic-then-revert collapsed before a reconcile.
-  const isWatchlist = useSelector(selectIsWatchlist);
-
-  // Pro-mode active-mode pill in the header (TAT-3551, AC #6.3).
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
-  const { mode: perpsMode, setMode: setPerpsMode } = usePerpsMode();
-  const dropPerpsHomeFromStackHistory = useDropPerpsHomeFromStackHistory();
-  const handlePerpsModeChange = useCallback(
-    async (nextMode: PerpsMode) => {
-      // PerpsModeSwitchPill runs the shimmer before invoking this callback. The
-      // one-time chooser gates every header toggle, so show it here when the
-      // user has not completed it and let the sheet own the switch.
-      const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
-        entry: 'market',
-        source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-      });
-      if (openedChooser) {
-        return;
-      }
-
-      setPerpsMode(nextMode);
-      if (nextMode === PerpsMode.Pro) {
-        dropPerpsHomeFromStackHistory();
-      }
-    },
-    [navigation, setPerpsMode, dropPerpsHomeFromStackHistory],
-  );
+  const {
+    perpsMode,
+    isWatchlist,
+    handleBackPress,
+    handleMarketListPress,
+    handleFavoritePress,
+    handlePerpsModeChange,
+  } = usePerpsMarketHeaderActions({
+    symbol: market?.symbol,
+    backFallback: 'home',
+  });
 
   // Keep current market symbol ref in sync for staleness checks in async callbacks
   useEffect(() => {
@@ -571,31 +530,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     isLoading: isLoadingHistory,
     hasHistoricalData,
     fetchMoreHistory,
-  } = usePerpsLiveCandles({
+    syncedChartCurrentPrice,
+    setAdvancedChartCurrentPrice,
+  } = usePerpsSyncedChartPrice({
     symbol: market?.symbol || '',
     interval: selectedCandlePeriod,
-    duration: TimeDuration.YearToDate,
-    throttleMs: 1000,
+    isAdvancedChartEnabled,
   });
-
-  // Get current price from the last candle's close price for chart synchronization
-  // This ensures the current price line matches the live candle close price exactly
-  const chartCurrentPrice = useMemo(() => {
-    if (!candleData?.candles?.length) return 0;
-    const lastCandle = candleData.candles.at(-1);
-    return lastCandle?.close ? Number.parseFloat(lastCandle.close) : 0;
-  }, [candleData]);
-  const [advancedChartCurrentPrice, setAdvancedChartCurrentPrice] = useState<
-    number | undefined
-  >(undefined);
-  const syncedChartCurrentPrice =
-    isAdvancedChartEnabled && advancedChartCurrentPrice !== undefined
-      ? advancedChartCurrentPrice
-      : chartCurrentPrice;
-
-  useEffect(() => {
-    setAdvancedChartCurrentPrice(undefined);
-  }, [isAdvancedChartEnabled, market?.symbol, selectedCandlePeriod]);
 
   // Auto-zoom to latest candle when interval changes and new data arrives
   // This ensures the chart shows the most recent data after interval change
@@ -903,80 +844,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Check if notifications feature is enabled once
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
 
-  const handleBackPress = () => {
-    if (canGoBack) {
-      navigateBack();
-    } else {
-      // Fallback to markets list if no previous screen
-      navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
-    }
-  };
-
   const { marketData } = usePerpsMarketData({
     asset: market?.symbol || '',
   });
-
-  const handleMarketListPress = useCallback(() => {
-    if (!market) return;
-
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
-      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-        PERPS_EVENT_VALUE.BUTTON_CLICKED.MARKET_LIST,
-      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-        PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS,
-      [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
-    });
-
-    navigateToMarketListFromHeader({
-      source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-    });
-  }, [market, track, navigateToMarketListFromHeader]);
-
-  const liteHeaderEndAccessory = useMemo(() => {
-    const searchButton = (
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="size-10"
-      >
-        <ButtonIcon
-          iconName={IconName.Search}
-          size={ButtonIconSize.Md}
-          onPress={handleMarketListPress}
-          testID={PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON}
-          accessibilityLabel={strings('perps.market_details.market_list')}
-        />
-      </Box>
-    );
-
-    if (!isPerpsProModeEnabled) {
-      return searchButton;
-    }
-
-    return (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-      >
-        {searchButton}
-        <Box justifyContent={BoxJustifyContent.Center} twClassName="h-10">
-          <PerpsModeToggle
-            mode={perpsMode}
-            variant="active"
-            onChange={handlePerpsModeChange}
-            source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
-          />
-        </Box>
-      </Box>
-    );
-  }, [
-    handleMarketListPress,
-    isPerpsProModeEnabled,
-    perpsMode,
-    handlePerpsModeChange,
-  ]);
 
   const handleTradeAction = useCallback(
     (direction: 'long' | 'short') =>
@@ -1655,9 +1525,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         market={market}
         testIDs={createLiteMarketHeaderTestIDs()}
         onBackPress={handleBackPress}
+        onIdentityPress={handleMarketListPress}
+        onFavoritePress={handleFavoritePress}
+        isFavorite={isWatchlist}
+        mode={isPerpsProModeEnabled ? perpsMode : undefined}
+        onModeChange={isPerpsProModeEnabled ? handlePerpsModeChange : undefined}
         scrollY={scrollYShared}
         priceSectionHeight={titleSectionHeightSv}
-        endAccessory={liteHeaderEndAccessory}
+        currentPrice={syncedChartCurrentPrice}
       />
 
       <View style={styles.scrollableContentContainer}>

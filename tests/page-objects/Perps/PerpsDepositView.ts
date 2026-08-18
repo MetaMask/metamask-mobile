@@ -1,19 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
-import {
-  asPlaywrightElement,
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import {
-  encapsulatedAction,
-  PlatformDetector,
-  PlaywrightAssertions,
-  PlaywrightElement,
-  PlaywrightGestures,
-} from '../../framework';
+import { EncapsulatedElementType, PlatformDetector } from '../../framework';
 
 const TIMEOUT = {
   KEYPAD_DIGIT: 10000,
@@ -27,37 +15,22 @@ class PerpsDepositView {
 
   /** Amount input - wdio PerpsDepositScreen uses 'custom-amount-input' for isAmountInputVisible */
   get amountInput(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID('custom-amount-input'),
-      appium: () =>
-        PlaywrightMatchers.getElementById('custom-amount-input', {
-          exact: true,
-        }),
-    });
+    return Matchers.getElementByID('custom-amount-input');
   }
 
   /** Add funds button - wdio uses getElementByText('Add funds') for isAddFundsVisible */
   get addFundsButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText('Add funds'),
-      appium: () => PlaywrightMatchers.getElementByText('Add funds'),
-    });
+    return Matchers.getElementByText('Add funds');
   }
 
   /** Total text - wdio uses getElementByText('Total') for isTotalVisible */
   get totalText(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText('Total'),
-      appium: () => PlaywrightMatchers.getElementByText('Total'),
-    });
+    return Matchers.getElementByText('Total');
   }
 
   // Continue button (toolbar text)
   get continueButtonByText(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText('Continue'),
-      appium: () => PlaywrightMatchers.getElementByCatchAll('Continue'),
-    });
+    return Matchers.getElementByText('Continue');
   }
 
   // Add funds (confirm) button on review screen. Uses testID for reliability:
@@ -68,20 +41,12 @@ class PerpsDepositView {
   }
 
   get infoRow(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText('Info'),
-      appium: () =>
-        PlaywrightMatchers.getElementById('info-row', { exact: true }),
-    });
+    return Matchers.getElementByID('info-row');
   }
 
   // Pay with row (open selector)
   get payWithRow(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByText('Pay with'),
-      appium: () =>
-        PlaywrightMatchers.getElementById('pay-with', { exact: true }),
-    });
+    return Matchers.getElementByID('pay-with');
   }
 
   get usdcOption(): EncapsulatedElementType {
@@ -117,61 +82,32 @@ class PerpsDepositView {
   }
 
   async typeUSD(amount: string): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        // Types digits using the on-screen keypad (buttons 0-9 and '.')
-        for (const ch of amount) {
-          const key = Matchers.getElementByText(ch) as DetoxElement;
-          await Gestures.waitAndTap(key, {
-            elemDescription: `Keypad ${ch}`,
-            checkEnabled: false,
-            checkVisibility: false,
-          });
-        }
-      },
-      appium: async () => {
-        let digitEl: PlaywrightElement;
-        for (const digit of amount) {
-          if (await PlatformDetector.isAndroid()) {
-            digitEl = await PlaywrightMatchers.getElementByText(digit);
-          } else {
-            digitEl = await PlaywrightMatchers.getElementByXPath(
-              `//*[contains(@name,'keypad-key-${digit}')]`,
-            );
-          }
-          await PlaywrightAssertions.expectElementToBeVisible(digitEl, {
-            timeout: TIMEOUT.KEYPAD_DIGIT,
-            description: `Keypad digit ${digit} should be visible`,
-          });
-          await PlaywrightGestures.waitAndTap(digitEl, {
-            checkForDisplayed: true,
-            checkForEnabled: true,
-            delay: 1000,
-          });
-        }
-      },
-    });
+    const isAndroid = PlatformDetector.isAndroid();
+    for (const digit of amount) {
+      const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
+      const digitEl = isAndroid
+        ? Matchers.getElementByText(digit)
+        : Matchers.getElementByNativeXPath(`//*[contains(@name,'${keyName}')]`);
+      await Assertions.expectElementToBeVisible(digitEl, {
+        timeout: TIMEOUT.KEYPAD_DIGIT,
+        description: `Keypad digit ${digit} should be visible`,
+      });
+      await Gestures.waitAndTap(digitEl, {
+        checkForDisplayed: true,
+        checkEnabled: true,
+        delay: 1000,
+        elemDescription: `Keypad ${digit}`,
+      });
+    }
   }
 
   async tapContinue(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(this.continueButtonByText, {
-          elemDescription: 'Continue (by text) deposit confirmation',
-          checkEnabled: false,
-          checkVisibility: false,
-        });
-      },
-      appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.continueButtonByText),
-          {
-            checkForDisplayed: true,
-            checkForEnabled: true,
-            delay: 1000,
-          },
-        );
-      },
+    await Gestures.waitAndTap(this.continueButtonByText, {
+      elemDescription: 'Continue (by text) deposit confirmation',
+      checkEnabled: false,
+      checkVisibility: false,
+      checkForDisplayed: true,
+      delay: 1000,
     });
   }
 

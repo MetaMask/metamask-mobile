@@ -44,6 +44,11 @@ export interface UsePerpsOrderFormReturn {
   handleMaxAmount: () => void;
   handleMinAmount: () => void;
   maxPossibleAmount: number;
+  /**
+   * Temporarily replace the margin-based max (e.g. Reduce Only, where max is
+   * the open position notional). Pass `null` to restore the margin-based cap.
+   */
+  setMaxPossibleAmountOverride: (amount: number | null) => void;
   /** Balance to use for validation and UI (Perps balance or selected token amount in USD when paying with custom token) */
   balanceForValidation: number;
 }
@@ -193,10 +198,14 @@ export function usePerpsOrderForm(
     type: defaultOrderType,
   });
 
+  const [maxPossibleAmountOverride, setMaxPossibleAmountOverride] = useState<
+    number | null
+  >(null);
+
   // Calculate the maximum possible amount; when paying with custom token, capped by selected token amount in USD
   // For limit orders, use the limit price instead of market price so the 100% slider
   // correctly reflects the max order size at the user-specified price
-  const maxPossibleAmount = useMemo(() => {
+  const marginBasedMaxPossibleAmount = useMemo(() => {
     const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
     const effectiveAssetPrice =
       orderForm.type === 'limit' &&
@@ -218,6 +227,11 @@ export function usePerpsOrderForm(
     marketData?.szDecimals,
     orderForm.leverage,
   ]);
+
+  const maxPossibleAmount =
+    maxPossibleAmountOverride !== null
+      ? maxPossibleAmountOverride
+      : marginBasedMaxPossibleAmount;
 
   // Update amount only once when the hook first calculates the initial value
   // We use a ref to track if we've already set the initial amount to avoid overwriting user input
@@ -270,8 +284,14 @@ export function usePerpsOrderForm(
     }
   }, [existingPositionLeverage, initialLeverage, orderForm.leverage]);
 
-  // When user changes payment token (or effective balance drops), reset amount to MAX if current amount exceeds new max
+  // When user changes payment token (or effective balance drops), reset amount to MAX if current amount exceeds new max.
+  // Skip while a max override is set (Reduce Only): size is capped by the open
+  // position, not available margin, and the user may type above that cap.
   useEffect(() => {
+    if (maxPossibleAmountOverride !== null) {
+      return;
+    }
+
     const currentAmount = Number.parseFloat(orderForm.amount);
     if (
       !Number.isFinite(currentAmount) ||
@@ -286,7 +306,12 @@ export function usePerpsOrderForm(
       ...prev,
       amount: newValue,
     }));
-  }, [balanceForMax, maxPossibleAmount, orderForm.amount]);
+  }, [
+    balanceForMax,
+    maxPossibleAmount,
+    maxPossibleAmountOverride,
+    orderForm.amount,
+  ]);
 
   // Update entire form
   const updateOrderForm = useCallback((updates: Partial<OrderFormState>) => {
@@ -393,6 +418,7 @@ export function usePerpsOrderForm(
       handleMaxAmount,
       handleMinAmount,
       maxPossibleAmount,
+      setMaxPossibleAmountOverride,
       balanceForValidation: balanceForMax,
     }),
     [
@@ -410,6 +436,7 @@ export function usePerpsOrderForm(
       handleMaxAmount,
       handleMinAmount,
       maxPossibleAmount,
+      setMaxPossibleAmountOverride,
       balanceForMax,
     ],
   );

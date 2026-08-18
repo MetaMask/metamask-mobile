@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-syntax */
-import { waitFor } from 'detox';
+import { waitFor } from './legacy-detox-shim';
 import Utilities, { BASE_DEFAULTS } from './Utilities.ts';
 import {
   LongPressOptions,
@@ -12,10 +12,16 @@ import {
 } from './types.ts';
 import { createLogger } from './logger.ts';
 import { sleep } from '../../app/util/testUtils';
-import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
+import {
+  asPlaywrightElement,
+  type EncapsulatedElementType,
+} from './EncapsulatedElement.ts';
 import { FrameworkDetector } from './FrameworkDetector.ts';
 import UnifiedGestures from './UnifiedGestures.ts';
 import { PlaywrightElement } from './PlaywrightAdapter.ts';
+import PlaywrightGestures from './PlaywrightGestures.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
+import type { CurrentDeviceDetails } from './fixtures/playwright';
 
 const logger = createLogger({ name: 'Gestures' });
 
@@ -145,6 +151,9 @@ export default class Gestures {
         delay: options.delay,
         checkForDisplayed: options.checkForDisplayed,
         checkForEnabled: options.checkEnabled,
+        waitForInteractive: options.waitForInteractive,
+        // Detox checkStability ≈ Appium position-stable wait
+        checkForStable: options.checkStability,
       });
     }
 
@@ -846,5 +855,179 @@ export default class Gestures {
     timeout = 10000,
   ): Promise<void> {
     return this.replaceText(elem, text, { timeout });
+  }
+
+  /**
+   * Tap a single iOS soft-keyboard key (Appium iOS only).
+   * For return/submit keys (Done, Next, Go, Search), use tapKeyboardReturnKey.
+   */
+  static async tapIosKeyboardKey(keyName: string): Promise<void> {
+    if (!PlatformDetector.isIOSAppium()) {
+      throw new Error('Gestures.tapIosKeyboardKey is Appium iOS only');
+    }
+    await PlaywrightGestures.tapIosKeyboardKey(keyName);
+  }
+
+  /**
+   * Tap the soft-keyboard return/submit key (Appium).
+   * iOS tries `Done:` / keyboard-scoped locators before bare `~Done` — required
+   * to fire onSubmitEditing when returnKeyType is done/next/go/search.
+   */
+  static async tapKeyboardReturnKey(keyName: string): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.tapKeyboardReturnKey is Appium only');
+    }
+    await PlaywrightGestures.tapKeyboardReturnKey(keyName);
+  }
+
+  /**
+   * Type via the focused iOS soft keyboard by tapping keys (Appium iOS only).
+   */
+  static async typeViaIosKeyboard(
+    text: string,
+    options?: { numberPad?: boolean },
+  ): Promise<void> {
+    if (!PlatformDetector.isIOSAppium()) {
+      throw new Error('Gestures.typeViaIosKeyboard is Appium iOS only');
+    }
+    await PlaywrightGestures.typeViaIosKeyboard(text, options);
+  }
+
+  /**
+   * Appium: click, clear, type via per-character addValue (optional Return).
+   * Use for iOS multiline TextInputs where Gestures.typeText (fill) is unreliable.
+   */
+  static async typeTextByCharacters(
+    elem: EncapsulatedElementType,
+    text: string,
+    options?: { submitWithReturn?: boolean },
+  ): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.typeTextByCharacters is Appium only');
+    }
+    const field = await asPlaywrightElement(elem);
+    await PlaywrightGestures.typeTextByCharacters(field, text, options);
+  }
+
+  /**
+   * Appium: append text via addValue without clearing the field.
+   * Use after replaceText when Return must submit separately (e.g. iOS URL bar).
+   */
+  static async appendText(
+    elem: EncapsulatedElementType,
+    text: string,
+  ): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.appendText is Appium only');
+    }
+    const field = await asPlaywrightElement(elem);
+    await field.type(text);
+  }
+
+  /**
+   * Hide the soft keyboard (Appium).
+   * Uses Android `hideKeyboard` when shown, and iOS `mobile: hideKeyboard`
+   * with `tapOutside` (plain `driver.hideKeyboard()` is unreliable on XCUITest).
+   */
+  static async hideKeyboard(): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.hideKeyboard is Appium only');
+    }
+    await PlaywrightGestures.hideKeyboard();
+  }
+
+  /**
+   * Activate an app by device details or package/bundle id.
+   */
+  static async activateApp(
+    currentDeviceDetails?: CurrentDeviceDetails,
+    packageId?: string,
+  ): Promise<void> {
+    await PlaywrightGestures.activateApp(currentDeviceDetails, packageId);
+  }
+
+  /**
+   * Terminate the app identified by device details.
+   */
+  static async terminateApp(
+    currentDeviceDetails: CurrentDeviceDetails,
+    options?: Parameters<typeof PlaywrightGestures.terminateApp>[1],
+  ): Promise<void> {
+    await PlaywrightGestures.terminateApp(currentDeviceDetails, options);
+  }
+
+  /**
+   * Submit the focused Android URL field via KEYCODE_ENTER.
+   */
+  static async submitAndroidUrlBar(): Promise<void> {
+    await PlaywrightGestures.submitAndroidUrlBar();
+  }
+
+  /**
+   * Dismiss soft keyboard after token search (tapOutside + iOS pills-strip tap).
+   * Prefer this over typeText({ hideKeyboard: true }) for TextFieldSearch.
+   */
+  static async dismissKeyboardAfterTokenSearch(): Promise<void> {
+    await PlaywrightGestures.dismissKeyboardAfterTokenSearch();
+  }
+
+  /**
+   * Appium: scroll an element into view (WDIO native scrollIntoView).
+   * Prefer when you already have a PlaywrightElement (e.g. from
+   * Matchers.getAllElementsByXPath). For EncapsulatedElementType targets with
+   * a known scroll container, prefer scrollToElement.
+   */
+  static async scrollIntoView(
+    elem: EncapsulatedElementType | PlaywrightElement,
+    options?: {
+      direction?: 'up' | 'down' | 'left' | 'right';
+      maxScrolls?: number;
+      scrollableElement?: PlaywrightElement;
+      percent?: number;
+      from?: { x: number; y: number };
+      to?: { x: number; y: number };
+    },
+  ): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.scrollIntoView is Appium only');
+    }
+    const target = (await Promise.resolve(elem)) as PlaywrightElement;
+    await PlaywrightGestures.scrollIntoView(target, {
+      scrollParams: { direction: options?.direction ?? 'up' },
+      maxScrolls: options?.maxScrolls,
+      scrollableElement: options?.scrollableElement,
+      percent: options?.percent,
+      from: options?.from,
+      to: options?.to,
+    });
+  }
+
+  /**
+   * Appium: scroll into view, then nudge clear of the bottom nav bar when
+   * the target would otherwise sit in the bottom 15% of the screen.
+   */
+  static async scrollIntoViewFullyVisible(
+    elem: EncapsulatedElementType | PlaywrightElement,
+    options?: {
+      direction?: 'up' | 'down' | 'left' | 'right';
+      maxScrolls?: number;
+      scrollableElement?: PlaywrightElement;
+      percent?: number;
+      from?: { x: number; y: number };
+      to?: { x: number; y: number };
+    },
+  ): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.scrollIntoViewFullyVisible is Appium only');
+    }
+    const target = (await Promise.resolve(elem)) as PlaywrightElement;
+    await PlaywrightGestures.scrollIntoViewFullyVisible(target, {
+      scrollParams: { direction: options?.direction ?? 'up' },
+      maxScrolls: options?.maxScrolls,
+      scrollableElement: options?.scrollableElement,
+      percent: options?.percent,
+      from: options?.from,
+      to: options?.to,
+    });
   }
 }
