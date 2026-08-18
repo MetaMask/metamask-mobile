@@ -1,7 +1,15 @@
-import { Hex } from '@metamask/utils';
+import { Interface } from '@ethersproject/abi';
+import { Hex, bytesToHex } from '@metamask/utils';
 import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
 import type { MoneyAccount } from '@metamask/money-account-controller';
 import { MONEY_DERIVATION_PATH } from '@metamask/eth-money-keyring';
+import { abiERC20 } from '@metamask/metamask-eth-abis';
+import { MUSD_TOKEN_ADDRESS } from '@metamask/money-account-utils';
+import {
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { awaitTransactionConfirmed } from '../../../core/Engine/controllers/card-controller/utils/awaitTransactionConfirmed';
 import { Contract } from '@ethersproject/contracts';
 import { Web3Provider } from '@ethersproject/providers';
 import Engine from '../../../core/Engine';
@@ -9,6 +17,11 @@ import { emptyCardHomeData } from '../../../core/Engine/controllers/card-control
 import { whenMoneyAccountUpgradeReady } from '../../../core/Engine/controllers/money-account-upgrade-controller-init';
 import { MoneyAccountBalanceServiceQueryKeys } from '../../../components/UI/Money/queryKeys';
 import { MONEY_ACCOUNT_DELEGATION_NETWORK } from '../../../components/UI/Card/util/vedaToken';
+import { FEATURE_FLAG_NAME as GAS_FEES_SPONSORED_FLAG } from '../../../selectors/featureFlagController/gasFeesSponsored';
+import {
+  ROOT_AUTHORITY,
+  getDelegationHashOffchain,
+} from '../../../core/Delegation';
 import { MoneyAccountMigrationPocService } from './MoneyAccountMigrationPocService';
 import type { MigrationInventory } from './types';
 
@@ -42,6 +55,13 @@ jest.mock(
   }),
 );
 
+jest.mock(
+  '../../../core/Engine/controllers/card-controller/utils/awaitTransactionConfirmed',
+  () => ({
+    awaitTransactionConfirmed: jest.fn(),
+  }),
+);
+
 const SOURCE = '0x1111111111111111111111111111111111111111' as Hex;
 const DEST = '0x2222222222222222222222222222222222222222' as Hex;
 const BORING_VAULT = '0xb4563bcd3b7764ccbf497f515585f70b6c3ea5ae' as Hex;
@@ -50,6 +70,9 @@ const INTENT_HASH =
   '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' as Hex;
 const DELEGATION_HASH =
   '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as Hex;
+const BATCH_ID =
+  '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc' as Hex;
+const ERC20 = new Interface(abiERC20);
 
 const destinationAccount = (address: Hex = DEST): MoneyAccount => ({
   id: 'money-account-stub',
@@ -87,6 +110,10 @@ const mockLinkMoneyAccountCard = Engine.context.CardController
 const mockWhenMoneyAccountUpgradeReady =
   whenMoneyAccountUpgradeReady as jest.MockedFunction<
     typeof whenMoneyAccountUpgradeReady
+  >;
+const mockAwaitTransactionConfirmed =
+  awaitTransactionConfirmed as jest.MockedFunction<
+    typeof awaitTransactionConfirmed
   >;
 const mockGetBalance = jest.fn();
 const mockAllowance = jest.fn();
@@ -134,6 +161,12 @@ const stubMessenger = () => {
         return 'monad';
       case 'NetworkController:getNetworkClientById':
         return { provider: {} };
+      case 'TransactionController:addTransactionBatch':
+        return { batchId: BATCH_ID };
+      case 'DelegationController:signDelegation':
+        return '0xsig';
+      case 'AuthenticatedUserStorageService:createDelegation':
+        return undefined;
       default:
         throw new Error(`unexpected action ${action}`);
     }
@@ -146,6 +179,10 @@ describe('MoneyAccountMigrationPocService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockWhenMoneyAccountUpgradeReady.mockResolvedValue(undefined);
+    mockAwaitTransactionConfirmed.mockResolvedValue({
+      txHash: '0xhash',
+      transactionMeta: { id: 'tx-1' },
+    } as never);
     mockGetBalance.mockResolvedValue({ toString: () => '0' });
     mockAllowance.mockResolvedValue({ toString: () => '0' });
     (Web3Provider as unknown as jest.Mock).mockImplementation(() => ({
@@ -162,6 +199,7 @@ describe('MoneyAccountMigrationPocService', () => {
     jest.spyOn(service, 'submitExitBatch').mockResolvedValue(
       '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' as Hex,
     );
+    jest.spyOn(service, 'awaitExitBatch').mockResolvedValue();
   };
 
   it('throws when a blocker is present', async () => {
@@ -595,14 +633,298 @@ describe('MoneyAccountMigrationPocService', () => {
     expect(mockCall).not.toHaveBeenCalled();
   });
 
-  it('revokes CHOMP storage delegations through the messenger', async () => {
+  it('submits one atomic exit batch with transfers, approve(0), and native last', async () => {
+    mockCall.mockImplementation(async (action: string) => {
+      switch (action) {
+        case 'RemoteFeatureFlagController:getState':
+          return {
+            remoteFeatureFlags: {
+              moneyAccountVaultConfig: {
+                chainId: '0x8f',
+                boringVault: BORING_VAULT,
+              },
+              [GAS_FEES_SPONSORED_FLAG]: { '0x8f': true },
+            },
+          };
+        case 'NetworkController:findNetworkClientIdByChainId':
+          return 'monad';
+        case 'TransactionController:addTransactionBatch':
+          return { batchId: BATCH_ID };
+        default:
+          throw new Error(`unexpected action ${action}`);
+      }
+    });
+    mockGetCardHomeData.mockResolvedValue({
+      ...emptyCardHomeData(),
+      delegationSettings: {
+        networks: [
+          {
+            network: MONEY_ACCOUNT_DELEGATION_NETWORK,
+            environment: 'staging',
+            chainId: '143',
+            delegationContract: CARD_DELEGATION,
+            tokens: {
+              veda: {
+                symbol: 'veda',
+                decimals: 6,
+                address: BORING_VAULT,
+              },
+            },
+          },
+        ],
+        count: 1,
+        _links: { self: '' },
+      },
+    });
     const service = new MoneyAccountMigrationPocService();
 
-    await service.revokeStorageDelegations([DELEGATION_HASH]);
+    const batchId = await service.submitExitBatch(
+      plan({
+        vmUsd: 5n,
+        musd: 12n,
+        nativeWei: 10n ** 16n,
+        vaultAllowance: 7n,
+        cardAllowance: 9n,
+      }),
+    );
+
+    expect(batchId).toBe(BATCH_ID);
+    expect(mockCall).toHaveBeenCalledWith(
+      'TransactionController:addTransactionBatch',
+      {
+        from: SOURCE,
+        networkClientId: 'monad',
+        origin: 'metamask:money-account-migration',
+        requireApproval: false,
+        disableHook: false,
+        disableSequential: true,
+        isGasFeeSponsored: true,
+        atomic: true,
+        transactions: [
+          {
+            params: {
+              to: BORING_VAULT,
+              data: ERC20.encodeFunctionData('transfer', [DEST, '5']),
+              value: '0x0',
+            },
+            type: TransactionType.contractInteraction,
+          },
+          {
+            params: {
+              to: MUSD_TOKEN_ADDRESS,
+              data: ERC20.encodeFunctionData('transfer', [DEST, '12']),
+              value: '0x0',
+            },
+            type: TransactionType.contractInteraction,
+          },
+          {
+            params: {
+              to: MUSD_TOKEN_ADDRESS,
+              data: ERC20.encodeFunctionData('approve', [BORING_VAULT, '0']),
+              value: '0x0',
+            },
+            type: TransactionType.contractInteraction,
+          },
+          {
+            params: {
+              to: MUSD_TOKEN_ADDRESS,
+              data: ERC20.encodeFunctionData('approve', [CARD_DELEGATION, '0']),
+              value: '0x0',
+            },
+            type: TransactionType.contractInteraction,
+          },
+          {
+            params: {
+              to: DEST,
+              data: '0x',
+              value: '0x2386f26fc10000',
+            },
+            type: TransactionType.contractInteraction,
+          },
+        ],
+      },
+    );
+  });
+
+  it('skips zero-amount transfers and unsponsored native sweep', async () => {
+    mockCall.mockImplementation(async (action: string) => {
+      switch (action) {
+        case 'RemoteFeatureFlagController:getState':
+          return {
+            remoteFeatureFlags: {
+              moneyAccountVaultConfig: {
+                chainId: '0x8f',
+                boringVault: BORING_VAULT,
+              },
+            },
+          };
+        case 'NetworkController:findNetworkClientIdByChainId':
+          return 'monad';
+        case 'TransactionController:addTransactionBatch':
+          return { batchId: BATCH_ID };
+        default:
+          throw new Error(`unexpected action ${action}`);
+      }
+    });
+    const service = new MoneyAccountMigrationPocService();
+
+    await service.submitExitBatch(
+      plan({ musd: 10n, nativeWei: 5n }),
+    );
+
+    const request = mockCall.mock.calls.find(
+      ([action]) => action === 'TransactionController:addTransactionBatch',
+    )?.[1] as { transactions: unknown[]; isGasFeeSponsored: boolean };
+
+    expect(request.isGasFeeSponsored).toBe(false);
+    expect(request.transactions).toEqual([
+      {
+        params: {
+          to: MUSD_TOKEN_ADDRESS,
+          data: ERC20.encodeFunctionData('transfer', [DEST, '10']),
+          value: '0x0',
+        },
+        type: TransactionType.contractInteraction,
+      },
+    ]);
+  });
+
+  it('does not submit a batch when inventory amounts are all zero', async () => {
+    const service = new MoneyAccountMigrationPocService();
+
+    const batchId = await service.submitExitBatch(plan());
+
+    expect(batchId).toBeNull();
+    expect(mockCall).not.toHaveBeenCalledWith(
+      'TransactionController:addTransactionBatch',
+      expect.anything(),
+    );
+  });
+
+  it('signs and stores a root residual Delegation from source to destination', async () => {
+    const saltBytes = new Uint8Array(32).fill(1);
+    jest.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation(
+      (buffer) => {
+        const bytes = buffer as Uint8Array;
+        bytes.set(saltBytes);
+        return bytes;
+      },
+    );
+    const salt = bytesToHex(saltBytes);
+    const signature = '0xsig' as Hex;
+    mockCall.mockImplementation(async (action: string) => {
+      switch (action) {
+        case 'DelegationController:signDelegation':
+          return signature;
+        case 'AuthenticatedUserStorageService:createDelegation':
+          return undefined;
+        default:
+          throw new Error(`unexpected action ${action}`);
+      }
+    });
+    const service = new MoneyAccountMigrationPocService();
+    const unsigned = {
+      delegate: DEST,
+      delegator: SOURCE,
+      authority: ROOT_AUTHORITY,
+      caveats: [],
+      salt,
+    };
+
+    await service.persistResidualDelegation(SOURCE, DEST, '0x8f');
 
     expect(mockCall).toHaveBeenCalledWith(
-      'AuthenticatedUserStorageService:revokeDelegation',
-      DELEGATION_HASH,
+      'DelegationController:signDelegation',
+      { delegation: unsigned, chainId: '0x8f' },
     );
+    const signedDelegation = { ...unsigned, signature };
+    expect(mockCall).toHaveBeenCalledWith(
+      'AuthenticatedUserStorageService:createDelegation',
+      {
+        signedDelegation,
+        metadata: {
+          delegationHash: getDelegationHashOffchain(signedDelegation),
+          chainIdHex: '0x8f',
+          type: 'money-account-migration-residual',
+          tokenAddress: '0x0000000000000000000000000000000000000000',
+          tokenSymbol: 'native',
+          allowance: '0x0',
+        },
+      },
+    );
+  });
+
+  it('returns when the exit batch inner transaction is already confirmed', async () => {
+    mockCall.mockImplementation(async (action: string) => {
+      if (action === 'TransactionController:getState') {
+        return {
+          transactions: [
+            {
+              id: 'tx-1',
+              batchId: BATCH_ID,
+              status: TransactionStatus.confirmed,
+              hash: '0xhash',
+            },
+          ],
+        };
+      }
+      throw new Error(`unexpected action ${action}`);
+    });
+    const service = new MoneyAccountMigrationPocService();
+
+    await service.awaitExitBatch(BATCH_ID);
+
+    expect(mockAwaitTransactionConfirmed).not.toHaveBeenCalled();
+  });
+
+  it('waits for confirmation when the exit batch inner transaction is still submitted', async () => {
+    mockCall.mockImplementation(async (action: string) => {
+      if (action === 'TransactionController:getState') {
+        return {
+          transactions: [
+            {
+              id: 'tx-1',
+              batchId: BATCH_ID,
+              status: TransactionStatus.submitted,
+              hash: '0xhash',
+            },
+          ],
+        };
+      }
+      throw new Error(`unexpected action ${action}`);
+    });
+    const service = new MoneyAccountMigrationPocService();
+
+    await service.awaitExitBatch(BATCH_ID);
+
+    expect(mockAwaitTransactionConfirmed).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messenger: Engine.controllerMessenger,
+        submit: expect.any(Function),
+      }),
+    );
+  });
+
+  it('throws when the exit batch inner transaction has failed', async () => {
+    mockCall.mockImplementation(async (action: string) => {
+      if (action === 'TransactionController:getState') {
+        return {
+          transactions: [
+            {
+              id: 'tx-1',
+              batchId: BATCH_ID,
+              status: TransactionStatus.failed,
+            },
+          ],
+        };
+      }
+      throw new Error(`unexpected action ${action}`);
+    });
+    const service = new MoneyAccountMigrationPocService();
+
+    await expect(service.awaitExitBatch(BATCH_ID)).rejects.toThrow(
+      'exit-batch-failed',
+    );
+    expect(mockAwaitTransactionConfirmed).not.toHaveBeenCalled();
   });
 });
