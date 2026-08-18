@@ -825,7 +825,7 @@ module.exports = {
     'import-x/resolver': {
       typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
     },
-    'import-x/internal-regex': '^(@metamask/perps-controller|#)',
+    'import-x/internal-regex': '^@metamask/perps-controller',
   },
 
   rules: {
