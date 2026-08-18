@@ -849,15 +849,32 @@ describe('useBridgeQuoteData', () => {
 
     mockValidateBridgeTx.mockRejectedValue(new Error('Network error'));
 
-    const testState = createBridgeTestState({});
+    const testState = createBridgeTestState({
+      bridgeReducerOverrides: {
+        sourceToken: {
+          symbol: 'SOL',
+          chainId: SolScope.Mainnet,
+          address: '11111111111111111111111111111112',
+          decimals: 9,
+        },
+        destToken: {
+          symbol: 'USDC',
+          chainId: SolScope.Mainnet,
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          decimals: 6,
+        },
+      },
+    });
 
     const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
       state: testState,
     });
 
     await waitFor(() => {
-      expect(result.current.blockaidError).toBe(null);
+      expect(mockValidateBridgeTx).toHaveBeenCalled();
     });
+    expect(result.current.blockaidError).toBe(null);
   });
 
   it('calculates quote rate correctly when sourceAmount is zero', () => {
@@ -1111,8 +1128,9 @@ describe('useBridgeQuoteData', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.blockaidError).toBe(null);
+      expect(mockValidateBridgeTx).toHaveBeenCalled();
     });
+    expect(result.current.blockaidError).toBe(null);
   });
 
   it('retries validation for the same requestId after validation throws', async () => {
@@ -1632,7 +1650,6 @@ describe('useBridgeQuoteData', () => {
     });
   });
 
-  // Test race condition handling
   describe('validation race condition handling', () => {
     it('aborts previous validation when quote changes', async () => {
       const mockQuote1 = {
@@ -1643,77 +1660,93 @@ describe('useBridgeQuoteData', () => {
         ...mockQuoteWithMetadata,
         quote: { ...mockQuoteWithMetadata.quote, requestId: 'quote2' },
       };
+      let recommendedQuote = mockQuote1;
+      const mockAbort = jest.fn();
+      const originalAbortController = global.AbortController;
+      let resolveFirstValidation: ((value: unknown) => void) | undefined;
 
-      // Start with first quote
       selectBridgeQuotes.mockImplementation(() => ({
         ...defaultSelectBridgeQuotesResults,
-        recommendedQuote: mockQuote1,
+        recommendedQuote,
       }));
-
-      let abortCallCount = 0;
-      const mockAbort = jest.fn(() => {
-        abortCallCount++;
-      });
-
-      const originalAbortController = global.AbortController;
       global.AbortController = jest.fn().mockImplementation(() => ({
         signal: {},
         abort: mockAbort,
       })) as typeof AbortController;
-
-      mockValidateBridgeTx.mockResolvedValue({ status: 'SUCCESS' });
-
-      const bridgeReducerOverrides = {
-        sourceToken: {
-          symbol: 'SOL',
-          chainId: SolScope.Mainnet,
-          address: '11111111111111111111111111111112',
-          decimals: 9,
-        },
-        destToken: {
-          symbol: 'USDC',
-          chainId: SolScope.Mainnet,
-          address:
-            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          decimals: 6,
-        },
-      };
+      mockValidateBridgeTx
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveFirstValidation = resolve;
+            }),
+        )
+        .mockResolvedValue({ status: 'SUCCESS' });
 
       const testState = createBridgeTestState({
-        bridgeReducerOverrides,
-      });
-
-      const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
-        state: testState,
-      });
-
-      await waitFor(() => {
-        expect(result.current.blockaidError).toBe(null);
-      });
-
-      // Change to second quote
-      selectBridgeQuotes.mockImplementation(() => ({
-        ...defaultSelectBridgeQuotesResults,
-        recommendedQuote: mockQuote2,
-      }));
-
-      // Re-render with new quote
-      const { result: result2 } = renderHookWithProvider(
-        () => useBridgeQuoteData(),
-        {
-          state: testState,
+        bridgeReducerOverrides: {
+          sourceToken: {
+            symbol: 'SOL',
+            chainId: SolScope.Mainnet,
+            address: '11111111111111111111111111111112',
+            decimals: 9,
+          },
+          destToken: {
+            symbol: 'USDC',
+            chainId: SolScope.Mainnet,
+            address:
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+            decimals: 6,
+          },
         },
-      );
-
-      await waitFor(() => {
-        expect(result2.current.blockaidError).toBe(null);
       });
 
-      // Verify abort was called when quote changed
-      expect(abortCallCount).toBeGreaterThan(0);
+      try {
+        const { result, store } = renderHookWithProvider(
+          () => useBridgeQuoteData(),
+          { state: testState },
+        );
 
-      // Restore original AbortController
-      global.AbortController = originalAbortController;
+        await waitFor(() => {
+          expect(mockValidateBridgeTx).toHaveBeenCalledTimes(1);
+        });
+        const abortCountAfterFirstValidation = mockAbort.mock.calls.length;
+
+        recommendedQuote = mockQuote2;
+        selectAppBridgeQuotes.clearCache();
+        selectAppBridgeQuotes.memoizedResultFunc.clearCache();
+        act(() => {
+          store.dispatch(setSourceAmount('2'));
+        });
+
+        await waitFor(() => {
+          expect(mockValidateBridgeTx).toHaveBeenCalledTimes(2);
+        });
+        await act(async () => {
+          resolveFirstValidation?.({
+            status: 'ERROR',
+            result: {
+              validation: {
+                reason: 'stale quote validation failed',
+              },
+            },
+            error_details: {
+              message: 'stale quote was accepted',
+            },
+          });
+        });
+
+        expect(mockAbort.mock.calls.length).toBe(
+          abortCountAfterFirstValidation + 1,
+        );
+        expect(
+          mockValidateBridgeTx.mock.calls[1][0].quoteResponse.quote.requestId,
+        ).toBe('quote2');
+        await waitFor(() => {
+          expect(result.current.blockaidError).toBe(null);
+        });
+      } finally {
+        global.AbortController = originalAbortController;
+      }
     });
   });
 
