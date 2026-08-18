@@ -5,7 +5,7 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { type Position, type PriceUpdate } from '@metamask/perps-controller';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_POSITIONS: Position[] = [];
@@ -107,8 +107,8 @@ export function usePerpsLivePositions(
   const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
   const selectedAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  )?.toLowerCase();
+    selectSelectedAccountGroupEvmInternalAccount,
+  )?.address.toLowerCase();
   const initialChannelPositions = stream.positions.getSnapshot();
   const [isInitialLoading, setIsInitialLoading] = useState(() => {
     if (
