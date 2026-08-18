@@ -1,8 +1,4 @@
 /* eslint-disable import-x/no-commonjs -- ESLint config must use CommonJS */
-const {
-  pageObjectsAndFlows: dualFrameworkPoFlowBurndown,
-  smokeAppium: dualFrameworkSmokeBurndown,
-} = require('./dual-framework-burndown.js');
 
 /** Shared dual-framework import restrictions (MMQA-2230). */
 const dualFrameworkRestrictedImportOptions = {
@@ -186,7 +182,7 @@ module.exports = {
         ],
       },
     },
-    // MMQA-2230: ban dual-framework imports in new PO/flow files (error)
+    // MMQA-2230: ban dual-framework imports in PO/flow files
     {
       files: ['**/page-objects/**/*.{js,ts}', '**/flows/**/*.{js,ts}'],
       excludedFiles: [
@@ -194,7 +190,6 @@ module.exports = {
         '**/page-objects/**/*.test.js',
         '**/flows/**/*.test.ts',
         '**/flows/**/*.test.js',
-        ...dualFrameworkPoFlowBurndown,
       ],
       rules: {
         'no-restricted-imports': [
@@ -203,27 +198,10 @@ module.exports = {
         ],
       },
     },
-    // MMQA-2230: allowlisted PO/flow dual-framework debt (warn until Phase 3)
-    ...(dualFrameworkPoFlowBurndown.length > 0
-      ? [
-          {
-            files: dualFrameworkPoFlowBurndown,
-            rules: {
-              'no-restricted-imports': [
-                'warn',
-                dualFrameworkRestrictedImportOptions,
-              ],
-            },
-          },
-        ]
-      : []),
-    // MMQA-2230: ban dual-framework imports in new smoke-appium files (error)
+    // MMQA-2230: ban dual-framework imports in smoke-appium files
     {
       files: ['**/smoke-appium/**/*.{js,ts}'],
-      excludedFiles: [
-        '**/smoke-appium/**/*.test.ts',
-        ...dualFrameworkSmokeBurndown,
-      ],
+      excludedFiles: ['**/smoke-appium/**/*.test.ts'],
       rules: {
         'no-restricted-imports': [
           'error',
@@ -231,19 +209,5 @@ module.exports = {
         ],
       },
     },
-    // MMQA-2230: allowlisted smoke-appium dual-framework debt (warn)
-    ...(dualFrameworkSmokeBurndown.length > 0
-      ? [
-          {
-            files: dualFrameworkSmokeBurndown,
-            rules: {
-              'no-restricted-imports': [
-                'warn',
-                dualFrameworkRestrictedImportOptions,
-              ],
-            },
-          },
-        ]
-      : []),
   ],
 };

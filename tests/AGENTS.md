@@ -36,8 +36,6 @@ ESLint blocks **new** dual-framework debt in POs, flows, and Appium specs:
 | `encapsulated` / `encapsulatedAction` / `asPlaywrightElement` / `asDetoxElement`               | `Matchers` + `Gestures` / `Assertions`             |
 | `PlaywrightMatchers` / `PlaywrightGestures` / `PlaywrightAssertions` / `PlaywrightWebMatchers` | `Matchers` / `Gestures` / `Assertions`             |
 
-- **New files**: **error**
-- **Allowlisted existing debt**: **warn** — list in [`tests/framework/dual-framework-burndown.js`](framework/dual-framework-burndown.js). Do not add paths to that list; migrate instead.
 - Detox package, Detox smoke specs, `wdio/`, and native Detox androidTest wiring are removed. Shared Appium helpers may still live under `tests/smoke/{identity,snaps}/` until a follow-up relocate. E2E CI still builds a stub `androidTest` APK for artifact cache/reuse; Appium drives the app APK.
 
 ## Canonical Sources (read these, do not duplicate)
