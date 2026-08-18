@@ -854,9 +854,9 @@ export type RootStackParamList = {
     | NavigatorScreenParams<WalletTabStackParamList>
     | undefined;
   WalletConnectSessionsView: undefined;
-  DeFiFullView: undefined;
+  DeFiFullView: { source?: string } | undefined;
   NftFullView: undefined;
-  TokensFullView: undefined;
+  TokensFullView: { source?: string } | undefined;
   CashTokensFullView: undefined;
   WatchlistFullView: undefined;
 
@@ -1032,6 +1032,7 @@ export type RootStackParamList = {
     | undefined;
   ConfirmationPayWithNetworkModal: undefined;
   SmartAccountOptIn: undefined;
+  ProSubscription: { source?: string; initialPlan?: string } | undefined;
 
   // Notification routes
   NotificationsView: undefined;

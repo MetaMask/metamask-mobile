@@ -32,6 +32,10 @@ jest.mock('../../UI/Rewards/hooks/useCandidateSubscriptionId', () => ({
   useCandidateSubscriptionId: () => mockUseCandidateSubscriptionId(),
 }));
 
+jest.mock('../../UI/Rewards/hooks/useRewardsTabPerformance', () => ({
+  useRewardsTabPerformance: jest.fn(),
+}));
+
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectPredictEnabledFlag = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn();
@@ -56,6 +60,22 @@ jest.mock('../../UI/Predict', () => {
     }) => jest.requireActual('react').createElement(Fragment, null, children),
     selectPredictEnabledFlag: (state: unknown) =>
       mockSelectPredictEnabledFlag(state),
+  };
+});
+
+jest.mock('../../UI/Trending/contexts', () => {
+  const { Fragment } = jest.requireActual('react');
+  return {
+    TrendingQuickBuySheetProvider: ({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) => jest.requireActual('react').createElement(Fragment, null, children),
+    useTrendingQuickBuySheet: () => ({
+      openQuickBuy: jest.fn(),
+      closeQuickBuy: jest.fn(),
+      isQuickBuyOpen: false,
+    }),
   };
 });
 
@@ -1222,7 +1242,7 @@ describe('MainNavigator', () => {
     });
   });
 
-  it('includes SocialTradersView screen when Social Leaderboard remote flag is enabled', () => {
+  it('includes SocialTradersTabsView screen when Social Leaderboard remote flag is enabled', () => {
     const stateWithSocialLeaderboard = {
       ...initialRootState,
       engine: {
@@ -1271,7 +1291,7 @@ describe('MainNavigator', () => {
     );
 
     expect(topTradersScreen).toBeDefined();
-    expect(topTradersScreen?.component.name).toBe('SocialTradersView');
+    expect(topTradersScreen?.component.name).toBe('SocialTradersTabsView');
   });
 
   describe('Inner navigator component rendering', () => {

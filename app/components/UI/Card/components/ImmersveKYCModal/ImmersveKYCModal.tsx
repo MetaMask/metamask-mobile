@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -14,6 +14,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 
 export interface ImmersveKYCModalParams {
   url: string;
@@ -46,32 +50,94 @@ const ImmersveKYCModal: React.FC = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [status, setStatus] = useState<WebViewStatus>('loading');
   const [retryKey, setRetryKey] = useState(0);
+  const hasClosed = useRef(false);
+  const hasTrackedLoadError = useRef(false);
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            screen: CardScreens.IMMERSVE_KYC_WEBVIEW,
+          }),
+        )
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   // Any close (header back, or the Immersve page's X → redirect) re-polls the
   // opener so it can route forward (completed) or prompt to reopen (bailed).
-  const closeModal = useCallback(() => {
-    onCloseCallback?.();
-    navigation.goBack();
-  }, [navigation]);
+  const closeModal = useCallback(
+    (reason: 'redirect' | 'dismiss') => {
+      // WebView can fire multiple navigation updates for the same redirect URL.
+      if (hasClosed.current) {
+        return;
+      }
+      hasClosed.current = true;
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties(
+            withCardProvider(CardProviderIds.Immersve, {
+              action:
+                reason === 'redirect'
+                  ? CardActions.KYC_WEBVIEW_COMPLETED
+                  : CardActions.KYC_WEBVIEW_CLOSE,
+            }),
+          )
+          .build(),
+      );
+      onCloseCallback?.();
+      navigation.goBack();
+    },
+    [navigation, trackEvent, createEventBuilder],
+  );
 
   const handleRetry = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            action: CardActions.KYC_WEBVIEW_RETRY,
+          }),
+        )
+        .build(),
+    );
+    hasTrackedLoadError.current = false;
     setStatus('loading');
     setRetryKey((k) => k + 1);
-  }, []);
+  }, [trackEvent, createEventBuilder]);
 
   const handleLoadStart = useCallback(() => setStatus('loading'), []);
   const handleLoadEnd = useCallback(
     () => setStatus((s) => (s === 'error' ? s : 'loaded')),
     [],
   );
-  const handleError = useCallback(() => setStatus('error'), []);
+  const handleError = useCallback(() => {
+    setStatus('error');
+    // onError + onHttpError often both fire for one failure.
+    if (hasTrackedLoadError.current) {
+      return;
+    }
+    hasTrackedLoadError.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            action: CardActions.KYC_WEBVIEW_LOAD_ERROR,
+          }),
+        )
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
 
   const handleNavigationStateChange = useCallback(
     (navState: WebViewNavigation) => {
       if (redirectUrl && navState.url.startsWith(redirectUrl)) {
-        closeModal();
+        closeModal('redirect');
       }
     },
     [redirectUrl, closeModal],
@@ -86,7 +152,7 @@ const ImmersveKYCModal: React.FC = () => {
       testID="immersve-kyc-container"
     >
       <HeaderStandard
-        onBack={closeModal}
+        onBack={() => closeModal('dismiss')}
         backButtonProps={{ testID: 'immersve-kyc-back-button' }}
         twClassName="bg-background-default"
       />
