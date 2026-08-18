@@ -56,14 +56,11 @@ const RESERVED_METADATA_KEYS = new Set([
 
 const sanitizeMetadata = (
   metadata?: Record<string, string | number | boolean>,
-  excludeSessionId = false,
 ) =>
   metadata
     ? Object.fromEntries(
         Object.entries(metadata).filter(
-          ([key]) =>
-            !RESERVED_METADATA_KEYS.has(key) &&
-            (!excludeSessionId || key !== 'perps_session_id'),
+          ([key]) => !RESERVED_METADATA_KEYS.has(key),
         ),
       )
     : undefined;
@@ -90,8 +87,8 @@ export const useSectionPerformance = ({
   tags,
   data,
 }: UseSectionPerformanceConfig) => {
-  const tagsRef = useRef(sanitizeMetadata(tags, true));
-  tagsRef.current = sanitizeMetadata(tags, true);
+  const tagsRef = useRef(sanitizeMetadata(tags));
+  tagsRef.current = sanitizeMetadata(tags);
   const dataRef = useRef(sanitizeMetadata(data));
   dataRef.current = sanitizeMetadata(data);
 
