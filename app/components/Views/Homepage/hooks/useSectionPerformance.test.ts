@@ -160,6 +160,29 @@ describe('useSectionPerformance', () => {
       );
     });
 
+    it('keeps the latest TTC cohort metadata when unmounted', () => {
+      const { unmount } = renderHook(() =>
+        useSectionPerformance({
+          ...defaultConfig,
+          tags: { lifecycle: 'cold_no_cache' },
+          data: { perps_session_id: 'session-id-1' },
+        }),
+      );
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({
+            lifecycle: 'cold_no_cache',
+            perps_session_id: 'session-id-1',
+            success: false,
+          }),
+        }),
+      );
+    });
+
     it('does not end with failure on unmount if content was already ready', () => {
       const { rerender, unmount } = renderHook(
         ({ contentReady }) =>
@@ -270,6 +293,30 @@ describe('useSectionPerformance', () => {
           data: expect.objectContaining({
             success: false,
             reason: 'unmounted',
+          }),
+        }),
+      );
+    });
+
+    it('keeps the latest DFD cohort metadata when unmounted', () => {
+      const { unmount } = renderHook(() =>
+        useSectionPerformance({
+          ...defaultConfig,
+          isLoading: true,
+          tags: { lifecycle: 'cold_no_cache' },
+          data: { perps_session_id: 'session-id-1' },
+        }),
+      );
+
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionDataFetch,
+          data: expect.objectContaining({
+            lifecycle: 'cold_no_cache',
+            perps_session_id: 'session-id-1',
+            success: false,
           }),
         }),
       );
@@ -435,9 +482,9 @@ describe('useSectionPerformance', () => {
     it('spreads bounded tags onto both existing traces and data onto their ends', () => {
       const tags = {
         content_variant: 'trending',
-        market_source: 'unknown',
+        market_source: 'provider',
         account_source: 'memory_cache',
-        lifecycle_context: 'cold_process',
+        lifecycle: 'cold_no_cache',
       };
       const data = { perps_session_id: 'session-id-1' };
 
@@ -498,15 +545,15 @@ describe('useSectionPerformance', () => {
     it('annotates the same pending span with later resolved tags and does not restart the trace', () => {
       const initialTags = {
         content_variant: 'trending',
-        market_source: 'unknown',
-        account_source: 'unknown',
-        lifecycle_context: 'cold_process',
+        market_source: 'memory_cache',
+        account_source: 'memory_cache',
+        lifecycle: 'cold_no_cache',
       };
       const resolvedTags = {
         content_variant: 'positions',
         market_source: 'terminal_v2',
         account_source: 'fresh_socket',
-        lifecycle_context: 'cold_process',
+        lifecycle: 'cold_no_cache',
       };
       const span = { spanId: 'ttc-span' };
       mockGetTraceContext.mockReturnValue(span);
@@ -552,9 +599,9 @@ describe('useSectionPerformance', () => {
             contentStateForTrace: 'error',
             tags: {
               content_variant: 'error',
-              market_source: 'unknown',
-              account_source: 'unknown',
-              lifecycle_context: 'cold_process',
+              market_source: 'provider',
+              account_source: 'fresh_socket',
+              lifecycle: 'cold_no_cache',
             },
             data: { perps_session_id: 'session-id-1' },
           }),

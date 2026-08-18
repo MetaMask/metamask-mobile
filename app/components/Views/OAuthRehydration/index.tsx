@@ -63,6 +63,7 @@ import {
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import {
   cancelHomepageReadyTrace,
+  markHomepageAuthenticationEnd,
   startHomepageReadyTrace,
   type HomepageReadyTraceToken,
 } from '../../../core/Performance/HomepageReady';
@@ -629,6 +630,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           });
         },
       );
+      markHomepageAuthenticationEnd(homepageReadyTraceToken);
 
       // run syncMarketingOptInAfterUnlock in the background
       syncMarketingOptInAfterUnlock();
@@ -709,6 +711,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           });
         },
       );
+      markHomepageAuthenticationEnd(homepageReadyTraceToken);
 
       // Best-effort post-unlock UX: show biometric cancelled alert if needed.
       // Failure here must not be treated as a login error — unlock already succeeded.

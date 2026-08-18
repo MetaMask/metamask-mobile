@@ -48,6 +48,7 @@ const mockStartHomepageReadyTrace = jest.fn(
   (..._args: unknown[]) => HOMEPAGE_READY_TRACE_TOKEN,
 );
 const mockCancelHomepageReadyTrace = jest.fn();
+const mockMarkHomepageAuthenticationEnd = jest.fn();
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -70,6 +71,8 @@ jest.mock('../../../core/Performance/HomepageReady', () => ({
     mockStartHomepageReadyTrace(...args),
   cancelHomepageReadyTrace: (...args: unknown[]) =>
     mockCancelHomepageReadyTrace(...args),
+  markHomepageAuthenticationEnd: (...args: unknown[]) =>
+    mockMarkHomepageAuthenticationEnd(...args),
 }));
 
 jest.mock('../../../util/Logger');
@@ -284,6 +287,9 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(mockGetMarketingOptInStatus).toHaveBeenCalled();
       });
+      expect(mockMarkHomepageAuthenticationEnd).toHaveBeenCalledWith(
+        HOMEPAGE_READY_TRACE_TOKEN,
+      );
       expect(mockUnlockWallet.mock.invocationCallOrder[0]).toBeLessThan(
         mockRequestBiometricsAccessControlForIOS.mock.invocationCallOrder[0],
       );
