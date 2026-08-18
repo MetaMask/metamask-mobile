@@ -91,6 +91,8 @@ jest.mock('../../UI/Money/Views/MoneyFirstTimeDepositView', () => ({
   default: () => null,
 }));
 
+jest.mock('../../Views/Settings/SecuritySettings', () => () => null);
+
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../UI/Money/components/MoneyTabPressTracker', () => ({
@@ -100,14 +102,15 @@ jest.mock('../../UI/Money/components/MoneyTabPressTracker', () => ({
 
 const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
+  ...jest.requireActual('../../UI/Money/selectors/featureFlags'),
   selectMoneyEnableMoneyAccountFlag: (state: unknown) =>
     mockSelectMoneyEnableMoneyAccountFlag(state),
 }));
 
-const mockSelectIsMoneyAccountGeoEligible = jest.fn().mockReturnValue(true);
-jest.mock('../../UI/Money/selectors/eligibility', () => ({
-  selectIsMoneyAccountGeoEligible: (state: unknown) =>
-    mockSelectIsMoneyAccountGeoEligible(state),
+const mockSelectIsMoneyAccountVisible = jest.fn().mockReturnValue(false);
+jest.mock('../../UI/Money/selectors/visibility', () => ({
+  selectIsMoneyAccountVisible: (state: unknown) =>
+    mockSelectIsMoneyAccountVisible(state),
 }));
 
 describe('MainNavigator', () => {
@@ -1742,17 +1745,16 @@ describe('MainNavigator', () => {
           .map((child) => child.props.name as string);
       };
 
-      it('includes Money route when feature flag is enabled', () => {
-        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+      it('includes Money route when account is visible', () => {
+        mockSelectIsMoneyAccountVisible.mockReturnValue(true);
 
         const tabScreenNames = getHomeTabsScreenNames();
 
         expect(tabScreenNames).toContain(Routes.MONEY.ROOT);
-        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
       });
 
-      it('excludes Money route when feature flag is disabled', () => {
-        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+      it('excludes Money route when account is not visible', () => {
+        mockSelectIsMoneyAccountVisible.mockReturnValue(false);
 
         const tabScreenNames = getHomeTabsScreenNames();
 
