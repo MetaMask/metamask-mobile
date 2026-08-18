@@ -47,7 +47,7 @@ Resolution order, highest priority first:
 
 Push-, schedule- and `merge_group`-triggered workflows have no dispatch inputs, so the variables are the only way to steer them. That is why the input default is empty rather than a concrete provider.
 
-The production build chain (`build.yml`, `setup-node-modules.yml`, `upload-to-testflight.yml`), OTA (`eas-update-platform.yml`), and BrowserStack upload workflows are on the switch. Callers that omit `runner_provider` follow the fleet variables.
+The production build chain (`build.yml`, `setup-node-modules.yml`, `upload-to-testflight.yml` and their callers) is on the switch. BrowserStack native builds go through `build.yml` and follow the fleet; the upload jobs stay on Cirrus / `ubuntu-latest`. OTA `eas-update-platform.yml` is still hardcoded to Cirrus.
 
 PR CI (`ci.yml`) and the e2e chain still default to `current`. Dispatch `ci.yml` with `runner_provider=namespace` for a real Namespace PR-CI trial (this is no longer a shadow run). Appium smoke and fixture validation stay pinned to Cirrus until Namespace artifact-store parity. A workflow that hardcodes `current` at its call site is opted out on purpose.
 

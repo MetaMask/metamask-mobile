@@ -33,11 +33,6 @@ on:
           - ios
           - android
         default: all
-      runner_provider:
-        description: 'Runner provider override. Leave empty to inherit NAMESPACE_RUNNER_* repo variables.'
-        required: false
-        type: string
-        default: ''
 
   workflow_call:
     inputs:
@@ -63,11 +58,6 @@ on:
         type: string
         required: false
         default: all
-      runner_provider:
-        description: 'Runner provider override. Leave empty to inherit NAMESPACE_RUNNER_* repo variables.'
-        type: string
-        required: false
-        default: ''
 
 permissions:
   contents: read
@@ -198,7 +188,6 @@ jobs:
       upload-artifact: true
       artifact-name: node-modules-eas-update-pr
       artifact-retention-days: 1
-      runner_provider: ${{ inputs.runner_provider }}
 
   setup-dependencies-base:
     name: Setup Dependencies (Base)
@@ -212,7 +201,6 @@ jobs:
       upload-artifact: true
       artifact-name: node-modules-eas-update-base
       artifact-retention-days: 1
-      runner_provider: ${{ inputs.runner_provider }}
 
   prepare:
     name: Load OTA build config
@@ -452,7 +440,6 @@ jobs:
       build_name: ${{ needs.prepare.outputs.build_name }}
       github_environment: ${{ needs.prepare.outputs.github_environment }}
       secrets_json: ${{ needs.prepare.outputs.secrets_json }}
-      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   push-update-android:
@@ -484,7 +471,6 @@ jobs:
       build_name: ${{ needs.prepare.outputs.build_name }}
       github_environment: ${{ needs.prepare.outputs.github_environment }}
       secrets_json: ${{ needs.prepare.outputs.secrets_json }}
-      runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
   fingerprint-mismatch:

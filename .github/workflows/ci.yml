@@ -21,6 +21,14 @@ on:
         type: string
         required: false
         default: current
+      pr_number:
+        description: 'PR number (shadow correlation, optional)'
+        type: string
+        required: false
+      head_sha:
+        description: 'PR head SHA (shadow correlation, optional)'
+        type: string
+        required: false
   workflow_dispatch:
     inputs:
       runner_provider:
@@ -32,6 +40,14 @@ on:
           - namespace
           - bitrise
         default: current
+      pr_number:
+        description: 'PR number (shadow correlation, optional)'
+        required: false
+        type: string
+      head_sha:
+        description: 'PR head SHA (shadow correlation, optional)'
+        required: false
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
@@ -1372,12 +1388,16 @@ jobs:
 
   appium-smoke-tests-ios:
     name: 'Appium Smoke Tests (iOS)'
+    # Stays on Cirrus (`runner_provider: current` below) until Namespace artifact-store
+    # parity is ready. Skip when the parent CI run is on Namespace so this job cannot
+    # try to download Namespace-built IPAs from GitHub's artifact store.
     # Main/release push and main schedule: always run when the iOS build succeeded.
     # PRs: skipped by default; add run-appium-ios-tests, or change
     # page-objects/selectors/locators/framework/smoke-appium
     # (same smart-selected tags as other E2E jobs).
     if: >-
       ${{
+        inputs.runner_provider != 'namespace' &&
         !cancelled() &&
         needs.ios-tests-ready.result == 'success' &&
         (
@@ -1407,6 +1427,7 @@ jobs:
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
+      # Pinned to Cirrus until Namespace artifact-store parity.
       runner_provider: current
       selected_tags: >-
         ${{
@@ -1419,7 +1440,8 @@ jobs:
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
-    if: ${{ needs.ios-tests-ready.result == 'success' && github.event_name == 'pull_request' }}
+    # Pinned to Cirrus; skip on Namespace parent runs (same IPA store mismatch as Appium iOS).
+    if: ${{ inputs.runner_provider != 'namespace' && needs.ios-tests-ready.result == 'success' && github.event_name == 'pull_request' }}
     permissions:
       contents: read
       checks: write

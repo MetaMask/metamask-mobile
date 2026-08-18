@@ -76,12 +76,12 @@ jobs:
           fi
           echo "Dispatching ci.yml on ref='${REF}' (PR='${PR_NUMBER:-none}', sha='${HEAD_SHA}')"
           set +e
-          # pr_number/head_sha were Namespace-shadow correlation inputs on ci.yml;
-          # removed with the Namespace shadow dispatcher. Bitrise shadow only needs runner_provider.
           DISPATCH_LOG="$(gh workflow run ci.yml \
             --repo "$REPO" \
             --ref "$REF" \
-            -f runner_provider=bitrise 2>&1)"
+            -f runner_provider=bitrise \
+            -f pr_number="$PR_NUMBER" \
+            -f head_sha="$HEAD_SHA" 2>&1)"
           gh_status=$?
           set -e
           RUN_URL=""
