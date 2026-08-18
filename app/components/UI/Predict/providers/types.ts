@@ -2,8 +2,10 @@ import { KeyringController } from '@metamask/keyring-controller';
 import {
   AccountState,
   ConnectionStatus,
+  ConnectionStatusCallback,
   CryptoPriceHistoryPoint,
   CryptoPriceUpdateCallback,
+  CryptoPriceSubscriptionOptions,
   GameUpdateCallback,
   GeoBlockResponse,
   GetActivityParams,
@@ -30,6 +32,7 @@ import {
   PredictMarketListResponse,
   PredictPosition,
   PredictPriceHistoryPoint,
+  PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   PriceUpdateCallback,
   SearchMarketsParams,
@@ -46,6 +49,7 @@ import { PredictFeatureFlags } from '../types/flags';
 export type {
   AccountState,
   ConnectionStatus,
+  ConnectionStatusCallback,
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
@@ -63,6 +67,7 @@ export type {
   PredictFilterOptionsParams,
   PredictMarketListParams,
   PredictMarketListResponse,
+  PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   PriceUpdateCallback,
   SearchMarketsParams,
@@ -160,6 +165,7 @@ export interface SignWithdrawParams {
 export interface SignWithdrawResponse {
   callData: Hex;
   amount: number;
+  walletType: AccountState['walletType'];
 }
 
 export interface PredictProvider {
@@ -204,6 +210,11 @@ export interface PredictProvider {
       signer: Signer;
     },
   ): Promise<OrderPreview>;
+  previewMaxBuyOrder(
+    params: PreviewMaxBuyOrderParams & {
+      signer: Signer;
+    },
+  ): Promise<OrderPreview | null>;
   placeOrder(
     params: PlaceOrderParams & { signer: Signer },
   ): Promise<OrderResult>;
@@ -244,9 +255,12 @@ export interface PredictProvider {
   subscribeToCryptoPrices?(
     symbols: string[],
     callback: CryptoPriceUpdateCallback,
+    options?: CryptoPriceSubscriptionOptions,
   ): () => void;
 
   getMarketSeries?(params: GetSeriesParams): Promise<PredictMarket[]>;
 
   getConnectionStatus?(): ConnectionStatus;
+
+  subscribeToConnectionStatus?(callback: ConnectionStatusCallback): () => void;
 }

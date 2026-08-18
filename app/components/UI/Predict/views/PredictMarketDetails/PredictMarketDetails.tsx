@@ -1,9 +1,4 @@
-import {
-  NavigationProp,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { InteractionManager, RefreshControl, ScrollView } from 'react-native';
 import {
@@ -62,14 +57,14 @@ import { useOutcomeResolution } from './hooks/useOutcomeResolution';
 import { useOpenOutcomes } from './hooks/useOpenOutcomes';
 import { useSelector } from 'react-redux';
 import { usePredictPreviewSheet } from '../../contexts';
+import PredictOffline from '../../components/PredictOffline';
 
 // Use theme tokens instead of hex values for multi-series charts
 
 interface PredictMarketDetailsProps {}
 
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { openBuySheet, isBuySheetOpen } = usePredictPreviewSheet();
   const { colors } = useTheme();
   const { claim, isClaimPending } = usePredictClaim();
@@ -105,6 +100,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     marketId: currentSeriesMarketId,
     isLoading: isCurrentSeriesMarketLoading,
     isFetching: isCurrentSeriesMarketFetching,
+    error: currentSeriesMarketError,
     refetch: refetchCurrentSeriesMarket,
   } = useCurrentPredictMarketFromSeries({
     series,
@@ -122,6 +118,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     data: marketData,
     isLoading: isMarketLoading,
     isFetching: isMarketFetching,
+    error: marketError,
     refetch: refetchMarket,
   } = usePredictMarket({
     id: resolvedMarketId ?? '',
@@ -349,20 +346,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const handlePolymarketResolution = useCallback(() => {
     InteractionManager.runAfterInteractions(() => {
-      // `navigation` is typed to the Predict stack (for usePredictActionGuard),
-      // but Webview is a root-level route. Cast to the root prop for this
-      // cross-stack navigation. TODO(nav-phase-4): migrate Predict call sites
-      // + usePredictActionGuard to AppNavigationProp and drop this cast.
-      (navigation as unknown as AppNavigationProp).navigate(
-        Routes.WEBVIEW.MAIN,
-        {
-          screen: Routes.WEBVIEW.SIMPLE,
-          params: {
-            url: 'https://docs.polymarket.com/polymarket-learn/markets/how-are-markets-resolved',
-            title: strings('predict.market_details.resolution_details'),
-          },
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: {
+          url: 'https://docs.polymarket.com/polymarket-learn/markets/how-are-markets-resolved',
+          title: strings('predict.market_details.resolution_details'),
         },
-      );
+      });
     });
   }, [navigation]);
 
@@ -468,6 +458,28 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   );
 
   const isMarketUnavailable = isMarketUnresolved;
+  const resolvedMarketError = marketError ?? currentSeriesMarketError;
+
+  if (resolvedMarketError && !market) {
+    return (
+      <SafeAreaView
+        style={tw.style('flex-1 bg-default')}
+        edges={['left', 'right', 'bottom']}
+        testID={PredictMarketDetailsSelectorsIDs.SCREEN}
+      >
+        <PredictMarketDetailsHeader
+          isLoading={false}
+          market={null}
+          title={title}
+          image={image}
+          titleLineCount={titleLineCount}
+          insetsTop={insets.top}
+          onBackPress={handleBackPress}
+        />
+        <PredictOffline onRetry={handleRefresh} />
+      </SafeAreaView>
+    );
+  }
 
   if (upDownEnabled && market && isCryptoUpDown(market)) {
     return (

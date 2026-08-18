@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
@@ -29,7 +30,7 @@ const DepositOrderDetails = () => {
   const order = useSelector((state: RootState) =>
     getOrderById(state, params.orderId),
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const title = strings('deposit.order_details.title');
 
   const handleHeaderBack = useCallback(() => {

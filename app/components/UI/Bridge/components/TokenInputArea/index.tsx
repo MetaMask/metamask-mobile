@@ -1,4 +1,10 @@
-import React, { forwardRef, useImperativeHandle, useMemo, useRef } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
 import {
   StyleSheet,
   ImageSourcePropType,
@@ -26,7 +32,7 @@ import Input from '../../../../../component-library/components/Form/TextField/fo
 import { TokenButton } from '../TokenButton';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { BigNumber } from 'ethers';
-import { BridgeToken } from '../../types';
+import { BridgeToken, TokenSelectorType } from '../../types';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import OldButton, {
@@ -35,18 +41,25 @@ import OldButton, {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
 } from '../../../../../core/redux/slices/bridge';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
-import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
+import {
+  CaipChainId,
+  isCaipAssetType,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
 import {
+  FeatureId,
   formatAddressToAssetId,
   isNativeAddress,
+  UnifiedSwapBridgeEventName,
 } from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
@@ -57,6 +70,7 @@ import { useFormattedBalanceWithThreshold } from '../../hooks/useFormattedBalanc
 import { useDisplayCurrencyValue } from '../../hooks/useDisplayCurrencyValue';
 import { formatSecondaryTokenAmount } from '../../utils/sourceAmountInputMode';
 import { normalizeTokenAddress } from '../../utils/tokenUtils';
+import Engine from '../../../../../core/Engine';
 
 export const MAX_INPUT_LENGTH = 36;
 
@@ -112,6 +126,9 @@ const createStyles = ({
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
+      alignSelf: 'flex-start',
+      paddingVertical: 4,
+      paddingHorizontal: 4,
     },
     currencyContainer: {
       flex: 1,
@@ -173,6 +190,11 @@ interface TokenInputAreaProps {
   onAmountTypeTogglePress?: () => void;
   amountTypeToggleTestID?: string;
   showFiatAmountAsPrimary?: boolean;
+  /**
+   * When provided, restricts the network list to these chains instead
+   * of the default allowed chainRanking.
+   */
+  enabledChainIds?: CaipChainId[];
 }
 
 export const TokenInputArea = forwardRef<
@@ -206,6 +228,7 @@ export const TokenInputArea = forwardRef<
       onAmountTypeTogglePress,
       amountTypeToggleTestID,
       showFiatAmountAsPrimary = false,
+      enabledChainIds,
     },
     ref,
   ) => {
@@ -239,17 +262,41 @@ export const TokenInputArea = forwardRef<
       isFocused: () => !!inputRef.current?.isFocused(),
     }));
 
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
+    const tokenSelectorType =
+      tokenType === TokenInputAreaType.Source || isSourceToken
+        ? TokenSelectorType.Source
+        : TokenSelectorType.Dest;
+
+    const trackAssetPickerOpened = useCallback((type: TokenSelectorType) => {
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
+        UnifiedSwapBridgeEventName.AssetPickerOpened,
+        {
+          asset_location:
+            type === TokenSelectorType.Source ? 'source' : 'destination',
+          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+        },
+      );
+    }, []);
+
+    const handleTokenButtonPress = useCallback(() => {
+      trackAssetPickerOpened(tokenSelectorType);
+      onTokenPress?.();
+    }, [onTokenPress, tokenSelectorType, trackAssetPickerOpened]);
 
     const navigateToDestTokenSelector = () => {
+      trackAssetPickerOpened(TokenSelectorType.Dest);
       navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: 'dest',
+        type: TokenSelectorType.Dest,
+        enabledChainIds,
       });
     };
 
     const navigateToSourceTokenSelector = () => {
+      trackAssetPickerOpened(TokenSelectorType.Source);
       navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
-        type: 'source',
+        type: TokenSelectorType.Source,
+        enabledChainIds,
       });
     };
 
@@ -401,7 +448,7 @@ export const TokenInputArea = forwardRef<
                 networkImageSource={networkImageSource}
                 networkName={networkName}
                 testID={testID}
-                onPress={onTokenPress}
+                onPress={handleTokenButtonPress}
                 securityBadgeAssetId={tokenSecurityBadgeAssetId}
               />
             ) : (

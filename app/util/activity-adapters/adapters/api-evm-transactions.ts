@@ -168,7 +168,8 @@ export function mapApiEvmTransactions({
   }
 
   if (transactionCategory === 'APPROVE') {
-    // TODO: Categorize REVOKE in the backend
+    // TODO: Categorize REVOKE in the backend once the indexer emits it;
+    // until then zero-amount approvals are mapped to revokeSpendingCap below.
     const approveTransfer = sentTransfer ?? receivedTransfer;
     const approveDirection = receivedTransfer && !sentTransfer ? 'in' : 'out';
     const valueTransferContractAddress = valueTransfers?.find(
@@ -217,8 +218,12 @@ export function mapApiEvmTransactions({
           }
         : approveToken;
 
+    // ERC-20 `approve(spender, 0)` is a spending-cap revoke.
+    // TODO: Categorize REVOKE in the backend once the indexer emits it.
+    const isRevoke = approveAmount === '0';
+
     return {
-      type: 'approveSpendingCap',
+      type: isRevoke ? 'revokeSpendingCap' : 'approveSpendingCap',
       chainId,
       status,
       timestamp,

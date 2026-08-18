@@ -27,6 +27,7 @@ const MarketInsightsBackgroundLastFrameLight = require('../../animations/market-
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const MarketInsightsBackgroundLastFrameDark = require('../../animations/market-insights-background-dark-last-frame.png');
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -150,11 +151,13 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({
   );
 };
 
-interface MarketInsightsRouteParams {
+export interface MarketInsightsRouteParams {
   assetSymbol: string;
   /** Asset identifier: CAIP-19 ID for tokens, or a perps market symbol (e.g. "ETH") */
   assetIdentifier: string;
   tokenImageUrl?: string;
+  /** 24h price percent change forwarded from Token Details (currently unused here). */
+  pricePercentChange?: number;
   /** Full token object for the sticky footer (buy/swap actions). Passed from Token Details. */
   token?: TokenDetailsRouteParams;
   /** When true, indicates the view was opened from the Perps market details view */
@@ -169,8 +172,6 @@ interface MarketInsightsRouteParams {
   isAtOICap?: boolean;
   /** Surface from which Market Insights was accessed */
   source?: 'token_details' | 'perps' | 'unknown';
-  /** Whether the price trend is positive on the parent Token Details screen. */
-  isPricePositive?: boolean;
   /** Whether the ambient price color A/B test treatment is active. */
   useAmbientColor?: boolean;
 }
@@ -187,7 +188,7 @@ interface MarketInsightsRouteParams {
  */
 const MarketInsightsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const isTokenInsightsEnabled = useSelector(selectMarketInsightsEnabled);
   const isPerpsInsightsEnabled = useSelector(selectMarketInsightsPerpsEnabled);
@@ -202,7 +203,6 @@ const MarketInsightsView: React.FC = () => {
     hasPerpsPosition = false,
     isAtOICap = false,
     source: routeSource = 'unknown',
-    isPricePositive,
     useAmbientColor,
   } = route.params;
 
@@ -593,6 +593,7 @@ const MarketInsightsView: React.FC = () => {
           newTabUrl: url,
           timestamp: Date.now(),
           fromTrending: true,
+          fromMarketInsights: true,
         },
       });
     },
@@ -879,9 +880,8 @@ const MarketInsightsView: React.FC = () => {
               onBuyPress={handleStickyBuyPress}
               onQuickBuyPress={onQuickBuyPress}
               quickBuyTestID={MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON}
-              sourcePage="MarketInsightsView"
-              isPricePositive={isPricePositive}
               useAmbientColor={useAmbientColor}
+              sourcePage="MarketInsightsView"
             />
           </Box>
         ) : null)}

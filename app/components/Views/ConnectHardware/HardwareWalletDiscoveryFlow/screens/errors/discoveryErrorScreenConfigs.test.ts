@@ -6,6 +6,10 @@ import {
   type DiscoveryErrorScreenVariant,
 } from './discoveryErrorScreenConfigs';
 import { DiscoveryStep } from '../../DiscoveryFlow.machine.types';
+import {
+  LEDGER_RIVE,
+  LEDGER_RIVE_STATE_TRIGGER,
+} from '../../../ledgerRiveConstants';
 
 const CONFIG = DISCOVERY_ERROR_SCREEN_CONFIGS;
 const ALL_VARIANTS: DiscoveryErrorScreenVariant[] = [
@@ -78,14 +82,19 @@ describe('DISCOVERY_ERROR_SCREEN_CONFIGS', () => {
 
   describe('configs with rive animations', () => {
     it.each([
-      { step: DiscoveryStep.DeviceUnresponsive, trigger: 'error' },
-      { step: DiscoveryStep.DeviceLocked, trigger: 'ledger_locked' },
+      {
+        step: DiscoveryStep.DeviceUnresponsive,
+        trigger: LEDGER_RIVE_STATE_TRIGGER.Error,
+      },
+      {
+        step: DiscoveryStep.DeviceLocked,
+        trigger: LEDGER_RIVE_STATE_TRIGGER.Locked,
+      },
     ] as const)(
       'has rive config with $trigger state trigger for $step',
       ({ step, trigger }) => {
         expect(CONFIG[step].rive).toEqual({
-          artboardName: 'Ledger',
-          stateMachineName: 'Ledger_states',
+          ...LEDGER_RIVE,
           stateTrigger: trigger,
         });
       },

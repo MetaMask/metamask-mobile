@@ -29,12 +29,17 @@ import {
   type TeamLookup,
 } from '../../utils/gameParser';
 import {
-  getNegRiskMoneylineTeamLogo,
   isDrawCapableLeague,
   isMoneylineLikeMarketType,
-  resolveNegRiskMoneylineShortTitles,
+  isSpreadLikeMarketType,
   SUPPORTED_SPORTS_LEAGUES,
 } from '../../constants/sports';
+import { getTokenImage } from '../../utils/sports';
+import {
+  getSportsMarketTeamLogo,
+  resolveNegRiskMoneylineShortTitles,
+} from './sportsUtils';
+import { fetchWithTimeout } from './fetchWithTimeout';
 import type {
   GetMarketsParams,
   OrderPreview,
@@ -42,6 +47,7 @@ import type {
   PredictFilterOption,
   PredictFilterOptionsParams,
   PredictMarketListParams,
+  PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   SearchMarketsParams,
 } from '../types';
@@ -75,16 +81,17 @@ import {
   PolymarketApiMarket,
   PolymarketApiTeam,
   PolymarketPosition,
+  RoundConfig,
   TickSize,
   OrderBook,
 } from './types';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
-import {
-  PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
-  PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG,
-} from '../../constants/flags';
+import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../../constants/flags';
 import { PredictFeeCollection } from '../../types/flags';
-import { roundToFiveDecimals } from '../../utils/orders';
+import {
+  getPredictBuyAllInCost,
+  roundToFiveDecimals,
+} from '../../utils/orders';
 import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
 import {
   buildOutcomeGroups,
@@ -347,7 +354,7 @@ export const deriveApiKey = async ({
     clobVersion,
     clobBaseUrl,
   })}/auth/derive-api-key`;
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     method: 'GET',
     headers,
   });
@@ -369,7 +376,7 @@ export const createApiKey = async ({
 }) => {
   const headers = await getL1Headers({ address });
   const url = `${getClobEndpoint({ clobVersion, clobBaseUrl })}/auth/api-key`;
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     method: 'POST',
     headers,
     body: '',
@@ -401,9 +408,12 @@ export const getClobMarketInfo = async ({
     return cachedMarketInfo;
   }
 
-  const response = await fetch(`${clobEndpoint}/clob-markets/${conditionId}`, {
-    method: 'GET',
-  });
+  const response = await fetchWithTimeout(
+    `${clobEndpoint}/clob-markets/${conditionId}`,
+    {
+      method: 'GET',
+    },
+  );
 
   if (!response.ok) {
     throw new Error('Failed to get CLOB market info');
@@ -569,6 +579,65 @@ export const calculateConservativeBuyMarketFee = ({
   return roundToFiveDecimals(conservativeMarketFee);
 };
 
+export const calculateConservativeSellMarketFee = ({
+  preview,
+  marketInfo,
+}: {
+  preview: OrderPreview;
+  marketInfo?: ClobMarketInfo;
+}): number => {
+  if (preview.side !== Side.SELL || !isValidFeeMetadata(marketInfo)) {
+    return 0;
+  }
+
+  const shareAmount = preview.maxAmountSpent;
+  const minAmountReceivedWithSlippage =
+    getMinAmountReceivedWithSlippage(preview);
+
+  if (
+    shareAmount <= 0 ||
+    preview.minAmountReceived <= 0 ||
+    minAmountReceivedWithSlippage <= 0
+  ) {
+    return 0;
+  }
+
+  const snapshotAvgPrice = preview.minAmountReceived / shareAmount;
+  const worstAllowedAvgPrice = minAmountReceivedWithSlippage / shareAmount;
+  const leftEndpoint = Math.min(snapshotAvgPrice, worstAllowedAvgPrice);
+  const rightEndpoint = Math.max(snapshotAvgPrice, worstAllowedAvgPrice);
+
+  if (
+    !Number.isFinite(leftEndpoint) ||
+    !Number.isFinite(rightEndpoint) ||
+    leftEndpoint <= 0 ||
+    rightEndpoint >= 1
+  ) {
+    return 0;
+  }
+
+  const { r: rate, e: exponent } = marketInfo.fd;
+  const candidates = [leftEndpoint, rightEndpoint];
+
+  // With a fixed share count, the fee curve is symmetric and peaks at 0.5.
+  if (exponent > 0 && leftEndpoint < 0.5 && rightEndpoint > 0.5) {
+    candidates.push(0.5);
+  }
+
+  const conservativeMarketFee = Math.max(
+    ...candidates.map((price) =>
+      calculateMarketFeeAtPrice({
+        amountUsd: shareAmount * price,
+        rate,
+        exponent,
+        price,
+      }),
+    ),
+  );
+
+  return roundToFiveDecimals(conservativeMarketFee);
+};
+
 export const getOrderBook = async ({
   tokenId,
   clobVersion = 'v1',
@@ -578,7 +647,7 @@ export const getOrderBook = async ({
   clobVersion?: 'v1' | 'v2';
   clobBaseUrl?: string;
 }) => {
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `${getClobEndpoint({ clobVersion, clobBaseUrl })}/book?token_id=${tokenId}`,
     {
       method: 'GET',
@@ -647,6 +716,12 @@ function replaceAll(s: string, search: string, replace: string) {
 }
 
 export const isSpreadMarket = (market: PolymarketApiMarket): boolean =>
+  isSpreadLikeMarketType(market.sportsMarketType);
+
+// Ball-sport spread titles name a single team plus its line ("FC-Dallas -3.5"),
+// so the sign is redundant once tokens carry it. Esports handicap titles
+// describe both sides ("GenOne (-1.5) vs NEW VISION (+1.5)") and must keep it.
+const isBallSportSpreadMarket = (market: PolymarketApiMarket): boolean =>
   market.sportsMarketType?.toLowerCase().includes('spread') ?? false;
 
 const isMoneylineLikeMarket = (market: PolymarketApiMarket): boolean =>
@@ -655,7 +730,7 @@ const isMoneylineLikeMarket = (market: PolymarketApiMarket): boolean =>
 const formatMarketGroupItemTitle = (market: PolymarketApiMarket): string => {
   const groupItemTitle = market.groupItemTitle ?? market.question ?? '';
 
-  if (isSpreadMarket(market)) {
+  if (isBallSportSpreadMarket(market)) {
     // Remove the dash before the spread number (e.g., "FC-Dallas -3.5" → "FC-Dallas 3.5")
     // Uses negative lookahead to target dash followed by digit, not dashes in team names
     return groupItemTitle.replace(/-(?=\d)/, '');
@@ -812,10 +887,17 @@ const parsePolymarketMarketOutcomes = (
         shortTitle = negRiskShort.noShort;
       }
 
+      const tokenImage = getTokenImage({
+        sportsMarketType: market.sportsMarketType,
+        tokenTitle: title,
+        game,
+      });
+
       return {
         id: tokenId,
         title,
         ...(shortTitle && { shortTitle }),
+        ...(tokenImage && { image: tokenImage }),
         price: parseFloat(outcomePrices[index]),
       };
     },
@@ -904,6 +986,19 @@ const parseEventPriceToBeat = (
     : undefined;
 };
 
+const parseTwapWindowSeconds = (
+  markets: PolymarketApiMarket[],
+): 30 | 60 | undefined => {
+  const config = markets.find(
+    (market) => market.cryptoMarketConfig?.twapEnabled === true,
+  )?.cryptoMarketConfig;
+  const windowSeconds = config?.twapLookbackSeconds;
+
+  return windowSeconds === 30 || windowSeconds === 60
+    ? windowSeconds
+    : undefined;
+};
+
 export const parsePolymarketMarket = (
   market: PolymarketApiMarket,
   event: PolymarketApiEvent,
@@ -914,8 +1009,7 @@ export const parsePolymarketMarket = (
   marketId: event.id,
   title: market.question,
   description: market.description,
-  image:
-    getNegRiskMoneylineTeamLogo(market, game) ?? market.icon ?? market.image,
+  image: getSportsMarketTeamLogo(market, game) ?? market.icon ?? market.image,
   groupItemTitle: formatMarketGroupItemTitle(market),
   groupItemThreshold:
     market.groupItemThreshold != null
@@ -1025,10 +1119,11 @@ export const parsePolymarketEvents = (
 
       const outcomeGroups =
         outcomesForGroups.length > 0
-          ? buildOutcomeGroups(outcomesForGroups)
+          ? buildOutcomeGroups(outcomesForGroups, eventLeague ?? undefined)
           : undefined;
 
       const priceToBeat = parseEventPriceToBeat(event);
+      const twapWindowSeconds = parseTwapWindowSeconds(markets);
 
       return [
         {
@@ -1052,6 +1147,7 @@ export const parsePolymarketEvents = (
           volume: event.volume,
           game,
           ...(priceToBeat !== undefined && { priceToBeat }),
+          ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
           ...(seriesData && { series: seriesData }),
           ...(event.parentEventId !== undefined && {
             parentMarketId: event.parentEventId,
@@ -1184,10 +1280,7 @@ export interface FetchEventsResult {
   nextCursor: string | null;
 }
 
-const EXACT_QUERY_PARAM_CATEGORIES: readonly PredictCategory[] = [
-  'hot',
-  'world-cup',
-];
+const EXACT_QUERY_PARAM_CATEGORIES: readonly PredictCategory[] = ['hot'];
 
 const appendCustomQueryParams = (
   params: URLSearchParams,
@@ -1197,6 +1290,27 @@ const appendCustomQueryParams = (
   return customQueryParams
     ? `${queryParams}&${customQueryParams}`
     : queryParams;
+};
+
+const fetchKeysetEvents = async (
+  endpoint: string,
+  errorMessage: string,
+  malformedMessage = 'Malformed keyset events response',
+): Promise<PolymarketApiEventsKeysetResponse> => {
+  const response = await fetchWithTimeout(endpoint);
+
+  if (!response.ok) {
+    throw new Error(errorMessage);
+  }
+
+  const responseData =
+    (await response.json()) as PolymarketApiEventsKeysetResponse;
+
+  if (!Array.isArray(responseData.events)) {
+    throw new Error(malformedMessage);
+  }
+
+  return responseData;
 };
 
 export const fetchEventsFromPolymarketApi = async (
@@ -1234,14 +1348,6 @@ export const fetchEventsFromPolymarketApi = async (
 
   if (isExactQueryTabWithCustomQuery) {
     queryParamsEvents = appendCustomQueryParams(queryParams, customQueryParams);
-  } else if (category === 'world-cup') {
-    queryParams.set('active', 'true');
-    queryParams.set('archived', 'false');
-    queryParams.set('closed', 'false');
-    queryParams.set('tag_slug', PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG);
-    queryParams.set('order', 'volume24hr');
-    queryParams.set('ascending', 'false');
-    queryParamsEvents = queryParams.toString();
   } else if (category === 'wimbledon') {
     queryParamsEvents = appendCustomQueryParams(
       queryParams,
@@ -1257,7 +1363,7 @@ export const fetchEventsFromPolymarketApi = async (
     queryParams.set('volume_min', String(10000.0));
 
     const categoryParamMap: Record<
-      Exclude<PredictCategory, 'world-cup' | 'wimbledon'>,
+      Exclude<PredictCategory, 'wimbledon'>,
       Record<string, string>
     > = {
       trending: { order: 'volume24hr' },
@@ -1277,18 +1383,10 @@ export const fetchEventsFromPolymarketApi = async (
   }
 
   const endpoint = `${GAMMA_API_ENDPOINT}/events/keyset?${queryParamsEvents}`;
-
-  const response = await fetch(endpoint);
-
-  if (!response.ok) {
-    throw new Error('Failed to get markets');
-  }
-  const data = await response.json();
-  const responseData = data as PolymarketApiEventsKeysetResponse;
-
-  if (!Array.isArray(responseData.events)) {
-    throw new Error('Malformed keyset events response');
-  }
+  const responseData = await fetchKeysetEvents(
+    endpoint,
+    'Failed to get markets',
+  );
 
   const events: PolymarketApiEvent[] = responseData.events;
 
@@ -1306,30 +1404,134 @@ export const fetchEventsFromPolymarketApi = async (
  * param mapping easy to audit and test.
  *
  * Mapping rules:
- * - `order`: `volume24hr`/`liquidity` -> descending; `ending_soon` -> `order=endDate&ascending=true`; `newest` -> `order=startDate&ascending=false`. Defaults to `volume24hr` (descending).
+ * - `order`: `volume24hr`/`volume`/`liquidity` -> descending; `ending_soon` -> `order=endDate&ascending=true`; `newest` -> `order=startDate&ascending=false`; `upcoming` -> `order=startDate&ascending=true`; `start_time` -> `order=startTime&ascending=true`. Defaults to `volume24hr` (descending).
  * - `status`: `open` -> `active=true&archived=false&closed=false`; `closed`/`resolved` -> `closed=true`. `resolved` intentionally maps to the same `closed=true` params (no separate server-side filter).
- * - `tags` -> repeated `tag_id`; `tagSlugs` -> repeated `tag_slug`; `series` -> repeated `series_id`.
+ * - `tags` -> repeated `tag_id`; `tagSlugs` -> repeated `tag_slug`; `excludedTags` -> repeated `exclude_tag_id`; `series` -> repeated `series_id`.
  * - `live` -> `live=true`. `limit` defaults to 20. `afterCursor` -> `after_cursor`.
+ * - `queryParams` -> raw query string override; `live`, explicit `order`, `afterCursor`, and start-time overrides are still applied.
+ * - `startTimeMinMinutesAgo` -> `start_time_min`.
  * - `search` -> `title_search` (case-insensitive title filter). Composes with cursor pagination, so it stays on this endpoint (kept in the provider layer). Blank/whitespace is ignored (browse mode).
+ * - `customQueryParams` overrides matching generated params while preserving repeated values. Pagination and page size remain app-controlled.
  */
+const MS_PER_MINUTE = 60 * 1000;
+
+const normalizeRawQueryParams = (queryParams: string): string =>
+  queryParams.trim().replace(/^\?/, '');
+
+const applyRawLiveQueryParam = (
+  queryParams: URLSearchParams,
+  live?: boolean,
+): void => {
+  if (live === true) {
+    queryParams.set('live', 'true');
+    queryParams.set('order', 'volume24hr');
+    queryParams.set('ascending', 'false');
+  } else if (live === false) {
+    queryParams.delete('live');
+  }
+};
+
+type MarketListOrder = NonNullable<PredictMarketListParams['order']>;
+
+const applyOrderQueryParams = (
+  queryParams: URLSearchParams,
+  order: MarketListOrder,
+): void => {
+  switch (order) {
+    case 'liquidity':
+      queryParams.set('order', 'liquidity');
+      queryParams.set('ascending', 'false');
+      break;
+    case 'volume':
+      queryParams.set('order', 'volume');
+      queryParams.set('ascending', 'false');
+      break;
+    case 'ending_soon':
+      queryParams.set('order', 'endDate');
+      queryParams.set('ascending', 'true');
+      break;
+    case 'newest':
+      queryParams.set('order', 'startDate');
+      queryParams.set('ascending', 'false');
+      break;
+    case 'upcoming':
+      queryParams.set('order', 'startDate');
+      queryParams.set('ascending', 'true');
+      break;
+    case 'start_time':
+      queryParams.set('order', 'startTime');
+      queryParams.set('ascending', 'true');
+      break;
+    case 'volume24hr':
+    default:
+      queryParams.set('order', 'volume24hr');
+      queryParams.set('ascending', 'false');
+      break;
+  }
+};
+
+const applyStartTimeMinQueryParam = ({
+  queryParams,
+  startTimeMinMinutesAgo,
+}: {
+  queryParams: URLSearchParams;
+  startTimeMinMinutesAgo?: number;
+}): void => {
+  if (
+    startTimeMinMinutesAgo !== undefined &&
+    Number.isFinite(startTimeMinMinutesAgo)
+  ) {
+    queryParams.set(
+      'start_time_min',
+      new Date(
+        Date.now() - startTimeMinMinutesAgo * MS_PER_MINUTE,
+      ).toISOString(),
+    );
+  }
+};
+
 export const buildMarketListQueryParams = (
   params: PredictMarketListParams = {},
 ): URLSearchParams => {
   const {
+    queryParams: rawQueryParams,
     tags,
     tagSlugs,
+    excludedTags,
     series,
-    order = 'volume24hr',
+    order,
     status = 'open',
     live,
     limit = 20,
     afterCursor,
     search,
+    customQueryParams,
+    startTimeMinMinutesAgo,
   } = params;
 
-  const queryParams = new URLSearchParams({
-    limit: String(limit),
-  });
+  if (rawQueryParams?.trim()) {
+    const queryParams = new URLSearchParams(
+      normalizeRawQueryParams(rawQueryParams),
+    );
+    applyRawLiveQueryParam(queryParams, live);
+    if (order) {
+      applyOrderQueryParams(queryParams, order);
+    }
+
+    if (queryParams.toString()) {
+      applyStartTimeMinQueryParam({
+        queryParams,
+        startTimeMinMinutesAgo,
+      });
+      queryParams.delete('after_cursor');
+      if (afterCursor) {
+        queryParams.set('after_cursor', afterCursor);
+      }
+      return queryParams;
+    }
+  }
+
+  const queryParams = new URLSearchParams();
 
   switch (status) {
     case 'closed':
@@ -1345,41 +1547,39 @@ export const buildMarketListQueryParams = (
       break;
   }
 
-  switch (order) {
-    case 'liquidity':
-      queryParams.set('order', 'liquidity');
-      queryParams.set('ascending', 'false');
-      break;
-    case 'ending_soon':
-      queryParams.set('order', 'endDate');
-      queryParams.set('ascending', 'true');
-      break;
-    case 'newest':
-      queryParams.set('order', 'startDate');
-      queryParams.set('ascending', 'false');
-      break;
-    case 'volume24hr':
-    default:
-      queryParams.set('order', 'volume24hr');
-      queryParams.set('ascending', 'false');
-      break;
-  }
+  applyOrderQueryParams(queryParams, order ?? 'volume24hr');
 
   tags?.forEach((tagId) => queryParams.append('tag_id', tagId));
   tagSlugs?.forEach((tagSlug) => queryParams.append('tag_slug', tagSlug));
+  excludedTags?.forEach((tagId) => queryParams.append('exclude_tag_id', tagId));
   series?.forEach((seriesId) => queryParams.append('series_id', seriesId));
 
   if (live) {
     queryParams.set('live', 'true');
   }
 
-  if (afterCursor) {
-    queryParams.set('after_cursor', afterCursor);
-  }
+  applyStartTimeMinQueryParam({
+    queryParams,
+    startTimeMinMinutesAgo,
+  });
 
   const trimmedSearch = search?.trim();
   if (trimmedSearch) {
     queryParams.set('title_search', trimmedSearch);
+  }
+
+  const customParams = new URLSearchParams(customQueryParams?.trim());
+  // Clear generated values first, then append all custom values so repeated
+  // parameters override rather than merge with generated defaults.
+  const customKeys = new Set<string>();
+  customParams.forEach((_value, key) => customKeys.add(key));
+  customKeys.forEach((key) => queryParams.delete(key));
+  customParams.forEach((value, key) => queryParams.append(key, value));
+
+  queryParams.set('limit', String(limit));
+  queryParams.delete('after_cursor');
+  if (afterCursor) {
+    queryParams.set('after_cursor', afterCursor);
   }
 
   return queryParams;
@@ -1405,19 +1605,10 @@ export const fetchMarketsFromPolymarketApi = async (
   DevLogger.log('Listing markets via Polymarket API:', queryParams.toString());
 
   const endpoint = `${GAMMA_API_ENDPOINT}/events/keyset?${queryParams.toString()}`;
-
-  const response = await fetch(endpoint);
-
-  if (!response.ok) {
-    throw new Error('Failed to list markets');
-  }
-
-  const data = await response.json();
-  const responseData = data as PolymarketApiEventsKeysetResponse;
-
-  if (!Array.isArray(responseData.events)) {
-    throw new Error('Malformed keyset events response');
-  }
+  const responseData = await fetchKeysetEvents(
+    endpoint,
+    'Failed to list markets',
+  );
 
   return {
     events: responseData.events,
@@ -1433,6 +1624,12 @@ export interface PolymarketRelatedTag {
   id: string | number;
   label?: string;
   slug: string;
+  /**
+   * Active event count for the tag. `omit_empty=true` only drops globally-empty
+   * tags, so a tag can still surface here with zero markets under the applied
+   * params; we skip those (see `normalizeRelatedTagsToFilterOptions`).
+   */
+  activeEventsCount?: number;
 }
 
 /**
@@ -1454,7 +1651,7 @@ export const fetchRelatedTagsFromPolymarketApi = async (
 
   DevLogger.log('Fetching related tags via Polymarket API:', endpoint);
 
-  const response = await fetch(endpoint);
+  const response = await fetchWithTimeout(endpoint);
 
   if (!response.ok) {
     throw new Error('Failed to fetch related tags');
@@ -1499,6 +1696,13 @@ export const normalizeRelatedTagsToFilterOptions = (
     // Check the cap before adding so `limit: 0` yields an empty list.
     if (limit !== undefined && options.length >= limit) {
       break;
+    }
+
+    // Skip tags with no active events so empty chips (e.g. "Other") never render.
+    // Fail-open: a missing count is kept (best-effort, matches prior behavior).
+    // Placed before the limit accounting so empty tags don't consume a slot.
+    if (tag?.activeEventsCount === 0) {
+      continue;
     }
 
     const slug = tag?.slug?.trim();
@@ -1554,7 +1758,7 @@ export const searchEventsFromPolymarketApi = async ({
   });
 
   const endpoint = `${GAMMA_API_ENDPOINT}/public-search?${queryParams.toString()}`;
-  const response = await fetch(endpoint);
+  const response = await fetchWithTimeout(endpoint);
 
   if (!response.ok) {
     throw new Error('Failed to search markets');
@@ -1581,7 +1785,7 @@ export const fetchCarouselFromPolymarketApi = async (): Promise<
 
   DevLogger.log('Fetching carousel data from:', HOMEPAGE_CAROUSEL_ENDPOINT);
 
-  const response = await fetch(HOMEPAGE_CAROUSEL_ENDPOINT);
+  const response = await fetchWithTimeout(HOMEPAGE_CAROUSEL_ENDPOINT);
   if (!response.ok) {
     throw new Error('Failed to fetch carousel data');
   }
@@ -1618,7 +1822,9 @@ export const getMarketDetailsFromGammaApi = async ({
   marketId: string;
 }): Promise<PolymarketApiEvent> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
-  const response = await fetch(`${GAMMA_API_ENDPOINT}/events/${marketId}`);
+  const response = await fetchWithTimeout(
+    `${GAMMA_API_ENDPOINT}/events/${marketId}`,
+  );
 
   if (!response.ok) {
     throw new Error('Failed to get market details');
@@ -1640,20 +1846,11 @@ export const fetchChildEventsFromGammaApi = async ({
     limit: '100',
   });
 
-  const response = await fetch(
+  const responseData = await fetchKeysetEvents(
     `${GAMMA_API_ENDPOINT}/events/keyset?${queryParams.toString()}`,
+    'Failed to fetch child events',
+    'Malformed keyset child events response',
   );
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch child events');
-  }
-
-  const responseData =
-    (await response.json()) as PolymarketApiEventsKeysetResponse;
-
-  if (!Array.isArray(responseData.events)) {
-    throw new Error('Malformed keyset child events response');
-  }
 
   return responseData.events;
 };
@@ -1692,6 +1889,9 @@ export const getPredictPositionStatus = ({
   }
   if (cashPnl > 0) {
     return PredictPositionStatus.WON;
+  }
+  if (cashPnl === 0) {
+    return PredictPositionStatus.REDEEMABLE;
   }
   return PredictPositionStatus.LOST;
 };
@@ -2059,7 +2259,7 @@ export const getMarketPositions = async ({
   address: string;
 }) => {
   const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `${DATA_API_ENDPOINT}/positions?eventId=${marketId}&user=${address}`,
   );
   if (!response.ok) {
@@ -2123,9 +2323,9 @@ const matchBuyOrder = ({
 }: {
   asks: OrderSummary[];
   dollarAmount: number;
-}): { price: number; size: number } => {
+}): { price: number; size: number } | null => {
   if (!asks.length) {
-    throw new Error('no order match');
+    return null;
   }
 
   const sharePrice = parseFloat(asks[asks.length - 1].price);
@@ -2137,9 +2337,12 @@ const matchBuyOrder = ({
     const e = asks[i];
     const entrySize = parseFloat(e.size);
     const entryPrice = parseFloat(e.price);
+    if (!Number.isFinite(entrySize) || !Number.isFinite(entryPrice)) {
+      continue;
+    }
     const entryValue = entrySize * entryPrice;
 
-    if (sum + entryValue <= dollarAmount) {
+    if (sum + entryValue <= dollarAmount + Number.EPSILON) {
       quantity += entrySize;
       sum += entryValue;
     } else {
@@ -2150,15 +2353,25 @@ const matchBuyOrder = ({
     }
   }
 
-  if (sum === dollarAmount) {
+  if (Math.abs(sum - dollarAmount) < 1e-8) {
     return {
       price: sharePrice,
       size: quantity,
     };
   }
 
-  throw new Error('not enough shares to match user bet amount');
+  return null;
 };
+
+const getBuyLiquidity = (asks: OrderSummary[]): number =>
+  asks.reduce((total, ask) => {
+    const size = parseFloat(ask.size);
+    const price = parseFloat(ask.price);
+
+    return Number.isFinite(size) && Number.isFinite(price)
+      ? total + size * price
+      : total;
+  }, 0);
 
 const matchSellOrder = ({
   bids,
@@ -2251,6 +2464,77 @@ export const roundOrderAmount = ({
   return amount;
 };
 
+const toDecimalTickSizeString = (value: number): string => {
+  const valueAsString = value.toString();
+
+  if (!valueAsString.includes('e')) {
+    return valueAsString;
+  }
+
+  return value
+    .toFixed(COLLATERAL_TOKEN_DECIMALS)
+    .replace(/(?:\.0+|(\.\d*?)0+)$/u, '$1');
+};
+
+const normalizeTickSizeCandidate = (
+  tickSize?: string | number | null,
+): string | undefined => {
+  if (tickSize === undefined || tickSize === null) {
+    return undefined;
+  }
+
+  const parsedTickSize = Number(tickSize);
+
+  if (
+    !Number.isFinite(parsedTickSize) ||
+    parsedTickSize <= 0 ||
+    parsedTickSize >= 1
+  ) {
+    return undefined;
+  }
+
+  return toDecimalTickSizeString(parsedTickSize);
+};
+
+const getTickSizeDecimalPlaces = (tickSize: string): number => {
+  const [, decimalPart = ''] = tickSize.split('.');
+  return decimalPart.length;
+};
+
+export const getTickSizeRoundConfig = ({
+  tickSize,
+}: {
+  tickSize?: string | number | null;
+}): { tickSize: string; roundConfig: RoundConfig } => {
+  const normalizedTickSize = normalizeTickSizeCandidate(tickSize);
+
+  if (!normalizedTickSize) {
+    throw new Error(
+      `Invalid Polymarket tick size: ${String(tickSize ?? 'missing')}`,
+    );
+  }
+
+  const configuredRoundConfig = ROUNDING_CONFIG[normalizedTickSize];
+
+  if (configuredRoundConfig) {
+    return {
+      tickSize: normalizedTickSize,
+      roundConfig: configuredRoundConfig,
+    };
+  }
+
+  const priceDecimals = getTickSizeDecimalPlaces(normalizedTickSize);
+
+  return {
+    tickSize: normalizedTickSize,
+    roundConfig: {
+      price: priceDecimals,
+      size: 2,
+      amount: Math.min(priceDecimals + 2, COLLATERAL_TOKEN_DECIMALS),
+    },
+  };
+};
+
 export const previewOrder = async (
   params: Omit<PreviewOrderParams, 'providerId'> & {
     feeCollection?: PredictFeeCollection;
@@ -2268,6 +2552,34 @@ export const previewOrder = async (
     isV2,
     clobBaseUrl,
   } = params;
+
+  if (side === Side.BUY) {
+    const context = await getBuyPreviewContext({
+      marketId,
+      outcomeId,
+      outcomeTokenId,
+      feeCollection,
+      isV2,
+      clobBaseUrl,
+    });
+    if (!context) {
+      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY);
+    }
+
+    const preview = buildBuyPreviewFromContext({
+      marketId,
+      outcomeId,
+      outcomeTokenId,
+      size,
+      context,
+    });
+    if (!preview) {
+      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY);
+    }
+
+    return preview;
+  }
+
   const [book, feeRateBps, marketInfo] = await Promise.all([
     getOrderBook({
       tokenId: outcomeTokenId,
@@ -2275,67 +2587,19 @@ export const previewOrder = async (
       clobBaseUrl: isV2 ? clobBaseUrl : undefined,
     }),
     Promise.resolve('0'),
-    side === Side.BUY
-      ? getClobMarketInfoSafe({
-          conditionId: outcomeId,
-          clobVersion: isV2 ? 'v2' : 'v1',
-          clobBaseUrl: isV2 ? clobBaseUrl : undefined,
-        })
-      : Promise.resolve(undefined),
+    getClobMarketInfoSafe({
+      conditionId: outcomeId,
+      clobVersion: isV2 ? 'v2' : 'v1',
+      clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+    }),
   ]);
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
   }
-  const roundConfig = ROUNDING_CONFIG[book.tick_size as TickSize];
+  const { tickSize, roundConfig } = getTickSizeRoundConfig({
+    tickSize: book.tick_size,
+  });
 
-  if (side === Side.BUY) {
-    const { asks } = book;
-    if (!asks || asks.length === 0) {
-      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_BUY);
-    }
-    const { price: bestPrice, size: shareAmount } = matchBuyOrder({
-      asks,
-      dollarAmount: size,
-    });
-    const makerAmount = roundDown(size, roundConfig.size);
-    const takerAmount = roundOrderAmount({
-      amount: shareAmount,
-      decimals: roundConfig.amount,
-    });
-    const preview: OrderPreview = {
-      marketId,
-      outcomeId,
-      outcomeTokenId,
-      timestamp: new Date(book.timestamp).getTime(),
-      side: Side.BUY,
-      sharePrice: bestPrice,
-      maxAmountSpent: makerAmount,
-      minAmountReceived: takerAmount,
-      slippage: SLIPPAGE_BUY,
-      tickSize: parseFloat(book.tick_size),
-      minOrderSize: parseFloat(book.min_order_size),
-      negRisk: book.neg_risk,
-      feeRateBps,
-    };
-
-    const serviceFees = await calculateFees({
-      feeCollection,
-      marketId,
-      userBetAmount: makerAmount,
-    });
-    const marketFee = calculateConservativeBuyMarketFee({
-      preview,
-      marketInfo,
-    });
-
-    return {
-      ...preview,
-      fees: {
-        ...serviceFees,
-        marketFee,
-      },
-    };
-  }
   const { bids } = book;
   if (!bids || bids.length === 0) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_SELL);
@@ -2349,7 +2613,12 @@ export const previewOrder = async (
     amount: dollarAmount,
     decimals: roundConfig.amount,
   });
-  return {
+  const serviceFees = await calculateFees({
+    feeCollection,
+    marketId,
+    userBetAmount: takerAmount,
+  });
+  const preview: OrderPreview = {
     marketId,
     outcomeId,
     outcomeTokenId,
@@ -2360,10 +2629,178 @@ export const previewOrder = async (
     maxAmountSpent: makerAmount,
     minAmountReceived: takerAmount,
     slippage: SLIPPAGE_SELL,
-    tickSize: parseFloat(book.tick_size),
+    tickSize: parseFloat(tickSize),
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,
     feeRateBps,
-    // no fees for sell orders
   };
+  const marketFee = calculateConservativeSellMarketFee({
+    preview,
+    marketInfo,
+  });
+
+  return {
+    ...preview,
+    fees: {
+      ...serviceFees,
+      marketFee,
+    },
+  };
+};
+
+interface BuyPreviewContext {
+  book: OrderBook;
+  marketInfo?: ClobMarketInfo;
+  serviceFeesPerDollar: PredictFees;
+}
+
+async function getBuyPreviewContext({
+  marketId,
+  outcomeId,
+  outcomeTokenId,
+  feeCollection,
+  isV2,
+  clobBaseUrl,
+}: Omit<PreviewMaxBuyOrderParams, 'availableBalance'> & {
+  feeCollection?: PredictFeeCollection;
+  isV2?: boolean;
+  clobBaseUrl?: string;
+}): Promise<BuyPreviewContext | null> {
+  const [book, marketInfo] = await Promise.all([
+    getOrderBook({
+      tokenId: outcomeTokenId,
+      clobVersion: isV2 ? 'v2' : 'v1',
+      clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+    }),
+    getClobMarketInfoSafe({
+      conditionId: outcomeId,
+      clobVersion: isV2 ? 'v2' : 'v1',
+      clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+    }),
+  ]);
+
+  if (!book) {
+    throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
+  }
+  if (!book.asks?.length) {
+    return null;
+  }
+
+  const serviceFeesPerDollar = await calculateFees({
+    feeCollection,
+    marketId,
+    userBetAmount: 1,
+  });
+
+  return { book, marketInfo, serviceFeesPerDollar };
+}
+
+function buildBuyPreviewFromContext({
+  marketId,
+  outcomeId,
+  outcomeTokenId,
+  size,
+  context,
+}: Omit<PreviewOrderParams, 'side' | 'positionId'> & {
+  context: BuyPreviewContext;
+}): OrderPreview | null {
+  const { book, marketInfo, serviceFeesPerDollar } = context;
+  const { tickSize, roundConfig } = getTickSizeRoundConfig({
+    tickSize: book.tick_size,
+  });
+  const match = matchBuyOrder({
+    asks: book.asks,
+    dollarAmount: size,
+  });
+  if (!match) {
+    return null;
+  }
+  const { price: bestPrice, size: shareAmount } = match;
+  const makerAmount = roundDown(size, roundConfig.size);
+  const metamaskFee = makerAmount * serviceFeesPerDollar.metamaskFee;
+  const providerFee = makerAmount * serviceFeesPerDollar.providerFee;
+  const preview: OrderPreview = {
+    marketId,
+    outcomeId,
+    outcomeTokenId,
+    timestamp: new Date(book.timestamp).getTime(),
+    side: Side.BUY,
+    sharePrice: bestPrice,
+    maxAmountSpent: makerAmount,
+    minAmountReceived: roundOrderAmount({
+      amount: shareAmount,
+      decimals: roundConfig.amount,
+    }),
+    slippage: SLIPPAGE_BUY,
+    tickSize: parseFloat(tickSize),
+    minOrderSize: parseFloat(book.min_order_size),
+    negRisk: book.neg_risk,
+    feeRateBps: '0',
+  };
+
+  return {
+    ...preview,
+    fees: {
+      ...serviceFeesPerDollar,
+      metamaskFee,
+      providerFee,
+      totalFee: Math.round((metamaskFee + providerFee) * 1000000) / 1000000,
+      marketFee: calculateConservativeBuyMarketFee({ preview, marketInfo }),
+    },
+  };
+}
+
+const getBuyAllInCostInCents = (preview: OrderPreview): number =>
+  Math.round(getPredictBuyAllInCost(preview) * 100);
+
+/**
+ * Finds the largest cent-denominated BUY that is fully fillable from one order
+ * book snapshot and whose stake plus fees fits within the available balance.
+ */
+export const previewMaxBuyOrder = async (
+  params: PreviewMaxBuyOrderParams & {
+    feeCollection?: PredictFeeCollection;
+    isV2?: boolean;
+    clobBaseUrl?: string;
+  },
+): Promise<OrderPreview | null> => {
+  const { availableBalance, ...previewParams } = params;
+  if (!Number.isFinite(availableBalance) || availableBalance <= 0) {
+    return null;
+  }
+
+  const context = await getBuyPreviewContext(previewParams);
+  if (!context) {
+    return null;
+  }
+  const balanceInCents = Math.floor(availableBalance * 100 + 1e-8);
+  const liquidityInCents = Math.floor(
+    getBuyLiquidity(context.book.asks) * 100 + 1e-8,
+  );
+  let low = 0;
+  let high = Math.min(balanceInCents, liquidityInCents);
+  let maxPreview: OrderPreview | null = null;
+
+  while (low <= high) {
+    const candidateInCents = Math.floor((low + high) / 2);
+    if (candidateInCents === 0) {
+      low = 1;
+      continue;
+    }
+
+    const preview = buildBuyPreviewFromContext({
+      ...previewParams,
+      size: candidateInCents / 100,
+      context,
+    });
+
+    if (preview && getBuyAllInCostInCents(preview) <= balanceInCents) {
+      maxPreview = preview;
+      low = candidateInCents + 1;
+    } else {
+      high = candidateInCents - 1;
+    }
+  }
+
+  return maxPreview;
 };

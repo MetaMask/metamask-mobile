@@ -3,6 +3,8 @@ export const ActivityDetailsSelectorsIDs = {
   HEADER: 'activity-details-header',
   BACK_BUTTON: 'activity-details-back-button',
   AMOUNT_HEADER: 'activity-details-amount-header',
+  AMOUNT_AVATAR_SINGLE: 'activity-details-amount-avatar-single',
+  AMOUNT_AVATAR_DUAL: 'activity-details-amount-avatar-dual',
   STATUS_ROW: 'activity-details-status-row',
   STATUS_PILL: 'activity-details-status-pill',
   DATE_ROW: 'activity-details-date-row',
@@ -13,8 +15,21 @@ export const ActivityDetailsSelectorsIDs = {
   NETWORK_ROW: 'activity-details-network-row',
   TRANSACTION_ID_ROW: 'activity-details-transaction-id-row',
   TRANSACTION_ID_COPY: 'activity-details-transaction-id-copy',
+  RAMP_ORDER_ID_COPY: 'ramp-order-id-copy',
   FEE_ROW: 'activity-details-fee-row',
+  NETWORK_FEE_ROW: 'activity-details-network-fee-row',
+  BRIDGE_FEE_ROW: 'activity-details-bridge-fee-row',
   TOTAL_ROW: 'activity-details-total-row',
+  FEE_TOKEN_AVATAR: 'fee-token-avatar',
+  SIZE_ROW: 'activity-details-size-row',
+  PRICE_ROW: 'activity-details-price-row',
+  FEES_ROW: 'activity-details-fees-row',
+  PNL_ROW: 'activity-details-pnl-row',
+  LIMIT_PRICE_ROW: 'activity-details-limit-price-row',
+  FILLED_ROW: 'activity-details-filled-row',
+  TOTAL_FEE_ROW: 'activity-details-total-fee-row',
+  RATE_ROW: 'activity-details-rate-row',
+  FUNDING_FEE_ROW: 'activity-details-funding-fee-row',
   FOOTER: 'activity-details-footer',
   BLOCK_EXPLORER_BUTTON: 'activity-details-block-explorer-button',
   DO_IT_AGAIN_BUTTON: 'activity-details-do-it-again-button',
@@ -26,3 +41,9 @@ export const ActivityDetailsSelectorsIDs = {
   PENDING_QR_CANCEL_BUTTON: 'activity-details-pending-qr-cancel-button',
   PENDING_LEDGER_SIGN_BUTTON: 'activity-details-pending-ledger-sign-button',
 } as const;
+
+export const getActivityDetailsStepTestId = (index: number): string =>
+  `activity-details-step-${index}`;
+
+export const getActivityDetailsStepIconTestId = (index: number): string =>
+  `activity-details-step-${index}-icon`;

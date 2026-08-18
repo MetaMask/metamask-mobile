@@ -1,29 +1,31 @@
-import React from 'react';
-import { Pressable } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
 import {
   Box,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  Text,
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonSize,
+  FilterButtonVariant,
+  SelectButton,
+  SelectButtonSize,
+  SelectButtonVariant,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { CandlePeriod, CANDLE_PERIODS } from '@metamask/perps-controller';
 import { getPerpsCandlePeriodSelector } from '../../Perps.testIds';
-import { styleSheet } from './PerpsCandlePeriodSelector.styles';
 
-// Default candle periods with preset values
-const DEFAULT_CANDLE_PERIODS = [
+export interface PerpsCandlePeriodOption {
+  label: string;
+  value: CandlePeriod;
+}
+
+export const DEFAULT_CANDLE_PERIODS = [
   { label: '1min', value: CandlePeriod.OneMinute },
   { label: '3min', value: CandlePeriod.ThreeMinutes },
   { label: '5min', value: CandlePeriod.FiveMinutes },
   { label: '15min', value: CandlePeriod.FifteenMinutes },
-] as const;
+] as const satisfies readonly PerpsCandlePeriodOption[];
 
-// Helper function to get the display label for a candle period
 const getCandlePeriodLabel = (period: CandlePeriod | string): string => {
   const candlePeriod = CANDLE_PERIODS.find(
     (p) => p.value?.toLowerCase() === period?.toLowerCase(),
@@ -35,6 +37,13 @@ interface PerpsCandlePeriodSelectorProps {
   selectedPeriod: CandlePeriod | string;
   onPeriodChange?: (period: CandlePeriod) => void;
   onMorePress?: () => void;
+  visiblePeriods?: readonly PerpsCandlePeriodOption[];
+  twClassName?: string;
+  groupTwClassName?: string;
+  filterVariant?: FilterButtonVariant;
+  periodButtonTwClassName?: string;
+  moreButtonTwClassName?: string;
+  textVariant?: TextVariant;
   testID?: string;
 }
 
@@ -42,35 +51,60 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
   selectedPeriod,
   onPeriodChange,
   onMorePress,
+  visiblePeriods = DEFAULT_CANDLE_PERIODS,
+  twClassName = 'w-full items-center py-3',
+  groupTwClassName = 'gap-1 grow justify-center',
+  filterVariant = FilterButtonVariant.Primary,
+  periodButtonTwClassName,
+  moreButtonTwClassName,
+  textVariant,
   testID,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const normalizedSelectedPeriod = selectedPeriod?.toLowerCase();
 
-  // Check if the selected period is in the "More" category (not in default periods)
-  const isMorePeriodSelected = !DEFAULT_CANDLE_PERIODS.some(
-    (period) => period.value?.toLowerCase() === selectedPeriod?.toLowerCase(),
+  const isMorePeriodSelected = !visiblePeriods.some(
+    (period) => period.value?.toLowerCase() === normalizedSelectedPeriod,
   );
 
-  return (
-    <Box style={styles.container} testID={testID}>
-      {/* Candle Period Buttons */}
-      {DEFAULT_CANDLE_PERIODS.map((period) => {
-        const isSelected =
-          selectedPeriod?.toLowerCase() === period.value?.toLowerCase();
+  const groupValue = useMemo(() => {
+    if (isMorePeriodSelected) {
+      return '';
+    }
 
-        return (
-          <Pressable
+    return (
+      visiblePeriods.find(
+        (period) => period.value?.toLowerCase() === normalizedSelectedPeriod,
+      )?.value ?? ''
+    );
+  }, [isMorePeriodSelected, normalizedSelectedPeriod, visiblePeriods]);
+
+  const handleFilterChange = useCallback(
+    (value: string) => {
+      onPeriodChange?.(value as CandlePeriod);
+    },
+    [onPeriodChange],
+  );
+
+  const moreButtonValue = isMorePeriodSelected
+    ? getCandlePeriodLabel(selectedPeriod)
+    : null;
+
+  return (
+    <Box twClassName={twClassName} testID={testID}>
+      <FilterButtonGroup
+        value={groupValue}
+        onChange={handleFilterChange}
+        variant={filterVariant}
+        twClassName={groupTwClassName}
+        testID={testID ? getPerpsCandlePeriodSelector.group(testID) : undefined}
+      >
+        {visiblePeriods.map((period) => (
+          <FilterButton
             key={period.value}
-            style={({ pressed }) => [
-              styles.periodButton,
-              isSelected
-                ? styles.periodButtonSelected
-                : styles.periodButtonUnselected,
-              pressed && styles.periodButtonPressed,
-            ]}
-            onPress={() => {
-              onPeriodChange?.(period.value);
-            }}
+            value={period.value}
+            size={FilterButtonSize.Sm}
+            twClassName={periodButtonTwClassName}
+            textProps={textVariant ? { variant: textVariant } : undefined}
             testID={
               testID
                 ? getPerpsCandlePeriodSelector.periodButton(
@@ -80,51 +114,26 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
                 : undefined
             }
           >
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName={
-                isSelected ? 'text-text-default' : 'text-text-alternative'
-              }
-            >
-              {period.label}
-            </Text>
-          </Pressable>
-        );
-      })}
-
-      {/* More Button */}
-      <Pressable
-        style={({ pressed }) => [
-          styles.moreButton,
-          isMorePeriodSelected
-            ? styles.moreButtonSelected
-            : styles.moreButtonUnselected,
-          pressed && styles.moreButtonPressed,
-        ]}
-        onPress={onMorePress}
-        testID={
-          testID ? getPerpsCandlePeriodSelector.moreButton(testID) : undefined
-        }
-      >
-        <Text
-          variant={TextVariant.BodySm}
-          style={[
-            styles.moreText,
+            {period.label}
+          </FilterButton>
+        ))}
+        <SelectButton
+          placeholder={strings('perps.chart.candle_period_selector.show_more')}
+          value={moreButtonValue}
+          variant={
             isMorePeriodSelected
-              ? styles.moreTextSelected
-              : styles.moreTextUnselected,
-          ]}
-        >
-          {isMorePeriodSelected
-            ? getCandlePeriodLabel(selectedPeriod)
-            : strings('perps.chart.candle_period_selector.show_more')}
-        </Text>
-        <Icon
-          name={IconName.ArrowDown}
-          size={IconSize.Xs}
-          color={IconColor.IconAlternative}
+              ? SelectButtonVariant.Primary
+              : SelectButtonVariant.Tertiary
+          }
+          size={SelectButtonSize.Sm}
+          twClassName={moreButtonTwClassName}
+          textProps={textVariant ? { variant: textVariant } : undefined}
+          onPress={onMorePress}
+          testID={
+            testID ? getPerpsCandlePeriodSelector.moreButton(testID) : undefined
+          }
         />
-      </Pressable>
+      </FilterButtonGroup>
     </Box>
   );
 };

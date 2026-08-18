@@ -2,6 +2,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import {
   Text,
@@ -58,7 +59,7 @@ interface RewardsBottomSheetModalProps {
 const RewardsBottomSheetModal = ({ route }: RewardsBottomSheetModalProps) => {
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [isLoading, setIsLoading] = useState(false);
   const {
     title,

@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { Box } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -9,7 +10,6 @@ import { selectPrivacyMode } from '../../../../../../../selectors/preferencesCon
 import { PredictEventValues } from '../../../../constants/eventNames';
 import { usePredictActionGuard } from '../../../../hooks/usePredictActionGuard';
 import { usePredictPortfolio } from '../../../../hooks/usePredictPortfolio';
-import type { PredictNavigationParamList } from '../../../../types/navigation';
 import PredictClaimButton from '../../../../components/PredictActionButtons/PredictClaimButton';
 import PredictPortfolioActions from './PredictPortfolioActions';
 import PredictPortfolioSummary from './PredictPortfolioSummary';
@@ -27,11 +27,11 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
 }) => {
   const privacyMode = useSelector(selectPrivacyMode);
   const { enableDepositWalletWithdraw } = useSelector(selectMetaMaskPayFlags);
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
   const {
     availableBalance,
+    balanceError,
     claim,
     claimableAmount,
     claimablePositionCount,
@@ -39,6 +39,7 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     hasClaimableWinnings,
     isClaimPending,
     isLoading,
+    error,
     openPositionCount,
     portfolioValue,
     positionsBadgeCount,
@@ -154,8 +155,10 @@ const PredictPortfolioModule: React.FC<PredictPortfolioModuleProps> = ({
     <Box testID={PredictHomeSelectorsIDs.PORTFOLIO_MODULE} twClassName="gap-4">
       <PredictPortfolioSummary
         availableBalance={availableBalance}
+        hasBalanceError={Boolean(balanceError)}
         isHidden={Boolean(privacyMode)}
         isLoading={isLoading}
+        hasError={Boolean(error)}
         portfolioValue={portfolioValue}
         showPnlLine={showPnlLine}
         totalUnrealizedPnlAmount={totalUnrealizedPnlAmount}

@@ -137,6 +137,24 @@ describe('Accounts Controller Selectors', () => {
         errorMessage,
       );
     });
+
+    it('does not throw an error if the selected account ID is empty', () => {
+      const result = selectSelectedInternalAccount({
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+              internalAccounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+                selectedAccount: '',
+              },
+            },
+          },
+        },
+      } as RootState);
+      expect(result).toBeUndefined();
+      expect(mockedCaptureException).not.toHaveBeenCalled();
+    });
   });
   describe('selectInternalAccounts', () => {
     it(`returns internal accounts of the accounts controller sorted by the keyring controller's accounts`, () => {
@@ -736,9 +754,14 @@ describe('selectSelectedInternalAccountId', () => {
     const internalAccount = arrangeAccount();
     const state = getStateWithAccount(internalAccount);
     const result1 = selectSelectedInternalAccountId(state);
+    const recomputationsAfterFirstCall =
+      selectSelectedInternalAccountId.recomputations();
     const result2 = selectSelectedInternalAccountId(state);
     expect(result1).toBe(result2);
-    expect(selectSelectedInternalAccountId.recomputations()).toBe(1);
+    // A subsequent call with the same state must not trigger a recomputation.
+    expect(selectSelectedInternalAccountId.recomputations()).toBe(
+      recomputationsAfterFirstCall,
+    );
   });
 });
 

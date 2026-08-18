@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import ThemeProvider from '../../../../../component-library/providers/ThemeProvider/ThemeProvider';
+import { lightTheme } from '@metamask/design-tokens';
 import { getCandlestickChartSelector } from '../../Perps.testIds';
 import PerpsCandlestickChartIntervalSelector from './PerpsCandlestickChartIntervalSelector';
 
@@ -124,6 +125,21 @@ describe('PerpsCandlestickChartIntervalSelector', () => {
 
     // Assert - Now 5m should be selected
     expect(getByTestId(testIDs.interval5m)).toBeOnTheScreen();
+  });
+
+  it('uses muted background and default text for the selected interval', () => {
+    const { getByTestId, getByText } = render(
+      <TestWrapper>
+        <PerpsCandlestickChartIntervalSelector {...defaultProps} />
+      </TestWrapper>,
+    );
+
+    expect(getByTestId(testIDs.interval1h)).toHaveStyle({
+      backgroundColor: lightTheme.colors.background.muted,
+    });
+    expect(getByText('1h')).toHaveStyle({
+      color: lightTheme.colors.text.default,
+    });
   });
 
   it('renders correct testID structure for each interval', () => {

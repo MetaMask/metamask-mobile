@@ -1,10 +1,17 @@
 import BigNumber from 'bignumber.js';
 import { formatWithThreshold } from '../../../../util/assets';
 import { getLocaleLanguageCode } from '../../../hooks/useFormatters';
+import { AssetType } from '../../../Views/confirmations/types/token';
+import { MONEY_DEFAULT_FIAT_CURRENCY } from '../constants/fiat';
 
 // One cent. Values strictly below this collapse to $0.00 — mUSD is USD-pegged
 // so sub-cent fiat is economically meaningless.
 export const DUST_THRESHOLD = 0.01;
+
+/** Falls back to the Money default when a token carries no fiat currency. */
+export const moneySafeTokenFiatCurrency = (
+  token: Pick<AssetType, 'fiat'> | undefined | null,
+): string => token?.fiat?.currency ?? MONEY_DEFAULT_FIAT_CURRENCY;
 
 /**
  * Shared core: collapses sub-cent dust to zero, then formats via

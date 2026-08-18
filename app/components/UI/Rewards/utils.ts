@@ -9,10 +9,14 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import { isEvmAccountType } from '@metamask/keyring-api';
-import type { NavigationProp } from '@react-navigation/native';
+import type {
+  NavigationProp,
+  NavigatorScreenParams,
+} from '@react-navigation/native';
 import { isSolanaAccount } from '../../../core/Multichain/utils';
 import { getAddressAccountType } from '../../../util/address';
 import Routes from '../../../constants/navigation/Routes';
+import type { RewardsStackParamList } from './types/navigation';
 
 // Initialize dayjs with relativeTime plugin
 dayjs.extend(relativeTime);
@@ -178,12 +182,15 @@ export const getActiveRouteNameFromNavigationState = (
  * @param screen - The destination route name inside the rewards flow.
  * @param params - Optional params forwarded to the destination screen.
  */
-export const navigateToRewardsRoute = (
+export const navigateToRewardsRoute = <S extends keyof RewardsStackParamList>(
   navigation: Pick<NavigationProp<ReactNavigation.RootParamList>, 'navigate'>,
-  screen: string,
-  params?: Record<string, unknown>,
+  screen: S,
+  params?: RewardsStackParamList[S],
 ): void => {
-  navigation.navigate(Routes.REWARDS_FLOW, { screen, params });
+  navigation.navigate(Routes.REWARDS_FLOW, {
+    screen,
+    params,
+  } as NavigatorScreenParams<RewardsStackParamList>);
 };
 
 type RewardsFlowExitNavigation = Pick<
@@ -213,6 +220,26 @@ export const exitRewardsFlow = (
   navigation.navigate(Routes.HOME_TABS, {
     screen: Routes.REWARDS_VIEW,
   });
+};
+
+/**
+ * Resolves the "Contact support" URL used for beta builds only.
+ *
+ * Extracted as its own function (rather than inlined at each call site) so the
+ * branch that depends on it — direct beta Intercom link vs. the support-consent
+ * flow — can be exercised in both directions from unit tests via module
+ * mocking. `///: ONLY_INCLUDE_IF(beta)` code fences are stripped by the Metro
+ * bundler at build time but are inert under Jest, so without this seam the
+ * beta branch always wins in tests and the consent-flow branch is unreachable.
+ */
+export const getBetaSupportUrl = (): string => {
+  let betaSupportUrl = '';
+
+  ///: BEGIN:ONLY_INCLUDE_IF(beta)
+  betaSupportUrl = 'https://intercom.help/internal-beta-testing/en/';
+  ///: END:ONLY_INCLUDE_IF
+
+  return betaSupportUrl;
 };
 
 // Referral URL builder

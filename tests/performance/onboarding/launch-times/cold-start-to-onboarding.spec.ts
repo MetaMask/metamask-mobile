@@ -22,7 +22,7 @@ test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceLaunch}`, ()
       await timer1.measure(
         async () =>
           await PlaywrightAssertions.expectElementToBeVisible(
-            await asPlaywrightElement(OnboardingView.newWalletButton),
+            asPlaywrightElement(OnboardingView.newWalletButton),
           ),
       );
 

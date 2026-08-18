@@ -80,6 +80,10 @@ export interface PolymarketApiMarket {
   events?: PolymarketApiEvent[];
   umaResolutionStatus: string;
   line?: number;
+  cryptoMarketConfig?: {
+    twapEnabled?: boolean;
+    twapLookbackSeconds?: number | null;
+  } | null;
 }
 
 export interface PolymarketApiSeries {
@@ -170,7 +174,7 @@ export interface RoundConfig {
   readonly amount: number;
 }
 
-export type TickSize = '0.1' | '0.01' | '0.001' | '0.0001';
+export type TickSize = string;
 
 export const COLLATERAL_TOKEN_DECIMALS = 6;
 export const CONDITIONAL_TOKEN_DECIMALS = 6;

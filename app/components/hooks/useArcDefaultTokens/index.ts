@@ -12,7 +12,11 @@ import Engine from '../../../core/Engine';
 export const ARC_USDC_ASSET_ID: CaipAssetType =
   'eip155:5042/erc20:0x3600000000000000000000000000000000000000';
 
-export const ARC_NATIVE_ASSET_ID: CaipAssetType =
+export const ARC_NATIVE_ASSET_ID: CaipAssetType = 'eip155:5042/slip44:5042';
+
+// Pre-slip44 placeholder some accounts may still have cached; keep filtering
+// it out alongside ARC_NATIVE_ASSET_ID so upgraded users don't see a duplicate.
+export const ARC_NATIVE_ASSET_ID_LEGACY: CaipAssetType =
   'eip155:5042/erc20:0x0000000000000000000000000000000000000000';
 
 /**

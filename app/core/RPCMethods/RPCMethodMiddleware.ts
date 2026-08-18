@@ -28,7 +28,7 @@ import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import { TransportType } from '../../components/hooks/useAnalytics/useAnalytics.types';
-import PPOMUtil from '../../lib/ppom/ppom-util';
+import PPOMUtil, { type PPOMRequest } from '../../lib/ppom/ppom-util';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -47,6 +47,7 @@ import {
   getCaip25PermissionFromLegacyPermissions,
   requestPermittedChainsPermissionIncremental,
 } from '@metamask/chain-agnostic-permission';
+import { preprocessTypedSignRequest } from '../../components/Views/confirmations/utils/typed-sign-security';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -275,7 +276,7 @@ const generateRawSignature = async ({
 
   const rawSig = await signatureController.newUnsignedTypedMessage(
     {
-      data: req.params[1],
+      data: preprocessTypedSignRequest(req.params[1]),
       from: req.params[0],
       requestId: req.id,
       ...pageMeta,
@@ -438,6 +439,30 @@ export const getRpcMethodMiddleware = ({
     if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
     return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
   };
+
+  /**
+   * Drop `req.origin` when the request arrived over a remote transport
+   * (WalletConnect / SDK v1 / MetaMask Connect), so it never influences the
+   * PPOM security scan. On those paths the origin is self-reported by the
+   * dapp and unverifiable, and Blockaid treats the URL as a core heuristic
+   * that can flip a verdict between malicious and benign. In-app browser
+   * requests keep their origin, which the wallet itself verified by loading
+   * the page.
+   */
+  const sanitizeRequestForPPOM = <Request extends PPOMRequest>(
+    req: Request,
+  ) => {
+    const isVerifiableOrigin =
+      getSource() === AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
+    return isVerifiableOrigin ? req : { ...req, origin: undefined };
+  };
+
+  /**
+   * Validate a request with PPOM, dropping `req.origin` for remote
+   * transports (see {@link sanitizeRequestForPPOM}).
+   */
+  const validateRequestWithPPOM = (req: PPOMRequest) =>
+    PPOMUtil.validateRequest(sanitizeRequestForPPOM(req));
 
   const hooks = getRpcMethodMiddlewareHooks({
     origin,
@@ -702,7 +727,17 @@ export const getRpcMethodMiddleware = ({
         };
         return RPCMethods.eth_sendTransaction({
           hostname,
-          req,
+          // eth_sendTransaction forwards this request to the PPOM security
+          // scan. ppom-util already drops origins it can recognize as
+          // unverifiable (transport prefixes, bare connection UUIDs,
+          // deeplink/qr-code placeholders), but that net has a hole: SDK v1
+          // channel ids arrive via deeplink params unvalidated, so a
+          // malicious sender could pick a domain-looking channel id that
+          // slips through and reaches Blockaid as a plausible origin. The
+          // transport is known here, so drop the origin at the source for
+          // anything that is not the in-app browser, mirroring the signature
+          // handlers (validateRequestWithPPOM).
+          req: sanitizeRequestForPPOM(req),
           res,
           sendTransaction: addTransaction,
           validateAccountAndChainId: async ({
@@ -768,7 +803,7 @@ export const getRpcMethodMiddleware = ({
 
         trace(
           { name: TraceName.PPOMValidation, parentContext: req.traceContext },
-          () => PPOMUtil.validateRequest(req),
+          () => validateRequestWithPPOM(req),
         );
 
         const rawSig = await signatureController.newUnsignedPersonalMessage(
@@ -831,7 +866,7 @@ export const getRpcMethodMiddleware = ({
 
         trace(
           { name: TraceName.PPOMValidation, parentContext: req.traceContext },
-          () => PPOMUtil.validateRequest(req),
+          () => validateRequestWithPPOM(req),
         );
 
         const rawSig = await signatureController.newUnsignedTypedMessage(
@@ -862,7 +897,7 @@ export const getRpcMethodMiddleware = ({
 
         trace(
           { name: TraceName.PPOMValidation, parentContext: req.traceContext },
-          () => PPOMUtil.validateRequest(req),
+          () => validateRequestWithPPOM(req),
         );
 
         res.result = await generateRawSignature({
@@ -891,7 +926,7 @@ export const getRpcMethodMiddleware = ({
 
         trace(
           { name: TraceName.PPOMValidation, parentContext: req.traceContext },
-          () => PPOMUtil.validateRequest(req),
+          () => validateRequestWithPPOM(req),
         );
 
         res.result = await generateRawSignature({

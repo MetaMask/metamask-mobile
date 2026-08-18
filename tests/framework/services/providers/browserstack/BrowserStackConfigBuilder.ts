@@ -3,6 +3,7 @@ import path from 'path';
 import type { BrowserStackConfig } from '../../../types';
 import type { ProjectConfig } from '../../common/types';
 import {
+  DEFAULT_BROWSERSTACK_CONNECTION_RETRY_COUNT,
   DEFAULT_BROWSERSTACK_CONNECTION_RETRY_TIMEOUT_MS,
   DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
   DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS,
@@ -79,7 +80,8 @@ export class BrowserStackConfigBuilder {
       : DEFAULT_BROWSERSTACK_CONNECTION_RETRY_TIMEOUT_MS;
 
     logger.info(
-      `BrowserStack WebDriver connectionRetryTimeout: ${connectionRetryTimeout}ms`,
+      `BrowserStack WebDriver connectionRetryTimeout: ${connectionRetryTimeout}ms, ` +
+        `connectionRetryCount: ${DEFAULT_BROWSERSTACK_CONNECTION_RETRY_COUNT}`,
     );
     logger.info(
       `BrowserStack idleTimeout: ${DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS}s, newCommandTimeout: ${DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS}s`,
@@ -98,7 +100,7 @@ export class BrowserStackConfigBuilder {
       hostname: 'hub.browserstack.com',
       // Default webdriver is 120s; BS session POST often exceeds that on busy grids.
       connectionRetryTimeout,
-      connectionRetryCount: 3,
+      connectionRetryCount: DEFAULT_BROWSERSTACK_CONNECTION_RETRY_COUNT,
       capabilities: {
         'bstack:options': {
           debug: true,
@@ -158,6 +160,7 @@ export class BrowserStackConfigBuilder {
         'appium:settings[actionAcknowledgmentTimeout]': 3000,
         'appium:settings[ignoreUnimportantViews]': true,
         'appium:settings[snapshotMaxDepth]': 62,
+        'appium:settings[waitForIdleTimeout]': 0, // Don't wait for idle
         'appium:settings[waitForSelectorTimeout]': 1000,
         'appium:includeSafariInWebviews': true,
         'appium:chromedriverAutodownload': true,
@@ -165,7 +168,6 @@ export class BrowserStackConfigBuilder {
         'appium:animationCoolOffTimeout': 0, // Skip animation wait
         'appium:reduceMotion': true, // Reduce iOS animations
         'appium:customSnapshotTimeout': 15,
-        'appium:waitForIdleTimeout': 0, // Don't wait for idle
         'appium:disableWindowAnimation': true, // Disable animations
         'appium:skipDeviceInitialization': true, // Skip init (faster startup)
         'appium:bstackPageSource': {

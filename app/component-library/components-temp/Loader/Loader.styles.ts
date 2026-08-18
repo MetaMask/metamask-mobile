@@ -18,7 +18,7 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     base: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: colors.background.default,

@@ -18,4 +18,6 @@ export const ImportFromSeedSelectorsIDs = {
   CONTINUE_BUTTON_ID: 'import-from-seed-screen-continue-button-id',
   CHECKBOX_TEXT_ID: 'import-from-seed-screen-checkbox-text-id',
   WHAT_IS_SEEDPHRASE_LINK_ID: 'import-from-seed-screen-seedphrase-link-id',
+  IMPORT_FROM_EXTENSION_LINK_ID:
+    'import-from-seed-screen-import-from-extension-link-id',
 };

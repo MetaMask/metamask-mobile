@@ -60,9 +60,7 @@
       }
     }
   },
-  "DelegationController": {
-    "delegations": {}
-  },
+  "DelegationController": {},
   "NetworkController": {
     "selectedNetworkClientId": "mainnet",
     "networksMetadata": {
@@ -313,6 +311,7 @@
     "whitelistPaths": {}
   },
   "PreferencesController": {
+    "advancedGasFee": {},
     "featureFlags": {},
     "ipfsGateway": "https://dweb.link/ipfs/",
     "useTokenDetection": true,
@@ -432,7 +431,10 @@
     "location": "UNKNOWN",
     "status": "loading",
     "lastFetchedAt": null,
-    "error": null
+    "error": null,
+    "country": null,
+    "region": null,
+    "timezone": null
   },
   "GasFeeController": {
     "gasFeeEstimates": {},
@@ -462,11 +464,11 @@
         "symbol": "mUSD",
         "type": "erc20"
       },
-      "eip155:5042/erc20:0x3600000000000000000000000000000000000000": {
-        "decimals": 6,
+      "eip155:5042/slip44:5042": {
+        "decimals": 18,
         "name": "USDC",
         "symbol": "USDC",
-        "type": "erc20"
+        "type": "native"
       },
       "eip155:59144/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA": {
         "decimals": 6,
@@ -518,6 +520,10 @@
       "mainnet": [],
       "testnet": []
     },
+    "recentlyViewedMarkets": {
+      "mainnet": [],
+      "testnet": []
+    },
     "tradeConfigurations": {
       "mainnet": {},
       "testnet": {}
@@ -526,8 +532,21 @@
       "optionId": "volume",
       "direction": "desc"
     },
+    "mode": "lite",
     "hip3ConfigVersion": 0,
     "perpsBalances": {},
+    "proLayoutPreferences": {
+      "chartExpanded": false,
+      "orderBookExpanded": false,
+      "orderBookPosition": "left",
+      "orderFormPosition": "right",
+      "ordersSideFilter": "all",
+      "ordersSortDirection": "desc",
+      "ordersSortField": "time",
+      "positionsSideFilter": "all",
+      "positionsSortDirection": "desc",
+      "positionsSortField": "positionValue"
+    },
     "selectedPaymentToken": null,
     "cachedMarketDataByProvider": {},
     "cachedUserDataByProvider": {}
@@ -553,6 +572,22 @@
     "unapprovedTypedMessages": {},
     "unapprovedPersonalMsgCount": 0,
     "unapprovedTypedMessagesCount": 0
+  },
+  "SubscriptionController": {
+    "subscriptions": [],
+    "trialedProducts": []
+  },
+  "ShieldController": {
+    "coverageResults": {},
+    "orderedTransactionHistory": []
+  },
+  "ClaimsController": {
+    "claims": [],
+    "claimsConfigurations": {
+      "validSubmissionWindowDays": 21,
+      "supportedNetworks": ["0x1", "0xe708"]
+    },
+    "drafts": []
   },
   "AuthenticationController": {
     "isSignedIn": false,
@@ -681,6 +716,10 @@
   "MultichainTransactionsController": {
     "nonEvmTransactions": {}
   },
+  "NetworkConnectionBannerController": {
+    "networkConnectionBannerStatus": "available",
+    "networkConnectionBannerNetwork": null
+  },
   "MultichainAssetsController": {
     "accountsAssets": {},
     "assetsMetadata": {},
@@ -704,10 +743,8 @@
     "quotesLoadingStatus": null,
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
-    "inputPrimaryDenomination": "token_amount",
     "tokenSecurityTypeDestination": null,
-    "tokenWarnings": [],
-    "inputPrimaryDenomination": "token_amount"
+    "tokenWarnings": []
   },
   "BridgeStatusController": {
     "quoteUpdateStatusStore": {},
@@ -716,6 +753,7 @@
   "CardController": {
     "selectedCountry": null,
     "activeProviderId": "baanx",
+    "providerUserId": null,
     "cardHomeData": null,
     "cardHomeDataStatus": "idle",
     "isAuthenticated": false,
@@ -725,7 +763,9 @@
     "lastUnauthenticatedReason": null
   },
   "ConfigRegistryController": {
-    "configs": { "networks": {} },
+    "configs": {
+      "networks": {}
+    },
     "etag": null,
     "lastFetched": null,
     "version": null
@@ -797,6 +837,9 @@
     "allDeFiPositions": {},
     "allDeFiPositionsCount": {}
   },
+  "DeFiPositionsControllerV2": {
+    "allDeFiPositionsV2": {}
+  },
   "SamplePetnamesController": {
     "namesByChainIdAndAddress": {}
   },
@@ -821,6 +864,7 @@
     "predictThePitchPositions": {},
     "predictThePitchPrizePool": {},
     "clientVersionRequirements": null,
+    "firstPredictOnUs": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
@@ -829,6 +873,7 @@
     "vipDashboard": {},
     "vipPerpsFees": {},
     "vipRefereeDashboard": {},
+    "vipTransactions": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null
@@ -851,9 +896,12 @@
   "QrSyncController": {
     "phase": "idle",
     "connectionStatus": "disconnected",
+    "syncFlow": null,
+    "pendingSecretImports": null,
+    "provisioningMetadata": null,
+    "provisioningStatus": null,
     "otp": null,
-    "error": null,
-    "importPlan": null
+    "error": null
   },
   "AiDigestController": {
     "marketInsights": {},
@@ -918,11 +966,12 @@
         "timestamp": 123
       }
     },
-    "orders": [],
-    "providerAutoSelected": false
+    "orders": []
   },
   "MoneyAccountController": {
     "moneyAccounts": {}
   },
-  "MoneyAccountUpgradeController": {}
+  "MoneyAccountUpgradeController": {
+    "upgradedAccounts": {}
+  }
 }

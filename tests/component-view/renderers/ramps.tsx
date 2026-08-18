@@ -197,35 +197,6 @@ export function wireRampsControllerForStore(store: Store) {
   };
 }
 
-interface RootModalFlowParams {
-  screen?: string;
-  params?: Record<string, unknown>;
-}
-
-interface RootModalFlowProps {
-  route: {
-    params?: RootModalFlowParams;
-  };
-}
-
-const RootModalFlow = ({ route }: RootModalFlowProps) => {
-  const initialScreen = route.params?.screen ?? Routes.SHEET.ACCOUNT_SELECTOR;
-  const ModalStack = createNativeStackNavigator();
-
-  return (
-    <ModalStack.Navigator
-      initialRouteName={initialScreen}
-      screenOptions={{ headerShown: false }}
-    >
-      <ModalStack.Screen
-        name={Routes.SHEET.ACCOUNT_SELECTOR}
-        component={AccountSelector}
-        initialParams={route.params?.params}
-      />
-    </ModalStack.Navigator>
-  );
-};
-
 /**
  * Renders the Aggregator BuildQuote screen wrapped in RampSDKProvider.
  * Defaults to sell mode to match the deeplink-to-sell regression coverage.
@@ -276,7 +247,7 @@ export interface RenderBuildQuoteWithRoutesResult
 
 export interface RenderBuildQuoteWithRoutesOptions
   extends RenderBuildQuoteViewOptions {
-  /** Register AccountSelector under ROOT_MODAL_FLOW (sell account switch). */
+  /** Register AccountSelector directly on the root stack (sell account switch). */
   includeAccountSelector?: boolean;
   /** Use France + multichain fixture preset for sell E2E parity. */
   useFranceSellFixture?: boolean;
@@ -286,6 +257,11 @@ export interface RenderBuildQuoteWithRoutesOptions
    * history navigation is observable.
    */
   includeBuySettingsAndTransactionsRoutes?: boolean;
+  /**
+   * Register a Quotes route placeholder so "Get quotes" navigation from
+   * BuildQuote can be asserted via route probe.
+   */
+  includeQuotesRoute?: boolean;
 }
 
 /**
@@ -331,6 +307,7 @@ export function renderBuildQuoteWithRoutes(
     includeAccountSelector = false,
     useFranceSellFixture = false,
     includeBuySettingsAndTransactionsRoutes = false,
+    includeQuotesRoute = false,
     state: stateOverride,
   } = options;
 
@@ -365,6 +342,10 @@ export function renderBuildQuoteWithRoutes(
   const MainStack = createNativeStackNavigator();
   const ModalsStack = createNativeStackNavigator();
 
+  const QuotesPlaceholder = () => (
+    <Text testID={`route-${Routes.RAMP.QUOTES}`}>Quotes placeholder</Text>
+  );
+
   const MainRoutes = () => (
     <MainStack.Navigator
       initialRouteName={Routes.RAMP.BUILD_QUOTE}
@@ -377,6 +358,12 @@ export function renderBuildQuoteWithRoutes(
         component={BuildQuote}
         initialParams={initialParams}
       />
+      {includeQuotesRoute ? (
+        <MainStack.Screen
+          name={Routes.RAMP.QUOTES}
+          component={QuotesPlaceholder}
+        />
+      ) : null}
     </MainStack.Navigator>
   );
 
@@ -421,8 +408,8 @@ export function renderBuildQuoteWithRoutes(
           />
           {includeAccountSelector ? (
             <RootStack.Screen
-              name={Routes.MODAL.ROOT_MODAL_FLOW}
-              component={RootModalFlow}
+              name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR}
+              component={AccountSelector}
             />
           ) : null}
           {includeBuySettingsAndTransactionsRoutes ? (

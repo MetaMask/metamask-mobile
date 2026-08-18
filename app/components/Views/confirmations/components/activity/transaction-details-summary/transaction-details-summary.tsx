@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import React, { useMemo } from 'react';
-import Text, {
-  TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
+import { Text, TextColor } from '@metamask/design-system-react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import {
   selectTransactionsByBatchId,
@@ -16,8 +14,8 @@ import {
   TransactionMeta,
   TransactionStatus,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
-import { hasTransactionType } from '../../../utils/transaction';
 import { RELAY_DEPOSIT_TYPES } from '../../../constants/confirmations';
 import { ProgressList } from '../../progress-list';
 import { SourceHashSummaryLine } from './source-hash-summary-line';
@@ -91,16 +89,28 @@ export function TransactionDetailsSummary() {
 
   const completedCount = txCompletedCount + (hasExtraCompletedStep ? 1 : 0);
 
-  const heading = isMoneyContext
-    ? strings('transaction_details.label.steps_completed', {
-        count: completedCount,
-      })
-    : strings('transaction_details.label.summary');
+  const hasMultipleSteps =
+    transactions.length > 1 || Boolean(fiatOrderId) || Boolean(showSourceHash);
+
+  let heading: string | undefined;
+
+  if (!isMoneyContext) {
+    heading = strings('transaction_details.label.summary');
+  } else if (hasMultipleSteps) {
+    heading = strings('transaction_details.label.steps_completed', {
+      count: completedCount,
+    });
+  }
 
   return (
     <Box gap={12}>
-      <Text color={TextColor.Alternative}>{heading}</Text>
-      <ProgressList showConnectors={false}>
+      {heading ? (
+        <Text color={TextColor.TextAlternative}>{heading}</Text>
+      ) : null}
+      <ProgressList
+        showConnectors={false}
+        variant={isMoneyContext ? 'dot' : 'status-icon'}
+      >
         {fiatOrderId ? (
           <FiatOrderSummaryLine parentTransaction={transactionMeta} />
         ) : null}
@@ -164,6 +174,6 @@ function isSkippedTransaction(
 ): boolean {
   return (
     hasTransactionType(parentTransaction, [TransactionType.musdConversion]) &&
-    !hasTransactionType(transaction, [TransactionType.relayDeposit])
+    !hasTransactionType(transaction, RELAY_DEPOSIT_TYPES)
   );
 }

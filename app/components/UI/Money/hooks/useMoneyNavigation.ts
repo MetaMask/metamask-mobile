@@ -4,6 +4,7 @@ import { selectMoneyOnboardingSeen } from '../../../../reducers/user/selectors';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
+import type { MoneyOnboardingParams } from '../types/navigation';
 
 /**
  * Why NavigationService instead of useNavigation():
@@ -17,35 +18,61 @@ import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../select
  *
  * See: https://github.com/react-navigation/react-navigation/issues/6472
  */
-export const useMoneyNavigation = () => {
+export const useMoneyOnboardingNavigation = () => {
   const hasSeenOnboarding = useSelector(selectMoneyOnboardingSeen);
   const isOnboardingEnabled = useSelector(
     selectMoneyOnboardingStepperAnimationEnabled,
   );
 
-  const redirectToOnboarding = useCallback(() => {
-    NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING);
-  }, []);
-
-  const redirectToOnboardingIfNeeded = useCallback(() => {
-    if (hasSeenOnboarding || !isOnboardingEnabled) {
-      return false;
-    }
-
-    redirectToOnboarding();
-    return true;
-  }, [hasSeenOnboarding, isOnboardingEnabled, redirectToOnboarding]);
-
-  const navigateToMoneyHome = useCallback(() => {
-    if (redirectToOnboardingIfNeeded()) {
+  const redirectToOnboarding = useCallback((params?: MoneyOnboardingParams) => {
+    if (params) {
+      NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING, params);
       return;
     }
 
-    NavigationService.navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [redirectToOnboardingIfNeeded]);
+    NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING);
+  }, []);
 
-  return { navigateToMoneyHome };
+  const redirectToOnboardingIfNeeded = useCallback(
+    (params?: MoneyOnboardingParams) => {
+      if (hasSeenOnboarding || !isOnboardingEnabled) {
+        return false;
+      }
+
+      redirectToOnboarding(params);
+      return true;
+    },
+    [hasSeenOnboarding, isOnboardingEnabled, redirectToOnboarding],
+  );
+
+  return {
+    isOnboardingRedirectNeeded: !hasSeenOnboarding && isOnboardingEnabled,
+    redirectToOnboardingIfNeeded,
+  };
+};
+
+export const useMoneyNavigation = () => {
+  const { isOnboardingRedirectNeeded, redirectToOnboardingIfNeeded } =
+    useMoneyOnboardingNavigation();
+
+  const navigateToMoneyHome = useCallback(
+    (entryPoint?: string) => {
+      if (
+        redirectToOnboardingIfNeeded(entryPoint ? { entryPoint } : undefined)
+      ) {
+        return;
+      }
+
+      NavigationService.navigation.navigate(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: {
+          screen: Routes.MONEY.HOME,
+          ...(entryPoint ? { params: { entryPoint } } : {}),
+        },
+      });
+    },
+    [redirectToOnboardingIfNeeded],
+  );
+
+  return { isOnboardingRedirectNeeded, navigateToMoneyHome };
 };

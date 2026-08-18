@@ -23,8 +23,12 @@ export interface UsePerpsLivePositionsReturn {
 }
 
 /**
- * Enrich positions with recalculated unrealizedPnl and returnOnEquity
- * based on current mark price from live price feed
+ * Enrich positions with recalculated unrealizedPnl, returnOnEquity, and
+ * positionValue based on current mark price from the live price feed.
+ *
+ * `positionValue` must be refreshed alongside PnL — consumers derive mark /
+ * notional from it (e.g. PerpsProPositionCard). Leaving it stale would show
+ * live PnL next to an outdated mark price.
  */
 export function enrichPositionsWithLivePnL(
   positions: Position[],
@@ -81,6 +85,7 @@ export function enrichPositionsWithLivePnL(
       ...position,
       unrealizedPnl: calculatedUnrealizedPnl.toString(),
       returnOnEquity: calculatedRoe.toString(),
+      positionValue: (Math.abs(size) * currentPrice).toString(),
     };
   });
 }

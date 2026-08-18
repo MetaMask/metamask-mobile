@@ -6,18 +6,25 @@ import {
 import type { Position } from '@metamask/social-controllers';
 import { getAssetImageUrl } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import PerpsTokenLogo from '../../../UI/Perps/components/PerpsTokenLogo';
-import {
-  chainNameToId,
-  getPositionNetworkBadge,
-  HYPERLIQUID_CHAIN_NAME,
-} from '../utils/chainMapping';
+import { chainNameToId, getPositionNetworkBadge } from '../utils/chainMapping';
+import { HYPERLIQUID_CHAIN_NAME } from '../utils/perp';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../component-library/components/Badges/BadgeWrapper';
 import BadgeNetwork from '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 
+/**
+ * Minimal position shape the avatar needs. Lets non-`Position` callers (e.g. the
+ * trader feed, which maps to its own row model) reuse this component without
+ * fabricating a full `Position`. A full `Position` is assignable to it.
+ */
+export type PositionTokenAvatarData = Pick<
+  Position,
+  'positionId' | 'chain' | 'tokenAddress' | 'tokenImageUrl' | 'tokenSymbol'
+>;
+
 export interface PositionTokenAvatarProps {
-  position: Position;
+  position: PositionTokenAvatarData;
   size?: AvatarTokenSize;
   showChainBadge?: boolean;
 }

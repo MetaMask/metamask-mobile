@@ -130,12 +130,14 @@ describe('useVipDashboard', () => {
         swapsBps: 11,
         perpsBps: 7,
         referralCarryoverBps: 4242,
+        maintainPointsRequirement: null,
         status: 'current',
       },
     ],
     localizedText: {
       periodTitle: 'Jun 1 - Jun 30',
       memberIdTitle: 'Member ID',
+      transactionsTitle: 'Transactions',
       swapsFeeTitle: 'Swaps fee',
       perpsFeeTitle: 'Perps fee',
       nextTierSwapsFeeDelta: '↓ 9 bps next tier',
@@ -156,6 +158,8 @@ describe('useVipDashboard', () => {
       equityLockedDescription: 'Body copy',
       equityUnlockedTitle: 'VIP allocation unlocked',
       equityUnlockedDescription: 'Unlocked body copy',
+      equityMultiplierFailedTitle: 'Estimate failed',
+      equityMultiplierFailedDescription: 'Estimate failed body copy',
     },
     lastFetched: 123,
   };

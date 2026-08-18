@@ -41,9 +41,21 @@ function getStatusDisplay(status: Status): StatusDisplay {
   }
 }
 
-/** Renders a transaction status as a color-coded label (no icon). */
-export function ActivityDetailsStatus({ status }: { status: Status }) {
-  const { label, textColor } = getStatusDisplay(status);
+/**
+ * Renders a transaction status as a color-coded label (no icon). `label`
+ * overrides the default status text while keeping the status-derived color —
+ * used for perps orders, whose lifecycle reads Filled/Canceled/Rejected rather
+ * than the blockchain-oriented Confirmed/Failed.
+ */
+export function ActivityDetailsStatus({
+  status,
+  label,
+}: {
+  status: Status;
+  label?: string;
+}) {
+  const { label: defaultLabel, textColor } = getStatusDisplay(status);
+  const displayLabel = label ?? defaultLabel;
 
   return (
     <Box
@@ -55,7 +67,7 @@ export function ActivityDetailsStatus({ status }: { status: Status }) {
         fontWeight={FontWeight.Medium}
         color={textColor}
       >
-        {label}
+        {displayLabel}
       </Text>
     </Box>
   );

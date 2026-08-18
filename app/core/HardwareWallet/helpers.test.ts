@@ -24,9 +24,11 @@ jest.mock('../../util/address', () => ({
 }));
 
 jest.mock('../../constants/keyringTypes', () => ({
+  __esModule: true,
   default: {
     ledger: 'Ledger Hardware',
     qr: 'QR Hardware Wallet Device',
+    oneKey: 'OneKey Hardware',
   },
 }));
 
@@ -91,20 +93,38 @@ describe('HardwareWallet helpers', () => {
       // Reset mock and set up fresh implementation
       mockIsHardwareAccount.mockReset();
       // First call with ledger keyring types returns false
-      // Second call with qr keyring types returns true
+      // Second call with qr/oneKey keyring types returns true
       mockIsHardwareAccount
         .mockReturnValueOnce(false) // isHardwareAccount(address, [ledger])
-        .mockReturnValueOnce(true); // isHardwareAccount(address, [qr])
+        .mockReturnValueOnce(true); // isHardwareAccount(address, [qr, oneKey])
 
       const result = getHardwareWalletTypeForAddress(testAddress);
       expect(result).toBe(HardwareWalletType.Qr);
+      expect(mockIsHardwareAccount).toHaveBeenNthCalledWith(2, testAddress, [
+        'QR Hardware Wallet Device',
+        'OneKey Hardware',
+      ]);
+    });
+
+    it('returns QR for OneKey hardware account', () => {
+      mockIsHardwareAccount.mockReset();
+      mockIsHardwareAccount
+        .mockReturnValueOnce(false) // isHardwareAccount(address, [ledger])
+        .mockReturnValueOnce(true); // isHardwareAccount(address, [qr, oneKey])
+
+      const result = getHardwareWalletTypeForAddress(testAddress);
+      expect(result).toBe(HardwareWalletType.Qr);
+      expect(mockIsHardwareAccount).toHaveBeenNthCalledWith(2, testAddress, [
+        'QR Hardware Wallet Device',
+        'OneKey Hardware',
+      ]);
     });
 
     it('returns undefined for non-hardware account', () => {
       mockIsHardwareAccount.mockReset();
       mockIsHardwareAccount
         .mockReturnValueOnce(false) // isHardwareAccount(address, [ledger])
-        .mockReturnValueOnce(false); // isHardwareAccount(address, [qr])
+        .mockReturnValueOnce(false); // isHardwareAccount(address, [qr, oneKey])
 
       const result = getHardwareWalletTypeForAddress(testAddress);
       expect(result).toBeUndefined();

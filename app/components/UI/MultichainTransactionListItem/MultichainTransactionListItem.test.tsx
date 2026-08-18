@@ -7,7 +7,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import MultichainTransactionListItem from '../MultichainTransactionListItem';
 import Routes from '../../../constants/navigation/Routes';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../core/Analytics/events/transactions';
 
@@ -211,6 +211,25 @@ describe('MultichainTransactionListItem', () => {
     expect(getByText('-0.00001 SOL')).toBeTruthy();
   });
 
+  it('renders correctly for an Interaction transaction without a base fee', () => {
+    const interactionTransaction = {
+      ...mockTransaction,
+      type: TransactionType.Unknown,
+      fees: [],
+    };
+
+    const { getByText, queryByText } = renderWithProvider(
+      <MultichainTransactionListItem
+        transaction={interactionTransaction}
+        chainId={SolScope.Mainnet}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+      />,
+    );
+
+    expect(getByText('transactions.interaction')).toBeTruthy();
+    expect(queryByText('undefined undefined')).toBeNull();
+  });
+
   it('navigates to transaction details sheet when pressed', () => {
     const { getByTestId } = renderWithProvider(
       <MultichainTransactionListItem
@@ -347,7 +366,7 @@ describe('MultichainTransactionListItem', () => {
   });
 
   describe('analytics tracking', () => {
-    it('tracks Transaction Detail List Item Clicked with default home location', () => {
+    it('tracks Activity Details Opened with default home location', () => {
       const { getByTestId } = renderWithProvider(
         <MultichainTransactionListItem
           transaction={mockTransaction}
@@ -361,7 +380,7 @@ describe('MultichainTransactionListItem', () => {
       fireEvent.press(getByTestId('transaction-item-0'));
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+        ACTIVITY_DETAIL_EVENTS.OPENED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         transaction_type: 'send',

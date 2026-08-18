@@ -10,6 +10,9 @@ import {
   PredictDismissalMethodValue,
   PredictEventProperties,
   PredictEventValues,
+  PredictFailureCategoryValue,
+  PredictFailureStageValue,
+  PredictPaymentMethodValue,
   PredictShareStatusValue,
   PredictTradeStatus,
   PredictTradeStatusValue,
@@ -25,6 +28,7 @@ export interface PredictAnalyticsContext {
 export interface TrackPredictOrderEventArgs {
   status: PredictTradeStatusValue;
   amountUsd?: number;
+  tradeCompletedAmountUsd?: number;
   analyticsProperties?: PlaceOrderParams['analyticsProperties'];
   completionDuration?: number;
   failureReason?: string;
@@ -33,6 +37,10 @@ export interface TrackPredictOrderEventArgs {
   orderType?: PredictOrderType;
   paymentTokenAddress?: string;
   paymentTokenSymbol?: string;
+  attemptId?: string;
+  paymentMethod?: PredictPaymentMethodValue;
+  failureStage?: PredictFailureStageValue;
+  failureCategory?: PredictFailureCategoryValue;
   activeAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -64,12 +72,24 @@ export interface MarketDetailsOpenedArgs {
 }
 
 export interface FeedViewedArgs {
-  sessionId: string;
-  feedTab: string;
+  sessionId?: string;
+  feedTab?: string;
+  /** Generic feed (PredictFeedView) identity — lightweight one-shot path. */
+  feedId?: string;
+  tabId?: string;
+  filterId?: string;
+  /**
+   * Distinguishes the two call paths that share the `PREDICT_FEED_VIEWED` event:
+   * - `'focus'` — lightweight one-shot fired by `PredictFeedView` on each screen focus (no session fields).
+   * - `'session'` — legacy full-session tracking via `PredictFeedSessionManager` (includes `sessionId`, `numPagesViewed`, etc.).
+   *
+   * Omit for legacy callers that pre-date this field.
+   */
+  trackingMode?: 'focus' | 'session';
   predictScreen?: string;
   predictComponent?: string;
-  numPagesViewed: number;
-  sessionTime: number;
+  numPagesViewed?: number;
+  sessionTime?: number;
   entryPoint?: string;
   isSessionEnd?: boolean;
   openPositionsCount?: number;
@@ -78,14 +98,42 @@ export interface FeedViewedArgs {
   portfolioModuleEnabled?: boolean;
 }
 
-export interface BannerArgs {
+export interface HomeViewedArgs {
+  entryPoint?: string;
+}
+
+export interface HomeSectionInteractionArgs {
+  sectionId: string;
   actionType: string;
-  bannerType: string;
+  filterId?: string;
+  isDynamicFilter?: boolean;
+  categoryName?: string;
+  entryPoint?: string;
+}
+
+export interface FeedTabChangedArgs {
+  feedId: string;
+  tabId: string;
+  filterId?: string;
+  entryPoint?: string;
+}
+
+export interface FeedFilterChangedArgs {
+  feedId: string;
+  tabId?: string;
+  filterId: string;
+  isDynamicFilter?: boolean;
+  entryPoint?: string;
 }
 
 export interface CategoryClickedArgs {
   categoryName: string;
   entryPoint?: string;
+}
+
+export interface BannerArgs {
+  actionType: string;
+  bannerType: string;
 }
 
 export interface PredictPortfolioAnalyticsContextArgs {
@@ -173,6 +221,7 @@ export class PredictAnalytics {
   public async trackPredictOrderEvent({
     status,
     amountUsd,
+    tradeCompletedAmountUsd,
     analyticsProperties,
     completionDuration,
     failureReason,
@@ -181,6 +230,10 @@ export class PredictAnalytics {
     orderType,
     paymentTokenAddress,
     paymentTokenSymbol,
+    attemptId,
+    paymentMethod,
+    failureStage,
+    failureCategory,
     activeAbTests,
   }: TrackPredictOrderEventArgs): Promise<void> {
     if (!analyticsProperties) {
@@ -274,6 +327,18 @@ export class PredictAnalytics {
       ...(paymentTokenSymbol && {
         [PredictEventProperties.PAYMENT_TOKEN_SYMBOL]: paymentTokenSymbol,
       }),
+      ...(attemptId && {
+        [PredictEventProperties.ATTEMPT_ID]: attemptId,
+      }),
+      ...(paymentMethod && {
+        [PredictEventProperties.PAYMENT_METHOD]: paymentMethod,
+      }),
+      ...(failureStage && {
+        [PredictEventProperties.FAILURE_STAGE]: failureStage,
+      }),
+      ...(failureCategory && {
+        [PredictEventProperties.FAILURE_CATEGORY]: failureCategory,
+      }),
       ...(activeAbTests &&
         activeAbTests.length > 0 && {
           [PredictEventProperties.ACTIVE_AB_TESTS]: activeAbTests,
@@ -301,6 +366,57 @@ export class PredictAnalytics {
       )
         .addProperties(regularProperties)
         .addSensitiveProperties(sensitiveProperties)
+        .build(),
+    );
+
+    if (
+      status === PredictTradeStatus.INITIATED &&
+      analyticsProperties.transactionType ===
+        PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY
+    ) {
+      this.trackTradeConsidered();
+    }
+
+    const completedAmountUsd = tradeCompletedAmountUsd ?? amountUsd;
+    if (
+      status === PredictTradeStatus.SUCCEEDED &&
+      completedAmountUsd !== undefined &&
+      (analyticsProperties.transactionType ===
+        PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY ||
+        analyticsProperties.transactionType ===
+          PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL)
+    ) {
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.TRADE_COMPLETED,
+        )
+          .addProperties({
+            ...regularProperties,
+            [PredictEventProperties.TRADE_TYPE]:
+              PredictEventValues.TRADE_TYPE.PREDICT,
+            [PredictEventProperties.IMPLEMENTATION_TYPE]:
+              PredictEventValues.IMPLEMENTATION_TYPE.NATIVE,
+          })
+          .addSensitiveProperties({
+            ...sensitiveProperties,
+            [PredictEventProperties.USD_TRADE_VALUE]: completedAmountUsd,
+          })
+          .build(),
+      );
+    }
+  }
+
+  public trackTradeConsidered(): void {
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.TRADE_CONSIDERED,
+      )
+        .addProperties({
+          [PredictEventProperties.TRADE_TYPE]:
+            PredictEventValues.TRADE_TYPE.PREDICT,
+          [PredictEventProperties.IMPLEMENTATION_TYPE]:
+            PredictEventValues.IMPLEMENTATION_TYPE.NATIVE,
+        })
         .build(),
     );
   }
@@ -433,12 +549,16 @@ export class PredictAnalytics {
   public trackFeedViewed({
     sessionId,
     feedTab,
+    feedId,
+    tabId,
+    filterId,
+    trackingMode,
     predictScreen,
     predictComponent,
     numPagesViewed,
     sessionTime,
     entryPoint,
-    isSessionEnd = false,
+    isSessionEnd,
     openPositionsCount,
     claimablePositionsCount,
     hasClaimableWinnings,
@@ -447,6 +567,10 @@ export class PredictAnalytics {
     this.trackConfiguredEvent('feedViewed', {
       sessionId,
       feedTab,
+      feedId,
+      tabId,
+      filterId,
+      trackingMode,
       predictScreen,
       predictComponent,
       numPagesViewed,
@@ -476,6 +600,22 @@ export class PredictAnalytics {
     this.trackConfiguredEvent('searchInteracted', params);
   }
 
+  public trackHomeViewed(params: HomeViewedArgs): void {
+    this.trackConfiguredEvent('homeViewed', params);
+  }
+
+  public trackHomeSectionInteraction(params: HomeSectionInteractionArgs): void {
+    this.trackConfiguredEvent('homeSectionInteraction', params);
+  }
+
+  public trackFeedTabChanged(params: FeedTabChangedArgs): void {
+    this.trackConfiguredEvent('feedTabChanged', params);
+  }
+
+  public trackFeedFilterChanged(params: FeedFilterChangedArgs): void {
+    this.trackConfiguredEvent('feedFilterChanged', params);
+  }
+
   private trackConfiguredEvent(
     configKey: keyof typeof PREDICT_ANALYTICS_EVENTS,
     args: object,
@@ -498,7 +638,18 @@ export class PredictAnalytics {
 
     analytics.trackEvent(eventBuilder.build());
 
-    if (configKey === 'feedViewed' || configKey === 'marketDetailsOpened') {
+    // ASSET_VIEWED is only meaningful for session-aware feed views (full
+    // session fields present). The lightweight PredictFeedView one-shot path
+    // (tracking_mode: 'focus') lacks session context and would produce
+    // malformed/noisy ASSET_VIEWED records, so we skip it there.
+    const isFocusOnlyFeedView =
+      configKey === 'feedViewed' &&
+      (eventArgs as Record<string, unknown>).trackingMode === 'focus';
+
+    if (
+      (configKey === 'feedViewed' || configKey === 'marketDetailsOpened') &&
+      !isFocusOnlyFeedView
+    ) {
       analytics.trackEvent(
         AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
           .addProperties(

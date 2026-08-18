@@ -12,6 +12,7 @@ import {
   CHAIN_IDS,
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import {
@@ -22,7 +23,6 @@ import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTo
 import { AssetType } from '../../types/token';
 import {
   getPostQuoteTransactionType,
-  hasTransactionType,
   isTransactionPayWithdraw,
 } from '../../utils/transaction';
 import { useSelector } from 'react-redux';
@@ -183,6 +183,13 @@ export function useAutomaticTransactionPayToken({
     }
 
     if (autoSelectFiatPayment || tokens.length === 0) {
+      // Do NOT set isUpdated.current here. This return is intentionally
+      // unlatch-able: if isFiatEnabled is false because an incompatible provider
+      // is selected (e.g. Coinbase left over from UB2), useEnsureCompatibleProvider
+      // will dispatch a switch and trigger a re-render. The effect must be free to
+      // re-run on that render and complete fiat selection. Setting the latch here
+      // would silently prevent that re-run and leave the "Pay with..." row as a
+      // permanent skeleton.
       if (!isFiatEnabled || paymentMethods.length === 0) {
         return;
       }
@@ -233,10 +240,20 @@ export function useAutomaticTransactionPayToken({
     transactionId,
   ]);
 
+  // In fiat flows a pay token only exists once the user explicitly selects an
+  // ERC-20; the latch survives the token reset that an account change causes.
+  const payTokenEverSelectedRef = useRef(false);
+  if (payToken) {
+    payTokenEverSelectedRef.current = true;
+  }
+
   // Re-select the pay token whenever the signer address (`from`) or the
   // account selected in the PayAccountSelector (`accountOverride`) changes.
   // `accountOverride` is what switches money-account deposit/withdraw flows to
   // a different user-selected account without touching `txParams.from`.
+  // Skipped while a fiat flow never had an explicit pay token:
+  // `updatePaymentToken` resets the fiat payment, so re-selecting here would
+  // clear (or block) the auto-selected fiat payment method.
   const prevAccountKeyRef = useRef(`${from ?? ''}:${accountOverride ?? ''}`);
   useEffect(() => {
     const accountKey = `${from ?? ''}:${accountOverride ?? ''}`;
@@ -251,6 +268,10 @@ export function useAutomaticTransactionPayToken({
     }
     prevAccountKeyRef.current = accountKey;
 
+    if (autoSelectFiatPayment && !payTokenEverSelectedRef.current) {
+      return;
+    }
+
     if (automaticToken) {
       setPayToken({
         address: automaticToken.address,
@@ -260,6 +281,7 @@ export function useAutomaticTransactionPayToken({
     }
   }, [
     accountOverride,
+    autoSelectFiatPayment,
     automaticToken,
     disable,
     from,
@@ -449,7 +471,10 @@ function getBestToken({
 
   if (tokens?.length) {
     if (isWithdraw) {
-      return undefined;
+      // Withdraws never guess a token from balances, but the required
+      // destination token is a known, safe default — and the one the pay-with
+      // row already displays.
+      return targetTokenFallback;
     }
 
     return {

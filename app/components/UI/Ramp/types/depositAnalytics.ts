@@ -11,9 +11,30 @@ export const RAMP_SURFACE = {
 
 export type RampSurface = (typeof RAMP_SURFACE)[keyof typeof RAMP_SURFACE];
 
+/** Shared across funnel events that support the full buy/sell/deposit ramp taxonomy. */
+type RampTypeFunnel =
+  | 'DEPOSIT'
+  | 'SELL'
+  | 'BUY'
+  | 'UNIFIED_BUY'
+  | 'UNIFIED_BUY_2';
+
+/** Buy / deposit / headless paths that share the same mid-funnel ramp_type set. */
+type RampTypeBuyPath = 'DEPOSIT' | 'UNIFIED_BUY_2' | 'HEADLESS';
+
+/**
+ * Provider-assigned order identifier (RampsOrder.providerOrderId), the join key
+ * from a terminal analytics event back to the underlying provider order
+ * (TRAM-3696). Present when an order exists at emit time; omitted otherwise —
+ * never sent as an empty string.
+ */
+interface ProviderOrderId {
+  provider_order_id?: string;
+}
+
 interface RampsButtonClicked {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
+  ramp_type: RampTypeFunnel;
   user_id?: string;
   region: string;
   location: string;
@@ -34,7 +55,7 @@ interface RampsDepositCashButtonClicked {
 
 interface RampsPaymentMethodSelected {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'UNIFIED_BUY_2' | 'HEADLESS';
+  ramp_type: RampTypeBuyPath;
   ramp_surface?: RampSurface;
   user_id?: string;
   region: string;
@@ -44,7 +65,7 @@ interface RampsPaymentMethodSelected {
 
 interface RampsTokenSelected {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'SELL' | 'BUY' | 'UNIFIED_BUY' | 'UNIFIED_BUY_2';
+  ramp_type: RampTypeFunnel;
   user_id?: string;
   region: string;
   chain_id: string;
@@ -103,7 +124,7 @@ interface RampsOrderSelected {
   currency_source: string;
 }
 
-interface RampsOrderFailed {
+interface RampsOrderFailed extends ProviderOrderId {
   quote_session_id?: string;
   ramp_type: 'DEPOSIT' | 'HEADLESS';
   ramp_surface?: RampSurface;
@@ -136,7 +157,7 @@ interface RampsOtpConfirmed {
   user_id?: string;
 }
 
-interface RampsOtpFailed {
+interface RampsOtpFailed extends ProviderOrderId {
   quote_session_id?: string;
   region: string;
   ramp_type: 'DEPOSIT' | 'HEADLESS';
@@ -180,9 +201,9 @@ interface RampsAddressEntered {
   kyc_type: string;
 }
 
-interface RampsTransactionConfirmed {
+interface RampsTransactionConfirmed extends ProviderOrderId {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'HEADLESS';
+  ramp_type: RampTypeBuyPath;
   ramp_surface?: RampSurface;
   user_id?: string;
   amount_source: number;
@@ -201,7 +222,7 @@ interface RampsTransactionConfirmed {
   currency_source: string;
 }
 
-interface RampsTransactionCompleted {
+interface RampsTransactionCompleted extends ProviderOrderId {
   quote_session_id?: string;
   ramp_type: 'DEPOSIT' | 'UNIFIED_BUY_2';
   user_id?: string;
@@ -221,9 +242,9 @@ interface RampsTransactionCompleted {
   provider_onramp: string;
 }
 
-interface RampsTransactionFailed {
+interface RampsTransactionFailed extends ProviderOrderId {
   quote_session_id?: string;
-  ramp_type: 'DEPOSIT' | 'UNIFIED_BUY_2' | 'HEADLESS';
+  ramp_type: RampTypeBuyPath;
   ramp_surface?: RampSurface;
   user_id?: string;
   amount_source: number;
@@ -244,7 +265,7 @@ interface RampsTransactionFailed {
   provider_onramp: string;
 }
 
-interface RampsKycApplicationFailed {
+interface RampsKycApplicationFailed extends ProviderOrderId {
   quote_session_id?: string;
   ramp_type: 'DEPOSIT' | 'HEADLESS';
   ramp_surface?: RampSurface;
@@ -254,7 +275,7 @@ interface RampsKycApplicationFailed {
   error_message?: string;
 }
 
-interface RampsKycApplicationApproved {
+interface RampsKycApplicationApproved extends ProviderOrderId {
   quote_session_id?: string;
   ramp_type: 'DEPOSIT' | 'HEADLESS';
   ramp_surface?: RampSurface;

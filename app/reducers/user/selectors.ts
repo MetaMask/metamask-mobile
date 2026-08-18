@@ -68,6 +68,12 @@ export const selectMoneyOnboardingSeen = (state: RootState) =>
   state.user?.moneyOnboardingSeen ?? false;
 
 /**
+ * Selects the moneyEarnBannerDismissedTokens state
+ */
+export const selectMoneyEarnBannerDismissedTokens = (state: RootState) =>
+  state.user?.moneyEarnBannerDismissedTokens ?? {};
+
+/**
  * Selects the token overview chart type preference
  */
 export const selectTokenOverviewChartType = (state: RootState) =>
@@ -94,3 +100,16 @@ export const selectTokenIndicators = (state: RootState): string[] =>
  */
 export const selectOnboardingStepperProgress = (state: RootState) =>
   state.user?.onboardingStepperProgress ?? {};
+
+/**
+ * Selects whether the App Installed analytics event has already been fired
+ */
+export const selectAppInstallEventFired = (state: RootState) =>
+  state.user?.appInstallEventFired ?? false;
+
+/**
+ * Selects the install captured on first launch that is still awaiting an
+ * analytics consent decision, or `null` when nothing is pending.
+ */
+export const selectPendingAppInstall = (state: RootState) =>
+  state.user?.pendingAppInstall ?? null;

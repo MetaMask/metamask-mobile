@@ -1,20 +1,28 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
+import { RampsOrderStatus, type RampsOrder } from '@metamask/ramps-controller';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import { getOrders } from '../../../../reducers/fiatOrders';
+import { useRampsOrders } from '../../../UI/Ramp/hooks/useRampsOrders';
 import { useRampActivityItems } from './useRampActivityItems';
+
+jest.mock('../../../UI/Ramp/hooks/useRampsOrders', () => ({
+  useRampsOrders: jest.fn(() => ({ orders: [] })),
+}));
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
 jest.mock('../../../../reducers/fiatOrders', () => ({
+  ...jest.requireActual('../../../../reducers/fiatOrders'),
   getOrders: jest.fn(),
+  getProviderName: jest.fn(() => 'MockProvider'),
 }));
 
 const buyOrder: FiatOrder = {
@@ -34,6 +42,29 @@ const buyOrder: FiatOrder = {
   orderType: OrderOrderTypeEnum.Buy,
   data: {},
 } as FiatOrder;
+
+const mockedUseRampsOrders = jest.mocked(useRampsOrders);
+
+const createV2Order = (overrides: Partial<RampsOrder> = {}): RampsOrder => ({
+  isOnlyLink: false,
+  success: true,
+  cryptoAmount: '5.01',
+  fiatAmount: 6.27,
+  providerOrderId: 'v2-order-1',
+  providerOrderLink: 'https://example.com/order/1',
+  createdAt: 1,
+  totalFeesFiat: 1.26,
+  txHash: '0xbuyhash',
+  walletAddress: '0x1234567890abcdef1234567890abcdef12345678',
+  status: RampsOrderStatus.Completed,
+  network: { name: 'Ethereum', chainId: 'eip155:1' },
+  canBeUpdated: false,
+  idHasExpired: false,
+  excludeFromPurchases: false,
+  timeDescriptionPending: '5-10 minutes',
+  orderType: 'BUY',
+  ...overrides,
+});
 
 describe('useRampActivityItems', () => {
   beforeEach(() => {
@@ -78,5 +109,69 @@ describe('useRampActivityItems', () => {
 
     expect(result.current).toHaveLength(1);
     expect(result.current[0].hash).toBe('0xbuyhash');
+  });
+
+  it('includes v2 controller orders with native RampsOrder in raw.data', () => {
+    const v2Order = createV2Order({
+      id: '/providers/transak/orders/v2-order-1',
+      providerOrderId: 'v2-order-1',
+      cryptoCurrency: { symbol: 'mUSD', decimals: 6 },
+    });
+    mockedUseRampsOrders.mockReturnValue({
+      orders: [v2Order],
+    } as ReturnType<typeof useRampsOrders>);
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
+      switch (selector) {
+        case getOrders:
+          return [];
+        default:
+          return undefined;
+      }
+    });
+
+    const { result } = renderHook(() => useRampActivityItems());
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0]).toMatchObject({
+      type: 'buy',
+      hash: '0xbuyhash',
+      raw: { type: 'rampOrder', data: v2Order },
+      data: { token: { amount: '5.01', symbol: 'mUSD', direction: 'in' } },
+    });
+    expect(result.current[0].raw?.data).not.toHaveProperty(
+      'provider',
+      FIAT_ORDER_PROVIDERS.RAMPS_V2,
+    );
+  });
+
+  it('includes v2 orders with non-EVM CAIP-2 network metadata', () => {
+    const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    const v2Order = createV2Order({
+      id: '/providers/transak/orders/sol-order',
+      providerOrderId: 'sol-order',
+      network: { name: 'Solana', chainId: solanaChainId },
+      cryptoCurrency: { symbol: 'SOL', chainId: solanaChainId },
+    });
+    mockedUseRampsOrders.mockReturnValue({
+      orders: [v2Order],
+    } as ReturnType<typeof useRampsOrders>);
+    (useSelector as unknown as jest.Mock).mockImplementation((selector) => {
+      switch (selector) {
+        case getOrders:
+          return [];
+        default:
+          return undefined;
+      }
+    });
+
+    const { result } = renderHook(() => useRampActivityItems());
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0]).toMatchObject({
+      type: 'buy',
+      chainId: solanaChainId,
+      hash: '0xbuyhash',
+      raw: { type: 'rampOrder', data: v2Order },
+    });
   });
 });

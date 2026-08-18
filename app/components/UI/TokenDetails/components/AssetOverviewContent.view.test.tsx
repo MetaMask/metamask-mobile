@@ -62,7 +62,6 @@ const baseOverviewProps: AssetOverviewContentProps = {
   timePeriod: '1d' as TimePeriod,
   setTimePeriod: () => undefined,
   chartNavigationButtons: ['1d', '1w', '1m', '3m', '1y', '3y'],
-  isPerpsEnabled: false,
   currentCurrency: 'USD',
   onBuy: () => undefined,
   onSend: async () => undefined,
@@ -133,6 +132,9 @@ function buildTokenDetailsMarketInsightsState(
           EarnController: {
             pooled_staking: { isEligible: false },
             lending: { positions: [], markets: [] },
+          },
+          MoneyAccountController: {
+            moneyAccounts: {},
           },
         },
       },

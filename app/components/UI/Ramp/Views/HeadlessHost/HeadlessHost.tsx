@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { CaipChainId } from '@metamask/utils';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -23,7 +24,10 @@ import {
   getSession,
   setStatus,
 } from '../../headless/sessionRegistry';
-import { setHeadlessEntryCardTouchThrough } from '../../headless/headlessEntryNavigation';
+import {
+  dismissHeadlessFlow,
+  setHeadlessEntryCardTouchThrough,
+} from '../../headless/headlessEntryNavigation';
 import { useHeadlessSessionFocusDismissal } from '../../headless/useHeadlessSessionFocusDismissal';
 import { useHeadlessSessionDismissal } from '../../headless/useHeadlessSessionDismissal';
 import { getChainIdFromAssetId } from '../../headless/useHeadlessBuy';
@@ -68,12 +72,46 @@ export const createHeadlessHostNavDetails =
   createNavigationDetails<HeadlessHostParams>(Routes.RAMP.HEADLESS_HOST);
 
 function HeadlessHost() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isFocused = useIsFocused();
   const { styles } = useStyles(styleSheet, {});
   const { headlessSessionId, nativeFlowError, suppressFocusDismissal } =
     useParams<HeadlessHostParams>();
   const session = getSession(headlessSessionId);
+
+  // Guards the modal teardown so the transparent HEADLESS_ENTRY screen is
+  // popped exactly once on a terminal error, even if two error paths race
+  // (e.g. the continueWithQuote rejection and the nativeFlowError effect) or
+  // the existing beforeRemove / focus-dismissal listeners also fire. Mirrors
+  // Checkout's `hasTerminatedHeadlessSessionRef`.
+  const hasTerminatedHeadlessSessionRef = useRef(false);
+
+  // Terminal-error teardown: forward the error to the consumer via
+  // `failSession` (fires onError, removes the session), then pop the
+  // transparent HEADLESS_ENTRY modal so the underlying confirmation screen
+  // becomes interactive again. Without the dismissal the modal stays mounted
+  // and intercepts all touches, freezing the app until relaunch.
+  //
+  // `failSession` returns `undefined` when the session was already terminated
+  // elsewhere; in that case the other path owns teardown and we do not
+  // double-dismiss.
+  const failHeadlessSession = useCallback(
+    (
+      error: unknown,
+      fallbackCode?: Parameters<typeof failSession>[2],
+    ): boolean => {
+      if (hasTerminatedHeadlessSessionRef.current) {
+        return false;
+      }
+      if (!failSession(headlessSessionId, error, fallbackCode)) {
+        return false;
+      }
+      hasTerminatedHeadlessSessionRef.current = true;
+      dismissHeadlessFlow(navigation);
+      return true;
+    },
+    [headlessSessionId, navigation],
+  );
 
   useEffect(() => {
     setHeadlessEntryCardTouchThrough(navigation, isFocused);
@@ -136,15 +174,14 @@ function HeadlessHost() {
     if (!nativeFlowError) {
       return;
     }
-    failSession(
-      headlessSessionId,
+    failHeadlessSession(
       {
         code: 'AUTH_FAILED',
         message: nativeFlowError,
       },
       'AUTH_FAILED',
     );
-  }, [nativeFlowError, headlessSessionId]);
+  }, [nativeFlowError, failHeadlessSession]);
 
   // Process the session. Uses `useEffect` (not `useFocusEffect`) so that
   // it fires whenever `headlessSessionId` changes even when the screen is
@@ -191,7 +228,7 @@ function HeadlessHost() {
     if (!chainId) {
       const message = `HeadlessHost: invalid assetId "${currentSession.params.assetId}"`;
       Logger.error(new Error(message));
-      failSession(headlessSessionId, { code: 'UNKNOWN', message });
+      failHeadlessSession({ code: 'UNKNOWN', message });
       return;
     }
     // Defer until walletAddress resolves — avoids calling continueWithQuote
@@ -248,7 +285,10 @@ function HeadlessHost() {
       if (!liveSession) {
         return;
       }
-      failSession(headlessSessionId, error);
+      // Fails the session AND pops the transparent HEADLESS_ENTRY modal so the
+      // underlying confirmation is interactive again (was previously left
+      // mounted, freezing the app).
+      failHeadlessSession(error);
     });
     return () => {
       cancelled = true;
@@ -261,6 +301,7 @@ function HeadlessHost() {
     walletAddress,
     userRegion?.country?.currency,
     continueWithQuote,
+    failHeadlessSession,
   ]);
 
   return (

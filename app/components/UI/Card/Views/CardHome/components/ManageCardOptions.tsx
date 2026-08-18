@@ -28,9 +28,10 @@ interface ManageCardOptionsProps {
   isFrozen: boolean;
   isFreezeLoading: boolean;
   isPinLoading: boolean;
-  cardDetailsImageUrl: string | null;
+  cardDetailsVisible: boolean;
   onViewCardDetails: () => void;
   onViewPin: () => void;
+  onSetPin: () => void;
   onToggleFreeze: () => void;
   onManageSpendingLimit: () => void;
   showUnlinkMoneyAccount: boolean;
@@ -57,9 +58,10 @@ const ManageCardOptions = ({
   isFrozen,
   isFreezeLoading,
   isPinLoading,
-  cardDetailsImageUrl,
+  cardDetailsVisible,
   onViewCardDetails,
   onViewPin,
+  onSetPin,
   onToggleFreeze,
   onManageSpendingLimit,
   showUnlinkMoneyAccount,
@@ -91,7 +93,16 @@ const ManageCardOptions = ({
     card?.type === CardType.VIRTUAL &&
     isFullySetUp;
 
-  const hideManageOptions = isAuthenticated && !hasPriorityTokenBalance;
+  // Providers set hasPin on CardDetails; absent means treat as true.
+  const cardHasPin = card?.hasPin !== false;
+
+  // Providers without funding limits (e.g. Immersve) expose manage options as
+  // soon as a card exists; balance-gating only applies to funding-limit
+  // providers (Baanx), which hide them until the user has a spendable balance.
+  const hideManageOptions =
+    isAuthenticated &&
+    !hasPriorityTokenBalance &&
+    (capabilities?.supportsFundingLimits ?? true);
 
   const showSpendingLimitDescription = isSpendingLimitActive
     ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
@@ -113,16 +124,18 @@ const ManageCardOptions = ({
             testID={CardHomeSelectors.ORDER_METAL_CARD_ITEM}
           />
         )}
-        {((isAuthenticated && !isLoading && card) || showTeaserOptions) && (
-          <ManageCardListItem
-            title={strings('card.card_home.manage_card_options.change_asset')}
-            description={strings(
-              'card.card_home.manage_card_options.change_asset_description',
-            )}
-            onPress={onChangeAsset}
-            testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
-          />
-        )}
+        {capabilities?.supportsFundingLimits &&
+          !showUnlinkMoneyAccount &&
+          ((isAuthenticated && !isLoading && card) || showTeaserOptions) && (
+            <ManageCardListItem
+              title={strings('card.card_home.manage_card_options.change_asset')}
+              description={strings(
+                'card.card_home.manage_card_options.change_asset_description',
+              )}
+              onPress={onChangeAsset}
+              testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
+            />
+          )}
         {((isFullySetUp && !hideManageOptions) || showTeaserOptions) &&
           ((isAuthenticated &&
             capabilities?.supportsCashback &&
@@ -144,7 +157,7 @@ const ManageCardOptions = ({
           showTeaserOptions) && (
           <ManageCardListItem
             title={strings(
-              cardDetailsImageUrl && isAuthenticated
+              cardDetailsVisible
                 ? 'card.card_home.manage_card_options.hide_card_details'
                 : 'card.card_home.manage_card_options.view_card_details',
             )}
@@ -159,6 +172,7 @@ const ManageCardOptions = ({
           !isLoading &&
           card &&
           capabilities?.supportsPinView &&
+          cardHasPin &&
           !hideManageOptions) ||
           (showTeaserOptions && capabilities?.supportsPinView)) && (
           <ManageCardListItem
@@ -169,6 +183,23 @@ const ManageCardOptions = ({
             onPress={onViewPin}
             isLoading={isPinLoading}
             testID={CardHomeSelectors.VIEW_PIN_BUTTON}
+          />
+        )}
+        {((isAuthenticated &&
+          !isLoading &&
+          card &&
+          card.status === CardStatus.ACTIVE &&
+          capabilities?.supportsPinSet &&
+          cardHasPin &&
+          !hideManageOptions) ||
+          (showTeaserOptions && capabilities?.supportsPinSet)) && (
+          <ManageCardListItem
+            title={strings('card.card_home.manage_card_options.set_pin')}
+            description={strings(
+              'card.card_home.manage_card_options.set_pin_description',
+            )}
+            onPress={onSetPin}
+            testID={CardHomeSelectors.SET_PIN_BUTTON}
           />
         )}
         {((isAuthenticated &&
@@ -200,17 +231,19 @@ const ManageCardOptions = ({
             testID="freeze-card-list-item"
           />
         )}
-        {!isLoading && !hideManageOptions && (
-          <ManageCardListItem
-            title={strings(
-              'card.card_home.manage_card_options.manage_spending_limit',
-            )}
-            description={strings(showSpendingLimitDescription)}
-            rightIcon={IconName.ArrowRight}
-            onPress={onManageSpendingLimit}
-            testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
-          />
-        )}
+        {capabilities?.supportsFundingLimits &&
+          !isLoading &&
+          !hideManageOptions && (
+            <ManageCardListItem
+              title={strings(
+                'card.card_home.manage_card_options.manage_spending_limit',
+              )}
+              description={strings(showSpendingLimitDescription)}
+              rightIcon={IconName.ArrowRight}
+              onPress={onManageSpendingLimit}
+              testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+            />
+          )}
         {isFullySetUp && showUnlinkMoneyAccount && (
           <ManageCardListItem
             title={strings(
@@ -225,8 +258,8 @@ const ManageCardOptions = ({
           />
         )}
       </Box>
-      {((isFullySetUp && !hideManageOptions) || showTeaserOptions) && (
-        <>
+      {capabilities?.supportsTravel &&
+        ((isFullySetUp && !hideManageOptions) || showTeaserOptions) && (
           <ManageCardListItem
             title={strings('card.card_home.manage_card_options.travel_title')}
             description={strings(
@@ -236,8 +269,7 @@ const ManageCardOptions = ({
             onPress={onTravel}
             testID={CardHomeSelectors.TRAVEL_ITEM}
           />
-        </>
-      )}
+        )}
     </>
   );
 };

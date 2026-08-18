@@ -1,4 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { FlashList } from '@shopify/flash-list';
 import React, {
   useCallback,
@@ -39,7 +41,7 @@ import { usePerpsConnection, usePerpsTransactionHistory } from '../../hooks';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../../../core/Analytics/events/transactions';
 import { PERPS_BALANCE_CHAIN_ID } from '../../constants/perpsConfig';
@@ -59,7 +61,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 const PerpsTransactionsView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const [activeFilter, setActiveFilter] = useState<FilterTab>('Trades');
   const [refreshing, setRefreshing] = useState(false);
@@ -311,7 +313,7 @@ const PerpsTransactionsView: React.FC = () => {
 
   const handleTransactionPress = (transaction: PerpsTransaction) => {
     trackEvent(
-      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+      createEventBuilder(ACTIVITY_DETAIL_EVENTS.OPENED)
         .addProperties({
           transaction_type: `perps_${transaction.type}`,
           transaction_status:

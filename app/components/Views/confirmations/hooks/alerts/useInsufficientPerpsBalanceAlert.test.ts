@@ -24,6 +24,8 @@ jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../useTokenAmount');
 jest.mock('../pay/useTransactionPayData');
 
+const TRANSACTION_ID_MOCK = 'test-tx-1';
+
 const mockPerpsState = (withdrawableBalance: string | null = '45.31') => ({
   engine: {
     backgroundState: {
@@ -60,6 +62,7 @@ describe('useInsufficientPerpsBalanceAlert', () => {
     jest.clearAllMocks();
 
     useTransactionMetadataRequestMock.mockReturnValue({
+      id: TRANSACTION_ID_MOCK,
       txParams: {
         from: '0x0',
       },
@@ -78,7 +81,10 @@ describe('useInsufficientPerpsBalanceAlert', () => {
       {
         key: AlertKeys.InsufficientPerpsBalance,
         field: RowAlertKey.Amount,
-        message: strings('alert_system.insufficient_pay_token_balance.message'),
+        title: strings('alert_system.insufficient_pay_token_balance.message'),
+        message: strings(
+          'alert_system.insufficient_pay_method_balance.message',
+        ),
         severity: Severity.Danger,
         isBlocking: true,
       },
@@ -96,7 +102,10 @@ describe('useInsufficientPerpsBalanceAlert', () => {
       {
         key: AlertKeys.InsufficientPerpsBalance,
         field: RowAlertKey.Amount,
-        message: strings('alert_system.insufficient_pay_token_balance.message'),
+        title: strings('alert_system.insufficient_pay_token_balance.message'),
+        message: strings(
+          'alert_system.insufficient_pay_method_balance.message',
+        ),
         severity: Severity.Danger,
         isBlocking: true,
       },
@@ -209,6 +218,29 @@ describe('useInsufficientPerpsBalanceAlert', () => {
         sourceNetwork: { estimate: { usd: '0' } },
         targetNetwork: { usd: '0' },
         metaMask: { usd: '0.003' },
+      },
+    } as unknown as TransactionPayTotals);
+
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('does not alert for standard withdrawal when amount + fees exceed balance', () => {
+    useTokenAmountMock.mockReturnValue({
+      amountPrecise: '40',
+    } as ReturnType<typeof useTokenAmount>);
+
+    jest
+      .mocked(useTransactionPayQuotes)
+      .mockReturnValue([{} as TransactionPayQuote<Json>]);
+
+    useTransactionPayTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '5' },
+        sourceNetwork: { estimate: { usd: '1' } },
+        targetNetwork: { usd: '0' },
+        metaMask: { usd: '0' },
       },
     } as unknown as TransactionPayTotals);
 

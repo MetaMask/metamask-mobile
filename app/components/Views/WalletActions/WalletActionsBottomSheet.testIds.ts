@@ -1,6 +1,8 @@
 import enContent from '../../../../locales/languages/en.json';
 
 export const WalletActionsBottomSheetSelectorsIDs = {
+  MENU_CONTAINER: 'wallet-actions-bottom-sheet-menu-container',
+  MENU_BOTTOM_STROKE: 'wallet-actions-bottom-sheet-menu-bottom-stroke',
   SEND_BUTTON: 'wallet-send-button',
   RECEIVE_BUTTON: 'wallet-receive-action',
   SWAP_BUTTON: 'wallet-actions-bottom-sheet-swap-button',
@@ -12,6 +14,7 @@ export const WalletActionsBottomSheetSelectorsIDs = {
   BRIDGE_BUTTON: 'wallet-bridge-button',
   EARN_BUTTON: 'wallet-earn-action',
   PERPS_BUTTON: 'wallet-perps-action',
+  PERPS_MODE_BADGE: 'wallet-perps-mode-badge',
   PREDICT_BUTTON: 'wallet-predict-action',
 };
 

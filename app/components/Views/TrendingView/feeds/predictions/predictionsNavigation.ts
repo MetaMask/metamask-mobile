@@ -1,11 +1,11 @@
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
-import { PREDICT_WORLD_CUP_TAB_KEYS } from '../../../../UI/Predict/constants/worldCupTabs';
 import type { PredictEntryPoint } from '../../../../UI/Predict/types/navigation';
+import type { PredictCategory } from '../../../../UI/Predict/types';
 import type { PredictionsVariant } from './usePredictionsFeed';
 
-const VARIANT_TO_TAB: Record<PredictionsVariant, string> = {
+const VARIANT_TO_TAB: Record<PredictionsVariant, PredictCategory> = {
   trending: 'trending',
   sports: 'sports',
   crypto: 'crypto',
@@ -38,17 +38,4 @@ export const navigateToExplorePredictionsList = (
     variant,
     PredictEventValues.ENTRY_POINT.EXPLORE,
   );
-};
-
-/** Navigate from Explore World Cup prediction sections to the dedicated Predict World Cup screen. */
-export const navigateToExploreWorldCupPredictions = (
-  navigation: AppNavigationProp,
-): void => {
-  navigation.navigate(Routes.PREDICT.ROOT, {
-    screen: Routes.PREDICT.WORLD_CUP,
-    params: {
-      entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
-      initialTab: PREDICT_WORLD_CUP_TAB_KEYS.ALL,
-    },
-  });
 };

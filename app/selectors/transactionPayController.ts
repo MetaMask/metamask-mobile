@@ -1,5 +1,20 @@
+import {
+  TransactionPayQuote,
+  TransactionPayStrategy,
+} from '@metamask/transaction-pay-controller';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
+
+/**
+ * Check whether a quote is a no-op quote. The controller stores one when a
+ * route needs no conversion. No-op quotes cannot be executed and must be
+ * ignored anywhere quotes drive fees, steps, or routing UI.
+ */
+export function isNoOpQuote(
+  quote: Pick<TransactionPayQuote<unknown>, 'strategy'>,
+): boolean {
+  return quote.strategy === TransactionPayStrategy.None;
+}
 
 const selectTransactionPayControllerState = (state: RootState) =>
   state.engine.backgroundState.TransactionPayController ?? {
@@ -23,10 +38,21 @@ export const selectIsTransactionPayLoadingByTransactionId = createSelector(
   (transactionData) => transactionData?.isLoading ?? false,
 );
 
-export const selectTransactionPayQuotesByTransactionId = createSelector(
+export const selectTransactionPayRawQuotesByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
   (transactionData) => transactionData?.quotes,
 );
+
+export const selectTransactionPayQuotesByTransactionId = createSelector(
+  selectTransactionPayRawQuotesByTransactionId,
+  (quotes) => quotes?.filter((quote) => !isNoOpQuote(quote)),
+);
+
+export const selectTransactionPayQuotesLastUpdatedByTransactionId =
+  createSelector(
+    selectTransactionDataByTransactionId,
+    (transactionData) => transactionData?.quotesLastUpdated,
+  );
 
 export const selectTransactionPayTokensByTransactionId = createSelector(
   selectTransactionDataByTransactionId,
@@ -73,4 +99,9 @@ export const selectPaymentOverrideByTransactionId = createSelector(
   (transactionData) =>
     (transactionData as Record<string, unknown> | undefined)
       ?.paymentOverride as string | undefined,
+);
+
+export const selectTransactionPayQuoteErrorByTransactionId = createSelector(
+  selectTransactionDataByTransactionId,
+  (transactionData) => transactionData?.quoteError,
 );

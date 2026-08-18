@@ -36,6 +36,14 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
     currency: 'USD',
     assetId: 'eip155:1/erc20:0x123',
   }),
+  navigateWithDetails: (
+    navigation: { navigate: (...args: unknown[]) => void },
+    details: unknown[],
+  ) => navigation.navigate(...details),
+  resetWithRoutes: (
+    navigation: { reset: (state: unknown) => void },
+    state: unknown,
+  ) => navigation.reset(state),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({

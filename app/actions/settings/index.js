@@ -107,3 +107,10 @@ export function setPerpsChartPreferredCandlePeriod(preferredCandlePeriod) {
     preferredCandlePeriod,
   };
 }
+
+export function setShowAccountOnLeaderboard(showAccountOnLeaderboard) {
+  return {
+    type: 'SET_SHOW_ACCOUNT_ON_LEADERBOARD',
+    showAccountOnLeaderboard,
+  };
+}

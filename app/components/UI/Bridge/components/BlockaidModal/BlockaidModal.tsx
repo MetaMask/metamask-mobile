@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -36,7 +37,7 @@ interface BlockaidModalRouteParams {
 }
 
 const BlockaidModal = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(createStyles, {});
   const route =

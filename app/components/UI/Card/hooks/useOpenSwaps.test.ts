@@ -39,13 +39,12 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
   selectSelectedSourceChainIds: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/multichain', () => ({
-  selectEvmTokens: jest.fn(),
-  selectEvmTokenFiatBalances: jest.fn(),
-}));
-
 jest.mock('../../../../selectors/networkController', () => ({
   selectAllPopularNetworkConfigurations: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/cardController', () => ({
+  selectCardActiveProviderId: jest.fn(() => 'baanx'),
 }));
 
 jest.mock('../../Bridge/hooks/useTokensWithBalance', () => ({

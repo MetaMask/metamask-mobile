@@ -8,6 +8,7 @@ import { TransactionDetailDivider } from '../transaction-detail-divider/transact
 import { TransactionDetailsDateRow } from '../transaction-details-date-row';
 import { TransactionDetailsStatusRow } from '../transaction-details-status-row';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { TransactionDetailsPaidWithRow } from '../transaction-details-paid-with-row';
 import { TransactionDetailsSummary } from '../transaction-details-summary';
 import { TransactionDetailsHero } from '../transaction-details-hero';
@@ -15,12 +16,12 @@ import { TransactionDetailsTotalRow } from '../transaction-details-total-row';
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import { strings } from '../../../../../../../locales/i18n';
 import { TransactionDetailsFeeSection } from '../transaction-details-fee-section';
-import { hasTransactionType } from '../../../utils/transaction';
 import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
 import { TransactionDetailsToRow } from '../transaction-details-to-row';
@@ -44,7 +45,7 @@ export const SUMMARY_SECTION_TYPES = [
 
 export function TransactionDetails() {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { transactionMeta } = useTransactionDetails();
   const isMoneyContext = useIsMoneyAccountContext();
   const title = getTitle(transactionMeta, isMoneyContext);

@@ -1,4 +1,5 @@
 import { cloneDeep } from 'lodash';
+import { TransactionType } from '@metamask/transaction-controller';
 import {
   selectMetaMaskPayFlags,
   selectMetaMaskPayTokensFlags,
@@ -13,13 +14,15 @@ import {
   selectMetaMaskPayFiatFlags,
   PAY_FIAT_ENABLED_TRANSACTION_TYPES,
   PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
-  selectMetaMaskPayHardwareFlags,
+  selectPayHardwareConfig,
   PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT,
   PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT,
   PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT,
   PAY_HARDWARE_ENABLED_DEFAULT,
   selectDepositLimits,
   PAY_DEPOSIT_LIMITS_DEFAULT,
+  PAY_PREFILLED_AMOUNT_DEFAULT,
+  selectPrefilledAmountConfig,
   PreferredToken,
   getPreferredTokensForTransactionType,
   selectRelayFixedSpread,
@@ -471,21 +474,86 @@ describe('selectMetaMaskPayFiatFlags', () => {
   });
 });
 
-describe('selectMetaMaskPayHardwareFlags', () => {
-  it('returns default when flag is absent', () => {
-    expect(selectMetaMaskPayHardwareFlags(mockedEmptyFlagsState)).toEqual({
-      enabled: PAY_HARDWARE_ENABLED_DEFAULT,
+describe('selectPayHardwareConfig', () => {
+  function stateWithHardwareFlags(flags: Record<string, unknown>) {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      { confirmations_pay_hardware: flags };
+    return state;
+  }
+
+  const baseFlags = {
+    default: { enabled: false },
+    overrides: {
+      [TransactionType.musdConversion]: { enabled: true },
+      [TransactionType.moneyAccountDeposit]: { enabled: true },
+    },
+  };
+
+  it('returns disabled default when flag is absent', () => {
+    expect(
+      selectPayHardwareConfig(mockedEmptyFlagsState as unknown as RootState),
+    ).toEqual({ enabled: PAY_HARDWARE_ENABLED_DEFAULT });
+  });
+
+  it('returns default config when no transaction type is provided', () => {
+    const state = stateWithHardwareFlags(baseFlags);
+
+    expect(selectPayHardwareConfig(state as unknown as RootState)).toEqual({
+      enabled: false,
     });
   });
 
-  it('returns enabled from flag value', () => {
-    const state = cloneDeep(mockedEmptyFlagsState);
-    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
-      {
-        confirmations_pay_hardware: { enabled: true },
-      };
+  it('returns default config when transaction type does not exist in overrides', () => {
+    const state = stateWithHardwareFlags(baseFlags);
 
-    expect(selectMetaMaskPayHardwareFlags(state)).toEqual({ enabled: true });
+    expect(
+      selectPayHardwareConfig(
+        state as unknown as RootState,
+        TransactionType.perpsDeposit,
+      ).enabled,
+    ).toBe(false);
+  });
+
+  it('uses override value when transaction type matches', () => {
+    const state = stateWithHardwareFlags(baseFlags);
+
+    expect(
+      selectPayHardwareConfig(
+        state as unknown as RootState,
+        TransactionType.moneyAccountDeposit,
+      ).enabled,
+    ).toBe(true);
+  });
+
+  it('inherits enabled from default when override omits enabled', () => {
+    const state = stateWithHardwareFlags({
+      default: { enabled: true },
+      overrides: { [TransactionType.moneyAccountDeposit]: {} },
+    });
+
+    expect(
+      selectPayHardwareConfig(
+        state as unknown as RootState,
+        TransactionType.moneyAccountDeposit,
+      ).enabled,
+    ).toBe(true);
+  });
+
+  it('disables a single type while default is enabled', () => {
+    const state = stateWithHardwareFlags({
+      default: { enabled: true },
+      overrides: {
+        [TransactionType.moneyAccountDeposit]: { enabled: false },
+      },
+    });
+
+    expect(
+      selectPayHardwareConfig(
+        state as unknown as RootState,
+        TransactionType.moneyAccountDeposit,
+      ).enabled,
+    ).toBe(false);
   });
 });
 
@@ -680,5 +748,73 @@ describe('selectRelayFixedSpread', () => {
       routes: [],
     });
     expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('selectPrefilledAmountConfig', () => {
+  it('returns default (enabled: false) when no flags are set', () => {
+    expect(
+      selectPrefilledAmountConfig(
+        mockedEmptyFlagsState as unknown as RootState,
+      ),
+    ).toEqual(PAY_PREFILLED_AMOUNT_DEFAULT.default);
+  });
+
+  it('returns override config when transaction type has an override', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: {
+          prefilledAmount: {
+            default: { enabled: false },
+            overrides: {
+              moneyAccountDeposit: { enabled: true },
+            },
+          },
+        },
+      };
+
+    expect(
+      selectPrefilledAmountConfig(
+        state as unknown as RootState,
+        'moneyAccountDeposit',
+      ),
+    ).toEqual({ enabled: true });
+  });
+
+  it('falls back to default when transaction type has no override', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: {
+          prefilledAmount: {
+            default: { enabled: true },
+            overrides: {},
+          },
+        },
+      };
+
+    expect(
+      selectPrefilledAmountConfig(state as unknown as RootState, 'unknownType'),
+    ).toEqual({ enabled: true });
+  });
+
+  it('returns default when no transaction type is provided', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: {
+          prefilledAmount: {
+            default: { enabled: true },
+            overrides: {
+              moneyAccountDeposit: { enabled: false },
+            },
+          },
+        },
+      };
+
+    expect(selectPrefilledAmountConfig(state as unknown as RootState)).toEqual({
+      enabled: true,
+    });
   });
 });

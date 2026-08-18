@@ -82,13 +82,23 @@ export const BITCOIN_DISCOVERY_PENDING = `${prefix}bitcoinDiscoveryPending`;
 
 export const TRON_DISCOVERY_PENDING = `${prefix}tronDiscoveryPending`;
 
+export const STELLAR_DISCOVERY_PENDING = `${prefix}stellarDiscoveryPending`;
+
 export const PERPS_GTM_MODAL_SHOWN = `${prefix}perpsGTMModalShown`;
 
+export const PERPS_MODE_SELECTION_COMPLETED = `${prefix}perpsModeSelectionCompleted`;
+
 export const PERPS_COMPETITION_BANNER_DISMISSED = `${prefix}perpsCompetitionBannerDismissed`;
+
+export const ROBINHOOD_SWAPS_BANNER_DISMISSED = `${prefix}robinhoodSwapsBannerDismissed`;
+
+export const ROBINHOOD_EXPLORE_BANNER_DISMISSED = `${prefix}robinhoodExploreBannerDismissed`;
 
 export const PREDICT_GTM_MODAL_SHOWN = `${prefix}predictGTMModalShown`;
 
 export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;
+
+export const SOCIAL_LEADERBOARD_ONBOARDING_SHOWN = `${prefix}socialLeaderboardOnboardingShown`;
 
 export const RESUBSCRIBE_NOTIFICATIONS_EXPIRY = `${prefix}RESUBSCRIBE_NOTIFICATIONS_EXPIRY`;
 

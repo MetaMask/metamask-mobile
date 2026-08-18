@@ -66,10 +66,23 @@ describe('PerformanceSentryPublisher', () => {
     process.env.E2E_PERFORMANCE_SENTRY_SAMPLE_RATE;
   const originalSentryEnabled = process.env.E2E_PERFORMANCE_SENTRY_ENABLED;
   const originalBuildVariant = process.env.E2E_PERFORMANCE_BUILD_VARIANT;
+  const originalCiBuildVariant = process.env.E2E_PERFORMANCE_CI_BUILD_VARIANT;
+  const originalPerformanceGithubRef =
+    process.env.E2E_PERFORMANCE_GITHUB_REF_NAME;
+  const originalReleaseVersion = process.env.E2E_PERFORMANCE_RELEASE_VERSION;
+  const originalGithubRefName = process.env.GITHUB_REF_NAME;
   const originalGithubServerUrl = process.env.GITHUB_SERVER_URL;
   const originalGithubRepository = process.env.GITHUB_REPOSITORY;
   const originalGithubRunId = process.env.GITHUB_RUN_ID;
   const originalGithubJob = process.env.GITHUB_JOB;
+
+  const restoreEnv = (key: string, original: string | undefined) => {
+    if (original === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = original;
+    }
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -77,6 +90,10 @@ describe('PerformanceSentryPublisher', () => {
     delete process.env.E2E_PERFORMANCE_SENTRY_SAMPLE_RATE;
     delete process.env.E2E_PERFORMANCE_SENTRY_ENABLED;
     delete process.env.E2E_PERFORMANCE_BUILD_VARIANT;
+    delete process.env.E2E_PERFORMANCE_CI_BUILD_VARIANT;
+    delete process.env.E2E_PERFORMANCE_GITHUB_REF_NAME;
+    delete process.env.E2E_PERFORMANCE_RELEASE_VERSION;
+    delete process.env.GITHUB_REF_NAME;
     delete process.env.GITHUB_SERVER_URL;
     delete process.env.GITHUB_REPOSITORY;
     delete process.env.GITHUB_RUN_ID;
@@ -85,53 +102,18 @@ describe('PerformanceSentryPublisher', () => {
   });
 
   afterEach(() => {
-    if (originalSentryDsn === undefined) {
-      delete process.env.E2E_PERFORMANCE_SENTRY_DSN;
-    } else {
-      process.env.E2E_PERFORMANCE_SENTRY_DSN = originalSentryDsn;
-    }
-
-    if (originalSentrySampleRate === undefined) {
-      delete process.env.E2E_PERFORMANCE_SENTRY_SAMPLE_RATE;
-    } else {
-      process.env.E2E_PERFORMANCE_SENTRY_SAMPLE_RATE = originalSentrySampleRate;
-    }
-
-    if (originalSentryEnabled === undefined) {
-      delete process.env.E2E_PERFORMANCE_SENTRY_ENABLED;
-    } else {
-      process.env.E2E_PERFORMANCE_SENTRY_ENABLED = originalSentryEnabled;
-    }
-
-    if (originalBuildVariant === undefined) {
-      delete process.env.E2E_PERFORMANCE_BUILD_VARIANT;
-    } else {
-      process.env.E2E_PERFORMANCE_BUILD_VARIANT = originalBuildVariant;
-    }
-
-    if (originalGithubServerUrl === undefined) {
-      delete process.env.GITHUB_SERVER_URL;
-    } else {
-      process.env.GITHUB_SERVER_URL = originalGithubServerUrl;
-    }
-
-    if (originalGithubRepository === undefined) {
-      delete process.env.GITHUB_REPOSITORY;
-    } else {
-      process.env.GITHUB_REPOSITORY = originalGithubRepository;
-    }
-
-    if (originalGithubRunId === undefined) {
-      delete process.env.GITHUB_RUN_ID;
-    } else {
-      process.env.GITHUB_RUN_ID = originalGithubRunId;
-    }
-
-    if (originalGithubJob === undefined) {
-      delete process.env.GITHUB_JOB;
-    } else {
-      process.env.GITHUB_JOB = originalGithubJob;
-    }
+    restoreEnv('E2E_PERFORMANCE_SENTRY_DSN', originalSentryDsn);
+    restoreEnv('E2E_PERFORMANCE_SENTRY_SAMPLE_RATE', originalSentrySampleRate);
+    restoreEnv('E2E_PERFORMANCE_SENTRY_ENABLED', originalSentryEnabled);
+    restoreEnv('E2E_PERFORMANCE_BUILD_VARIANT', originalBuildVariant);
+    restoreEnv('E2E_PERFORMANCE_CI_BUILD_VARIANT', originalCiBuildVariant);
+    restoreEnv('E2E_PERFORMANCE_GITHUB_REF_NAME', originalPerformanceGithubRef);
+    restoreEnv('E2E_PERFORMANCE_RELEASE_VERSION', originalReleaseVersion);
+    restoreEnv('GITHUB_REF_NAME', originalGithubRefName);
+    restoreEnv('GITHUB_SERVER_URL', originalGithubServerUrl);
+    restoreEnv('GITHUB_REPOSITORY', originalGithubRepository);
+    restoreEnv('GITHUB_RUN_ID', originalGithubRunId);
+    restoreEnv('GITHUB_JOB', originalGithubJob);
 
     fetchMock.mockRestore();
   });
@@ -584,5 +566,131 @@ describe('PerformanceSentryPublisher', () => {
 
     expect(sent).toBe(false);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('tags RC tracking fields for Sentry Discover filtering', async () => {
+    process.env.E2E_PERFORMANCE_SENTRY_DSN =
+      'https://publicKey@o123.ingest.sentry.io/4567';
+    process.env.E2E_PERFORMANCE_BUILD_VARIANT = 'rc';
+    process.env.E2E_PERFORMANCE_CI_BUILD_VARIANT = 'rc';
+    process.env.E2E_PERFORMANCE_RELEASE_VERSION = '7.58.0';
+    process.env.GITHUB_REF_NAME = 'release/7.58.0';
+    process.env.GITHUB_SERVER_URL = 'https://github.com';
+    process.env.GITHUB_REPOSITORY = 'MetaMask/metamask-mobile';
+    process.env.GITHUB_RUN_ID = '999888';
+    process.env.GITHUB_JOB = 'e2e-performance-android';
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    const sent = await publishPerformanceScenarioToSentry({
+      metrics: createMetrics(),
+      testTitle: 'Import wallet flow',
+      projectName: 'browserstack-android',
+      testFilePath: 'tests/performance/onboarding/import-wallet.spec.js',
+      tags: ['@PerformanceOnboarding'],
+      status: 'passed',
+      retry: 0,
+      workerIndex: 1,
+    });
+
+    expect(sent).toBe(true);
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    const body = requestInit?.body as string;
+    const [, , payloadLine] = body.split('\n');
+    const payload = JSON.parse(payloadLine);
+
+    expect(payload.tags.ci_build_variant).toBe('rc');
+    expect(payload.tags.release_version).toBe('7.58.0');
+    expect(payload.tags.github_ref).toBe('release/7.58.0');
+    expect(payload.tags.github_run_id).toBe('999888');
+    expect(payload.tags.tracking_mode).toBe('observe');
+    expect(payload.spans[0].data.ci_build_variant).toBe('rc');
+    expect(payload.spans[0].data.release_version).toBe('7.58.0');
+    expect(payload.spans[0].data.github_ref).toBe('release/7.58.0');
+  });
+
+  it('does not use the feature-flags variant as the CI build variant', async () => {
+    process.env.E2E_PERFORMANCE_SENTRY_DSN =
+      'https://publicKey@o123.ingest.sentry.io/4567';
+    process.env.E2E_PERFORMANCE_BUILD_VARIANT = 'rc';
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    await publishPerformanceScenarioToSentry({
+      metrics: createMetrics(),
+      testTitle: 'Import wallet flow',
+      projectName: 'browserstack-android',
+      tags: [],
+      status: 'passed',
+    });
+
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    const body = requestInit?.body as string;
+    const [, , payloadLine] = body.split('\n');
+    const payload = JSON.parse(payloadLine);
+
+    expect(payload.tags.build_variant).toBe('rc');
+    expect(payload.tags.ci_build_variant).toBe('unknown');
+    expect(payload.spans[0].data.ci_build_variant).toBe('unknown');
+  });
+
+  it('uses the performance branch override for GitHub tags', async () => {
+    process.env.E2E_PERFORMANCE_SENTRY_DSN =
+      'https://publicKey@o123.ingest.sentry.io/4567';
+    process.env.GITHUB_REF_NAME = '1234/merge';
+    process.env.E2E_PERFORMANCE_GITHUB_REF_NAME = 'release/7.60.0';
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    await publishPerformanceScenarioToSentry({
+      metrics: createMetrics(),
+      testTitle: 'Import wallet flow',
+      projectName: 'browserstack-android',
+      tags: [],
+      status: 'passed',
+    });
+
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    const body = requestInit?.body as string;
+    const [, , payloadLine] = body.split('\n');
+    const payload = JSON.parse(payloadLine);
+
+    expect(payload.tags.github_ref).toBe('release/7.60.0');
+    expect(payload.tags.release_version).toBe('7.60.0');
+    expect(payload.spans[0].data.github_ref).toBe('release/7.60.0');
+  });
+
+  it('derives release_version from release/* github ref when env is unset', async () => {
+    process.env.E2E_PERFORMANCE_SENTRY_DSN =
+      'https://publicKey@o123.ingest.sentry.io/4567';
+    process.env.E2E_PERFORMANCE_CI_BUILD_VARIANT = 'rc';
+    process.env.GITHUB_REF_NAME = 'release/7.59.1';
+    process.env.GITHUB_RUN_ID = '111';
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    await publishPerformanceScenarioToSentry({
+      metrics: createMetrics(),
+      testTitle: 'Import wallet flow',
+      projectName: 'browserstack-android',
+      tags: [],
+      status: 'passed',
+    });
+
+    const [, requestInit] = fetchMock.mock.calls[0] ?? [];
+    const body = requestInit?.body as string;
+    const [, , payloadLine] = body.split('\n');
+    const payload = JSON.parse(payloadLine);
+
+    expect(payload.tags.release_version).toBe('7.59.1');
+    expect(payload.tags.github_ref).toBe('release/7.59.1');
   });
 });

@@ -15,6 +15,7 @@ const EXPECTED_E2E_STREAM_ROOT_KEYS = [
   'account',
   'candles',
   'fills',
+  'focusedPrice',
   'marketData',
   'oiCaps',
   'orders',
@@ -36,11 +37,15 @@ const CHANNELS_REQUIRING_GET_SNAPSHOT = [
 ] as const;
 
 describe('createE2EMockStreamManager', () => {
-  const mockConsoleLog = jest
-    .spyOn(console, 'log')
-    .mockImplementation(() => undefined);
+  let mockConsoleLog: jest.SpyInstance;
 
-  afterAll(() => {
+  beforeEach(() => {
+    mockConsoleLog = jest
+      .spyOn(console, 'log')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
     mockConsoleLog.mockRestore();
   });
 

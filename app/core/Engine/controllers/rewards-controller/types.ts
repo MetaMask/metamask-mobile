@@ -93,6 +93,13 @@ export type VipTierDto = {
   name: string;
   tier: number;
   pointsRequirement: number;
+  /**
+   * Lower 30d-points threshold to KEEP this tier once held (vs
+   * `pointsRequirement` to REACH it). `null` when no maintain threshold is
+   * configured for the tier — the reach requirement then also governs keeping
+   * it. Sourced from `/vip/me` (backend PR #737).
+   */
+  maintainPointsRequirement: number | null;
   swapsBps: number;
   perpsBps: number;
   revenueShareBps: number;
@@ -107,6 +114,7 @@ export type VipTierDto = {
 export type VipLocalizedTextDto = {
   periodTitle: string;
   memberIdTitle: string;
+  transactionsTitle: string;
   swapsFeeTitle: string;
   perpsFeeTitle: string;
   revenueShareTitle: string;
@@ -122,6 +130,12 @@ export type VipLocalizedTextDto = {
   equityLockedDescription: string;
   equityUnlockedTitle: string;
   equityUnlockedDescription: string;
+  /**
+   * Copy for when the equity multiplier request itself fails. Carried here
+   * rather than on that response, which returns no strings when it fails.
+   */
+  equityMultiplierFailedTitle: string;
+  equityMultiplierFailedDescription: string;
   topTierDescription: string;
   // The `nextTier…Delta` strings below carry the next tier's absolute value
   // text (e.g. "↓ 12 bps next tier"), not a delta against the current tier.
@@ -131,6 +145,50 @@ export type VipLocalizedTextDto = {
   nextTierRevenueShareDelta: string;
   nextTierReferralPointsDelta: string;
 };
+
+/**
+ * Display-only equity multiplier from POST /vip/equity-multiplier.
+ * Never persist as program truth; never feed settlement (RWDS-1485).
+ */
+/**
+ * Display state of the multiplier, driven only by holdings against the
+ * configured band. `below_floor` — multiplier is 1.0. `active` — more holdings
+ * earn more. `at_cap` — maxed, nothing left to gain.
+ */
+export type VipEquityMultiplierState = 'below_floor' | 'active' | 'at_cap';
+
+/**
+ * Copy already resolved server-side for the current state and fully
+ * interpolated. Render as-is; never branch on `state` to pick copy, or a
+ * future state will need a mobile release.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipEquityMultiplierLocalizedTextDto = {
+  title: string;
+  description: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipEquityMultiplierUnavailableDto = {
+  available: false;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipEquityMultiplierAvailableDto = {
+  available: true;
+  multiplier: string;
+  state: VipEquityMultiplierState;
+  progressPercent: number;
+  tierNumber: number;
+  tierName: string;
+  capUsd: string;
+  computedAt: string;
+  localizedText: VipEquityMultiplierLocalizedTextDto;
+};
+
+export type VipEquityMultiplierDto =
+  | VipEquityMultiplierUnavailableDto
+  | VipEquityMultiplierAvailableDto;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VipDashboardDto = {
@@ -196,6 +254,78 @@ export type VipFeesResponseDto = {
   vipTier: number;
   fees: VipFeesGroupDto | null;
   updatedAt: string | null;
+};
+
+export type VipTransactionType = 'PERPS' | 'SWAP';
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipPerpsTransactionDetailDto = {
+  coin: string;
+  feeCoin: string;
+  rawFee: string;
+  rawNotionalVolume: string;
+  tradeId: string;
+  orderId: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipSwapTransactionDetailDto = {
+  quoteId: string;
+  bridgeId?: string;
+  srcChainId: string;
+  srcAssetSymbol?: string;
+  destChainId: string;
+  destAssetSymbol?: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionDto = {
+  id: string;
+  type: VipTransactionType;
+  timestamp: string;
+  feeUsd: string;
+  volumeUsd: string;
+  perps?: VipPerpsTransactionDetailDto;
+  swap?: VipSwapTransactionDetailDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PaginatedVipTransactionsDto = {
+  results: VipTransactionDto[];
+  has_more: boolean;
+  cursor: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type GetVipTransactionsDto = {
+  subscriptionId: string;
+  type: VipTransactionType;
+  cursor: string | null;
+  forceFresh?: boolean;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionsLastUpdatedDto = {
+  lastUpdated: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionEntryState = {
+  id: string;
+  type: VipTransactionType;
+  timestamp: string;
+  feeUsd: string;
+  volumeUsd: string;
+  perps?: VipPerpsTransactionDetailDto;
+  swap?: VipSwapTransactionDetailDto;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type VipTransactionsState = {
+  results: VipTransactionEntryState[];
+  has_more: boolean;
+  cursor: string | null;
+  lastFetched: number;
 };
 
 // Per-subscription cache for VIP perps builder fee.
@@ -1211,6 +1341,45 @@ export interface PredictThePitchPrizePoolDto {
   computedAt: string | null;
 }
 
+/**
+ * Minimal reference to a single Polymarket market.
+ */
+export interface PredictMarketRef {
+  eventId: string;
+  conditionId?: string;
+}
+
+/**
+ * Response DTO for the public first predict on us endpoint.
+ */
+export interface FirstPredictOnUsDto {
+  name: string;
+  image: ThemeImage | null;
+  localizedText: Record<string, string>;
+  usdAmount: number;
+  markets: PredictMarketRef[];
+  termsUrl: string | null;
+}
+
+/**
+ * Serializable version of FirstPredictOnUsDto for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type FirstPredictOnUsDtoState = {
+  name: string;
+  image: ThemeImageState | null;
+  localizedText: { [key: string]: string };
+  usdAmount: number;
+  markets: { eventId: string; conditionId?: string }[];
+  termsUrl: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type FirstPredictOnUsCacheState = {
+  data: FirstPredictOnUsDtoState | null;
+  lastFetched: number;
+};
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictThePitchLeaderboardEntryState = {
   rank: number;
@@ -1874,11 +2043,12 @@ export type SubscriptionBenefitDto = {
   longDescription: string;
   thumbnail: string;
   validFrom: string;
-  validTo: string;
+  validTo: string | null;
   url: string;
   actionDate: string | null;
   chain: string;
   type: { id: number; name: string };
+  companyName?: string | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -2332,6 +2502,10 @@ export type RewardsControllerState = {
   vipPerpsFees: {
     [subscriptionId: string]: VipPerpsFeesState;
   };
+  /** First-page VIP transactions keyed by subscriptionId:type. */
+  vipTransactions: {
+    [compositeId: string]: VipTransactionsState;
+  };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
@@ -2397,6 +2571,8 @@ export type RewardsControllerState = {
   };
   /** Cached client version requirements for the public version guard endpoint. */
   clientVersionRequirements: ClientVersionRequirementState | null;
+  /** Cached first predict on us content from the public endpoint. */
+  firstPredictOnUs: FirstPredictOnUsCacheState | null;
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.

@@ -33,6 +33,7 @@ export const QuoteViewSelectorText = {
 export const NETWORK_TO_CHAIN_ID: Record<string, string> = {
   Ethereum: '0x1',
   Polygon: '0x89',
+  BNB: '0x38',
   Solana: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
 };
 

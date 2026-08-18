@@ -5,7 +5,7 @@ import PerpsMarketTradesList from './PerpsMarketTradesList';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePerpsMarketFills } from '../../hooks/usePerpsMarketFills';
 import { type OrderFill } from '@metamask/perps-controller';
-import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
+import { ACTIVITY_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 
 const mockTrackEvent = jest.fn();
@@ -24,6 +24,7 @@ jest.mock('../../hooks/usePerpsMarketFills', () => ({
   usePerpsMarketFills: jest.fn(() => ({
     fills: [],
     isInitialLoading: false,
+    restHistoryStatus: 'ready',
     refresh: jest.fn(),
     isRefreshing: false,
   })),
@@ -173,6 +174,7 @@ describe('PerpsMarketTradesList', () => {
   ) => ({
     fills,
     isInitialLoading,
+    restHistoryStatus: 'ready' as const,
     refresh: jest.fn(),
     isRefreshing: false,
   });
@@ -324,7 +326,7 @@ describe('PerpsMarketTradesList', () => {
       render(<PerpsMarketTradesList symbol="ETH" />);
 
       const iconSizes = screen.getAllByTestId('logo-size');
-      expect(iconSizes[0]).toHaveTextContent('36');
+      expect(iconSizes[0]).toHaveTextContent('40');
     });
 
     it('uses custom icon size when provided', () => {
@@ -581,7 +583,7 @@ describe('PerpsMarketTradesList', () => {
   });
 
   describe('Analytics Tracking', () => {
-    it('tracks Transaction Detail List Item Clicked when a trade is pressed', () => {
+    it('tracks Activity Details Opened when a trade is pressed', () => {
       mockUsePerpsMarketFills.mockReturnValue(
         createMockFillsReturn(mockOrderFills),
       );
@@ -592,7 +594,7 @@ describe('PerpsMarketTradesList', () => {
       fireEvent.press(tradeItem.parent?.parent || tradeItem);
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+        ACTIVITY_DETAIL_EVENTS.OPENED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({

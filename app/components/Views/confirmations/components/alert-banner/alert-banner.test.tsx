@@ -1,14 +1,12 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { render } from '@testing-library/react-native';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner';
-import Text from '../../../../../component-library/components/Texts/Text';
+import { TransactionType } from '@metamask/transaction-controller';
 import { Alert, Severity } from '../../types/alerts';
 import { useAlerts } from '../../context/alert-system-context';
 import AlertBanner from './alert-banner';
-import { getBannerAlertSeverity } from '../../utils/alert-system';
 import { RowAlertKey } from '../UI/info-row/alert-row/constants';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
-import { TransactionType } from '@metamask/transaction-controller';
 import { AlertKeys } from '../../constants/alerts';
 
 jest.mock('../../hooks/transactions/useTransactionMetadataRequest');
@@ -75,14 +73,12 @@ describe('AlertBanner', () => {
     (useTransactionMetadataRequest as jest.Mock).mockReturnValue({});
   });
 
-  it('renders correctly when there are general alerts', () => {
-    const { getByText, queryByText } = render(<AlertBanner />);
+  it('renders general alert banners', () => {
+    const { getByTestId, queryByTestId } = render(<AlertBanner />);
 
-    expect(getByText('Alert 1')).toBeDefined();
-    expect(getByText('Alert 2')).toBeDefined();
-    expect(queryByText('Alert 3')).toBeNull();
-    expect(queryByText('Alert 4')).toBeNull();
-    expect(queryByText('Alert 5')).toBeNull();
+    expect(getByTestId('security-alert-banner-0')).toBeOnTheScreen();
+    expect(getByTestId('security-alert-banner-1')).toBeOnTheScreen();
+    expect(queryByTestId('security-alert-banner-2')).toBeNull();
   });
 
   it('does not render when there are no general alerts', () => {
@@ -90,60 +86,47 @@ describe('AlertBanner', () => {
       generalAlerts: [],
     });
 
-    const { toJSON } = render(<AlertBanner />);
-    expect(toJSON()).toBeNull();
+    const { queryByTestId } = render(<AlertBanner />);
+
+    expect(queryByTestId('security-alert-banner-0')).toBeNull();
   });
 
-  it('converts severity correctly', () => {
-    expect(getBannerAlertSeverity(Severity.Danger)).toBe(
-      BannerAlertSeverity.Error,
-    );
+  it('renders field alerts when includeFields is set', () => {
+    const { getByTestId } = render(<AlertBanner includeFields />);
 
-    expect(getBannerAlertSeverity(Severity.Warning)).toBe(
-      BannerAlertSeverity.Warning,
-    );
-
-    expect(getBannerAlertSeverity(Severity.Info)).toBe(
-      BannerAlertSeverity.Info,
-    );
+    expect(getByTestId('security-alert-banner-0')).toBeOnTheScreen();
+    expect(getByTestId('security-alert-banner-1')).toBeOnTheScreen();
+    expect(getByTestId('security-alert-banner-2')).toBeOnTheScreen();
+    expect(getByTestId('security-alert-banner-3')).toBeOnTheScreen();
+    expect(getByTestId('security-alert-banner-4')).toBeOnTheScreen();
   });
 
-  it('renders field alerts if includeFields set', () => {
-    const { getByText } = render(<AlertBanner includeFields />);
-
-    expect(getByText('Alert 1')).toBeDefined();
-    expect(getByText('Alert 2')).toBeDefined();
-    expect(getByText('Alert 3')).toBeDefined();
-    expect(getByText('Alert 4')).toBeDefined();
-    expect(getByText('Alert 5')).toBeDefined();
-  });
-
-  it('renders blocking only if set', () => {
-    const { getByText, queryByText } = render(
+  it('renders only blocking alerts when blockingOnly is set', () => {
+    const { getByTestId, queryByTestId, getByText } = render(
       <AlertBanner blockingOnly includeFields />,
     );
 
-    expect(queryByText('Alert 1')).toBeNull();
-    expect(queryByText('Alert 2')).toBeNull();
-    expect(getByText('Alert 3')).toBeDefined();
-    expect(getByText('Alert 4')).toBeDefined();
-    expect(queryByText('Alert 5')).toBeNull();
+    expect(getByTestId('security-alert-banner-0')).toBeOnTheScreen();
+    expect(getByTestId('security-alert-banner-1')).toBeOnTheScreen();
+    expect(queryByTestId('security-alert-banner-2')).toBeNull();
+    expect(getByText('Alert 3')).toBeOnTheScreen();
+    expect(getByText('Alert 4')).toBeOnTheScreen();
   });
 
-  it('renders nothing if transaction type ignored', () => {
+  it('renders nothing when transaction type is ignored', () => {
     (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
       type: TransactionType.perpsDeposit,
     });
 
-    const { toJSON } = render(
+    const { queryByTestId } = render(
       <AlertBanner ignoreTypes={[TransactionType.perpsDeposit]} />,
     );
 
-    expect(toJSON()).toBeNull();
+    expect(queryByTestId('security-alert-banner-0')).toBeNull();
   });
 
   it('does not render excluded keys', () => {
-    const { getByText, queryByText } = render(
+    const { getByTestId, queryByTestId, getByText, queryByText } = render(
       <AlertBanner
         blockingOnly
         includeFields
@@ -151,10 +134,9 @@ describe('AlertBanner', () => {
       />,
     );
 
-    expect(queryByText('Alert 1')).toBeNull();
-    expect(queryByText('Alert 2')).toBeNull();
-    expect(getByText('Alert 3')).toBeDefined();
+    expect(getByTestId('security-alert-banner-0')).toBeOnTheScreen();
+    expect(queryByTestId('security-alert-banner-1')).toBeNull();
+    expect(getByText('Alert 3')).toBeOnTheScreen();
     expect(queryByText('Alert 4')).toBeNull();
-    expect(queryByText('Alert 5')).toBeNull();
   });
 });

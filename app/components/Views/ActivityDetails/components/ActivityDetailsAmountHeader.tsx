@@ -1,6 +1,4 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
-import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import {
   AvatarTokenSize,
   Box,
@@ -15,10 +13,14 @@ import type {
 } from '../../../../util/activity-adapters';
 import { useActivityListItemRowContent } from '../../../UI/ActivityListItemRow/useActivityListItemRowContent';
 import { useNftActivityImage } from '../../../UI/ActivityListItemRow/useNftActivityImage';
-import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
+// eslint-disable-next-line import-x/no-restricted-paths
+import {
+  useBridgeHistoryItemBySrcTxHash,
+  findBridgeHistoryItemBySrcTxHash,
+} from '../../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { ActivityDetailsAvatar } from './ActivityDetailsAvatar';
-import { formatActivityTokenAmount } from './activityTokenFormat';
+import { useFormatActivityTokenAmount } from './activityTokenFormat';
 
 /**
  * Single amount header: token avatar(s) above a large primary amount with an
@@ -30,10 +32,11 @@ export function ActivityDetailsAmountHeader({
 }: {
   item: ActivityListItem;
 }) {
-  const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
-  const bridgeHistoryItem: BridgeHistoryItem | undefined = item.hash
-    ? bridgeHistory[item.hash]
-    : undefined;
+  const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
+  const bridgeHistoryItem = findBridgeHistoryItemBySrcTxHash(
+    bridgeHistoryItemsBySrcTxHash,
+    item.hash,
+  );
   const content = useActivityListItemRowContent(
     item,
     item.chainId,
@@ -71,6 +74,7 @@ export function ActivityDetailsAmountHeader({
 }
 
 function AssetLine({ label, token }: { label: string; token: TokenAmount }) {
+  const formatActivityTokenAmount = useFormatActivityTokenAmount();
   const amount = formatActivityTokenAmount(token);
 
   return (

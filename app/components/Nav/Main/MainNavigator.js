@@ -39,6 +39,7 @@ import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import DeFiFullView from '../../Views/DeFiFullView';
 import CashTokensFullView from '../../Views/CashTokensFullView';
+import WatchlistFullScreenView from '../../UI/Assets/watchlist/Views/WatchlistFullScreenView';
 import TrendingTokensFullView from '../../UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import RWATokensFullView from '../../UI/Trending/Views/RWATokensFullView/RWATokensFullView';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
@@ -46,6 +47,7 @@ import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
 import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
+import VerificationCodeBottomSheet from '../../Views/AddDeviceToWallet/VerificationCodeBottomSheet';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import ResetPassword from '../../Views/ResetPassword';
@@ -97,6 +99,7 @@ import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 import Routes from '../../../constants/navigation/Routes';
 import {
   clearNativeStackNavigatorOptions,
+  addDeviceVerificationCodeScreenOptions,
   transparentModalScreenOptions,
   slideFromRightNativeOptions,
   fadeNativeOptions,
@@ -143,22 +146,25 @@ import {
   PredictPreviewSheetProvider,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
+import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import {
   MarketInsightsView,
   selectMarketInsightsEnabled,
 } from '../../UI/MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlagController/marketInsights';
 import {
-  TopTradersView,
+  SocialTradersView,
   TraderProfileView,
   TraderPositionView,
+  SocialLeaderboardOnboarding,
+  TradingSignalsSetupBottomSheet,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
-import UnmountOnBlur from '../../Views/UnmountOnBlur';
+import { withUnmountOnTabBlur } from '../../Views/UnmountOnBlur/UnmountOnTabBlur';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 ///: END:ONLY_INCLUDE_IF
@@ -182,10 +188,15 @@ import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
 import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
+import { ALLOWED_CAPABILITIES as WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/Wallet/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 
 const NativeStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+const WalletWithMessenger = withMessenger(Wallet, {
+  capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
+});
 
 const styles = StyleSheet.create({
   headerLogo: {
@@ -255,7 +266,7 @@ const WalletTabStackFlow = () => {
     >
       <NativeStack.Screen
         name="WalletView"
-        component={Wallet}
+        component={WalletWithMessenger}
         options={{
           headerShown: false,
           animation: 'none',
@@ -571,9 +582,10 @@ const SettingsFlow = () => {
   );
 };
 
-const UnmountOnBlurComponent = (children) => (
-  <UnmountOnBlur>{children}</UnmountOnBlur>
-);
+// Replaces `unmountOnBlur` (removed in React Navigation v7).
+const BrowserFlowUnmountOnTabBlur = withUnmountOnTabBlur(BrowserFlow);
+const TransactionsHomeUnmountOnTabBlur = withUnmountOnTabBlur(TransactionsHome);
+const RewardsHomeUnmountOnTabBlur = withUnmountOnTabBlur(RewardsHome);
 
 const HomeTabs = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -637,7 +649,8 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.BROWSER_VIEW,
-      unmountOnBlur: true,
+      // Required with `withUnmountOnTabBlur` — freezing blocks the unmount.
+      freezeOnBlur: false,
     },
     activity: {
       tabBarIconKey: TabBarIconKey.Activity,
@@ -649,7 +662,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,
-      unmountOnBlur: true,
+      freezeOnBlur: false,
     },
     money: {
       tabBarIconKey: TabBarIconKey.Money,
@@ -666,7 +679,7 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.REWARDS_VIEW,
-      unmountOnBlur: true,
+      freezeOnBlur: false,
     },
     trending: {
       tabBarIconKey: TabBarIconKey.Trending,
@@ -686,12 +699,12 @@ const HomeTabs = () => {
       onLeave: () => {
         // End trending session when user switches to another tab
         TrendingFeedSessionManager.getInstance().endSession();
-        // Disable AppState listener to prevent phantom sessions when app backgrounds/foregrounds
-        // while user is on a different tab (since TrendingView stays mounted with unmountOnBlur: false)
+        // Disable AppState listener to prevent phantom sessions when app
+        // backgrounds/foregrounds while user is on a different tab (Explore
+        // stays mounted; Browser/Activity/Rewards use UnmountOnBlur layout).
         TrendingFeedSessionManager.getInstance().disableAppStateListener();
       },
       rootScreenName: Routes.TRENDING_VIEW,
-      unmountOnBlur: false,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
@@ -703,7 +716,6 @@ const HomeTabs = () => {
         );
       },
       rootScreenName: Routes.SETTINGS_VIEW,
-      unmountOnBlur: true,
     },
   };
 
@@ -770,8 +782,9 @@ const HomeTabs = () => {
 
   return (
     /*
-     * PredictPreviewSheetProvider is mounted here (above Tab.Navigator) so its
-     * BottomSheet renders inside the full-viewport Home screen card.
+     * PredictPreviewSheetProvider and TrendingQuickBuySheetProvider are
+     * mounted here (above Tab.Navigator) so their BottomSheets render inside
+     * the full-viewport Home screen card.
      * BottomSheet uses `absolute inset-0` (see
      * @metamask/design-system-react-native) and would be clipped by an
      * individual tab's content area if mounted lower in the tree.
@@ -782,76 +795,75 @@ const HomeTabs = () => {
      * Retry toasts so we don't double-fire when both are mounted.
      */
     <PredictPreviewSheetProvider>
-      {isMoneyAccountEnabled ? (
-        <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
-      ) : null}
-      <Tab.Navigator
-        initialRouteName={Routes.WALLET.HOME}
-        tabBar={renderTabBar}
-        screenOptions={{ headerShown: false }}
-      >
-        {/* Home Tab */}
-        <Tab.Screen
-          name={Routes.WALLET.HOME}
-          options={options.home}
-          component={WalletTabStackFlow}
-        />
-
-        {/* Explore Tab (w/ hidden browser) */}
-        <>
+      <TrendingQuickBuySheetProvider>
+        {isMoneyAccountEnabled ? (
+          <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
+        ) : null}
+        <Tab.Navigator
+          initialRouteName={Routes.WALLET.HOME}
+          tabBar={renderTabBar}
+          screenOptions={{ headerShown: false }}
+        >
+          {/* Home Tab */}
           <Tab.Screen
-            name={Routes.TRENDING_VIEW}
-            options={{
-              ...options.trending,
-              isSelected: (rootScreenName) =>
-                [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
-                  rootScreenName,
-                ),
-            }}
-            component={ExploreHome}
+            name={Routes.WALLET.HOME}
+            options={options.home}
+            component={WalletTabStackFlow}
           />
-          <Tab.Screen
-            name={Routes.BROWSER.HOME}
-            options={{
-              ...options.browser,
-              isHidden: true,
-            }}
-            component={BrowserFlow}
-            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-          />
-        </>
 
-        {/* Trade Tab */}
-        <Tab.Screen
-          name={Routes.MODAL.TRADE_WALLET_ACTIONS}
-          options={options.trade}
-          component={WalletTabStackFlow}
-        />
+          {/* Explore Tab (w/ hidden browser) */}
+          <>
+            <Tab.Screen
+              name={Routes.TRENDING_VIEW}
+              options={{
+                ...options.trending,
+                isSelected: (rootScreenName) =>
+                  [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
+                    rootScreenName,
+                  ),
+              }}
+              component={ExploreHome}
+            />
+            <Tab.Screen
+              name={Routes.BROWSER.HOME}
+              options={{
+                ...options.browser,
+                isHidden: true,
+              }}
+              component={BrowserFlowUnmountOnTabBlur}
+            />
+          </>
 
-        {/* Activity Tab (replaced by Money when feature flag is on and user is geo-eligible) */}
-        {isMoneyAccountVisible ? (
+          {/* Trade Tab */}
           <Tab.Screen
-            name={Routes.MONEY.ROOT}
-            options={options.money}
-            component={MoneyTabScreenStack}
+            name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+            options={options.trade}
+            component={WalletTabStackFlow}
           />
-        ) : (
-          <Tab.Screen
-            name={Routes.TRANSACTIONS_VIEW}
-            options={options.activity}
-            component={TransactionsHome}
-            layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
-          />
-        )}
 
-        {/* Rewards Tab */}
-        <Tab.Screen
-          name={Routes.REWARDS_VIEW}
-          options={options.rewards}
-          component={RewardsHome}
-          layout={({ children }) => UnmountOnBlurComponent(children)}
-        />
-      </Tab.Navigator>
+          {/* Activity Tab (replaced by Money when feature flag is on and user is geo-eligible) */}
+          {isMoneyAccountVisible ? (
+            <Tab.Screen
+              name={Routes.MONEY.ROOT}
+              options={options.money}
+              component={MoneyTabScreenStack}
+            />
+          ) : (
+            <Tab.Screen
+              name={Routes.TRANSACTIONS_VIEW}
+              options={options.activity}
+              component={TransactionsHomeUnmountOnTabBlur}
+            />
+          )}
+
+          {/* Rewards Tab */}
+          <Tab.Screen
+            name={Routes.REWARDS_VIEW}
+            options={options.rewards}
+            component={RewardsHomeUnmountOnTabBlur}
+          />
+        </Tab.Navigator>
+      </TrendingQuickBuySheetProvider>
     </PredictPreviewSheetProvider>
   );
 };
@@ -894,12 +906,16 @@ const AddBookmarkView = () => (
   </NativeStack.Navigator>
 );
 
-const OfflineModeView = () => (
+const OfflineModeView = (props) => (
   <NativeStack.Navigator>
     <NativeStack.Screen
       name="OfflineMode"
       component={OfflineMode}
       options={OfflineMode.navigationOptions}
+      initialParams={{
+        autoDismissOnReconnect:
+          props.route.params?.autoDismissOnReconnect === true,
+      }}
     />
   </NativeStack.Navigator>
 );
@@ -1069,6 +1085,11 @@ const MainNavigator = () => {
         component={CashTokensFullView}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
+      <NativeStack.Screen
+        name={Routes.WALLET.WATCHLIST_FULL_VIEW}
+        component={WatchlistFullScreenView}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
       <NativeStack.Screen name="AddAsset" component={AddAsset} />
       <NativeStack.Screen
         name="ConfirmAddAsset"
@@ -1125,6 +1146,11 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.QR_TAB_SWITCHER}
         component={QRTabSwitcher}
+      />
+      <NativeStack.Screen
+        name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
+        component={VerificationCodeBottomSheet}
+        options={addDeviceVerificationCodeScreenOptions}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
@@ -1187,7 +1213,7 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
-        options={slideFromRightNativeOptions}
+        options={{ ...slideFromRightNativeOptions, gestureEnabled: false }}
       />
       <NativeStack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
@@ -1374,7 +1400,7 @@ const MainNavigator = () => {
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
           name={Routes.SOCIAL_LEADERBOARD.VIEW}
-          component={TopTradersView}
+          component={SocialTradersView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}
@@ -1390,6 +1416,23 @@ const MainNavigator = () => {
           name={Routes.SOCIAL_LEADERBOARD.POSITION}
           component={TraderPositionView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL_LEADERBOARD.ONBOARDING}
+          component={SocialLeaderboardOnboarding}
+          options={{ headerShown: false, ...slideFromRightNativeOptions }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP}
+          component={TradingSignalsSetupBottomSheet}
+          options={{
+            ...clearNativeStackNavigatorOptions,
+            ...transparentModalScreenOptions,
+          }}
         />
       )}
       <>

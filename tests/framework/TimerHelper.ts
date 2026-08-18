@@ -1,5 +1,6 @@
 import TimerStore from './TimerStore';
 import {
+  clampInfraSubtractionMs,
   startOverheadTracking,
   stopOverheadTracking,
 } from './PlaywrightUtilities';
@@ -123,26 +124,24 @@ class TimerHelper {
   }
 
   /**
-   * Measures the execution time of an async action.
+   * Measures the execution time of an async action and subtracts Appium
+   * infrastructure overhead (poll RTTs capped to the post-detect probe) on both
+   * Android and iOS. See {@link measureWithOverhead}.
    *
-   * - **iOS**: subtracts Appium infrastructure overhead (see {@link measureWithOverhead}).
-   * - **Android**: wall-clock only (see {@link measureRaw}) — overhead cannot be
-   * separated reliably when taps overlap with app loading.
-   *
-   * Pass `currentPlatform` in the constructor so the correct strategy is chosen.
+   * Use {@link measureRaw} if you need wall-clock without overhead subtraction.
    *
    * @param action - Async function to measure
    * @returns This TimerHelper instance for chaining
    */
   async measure(action: () => Promise<void>): Promise<TimerHelper> {
-    if (this._platform === 'android') {
-      return this.measureRaw(action);
-    }
     return this.measureWithOverhead(action);
   }
 
   /**
-   * iOS-only measurement path: subtracts Appium overhead from the recorded duration.
+   * Measurement path that subtracts Appium overhead from the recorded duration.
+   *
+   * Infra is capped so poll sleeps (and at least 1ms) remain in app time —
+   * timers must not collapse to 0ms after a real wait.
    *
    * @param action - Async function to measure
    * @returns This TimerHelper instance for chaining
@@ -155,17 +154,23 @@ class TimerHelper {
     } finally {
       this.stop();
     }
-    const overhead = stopOverheadTracking();
-    if (overhead > 0) {
-      this.subtractOverhead(overhead);
+    const wallClockMs = this.getDuration() ?? 0;
+    const { infraMs: rawInfraMs, sleepMs } = stopOverheadTracking();
+    const infraMs = clampInfraSubtractionMs(wallClockMs, rawInfraMs, sleepMs);
+    if (infraMs > 0) {
+      this.subtractOverhead(infraMs);
     }
+    const appMs = this.getDuration() ?? 0;
+    console.log(
+      `⏱️ Timer "${this.id}": wall-clock=${wallClockMs}ms, infra=${Math.round(infraMs)}ms, app=${appMs}ms`,
+    );
     return this;
   }
 
   /**
-   * Android-oriented wall-clock measurement (no Appium overhead subtraction).
+   * Wall-clock measurement with no Appium overhead subtraction.
    *
-   * Prefer {@link measure} in specs — it selects this path on Android automatically.
+   * Prefer {@link measure} for performance specs.
    *
    * @param action - Async function to measure
    * @returns This TimerHelper instance for chaining

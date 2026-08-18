@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+
 import { useSelector } from 'react-redux';
 import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -47,6 +49,11 @@ export interface UsePerpsHomeActionsReturn {
   handleAddFunds: () => Promise<void>;
   /** Handler for withdraw button */
   handleWithdraw: () => Promise<void>;
+  /**
+   * Opens the geo-block eligibility modal and tracks the screen view
+   * with the supplied analytics source.
+   */
+  showEligibilityModal: (source: string) => void;
   /** Close eligibility modal */
   closeEligibilityModal: () => void;
 }
@@ -68,7 +75,7 @@ export interface UsePerpsHomeActionsReturn {
 export const usePerpsHomeActions = (
   options?: UsePerpsHomeActionsOptions,
 ): UsePerpsHomeActionsReturn => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isEligible = useSelector(selectPerpsEligibility);
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { depositWithConfirmation } = usePerpsTrading();
@@ -88,6 +95,21 @@ export const usePerpsHomeActions = (
   const { onAddFundsSuccess, onWithdrawSuccess, onError, buttonLocation } =
     options || {};
 
+  const showEligibilityModal = useCallback(
+    (source: string) => {
+      DevLogger.log('[usePerpsHomeActions] Showing eligibility modal', {
+        source,
+      });
+      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+        [PERPS_EVENT_PROPERTY.SOURCE]: source,
+      });
+      setIsEligibilityModalVisible(true);
+    },
+    [track],
+  );
+
   const handleAddFunds = useCallback(
     () =>
       gate(async () => {
@@ -102,14 +124,7 @@ export const usePerpsHomeActions = (
 
         if (!isEligible) {
           DevLogger.log('[usePerpsHomeActions] User not eligible for deposit');
-          // Track geo-block screen viewed
-          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-            [PERPS_EVENT_PROPERTY.SOURCE]:
-              PERPS_EVENT_VALUE.SOURCE.DEPOSIT_BUTTON,
-          });
-          setIsEligibilityModalVisible(true);
+          showEligibilityModal(PERPS_EVENT_VALUE.SOURCE.DEPOSIT_BUTTON);
           return;
         }
 
@@ -160,6 +175,7 @@ export const usePerpsHomeActions = (
       onError,
       track,
       buttonLocation,
+      showEligibilityModal,
     ],
   );
 
@@ -243,6 +259,7 @@ export const usePerpsHomeActions = (
     error,
     handleAddFunds,
     handleWithdraw,
+    showEligibilityModal,
     closeEligibilityModal,
   };
 };

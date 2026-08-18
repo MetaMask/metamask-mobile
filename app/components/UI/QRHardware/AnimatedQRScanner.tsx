@@ -216,6 +216,12 @@ interface AnimatedQRScannerProps {
   hideModal: () => void;
   pauseQRCode?: (x: boolean) => void;
   onModalHideComplete?: () => void;
+  /**
+   * When false, renders in-place without RN Modal. Required when this scanner
+   * is mounted under FullWindowOverlay on iOS (no presenting view controller;
+   * see react-native-screens#1149 / MetaMask #33022). Defaults to true.
+   */
+  coverScreen?: boolean;
 }
 
 const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
@@ -228,6 +234,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     hideModal,
     pauseQRCode,
     onModalHideComplete,
+    coverScreen = true,
   } = props;
 
   const [urDecoder, setURDecoder] = useState(() => new URRegistryDecoder());
@@ -518,7 +525,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
     <Modal
       isVisible={visible}
       style={styles.modal}
-      coverScreen
+      coverScreen={coverScreen}
       statusBarTranslucent
       onModalHide={() => {
         reset();

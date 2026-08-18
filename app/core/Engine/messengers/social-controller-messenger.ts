@@ -33,6 +33,8 @@ export function getSocialControllerMessenger(
       'SocialService:follow',
       'SocialService:unfollow',
       'SocialService:fetchFollowing',
+      'SocialService:optOutOfLeaderboard',
+      'SocialService:optInToLeaderboard',
     ],
     messenger,
   });

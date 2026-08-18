@@ -294,4 +294,8 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
   );
 };
 
-export default TimeSlotPicker;
+// Memoized: the parent details screen re-renders on every live price tick,
+// and this component's own render (pill styles, countdowns, scroll anchoring)
+// is comparatively expensive. Callers must pass stable `markets` /
+// `onMarketSelected` references for the memo to be effective.
+export default React.memo(TimeSlotPicker);

@@ -11,7 +11,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { MoneyDeeplinkModalTestIds } from './MoneyDeeplinkModal.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -21,7 +20,7 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 
-interface MoneyDeeplinkModalParams {
+export interface MoneyDeeplinkModalParams {
   title?: string;
   description?: string;
 }
@@ -34,8 +33,6 @@ const MoneyDeeplinkModal = () => {
 
   const title = route.params?.title;
   const description = route.params?.description;
-
-  const surfaceClass = useElevatedSurface();
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -65,7 +62,6 @@ const MoneyDeeplinkModal = () => {
     <BottomSheet
       ref={bottomSheetRef}
       testID={MoneyDeeplinkModalTestIds.SHEET}
-      twClassName={surfaceClass}
       onClose={handleClose}
     >
       <BottomSheetHeader
