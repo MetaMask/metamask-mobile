@@ -8,7 +8,7 @@ import { Octokit } from '@octokit/rest';
 import { execFileSync } from 'child_process';
 import { existsSync, unlinkSync, readFileSync } from 'fs';
 import { resolve, join } from 'path';
-import type { TestPlanResult } from './types';
+import type { BuildInfo, TestPlanResult } from './types';
 
 export const RC_BUILD_COMMENT_MARKER = '<!-- metamask-bot-rc-build-announce -->';
 export const TESTFLIGHT_URL = 'https://testflight.apple.com/join/hBrjtFuA';
@@ -178,20 +178,21 @@ export async function generateTestPlan(
 /**
  * Parses environment variables for build info
  */
-export function parseBuildInfo(): {
-  semver: string;
-  iosBuildNumber: string;
-  androidBuildNumber: string;
-  pipelineUrl?: string;
-  androidPublicUrl?: string;
-} {
+export function parseBuildInfo(): BuildInfo {
   const {
     SEMVER,
     IOS_BUILD_NUMBER,
     ANDROID_BUILD_NUMBER,
     BUILD_PIPELINE_URL,
     ANDROID_PUBLIC_URL,
+    OTA_COMMIT_SHORT_SHA,
+    OTA_NATIVE_BUILD_NUMBER,
+    OTA_BASELINE_SHORT_SHA,
   } = process.env;
+
+  // The published commit is what distinguishes one automated RC OTA from the next, so its
+  // presence is what marks this run as an OTA-only delivery.
+  const otaCommitShortSha = OTA_COMMIT_SHORT_SHA?.trim() || '';
 
   return {
     semver: SEMVER || 'Unknown',
@@ -199,6 +200,13 @@ export function parseBuildInfo(): {
     androidBuildNumber: ANDROID_BUILD_NUMBER || 'Unknown',
     pipelineUrl: BUILD_PIPELINE_URL,
     androidPublicUrl: ANDROID_PUBLIC_URL,
+    otaUpdate: otaCommitShortSha
+      ? {
+          commitShortSha: otaCommitShortSha,
+          nativeBuildNumber: OTA_NATIVE_BUILD_NUMBER?.trim() || 'Unknown',
+          baselineShortSha: OTA_BASELINE_SHORT_SHA?.trim() || 'Unknown',
+        }
+      : undefined,
   };
 }
 

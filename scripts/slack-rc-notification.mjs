@@ -9,7 +9,13 @@
  *               IOS_PUBLIC_URL, BUILD_PIPELINE_URL, PR_NUMBER, GITHUB_REPOSITORY,
  *               BUILD_KIND (rc | production; default rc),
  *               SLACK_RC_NOTIFICATION_DRY_RUN,
- *               ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE (PLAY_STORE_CHECK_STATUS=pass|fail)
+ *               ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE (PLAY_STORE_CHECK_STATUS=pass|fail),
+ *               OTA_COMMIT_SHORT_SHA / OTA_NATIVE_BUILD_NUMBER / OTA_BASELINE_SHORT_SHA
+ *
+ * When OTA_COMMIT_SHORT_SHA is set the run delivered an automated RC OTA update rather than
+ * new binaries, so the message drops the download links and reports the commit instead. Those
+ * three env var names are shared with scripts/build-announce/utils.ts so the Slack message and
+ * the PR comment cannot describe the same delivery differently.
  */
 
 import fs from 'fs';
@@ -72,6 +78,8 @@ function resolveBuildKind(buildKind) {
  * @param {Object} options - Message options
  * @param {string} [options.buildKind] - rc (default) or production
  * @param {string|null} [options.playStoreCheckMrkdwn] - Optional mrkdwn from Android Play Store check
+ * @param {{commitShortSha: string, nativeBuildNumber: string, baselineShortSha: string}|null} [options.otaUpdate] -
+ *   Set for automated RC OTA deliveries, which report a commit instead of download links
  * @returns {Object} Slack message payload
  */
 function buildSlackMessage(options) {
@@ -85,11 +93,18 @@ function buildSlackMessage(options) {
     prNumber,
     playStoreCheckMrkdwn,
     buildKind: buildKindInput,
+    otaUpdate,
   } = options;
 
   const buildKind = resolveBuildKind(buildKindInput);
   const isProduction = buildKind === 'production';
+  const isOta = Boolean(otaUpdate);
   const label = isProduction ? 'Production' : 'RC';
+  const kindLabel = isOta ? 'RC OTA Update' : `${label} Build`;
+  const headerEmoji = isOta ? '📡' : '🚀';
+  // OTA deliveries have no build number of their own, so the published commit identifies them.
+  const headerDetail = isOta ? otaUpdate.commitShortSha : buildNumber;
+  const headline = `${headerEmoji} Mobile ${kindLabel} v${version} (${headerDetail})`;
 
   const androidLink = isProduction
     ? isValidUrl(pipelineUrl)
@@ -104,53 +119,94 @@ function buildSlackMessage(options) {
       type: 'header',
       text: {
         type: 'plain_text',
-        text: `🚀 Mobile ${label} Build v${version} (${buildNumber})`,
+        text: headline,
         emoji: true,
       },
     },
-    {
-      type: 'section',
-      fields: [
-        {
-          type: 'mrkdwn',
-          text: `*Version:*\n${version}`,
-        },
-        {
-          type: 'mrkdwn',
-          text: `*Build Number:*\n${buildNumber}`,
-        },
-      ],
-    },
-    {
-      type: 'section',
-      text: {
-        type: 'mrkdwn',
-        text: '*📦 Download Links:*',
-      },
-    },
-    {
-      type: 'section',
-      fields: [
-        {
-          type: 'mrkdwn',
-          text: androidLink,
-        },
-        {
-          type: 'mrkdwn',
-          text: isValidUrl(iosUrl)
-            ? `*iOS Build:*\n<${iosUrl}|TestFlight>`
-            : '*iOS Build:*\n<https://testflight.apple.com/join/hBrjtFuA|Check TestFlight>',
-        },
-      ],
-    },
   ];
+
+  if (isOta) {
+    blocks.push(
+      {
+        type: 'section',
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: `*Version:*\n${version}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: `*Commit:*\n${otaUpdate.commitShortSha}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: `*Runs on native build:*\n${otaUpdate.nativeBuildNumber} (${otaUpdate.baselineShortSha})`,
+          },
+        ],
+      },
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: '*📡 Nothing to install.* Reopen the app you already have to pick this up.',
+        },
+      },
+    );
+  } else {
+    blocks.push(
+      {
+        type: 'section',
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: `*Version:*\n${version}`,
+          },
+          {
+            type: 'mrkdwn',
+            text: `*Build Number:*\n${buildNumber}`,
+          },
+        ],
+      },
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: '*📦 Download Links:*',
+        },
+      },
+      {
+        type: 'section',
+        fields: [
+          {
+            type: 'mrkdwn',
+            text: androidLink,
+          },
+          {
+            type: 'mrkdwn',
+            text: isValidUrl(iosUrl)
+              ? `*iOS Build:*\n<${iosUrl}|TestFlight>`
+              : '*iOS Build:*\n<https://testflight.apple.com/join/hBrjtFuA|Check TestFlight>',
+          },
+        ],
+      },
+    );
+  }
+
+  // Discriminates the release PR comment these links point at. OTA deliveries have no build
+  // number, so the published commit stands in. Must match the anchor suffix rendered by
+  // scripts/build-announce/cherry-picks-section.ts, or the deep links land on the wrong comment.
+  const anchorDiscriminator = isOta ? otaUpdate.commitShortSha : androidBuildNumber;
+  const anchorSuffix =
+    anchorDiscriminator &&
+    anchorDiscriminator !== 'N/A' &&
+    anchorDiscriminator !== 'Unknown'
+      ? `-${anchorDiscriminator}`
+      : '';
 
   // Cherry-picks are RC-only (linked to the release PR comment).
   // Note: GitHub prefixes user-provided anchor IDs with 'user-content-'
-  // We use build number in anchor to link to the correct comment (not older builds)
   if (!isProduction) {
     if (prNumber) {
-      const anchorSuffix = androidBuildNumber && androidBuildNumber !== 'N/A' ? `-${androidBuildNumber}` : '';
       const cherryPicksLink = `<${REPO_URL}/pull/${prNumber}#user-content-cherry-picks${anchorSuffix}|View cherry-picks>`;
       blocks.push(
         {
@@ -201,7 +257,6 @@ function buildSlackMessage(options) {
       links.push(`<${pipelineUrl}|View Build Pipeline>`);
     }
     if (!isProduction && prNumber) {
-      const anchorSuffix = androidBuildNumber && androidBuildNumber !== 'N/A' ? `-${androidBuildNumber}` : '';
       links.push(`<${REPO_URL}/pull/${prNumber}#user-content-whats-in-this-rc${anchorSuffix}|View full RC notes>`);
     }
     if (links.length > 0) {
@@ -224,7 +279,7 @@ function buildSlackMessage(options) {
 
   return {
     blocks,
-    text: `🚀 Mobile ${label} Build v${version} (${buildNumber}) is ready!`, // Fallback text
+    text: isOta ? `${headline} is live!` : `${headline} is ready!`, // Fallback text
   };
 }
 
@@ -314,7 +369,21 @@ async function main() {
   const playStoreCheckMrkdwn = loadPlayStoreCheckMrkdwn();
   const expectedChannelName = getSlackChannel(version);
 
-  console.log(`\n📣 Preparing Slack notification for ${label} v${version} (${buildNumber})`);
+  // Env var names match scripts/build-announce/utils.ts so the Slack message and the PR
+  // comment describe the delivery the same way.
+  const otaCommitShortSha = process.env.OTA_COMMIT_SHORT_SHA?.trim() || '';
+  const otaUpdate = otaCommitShortSha
+    ? {
+        commitShortSha: otaCommitShortSha,
+        nativeBuildNumber: process.env.OTA_NATIVE_BUILD_NUMBER?.trim() || 'Unknown',
+        baselineShortSha: process.env.OTA_BASELINE_SHORT_SHA?.trim() || 'Unknown',
+      }
+    : null;
+
+  const summary = otaUpdate
+    ? `OTA update ${otaUpdate.commitShortSha} on native build ${otaUpdate.nativeBuildNumber}`
+    : buildNumber;
+  console.log(`\n📣 Preparing Slack notification for ${label} v${version} (${summary})`);
   if (prNumber) {
     console.log(`📍 Release PR: #${prNumber}`);
   }
@@ -337,6 +406,7 @@ async function main() {
     prNumber,
     playStoreCheckMrkdwn,
     buildKind,
+    otaUpdate,
   });
 
   if (isDryRun) {

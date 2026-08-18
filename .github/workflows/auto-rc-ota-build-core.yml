@@ -6,6 +6,10 @@
 # OTA_VERSION bump and, if so, skip the native build (OTA-only changes are published
 # separately). Otherwise fall through to a native build.yml build (and TestFlight for iOS).
 #
+# Callers that already decided native-vs-OTA themselves pass ignore_ota_bump: true, so the
+# OTA_VERSION check cannot override that decision. build-rc-auto.yml does exactly this, using
+# the Expo fingerprint as its signal.
+#
 # This workflow does not push OTA updates — OTA publishing is handled outside this flow.
 #
 # Runway's manual entry workflows do not use this file — they call the dedicated OTA-only or
@@ -48,6 +52,16 @@ on:
         required: false
         type: string
         default: ''
+      ignore_ota_bump:
+        description: >-
+          Build even when resolve-context reports an OTA_VERSION bump. Set by build-rc-auto.yml,
+          which decides native-vs-OTA from the Expo fingerprint before calling this workflow: a
+          fingerprint mismatch means native files really did change, so honouring the OTA_VERSION
+          bump here would skip the build while the fingerprint gate blocks the OTA, shipping
+          nothing at all. Left false everywhere else so existing behaviour is unchanged.
+        required: false
+        type: boolean
+        default: false
     outputs:
       semantic_version:
         description: 'package.json version at the built commit (empty when OTA bump skips the build)'
@@ -75,7 +89,7 @@ jobs:
   trigger-build:
     name: Trigger build mobile app
     needs: resolve-context
-    if: needs.resolve-context.outputs.ota_bump != 'true'
+    if: inputs.ignore_ota_bump || needs.resolve-context.outputs.ota_bump != 'true'
     uses: ./.github/workflows/build.yml
     with:
       build_name: ${{ inputs.build_name }}

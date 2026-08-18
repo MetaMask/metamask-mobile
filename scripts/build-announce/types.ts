@@ -5,6 +5,23 @@
  */
 
 /**
+ * An automated release-candidate OTA delivery: no new binaries were produced, the change was
+ * published to the `rc` channel on top of an existing native build.
+ *
+ * Env var names are shared with scripts/slack-rc-notification.mjs (OTA_COMMIT_SHORT_SHA,
+ * OTA_NATIVE_BUILD_NUMBER, OTA_BASELINE_SHORT_SHA) so the PR comment and the Slack message
+ * cannot describe the same delivery differently.
+ */
+export interface OtaUpdateInfo {
+  /** Commit the update was published from. The only stable identifier for the delivery. */
+  commitShortSha: string;
+  /** Build number of the native build the update runs on top of. */
+  nativeBuildNumber: string;
+  /** Commit that native build was made from. */
+  baselineShortSha: string;
+}
+
+/**
  * Build information from the CI pipeline
  */
 export interface BuildInfo {
@@ -13,6 +30,8 @@ export interface BuildInfo {
   androidBuildNumber: string;
   pipelineUrl?: string;
   androidPublicUrl?: string;
+  /** Set only for OTA-only RC deliveries, where there is nothing new to install. */
+  otaUpdate?: OtaUpdateInfo;
 }
 
 /**
