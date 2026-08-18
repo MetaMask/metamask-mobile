@@ -514,6 +514,13 @@ class Browser {
    */
   async expectUrlToContain(text: string, description?: string): Promise<void> {
     await PlaywrightContextHelpers.switchToNativeContext();
+    // Display text is opacity:0 while the editor is focused; dismiss so we
+    // read the committed URL, not leftover inputValue.
+    if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
+      await Gestures.waitAndTap(this.cancelUrlInputButton, {
+        elemDescription: 'Cancel URL input (dismiss URL editor)',
+      });
+    }
     await Assertions.expectElementToContainText(this.urlBarDisplayText, text, {
       description: description ?? `URL bar contains "${text}"`,
     });
