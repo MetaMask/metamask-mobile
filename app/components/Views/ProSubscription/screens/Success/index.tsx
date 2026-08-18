@@ -48,7 +48,7 @@ const Success = ({ onSuccess }: SuccessProps) => (
           variant={TextVariant.DisplayMd}
           fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
-          twClassName="w-[90%]"
+          twClassName="w-[85%]"
           testID={SuccessTestIds.TITLE}
         >
           {strings('pro_subscription.success.title', { name: ALY_NAME })}
