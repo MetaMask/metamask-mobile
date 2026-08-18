@@ -4041,8 +4041,8 @@
       "wallet_activity_desc": "Buy, sells, transfers, swaps",
       "perps_title": "Trading activity",
       "perps_desc": "Perps position changes, liquidations, funding rates, and margin updates",
-      "agentic_cli_title": "Agentic CLI",
-      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
+      "agentic_cli_title": "Agent wallet",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agent wallet",
       "social_ai_title": "Trading signals",
       "social_ai_desc": "Updates from traders and assets you follow, plus curated market news",
       "marketing_title": "Updates and rewards",
@@ -7631,6 +7631,7 @@
   },
   "money": {
     "title": "Money",
+    "get_pro": "Get Pro",
     "your_balance": "Your balance",
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
@@ -10521,7 +10522,7 @@
       "description": "Return to the app to continue."
     },
     "show_cli_link_success": {
-      "title": "Agent CLI successfully linked",
+      "title": "Agent wallet successfully linked",
       "description": "Return to the CLI to continue."
     },
     "push_nudge": {
@@ -10535,8 +10536,8 @@
     "show_otp": {
       "title": "Enter this code",
       "description": "Enter {{otp}} in {{dappName}} to finish connecting. This code expires in {{seconds}} seconds.",
-      "modal_title": "Link MetaMask Agent CLI",
-      "modal_description": "Pair MetaMask Mobile with your MetaMask Agent CLI.",
+      "modal_title": "Link MetaMask Agent wallet",
+      "modal_description": "Pair MetaMask Mobile with your MetaMask Agent wallet.",
       "code_label": "ENTER CODE IN TERMINAL",
       "expires_in": "Expires in {{time}}",
       "expired": "Code expired",
