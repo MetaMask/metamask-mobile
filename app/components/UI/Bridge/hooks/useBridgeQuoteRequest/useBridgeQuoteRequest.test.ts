@@ -13,6 +13,7 @@ import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useLatestBalance } from '../useLatestBalance';
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
+import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 
 // Mock isSolanaChainId
 jest.mock('@metamask/bridge-controller', () => ({
@@ -475,7 +476,7 @@ describe('useBridgeQuoteRequest', () => {
   });
 
   it('uses destAddress as destWalletAddress when destination chain is Solana', async () => {
-    const solanaDestChainId = '0xfa'; // Solana chain ID
+    const solanaDestChainId = MultichainNetwork.Solana; // Solana chain ID
     const evmSourceChainId = '0x1'; // Ethereum chain ID
     const destSolanaAddress = 'FakeS0LanaAddr3ss111111111111111111111111111';
 
