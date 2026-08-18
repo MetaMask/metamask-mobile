@@ -148,6 +148,44 @@ describe('useSocialPerpsChartAdapter', () => {
     expect(result.current.ohlcvData).toEqual(baseBars);
   });
 
+  it('does not merge older bars from a fetch that started before interval change', async () => {
+    let resolveFetch!: (value: {
+      requestId: string;
+      seriesGeneration: number;
+      bars: OHLCVBar[];
+      noData: boolean;
+    }) => void;
+    mockBaseHandleFetchOlderBars.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        }),
+    );
+
+    setBaseAdapter([bar(3000), bar(4000)], `${SYMBOL}|${INTERVAL}`);
+    const { result, rerender } = render();
+
+    const pending = result.current.handleFetchOlderBarsRequest(
+      olderRequest({ oldestLoadedTimeMs: 3000 }),
+    );
+
+    const nextBars = [bar(4000), bar(8000)];
+    setBaseAdapter(nextBars, `${SYMBOL}|${CandlePeriod.FourHours}`);
+    rerender({ interval: CandlePeriod.FourHours });
+
+    await act(async () => {
+      resolveFetch({
+        requestId: 'req-1',
+        seriesGeneration: 1,
+        bars: [bar(1000), bar(2000)],
+        noData: false,
+      });
+      await pending;
+    });
+
+    expect(result.current.ohlcvData).toEqual(nextBars);
+  });
+
   it('keeps handleFetchOlderBarsRequest identity stable across unrelated re-renders', async () => {
     // Regression: base adapter returns a new object each render, so any consumer
     // effect that lists this callback in its deps (e.g. TraderAdvancedChart's

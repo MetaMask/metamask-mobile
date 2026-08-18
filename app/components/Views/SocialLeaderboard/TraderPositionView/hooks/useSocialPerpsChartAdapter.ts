@@ -50,14 +50,20 @@ export function useSocialPerpsChartAdapter({
    * series (cache invalidation / empty candle payload).
    */
   const [historicalBars, setHistoricalBars] = useState<OHLCVBar[]>([]);
+  const historyGenerationRef = useRef(0);
+
+  const clearHistoricalBars = () => {
+    historyGenerationRef.current += 1;
+    setHistoricalBars([]);
+  };
 
   useEffect(() => {
-    setHistoricalBars([]);
+    clearHistoricalBars();
   }, [symbol, interval]);
 
   useEffect(() => {
     if (base.ohlcvData.length === 0) {
-      setHistoricalBars([]);
+      clearHistoricalBars();
     }
   }, [base.ohlcvData]);
 
@@ -106,8 +112,12 @@ export function useSocialPerpsChartAdapter({
 
   const handleFetchOlderBarsRequest = useCallback(
     async (req: FetchOlderBarsRequest): Promise<FetchOlderBarsResponse> => {
+      const generation = historyGenerationRef.current;
       const response = await baseFetchOlderBarsRef.current(req);
-      if (response.bars.length > 0) {
+      if (
+        historyGenerationRef.current === generation &&
+        response.bars.length > 0
+      ) {
         setHistoricalBars((prev) => {
           if (prev.length === 0) return response.bars;
           const byTime = new Map<number, OHLCVBar>();
