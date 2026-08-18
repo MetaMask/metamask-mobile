@@ -32,6 +32,10 @@ jest.mock('../../UI/Rewards/hooks/useCandidateSubscriptionId', () => ({
   useCandidateSubscriptionId: () => mockUseCandidateSubscriptionId(),
 }));
 
+jest.mock('../../UI/Rewards/hooks/useRewardsTabPerformance', () => ({
+  useRewardsTabPerformance: jest.fn(),
+}));
+
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectPredictEnabledFlag = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn();

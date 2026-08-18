@@ -62,6 +62,7 @@ import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import useRewardsVersionGuard from '../../UI/Rewards/hooks/useRewardsVersionGuard';
 import { useCandidateSubscriptionId } from '../../UI/Rewards/hooks/useCandidateSubscriptionId';
+import { useRewardsTabPerformance } from '../../UI/Rewards/hooks/useRewardsTabPerformance';
 import RewardsUpdateRequired from '../../UI/Rewards/components/RewardsUpdateRequired/RewardsUpdateRequired';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import RewardsDashboard from '../../UI/Rewards/Views/RewardsDashboard';
@@ -338,6 +339,8 @@ const RewardsHome = () => {
   // 'pending' state). Only RewardsHome mounts for non-opted-in users, so fetching at
   // this shared entry point prevents the onboarding tab from loading indefinitely.
   useCandidateSubscriptionId();
+  // Tab time-to-content: tap Rewards → onboarding content or dashboard shell.
+  useRewardsTabPerformance({ isVersionBlocked });
 
   if (isVersionBlocked) {
     return <RewardsUpdateRequired />;
