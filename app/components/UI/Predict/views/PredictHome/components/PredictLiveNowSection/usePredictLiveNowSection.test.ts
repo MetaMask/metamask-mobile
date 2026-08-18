@@ -19,6 +19,7 @@ import {
   LIVE_NOW_FETCH_LIMIT,
   LIVE_NOW_LIVE_LIMIT,
   CUSTOM_FEED_CAROUSEL_LIMIT,
+  resolvePredictFeedReference,
 } from './usePredictLiveNowSection';
 
 jest.mock('react-redux', () => ({
@@ -27,6 +28,30 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../hooks/usePredictMarketList');
 jest.mock('../../../../hooks/useCurrentPredictMarketFromSeries');
+
+describe('resolvePredictFeedReference', () => {
+  it('keeps remote references opaque and resolves feed membership in Predict', () => {
+    const config = resolvePredictFeedReference(
+      {
+        id: 'markets',
+        type: 'predict-feed',
+        params: { venue: 'polymarket', feedId: 'tennis-open' },
+      },
+      'Tennis',
+    );
+
+    expect(config).toEqual(
+      expect.objectContaining({
+        title: 'Tennis',
+        contentSource: {
+          composition: 'query-results',
+          queryParams: 'tag_slug=tennis',
+          excludedMarketIds: [],
+        },
+      }),
+    );
+  });
+});
 
 const mockUseSelector = useSelector as jest.Mock;
 const mockUsePredictMarketList = usePredictMarketList as jest.Mock;

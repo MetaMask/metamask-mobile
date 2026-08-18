@@ -1,0 +1,32 @@
+{
+  "contractVersion": 1,
+  "configurationVersion": "predict-home-poc-banner-v1",
+  "screenId": "predict-home",
+  "locale": "en",
+  "publishedAt": "2026-08-13T10:00:00.000Z",
+  "slots": [
+    {
+      "slotId": "predict-home.after-categories",
+      "contentId": "predict-poc-dismissible-banner-1",
+      "revision": 1,
+      "widget": {
+        "type": "alert-banner",
+        "schemaVersion": 1,
+        "props": {
+          "tone": "success",
+          "title": "Remote placement works",
+          "description": "Dismiss this content instance; its slot can be filled by a future publication."
+        }
+      },
+      "actions": [
+        {
+          "actionId": "dismiss",
+          "trigger": "close",
+          "params": {
+            "scope": "content"
+          }
+        }
+      ]
+    }
+  ]
+}

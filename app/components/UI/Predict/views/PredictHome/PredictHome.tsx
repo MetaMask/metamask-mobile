@@ -35,6 +35,8 @@ import PredictFeedBanner from '../../components/PredictFeedBanner';
 import { PredictFeedBannerPosition } from '../../constants/feedBanner';
 import PredictOffline from '../../components/PredictOffline';
 import { usePredictTrendingSection } from './components/PredictTrendingSection/usePredictTrendingSection';
+import { useUiSlotsScreen } from '../../../UiSlots/hooks/useUiSlotsScreen';
+import { UiSlotRenderer } from '../../../UiSlots/UiSlotRenderer';
 
 /**
  * Redesigned Predict homepage shell (PRED-834).
@@ -49,6 +51,7 @@ import { usePredictTrendingSection } from './components/PredictTrendingSection/u
  * `predictHomeRedesign.enabled` is true; otherwise `PredictFeed` renders.
  */
 const PredictHome: React.FC = () => {
+  useUiSlotsScreen('predict-home');
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
@@ -202,7 +205,11 @@ const PredictHome: React.FC = () => {
                   PredictEventValues.SECTION_ID.LIVE_NOW,
                 )}
               >
-                <PredictLiveNowSection />
+                <UiSlotRenderer
+                  screenId="predict-home"
+                  slotId="predict-home.live-now"
+                  fallback={<PredictLiveNowSection />}
+                />
               </Box>
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterLiveNow}

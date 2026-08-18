@@ -1,0 +1,54 @@
+{
+  "contractVersion": 1,
+  "configurationVersion": "predict-home-poc-v1",
+  "screenId": "predict-home",
+  "locale": "en",
+  "publishedAt": "2026-08-13T10:00:00.000Z",
+  "slots": [
+    {
+      "slotId": "predict-home.before-portfolio",
+      "contentId": "predict-poc-banner-1",
+      "revision": 1,
+      "widget": {
+        "type": "alert-banner",
+        "schemaVersion": 1,
+        "props": {
+          "tone": "info",
+          "title": "UI Slots POC",
+          "description": "This banner is supplied by the mocked MetaMask UI Slots API"
+        }
+      },
+      "actions": [
+        {
+          "actionId": "dismiss",
+          "trigger": "close",
+          "params": {
+            "scope": "content"
+          }
+        }
+      ]
+    },
+    {
+      "slotId": "predict-home.live-now",
+      "contentId": "predict-poc-carousel-1",
+      "revision": 1,
+      "widget": {
+        "type": "market-carousel",
+        "schemaVersion": 1,
+        "props": {
+          "title": "Popular tennis 2"
+        }
+      },
+      "dataReferences": [
+        {
+          "id": "markets",
+          "type": "predict-feed",
+          "params": {
+            "venue": "polymarket",
+            "feedId": "tennis-open"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -35,6 +35,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'ChompApiService',
   'SentinelApiService',
   'PredictNextController',
+  'UiSlotsDataService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -108,6 +109,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
   'CardController:stateChange',
+  'UiSlotsController:stateChange',
   'ClientController:stateChange',
   'DelegationController:stateChange',
   'ProfileMetricsController:stateChange',
