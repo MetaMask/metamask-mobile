@@ -270,7 +270,7 @@ const EarnInputView = () => {
 
       ///: BEGIN:ONLY_INCLUDE_IF(tron)
       // Navigate to TRX staking learn more modal
-      if (tokenExperience === EARN_EXPERIENCES.TRX_STAKING || isTronNative) {
+      if (isTronNative) {
         navigation.navigate('StakeModals', {
           screen: Routes.STAKING.MODALS.TRX_LEARN_MORE,
         });
@@ -557,7 +557,7 @@ const EarnInputView = () => {
             tokens_to_stake_usd_value: amountFiatNumber,
             estimated_gas_fee: formatEther(estimatedGasFeeWei.toString()),
             estimated_gas_percentage_of_deposit: `${getDepositTxGasPercentage()}%`,
-            experience: stakingExperienceType,
+            experience: EARN_EXPERIENCES.POOLED_STAKING,
           })
           .build(),
       );
@@ -584,7 +584,7 @@ const EarnInputView = () => {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
       tokens_to_stake_native_value: amountToken,
       tokens_to_stake_usd_value: amountFiatNumber,
-      experience: stakingExperienceType,
+      experience: EARN_EXPERIENCES.POOLED_STAKING,
     };
 
     if (isStakingDepositRedesignedEnabled) {
@@ -659,7 +659,6 @@ const EarnInputView = () => {
     earnToken?.chainId,
     earnToken?.isETH,
     earnToken?.experience?.type,
-    stakingExperienceType,
     estimatedGasFeeWei,
     getDepositTxGasPercentage,
     isHighGasCostImpact,

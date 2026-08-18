@@ -771,6 +771,61 @@ describe('EarnInputView', () => {
         }),
       );
     });
+
+    it('tracks TRX staking quick amount with TRX_STAKING experience', async () => {
+      (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
+
+      const TRX_TOKEN = {
+        name: 'TRON',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        isNative: true,
+        address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
+        balance: '100',
+        balanceFiat: '$100',
+        decimals: 6,
+        isETH: false,
+      } as unknown as typeof MOCK_ETH_MAINNET_ASSET;
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...TRX_TOKEN,
+          balanceMinimalUnit: '100000000',
+          balanceFormatted: '100 TRX',
+          balanceFiatNumber: 100,
+          tokenUsdExchangeRate: 1,
+          experiences: [{ type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' }],
+          experience: { type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' },
+        })),
+        getOutputToken: jest.fn(() => undefined),
+      });
+
+      const { getByText } = render(EarnInputView, {
+        params: { token: TRX_TOKEN },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      mockTrackEvent.mockClear();
+
+      await act(async () => {
+        fireEvent.press(getByText('25%'));
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Stake Input Quick Amount Clicked',
+          properties: expect.objectContaining({
+            location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+            amount: 0.25,
+            is_max: false,
+            mode: 'native',
+            experience: EARN_EXPERIENCES.TRX_STAKING,
+          }),
+        }),
+      );
+    });
   });
 
   describe('when values are entered in the keypad', () => {
@@ -2007,6 +2062,57 @@ describe('EarnInputView', () => {
           }),
         }),
       );
+    });
+
+    it('routes TRX info button to TRX learn more modal', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockReturnValue(true);
+      (selectTrxStakingEnabled as unknown as jest.Mock).mockReturnValue(true);
+
+      const trxToken = {
+        name: 'TRON',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        address: 'TEFik7dGm6r5Y1Af9mGwnELuJLa1jXDDUB',
+        isNative: true,
+        isETH: false,
+        decimals: 6,
+        balance: '100',
+        balanceFiat: '$100',
+      } as unknown as typeof MOCK_ETH_MAINNET_ASSET;
+
+      (useEarnTokens as jest.Mock).mockReturnValue({
+        getEarnToken: jest.fn(() => ({
+          ...trxToken,
+          balanceMinimalUnit: '100000000',
+          balanceFormatted: '100 TRX',
+          balanceFiatNumber: 100,
+          tokenUsdExchangeRate: 1,
+          experiences: [{ type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' }],
+          experience: { type: EARN_EXPERIENCES.TRX_STAKING, apr: '0' },
+        })),
+        getOutputToken: jest.fn(() => undefined),
+      });
+
+      const { getAllByTestId } = render(EarnInputView, {
+        params: { token: trxToken },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      const buttonIcons = getAllByTestId('button-icon');
+
+      await act(async () => {
+        fireEvent.press(buttonIcons[1]);
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.EarnFaq,
+        data: { experience: EARN_EXPERIENCES.TRX_STAKING },
+      });
+      expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
+        screen: Routes.STAKING.MODALS.TRX_LEARN_MORE,
+      });
     });
   });
 });

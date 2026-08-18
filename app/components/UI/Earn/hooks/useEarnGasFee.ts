@@ -46,9 +46,8 @@ const useEarnDepositGasFee = (
 
   const getEstimatedEarnGasFee = useCallback(
     async (amountMinimalUnit: BN4) => {
-      const isStaking =
-        earnExperience.type === EARN_EXPERIENCES.POOLED_STAKING ||
-        earnExperience.type === EARN_EXPERIENCES.TRX_STAKING;
+      const isPooledStaking =
+        earnExperience.type === EARN_EXPERIENCES.POOLED_STAKING;
       const isStablecoinLending =
         earnExperience.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
 
@@ -56,7 +55,7 @@ const useEarnDepositGasFee = (
       const result = await GasFeeController.fetchGasFeeEstimates();
 
       let depositGasLimit = DEFAULT_GAS_LIMIT;
-      if (isStaking) {
+      if (isPooledStaking) {
         depositGasLimit = amountMinimalUnit.eq(new BN4(0))
           ? DEFAULT_GAS_LIMIT
           : (await stakingContract?.estimateDepositGas(
@@ -97,13 +96,12 @@ const useEarnDepositGasFee = (
     setIsLoadingEarnGasFee(true);
     setIsEarnGasFeeError(false);
 
-    const isStaking =
-      earnExperience.type === EARN_EXPERIENCES.POOLED_STAKING ||
-      earnExperience.type === EARN_EXPERIENCES.TRX_STAKING;
+    const isPooledStaking =
+      earnExperience.type === EARN_EXPERIENCES.POOLED_STAKING;
     const isStablecoinLending =
       earnExperience.type === EARN_EXPERIENCES.STABLECOIN_LENDING;
 
-    if (isStaking && !stakingContract) {
+    if (isPooledStaking && !stakingContract) {
       setIsEarnGasFeeError(true);
       setIsLoadingEarnGasFee(false);
       return;

@@ -294,7 +294,7 @@ describe('Earnings', () => {
     expect(queryByText('2.5 ETH')).not.toBeOnTheScreen();
   });
 
-  it('navigates to lending learn more modal when earn experience is STABLECOIN_LENDING', async () => {
+  it('navigates to lending learn more modal when earn experience is STABLECOIN_LENDING', () => {
     const mockOutputToken = {
       chainId: '0x1',
       symbol: 'aWETH',
@@ -323,9 +323,7 @@ describe('Earnings', () => {
 
     const { getByText, getByTestId } = render();
 
-    await act(async () => {
-      fireEvent.press(getByTestId('annual-rate-tooltip'));
-    });
+    fireEvent.press(getByTestId('annual-rate-tooltip'));
 
     expect(getByText(strings('earn.lending_earnings'))).toBeOnTheScreen();
     expect(mockNavigate).toHaveBeenCalledWith('EarnModals', {
@@ -365,9 +363,7 @@ describe('Earnings', () => {
 
     const { getByText, getByTestId } = render();
 
-    await act(async () => {
-      fireEvent.press(getByTestId('annual-rate-tooltip'));
-    });
+    fireEvent.press(getByTestId('annual-rate-tooltip'));
 
     expect(getByText(strings('stake.your_earnings'))).toBeOnTheScreen();
     expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
@@ -377,4 +373,5 @@ describe('Earnings', () => {
       },
     });
   });
+
 });
