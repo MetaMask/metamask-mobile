@@ -76,6 +76,8 @@ interface StreamSubscription<T> {
 }
 
 type StreamUpdateSource = 'fresh' | 'cache' | 'optimistic';
+const DYNAMIC_DEX_SNAPSHOT_UNAVAILABLE =
+  'User data snapshot DEX identity is not static';
 
 interface StreamChannelLifecycle {
   onSubscribe?: () => void;
@@ -135,13 +137,13 @@ abstract class StreamChannel<T> {
     updates: T,
     source: StreamUpdateSource = 'fresh',
   ) {
+    this.deliveryRevision += 1;
     // Block emission while any pause is held (WebSocket continues receiving updates)
     if (this.pauseCount > 0) {
       return;
     }
 
     this.lastDeliveredAt = Date.now();
-    this.deliveryRevision += 1;
     this.subscribers.forEach((subscriber) => {
       this.deliverToSubscriber(subscriber, updates, source);
     });
@@ -184,13 +186,13 @@ abstract class StreamChannel<T> {
     updates: T,
     changedSymbols: Iterable<string>,
   ) {
+    this.deliveryRevision += 1;
     // Block emission while any pause is held (WebSocket continues receiving updates)
     if (this.pauseCount > 0) {
       return;
     }
 
     this.lastDeliveredAt = Date.now();
-    this.deliveryRevision += 1;
     // A subscriber registered for multiple changed symbols must be delivered to
     // exactly once per tick (not once per matching symbol).
     const notifiedIds = new Set<string>();
@@ -2474,11 +2476,6 @@ export class PerpsStreamManager {
       this.orders.getLastDeliveredAt(),
       this.account.getLastDeliveredAt(),
     ].some((deliveredAt) => deliveredAt !== null);
-    const deliveryRevisionBaseline = [
-      this.positions.getDeliveryRevision(),
-      this.orders.getDeliveryRevision(),
-      this.account.getDeliveryRevision(),
-    ];
     if (
       this.acceptedUserDataSnapshotKey !== requestKey &&
       !hasPriorLiveDelivery
@@ -2494,6 +2491,12 @@ export class PerpsStreamManager {
         this.acceptedUserDataSnapshotKey = requestKey;
       }
     }
+
+    const deliveryRevisionBaseline = [
+      this.positions.getDeliveryRevision(),
+      this.orders.getDeliveryRevision(),
+      this.account.getDeliveryRevision(),
+    ];
 
     if (
       this.userDataSnapshotPromise &&
@@ -2528,9 +2531,9 @@ export class PerpsStreamManager {
           error,
           'PerpsStreamManager.getUserDataSnapshot',
         );
-        if (
-          safeError.message === 'User data snapshot DEX identity is not static'
-        ) {
+        // Core exposes this expected dynamic-DEX case as a stable message until
+        // the package provides a typed error code.
+        if (safeError.message === DYNAMIC_DEX_SNAPSHOT_UNAVAILABLE) {
           DevLogger.log(
             'PerpsStreamManager: Atomic user snapshot unavailable for dynamic DEX identity',
           );
