@@ -3,10 +3,12 @@ import {
   PredictFeeCollectionSchema,
   PredictFeedBannerSchema,
   PredictFeedCarouselSchema,
+  PredictHiddenMarketsSchema,
   PredictSportsFeedSchema,
 } from './flags';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_PREDICT_FEED_BANNER_FLAG,
   DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
@@ -88,6 +90,79 @@ describe('PredictFeedCarouselSchema', () => {
     };
 
     expect(() => create(input, PredictFeedCarouselSchema)).toThrow(StructError);
+  });
+});
+
+describe('PredictHiddenMarketsSchema', () => {
+  const validFlag = {
+    enabled: true,
+    minimumVersion: '1.0.0',
+    hidden: [
+      {
+        category: 'ending-soon',
+        marketIds: ['event-1'],
+        slugs: ['guinea-bissau-election'],
+      },
+    ],
+  };
+
+  it('returns disabled defaults when input is undefined', () => {
+    const result = create(undefined, PredictHiddenMarketsSchema);
+
+    expect(result).toStrictEqual(DEFAULT_HIDDEN_MARKETS_FLAG);
+  });
+
+  it('preserves a valid config and tolerates future fields', () => {
+    const result = create(
+      { ...validFlag, futureRemoteField: 'ignored' },
+      PredictHiddenMarketsSchema,
+    );
+
+    expect(result).toStrictEqual({
+      ...validFlag,
+      futureRemoteField: 'ignored',
+    });
+  });
+
+  it('defaults omitted entry arrays to empty lists', () => {
+    const result = create(
+      {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        hidden: [{ category: 'ending-soon' }],
+      },
+      PredictHiddenMarketsSchema,
+    );
+
+    expect(result.hidden).toStrictEqual([
+      { category: 'ending-soon', marketIds: [], slugs: [] },
+    ]);
+  });
+
+  it.each([
+    ['minimumVersion', 'not-semver'],
+    ['hidden', 'not-an-array'],
+  ])('throws for unsupported %s value', (field, value) => {
+    const input = { ...validFlag, [field]: value };
+
+    expect(() => create(input, PredictHiddenMarketsSchema)).toThrow(
+      StructError,
+    );
+  });
+
+  it.each([
+    ['category', 123],
+    ['marketIds', ['event-1', 2]],
+    ['slugs', 'guinea-bissau-election'],
+  ])('throws for unsupported entry %s value', (field, value) => {
+    const input = {
+      ...validFlag,
+      hidden: [{ ...validFlag.hidden[0], [field]: value }],
+    };
+
+    expect(() => create(input, PredictHiddenMarketsSchema)).toThrow(
+      StructError,
+    );
   });
 });
 

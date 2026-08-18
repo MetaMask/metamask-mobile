@@ -1,7 +1,7 @@
 /**
  * mUSD conversion E2E API mocks.
  * Sets up feature flags, geolocation, ramp tokens, price APIs, token API,
- * Merkl rewards, Accounts API balance overrides, and Relay quote/status.
+ * Accounts API balance overrides, and Relay quote/status.
  */
 
 import { Mockttp } from 'mockttp';
@@ -165,6 +165,24 @@ export async function setupMusdMocks(
     responseCode: 200,
   });
 
+  // `@metamask/geolocation-controller` v1+ reads geolocation from the
+  // `/v2/geolocation` endpoint (JSON), so mock it alongside the legacy on-ramp
+  // `/geolocation` endpoint (plain text) to keep the US location in effect.
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = getDecodedProxiedURL(request.url);
+      return /geolocation\.(dev-|uat-)?api\.cx\.metamask\.io\/v2\/geolocation/.test(
+        url,
+      );
+    })
+    .asPriority(998)
+    .thenCallback(() => ({
+      statusCode: 200,
+      body: JSON.stringify({ country: 'US', region: null, timezone: null }),
+      headers: { 'content-type': 'application/json' },
+    }));
+
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -221,13 +239,6 @@ export async function setupMusdMocks(
       'i',
     ),
     response: { ...MUSD_TOKEN_API_RESPONSE, chainId: 1 },
-    requestMethod: 'GET',
-    responseCode: 200,
-  });
-
-  await setupMockRequest(mockServer, {
-    url: /api\.merkl\.xyz\/v4\/users\/0x[a-fA-F0-9]+\/rewards\?chainId=/,
-    response: [],
     requestMethod: 'GET',
     responseCode: 200,
   });

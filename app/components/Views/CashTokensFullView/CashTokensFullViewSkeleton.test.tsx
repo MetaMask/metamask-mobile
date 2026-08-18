@@ -4,13 +4,8 @@ import CashTokensFullViewSkeleton, {
   CashTokensFullViewSkeletonTestIds,
 } from './CashTokensFullViewSkeleton';
 
-const {
-  CONTAINER,
-  TOKEN_ROW,
-  EMPTY_STATE_ROW,
-  BONUS_SECTION,
-  CONVERT_SECTION,
-} = CashTokensFullViewSkeletonTestIds;
+const { CONTAINER, TOKEN_ROW, EMPTY_STATE_ROW, CONVERT_SECTION } =
+  CashTokensFullViewSkeletonTestIds;
 
 describe('CashTokensFullViewSkeleton', () => {
   it('renders the skeleton container', () => {
@@ -60,7 +55,7 @@ describe('CashTokensFullViewSkeleton', () => {
     expect(screen.queryByTestId(TOKEN_ROW)).not.toBeOnTheScreen();
   });
 
-  it('renders bonus and convert sections when MoneyHub is enabled', () => {
+  it('renders the convert section when MoneyHub is enabled', () => {
     render(
       <CashTokensFullViewSkeleton
         numChainsWithMusdBalance={0}
@@ -68,11 +63,10 @@ describe('CashTokensFullViewSkeleton', () => {
         conversionTokenCount={2}
       />,
     );
-    expect(screen.getByTestId(BONUS_SECTION)).toBeOnTheScreen();
     expect(screen.getByTestId(CONVERT_SECTION)).toBeOnTheScreen();
   });
 
-  it('omits bonus and convert sections when MoneyHub is disabled', () => {
+  it('omits the convert section when MoneyHub is disabled', () => {
     render(
       <CashTokensFullViewSkeleton
         numChainsWithMusdBalance={2}
@@ -80,7 +74,6 @@ describe('CashTokensFullViewSkeleton', () => {
         conversionTokenCount={0}
       />,
     );
-    expect(screen.queryByTestId(BONUS_SECTION)).not.toBeOnTheScreen();
     expect(screen.queryByTestId(CONVERT_SECTION)).not.toBeOnTheScreen();
   });
 });

@@ -6,7 +6,10 @@ import {
   PlaywrightGestures,
 } from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
-import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
+import {
+  closePredictModal,
+  dismissPushNotificationExistingUserSheet,
+} from '../../flows/wallet.flow';
 import {
   Performance,
   System,
@@ -19,10 +22,7 @@ import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView
 import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
-import {
-  measureCreatePasswordToOnboardingSuccess,
-  measurePredictGtmModalIfShown,
-} from './helpers/seedlessOnboardingTimers';
+import { measureCreatePasswordToOnboardingSuccess } from './helpers/seedlessOnboardingTimers';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -40,7 +40,7 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
 
 /* Seedless Onboarding: Apple Login */
 test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
-  test.setTimeout(300000);
+  test.setTimeout(360000);
 
   test(
     'Seedless Onboarding: Apple Login New User',
@@ -67,12 +67,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(
-        'Apple: Tap "Done" → feature sheet visible',
-        { ios: 2500, android: 5000 },
-        currentDeviceDetails.platform,
-      );
-      const timer6 = new TimerHelper(
-        'Apple: Dismiss feature sheet → wallet main screen visible',
+        'Apple: Tap "Done" → wallet main screen visible',
         { ios: 30000, android: 5000 },
         currentDeviceDetails.platform,
       );
@@ -90,6 +85,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       });
 
       await OnboardingSheet.tapAppleLoginButton();
+      await SocialLoginView.dismissUpdateModalIfPresent();
 
       let isNewUser = true;
 
@@ -134,20 +130,12 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         }
         await PlaywrightGestures.hideKeyboard();
         await CreatePasswordView.tapCreatePasswordButton();
-        //await measureCreatePasswordToOnboardingSuccess(timer4);
-        await timer4.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(OnboardingSuccessView.doneButton),
-          );
-        });
+        await measureCreatePasswordToOnboardingSuccess(timer4);
+
         await OnboardingSuccessView.tapDone();
-
-        // Optional Predict GTM: measure Done → modal when present (no pre-wait).
-        const predictGtmOnboardingModalEnabled =
-          await measurePredictGtmModalIfShown(timer5);
-
-        await dismisspredictionsModalPlaywright();
-        await timer6.measure(async () => {
+        await dismissPushNotificationExistingUserSheet();
+        await closePredictModal();
+        await timer5.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
             asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
             {
@@ -156,14 +144,10 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           );
         });
 
-        const timers = [timer1, timer2, timer4];
+        const timers = [timer1, timer2, timer4, timer5];
         if (currentDeviceDetails.platform === 'ios') {
           timers.splice(2, 0, timer3);
         }
-        if (predictGtmOnboardingModalEnabled) {
-          timers.push(timer5);
-        }
-        timers.push(timer6);
         performanceTracker.addTimers(...timers);
       } else {
         await SocialLoginView.tapAccountFoundLoginButton();

@@ -1,5 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import Engine from '../../../../core/Engine';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useImmersveSiweAuth } from './useImmersveSiweAuth';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -17,6 +19,17 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../util/Logger', () => ({ error: jest.fn() }));
 
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties.mockReturnValue({ build: mockBuild }),
+}));
+
 const mockCard = Engine.context.CardController as jest.Mocked<
   typeof Engine.context.CardController
 >;
@@ -25,7 +38,17 @@ const mockKeyring = Engine.context.KeyringController as jest.Mocked<
 >;
 
 describe('useImmersveSiweAuth', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+    (useAnalytics as jest.Mock).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    });
+  });
 
   it('initiates, signs the SIWE challenge and submits the signature', async () => {
     mockCard.initiateAuth.mockResolvedValue(undefined);
@@ -57,6 +80,15 @@ describe('useImmersveSiweAuth', () => {
       signature: '0xsig',
     });
     expect(authResult).toStrictEqual({ done: true });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_SIWE_AUTH_STARTED,
+    );
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_SIWE_AUTH_COMPLETED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({ provider: 'immersve' }),
+    );
   });
 
   it('throws and records an error when the step is not a SIWE challenge', async () => {
@@ -73,5 +105,14 @@ describe('useImmersveSiweAuth', () => {
 
     expect(mockKeyring.signPersonalMessage).not.toHaveBeenCalled();
     expect(result.current.error).not.toBeNull();
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_SIWE_AUTH_FAILED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'immersve',
+        error_type: 'unexpected_auth_step',
+      }),
+    );
   });
 });

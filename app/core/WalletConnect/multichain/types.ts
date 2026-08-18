@@ -10,6 +10,7 @@ import type {
 } from '@metamask/utils';
 import type { Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
 import { type WalletKitTypes } from '@reown/walletkit';
+import type { OriginMetadata } from '@metamask/snaps-sdk';
 
 /**
  * A namespace slice in WalletConnect's approved namespaces map.
@@ -85,6 +86,7 @@ interface AdapterRequestContext {
    * platform supports origin metadata (WPC-1194 / WPC-1195).
    */
   origin: string;
+  originMetadata: OriginMetadata;
   connectedAddresses: CaipAccountId[];
   scope: CaipChainId;
   requestId: number;

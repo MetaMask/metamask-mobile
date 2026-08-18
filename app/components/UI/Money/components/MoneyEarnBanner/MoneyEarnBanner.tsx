@@ -51,7 +51,7 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useMoneyCtaVisibility } from '../../hooks/useMoneyCtaVisibility';
 import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
@@ -174,7 +174,7 @@ const MoneyEarnBannerContent = ({
   tokenKey,
 }: MoneyEarnBannerContentProps) => {
   const dispatch = useDispatch();
-  const { apyPercent } = useMoneyAccountBalance();
+  const { apyPercent } = useMoneyVaultApy();
   const { initiateDeposit } = useMoneyAccountDeposit();
   const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
   const { trackTokenButtonClicked, trackTokenSurfaceClicked } =

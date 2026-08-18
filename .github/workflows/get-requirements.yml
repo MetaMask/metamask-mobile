@@ -24,13 +24,13 @@ on:
         description: 'Whether merge should be blocked for E2E readiness. True when "pr-not-ready-for-e2e" label is applied AND changes are not ignorable-only (i.e. E2E is actually relevant). Ignorable-only PRs (docs, assets, configs, test files) bypass the block automatically.'
         value: ${{ jobs.detect-changes.outputs.block_merge_for_e2e_readiness }}
       run_smart_e2e_selection:
-        description: 'Whether the smart-e2e-selection job should run. False for non-PR events, forks, or hard E2E skips.'
+        description: 'Whether the smart-e2e-selection job should run. False for non-PR events, forks, stable-target synchronization PRs, or hard E2E skips.'
         value: ${{ jobs.detect-changes.outputs.run_smart_e2e_selection }}
       run_performance:
         description: 'Whether performance E2E tests should be forced to run via the run-performance-tests PR label'
         value: ${{ jobs.detect-changes.outputs.run_performance }}
       run_appium_ios:
-        description: 'Whether Appium iOS smoke tests should also run on a PR via the run-appium-ios-tests label or e2e smoke infra / smoke-appium file changes'
+        description: 'Whether Appium iOS smoke tests should also run on an eligible PR via the run-appium-ios-tests label or e2e smoke infra / smoke-appium file changes'
         value: ${{ jobs.detect-changes.outputs.run_appium_ios }}
       native_build_needed:
         description: 'Whether fresh iOS/Android native E2E builds are required. False when only E2E/performance test files changed — CI reuses main branch builds instead.'
@@ -150,6 +150,7 @@ jobs:
         if: steps.skip-merge-queue.outputs.up-to-date != 'true'
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
           IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
           SHOULD_SKIP_E2E: ${{ steps.skip-e2e-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
           LABEL_BLOCKS_MERGE: ${{ steps.check-labels.outputs.LABEL_BLOCKS_MERGE }}

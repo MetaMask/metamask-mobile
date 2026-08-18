@@ -1,14 +1,35 @@
 import React, { createRef } from 'react';
+import { CaipChainId } from '@metamask/utils';
 import { initialState } from '../../_mocks_/initialState';
 import { act, fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { TokenInputArea, TokenInputAreaRef, TokenInputAreaType } from '.';
-import { BridgeToken } from '../../types';
+import { BridgeToken, TokenSelectorType } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { POLYGON_NATIVE_TOKEN } from '../../constants/assets';
+import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn(),
+}));
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+const mockTrackUnifiedSwapBridgeEvent = jest.fn();
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      BridgeController: {
+        trackUnifiedSwapBridgeEvent: (...args: unknown[]) =>
+          mockTrackUnifiedSwapBridgeEvent(...args),
+      },
+    },
+  },
 }));
 
 // Mock Input to expose focus/blur/isFocused on its ref for imperative handle tests.
@@ -111,6 +132,73 @@ describe('TokenInputArea', () => {
     mockUseFormattedBalanceWithThreshold.mockReturnValue('100');
     mockUseDisplayCurrencyValue.mockReturnValue('$100.00');
     mockUseIsInsufficientBalance.mockReturnValue(false);
+  });
+
+  describe('empty state token selector navigation', () => {
+    it('navigates to the source token selector with enabledChainIds when the source "Select token" button is pressed', () => {
+      const enabledChainIds: CaipChainId[] = ['eip155:1', 'eip155:56'];
+      const { getByTestId } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            isSourceToken
+            enabledChainIds={enabledChainIds}
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('token-input'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
+        type: TokenSelectorType.Source,
+        enabledChainIds,
+      });
+    });
+
+    it('navigates to the destination token selector with enabledChainIds when the dest "Select token" button is pressed', () => {
+      const enabledChainIds: CaipChainId[] = ['eip155:1', 'eip155:56'];
+      const { getByTestId } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Destination}
+            enabledChainIds={enabledChainIds}
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('token-input'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
+        type: TokenSelectorType.Dest,
+        enabledChainIds,
+      });
+    });
+
+    it('navigates with enabledChainIds undefined when the prop is not provided', () => {
+      const { getByTestId } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Destination}
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('token-input'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
+        type: TokenSelectorType.Dest,
+        enabledChainIds: undefined,
+      });
+    });
   });
 
   it('renders with initial state', () => {

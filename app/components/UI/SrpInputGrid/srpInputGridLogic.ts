@@ -1,8 +1,7 @@
 import React from 'react';
 import { Keyboard } from 'react-native';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
-import { SPACE_CHAR, SRP_LENGTHS } from '../../../util/srp/srpInputUtils';
-import { isValidMnemonic } from '../../../util/validators';
+import { MAX_SRP_LENGTH, SPACE_CHAR } from '../../../util/srp/srpInputUtils';
 import Logger from '../../../util/Logger';
 import { SrpInputGridProps } from './SrpInputGrid.types';
 
@@ -61,25 +60,16 @@ export const applySeedPhraseChangeAtIndex = ({
       const normalizedWords = mergedSeedPhrase
         .map((w) => w.trim())
         .filter((w) => w !== '');
-      const maxAllowed = Math.max(...SRP_LENGTHS);
-      const hasReachedMax = normalizedWords.length >= maxAllowed;
-      const isCompleteAndValid =
-        SRP_LENGTHS.includes(normalizedWords.length) &&
-        isValidMnemonic(normalizedWords.join(SPACE_CHAR));
+      const hasReachedMax = normalizedWords.length >= MAX_SRP_LENGTH;
 
       let nextSeedPhraseState = normalizedWords;
-      if (
-        isEndWithSpace &&
-        index === seedPhrase.length - 1 &&
-        !isCompleteAndValid &&
-        !hasReachedMax
-      ) {
+      if (isEndWithSpace && index === seedPhrase.length - 1 && !hasReachedMax) {
         nextSeedPhraseState = [...normalizedWords, ''];
       }
 
       onSeedPhraseChange(nextSeedPhraseState);
 
-      if (isCompleteAndValid || hasReachedMax) {
+      if (hasReachedMax) {
         Keyboard.dismiss();
         setNextSeedPhraseInputFocusedIndex(null);
         return;

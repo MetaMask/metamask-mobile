@@ -21,8 +21,12 @@ export interface PerpsModeToggleProps {
   /**
    * Called when the user selects a different mode. In the `'active'` variant,
    * this fires with the opposite mode when the pill is pressed.
+   *
+   * Return `false` when the mode was **not** applied (e.g. the one-time Lite/Pro
+   * chooser opened instead). The toggle only emits analytics when the result is
+   * not `false`, so a dismissed chooser is not counted as a mode switch.
    */
-  onChange?: (mode: PerpsMode) => void | Promise<void>;
+  onChange?: (mode: PerpsMode) => boolean | void | Promise<boolean | void>;
 
   /**
    * @default 'toggle'

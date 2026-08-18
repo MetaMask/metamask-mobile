@@ -5,6 +5,7 @@ import reducer, {
   setSourceAmount,
   setDestAmount,
   resetBridgeState,
+  resetBridgeDestToken,
   setSlippage,
   setSlippageUserOverride,
   setBridgeViewMode,
@@ -584,6 +585,41 @@ describe('bridge slice', () => {
     });
   });
 
+  describe('resetBridgeDestToken', () => {
+    const stateWithDestSelection = {
+      ...initialState,
+      sourceToken: mockToken,
+      sourceAmount: '1.5',
+      destToken: mockDestToken,
+      selectedDestChainId: '0x89' as Hex,
+      isDestTokenManuallySet: true,
+      slippage: '3.5',
+      isSlippageUserOverride: true,
+    };
+
+    it('clears the destination token, its chain and the manual selection flag', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.destToken).toBeUndefined();
+      expect(newState.selectedDestChainId).toBeUndefined();
+      expect(newState.isDestTokenManuallySet).toBe(false);
+    });
+
+    it('clears slippage since it belonged to the cleared token pair', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.slippage).toBeUndefined();
+      expect(newState.isSlippageUserOverride).toBe(false);
+    });
+
+    it('leaves the source selection and amount untouched', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.sourceToken).toEqual(mockToken);
+      expect(newState.sourceAmount).toBe('1.5');
+    });
+  });
+
   describe('selectBip44DefaultPair', () => {
     it('should return sourceAsset and destAsset when valid bip44DefaultPairs exist for eip155', () => {
       const result = selectBip44DefaultPair(
@@ -877,6 +913,48 @@ describe('bridge slice', () => {
             chain.chainId === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         ),
       ).toBe(true);
+    });
+
+    it('restricts chainRanking to enabledChainIds when provided, ignoring ALLOWED_BRIDGE_CHAIN_IDS', () => {
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
+        [
+          { chainId: 'eip155:1', name: 'Ethereum' },
+          { chainId: 'eip155:137', name: 'Polygon' },
+          // Not in ALLOWED_BRIDGE_CHAIN_IDS, but included in enabledChainIds below.
+          { chainId: 'eip155:99999', name: 'Unsupported Future Chain' },
+        ];
+
+      const result = selectAllowedChainRanking(
+        mockState as unknown as RootState,
+        ['eip155:1' as CaipChainId, 'eip155:99999' as CaipChainId],
+      );
+
+      expect(result).toEqual([
+        { chainId: 'eip155:1', name: 'Ethereum' },
+        { chainId: 'eip155:99999', name: 'Unsupported Future Chain' },
+      ]);
+    });
+
+    it('returns an empty array when enabledChainIds is an empty array', () => {
+      const result = selectAllowedChainRanking(
+        mockRootState as unknown as RootState,
+        [],
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('falls back to the ALLOWED_BRIDGE_CHAIN_IDS filter when enabledChainIds is undefined', () => {
+      const withoutOverride = selectAllowedChainRanking(
+        mockRootState as unknown as RootState,
+      );
+      const withUndefinedOverride = selectAllowedChainRanking(
+        mockRootState as unknown as RootState,
+        undefined,
+      );
+
+      expect(withUndefinedOverride).toEqual(withoutOverride);
     });
   });
 

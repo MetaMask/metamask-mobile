@@ -26,7 +26,7 @@ jest.mock('react-redux', () => ({
 
 const mockDispatch = jest.fn();
 const mockInitiateDeposit = jest.fn();
-const mockUseMoneyAccountBalance = jest.fn();
+const mockUseMoneyVaultApy = jest.fn();
 const mockRedirectToOnboardingIfNeeded = jest.fn();
 const mockShouldShowMoneyEarnBanner = jest.fn();
 const mockTrackTokenButtonClicked = jest.fn();
@@ -38,9 +38,9 @@ jest.mock('../../hooks/useMoneyAccount', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useMoneyAccountBalance', () => ({
+jest.mock('../../hooks/useMoneyVaultApy', () => ({
   __esModule: true,
-  default: () => mockUseMoneyAccountBalance(),
+  default: () => mockUseMoneyVaultApy(),
 }));
 
 jest.mock('../../hooks/useMoneyAnalytics');
@@ -82,7 +82,7 @@ describe('MoneyEarnBanner', () => {
     mockInitiateDeposit.mockResolvedValue(undefined);
     mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
     mockShouldShowMoneyEarnBanner.mockReturnValue(true);
-    mockUseMoneyAccountBalance.mockReturnValue({ apyPercent: undefined });
+    mockUseMoneyVaultApy.mockReturnValue({ apyPercent: undefined });
     mockUseMoneyAnalytics.mockReturnValue({
       trackTokenButtonClicked: mockTrackTokenButtonClicked,
       trackTokenSurfaceClicked: mockTrackTokenSurfaceClicked,
@@ -144,7 +144,7 @@ describe('MoneyEarnBanner', () => {
     });
 
     it('renders the title with the APY when apyPercent is positive', () => {
-      mockUseMoneyAccountBalance.mockReturnValue({ apyPercent: 5.2 });
+      mockUseMoneyVaultApy.mockReturnValue({ apyPercent: 5.2 });
 
       const { getByTestId } = render(<MoneyEarnBanner asset={MOCK_USDC} />);
 
@@ -154,7 +154,7 @@ describe('MoneyEarnBanner', () => {
     });
 
     it('falls back to the no-APY title when apyPercent is unavailable', () => {
-      mockUseMoneyAccountBalance.mockReturnValue({ apyPercent: undefined });
+      mockUseMoneyVaultApy.mockReturnValue({ apyPercent: undefined });
 
       const { getByTestId } = render(<MoneyEarnBanner asset={MOCK_USDC} />);
 
