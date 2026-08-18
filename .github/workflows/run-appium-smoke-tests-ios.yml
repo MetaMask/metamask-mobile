@@ -59,6 +59,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider || 'current' }}
     secrets: inherit
 
+  # Temporarily skip Perps Appium smoke on 8.7.1-ota (same as 8.7.0).
   #   if: >-
   #     ${{
   #       !cancelled() &&

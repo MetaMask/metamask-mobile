@@ -80,6 +80,8 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
 
+  # Temporarily skip Perps Appium smoke on 8.7.1-ota (same as 8.7.0).
+  # Order screen / scrollIntoView flakes; not caused by the Rive cherry-pick.
   #   if: >-
   #     ${{
   #       !cancelled() &&
