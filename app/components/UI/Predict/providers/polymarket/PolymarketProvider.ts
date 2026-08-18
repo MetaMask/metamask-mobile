@@ -111,7 +111,6 @@ import {
   SignatureType,
   PolymarketApiActivity,
   PolymarketApiEvent,
-  PolymarketApiEventsKeysetResponse,
   PolymarketApiTeam,
   PolymarketPosition,
 } from './types';
@@ -1197,21 +1196,20 @@ export class PolymarketProvider implements PredictProvider {
       });
 
       const response = await fetchWithTimeout(
-        `${GAMMA_API_ENDPOINT}/events/keyset?${queryParams.toString()}`,
+        `${GAMMA_API_ENDPOINT}/events?${queryParams.toString()}`,
       );
 
       if (!response.ok) {
         throw new Error('Failed to fetch series events');
       }
 
-      const responseData =
-        (await response.json()) as PolymarketApiEventsKeysetResponse;
+      const responseData = (await response.json()) as unknown;
 
-      if (!Array.isArray(responseData.events)) {
-        throw new Error('Malformed keyset series events response');
+      if (!Array.isArray(responseData)) {
+        throw new Error('Malformed series events response');
       }
 
-      const events = responseData.events;
+      const events = responseData as PolymarketApiEvent[];
 
       if (events.length === 0) {
         return [];
@@ -1489,9 +1487,23 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<number | null> {
     try {
       const { CRYPTO_PRICE_ENDPOINT } = getPolymarketEndpoints();
-      const url = `${CRYPTO_PRICE_ENDPOINT}?symbol=${encodeURIComponent(params.symbol)}&eventStartTime=${encodeURIComponent(params.eventStartTime)}&variant=${encodeURIComponent(params.variant)}&endDate=${encodeURIComponent(params.endDate)}`;
+      const queryParams = new URLSearchParams({
+        symbol: params.symbol,
+        eventStartTime: params.eventStartTime,
+        variant: params.variant,
+        endDate: params.endDate,
+      });
+      if (params.twapWindowSeconds !== undefined) {
+        queryParams.set('twapEnabled', 'true');
+        queryParams.set(
+          'twapLookbackSeconds',
+          params.twapWindowSeconds.toString(),
+        );
+      }
 
-      const response = await fetchWithTimeout(url);
+      const response = await fetchWithTimeout(
+        `${CRYPTO_PRICE_ENDPOINT}?${queryParams.toString()}`,
+      );
       if (!response.ok) {
         throw new Error(`Crypto target price API returned ${response.status}`);
       }

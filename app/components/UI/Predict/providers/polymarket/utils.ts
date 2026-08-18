@@ -1823,15 +1823,19 @@ export const getMarketDetailsFromGammaApi = async ({
 }): Promise<PolymarketApiEvent> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
   const response = await fetchWithTimeout(
-    `${GAMMA_API_ENDPOINT}/events/${marketId}`,
+    `${GAMMA_API_ENDPOINT}/events?id=${encodeURIComponent(marketId)}`,
   );
 
   if (!response.ok) {
     throw new Error('Failed to get market details');
   }
 
-  const responseData = await response.json();
-  return responseData as PolymarketApiEvent;
+  const responseData = (await response.json()) as unknown;
+  if (!Array.isArray(responseData) || responseData.length === 0) {
+    throw new Error('Market details not found');
+  }
+
+  return responseData[0] as PolymarketApiEvent;
 };
 
 export const fetchChildEventsFromGammaApi = async ({

@@ -802,13 +802,13 @@ describe('PolymarketProvider', () => {
       ]);
     });
 
-    it('fetches market series from keyset endpoint', async () => {
+    it('fetches market series from the endpoint that includes live event metadata', async () => {
       const provider = createProvider();
       const events = [{ id: 'event-1' }];
       const markets = [{ id: 'market-1', outcomes: [{ id: 'outcome-1' }] }];
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
-        json: jest.fn().mockResolvedValue({ events, next_cursor: null }),
+        json: jest.fn().mockResolvedValue(events),
       });
       mockParsePolymarketEvents.mockReturnValue(markets as never);
 
@@ -821,7 +821,8 @@ describe('PolymarketProvider', () => {
       ).resolves.toEqual(markets);
 
       const [url] = (global.fetch as jest.Mock).mock.calls[0];
-      expect(url).toContain('https://gamma-api.polymarket.com/events/keyset?');
+      expect(url).toContain('https://gamma-api.polymarket.com/events?');
+      expect(url).not.toContain('/events/keyset?');
       expect(url).toContain('series_id=series-1');
     });
 
@@ -901,6 +902,49 @@ describe('PolymarketProvider', () => {
       await expect(provider.getPrices({ queries: [] })).rejects.toThrow(
         'queries parameter is required and must not be empty',
       );
+    });
+  });
+
+  describe('getCryptoTargetPrice', () => {
+    it('requests the matching TWAP price for TWAP markets', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ openPrice: 64544.60401529397 }),
+      });
+
+      const result = await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2026-08-18T22:30:00Z',
+        variant: 'fiveminute',
+        endDate: '2026-08-18T22:35:00Z',
+        twapWindowSeconds: 60,
+      });
+
+      expect(result).toBe(64544.60401529397);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      const [url] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).toContain('twapEnabled=true');
+      expect(url).toContain('twapLookbackSeconds=60');
+    });
+
+    it('omits TWAP parameters for spot-price markets', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ openPrice: 64551.57 }),
+      });
+
+      await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2026-08-18T22:30:00Z',
+        variant: 'fiveminute',
+        endDate: '2026-08-18T22:35:00Z',
+      });
+
+      const [url] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).not.toContain('twapEnabled');
+      expect(url).not.toContain('twapLookbackSeconds');
     });
   });
 
