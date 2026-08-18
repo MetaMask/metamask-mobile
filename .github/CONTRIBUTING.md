@@ -26,9 +26,9 @@ When you're done with your project / bugfix / feature and ready to submit a PR, 
 
 ### Runner provider switch
 
-Which runner fleet a job lands on is controlled by four repository-level Actions variables. They exist so the whole fleet can be moved — or rolled back — by editing a variable, with no code change, no revert and no redeploy.
+Which runner fleet a job lands on is controlled by four repository-level Actions variables. They exist so the fleet can be moved or rolled back by editing variables, with no code change, no revert and no redeploy.
 
-- `NAMESPACE_RUNNER_PROVIDER` — fleet-wide default. One edit moves everything.
+- `NAMESPACE_RUNNER_PROVIDER` — fallback when the job's platform variable is unset. It does not override `NAMESPACE_RUNNER_LINUX` / `_ANDROID` / `_IOS`.
 - `NAMESPACE_RUNNER_IOS` — iOS and macOS jobs only.
 - `NAMESPACE_RUNNER_ANDROID` — Android build and e2e jobs only.
 - `NAMESPACE_RUNNER_LINUX` — everything else (lint, unit, integration, upload and summary jobs).
@@ -49,13 +49,13 @@ Push-, schedule- and `merge_group`-triggered workflows have no dispatch inputs, 
 
 The production build chain (`build.yml`, `setup-node-modules.yml`, `upload-to-testflight.yml` and their callers) and PR CI (`ci.yml` plus the Android/iOS e2e build workflows) are on the switch. BrowserStack native builds go through `build.yml` and follow the fleet; the upload jobs stay on Cirrus / `ubuntu-latest`. OTA `eas-update-platform.yml` is still hardcoded to Cirrus.
 
-Appium jobs and fixture validation stay pinned to Cirrus (`runner_provider: current`) until Namespace artifact-store parity. A workflow that hardcodes `current` at its call site is opted out on purpose.
+Appium jobs, fixture validation, and the scheduled arm64 E2E APK build stay pinned to Cirrus (`runner_provider: current`) until Namespace artifact-store parity. A workflow that hardcodes `current` at its call site is opted out on purpose.
 
 A few short GitHub-hosted jobs stay on `ubuntu-latest` on purpose and do not follow `NAMESPACE_RUNNER_LINUX`: `get-requirements.yml`, `native-build-fingerprint`, `prepare-e2e-timings`, `ios-tests-ready`, and `cleanup-ci-js-deps`.
 
 #### Rolling back
 
-- Everything back to the pre-migration routing: set `NAMESPACE_RUNNER_PROVIDER=current`.
+- Everything back to the pre-migration routing: set `NAMESPACE_RUNNER_LINUX`, `NAMESPACE_RUNNER_ANDROID`, and `NAMESPACE_RUNNER_IOS` to `current` (or clear them). `NAMESPACE_RUNNER_PROVIDER=current` alone does nothing while those platform vars stay `namespace`.
 - Android only, leaving iOS and Linux on Namespace: set `NAMESPACE_RUNNER_ANDROID=current`.
 - iOS only: set `NAMESPACE_RUNNER_IOS=current`.
 - Generic Linux CI jobs back to `ubuntu-latest`: set `NAMESPACE_RUNNER_LINUX=current`.
