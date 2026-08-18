@@ -113,7 +113,7 @@ export declare class LighterProvider implements PerpsProvider {
     placeOrder(params: OrderParams, inheritedGeneration?: number): Promise<OrderResult>;
     cancelOrder(params: CancelOrderParams, inheritedGeneration?: number): Promise<CancelOrderResult>;
     editOrder(_params: EditOrderParams): Promise<OrderResult>;
-    closePosition(params: ClosePositionParams): Promise<OrderResult>;
+    closePosition(rawParams: ClosePositionParams): Promise<OrderResult>;
     updatePositionTPSL(params: UpdatePositionTPSLParams): Promise<OrderResult>;
     updateMargin(params: UpdateMarginParams): Promise<MarginResult>;
     withdraw(params: WithdrawParams): Promise<WithdrawResult>;
@@ -169,8 +169,8 @@ export declare class LighterProvider implements PerpsProvider {
     getWebSocketConnectionState(): WebSocketConnectionState;
     subscribeToConnectionState(listener: (state: WebSocketConnectionState, reconnectionAttempt: number) => void): () => void;
     reconnect(): Promise<void>;
-    getDepositRoutes(_params?: GetSupportedPathsParams): AssetRoute[];
-    getWithdrawalRoutes(_params?: GetSupportedPathsParams): AssetRoute[];
+    getDepositRoutes(params?: GetSupportedPathsParams): AssetRoute[];
+    getWithdrawalRoutes(params?: GetSupportedPathsParams): AssetRoute[];
     getBlockExplorerUrl(address?: string): string;
 }
 export {};

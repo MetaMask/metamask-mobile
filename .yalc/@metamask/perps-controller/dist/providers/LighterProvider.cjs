@@ -24,7 +24,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _LighterProvider_deps, _LighterProvider_clientService, _LighterProvider_walletService, _LighterProvider_messenger, _LighterProvider_signerBridge, _LighterProvider_isTestnet, _LighterProvider_apiKeyIndex, _LighterProvider_configuredAccountIndex, _LighterProvider_marketsBySymbol, _LighterProvider_marketsById, _LighterProvider_accountIndex, _LighterProvider_boundAddress, _LighterProvider_sessionGeneration, _LighterProvider_priceSubscribers, _LighterProvider_pricePollTimer, _LighterProvider_priceWs, _LighterProvider_pricePollCycle, _LighterProvider_webSocketCtor, _LighterProvider_wsWantedChannels, _LighterProvider_wsKeepaliveTimer, _LighterProvider_connectionState, _LighterProvider_wsReconnectAttempts, _LighterProvider_connectionListeners, _LighterProvider_setConnectionState, _LighterProvider_wsReconnectTimer, _LighterProvider_lastPriceBySymbol, _LighterProvider_wsPositions, _LighterProvider_wsOrders, _LighterProvider_oiCapSubscribers, _LighterProvider_accountSubscribers, _LighterProvider_positionSubscribers, _LighterProvider_orderSubscribers, _LighterProvider_fillSubscribers, _LighterProvider_orderBookSubscribers, _LighterProvider_orderBookState, _LighterProvider_candleSubscribers, _LighterProvider_candleSeries, _LighterProvider_accountChannelsPromise, _LighterProvider_venuePublicKey, _LighterProvider_signerReadyPromise, _LighterProvider_authToken, _LighterProvider_getErrorContext, _LighterProvider_rawSignerBridge, _LighterProvider_getSignerBridge, _LighterProvider_invalidateSignerSession, _LighterProvider_clearBridgeOwnership, _LighterProvider_ensureSessionBinding, _LighterProvider_rebuildStreamForSubscribers, _LighterProvider_ensureAccountIndex, _LighterProvider_assertStandardAccount, _LighterProvider_isUnsupportedCapabilityError, _LighterProvider_isDataIntegrityError, _LighterProvider_tpslUnsettled, _LighterProvider_nonceReservations, _LighterProvider_tpslOperationCounter, _LighterProvider_signerIdentity, _LighterProvider_signerRecreateParams, _LighterProvider_nonceLedgerKey, _LighterProvider_readNonceLedger, _LighterProvider_writeNonceLedger, _LighterProvider_resolveNonceLedgerEntryConsumed, _LighterProvider_resolveNonceLedger, _LighterProvider_releaseNonceReservationIfUnconsumed, _LighterProvider_tpslJournalKey, _LighterProvider_tpslJournalOpKey, _LighterProvider_loadTpslJournal, _LighterProvider_tpslJournalIndexKey, _LighterProvider_readTpslJournalIndex, _LighterProvider_tpslManualKey, _LighterProvider_tpslManualIndexKey, _LighterProvider_readTpslManualIndex, _LighterProvider_writeTpslManualRecovery, _LighterProvider_loadTpslManualRecovery, _LighterProvider_clearTpslManualRecovery, _LighterProvider_persistTpslJournal, _LighterProvider_clearTpslJournal, _LighterProvider_makeInactiveReader, _LighterProvider_tpslRecoveryGeneration, _LighterProvider_tpslRecoveryInFlight, _LighterProvider_tpslRecoveryKickPending, _LighterProvider_kickTpslRecovery, _LighterProvider_recoverPendingTpslJournals, _LighterProvider_recoverTpslSymbol, _LighterProvider_settleTpslObligation, _LighterProvider_settleTpslObligationLocked, _LighterProvider_reconcilePriorTpsl, _LighterProvider_releaseNonceReservation, _LighterProvider_awaitTpslVisibility, _LighterProvider_assertSession, _LighterProvider_invalidateSessionState, _LighterProvider_ensureSignerReady, _LighterProvider_setupSigner, _LighterProvider_isVenueKeyRegistered, _LighterProvider_registerVenueKey, _LighterProvider_writeChain, _LighterProvider_issuedClientOrderIds, _LighterProvider_allocateClientOrderIndexes, _LighterProvider_withVenueWriteLock, _LighterProvider_withVenueNonce, _LighterProvider_reestablishSignerClient, _LighterProvider_getAuthToken, _LighterProvider_ensureMarkets, _LighterProvider_readOpenOrdersStrict, _LighterProvider_resolveLeverageIntent, _LighterProvider_resolveMarketReferencePrice, _LighterProvider_validateCloseShape, _LighterProvider_isVerifiedFullClose, _LighterProvider_validateOrderChecks, _LighterProvider_validateClosePositionChecks, _LighterProvider_marginBySymbol, _LighterProvider_maxLeverageForMarketId, _LighterProvider_requireMarketMaxLeverage, _LighterProvider_marginFetchedAt, _LighterProvider_marginRefreshInFlight, _LighterProvider_ensureMarketMargins, _LighterProvider_ensureAccountChannels, _LighterProvider_hasAnySubscriber, _LighterProvider_requestChannel, _LighterProvider_sendSubscribe, _LighterProvider_releaseChannelIfUnused, _LighterProvider_ensureStream, _LighterProvider_connectWs, _LighterProvider_handleWsMessage, _LighterProvider_handleOrderBookMessage, _LighterProvider_handleCandleMessage, _LighterProvider_handleTradesMessage, _LighterProvider_dispatchOICaps, _LighterProvider_emitToOrderSubscribers, _LighterProvider_logSubscriberError, _LighterProvider_startPricePolling, _LighterProvider_emitPolledPrices, _LighterProvider_dispatchPriceUpdates, _LighterProvider_deliverPrices, _LighterProvider_clearKeepalive, _LighterProvider_teardownStream, _LighterProvider_bridgeRoute;
+var _LighterProvider_deps, _LighterProvider_clientService, _LighterProvider_walletService, _LighterProvider_messenger, _LighterProvider_signerBridge, _LighterProvider_isTestnet, _LighterProvider_apiKeyIndex, _LighterProvider_configuredAccountIndex, _LighterProvider_marketsBySymbol, _LighterProvider_marketsById, _LighterProvider_accountIndex, _LighterProvider_boundAddress, _LighterProvider_sessionGeneration, _LighterProvider_priceSubscribers, _LighterProvider_pricePollTimer, _LighterProvider_priceWs, _LighterProvider_pricePollCycle, _LighterProvider_webSocketCtor, _LighterProvider_wsWantedChannels, _LighterProvider_wsKeepaliveTimer, _LighterProvider_connectionState, _LighterProvider_wsReconnectAttempts, _LighterProvider_connectionListeners, _LighterProvider_setConnectionState, _LighterProvider_wsReconnectTimer, _LighterProvider_lastPriceBySymbol, _LighterProvider_wsPositions, _LighterProvider_wsOrders, _LighterProvider_oiCapSubscribers, _LighterProvider_accountSubscribers, _LighterProvider_positionSubscribers, _LighterProvider_orderSubscribers, _LighterProvider_fillSubscribers, _LighterProvider_orderBookSubscribers, _LighterProvider_orderBookState, _LighterProvider_candleSubscribers, _LighterProvider_candleSeries, _LighterProvider_accountChannelsPromise, _LighterProvider_venuePublicKey, _LighterProvider_signerReadyPromise, _LighterProvider_authToken, _LighterProvider_getErrorContext, _LighterProvider_rawSignerBridge, _LighterProvider_getSignerBridge, _LighterProvider_invalidateSignerSession, _LighterProvider_clearBridgeOwnership, _LighterProvider_ensureSessionBinding, _LighterProvider_rebuildStreamForSubscribers, _LighterProvider_ensureAccountIndex, _LighterProvider_assertStandardAccount, _LighterProvider_isUnsupportedCapabilityError, _LighterProvider_isDataIntegrityError, _LighterProvider_tpslUnsettled, _LighterProvider_nonceReservations, _LighterProvider_tpslOperationCounter, _LighterProvider_signerIdentity, _LighterProvider_signerRecreateParams, _LighterProvider_nonceLedgerKey, _LighterProvider_readNonceLedger, _LighterProvider_writeNonceLedger, _LighterProvider_withLedgerLock, _LighterProvider_resolveEntryPostDispatch, _LighterProvider_resolveNonceLedger, _LighterProvider_resolveNonceLedgerLocked, _LighterProvider_releaseNonceReservationIfUnconsumed, _LighterProvider_tpslJournalKey, _LighterProvider_tpslJournalOpKey, _LighterProvider_loadTpslJournal, _LighterProvider_tpslJournalIndexKey, _LighterProvider_readTpslJournalIndex, _LighterProvider_tpslManualKey, _LighterProvider_tpslManualIndexKey, _LighterProvider_readTpslManualIndex, _LighterProvider_writeTpslManualRecovery, _LighterProvider_loadTpslManualRecovery, _LighterProvider_clearTpslManualRecovery, _LighterProvider_persistTpslJournal, _LighterProvider_clearTpslJournal, _LighterProvider_makeInactiveReader, _LighterProvider_tpslRecoveryGeneration, _LighterProvider_tpslRecoveryInFlight, _LighterProvider_tpslRecoveryKickPending, _LighterProvider_kickTpslRecovery, _LighterProvider_recoverPendingTpslJournals, _LighterProvider_recoverTpslSymbol, _LighterProvider_settleTpslObligation, _LighterProvider_settleTpslObligationLocked, _LighterProvider_reconcilePriorTpsl, _LighterProvider_releaseNonceReservation, _LighterProvider_awaitTpslVisibility, _LighterProvider_assertSession, _LighterProvider_invalidateSessionState, _LighterProvider_ensureSignerReady, _LighterProvider_setupSigner, _LighterProvider_isVenueKeyRegistered, _LighterProvider_registerVenueKey, _LighterProvider_writeChain, _LighterProvider_issuedClientOrderIds, _LighterProvider_allocateClientOrderIndexes, _LighterProvider_withVenueWriteLock, _LighterProvider_withVenueNonce, _LighterProvider_reestablishSignerClient, _LighterProvider_getAuthToken, _LighterProvider_ensureMarkets, _LighterProvider_readOpenOrdersStrict, _LighterProvider_resolveLeverageIntent, _LighterProvider_resolveMarketReferencePrice, _LighterProvider_normalizeCloseParams, _LighterProvider_validateCloseShape, _LighterProvider_isVerifiedFullClose, _LighterProvider_validateOrderChecks, _LighterProvider_validateClosePositionChecks, _LighterProvider_marginBySymbol, _LighterProvider_maxLeverageForMarketId, _LighterProvider_requireMarketMaxLeverage, _LighterProvider_marginFetchedAt, _LighterProvider_marginRefreshInFlight, _LighterProvider_ensureMarketMargins, _LighterProvider_ensureAccountChannels, _LighterProvider_hasAnySubscriber, _LighterProvider_requestChannel, _LighterProvider_sendSubscribe, _LighterProvider_releaseChannelIfUnused, _LighterProvider_ensureStream, _LighterProvider_connectWs, _LighterProvider_handleWsMessage, _LighterProvider_handleOrderBookMessage, _LighterProvider_handleCandleMessage, _LighterProvider_handleTradesMessage, _LighterProvider_dispatchOICaps, _LighterProvider_emitToOrderSubscribers, _LighterProvider_logSubscriberError, _LighterProvider_startPricePolling, _LighterProvider_emitPolledPrices, _LighterProvider_dispatchPriceUpdates, _LighterProvider_deliverPrices, _LighterProvider_clearKeepalive, _LighterProvider_teardownStream, _LighterProvider_bridgeRoute;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LighterProvider = void 0;
 const lighterConfig_js_1 = require("../constants/lighterConfig.cjs");
@@ -929,15 +929,64 @@ class LighterProvider {
          * @param entry.nonce - The dispatched nonce.
          * @param entry.txHash - The dispatched tx hash (or null).
          */
-        _LighterProvider_resolveNonceLedgerEntryConsumed.set(this, async (accountIndex, entry) => {
+        /**
+         * EVERY ledger read-modify-write (append, resolve, consumed-resolve,
+         * selective acknowledgment) serializes on this ONE process-wide mutex
+         * per account+slot document. The venue write mutex alone cannot
+         * protect the document: `acknowledgeRecoveredDispatch` legitimately
+         * runs OUTSIDE it, and an unserialized ack RMW could overwrite a
+         * concurrent append with a stale doc — silently erasing an unresolved
+         * dispatch entry. Lock order is always venueWrite → bridge → ledger
+         * (the ack path takes only the ledger mutex), so no cycle exists.
+         *
+         * @param accountIndex - Venue account index.
+         * @param operation - The ledger RMW critical section.
+         * @returns The operation's result.
+         */
+        _LighterProvider_withLedgerLock.set(this, async (accountIndex, operation) => await withProcessMutex(__classPrivateFieldGet(this, _LighterProvider_nonceLedgerKey, "f").call(this, accountIndex), operation));
+        /**
+         * ATOMIC post-dispatch entry transition, decided by the session fence
+         * BEFORE any ledger mutation: fence passed → the entry is consumed and
+         * removed (watermark advances); fence failed → the entry converts to a
+         * durable recovered SUCCEEDED outcome (the venue mutation is committed
+         * and a later retry under the original account would double the
+         * financial intent). Both shapes land in ONE write under the ledger
+         * lock — if that write fails, the ORIGINAL unresolved entry remains
+         * the durable record and every retry stays blocked. The entry is never
+         * consumed first and quarantined second. TP/SL-journal-owned entries
+         * are consumed without quarantine in both cases (their machine
+         * reconciles the intent by exact hash).
+         *
+         * @param accountIndex - Venue account index of the ORIGINAL session.
+         * @param entry - The dispatched (accepted) ledger entry.
+         * @param fenceFailed - Whether the post-send session fence rejected.
+         * @returns Resolves when the transition is durably committed.
+         */
+        _LighterProvider_resolveEntryPostDispatch.set(this, async (accountIndex, entry, fenceFailed) => await __classPrivateFieldGet(this, _LighterProvider_withLedgerLock, "f").call(this, accountIndex, async () => {
             const doc = await __classPrivateFieldGet(this, _LighterProvider_readNonceLedger, "f").call(this, accountIndex);
             const at = doc.entries.findIndex((candidate) => candidate.nonce === entry.nonce && candidate.txHash === entry.txHash);
             if (at >= 0) {
                 doc.entries.splice(at, 1);
             }
             doc.consumedFloor = Math.max(doc.consumedFloor, entry.nonce + 1);
+            if (fenceFailed && entry.owner === null) {
+                const recoveryId = `${String(entry.nonce)}:${entry.txHash ?? 'nohash'}`;
+                if (!doc.recovered.some((outcome) => outcome.recoveryId === recoveryId)) {
+                    doc.recovered = [
+                        ...doc.recovered,
+                        {
+                            recoveryId,
+                            kind: entry.kind,
+                            intent: entry.intent,
+                            txHash: entry.txHash,
+                            outcome: 'succeeded',
+                            evidence: 'post-dispatch-session-cancelled',
+                        },
+                    ].slice(0, 32);
+                }
+            }
             await __classPrivateFieldGet(this, _LighterProvider_writeNonceLedger, "f").call(this, accountIndex, doc);
-        });
+        }));
         /**
          * Resolve every unresolved dispatch before a write section may issue
          * nonces. Consumption is proven by REST-nonce advance or an exact tx
@@ -946,10 +995,17 @@ class LighterProvider {
          * venue-confirmed absence of the exact HASH after the signed validity
          * elapsed. A hashless dispatch can never be proven absent — it stays
          * blocking until the venue advances. Ambiguity blocks the write.
+         * Runs under the account+slot ledger lock.
          *
          * @param accountIndex - Venue account index.
+         * @returns Resolves when every prior dispatch is accounted for.
          */
-        _LighterProvider_resolveNonceLedger.set(this, async (accountIndex) => {
+        _LighterProvider_resolveNonceLedger.set(this, async (accountIndex) => await __classPrivateFieldGet(this, _LighterProvider_withLedgerLock, "f").call(this, accountIndex, async () => __classPrivateFieldGet(this, _LighterProvider_resolveNonceLedgerLocked, "f").call(this, accountIndex)));
+        /**
+         * @param accountIndex - Venue account index.
+         * @returns Resolves when the pass completes.
+         */
+        _LighterProvider_resolveNonceLedgerLocked.set(this, async (accountIndex) => {
             const doc = await __classPrivateFieldGet(this, _LighterProvider_readNonceLedger, "f").call(this, accountIndex);
             const reservationKey = `${accountIndex}:${__classPrivateFieldGet(this, _LighterProvider_apiKeyIndex, "f")}`;
             // The durable consumed watermark always seeds the memory floor.
@@ -2533,10 +2589,17 @@ class LighterProvider {
                 const registered = await __classPrivateFieldGet(this, _LighterProvider_isVenueKeyRegistered, "f").call(this, accountIndex);
                 __classPrivateFieldGet(this, _LighterProvider_assertSession, "f").call(this, generation);
                 if (!registered) {
+                    // Registration can never succeed under the mainnet rollout
+                    // gate: refuse BEFORE the L1 personal_sign — never prompt the
+                    // user (or a hardware wallet) for a signature that the
+                    // dispatch backstop is guaranteed to refuse.
+                    if (!__classPrivateFieldGet(this, _LighterProvider_isTestnet, "f")) {
+                        throw new Error('Lighter mainnet trading is not enabled yet; venue key registration is limited to testnet');
+                    }
                     await __classPrivateFieldGet(this, _LighterProvider_registerVenueKey, "f").call(this, accountIndex, created.body, generation, nextNonce, submit);
                     __classPrivateFieldGet(this, _LighterProvider_assertSession, "f").call(this, generation);
                 }
-            }, generation);
+            }, generation, true);
             // AUTOMATIC bounded recovery: pending TP/SL journals must be
             // reconciled at startup/reconnect, not only when the next mutation
             // happens to run. Detached so it awaits THIS setup's resolved promise
@@ -2643,9 +2706,23 @@ class LighterProvider {
          * provided helper (each call returns the next fresh nonce).
          * @param generationAtIntent - Session generation captured when the
          * caller's intent was formed (defaults to now).
+         * @param allowMainnetSignerSetup - Permit entering the lock on mainnet
+         * for signer setup only (bridge-local client creation + read-only
+         * nonce fetch); dispatches remain refused by the gate inside submit.
          * @returns The section's result.
          */
-        _LighterProvider_withVenueWriteLock.set(this, async (accountIndex, section, generationAtIntent = __classPrivateFieldGet(this, _LighterProvider_sessionGeneration, "f")) => {
+        _LighterProvider_withVenueWriteLock.set(this, async (accountIndex, section, generationAtIntent = __classPrivateFieldGet(this, _LighterProvider_sessionGeneration, "f"), allowMainnetSignerSetup = false) => {
+            // INITIAL ROLLOUT GATE: every nonce-consuming venue write is limited
+            // to testnet until mainnet trading is validated end-to-end — the
+            // enablement flags alone must not be able to unlock unvalidated
+            // mainnet trading. Signer SETUP may enter on mainnet (client
+            // creation is bridge-local and the nonce fetch is read-only) so the
+            // auth token can be minted for authenticated mainnet reads; any
+            // dispatch it would attempt (key registration) is refused by the
+            // same gate inside `submit`.
+            if (!__classPrivateFieldGet(this, _LighterProvider_isTestnet, "f") && !allowMainnetSignerSetup) {
+                throw new Error('Lighter mainnet trading is not enabled yet; venue writes are limited to testnet');
+            }
             const criticalSection = async () => {
                 __classPrivateFieldGet(this, _LighterProvider_assertSession, "f").call(this, generationAtIntent);
                 // Every unresolved prior dispatch (this session OR a previous one —
@@ -2692,6 +2769,12 @@ class LighterProvider {
                     // Last fence before anything reaches the venue: a switch that
                     // happened while SIGNING must abort before submission.
                     __classPrivateFieldGet(this, _LighterProvider_assertSession, "f").call(this, generationAtIntent);
+                    // Mainnet dispatch backstop: covers the signer-setup path that
+                    // is allowed to ENTER the lock on mainnet — nothing may be
+                    // submitted there.
+                    if (!__classPrivateFieldGet(this, _LighterProvider_isTestnet, "f")) {
+                        throw new Error('Lighter mainnet trading is not enabled yet; venue writes are limited to testnet');
+                    }
                     // Record the dispatch DURABLY BEFORE anything else: a failed
                     // ledger read/write means NO dispatch and an UNTOUCHED memory
                     // floor — the nonce stays safely unissued at the venue. The
@@ -2715,14 +2798,17 @@ class LighterProvider {
                             intent: identity.intent ?? `txType:${txType}`,
                             owner: identity.owner ?? null,
                         };
-                        const doc = await __classPrivateFieldGet(this, _LighterProvider_readNonceLedger, "f").call(this, accountIndex);
-                        if (doc.entries.length >= 16) {
-                            throw new Error('Too many unresolved Lighter dispatches; refusing further writes until they resolve');
-                        }
-                        await __classPrivateFieldGet(this, _LighterProvider_writeNonceLedger, "f").call(this, accountIndex, {
-                            consumedFloor: doc.consumedFloor,
-                            entries: [...doc.entries, ledgerEntry],
-                            recovered: doc.recovered,
+                        const appendedEntry = ledgerEntry;
+                        await __classPrivateFieldGet(this, _LighterProvider_withLedgerLock, "f").call(this, accountIndex, async () => {
+                            const doc = await __classPrivateFieldGet(this, _LighterProvider_readNonceLedger, "f").call(this, accountIndex);
+                            if (doc.entries.length >= 16) {
+                                throw new Error('Too many unresolved Lighter dispatches; refusing further writes until they resolve');
+                            }
+                            await __classPrivateFieldGet(this, _LighterProvider_writeNonceLedger, "f").call(this, accountIndex, {
+                                consumedFloor: doc.consumedFloor,
+                                entries: [...doc.entries, appendedEntry],
+                                recovered: doc.recovered,
+                            });
                         });
                         // Only AFTER the durable append: reserve in memory — from this
                         // point the venue may consume the nonce even if the response
@@ -2733,19 +2819,31 @@ class LighterProvider {
                     // or HTTP error can mask a commit, so nothing short of an exact
                     // authoritative reconciliation may release the nonce.
                     const response = await __classPrivateFieldGet(this, _LighterProvider_clientService, "f").sendTx(txType, txInfo);
-                    if (ledgerEntry !== null) {
-                        // Acceptance observed: the nonce is definitively consumed —
-                        // resolve the entry AND advance the durable consumed watermark
-                        // so no stale reconciliation can ever release it.
-                        await __classPrivateFieldGet(this, _LighterProvider_resolveNonceLedgerEntryConsumed, "f").call(this, accountIndex, ledgerEntry).catch(() => undefined);
-                    }
-                    // Acceptance bookkeeping runs SYNCHRONOUSLY before the post-fence:
-                    // a switch during network submission must cancel the operation,
-                    // never the record of an already-accepted venue mutation.
+                    // Acceptance bookkeeping runs SYNCHRONOUSLY before anything can
+                    // fail: a switch during network submission must cancel the
+                    // operation, never the record of an accepted venue mutation.
                     onAccepted?.();
-                    // And after: a switch DURING network submission must not let the
-                    // operation report success under the new account's session.
-                    __classPrivateFieldGet(this, _LighterProvider_assertSession, "f").call(this, generationAtIntent);
+                    // POST-SEND ORDER: evaluate the session fence BEFORE the ledger
+                    // entry transitions, then commit the transition ATOMICALLY in
+                    // ONE write under the ledger lock — fence pass → consumed/
+                    // removed; fence fail → recovered(SUCCEEDED). If that single
+                    // write fails, the ORIGINAL unresolved entry remains the durable
+                    // record and every retry stays blocked; the only durable proof
+                    // of the accepted mutation is never consumed first and
+                    // quarantined second.
+                    let fenceError = null;
+                    try {
+                        __classPrivateFieldGet(this, _LighterProvider_assertSession, "f").call(this, generationAtIntent);
+                    }
+                    catch (error) {
+                        fenceError = error;
+                    }
+                    if (ledgerEntry !== null) {
+                        await __classPrivateFieldGet(this, _LighterProvider_resolveEntryPostDispatch, "f").call(this, accountIndex, ledgerEntry, fenceError !== null).catch(() => undefined);
+                    }
+                    if (fenceError !== null) {
+                        throw (0, errorUtils_js_1.ensureError)(fenceError, 'LighterProvider.submit');
+                    }
                     return response;
                 };
                 return await section(nextNonce, submit);
@@ -2971,6 +3069,21 @@ class LighterProvider {
          * @param params - Close request.
          * @returns Error message, or null when the shape is acceptable.
          */
+        /**
+         * The mobile close sheet sends a FULL close as an EMPTY size string
+         * (`size: sizeToClose || ''`); HyperLiquid and TradingService treat a
+         * falsy size as "no explicit size", so this venue honors the same
+         * contract — an empty/whitespace size or usdAmount means full close,
+         * never a validation failure.
+         *
+         * @param params - Raw close request.
+         * @returns The request with empty-string sizing normalized to absent.
+         */
+        _LighterProvider_normalizeCloseParams.set(this, (params) => ({
+            ...params,
+            size: params.size?.trim() ? params.size : undefined,
+            usdAmount: params.usdAmount?.trim() ? params.usdAmount : undefined,
+        }));
         _LighterProvider_validateCloseShape.set(this, (params) => {
             const closeOrderType = params.orderType ?? 'market';
             if (closeOrderType !== 'market' && closeOrderType !== 'limit') {
@@ -3172,7 +3285,8 @@ class LighterProvider {
             }
             return { isValid: true };
         });
-        _LighterProvider_validateClosePositionChecks.set(this, async (params) => {
+        _LighterProvider_validateClosePositionChecks.set(this, async (rawParams) => {
+            const params = __classPrivateFieldGet(this, _LighterProvider_normalizeCloseParams, "f").call(this, rawParams);
             // Same shape rules the execution path enforces.
             const shapeError = __classPrivateFieldGet(this, _LighterProvider_validateCloseShape, "f").call(this, params);
             if (shapeError) {
@@ -3280,7 +3394,7 @@ class LighterProvider {
             }
             return { isValid: true };
         });
-        /** Per-market margin fractions from orderBookDetails (hundredths of %). */
+        /** Per-market margin fractions + last price from orderBookDetails. */
         _LighterProvider_marginBySymbol.set(this, new Map());
         /**
          * Synchronous best-effort per-market max leverage from the margin cache
@@ -3352,6 +3466,7 @@ class LighterProvider {
                             fresh.set(detail.symbol, {
                                 minInitial: detail.minInitialMarginFraction,
                                 maintenance: detail.maintenanceMarginFraction,
+                                lastTradePrice: detail.lastTradePrice,
                             });
                         }
                         __classPrivateFieldGet(this, _LighterProvider_marginBySymbol, "f").clear();
@@ -3995,7 +4110,9 @@ class LighterProvider {
          * @returns Single-element route list.
          */
         _LighterProvider_bridgeRoute.set(this, (minAmount) => {
-            const bridge = lighterConfig_js_1.LIGHTER_BRIDGE_CONFIG[__classPrivateFieldGet(this, _LighterProvider_isTestnet, "f") ? 'testnet' : 'mainnet'];
+            // Only the MAINNET bridge is ever advertised: the effective-testnet
+            // branches return [] before reaching here (devnet L1 unreachable).
+            const bridge = lighterConfig_js_1.LIGHTER_BRIDGE_CONFIG.mainnet;
             return [
                 {
                     assetId: `${bridge.chainId}/erc20:${bridge.usdcContract}/default`,
@@ -4228,9 +4345,22 @@ class LighterProvider {
                 .filter((market) => market.marketType === 'perp')
                 .map((market) => {
                 const adapted = (0, lighterAdapter_js_1.adaptMarketFromLighter)(market);
-                const minInitial = __classPrivateFieldGet(this, _LighterProvider_marginBySymbol, "f").get(market.symbol)?.minInitial;
-                if (minInitial && minInitial > 0) {
-                    adapted.maxLeverage = Math.floor(10000 / minInitial);
+                const margins = __classPrivateFieldGet(this, _LighterProvider_marginBySymbol, "f").get(market.symbol);
+                if (margins?.minInitial && margins.minInitial > 0) {
+                    adapted.maxLeverage = Math.floor(10000 / margins.minInitial);
+                }
+                // The venue floor is the SAME base size placement enforces:
+                // max(minBase, minQuote/price) rounded UP to the size grid —
+                // grid rounding matters (ETH: $10/price = 0.005222 rounds up
+                // to 0.0053 ETH ≈ $10.15), so a flat quote-minimum default
+                // lands one grid tick below the floor. Report that binding
+                // base size in USD, rounded UP to whole cents.
+                if (margins?.lastTradePrice && margins.lastTradePrice > 0) {
+                    const minBaseSize = (0, lighterConfig_js_1.computeLighterMinOrderSize)(market, margins.lastTradePrice);
+                    const bindingUsd = minBaseSize * margins.lastTradePrice;
+                    if (Number.isFinite(bindingUsd) && bindingUsd > 0) {
+                        adapted.minimumOrderSize = Math.ceil(bindingUsd * 100) / 100;
+                    }
                 }
                 return adapted;
             });
@@ -4703,7 +4833,8 @@ class LighterProvider {
             error: 'Lighter order editing is unavailable: the venue currently accepts but does not apply ModifyOrder. Cancel and re-place the order instead.',
         };
     }
-    async closePosition(params) {
+    async closePosition(rawParams) {
+        const params = __classPrivateFieldGet(this, _LighterProvider_normalizeCloseParams, "f").call(this, rawParams);
         try {
             // One intent identity from the position read through the final write:
             // an account switch mid-sequence aborts instead of trading the new
@@ -5873,13 +6004,28 @@ class LighterProvider {
             __classPrivateFieldGet(this, _LighterProvider_ensureStream, "f").call(this);
         }
     }
-    getDepositRoutes(_params) {
-        const bridge = lighterConfig_js_1.LIGHTER_BRIDGE_CONFIG[__classPrivateFieldGet(this, _LighterProvider_isTestnet, "f") ? 'testnet' : 'mainnet'];
-        return __classPrivateFieldGet(this, _LighterProvider_bridgeRoute, "f").call(this, bridge.minDepositUsdc);
+    getDepositRoutes(params) {
+        // The params.isTestnet OVERRIDE is part of the route contract (HL
+        // honors it too): DepositService requests { isTestnet: false } to
+        // scaffold the deposit-and-trade transaction on a chain the wallet
+        // can reach. Lighter TESTNET itself settles on a venue-hosted devnet
+        // L1 (chain 123456) the wallet cannot reach — advertising it made
+        // pay-with flows build a transaction on an unknown chain ("Invalid
+        // chain ID 0x1e240") — so the effective-testnet answer is NO routes:
+        // trade from the venue balance, top up via the venue faucet.
+        const isTestnet = params?.isTestnet ?? __classPrivateFieldGet(this, _LighterProvider_isTestnet, "f");
+        if (isTestnet) {
+            return [];
+        }
+        return __classPrivateFieldGet(this, _LighterProvider_bridgeRoute, "f").call(this, lighterConfig_js_1.LIGHTER_BRIDGE_CONFIG.mainnet.minDepositUsdc);
     }
-    getWithdrawalRoutes(_params) {
-        const bridge = lighterConfig_js_1.LIGHTER_BRIDGE_CONFIG[__classPrivateFieldGet(this, _LighterProvider_isTestnet, "f") ? 'testnet' : 'mainnet'];
-        return __classPrivateFieldGet(this, _LighterProvider_bridgeRoute, "f").call(this, bridge.minWithdrawUsdc);
+    getWithdrawalRoutes(params) {
+        // Same devnet-L1 reality and the same override contract as deposits.
+        const isTestnet = params?.isTestnet ?? __classPrivateFieldGet(this, _LighterProvider_isTestnet, "f");
+        if (isTestnet) {
+            return [];
+        }
+        return __classPrivateFieldGet(this, _LighterProvider_bridgeRoute, "f").call(this, lighterConfig_js_1.LIGHTER_BRIDGE_CONFIG.mainnet.minWithdrawUsdc);
     }
     // ============================================================================
     // Block Explorer
@@ -5892,5 +6038,5 @@ class LighterProvider {
     }
 }
 exports.LighterProvider = LighterProvider;
-_LighterProvider_deps = new WeakMap(), _LighterProvider_clientService = new WeakMap(), _LighterProvider_walletService = new WeakMap(), _LighterProvider_messenger = new WeakMap(), _LighterProvider_signerBridge = new WeakMap(), _LighterProvider_isTestnet = new WeakMap(), _LighterProvider_apiKeyIndex = new WeakMap(), _LighterProvider_configuredAccountIndex = new WeakMap(), _LighterProvider_marketsBySymbol = new WeakMap(), _LighterProvider_marketsById = new WeakMap(), _LighterProvider_accountIndex = new WeakMap(), _LighterProvider_boundAddress = new WeakMap(), _LighterProvider_sessionGeneration = new WeakMap(), _LighterProvider_priceSubscribers = new WeakMap(), _LighterProvider_pricePollTimer = new WeakMap(), _LighterProvider_priceWs = new WeakMap(), _LighterProvider_pricePollCycle = new WeakMap(), _LighterProvider_webSocketCtor = new WeakMap(), _LighterProvider_wsWantedChannels = new WeakMap(), _LighterProvider_wsKeepaliveTimer = new WeakMap(), _LighterProvider_connectionState = new WeakMap(), _LighterProvider_wsReconnectAttempts = new WeakMap(), _LighterProvider_connectionListeners = new WeakMap(), _LighterProvider_setConnectionState = new WeakMap(), _LighterProvider_wsReconnectTimer = new WeakMap(), _LighterProvider_lastPriceBySymbol = new WeakMap(), _LighterProvider_wsPositions = new WeakMap(), _LighterProvider_wsOrders = new WeakMap(), _LighterProvider_oiCapSubscribers = new WeakMap(), _LighterProvider_accountSubscribers = new WeakMap(), _LighterProvider_positionSubscribers = new WeakMap(), _LighterProvider_orderSubscribers = new WeakMap(), _LighterProvider_fillSubscribers = new WeakMap(), _LighterProvider_orderBookSubscribers = new WeakMap(), _LighterProvider_orderBookState = new WeakMap(), _LighterProvider_candleSubscribers = new WeakMap(), _LighterProvider_candleSeries = new WeakMap(), _LighterProvider_accountChannelsPromise = new WeakMap(), _LighterProvider_venuePublicKey = new WeakMap(), _LighterProvider_signerReadyPromise = new WeakMap(), _LighterProvider_authToken = new WeakMap(), _LighterProvider_getErrorContext = new WeakMap(), _LighterProvider_rawSignerBridge = new WeakMap(), _LighterProvider_getSignerBridge = new WeakMap(), _LighterProvider_invalidateSignerSession = new WeakMap(), _LighterProvider_clearBridgeOwnership = new WeakMap(), _LighterProvider_ensureSessionBinding = new WeakMap(), _LighterProvider_rebuildStreamForSubscribers = new WeakMap(), _LighterProvider_ensureAccountIndex = new WeakMap(), _LighterProvider_assertStandardAccount = new WeakMap(), _LighterProvider_isUnsupportedCapabilityError = new WeakMap(), _LighterProvider_isDataIntegrityError = new WeakMap(), _LighterProvider_tpslUnsettled = new WeakMap(), _LighterProvider_nonceReservations = new WeakMap(), _LighterProvider_tpslOperationCounter = new WeakMap(), _LighterProvider_signerIdentity = new WeakMap(), _LighterProvider_signerRecreateParams = new WeakMap(), _LighterProvider_nonceLedgerKey = new WeakMap(), _LighterProvider_readNonceLedger = new WeakMap(), _LighterProvider_writeNonceLedger = new WeakMap(), _LighterProvider_resolveNonceLedgerEntryConsumed = new WeakMap(), _LighterProvider_resolveNonceLedger = new WeakMap(), _LighterProvider_releaseNonceReservationIfUnconsumed = new WeakMap(), _LighterProvider_tpslJournalKey = new WeakMap(), _LighterProvider_tpslJournalOpKey = new WeakMap(), _LighterProvider_loadTpslJournal = new WeakMap(), _LighterProvider_tpslJournalIndexKey = new WeakMap(), _LighterProvider_readTpslJournalIndex = new WeakMap(), _LighterProvider_tpslManualKey = new WeakMap(), _LighterProvider_tpslManualIndexKey = new WeakMap(), _LighterProvider_readTpslManualIndex = new WeakMap(), _LighterProvider_writeTpslManualRecovery = new WeakMap(), _LighterProvider_loadTpslManualRecovery = new WeakMap(), _LighterProvider_clearTpslManualRecovery = new WeakMap(), _LighterProvider_persistTpslJournal = new WeakMap(), _LighterProvider_clearTpslJournal = new WeakMap(), _LighterProvider_makeInactiveReader = new WeakMap(), _LighterProvider_tpslRecoveryGeneration = new WeakMap(), _LighterProvider_tpslRecoveryInFlight = new WeakMap(), _LighterProvider_tpslRecoveryKickPending = new WeakMap(), _LighterProvider_kickTpslRecovery = new WeakMap(), _LighterProvider_recoverPendingTpslJournals = new WeakMap(), _LighterProvider_recoverTpslSymbol = new WeakMap(), _LighterProvider_settleTpslObligation = new WeakMap(), _LighterProvider_settleTpslObligationLocked = new WeakMap(), _LighterProvider_reconcilePriorTpsl = new WeakMap(), _LighterProvider_releaseNonceReservation = new WeakMap(), _LighterProvider_awaitTpslVisibility = new WeakMap(), _LighterProvider_assertSession = new WeakMap(), _LighterProvider_invalidateSessionState = new WeakMap(), _LighterProvider_ensureSignerReady = new WeakMap(), _LighterProvider_setupSigner = new WeakMap(), _LighterProvider_isVenueKeyRegistered = new WeakMap(), _LighterProvider_registerVenueKey = new WeakMap(), _LighterProvider_writeChain = new WeakMap(), _LighterProvider_issuedClientOrderIds = new WeakMap(), _LighterProvider_allocateClientOrderIndexes = new WeakMap(), _LighterProvider_withVenueWriteLock = new WeakMap(), _LighterProvider_withVenueNonce = new WeakMap(), _LighterProvider_reestablishSignerClient = new WeakMap(), _LighterProvider_getAuthToken = new WeakMap(), _LighterProvider_ensureMarkets = new WeakMap(), _LighterProvider_readOpenOrdersStrict = new WeakMap(), _LighterProvider_resolveLeverageIntent = new WeakMap(), _LighterProvider_resolveMarketReferencePrice = new WeakMap(), _LighterProvider_validateCloseShape = new WeakMap(), _LighterProvider_isVerifiedFullClose = new WeakMap(), _LighterProvider_validateOrderChecks = new WeakMap(), _LighterProvider_validateClosePositionChecks = new WeakMap(), _LighterProvider_marginBySymbol = new WeakMap(), _LighterProvider_maxLeverageForMarketId = new WeakMap(), _LighterProvider_requireMarketMaxLeverage = new WeakMap(), _LighterProvider_marginFetchedAt = new WeakMap(), _LighterProvider_marginRefreshInFlight = new WeakMap(), _LighterProvider_ensureMarketMargins = new WeakMap(), _LighterProvider_ensureAccountChannels = new WeakMap(), _LighterProvider_hasAnySubscriber = new WeakMap(), _LighterProvider_requestChannel = new WeakMap(), _LighterProvider_sendSubscribe = new WeakMap(), _LighterProvider_releaseChannelIfUnused = new WeakMap(), _LighterProvider_ensureStream = new WeakMap(), _LighterProvider_connectWs = new WeakMap(), _LighterProvider_handleWsMessage = new WeakMap(), _LighterProvider_handleOrderBookMessage = new WeakMap(), _LighterProvider_handleCandleMessage = new WeakMap(), _LighterProvider_handleTradesMessage = new WeakMap(), _LighterProvider_dispatchOICaps = new WeakMap(), _LighterProvider_emitToOrderSubscribers = new WeakMap(), _LighterProvider_logSubscriberError = new WeakMap(), _LighterProvider_startPricePolling = new WeakMap(), _LighterProvider_emitPolledPrices = new WeakMap(), _LighterProvider_dispatchPriceUpdates = new WeakMap(), _LighterProvider_deliverPrices = new WeakMap(), _LighterProvider_clearKeepalive = new WeakMap(), _LighterProvider_teardownStream = new WeakMap(), _LighterProvider_bridgeRoute = new WeakMap();
+_LighterProvider_deps = new WeakMap(), _LighterProvider_clientService = new WeakMap(), _LighterProvider_walletService = new WeakMap(), _LighterProvider_messenger = new WeakMap(), _LighterProvider_signerBridge = new WeakMap(), _LighterProvider_isTestnet = new WeakMap(), _LighterProvider_apiKeyIndex = new WeakMap(), _LighterProvider_configuredAccountIndex = new WeakMap(), _LighterProvider_marketsBySymbol = new WeakMap(), _LighterProvider_marketsById = new WeakMap(), _LighterProvider_accountIndex = new WeakMap(), _LighterProvider_boundAddress = new WeakMap(), _LighterProvider_sessionGeneration = new WeakMap(), _LighterProvider_priceSubscribers = new WeakMap(), _LighterProvider_pricePollTimer = new WeakMap(), _LighterProvider_priceWs = new WeakMap(), _LighterProvider_pricePollCycle = new WeakMap(), _LighterProvider_webSocketCtor = new WeakMap(), _LighterProvider_wsWantedChannels = new WeakMap(), _LighterProvider_wsKeepaliveTimer = new WeakMap(), _LighterProvider_connectionState = new WeakMap(), _LighterProvider_wsReconnectAttempts = new WeakMap(), _LighterProvider_connectionListeners = new WeakMap(), _LighterProvider_setConnectionState = new WeakMap(), _LighterProvider_wsReconnectTimer = new WeakMap(), _LighterProvider_lastPriceBySymbol = new WeakMap(), _LighterProvider_wsPositions = new WeakMap(), _LighterProvider_wsOrders = new WeakMap(), _LighterProvider_oiCapSubscribers = new WeakMap(), _LighterProvider_accountSubscribers = new WeakMap(), _LighterProvider_positionSubscribers = new WeakMap(), _LighterProvider_orderSubscribers = new WeakMap(), _LighterProvider_fillSubscribers = new WeakMap(), _LighterProvider_orderBookSubscribers = new WeakMap(), _LighterProvider_orderBookState = new WeakMap(), _LighterProvider_candleSubscribers = new WeakMap(), _LighterProvider_candleSeries = new WeakMap(), _LighterProvider_accountChannelsPromise = new WeakMap(), _LighterProvider_venuePublicKey = new WeakMap(), _LighterProvider_signerReadyPromise = new WeakMap(), _LighterProvider_authToken = new WeakMap(), _LighterProvider_getErrorContext = new WeakMap(), _LighterProvider_rawSignerBridge = new WeakMap(), _LighterProvider_getSignerBridge = new WeakMap(), _LighterProvider_invalidateSignerSession = new WeakMap(), _LighterProvider_clearBridgeOwnership = new WeakMap(), _LighterProvider_ensureSessionBinding = new WeakMap(), _LighterProvider_rebuildStreamForSubscribers = new WeakMap(), _LighterProvider_ensureAccountIndex = new WeakMap(), _LighterProvider_assertStandardAccount = new WeakMap(), _LighterProvider_isUnsupportedCapabilityError = new WeakMap(), _LighterProvider_isDataIntegrityError = new WeakMap(), _LighterProvider_tpslUnsettled = new WeakMap(), _LighterProvider_nonceReservations = new WeakMap(), _LighterProvider_tpslOperationCounter = new WeakMap(), _LighterProvider_signerIdentity = new WeakMap(), _LighterProvider_signerRecreateParams = new WeakMap(), _LighterProvider_nonceLedgerKey = new WeakMap(), _LighterProvider_readNonceLedger = new WeakMap(), _LighterProvider_writeNonceLedger = new WeakMap(), _LighterProvider_withLedgerLock = new WeakMap(), _LighterProvider_resolveEntryPostDispatch = new WeakMap(), _LighterProvider_resolveNonceLedger = new WeakMap(), _LighterProvider_resolveNonceLedgerLocked = new WeakMap(), _LighterProvider_releaseNonceReservationIfUnconsumed = new WeakMap(), _LighterProvider_tpslJournalKey = new WeakMap(), _LighterProvider_tpslJournalOpKey = new WeakMap(), _LighterProvider_loadTpslJournal = new WeakMap(), _LighterProvider_tpslJournalIndexKey = new WeakMap(), _LighterProvider_readTpslJournalIndex = new WeakMap(), _LighterProvider_tpslManualKey = new WeakMap(), _LighterProvider_tpslManualIndexKey = new WeakMap(), _LighterProvider_readTpslManualIndex = new WeakMap(), _LighterProvider_writeTpslManualRecovery = new WeakMap(), _LighterProvider_loadTpslManualRecovery = new WeakMap(), _LighterProvider_clearTpslManualRecovery = new WeakMap(), _LighterProvider_persistTpslJournal = new WeakMap(), _LighterProvider_clearTpslJournal = new WeakMap(), _LighterProvider_makeInactiveReader = new WeakMap(), _LighterProvider_tpslRecoveryGeneration = new WeakMap(), _LighterProvider_tpslRecoveryInFlight = new WeakMap(), _LighterProvider_tpslRecoveryKickPending = new WeakMap(), _LighterProvider_kickTpslRecovery = new WeakMap(), _LighterProvider_recoverPendingTpslJournals = new WeakMap(), _LighterProvider_recoverTpslSymbol = new WeakMap(), _LighterProvider_settleTpslObligation = new WeakMap(), _LighterProvider_settleTpslObligationLocked = new WeakMap(), _LighterProvider_reconcilePriorTpsl = new WeakMap(), _LighterProvider_releaseNonceReservation = new WeakMap(), _LighterProvider_awaitTpslVisibility = new WeakMap(), _LighterProvider_assertSession = new WeakMap(), _LighterProvider_invalidateSessionState = new WeakMap(), _LighterProvider_ensureSignerReady = new WeakMap(), _LighterProvider_setupSigner = new WeakMap(), _LighterProvider_isVenueKeyRegistered = new WeakMap(), _LighterProvider_registerVenueKey = new WeakMap(), _LighterProvider_writeChain = new WeakMap(), _LighterProvider_issuedClientOrderIds = new WeakMap(), _LighterProvider_allocateClientOrderIndexes = new WeakMap(), _LighterProvider_withVenueWriteLock = new WeakMap(), _LighterProvider_withVenueNonce = new WeakMap(), _LighterProvider_reestablishSignerClient = new WeakMap(), _LighterProvider_getAuthToken = new WeakMap(), _LighterProvider_ensureMarkets = new WeakMap(), _LighterProvider_readOpenOrdersStrict = new WeakMap(), _LighterProvider_resolveLeverageIntent = new WeakMap(), _LighterProvider_resolveMarketReferencePrice = new WeakMap(), _LighterProvider_normalizeCloseParams = new WeakMap(), _LighterProvider_validateCloseShape = new WeakMap(), _LighterProvider_isVerifiedFullClose = new WeakMap(), _LighterProvider_validateOrderChecks = new WeakMap(), _LighterProvider_validateClosePositionChecks = new WeakMap(), _LighterProvider_marginBySymbol = new WeakMap(), _LighterProvider_maxLeverageForMarketId = new WeakMap(), _LighterProvider_requireMarketMaxLeverage = new WeakMap(), _LighterProvider_marginFetchedAt = new WeakMap(), _LighterProvider_marginRefreshInFlight = new WeakMap(), _LighterProvider_ensureMarketMargins = new WeakMap(), _LighterProvider_ensureAccountChannels = new WeakMap(), _LighterProvider_hasAnySubscriber = new WeakMap(), _LighterProvider_requestChannel = new WeakMap(), _LighterProvider_sendSubscribe = new WeakMap(), _LighterProvider_releaseChannelIfUnused = new WeakMap(), _LighterProvider_ensureStream = new WeakMap(), _LighterProvider_connectWs = new WeakMap(), _LighterProvider_handleWsMessage = new WeakMap(), _LighterProvider_handleOrderBookMessage = new WeakMap(), _LighterProvider_handleCandleMessage = new WeakMap(), _LighterProvider_handleTradesMessage = new WeakMap(), _LighterProvider_dispatchOICaps = new WeakMap(), _LighterProvider_emitToOrderSubscribers = new WeakMap(), _LighterProvider_logSubscriberError = new WeakMap(), _LighterProvider_startPricePolling = new WeakMap(), _LighterProvider_emitPolledPrices = new WeakMap(), _LighterProvider_dispatchPriceUpdates = new WeakMap(), _LighterProvider_deliverPrices = new WeakMap(), _LighterProvider_clearKeepalive = new WeakMap(), _LighterProvider_teardownStream = new WeakMap(), _LighterProvider_bridgeRoute = new WeakMap();
 //# sourceMappingURL=LighterProvider.cjs.map

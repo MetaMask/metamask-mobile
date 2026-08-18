@@ -581,7 +581,13 @@ class MarketDataService {
      */
     async getMarkets(options) {
         const { provider, params, context, isMarketAllowed } = options;
-        const useTerminalApi = params?.useTerminalApi;
+        // The Terminal API describes HYPERLIQUID markets only: serving its
+        // metadata (minimums, leverage caps) while another venue is active
+        // would hand the UI the wrong venue's trading rules — found on
+        // device as a Lighter order form defaulting below the venue floor.
+        const useTerminalApi = params?.useTerminalApi &&
+            (provider.protocolId === 'hyperliquid' ||
+                provider.protocolId === 'aggregated');
         const traceId = (0, uuid_1.v4)();
         let traceData;
         try {

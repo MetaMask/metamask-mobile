@@ -16,7 +16,7 @@
 import type { CaipAccountId } from "@metamask/utils";
 import { ProviderRouter } from "../routing/ProviderRouter.cjs";
 import { WebSocketConnectionState } from "../types/index.cjs";
-import type { AccountState, AggregatedProviderConfig, AssetRoute, BatchCancelOrdersParams, CancelOrderParams, CancelOrderResult, CancelOrdersResult, ClosePositionParams, ClosePositionsParams, ClosePositionsResult, DepositParams, DisconnectResult, EditOrderParams, FeeCalculationParams, FeeCalculationResult, Funding, GetAccountStateParams, GetAvailableDexsParams, GetFundingParams, GetHistoricalPortfolioParams, GetMarketsParams, GetOrderFillsParams, GetOrdersParams, GetOrFetchFillsParams, GetPositionsParams, GetSupportedPathsParams, HistoricalPortfolioResult, InitializeResult, PerpsProvider, LiquidationPriceParams, LiveDataConfig, MaintenanceMarginParams, MarginResult, MarketInfo, Order, OrderFill, OrderParams, OrderResult, PerpsMarketData, PerpsProviderType, Position, ReadyToTradeResult, SubscribeAccountParams, SubscribeCandlesParams, SubscribeOICapsParams, SubscribeOrderBookParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribePositionsParams, SubscribePricesParams, ToggleTestnetResult, UpdateMarginParams, UpdatePositionTPSLParams, UserHistoryItem, WithdrawParams, WithdrawResult, RawLedgerUpdate, PerpsReadOptions, PerpsFeeResolution } from "../types/index.cjs";
+import type { AccountState, AggregatedProviderConfig, AssetRoute, BatchCancelOrdersParams, CancelOrderParams, CancelOrderResult, CancelOrdersResult, ClosePositionParams, ClosePositionsParams, ClosePositionsResult, DepositParams, DisconnectResult, EditOrderParams, FeeCalculationParams, FeeCalculationResult, Funding, GetAccountStateParams, GetAvailableDexsParams, GetFundingParams, GetHistoricalPortfolioParams, GetMarketsParams, GetOrderFillsParams, GetOrdersParams, GetOrFetchFillsParams, GetPositionsParams, GetSupportedPathsParams, HistoricalPortfolioResult, InitializeResult, PerpsProvider, LiquidationPriceParams, LiveDataConfig, MaintenanceMarginParams, MarginResult, MarketInfo, Order, OrderFill, OrderParams, OrderResult, PerpsMarketData, PerpsPendingManualRecovery, PerpsRecoveredDispatch, PerpsProviderType, Position, ReadyToTradeResult, SubscribeAccountParams, SubscribeCandlesParams, SubscribeOICapsParams, SubscribeOrderBookParams, SubscribeOrderFillsParams, SubscribeOrdersParams, SubscribePositionsParams, SubscribePricesParams, ToggleTestnetResult, UpdateMarginParams, UpdatePositionTPSLParams, UserHistoryItem, WithdrawParams, WithdrawResult, RawLedgerUpdate, PerpsReadOptions, PerpsFeeResolution } from "../types/index.cjs";
 /**
  * AggregatedPerpsProvider implements PerpsProvider by coordinating
  * multiple backend providers.
@@ -106,6 +106,29 @@ export declare class AggregatedPerpsProvider implements PerpsProvider {
     updatePositionTPSL(params: UpdatePositionTPSLParams): Promise<OrderResult>;
     updateMargin(params: UpdateMarginParams): Promise<MarginResult>;
     withdraw(params: WithdrawParams): Promise<WithdrawResult>;
+    /**
+     * Aggregate parked manual TP/SL recoveries from every underlying
+     * provider implementing the durable-settlement contract. Storage
+     * errors PROPAGATE — a corrupt store degrading to "nothing pending"
+     * would hide an under-protected position.
+     *
+     * @returns Pending manual-recovery entries across providers.
+     */
+    getPendingManualRecoveries(): Promise<PerpsPendingManualRecovery[]>;
+    /**
+     * Aggregate recovered-dispatch outcomes from every underlying provider
+     * implementing the durable-settlement contract.
+     *
+     * @returns Pending recovered-dispatch outcomes across providers.
+     */
+    getRecoveredDispatches(): Promise<PerpsRecoveredDispatch[]>;
+    /**
+     * Acknowledge ONE recovered-dispatch outcome by its stable id on
+     * whichever underlying provider owns it.
+     *
+     * @param recoveryId - Stable id from {@link getRecoveredDispatches}.
+     */
+    acknowledgeRecoveredDispatch(recoveryId: string): Promise<void>;
     validateDeposit(params: DepositParams): Promise<{
         isValid: boolean;
         error?: string;
