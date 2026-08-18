@@ -2059,7 +2059,7 @@ export const activityPerpsDetailsStateOverrides = {
 export const activityCvSolanaSwapStateOverrides = {
   engine: {
     backgroundState: {
-      ...activityCvSolanaSendStateOverrides.engine.backgroundState,
+      ...(activityCvSolanaSendStateOverrides.engine?.backgroundState ?? {}),
       MultichainTransactionsController: {
         nonEvmTransactions: {
           [ACTIVITY_CV_SOLANA_ACCOUNT_ID]: {
