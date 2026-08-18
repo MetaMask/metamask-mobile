@@ -11,14 +11,6 @@ jest.mock('./PlaywrightGestures.ts', () => ({
   },
 }));
 
-jest.mock('./FrameworkDetector.ts', () => ({
-  FrameworkDetector: {
-    isAppium: jest.fn(() => true),
-    isDetox: jest.fn(() => false),
-  },
-  TestFramework: { APPIUM: 'appium', DETOX: 'detox' },
-}));
-
 import Gestures from './Gestures';
 import PlaywrightGestures from './PlaywrightGestures';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
