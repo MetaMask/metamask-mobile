@@ -233,6 +233,8 @@ const Routes = {
     CHANGE_PASSWORD: 'ResetPassword',
     CONTACT_FORM: 'ContactForm',
     DEVELOPER_OPTIONS: 'DeveloperOptions',
+    // ICON LAB — temporary scratch screen for the icon-library experiment.
+    ICON_LAB: 'IconLab',
     EXPERIMENTAL_SETTINGS: 'ExperimentalSettings',
     NOTIFICATIONS: 'NotificationsSettings',
     NOTIFICATION_SETTINGS_SECTION: 'NotificationSettingsSection',

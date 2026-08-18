@@ -71,6 +71,18 @@ const mmDaemonArtifactBlockList = [
   new RegExp(`^${escapeRegExp(path.join(__dirname, 'test-artifacts'))}/`),
 ];
 
+// ICON EXPERIMENT (temporary — remove with the @material-symbols dep).
+// @material-symbols ships ~7.8k SVGs per style per weight. Because `svg` is in
+// `sourceExts` below, Metro's crawler indexes every one and OOMs the bundler.
+// Nothing imports from the package directly: the ~140 icons we actually use are
+// vendored under app/components/Views/Settings/IconLab/material, so the whole
+// scope can be excluded from the crawler.
+const materialSymbolsBlockList = [
+  new RegExp(
+    `^${escapeRegExp(path.join(__dirname, 'node_modules/@material-symbols'))}/`,
+  ),
+];
+
 // True when the module being resolved was requested from a file inside
 // @metamask/perps-controller. Normalizes separators first so this works on
 // Windows (`\`) too; the surrounding `/` deliberately require a file *inside*
@@ -152,6 +164,7 @@ module.exports = function (baseConfig) {
                   ? [defaultConfig.resolver.blockList]
                   : []),
               ...mmDaemonArtifactBlockList,
+              ...materialSymbolsBlockList,
             ],
             unstable_enablePackageExports: true,
             assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
