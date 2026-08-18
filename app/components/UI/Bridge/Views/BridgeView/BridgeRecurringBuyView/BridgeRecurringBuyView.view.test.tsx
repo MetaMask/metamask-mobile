@@ -1,5 +1,6 @@
 import '../../../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import { lightTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../../../locales/i18n';
 import { renderBridgeView } from '../../../../../../../tests/component-view/renderers/bridge';
 import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
@@ -7,6 +8,8 @@ import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { RecurringScheduleFieldsSelectorsIDs } from '../../../components/RecurringScheduleFields';
 import { RecurringIntervalSheetSelectorsIDs } from '../../../components/RecurringIntervalSheet';
 import { BuildQuoteSelectors } from '../../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
+
+const errorColor = lightTheme.colors.error.default;
 
 async function openRecurringTab(
   renderResult: ReturnType<typeof renderBridgeView>,
@@ -57,13 +60,13 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ),
     ).toHaveDisplayValue('10');
     expect(
-      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT)
-        .props.accessibilityState?.invalid,
-    ).toBe(false);
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    ).not.toHaveStyle({ color: errorColor });
     expect(
-      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT)
-        .props.accessibilityState?.invalid,
-    ).toBe(false);
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+      ),
+    ).not.toHaveStyle({ color: errorColor });
   });
 
   it('appends keypad digits to the every value', async () => {
@@ -157,9 +160,8 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
     ).toHaveDisplayValue('0');
     expect(
-      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT)
-        .props.accessibilityState?.invalid,
-    ).toBe(true);
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    ).toHaveStyle({ color: errorColor });
   });
 
   it('keeps repeat at 0 and invalid after the keypad is closed', async () => {
@@ -206,9 +208,10 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ),
     ).toHaveDisplayValue('0');
     expect(
-      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT)
-        .props.accessibilityState?.invalid,
-    ).toBe(true);
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+      ),
+    ).toHaveStyle({ color: errorColor });
   });
 
   it('keeps a 0 every value after leaving and returning to the recurring tab', async () => {
@@ -244,9 +247,8 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
     ).toHaveDisplayValue('0');
     expect(
-      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT)
-        .props.accessibilityState?.invalid,
-    ).toBe(true);
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    ).toHaveStyle({ color: errorColor });
   });
 
   it('does not add a decimal when the period key is pressed', async () => {
@@ -398,13 +400,13 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     });
 
     expect(
-      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT)
-        .props.accessibilityState?.invalid,
-    ).toBe(true);
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    ).toHaveStyle({ color: errorColor });
     expect(
-      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT)
-        .props.accessibilityState?.invalid,
-    ).toBe(false);
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+      ),
+    ).not.toHaveStyle({ color: errorColor });
   });
 
   it('marks the repeat value invalid when it is 0', async () => {
@@ -437,12 +439,12 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     });
 
     expect(
-      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT)
-        .props.accessibilityState?.invalid,
-    ).toBe(true);
+      renderResult.getByTestId(
+        RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT,
+      ),
+    ).toHaveStyle({ color: errorColor });
     expect(
-      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT)
-        .props.accessibilityState?.invalid,
-    ).toBe(false);
+      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT),
+    ).not.toHaveStyle({ color: errorColor });
   });
 });
