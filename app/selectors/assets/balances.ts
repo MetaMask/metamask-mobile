@@ -32,6 +32,7 @@ import {
 } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { TEST_NETWORK_IDS } from '../../constants/network';
+import { createDeepEqualSelector } from '../util';
 
 // RootState used by reselect inputs for existing selectors
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
@@ -471,7 +472,12 @@ export const selectBalanceByWallet = (walletId: string) =>
 export const selectBalanceBySelectedAccountGroup = (
   popularChainIds?: CaipChainId[],
 ) =>
-  createSelector(
+  // Deep-equal memoized: upstream controller state (e.g. AssetsController)
+  // can emit many state changes in quick succession (esp. right after
+  // unlock) whose net effect on this group's balance is unchanged. Without
+  // deep-equal comparison this would return a new object on every one of
+  // those changes, causing the homepage balance to re-render repeatedly.
+  createDeepEqualSelector(
     [selectSelectedAccountGroupId, selectBalanceForAllWallets(popularChainIds)],
     (selectedGroupId, allBalances) => {
       if (!selectedGroupId) {
@@ -502,7 +508,10 @@ export const selectBalanceBySelectedAccountGroup = (
 export const selectUnifiedBalanceBySelectedAccountGroup = (
   popularChainIds?: CaipChainId[],
 ) =>
-  createSelector(
+  // Deep-equal memoized: see selectBalanceBySelectedAccountGroup above — this
+  // is the assets-unify-state equivalent and hits the same re-render storm on
+  // wallet unlock without it.
+  createDeepEqualSelector(
     [
       selectAssetsControllerStateForBalances,
       selectAccountTreeStateForBalances,
@@ -532,7 +541,11 @@ export const selectUnifiedBalanceBySelectedAccountGroup = (
  * Returns the selected account group's balance
  * across mainnet networks for balance empty state display
  */
-export const selectAccountGroupBalanceForEmptyState = createSelector(
+// Deep-equal memoized: this feeds the homepage/wallet-home balance hero and
+// empty-state check; without it, unrelated AssetsController churn (common in
+// bursts right after unlock) returns a new object every time even when the
+// resulting balance value hasn't changed, causing needless re-renders.
+export const selectAccountGroupBalanceForEmptyState = createDeepEqualSelector(
   [
     selectIsAssetsUnifyStateEnabled,
     selectAssetsControllerStateForBalances,
@@ -783,7 +796,8 @@ export const selectBalanceChangeBySelectedAccountGroup = (
   period: BalanceChangePeriod,
   popularChainIds?: CaipChainId[],
 ) =>
-  createSelector(
+  // Deep-equal memoized: see selectBalanceBySelectedAccountGroup above.
+  createDeepEqualSelector(
     [
       selectIsAssetsUnifyStateEnabled,
       selectAssetsControllerStateForBalances,
