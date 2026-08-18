@@ -232,11 +232,18 @@ module.exports = {
       },
     },
     // MMQA-2230: allowlisted smoke-appium dual-framework debt (warn)
-    {
-      files: dualFrameworkSmokeBurndown,
-      rules: {
-        'no-restricted-imports': ['warn', dualFrameworkRestrictedImportOptions],
-      },
-    },
+    ...(dualFrameworkSmokeBurndown.length > 0
+      ? [
+          {
+            files: dualFrameworkSmokeBurndown,
+            rules: {
+              'no-restricted-imports': [
+                'warn',
+                dualFrameworkRestrictedImportOptions,
+              ],
+            },
+          },
+        ]
+      : []),
   ],
 };
