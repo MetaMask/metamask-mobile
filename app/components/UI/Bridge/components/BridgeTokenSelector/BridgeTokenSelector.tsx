@@ -950,9 +950,23 @@ export const BridgeTokenSelector: React.FC = () => {
     [],
   );
 
+  // A page whose results are all filtered out (e.g. RWAs) leaves the
+  // filtered results empty while a cursor for the next page still exists.
+  // The auto-load effect will keep fetching in that case, so the empty
+  // state must stay hidden until either results appear or the cursor is
+  // exhausted, otherwise "no tokens found" flashes/sticks mid-fetch.
+  const isAwaitingMoreSearchResults =
+    searchResultsWithBalance.length === 0 && Boolean(searchCursor);
+
   const renderEmptyState = useCallback(() => {
     if (isWatchlistListMode && hasWatchlistItems) {
-      if (isWatchlistLoading || !isValidSearch || isSearchLoading) {
+      if (
+        isWatchlistLoading ||
+        !isValidSearch ||
+        isSearchLoading ||
+        isLoadingMore ||
+        isAwaitingMoreSearchResults
+      ) {
         return null;
       }
 
@@ -964,8 +978,14 @@ export const BridgeTokenSelector: React.FC = () => {
       );
     }
 
-    // Only show empty state when search is active and not loading
-    if (!isValidSearch || isSearchLoading) {
+    // Only show empty state when search is active, not loading, and not
+    // waiting on additional pages to fill in filtered-out results.
+    if (
+      !isValidSearch ||
+      isSearchLoading ||
+      isLoadingMore ||
+      isAwaitingMoreSearchResults
+    ) {
       return null;
     }
 
@@ -981,6 +1001,8 @@ export const BridgeTokenSelector: React.FC = () => {
     isWatchlistLoading,
     isValidSearch,
     isSearchLoading,
+    isLoadingMore,
+    isAwaitingMoreSearchResults,
     styles.emptyStateContainer,
     NoSearchResultsIcon,
   ]);

@@ -1290,6 +1290,49 @@ describe('BridgeTokenSelector', () => {
       expect(queryByTestId('token-MSFTX')).toBeNull();
     });
 
+    it('hides empty state while an all-RWA page still has a cursor to auto-load', async () => {
+      mockRouteParams = { type: 'source', excludeRwaTokens: true };
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [createRwaPopularToken('MSFTX', 'Microsoft Corp')],
+        searchCursor: 'next-cursor',
+        currentSearchQuery: 'MSF',
+      };
+
+      const { getByTestId, queryByTestId, UNSAFE_getByType } =
+        renderWithReduxProvider(<BridgeTokenSelector />);
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'MSF');
+
+      const { FlatList } = jest.requireActual('react-native');
+      await act(async () => {
+        UNSAFE_getByType(FlatList).props.onLayout({
+          nativeEvent: { layout: { height: 500 } },
+        });
+      });
+
+      await waitFor(() => {
+        expect(mockSearchTokens).toHaveBeenCalledWith('MSF', 'next-cursor');
+      });
+      expect(queryByTestId('bridge-token-selector-empty-state')).toBeNull();
+    });
+
+    it('shows empty state once an all-RWA search exhausts its cursor', async () => {
+      mockRouteParams = { type: 'source', excludeRwaTokens: true };
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [createRwaPopularToken('MSFTX', 'Microsoft Corp')],
+        searchCursor: undefined,
+        currentSearchQuery: 'MSF',
+      };
+
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'MSF');
+
+      await waitFor(() =>
+        expect(getByTestId('bridge-token-selector-empty-state')).toBeTruthy(),
+      );
+    });
+
     it.each([
       { excludeRwaTokens: undefined, isRwaVisible: true },
       { excludeRwaTokens: true, isRwaVisible: false },
