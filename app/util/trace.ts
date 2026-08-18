@@ -69,8 +69,6 @@ export enum TraceName {
   EvmDiscoverAccounts = 'EVM Discover Accounts',
   SnapDiscoverAccounts = 'Snap Discover Accounts',
   FetchHistoricalPrices = 'Fetch Historical Prices',
-  CryptoUpDownWsMessage = 'Crypto Up Down WS Message',
-  CryptoUpDownBufferFlush = 'Crypto Up Down Buffer Flush',
   /** Token overview advanced chart: skeleton cleared after initial load / asset or currency change. */
   TokenOverviewAdvancedChartInitialVisible = 'Token Overview Advanced Chart Initial Visible',
   /** Token overview advanced chart: skeleton cleared after time range selector change only. */
@@ -274,6 +272,9 @@ export enum TraceName {
   MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
   MoneyHomeEarningsTimeToContent = 'Money Home Earnings Time To Content',
   MoneyHomeApyTimeToContent = 'Money Home APY Time To Content',
+  // Rewards
+  /** Tap Rewards tab → onboarding content or enrolled dashboard shell. */
+  RewardsTabTimeToContent = 'Rewards Tab Time To Content',
 }
 
 export enum TraceOperation {
@@ -341,6 +342,8 @@ export enum TraceOperation {
   // Money Home Performance
   MoneyHomePerformance = 'money.home.performance',
   MoneyAccountDataFetch = 'money.account.data_fetch',
+  // Rewards
+  RewardsPerformance = 'rewards.performance',
   RampOperation = 'ramp.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
@@ -531,6 +534,11 @@ interface BufferedTrace<T = TraceRequest | EndTraceRequest> {
   type: 'start' | 'end';
   request: T;
   parentTraceName?: string; // Track parent trace name for reconnecting during flush
+  measurements?: {
+    name: string;
+    value: number;
+    unit: Parameters<typeof setMeasurement>[2];
+  }[];
 }
 
 export function trace<T>(request: TraceRequest, fn: TraceCallback<T>): T;
@@ -631,16 +639,67 @@ export function getTraceContext(
   return tracesByKey.get(getTraceKey(request))?.span;
 }
 
-/**
- * Return the in-flight span for a pending manual trace with this id.
- */
-export function getTraceContextById(id: string): TraceContext {
-  for (const pendingTrace of tracesByKey.values()) {
-    if (getTraceId(pendingTrace.request) === id) {
-      return pendingTrace.span;
+/** Write a measurement to an explicit pending trace, buffering until consent. */
+export function setTraceMeasurement(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+  name: string,
+  value: number,
+  unit: Parameters<typeof setMeasurement>[2],
+): void {
+  const span = getTraceContext(request);
+  if (span) {
+    setMeasurement(name, value, unit, span);
+    return;
+  }
+
+  const traceKey = getTraceKey(request);
+  for (let index = localBufferedTraces.length - 1; index >= 0; index -= 1) {
+    const bufferedTrace = localBufferedTraces[index];
+    if (
+      bufferedTrace.type !== 'start' ||
+      getTraceKey(bufferedTrace.request) !== traceKey
+    ) {
+      continue;
+    }
+    const measurements = bufferedTrace.measurements ?? [];
+    const existing = measurements.find(
+      (measurement) => measurement.name === name,
+    );
+    if (existing) {
+      existing.value = value;
+      existing.unit = unit;
+    } else {
+      measurements.push({ name, value, unit });
+    }
+    bufferedTrace.measurements = measurements;
+    return;
+  }
+}
+
+export function annotateTraceByRequest(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+  attributes: Record<string, TraceValue>,
+): void {
+  const span = getTraceContext(request);
+  if (span) {
+    annotateTrace(span, attributes);
+    return;
+  }
+
+  const traceKey = getTraceKey(request);
+  for (let index = localBufferedTraces.length - 1; index >= 0; index -= 1) {
+    const bufferedTrace = localBufferedTraces[index];
+    if (
+      bufferedTrace.type === 'start' &&
+      getTraceKey(bufferedTrace.request) === traceKey
+    ) {
+      bufferedTrace.request.data = {
+        ...bufferedTrace.request.data,
+        ...attributes,
+      };
+      return;
     }
   }
-  return undefined;
 }
 
 /**
@@ -853,6 +912,14 @@ export async function flushBufferedTraces() {
       }) as Span;
 
       if (span) {
+        bufferedItem.measurements?.forEach((measurement) => {
+          setMeasurement(
+            measurement.name,
+            measurement.value,
+            measurement.unit,
+            span,
+          );
+        });
         activeSpans.set(traceKey, span);
       }
     } else if (bufferedItem.type === 'end') {

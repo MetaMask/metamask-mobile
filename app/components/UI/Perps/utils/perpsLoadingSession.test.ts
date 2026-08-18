@@ -1,10 +1,9 @@
-import { setMeasurement } from '@sentry/react-native';
 import performance from 'react-native-performance';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
-  annotateTrace,
+  annotateTraceByRequest as annotateTrace,
   endTrace,
-  getTraceContextById,
+  setTraceMeasurement as setMeasurement,
   trace,
   TraceName,
   TraceOperation,
@@ -14,10 +13,12 @@ import {
   finishPerpsLoadingSession,
   getActivePerpsLoadingSessionContext,
   HOMEPAGE_READY_DISTANCE_FROM_PERPS_BOOTSTRAP_START_MS,
+  preparePerpsLoadingSession,
   resolvePerpsMarketSource,
   recordHomepageReadyAt,
   recordPerpsLoadingSessionValuesReady,
   resetPerpsLoadingSessionForTesting,
+  setPerpsLoadingSessionLifecycle,
   startPerpsLoadingSession,
 } from './perpsLoadingSession';
 
@@ -25,18 +26,14 @@ jest.mock('uuid', () => ({
   v4: jest.fn(() => 'session-id-1'),
 }));
 
-jest.mock('@sentry/react-native', () => ({
-  setMeasurement: jest.fn(),
-}));
-
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: { log: jest.fn() },
 }));
 
 jest.mock('../../../../util/trace', () => ({
-  annotateTrace: jest.fn(),
+  annotateTraceByRequest: jest.fn(),
   endTrace: jest.fn(),
-  getTraceContextById: jest.fn(),
+  setTraceMeasurement: jest.fn(),
   trace: jest.fn(),
   TraceName: { PerpsLoadingSession: 'Perps Loading Session' },
   TraceOperation: { PerpsLoading: 'perps.loading' },
@@ -51,14 +48,11 @@ jest.mock('react-native-performance', () => ({
 }));
 
 describe('perpsLoadingSession', () => {
-  const span = { spanId: 'session-span' };
-
   beforeEach(() => {
     jest.clearAllMocks();
     resetPerpsLoadingSessionForTesting();
     jest.mocked(performance.now).mockReturnValue(400);
     jest.mocked(performance.getEntriesByName).mockReturnValue([]);
-    jest.mocked(getTraceContextById).mockReturnValue(span as never);
   });
 
   it('starts one session and logs the canonical marker', () => {
@@ -72,7 +66,25 @@ describe('perpsLoadingSession', () => {
       name: TraceName.PerpsLoadingSession,
       id: 'session-id-1',
       op: TraceOperation.PerpsLoading,
+      data: {
+        lifecycle: 'cold_no_cache',
+        surface: 'homepage',
+      },
     });
+  });
+
+  it('updates the bounded lifecycle on the active session', () => {
+    startPerpsLoadingSession();
+
+    setPerpsLoadingSessionLifecycle('background_reconnect');
+
+    expect(getActivePerpsLoadingSessionContext()?.lifecycle).toBe(
+      'background_reconnect',
+    );
+    expect(annotateTrace).toHaveBeenCalledWith(
+      { name: TraceName.PerpsLoadingSession, id: 'session-id-1' },
+      { lifecycle: 'background_reconnect' },
+    );
   });
 
   it('returns the same id and does not emit a second trace or marker on repeated start', () => {
@@ -126,10 +138,10 @@ describe('perpsLoadingSession', () => {
 
       expect(setMeasurement).toHaveBeenCalledTimes(1);
       expect(setMeasurement).toHaveBeenCalledWith(
+        { name: TraceName.PerpsLoadingSession, id: 'session-id-1' },
         'markets_ready_ms',
         150,
         'millisecond',
-        span,
       );
       expect(valuesReadyRecords()).toEqual([
         expect.objectContaining({
@@ -172,10 +184,10 @@ describe('perpsLoadingSession', () => {
 
       expect(setMeasurement).toHaveBeenCalledTimes(1);
       expect(setMeasurement).toHaveBeenCalledWith(
+        { name: TraceName.PerpsLoadingSession, id: 'session-id-1' },
         'account_cache_ready_ms',
         110,
         'millisecond',
-        span,
       );
       expect(valuesReadyRecords()).toEqual([
         expect.objectContaining({
@@ -200,26 +212,26 @@ describe('perpsLoadingSession', () => {
 
       expect(setMeasurement).toHaveBeenCalledTimes(2);
       expect(setMeasurement).toHaveBeenCalledWith(
+        { name: TraceName.PerpsLoadingSession, id: 'session-id-1' },
         'positions_live_ms',
         30,
         'millisecond',
-        span,
       );
       expect(setMeasurement).toHaveBeenCalledWith(
+        { name: TraceName.PerpsLoadingSession, id: 'session-id-1' },
         'orders_live_ms',
         30,
         'millisecond',
-        span,
       );
       expect(setMeasurement).not.toHaveBeenCalledWith(
+        expect.anything(),
         'account_live_ms',
         expect.anything(),
         expect.anything(),
-        expect.anything(),
       );
       expect(setMeasurement).not.toHaveBeenCalledWith(
-        'prices_live_ms',
         expect.anything(),
+        'prices_live_ms',
         expect.anything(),
         expect.anything(),
       );
@@ -240,20 +252,47 @@ describe('perpsLoadingSession', () => {
 
       expect(setMeasurement).toHaveBeenCalledTimes(1);
       expect(setMeasurement).toHaveBeenCalledWith(
+        { name: TraceName.PerpsLoadingSession, id: 'session-id-1' },
         'positions_live_ms',
         40,
         'millisecond',
-        span,
       );
       expect(valuesReadyRecords()).toHaveLength(1);
     });
 
-    it('does not emit or measure when no session is active', () => {
+    it('buffers values observed before the parent session effect starts', () => {
       recordPerpsLoadingSessionValuesReady('markets', 'provider', 4);
       recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 0);
 
       expect(setMeasurement).not.toHaveBeenCalled();
       expect(DevLogger.log).not.toHaveBeenCalled();
+
+      startPerpsLoadingSession();
+
+      expect(setMeasurement).toHaveBeenCalledTimes(2);
+      expect(valuesReadyRecords()).toHaveLength(2);
+    });
+
+    it('does not carry post-completion live ticks into the next generation', () => {
+      startPerpsLoadingSession();
+      recordHomepageReadyAt(500);
+      finishPerpsLoadingSession({
+        success: true,
+        content_state: 'empty',
+        content_variant: 'trending',
+      });
+      jest.clearAllMocks();
+
+      recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 1);
+      preparePerpsLoadingSession();
+      startPerpsLoadingSession();
+
+      expect(setMeasurement).not.toHaveBeenCalledWith(
+        expect.anything(),
+        'positions_live_ms',
+        expect.anything(),
+        expect.anything(),
+      );
     });
   });
 
@@ -262,9 +301,10 @@ describe('perpsLoadingSession', () => {
       success: true,
       content_state: 'empty',
       content_variant: 'trending',
-      market_source: 'unknown',
-      account_source: 'unknown',
-      lifecycle_context: 'cold_process',
+      market_source: 'provider',
+      account_source: 'memory_cache',
+      lifecycle: 'cold_no_cache',
+      surface: 'homepage',
     };
 
     it('ends the active session once', () => {
@@ -281,7 +321,10 @@ describe('perpsLoadingSession', () => {
       expect(endTrace).toHaveBeenCalledWith({
         name: TraceName.PerpsLoadingSession,
         id: 'session-id-1',
-        data: finishData,
+        data: {
+          ...finishData,
+          required_live_streams_complete: true,
+        },
       });
       expect(getActivePerpsLoadingSessionContext()).toBeNull();
     });
@@ -305,6 +348,7 @@ describe('perpsLoadingSession', () => {
         id: 'session-id-1',
         marketSource: 'unknown',
         accountSource: 'unknown',
+        lifecycle: 'cold_no_cache',
       });
     });
 
@@ -319,11 +363,61 @@ describe('perpsLoadingSession', () => {
 
       expect(endTrace).toHaveBeenCalledTimes(1);
       expect(setMeasurement).not.toHaveBeenCalledWith(
+        expect.anything(),
         'prices_live_ms',
         expect.anything(),
         expect.anything(),
-        expect.anything(),
       );
+    });
+
+    it('waits for the complete live account on positions content', () => {
+      startPerpsLoadingSession();
+      recordHomepageReadyAt(500);
+      finishPerpsLoadingSession({
+        ...finishData,
+        content_variant: 'positions',
+      });
+
+      expect(endTrace).not.toHaveBeenCalled();
+
+      recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 1);
+      recordPerpsLoadingSessionValuesReady('orders', 'fresh_socket', 0);
+      recordPerpsLoadingSessionValuesReady('account', 'fresh_socket', 1);
+
+      expect(endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            content_variant: 'positions',
+            required_live_streams_complete: true,
+          }),
+        }),
+      );
+    });
+
+    it('ends and releases a session at the bounded timeout', () => {
+      jest.useFakeTimers();
+      const startedAtWallMs = Date.now();
+      startPerpsLoadingSession();
+      const expectedDeadline = startedAtWallMs + 90_000;
+      jest.mocked(performance.now).mockReturnValue(120_400);
+      const dateNow = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(startedAtWallMs + 120_000);
+
+      jest.advanceTimersByTime(120_000);
+
+      expect(endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          timestamp: expectedDeadline,
+          data: expect.objectContaining({
+            success: false,
+            failure_stage: 'loading_session_timeout',
+          }),
+        }),
+      );
+      expect(getActivePerpsLoadingSessionContext()).toBeNull();
+      dateNow.mockRestore();
+      jest.useRealTimers();
     });
 
     it('prefers all-Terminal row provenance and otherwise uses the recorded session market source', () => {
@@ -359,6 +453,7 @@ describe('perpsLoadingSession', () => {
         id: 'session-id-1',
         marketSource: 'terminal_v2',
         accountSource: 'memory_cache',
+        lifecycle: 'cold_no_cache',
       });
     });
 
@@ -400,6 +495,7 @@ describe('perpsLoadingSession', () => {
           success: false,
           content_state: 'error',
           content_variant: 'error',
+          required_live_streams_complete: true,
         },
       });
     });
@@ -410,34 +506,35 @@ describe('perpsLoadingSession', () => {
       recordHomepageReadyAt(550);
 
       expect(setMeasurement).toHaveBeenCalledWith(
+        { name: TraceName.PerpsLoadingSession, id: 'session-id-1' },
         HOMEPAGE_READY_DISTANCE_FROM_PERPS_BOOTSTRAP_START_MS,
         150,
         'millisecond',
-        span,
       );
-      expect(annotateTrace).toHaveBeenCalledWith(span, {
-        [BOOTSTRAP_BEFORE_HOMEPAGE_READY]: true,
-      });
+      expect(annotateTrace).toHaveBeenCalledWith(
+        { name: TraceName.PerpsLoadingSession, id: 'session-id-1' },
+        { [BOOTSTRAP_BEFORE_HOMEPAGE_READY]: true },
+      );
 
       resetPerpsLoadingSessionForTesting();
       jest.clearAllMocks();
-      jest.mocked(getTraceContextById).mockReturnValue(span as never);
       recordHomepageReadyAt(400);
       jest.mocked(performance.now).mockReturnValue(550);
       startPerpsLoadingSession();
 
       expect(setMeasurement).toHaveBeenCalledWith(
+        { name: TraceName.PerpsLoadingSession, id: 'session-id-1' },
         HOMEPAGE_READY_DISTANCE_FROM_PERPS_BOOTSTRAP_START_MS,
         150,
         'millisecond',
-        span,
       );
-      expect(annotateTrace).toHaveBeenCalledWith(span, {
-        [BOOTSTRAP_BEFORE_HOMEPAGE_READY]: false,
-      });
+      expect(annotateTrace).toHaveBeenCalledWith(
+        { name: TraceName.PerpsLoadingSession, id: 'session-id-1' },
+        { [BOOTSTRAP_BEFORE_HOMEPAGE_READY]: false },
+      );
     });
 
-    it('buffers finish until Homepage Ready and ends exactly once', () => {
+    it('uses the latest pending content requirement before Homepage Ready', () => {
       startPerpsLoadingSession();
       finishPerpsLoadingSession(finishData);
       finishPerpsLoadingSession({
@@ -449,11 +546,21 @@ describe('perpsLoadingSession', () => {
 
       recordHomepageReadyAt(480);
 
+      expect(endTrace).not.toHaveBeenCalled();
+
+      recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 1);
+      recordPerpsLoadingSessionValuesReady('orders', 'fresh_socket', 0);
+      recordPerpsLoadingSessionValuesReady('account', 'fresh_socket', 1);
+
       expect(endTrace).toHaveBeenCalledTimes(1);
       expect(endTrace).toHaveBeenCalledWith({
         name: TraceName.PerpsLoadingSession,
         id: 'session-id-1',
-        data: finishData,
+        data: {
+          ...finishData,
+          content_variant: 'positions',
+          required_live_streams_complete: true,
+        },
       });
     });
 
@@ -463,6 +570,7 @@ describe('perpsLoadingSession', () => {
       finishPerpsLoadingSession(finishData);
 
       expect(setMeasurement).not.toHaveBeenCalledWith(
+        expect.anything(),
         HOMEPAGE_READY_DISTANCE_FROM_PERPS_BOOTSTRAP_START_MS,
         expect.anything(),
         expect.anything(),

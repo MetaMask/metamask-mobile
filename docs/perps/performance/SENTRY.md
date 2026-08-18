@@ -91,6 +91,11 @@ Do not add another Homepage TTC or DFD transaction.
 
 Visible errors retain the existing event shape for compatibility. Successful-latency widgets must filter `content_state != error`; error-rate widgets use `content_state = error`.
 
+Dashboard cohort queries use span attributes. The section hook writes bounded
+cohort values as start attributes and refreshes them on the same span before
+completion; Sentry event tags are compatibility metadata, not the dashboard
+source of truth.
+
 ## Attributes
 
 ### Indexed, bounded cohort attributes
@@ -131,6 +136,19 @@ Never attach wallet addresses, account names, order IDs, position IDs, balances,
 ## Correlation
 
 Mobile creates one random `perps_session_id` per lifecycle/context generation at `perps_bootstrap_start`. It passes the identifier through the existing tracing infrastructure to Core and attaches it as trace data/context to reused Perps and Homepage-section traces. It is for individual-run drill-down, not aggregation.
+
+This Mobile stack attaches the identifier to the loading session, Homepage
+section, connection, and first-live traces. Market/user preload correlation,
+`process_to_perps_bootstrap_start_ms`, and
+`process_to_perps_controller_constructed_ms` remain release-pending on the
+Core trace-targeting API in MetaMask/core#9906 plus its Mobile adapter. Their
+dashboard rows must remain empty/pending until that released API is wired; they
+must not be inferred from ambient spans.
+
+`disk_cache` and the `cold_disk_cache` lifecycle remain reserved until Core
+exposes durable-cache provenance to Mobile. Cold-disk-cache recipe evidence is
+currently excluded, so production widgets must not label memory-hydrated rows
+as disk cache.
 
 Dashboards aggregate each authoritative transaction independently using the same bounded release/platform/lifecycle/source attributes. Bootstrap-relative cross-stage widgets query the slim loading session, which is why those offsets exist there.
 

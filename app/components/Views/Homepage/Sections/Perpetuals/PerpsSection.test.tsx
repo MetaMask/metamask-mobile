@@ -13,6 +13,31 @@ import { createActiveABTestAssignment } from '../../../../../util/analytics/acti
 
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
+const mockUseSectionPerformance = jest.fn((_config: unknown) => undefined);
+const mockStartPerpsLoadingSession = jest.fn(
+  (_options: unknown) => 'session-id-1',
+);
+const mockFinishPerpsLoadingSession = jest.fn((_data: unknown) => undefined);
+
+jest.mock('../../hooks/useSectionPerformance', () => ({
+  useSectionPerformance: (config: unknown) => mockUseSectionPerformance(config),
+}));
+
+jest.mock('../../../../UI/Perps/utils/perpsLoadingSession', () => ({
+  startPerpsLoadingSession: (options: unknown) =>
+    mockStartPerpsLoadingSession(options),
+  finishPerpsLoadingSession: (data: unknown) =>
+    mockFinishPerpsLoadingSession(data),
+  preparePerpsLoadingSession: jest.fn(),
+  getActivePerpsLoadingSessionContext: () => ({
+    id: 'session-id-1',
+    marketSource: 'provider',
+    accountSource: 'memory_cache',
+    lifecycle: 'cold_no_cache',
+  }),
+  resolvePerpsMarketSource: () => 'provider',
+  resolvePerpsLoadingLifecycle: () => 'cold_no_cache',
+}));
 
 const mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests = jest.fn<
   { key: string; value: string; key_value_pair?: string }[] | undefined,
@@ -355,6 +380,71 @@ describe('PerpsSection', () => {
     );
 
     expect(screen.getByText('Perps')).toBeOnTheScreen();
+  });
+
+  it('correlates the existing section trace with the loading session', () => {
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockStartPerpsLoadingSession).toHaveBeenCalledWith({
+      lifecycle: 'cold_no_cache',
+      surface: 'homepage',
+    });
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          lifecycle: 'cold_no_cache',
+          surface: 'homepage',
+          market_source: 'provider',
+          account_source: 'memory_cache',
+        }),
+        data: { perps_session_id: 'session-id-1' },
+      }),
+    );
+  });
+
+  it('does not start a new session when content changes in place', () => {
+    const view = renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+    expect(mockStartPerpsLoadingSession).toHaveBeenCalledTimes(1);
+
+    usePerpsLivePositions.mockReturnValue({
+      positions: [makePosition()],
+      isInitialLoading: false,
+    });
+    view.rerender(<PerpsSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    expect(mockStartPerpsLoadingSession).toHaveBeenCalledTimes(1);
+  });
+
+  it('finishes a visible error even while loading remains true', () => {
+    usePerpsConnection.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: false,
+      error: new Error('offline'),
+      connect: jest.fn(),
+      disconnect: jest.fn(),
+      resetError: jest.fn(),
+      reconnectWithNewContext: mockReconnectWithNewContext,
+    });
+    usePerpsLivePositions.mockReturnValue({
+      positions: [],
+      isInitialLoading: true,
+    });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockFinishPerpsLoadingSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        content_state: 'error',
+      }),
+    );
   });
 
   it('renders live positions with leverage info', () => {

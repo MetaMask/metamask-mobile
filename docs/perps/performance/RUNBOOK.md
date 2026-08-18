@@ -8,7 +8,7 @@ Perps loading and lifecycle measurements use exactly one recipe:
 
 Source:
 
-`/Users/deeeed/dev/metamask/metamask-harness/library/recipes/mobile/perps/performance.recipe.json`
+`<metamask-harness>/library/recipes/mobile/perps/performance.recipe.json`
 
 Do not create Android, iOS, lifecycle, account, or source-strategy copies. The recipe parameters are identical across platforms. The only platform selection is the harness device target.
 
@@ -35,13 +35,19 @@ mm-harness run perps.performance \
   account=dev1 \
   source_strategy=full_bootstrap \
   lifecycle=cold_no_cache \
-  --device 29071JEGR20638 \
+  --device <android-serial-or-ios-UDID> \
   --hud show
 ```
 
-For the optimized arm, change only `source_strategy=full_bootstrap`, `sample_id`, checkout, and device. Android and iOS use the same recipe parameters.
+For a matched optimized arm, change only `source_strategy=full_bootstrap`, `sample_id`, and checkout. Keep the same physical device or simulator. If different devices are unavoidable, label the result hardware-unmatched and do not present it as a controlled code-performance comparison. Android and iOS use the same recipe parameters.
 
 ## Timing boundaries
+
+The canonical recipe vocabulary below is the target stack contract. Mobile
+emission of `perps_bootstrap_start` and its loading-session milestones lands in
+the next stacked PR; runs against this foundation PR alone must mark those rows
+`recipe pending` rather than synthesizing them. They become `release pending`
+only after the instrumentation is implemented and validated on-device.
 
 The recipe captures both clocks without mixing them:
 

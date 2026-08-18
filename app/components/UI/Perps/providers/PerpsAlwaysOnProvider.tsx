@@ -115,6 +115,11 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
       if (prevState === 'active' && nextState.match(/inactive|background/)) {
         PerpsConnectionManager.disconnect();
       } else if (nextState === 'active') {
+        startPerpsLoadingSession({
+          restart: true,
+          lifecycle: 'background_short',
+          surface: 'homepage',
+        });
         // Small delay to allow system to stabilize after background
         scheduleSilentEnsureConnected(
           PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,
