@@ -10,6 +10,7 @@ const longPosition = {
   liquidationPrice: '48000',
   entryPrice: '50000',
   leverage: { type: 'isolated' as const, value: 5 },
+  maxLeverage: 50,
 };
 
 const shortPosition = {
@@ -78,6 +79,7 @@ describe('getModifiedPositionPreview', () => {
         resultingSize: 1,
         resultingEntryPrice: 50000,
         resultingDirection: 'long',
+        newLiquidationPrice: 48000,
       }),
     );
   });
@@ -95,6 +97,7 @@ describe('getModifiedPositionPreview', () => {
     );
     expect(result.resultingDirection).toBe('long');
     expect(result.currentLiquidationPrice).toBe(48000);
+    expect(result.newLiquidationPrice).toBeCloseTo(51746.56, 1);
   });
 
   it('releases margin proportionally when reducing a long with a short order', () => {
@@ -111,6 +114,7 @@ describe('getModifiedPositionPreview', () => {
     expect(result.resultingSize).toBeCloseTo(0.6);
     expect(result.resultingEntryPrice).toBe(50000);
     expect(result.resultingDirection).toBe('long');
+    expect(result.newLiquidationPrice).toBe(48000);
   });
 
   it('releases margin proportionally for an opposite-side order that does not flip', () => {
@@ -140,6 +144,7 @@ describe('getModifiedPositionPreview', () => {
     expect(result.newMargin).toBe(0);
     expect(result.resultingSize).toBe(0);
     expect(result.resultingDirection).toBe('long');
+    expect(result.newLiquidationPrice).toBe(0);
   });
 
   it('opens the leftover size in the order direction when flipping a long to short', () => {
@@ -158,6 +163,7 @@ describe('getModifiedPositionPreview', () => {
     expect(result.newMargin).toBeCloseTo(10);
     expect(result.resultingEntryPrice).toBe(90000);
     expect(result.resultingDirection).toBe('short');
+    expect(result.newLiquidationPrice).toBeCloseTo(89128.71, 1);
   });
 
   it('increases a short when the order is also short', () => {
@@ -172,5 +178,6 @@ describe('getModifiedPositionPreview', () => {
     expect(result.resultingDirection).toBe('short');
     expect(result.currentLiquidationPrice).toBe(52000);
     expect(result.newMargin).toBe(1020);
+    expect(result.newLiquidationPrice).toBeCloseTo(55528.35, 1);
   });
 });

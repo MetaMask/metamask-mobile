@@ -333,8 +333,9 @@ describe('usePerpsProOrderForm', () => {
 
       expect(result.current.summary.margin).toMatch(/→/);
       expect(result.current.summary.margin).toMatch(/\$1,000/);
-      expect(result.current.summary.liquidationPrice).toMatch(/→/);
-      expect(result.current.summary.liquidationPrice).toMatch(/\$48/);
+      expect(result.current.summary.liquidationPrice).toMatch(
+        /\$48[,.]000.*→.*\$48[,.]000/,
+      );
     });
 
     it('keeps single-value margin and liquidation when there is no open position', () => {

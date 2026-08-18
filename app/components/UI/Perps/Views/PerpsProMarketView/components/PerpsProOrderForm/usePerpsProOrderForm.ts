@@ -533,6 +533,7 @@ export const usePerpsProOrderForm = ({
         orderMargin: Number.parseFloat(marginRequired ?? ''),
         orderPrice: effectivePrice,
         reduceOnly,
+        maxLeverage,
       }),
     [
       currentMarketPosition,
@@ -541,42 +542,31 @@ export const usePerpsProOrderForm = ({
       marginRequired,
       effectivePrice,
       reduceOnly,
+      maxLeverage,
     ],
   );
 
-  const liquidationPriceParams = useMemo(() => {
-    const useResultingPosition =
-      positionModifyPreview.isModifying &&
-      hasValidAmount &&
-      positionModifyPreview.kind !== 'full_close' &&
-      positionModifyPreview.resultingSize > 0 &&
-      positionModifyPreview.resultingEntryPrice > 0 &&
-      positionModifyPreview.resultingLeverage > 0;
-
-    if (useResultingPosition) {
-      return {
-        entryPrice: positionModifyPreview.resultingEntryPrice,
-        leverage: positionModifyPreview.resultingLeverage,
-        direction: positionModifyPreview.resultingDirection,
-        asset: orderForm.asset,
-      };
-    }
-
-    return {
+  const liquidationPriceParams = useMemo(
+    () => ({
       entryPrice: effectivePrice,
       leverage: orderForm.leverage,
       direction: orderForm.direction,
       asset: orderForm.asset,
-    };
-  }, [
-    positionModifyPreview,
-    hasValidAmount,
-    effectivePrice,
-    orderForm.leverage,
-    orderForm.direction,
-    orderForm.asset,
-  ]);
+    }),
+    [effectivePrice, orderForm.leverage, orderForm.direction, orderForm.asset],
+  );
   const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
+
+  const resultingLiquidationPriceDisplay = useMemo(() => {
+    if (
+      !positionModifyPreview.isModifying ||
+      positionModifyPreview.kind === 'full_close' ||
+      positionModifyPreview.newLiquidationPrice <= 0
+    ) {
+      return undefined;
+    }
+    return String(positionModifyPreview.newLiquidationPrice);
+  }, [positionModifyPreview]);
 
   const existingPositionLeverageForValidation =
     currentMarketPosition?.leverage?.value;
@@ -632,7 +622,7 @@ export const usePerpsProOrderForm = ({
     direction: orderForm.direction,
     takeProfitPrice: orderForm.takeProfitPrice,
     stopLossPrice: orderForm.stopLossPrice,
-    liquidationPrice,
+    liquidationPrice: resultingLiquidationPriceDisplay ?? liquidationPrice,
     marketPrice: assetData.price,
   });
 
@@ -1120,8 +1110,10 @@ export const usePerpsProOrderForm = ({
         ? formatMargin(positionModifyPreview.newMargin)
         : PERPS_CONSTANTS.FallbackDataDisplay;
       const afterLiquidation =
-        hasValidAmount && positionModifyPreview.kind !== 'full_close'
-          ? formatLiquidation(liquidationPrice)
+        hasValidAmount &&
+        positionModifyPreview.kind !== 'full_close' &&
+        positionModifyPreview.newLiquidationPrice > 0
+          ? formatLiquidation(positionModifyPreview.newLiquidationPrice)
           : PERPS_CONSTANTS.FallbackDataDisplay;
       margin = formatBeforeAfter(
         formatMargin(positionModifyPreview.currentMargin),
