@@ -1,0 +1,154 @@
+##############################################################################################
+#
+# Publishes an automated release-candidate OTA update.
+#
+# Called by build-rc-auto.yml when a push to a release branch turns out to be JS-only: the Expo
+# fingerprint of the pushed commit matches the last successful native RC build, so the native
+# layer on testers' devices is still correct and the change can be delivered as an OTA update
+# instead of a new binary.
+#
+# Scope is deliberately narrow. The channel is hardcoded to `rc` (never `production`, never
+# `exp`) and the caller's ref must be a release branch, so this cannot reach store builds. Those
+# are also protected independently of this workflow: production binaries embed
+# `expo-channel-name: production` and a different code-signing certificate, so an rc-signed
+# update fails both the channel match and signature verification. `runtimeVersion` (the
+# package.json version) additionally keeps separate release lines from reaching each other.
+#
+# Unlike push-eas-update.yml this does no fingerprint comparison of its own — the caller already
+# made that decision — and it publishes no state. Being stateless is what makes it safe to
+# cancel and rerun: there is no counter or label to duplicate.
+#
+##############################################################################################
+name: Publish RC Auto OTA
+
+on:
+  workflow_call:
+    inputs:
+      commit_sha:
+        description: 'Commit to publish, the one the caller fingerprinted'
+        required: true
+        type: string
+      pr_number:
+        description: 'Release PR number, used to label the update in the EAS dashboard'
+        required: true
+        type: string
+      artifact_name:
+        description: >-
+          node_modules artifact built by the caller at commit_sha. Must be named with the
+          `node-modules-eas-update-pr` prefix that eas-update-platform.yml validates.
+        required: true
+        type: string
+    outputs:
+      ota_commit_short_sha:
+        description: 'Short SHA the update was published from, for reporting'
+        value: ${{ jobs.prepare.outputs.short_sha }}
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  prepare:
+    name: Load RC OTA config
+    runs-on: ubuntu-latest
+    outputs:
+      short_sha: ${{ steps.config.outputs.short_sha }}
+      message: ${{ steps.config.outputs.message }}
+      github_environment: ${{ steps.config.outputs.github_environment }}
+      secrets_json: ${{ steps.config.outputs.secrets_json }}
+    steps:
+      - name: Verify caller is on a release branch
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          # Belt and braces: build-rc-auto.yml only triggers on release/*, but this asserts it
+          # again here so a future caller cannot quietly widen who can publish to `rc`.
+          if [[ ! "$BRANCH_NAME" =~ ^release/ ]]; then
+            echo "::error::Auto RC OTA can only publish from a release branch, got '$BRANCH_NAME'"
+            exit 1
+          fi
+          echo "Publishing from $BRANCH_NAME"
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      # Reuses the artifact the push jobs need anyway rather than running a fresh
+      # `yarn install`, since js-yaml is the only thing required to read builds.yml and the
+      # point of the OTA path is to be fast.
+      - name: Download node_modules artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact_name }}
+
+      - name: Load main-rc config from builds.yml
+        id: config
+        env:
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: |
+          set -euo pipefail
+          SHORT_SHA="${COMMIT_SHA:0:7}"
+          {
+            echo "short_sha=${SHORT_SHA}"
+            echo "message=Auto RC OTA ${SHORT_SHA} (PR #${PR_NUMBER})"
+          } >> "$GITHUB_OUTPUT"
+
+          node -e "
+          const yaml = require('js-yaml');
+          const fs = require('fs');
+          const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
+          const build = config.builds['main-rc'];
+          if (!build) { console.error('::error::main-rc missing from builds.yml'); process.exit(1); }
+          // The rc channel is what keeps this away from store builds, and it is bound to the
+          // build-rc environment's EXPO_CHANNEL variable. Anything else means builds.yml moved
+          // under us, so stop rather than publish to an unknown channel.
+          if (build.github_environment !== 'build-rc') {
+            console.error(\`::error::Expected main-rc to use the build-rc environment, got \${build.github_environment}\`);
+            process.exit(1);
+          }
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
+          "
+
+          echo "Publishing ${SHORT_SHA} to the rc channel"
+
+  push-ota-ios:
+    name: Push OTA (iOS)
+    needs: prepare
+    uses: ./.github/workflows/eas-update-platform.yml
+    with:
+      platform: ios
+      commit_sha: ${{ inputs.commit_sha }}
+      artifact_name: ${{ inputs.artifact_name }}
+      channel: rc
+      message: ${{ needs.prepare.outputs.message }}
+      build_name: main-rc
+      github_environment: ${{ needs.prepare.outputs.github_environment }}
+      secrets_json: ${{ needs.prepare.outputs.secrets_json }}
+      rc_auto_commit_sha: ${{ needs.prepare.outputs.short_sha }}
+    secrets: inherit
+
+  push-ota-android:
+    name: Push OTA (Android)
+    needs: prepare
+    uses: ./.github/workflows/eas-update-platform.yml
+    with:
+      platform: android
+      commit_sha: ${{ inputs.commit_sha }}
+      artifact_name: ${{ inputs.artifact_name }}
+      channel: rc
+      message: ${{ needs.prepare.outputs.message }}
+      build_name: main-rc
+      github_environment: ${{ needs.prepare.outputs.github_environment }}
+      secrets_json: ${{ needs.prepare.outputs.secrets_json }}
+      rc_auto_commit_sha: ${{ needs.prepare.outputs.short_sha }}
+    secrets: inherit
