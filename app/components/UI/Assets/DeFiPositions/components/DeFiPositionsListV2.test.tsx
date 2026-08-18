@@ -101,10 +101,16 @@ const makeHookResult = (
   ...overrides,
 });
 
-const renderComponent = (isFullView = true) =>
-  renderWithProvider(<DeFiPositionsListV2 isFullView={isFullView} />, {
-    state: mockInitialState,
-  });
+const renderComponent = (isFullView = true, analyticsSource?: string) =>
+  renderWithProvider(
+    <DeFiPositionsListV2
+      isFullView={isFullView}
+      analyticsSource={analyticsSource}
+    />,
+    {
+      state: mockInitialState,
+    },
+  );
 
 describe('DeFiPositionsListV2', () => {
   beforeEach(() => {
@@ -373,6 +379,24 @@ describe('DeFiPositionsListV2', () => {
           location: 'homepage',
           is_empty: true,
           screen_type: 'defi',
+        })
+        .build(),
+    );
+  });
+
+  it('attributes the screen viewed event to the homepage balance breakdown', () => {
+    renderComponent(true, 'homescreen_balance_breakdown');
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.POSITION_SCREEN_VIEWED,
+      )
+        .addProperties({
+          item_count: 0,
+          location: 'homepage',
+          is_empty: true,
+          screen_type: 'defi',
+          source: 'homescreen_balance_breakdown',
         })
         .build(),
     );

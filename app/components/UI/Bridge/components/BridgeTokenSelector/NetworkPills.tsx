@@ -19,6 +19,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
+import type { RootState } from '../../../../../reducers';
 import {
   selectAllowedChainRanking,
   selectVisiblePillChainIds,
@@ -53,6 +54,11 @@ interface NetworkPillsProps {
   isWatchlistFilterActive?: boolean;
   /** Called when the watchlist star filter is toggled. */
   onWatchlistFilterPress?: () => void;
+  /**
+   * When provided, restricts the network list to these chains instead
+   * of the default allowed chainRanking.
+   */
+  enabledChainIds?: CaipChainId[];
 }
 
 interface ChainRankingEntry {
@@ -90,9 +96,37 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
   // Once set (out-of-list promotion), Redux is the session SSOT — holdings /
   // treatment ranking updates must not change membership. While unset, fall
   // back to the first N from the current chainRanking.
+  //
+  // The pin is a *global* session value, but a picker may be scoped to a
+  // narrower `enabledChainIds` (e.g. Limit Order chains) than whichever
+  // picker originally set the pin. Drop any pinned ids that aren't part of
+  // the current chainRanking, then backfill remaining slots from
+  // chainRanking so a narrower picker never ends up with zero network pills.
   const reduxVisibleChainIds = useSelector(selectVisiblePillChainIds);
-  const visibleChainIds =
-    reduxVisibleChainIds ?? getVisibleChainIds(chainRanking);
+  const visibleChainIds = useMemo(() => {
+    if (!reduxVisibleChainIds) {
+      return getVisibleChainIds(chainRanking);
+    }
+
+    const rankingChainIds = chainRanking.map((c) => c.chainId);
+    const rankingChainIdSet = new Set(rankingChainIds);
+    const validPinnedChainIds = reduxVisibleChainIds.filter((id) =>
+      rankingChainIdSet.has(id),
+    );
+
+    if (validPinnedChainIds.length >= MAX_VISIBLE_PILLS) {
+      return validPinnedChainIds;
+    }
+
+    const backfillChainIds = rankingChainIds.filter(
+      (id) => !validPinnedChainIds.includes(id),
+    );
+
+    return [...validPinnedChainIds, ...backfillChainIds].slice(
+      0,
+      MAX_VISIBLE_PILLS,
+    );
+  }, [reduxVisibleChainIds, chainRanking]);
 
   // Resolve visible chains to full entries from chainRanking
   const visibleChains = useMemo(
@@ -115,6 +149,20 @@ const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
   // routine holdings updates while Redux is still unset.
   useEffect(() => {
     if (!selectedChainId) {
+      scrollViewRef.current?.scrollTo({ x: 0, animated: true });
+      return;
+    }
+
+    // A selectedChainId that isn't part of this picker's chainRanking (e.g.
+    // a stale Redux filter, or one derived from a token whose chain isn't
+    // part of a narrower `enabledChainIds` scope) must not be promoted into
+    // the shared session pin. Treat it like "no chain selected" for pill
+    // purposes instead of leaking an out-of-scope chain into Redux.
+    const isSelectedChainInRanking = chainRanking.some(
+      (chain) => chain.chainId === selectedChainId,
+    );
+
+    if (!isSelectedChainInRanking) {
       scrollViewRef.current?.scrollTo({ x: 0, animated: true });
       return;
     }
@@ -245,9 +293,12 @@ const NetworkValueOrderedPills: React.FC<NetworkPillsContentProps> = ({
   return <NetworkPillsContent {...props} chainRanking={orderedChainRanking} />;
 };
 
-export const NetworkPills: React.FC<NetworkPillsProps> = (props) => {
-  const chainRanking: ChainRankingEntry[] = useSelector(
-    selectAllowedChainRanking,
+export const NetworkPills: React.FC<NetworkPillsProps> = ({
+  enabledChainIds,
+  ...props
+}) => {
+  const chainRanking: ChainRankingEntry[] = useSelector((state: RootState) =>
+    selectAllowedChainRanking(state, enabledChainIds),
   );
   const { variant } = useABTest(
     CHAIN_VALUE_ORDER_AB_KEY,

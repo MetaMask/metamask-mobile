@@ -71,6 +71,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
+import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import PerpsOrderView from './PerpsOrderView';
 
 jest.mock('@react-navigation/native', () => {
@@ -486,6 +487,7 @@ jest.mock(
 let mockIsPayQuoteLoading = false;
 let mockPayTotals: unknown;
 let mockPayRequiredTokens: { amountRaw: string; skipIfBalance: boolean }[] = [];
+let mockIsPaySubmitReady = true;
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useTransactionPayData',
   () => ({
@@ -495,6 +497,7 @@ jest.mock(
     useIsTransactionPayQuoteLoading: () => mockIsPayQuoteLoading,
     useTransactionPayTotals: () => mockPayTotals,
     useTransactionPayRequiredTokens: () => mockPayRequiredTokens,
+    useIsTransactionPaySubmitReady: () => mockIsPaySubmitReady,
   }),
 );
 
@@ -1006,6 +1009,7 @@ describe('PerpsOrderView', () => {
     mockPerpsAdvancedChartEnabled = false;
     mockSliderDragValue = 0;
     mockLeverageConfirmValue = 3;
+    mockIsPaySubmitReady = true;
 
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -1705,6 +1709,49 @@ describe('PerpsOrderView', () => {
       // triggered this clamp at all.
       expect(mockSetAmount).toHaveBeenCalledWith('1000');
     });
+
+    it('tracks leverage change with previous_leverage and not previousLeverage', async () => {
+      const captured: { eventName: unknown; props: Record<string, unknown> }[] =
+        [];
+      mockCreateEventBuilder.mockImplementation((eventName?: unknown) => {
+        const builder: { addProperties: jest.Mock; build: jest.Mock } = {
+          addProperties: jest.fn((props: Record<string, unknown>) => {
+            captured.push({ eventName, props });
+            return builder;
+          }),
+          build: jest.fn(() => ({})),
+        };
+        return builder;
+      });
+      mockLeverageConfirmValue = 10;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const leverageRow = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.LEVERAGE_ROW,
+      );
+      await act(async () => {
+        fireEvent.press(leverageRow);
+      });
+      const confirmButton = await screen.findByTestId('leverage-bottom-sheet');
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      const leverageChange = captured.find(
+        (event) =>
+          event.eventName === MetaMetricsEvents.PERPS_UI_INTERACTION &&
+          event.props?.[PERPS_EVENT_PROPERTY.INTERACTION_TYPE] ===
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.LEVERAGE_CHANGED,
+      );
+      expect(leverageChange?.props).toEqual(
+        expect.objectContaining({
+          [PERPS_ANALYTICS_PREVIOUS_LEVERAGE]: 3,
+          [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: 10,
+        }),
+      );
+      expect(leverageChange?.props).not.toHaveProperty('previousLeverage');
+    });
   });
 
   it('handles testnet defaults', async () => {
@@ -2112,6 +2159,7 @@ describe('PerpsOrderView', () => {
     beforeEach(() => {
       mockIsPayQuoteLoading = false;
       mockPayRequiredTokens = [];
+      mockIsPaySubmitReady = true;
       // A custom pay token, not the Perps balance: the gate only applies here.
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
@@ -2127,6 +2175,7 @@ describe('PerpsOrderView', () => {
 
     afterEach(() => {
       mockPayRequiredTokens = [];
+      mockIsPaySubmitReady = true;
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
     });
 
@@ -2170,6 +2219,37 @@ describe('PerpsOrderView', () => {
       // amount must not block them.
       mockUseIsPerpsBalanceSelected.mockReturnValue(true);
       mockPayRequiredTokens = [{ amountRaw: '0', skipIfBalance: false }];
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeEnabled();
+    });
+
+    it('disables place order while the pay state would fail the publish guard', async () => {
+      // The amount landed and nothing reports as loading, but there is no
+      // executable quote and no validated direct route (e.g. the quote fetch
+      // failed or never started, or the payment token was never set). A tap
+      // here would be rejected at publish with "Cannot submit without quote".
+      mockPayRequiredTokens = [{ amountRaw: '3430000', skipIfBalance: false }];
+      mockIsPaySubmitReady = false;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeDisabled();
+    });
+
+    it('leaves place order enabled when paying from the Perps balance while pay state is not submit ready', async () => {
+      // Orders funded from the Perps balance never deposit, so pay submit
+      // readiness must not block them.
+      mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+      mockPayRequiredTokens = [{ amountRaw: '3430000', skipIfBalance: false }];
+      mockIsPaySubmitReady = false;
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
