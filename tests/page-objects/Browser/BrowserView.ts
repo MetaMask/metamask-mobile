@@ -194,23 +194,22 @@ class Browser {
 
   /**
    * Navigate via the browser URL bar (preserves `http://` scheme / ENS names).
-   * Android: fill + KEYCODE_ENTER via tapKeyboardReturnKey (fast; matches prior
-   * submitAndroidUrlBar). iOS: typeTextByCharacters + Return — Appium fill cannot
-   * append Return, and tapKeyboardReturnKey('Go') is too slow on iOS CI.
+   * Android: clear + fill + KEYCODE_ENTER via tapKeyboardReturnKey (matches prior
+   * submitAndroidUrlBar). iOS: clear + fill + addValue('\n') on the focused
+   * field — bulk fill is fast for long URLs; fill('\n') would wipe the URL and
+   * tapKeyboardReturnKey('Go') is too slow on iOS CI.
    */
   private async navigateToUrlViaUrlBarAppium(url: string): Promise<void> {
     await this.focusUrlBarAppium();
 
+    await Gestures.replaceText(this.urlBarTextInput, url, {
+      elemDescription: 'Browser URL bar input',
+    });
+
     if (PlatformDetector.isAndroid()) {
-      await Gestures.typeText(this.urlBarTextInput, url, {
-        clearFirst: true,
-        hideKeyboard: false,
-      });
       await Gestures.tapKeyboardReturnKey('Go');
     } else {
-      await Gestures.typeTextByCharacters(this.urlBarTextInput, url, {
-        submitWithReturn: true,
-      });
+      await Gestures.appendText(this.urlBarTextInput, '\n');
     }
 
     // Dismiss the editor so subsequent reads/taps see the page.
