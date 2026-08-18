@@ -1,15 +1,7 @@
 import { ManualBackUpStepsSelectorsIDs } from '../../../app/components/Views/ManualBackupStep1/ManualBackUpSteps.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import {
-  asDetoxElement,
-  asPlaywrightElement,
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class ProtectYourWalletView {
@@ -20,38 +12,21 @@ class ProtectYourWalletView {
   }
 
   get remindMeLaterButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
-          { exact: true },
-        ),
-    });
+    return Matchers.getElementByID(
+      ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
+    );
   }
 
   async tapOnRemindMeLaterButton(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(asDetoxElement(this.remindMeLaterButton), {
-          elemDescription: 'Protect Your Wallet Remind Me Later Button',
-        });
-      },
-      appium: async () => {
-        if (await PlatformDetector.isIOS()) {
-          await PlaywrightGestures.hideKeyboard();
-        }
-        const button = await asPlaywrightElement(this.remindMeLaterButton);
-        await PlaywrightGestures.scrollIntoView(button);
-        await PlaywrightGestures.waitAndTap(button, {
-          checkForDisplayed: true,
-          checkForEnabled: true,
-          timeout: 15_000,
-        });
-      },
+    if (PlatformDetector.isIOS()) {
+      await Gestures.hideKeyboard();
+    }
+    await Gestures.scrollIntoView(this.remindMeLaterButton);
+    await Gestures.waitAndTap(this.remindMeLaterButton, {
+      elemDescription: 'Protect Your Wallet Remind Me Later Button',
+      checkForDisplayed: true,
+      checkEnabled: true,
+      timeout: 15_000,
     });
   }
 

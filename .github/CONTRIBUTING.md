@@ -28,4 +28,46 @@ When you're done with your project / bugfix / feature and ready to submit a PR, 
 
 The Namespace shadow CI (`ci-namespace-shadow.yml`) no longer runs automatically: its automatic triggers (PRs, pushes to `main`, hourly schedule) are disabled now that the Phase 5d benchmark is complete. It is retained for on-demand runs via manual `workflow_dispatch`, or you can dispatch `ci.yml` directly with `runner_provider=namespace`. Any `[shadow]`-prefixed jobs were always **advisory only** and never gated merge.
 
+### Runner provider switch
+
+Which runner fleet a job lands on is controlled by four repository-level Actions variables. They exist so the whole fleet can be moved — or rolled back — by editing a variable, with no code change, no revert and no redeploy.
+
+- `NAMESPACE_RUNNER_PROVIDER` — fleet-wide default. One edit moves everything.
+- `NAMESPACE_RUNNER_IOS` — iOS and macOS jobs only.
+- `NAMESPACE_RUNNER_ANDROID` — Android build and e2e jobs only.
+- `NAMESPACE_RUNNER_LINUX` — everything else (lint, unit, integration, upload and summary jobs).
+
+Accepted values:
+
+- `namespace` — Namespace runners (`namespace-profile-*`).
+- `current` — the routing that predates the Namespace migration. This is not one label: it resolves per job to Cirrus for native builds and e2e, and to `ubuntu-latest` or `macos-latest` for the lighter jobs.
+
+Resolution order, highest priority first:
+
+1. The `runner_provider` workflow input, when it is set to something other than `inherit`. This is a per-run override.
+2. The platform variable for the job (`NAMESPACE_RUNNER_IOS`, `_ANDROID` or `_LINUX`).
+3. `NAMESPACE_RUNNER_PROVIDER`.
+4. `current`.
+
+Push-, schedule- and `merge_group`-triggered workflows have no dispatch inputs, so the variables are the only way to steer them. That is why the input default is empty rather than a concrete provider.
+
+The production build chain (`build.yml`, `setup-node-modules.yml`, `upload-to-testflight.yml` and their callers) is on the switch. PR CI and the e2e chain are still pinned with `runner_provider: current` defaults and are migrated separately; a workflow that hardcodes `current` at its call site is opted out on purpose.
+
+#### Rolling back
+
+- Everything back to the pre-migration routing: set `NAMESPACE_RUNNER_PROVIDER=current`.
+- Android only, leaving iOS and Linux on Namespace: set `NAMESPACE_RUNNER_ANDROID=current`.
+- iOS only: set `NAMESPACE_RUNNER_IOS=current`.
+- Generic Linux CI jobs back to `ubuntu-latest`: set `NAMESPACE_RUNNER_LINUX=current`.
+- A single run, without touching any variable: dispatch the workflow with `runner_provider=current`.
+
+In-flight runs are unaffected; the next run picks up the new value.
+
+#### Adding a provider-aware job
+
+Two rules:
+
+- `runs-on:` must inline the full resolution chain. The `env` context is not available in `runs-on`, so it cannot be factored out.
+- Every step condition must test the job's `RESOLVED_RUNNER_PROVIDER` env var, never `inputs.runner_provider` directly. Testing the raw input means a provider set through the variables is silently ignored, and the job would take the wrong `checkout` / `cache` branch on a Namespace runner.
+
 And that's it! Thanks for helping out.

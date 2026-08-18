@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { ScrollView } from 'react-native-gesture-handler'; // Must use this to make sure scroll works inside a bottom sheet on Android
 import { useSelector, useDispatch } from 'react-redux';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import { Icon, IconName, IconSize } from '@metamask/design-system-react-native';
 import { IconName as ComponentLibraryIconName } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
@@ -15,6 +16,7 @@ import { AvatarVariant } from '../../../../../component-library/components/Avata
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { CaipChainId } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import type { RootState } from '../../../../../reducers';
 import {
   selectAllowedChainRanking,
   selectTokenSelectorNetworkFilter,
@@ -31,6 +33,14 @@ import {
 interface ChainRankingEntry {
   chainId: CaipChainId;
   name: string;
+}
+
+export interface NetworkListModalParams {
+  /**
+   * When provided, restricts the network list to these chains instead
+   * of the default allowed chainRanking.
+   */
+  enabledChainIds?: CaipChainId[];
 }
 
 interface NetworkListModalContentProps {
@@ -118,8 +128,11 @@ const NetworkValueOrderedListModal: React.FC<NetworkListModalContentProps> = ({
 };
 
 const NetworkListModal: React.FC = () => {
-  const chainRanking: ChainRankingEntry[] = useSelector(
-    selectAllowedChainRanking,
+  const route =
+    useRoute<RouteProp<{ params: NetworkListModalParams }, 'params'>>();
+  const enabledChainIds = route.params?.enabledChainIds;
+  const chainRanking: ChainRankingEntry[] = useSelector((state: RootState) =>
+    selectAllowedChainRanking(state, enabledChainIds),
   );
   const { variant } = useABTest(
     CHAIN_VALUE_ORDER_AB_KEY,

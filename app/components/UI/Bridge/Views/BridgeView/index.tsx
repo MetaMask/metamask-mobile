@@ -7,6 +7,8 @@ import React, {
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import { scheduleOnRN } from 'react-native-worklets';
 import {
   Box,
   HeaderStandard,
@@ -21,6 +23,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Engine from '../../../../../core/Engine';
 import {
+  resetBridgeDestToken,
   resetBridgeState,
   resetBridgeTokenInputs,
   selectBridgeViewMode,
@@ -151,6 +154,42 @@ const BridgeView = () => {
     [tabs],
   );
 
+  const goToPreviousTab = useCallback(() => {
+    if (activeIndex > 0) {
+      handleTabPress(activeIndex - 1);
+    } else {
+      handleBack();
+    }
+  }, [activeIndex, handleTabPress, handleBack]);
+
+  const goToNextTab = useCallback(() => {
+    if (activeIndex < tabs.length - 1) {
+      handleTabPress(activeIndex + 1);
+    }
+  }, [activeIndex, tabs.length, handleTabPress]);
+
+  const swipeGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .withTestId(BridgeViewSelectorsIDs.TABS_SWIPE_GESTURE)
+        .activeOffsetX([-50, 50])
+        .failOffsetY([-15, 15])
+        .maxPointers(1)
+        .onEnd((gestureEvent) => {
+          'worklet';
+          const { translationX, velocityX } = gestureEvent;
+
+          if (Math.abs(translationX) > 50 || Math.abs(velocityX) > 500) {
+            if (translationX > 0) {
+              scheduleOnRN(goToPreviousTab);
+            } else {
+              scheduleOnRN(goToNextTab);
+            }
+          }
+        }),
+    [goToPreviousTab, goToNextTab],
+  );
+
   // A tab can disappear if its feature flag flips off while it's active
   // (e.g. remote flag update). Fall back to Market rather than rendering
   // nothing.
@@ -161,20 +200,25 @@ const BridgeView = () => {
     }
   }, [tabs, renderedTab]);
 
-  // Stops any in-flight BridgeController quote polling and clears the
-  // amount inputs (not the selected tokens) for the tab being left,
-  // whenever the rendered tab changes. This intentionally runs as the
-  // effect's cleanup rather than eagerly inside handleTabPress: cleanups
-  // fire after React commits the tab switch (deferred via startTransition
-  // above), so the outgoing tab is already gone by the time this runs
-  // instead of visibly flashing back to a reset state right before it's
-  // replaced.
+  // Stops any in-flight BridgeController quote polling, clears the amount
+  // inputs and drops the destination token for the tab being left, whenever
+  // the rendered tab changes. The destination goes because each tab anchors
+  // its own source token as it mounts (Market from its route params, Limit to
+  // the default pair of its restricted chains), so a destination kept from the
+  // previous tab would be left on an unrelated chain; clearing it lets the
+  // incoming tab derive the destination from its own source token's default
+  // pair. This intentionally runs as the effect's cleanup rather than eagerly
+  // inside handleTabPress: cleanups fire after React commits the tab switch
+  // (deferred via startTransition above), so the outgoing tab is already gone
+  // by the time this runs instead of visibly flashing back to a reset state
+  // right before it's replaced.
   useEffect(
     () => () => {
       if (Engine.context.BridgeController?.resetState) {
         Engine.context.BridgeController.resetState();
       }
       dispatch(resetBridgeTokenInputs());
+      dispatch(resetBridgeDestToken());
     },
     [renderedTab, dispatch],
   );
@@ -210,11 +254,15 @@ const BridgeView = () => {
           testID={BridgeViewSelectorsIDs.TABS_BAR}
         />
       ) : null}
-      {renderedTab === BridgeTabKey.Market ? <BridgeMarketView /> : null}
-      {renderedTab === BridgeTabKey.Limit ? <BridgeLimitOrderView /> : null}
-      {renderedTab === BridgeTabKey.Recurring ? (
-        <BridgeRecurringBuyView />
-      ) : null}
+      <GestureDetector gesture={swipeGesture}>
+        <Box twClassName="flex-1" testID={BridgeViewSelectorsIDs.TABS_CONTENT}>
+          {renderedTab === BridgeTabKey.Market ? <BridgeMarketView /> : null}
+          {renderedTab === BridgeTabKey.Limit ? <BridgeLimitOrderView /> : null}
+          {renderedTab === BridgeTabKey.Recurring ? (
+            <BridgeRecurringBuyView />
+          ) : null}
+        </Box>
+      </GestureDetector>
     </Box>
   );
 };
