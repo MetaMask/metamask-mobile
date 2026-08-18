@@ -101,12 +101,26 @@ describe('ProSubscription', () => {
   });
 
   describe('navigation callbacks', () => {
+    it('renders the close button with the correct testID', () => {
+      const { getByTestId } = render(<ProSubscription />);
+
+      expect(
+        getByTestId(ProSubscriptionTestIds.CLOSE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
     it('calls goBack when the close button is pressed', () => {
       const { getByTestId } = render(<ProSubscription />);
 
       fireEvent.press(getByTestId(ProSubscriptionTestIds.CLOSE_BUTTON));
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call goBack before the close button is pressed', () => {
+      render(<ProSubscription />);
+
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('calls goBack when Success onClose fires', () => {
