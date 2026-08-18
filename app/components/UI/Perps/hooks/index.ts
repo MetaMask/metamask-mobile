@@ -23,6 +23,7 @@ export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
 export { usePerpsMode } from './usePerpsMode';
 export { usePerpsProChartExpanded } from './usePerpsProChartExpanded';
+export { usePerpsSyncedChartPrice } from './usePerpsSyncedChartPrice';
 
 // Connection management hooks
 export { usePerpsConnection } from './usePerpsConnection';

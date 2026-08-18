@@ -21,6 +21,7 @@ import UnifiedGestures from './UnifiedGestures.ts';
 import { PlaywrightElement } from './PlaywrightAdapter.ts';
 import PlaywrightGestures from './PlaywrightGestures.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
+import type { CurrentDeviceDetails } from './fixtures/playwright';
 
 const logger = createLogger({ name: 'Gestures' });
 
@@ -909,6 +910,21 @@ export default class Gestures {
   }
 
   /**
+   * Appium: append text via addValue without clearing the field.
+   * Use after replaceText when Return must submit separately (e.g. iOS URL bar).
+   */
+  static async appendText(
+    elem: EncapsulatedElementType,
+    text: string,
+  ): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error('Gestures.appendText is Appium only');
+    }
+    const field = await asPlaywrightElement(elem);
+    await field.type(text);
+  }
+
+  /**
    * Hide the soft keyboard (Appium).
    * Uses Android `hideKeyboard` when shown, and iOS `mobile: hideKeyboard`
    * with `tapOutside` (plain `driver.hideKeyboard()` is unreliable on XCUITest).
@@ -918,6 +934,33 @@ export default class Gestures {
       throw new Error('Gestures.hideKeyboard is Appium only');
     }
     await PlaywrightGestures.hideKeyboard();
+  }
+
+  /**
+   * Activate an app by device details or package/bundle id.
+   */
+  static async activateApp(
+    currentDeviceDetails?: CurrentDeviceDetails,
+    packageId?: string,
+  ): Promise<void> {
+    await PlaywrightGestures.activateApp(currentDeviceDetails, packageId);
+  }
+
+  /**
+   * Terminate the app identified by device details.
+   */
+  static async terminateApp(
+    currentDeviceDetails: CurrentDeviceDetails,
+    options?: Parameters<typeof PlaywrightGestures.terminateApp>[1],
+  ): Promise<void> {
+    await PlaywrightGestures.terminateApp(currentDeviceDetails, options);
+  }
+
+  /**
+   * Submit the focused Android URL field via KEYCODE_ENTER.
+   */
+  static async submitAndroidUrlBar(): Promise<void> {
+    await PlaywrightGestures.submitAndroidUrlBar();
   }
 
   /**

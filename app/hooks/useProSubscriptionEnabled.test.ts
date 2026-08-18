@@ -72,4 +72,55 @@ describe('useProSubscriptionEnabled', () => {
       PRO_SUBSCRIPTION_FLOW_AB_TEST_EXPOSURE_OPTIONS,
     );
   });
+
+  describe('dev override (MM_PRO_SUBSCRIPTION_FLOW_ENABLED)', () => {
+    const originalEnv = process.env;
+
+    beforeEach(() => {
+      process.env = { ...originalEnv };
+    });
+
+    afterEach(() => {
+      process.env = originalEnv;
+    });
+
+    it('returns isProSubscriptionEnabled=true when dev override is set to "true", regardless of variant', () => {
+      process.env.MM_PRO_SUBSCRIPTION_FLOW_ENABLED = 'true';
+      mockUseABTest.mockReturnValue({
+        variant: { isProSubscriptionEnabled: false },
+        variantName: 'control',
+        isActive: false,
+      });
+
+      const { result } = renderHook(() => useProSubscriptionEnabled());
+
+      expect(result.current.isProSubscriptionEnabled).toBe(true);
+    });
+
+    it('does not override when MM_PRO_SUBSCRIPTION_FLOW_ENABLED is not set', () => {
+      delete process.env.MM_PRO_SUBSCRIPTION_FLOW_ENABLED;
+      mockUseABTest.mockReturnValue({
+        variant: { isProSubscriptionEnabled: false },
+        variantName: 'control',
+        isActive: false,
+      });
+
+      const { result } = renderHook(() => useProSubscriptionEnabled());
+
+      expect(result.current.isProSubscriptionEnabled).toBe(false);
+    });
+
+    it('does not override when MM_PRO_SUBSCRIPTION_FLOW_ENABLED is set to "false"', () => {
+      process.env.MM_PRO_SUBSCRIPTION_FLOW_ENABLED = 'false';
+      mockUseABTest.mockReturnValue({
+        variant: { isProSubscriptionEnabled: false },
+        variantName: 'control',
+        isActive: false,
+      });
+
+      const { result } = renderHook(() => useProSubscriptionEnabled());
+
+      expect(result.current.isProSubscriptionEnabled).toBe(false);
+    });
+  });
 });

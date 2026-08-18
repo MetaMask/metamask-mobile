@@ -1,35 +1,27 @@
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../app/components/Views/NetworkConnect/NetworkConnectMultiSelector.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import {
-  Assertions,
-  EncapsulatedElementType,
-  encapsulated,
-  PlatformDetector,
-  PlaywrightMatchers,
-} from '../../framework';
+import Assertions from '../../framework/Assertions';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class NetworkConnectMultiSelector {
-  get updateButton(): EncapsulatedElementType {
+  get updateButton() {
     return Matchers.getElementByID(
       NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
     );
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton() {
     return Matchers.getElementByID(
       NetworkConnectMultiSelectorSelectorsIDs.BACK_BUTTON,
     );
   }
 
-  getNetworkRow(networkName: string): EncapsulatedElementType {
+  getNetworkRow(networkName: string) {
     const escaped = networkName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          new RegExp(`^${escaped}-(selected|not-selected)$`),
-        ),
-    });
+    return Matchers.getElementByID(
+      new RegExp(`^${escaped}-(selected|not-selected)$`),
+    );
   }
 
   async tapUpdateButton(): Promise<void> {
