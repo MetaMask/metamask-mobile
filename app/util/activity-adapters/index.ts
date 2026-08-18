@@ -12,7 +12,6 @@ export type {
   TokenAmount,
 } from './types';
 export { PERPS_ORDER_KINDS, isPerpsOrderKind } from './types';
-export { mapApiEvmTransactions } from './adapters/api-evm-transactions';
 export {
   isNftTransferType,
   isUnlimitedApprovalAmount,
