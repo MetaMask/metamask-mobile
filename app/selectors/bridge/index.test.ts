@@ -1,20 +1,20 @@
-import { getGaslessBridgeWith7702EnabledForChain } from './smartTransactionsController';
+import { getGaslessBridgeWith7702EnabledForChain } from '../smartTransactionsController';
 
 jest.mock('./smartTransactionsController', () => ({
   getGaslessBridgeWith7702EnabledForChain: jest.fn().mockReturnValue(false),
 }));
 
-import { initialState as bridgeInitialState } from '../core/redux/slices/bridge';
+import { initialState as bridgeInitialState } from '../../core/redux/slices/bridge';
 import {
   selectBatchSellSourceWalletAddress,
   selectGasIncludedQuoteParams,
   selectIsGasIncluded7702BridgeEnabled,
   selectSourceWalletAddress,
   selectValidDestInternalAccountIds,
-} from './bridge';
-import { BridgeToken } from '../components/UI/Bridge/types';
+} from './';
+import { BridgeToken } from '../../components/UI/Bridge/types';
 import { Hex } from '@metamask/utils';
-import { RootState } from '../reducers';
+import { RootState } from '../../reducers';
 import {
   evmAccountAddress,
   evmAccountId,
@@ -22,7 +22,7 @@ import {
   solanaAccountAddress,
   solanaAccountId,
   solanaNativeTokenAddress,
-} from '../components/UI/Bridge/_mocks_/initialState';
+} from '../../components/UI/Bridge/_mocks_/initialState';
 import { SolScope } from '@metamask/keyring-api';
 
 const mockToken: BridgeToken = {
