@@ -34,13 +34,18 @@ import {
 } from '../pay/useTransactionPayData';
 import { useMMPayFiatConfig } from '../pay/useMMPayFiatConfig';
 import { useRampsBuyLimits } from '../../../../UI/Ramp/hooks/useRampsBuyLimits';
-import { MONEY_ACCOUNT_CURRENCY } from '../../components/info/money-account-withdraw-info/money-account-withdraw-info';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
+import {
+  getDepositPrefillAmountInputType,
+  MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY,
+  MM_PAY_AMOUNT_INPUT_TYPE_KEY,
+  MM_PAY_AMOUNT_INPUT_TYPE_PREFILLED_MAX,
+} from '../../utils/pay-amount-input-metrics';
 import { useDepositPrefillAmount } from './useDepositPrefillAmount';
 
 export const MAX_LENGTH = 28;
@@ -207,7 +212,8 @@ export function useTransactionCustomAmount({
   const { maxAmount: fiatMaxAmount } = useRampsBuyLimits({
     amount: 0,
     paymentMethodId: fiatPaymentMethodId,
-    currency: MONEY_ACCOUNT_CURRENCY,
+    // Money Account confirmations are always USD-denominated.
+    currency: 'usd',
   });
 
   const amountFiat = useMemo(() => {
@@ -488,6 +494,21 @@ export function useTransactionCustomAmount({
       } else {
         setAmountFiat(depositPrefill.prefillAmount ?? '0');
       }
+
+      // Prefill is not a keypad press — use prefilled_* so analytics can
+      // distinguish automatic prefill from user Max / 50%. Sticky
+      // prefill_presented survives later manual / % edits.
+      const prefillInputType = getDepositPrefillAmountInputType({
+        percentage: depositPrefill.percentage,
+        isLimitCapped: depositPrefill.isLimitCapped,
+      });
+      lastAmountInputTypeRef.current = prefillInputType;
+      setConfirmationMetric({
+        properties: {
+          [MM_PAY_AMOUNT_INPUT_TYPE_KEY]: prefillInputType,
+          [MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY]: true,
+        },
+      });
     } else if (prevHasPrefilled.current) {
       setAmountFiat('0');
       depositMaxHumanRef.current = null;
@@ -508,9 +529,22 @@ export function useTransactionCustomAmount({
     ) {
       hasPrefilled.current = true;
       updatePendingAmountPercentage(100);
+      lastAmountInputTypeRef.current = MM_PAY_AMOUNT_INPUT_TYPE_PREFILLED_MAX;
+      setConfirmationMetric({
+        properties: {
+          [MM_PAY_AMOUNT_INPUT_TYPE_KEY]:
+            MM_PAY_AMOUNT_INPUT_TYPE_PREFILLED_MAX,
+          [MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY]: true,
+        },
+      });
       setIsPrefillPending(false);
     }
-  }, [isAddMusdFlow, balanceUsd, updatePendingAmountPercentage]);
+  }, [
+    isAddMusdFlow,
+    balanceUsd,
+    setConfirmationMetric,
+    updatePendingAmountPercentage,
+  ]);
 
   const updateTokenAmount = useCallback(async () => {
     const effectiveHuman = depositMaxHumanRef.current ?? amountHuman;

@@ -9,11 +9,6 @@ import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/V
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Browser from './BrowserView';
 import { Assertions, TapOptions, Utilities, sleep } from '../../framework';
-import { FrameworkDetector } from '../../framework/FrameworkDetector';
-import { PlatformDetector } from '../../framework/PlatformLocator';
-import PlaywrightWebMatchers from '../../framework/PlaywrightWebMatchers';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import { getDriver } from '../../framework/PlaywrightUtilities';
 import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers';
 import { createPlaywrightLogger } from '../../framework/playwrightLogger';
 
@@ -323,24 +318,18 @@ class TestDApp {
 
   /**
    * Wait until the test-dapp element has non-empty textContent.
-   * Appium: poll via string-form `driver.execute` (no findElement).
+   * Polls via ChromeCdpHelpers (CDP on Android, WebView execute on iOS).
    */
   private async readTestDappTextContentById(webId: string): Promise<string> {
     return Utilities.executeWithRetry(
       async () => {
-        let text = '';
-        await PlaywrightWebMatchers.withWebViewAction(
-          testDappPageUrl(),
-          async () => {
-            // String script — avoids WDIO function polyfill / WDA serialization.
-            const result = await getDriver().execute(
-              `return (document.getElementById(${JSON.stringify(
-                webId,
-              )})?.textContent || '').trim();`,
-            );
-            text = typeof result === 'string' ? result : '';
-          },
-        );
+        const text =
+          (await ChromeCdpHelpers.evaluateInWebView<string>(
+            testDappPageUrl(),
+            `(document.getElementById(${JSON.stringify(
+              webId,
+            )})?.textContent || '').trim()`,
+          )) ?? '';
         if (!text) {
           throw new Error(
             `Test dapp #${webId} text is empty (provider may not have injected yet)`,
@@ -528,10 +517,12 @@ class TestDApp {
       }
 
       try {
-        const connectSheetButton = await PlaywrightMatchers.getElementById(
-          ConnectAccountBottomSheetSelectorsIDs.CONNECT_BUTTON,
+        await Assertions.expectElementToBeVisible(
+          Matchers.getElementByID(
+            ConnectAccountBottomSheetSelectorsIDs.CONNECT_BUTTON,
+          ),
+          { timeout: 500 },
         );
-        await connectSheetButton.unwrap().waitForDisplayed({ timeout: 500 });
         logger.info(
           `tapDappConnectButton connect sheet visible after ${clickAttempts} click attempt(s)`,
         );
@@ -633,17 +624,6 @@ class TestDApp {
     elementId: WebElement,
     options: TapOptions = {},
   ): Promise<void> {
-    if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
-      await PlaywrightWebMatchers.withWebViewAction(
-        testDappPageUrl(),
-        async () => {
-          await Gestures.scrollToWebViewPort(elementId);
-          await Gestures.tap(elementId, options);
-        },
-      );
-      return;
-    }
-
     await Gestures.scrollToWebViewPort(elementId);
     await Gestures.tap(elementId, options);
   }

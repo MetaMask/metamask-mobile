@@ -209,6 +209,7 @@ const MoneyHomeView = () => {
     error: activityError,
     moneyAddress,
     mockDataEnabled,
+    cardEnrichmentByHash,
   } = useMoneyActivityItems({
     fill: {
       bucket: MoneyActivityFilter.All,
@@ -396,6 +397,12 @@ const MoneyHomeView = () => {
       screen: Routes.MONEY.MODALS.MORE_SHEET,
     });
   }, [navigation, trackButtonClicked]);
+
+  const handleGetProPress = useCallback(() => {
+    navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT, {
+      source: 'money_header',
+    });
+  }, [navigation]);
 
   const handleAddPress = useCallback(
     ({
@@ -823,6 +830,7 @@ const MoneyHomeView = () => {
           onViewAllPress={handleViewAllActivityPress}
           onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
           privacyMode={privacyMode}
+          cardEnrichmentByHash={cardEnrichmentByHash}
         />
       ),
     });
@@ -890,7 +898,10 @@ const MoneyHomeView = () => {
       twClassName="flex-1 bg-default"
       testID={MoneyHomeViewTestIds.CONTAINER}
     >
-      <MoneyHeader onMenuPress={handleMenuPress} />
+      <MoneyHeader
+        onMenuPress={handleMenuPress}
+        onGetProPress={handleGetProPress}
+      />
       <ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
         contentContainerStyle={styles.scrollContent}
