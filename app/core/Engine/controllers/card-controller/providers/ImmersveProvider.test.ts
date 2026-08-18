@@ -236,6 +236,46 @@ describe('ImmersveProvider', () => {
       },
     );
 
+    it('reports non-auth initiateAuth failures to Sentry', async () => {
+      const { provider, service } = createProvider();
+      const apiError = new CardApiError(500, '/auth/login-init', 'fail');
+      service.post.mockRejectedValue(apiError);
+
+      await expect(
+        provider.initiateAuth('GB', { address: '0xabc' }),
+      ).rejects.toMatchObject({ code: CardProviderErrorCode.ServerError });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        apiError,
+        expect.objectContaining({
+          tags: { feature: 'card', provider: 'immersve' },
+          context: expect.objectContaining({
+            name: 'ImmersveProvider',
+            data: expect.objectContaining({
+              method: 'initiateAuth',
+              network: 'base-sepolia',
+              country: 'GB',
+              httpStatus: 500,
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('does not report 401 initiateAuth failures to Sentry', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockRejectedValue(
+        new CardApiError(401, '/auth/login-init', 'unauthorized'),
+      );
+
+      await expect(
+        provider.initiateAuth('GB', { address: '0xabc' }),
+      ).rejects.toMatchObject({
+        code: CardProviderErrorCode.InvalidCredentials,
+      });
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
     it('maps non-API errors to Unknown', async () => {
       const { provider, service } = createProvider();
       service.post.mockRejectedValue(new Error('boom'));
@@ -772,13 +812,24 @@ describe('ImmersveProvider', () => {
 
     it('createCard maps API failures', async () => {
       const { provider, service } = createProvider();
-      service.post.mockRejectedValue(
-        new CardApiError(500, '/api/cards', 'down'),
-      );
+      const apiError = new CardApiError(500, '/api/cards', 'down');
+      service.post.mockRejectedValue(apiError);
 
       await expect(provider.createCard('fs-1', TOKENS)).rejects.toMatchObject({
         code: CardProviderErrorCode.ServerError,
       });
+      expect(Logger.error).toHaveBeenCalledWith(
+        apiError,
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              method: 'createCard',
+              fundingSourceId: 'fs-1',
+              httpStatus: 500,
+            }),
+          }),
+        }),
+      );
     });
 
     it('getResumeCardInfo returns null when the account has no card', async () => {
