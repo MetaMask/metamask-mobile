@@ -9726,10 +9726,10 @@
       "title": "Don't miss out",
       "description": "Turn on notifications to stay informed on campaigns.",
       "turn_on_button": "Turn on",
-      "loading": "Enabling notifications...",
+      "loading": "Turning on notifications...",
       "loading_description": "This may take a moment.",
       "enable_error": "Failed to turn on notifications",
-      "success": "Notifications enabled"
+      "success": "Notifications turned on"
     },
     "version_guard": {
       "title": "Update required",
