@@ -8,7 +8,7 @@ import type {
   PredictMarket,
   PredictOutcome,
   PredictVenueId,
-} from '../../types';
+} from '../../../types';
 import { EventCard } from './EventCard';
 
 const outcome = (side: 'yes' | 'no', askPrice?: string): PredictOutcome => ({

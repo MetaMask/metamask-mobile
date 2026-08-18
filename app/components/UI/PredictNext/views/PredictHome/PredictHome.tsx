@@ -17,8 +17,7 @@ import {
 import { useEventList } from '../../hooks/useEventList';
 import { useVenueStatus } from '../../hooks/useVenueStatus';
 import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
-import { EventCardStandard } from '../../components/EventCard/EventCardStandard';
-import { EventCardGame } from '../../components/EventCard/EventCardGame';
+import { EventCardGame, EventCardStandard } from '../../events/cards';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { PredictNextRoutes } from '../../navigation/routes';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';

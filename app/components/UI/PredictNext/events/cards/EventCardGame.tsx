@@ -5,12 +5,12 @@ import type {
   PredictMarket,
   PredictOutcome,
 } from '../../types';
-import { EventCard } from './EventCard';
-import { GameCard } from './EventCardGameParts';
+import { EventCard } from './internal/EventCard';
+import { GameCard } from './internal/EventCardGameParts';
 
 export type EventCardGameVariant = 'compact' | 'featured';
 
-interface EventCardGameProps {
+export interface EventCardGameProps {
   event: PredictEvent;
   variant?: EventCardGameVariant;
   onPress: () => void;

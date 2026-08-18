@@ -20,7 +20,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { PredictEvent, PredictMarket, PredictOutcome } from '../../types';
+import type {
+  PredictEvent,
+  PredictMarket,
+  PredictOutcome,
+} from '../../../types';
 import { formatAskPrice } from './formatAskPrice';
 import { formatMultiplier } from './formatMultiplier';
 import { formatVolume } from './formatVolume';
