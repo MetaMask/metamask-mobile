@@ -165,7 +165,7 @@ const WeekRow: React.FC<WeekRowProps> = ({
             <Text variant={TextVariant.BodySm} color={TextColor.SuccessDefault}>
               {localizedText.entriesCountValue.replace(
                 ENTRIES_COUNT_PLACEHOLDER,
-                String(entryCount ?? 0),
+                entryCount == null ? '-' : String(entryCount),
               )}
             </Text>
           ) : (

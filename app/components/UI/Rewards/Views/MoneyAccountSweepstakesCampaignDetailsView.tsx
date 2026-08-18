@@ -10,6 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
+  BoxFlexDirection,
   IconName,
   TextVariant,
   Skeleton,
@@ -47,7 +48,60 @@ import { documentToPlainText } from '../components/ContentfulRichText/Contentful
 
 export const MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW_TEST_IDS = {
   CONTAINER: 'money-account-sweepstakes-campaign-details-container',
+  LOADING_SKELETON: 'money-account-sweepstakes-campaign-details-loading',
 } as const;
+
+const MoneyAccountSweepstakesCampaignDetailsSkeleton: React.FC = () => {
+  const tw = useTailwind();
+
+  return (
+    <Box
+      testID={
+        MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW_TEST_IDS.LOADING_SKELETON
+      }
+    >
+      <Box twClassName="px-4 pb-5 pt-4 gap-4">
+        <Skeleton style={tw.style('h-32 rounded-xl')} />
+        <Box twClassName="gap-2">
+          <Skeleton style={tw.style('h-7 w-56 rounded-md')} />
+          <Skeleton style={tw.style('h-4 w-full rounded-md')} />
+          <Skeleton style={tw.style('h-4 w-4/5 rounded-md')} />
+        </Box>
+      </Box>
+
+      <Box twClassName="border-b border-border-muted" />
+
+      <Box twClassName="px-4 pt-4 gap-4">
+        <Skeleton style={tw.style('h-6 w-40 rounded-md')} />
+        {[0, 1, 2].map((index) => (
+          <Box
+            key={index}
+            flexDirection={BoxFlexDirection.Row}
+            twClassName="gap-3"
+          >
+            <Skeleton style={tw.style('h-8 w-8 rounded-full')} />
+            <Box twClassName="flex-1 gap-2">
+              <Skeleton style={tw.style('h-5 w-44 rounded-md')} />
+              <Skeleton style={tw.style('h-4 w-full rounded-md')} />
+              <Skeleton style={tw.style('h-4 w-5/6 rounded-md')} />
+            </Box>
+          </Box>
+        ))}
+      </Box>
+
+      <Box twClassName="border-b border-border-muted mt-4" />
+
+      <Box twClassName="p-4">
+        <Box twClassName="gap-3 rounded-xl border border-border-muted p-4">
+          <Skeleton style={tw.style('h-5 w-48 rounded-md')} />
+          <Skeleton style={tw.style('h-9 w-32 rounded-md')} />
+          <Skeleton style={tw.style('h-4 w-full rounded-md')} />
+          <Skeleton style={tw.style('h-4 w-3/4 rounded-md')} />
+        </Box>
+      </Box>
+    </Box>
+  );
+};
 
 const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
@@ -71,7 +125,12 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
   const { ensureBound } = useMoneyAccountSweepstakesBinding();
   const { showToast, RewardsToastOptions } = useRewardsToast();
 
-  const { stats } = useGetMoneyAccountSweepstakesStatsMe(displayCampaign?.id);
+  const {
+    stats,
+    isLoading: isStatsLoading,
+    hasError: hasStatsError,
+    refetch: refetchStats,
+  } = useGetMoneyAccountSweepstakesStatsMe(displayCampaign?.id);
   const { outcome } = useMoneyAccountSweepstakesOutcome(
     seriesStatus === 'previous' ? displayCampaign?.id : undefined,
   );
@@ -169,23 +228,18 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
           contentContainerStyle={tw.style('pb-4')}
         >
           {isCampaignsLoading && !displayCampaign && (
-            <Box twClassName="px-4 pt-4 gap-4">
-              <Skeleton style={tw.style('h-48 rounded-xl')} />
-              <Skeleton style={tw.style('h-32 rounded-xl')} />
-            </Box>
+            <MoneyAccountSweepstakesCampaignDetailsSkeleton />
           )}
 
           {!isCampaignsLoading && hasCampaignsError && !displayCampaign && (
             <Box twClassName="px-4 pt-4">
               <RewardsErrorBanner
-                title={strings('rewards.campaigns_view.error_title')}
+                title={strings('rewards.campaign_details.error_title')}
                 description={strings(
-                  'rewards.campaigns_view.error_description',
+                  'rewards.campaign_details.error_description',
                 )}
                 onConfirm={fetchCampaigns}
-                confirmButtonLabel={strings(
-                  'rewards.campaigns_view.retry_button',
-                )}
+                confirmButtonLabel={strings('rewards.campaign_details.retry')}
               />
             </Box>
           )}
@@ -197,6 +251,9 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
                 localizedText={localizedText}
                 isParticipating={optedInAny}
                 stats={stats}
+                isStatsLoading={isStatsLoading}
+                hasStatsError={hasStatsError}
+                onRetryStats={refetchStats}
               >
                 {optedInAny && (
                   <MoneyAccountSweepstakesCampaignCTA

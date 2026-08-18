@@ -5,6 +5,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -17,22 +18,94 @@ import type {
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { formatUsd } from '../../../utils/formatUtils';
 import { AMOUNT_PLACEHOLDER, ENTRIES_COUNT_PLACEHOLDER } from './constants';
+import RewardsErrorBanner from '../../RewardsErrorBanner';
+import { strings } from '../../../../../../../locales/i18n';
+
+export const MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS = {
+  CONTAINER: 'campaign-status',
+  BALANCE_HEADER: 'money-account-sweepstakes-balance-header',
+  HERO: 'money-account-sweepstakes-hero',
+  STATS_LOADING: 'money-account-sweepstakes-stats-loading',
+  STATS_ERROR: 'money-account-sweepstakes-stats-error',
+} as const;
 
 interface MoneyAccountSweepstakesCampaignOverviewProps {
   campaign: CampaignDto;
   localizedText: MoneyAccountSweepstakesLocalizedTextDto;
   isParticipating?: boolean;
   stats?: MoneyAccountSweepstakesStatsMeDto | null;
+  isStatsLoading?: boolean;
+  hasStatsError?: boolean;
+  onRetryStats?: () => void;
   children?: ReactNode;
 }
 
 const MoneyAccountSweepstakesCampaignOverview: React.FC<
   MoneyAccountSweepstakesCampaignOverviewProps
-> = ({ campaign, localizedText, isParticipating = false, stats, children }) => {
+> = ({
+  campaign,
+  localizedText,
+  isParticipating = false,
+  stats,
+  isStatsLoading = false,
+  hasStatsError = false,
+  onRetryStats,
+  children,
+}) => {
   const tw = useTailwind();
   const backgroundImageUrl = campaign.image?.lightModeUrl;
 
   if (isParticipating) {
+    const showStatsLoading = isStatsLoading && !stats;
+    const showStatsError = hasStatsError && !stats;
+
+    if (showStatsError) {
+      return (
+        <Box
+          twClassName="px-4 pb-5 pt-4"
+          testID={
+            MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.CONTAINER
+          }
+        >
+          <RewardsErrorBanner
+            title={strings('rewards.campaign_details.stats_error_title')}
+            description={strings(
+              'rewards.campaign_details.stats_error_description',
+            )}
+            onConfirm={onRetryStats}
+            confirmButtonLabel={strings('rewards.campaign_details.retry')}
+            testID={
+              MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.STATS_ERROR
+            }
+          />
+        </Box>
+      );
+    }
+
+    if (showStatsLoading) {
+      return (
+        <Box
+          twClassName="px-4 pb-5 pt-4"
+          testID={
+            MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.CONTAINER
+          }
+        >
+          <Box
+            twClassName="gap-3 rounded-xl bg-muted p-4"
+            testID={
+              MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.STATS_LOADING
+            }
+          >
+            <Skeleton style={tw.style('h-5 w-40 rounded-md')} />
+            <Skeleton style={tw.style('h-10 w-36 rounded-md')} />
+            <Skeleton style={tw.style('h-6 w-28 rounded-md')} />
+            <Skeleton style={tw.style('h-4 w-full rounded-md')} />
+            {children}
+          </Box>
+        </Box>
+      );
+    }
+
     const balanceDisplay = stats
       ? formatUsd(Math.max(0, stats.qualifyingDepositsUsd))
       : '—';
@@ -64,10 +137,15 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
     const isPaused = stats?.todayStatus === 'lost_today';
 
     return (
-      <Box twClassName="px-4 pb-5 pt-4" testID="campaign-status">
+      <Box
+        twClassName="px-4 pb-5 pt-4"
+        testID={MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.CONTAINER}
+      >
         <Box
           twClassName="gap-3 rounded-xl bg-muted p-4"
-          testID="money-account-sweepstakes-balance-header"
+          testID={
+            MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.BALANCE_HEADER
+          }
         >
           <Box
             alignItems={BoxAlignItems.Center}
@@ -129,13 +207,16 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
   }
 
   return (
-    <Box twClassName="px-4 pb-5 pt-4" testID="campaign-status">
+    <Box
+      twClassName="px-4 pb-5 pt-4"
+      testID={MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.CONTAINER}
+    >
       <Box twClassName="h-32 overflow-hidden rounded-xl border border-border-muted bg-black">
         <ImageBackground
           source={{ uri: backgroundImageUrl }}
           resizeMode="cover"
           style={tw.style('h-full w-full')}
-          testID="money-account-sweepstakes-hero"
+          testID={MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.HERO}
         />
       </Box>
       <Box twClassName="gap-1 pt-4">

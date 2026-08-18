@@ -19,6 +19,7 @@ import { createMoneyAccountSweepstakesLocalizedText } from '../components/Campai
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockFetchCampaigns = jest.fn();
+const mockRefetchStats = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -284,6 +285,7 @@ function setupHooks({
   optedInAny = false,
   stats = null as MoneyAccountSweepstakesStatsMeDto | null,
   isStatsLoading = false,
+  hasStatsError = false,
 } = {}) {
   mockUseRewardCampaigns.mockReturnValue({
     campaigns: series.campaigns,
@@ -307,8 +309,8 @@ function setupHooks({
   mockUseGetMoneyAccountSweepstakesStatsMe.mockReturnValue({
     stats,
     isLoading: isStatsLoading,
-    hasError: false,
-    refetch: jest.fn(),
+    hasError: hasStatsError,
+    refetch: mockRefetchStats,
   });
 }
 
@@ -407,6 +409,30 @@ describe('MoneyAccountSweepstakesCampaignDetailsView', () => {
       getByTestId('money-account-sweepstakes-balance-header'),
     ).toBeOnTheScreen();
     expect(queryByTestId('campaign-how-it-works')).toBeNull();
+  });
+
+  it('shows stats skeletons while opted-in stats are loading with no cached stats', () => {
+    setupHooks({ optedInAny: true, stats: null, isStatsLoading: true });
+
+    const { getByTestId } = render(
+      <MoneyAccountSweepstakesCampaignDetailsView />,
+    );
+
+    expect(
+      getByTestId('money-account-sweepstakes-stats-loading'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows stats error banner and retries stats fetch when opted-in stats fail', () => {
+    setupHooks({ optedInAny: true, stats: null, hasStatsError: true });
+
+    const { getByTestId } = render(
+      <MoneyAccountSweepstakesCampaignDetailsView />,
+    );
+
+    fireEvent.press(getByTestId('error-banner-retry'));
+
+    expect(mockRefetchStats).toHaveBeenCalledTimes(1);
   });
 
   it('renders draw schedule and CTA for an active series', () => {

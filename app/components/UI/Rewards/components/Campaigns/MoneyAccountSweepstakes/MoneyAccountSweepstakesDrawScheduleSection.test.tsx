@@ -200,6 +200,43 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
     expect(queryByTestId('money-account-sweepstakes-prize-pool')).toBeNull();
   });
 
+  it('shows a dash for active participating entries when entry count is not available', () => {
+    const active = buildCampaign({
+      id: 'active-week',
+      startDate: '2025-01-08T00:00:00.000Z',
+      endDate: '2025-01-15T00:00:00.000Z',
+    });
+
+    const { getByText } = render(
+      <MoneyAccountSweepstakesDrawScheduleSection
+        campaigns={[active]}
+        localizedText={localizedText}
+        isParticipating
+      />,
+    );
+
+    expect(getByText('- / 7')).toBeOnTheScreen();
+  });
+
+  it('shows zero active participating entries when entry count is available as zero', () => {
+    const active = buildCampaign({
+      id: 'active-week',
+      startDate: '2025-01-08T00:00:00.000Z',
+      endDate: '2025-01-15T00:00:00.000Z',
+    });
+
+    const { getByText } = render(
+      <MoneyAccountSweepstakesDrawScheduleSection
+        campaigns={[active]}
+        localizedText={localizedText}
+        entryCount={0}
+        isParticipating
+      />,
+    );
+
+    expect(getByText('0 / 7')).toBeOnTheScreen();
+  });
+
   it('shows draw pending for a completed week without proof', () => {
     const complete = buildCampaign({
       id: 'complete-week',
