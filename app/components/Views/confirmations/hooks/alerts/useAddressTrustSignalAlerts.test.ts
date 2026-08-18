@@ -46,6 +46,10 @@ jest.mock('../../../../../lib/address-scanning/address-scan-util', () => ({
   extractSpenderFromApprovalData: jest.fn(),
 }));
 
+jest.mock('./useSendingAssetsFiatTotal', () => ({
+  useSendingAssetsFiatTotal: jest.fn(() => null),
+}));
+
 describe('useAddressTrustSignalAlerts', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
@@ -59,9 +63,13 @@ describe('useAddressTrustSignalAlerts', () => {
   );
   const mockIsPermitRevoke = jest.mocked(isPermitRevoke);
   const mockExtractSpender = jest.mocked(extractSpenderFromApprovalData);
+  const mockUseSendingAssetsFiatTotal = jest.requireMock(
+    './useSendingAssetsFiatTotal',
+  ).useSendingAssetsFiatTotal;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSendingAssetsFiatTotal.mockReturnValue(null);
     mockUseTransactionMetadataRequest.mockReturnValue({
       txParams: {
         to: '0x1234567890123456789012345678901234567890',
@@ -113,12 +121,42 @@ describe('useAddressTrustSignalAlerts', () => {
         key: `${AlertKeys.AddressTrustSignalMalicious}_${RowAlertKey.FromToAddress}`,
         field: RowAlertKey.FromToAddress,
         message:
-          'If you confirm this request, you will probably lose your assets to a scammer.',
-        title: 'Malicious address',
+          "Security partners have flagged this address for malicious activity. If this is a scam, your funds can't be recovered.",
+        title: 'Address flagged as high risk',
         severity: Severity.Danger,
         isBlocking: false,
       },
     ]);
+  });
+
+  it('uses the amount message variant when a sending fiat total is available', () => {
+    mockUseSendingAssetsFiatTotal.mockReturnValue('$1,234.56');
+
+    const { result } = renderHookWithProvider(
+      () => useAddressTrustSignalAlerts(),
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              PhishingController: {
+                addressScanCache: {
+                  '0x1:0x1234567890123456789012345678901234567890': {
+                    data: {
+                      // @ts-expect-error - AddressScanResultType is not exported in PhishingController
+                      result_type: 'Malicious',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(result.current[0].message).toBe(
+      "Security partners have flagged this address for malicious activity. If this is a scam, your $1,234.56 can't be recovered.",
+    );
   });
 
   it('returns a warning alert if the address scan result is Warning', () => {
@@ -149,8 +187,8 @@ describe('useAddressTrustSignalAlerts', () => {
         key: `${AlertKeys.AddressTrustSignalWarning}_${RowAlertKey.FromToAddress}`,
         field: RowAlertKey.FromToAddress,
         message:
-          "We can't verify this address. It may be new or unverified. Only continue if you trust the source.",
-        title: 'Address needs review',
+          "We don't have enough reliable history to verify this address. If you continue, your funds can't be recovered.",
+        title: 'Limited or mixed address signals',
         severity: Severity.Warning,
         isBlocking: false,
       },

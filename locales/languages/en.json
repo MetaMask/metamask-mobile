@@ -164,12 +164,14 @@
     },
     "address_trust_signal": {
       "malicious": {
-        "message": "If you confirm this request, you will probably lose your assets to a scammer.",
-        "title": "Malicious address"
+        "message": "Security partners have flagged this address for malicious activity. If this is a scam, your funds can't be recovered.",
+        "message_with_amount": "Security partners have flagged this address for malicious activity. If this is a scam, your {{amount}} can't be recovered.",
+        "title": "Address flagged as high risk"
       },
       "warning": {
-        "message": "We can't verify this address. It may be new or unverified. Only continue if you trust the source.",
-        "title": "Address needs review"
+        "message": "We don't have enough reliable history to verify this address. If you continue, your funds can't be recovered.",
+        "message_with_amount": "We don't have enough reliable history to verify this address. If you continue, your {{amount}} can't be recovered.",
+        "title": "Limited or mixed address signals"
       }
     },
     "url_trust_signal": {
@@ -4855,15 +4857,15 @@
     "malicious_token_description_no_symbol": "This is a malicious token. Avoid interacting with it or trading it.",
     "malicious_token_banner_description": "{{symbol}} is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
     "malicious_token_banner_description_no_symbol": "This token is flagged as malicious. It's likely to steal funds from anyone who interacts with it.",
-    "suspicious_token_description": "{{symbol}} is a suspicious token.",
-    "suspicious_token_description_no_symbol": "This is a suspicious token.",
+    "suspicious_token_description": "{{symbol}} has limited history or risk signals.",
+    "suspicious_token_description_no_symbol": "This token has limited history or risk signals.",
     "verified_token_title": "Verified token",
     "verified_token_description": "{{symbol}} is actively traded and is widely recognized. Verification is not an endorsement by MetaMask.",
     "risky_token_title": "Suspicious token",
     "risky_token_description": "{{symbol}} is flagged as suspicious. Take a look at the risks before you continue.",
     "risky_token_description_no_symbol": "This token is flagged as suspicious. Take a look at the risks before you continue.",
-    "malicious_token_sheet_description": "Serious risk signals detected on {{symbol}}. We recommend not trading this token.",
-    "malicious_token_sheet_description_no_symbol": "Serious risk signals detected on this token. We recommend not trading this token.",
+    "malicious_token_sheet_description": "Security partners flag {{symbol}} as high risk.",
+    "malicious_token_sheet_description_no_symbol": "Security partners flag this token as high risk.",
     "got_it": "Got it",
     "proceed": "Proceed",
     "continue_anyway": "Continue anyway",
