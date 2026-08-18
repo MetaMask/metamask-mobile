@@ -118,8 +118,8 @@ export const useSectionPerformance = ({
       name: TraceName.HomepageSectionTimeToContent,
       op: TraceOperation.HomepageSectionPerformance,
       id: ttcTraceId.current,
-      tags: { section_id: sectionId, ...tagsRef.current },
-      data: { section_id: sectionId, ...tagsRef.current },
+      tags: { ...tagsRef.current, section_id: sectionId },
+      data: { ...tagsRef.current, section_id: sectionId },
     });
     ttcStarted.current = true;
 
@@ -174,10 +174,11 @@ export const useSectionPerformance = ({
         name: TraceName.HomepageSectionTimeToContent,
         id: ttcTraceId.current,
         data: {
+          ...tagsRef.current,
+          ...dataRef.current,
           success: true,
           section_id: sectionId,
           content_state: traceContentState,
-          ...dataRef.current,
         },
       });
       ttcEnded.current = true;
@@ -200,8 +201,8 @@ export const useSectionPerformance = ({
         name: TraceName.HomepageSectionDataFetch,
         op: TraceOperation.HomepageSectionPerformance,
         id: fetchTraceId.current,
-        tags: { section_id: sectionId, ...tagsRef.current },
-        data: { section_id: sectionId, ...tagsRef.current },
+        tags: { ...tagsRef.current, section_id: sectionId },
+        data: { ...tagsRef.current, section_id: sectionId },
       });
       fetchStarted.current = true;
     }
@@ -221,10 +222,11 @@ export const useSectionPerformance = ({
         name: TraceName.HomepageSectionDataFetch,
         id: fetchTraceId.current,
         data: {
+          ...tagsRef.current,
+          ...dataRef.current,
           success: true,
           section_id: sectionId,
           content_state: traceContentState,
-          ...dataRef.current,
         },
       });
       fetchStarted.current = false;

@@ -161,13 +161,25 @@ describe('useSectionPerformance', () => {
     });
 
     it('keeps the latest TTC cohort metadata when unmounted', () => {
-      const { unmount } = renderHook(() =>
-        useSectionPerformance({
-          ...defaultConfig,
-          tags: { lifecycle: 'cold_no_cache' },
-          data: { perps_session_id: 'session-id-1' },
-        }),
+      const { rerender, unmount } = renderHook(
+        ({ lifecycle, sessionId }: { lifecycle: string; sessionId: string }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            tags: { lifecycle },
+            data: { perps_session_id: sessionId },
+          }),
+        {
+          initialProps: {
+            lifecycle: 'cold_no_cache',
+            sessionId: 'session-id-1',
+          },
+        },
       );
+
+      rerender({
+        lifecycle: 'background_reconnect',
+        sessionId: 'session-id-2',
+      });
 
       unmount();
 
@@ -175,8 +187,8 @@ describe('useSectionPerformance', () => {
         expect.objectContaining({
           name: TraceName.HomepageSectionTimeToContent,
           data: expect.objectContaining({
-            lifecycle: 'cold_no_cache',
-            perps_session_id: 'session-id-1',
+            lifecycle: 'background_reconnect',
+            perps_session_id: 'session-id-2',
             success: false,
           }),
         }),
@@ -299,14 +311,26 @@ describe('useSectionPerformance', () => {
     });
 
     it('keeps the latest DFD cohort metadata when unmounted', () => {
-      const { unmount } = renderHook(() =>
-        useSectionPerformance({
-          ...defaultConfig,
-          isLoading: true,
-          tags: { lifecycle: 'cold_no_cache' },
-          data: { perps_session_id: 'session-id-1' },
-        }),
+      const { rerender, unmount } = renderHook(
+        ({ lifecycle, sessionId }: { lifecycle: string; sessionId: string }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            isLoading: true,
+            tags: { lifecycle },
+            data: { perps_session_id: sessionId },
+          }),
+        {
+          initialProps: {
+            lifecycle: 'cold_no_cache',
+            sessionId: 'session-id-1',
+          },
+        },
       );
+
+      rerender({
+        lifecycle: 'background_reconnect',
+        sessionId: 'session-id-2',
+      });
 
       unmount();
 
@@ -314,8 +338,8 @@ describe('useSectionPerformance', () => {
         expect.objectContaining({
           name: TraceName.HomepageSectionDataFetch,
           data: expect.objectContaining({
-            lifecycle: 'cold_no_cache',
-            perps_session_id: 'session-id-1',
+            lifecycle: 'background_reconnect',
+            perps_session_id: 'session-id-2',
             success: false,
           }),
         }),
@@ -479,15 +503,16 @@ describe('useSectionPerformance', () => {
       expect(mockEndTrace).not.toHaveBeenCalled();
     });
 
-    it('spreads bounded tags onto both existing traces and data onto their ends', () => {
+    it.each([
+      TraceName.HomepageSectionTimeToContent,
+      TraceName.HomepageSectionDataFetch,
+    ])('applies bounded metadata to %s', (traceName) => {
       const tags = {
         content_variant: 'trending',
         market_source: 'provider',
         account_source: 'memory_cache',
         lifecycle: 'cold_no_cache',
       };
-      const data = { perps_session_id: 'session-id-1' };
-
       const { rerender } = renderHook(
         ({ isLoading, contentReady }) =>
           useSectionPerformance({
@@ -495,7 +520,7 @@ describe('useSectionPerformance', () => {
             contentReady,
             isLoading,
             tags,
-            data,
+            data: { perps_session_id: 'session-id-1' },
           }),
         { initialProps: { isLoading: true, contentReady: false } },
       );
@@ -504,35 +529,16 @@ describe('useSectionPerformance', () => {
 
       expect(mockTrace).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: TraceName.HomepageSectionTimeToContent,
+          name: traceName,
           tags: expect.objectContaining({
-            section_id: HomeSectionNames.TOKENS,
             ...tags,
-          }),
-        }),
-      );
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.HomepageSectionDataFetch,
-          tags: expect.objectContaining({
             section_id: HomeSectionNames.TOKENS,
-            ...tags,
           }),
         }),
       );
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: TraceName.HomepageSectionTimeToContent,
-          data: expect.objectContaining({
-            success: true,
-            content_state: 'filled',
-            perps_session_id: 'session-id-1',
-          }),
-        }),
-      );
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.HomepageSectionDataFetch,
+          name: traceName,
           data: expect.objectContaining({
             success: true,
             content_state: 'filled',
@@ -542,7 +548,36 @@ describe('useSectionPerformance', () => {
       );
     });
 
-    it('annotates the same pending span with later resolved tags and does not restart the trace', () => {
+    it('keeps hook-owned outcome fields authoritative', () => {
+      const { rerender } = renderHook(
+        ({ contentReady }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentReady,
+            tags: { section_id: 'wrong-section' },
+            data: {
+              section_id: 'wrong-section',
+              success: false,
+              content_state: 'error',
+            },
+          }),
+        { initialProps: { contentReady: false } },
+      );
+
+      rerender({ contentReady: true });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            section_id: HomeSectionNames.TOKENS,
+            success: true,
+            content_state: 'filled',
+          }),
+        }),
+      );
+    });
+
+    it('updates later-resolved tags on the existing span', () => {
       const initialTags = {
         content_variant: 'trending',
         market_source: 'memory_cache',

@@ -1160,6 +1160,9 @@ describe('OAuthRehydration', () => {
         );
       });
       expect(mockGetMarketingOptInStatus).not.toHaveBeenCalled();
+      expect(mockMarkHomepageAuthenticationEnd).toHaveBeenCalledWith(
+        HOMEPAGE_READY_TRACE_TOKEN,
+      );
       expect(mockUnlockWallet.mock.invocationCallOrder[0]).toBeLessThan(
         mockRequestBiometricsAccessControlForIOS.mock.invocationCallOrder[0],
       );
