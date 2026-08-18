@@ -398,8 +398,10 @@ const MoneyHomeView = () => {
   }, [navigation, trackButtonClicked]);
 
   const handleGetProPress = useCallback(() => {
-    // TODO SUB-991: navigate to the Pro subscription flow entry point
-  }, []);
+    navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT, {
+      source: 'money_header',
+    });
+  }, [navigation]);
 
   const handleAddPress = useCallback(
     ({

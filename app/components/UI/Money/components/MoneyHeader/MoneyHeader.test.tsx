@@ -34,6 +34,8 @@ describe('MoneyHeader', () => {
     expect(getByTestId(MoneyHeaderTestIds.TITLE)).toHaveTextContent(
       strings('money.title'),
     );
+
+    expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
   });
 
   it('calls onMenuPress when the menu button is pressed', () => {
@@ -70,7 +72,9 @@ describe('MoneyHeader', () => {
         <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
       );
 
-      expect(queryByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toBeNull();
+      expect(
+        queryByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
     it('is shown when the Pro subscription flag is enabled', () => {
@@ -99,7 +103,7 @@ describe('MoneyHeader', () => {
       );
 
       expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
-        strings('money.get_pro'),
+        strings('pro_subscription.join_pro'),
       );
     });
 

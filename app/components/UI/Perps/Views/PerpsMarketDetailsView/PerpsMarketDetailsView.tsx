@@ -126,7 +126,6 @@ import {
   usePerpsLivePrices,
   usePerpsLiveFocusedPrice,
 } from '../../hooks/stream';
-import { usePerpsLiveCandles } from '../../hooks/stream/usePerpsLiveCandles';
 import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import { useIsPriceDeviatedAboveThreshold } from '../../hooks/useIsPriceDeviatedAboveThreshold';
 import {
@@ -138,6 +137,7 @@ import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import { usePerpsSyncedChartPrice } from '../../hooks/usePerpsSyncedChartPrice';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
@@ -530,31 +530,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     isLoading: isLoadingHistory,
     hasHistoricalData,
     fetchMoreHistory,
-  } = usePerpsLiveCandles({
+    syncedChartCurrentPrice,
+    setAdvancedChartCurrentPrice,
+  } = usePerpsSyncedChartPrice({
     symbol: market?.symbol || '',
     interval: selectedCandlePeriod,
-    duration: TimeDuration.YearToDate,
-    throttleMs: 1000,
+    isAdvancedChartEnabled,
   });
-
-  // Get current price from the last candle's close price for chart synchronization
-  // This ensures the current price line matches the live candle close price exactly
-  const chartCurrentPrice = useMemo(() => {
-    if (!candleData?.candles?.length) return 0;
-    const lastCandle = candleData.candles.at(-1);
-    return lastCandle?.close ? Number.parseFloat(lastCandle.close) : 0;
-  }, [candleData]);
-  const [advancedChartCurrentPrice, setAdvancedChartCurrentPrice] = useState<
-    number | undefined
-  >(undefined);
-  const syncedChartCurrentPrice =
-    isAdvancedChartEnabled && advancedChartCurrentPrice !== undefined
-      ? advancedChartCurrentPrice
-      : chartCurrentPrice;
-
-  useEffect(() => {
-    setAdvancedChartCurrentPrice(undefined);
-  }, [isAdvancedChartEnabled, market?.symbol, selectedCandlePeriod]);
 
   // Auto-zoom to latest candle when interval changes and new data arrives
   // This ensures the chart shows the most recent data after interval change
@@ -1550,6 +1532,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         onModeChange={isPerpsProModeEnabled ? handlePerpsModeChange : undefined}
         scrollY={scrollYShared}
         priceSectionHeight={titleSectionHeightSv}
+        currentPrice={syncedChartCurrentPrice}
       />
 
       <View style={styles.scrollableContentContainer}>
