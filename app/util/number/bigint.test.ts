@@ -46,6 +46,14 @@ import {
   weiToFiatNumber,
 } from './bigint';
 
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+afterEach(() => {
+  jest.resetAllMocks();
+});
+
 describe('Number utils :: bigIntToHex', () => {
   it('bigIntToHex', () => {
     expect(bigIntToHex(BigInt('1337'))).toEqual('0x539');
