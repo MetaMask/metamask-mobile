@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
@@ -231,10 +231,4 @@ const AccountGroupBalance = ({
   );
 };
 
-// Memoized: `Wallet` passes down referentially-stable callbacks/props (see
-// `walletHomeAccountGroupBalanceProps` in Wallet/index.tsx), so wrapping in
-// `memo` here actually skips re-rendering on unrelated `Wallet` re-renders
-// (e.g. the balance/price update bursts that occur right after unlock).
-// Without this, a stable props object upstream has no effect, since React
-// re-renders non-memoized children whenever their parent re-renders.
-export default memo(AccountGroupBalance);
+export default AccountGroupBalance;
