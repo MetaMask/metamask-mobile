@@ -2,6 +2,7 @@ import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/Browse
 import Gestures from '../../../framework/Gestures';
 import Matchers from '../../../framework/Matchers';
 import { PlatformDetector } from '../../../framework/PlatformLocator';
+import PlaywrightContextHelpers from '../../../framework/PlaywrightContextHelpers';
 import { RedirectWebsiteSelectorsXPath } from '../../../selectors/Browser/RedirectWebsite.selectors';
 
 class RedirectWebsite {
@@ -31,6 +32,8 @@ class RedirectWebsite {
     await Gestures.waitAndTap(redirectButton, {
       elemDescription: 'Redirect website redirect button',
     });
+    // Native URL-bar asserts need NATIVE_APP; XPath tap leaves WEBVIEW context.
+    await PlaywrightContextHelpers.switchToNativeContext();
   }
 }
 

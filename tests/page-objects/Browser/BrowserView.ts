@@ -16,6 +16,7 @@ import {
   Utilities,
   sleep,
 } from '../../framework';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 import { executeMobileDeepLink } from '../../framework/PlaywrightUtilities';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
@@ -499,7 +500,9 @@ class Browser {
     // Unfocused URL bar hides TextInput (`browser-modal-url-input`); Appium must
     // read the visible display Text (`browser-url-display-text`). The `url-input`
     // wrapper View often returns empty getText(), which would falsely pass a
-    // not-equal assertion.
+    // not-equal assertion. After a WebView load/tap the driver stays in WEBVIEW
+    // context; getText() there hits LavaMoat scuttling (ShadowRoot).
+    await PlaywrightContextHelpers.switchToNativeContext();
     await Assertions.expectElementToNotHaveText(this.urlBarDisplayText, text, {
       description: description ?? `URL input box text is not "${text}"`,
     });
@@ -510,6 +513,7 @@ class Browser {
    * Display text is origin + pathname + query, so callers typically pass an origin.
    */
   async expectUrlToContain(text: string, description?: string): Promise<void> {
+    await PlaywrightContextHelpers.switchToNativeContext();
     await Assertions.expectElementToContainText(this.urlBarDisplayText, text, {
       description: description ?? `URL bar contains "${text}"`,
     });
