@@ -34,7 +34,7 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
 
   if (isParticipating) {
     const balanceDisplay = stats
-      ? formatUsd(Math.max(0, stats.currentBalanceUsd))
+      ? formatUsd(Math.max(0, stats.qualifyingDepositsUsd))
       : '—';
     const entriesDisplay = stats
       ? localizedText.entriesCountValue.replace(
@@ -44,7 +44,7 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
       : '—';
     const isQualified = stats?.todayStatus === 'on_track';
     const remainingBalance = stats
-      ? Math.max(0, stats.qualifyingThresholdUsd - stats.currentBalanceUsd)
+      ? Math.max(0, stats.qualifyingThresholdUsd - stats.qualifyingDepositsUsd)
       : 0;
     const qualificationMessage = (() => {
       switch (stats?.todayStatus) {
@@ -75,7 +75,7 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
             twClassName="gap-2"
           >
             <Text variant={TextVariant.HeadingSm}>
-              {localizedText.balanceTitle}
+              {localizedText.eligibleBalanceTitle}
             </Text>
             {isQualified && (
               <Box twClassName="rounded-md bg-success-muted px-2 py-1">

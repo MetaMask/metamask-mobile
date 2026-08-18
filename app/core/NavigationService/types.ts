@@ -632,7 +632,6 @@ export type RootStackParamList = {
   RewardsOndoCampaignWinning: RewardsNavigationParamList['RewardsOndoCampaignWinning'];
   RewardsSeasonOneCampaignDetails: RewardsNavigationParamList['RewardsSeasonOneCampaignDetails'];
   RewardsCampaignMechanics: RewardsNavigationParamList['RewardsCampaignMechanics'];
-  RewardsMusdCalculatorView: RewardsNavigationParamList['RewardsMusdCalculatorView'];
   RewardsOndoCampaignLeaderboard: RewardsNavigationParamList['RewardsOndoCampaignLeaderboard'];
   RewardsOndoRwaAssetSelector: RewardsNavigationParamList['RewardsOndoRwaAssetSelector'];
   RewardsOndoCampaignPortfolioView: RewardsNavigationParamList['RewardsOndoCampaignPortfolioView'];

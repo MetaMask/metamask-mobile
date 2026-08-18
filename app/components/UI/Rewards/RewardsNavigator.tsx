@@ -18,7 +18,6 @@ import OndoCampaignDetailsView from './Views/OndoCampaignDetailsView';
 import OndoCampaignWinningView from './Views/OndoCampaignWinningView';
 import SeasonOneCampaignDetailsView from './Views/SeasonOneCampaignDetailsView';
 import CampaignMechanicsView from './Views/CampaignMechanicsView';
-import MusdCalculatorView from './Views/MusdCalculatorView';
 import OndoLeaderboardView from './Views/OndoLeaderboardView';
 import OndoCampaignRwaSelectorView from './Views/OndoCampaignRwaSelectorView';
 import OndoCampaignPortfolioView from './Views/OndoCampaignPortfolioView';
@@ -241,10 +240,6 @@ const RewardsNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.REWARDS_CAMPAIGN_MECHANICS}
         component={CampaignMechanicsView}
-      />
-      <Stack.Screen
-        name={Routes.REWARDS_MUSD_CALCULATOR_VIEW}
-        component={MusdCalculatorView}
       />
       <Stack.Screen
         name={Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD}

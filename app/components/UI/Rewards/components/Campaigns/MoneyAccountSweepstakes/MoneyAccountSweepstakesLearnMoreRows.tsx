@@ -19,6 +19,9 @@ import {
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import type { MoneyAccountSweepstakesLocalizedTextDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { handleDeeplink } from '../../../../../../core/DeeplinkManager';
+
+const MUSD_MONEY_URL = 'metamask://money';
 
 interface MoneyAccountSweepstakesLearnMoreRowsProps {
   campaignId: string;
@@ -85,10 +88,8 @@ const MoneyAccountSweepstakesLearnMoreRows: React.FC<
   }, [campaignId, navigation]);
 
   const openMoneyAccount = useCallback(() => {
-    navigation.navigate(Routes.MONEY.ROOT, {
-      screen: Routes.MONEY.HOME,
-    });
-  }, [navigation]);
+    handleDeeplink({ uri: MUSD_MONEY_URL });
+  }, []);
 
   return (
     <Box twClassName="px-4 pt-2">

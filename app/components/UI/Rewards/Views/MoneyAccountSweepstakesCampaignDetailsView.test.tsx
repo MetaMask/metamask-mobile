@@ -126,21 +126,6 @@ jest.mock('../components/Campaigns/CampaignHowItWorks', () => {
 });
 
 jest.mock(
-  '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesStatsSummary',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: () =>
-        ReactActual.createElement(View, {
-          testID: 'money-account-sweepstakes-stats-summary',
-        }),
-    };
-  },
-);
-
-jest.mock(
   '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesDrawScheduleSection',
   () => {
     const ReactActual = jest.requireActual('react');

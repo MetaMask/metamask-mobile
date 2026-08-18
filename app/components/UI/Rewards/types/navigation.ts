@@ -192,7 +192,6 @@ export type RewardsStackParamList = {
     | RewardsSeasonOneCampaignDetailsParams
     | undefined;
   RewardsCampaignMechanics: RewardsCampaignMechanicsParams;
-  RewardsMusdCalculatorView: undefined;
   RewardsOndoCampaignLeaderboard: RewardsOndoCampaignLeaderboardParams;
   RewardsOndoRwaAssetSelector: RewardsOndoRwaAssetSelectorParams;
   RewardsOndoCampaignPortfolioView: RewardsOndoCampaignPortfolioParams;
