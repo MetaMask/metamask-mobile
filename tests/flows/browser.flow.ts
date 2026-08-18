@@ -25,7 +25,7 @@ const TEST_DAPP_LOAD_LABEL = 'E2E Test Dapp';
  * @throws {Error} Throws an error if the test dapp fails to load after a certain number of attempts.
  */
 export const waitForTestDappToLoad = async (): Promise<void> => {
-  if (PlatformDetector.isAndroidAppium()) {
+  if (PlatformDetector.isAndroid()) {
     await Assertions.expectElementToBeVisible(
       Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
       {
@@ -40,7 +40,7 @@ export const waitForTestDappToLoad = async (): Promise<void> => {
     return;
   }
 
-  if (PlatformDetector.isIOSAppium()) {
+  if (PlatformDetector.isIOS()) {
     await Assertions.expectElementToBeVisible(
       Matchers.getElementByText(getDappUrl(0)),
       { description: 'Browser URL bar should show test dapp URL' },
@@ -48,7 +48,7 @@ export const waitForTestDappToLoad = async (): Promise<void> => {
     return;
   }
 
-  throw new Error('Test dapp load is only supported on Appium Android/iOS');
+  throw new Error('Test dapp load is only supported on Android/iOS');
 };
 
 /**
@@ -64,12 +64,12 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      if (PlatformDetector.isAndroidAppium()) {
+      if (PlatformDetector.isAndroid()) {
         await waitForAndroidTestSnapsNativeLoad();
         return;
       }
 
-      if (PlatformDetector.isIOSAppium()) {
+      if (PlatformDetector.isIOS()) {
         await Assertions.expectElementToBeVisible(
           Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
           {
@@ -84,9 +84,7 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
         return;
       }
 
-      throw new Error(
-        'Test Snaps load is only supported on Appium Android/iOS',
-      );
+      throw new Error('Test Snaps load is only supported on Android/iOS');
     } catch (error) {
       if (attempt < MAX_RETRIES) {
         await PlaywrightContextHelpers.switchToNativeContext().catch(
