@@ -32,11 +32,6 @@ on:
         description: 'BrowserStack Android Imported Wallet App URL (bs://...)'
         required: false
         type: string
-      performance_tags:
-        description: 'JSON array of performance tags. Blank runs all; [] skips all.'
-        required: false
-        type: string
-        default: ''
       reuse_main_builds:
         description: 'For e2e only, reuse and upload the latest Android APKs from main CI'
         required: false
@@ -120,7 +115,6 @@ jobs:
       sentry_target: ${{ inputs.sentry_target }}
       browserstack_app_url_android_onboarding: ${{ inputs.browserstack_app_url_android_onboarding }}
       browserstack_app_url_android_imported_wallet: ${{ inputs.browserstack_app_url_android_imported_wallet }}
-      performance_tags: ${{ inputs.performance_tags }}
       reuse_main_builds: ${{ inputs.build_variant == 'e2e' && inputs.reuse_main_builds }}
       he_region: ${{ inputs.he_region || 'us' }}
     secrets: inherit
