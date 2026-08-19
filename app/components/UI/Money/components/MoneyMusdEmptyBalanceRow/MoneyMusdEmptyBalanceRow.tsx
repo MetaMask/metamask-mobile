@@ -3,6 +3,9 @@ import { Pressable, StyleSheet } from 'react-native';
 import {
   AvatarToken,
   AvatarTokenSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -12,17 +15,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { MUSD_TOKEN } from '../../../Earn/constants/musd';
 import { MoneyMusdEmptyBalanceRowTestIds } from './MoneyMusdEmptyBalanceRow.testIds';
-import type { ImageOrSvgSrc } from '@metamask/design-system-react-native/dist/components/temp-components/ImageOrSvg/ImageOrSvg.types.d.cts';
 
 const styles = StyleSheet.create({
   badgeWrapper: { alignSelf: 'center' },
@@ -46,20 +42,26 @@ const MoneyMusdEmptyBalanceRow = ({
       twClassName="px-4 py-3 gap-4"
     >
       <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
+        position={BadgeWrapperPosition.BottomRight}
         style={styles.badgeWrapper}
-        badgeElement={
-          <Badge
-            variant={BadgeVariant.Network}
-            imageSource={getNetworkImageSource({
-              chainId: CHAIN_IDS.MAINNET,
-            })}
+        badge={
+          <BadgeNetwork
+            name={MUSD_TOKEN.symbol}
+            src={
+              getNetworkImageSource({
+                chainId: CHAIN_IDS.MAINNET,
+              }) as React.ComponentProps<typeof BadgeNetwork>['src']
+            }
           />
         }
       >
         <AvatarToken
           name={MUSD_TOKEN.symbol}
-          src={MUSD_TOKEN.imageSource as ImageOrSvgSrc}
+          src={
+            MUSD_TOKEN.imageSource as React.ComponentProps<
+              typeof AvatarToken
+            >['src']
+          }
           size={AvatarTokenSize.Lg}
         />
       </BadgeWrapper>
