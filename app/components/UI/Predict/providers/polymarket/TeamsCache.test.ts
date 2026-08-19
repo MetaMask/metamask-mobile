@@ -389,6 +389,121 @@ describe('TeamsCache', () => {
     });
   });
 
+  describe('ensureTeamsLoadedBatch', () => {
+    it('fetches all needed leagues and abbreviations in one request', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          createMockTeam({
+            id: 'team-sea',
+            abbreviation: 'SEA',
+            league: 'nfl',
+          }),
+          createMockTeam({
+            id: 'team-swiatek',
+            name: 'Iga Swiatek',
+            abbreviation: 'swiatek',
+            league: 'wta',
+          }),
+        ],
+      });
+      const cache = TeamsCache.getInstance();
+
+      await cache.ensureTeamsLoadedBatch(
+        new Map([
+          ['nfl', ['sea']],
+          ['wta', ['swiatek']],
+        ]),
+      );
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const callUrl = mockFetch.mock.calls[0][0] as string;
+      expect(callUrl).toContain('league=nfl');
+      expect(callUrl).toContain('league=wta');
+      expect(callUrl).toContain('abbreviation=sea');
+      expect(callUrl).toContain('abbreviation=swiatek');
+      expect(cache.getTeam('nfl', 'sea')?.id).toBe('team-sea');
+      expect(cache.getTeam('wta', 'swiatek')?.id).toBe('team-swiatek');
+    });
+
+    it('maps API league aliases back onto Predict leagues', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => [
+          createMockTeam({
+            id: 'team-navi',
+            name: 'Natus Vincere',
+            abbreviation: 'navi',
+            league: 'csgo',
+          }),
+        ],
+      });
+      const cache = TeamsCache.getInstance();
+
+      await cache.ensureTeamsLoadedBatch(new Map([['cs2', ['navi']]]));
+
+      const callUrl = mockFetch.mock.calls[0][0] as string;
+      expect(callUrl).toContain('league=csgo');
+      expect(cache.getTeam('cs2', 'navi')?.name).toBe('Natus Vincere');
+    });
+
+    it('skips fetch when every requested team is already cached', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockNflTeams,
+      });
+      const cache = TeamsCache.getInstance();
+      await cache.ensureLeagueLoaded('nfl');
+      mockFetch.mockClear();
+
+      await cache.ensureTeamsLoadedBatch(new Map([['nfl', ['sea', 'den']]]));
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('deduplicates concurrent requests for the same batch', async () => {
+      let resolvePromise: (value: unknown) => void = () => undefined;
+      const fetchPromise = new Promise((resolve) => {
+        resolvePromise = resolve;
+      });
+
+      mockFetch.mockReturnValue(fetchPromise);
+      const cache = TeamsCache.getInstance();
+      const neededTeams = new Map([
+        ['nfl', ['sea']],
+        ['wta', ['swiatek']],
+      ]);
+
+      const promise1 = cache.ensureTeamsLoadedBatch(neededTeams);
+      const promise2 = cache.ensureTeamsLoadedBatch(
+        new Map([
+          ['wta', ['swiatek']],
+          ['nfl', ['sea']],
+        ]),
+      );
+
+      resolvePromise({
+        ok: true,
+        json: async () => [
+          createMockTeam({ abbreviation: 'SEA', league: 'nfl' }),
+          createMockTeam({ abbreviation: 'swiatek', league: 'wta' }),
+        ],
+      });
+
+      await Promise.all([promise1, promise2]);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles an empty map without fetching', async () => {
+      const cache = TeamsCache.getInstance();
+
+      await cache.ensureTeamsLoadedBatch(new Map());
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+  });
+
   describe('getTeam', () => {
     beforeEach(async () => {
       mockFetch.mockResolvedValueOnce({
