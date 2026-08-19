@@ -1084,7 +1084,7 @@ const PredictCryptoUpDownMarketCardSkeleton = ({
       twClassName={
         compact
           ? 'h-full rounded-xl bg-section p-4 justify-between'
-          : 'my-2 rounded-xl bg-section p-4'
+          : 'mb-3 rounded-xl bg-section p-4'
       }
     >
       <Box
@@ -1389,7 +1389,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   }
 
   return (
-    <Box twClassName="my-2 h-[319px] rounded-xl bg-muted overflow-hidden">
+    <Box twClassName="mb-3 h-[319px] rounded-xl bg-muted overflow-hidden">
       <Pressable
         testID={testID ?? PredictCryptoUpDownMarketCardSelectorsIDs.CARD}
         onPress={handleCardPress}
