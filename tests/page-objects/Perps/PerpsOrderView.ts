@@ -426,9 +426,7 @@ class PerpsOrderView {
 
     const leverageSelector = `${leverageX}x`;
     const optionEl = PlatformDetector.isAndroid()
-      ? Matchers.getElementByID(
-          `leverage-quick-select-${leverageX}`,
-        )
+      ? Matchers.getElementByID(`leverage-quick-select-${leverageX}`)
       : Matchers.getElementByID(`quick-select-button-${leverageSelector}`);
     await Gestures.waitAndTap(optionEl, {
       elemDescription: `Select leverage ${leverageSelector}`,
