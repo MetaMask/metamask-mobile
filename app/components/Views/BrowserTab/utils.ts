@@ -1,5 +1,6 @@
 import AppConstants from '../../../core/AppConstants';
 import URLParse from 'url-parse';
+import { isSameOrigin } from '../../../util/url';
 import { DocumentUrlForUrlBarPayload, SessionENSNames } from './types';
 
 const DEFAULT_HTTP_PORTS: Record<string, string> = {
@@ -61,6 +62,38 @@ export const isDocumentUrlForUrlBarPayload = (
     url.length > 0 &&
     (title === undefined || typeof title === 'string')
   );
+};
+
+/**
+ * Chooses the committed document URL after a back/forward document-URL sync.
+ *
+ * The native WebView URL is authoritative for origin. A page-supplied URL is
+ * used only when it shares that origin, so same-origin SPA path updates from
+ * `window.location` still apply (MCWP-595). Origin mismatches never take the
+ * page-supplied value, so a hooked `postMessage` cannot change origin.
+ *
+ * URLs that would not be allowed to load (`isDisallowedExplicitPort`) are not
+ * committed. That covers the case where the native event reports a navigation
+ * that `onShouldStartLoadWithRequest` already blocked.
+ *
+ * @param nativeUrl - URL from the native WebView navigation event
+ * @param pageReportedUrl - URL posted back from untrusted page JavaScript
+ * @returns The URL to use for bridge, permissions, and URL-bar state, or
+ * `null` when neither candidate is safe to commit
+ */
+export const resolveCommittedDocumentUrl = (
+  nativeUrl: string,
+  pageReportedUrl: string,
+): string | null => {
+  const candidate = isSameOrigin(nativeUrl, pageReportedUrl)
+    ? pageReportedUrl
+    : nativeUrl;
+
+  if (isDisallowedExplicitPort(candidate)) {
+    return null;
+  }
+
+  return candidate;
 };
 
 /**

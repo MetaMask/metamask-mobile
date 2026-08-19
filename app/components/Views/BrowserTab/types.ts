@@ -25,11 +25,14 @@ export enum WebViewNavigationEventName {
 
 /**
  * A back/forward navigation awaiting its committed document URL. We keep the
- * navigation state captured at request time so the URL bar can be resolved once
- * the WebView reports back the actual `window.location` for that request.
+ * native WebView URL captured at request time so origin state is never taken
+ * solely from a page-supplied `postMessage` payload.
  */
 export interface PendingBackForwardNav {
   requestId: string;
+  /** Native WebView URL at the time of the back/forward navigation event. */
+  url: string;
+  title?: string;
   canGoBack: boolean;
   canGoForward: boolean;
 }

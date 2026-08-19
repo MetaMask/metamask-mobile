@@ -124,6 +124,7 @@ import {
   isDisallowedExplicitPort,
   isDocumentUrlForUrlBarPayload,
   isENSUrl,
+  resolveCommittedDocumentUrl,
 } from './utils';
 import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
@@ -826,6 +827,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * Resolves the URL bar from a document URL reported by the WebView after a
      * back/forward navigation. Only the message matching the pending request is
      * applied; messages without a matching request are ignored.
+     *
+     * The native WebView URL captured at request time is authoritative for
+     * origin. A page-supplied URL is used only when it shares that origin.
      */
     const handleDocumentUrlForUrlBar = useCallback(
       (payload: unknown) => {
@@ -840,9 +844,30 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         pendingBackForwardNavRef.current = null;
 
+        const committedUrl = resolveCommittedDocumentUrl(
+          pendingNav.url,
+          payload.url,
+        );
+
+        if (!committedUrl) {
+          Logger.log(
+            `Ignoring back/forward document URL that cannot be committed. Native: ${pendingNav.url} Reported: ${payload.url}`,
+          );
+          return;
+        }
+
+        const usedPageReportedUrl = committedUrl === payload.url;
+        if (!usedPageReportedUrl) {
+          Logger.log(
+            `Ignoring page-reported document URL with mismatched origin. Native: ${pendingNav.url} Reported: ${payload.url}`,
+          );
+        }
+
         handleSuccessfulPageResolution({
-          title: payload.title ?? titleRef.current,
-          url: payload.url,
+          title: usedPageReportedUrl
+            ? (payload.title ?? pendingNav.title ?? titleRef.current)
+            : (pendingNav.title ?? titleRef.current),
+          url: committedUrl,
           icon: favicon,
           canGoBack: pendingNav.canGoBack,
           canGoForward: pendingNav.canGoForward,
@@ -1180,6 +1205,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             return;
           }
           if (dataParsed.name) {
+            // Do not overwrite `origin`. BackgroundBridge already rejects
+            // messages whose origin does not match the bridge origin. Stamping
+            // `resolvedUrlRef` would also attribute traffic to a stale origin
+            // during back/forward before this document-URL sync completes.
             backgroundBridgeRef.current?.onMessage(dataParsed);
             return;
           }
@@ -1611,7 +1640,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const handleOnNavigationStateChange = useCallback(
       (event: WebViewNavigation) => {
-        const { canGoForward, canGoBack, navigationType, loading } = event;
+        const { canGoForward, canGoBack, navigationType, loading, url, title } =
+          event;
         Logger.log(
           `WEBVIEW NAVIGATING: OnNavigationStateChange \n Values: ${JSON.stringify(
             event,
@@ -1624,11 +1654,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             return;
           }
 
+          if (!url) {
+            return;
+          }
+
           // Sync the URL bar from the document; navigation events are not always
-          // aligned with window.location after back/forward transitions.
+          // aligned with window.location after back/forward transitions. The
+          // native URL is stored so a page-supplied response cannot change origin.
           const requestId = createRequestId();
           pendingBackForwardNavRef.current = {
             requestId,
+            url,
+            title,
             canGoBack,
             canGoForward,
           };
