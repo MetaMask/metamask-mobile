@@ -6,6 +6,7 @@ import { renderShortAddress } from '../../../../../../util/address';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import { RootState } from '../../../../../../reducers';
 import { EngineState } from '../../../../../../core/Engine';
 
@@ -64,6 +65,7 @@ const renderComponent = (
   state: Partial<RootState> & { engine: { backgroundState: EngineState } },
   options?: {
     displayNetworkBadge?: boolean;
+    chainId?: Hex;
   },
 ) =>
   renderWithProvider(
@@ -73,7 +75,7 @@ const renderComponent = (
       onAccountLongPress={() => null}
       onIconPress={() => null}
       testID="address-element"
-      chainId="0x1"
+      chainId={options?.chainId ?? '0x1'}
       displayNetworkBadge={options?.displayNetworkBadge}
     />,
     { state },
@@ -120,6 +122,16 @@ describe('AddressElement', () => {
       },
     );
 
-    expect(getByTestId('address-element-network-badge')).toBeOnTheScreen();
+    expect(getByTestId('network-avatar-image')).toBeOnTheScreen();
+  });
+
+  it('does not render network badge when network image source is missing', () => {
+    const { getByTestId, queryByTestId } = renderComponent(initialState, {
+      displayNetworkBadge: true,
+      chainId: '0xdeadbeef',
+    });
+
+    expect(getByTestId('address-element')).toBeOnTheScreen();
+    expect(queryByTestId('badgenetwork')).not.toBeOnTheScreen();
   });
 });

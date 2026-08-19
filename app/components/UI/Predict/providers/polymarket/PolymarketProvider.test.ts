@@ -429,115 +429,22 @@ describe('PolymarketProvider', () => {
       expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
     });
 
-    it('adds World Cup child markets to the original feed event before parsing', async () => {
+    it('does not fetch child events when listing markets', async () => {
       const provider = createProvider({
-        extendedSportsMarketsLeagues: ['fifwc'],
-        enabledSportsMarketTypes: ['moneyline', 'soccer_team_to_advance'],
+        liveSportsLeagues: ['nba'],
+        extendedSportsMarketsLeagues: ['nba'],
+        enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
       });
-      const moneylineMarket = {
-        id: 'moneyline-market',
-        sportsMarketType: 'moneyline',
-      };
-      const teamToAdvanceMarket = {
-        id: 'team-to-advance-market',
-        sportsMarketType: 'soccer_team_to_advance',
-      };
       const parentEvent = {
         id: 'parent-event',
-        title: 'Feed title to preserve',
-        slug: 'fifwc-usa-can-2026-06-12',
-        tags: [
-          { id: 'games', label: 'Games', slug: 'games' },
-          {
-            id: 'world-cup',
-            label: 'World Cup',
-            slug: 'fifa-world-cup',
-          },
-        ],
-        markets: [moneylineMarket],
+        slug: 'nba-nyk-sas-2026-06-13',
+        tags: [{ id: 'games', label: 'Games', slug: 'games' }],
+        markets: [{ id: 'moneyline-market', sportsMarketType: 'moneyline' }],
       };
-      const fetchedParentEvent = {
-        ...parentEvent,
-        title: 'Fetched parent title should not replace feed title',
-        markets: [],
-      };
-      const childEvent = {
-        id: 'child-event',
-        parentEventId: parentEvent.id,
-        markets: [teamToAdvanceMarket],
-      };
-      const markets = [
-        {
-          id: 'market-1',
-          outcomes: [{ id: 'team-to-advance-outcome' }],
-        },
-      ];
+      const markets = [{ id: 'market-1', outcomes: [{ id: 'outcome-1' }] }];
 
       mockFetchEventsFromPolymarketApi.mockResolvedValue({
         events: [parentEvent],
-        category: 'trending',
-        nextCursor: null,
-      } as never);
-      mockFetchChildEventsFromGammaApi.mockResolvedValue([
-        fetchedParentEvent,
-        childEvent,
-      ] as never);
-      mockParsePolymarketEvents.mockReturnValue(markets as never);
-
-      await expect(
-        provider.getMarkets({ category: 'trending' }),
-      ).resolves.toEqual({
-        markets,
-        nextCursor: null,
-      });
-      expect(mockFetchChildEventsFromGammaApi).toHaveBeenCalledWith({
-        parentEventId: parentEvent.id,
-      });
-      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
-        [
-          expect.objectContaining({
-            id: parentEvent.id,
-            title: parentEvent.title,
-            markets: [moneylineMarket, teamToAdvanceMarket],
-          }),
-        ],
-        expect.any(Object),
-      );
-    });
-
-    it('does not resolve World Cup child feed events into duplicate parent cards', async () => {
-      const provider = createProvider({
-        extendedSportsMarketsLeagues: ['fifwc'],
-        enabledSportsMarketTypes: ['moneyline', 'soccer_team_to_advance'],
-      });
-      const childFeedEvent = {
-        id: 'child-event',
-        parentEventId: 'parent-event',
-        slug: 'fifwc-usa-can-2026-06-12',
-        tags: [
-          { id: 'games', label: 'Games', slug: 'games' },
-          {
-            id: 'world-cup',
-            label: 'World Cup',
-            slug: 'fifa-world-cup',
-          },
-        ],
-        markets: [
-          {
-            id: 'quarterfinals-market',
-            sportsMarketType: 'soccer_team_to_reach_quarterfinals',
-          },
-        ],
-      };
-      const markets = [
-        {
-          id: 'child-market',
-          outcomes: [{ id: 'quarterfinals-outcome' }],
-        },
-      ];
-
-      mockFetchEventsFromPolymarketApi.mockResolvedValue({
-        events: [childFeedEvent],
         category: 'trending',
         nextCursor: null,
       } as never);
@@ -551,9 +458,60 @@ describe('PolymarketProvider', () => {
       });
       expect(mockFetchChildEventsFromGammaApi).not.toHaveBeenCalled();
       expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
-        [childFeedEvent],
+        [parentEvent],
         expect.any(Object),
       );
+    });
+
+    it('merges child events into parent market details for extended sports leagues', async () => {
+      const provider = createProvider({
+        liveSportsLeagues: ['nba'],
+        extendedSportsMarketsLeagues: ['nba'],
+        enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
+      });
+      const parentEvent = {
+        id: '567958',
+        slug: 'nba-nyk-sas-2026-06-13',
+        tags: [{ id: 'games', label: 'Games', slug: 'games' }],
+        teams: [
+          { abbreviation: 'nyk', league: 'nba' },
+          { abbreviation: 'sas', league: 'nba' },
+        ],
+        markets: [
+          { id: 'moneyline', active: true, sportsMarketType: 'moneyline' },
+        ],
+      };
+      const childEvent = {
+        id: 'child-event',
+        parentEventId: parentEvent.id,
+        markets: [{ id: 'props', active: true, sportsMarketType: 'points' }],
+      };
+      const parsedMarket = { id: parentEvent.id, outcomes: [] };
+
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => [],
+      });
+      mockGetMarketDetailsFromGammaApi.mockResolvedValueOnce(
+        parentEvent as never,
+      );
+      mockFetchChildEventsFromGammaApi.mockResolvedValueOnce([
+        parentEvent,
+        childEvent,
+      ] as never);
+      mockParsePolymarketEvents.mockReturnValueOnce([parsedMarket] as never);
+
+      const result = await provider.getMarketDetails({
+        marketId: parentEvent.id,
+      });
+
+      expect(mockFetchChildEventsFromGammaApi).toHaveBeenCalledWith({
+        parentEventId: parentEvent.id,
+      });
+      expect(result).toEqual({
+        ...parsedMarket,
+        childMarketIds: [parentEvent.id, childEvent.id],
+      });
     });
 
     it('keeps directly opened child events with ungroupable active markets', async () => {
@@ -655,6 +613,7 @@ describe('PolymarketProvider', () => {
       expect(mockFetchMarketsFromPolymarketApi).toHaveBeenCalledWith({
         order: 'liquidity',
       });
+      expect(mockFetchChildEventsFromGammaApi).not.toHaveBeenCalled();
     });
 
     it('propagates list market failures to the query error state', async () => {
