@@ -44,6 +44,7 @@ import {
 } from '../../../selectors/notifications';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { getBetaSupportUrl } from './AccountsMenu.utils';
+import { isBetaBuild, isFlaskBuild } from '../../../util/environment';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
@@ -238,17 +239,15 @@ const AccountsMenu = () => {
   );
 
   const aboutMetaMaskTitle = useMemo(() => {
-    let title = strings('app_settings.info_title');
+    if (isFlaskBuild) {
+      return strings('app_settings.info_title_flask');
+    }
 
-    ///: BEGIN:ONLY_INCLUDE_IF(flask)
-    title = strings('app_settings.info_title_flask');
-    ///: END:ONLY_INCLUDE_IF
+    if (isBetaBuild) {
+      return strings('app_settings.info_title_beta');
+    }
 
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    title = strings('app_settings.info_title_beta');
-    ///: END:ONLY_INCLUDE_IF
-
-    return title;
+    return strings('app_settings.info_title');
   }, []);
 
   const onScanSuccess = useCallback(

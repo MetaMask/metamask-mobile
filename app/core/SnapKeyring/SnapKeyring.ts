@@ -22,6 +22,7 @@ import { endPerformanceTrace } from '../../core/redux/slices/performance';
 import { PerformanceEventNames } from '../redux/slices/performance/constants';
 import { areAddressesEqual } from '../../util/address';
 import { hasTestOverrides } from '../../util/test/utils';
+import { isFlaskBuild } from '../../util/environment';
 
 /**
  * Builder type for the Snap keyring.
@@ -325,9 +326,7 @@ export function legacySnapKeyringBuilder(
     new SnapKeyring({
       messenger,
       callbacks: new SnapKeyringImpl(messenger),
-      ///: BEGIN:ONLY_INCLUDE_IF(flask)
-      isAnyAccountTypeAllowed: true,
-      ///: END:ONLY_INCLUDE_IF
+      ...(isFlaskBuild && { isAnyAccountTypeAllowed: true }),
     })) as SnapKeyringBuilder;
   builder.type = SnapKeyring.type;
 

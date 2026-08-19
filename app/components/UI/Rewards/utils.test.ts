@@ -305,10 +305,8 @@ describe('Rewards Utils', () => {
 
   describe('getBetaSupportUrl', () => {
     it('returns a string', () => {
-      // The `///: ONLY_INCLUDE_IF(beta)` fence is stripped by Metro at build
-      // time only, so under Jest this always resolves to the beta URL; the
-      // empty-string (non-beta) branch is exercised via call-site mocking in
-      // the components that consume this helper.
+      // The non-beta (empty-string) branch is exercised via call-site
+      // mocking in the components that consume this helper.
       expect(typeof getBetaSupportUrl()).toBe('string');
     });
   });

@@ -63,11 +63,6 @@ export function getTerminalApiUrl(): string {
     return TERMINAL_API_URLS.DEV;
   }
 
-  // Beta builds target UAT (except dev/test/e2e which are handled above).
-  if (process.env.METAMASK_BUILD_TYPE === 'beta') {
-    return TERMINAL_API_URLS.UAT;
-  }
-
   if (env === 'production' || env === 'rc') {
     return TERMINAL_API_URLS.PRD;
   }
