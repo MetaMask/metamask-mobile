@@ -17,6 +17,7 @@ Short, parameterizable units composed via `call` nodes:
 | `lighter.close-position`   | `market`                                   | Close button → close-position screen → confirm → venue-verified flat                                                                       |
 | `lighter.tpsl`             | `market`, `tpPreset`, `slPreset`           | position card auto-close → TP/SL screen → RoE presets → Set → venue-verified OCO trigger pair (SL line rendered on the chart)              |
 | `lighter.limit-order`      | `market`, `preset`                         | order-type sheet → limit → price preset → venue-verified resting order                                                                     |
+| `lighter.history`          | `expectSymbol`                             | Perps home Activity section → ActivityView → genuine venue trade rows render (provider-served history)                                     |
 | `lighter.cancel-orders`    | `market`                                   | book cleaned, venue-verified (controller cancel path; UI cancel button is a follow-up)                                                     |
 | `lighter.capability-suite` | `network`, `positionMarket`, `orderMarket` | composed end-to-end run of all of the above; the same suite is the mainnet validation runner (`-p network=mainnet`)                        |
 
