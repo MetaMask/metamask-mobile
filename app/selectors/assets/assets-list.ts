@@ -708,80 +708,6 @@ function assetToToken(
 }
 
 /**
- * @deprecated Legacy implementation kept for comparison/testing only.
- *
- * Selects Tron special assets for the currently selected account group by
- * routing through the assets-controllers `selectAssetsBySelectedAccountGroup`
- * selector and the `assets-migration` compatibility layer
- * (see {@link getStateForAssetSelector}).
- *
- * Prefer {@link selectTronSpecialAssetsBySelectedAccountGroup}, which reads Tron
- * data directly from the Multichain controllers without the migration work.
- */
-export const selectTronSpecialAssetsBySelectedAccountGroupLegacy =
-  createDeepEqualSelector(
-    [getStateForAssetSelector, selectEnabledNetworks],
-    (assetsState, enabledNetworks): TronSpecialAssetsMap => {
-      const enabledTronNetworks = enabledNetworks.filter((networkId) =>
-        networkId.startsWith('tron:'),
-      );
-
-      if (enabledTronNetworks.length === 0) {
-        return EMPTY_TRON_SPECIAL_ASSETS_MAP;
-      }
-
-      const allAssets = callSelectAssetsBySelectedAccountGroup(assetsState, {
-        filterTronStakedTokens: false,
-      });
-
-      const enabledTronNetworksSet = new Set(enabledTronNetworks);
-
-      const specialAssetsMap: TronSpecialAssetsMap = {
-        energy: undefined,
-        bandwidth: undefined,
-        maxEnergy: undefined,
-        maxBandwidth: undefined,
-        stakedTrxForEnergy: undefined,
-        stakedTrxForBandwidth: undefined,
-        totalStakedTrx: 0,
-        trxReadyForWithdrawal: undefined,
-        trxStakingRewards: undefined,
-        trxInLockPeriod: undefined,
-      };
-
-      for (const [networkId, chainAssets] of Object.entries(allAssets)) {
-        if (!enabledTronNetworksSet.has(networkId)) continue;
-
-        for (const asset of chainAssets) {
-          if (!Object.hasOwn(TRON_SPECIAL_ASSET_KEYS, asset.assetId)) {
-            continue;
-          }
-
-          const key = TRON_SPECIAL_ASSET_KEYS[asset.assetId as KnownCaip19Id];
-          specialAssetsMap[key] = asset;
-        }
-      }
-
-      /**
-       * Compute total staked TRX using BigNumber to avoid floating-point precision errors
-       */
-      const stakedTrxForEnergyBN = safeParseBigNumber(
-        specialAssetsMap.stakedTrxForEnergy?.balance,
-      );
-      const stakedTrxForBandwidthBN = safeParseBigNumber(
-        specialAssetsMap.stakedTrxForBandwidth?.balance,
-      );
-      const totalStakedTrxBN = stakedTrxForEnergyBN.plus(
-        stakedTrxForBandwidthBN,
-      );
-
-      specialAssetsMap.totalStakedTrx = totalStakedTrxBN.toNumber();
-
-      return specialAssetsMap;
-    },
-  );
-
-/**
  * Selects Tron special assets for the currently selected account group.
  *
  * This includes:
@@ -789,11 +715,10 @@ export const selectTronSpecialAssetsBySelectedAccountGroupLegacy =
  * - **Staking assets**: TRX staked for Energy/Bandwidth and a pre-computed `totalStakedTrx` sum.
  * - **Staking lifecycle assets**: TRX Ready for Withdrawal, Staking Rewards, and TRX In Lock Period.
  *
- * Unlike {@link selectTronSpecialAssetsBySelectedAccountGroupLegacy}, this reads
- * Tron balances and prices **directly** from the unified `AssetsController`
- * state (`assetsBalance` + `assetsPrice`) for the accounts in the selected
- * account group. It does not go through the assets-controllers selector or the
- * `assets-migration` compatibility layer, nor the deprecated
+ * This reads Tron balances and prices **directly** from the unified
+ * `AssetsController` state (`assetsBalance` + `assetsPrice`) for the accounts in
+ * the selected account group. It does not go through the assets-controllers
+ * selector or the `assets-migration` compatibility layer, nor the deprecated
  * `MultichainBalancesController` / `MultichainAssetsController` /
  * `MultichainAssetsRatesController` controllers.
  *
