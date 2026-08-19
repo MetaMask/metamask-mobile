@@ -195,6 +195,10 @@ interface TokenInputAreaProps {
    * of the default allowed chainRanking.
    */
   enabledChainIds?: CaipChainId[];
+  /**
+   * When true, the token selector hides real-world asset tokens.
+   */
+  excludeRwaTokens?: boolean;
 }
 
 export const TokenInputArea = forwardRef<
@@ -229,6 +233,7 @@ export const TokenInputArea = forwardRef<
       amountTypeToggleTestID,
       showFiatAmountAsPrimary = false,
       enabledChainIds,
+      excludeRwaTokens,
     },
     ref,
   ) => {
@@ -289,6 +294,7 @@ export const TokenInputArea = forwardRef<
       navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
         type: TokenSelectorType.Dest,
         enabledChainIds,
+        excludeRwaTokens,
       });
     };
 
@@ -297,6 +303,7 @@ export const TokenInputArea = forwardRef<
       navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
         type: TokenSelectorType.Source,
         enabledChainIds,
+        excludeRwaTokens,
       });
     };
 

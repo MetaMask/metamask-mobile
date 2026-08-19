@@ -72,7 +72,9 @@ describe('MoneyHeader', () => {
         <MoneyHeader onMenuPress={jest.fn()} onGetProPress={jest.fn()} />,
       );
 
-      expect(queryByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toBeNull();
+      expect(
+        queryByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON),
+      ).not.toBeOnTheScreen();
     });
 
     it('is shown when the Pro subscription flag is enabled', () => {

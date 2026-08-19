@@ -69,8 +69,6 @@ export enum TraceName {
   EvmDiscoverAccounts = 'EVM Discover Accounts',
   SnapDiscoverAccounts = 'Snap Discover Accounts',
   FetchHistoricalPrices = 'Fetch Historical Prices',
-  CryptoUpDownWsMessage = 'Crypto Up Down WS Message',
-  CryptoUpDownBufferFlush = 'Crypto Up Down Buffer Flush',
   /** Token overview advanced chart: skeleton cleared after initial load / asset or currency change. */
   TokenOverviewAdvancedChartInitialVisible = 'Token Overview Advanced Chart Initial Visible',
   /** Token overview advanced chart: skeleton cleared after time range selector change only. */
@@ -273,6 +271,12 @@ export enum TraceName {
   MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
   MoneyHomeEarningsTimeToContent = 'Money Home Earnings Time To Content',
   MoneyHomeApyTimeToContent = 'Money Home APY Time To Content',
+  // Money Home Data Fetches
+  MoneyActivityFetch = 'Money Activity Fetch',
+  CardHomeDataFetch = 'Card Home Data Fetch',
+  // Rewards
+  /** Tap Rewards tab → onboarding content or enrolled dashboard shell. */
+  RewardsTabTimeToContent = 'Rewards Tab Time To Content',
 }
 
 export enum TraceOperation {
@@ -303,6 +307,7 @@ export enum TraceOperation {
   CardGetSupportedTokensAllowances = 'card.get.supported.tokens.allowances',
   CardGetPriorityToken = 'card.get.priority.token',
   CardIdentifyCardholder = 'card.identify.cardholder',
+  CardDataFetch = 'card.data_fetch',
   OnboardingUserJourney = 'onboarding.user_journey',
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',
@@ -339,6 +344,8 @@ export enum TraceOperation {
   // Money Home Performance
   MoneyHomePerformance = 'money.home.performance',
   MoneyAccountDataFetch = 'money.account.data_fetch',
+  // Rewards
+  RewardsPerformance = 'rewards.performance',
   RampOperation = 'ramp.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
@@ -619,9 +626,12 @@ function finishPendingTrace(
  */
 /**
  * Return the in-flight span for a pending manual trace, if any.
- * Used to nest a security op (e.g. Create Key and Backup SRP) under an
- * already-open journey span (e.g. New Social Create Wallet) without
- * threading the span through route params.
+ * Used to nest a child span under an already-open parent span without
+ * threading the span through route params (perf_fix: trace-registry-v1).
+ *
+ * Onboarding screens call this with `TraceName.OnboardingJourneyOverall` to
+ * fetch the parent context instead of receiving it as a non-serializable
+ * React Navigation route param.
  */
 export function getTraceContext(
   request: Pick<TraceRequest, 'name' | 'id'>,

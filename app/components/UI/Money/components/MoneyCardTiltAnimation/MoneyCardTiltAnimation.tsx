@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
@@ -19,6 +13,7 @@ import { createProjectLogger } from '@metamask/utils';
 import { selectMoneyCardTiltAnimationEnabledFlag } from '../../selectors/featureFlags';
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useRiveParallaxTilt } from '../../hooks/useRiveParallaxTilt';
+import { useRiveRevealTrigger } from '../../hooks/useRiveRevealTrigger';
 import { shapeCardTilt } from '../../utils/parallax';
 import CardTiltAnimation from '../../../../../animations/card_tilt_v1.6.riv';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
@@ -109,41 +104,15 @@ const MoneyCardTiltAnimation = ({
     setHasRiveError(true);
   }, []);
 
-  // The reveal is a data-bound trigger, so it only advances once the view
-  // model instance is bound to the running state machine — firing before the
-  // native view is ready would be silently dropped.
-  const hasFiredReveal = useRef(false);
-  useEffect(() => {
-    if (
-      !playRevealOnMount ||
-      !animate ||
-      !instance ||
-      !riveViewRef ||
-      hasFiredReveal.current
-    ) {
-      return undefined;
-    }
-
-    const dispatchTrigger = () => {
-      hasFiredReveal.current = true;
-      const trigger = instance.triggerProperty(RIVE_TRIGGER_START);
-      if (!trigger) {
-        log('reveal skipped: trigger property not found');
-        return;
-      }
-      trigger.trigger();
-      // A settled state machine won't be advancing when the trigger lands;
-      // playIfNeeded is the runtime's low-overhead way to wake it.
-      riveViewRef.playIfNeeded();
-    };
-
-    if (revealDelayMs > 0) {
-      const timeout = setTimeout(dispatchTrigger, revealDelayMs);
-      return () => clearTimeout(timeout);
-    }
-    dispatchTrigger();
-    return undefined;
-  }, [playRevealOnMount, animate, instance, riveViewRef, revealDelayMs]);
+  useRiveRevealTrigger({
+    instance,
+    riveViewRef,
+    triggerName: RIVE_TRIGGER_START,
+    enabled: playRevealOnMount && animate,
+    artboardName,
+    delayMs: revealDelayMs,
+    log,
+  });
 
   const size = useMemo(
     () =>

@@ -1,6 +1,7 @@
 import type { BridgeState } from '../../../../core/redux/slices/bridge';
 import { initialHardwareWalletsSwapsState } from '../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 import { BridgeViewMode } from '../types';
+import { initialRecurringState } from '../utils/recurringSchedule';
 
 export const mockBridgeReducerState: BridgeState = {
   sourceAmount: '1000000000000000000',
@@ -46,4 +47,5 @@ export const mockBridgeReducerState: BridgeState = {
   batchSellSourceTokenAmounts: {},
   batchSellDestToken: undefined,
   batchSellSlippages: {},
+  recurring: initialRecurringState,
 };

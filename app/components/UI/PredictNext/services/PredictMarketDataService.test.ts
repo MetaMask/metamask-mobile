@@ -2,7 +2,11 @@ import { ConstantBackoff } from '@metamask/controller-utils';
 import { Messenger } from '@metamask/messenger';
 import type { VenueMarketDataAdapter } from '../adapters/types';
 import { PredictError, PredictErrorCode } from '../errors';
-import { KALSHI_VENUE_ID, type PredictVenueId } from '../types';
+import {
+  KALSHI_VENUE_ID,
+  type PredictFeedId,
+  type PredictVenueId,
+} from '../types';
 import {
   PredictMarketDataService,
   type PredictMarketDataServiceMessenger,
@@ -22,15 +26,25 @@ const createService = (marketData: VenueMarketDataAdapter) => {
 
 const createMarketData = (): jest.Mocked<VenueMarketDataAdapter> => ({
   fetchVenueStatus: jest.fn(),
-  fetchEvents: jest.fn(),
+  fetchFeed: jest.fn(),
   fetchEvent: jest.fn(),
 });
+
+const feedId = 'sports-football-nfl-games' as PredictFeedId;
 
 describe('PredictMarketDataService', () => {
   const services: PredictMarketDataService[] = [];
 
+  beforeAll(() => {
+    jest.useFakeTimers({ advanceTimers: true });
+  });
+
   afterEach(() => {
     services.splice(0).forEach((service) => service.destroy());
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
   });
 
   const buildService = (marketData: VenueMarketDataAdapter) => {
@@ -53,13 +67,19 @@ describe('PredictMarketDataService', () => {
 
   it('forwards Event list cancellation to the adapter', async () => {
     const marketData = createMarketData();
-    marketData.fetchEvents.mockResolvedValue({ items: [] });
+    marketData.fetchFeed.mockResolvedValue({
+      venueId: KALSHI_VENUE_ID,
+      id: feedId,
+      title: 'NFL Games',
+      events: [],
+    });
     const service = buildService(marketData);
     const signal = new AbortController().signal;
 
-    await service.getEvents(KALSHI_VENUE_ID, {}, undefined, { signal });
+    await service.getFeed(KALSHI_VENUE_ID, feedId, {}, undefined, { signal });
 
-    expect(marketData.fetchEvents).toHaveBeenCalledWith(
+    expect(marketData.fetchFeed).toHaveBeenCalledWith(
+      feedId,
       { cursor: undefined },
       { signal },
     );
@@ -67,10 +87,16 @@ describe('PredictMarketDataService', () => {
 
   it('stops Event pagination for an empty cursor', async () => {
     const marketData = createMarketData();
-    marketData.fetchEvents.mockResolvedValue({ items: [], nextCursor: '' });
+    marketData.fetchFeed.mockResolvedValue({
+      venueId: KALSHI_VENUE_ID,
+      id: feedId,
+      title: 'NFL Games',
+      events: [],
+      nextCursor: '',
+    });
     const service = buildService(marketData);
 
-    const result = await service.getEvents(KALSHI_VENUE_ID, {});
+    const result = await service.getFeed(KALSHI_VENUE_ID, feedId, {});
 
     expect(result.nextCursor).toBeUndefined();
   });

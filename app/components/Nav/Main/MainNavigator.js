@@ -62,6 +62,7 @@ import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import useRewardsVersionGuard from '../../UI/Rewards/hooks/useRewardsVersionGuard';
 import { useCandidateSubscriptionId } from '../../UI/Rewards/hooks/useCandidateSubscriptionId';
+import { useRewardsTabPerformance } from '../../UI/Rewards/hooks/useRewardsTabPerformance';
 import RewardsUpdateRequired from '../../UI/Rewards/components/RewardsUpdateRequired/RewardsUpdateRequired';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import RewardsDashboard from '../../UI/Rewards/Views/RewardsDashboard';
@@ -131,7 +132,7 @@ import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
 import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
-import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
+import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -153,7 +154,7 @@ import {
 } from '../../UI/MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlagController/marketInsights';
 import {
-  SocialTradersView,
+  SocialTradersTabsView,
   TraderProfileView,
   TraderPositionView,
   SocialLeaderboardOnboarding,
@@ -338,6 +339,8 @@ const RewardsHome = () => {
   // 'pending' state). Only RewardsHome mounts for non-opted-in users, so fetching at
   // this shared entry point prevents the onboarding tab from loading indefinitely.
   useCandidateSubscriptionId();
+  // Tab time-to-content: tap Rewards → onboarding content or dashboard shell.
+  useRewardsTabPerformance({ isVersionBlocked });
 
   if (isVersionBlocked) {
     return <RewardsUpdateRequired />;
@@ -592,11 +595,7 @@ const HomeTabs = () => {
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
-  const isMoneyAccountGeoEligible = useSelector(
-    selectIsMoneyAccountGeoEligible,
-  );
-  const isMoneyAccountVisible =
-    isMoneyAccountEnabled && isMoneyAccountGeoEligible;
+  const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
 
   const trackMoneyTabPressRef = useRef(null);
 
@@ -1400,7 +1399,7 @@ const MainNavigator = () => {
       {isSocialLeaderboardEnabled && (
         <NativeStack.Screen
           name={Routes.SOCIAL_LEADERBOARD.VIEW}
-          component={SocialTradersView}
+          component={SocialTradersTabsView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
         />
       )}

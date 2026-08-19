@@ -6,16 +6,7 @@
  */
 // eslint-disable-next-line import-x/no-commonjs
 module.exports = {
-  pageObjectsAndFlows: [
-    'tests/flows/accounts.flow.ts',
-    'tests/flows/browser.flow.ts',
-    'tests/flows/general.flow.ts',
-    'tests/flows/native-browser.flow.ts',
-    'tests/flows/perps.flow.ts',
-    'tests/flows/qr-sync.flow.ts',
-    'tests/flows/wallet-home-readiness.ts',
-    'tests/flows/wallet.flow.ts',
-  ],
+  pageObjectsAndFlows: [],
   smokeAppium: [
     'tests/smoke-appium/account-activity/web-socket-connection.spec.ts',
     'tests/smoke-appium/api-specs/helpers/transport.ts',
