@@ -2176,7 +2176,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               size={ButtonSizeRNDesignSystem.Lg}
               isDisabled={
                 !orderValidation.isValid ||
-                orderValidation.isValidating ||
                 isPlacingOrder ||
                 doesStopLossRiskLiquidation ||
                 hasInvalidTPSL ||
@@ -2197,7 +2196,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               onPress={() => handlePlaceOrder()}
               isDisabled={
                 !orderValidation.isValid ||
-                orderValidation.isValidating ||
                 isPlacingOrder ||
                 doesStopLossRiskLiquidation ||
                 hasInvalidTPSL ||

@@ -781,14 +781,17 @@ describe('usePerpsProOrderForm', () => {
     });
 
     it('blocks submit while validation is pending', async () => {
+      // Arrange
       mockValidation.isValidating = true;
       const { result } = renderProForm();
 
+      // Act
       await act(async () => {
         await result.current.onPlaceOrderPress();
       });
 
-      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      // Assert
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(validationError).not.toHaveBeenCalled();
     });

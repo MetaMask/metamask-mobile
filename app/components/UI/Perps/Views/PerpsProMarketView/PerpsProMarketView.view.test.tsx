@@ -1,11 +1,13 @@
 import '../../../../../../tests/component-view/mocks';
 
 import {
+  act,
   cleanup,
   fireEvent,
   screen,
   waitFor,
 } from '@testing-library/react-native';
+import type { PriceUpdate } from '@metamask/perps-controller';
 import { renderPerpsProMarketView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
   describeForPlatforms,
@@ -68,6 +70,24 @@ const renderProMarketWithTriggeredOrdersFlag = (enabled: boolean) =>
 
 const findSizeInput = () =>
   screen.findByTestId(ids.SIZE_INPUT, {}, { timeout: TIMEOUT_MS });
+
+const emitEthPrice = (
+  stream: { emitPrices: (prices: Record<string, PriceUpdate>) => void },
+  price = '2501',
+) => {
+  act(() => {
+    stream.emitPrices({
+      ETH: {
+        symbol: 'ETH',
+        price,
+        markPrice: price,
+        percentChange24h: '2',
+        timestamp: Date.now(),
+        isTradable: true,
+      },
+    });
+  });
+};
 
 describeForPlatforms('PerpsProMarketView input journeys', () => {
   afterEach(() => {
@@ -194,6 +214,50 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent(slider, 'dragEnd', 50);
 
       await waitFor(() => expect(sizeInput).toHaveProp('value', previewValue));
+    },
+  );
+
+  itForPlatforms(
+    'keeps Place Order enabled during validation after a live price update',
+    async () => {
+      const validateOrder = Engine.context.PerpsController
+        .validateOrder as jest.Mock;
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      let resolvePendingValidation:
+        | ((result: { isValid: boolean }) => void)
+        | undefined;
+      const pendingValidation = new Promise<{ isValid: boolean }>((resolve) => {
+        resolvePendingValidation = resolve;
+      });
+      validateOrder.mockClear();
+      validateOrder.mockResolvedValue({ isValid: true });
+      placeOrder.mockClear();
+
+      const { stream } = renderFundedProMarket();
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
+      fireEvent(sizeInput, 'blur');
+
+      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      await waitFor(() => expect(placeOrderButton).toBeEnabled(), {
+        timeout: TIMEOUT_MS,
+      });
+
+      validateOrder.mockReturnValue(pendingValidation);
+      await new Promise<void>((resolve) => setTimeout(resolve, 1100));
+      emitEthPrice(stream);
+
+      fireEvent.press(placeOrderButton);
+
+      expect(placeOrderButton).toBeOnTheScreen();
+      expect(placeOrderButton).toBeEnabled();
+      expect(placeOrder).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolvePendingValidation?.({ isValid: true });
+        await pendingValidation;
+      });
+      validateOrder.mockResolvedValue({ isValid: true });
     },
   );
 

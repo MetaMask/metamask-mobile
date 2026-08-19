@@ -1300,7 +1300,6 @@ export const usePerpsProOrderForm = ({
 
   const isPlaceOrderDisabled =
     !orderValidation.isValid ||
-    orderValidation.isValidating ||
     isAtCap ||
     isPlacing ||
     isLoadingMarketData ||

@@ -2106,30 +2106,32 @@ describe('PerpsOrderView', () => {
       // The button component exists when placing (it shows loading state)
     });
 
-    it('disables button when order validation is validating', async () => {
-      // Mock validating order state
+    it('keeps the button enabled while order validation is pending', async () => {
+      // Arrange
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: true,
         errors: [],
         isValidating: true,
       });
 
-      // Ensure order execution is not placing
+      const mockPlaceOrder = jest.fn();
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
-        placeOrder: jest.fn(),
+        placeOrder: mockPlaceOrder,
         isPlacing: false,
       });
 
+      // Act
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-      // Button should render with test ID
       const placeOrderButton = await screen.findByTestId(
         PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
       );
-      expect(placeOrderButton).toBeDefined();
+      fireEvent.press(placeOrderButton);
 
-      // The button should be disabled when validation is in progress
-      // (Implementation may vary, but the main functionality works if text is found)
+      // Assert
+      expect(placeOrderButton).toBeOnTheScreen();
+      expect(placeOrderButton).toBeEnabled();
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
     });
 
     it('enables button when validation passes and not placing order', async () => {
