@@ -5,18 +5,14 @@
  * component rendering a DS `Icon` picks up a different library, with no
  * per-component wiring.
  *
- * How it works: `Icon.cjs` reads `assetByIconName[name]` at render time, and
+ * How it works: DS `Icon` reads `assetByIconName[name]` at render time, and
  * that map is a plain unfrozen object. Reassigning its entries therefore
- * redirects every icon in the app on the next render.
+ * redirects every icon on the next render.
  *
- * Two notes on the import below:
- * It is a RELATIVE FILE path, not a package specifier, because
- * `assetByIconName` is not in the package's `exports` map and Metro runs with
- * `unstable_enablePackageExports`.
- *
- * It targets `.cjs` deliberately. Metro resolves this package through the
- * `require` condition, so `.cjs` is the instance the real `Icon` uses;
- * importing `.mjs` would mutate a different copy and silently do nothing.
+ * Metro with `unstable_enablePackageExports` may resolve the package through
+ * either the `import` (.mjs) or `require` (.cjs) condition, so both asset
+ * tables are patched. The relative file paths are required because
+ * `assetByIconName` is not in the package's `exports` map.
  *
  * Remove this file with the rest of the icon experiment.
  */
@@ -35,6 +31,10 @@ import type { IconWeight } from 'phosphor-react-native';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-expect-error -- deep relative import into the design system CJS build; see above.
 import { assetByIconName } from '../../../../../node_modules/@metamask/design-system-react-native/dist/components/Icon/Icon.assets.cjs';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error -- deep relative import into the design system ESM build; see above.
+import { assetByIconName as assetByIconNameEsm } from '../../../../../node_modules/@metamask/design-system-react-native/dist/components/Icon/Icon.assets.mjs';
+import { assetByIconName as componentLibraryAssetByIconName } from '../../../../component-library/components/Icons/Icon/Icon.assets';
 
 type IconComponent = React.ComponentType<Record<string, unknown>>;
 
@@ -176,49 +176,229 @@ const PHOSPHOR_BY_DS_NAME: Record<string, IconComponent> = {};
 
 const LUCIDE_REGISTRY = Lucide as unknown as Record<string, IconComponent>;
 
+/**
+ * Named lookups Metro's `import *` table can miss. Keys are Lucide export
+ * names (the alias target), not DS names.
+ */
+const LUCIDE_EXPLICIT: Record<string, IconComponent> = {
+  Bitcoin: LUCIDE_REGISTRY.Bitcoin,
+  ChartCandlestick: LUCIDE_REGISTRY.ChartCandlestick,
+  CircleDollarSign: LUCIDE_REGISTRY.CircleDollarSign,
+  Compass: LUCIDE_REGISTRY.Compass,
+  Flame: LUCIDE_REGISTRY.Flame,
+  Goal: LUCIDE_REGISTRY.Goal,
+  Hexagon: LUCIDE_REGISTRY.Hexagon,
+  House: LUCIDE_REGISTRY.House,
+  Sprout: LUCIDE_REGISTRY.Sprout,
+  Trophy: LUCIDE_REGISTRY.Trophy,
+};
+
 /** DS names whose Lucide equivalent is named differently. */
 const LUCIDE_ALIASES: Record<string, string> = {
   Add: 'Plus',
+  AddCircle: 'CirclePlus',
+  AfterHours: 'Moon',
+  Ai: 'Sparkles',
+  AlternateEmail: 'AtSign',
+  AppleLogo: 'Apple',
+  Apps: 'LayoutGrid',
+  Arrow2Down: 'ArrowDown',
+  Arrow2Left: 'ArrowLeft',
+  Arrow2Right: 'ArrowRight',
+  Arrow2Up: 'ArrowUp',
+  Arrow2UpRight: 'ArrowUpRight',
+  ArrowCircleDown: 'CircleArrowDown',
+  ArrowCircleUp: 'CircleArrowUp',
+  ArrowDoubleLeft: 'ChevronsLeft',
+  ArrowDoubleRight: 'ChevronsRight',
+  ArrowDown: 'ChevronDown',
+  ArrowDropDownCircle: 'CircleChevronDown',
+  ArrowLeft: 'ChevronLeft',
+  ArrowRight: 'ChevronRight',
+  ArrowUp: 'ChevronUp',
+  AttachMoney: 'CircleDollarSign',
+  Attachment: 'Paperclip',
   Bank: 'Landmark',
+  BankAssured: 'Landmark',
+  Book: 'BookOpen',
+  Bridge: 'Waypoints',
+  Bulb: 'Lightbulb',
+  BuySell: 'ArrowLeftRight',
+  Call: 'Phone',
   Campaign: 'Megaphone',
   Candlestick: 'ChartCandlestick',
+  CandlestickFilled: 'ChartCandlestick',
+  Card: 'CreditCard',
+  CardPos: 'CreditCard',
+  Cash: 'Banknote',
   Category: 'LayoutGrid',
-  Clock: 'Clock',
+  Chart: 'ChartColumn',
+  CheckBold: 'CheckCheck',
+  ClockFilled: 'Clock',
   Close: 'X',
-  Code: 'Code',
+  CodeCircle: 'Code',
+  Coin: 'Coins',
+  Collapse: 'Minimize',
   Confirmation: 'CircleCheck',
+  Connect: 'Unplug',
+  CopySuccess: 'CopyCheck',
+  CorporateFare: 'Building2',
+  Customize: 'SlidersHorizontal',
   Danger: 'CircleAlert',
+  Dark: 'Moon',
+  DarkFilled: 'Moon',
+  Data: 'ChartColumn',
+  Description: 'FileText',
+  Details: 'List',
+  Diagram: 'ChartLine',
+  DocumentCode: 'FileCode',
+  Draft: 'FileText',
+  EcoLeaf: 'Leaf',
   Edit: 'Pencil',
+  EditSquare: 'SquarePen',
+  Error: 'CircleAlert',
+  Ethereum: 'Hexagon',
+  Exchange: 'CircleDollarSign',
+  ExpandVertical: 'ChevronsUpDown',
+  Explore: 'Compass',
+  ExploreFilled: 'Compass',
   Export: 'Upload',
+  EyeSlash: 'EyeOff',
+  FaceId: 'ScanFace',
+  Feedback: 'MessageSquare',
+  Filter: 'ListFilter',
+  Fire: 'Flame',
+  FirstPage: 'ChevronsLeft',
   Flash: 'Zap',
+  FlashFilled: 'Zap',
+  FlashSlash: 'ZapOff',
+  Forest: 'Trees',
+  FullCircle: 'Circle',
+  Gas: 'Fuel',
   Global: 'Globe',
+  GlobalSearch: 'Globe',
+  Graph: 'ChartLine',
+  Hardware: 'Cpu',
+  HashTag: 'Hash',
+  HeartFilled: 'Heart',
+  Hierarchy: 'GitBranch',
   Home: 'House',
-  Info: 'Info',
-  Link: 'Link',
-  Lock: 'Lock',
+  HomeFilled: 'House',
+  Inventory: 'Package',
+  Keep: 'Pin',
+  KeepFilled: 'Pin',
+  LastPage: 'ChevronsRight',
+  Light: 'Sun',
+  LightFilled: 'Sun',
+  ListArrow: 'List',
+  Loading: 'LoaderCircle',
+  Location: 'MapPin',
   LockSlash: 'LockOpen',
+  LockedFilled: 'Lock',
+  Login: 'LogIn',
+  Logout: 'LogOut',
   Menu: 'Menu',
+  Merge: 'GitMerge',
+  MessageQuestion: 'MessageCircle',
+  Messages: 'MessagesSquare',
+  MinusBold: 'Minus',
+  Mobile: 'Smartphone',
+  MoneyBag: 'Banknote',
   MoreHorizontal: 'Ellipsis',
   MoreVertical: 'EllipsisVertical',
+  MountainFlag: 'Flag',
+  Musd: 'CircleDollarSign',
+  MusdFilled: 'CircleDollarSign',
+  MusicNote: 'Music',
+  NoPhotography: 'CameraOff',
   Notification: 'Bell',
+  PageInfo: 'Info',
+  PasswordCheck: 'KeyRound',
+  Pending: 'LoaderCircle',
+  People: 'Users',
+  PersonCancel: 'UserX',
+  PieChart: 'ChartPie',
+  Plant: 'Sprout',
+  PlusAndMinus: 'Plus',
+  PolicyAlert: 'ShieldAlert',
+  PopUp: 'AppWindow',
+  Predictions: 'ChartColumn',
+  Print: 'Printer',
+  PriorityHigh: 'TriangleAlert',
+  PrivacyTip: 'Shield',
+  ProgrammingArrows: 'GitCompare',
+  Publish: 'Upload',
+  Question: 'MessageCircle',
+  Receive: 'ArrowDownLeft',
+  Received: 'ArrowDownLeft',
   Refresh: 'RefreshCw',
+  RemoveMinus: 'Minus',
+  Report: 'Flag',
+  SaveFilled: 'Save',
+  Saving: 'PiggyBank',
+  ScanFocus: 'ScanEye',
   Search: 'Search',
   Security: 'ShieldCheck',
+  SecurityAlert: 'ShieldAlert',
+  SecurityCross: 'ShieldOff',
+  SecurityKey: 'KeyRound',
+  SecuritySearch: 'Shield',
+  SecuritySlash: 'ShieldOff',
+  SecurityTick: 'ShieldCheck',
+  SecurityTime: 'Shield',
+  SecurityUser: 'Shield',
   Send: 'Send',
   Setting: 'Settings',
-  SettingFilled: 'Settings2',
+  SettingFilled: 'Settings',
   Share: 'Share2',
+  SidePanel: 'PanelLeft',
+  SignalCellular: 'Signal',
+  Sms: 'MessageCircle',
+  Sort: 'ArrowUpDown',
+  SortByAlpha: 'ArrowDownAZ',
+  Speed: 'Gauge',
   Speedometer: 'Gauge',
+  Stake: 'Sprout',
   Star: 'Star',
   StarFilled: 'Star',
+  Start: 'Play',
+  Storefront: 'Store',
+  Student: 'GraduationCap',
   SwapHorizontal: 'ArrowLeftRight',
   SwapVertical: 'ArrowUpDown',
+  TabClose: 'X',
+  TableRow: 'Rows3',
   Tag: 'Tag',
+  Telegram: 'Send',
+  ThumbDown: 'ThumbsDown',
+  ThumbDownFilled: 'ThumbsDown',
+  ThumbUp: 'ThumbsUp',
+  ThumbUpFilled: 'ThumbsUp',
+  Tint: 'Droplet',
+  Tooltip: 'MessageSquare',
+  Translate: 'Languages',
   Trash: 'Trash2',
+  TrendDown: 'TrendingDown',
+  TrendUp: 'TrendingUp',
+  Unfold: 'ChevronsUpDown',
+  UnlockedFilled: 'LockOpen',
+  Unpin: 'PinOff',
+  UploadFile: 'FileUp',
   User: 'User',
+  UserCircle: 'CircleUser',
+  UserCircleAdd: 'UserPlus',
+  UserCircleRemove: 'UserMinus',
+  Verified: 'BadgeCheck',
+  VerifiedFilled: 'BadgeCheck',
+  Videocam: 'Video',
+  ViewColumn: 'Columns3',
+  ViewInAr: 'Box',
+  VolumeUp: 'Volume2',
   Wallet: 'Wallet',
-  WalletFilled: 'WalletCards',
+  WalletFilled: 'Wallet',
   Warning: 'TriangleAlert',
+  WebTraffic: 'Activity',
+  Widgets: 'LayoutDashboard',
 };
 
 /** DS names that resolve to a Lucide export of the same name. */
@@ -305,9 +485,14 @@ const LUCIDE_DIRECT: readonly string[] = [
   'X',
 ];
 
+const resolveLucide = (dsName: string): IconComponent | undefined => {
+  const base = LUCIDE_ALIASES[dsName] ?? dsName;
+  return LUCIDE_EXPLICIT[base] ?? LUCIDE_REGISTRY[base];
+};
+
 const LUCIDE_BY_DS_NAME: Record<string, IconComponent> = {};
 [...LUCIDE_DIRECT, ...Object.keys(LUCIDE_ALIASES)].forEach((dsName) => {
-  const resolved = LUCIDE_REGISTRY[LUCIDE_ALIASES[dsName] ?? dsName];
+  const resolved = resolveLucide(dsName);
   if (resolved) {
     LUCIDE_BY_DS_NAME[dsName] = resolved;
   }
@@ -316,10 +501,22 @@ const LUCIDE_BY_DS_NAME: Record<string, IconComponent> = {};
 /** Lucide's only variable axis is stroke width; it has no fill/solid variants. */
 export const LUCIDE_STROKE_WIDTHS: readonly number[] = [1, 1.5, 2, 2.5, 3];
 
+/** Homepage / trade-sheet Lucide stroke used by retain/release. */
+export const HOMEPAGE_LUCIDE_STROKE_WIDTH = 1.5;
+
 const ASSET_MAP = assetByIconName as Record<string, IconComponent>;
+const ESM_ASSET_MAP = assetByIconNameEsm as Record<string, IconComponent>;
+const CL_ASSET_MAP = componentLibraryAssetByIconName as unknown as Record<
+  string,
+  IconComponent
+>;
 
 /** Pristine copy, captured once at module load, for restoring. */
 const ORIGINAL_ASSETS: Record<string, IconComponent> = { ...ASSET_MAP };
+const ORIGINAL_ESM_ASSETS: Record<string, IconComponent> = {
+  ...ESM_ASSET_MAP,
+};
+const ORIGINAL_CL_ASSETS: Record<string, IconComponent> = { ...CL_ASSET_MAP };
 
 export const ALL_DS_ICON_NAMES: readonly string[] =
   Object.keys(ORIGINAL_ASSETS);
@@ -399,20 +596,38 @@ const adaptPhosphor = (
  * `Icon` passes `fill="currentColor"`, and Lucide spreads unknown props over its
  * own defaults *and* onto every child element — so that fill would flood each
  * glyph solid. `fill` is therefore discarded here and forced back to "none".
+ *
+ * Do not paint a fill on *Filled names either. Lucide has no fill weight, and
+ * React Native SVG leaves a halo between fill and stroke on the same path.
  */
 const adaptLucide = (
   LucideIcon: IconComponent,
   strokeWidth: number,
   absoluteStrokeWidth: boolean,
 ): IconComponent => {
-  const Adapted = ({ style, fill: _discardedFill, ...rest }: AdaptedProps) => {
+  const Adapted = ({
+    style,
+    fill: _discardedFill,
+    width,
+    height: _height,
+    color,
+    ...rest
+  }: AdaptedProps) => {
     const flat = StyleSheet.flatten(style) as FlatIconStyle | undefined;
+    const size =
+      (typeof flat?.width === 'number' ? flat.width : undefined) ??
+      (typeof width === 'number' ? width : undefined) ??
+      24;
+    const resolvedColor =
+      (typeof flat?.color === 'string' ? flat.color : undefined) ??
+      (typeof color === 'string' ? color : undefined) ??
+      'currentColor';
     return (
       <LucideIcon
         {...rest}
         style={style}
-        size={flat?.width ?? 24}
-        color={flat?.color ?? 'currentColor'}
+        size={size}
+        color={resolvedColor}
         strokeWidth={strokeWidth}
         absoluteStrokeWidth={absoluteStrokeWidth}
         fill="none"
@@ -437,6 +652,41 @@ export interface LucideOptions {
   absoluteStrokeWidth: boolean;
 }
 
+const applySetToMap = (
+  map: Record<string, IconComponent>,
+  originals: Record<string, IconComponent>,
+  set: IconSetName,
+  weight: IconWeight,
+  materialSet: Record<string, IconComponent | undefined>,
+  lucide: LucideOptions,
+): void => {
+  Object.keys(originals).forEach((name) => {
+    // Guard: an unmapped or missing entry must never reach React as
+    // `undefined`, which renders as "Element type is invalid".
+    if (!originals[name]) {
+      return;
+    }
+    if (set === 'material') {
+      const svg = materialSet[name];
+      map[name] = svg ? adaptMaterial(svg) : originals[name];
+      return;
+    }
+    if (set === 'phosphor') {
+      const icon = PHOSPHOR_BY_DS_NAME[name];
+      map[name] = icon ? adaptPhosphor(icon, weight) : originals[name];
+      return;
+    }
+    if (set === 'lucide') {
+      const icon = LUCIDE_BY_DS_NAME[name];
+      map[name] = icon
+        ? adaptLucide(icon, lucide.strokeWidth, lucide.absoluteStrokeWidth)
+        : originals[name];
+      return;
+    }
+    map[name] = originals[name];
+  });
+};
+
 export const applyIconSet = (
   set: IconSetName,
   weight: IconWeight,
@@ -446,38 +696,52 @@ export const applyIconSet = (
   const materialSet =
     MATERIAL_VARIANTS[materialVariantKey(material.style, material.filled)] ??
     MATERIAL_VARIANTS.outlined;
-  ALL_DS_ICON_NAMES.forEach((name) => {
-    // Guard: an unmapped or missing entry must never reach React as
-    // `undefined`, which renders as "Element type is invalid".
-    if (!ORIGINAL_ASSETS[name]) {
-      return;
-    }
-    if (set === 'material') {
-      const svg = materialSet[name];
-      ASSET_MAP[name] = svg ? adaptMaterial(svg) : ORIGINAL_ASSETS[name];
-      return;
-    }
-    if (set === 'phosphor') {
-      const icon = PHOSPHOR_BY_DS_NAME[name];
-      ASSET_MAP[name] = icon
-        ? adaptPhosphor(icon, weight)
-        : ORIGINAL_ASSETS[name];
-      return;
-    }
-    if (set === 'lucide') {
-      const icon = LUCIDE_BY_DS_NAME[name];
-      ASSET_MAP[name] = icon
-        ? adaptLucide(icon, lucide.strokeWidth, lucide.absoluteStrokeWidth)
-        : ORIGINAL_ASSETS[name];
-      return;
-    }
-    ASSET_MAP[name] = ORIGINAL_ASSETS[name];
-  });
+  applySetToMap(ASSET_MAP, ORIGINAL_ASSETS, set, weight, materialSet, lucide);
+  applySetToMap(
+    ESM_ASSET_MAP,
+    ORIGINAL_ESM_ASSETS,
+    set,
+    weight,
+    materialSet,
+    lucide,
+  );
+  applySetToMap(
+    CL_ASSET_MAP,
+    ORIGINAL_CL_ASSETS,
+    set,
+    weight,
+    materialSet,
+    lucide,
+  );
 };
 
 /** Restore the design system's own icons app-wide. */
 export const restoreIconSet = (): void => {
   applyIconSet('design-system', 'regular');
+};
+
+const HOMEPAGE_LUCIDE_OPTIONS: LucideOptions = {
+  strokeWidth: HOMEPAGE_LUCIDE_STROKE_WIDTH,
+  absoluteStrokeWidth: false,
+};
+
+/**
+ * Homepage, trade sheet, and Perps home can all be "focused" in overlapping
+ * windows. Restore only when the last host releases so opening TradeWalletActions
+ * does not flash design-system glyphs.
+ */
+let lucideRetainCount = 0;
+
+export const retainLucide = (): void => {
+  lucideRetainCount += 1;
+  applyIconSet('lucide', 'regular', undefined, HOMEPAGE_LUCIDE_OPTIONS);
+};
+
+export const releaseLucide = (): void => {
+  lucideRetainCount = Math.max(0, lucideRetainCount - 1);
+  if (lucideRetainCount === 0) {
+    restoreIconSet();
+  }
 };
 
 export type { MaterialStyle };

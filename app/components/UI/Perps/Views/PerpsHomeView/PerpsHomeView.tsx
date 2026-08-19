@@ -128,6 +128,7 @@ import PerpsMoreSection, {
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsProducts from '../../components/PerpsProducts';
+import { useHomepageLucideIcons } from '../../../../Views/Homepage/hooks/useHomepageLucideIcons';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 import PerpsRecentlyAddedSection from '../../components/PerpsRecentlyAddedSection';
 import {
@@ -136,6 +137,7 @@ import {
 } from '../../hooks/usePerpsTopMovers';
 
 const PerpsHomeView = () => {
+  useHomepageLucideIcons();
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<AppNavigationProp>();

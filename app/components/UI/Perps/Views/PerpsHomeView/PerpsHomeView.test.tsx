@@ -53,6 +53,10 @@ let mockRouteParams: Record<string, unknown> = {
   source: 'main_action_button',
 };
 
+jest.mock('../../../../Views/Homepage/hooks/useHomepageLucideIcons', () => ({
+  useHomepageLucideIcons: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,

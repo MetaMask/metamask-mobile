@@ -62,6 +62,7 @@ import PerpsProMarketLayout from './components/PerpsProMarketLayout';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
+import { useHomepageLucideIcons } from '../../../../Views/Homepage/hooks/useHomepageLucideIcons';
 import { createStyles } from './PerpsProMarketView.styles';
 
 interface PerpsProOrderBookColumnProps {
@@ -120,6 +121,7 @@ const PerpsProOrderBookColumn = ({
  * (same dual-stream approach as Extension).
  */
 const PerpsProMarketView = () => {
+  useHomepageLucideIcons();
   const { styles } = useStyles(createStyles, {});
   const navigation =
     useNavigation<NavigationProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
