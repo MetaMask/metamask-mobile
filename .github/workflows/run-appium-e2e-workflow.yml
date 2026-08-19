@@ -426,8 +426,18 @@ jobs:
           list-suites: all
           list-tests: failed
 
-      - name: Upload fixture validation reports
-        if: ${{ always() && inputs.test_suite_tag == 'FixtureValidation' }}
+      - name: Upload fixture validation reports (Namespace)
+        if: ${{ always() && inputs.test_suite_tag == 'FixtureValidation' && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: fixture-validation-results-${{ inputs.test-suite-name }}
+          path: |
+            tests/reports/fixture-validation-result.json
+            tests/reports/fixture-validation-diff.txt
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload fixture validation reports (current)
+        if: ${{ always() && inputs.test_suite_tag == 'FixtureValidation' && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: fixture-validation-results-${{ inputs.test-suite-name }}
