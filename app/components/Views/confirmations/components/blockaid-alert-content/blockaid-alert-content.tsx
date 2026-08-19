@@ -20,10 +20,8 @@ import Accordion, {
   AccordionHeaderHorizontalAlignment,
 } from '../../../../../component-library/components/Accordions/Accordion';
 import { useStyles } from '../../../../../component-library/hooks';
-import {
-  FALSE_POSITIVE_REPOST_LINE_TEST_ID,
-  REASON_DESCRIPTION_I18N_KEY_MAP,
-} from '../../components/blockaid-banner/BlockaidBanner.constants';
+import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../../components/blockaid-banner/BlockaidBanner.constants';
+import { getBlockaidBannerDescription } from '../../components/blockaid-banner/BlockaidBanner.utils';
 import {
   Reason,
   SecurityAlertResponse,
@@ -34,6 +32,7 @@ import { BlockaidAlertContentTestIds } from './blockaid-alert-content.testIds';
 interface BlockaidAlertContentProps {
   alertDetails?: string[];
   securityAlertResponse: SecurityAlertResponse;
+  sendingFiatTotal?: string | null;
   onContactUsClicked: () => void;
 }
 
@@ -45,6 +44,7 @@ const getReportUrl = (encodedData: string) =>
 const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
   alertDetails,
   securityAlertResponse,
+  sendingFiatTotal = null,
   onContactUsClicked,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -95,10 +95,9 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
   return (
     <>
       <Text variant={TextVariant.BodySm}>
-        {strings(
-          REASON_DESCRIPTION_I18N_KEY_MAP[
-            securityAlertResponse.reason as Reason
-          ] ?? 'blockaid_banner.other_description',
+        {getBlockaidBannerDescription(
+          securityAlertResponse.reason as Reason,
+          sendingFiatTotal,
         )}
       </Text>
       <Accordion

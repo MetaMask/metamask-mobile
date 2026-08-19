@@ -89,9 +89,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Bold}
           >
-            {onlyBlockaidAlert
-              ? strings('alert_system.confirm_modal.title_blockaid')
-              : strings('alert_system.confirm_modal.title')}
+            {strings('alert_system.confirm_modal.title')}
           </Text>
         </View>
         <Text style={styles.message}>
