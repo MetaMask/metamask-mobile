@@ -786,6 +786,16 @@ describe('PredictCryptoUpDownMarketCard', () => {
       ).toBeOnTheScreen();
     });
 
+    it('uses 12px inset and Md button radius on live-now cards', () => {
+      const { toJSON } = renderCard(createMarket(), { isCarousel: true });
+
+      const tree = JSON.stringify(toJSON());
+
+      expect(tree).toContain('"paddingLeft":12');
+      expect(tree).toContain('"paddingRight":12');
+      expect(tree).toContain('"borderRadius":12');
+    });
+
     it('still opens the buy sheet for the Up and Down outcomes in the carousel', () => {
       const liveMarket = createMarket();
       mockUsePredictSeries.mockReturnValue({
