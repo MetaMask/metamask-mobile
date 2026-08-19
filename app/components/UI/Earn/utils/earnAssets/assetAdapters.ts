@@ -14,7 +14,12 @@ import type {
   HeldEarnAsset,
 } from '../../types/earnAssets';
 
-// TODO: Add jsdoc for functions in this file.
+/**
+ * Gets canonical CAIP-19 asset ID for an AssetsController asset.
+ *
+ * @param asset - AssetsController asset to identify.
+ * @returns Canonical asset ID, or undefined when asset chain/address data is unsupported.
+ */
 export const getAssetEarnId = (asset: Asset): EarnAssetId | undefined => {
   if (isCaipAssetType(asset.assetId)) {
     return asset.assetId.toLowerCase() as EarnAssetId;
@@ -41,6 +46,14 @@ export const getAssetEarnId = (asset: Asset): EarnAssetId | undefined => {
   ).toLowerCase() as EarnAssetId;
 };
 
+/**
+ * Creates an Earn asset representing an asset held in the wallet.
+ *
+ * @param asset - AssetsController asset held in the wallet.
+ * @param assetId - Canonical CAIP-19 asset ID.
+ * @param experiences - Earn experiences available for the asset.
+ * @returns Held Earn asset.
+ */
 export const createHeldEarnAsset = (
   asset: Asset,
   assetId: EarnAssetId,
@@ -52,6 +65,14 @@ export const createHeldEarnAsset = (
   experiences,
 });
 
+/**
+ * Creates an Earn asset for an asset available for discovery but not held.
+ *
+ * @param assetId - Canonical CAIP-19 asset ID.
+ * @param metadata - Asset metadata needed to display and use the asset.
+ * @param experiences - Earn experiences available for the asset.
+ * @returns Discovery Earn asset.
+ */
 export const createDiscoveryEarnAsset = (
   assetId: CaipAssetType,
   metadata: EarnAssetMetadata,
@@ -63,6 +84,12 @@ export const createDiscoveryEarnAsset = (
   experiences,
 });
 
+/**
+ * Gets display metadata from a held or discovery Earn asset.
+ *
+ * @param earnAsset - Earn asset whose metadata should be returned.
+ * @returns Normalized metadata for the Earn asset.
+ */
 export const getEarnAssetMetadata = (
   earnAsset: EarnAsset,
 ): EarnAssetMetadata => {
@@ -95,6 +122,15 @@ export const getEarnAssetMetadata = (
   };
 };
 
+/**
+ * Converts an Earn asset into the token shape used by Earn screens.
+ *
+ * Held assets retain their wallet balance and fiat value. Discovery assets
+ * receive a zero balance because they are not currently held.
+ *
+ * @param earnAsset - Earn asset to convert.
+ * @returns Token representation of the Earn asset.
+ */
 export const earnAssetToToken = (earnAsset: EarnAsset): TokenI => {
   const metadata = getEarnAssetMetadata(earnAsset);
   const asset = earnAsset.kind === 'held' ? earnAsset.asset : undefined;
