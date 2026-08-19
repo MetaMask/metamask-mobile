@@ -37,13 +37,13 @@ function makeTrend(count: number, prices?: number[]): [number, string][] {
   ]);
 }
 
-function makeCandles(count: number): CandleData['candles'] {
+function makeCandles(count: number, startPrice = 100): CandleData['candles'] {
   return Array.from({ length: count }, (_, i) => ({
     time: 1700000000000 + i * 900_000,
     open: '100',
     high: '110',
     low: '90',
-    close: String(100 + i),
+    close: String(startPrice + i),
     volume: '50',
   }));
 }
@@ -130,6 +130,48 @@ describe('useHomepageSparklines', () => {
     expect(mockSubscribe).toHaveBeenCalledWith(
       expect.objectContaining({ symbol: 'ETH' }),
     );
+  });
+
+  it('replaces fallback data after the candle cache is cleared', async () => {
+    let callback: ((candleData: CandleData) => void) | undefined;
+    mockSubscribe.mockImplementation(
+      (params: { callback: (candleData: CandleData) => void }) => {
+        callback = params.callback;
+        return jest.fn();
+      },
+    );
+
+    const { result } = renderHook(() =>
+      useHomepageSparklines([makeMarket('BTC')]),
+    );
+
+    await act(async () => {
+      callback?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.FifteenMinutes,
+        candles: makeCandles(10),
+      });
+    });
+    expect(result.current.sparklines.BTC?.[0]).toBe(100);
+
+    await act(async () => {
+      callback?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.FifteenMinutes,
+        candles: [],
+      });
+    });
+    expect(result.current.sparklines.BTC).toBeUndefined();
+
+    await act(async () => {
+      callback?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.FifteenMinutes,
+        candles: makeCandles(10, 200),
+      });
+    });
+    expect(result.current.sparklines.BTC?.[0]).toBe(200);
+    expect(mockSubscribe).toHaveBeenCalledTimes(1);
   });
 
   it('filters out unparseable trend price entries', () => {
