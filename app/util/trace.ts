@@ -969,7 +969,10 @@ function harvestBufferedOnboardingMachineTime(): Map<string, number> {
 
     const request = bufferedItem.request as EndTraceRequest;
     const { timestamp, data } = request;
-    if (!MACHINE_TIME_TRACE_NAMES.has(request.name) || data?.success === false) {
+    if (
+      !MACHINE_TIME_TRACE_NAMES.has(request.name) ||
+      data?.success === false
+    ) {
       continue;
     }
 
