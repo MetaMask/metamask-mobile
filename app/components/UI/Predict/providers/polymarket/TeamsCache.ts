@@ -155,8 +155,7 @@ export class TeamsCache {
 
     const loadPromise = this.fetchAndCacheMultiLeagueFromUrl(
       url,
-      leagues,
-      abbreviations,
+      uncachedByLeague,
     ).then(() => undefined as void);
     this.teamBatchLoadingPromises.set(key, loadPromise);
 
@@ -219,6 +218,39 @@ export class TeamsCache {
   }
 
   /**
+   * Map a Gamma team onto the Predict league caches that requested it.
+   * Prefer `team.league` (including API aliases like csgo → cs2). If Gamma
+   * omits league, fall back to the league that asked for this abbreviation.
+   */
+  private resolveLeaguesForTeam(
+    team: PolymarketApiTeam,
+    uncachedByLeague: Map<PredictSportsLeague, string[]>,
+  ): PredictSportsLeague[] {
+    if (!team.abbreviation) {
+      return [];
+    }
+
+    const requestedLeagues = [...uncachedByLeague.keys()];
+
+    if (team.league) {
+      const mappedLeague = getPredictSportsLeagueFromTeamApi(team.league);
+      if (mappedLeague && uncachedByLeague.has(mappedLeague)) {
+        return [mappedLeague];
+      }
+
+      const apiLeague = team.league.toLowerCase();
+      return requestedLeagues.filter(
+        (league) => getPolymarketTeamLeague(league).toLowerCase() === apiLeague,
+      );
+    }
+
+    const abbreviation = team.abbreviation.toLowerCase();
+    return requestedLeagues.filter((league) =>
+      uncachedByLeague.get(league)?.includes(abbreviation),
+    );
+  }
+
+  /**
    * Shared fetch+cache logic for both full-league and specific-team loading.
    *
    * @param league - The league to cache teams under
@@ -261,9 +293,10 @@ export class TeamsCache {
 
   private async fetchAndCacheMultiLeagueFromUrl(
     url: string,
-    leagues: PredictSportsLeague[],
-    abbreviations: string[],
+    uncachedByLeague: Map<PredictSportsLeague, string[]>,
   ): Promise<boolean> {
+    const leagues = [...uncachedByLeague.keys()];
+    const abbreviations = [...uncachedByLeague.values()].flat();
     const teams = await this.fetchTeamsFromUrl(
       url,
       'TeamsCache.ensureTeamsLoadedBatch',
@@ -274,20 +307,11 @@ export class TeamsCache {
       return false;
     }
 
-    const requestedLeagues = new Set(leagues);
-    const fallbackLeague = leagues.length === 1 ? leagues[0] : undefined;
-
     for (const team of teams) {
-      const mappedLeague = getPredictSportsLeagueFromTeamApi(team.league);
-      const league =
-        mappedLeague && requestedLeagues.has(mappedLeague)
-          ? mappedLeague
-          : fallbackLeague;
-      if (!league) {
-        continue;
+      const targetLeagues = this.resolveLeaguesForTeam(team, uncachedByLeague);
+      for (const league of targetLeagues) {
+        this.cacheTeam(league, team);
       }
-
-      this.cacheTeam(league, team);
     }
 
     DevLogger.log(
