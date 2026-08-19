@@ -18,8 +18,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-export const GLOW_TOTAL_MS = 590;
-const GLOW_SWEEP_MS = 540;
+export const GLOW_TOTAL_MS = 680;
+const GLOW_SWEEP_MS = 630;
 const GLOW_FADE_MS = 120;
 const GLOW_HOLD_MS = GLOW_TOTAL_MS - GLOW_FADE_MS * 2;
 const BORDER_WIDTH = 1.5;
