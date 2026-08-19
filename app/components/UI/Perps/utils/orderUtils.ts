@@ -103,7 +103,7 @@ export const isLimitPriceUnfavorable = (
   }
 
   const parsed = Number.parseFloat(
-    limitPrice.replaceAll(',', '').replace('$', ''),
+    limitPrice.replaceAll(',', '').replaceAll('$', ''),
   );
   if (!Number.isFinite(parsed) || parsed <= 0) {
     return false;
