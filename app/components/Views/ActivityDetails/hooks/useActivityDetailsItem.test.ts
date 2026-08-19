@@ -142,9 +142,8 @@ describe('useActivityDetailsItem', () => {
       expect.any(Function),
       expect.any(Function),
     );
-    const getSubjectAddress = mapNonEvmTransactionsMock.mock.calls[0][2] as (
-      tx: { account: string },
-    ) => string | undefined;
+    const getSubjectAddress = mapNonEvmTransactionsMock.mock
+      .calls[0][2] as (tx: { account: string }) => string | undefined;
     expect(getSubjectAddress(transaction)).toBe(subjectAddress);
   });
 
