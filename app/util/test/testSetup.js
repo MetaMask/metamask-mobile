@@ -83,9 +83,11 @@ jest.mock('expo/fetch', () => {
 });
 
 let mockQuickCryptoUuidCounter = 0;
+let mockQuickCryptoRandomCounter = 0;
 const fillDeterministicBytes = (array) => {
+  mockQuickCryptoRandomCounter += 1;
   for (let i = 0; i < array.length; i++) {
-    array[i] = (i % 255) + 1;
+    array[i] = ((i + mockQuickCryptoRandomCounter) % 255) + 1;
   }
   return array;
 };
