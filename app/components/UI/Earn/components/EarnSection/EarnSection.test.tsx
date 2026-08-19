@@ -415,17 +415,6 @@ describe('EarnSection', () => {
     expect(getSuccessArrowIcons()).toHaveLength(0);
   });
 
-  it('navigates with the selected CAIP-19 asset ID', () => {
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
-
-    fireEvent.press(screen.getByTestId('earn-section-asset-0-card'));
-
-    expect(navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-      screen: Routes.EARN.STRATEGY_SELECTION,
-      params: { assetId },
-    });
-  });
-
   it('navigates zero-balance assets to Asset Overview', () => {
     mockSectionResult({ assetSlots: [zeroBalanceAssetSlot] });
 

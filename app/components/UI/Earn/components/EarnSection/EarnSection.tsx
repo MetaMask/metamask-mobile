@@ -35,7 +35,6 @@ import type { TokenI } from '../../../Tokens/types';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import EarnSectionAssetCard from '../EarnSectionAssetCard';
 import EarnSectionCard from '../EarnSectionCard';
-import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { homepageSectionTitleTestId } from '../../../../Views/Homepage/Homepage.testIds';
 import useHomeViewedEvent, {
@@ -196,11 +195,6 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           });
           return;
         }
-
-        navigation.navigate(Routes.EARN.ROOT, {
-          screen: Routes.EARN.STRATEGY_SELECTION,
-          params: { assetId: asset.assetId },
-        });
       },
       [navigation],
     );
