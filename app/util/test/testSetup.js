@@ -82,21 +82,26 @@ jest.mock('expo/fetch', () => {
   };
 });
 
+let mockQuickCryptoUuidCounter = 0;
+const fillDeterministicBytes = (array) => {
+  for (let i = 0; i < array.length; i++) {
+    array[i] = (i % 255) + 1;
+  }
+  return array;
+};
+const createMockUuid = () => {
+  mockQuickCryptoUuidCounter += 1;
+  return `mock-uuid-${String(mockQuickCryptoUuidCounter).padStart(9, '0')}`;
+};
+
 jest.mock('react-native-quick-crypto', () => ({
   __esModule: true,
   default: {
     randomBytes: jest.fn((size) =>
       Buffer.from(Array.from({ length: size }, (_, i) => (i % 255) + 1)),
     ),
-    randomUUID: jest.fn(
-      () => 'mock-uuid-' + Math.random().toString(36).slice(2, 11),
-    ),
-    getRandomValues: jest.fn((array) => {
-      for (let i = 0; i < array.length; i++) {
-        array[i] = Math.floor(Math.random() * 256);
-      }
-      return array;
-    }),
+    randomUUID: jest.fn(() => createMockUuid()),
+    getRandomValues: jest.fn((array) => fillDeterministicBytes(array)),
     subtle: {
       importKey: jest.fn(
         (format, keyData, algorithm, extractable, keyUsages) => {
@@ -111,10 +116,7 @@ jest.mock('react-native-quick-crypto', () => ({
       ),
       deriveBits: jest.fn((algorithm, baseKey, length) => {
         const derivedBits = new Uint8Array(length);
-        for (let i = 0; i < length; i++) {
-          derivedBits[i] = Math.floor(Math.random() * 256);
-        }
-        return Promise.resolve(derivedBits);
+        return Promise.resolve(fillDeterministicBytes(derivedBits));
       }),
       exportKey: jest.fn((format, key) => {
         return Promise.resolve(new Uint8Array([1, 2, 3, 4]));
@@ -135,12 +137,7 @@ jest.mock('react-native-quick-crypto', () => ({
       }),
     },
   },
-  getRandomValues: jest.fn((array) => {
-    for (let i = 0; i < array.length; i++) {
-      array[i] = Math.floor(Math.random() * 256);
-    }
-    return array;
-  }),
+  getRandomValues: jest.fn((array) => fillDeterministicBytes(array)),
   subtle: {
     importKey: jest.fn((format, keyData, algorithm, extractable, keyUsages) => {
       return Promise.resolve({
@@ -153,10 +150,7 @@ jest.mock('react-native-quick-crypto', () => ({
     }),
     deriveBits: jest.fn((algorithm, baseKey, length) => {
       const derivedBits = new Uint8Array(length);
-      for (let i = 0; i < length; i++) {
-        derivedBits[i] = Math.floor(Math.random() * 256);
-      }
-      return Promise.resolve(derivedBits);
+      return Promise.resolve(fillDeterministicBytes(derivedBits));
     }),
     exportKey: jest.fn((format, key) => {
       return Promise.resolve(new Uint8Array([1, 2, 3, 4]));
@@ -176,9 +170,7 @@ jest.mock('react-native-quick-crypto', () => ({
       );
     }),
   },
-  randomUUID: jest.fn(
-    () => 'mock-uuid-' + Math.random().toString(36).slice(2, 11),
-  ),
+  randomUUID: jest.fn(() => createMockUuid()),
 }));
 
 // Create a persistent mock function that survives Jest teardown
