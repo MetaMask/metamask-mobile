@@ -47,7 +47,9 @@ const parseRatePercent = (value: string | number | null | undefined) => {
   if (value === null || value === undefined || String(value).trim() === '') {
     return undefined;
   }
-  const parsed = Number(value);
+  const parsed = Number(
+    typeof value === 'string' ? value.trim().replace(/%$/, '') : value,
+  );
   return Number.isFinite(parsed) ? parsed : undefined;
 };
 

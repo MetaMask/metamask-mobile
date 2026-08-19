@@ -233,7 +233,7 @@ const mockSelectorValues = ({
         isTrxStakingEnabled,
       };
     }
-    return { apyPercentString: '3.1' };
+    return { apyPercentString: '3.1%' };
   });
 };
 
@@ -473,6 +473,11 @@ describe('useEarnAssetCatalogue', () => {
         id: `pooled:${ETH_ASSET_ID}`,
         role: 'underlying',
         type: EARN_EXPERIENCES.POOLED_STAKING,
+        rate: {
+          type: 'APR',
+          percentage: 3.1,
+          status: 'ready',
+        },
       }),
     ]);
   });
