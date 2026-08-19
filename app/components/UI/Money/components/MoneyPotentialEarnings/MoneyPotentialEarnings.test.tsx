@@ -1,5 +1,6 @@
 import React from 'react';
 import { BigNumber } from 'bignumber.js';
+import { Platform } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import MoneyPotentialEarnings from './MoneyPotentialEarnings';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
@@ -370,6 +371,34 @@ describe('MoneyPotentialEarnings', () => {
       getByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON),
     ).toBeOnTheScreen();
   });
+
+  it.each([
+    ['android', [{ translateY: 2 }]],
+    ['ios', undefined],
+  ] as const)(
+    'sets the info icon vertical offset on %s',
+    (platform, expectedTransform) => {
+      const originalOS = Platform.OS;
+      Platform.OS = platform;
+
+      try {
+        const { getByTestId } = render(
+          <MoneyPotentialEarnings
+            apyDecimal={0.04}
+            tokens={[MOCK_USDC]}
+            onInfoPress={jest.fn()}
+          />,
+        );
+
+        expect(
+          getByTestId(MoneyPotentialEarningsTestIds.INFO_BUTTON).props.style
+            .transform,
+        ).toEqual(expectedTransform);
+      } finally {
+        Platform.OS = originalOS;
+      }
+    },
+  );
 
   it('does not render the info button when onInfoPress is omitted', () => {
     const { queryByTestId } = render(

@@ -17,7 +17,10 @@ export {
   isUnlimitedApprovalAmount,
 } from './adapters/helpers';
 export { mapKeyringTransaction } from './adapters/keyring-transaction';
-export { mapLocalTransaction } from './adapters/local-transaction';
+export {
+  enrichLocalActivity,
+  prepareLocalTransactionGroup,
+} from './adapters/enrich-local-activity';
 export { mapPredictActivity } from './adapters/predict-activity';
 export { mapPerpsTransaction } from './adapters/perps-transaction';
 export { mapRampOrder } from './adapters/ramp-order';
