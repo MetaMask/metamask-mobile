@@ -35,6 +35,9 @@ on:
       native_build_needed:
         description: 'Whether fresh iOS/Android native E2E builds are required. False when only E2E/performance test files changed — CI reuses main branch builds instead.'
         value: ${{ jobs.detect-changes.outputs.native_build_needed }}
+      e2e_relevant_workflows_changed:
+        description: 'Whether an E2E-relevant workflow changed. This forces conservative ALL-tag selection.'
+        value: ${{ jobs.detect-changes.outputs.e2e_relevant_workflows_changed }}
 
 jobs:
   detect-changes:
@@ -52,6 +55,7 @@ jobs:
       run_performance: ${{ steps.set-outputs.outputs.run_performance }}
       run_appium_ios: ${{ steps.set-outputs.outputs.run_appium_ios }}
       native_build_needed: ${{ steps.set-outputs.outputs.native_build_needed }}
+      e2e_relevant_workflows_changed: ${{ steps.set-outputs.outputs.e2e_relevant_workflows_changed }}
     env:
       # For a `pull_request` event, the head commit hash is `github.event.pull_request.head.sha`.
       # For a `push` event, the head commit hash is `github.sha`.

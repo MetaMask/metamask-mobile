@@ -30,6 +30,10 @@ inputs:
     description: 'PR base branch ref passed to the AI analysis script for diff comparison.'
     required: false
     default: ''
+  force-all-e2e:
+    description: 'Run all E2E tags when E2E-relevant workflow files changed.'
+    required: false
+    default: 'false'
 outputs:
   ai_e2e_test_tags:
     description: 'E2E test tags to run (JSON array format)'
@@ -130,7 +134,14 @@ runs:
         # '[]' is reserved for "AI ran successfully and found no relevant changes".
         echo "ai_performance_test_tags=" >> "$GITHUB_OUTPUT"
 
-        if [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
+        if [[ "${{ inputs.force-all-e2e }}" == "true" ]]; then
+          echo "⚠️ Forcing ALL E2E tags because an E2E-relevant workflow changed"
+          echo "FORCED=true" >> "$GITHUB_OUTPUT"
+          echo "FORCE_REASON=E2E-relevant workflow changed" >> "$GITHUB_OUTPUT"
+          echo 'ai_e2e_test_tags=["ALL"]' >> "$GITHUB_OUTPUT"
+          echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
+          echo 'ai_performance_test_tags=[]' >> "$GITHUB_OUTPUT"
+        elif [[ "${{ steps.check-skip-label.outputs.SKIP }}" == "true" ]]; then
           echo "⏭️ Skipping AI analysis - skip-smart-e2e-selection label found"
           echo "SKIPPED=true" >> "$GITHUB_OUTPUT"
           echo "SKIP_REASON=skip-smart-e2e-selection label found" >> "$GITHUB_OUTPUT"
@@ -226,7 +237,10 @@ runs:
         MARKER="<!-- smart-e2e-selection -->"
         COMMENT_BODY=""
 
-        if [[ "${{ steps.ai-analysis.outputs.SKIPPED }}" == "true" ]]; then
+        if [[ "${{ steps.ai-analysis.outputs.FORCED }}" == "true" ]]; then
+          SKIP_REASON="${{ steps.ai-analysis.outputs.FORCE_REASON }}"
+          COMMENT_BODY="⚠️ **All E2E tests selected** - ${SKIP_REASON}"
+        elif [[ "${{ steps.ai-analysis.outputs.SKIPPED }}" == "true" ]]; then
           SKIP_REASON="${{ steps.ai-analysis.outputs.SKIP_REASON }}"
           COMMENT_BODY="⏭️ **Smart E2E selection skipped** - ${SKIP_REASON}"$'\n\n'"All E2E tests pre-selected."
         elif [ -f "$COMMENT_FILE" ]; then
