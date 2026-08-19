@@ -16,6 +16,7 @@ import {
   IconSize,
   SensitiveText,
   SensitiveTextLength,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -38,6 +39,7 @@ import {
 } from '../../../../selectors/multichainAccounts/accounts';
 import { RootState } from '../../../../reducers';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
+import { useIsAccountGroupAssetLoadPending } from '../../../../components/hooks/useAccountGroupAssets/useIsAccountGroupAssetLoadPending';
 import { createAccountGroupDetailsNavigationDetails } from '../../../../components/Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { getNetworkImageSource } from '../../../../util/networks';
@@ -73,6 +75,7 @@ const BalanceEndContainer = ({
 }: BalanceEndContainerProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation<AppNavigationProp>();
+  const isBalanceLoading = useIsAccountGroupAssetLoadPending(accountGroup.id);
 
   const handleMenuPress = useCallback(() => {
     navigateWithDetails(
@@ -104,18 +107,29 @@ const BalanceEndContainer = ({
     <>
       <TouchableOpacity onPress={onSelectAccount}>
         <View style={styles.balanceContainer}>
-          <SensitiveText
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextDefault}
-            fontWeight={FontWeight.Medium}
-            length={SensitiveTextLength.Long}
-            isHidden={
-              privacyMode && Boolean(displayBalance) && Boolean(totalBalance)
-            }
-            testID={AccountCellIds.BALANCE}
-          >
-            {totalBalance ? displayBalance : null}
-          </SensitiveText>
+          {/* Three distinct states, previously all collapsed into a blank:
+              - load in flight for a never-fetched group -> skeleton;
+              - settled zero -> a real "$0.00" (a funded-looking blank row is
+                worse than an explicit zero);
+              - no currency / unformattable -> nothing. */}
+          {isBalanceLoading && !totalBalance ? (
+            <Skeleton
+              height={18}
+              width={64}
+              testID={AccountCellIds.BALANCE_SKELETON}
+            />
+          ) : (
+            <SensitiveText
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextDefault}
+              fontWeight={FontWeight.Medium}
+              length={SensitiveTextLength.Long}
+              isHidden={privacyMode && Boolean(displayBalance)}
+              testID={AccountCellIds.BALANCE}
+            >
+              {displayBalance ?? null}
+            </SensitiveText>
+          )}
           {networkImageSource && (
             <AvatarNetwork
               size={AvatarNetworkSize.Xs}

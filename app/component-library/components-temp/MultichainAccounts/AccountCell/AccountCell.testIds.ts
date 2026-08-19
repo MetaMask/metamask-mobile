@@ -5,6 +5,7 @@ export const AccountCellIds = {
   ADDRESS: 'multichain-account-cell-address',
   COPY_ADDRESS: 'multichain-account-cell-copy-address',
   BALANCE: 'multichain-account-cell-balance',
+  BALANCE_SKELETON: 'multichain-account-cell-balance-skeleton',
   MENU: 'multichain-account-cell-menu',
   CHECK_ICON: 'multichain-account-cell-check-icon',
 };

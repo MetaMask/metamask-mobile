@@ -17,12 +17,18 @@ import {
 import { AccountCellIds } from './AccountCell.testIds';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { AvatarAccountType } from '../avatarAccountVariant';
+import { useIsAccountGroupAssetLoadPending } from '../../../../components/hooks/useAccountGroupAssets/useIsAccountGroupAssetLoadPending';
 
 // Configurable mock balance for selector
 const mockBalance: { value: number; currency: string } = {
   value: 0,
   currency: 'usd',
 };
+
+jest.mock(
+  '../../../../components/hooks/useAccountGroupAssets/useIsAccountGroupAssetLoadPending',
+  () => ({ useIsAccountGroupAssetLoadPending: jest.fn() }),
+);
 
 // Mock balance selector to avoid deep store dependencies
 jest.mock('../../../../selectors/assets/balances', () => {
@@ -108,11 +114,16 @@ const renderAccountCell = (
   });
 };
 
+const mockIsAccountGroupAssetLoadPending = jest.mocked(
+  useIsAccountGroupAssetLoadPending,
+);
+
 describe('AccountCell', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockBalance.value = 0;
     mockBalance.currency = 'usd';
+    mockIsAccountGroupAssetLoadPending.mockReturnValue(false);
   });
 
   it('displays account name', () => {
@@ -133,6 +144,41 @@ describe('AccountCell', () => {
     mockBalance.currency = currency;
     const { getByText } = renderAccountCell();
     expect(getByText(expected)).toBeTruthy();
+  });
+
+  it.each([
+    { currency: 'usd', expected: '$0.00' },
+    { currency: 'eur', expected: '€0.00' },
+  ])(
+    'displays an explicit zero for an empty account',
+    ({ currency, expected }) => {
+      mockBalance.value = 0;
+      mockBalance.currency = currency;
+
+      const { getByText } = renderAccountCell();
+
+      expect(getByText(expected)).toBeTruthy();
+    },
+  );
+
+  it('shows a skeleton instead of a zero while the group asset load is pending', () => {
+    mockIsAccountGroupAssetLoadPending.mockReturnValue(true);
+    mockBalance.value = 0;
+
+    const { getByTestId, queryByText } = renderAccountCell();
+
+    expect(getByTestId(AccountCellIds.BALANCE_SKELETON)).toBeOnTheScreen();
+    expect(queryByText('$0.00')).toBeNull();
+  });
+
+  it('shows the balance rather than a skeleton once a pending load has data', () => {
+    mockIsAccountGroupAssetLoadPending.mockReturnValue(true);
+    mockBalance.value = 100;
+
+    const { getByText, queryByTestId } = renderAccountCell();
+
+    expect(getByText('$100.00')).toBeOnTheScreen();
+    expect(queryByTestId(AccountCellIds.BALANCE_SKELETON)).toBeNull();
   });
 
   it('renders menu button by default', () => {
