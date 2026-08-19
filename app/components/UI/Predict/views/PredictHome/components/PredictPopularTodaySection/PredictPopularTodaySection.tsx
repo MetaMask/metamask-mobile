@@ -185,7 +185,7 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
         title={strings('predict.feed.popular_today')}
         isInteractive
         onPress={handleSeeAll}
-        twClassName="px-0 pt-0 mb-2"
+        twClassName="px-0 pt-0 mb-1"
       />
 
       {isLoading ? (
