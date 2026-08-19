@@ -125,10 +125,17 @@ export default class WebView {
     }
 
     if (FrameworkDetector.isAppium()) {
+      // iOS Appium path. Mirror Android CDP React-controlled <select> handling:
+      // plain `el.value = …` often leaves React state on the previous option
+      // (e.g. SRP 2), so Invalid entropy / network selects flake silently.
       await this.withContext(options.pageUrl, async () => {
         await getDriver().execute(
           (id: string, searchText: string) => {
-            const el = document.getElementById(id) as HTMLSelectElement | null;
+            const el = document.getElementById(id) as
+              | (HTMLSelectElement & {
+                  _valueTracker?: { setValue?: (v: string) => void };
+                })
+              | null;
             if (!el?.options) {
               throw new Error(`Select element #${id} not found`);
             }
@@ -140,9 +147,32 @@ export default class WebView {
                 `Option containing "${searchText}" not found in #${id}`,
               );
             }
-            el.value = option.value;
+            const next = option.value;
+            const proto = Object.getPrototypeOf(el);
+            const valueDesc =
+              Object.getOwnPropertyDescriptor(proto, 'value') ||
+              Object.getOwnPropertyDescriptor(
+                window.HTMLSelectElement.prototype,
+                'value',
+              );
+            if (valueDesc?.set) {
+              valueDesc.set.call(el, next);
+            } else {
+              el.value = next;
+            }
+            option.selected = true;
+            const tracker = el._valueTracker;
+            if (tracker && typeof tracker.setValue === 'function') {
+              tracker.setValue('');
+            }
             el.dispatchEvent(new Event('input', { bubbles: true }));
             el.dispatchEvent(new Event('change', { bubbles: true }));
+            const selectedText = el.selectedOptions?.[0]?.text ?? '';
+            if (!selectedText.includes(searchText)) {
+              throw new Error(
+                `Select #${id} still shows "${selectedText}" after choosing "${searchText}"`,
+              );
+            }
           },
           webId,
           optionText,
