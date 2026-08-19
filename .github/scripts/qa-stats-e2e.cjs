@@ -72,18 +72,33 @@ function countExecutedTestsFromPlaywrightJson(report) {
 }
 
 /**
- * Maps a Playwright `file` path to a repo-relative spec path.
+ * Maps a Playwright `file` path to a repo-relative Appium spec path.
+ *
+ * Playwright JSON reports `file` relative to `testDir` (`tests/smoke-appium`),
+ * e.g. `accounts/foo.spec.ts`. Absolute paths that already contain
+ * `tests/smoke-appium/` are also accepted.
  *
  * @param {string} filePath
  * @returns {string|null}
  */
 function normalizeSpecPath(filePath) {
   if (!filePath) return null;
-  const unified = filePath.replace(/\\/g, '/');
-  const idx = unified.indexOf('tests/');
-  if (idx === -1) return null;
-  const rel = unified.slice(idx);
-  if (!/\.spec\.(ts|tsx|js|jsx)$/.test(rel)) return null;
+  const unified = filePath.replace(/\\/g, '/').replace(/^\.\//, '');
+  if (!/\.spec\.(ts|tsx|js|jsx)$/.test(unified)) return null;
+
+  let rel;
+  const testsIdx = unified.indexOf('tests/');
+  if (testsIdx !== -1) {
+    rel = unified.slice(testsIdx);
+  } else if (unified.includes('smoke-appium/')) {
+    rel = `tests/${unified.slice(unified.indexOf('smoke-appium/'))}`;
+  } else {
+    rel = `tests/smoke-appium/${unified.replace(/^\/+/, '')}`;
+  }
+
+  if (!rel.startsWith('tests/smoke-appium/') || rel.includes('/api-specs/')) {
+    return null;
+  }
   return rel;
 }
 
