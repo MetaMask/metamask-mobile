@@ -12,6 +12,7 @@ import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
+import { AlertMessage } from '../../alerts/alert-message';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
@@ -38,7 +39,6 @@ import {
 import { useIsFiatPaymentAvailable } from '../../../hooks/pay/useIsFiatPaymentAvailable';
 import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
-import { AlertMessage } from '../../alerts/alert-message';
 import {
   CustomAmount,
   CustomAmountSkeleton,
@@ -72,7 +72,10 @@ import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
 import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
-import { CustomAmountBuy } from '../../custom-amount/custom-amount-buy';
+import {
+  CustomAmountBuy,
+  getBuyMessage,
+} from '../../custom-amount/custom-amount-buy';
 import { CustomAmountTotals } from '../../custom-amount/custom-amount-totals';
 import { CustomAmountConfirmButton } from '../../custom-amount/custom-amount-confirm-button';
 import {
@@ -125,6 +128,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     footerText,
     supportAccountSelection,
   }) => {
+    const { headlessBuyError } = useConfirmationContext();
     const transactionMeta = useTransactionMetadataRequest();
     const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
@@ -220,7 +224,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const { toastRef } = useContext(ToastContext);
 
-    const { alertContent, alertMessage, alertTitle } =
+    const { alertContent, alertMessage: alertMessageBase } =
       useTransactionCustomAmountAlerts({
         isInputChanged,
         isKeyboardVisible: stage === CustomAmountStage.AmountInput,
@@ -370,6 +374,21 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       Boolean(accountOverride) &&
       (hasAccountNoFunds || stage === CustomAmountStage.Loading);
 
+    const showBuyButton =
+      (!hasPaymentOption || hasAccountNoFunds) &&
+      !hideBuyForNoFunds &&
+      !isDepositPrefillEnabled;
+
+    const alertMessage =
+      alertMessageBase ??
+      headlessBuyError ??
+      (showBuyButton ? getBuyMessage(transactionMeta) : undefined);
+
+    const hasAlert =
+      stage !== CustomAmountStage.Loading && Boolean(alertMessage);
+
+    const hasBlockingAlert = hasAlert && !headlessBuyError;
+
     // Keep payment details fixed while the amount update prepares the request.
     // Once a Money Account deposit quote is in flight, reopening either picker
     // is safe and keeps the loading screen responsive.
@@ -377,17 +396,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       stage === CustomAmountStage.Loading &&
       (isAmountUpdatePending || !isMoneyAccountDeposit || !isQuotesLoading);
 
-    const { headlessBuyError } = useConfirmationContext();
-
     return (
       <Box style={styles.container}>
         <Box style={styles.inputContainer}>
           <CustomAmount
             amountFiat={amountFiat}
             currency={currency}
-            hasAlert={
-              stage !== CustomAmountStage.Loading && Boolean(alertMessage)
-            }
+            hasAlert={hasAlert}
             isLoading={
               !hasAccountNoFunds &&
               !skipDepositPrefill &&
@@ -401,8 +416,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             disabled={!hasPaymentOption}
             showCursor={stage === CustomAmountStage.AmountInput}
           />
+          {hasAlert && (
+            <AlertMessage content={alertContent} alertMessage={alertMessage} />
+          )}
           {!hidePayTokenAmount &&
             disablePay !== true &&
+            !hasAlert &&
             (isMoneyAccountDeposit ? (
               <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
             ) : (
@@ -411,19 +430,13 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 disabled={!hasPaymentOption || isAccountSelectionNeeded}
               />
             ))}
-          {!hidePayTokenAmount && children}
+          {!hidePayTokenAmount && !hasAlert && children}
         </Box>
         <Box
           gap={16}
           testID={CustomAmountInfoTestIds.BOTTOM_BLOCK}
           style={styles.bottomBlock}
         >
-          {stage !== CustomAmountStage.Loading && (
-            <AlertMessage
-              content={alertContent}
-              alertMessage={alertMessage ?? headlessBuyError}
-            />
-          )}
           {stage === CustomAmountStage.AmountInput && !isAddMusdIntent && (
             <>
               {supportAccountSelection &&
@@ -476,7 +489,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                   Boolean(selectedFiatPaymentMethodId) ||
                   shouldHideAccountSelector
                 }
-                alertMessage={alertTitle}
+                isDoneDisabled={hasBlockingAlert}
                 value={amountFiat}
                 onChange={updatePendingAmount}
                 onDonePress={handleDone}
@@ -488,14 +501,14 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 }
               />
             )}
-          {(!hasPaymentOption || hasAccountNoFunds) &&
-            !hideBuyForNoFunds &&
-            !isDepositPrefillEnabled && <CustomAmountBuy />}
+          {showBuyButton && <CustomAmountBuy />}
           {stage !== CustomAmountStage.AmountInput && (
             <CustomAmountConfirmButton
-              alertTitle={alertTitle}
               isDisabled={
-                disableConfirm || isAccountSelectionNeeded || isPrefillPending
+                disableConfirm ||
+                isAccountSelectionNeeded ||
+                isPrefillPending ||
+                hasAlert
               }
               onContinue={trackContinue}
               stage={stage}

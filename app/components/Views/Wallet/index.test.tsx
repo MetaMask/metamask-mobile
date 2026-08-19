@@ -69,9 +69,9 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: jest.fn(() => mockMoneyAccountEnabled),
 }));
 
-const mockMoneyAccountGeoEligible = true;
-jest.mock('../../UI/Money/selectors/eligibility', () => ({
-  selectIsMoneyAccountGeoEligible: jest.fn(() => mockMoneyAccountGeoEligible),
+let mockMoneyAccountVisible = false;
+jest.mock('../../UI/Money/selectors/visibility', () => ({
+  selectIsMoneyAccountVisible: jest.fn(() => mockMoneyAccountVisible),
 }));
 
 // Mock MoneyBalanceCard so the integration test does not depend on its hooks/contexts.
@@ -771,6 +771,7 @@ beforeEach(() => {
   mockPerpsEnabled = true;
   mockPerpsGTMModalEnabled = false;
   mockMoneyAccountEnabled = false;
+  mockMoneyAccountVisible = false;
   mockDiscoveryPillsVariantName = 'control';
   mockActionButtonsGridVariantName = 'control';
   mockBalanceBreakdownVariantName = 'unresolved';
@@ -1872,16 +1873,18 @@ describe('MoneyBalanceCard slot', () => {
     mockBalanceBreakdownVariantName = 'unresolved';
   });
 
-  it('renders the MoneyBalanceCard when Money account is enabled', () => {
+  it('renders the MoneyBalanceCard when Money account is visible', () => {
     mockMoneyAccountEnabled = true;
+    mockMoneyAccountVisible = true;
 
     const { getByTestId } = render(Wallet);
 
     expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
   });
 
-  it('does not render the MoneyBalanceCard when Money account is disabled', () => {
-    mockMoneyAccountEnabled = false;
+  it('does not render the MoneyBalanceCard when Money account is geo-ineligible', () => {
+    mockMoneyAccountEnabled = true;
+    mockMoneyAccountVisible = false;
 
     const { queryByTestId } = render(Wallet);
 
@@ -1890,6 +1893,7 @@ describe('MoneyBalanceCard slot', () => {
 
   it('suppresses the standalone MoneyBalanceCard in breakdown treatment', () => {
     mockMoneyAccountEnabled = true;
+    mockMoneyAccountVisible = true;
     mockBalanceBreakdownVariantName = 'icons';
 
     const { queryByTestId } = render(Wallet);

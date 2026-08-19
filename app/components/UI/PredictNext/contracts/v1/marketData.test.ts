@@ -1,7 +1,7 @@
 import { PredictError, PredictErrorCode } from '../../errors';
 import {
   parsePredictEvent,
-  parsePredictEventsPage,
+  parsePredictFeed,
   parsePredictVenueStatus,
 } from './marketData';
 
@@ -20,7 +20,7 @@ const createMarket = (overrides = {}) => ({
   id: 'market-1',
   question: 'Will the team win?',
   outcomes: [createOutcome('yes'), createOutcome('no')],
-  status: 'open' as const,
+  status: 'active' as const,
   ...overrides,
 });
 
@@ -39,6 +39,14 @@ describe('Predict API canonical response parsers', () => {
     const result = parsePredictEvent(input);
 
     expect(result).toEqual(input);
+  });
+
+  it('parses a closed Market', () => {
+    const input = createEvent({
+      markets: [createMarket({ status: 'closed' })],
+    });
+
+    expect(parsePredictEvent(input).markets[0].status).toBe('closed');
   });
 
   it('parses an event containing an ask without a bid', () => {
@@ -197,12 +205,85 @@ describe('Predict API canonical response parsers', () => {
     );
   });
 
+  it('parses an American-football Game Event', () => {
+    const input = createEvent({
+      startsAt: '2026-09-11T00:20:00Z',
+      sports: {
+        sport: { id: 'american-football', label: 'American football' },
+        competition: { id: 'nfl', label: 'NFL' },
+        game: {
+          status: 'in_progress',
+          awayTeam: {
+            name: 'Arizona Cardinals',
+            abbreviation: 'ARI',
+            logoUrl: 'https://example.com/ari.png',
+            primaryColor: `#${'97233F'}`,
+          },
+          homeTeam: { name: 'Carolina Panthers' },
+          score: { away: '17', home: '21' },
+          period: 'Q4',
+          clock: '12:22',
+          observedAt: '2026-09-11T02:30:00Z',
+        },
+      },
+      markets: [
+        createMarket({
+          status: 'active',
+          outcomes: [
+            createOutcome('yes', { gameSelection: 'away' }),
+            createOutcome('no', { gameSelection: 'draw' }),
+          ],
+        }),
+      ],
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result).toEqual(input);
+  });
+
+  it.each([
+    { field: 'status', value: 'playing' },
+    { field: 'observedAt', value: 'yesterday' },
+    { field: 'primaryColor', value: 'red' },
+    { field: 'logoUrl', value: 'http://example.com/ari.png' },
+  ])('rejects Game data with malformed $field', ({ field, value }) => {
+    const game = {
+      status: 'scheduled',
+      awayTeam: { name: 'Arizona Cardinals' },
+      homeTeam: { name: 'Carolina Panthers' },
+      observedAt: '2026-09-11T00:00:00Z',
+    };
+    const input = createEvent({
+      sports: {
+        sport: { id: 'american-football', label: 'American football' },
+        game:
+          field === 'primaryColor' || field === 'logoUrl'
+            ? {
+                ...game,
+                awayTeam: { ...game.awayTeam, [field]: value },
+              }
+            : { ...game, [field]: value },
+      },
+    });
+
+    expect(() => parsePredictEvent(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
   it('parses a paginated event response', () => {
-    const input = { items: [createEvent()], nextCursor: 'next-page' };
+    const input = {
+      venueId: 'kalshi',
+      id: 'sports-football-nfl-games',
+      title: 'NFL Games',
+      events: [createEvent()],
+      nextCursor: 'next-page',
+    };
 
-    const result = parsePredictEventsPage(input);
+    const result = parsePredictFeed(input);
 
-    expect(result.items).toHaveLength(1);
+    expect(result.events).toHaveLength(1);
     expect(result.nextCursor).toBe('next-page');
   });
 

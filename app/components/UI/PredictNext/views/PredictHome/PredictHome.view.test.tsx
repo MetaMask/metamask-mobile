@@ -4,7 +4,7 @@ import Engine from '../../../../../core/Engine';
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictEventDetailTestIds } from '../PredictEventDetail/PredictEventDetail.testIds';
-import type { PredictEvent } from '../../types';
+import type { PredictEvent, PredictTimestamp } from '../../types';
 import { PredictEventValues } from '../../../Predict/constants/eventNames';
 
 const event: PredictEvent = {
@@ -19,7 +19,7 @@ const event: PredictEvent = {
     {
       id: 'market-1' as PredictEvent['markets'][number]['id'],
       question: 'Candidate A wins',
-      status: 'open',
+      status: 'active',
       outcomes: [
         {
           id: 'yes-1' as PredictEvent['markets'][number]['outcomes'][number]['id'],
@@ -35,6 +35,48 @@ const event: PredictEvent = {
           askPrice:
             '0.58' as PredictEvent['markets'][number]['outcomes'][number]['askPrice'],
         },
+      ],
+    },
+  ],
+};
+
+const gameEvent: PredictEvent = {
+  ...event,
+  id: 'game-event' as PredictEvent['id'],
+  title: 'Cardinals vs Panthers',
+  sports: {
+    sport: {
+      id: 'american-football' as PredictEvent['id'],
+      label: 'American football',
+    },
+    competition: { id: 'nfl' as PredictEvent['id'], label: 'NFL' },
+    game: {
+      status: 'in_progress',
+      awayTeam: { name: 'Arizona Cardinals', abbreviation: 'ARI' },
+      homeTeam: { name: 'Carolina Panthers', abbreviation: 'CAR' },
+      score: { away: '17', home: '21' },
+      period: 'Q4',
+      clock: '12:22',
+      observedAt: '2026-01-01T00:00:00Z' as PredictTimestamp,
+    },
+  },
+  markets: [
+    {
+      ...event.markets[0],
+      id: 'away-market' as PredictEvent['markets'][number]['id'],
+      status: 'active',
+      outcomes: [
+        { ...event.markets[0].outcomes[0], gameSelection: 'away' },
+        event.markets[0].outcomes[1],
+      ],
+    },
+    {
+      ...event.markets[0],
+      id: 'home-market' as PredictEvent['markets'][number]['id'],
+      status: 'active',
+      outcomes: [
+        { ...event.markets[0].outcomes[0], gameSelection: 'home' },
+        event.markets[0].outcomes[1],
       ],
     },
   ],
@@ -67,8 +109,13 @@ const configureQueries = (
         checkedAt: '2026-01-01T00:00:00Z',
       });
     }
-    if (action === 'PredictMarketDataService:getEvents') {
-      return Promise.resolve({ items: events });
+    if (action === 'PredictMarketDataService:getFeed') {
+      return Promise.resolve({
+        venueId: 'kalshi',
+        id: 'sports-football-nfl-games',
+        title: 'NFL Games',
+        events,
+      });
     }
     return Promise.resolve(undefined);
   });
@@ -133,6 +180,51 @@ describe('PredictHome', () => {
     expect(
       within(card).getByTestId(PredictHomeTestIds.volume('event-1')),
     ).toHaveTextContent('$1.5M Vol');
+  });
+
+  it('opens American-football Game detail from the compact Game card', async () => {
+    configureQueries([event, gameEvent]);
+    const view = renderPredictNext();
+    const gameCard = await view.findByTestId(
+      PredictHomeTestIds.event('kalshi', 'game-event'),
+    );
+
+    expect(within(gameCard).getByText('Arizona Cardinals')).toBeOnTheScreen();
+    expect(within(gameCard).queryByText(gameEvent.title)).not.toBeOnTheScreen();
+    fireEvent.press(
+      within(gameCard).getByTestId(
+        PredictHomeTestIds.eventContent('kalshi', 'game-event'),
+      ),
+    );
+
+    expect(
+      await view.findByTestId(PredictEventDetailTestIds.VIEW),
+    ).toBeOnTheScreen();
+    expect(view.getByText(gameEvent.title)).toBeOnTheScreen();
+  });
+
+  it('renders a non-American-football Game with the standard card', async () => {
+    const soccerEvent: PredictEvent = {
+      ...gameEvent,
+      id: 'soccer-event' as PredictEvent['id'],
+      title: 'Soccer championship',
+      sports: {
+        ...gameEvent.sports,
+        sport: {
+          id: 'soccer' as PredictEvent['id'],
+          label: 'Soccer',
+        },
+      } as PredictEvent['sports'],
+    };
+    configureQueries([soccerEvent]);
+    const view = renderPredictNext();
+
+    const card = await view.findByTestId(
+      PredictHomeTestIds.event('kalshi', 'soccer-event'),
+    );
+
+    expect(within(card).getByText(soccerEvent.title)).toBeOnTheScreen();
+    expect(within(card).queryByText('Arizona Cardinals')).not.toBeOnTheScreen();
   });
 
   it('does not navigate when an Outcome is pressed', async () => {
@@ -241,16 +333,25 @@ describe('PredictHome', () => {
           checkedAt: '2026-01-01T00:00:00Z',
         });
       }
-      if (action === 'PredictMarketDataService:getEvents') {
+      if (action === 'PredictMarketDataService:getFeed') {
         eventRequest += 1;
         if (eventRequest === 1) {
-          return Promise.resolve({ items: [event], nextCursor: 'next' });
+          return Promise.resolve({
+            venueId: 'kalshi',
+            id: 'sports-football-nfl-games',
+            title: 'NFL Games',
+            events: [event],
+            nextCursor: 'next',
+          });
         }
         if (eventRequest === 2) {
           return Promise.reject(new Error('next page failed'));
         }
         return Promise.resolve({
-          items: [{ ...event, id: 'event-2', title: 'Second Event' }],
+          venueId: 'kalshi',
+          id: 'sports-football-nfl-games',
+          title: 'NFL Games',
+          events: [{ ...event, id: 'event-2', title: 'Second Event' }],
         });
       }
       return Promise.resolve(undefined);

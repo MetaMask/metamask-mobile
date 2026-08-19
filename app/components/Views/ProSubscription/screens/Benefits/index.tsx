@@ -58,7 +58,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
       testID={BenefitsTestIds.CONTAINER}
     >
       {/* Header */}
-      <Box twClassName="px-5 pt-2 pb-5">
+      <Box twClassName="px-4 pt-2 pb-5">
         <Text
           variant={TextVariant.HeadingLg}
           twClassName="mb-2"
@@ -84,7 +84,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Benefits list */}
-        <Box twClassName="px-5 pb-2">
+        <Box twClassName="px-4 pb-2">
           {BENEFITS.map((item) => (
             <BenefitRow
               key={item.id}
@@ -116,6 +116,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
           {strings('pro_subscription.join_pro')}
         </Button>
       </Box>
+
       {isBenefitDetailSheetOpen && selectedBenfitDetail && (
         <BenefitDetails
           onClose={handleBenefitDetailSheetClose}
