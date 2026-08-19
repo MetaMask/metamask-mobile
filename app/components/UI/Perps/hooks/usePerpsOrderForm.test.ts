@@ -400,6 +400,66 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.leverage).toBe(25);
     });
 
+    it('pulls an over-cap restored leverage down when market data loads after mount', () => {
+      // Market data starts null and arrives asynchronously: the clamp must
+      // apply retroactively, not only at seed time.
+      mockUsePerpsMarketData
+        .mockReturnValueOnce({
+          marketData: null,
+          refetch: jest.fn(),
+          isLoading: true,
+          error: null,
+        })
+        .mockReturnValue({
+          marketData: {
+            szDecimals: 6,
+            name: 'BTC',
+            maxLeverage: 25,
+            marginTableId: 1,
+          },
+          refetch: jest.fn(),
+          isLoading: false,
+          error: null,
+        });
+      const mockStoreLateData = configureStore({
+        reducer: {
+          engine: (
+            state = {
+              backgroundState: {
+                PerpsController: {
+                  isTestnet: false,
+                  tradeConfigurations: {
+                    mainnet: { BTC: { leverage: 40 } },
+                    testnet: {},
+                  },
+                },
+              },
+            },
+          ) => state,
+        },
+      });
+      const WrapperLateData = ({ children }: { children: React.ReactNode }) => {
+        const streamProvider = React.createElement(PerpsStreamProvider, {
+          testStreamManager: createMockStreamManager(),
+          children,
+        } as React.ComponentProps<typeof PerpsStreamProvider>);
+
+        return React.createElement(Provider, {
+          store: mockStoreLateData,
+          children: streamProvider,
+        });
+      };
+
+      const { result, rerender } = renderHook(
+        () => usePerpsOrderForm({ initialAsset: 'BTC' }),
+        { wrapper: WrapperLateData },
+      );
+      expect(result.current.orderForm.leverage).toBe(40);
+
+      rerender({});
+      expect(result.current.orderForm.leverage).toBe(25);
+    });
+
     it('prioritizes existing position leverage over saved config', () => {
       // Mock existing position with 10x leverage
       mockUsePerpsLivePositions.mockReturnValue({

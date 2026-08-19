@@ -329,6 +329,9 @@ describe('createMobileClientConfig', () => {
       'MM_PERPS_MYX_APP_ID_MAINNET',
       'MM_PERPS_MYX_API_SECRET_MAINNET',
       'MM_PERPS_MYX_BROKER_ADDRESS_MAINNET',
+      'MM_PERPS_LIGHTER_PROVIDER_ENABLED',
+      'MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET',
+      'MM_PERPS_LIGHTER_API_KEY_INDEX',
     ];
     const saved: Record<string, string | undefined> = {};
     for (const key of envVars) {

@@ -312,6 +312,21 @@ export function usePerpsOrderForm(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Market metadata loads asynchronously: leverage is seeded once via
+  // useState, so when maxLeverage arrives after mount a restored over-cap
+  // value must be pulled down (the amount side re-seeds via its own
+  // effect; leverage needs the same treatment).
+  useEffect(() => {
+    if (!marketMaxLeverage || marketMaxLeverage <= 0) {
+      return;
+    }
+    setOrderForm((prev) =>
+      prev.leverage > marketMaxLeverage
+        ? { ...prev, leverage: marketMaxLeverage }
+        : prev,
+    );
+  }, [marketMaxLeverage]);
+
   // Sync leverage from existing position when it loads asynchronously
   // This handles the case where positions haven't loaded yet when form initializes
   const hasSyncedLeverage = useRef(false);
