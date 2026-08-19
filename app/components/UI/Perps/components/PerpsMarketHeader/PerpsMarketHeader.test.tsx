@@ -195,19 +195,22 @@ describe('PerpsMarketHeader', () => {
     ).toBeOnTheScreen();
   });
 
-  it('fires onModeChange from the active Pro mode pill once the shimmer finishes', () => {
+  it('fires onModeChange from the active Pro mode pill without waiting for the shimmer', () => {
     jest.useFakeTimers();
     const onModeChange = jest.fn();
     const { getByTestId } = renderHeader({ onModeChange });
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
 
-    expect(onModeChange).not.toHaveBeenCalled();
+    // No timer advance: the switch is not gated behind the glow (TAT-3674).
+    expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Lite);
+
+    // Drain the shimmer timer so it cannot leak into later tests.
     act(() => {
       jest.advanceTimersByTime(GLOW_TOTAL_MS);
     });
 
-    expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Lite);
+    expect(onModeChange).toHaveBeenCalledTimes(1);
   });
 
   it('omits the mode pill when mode is not provided', () => {

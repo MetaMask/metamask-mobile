@@ -18,11 +18,14 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-export const GLOW_TOTAL_MS = 750;
-const GLOW_SWEEP_MS = 700;
+export const GLOW_TOTAL_MS = 590;
+const GLOW_SWEEP_MS = 540;
 const GLOW_FADE_MS = 120;
 const GLOW_HOLD_MS = GLOW_TOTAL_MS - GLOW_FADE_MS * 2;
 const BORDER_WIDTH = 1.5;
+
+// Holds one width across the Lite/Pro label swap; CJK labels can still exceed it.
+const MIN_WIDTH = 56;
 
 // CSS 105deg translated to react-native-linear-gradient coordinates.
 const SHIMMER_START = { x: 0, y: 0.37 };
@@ -162,8 +165,9 @@ const PerpsModeSwitchPill = ({
     timerRef.current = setTimeout(() => {
       timerRef.current = null;
       setIsShimmering(false);
-      onSwitchRequest();
     }, GLOW_TOTAL_MS);
+
+    onSwitchRequest();
   }, [onSwitchRequest, overlayOpacity, sweepProgress]);
 
   const gradient = (
@@ -187,7 +191,11 @@ const PerpsModeSwitchPill = ({
         twClassName={(pressed) =>
           `h-8 rounded-lg border bg-default px-3 ${pressed ? 'bg-pressed' : ''}`
         }
-        style={{ borderColor: BORDER_COLOR, borderWidth: BORDER_WIDTH }}
+        style={{
+          borderColor: BORDER_COLOR,
+          borderWidth: BORDER_WIDTH,
+          minWidth: MIN_WIDTH,
+        }}
         onPress={handlePress}
         disabled={isShimmering}
         accessibilityLabel={accessibilityLabel}
