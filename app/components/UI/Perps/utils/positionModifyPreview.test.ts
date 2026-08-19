@@ -100,6 +100,27 @@ describe('getModifiedPositionPreview', () => {
     expect(result.newLiquidationPrice).toBeCloseTo(51746.56, 1);
   });
 
+  it('deducts trading fees from after-margin when increasing', () => {
+    const result = getModifiedPositionPreview(baseInput({ orderFees: 0.03 }));
+
+    expect(result.kind).toBe('increase');
+    expect(result.newMargin).toBeCloseTo(1019.97);
+  });
+
+  it('keeps remaining margin independent of order fees when decreasing', () => {
+    const result = getModifiedPositionPreview(
+      baseInput({
+        orderDirection: 'short',
+        orderSize: 0.4,
+        reduceOnly: true,
+        orderFees: 5,
+      }),
+    );
+
+    expect(result.kind).toBe('decrease');
+    expect(result.newMargin).toBeCloseTo(600);
+  });
+
   it('releases margin proportionally when reducing a long with a short order', () => {
     const result = getModifiedPositionPreview(
       baseInput({
@@ -164,6 +185,22 @@ describe('getModifiedPositionPreview', () => {
     expect(result.resultingEntryPrice).toBe(90000);
     expect(result.resultingDirection).toBe('short');
     expect(result.newLiquidationPrice).toBeCloseTo(89128.71, 1);
+  });
+
+  it('deducts leftover-share of trading fees when flipping', () => {
+    const result = getModifiedPositionPreview(
+      baseInput({
+        orderDirection: 'short',
+        orderSize: 1.5,
+        orderMargin: 30,
+        orderFees: 3,
+        orderPrice: 90000,
+        reduceOnly: false,
+      }),
+    );
+
+    expect(result.kind).toBe('flip');
+    expect(result.newMargin).toBeCloseTo(9);
   });
 
   it('increases a short when the order is also short', () => {

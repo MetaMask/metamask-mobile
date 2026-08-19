@@ -28,6 +28,8 @@ export interface PositionModifyPreviewInput {
   orderSize: number;
   /** Isolated margin posted for the order (USD). */
   orderMargin: number;
+  /** Estimated trading fees (USD); deducted from isolated margin on increase/flip. */
+  orderFees?: number;
   /** Fill / limit price used to average a new entry on increase/flip. */
   orderPrice: number;
   reduceOnly: boolean;
@@ -157,6 +159,7 @@ export const getModifiedPositionPreview = ({
   orderPrice,
   reduceOnly,
   maxLeverage: fallbackMaxLeverage,
+  orderFees,
 }: PositionModifyPreviewInput): PositionModifyPreview => {
   if (!position) {
     return EMPTY_PREVIEW;
@@ -193,6 +196,8 @@ export const getModifiedPositionPreview = ({
     Number.isFinite(orderSize) && orderSize > 0 ? orderSize : 0;
   const safeOrderMargin =
     Number.isFinite(orderMargin) && orderMargin > 0 ? orderMargin : 0;
+  const safeOrderFees =
+    typeof orderFees === 'number' && orderFees > 0 ? orderFees : 0;
   const safeOrderPrice =
     Number.isFinite(orderPrice) && orderPrice > 0 ? orderPrice : 0;
   const fallbackLeverage =
@@ -249,7 +254,10 @@ export const getModifiedPositionPreview = ({
         ? (currentSize * currentEntry + safeOrderSize * safeOrderPrice) /
           resultingSize
         : currentEntry;
-    const newMargin = currentMargin + safeOrderMargin;
+    const newMargin = Math.max(
+      0,
+      currentMargin + safeOrderMargin - safeOrderFees,
+    );
     const resultingNotional = resultingSize * resultingEntryPrice;
     const resultingLeverage =
       newMargin > 0 && resultingNotional > 0
@@ -290,8 +298,11 @@ export const getModifiedPositionPreview = ({
 
   const leftover = safeOrderSize - currentSize;
   if (leftover > SIZE_EPSILON && !reduceOnly) {
-    const leftoverMargin =
-      safeOrderSize > 0 ? safeOrderMargin * (leftover / safeOrderSize) : 0;
+    const leftoverRatio = leftover / safeOrderSize;
+    const leftoverMargin = Math.max(
+      0,
+      (safeOrderMargin - safeOrderFees) * leftoverRatio,
+    );
     const resultingEntryPrice =
       safeOrderPrice > 0 ? safeOrderPrice : currentEntry;
     const resultingNotional = leftover * resultingEntryPrice;

@@ -534,6 +534,7 @@ export const usePerpsProOrderForm = ({
         orderPrice: effectivePrice,
         reduceOnly,
         maxLeverage,
+        orderFees: estimatedFees,
       }),
     [
       currentMarketPosition,
@@ -543,6 +544,7 @@ export const usePerpsProOrderForm = ({
       effectivePrice,
       reduceOnly,
       maxLeverage,
+      estimatedFees,
     ],
   );
 
