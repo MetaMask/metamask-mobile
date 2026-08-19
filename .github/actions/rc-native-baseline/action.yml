@@ -11,7 +11,9 @@ description: >-
   anywhere in a batch is still visible at HEAD, no matter how many runs were cancelled in between.
 
   Failing to read leaves the baseline empty, and an empty baseline means a native build, so every
-  failure mode here biases towards building native rather than shipping a broken OTA.
+  failure mode here biases towards building native rather than shipping a broken OTA. Only
+  bot-authored comments are accepted, so a comment left by anyone else cannot pass itself off as
+  the baseline.
 
 inputs:
   mode:
@@ -21,7 +23,9 @@ inputs:
     description: 'Release PR number the baseline comment lives on'
     required: true
   github-token:
-    description: 'Token with `pull-requests: write`'
+    description: >-
+      Token with `pull-requests: write`. Must be a bot token, `secrets.GITHUB_TOKEN` or a GitHub
+      App one, because only bot-authored comments are accepted as a baseline.
     required: true
   fingerprint:
     description: 'Expo fingerprint to record (write mode only)'
@@ -81,6 +85,13 @@ runs:
             return;
           }
 
+          // Anyone can comment on a release PR, so a marker alone is not proof the baseline
+          // was written by this action. Matching on the author type rather than a hardcoded
+          // `github-actions[bot]` login keeps this working if the token is ever swapped for
+          // a GitHub App one. A skipped comment is warned about rather than ignored silently,
+          // so an attempt to plant a baseline shows up in the run log.
+          const isBotAuthored = (comment) => comment.user?.type === 'Bot';
+
           const findBaselineComment = async () => {
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner: context.repo.owner,
@@ -88,9 +99,17 @@ runs:
               issue_number: prNumber,
               per_page: 100,
             });
+            const marked = comments.filter((c) => c.body?.includes(STICKY_MARKER));
+            const trusted = marked.filter(isBotAuthored);
+            if (trusted.length !== marked.length) {
+              core.warning(
+                `Ignoring ${marked.length - trusted.length} baseline comment(s) on PR #${prNumber} ` +
+                'that were not written by a bot.'
+              );
+            }
             // Newest wins. Only one should ever exist, but a duplicate must not pin the
             // baseline to a stale fingerprint.
-            return comments.filter((c) => c.body?.includes(STICKY_MARKER)).pop();
+            return trusted.pop();
           };
 
           // Parsing keys off a JSON marker rather than the rendered table, so the
