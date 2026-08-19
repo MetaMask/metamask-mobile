@@ -173,7 +173,9 @@
     "feature-flags:sync:update": "ts-node tests/feature-flags/sync-production-flags.ts --update",
     "worktree:create": "yarn ts-node --transpile-only scripts/worktree-create.ts",
     "worktree:remove": "yarn ts-node --transpile-only scripts/worktree-remove.ts",
-    "skills:postinstall": "metamask-skills postinstall"
+    "skills:postinstall": "metamask-skills postinstall",
+    "docs:platform-api:build": "platform-api-docs --build --project-label Mobile --strategy root-messenger --root-actions 'app/core/Engine/types.ts#GlobalActions' --root-events 'app/core/Engine/types.ts#GlobalEvents'",
+    "docs:platform-api:serve": "platform-api-docs --serve --project-label Mobile --site-base-url / --strategy root-messenger --root-actions 'app/core/Engine/types.ts#GlobalActions' --root-events 'app/core/Engine/types.ts#GlobalEvents'"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -638,6 +640,7 @@
     "@metamask/messenger-cli": "^0.2.0",
     "@metamask/mobile-provider": "^3.0.0",
     "@metamask/object-multiplex": "^1.1.0",
+    "@metamask/platform-api-docs": "npm:@metamask-previews/platform-api-docs@0.0.0-preview-3c77cf4",
     "@metamask/providers": "^18.3.1",
     "@metamask/skills": "^0.2.0",
     "@metamask/test-dapp": "9.5.0",
