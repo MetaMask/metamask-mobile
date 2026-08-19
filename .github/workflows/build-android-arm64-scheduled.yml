@@ -58,6 +58,8 @@ jobs:
       build_type: main
       metamask_environment: e2e
       include_arm64: true
-      # GitHub Actions run artifacts (docs/testing/appium-smoke-testing.md), not Namespace store.
-      runner_provider: current
+      # Follows standard resolution (NAMESPACE_RUNNER_ANDROID -> NAMESPACE_RUNNER_PROVIDER).
+      # build-android-e2e.yml uploads the APK to both GitHub and Namespace stores regardless
+      # of provider, so local repro (gh run download) keeps working either way.
+      runner_provider: inherit
     secrets: inherit

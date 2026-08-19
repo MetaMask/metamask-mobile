@@ -29,7 +29,7 @@ on:
         options:
           - current
           - namespace
-        default: current
+        default: namespace
 
 jobs:
   # ── issue_comment dispatcher ──────────────────────────────────────────

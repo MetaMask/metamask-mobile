@@ -47,7 +47,7 @@ on:
         description: 'Runner provider (namespace or current)'
         required: false
         type: string
-        default: 'current'
+        default: 'namespace'
       android-tag:
         description: 'Android system image tag (default = AOSP; google_apis includes Chrome for browser dApp tests)'
         required: false
