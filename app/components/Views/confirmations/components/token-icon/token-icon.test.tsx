@@ -107,7 +107,7 @@ describe('TokenIcon', () => {
   });
 
   it('hides network badge when network image is missing', () => {
-    mockGetNetworkImageSource.mockReturnValue(undefined);
+    mockGetNetworkImageSource.mockReturnValue(undefined as never);
 
     const { getByTestId, queryByTestId } = render({
       address: ADDRESS_MOCK,

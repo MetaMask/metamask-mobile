@@ -269,7 +269,7 @@ describe('TokenConversionAssetHeader', () => {
   });
 
   it('hides network badges when network image sources are missing', () => {
-    jest.mocked(getNetworkImageSource).mockReturnValue(undefined);
+    jest.mocked(getNetworkImageSource).mockReturnValue(undefined as never);
 
     const token = createMockToken();
     const formatFiat = createMockFormatFiat();

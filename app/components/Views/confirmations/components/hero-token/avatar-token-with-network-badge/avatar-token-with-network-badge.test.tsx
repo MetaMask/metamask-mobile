@@ -23,7 +23,7 @@ describe('AvatarTokenWithNetworkBadge', () => {
 
     mockUseTransactionMetadataRequest.mockReturnValue({
       chainId: '0x1',
-    } as ReturnType<typeof useTransactionMetadataRequest>);
+    } as never);
     mockUseTokenAsset.mockReturnValue({
       asset: {
         image: 'https://example.com/token.png',

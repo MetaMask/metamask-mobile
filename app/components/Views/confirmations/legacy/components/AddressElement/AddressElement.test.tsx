@@ -6,6 +6,7 @@ import { renderShortAddress } from '../../../../../../util/address';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 import { RootState } from '../../../../../../reducers';
 import { EngineState } from '../../../../../../core/Engine';
 
@@ -64,7 +65,7 @@ const renderComponent = (
   state: Partial<RootState> & { engine: { backgroundState: EngineState } },
   options?: {
     displayNetworkBadge?: boolean;
-    chainId?: string;
+    chainId?: Hex;
   },
 ) =>
   renderWithProvider(
