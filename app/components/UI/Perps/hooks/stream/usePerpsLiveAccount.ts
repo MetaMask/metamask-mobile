@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { type AccountState } from '@metamask/perps-controller';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectPerpsSelectedAccountAddress } from '../../selectors/perpsController';
 
 export interface UsePerpsLiveAccountOptions {
   /** Whether to subscribe to account updates. */
@@ -34,9 +34,7 @@ export function usePerpsLiveAccount(
 ): UsePerpsLiveAccountReturn {
   const { enabled = true, throttleMs = 1000 } = options;
   const streamManager = usePerpsStream();
-  const selectedAddress = useSelector(
-    selectSelectedAccountGroupEvmInternalAccount,
-  )?.address.toLowerCase();
+  const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const initialChannelAccount = streamManager.account.getSnapshot();
   const [account, setAccount] = useState<AccountState | null>(() => {
     const cached =

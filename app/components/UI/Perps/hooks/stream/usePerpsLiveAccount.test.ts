@@ -6,7 +6,7 @@ import { usePerpsLiveAccount } from './usePerpsLiveAccount';
 let mockSelectedAddress = '0x1111111111111111111111111111111111111111';
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(() => ({ address: mockSelectedAddress })),
+  useSelector: jest.fn(() => mockSelectedAddress),
 }));
 
 // Mock i18n
