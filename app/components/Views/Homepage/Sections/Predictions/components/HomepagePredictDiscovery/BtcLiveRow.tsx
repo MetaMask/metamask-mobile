@@ -26,6 +26,7 @@ import { useCurrentCryptoUpDownMarketData } from '../../../../../../UI/Predict/h
 import { selectPredictEnabledFlag } from '../../../../../../UI/Predict/selectors/featureFlags';
 import type { PredictMarket } from '../../../../../../UI/Predict/types';
 import { HOMEPAGE_PREDICT_SERIES_SLOT } from '../../constants/homepagePredictMarketSlots';
+import { BtcLiveRowTestIds } from './BtcLiveRow.testIds';
 import HomepagePredictDiscoveryMaterialGlyph from './HomepagePredictDiscoveryMaterialGlyph';
 import HomepagePredictDiscoveryLivePill from './HomepagePredictDiscoveryLivePill';
 
@@ -35,6 +36,7 @@ const formatBtc = (value: number | undefined) =>
     : formatPrice(value, { maximumDecimals: 0 });
 
 interface BtcLiveRowProps {
+  isVisible: boolean;
   onPress: (
     marketId: string | undefined,
     market: PredictMarket | undefined,
@@ -93,13 +95,16 @@ const BtcMarketValues = memo(
   ),
 );
 
-const BtcLiveValues = forwardRef<BtcLiveValuesHandle>((_props, ref) => {
+const BtcLiveValues = forwardRef<
+  BtcLiveValuesHandle,
+  Pick<BtcLiveRowProps, 'isVisible'>
+>(({ isVisible }, ref) => {
   const isFocused = useIsFocused();
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const { marketId, market, currentPrice, priceToBeat, countdown } =
     useCurrentCryptoUpDownMarketData({
       series: HOMEPAGE_PREDICT_SERIES_SLOT.series,
-      enabled: isPredictEnabled && isFocused,
+      enabled: isPredictEnabled && isFocused && isVisible,
     });
 
   useImperativeHandle(ref, () => ({ marketId, market }), [market, marketId]);
@@ -119,7 +124,7 @@ const BtcLiveValues = forwardRef<BtcLiveValuesHandle>((_props, ref) => {
  * stable on countdown ticks, while memoized labels update only when their
  * respective values change.
  */
-const BtcLiveRow = memo(({ onPress }: BtcLiveRowProps) => {
+const BtcLiveRow = memo(({ isVisible, onPress }: BtcLiveRowProps) => {
   const tw = useTailwind();
   const liveValuesRef = useRef<BtcLiveValuesHandle>(null);
   const handlePress = useCallback(() => {
@@ -133,12 +138,12 @@ const BtcLiveRow = memo(({ onPress }: BtcLiveRowProps) => {
       style={tw.style(
         'w-full flex-row items-center self-stretch py-2 active:opacity-80',
       )}
-      testID="homepage-predict-discovery-btc-row"
+      testID={BtcLiveRowTestIds.Row}
     >
       <Box twClassName="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
         <HomepagePredictDiscoveryMaterialGlyph name="currencyBitcoin" />
       </Box>
-      <BtcLiveValues ref={liveValuesRef} />
+      <BtcLiveValues ref={liveValuesRef} isVisible={isVisible} />
       <Icon
         name={IconName.ArrowRight}
         size={IconSize.Sm}

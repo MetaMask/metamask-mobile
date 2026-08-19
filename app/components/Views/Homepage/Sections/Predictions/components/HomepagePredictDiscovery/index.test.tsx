@@ -15,6 +15,7 @@ import {
 } from '../../constants/homepagePredictMarketSlots';
 import type { UseHomepagePredictMarketSlotsResult } from '../../hooks/useHomepagePredictMarketSlots';
 import type { TransactionActiveAbTestEntry } from '../../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { useSectionViewportVisible } from '../../../../hooks/useSectionViewportVisible';
 import HomepagePredictDiscovery, {
   type HomepagePredictDiscoveryProps,
 } from '.';
@@ -51,7 +52,12 @@ jest.mock('../../../../../../UI/Predict/hooks/usePredictNavigation', () => ({
   usePredictNavigation: jest.fn(),
 }));
 
+jest.mock('../../../../hooks/useSectionViewportVisible', () => ({
+  useSectionViewportVisible: jest.fn(),
+}));
+
 interface MockBtcLiveRowProps {
+  isVisible: boolean;
   onPress: (
     marketId: string | undefined,
     market: PredictMarket | undefined,
@@ -136,6 +142,10 @@ const getSectionHeaderProps = (): MockSectionHeaderProps =>
 describe('HomepagePredictDiscovery', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useSectionViewportVisible).mockReturnValue({
+      isVisible: true,
+      onLayout: jest.fn(),
+    });
     jest.mocked(useNavigation).mockReturnValue({
       navigate: mockNavigate,
     } as unknown as ReturnType<typeof useNavigation>);
@@ -146,6 +156,19 @@ describe('HomepagePredictDiscovery', () => {
   });
 
   describe('event slots', () => {
+    it('passes continuous viewport visibility through to the BTC row', () => {
+      jest.mocked(useSectionViewportVisible).mockReturnValue({
+        isVisible: false,
+        onLayout: jest.fn(),
+      });
+
+      renderComponent();
+
+      expect(getBtcLiveRowProps()).toEqual(
+        expect.objectContaining({ isVisible: false }),
+      );
+    });
+
     it('passes matching markets to their configured championship rows', () => {
       const markets = HOMEPAGE_PREDICT_EVENT_SLOTS.map(({ id, slug }) =>
         createMarket(id, slug),

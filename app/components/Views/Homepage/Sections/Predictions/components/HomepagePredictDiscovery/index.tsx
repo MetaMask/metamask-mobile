@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -23,6 +24,7 @@ import type { PredictMarket } from '../../../../../../UI/Predict/types';
 import type { UseHomepagePredictMarketSlotsResult } from '../../hooks/useHomepagePredictMarketSlots';
 import type { PredictionsTrendingHeaderTestId } from '../../predictionsSectionTypes';
 import type { TransactionActiveAbTestEntry } from '../../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { useSectionViewportVisible } from '../../../../hooks/useSectionViewportVisible';
 import BtcLiveRow from './BtcLiveRow';
 import ChampionshipRow, { type ChampionshipRowState } from './ChampionshipRow';
 
@@ -50,6 +52,11 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
 }) => {
   const navigation = useNavigation();
   const { navigateToMarketDetails } = usePredictNavigation();
+  const discoveryRowsRef = useRef<View | null>(null);
+  const { isVisible: isDiscoveryVisible, onLayout: onDiscoveryRowsLayout } =
+    useSectionViewportVisible(discoveryRowsRef, {
+      isLoading: marketSlots.isFetching,
+    });
   const eventSlotRows = useMemo<ChampionshipRowState[]>(
     () =>
       HOMEPAGE_PREDICT_EVENT_SLOTS.map(({ id, slug }) => {
@@ -133,16 +140,18 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
         entryPoint={PredictEventValues.ENTRY_POINT.HOME_SECTION}
       >
         <Box twClassName="px-4">
-          <BtcLiveRow onPress={handleBtcRow} />
-          {eventSlotRows.map((state, index) => (
-            <ChampionshipRow
-              key={HOMEPAGE_PREDICT_EVENT_SLOTS[index].id}
-              state={state}
-              onPress={handleChampionshipRowPress}
-              transactionActiveAbTests={transactionActiveAbTests}
-              testID={`homepage-predict-discovery-market-slot-${index + 2}`}
-            />
-          ))}
+          <View ref={discoveryRowsRef} onLayout={onDiscoveryRowsLayout}>
+            <BtcLiveRow isVisible={isDiscoveryVisible} onPress={handleBtcRow} />
+            {eventSlotRows.map((state, index) => (
+              <ChampionshipRow
+                key={HOMEPAGE_PREDICT_EVENT_SLOTS[index].id}
+                state={state}
+                onPress={handleChampionshipRowPress}
+                transactionActiveAbTests={transactionActiveAbTests}
+                testID={`homepage-predict-discovery-market-slot-${index + 2}`}
+              />
+            ))}
+          </View>
         </Box>
       </PredictEntryPointProvider>
     </>

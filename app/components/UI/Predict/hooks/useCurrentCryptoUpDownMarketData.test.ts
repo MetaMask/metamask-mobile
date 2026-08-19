@@ -1,9 +1,27 @@
-import { renderHook } from '@testing-library/react-native';
+import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
+import Engine from '../../../../core/Engine';
 import { useCurrentCryptoUpDownMarketData } from './useCurrentCryptoUpDownMarketData';
 import { useCurrentPredictMarketFromSeries } from './useCurrentPredictMarketFromSeries';
 import { useCryptoTargetPrice } from './useCryptoTargetPrice';
-import { useCryptoUpDownChartData } from './useCryptoUpDownChartData';
-import { Recurrence, type PredictMarket, type PredictSeries } from '../types';
+import {
+  Recurrence,
+  type CryptoPriceHistoryPoint,
+  type CryptoPriceUpdate,
+  type PredictMarket,
+  type PredictSeries,
+} from '../types';
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      subscribeToCryptoPrices: jest.fn(),
+      getConnectionStatus: jest.fn(),
+      getCryptoPriceHistory: jest.fn(),
+    },
+  },
+}));
 
 jest.mock('./useCurrentPredictMarketFromSeries', () => ({
   useCurrentPredictMarketFromSeries: jest.fn(),
@@ -13,14 +31,15 @@ jest.mock('./useCryptoTargetPrice', () => ({
   useCryptoTargetPrice: jest.fn(),
 }));
 
-jest.mock('./useCryptoUpDownChartData', () => ({
-  useCryptoUpDownChartData: jest.fn(),
-}));
-
 const mockUseCurrentPredictMarketFromSeries =
   useCurrentPredictMarketFromSeries as jest.Mock;
 const mockUseCryptoTargetPrice = useCryptoTargetPrice as jest.Mock;
-const mockUseCryptoUpDownChartData = useCryptoUpDownChartData as jest.Mock;
+const mockSubscribeToCryptoPrices = Engine.context.PredictController
+  .subscribeToCryptoPrices as jest.Mock;
+const mockGetConnectionStatus = Engine.context.PredictController
+  .getConnectionStatus as jest.Mock;
+const mockGetCryptoPriceHistory = Engine.context.PredictController
+  .getCryptoPriceHistory as jest.Mock;
 
 const SERIES: PredictSeries = {
   id: 'btc-series',
@@ -47,11 +66,37 @@ const MARKET: PredictMarket & { series: PredictSeries } = {
   series: SERIES,
 };
 
+const createHistoryPoint = (
+  value: number,
+  timestamp: string,
+): CryptoPriceHistoryPoint => ({
+  value,
+  timestamp,
+});
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        cacheTime: 0,
+      },
+    },
+  });
+
+  return ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
+};
+
 describe('useCurrentCryptoUpDownMarketData', () => {
+  let livePriceCallback: ((update: CryptoPriceUpdate) => void) | undefined;
+  const mockUnsubscribe = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-01-01T00:03:00.000Z'));
+    livePriceCallback = undefined;
     mockUseCurrentPredictMarketFromSeries.mockReturnValue({
       market: MARKET,
       marketId: MARKET.id,
@@ -63,23 +108,34 @@ describe('useCurrentCryptoUpDownMarketData', () => {
       data: 93000,
       isFetching: false,
     });
-    mockUseCryptoUpDownChartData.mockReturnValue({
-      data: [{ time: 1, value: 93025 }],
-      value: 93025,
-      loading: false,
-      isLive: true,
-      window: 300,
+    mockSubscribeToCryptoPrices.mockImplementation(
+      (_symbols, callback: (update: CryptoPriceUpdate) => void) => {
+        livePriceCallback = callback;
+        return mockUnsubscribe;
+      },
+    );
+    mockGetConnectionStatus.mockReturnValue({
+      rtdsConnected: true,
+      sportsConnected: false,
+      marketConnected: false,
     });
+    mockGetCryptoPriceHistory.mockResolvedValue([
+      createHistoryPoint(93000, '2026-01-01T00:00:00.000Z'),
+      createHistoryPoint(93025, '2026-01-01T00:03:00.000Z'),
+    ]);
   });
 
   afterEach(() => {
     jest.useRealTimers();
   });
 
-  it('returns current BTC up/down price, price to beat, and timer data', () => {
-    const { result } = renderHook(() =>
-      useCurrentCryptoUpDownMarketData({ series: SERIES }),
+  it('returns seeded BTC up/down price, price to beat, and timer data', async () => {
+    const { result } = renderHook(
+      () => useCurrentCryptoUpDownMarketData({ series: SERIES }),
+      { wrapper: createWrapper() },
     );
+
+    await waitFor(() => expect(result.current.currentPrice).toBe(93025));
 
     expect(mockUseCurrentPredictMarketFromSeries).toHaveBeenCalledWith({
       series: SERIES,
@@ -93,9 +149,11 @@ describe('useCurrentCryptoUpDownMarketData', () => {
       endDate: MARKET.endDate,
       enabled: true,
     });
-    expect(mockUseCryptoUpDownChartData).toHaveBeenCalledWith(MARKET, 93000, {
-      enabled: true,
-    });
+    expect(mockSubscribeToCryptoPrices).toHaveBeenCalledWith(
+      ['btc/usd'],
+      expect.any(Function),
+      { twapWindowSeconds: undefined },
+    );
     expect(result.current.marketId).toBe(MARKET.id);
     expect(result.current.symbol).toBe('BTC');
     expect(result.current.currentPrice).toBe(93025);
@@ -104,7 +162,7 @@ describe('useCurrentCryptoUpDownMarketData', () => {
     expect(result.current.timeRemainingMs).toBe(120_000);
   });
 
-  it('falls back to market threshold when fetched target price is unavailable', () => {
+  it('falls back to market threshold when fetched target price is unavailable', async () => {
     const marketWithThreshold = {
       ...MARKET,
       outcomes: [
@@ -135,19 +193,17 @@ describe('useCurrentCryptoUpDownMarketData', () => {
       isFetching: true,
     });
 
-    const { result } = renderHook(() =>
-      useCurrentCryptoUpDownMarketData({ series: SERIES }),
+    const { result } = renderHook(
+      () => useCurrentCryptoUpDownMarketData({ series: SERIES }),
+      { wrapper: createWrapper() },
     );
 
-    expect(mockUseCryptoUpDownChartData).toHaveBeenCalledWith(
-      marketWithThreshold,
-      77123,
-      { enabled: true },
-    );
+    await waitFor(() => expect(result.current.currentPrice).toBe(93025));
+
     expect(result.current.priceToBeat).toBe(77123);
   });
 
-  it('returns the first TWAP observation while the chart is still loading', () => {
+  it('uses the TWAP window subscription and keeps the market price-to-beat', async () => {
     const twapMarket = {
       ...MARKET,
       twapWindowSeconds: 30 as const,
@@ -160,20 +216,24 @@ describe('useCurrentCryptoUpDownMarketData', () => {
       isFetching: false,
       refetch: jest.fn(),
     });
-    mockUseCryptoUpDownChartData.mockReturnValue({
-      data: [{ time: 1, value: 93025 }],
-      value: 93025,
-      loading: true,
-      isLive: true,
-      window: 300,
-      connectionError: false,
-    });
 
-    const { result } = renderHook(() =>
-      useCurrentCryptoUpDownMarketData({ series: SERIES }),
+    const { result } = renderHook(
+      () => useCurrentCryptoUpDownMarketData({ series: SERIES }),
+      { wrapper: createWrapper() },
     );
 
+    await waitFor(() => expect(result.current.currentPrice).toBe(93025));
+
+    expect(mockUseCryptoTargetPrice).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(mockSubscribeToCryptoPrices).toHaveBeenCalledWith(
+      ['btc/usd'],
+      expect.any(Function),
+      { twapWindowSeconds: 30 },
+    );
     expect(result.current.currentPrice).toBe(93025);
+    expect(result.current.priceToBeat).toBe(93000);
   });
 
   it('keeps downstream price hooks disabled until the series market resolves', () => {
@@ -185,15 +245,73 @@ describe('useCurrentCryptoUpDownMarketData', () => {
       refetch: jest.fn(),
     });
 
-    renderHook(() => useCurrentCryptoUpDownMarketData({ series: SERIES }));
+    renderHook(() => useCurrentCryptoUpDownMarketData({ series: SERIES }), {
+      wrapper: createWrapper(),
+    });
 
     expect(mockUseCryptoTargetPrice).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
     );
-    expect(mockUseCryptoUpDownChartData).toHaveBeenCalledWith(
-      expect.any(Object),
-      undefined,
-      { enabled: false },
+    expect(mockSubscribeToCryptoPrices).not.toHaveBeenCalled();
+    expect(mockGetCryptoPriceHistory).not.toHaveBeenCalled();
+  });
+
+  it('coalesces live updates when the rendered integer price does not change', async () => {
+    const { result } = renderHook(
+      () => useCurrentCryptoUpDownMarketData({ series: SERIES }),
+      { wrapper: createWrapper() },
     );
+
+    await waitFor(() => expect(result.current.currentPrice).toBe(93025));
+
+    await act(async () => {
+      livePriceCallback?.({
+        symbol: 'btc/usd',
+        price: 93025.4,
+        timestamp: 1_700_000_000,
+      });
+      await Promise.resolve();
+    });
+
+    expect(result.current.currentPrice).toBe(93025);
+
+    await act(async () => {
+      livePriceCallback?.({
+        symbol: 'btc/usd',
+        price: 93026,
+        timestamp: 1_700_000_001,
+      });
+      await Promise.resolve();
+    });
+
+    expect(result.current.currentPrice).toBe(93026);
+  });
+
+  it('unsubscribes and stops the countdown when disabled', async () => {
+    const { result, rerender } = renderHook(
+      ({ isEnabled }) =>
+        useCurrentCryptoUpDownMarketData({
+          series: SERIES,
+          enabled: isEnabled,
+        }),
+      {
+        initialProps: { isEnabled: true },
+        wrapper: createWrapper(),
+      },
+    );
+
+    await waitFor(() => expect(result.current.currentPrice).toBe(93025));
+
+    const countdownBeforeDisable = result.current.countdown;
+
+    rerender({ isEnabled: false });
+
+    expect(mockUnsubscribe).toHaveBeenCalled();
+
+    act(() => {
+      jest.advanceTimersByTime(3000);
+    });
+
+    expect(result.current.countdown).toBe(countdownBeforeDisable);
   });
 });
