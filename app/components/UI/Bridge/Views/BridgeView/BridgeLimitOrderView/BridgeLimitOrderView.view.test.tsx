@@ -22,9 +22,20 @@ describeForPlatforms('BridgeLimitOrderView', () => {
 
     await openLimitTab(renderResult);
 
+    const pair = strings('bridge.limit.pair', { source: 'ETH', dest: 'USDC' });
+
+    expect(renderResult.getAllByText(pair)).toHaveLength(4);
+    expect(
+      renderResult.getByText(strings('bridge.limit.not_enough_gas')),
+    ).toBeOnTheScreen();
     expect(
       renderResult.getByText(
-        strings('bridge.limit.pair', { source: 'ETH', dest: 'USDC' }),
+        strings('bridge.limit.filled_at', { date: 'Mar 12' }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.getByText(
+        strings('bridge.limit.expired_after', { duration: 'X' }),
       ),
     ).toBeOnTheScreen();
 
@@ -37,10 +48,6 @@ describeForPlatforms('BridgeLimitOrderView', () => {
         renderResult.getByText(strings('bridge.orders.empty.history')),
       ).toBeOnTheScreen();
     });
-    expect(
-      renderResult.queryByText(
-        strings('bridge.limit.pair', { source: 'ETH', dest: 'USDC' }),
-      ),
-    ).toBeNull();
+    expect(renderResult.queryAllByText(pair)).toHaveLength(0);
   });
 });

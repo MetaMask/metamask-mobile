@@ -25,7 +25,7 @@ function OrdersTabPanel<T>({
   }
 
   return (
-    <Box testID={OrdersTabsSelectorsIDs.CONTENT} twClassName="flex-1">
+    <Box testID={OrdersTabsSelectorsIDs.CONTENT} twClassName="flex-1 gap-2">
       {items.map((item, index) => (
         <React.Fragment key={keyExtractor?.(item, index) ?? String(index)}>
           {renderItem(item, index)}

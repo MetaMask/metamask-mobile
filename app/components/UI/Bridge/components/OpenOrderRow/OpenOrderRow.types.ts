@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type {
   FontWeight,
   TextColor,
@@ -27,9 +28,21 @@ export interface OpenOrderRowProps {
    */
   secondaryValue: string;
   /**
+   * Color for `title`. Defaults to `TextDefault`.
+   */
+  titleColor?: TextColor;
+  /**
+   * Optional node after the title (warning icon or status Tag).
+   */
+  titleEndAccessory?: ReactNode;
+  /**
    * Color for `primaryValue`. Defaults to `TextDefault`.
    */
   primaryColor?: TextColor;
+  /**
+   * Color for `subtitle`. Defaults to `TextAlternative`.
+   */
+  subtitleColor?: TextColor;
   /**
    * Font weight for `subtitle`. Defaults to Regular.
    */

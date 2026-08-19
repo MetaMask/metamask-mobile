@@ -5,6 +5,7 @@ import {
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
+  Box,
   FontWeight,
   ListItem,
   TextColor,
@@ -20,7 +21,10 @@ function OpenOrderRow({
   subtitle,
   primaryValue,
   secondaryValue,
+  titleColor = TextColor.TextDefault,
+  titleEndAccessory,
   primaryColor = TextColor.TextDefault,
+  subtitleColor = TextColor.TextAlternative,
   subtitleFontWeight = FontWeight.Regular,
   onPress,
   testID = OpenOrderRowSelectorsIDs.CONTAINER,
@@ -59,9 +63,15 @@ function OpenOrderRow({
       </BadgeWrapper>
     ),
     title,
-    titleProps: { testID: OpenOrderRowSelectorsIDs.TITLE },
+    titleProps: { color: titleColor, testID: OpenOrderRowSelectorsIDs.TITLE },
+    titleEndAccessory: titleEndAccessory ? (
+      <Box testID={OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY}>
+        {titleEndAccessory}
+      </Box>
+    ) : undefined,
     description: subtitle,
     descriptionProps: {
+      color: subtitleColor,
       fontWeight: subtitleFontWeight,
       testID: OpenOrderRowSelectorsIDs.SUBTITLE,
     },

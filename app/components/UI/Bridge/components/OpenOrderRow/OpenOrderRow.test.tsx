@@ -1,6 +1,13 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { FontWeight, TextColor } from '@metamask/design-system-react-native';
+import {
+  FontWeight,
+  Icon,
+  IconName,
+  Tag,
+  TagSeverity,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import { initialState } from '../../_mocks_/initialState';
@@ -93,5 +100,47 @@ describe('OpenOrderRow', () => {
     fireEvent.press(getByTestId(OpenOrderRowSelectorsIDs.CONTAINER));
 
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders warning subtitle and title accessory for insufficient gas', () => {
+    const { getByTestId } = renderOpenOrderRow({
+      ...LIMIT_PROPS,
+      subtitle: strings('bridge.limit.not_enough_gas'),
+      titleColor: TextColor.WarningDefault,
+      subtitleColor: TextColor.WarningDefault,
+      titleEndAccessory: <Icon name={IconName.Warning} />,
+    });
+
+    expect(getByTestId(OpenOrderRowSelectorsIDs.SUBTITLE)).toHaveTextContent(
+      'Not enough gas',
+    );
+    expect(
+      getByTestId(OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders filled tag after the pair title', () => {
+    const { getByTestId } = renderOpenOrderRow({
+      ...LIMIT_PROPS,
+      subtitle: strings('bridge.limit.filled_at', { date: 'Mar 12' }),
+      primaryValue: `+0.325 ${DEST_TOKEN.symbol}`,
+      secondaryValue: '-0.1 ETH',
+      primaryColor: TextColor.SuccessDefault,
+      titleEndAccessory: (
+        <Tag severity={TagSeverity.Success}>
+          {strings('bridge.limit.filled')}
+        </Tag>
+      ),
+    });
+
+    expect(getByTestId(OpenOrderRowSelectorsIDs.SUBTITLE)).toHaveTextContent(
+      'Filled at Mar 12',
+    );
+    expect(
+      getByTestId(OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY),
+    ).toHaveTextContent('Filled');
+    expect(getByTestId(OpenOrderRowSelectorsIDs.PRIMARY)).toHaveTextContent(
+      '+0.325 USDC',
+    );
   });
 });
