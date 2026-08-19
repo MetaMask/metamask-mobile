@@ -88,6 +88,9 @@ jest.mock('react-native-quick-crypto', () => ({
     randomBytes: jest.fn((size) =>
       Buffer.from(Array.from({ length: size }, (_, i) => (i % 255) + 1)),
     ),
+    randomUUID: jest.fn(
+      () => 'mock-uuid-' + Math.random().toString(36).slice(2, 11),
+    ),
   },
   getRandomValues: jest.fn((array) => {
     for (let i = 0; i < array.length; i++) {
