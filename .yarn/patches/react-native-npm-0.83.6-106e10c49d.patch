@@ -1,3 +1,16 @@
+diff --git a/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp b/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
+index 6bd061f26b9a260fd88ce1672b6f0bfbbb369fca..77015a6b7577f4e837469021c8c16f784aaf4f58 100644
+--- a/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
++++ b/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
+@@ -34,7 +34,7 @@ void HermesSamplingProfiler::dumpSampledTraceToFile(
+ void HermesSamplingProfiler::registerNatives() {
+   javaClassLocal()->registerNatives({
+       makeNativeMethod("enable", HermesSamplingProfiler::enable),
+-      makeNativeMethod("disable", HermesSamplingProfiler::enable),
++      makeNativeMethod("disable", HermesSamplingProfiler::disable),
+       makeNativeMethod(
+           "dumpSampledTraceToFile",
+           HermesSamplingProfiler::dumpSampledTraceToFile),
 diff --git a/scripts/cocoapods/autolinking.rb b/scripts/cocoapods/autolinking.rb
 index d8e9c7cec2f57c124cc2b2fc52b69de8940d3eb5..b297501dfc3f8d22bc87f22e86ad6e3e9d0fc5d4 100644
 --- a/scripts/cocoapods/autolinking.rb

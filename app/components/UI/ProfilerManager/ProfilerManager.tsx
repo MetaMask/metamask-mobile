@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Platform, Pressable, Share } from 'react-native';
+import { Platform, Pressable, Share, StyleSheet } from 'react-native';
 import { getBundleId, getVersion } from 'react-native-device-info';
 import ShakeDetector from './ShakeDetector';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
@@ -18,10 +18,41 @@ const shouldEnableProfiler = (() => {
       return true;
     case 'exp':
       return true;
+    case 'e2e':
+      return true;
     default:
       return false;
   }
 })();
+
+const styles = StyleSheet.create({
+  e2eToggle: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    opacity: 0.01,
+  },
+  e2eStart: {
+    top: 0,
+    left: 0,
+  },
+  e2eStop: {
+    top: 2,
+    left: 0,
+  },
+  e2eRecordingReady: {
+    top: 4,
+    left: 0,
+  },
+  e2eResultReady: {
+    top: 6,
+    left: 0,
+  },
+  e2eProfilerError: {
+    top: 8,
+    left: 0,
+  },
+});
 
 interface ProfilerManagerProps {
   enabled?: boolean;
@@ -33,6 +64,7 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
   const [isRecording, setIsRecording] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [lastProfilePath, setLastProfilePath] = useState<string | null>(null);
+  const [profilerError, setProfilerError] = useState<string | null>(null);
   const appId = getBundleId();
   const tw = useTailwind();
 
@@ -41,6 +73,7 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
   }, []);
 
   const startProfiler = useCallback(async () => {
+    setProfilerError(null);
     try {
       const appVersion = getVersion();
       const timestamp = Date.now();
@@ -50,15 +83,24 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
       setIsRecording(true);
       setSessionId(newSessionId);
     } catch (error) {
-      // fail silently
+      if (process.env.METAMASK_ENVIRONMENT === 'e2e') {
+        setProfilerError(`startProfiling failed: ${String(error)}`);
+      }
     }
   }, [appId]);
 
   const stopProfiler = useCallback(async () => {
-    if (!sessionId) return;
+    if (!sessionId) {
+      if (process.env.METAMASK_ENVIRONMENT === 'e2e') {
+        setProfilerError('stopProfiling skipped: no active profiling session');
+      }
+      return;
+    }
 
     try {
-      const path = await stopProfiling(true);
+      const path = await stopProfiling(
+        Platform.OS === 'android' && process.env.METAMASK_ENVIRONMENT !== 'e2e',
+      );
       // Nested ifs (rather than a single `&&` expression) avoid a "value block
       // inside try/catch", which the React Compiler cannot yet optimize.
       if (typeof path === 'string') {
@@ -67,7 +109,9 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
         }
       }
     } catch (error) {
-      // fail silently
+      if (process.env.METAMASK_ENVIRONMENT === 'e2e') {
+        setProfilerError(`stopProfiling failed: ${String(error)}`);
+      }
     }
     setIsRecording(false);
     setSessionId(null);
@@ -112,6 +156,64 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
   return (
     <>
       <ShakeDetector onShake={handleShake} sensibility={3} />
+      {process.env.METAMASK_ENVIRONMENT === 'e2e' && (
+        <>
+          <Pressable
+            testID="e2e-profiler-toggle"
+            accessibilityLabel="e2e-profiler-toggle"
+            accessible
+            importantForAccessibility="yes"
+            onPress={handleShake}
+            style={styles.e2eToggle}
+          />
+          <Pressable
+            testID="e2e-profiler-start"
+            accessibilityLabel="e2e-profiler-start"
+            accessible
+            importantForAccessibility="yes"
+            onPress={startProfiler}
+            style={[styles.e2eToggle, styles.e2eStart]}
+          />
+          <Pressable
+            testID="e2e-profiler-stop"
+            accessibilityLabel="e2e-profiler-stop"
+            accessible
+            importantForAccessibility="yes"
+            onPress={stopProfiler}
+            style={[styles.e2eToggle, styles.e2eStop]}
+          />
+          {isRecording && (
+            <Pressable
+              testID="e2e-profiler-recording-ready"
+              accessibilityLabel="e2e-profiler-recording-ready"
+              accessible
+              importantForAccessibility="yes"
+              onPress={() => undefined}
+              style={[styles.e2eToggle, styles.e2eRecordingReady]}
+            />
+          )}
+          {lastProfilePath && (
+            <Pressable
+              testID="e2e-profiler-result-ready"
+              accessibilityLabel="e2e-profiler-result-ready"
+              accessible
+              importantForAccessibility="yes"
+              onPress={() => undefined}
+              style={[styles.e2eToggle, styles.e2eResultReady]}
+            />
+          )}
+          {profilerError && (
+            <Pressable
+              testID="e2e-profiler-error"
+              accessibilityLabel={`e2e-profiler-error:${profilerError}`}
+              accessible
+              importantForAccessibility="yes"
+              onPress={() => undefined}
+              style={[styles.e2eToggle, styles.e2eProfilerError]}
+            />
+          )}
+        </>
+      )}
       {isVisible && (
         <Box twClassName="absolute top-20 right-4 z-50 shadow-lg min-w-48">
           <Box twClassName="bg-default rounded-xl p-3 border border-muted">
@@ -150,6 +252,9 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
                   isRecording ? 'bg-error-default' : 'bg-primary-default',
                 )}
                 onPress={toggleProfiling}
+                testID={
+                  isRecording ? 'profiler-stop-button' : 'profiler-start-button'
+                }
               >
                 <Text twClassName="text-white" variant={TextVariant.BodySm}>
                   {isRecording ? 'Stop' : 'Start'}

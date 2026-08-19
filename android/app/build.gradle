@@ -321,6 +321,9 @@ android {
         }
         release {
             manifestPlaceholders.isDebug = false
+            // E2E release APKs need run-as access so Appium can extract
+            // Hermes profiles from the app-private cache.
+            debuggable System.getenv("METAMASK_ENVIRONMENT") == 'e2e'
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
             crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)

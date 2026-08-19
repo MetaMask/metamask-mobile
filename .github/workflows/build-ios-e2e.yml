@@ -381,7 +381,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+          key: .metamask-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       # Run project setup with retry for better resilience
       - name: Setup project dependencies with retry
@@ -434,7 +434,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+          key: .metamask-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Run lightweight project setup (reuse-hit path)
         if: ${{ steps.gate.outputs.needs-native-build != 'true' }}

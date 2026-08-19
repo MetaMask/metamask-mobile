@@ -53,6 +53,16 @@ on:
         required: false
         type: string
         default: 'default'
+      capture-profiler:
+        description: 'Capture a Hermes CPU profile for every E2E test'
+        required: false
+        type: boolean
+        default: false
+      profiler-test-grep:
+        description: 'Optional grep pattern to limit profiled tests'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -267,7 +277,11 @@ jobs:
       - name: Resolve Appium test grep pattern
         id: appium-grep
         run: |
-          echo "pattern=${{ inputs.test_suite_tag }}" >> "$GITHUB_OUTPUT"
+          if [[ "${{ inputs.capture-profiler }}" == "true" && -n "${{ inputs.profiler-test-grep }}" ]]; then
+            echo "pattern=${{ inputs.profiler-test-grep }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "pattern=${{ inputs.test_suite_tag }}" >> "$GITHUB_OUTPUT"
+          fi
           # FixtureValidation must fail if no tests match; smoke shards keep the
           # flag because sharding can leave empty shards.
           if [[ "${{ inputs.test_suite_tag }}" == "FixtureValidation" ]]; then
@@ -301,6 +315,8 @@ jobs:
           APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-${{ inputs.test-suite-name }}
           PLAYWRIGHT_JSON_OUTPUT_FILE: tests/test-reports/playwright-json/playwright-report.json
           APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
+          APPIUM_CAPTURE_PROFILER: ${{ inputs.capture-profiler }}
+          APPIUM_PROFILER_OUTPUT_DIRECTORY: tests/test-reports/appium-profiles/${{ inputs.test-suite-name }}
           SKIP_APPIUM_STOP: 'true'
           ANDROID_APK_PATH: ${{ steps.android-artifacts.outputs.apk-target-path }}/${{ steps.android-artifacts.outputs.apk-file-name }}
           ANDROID_AVD_NAME: appium_smoke_avd
@@ -331,6 +347,8 @@ jobs:
           APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-${{ inputs.test-suite-name }}
           PLAYWRIGHT_JSON_OUTPUT_FILE: tests/test-reports/playwright-json/playwright-report.json
           APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
+          APPIUM_CAPTURE_PROFILER: ${{ inputs.capture-profiler }}
+          APPIUM_PROFILER_OUTPUT_DIRECTORY: tests/test-reports/appium-profiles/${{ inputs.test-suite-name }}
           SKIP_APPIUM_STOP: 'true'
           IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           IOS_SIMULATOR_NAME: iPhone 16 Pro
@@ -395,6 +413,23 @@ jobs:
         with:
           name: appium-timings-${{ inputs.test-suite-name }}
           path: tests/test-reports/appium-timings/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload Appium CPU profiles (Namespace)
+        if: ${{ always() && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: appium-profiler-${{ inputs.test-suite-name }}
+          path: tests/test-reports/appium-profiles/${{ inputs.test-suite-name }}/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload Appium CPU profiles (current)
+        if: ${{ always() && inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: appium-profiler-${{ inputs.test-suite-name }}
+          path: tests/test-reports/appium-profiles/${{ inputs.test-suite-name }}/
           if-no-files-found: ignore
           retention-days: 7
 

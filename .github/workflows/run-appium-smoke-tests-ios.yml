@@ -59,6 +59,26 @@ jobs:
       runner_provider: ${{ inputs.runner_provider || 'current' }}
     secrets: inherit
 
+  appium-profiler-ios-smoke:
+    if: >-
+      ${{
+        !cancelled() &&
+        (contains(fromJson(inputs.selected_tags || '["ALL"]'), 'ALL') ||
+         contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokeAccounts'))
+      }}
+    uses: ./.github/workflows/run-appium-e2e-workflow.yml
+    with:
+      test-suite-name: appium-profiler-ios-smoke
+      platform: ios
+      test_suite_tag: SmokeAccounts
+      capture-profiler: true
+      profiler-test-grep: 'SmokeAccounts: (Wallet details|Secret Recovery Phrase Reveal)'
+      test-timeout-minutes: 25
+      build_type: ${{ inputs.build_type || 'main' }}
+      metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
+      runner_provider: ${{ inputs.runner_provider || 'current' }}
+    secrets: inherit
+
   appium-perps-ios-smoke:
     if: >-
       ${{
@@ -130,7 +150,6 @@ jobs:
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
     secrets: inherit
-
 
   appium-snaps-ios-smoke:
     if: >-
