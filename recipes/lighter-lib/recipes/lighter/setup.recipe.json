@@ -1,0 +1,40 @@
+{
+  "$schema": "https://farmslot.io/schemas/recipe-v1.schema.json",
+  "title": "Lighter \u2014 ensure venue active on a chosen network (idempotent)",
+  "description": "Converges to 'Lighter active on the requested network' using ensure semantics: wallet unlocked, Perps entered, provider and network switched ONLY when they differ from the request (the underlying action reports changed:false on a no-op), signer readiness asserted. Re-running when already converged performs no switches \u2014 cheap enough to prefix every unit.",
+  "paramsSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "network": {
+        "type": "string",
+        "enum": ["testnet", "mainnet"],
+        "default": "testnet"
+      },
+      "market": {
+        "type": "string",
+        "default": "ETH"
+      }
+    }
+  },
+  "workflow": {
+    "entry": "ensure-venue",
+    "nodes": {
+      "ensure-venue": {
+        "action": "metamask.perps.start_state",
+        "provider": "lighter",
+        "network": "{{params.network}}",
+        "market": "{{params.market}}",
+        "page": "home",
+        "orders": false,
+        "positions": false,
+        "intent": "Converge to Lighter on the requested network \u2014 switching only if the app is not already there \u2014 and prove the venue signer is ready to trade.",
+        "next": "done"
+      },
+      "done": {
+        "action": "end",
+        "status": "pass"
+      }
+    }
+  }
+}

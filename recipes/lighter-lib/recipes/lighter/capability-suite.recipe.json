@@ -1,0 +1,100 @@
+{
+  "$schema": "https://farmslot.io/schemas/recipe-v1.schema.json",
+  "title": "Lighter \u2014 composed mobile capability suite",
+  "description": "Composes the small parameterizable units end-to-end on one network: activate the venue, open and close a position on one market, place and cancel a resting limit order on another, and leave the venue flat. Run with --record-video=full-run for a video artifact.",
+  "paramsSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "network": {
+        "type": "string",
+        "enum": ["testnet", "mainnet"],
+        "default": "testnet"
+      },
+      "positionMarket": {
+        "type": "string",
+        "default": "ETH"
+      },
+      "orderMarket": {
+        "type": "string",
+        "default": "BTC"
+      }
+    }
+  },
+  "workflow": {
+    "entry": "restart",
+    "nodes": {
+      "restart": {
+        "action": "app.lifecycle",
+        "command": "restart",
+        "intent": "Boot fresh so the recorded run is deterministic.",
+        "next": "settle-boot"
+      },
+      "settle-boot": {
+        "action": "wait",
+        "duration_ms": 20000,
+        "intent": "Give the JS bundle time to finish booting.",
+        "next": "setup"
+      },
+      "setup": {
+        "action": "call",
+        "ref": "lighter.setup",
+        "params": {
+          "network": "{{params.network}}"
+        },
+        "intent": "Activate Lighter on the requested network.",
+        "next": "open"
+      },
+      "open": {
+        "action": "call",
+        "ref": "lighter.open-position",
+        "params": {
+          "market": "{{params.positionMarket}}",
+          "direction": "long"
+        },
+        "intent": "Prove order placement through the real form.",
+        "next": "close"
+      },
+      "close": {
+        "action": "call",
+        "ref": "lighter.close-position",
+        "params": {
+          "market": "{{params.positionMarket}}"
+        },
+        "intent": "Prove the close flow through the real close screen.",
+        "next": "limit"
+      },
+      "limit": {
+        "action": "call",
+        "ref": "lighter.limit-order",
+        "params": {
+          "market": "{{params.orderMarket}}",
+          "preset": "-2"
+        },
+        "intent": "Prove resting limit orders through the real order-type and price sheets.",
+        "next": "cancel"
+      },
+      "cancel": {
+        "action": "call",
+        "ref": "lighter.cancel-orders",
+        "params": {
+          "market": "{{params.orderMarket}}"
+        },
+        "intent": "Leave the venue book clean.",
+        "next": "final-flat"
+      },
+      "final-flat": {
+        "action": "metamask.perps.assert_positions",
+        "mode": "all",
+        "state": "none",
+        "timeout_ms": 30000,
+        "intent": "Nothing is left open anywhere after the suite.",
+        "next": "done"
+      },
+      "done": {
+        "action": "end",
+        "status": "pass"
+      }
+    }
+  }
+}
