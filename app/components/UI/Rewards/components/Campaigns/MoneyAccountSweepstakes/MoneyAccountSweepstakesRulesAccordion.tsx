@@ -27,31 +27,50 @@ interface RichTextBlock {
   marks?: { type: string }[];
 }
 
+// Blocks are read out of a Json document and handed back to the renderer as
+// Json, so they have to stay assignable to both shapes.
+type JsonRichTextBlock = RichTextBlock & Json;
+
 interface RulesSection {
   title: string;
-  blocks: RichTextBlock[];
+  blocks: JsonRichTextBlock[];
 }
 
 const isHeading = (block: RichTextBlock): boolean =>
   block.nodeType.startsWith('heading-');
 
-const asDocument = (blocks: RichTextBlock[]): Json =>
-  ({ nodeType: 'document', data: {}, content: blocks }) as Json;
+const isRichTextBlock = (value: Json): value is JsonRichTextBlock =>
+  value !== null &&
+  typeof value === 'object' &&
+  !Array.isArray(value) &&
+  typeof value.nodeType === 'string';
+
+const asDocument = (blocks: JsonRichTextBlock[]): Json => ({
+  nodeType: 'document',
+  data: {},
+  content: blocks,
+});
+
+const getContentBlocks = (rulesDocument: Json): JsonRichTextBlock[] => {
+  if (
+    rulesDocument === null ||
+    typeof rulesDocument !== 'object' ||
+    Array.isArray(rulesDocument)
+  ) {
+    return [];
+  }
+  const { content } = rulesDocument;
+  return Array.isArray(content) ? content.filter(isRichTextBlock) : [];
+};
 
 const parseRules = (
   rulesDocument: Json,
 ): {
   introTitle: string;
-  introBlocks: RichTextBlock[];
+  introBlocks: JsonRichTextBlock[];
   sections: RulesSection[];
 } => {
-  const content =
-    rulesDocument &&
-    typeof rulesDocument === 'object' &&
-    'content' in rulesDocument &&
-    Array.isArray(rulesDocument.content)
-      ? (rulesDocument.content as RichTextBlock[])
-      : [];
+  const content = getContentBlocks(rulesDocument);
 
   const firstHeadingIndex = content.findIndex(isHeading);
   const introTitle =
@@ -59,7 +78,7 @@ const parseRules = (
       ? documentToPlainText(content[firstHeadingIndex])
       : '';
   const sections: RulesSection[] = [];
-  const introBlocks: RichTextBlock[] = [];
+  const introBlocks: JsonRichTextBlock[] = [];
   let currentSection: RulesSection | null = null;
 
   content
