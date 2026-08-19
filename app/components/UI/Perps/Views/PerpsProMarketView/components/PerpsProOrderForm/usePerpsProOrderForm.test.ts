@@ -270,6 +270,7 @@ describe('usePerpsProOrderForm', () => {
     mockOrderForm.takeProfitPrice = undefined;
     mockOrderForm.stopLossPrice = undefined;
     mockValidation.isValid = true;
+    mockValidation.isValidating = false;
     mockValidation.errors = [];
     mockValidation.fieldIssues = [];
     mockExistingPosition = null;
@@ -619,6 +620,44 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder.mock.calls[0][0]).not.toHaveProperty('usdAmount');
     });
 
+    it('submits a smaller interrupted reduce-only preview instead of a full close', async () => {
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result, rerender } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      const maximumAmount = result.current.sizeSlider.maximumValue;
+      const smallerAmount = Math.floor(maximumAmount / 2);
+      act(() => {
+        result.current.sizeSlider.onDragEnd(maximumAmount);
+        result.current.sizeSlider.onValueChange(smallerAmount);
+      });
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockSetAmount).toHaveBeenLastCalledWith(smallerAmount.toString());
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+
+      mockOrderForm.amount = smallerAmount.toString();
+      rerender({});
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      const params = mockExecuteOrder.mock.calls[0][0];
+      expect(params.size).not.toBe('1');
+      expect(params.isFullClose).not.toBe(true);
+      expect(params.usdAmount).toBe(smallerAmount.toString());
+    });
+
     it('clears the size max override after a successful Reduce Only order', async () => {
       mockExistingPosition = {
         size: '-1',
@@ -739,6 +778,19 @@ describe('usePerpsProOrderForm', () => {
       // Assert
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(validationError).toHaveBeenCalledWith('Bad order');
+    });
+
+    it('blocks submit while validation is pending', async () => {
+      mockValidation.isValidating = true;
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).not.toHaveBeenCalled();
     });
 
     it('navigates to the cross-margin warning and aborts', async () => {

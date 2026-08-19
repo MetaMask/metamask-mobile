@@ -509,6 +509,37 @@ describe('usePerpsOrderValidation', () => {
       ]);
     });
 
+    it('retains confirmed validity while a protocol validation is pending', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result, rerender } = renderHook(
+        (params) => usePerpsOrderValidation(params),
+        { initialProps: defaultParams },
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      expect(result.current.isValid).toBe(true);
+
+      rerender({
+        ...defaultParams,
+        assetPrice: 50100,
+      });
+
+      expect(result.current.isValid).toBe(true);
+      expect(result.current.isValidating).toBe(true);
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      expect(result.current.isValid).toBe(true);
+    });
+
     it('ignores an out-of-order protocol response from an older request', async () => {
       const firstValidation = createDeferred<{
         isValid: boolean;

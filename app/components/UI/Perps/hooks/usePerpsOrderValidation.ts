@@ -128,7 +128,7 @@ export function usePerpsOrderValidation(
       setValidation((prev) => ({
         ...prev,
         fieldIssues,
-        isValid: false,
+        isValid: fieldIssues.length === 0 ? prev.isValid : false,
         isValidating: true,
       }));
 
@@ -340,7 +340,7 @@ export function usePerpsOrderValidation(
     setValidation((prev) => ({
       ...prev,
       fieldIssues,
-      isValid: false,
+      isValid: fieldIssues.length === 0 ? prev.isValid : false,
       isValidating: !skipValidation,
     }));
 

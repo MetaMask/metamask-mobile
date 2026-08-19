@@ -655,6 +655,35 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.isAtMaxAmount).toBe(false);
   });
 
+  it('clears maximum-slider intent when an interrupted drag previews a smaller amount', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(1000);
+      result.current.sizeSlider.onValueChange(500);
+      result.current.sizeSlider.onDragCancel();
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+    expect(mockSetAmount).toHaveBeenLastCalledWith('500');
+  });
+
+  it('clears maximum-slider intent when Place Order flushes a smaller preview', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(1000);
+      result.current.sizeSlider.onValueChange(500);
+    });
+
+    act(() => {
+      result.current.commitPendingSliderPreview();
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+    expect(mockSetAmount).toHaveBeenLastCalledWith('500');
+  });
+
   it('clears maximum-slider intent after a manual size edit', () => {
     const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
 

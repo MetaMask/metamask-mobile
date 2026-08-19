@@ -828,6 +828,10 @@ export const usePerpsProOrderForm = ({
       return;
     }
 
+    if (orderValidation.isValidating) {
+      return;
+    }
+
     isSubmittingRef.current = true;
 
     try {
@@ -1009,6 +1013,7 @@ export const usePerpsProOrderForm = ({
     isExactFullClose,
     directionTrackingValue,
     orderValidation.isValid,
+    orderValidation.isValidating,
     orderValidation.errors,
     currentMarketPosition,
     navigation,
@@ -1295,6 +1300,7 @@ export const usePerpsProOrderForm = ({
 
   const isPlaceOrderDisabled =
     !orderValidation.isValid ||
+    orderValidation.isValidating ||
     isAtCap ||
     isPlacing ||
     isLoadingMarketData ||

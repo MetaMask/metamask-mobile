@@ -1334,6 +1334,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         return;
       }
 
+      if (orderValidation.isValidating) {
+        return;
+      }
+
       // Check if deposit is needed first (when custom token is selected)
       const needsDeposit =
         isTradeWithAnyTokenEnabled &&
@@ -1585,6 +1589,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       commitAmount,
       liveDragAmount,
       orderValidation.isValid,
+      orderValidation.isValidating,
       orderValidation.errors,
       track,
       orderForm.asset,
@@ -2171,6 +2176,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               size={ButtonSizeRNDesignSystem.Lg}
               isDisabled={
                 !orderValidation.isValid ||
+                orderValidation.isValidating ||
                 isPlacingOrder ||
                 doesStopLossRiskLiquidation ||
                 hasInvalidTPSL ||
@@ -2191,6 +2197,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               onPress={() => handlePlaceOrder()}
               isDisabled={
                 !orderValidation.isValid ||
+                orderValidation.isValidating ||
                 isPlacingOrder ||
                 doesStopLossRiskLiquidation ||
                 hasInvalidTPSL ||

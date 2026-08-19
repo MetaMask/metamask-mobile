@@ -438,8 +438,11 @@ export const usePerpsProSizeInput = ({
   const onSliderValueChange = useCallback(
     (value: number) => {
       const nextUsdAmount = clampSliderUsdAmount(value, maxPossibleAmount);
+      const atMax = value >= maxPossibleAmount;
       sliderPreviewRef.current = nextUsdAmount;
+      sliderAtMaxRef.current = atMax;
       setSliderPreview(nextUsdAmount);
+      setIsAtMaxAmount(atMax);
     },
     [maxPossibleAmount],
   );
