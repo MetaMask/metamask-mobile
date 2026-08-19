@@ -8,6 +8,7 @@ import { PredictEventValues } from '../../../../constants/eventNames';
 import { usePredictFilterOptions } from '../../../../hooks/usePredictFilterOptions';
 import type { PredictFilterOption } from '../../../../types';
 import PredictPopularTodaySection, {
+  getPopularTodayChipTwArgs,
   PREDICT_POPULAR_TODAY_SECTION_TEST_IDS,
 } from './PredictPopularTodaySection';
 
@@ -119,6 +120,15 @@ describe('PredictPopularTodaySection', () => {
         `${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.SKELETON_PREFIX}-0`,
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('applies muted-pressed background when a chip is pressed', () => {
+    const restArgs = getPopularTodayChipTwArgs(false);
+    const pressedArgs = getPopularTodayChipTwArgs(true);
+
+    expect(restArgs).toContain('rounded-xl bg-muted px-4 py-2');
+    expect(restArgs).not.toContain('bg-muted-pressed');
+    expect(pressedArgs).toContain('bg-muted-pressed');
   });
 
   it('renders a chip for each popular filter option', () => {

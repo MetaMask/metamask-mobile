@@ -61,6 +61,9 @@ export const PREDICT_POPULAR_TODAY_SECTION_TEST_IDS = {
   SKELETON_PREFIX: 'predict-home-popular-today-skeleton',
 } as const;
 
+export const getPopularTodayChipTwArgs = (pressed: boolean) =>
+  ['rounded-xl bg-muted px-4 py-2', pressed && 'bg-muted-pressed'] as const;
+
 const normalizeRowCount = (rowCount: number) =>
   Math.max(1, Math.floor(rowCount));
 
@@ -238,7 +241,9 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
                     onPress={() => handleChipPress(option)}
                     accessibilityRole="button"
                     accessibilityLabel={label}
-                    style={tw.style('rounded-xl bg-muted px-4 py-2')}
+                    style={({ pressed }) =>
+                      tw.style(...getPopularTodayChipTwArgs(pressed))
+                    }
                   >
                     <Text
                       variant={TextVariant.BodySm}

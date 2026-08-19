@@ -25,6 +25,17 @@ export { calculateChipScrollX } from './calculateChipScrollX';
 const DEFAULT_CONTAINER_CLASS = 'pt-3 pb-3';
 const DEFAULT_CHIP_CLASS = 'rounded-xl px-4 py-2';
 
+export const getPredictChipTwArgs = (
+  chipTwClassName: string,
+  isActive: boolean,
+  pressed: boolean,
+) =>
+  [
+    chipTwClassName,
+    isActive ? 'bg-icon-default' : 'bg-muted',
+    pressed && !isActive && 'bg-muted-pressed',
+  ] as const;
+
 const PredictChipList: React.FC<PredictChipListProps> = ({
   chips,
   activeChipKey,
@@ -66,10 +77,9 @@ const PredictChipList: React.FC<PredictChipListProps> = ({
         key={chip.key}
         onPress={() => handlePress(chip.key, index)}
         onLayout={(event) => handleChipLayout(index, event)}
-        style={tw.style(
-          chipTwClassName,
-          isActive ? 'bg-icon-default' : 'bg-muted',
-        )}
+        style={({ pressed }) =>
+          tw.style(...getPredictChipTwArgs(chipTwClassName, isActive, pressed))
+        }
         testID={getChipTestId(chip.key)}
         accessibilityRole="button"
         accessibilityState={{ selected: isActive }}
