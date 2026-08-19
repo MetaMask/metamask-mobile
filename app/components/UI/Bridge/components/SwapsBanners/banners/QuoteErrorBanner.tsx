@@ -11,7 +11,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { selectQuoteStreamComplete } from '../../../../../../core/redux/slices/bridge';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import { getQuoteStreamReasonString } from '../../../utils/getQuoteStreamReasonString';
+import { getQuoteStreamReasonString } from '../../../Views/BridgeView/BridgeMarketView/BridgeMarketView.utils.ts';
 import { ERROR_BANNER_TW_CLASSNAME } from '../SwapsBanners.constants';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
 
