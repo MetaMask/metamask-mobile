@@ -1,5 +1,6 @@
 import type { Fixtures, FullProject, WorkerInfo } from '@playwright/test';
-import { createServiceProvider, type ServiceProvider } from '../../services';
+import { createServiceProvider } from '../../services/providers/factory.ts';
+import type { ServiceProvider } from '../../services';
 import type { WebDriverConfig } from '../../types.ts';
 import { createPlaywrightLogger } from '../../playwrightLogger.ts';
 import { FrameworkDetector } from '../../FrameworkDetector.ts';

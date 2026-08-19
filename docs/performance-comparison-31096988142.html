@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Performance Comparison - BrowserStack vs TestMu</title>
+    <style>
+      :root {
+        --bg: #f6f8fb;
+        --card: #ffffff;
+        --text: #172033;
+        --muted: #596579;
+        --border: #dfe5ef;
+        --blue: #2563eb;
+        --green: #15803d;
+        --red: #b91c1c;
+        --amber: #a16207;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 15px/1.55 Arial, Helvetica, sans-serif;
+      }
+      main { max-width: 1180px; margin: 0 auto; padding: 36px 22px 64px; }
+      h1 { margin: 0 0 8px; font-size: 32px; }
+      h2 { margin: 34px 0 12px; font-size: 22px; }
+      h3 { margin: 22px 0 8px; font-size: 17px; }
+      p { margin: 8px 0 14px; }
+      .subtitle { color: var(--muted); font-size: 17px; }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+        box-shadow: 0 2px 8px rgba(23, 32, 51, 0.04);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 12px;
+      }
+      .metric {
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        padding: 14px;
+      }
+      .metric strong { display: block; font-size: 25px; margin-top: 4px; }
+      .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+      table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; background: var(--card); }
+      th, td { border: 1px solid var(--border); padding: 9px 10px; text-align: left; vertical-align: top; }
+      th { background: #eef3fb; font-weight: 700; }
+      tr:nth-child(even) td { background: #fbfcfe; }
+      .pass { color: var(--green); font-weight: 700; }
+      .fail { color: var(--red); font-weight: 700; }
+      .gate { color: var(--amber); font-weight: 700; }
+      .note { color: var(--muted); font-size: 13px; }
+      code {
+        background: #eef2f7;
+        border-radius: 4px;
+        padding: 2px 5px;
+        font-family: Consolas, Monaco, monospace;
+      }
+      ul { margin-top: 8px; }
+      .footer { color: var(--muted); font-size: 13px; margin-top: 32px; }
+      @media print {
+        body { background: white; }
+        .card, table { box-shadow: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>BrowserStack vs TestMu Performance Comparison</h1>
+        <div class="subtitle">Three-provider pipeline: BrowserStack, TestMu Standard, and TestMu HyperExecute</div>
+      </header>
+
+      <section class="card">
+        <h2>Scope</h2>
+        <p>
+          This report covers
+          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/31096988142">
+            GitHub Actions run 31096988142
+          </a>.
+          All providers used the Google Pixel 7 Pro / Android 13 matrix and the same
+          15 performance tests. Onboarding used the without-SRP APK and imported-wallet
+          tests used the with-SRP APK.
+        </p>
+        <p class="note">
+          Network log capture was disabled for the provider comparison. This report
+          separates TestMu Standard and TestMu HyperExecute artifacts explicitly.
+        </p>
+      </section>
+
+      <section>
+        <h2>Executive summary</h2>
+        <div class="grid">
+          <div class="metric">
+            <span class="label">BrowserStack</span>
+            <strong class="pass">11 / 15</strong>
+            passed
+          </div>
+          <div class="metric">
+            <span class="label">TestMu HyperExecute</span>
+            <strong class="pass">10 / 15</strong>
+            passed
+          </div>
+          <div class="metric">
+            <span class="label">TestMu Standard</span>
+            <strong class="pass">9 / 15</strong>
+            passed
+          </div>
+          <div class="metric">
+            <span class="label">HE vs Standard</span>
+            <strong>Faster</strong>
+            at job and session level
+          </div>
+        </div>
+        <p>
+          BrowserStack achieved the highest pass rate. HyperExecute was the faster
+          TestMu mode, especially compared with TestMu Standard. The recurring failures
+          were concentrated in Fresh SRP, Perps open/close, and seedless onboarding.
+        </p>
+      </section>
+
+      <section>
+        <h2>Pass / fail by test</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Test</th>
+              <th>BrowserStack</th>
+              <th>TestMu HE</th>
+              <th>TestMu Standard</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Account creation after fresh install</td><td class="pass">PASS</td><td class="fail">FAIL</td><td class="pass">PASS</td></tr>
+            <tr><td>Asset View, SRP 1 + SRP 2 + SRP 3</td><td class="pass">PASS</td><td class="pass">PASS</td><td class="fail">FAIL</td></tr>
+            <tr><td>Cold Start: Measure ColdStart To Login Screen</td><td class="fail">FAIL</td><td class="pass">PASS</td><td class="pass">PASS</td></tr>
+            <tr><td>Fresh SRP wallet creation performance</td><td class="pass">PASS</td><td class="fail">FAIL</td><td class="fail">FAIL</td></tr>
+            <tr><td>Measure Cold Start To Onboarding Screen</td><td class="pass">PASS</td><td class="pass">PASS</td><td class="pass">PASS</td></tr>
+            <tr><td>Measure Warm Start: Login To Wallet Screen</td><td class="pass">PASS</td><td class="pass">PASS</td><td class="pass">PASS</td></tr>
+            <tr><td>Measure Warm Start: Warm Start to Login Screen</td><td class="pass">PASS</td><td class="pass">PASS</td><td class="pass">PASS</td></tr>
+            <tr><td>Perps add funds</td><td class="fail">FAIL</td><td class="pass">PASS</td><td class="pass">PASS</td></tr>
+            <tr><td>Perps open position and close it</td><td class="fail">FAIL</td><td class="fail">FAIL</td><td class="fail">FAIL</td></tr>
+            <tr><td>Predict Available Balance - Complete Flow Performance</td><td class="pass">PASS</td><td class="pass">PASS</td><td class="pass">PASS</td></tr>
+            <tr><td>Predict Deposit - Complete Flow Performance</td><td class="pass">PASS</td><td class="pass">PASS</td><td class="pass">PASS</td></tr>
+            <tr><td>Predict Market Details - Complete Flow Performance</td><td class="pass">PASS</td><td class="pass">PASS</td><td class="fail">FAIL</td></tr>
+            <tr><td>Seedless Onboarding: Apple Login New User</td><td class="fail">FAIL</td><td class="fail">FAIL</td><td class="fail">FAIL</td></tr>
+            <tr><td>Seedless Onboarding: Google Login New User</td><td class="pass">PASS</td><td class="fail">FAIL</td><td class="fail">FAIL</td></tr>
+            <tr><td>Seedless Onboarding: Telegram Login New User</td><td class="pass">PASS</td><td class="pass">PASS</td><td class="pass">PASS</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Job wall-clock duration</h2>
+        <table>
+          <thead>
+            <tr><th>Suite</th><th>BrowserStack</th><th>TestMu HE</th><th>TestMu Standard</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Onboarding</td><td>~16m 56s</td><td><strong>~13m 22s</strong></td><td>~29m 38s</td></tr>
+            <tr><td>Imported wallet</td><td>~14m 52s</td><td><strong>~13m 20s</strong></td><td>~22m 21s</td></tr>
+          </tbody>
+        </table>
+        <p>
+          HyperExecute was approximately 16 minutes faster than Standard across the
+          two suites. It was also faster than BrowserStack at job level in this run.
+        </p>
+      </section>
+
+      <section>
+        <h2>Session creation</h2>
+        <table>
+          <thead><tr><th>Provider</th><th>Median</th><th>Mean</th></tr></thead>
+          <tbody>
+            <tr><td>BrowserStack</td><td>~45.7s</td><td>~56.6s</td></tr>
+            <tr><td>TestMu HyperExecute</td><td>~28.7s</td><td>~28.6s</td></tr>
+            <tr><td>TestMu Standard</td><td>~47.6s</td><td>~64.4s</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Failure reasons</h2>
+        <h3>BrowserStack</h3>
+        <ul>
+          <li><strong>Cold Start → Login:</strong> 6.338s exceeded the 5.5s threshold.</li>
+          <li><strong>Perps add funds:</strong> Open Add Funds was 3.858s versus a 3.85s threshold.</li>
+          <li><strong>Perps open/close:</strong> functional failure.</li>
+          <li><strong>Apple seedless:</strong> Done → feature sheet was 11.293s versus 5.5s.</li>
+        </ul>
+
+        <h3>TestMu HyperExecute</h3>
+        <ul>
+          <li><strong>Fresh SRP:</strong> MetaMetrics → Predict was 24.780s versus 5.5s.</li>
+          <li><strong>Account creation:</strong> account-list and account-creation steps slightly exceeded their thresholds.</li>
+          <li><strong>Perps open/close:</strong> functional failure.</li>
+          <li><strong>Apple seedless:</strong> Done → feature sheet was 8.920s versus 5.5s.</li>
+          <li><strong>Google seedless:</strong> onboarding and feature-sheet steps exceeded thresholds.</li>
+        </ul>
+
+        <h3>TestMu Standard</h3>
+        <ul>
+          <li><strong>Fresh SRP:</strong> MetaMetrics → Predict was 17.325s versus 5.5s.</li>
+          <li><strong>Asset View:</strong> functional failure.</li>
+          <li><strong>Perps open/close:</strong> functional failure.</li>
+          <li><strong>Predict Market Details:</strong> functional failure.</li>
+          <li><strong>Apple seedless:</strong> Done → feature sheet was 8.612s versus 5.5s.</li>
+          <li><strong>Google seedless:</strong> onboarding and feature-sheet steps exceeded thresholds.</li>
+          <li><strong>Telegram seedless:</strong> functional failure.</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Conclusion</h2>
+        <ul>
+          <li>BrowserStack had the best pass rate: <strong>11/15</strong>.</li>
+          <li>TestMu HyperExecute passed <strong>10/15</strong>.</li>
+          <li>TestMu Standard passed <strong>9/15</strong>.</li>
+          <li>HyperExecute was significantly faster than Standard for both suites.</li>
+          <li>Both TestMu modes continue to show issues in Fresh SRP, Perps, and seedless flows.</li>
+          <li>Predict Available Balance, Predict Deposit, and most basic startup flows passed across all providers.</li>
+        </ul>
+      </section>
+
+      <p class="footer">
+        Generated from GitHub Actions run 31096988142. Device: Google Pixel 7 Pro / Android 13.
+      </p>
+    </main>
+  </body>
+</html>

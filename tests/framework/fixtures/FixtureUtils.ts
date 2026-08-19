@@ -442,26 +442,28 @@ function isBrowserStack() {
   return process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
 }
 
+function isTestMuLocal() {
+  return process.env.TESTMU_LOCAL?.toLowerCase() === 'true';
+}
+
 /**
  * @description
- * When running tests on BrowserStack, local services need to be accessed through
- * BrowserStack's local tunnel hostname. For local development,
- * standard localhost is used.
+ * When running tests on BrowserStack or TestMu AI with a tunnel, local services
+ * need to be accessed through the provider-specific tunnel hostname.
  *
  * @returns The hostname to use for connecting to local services:
- * - 'bs-local.com' when running on BrowserStack (detected via BROWSERSTACK_LOCAL env var)
+ * - 'bs-local.com' when BrowserStack local tunnel is enabled
+ * - 'localhost.lambdatest.com' when TestMu AI tunnel is enabled
  * - 'localhost' for local development and other environments
- *
- * @example
- * ```typescript
- * const fixtureServerHost = getLocalHost();
- * const serverUrl = `http://${fixtureServerHost}:${port}`;
- * // Returns: "http://bs-local.com:12345" on BrowserStack
- * // Returns: "http://localhost:12345" locally
- * ```
  */
 export function getLocalHost() {
-  return isBrowserStack() ? 'bs-local.com' : 'localhost';
+  if (isBrowserStack()) {
+    return 'bs-local.com';
+  }
+  if (isTestMuLocal()) {
+    return 'localhost.lambdatest.com';
+  }
+  return 'localhost';
 }
 
 /**

@@ -41,6 +41,7 @@ function parseArgs(argv) {
     test: null,
     platform: null,
     device: null,
+    provider: null,
     all: false,
     baselineBranch: DEFAULT_BASELINE_BRANCH,
     workflow: DEFAULT_WORKFLOW,
@@ -74,6 +75,10 @@ function parseArgs(argv) {
         break;
       case '--device':
         args.device = next;
+        i += 1;
+        break;
+      case '--provider':
+        args.provider = next;
         i += 1;
         break;
       case '--baseline-branch':
@@ -211,12 +216,46 @@ function hasUsableProfilingSummary(artifact) {
   return Boolean(summary) && !summary.error;
 }
 
-function findMatchingArtifact(artifacts, { testName, device }) {
+function normalizeCloudProvider(provider) {
+  if (provider == null) {
+    return null;
+  }
+  const normalized = String(provider).trim().toLowerCase();
+  return normalized && normalized !== 'unknown' ? normalized : null;
+}
+
+function getCloudProvider(value) {
+  return normalizeCloudProvider(
+    value?.cloudProvider ?? value?.provider ?? value?.device?.provider,
+  );
+}
+
+function findProviderAwareMatch(candidates, requestedProvider) {
+  const provider = normalizeCloudProvider(requestedProvider);
+  if (!provider) {
+    return candidates[0] ?? null;
+  }
+
   return (
-    artifacts.find(
-      ({ data }) =>
-        data.testName === testName && devicesMatch(data.device, device),
-    ) ?? null
+    candidates.find((candidate) => getCloudProvider(candidate.data) === provider) ??
+    candidates.find((candidate) => !getCloudProvider(candidate.data)) ??
+    null
+  );
+}
+
+function findMatchingArtifact(
+  artifacts,
+  { testName, device, provider, cloudProvider },
+) {
+  const candidates = artifacts.filter(
+    ({ data }) =>
+      data.testName === testName &&
+      (!device?.name || devicesMatch(data.device, device)),
+  );
+
+  return findProviderAwareMatch(
+    candidates,
+    normalizeCloudProvider(cloudProvider) ?? normalizeCloudProvider(provider),
   );
 }
 
@@ -236,6 +275,7 @@ function getFailedScenariosFromSummary(summaryDir) {
         testName: test.testName,
         platform: test.platform ?? null,
         device,
+        cloudProvider: getCloudProvider(test),
       });
     }
   }
@@ -309,19 +349,33 @@ function flattenPerformanceResults(results) {
 
 function findScenarioWithProfilingInDir(
   dir,
-  { testName, device, requireGreen = false },
+  {
+    testName,
+    device,
+    provider,
+    cloudProvider,
+    requireGreen = false,
+  },
 ) {
   const resultsPath = path.join(dir, 'performance-results.json');
   if (!fs.existsSync(resultsPath)) {
     return null;
   }
   const results = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
-  const match = flattenPerformanceResults(results).find(
-    (entry) =>
-      entry.test.testName === testName &&
-      devicesMatch(entry.device, device) &&
-      (!requireGreen || isScenarioGreen(entry.test)),
-  );
+  const requestedProvider =
+    normalizeCloudProvider(cloudProvider) ?? normalizeCloudProvider(provider);
+  const candidates = flattenPerformanceResults(results)
+    .filter(
+      (entry) =>
+        entry.test.testName === testName &&
+        devicesMatch(entry.device, device) &&
+        (!requireGreen || isScenarioGreen(entry.test)),
+    )
+    .map((entry) => ({
+      data: entry.test,
+      entry,
+    }));
+  const match = findProviderAwareMatch(candidates, requestedProvider)?.entry;
   if (!match) {
     return null;
   }
@@ -330,7 +384,11 @@ function findScenarioWithProfilingInDir(
 
   // Prefer dedicated app-profiling sidecars when present (new artifact layout).
   const artifacts = findProfilingArtifacts(dir);
-  const sidecar = findMatchingArtifact(artifacts, { testName, device });
+  const sidecar = findMatchingArtifact(artifacts, {
+    testName,
+    device,
+    cloudProvider: requestedProvider,
+  });
   if (sidecar && hasUsableProfilingSummary(sidecar.data)) {
     return {
       platform: match.platform,
@@ -346,6 +404,7 @@ function findScenarioWithProfilingInDir(
     testName: match.test.testName,
     projectName: match.test.projectName ?? null,
     sessionId: match.test.sessionId ?? null,
+    cloudProvider: getCloudProvider(match.test),
     device: match.device,
     timestamp: match.test.timestamp ?? new Date().toISOString(),
     profilingSummary: match.test.profilingSummary ?? null,
@@ -366,10 +425,15 @@ function findScenarioWithProfilingInDir(
 }
 
 /** @deprecated Prefer findScenarioWithProfilingInDir({ requireGreen: true }) */
-function findGreenScenarioInDir(dir, { testName, device }) {
+function findGreenScenarioInDir(
+  dir,
+  { testName, device, provider, cloudProvider },
+) {
   return findScenarioWithProfilingInDir(dir, {
     testName,
     device,
+    provider,
+    cloudProvider,
     requireGreen: true,
   });
 }
@@ -381,8 +445,12 @@ function findBaselineScenario({
   currentRunId,
   testName,
   device,
+  provider,
+  cloudProvider,
   workRoot,
 }) {
+  const requestedProvider =
+    normalizeCloudProvider(cloudProvider) ?? normalizeCloudProvider(provider);
   const candidates = listBaselineCandidateRuns({
     repo,
     workflow,
@@ -416,6 +484,7 @@ function findBaselineScenario({
     const green = findScenarioWithProfilingInDir(dest, {
       testName,
       device,
+      cloudProvider: requestedProvider,
       requireGreen: true,
     });
     if (green) {
@@ -434,6 +503,7 @@ function findBaselineScenario({
     const any = findScenarioWithProfilingInDir(dest, {
       testName,
       device,
+      cloudProvider: requestedProvider,
       requireGreen: false,
     });
     if (any) {
@@ -772,6 +842,7 @@ function resolveScenarios(args, currentDir) {
       testName: args.test,
       platform: args.platform,
       device: parseDeviceKey(args.device),
+      cloudProvider: normalizeCloudProvider(args.provider),
     },
   ];
 }
@@ -839,15 +910,12 @@ function main() {
       `🔬 Diffing "${scenario.testName}" on ${formatDeviceLabel(scenario.device)}...`,
     );
 
-    let currentArtifact = findMatchingArtifact(currentArtifacts, scenario)?.data;
-    if (!currentArtifact && !scenario.device.name) {
-      // If device was not provided, take the first artifact with this test name.
-      currentArtifact = currentArtifacts.find(
-        ({ data }) => data.testName === scenario.testName,
-      )?.data;
-      if (currentArtifact?.device) {
-        scenario.device = currentArtifact.device;
-      }
+    const currentArtifact = findMatchingArtifact(
+      currentArtifacts,
+      scenario,
+    )?.data;
+    if (!scenario.device.name && currentArtifact?.device) {
+      scenario.device = currentArtifact.device;
     }
 
     const baseline = findBaselineScenario({
@@ -857,6 +925,7 @@ function main() {
       currentRunId: args.run,
       testName: scenario.testName,
       device: scenario.device,
+      cloudProvider: scenario.cloudProvider,
       workRoot,
     });
 

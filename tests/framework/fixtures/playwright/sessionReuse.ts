@@ -14,7 +14,10 @@ export function isAppiumSessionReuseEnabled(projectUse: {
   // declares them required.
   device?: WebDriverConfig['device'];
 }): boolean {
-  if (projectUse.device?.provider === ProviderName.BROWSERSTACK) {
+  if (
+    projectUse.device?.provider === ProviderName.BROWSERSTACK ||
+    projectUse.device?.provider === ProviderName.SAUCELABS
+  ) {
     return false;
   }
 

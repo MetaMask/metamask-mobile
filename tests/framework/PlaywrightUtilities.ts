@@ -21,6 +21,7 @@ import { execSync } from 'child_process';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
+import { resolveTestMuCatalogDeviceName } from './services/providers/testmu/TestMuDeviceResolver.ts';
 
 const logger = createPlaywrightLogger('PlaywrightUtilities');
 
@@ -543,22 +544,45 @@ class PlaywrightUtilities {
   static buildDeviceAccountMapping(): Record<string, string | null> {
     const mapping: Record<string, string | null> = {};
 
+    /**
+     * Register the matrix device name and its TestMu catalog alias.
+     * CI sets TESTMU_DEVICE to the resolved catalog name (e.g. "Pixel 7 Pro")
+     * while device-matrix.json keeps BrowserStack names (e.g. "Google Pixel 7 Pro").
+     * Perps/account selection uses currentDeviceDetails.deviceName, so both keys
+     * must resolve to the same account. Do NOT use availability-regex names
+     * (e.g. "Pixel 7 Pro.*") — those are only for Appium session caps.
+     */
+    const assignAccount = (deviceName: string, account: string): void => {
+      mapping[deviceName] = account;
+      const testMuName = resolveTestMuCatalogDeviceName(deviceName);
+      if (testMuName !== deviceName) {
+        mapping[testMuName] = account;
+      }
+    };
+
     // Process Android devices
     deviceMatrix.android_devices.forEach((device) => {
       if (device.category === 'high') {
-        mapping[device.name] = 'Account 3';
+        assignAccount(device.name, 'Account 3');
       } else if (device.category === 'low') {
         // Low category Android devices use default Account 1
-        mapping[device.name] = 'Account 1';
+        assignAccount(device.name, 'Account 1');
       }
     });
+
+    // The TestMu phone selector resolves to a single low-category account.
+    if (mapping['Pixel 7 Pro'] === 'Account 1') {
+      mapping['Pixel 7'] = 'Account 1';
+      mapping['Pixel 7|Pixel 7 Pro'] = 'Account 1';
+      mapping['Pixel 8 Pro'] = 'Account 1';
+    }
 
     // Process iOS devices
     deviceMatrix.ios_devices.forEach((device) => {
       if (device.category === 'high') {
-        mapping[device.name] = 'Account 4';
+        assignAccount(device.name, 'Account 4');
       } else if (device.category === 'low') {
-        mapping[device.name] = 'Account 5';
+        assignAccount(device.name, 'Account 5');
       }
     });
 

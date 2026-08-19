@@ -28,33 +28,53 @@ on:
         description: 'BrowserStack Android Onboarding App URL (bs://...)'
         required: false
         type: string
-      browserstack_app_url_ios_onboarding:
-        description: 'BrowserStack iOS Onboarding App URL (bs://...)'
-        required: false
-        type: string
       browserstack_app_url_android_imported_wallet:
         description: 'BrowserStack Android Imported Wallet App URL (bs://...)'
         required: false
         type: string
-      browserstack_app_url_ios_imported_wallet:
-        description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
-        required: false
-        type: string
-      performance_tags:
-        description: 'JSON array of performance tags. Blank runs all; [] skips all.'
-        required: false
-        type: string
-        default: ''
       reuse_main_builds:
         description: 'For e2e only, reuse and upload the latest Android APKs from main CI'
         required: false
         type: boolean
         default: false
-      source_fingerprint:
-        description: 'Optional @expo/fingerprint hash for Android app reuse'
+      enable_browserstack:
+        description: 'Also run BrowserStack performance lanes (off by default; TestMu HyperExecute is primary)'
         required: false
-        type: string
-        default: ''
+        type: boolean
+        default: false
+      enable_saucelabs:
+        description: 'Also run Sauce Labs performance lanes (off by default)'
+        required: false
+        type: boolean
+        default: false
+      enable_saucelabs_cloud:
+        description: 'Run Sauce Labs using four dynamically allocated cloud devices'
+        required: false
+        type: boolean
+        default: false
+      enable_testmu_standard_cloud:
+        description: 'Run TestMu Standard using four dynamically allocated cloud devices'
+        required: false
+        type: boolean
+        default: false
+      enable_testmu_standard:
+        description: 'Also run TestMu Standard using the TestMu device matrix'
+        required: false
+        type: boolean
+        default: false
+      enable_testmu_benchmark:
+        description: 'Run TestMu HyperExecute performance lanes'
+        required: false
+        type: boolean
+        default: true
+      he_region:
+        description: 'HyperExecute region (us or eu)'
+        required: false
+        type: choice
+        options:
+          - us
+          - eu
+        default: us
 
 permissions:
   contents: write
@@ -64,9 +84,18 @@ permissions:
   statuses: write
 
 concurrency:
-  # Manual runs are isolated by ref and variant so they do not block the
-  # scheduled cadence.
-  group: performance-e2e-trigger-${{ github.event_name == 'schedule' && github.event.schedule || github.ref }}-${{ github.event_name == 'schedule' && 'scheduled' || inputs.build_variant }}
+  # Each manual dispatch gets its own group so multiple manual runs can execute
+  # concurrently. Scheduled runs remain grouped by schedule/ref.
+  group: >-
+    ${{
+      github.event_name == 'workflow_dispatch' &&
+      format('performance-e2e-manual-{0}', github.run_id) ||
+      format(
+        'performance-e2e-trigger-{0}-{1}',
+        github.ref,
+        github.event.schedule || 'scheduled'
+      )
+    }}
   cancel-in-progress: false
 
 jobs:
@@ -76,8 +105,9 @@ jobs:
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       branch_name: main
-      source_ref: main
       build_variant: e2e
+      enable_testmu_benchmark: true
+      enable_browserstack: false
       sentry_target: test
     secrets: inherit
 
@@ -87,14 +117,16 @@ jobs:
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
       branch_name: ${{ github.ref_name }}
-      source_ref: ${{ github.ref_name }}
       build_variant: ${{ inputs.build_variant }}
+      enable_testmu_benchmark: ${{ inputs.enable_testmu_benchmark }}
+      enable_browserstack: ${{ inputs.enable_browserstack }}
+      enable_saucelabs: ${{ inputs.enable_saucelabs }}
+      enable_saucelabs_cloud: ${{ inputs.enable_saucelabs_cloud }}
+      enable_testmu_standard_cloud: ${{ inputs.enable_testmu_standard_cloud }}
+      enable_testmu_standard: ${{ inputs.enable_testmu_standard }}
       sentry_target: ${{ inputs.sentry_target }}
       browserstack_app_url_android_onboarding: ${{ inputs.browserstack_app_url_android_onboarding }}
-      browserstack_app_url_ios_onboarding: ${{ inputs.browserstack_app_url_ios_onboarding }}
       browserstack_app_url_android_imported_wallet: ${{ inputs.browserstack_app_url_android_imported_wallet }}
-      browserstack_app_url_ios_imported_wallet: ${{ inputs.browserstack_app_url_ios_imported_wallet }}
-      performance_tags: ${{ inputs.performance_tags }}
       reuse_main_builds: ${{ inputs.build_variant == 'e2e' && inputs.reuse_main_builds }}
-      source_fingerprint: ${{ inputs.source_fingerprint }}
+      he_region: ${{ inputs.he_region || 'us' }}
     secrets: inherit
