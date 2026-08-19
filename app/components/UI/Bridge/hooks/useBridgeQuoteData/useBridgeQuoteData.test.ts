@@ -82,7 +82,7 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
   })),
 }));
 
-type QuoteDataState = {
+interface QuoteDataState {
   bridgeReducerOverrides?: Partial<BridgeState>;
   bridgeControllerOverrides?: {
     quotesLoadingStatus?: RequestStatus | null;
@@ -94,7 +94,7 @@ type QuoteDataState = {
     >;
     quotes?: unknown;
   };
-};
+}
 
 const createBridgeTestState = (
   overrides: QuoteDataState = {},
