@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
+import type { CaipChainId } from '@metamask/utils';
 import { useStyles } from '../../../../../component-library/hooks';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import {
@@ -9,15 +10,27 @@ import {
 } from '../TokenInputArea';
 import { FLipQuoteButton } from '../FlipQuoteButton';
 import type { useLatestBalance } from '../../hooks/useLatestBalance';
-import type { useSwapsInputs } from '../../hooks/useSwapsInputs';
+import type { useSourceAmountInput } from '../../hooks/useSourceAmountInput';
+import type { BridgeToken } from '../../types';
 import { createStyles } from './SwapsInputs.styles';
 
 interface SwapsInputsProps {
   inputRef: React.Ref<TokenInputAreaRef>;
+  /** Chains both token selectors are restricted to. */
+  enabledChainIds?: CaipChainId[];
+  sourceToken: BridgeToken | undefined;
+  sourceAmountInput: ReturnType<typeof useSourceAmountInput>;
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
-  swapInputs: ReturnType<typeof useSwapsInputs>;
+  destToken: BridgeToken | undefined;
+  destTokenAmount: string | undefined;
+  isDestAmountLoading: boolean;
+  isFlipDisabled: boolean;
   onSourceInputPress: () => void;
+  onSourceTokenPress: () => void;
+  onSourceMaxPress: () => void;
+  onFlipPress: () => void;
   onDestInputPress: () => void;
+  onDestTokenPress: () => void;
   sourceTokenAreaTestID: string;
   destTokenAreaTestID: string;
   sourceAmountTypeToggleTestID: string;
@@ -25,28 +38,25 @@ interface SwapsInputsProps {
 
 export const SwapsInputs = ({
   inputRef,
+  enabledChainIds,
+  sourceToken,
+  sourceAmountInput,
   latestSourceBalance,
-  swapInputs,
+  destToken,
+  destTokenAmount,
+  isDestAmountLoading,
+  isFlipDisabled,
   onSourceInputPress,
+  onSourceTokenPress,
+  onSourceMaxPress,
+  onFlipPress,
   onDestInputPress,
+  onDestTokenPress,
   sourceTokenAreaTestID,
   destTokenAreaTestID,
   sourceAmountTypeToggleTestID,
 }: SwapsInputsProps) => {
   const { styles } = useStyles(createStyles);
-  const {
-    enabledChainIds,
-    destToken,
-    destTokenAmount,
-    handleDestTokenPress,
-    handleFlipTokensPress,
-    handleSourceMaxPress,
-    handleSourceTokenPress,
-    isDestAmountLoading,
-    isFlipDisabled,
-    sourceAmountInput,
-    sourceToken,
-  } = swapInputs;
 
   return (
     <Box style={styles.inputsContainer}>
@@ -68,8 +78,8 @@ export const SwapsInputs = ({
             onInputPress={onSourceInputPress}
             onFocus={sourceAmountInput.handleFocus}
             onSelectionChange={sourceAmountInput.handleSelectionChange}
-            onTokenPress={handleSourceTokenPress}
-            onMaxPress={handleSourceMaxPress}
+            onTokenPress={onSourceTokenPress}
+            onMaxPress={onSourceMaxPress}
             latestAtomicBalance={latestSourceBalance?.atomicBalance}
             isSourceToken
             inputPrefix={sourceAmountInput.inputPrefix}
@@ -85,10 +95,7 @@ export const SwapsInputs = ({
             excludeRwaTokens
           />
         </Box>
-        <FLipQuoteButton
-          onPress={handleFlipTokensPress}
-          disabled={isFlipDisabled}
-        />
+        <FLipQuoteButton onPress={onFlipPress} disabled={isFlipDisabled} />
         <Box style={styles.tokenCard}>
           <TokenInputArea
             amount={destTokenAmount}
@@ -101,7 +108,7 @@ export const SwapsInputs = ({
             testID={destTokenAreaTestID}
             tokenType={TokenInputAreaType.Destination}
             onInputPress={onDestInputPress}
-            onTokenPress={handleDestTokenPress}
+            onTokenPress={onDestTokenPress}
             isLoading={!destTokenAmount && isDestAmountLoading}
             showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
             enabledChainIds={enabledChainIds}

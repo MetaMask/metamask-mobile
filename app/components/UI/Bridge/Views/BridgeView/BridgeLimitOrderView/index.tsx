@@ -8,7 +8,6 @@ import {
   selectBridgeBalanceRefreshKey,
   selectSourceToken,
 } from '../../../../../../core/redux/slices/bridge';
-import { selectBridgeLimitOrderFeatureFlags } from '../../../../../../selectors/bridge/featureFlags';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
 import OrdersTabs from '../../../components/OrdersTabs';
@@ -25,9 +24,9 @@ import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import type { SwapsKeypadRef } from '../../../components/SwapsKeypad/types';
 import { BridgeQuoteDataProvider } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
-import { useSwapsInputs } from '../../../hooks/useSwapsInputs';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { createStyles } from '../orderViewShell.styles';
+import { useLimitOrderSwapInputs } from './useLimitOrderSwapInputs';
 
 interface BridgeLimitOrderViewContentProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -39,21 +38,22 @@ const BridgeLimitOrderViewContent = ({
   const { styles } = useStyles(createStyles);
   const inputRef = useRef<TokenInputAreaRef>(null);
   const keypadRef = useRef<SwapsKeypadRef>(null);
-  const limitOrderFeatureFlags = useSelector(
-    selectBridgeLimitOrderFeatureFlags,
-  );
 
-  const swapInputs = useSwapsInputs({
-    latestSourceBalance,
-    enabledChainIds: limitOrderFeatureFlags?.enabledChainIds,
-  });
   const {
+    destToken,
+    destTokenAmount,
+    enabledChainIds,
+    handleDestTokenPress,
+    handleFlipTokensPress,
     handleSourceMaxPress,
     handleSourcePresetAmountSelect,
+    handleSourceTokenPress,
+    isDestAmountLoading,
+    isFlipDisabled,
     isQuoteSponsored,
     sourceAmountInput,
     sourceToken,
-  } = swapInputs;
+  } = useLimitOrderSwapInputs({ latestSourceBalance });
 
   const dismissInputAndKeypad = useCallback(() => {
     inputRef.current?.blur();
@@ -79,10 +79,20 @@ const BridgeLimitOrderViewContent = ({
         >
           <SwapsInputs
             inputRef={inputRef}
+            enabledChainIds={enabledChainIds}
+            sourceToken={sourceToken}
+            sourceAmountInput={sourceAmountInput}
             latestSourceBalance={latestSourceBalance}
-            swapInputs={swapInputs}
+            destToken={destToken}
+            destTokenAmount={destTokenAmount}
+            isDestAmountLoading={isDestAmountLoading}
+            isFlipDisabled={isFlipDisabled}
             onSourceInputPress={openKeypad}
+            onSourceTokenPress={handleSourceTokenPress}
+            onSourceMaxPress={handleSourceMaxPress}
+            onFlipPress={handleFlipTokensPress}
             onDestInputPress={closeKeypad}
+            onDestTokenPress={handleDestTokenPress}
             sourceTokenAreaTestID={
               BridgeViewSelectorsIDs.LIMIT_SOURCE_TOKEN_AREA
             }

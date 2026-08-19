@@ -8,7 +8,7 @@ import {
 } from '../../../../../../core/redux/slices/bridge';
 import type { KeypadChangeData } from '../../../../../Base/Keypad';
 import type { SwapsKeypadRef } from '../../../components/SwapsKeypad/types';
-import type { useSwapsInputs } from '../../../hooks/useSwapsInputs';
+import type { useSourceAmountInput } from '../../../hooks/useSourceAmountInput';
 import {
   capRecurringKeypadValue,
   RECURRING_EVERY_MAX_DIGITS,
@@ -25,7 +25,7 @@ export enum RecurringBuyKeypadField {
 const SCHEDULE_KEYPAD_CURRENCY = '';
 
 interface UseRecurringBuyKeypadOptions {
-  sourceAmountInput: ReturnType<typeof useSwapsInputs>['sourceAmountInput'];
+  sourceAmountInput: ReturnType<typeof useSourceAmountInput>;
 }
 
 /**

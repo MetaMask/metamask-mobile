@@ -8,7 +8,6 @@ import {
   selectBridgeBalanceRefreshKey,
   selectSourceToken,
 } from '../../../../../../core/redux/slices/bridge';
-import { selectBridgeRecurringBuyFeatureFlags } from '../../../../../../selectors/bridge/featureFlags';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
 import OrdersTabs from '../../../components/OrdersTabs';
@@ -25,10 +24,10 @@ import { SwapsInputs } from '../../../components/SwapsInputs';
 import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { BridgeQuoteDataProvider } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
-import { useSwapsInputs } from '../../../hooks/useSwapsInputs';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { createStyles } from '../orderViewShell.styles';
 import { useRecurringBuyKeypad } from './useRecurringBuyKeypad';
+import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
 
 interface BridgeRecurringBuyViewContentProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -39,21 +38,22 @@ const BridgeRecurringBuyViewContent = ({
 }: BridgeRecurringBuyViewContentProps) => {
   const { styles } = useStyles(createStyles);
   const inputRef = useRef<TokenInputAreaRef>(null);
-  const recurringBuyFeatureFlags = useSelector(
-    selectBridgeRecurringBuyFeatureFlags,
-  );
 
-  const swapInputs = useSwapsInputs({
-    latestSourceBalance,
-    enabledChainIds: recurringBuyFeatureFlags?.enabledChainIds,
-  });
   const {
+    destToken,
+    destTokenAmount,
+    enabledChainIds,
+    handleDestTokenPress,
+    handleFlipTokensPress,
     handleSourceMaxPress,
     handleSourcePresetAmountSelect,
+    handleSourceTokenPress,
+    isDestAmountLoading,
+    isFlipDisabled,
     isQuoteSponsored,
     sourceAmountInput,
     sourceToken,
-  } = swapInputs;
+  } = useRecurringBuySwapInputs({ latestSourceBalance });
 
   const {
     close: closeKeypad,
@@ -87,10 +87,20 @@ const BridgeRecurringBuyViewContent = ({
         >
           <SwapsInputs
             inputRef={inputRef}
+            enabledChainIds={enabledChainIds}
+            sourceToken={sourceToken}
+            sourceAmountInput={sourceAmountInput}
             latestSourceBalance={latestSourceBalance}
-            swapInputs={swapInputs}
+            destToken={destToken}
+            destTokenAmount={destTokenAmount}
+            isDestAmountLoading={isDestAmountLoading}
+            isFlipDisabled={isFlipDisabled}
             onSourceInputPress={focusAmount}
+            onSourceTokenPress={handleSourceTokenPress}
+            onSourceMaxPress={handleSourceMaxPress}
+            onFlipPress={handleFlipTokensPress}
             onDestInputPress={closeKeypad}
+            onDestTokenPress={handleDestTokenPress}
             sourceTokenAreaTestID={
               BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_AREA
             }

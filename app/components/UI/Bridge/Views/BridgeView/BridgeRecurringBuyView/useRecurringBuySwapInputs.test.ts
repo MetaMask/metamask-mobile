@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import type { CaipChainId } from '@metamask/utils';
-import { useSwapsInputs } from '.';
+import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
 import {
   selectDestToken,
   selectSourceAmount,
@@ -8,12 +8,13 @@ import {
   setDestToken,
   setSourceAmount,
   setSourceToken,
-} from '../../../../../core/redux/slices/bridge';
-import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
-import { getNativeSourceToken } from '../../utils/tokenUtils';
-import { createMockToken } from '../../testUtils/fixtures';
-import { TokenSelectorType, type BridgeToken } from '../../types';
-import Routes from '../../../../../constants/navigation/Routes';
+} from '../../../../../../core/redux/slices/bridge';
+import { selectBridgeRecurringBuyFeatureFlags } from '../../../../../../selectors/bridge/featureFlags';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
+import { getNativeSourceToken } from '../../../utils/tokenUtils';
+import { createMockToken } from '../../../testUtils/fixtures';
+import { TokenSelectorType, type BridgeToken } from '../../../types';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 const mockDispatch = jest.fn();
 
@@ -27,7 +28,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-jest.mock('../useBridgeQuoteData/BridgeQuoteDataContext', () => ({
+jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   useBridgeQuoteDataContext: () => ({
     destTokenAmount: undefined,
     isLoading: false,
@@ -35,21 +36,21 @@ jest.mock('../useBridgeQuoteData/BridgeQuoteDataContext', () => ({
 }));
 
 const mockUpdateQuoteParams = Object.assign(jest.fn(), { cancel: jest.fn() });
-jest.mock('../useBridgeQuoteRequest', () => ({
+jest.mock('../../../hooks/useBridgeQuoteRequest', () => ({
   useBridgeQuoteRequest: () => mockUpdateQuoteParams,
 }));
 
-jest.mock('../useIsNetworkEnabled', () => ({
+jest.mock('../../../hooks/useIsNetworkEnabled', () => ({
   useIsNetworkEnabled: () => true,
 }));
 
 let mockIsHardwareWallet = false;
-jest.mock('../useIsHardwareWalletForBridge', () => ({
+jest.mock('../../../hooks/useIsHardwareWalletForBridge', () => ({
   useIsHardwareWalletForBridge: () => mockIsHardwareWallet,
 }));
 
 const mockSyncFiatAmountToTokenAmount = jest.fn();
-jest.mock('../useSourceAmountInput', () => ({
+jest.mock('../../../hooks/useSourceAmountInput', () => ({
   useSourceAmountInput: () => ({
     amount: '',
     selection: undefined,
@@ -70,7 +71,7 @@ jest.mock('../useSourceAmountInput', () => ({
   }),
 }));
 
-jest.mock('../useSwitchTokens', () => ({
+jest.mock('../../../hooks/useSwitchTokens', () => ({
   useSwitchTokens: () => ({ handleSwitchTokens: jest.fn(() => jest.fn()) }),
 }));
 
@@ -89,7 +90,7 @@ interface SelectorState {
   sourceAmount: string | undefined;
 }
 
-const renderSwapsInputsHook = (
+const renderRecurringBuySwapInputsHook = (
   selectorState: SelectorState,
   enabledChainIds: CaipChainId[] | undefined,
   gasSponsoredChainIds: string[] = [],
@@ -104,6 +105,9 @@ const renderSwapsInputsHook = (
     if (selector === selectSourceAmount) {
       return selectorState.sourceAmount;
     }
+    if (selector === selectBridgeRecurringBuyFeatureFlags) {
+      return enabledChainIds ? { enabled: true, enabledChainIds } : undefined;
+    }
     if (selector === getGasFeesSponsoredNetworkEnabled) {
       return (chainId: string) => gasSponsoredChainIds.includes(chainId);
     }
@@ -111,14 +115,11 @@ const renderSwapsInputsHook = (
   });
 
   return renderHook(() =>
-    useSwapsInputs({
-      latestSourceBalance: undefined,
-      enabledChainIds,
-    }),
+    useRecurringBuySwapInputs({ latestSourceBalance: undefined }),
   );
 };
 
-describe('useSwapsInputs', () => {
+describe('useRecurringBuySwapInputs', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsHardwareWallet = false;
@@ -126,8 +127,8 @@ describe('useSwapsInputs', () => {
 
   it('always resets source/dest to ETH/mUSD on mount when Ethereum is enabled', () => {
     // Simulates a token selected on another tab (e.g. Market order) whose
-    // chain isn't part of this flow's allowed chains. The consuming view
-    // mounting fresh (tab switch) is what triggers the reset.
+    // chain isn't part of this flow's allowed chains. The view mounting fresh
+    // (tab switch) is what triggers the reset.
     const staleSourceToken = createMockToken({
       chainId: '0xa4b1', // Arbitrum, not in ENABLED_CHAIN_IDS
       symbol: 'ARB-TOKEN',
@@ -138,7 +139,7 @@ describe('useSwapsInputs', () => {
       address: '0xdest',
     });
 
-    renderSwapsInputsHook(
+    renderRecurringBuySwapInputsHook(
       {
         sourceToken: staleSourceToken,
         destToken: staleDestToken,
@@ -159,7 +160,7 @@ describe('useSwapsInputs', () => {
   it('falls back to the first enabled chain default pair when Ethereum is not enabled', () => {
     const staleSourceToken = createMockToken({ chainId: '0xa4b1' });
 
-    renderSwapsInputsHook(
+    renderRecurringBuySwapInputsHook(
       {
         sourceToken: staleSourceToken,
         destToken: undefined,
@@ -180,7 +181,7 @@ describe('useSwapsInputs', () => {
     // depending on whatever was left selected from a prior visit.
     const validSourceToken = getNativeSourceToken('eip155:1');
 
-    renderSwapsInputsHook(
+    renderRecurringBuySwapInputsHook(
       {
         sourceToken: validSourceToken,
         destToken: undefined,
@@ -196,7 +197,7 @@ describe('useSwapsInputs', () => {
 
   describe('handleSourcePresetAmountSelect', () => {
     it('sets the source amount to the preset value and keeps the fiat amount in sync', () => {
-      const { result } = renderSwapsInputsHook(
+      const { result } = renderRecurringBuySwapInputsHook(
         {
           sourceToken: getNativeSourceToken('eip155:1'),
           destToken: undefined,
@@ -212,7 +213,7 @@ describe('useSwapsInputs', () => {
     });
 
     it('clears the source amount when the preset normalizes to an empty value', () => {
-      const { result } = renderSwapsInputsHook(
+      const { result } = renderRecurringBuySwapInputsHook(
         {
           sourceToken: getNativeSourceToken('eip155:1'),
           destToken: undefined,
@@ -236,7 +237,7 @@ describe('useSwapsInputs', () => {
         address: '0xdest',
       });
 
-      const { result } = renderSwapsInputsHook(
+      const { result } = renderRecurringBuySwapInputsHook(
         { sourceToken, destToken, sourceAmount: undefined },
         ENABLED_CHAIN_IDS,
         ['0x279f'],
@@ -252,7 +253,7 @@ describe('useSwapsInputs', () => {
         address: '0xdest',
       });
 
-      const { result } = renderSwapsInputsHook(
+      const { result } = renderRecurringBuySwapInputsHook(
         { sourceToken, destToken, sourceAmount: undefined },
         ENABLED_CHAIN_IDS,
         ['0x279f', '0x1'],
@@ -265,7 +266,7 @@ describe('useSwapsInputs', () => {
       const sourceToken = createMockToken({ chainId: '0x1' });
       const destToken = createMockToken({ chainId: '0x1', address: '0xdest' });
 
-      const { result } = renderSwapsInputsHook(
+      const { result } = renderRecurringBuySwapInputsHook(
         { sourceToken, destToken, sourceAmount: undefined },
         ENABLED_CHAIN_IDS,
         [],
@@ -283,7 +284,7 @@ describe('useSwapsInputs', () => {
     };
 
     it('requests a quote once the inputs are complete', () => {
-      renderSwapsInputsHook(validInputs, ENABLED_CHAIN_IDS);
+      renderRecurringBuySwapInputsHook(validInputs, ENABLED_CHAIN_IDS);
 
       expect(mockUpdateQuoteParams).toHaveBeenCalled();
     });
@@ -291,7 +292,7 @@ describe('useSwapsInputs', () => {
     it('never requests a quote for a hardware wallet account', () => {
       mockIsHardwareWallet = true;
 
-      renderSwapsInputsHook(validInputs, ENABLED_CHAIN_IDS);
+      renderRecurringBuySwapInputsHook(validInputs, ENABLED_CHAIN_IDS);
 
       expect(mockUpdateQuoteParams).not.toHaveBeenCalled();
     });
@@ -299,7 +300,7 @@ describe('useSwapsInputs', () => {
 
   describe('token selector navigation', () => {
     it('opens the source picker scoped to the enabled chains and without RWAs', () => {
-      const { result } = renderSwapsInputsHook(
+      const { result } = renderRecurringBuySwapInputsHook(
         {
           sourceToken: getNativeSourceToken('eip155:1'),
           destToken: undefined,
@@ -321,7 +322,7 @@ describe('useSwapsInputs', () => {
     });
 
     it('opens the destination picker scoped to the enabled chains and without RWAs', () => {
-      const { result } = renderSwapsInputsHook(
+      const { result } = renderRecurringBuySwapInputsHook(
         {
           sourceToken: getNativeSourceToken('eip155:1'),
           destToken: undefined,
@@ -343,10 +344,10 @@ describe('useSwapsInputs', () => {
     });
   });
 
-  it('does not reset tokens when enabledChainIds is undefined (unrestricted flow)', () => {
+  it('does not reset tokens when the recurring buy feature flag is missing', () => {
     const staleSourceToken = createMockToken({ chainId: '0xa4b1' });
 
-    renderSwapsInputsHook(
+    renderRecurringBuySwapInputsHook(
       {
         sourceToken: staleSourceToken,
         destToken: undefined,
