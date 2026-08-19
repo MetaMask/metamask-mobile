@@ -626,9 +626,12 @@ function finishPendingTrace(
  */
 /**
  * Return the in-flight span for a pending manual trace, if any.
- * Used to nest a security op (e.g. Create Key and Backup SRP) under an
- * already-open journey span (e.g. New Social Create Wallet) without
- * threading the span through route params.
+ * Used to nest a child span under an already-open parent span without
+ * threading the span through route params (perf_fix: trace-registry-v1).
+ *
+ * Onboarding screens call this with `TraceName.OnboardingJourneyOverall` to
+ * fetch the parent context instead of receiving it as a non-serializable
+ * React Navigation route param.
  */
 export function getTraceContext(
   request: Pick<TraceRequest, 'name' | 'id'>,
