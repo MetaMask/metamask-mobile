@@ -19,14 +19,14 @@ import {
   SwapsBanners,
   TokenWarningBanner,
 } from '../../../components/SwapsBanners';
+import { SwapsInputs } from '../../../components/SwapsInputs';
 import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import type { SwapsKeypadRef } from '../../../components/SwapsKeypad/types';
 import { BridgeQuoteDataProvider } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
+import { useSwapsInputs } from '../../../hooks/useSwapsInputs';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
-import { createStyles } from './BridgeLimitOrderView.styles';
-import { LimitOrderSwapInputs } from './LimitOrderSwapInputs';
-import { useLimitOrderSwapInputs } from './useLimitOrderSwapInputs';
+import { createStyles } from '../orderViewShell.styles';
 
 interface BridgeLimitOrderViewContentProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -42,7 +42,7 @@ const BridgeLimitOrderViewContent = ({
     selectBridgeLimitOrderFeatureFlags,
   );
 
-  const swapInputs = useLimitOrderSwapInputs({
+  const swapInputs = useSwapsInputs({
     latestSourceBalance,
     enabledChainIds: limitOrderFeatureFlags?.enabledChainIds,
   });
@@ -76,12 +76,19 @@ const BridgeLimitOrderViewContent = ({
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
         >
-          <LimitOrderSwapInputs
+          <SwapsInputs
             inputRef={inputRef}
             latestSourceBalance={latestSourceBalance}
             swapInputs={swapInputs}
             onSourceInputPress={openKeypad}
             onDestInputPress={closeKeypad}
+            sourceTokenAreaTestID={
+              BridgeViewSelectorsIDs.LIMIT_SOURCE_TOKEN_AREA
+            }
+            destTokenAreaTestID={BridgeViewSelectorsIDs.LIMIT_DEST_TOKEN_AREA}
+            sourceAmountTypeToggleTestID={
+              BridgeViewSelectorsIDs.LIMIT_SOURCE_AMOUNT_TYPE_TOGGLE
+            }
           />
 
           <SwapsBanners

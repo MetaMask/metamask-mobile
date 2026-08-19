@@ -26,6 +26,13 @@ export const BridgeViewSelectorsIDs = {
   LIMIT_DEST_TOKEN_AREA: 'limit-dest-token-area',
   LIMIT_DEST_TOKEN_INPUT: 'limit-dest-token-area-input',
   RECURRING_BUY_CONTAINER: 'bridge-recurring-buy-container',
+  RECURRING_BUY_SCROLL: 'bridge-recurring-buy-scroll',
+  RECURRING_SOURCE_TOKEN_AREA: 'recurring-source-token-area',
+  RECURRING_SOURCE_TOKEN_INPUT: 'recurring-source-token-area-input',
+  RECURRING_SOURCE_AMOUNT_TYPE_TOGGLE:
+    'recurring-source-token-area-amount-type-toggle',
+  RECURRING_DEST_TOKEN_AREA: 'recurring-dest-token-area',
+  RECURRING_DEST_TOKEN_INPUT: 'recurring-dest-token-area-input',
 } as const;
 
 export type BridgeViewSelectorsIDsType = typeof BridgeViewSelectorsIDs;

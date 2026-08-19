@@ -2,9 +2,9 @@ import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { CaipChainId } from '@metamask/utils';
-import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import Routes from '../../../../../../constants/navigation/Routes';
-import type { RootState } from '../../../../../../reducers';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
+import type { RootState } from '../../../../../reducers';
 import {
   selectDestToken,
   selectSourceAmount,
@@ -13,35 +13,38 @@ import {
   setSourceAmount,
   setSourceAmountAsMax,
   setSourceToken,
-} from '../../../../../../core/redux/slices/bridge';
-import { selectRemoteFeatureFlags } from '../../../../../../selectors/featureFlagController';
-import { TokenSelectorType } from '../../../types';
-import { MAX_INPUT_LENGTH } from '../../../components/TokenInputArea';
-import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import { useBridgeQuoteRequest } from '../../../hooks/useBridgeQuoteRequest';
-import { useIsHardwareWalletForBridge } from '../../../hooks/useIsHardwareWalletForBridge';
-import { useIsNetworkEnabled } from '../../../hooks/useIsNetworkEnabled';
-import { useIsNetworkGasSponsored } from '../../../hooks/useIsNetworkGasSponsored';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
-import { useSourceAmountInput } from '../../../hooks/useSourceAmountInput';
-import { useSwitchTokens } from '../../../hooks/useSwitchTokens';
-import { normalizeSourceAmountToMaxLength } from '../../../utils/normalizeSourceAmountToMaxLength';
-import { getDefaultTokenPairForChains } from '../../../utils/tokenUtils';
+} from '../../../../../core/redux/slices/bridge';
+import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
+import { TokenSelectorType } from '../../types';
+import { MAX_INPUT_LENGTH } from '../../components/TokenInputArea';
+import { useBridgeQuoteDataContext } from '../useBridgeQuoteData/BridgeQuoteDataContext';
+import { useBridgeQuoteRequest } from '../useBridgeQuoteRequest';
+import { useIsHardwareWalletForBridge } from '../useIsHardwareWalletForBridge';
+import { useIsNetworkEnabled } from '../useIsNetworkEnabled';
+import { useIsNetworkGasSponsored } from '../useIsNetworkGasSponsored';
+import { useLatestBalance } from '../useLatestBalance';
+import { useSourceAmountInput } from '../useSourceAmountInput';
+import { useSwitchTokens } from '../useSwitchTokens';
+import { normalizeSourceAmountToMaxLength } from '../../utils/normalizeSourceAmountToMaxLength';
+import { getDefaultTokenPairForChains } from '../../utils/tokenUtils';
 
-interface UseLimitOrderSwapInputsOptions {
+interface UseSwapsInputsOptions {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
-  /** Chains the limit order token selectors are restricted to. */
+  /** Chains the token selectors are restricted to. */
   enabledChainIds?: CaipChainId[];
 }
 
 /**
- * Wires the limit order swap inputs to the bridge state: amount entry, token
+ * Wires a swap input section to the bridge state: amount entry, token
  * selection (EVM assets only), token flipping, and quote requests.
+ *
+ * Shared by the Limit Order and Recurring Buy tabs. Market orders have their
+ * own wiring in `BridgeMarketView` and intentionally do not use this hook.
  */
-export const useLimitOrderSwapInputs = ({
+export const useSwapsInputs = ({
   latestSourceBalance,
   enabledChainIds,
-}: UseLimitOrderSwapInputsOptions) => {
+}: UseSwapsInputsOptions) => {
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -53,15 +56,15 @@ export const useLimitOrderSwapInputs = ({
       selectRemoteFeatureFlags(state).enableFiatToggle === true,
   );
 
-  // This view is unmounted/remounted each time its tab is switched away
-  // from/back to (see BridgeView's conditional rendering), so this effect
+  // The consuming view is unmounted/remounted each time its tab is switched
+  // away from/back to (see BridgeView's conditional rendering), so this effect
   // runs exactly once per "switch into this tab" event as long as
   // enabledChainIds is a stable reference (which is based on LD flags).
   // sourceToken/destToken are shared bridge-wide Redux state and can be
   // left over from another flow (e.g. Market order) whose chain isn't
-  // part of this Limit Order icker's allowed chains, so always
-  // re-anchor both to this flow's default pair: Ethereum's ETH/mUSD
-  // when enabled, otherwise the default pair for the first enabled chain.
+  // part of this flow's allowed chains, so always re-anchor both to this
+  // flow's default pair: Ethereum's ETH/mUSD when enabled, otherwise the
+  // default pair for the first enabled chain.
   useEffect(() => {
     if (!enabledChainIds) {
       return;
@@ -110,11 +113,11 @@ export const useLimitOrderSwapInputs = ({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
-  // Limit orders cannot be signed by a hardware wallet on any chain, so no
-  // quote is ever requested for one. The inputs stay interactive and
-  // `HardwareWalletUnsupportedBanner` explains why no quote appears. Gating
-  // here rather than in useBridgeQuoteRequest keeps hardware wallets working
-  // for Market orders, which share that hook.
+  // Neither order type using this hook can be signed by a hardware wallet on
+  // any chain, so no quote is ever requested for one. The inputs stay
+  // interactive and `HardwareWalletUnsupportedBanner` explains why no quote
+  // appears. Gating here rather than in useBridgeQuoteRequest keeps hardware
+  // wallets working for Market orders, which share that hook but not this one.
   const isHardwareWallet = useIsHardwareWalletForBridge();
 
   // Both pickers are restricted to EVM chains, so no destination address is
@@ -166,7 +169,7 @@ export const useLimitOrderSwapInputs = ({
   const handleFlipTokensPress = useCallback(() => {
     resetToTokenMode();
     handleSwitchTokens(destTokenAmount)().catch((error) => {
-      console.error('Error switching limit order tokens:', error);
+      console.error('Error switching swap tokens:', error);
     });
   }, [destTokenAmount, handleSwitchTokens, resetToTokenMode]);
 

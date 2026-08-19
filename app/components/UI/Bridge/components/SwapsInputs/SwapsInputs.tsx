@@ -1,33 +1,38 @@
 import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../../../component-library/hooks';
-import { getNetworkImageSource } from '../../../../../../util/networks';
+import { useStyles } from '../../../../../component-library/hooks';
+import { getNetworkImageSource } from '../../../../../util/networks';
 import {
   TokenInputArea,
   TokenInputAreaRef,
   TokenInputAreaType,
-} from '../../../components/TokenInputArea';
-import { FLipQuoteButton } from '../../../components/FlipQuoteButton';
-import type { useLatestBalance } from '../../../hooks/useLatestBalance';
-import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
-import { createStyles } from './BridgeLimitOrderView.styles';
-import type { useLimitOrderSwapInputs } from './useLimitOrderSwapInputs';
+} from '../TokenInputArea';
+import { FLipQuoteButton } from '../FlipQuoteButton';
+import type { useLatestBalance } from '../../hooks/useLatestBalance';
+import type { useSwapsInputs } from '../../hooks/useSwapsInputs';
+import { createStyles } from './SwapsInputs.styles';
 
-interface LimitOrderSwapInputsProps {
+interface SwapsInputsProps {
   inputRef: React.Ref<TokenInputAreaRef>;
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
-  swapInputs: ReturnType<typeof useLimitOrderSwapInputs>;
+  swapInputs: ReturnType<typeof useSwapsInputs>;
   onSourceInputPress: () => void;
   onDestInputPress: () => void;
+  sourceTokenAreaTestID: string;
+  destTokenAreaTestID: string;
+  sourceAmountTypeToggleTestID: string;
 }
 
-export const LimitOrderSwapInputs = ({
+export const SwapsInputs = ({
   inputRef,
   latestSourceBalance,
   swapInputs,
   onSourceInputPress,
   onDestInputPress,
-}: LimitOrderSwapInputsProps) => {
+  sourceTokenAreaTestID,
+  destTokenAreaTestID,
+  sourceAmountTypeToggleTestID,
+}: SwapsInputsProps) => {
   const { styles } = useStyles(createStyles);
   const {
     enabledChainIds,
@@ -58,7 +63,7 @@ export const LimitOrderSwapInputs = ({
                 ? getNetworkImageSource({ chainId: sourceToken.chainId })
                 : undefined
             }
-            testID={BridgeViewSelectorsIDs.LIMIT_SOURCE_TOKEN_AREA}
+            testID={sourceTokenAreaTestID}
             tokenType={TokenInputAreaType.Source}
             onInputPress={onSourceInputPress}
             onFocus={sourceAmountInput.handleFocus}
@@ -75,9 +80,7 @@ export const LimitOrderSwapInputs = ({
                 ? sourceAmountInput.handleToggle
                 : undefined
             }
-            amountTypeToggleTestID={
-              BridgeViewSelectorsIDs.LIMIT_SOURCE_AMOUNT_TYPE_TOGGLE
-            }
+            amountTypeToggleTestID={sourceAmountTypeToggleTestID}
             enabledChainIds={enabledChainIds}
             excludeRwaTokens
           />
@@ -95,7 +98,7 @@ export const LimitOrderSwapInputs = ({
                 ? getNetworkImageSource({ chainId: destToken.chainId })
                 : undefined
             }
-            testID={BridgeViewSelectorsIDs.LIMIT_DEST_TOKEN_AREA}
+            testID={destTokenAreaTestID}
             tokenType={TokenInputAreaType.Destination}
             onInputPress={onDestInputPress}
             onTokenPress={handleDestTokenPress}
