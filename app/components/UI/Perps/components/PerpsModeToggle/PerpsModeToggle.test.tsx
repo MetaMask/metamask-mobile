@@ -307,7 +307,6 @@ describe('PerpsModeToggle', () => {
       />,
     );
 
-    // No timer advance: the switch must not be gated behind the glow (TAT-3674).
     await act(async () => {
       fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
     });
@@ -315,7 +314,6 @@ describe('PerpsModeToggle', () => {
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith(PerpsMode.Lite);
 
-    // The glow still runs, keeping the pill inert until it finishes.
     expect(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT)).toBeDisabled();
     await act(async () => {
       jest.advanceTimersByTime(GLOW_TOTAL_MS);

@@ -202,7 +202,6 @@ describe('PerpsMarketHeader', () => {
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
 
-    // No timer advance: the switch is not gated behind the glow (TAT-3674).
     expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Lite);
 
     // Drain the shimmer timer so it cannot leak into later tests.

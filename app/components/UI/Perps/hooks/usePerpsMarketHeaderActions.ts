@@ -130,7 +130,6 @@ export const usePerpsMarketHeaderActions = ({
 
   const handlePerpsModeChange = useCallback(
     async (nextMode: PerpsMode): Promise<boolean> => {
-      // Runs on press, concurrently with the pill's shimmer (TAT-3674).
       // The chooser gates every header toggle, so a user who reaches a market
       // without ever seeing it gets the sheet here and it owns the switch.
       const openedChooser = await openPerpsModeSelectionIfNeeded(navigation, {
