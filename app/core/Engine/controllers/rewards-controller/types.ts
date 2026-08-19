@@ -1643,6 +1643,8 @@ export interface MoneyAccountSweepstakesDrawProofDto {
 export interface MoneyAccountSweepstakesOutcomeDto
   extends BaseCampaignParticipantOutcomeDto {
   prizeAmountUsd?: number | null;
+  /** 1-based draw position; same as draw-proof originalRank / drawOrder. */
+  rank?: number | null;
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

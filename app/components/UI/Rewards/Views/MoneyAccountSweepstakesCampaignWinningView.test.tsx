@@ -34,7 +34,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../utils/formatUtils', () => ({
-  formatUsd: (value: number) => `$${value.toFixed(2)}`,
+  formatOrdinalRank: (rank: number) => `${rank}-rank`,
 }));
 
 const mockUseOutcome = useMoneyAccountSweepstakesOutcome as jest.MockedFunction<
@@ -53,6 +53,7 @@ describe('MoneyAccountSweepstakesCampaignWinningView', () => {
         outcomeStatus: 'pending',
         winnerVerificationCode: 'MAS-WIN-42',
         prizeAmountUsd: 250,
+        rank: 2,
       },
       isLoading: false,
       hasError: false,
@@ -86,7 +87,7 @@ describe('MoneyAccountSweepstakesCampaignWinningView', () => {
         winningCode: 'MAS-WIN-42',
         hasOutcomeLoaded: true,
         isLoading: false,
-        rankDisplay: '$250.00',
+        rankDisplay: '2-rank',
         isRankLoading: false,
         fallbackRoute: {
           route: Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
@@ -97,13 +98,14 @@ describe('MoneyAccountSweepstakesCampaignWinningView', () => {
     );
   });
 
-  it('passes null winning code and rank when outcome has no prize data', () => {
+  it('passes null winning code and rank when outcome has no winner data', () => {
     mockUseOutcome.mockReturnValue({
       outcome: {
         subscriptionId: 'sub-1',
         outcomeStatus: 'finalized',
         winnerVerificationCode: null,
         prizeAmountUsd: null,
+        rank: null,
       },
       isLoading: false,
       hasError: false,
