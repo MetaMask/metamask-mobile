@@ -3,7 +3,7 @@ import { defineConfig } from './framework/config';
 
 const device = {
   provider: ProviderName.SAUCELABS,
-  name: process.env.SAUCE_DEVICE || 'Google_Pixel_7_POC49',
+  name: process.env.SAUCE_DEVICE || 'Google_Pixel_7_POC(49|05)',
 };
 
 const app = (buildPath?: string) => ({
