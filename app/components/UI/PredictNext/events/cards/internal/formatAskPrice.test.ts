@@ -1,4 +1,4 @@
-import type { PredictDecimal } from '../../types';
+import type { PredictDecimal } from '../../../types';
 import { formatAskPrice } from './formatAskPrice';
 
 describe('formatAskPrice', () => {
