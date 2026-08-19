@@ -1016,12 +1016,16 @@ const OutcomeButtons = React.memo(
       restPrices,
     );
 
+    // Live-now compact buttons match sports Md `Button` radius (`rounded-xl` /
+    // 12px). Feed cards keep `rounded-lg` so this stays isolated.
+    const buttonRadiusClass = compact ? 'rounded-xl' : 'rounded-lg';
+
     const buttons = (
       <>
         <ButtonBase
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.UP_BUTTON}
           onPress={() => onBuyPress(upToken)}
-          twClassName="h-10 flex-1 rounded-lg bg-success-muted"
+          twClassName={`h-10 flex-1 ${buttonRadiusClass} bg-success-muted`}
           disabled={!upToken || !isMarketOpen}
         >
           <Text
@@ -1035,7 +1039,7 @@ const OutcomeButtons = React.memo(
         <ButtonBase
           testID={PredictCryptoUpDownMarketCardSelectorsIDs.DOWN_BUTTON}
           onPress={() => onBuyPress(downToken)}
-          twClassName="h-10 flex-1 rounded-lg bg-error-muted"
+          twClassName={`h-10 flex-1 ${buttonRadiusClass} bg-error-muted`}
           disabled={!downToken || !isMarketOpen}
         >
           <Text
@@ -1083,8 +1087,8 @@ const PredictCryptoUpDownMarketCardSkeleton = ({
       testID={testID}
       twClassName={
         compact
-          ? 'h-full rounded-xl bg-section p-4 justify-between'
-          : 'my-2 rounded-xl bg-section p-4'
+          ? 'h-full rounded-xl bg-section p-3 justify-between'
+          : 'mb-3 rounded-xl bg-section p-4'
       }
     >
       <Box
@@ -1097,8 +1101,16 @@ const PredictCryptoUpDownMarketCardSkeleton = ({
           <Skeleton width="100%" height={120} style={tw.style('rounded-xl')} />
         )}
         <Box flexDirection={BoxFlexDirection.Row} twClassName="w-full gap-2">
-          <Skeleton width="48%" height={40} style={tw.style('rounded-lg')} />
-          <Skeleton width="48%" height={40} style={tw.style('rounded-lg')} />
+          <Skeleton
+            width="48%"
+            height={40}
+            style={tw.style(compact ? 'rounded-xl' : 'rounded-lg')}
+          />
+          <Skeleton
+            width="48%"
+            height={40}
+            style={tw.style(compact ? 'rounded-xl' : 'rounded-lg')}
+          />
         </Box>
       </Box>
     </Box>
@@ -1345,7 +1357,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
         accessibilityRole="button"
         style={tw.style('h-full rounded-xl bg-muted overflow-hidden')}
       >
-        <Box twClassName="flex-1 p-4 items-center justify-between">
+        <Box twClassName="flex-1 p-3 items-center justify-between">
           <Box twClassName="items-center">
             <LiveStatus
               compact
@@ -1389,7 +1401,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   }
 
   return (
-    <Box twClassName="my-2 h-[319px] rounded-xl bg-muted overflow-hidden">
+    <Box twClassName="mb-3 h-[319px] rounded-xl bg-muted overflow-hidden">
       <Pressable
         testID={testID ?? PredictCryptoUpDownMarketCardSelectorsIDs.CARD}
         onPress={handleCardPress}
