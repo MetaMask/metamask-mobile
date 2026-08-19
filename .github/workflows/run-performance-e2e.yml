@@ -857,7 +857,7 @@ jobs:
       ]
     if: >-
       always() && !failure() && !cancelled() &&
-      (inputs.enable_saucelabs == true || inputs.enable_saucelabs_cloud == true) &&
+      inputs.enable_saucelabs == true &&
       needs.compute-test-selection.outputs.run_tests == 'true' &&
       needs.trigger-android-dual-versions.result == 'success' &&
       needs.trigger-android-dual-versions.outputs.without-srp-sauce-url != ''
@@ -865,9 +865,35 @@ jobs:
       platform: android
       build_type: onboarding
       sauce_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-sauce-url }}
-      device_mode: ${{ inputs.enable_saucelabs_cloud == true && 'cloud' || 'private' }}
+      device_mode: private
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       sauce_build_name: ${{ needs.set-build-names.outputs.android_build_name }}-SauceLabs
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
+    secrets: inherit
+
+  run-android-onboarding-tests-saucelabs-cloud:
+    name: '[Sauce Labs Cloud] Run Android Onboarding Tests'
+    uses: ./.github/workflows/performance-test-runner-saucelabs.yml
+    needs:
+      [
+        trigger-android-dual-versions,
+        set-build-names,
+        determine-branch-name,
+        compute-test-selection,
+      ]
+    if: >-
+      always() && !failure() && !cancelled() &&
+      inputs.enable_saucelabs_cloud == true &&
+      needs.compute-test-selection.outputs.run_tests == 'true' &&
+      needs.trigger-android-dual-versions.result == 'success' &&
+      needs.trigger-android-dual-versions.outputs.without-srp-sauce-url != ''
+    with:
+      platform: android
+      build_type: onboarding
+      sauce_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-sauce-url }}
+      device_mode: cloud
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      sauce_build_name: ${{ needs.set-build-names.outputs.android_build_name }}-SauceLabs-Cloud
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
@@ -910,6 +936,7 @@ jobs:
         run-android-onboarding-tests-testmu,
         run-android-onboarding-tests-testmu-standard,
         run-android-onboarding-tests-saucelabs,
+        run-android-onboarding-tests-saucelabs-cloud,
       ]
     if: always()
     steps:
@@ -1041,7 +1068,7 @@ jobs:
       ]
     if: >-
       always() && !cancelled() &&
-      (inputs.enable_saucelabs == true || inputs.enable_saucelabs_cloud == true) &&
+      inputs.enable_saucelabs == true &&
       needs.compute-test-selection.outputs.run_tests == 'true' &&
       needs.trigger-android-dual-versions.result == 'success' &&
       needs.trigger-android-dual-versions.outputs.with-srp-sauce-url != ''
@@ -1049,9 +1076,36 @@ jobs:
       platform: android
       build_type: imported-wallet
       sauce_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-sauce-url }}
-      device_mode: ${{ inputs.enable_saucelabs_cloud == true && 'cloud' || 'private' }}
+      device_mode: private
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       sauce_build_name: ${{ needs.set-build-names.outputs.android_build_name }}-SauceLabs
+      grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
+    secrets: inherit
+
+  run-android-imported-wallet-tests-saucelabs-cloud:
+    name: '[Sauce Labs Cloud] Run Android Imported Wallet Tests'
+    uses: ./.github/workflows/performance-test-runner-saucelabs.yml
+    needs:
+      [
+        trigger-android-dual-versions,
+        wait-for-onboarding-completion,
+        set-build-names,
+        determine-branch-name,
+        compute-test-selection,
+      ]
+    if: >-
+      always() && !cancelled() &&
+      inputs.enable_saucelabs_cloud == true &&
+      needs.compute-test-selection.outputs.run_tests == 'true' &&
+      needs.trigger-android-dual-versions.result == 'success' &&
+      needs.trigger-android-dual-versions.outputs.with-srp-sauce-url != ''
+    with:
+      platform: android
+      build_type: imported-wallet
+      sauce_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-sauce-url }}
+      device_mode: cloud
+      branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
+      sauce_build_name: ${{ needs.set-build-names.outputs.android_build_name }}-SauceLabs-Cloud
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
     secrets: inherit
 
@@ -1106,8 +1160,12 @@ jobs:
         run-ios-onboarding-tests,
         run-android-onboarding-tests-testmu,
         run-android-onboarding-tests-testmu-standard,
+        run-android-onboarding-tests-saucelabs,
+        run-android-onboarding-tests-saucelabs-cloud,
         run-android-imported-wallet-tests-testmu,
         run-android-imported-wallet-tests-testmu-standard,
+        run-android-imported-wallet-tests-saucelabs,
+        run-android-imported-wallet-tests-saucelabs-cloud,
         wait-for-onboarding-completion,
         determine-branch-name,
       ]
