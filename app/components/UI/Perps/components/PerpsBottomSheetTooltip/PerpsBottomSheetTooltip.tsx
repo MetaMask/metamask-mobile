@@ -12,6 +12,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsBottomSheetTooltipProps } from './PerpsBottomSheetTooltip.types';
 import { tooltipContentRegistry } from './content/contentRegistry';
@@ -122,23 +123,35 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
     if (!isVisible || !title) return null;
 
     return (
-      <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
-        {!hasCustomHeader && (
-          <BottomSheetHeader
-            onClose={handleClose}
-            testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
-          >
-            {title}
-          </BottomSheetHeader>
-        )}
-        <Box paddingHorizontal={4}>{renderContent()}</Box>
-        <BottomSheetFooter
-          buttonsAlignment={ButtonsAlignment.Horizontal}
-          primaryButtonProps={primaryButtonProps}
-          secondaryButtonProps={secondaryButtonProps}
-          twClassName="pt-6"
-        />
-      </BottomSheet>
+      /*
+        Callers render this tooltip inside a react-native <Modal>, which on
+        Android is its own window. `statusBarTranslucent` makes that window draw
+        under the system bars, but the root SafeAreaProvider measures the
+        activity window, so it reports a bottom inset of 0 here and
+        BottomSheetDialog's bottom padding collapses — leaving the footer button
+        under the navigation bar. A nested provider measures this window
+        instead, so the inset is right on every Android version. Same approach
+        as FilterOptionSheet and the scam questionnaire modal.
+      */
+      <SafeAreaProvider testID={`${testID}-safe-area-provider`}>
+        <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
+          {!hasCustomHeader && (
+            <BottomSheetHeader
+              onClose={handleClose}
+              testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
+            >
+              {title}
+            </BottomSheetHeader>
+          )}
+          <Box paddingHorizontal={4}>{renderContent()}</Box>
+          <BottomSheetFooter
+            buttonsAlignment={ButtonsAlignment.Horizontal}
+            primaryButtonProps={primaryButtonProps}
+            secondaryButtonProps={secondaryButtonProps}
+            twClassName="pt-6"
+          />
+        </BottomSheet>
+      </SafeAreaProvider>
     );
   },
 );

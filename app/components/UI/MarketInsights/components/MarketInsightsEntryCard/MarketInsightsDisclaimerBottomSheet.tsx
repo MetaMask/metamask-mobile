@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { Modal, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -47,26 +48,36 @@ const MarketInsightsDisclaimerBottomSheet: React.FC<
         statusBarTranslucent
         onRequestClose={handleClose}
       >
-        <BottomSheet ref={bottomSheetRef} onClose={onClose}>
-          <BottomSheetHeader onClose={handleClose}>
-            {strings('market_insights.disclaimer_modal.title')}
-          </BottomSheetHeader>
+        {/*
+          On Android a Modal is its own window, and `statusBarTranslucent` makes
+          it draw under the system bars. The root SafeAreaProvider measures the
+          activity window, so it reports a bottom inset of 0 here and
+          BottomSheetDialog's bottom padding collapses — leaving the footer
+          button under the navigation bar. A nested provider measures this
+          window instead, so the inset is right on every Android version.
+        */}
+        <SafeAreaProvider testID="market-insights-disclaimer-safe-area-provider">
+          <BottomSheet ref={bottomSheetRef} onClose={onClose}>
+            <BottomSheetHeader onClose={handleClose}>
+              {strings('market_insights.disclaimer_modal.title')}
+            </BottomSheetHeader>
 
-          <Box paddingHorizontal={4}>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('market_insights.disclaimer_modal.body')}
-            </Text>
-          </Box>
+            <Box paddingHorizontal={4}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('market_insights.disclaimer_modal.body')}
+              </Text>
+            </Box>
 
-          <BottomSheetFooter
-            buttonsAlignment={ButtonsAlignment.Horizontal}
-            primaryButtonProps={primaryButtonProps}
-            twClassName="pt-6"
-          />
-        </BottomSheet>
+            <BottomSheetFooter
+              buttonsAlignment={ButtonsAlignment.Horizontal}
+              primaryButtonProps={primaryButtonProps}
+              twClassName="pt-6"
+            />
+          </BottomSheet>
+        </SafeAreaProvider>
       </Modal>
     </View>
   );

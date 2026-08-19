@@ -255,6 +255,23 @@ describe('PerpsBottomSheetTooltip', () => {
     expect(getByText('0.045%')).toBeTruthy();
   });
 
+  // TAT-3758: callers render this tooltip inside a react-native <Modal>, which
+  // on Android is its own window. Without a nested SafeAreaProvider the root
+  // provider measures the activity window and reports a bottom inset of 0,
+  // collapsing BottomSheetDialog's bottom padding and leaving the footer button
+  // under the navigation bar.
+  it('nests a SafeAreaProvider so the bottom inset is measured against the modal window', () => {
+    const customTestID = 'geo-block-tooltip';
+    const { getByTestId } = renderBottomSheetTooltip({
+      isVisible: true,
+      onClose: mockOnClose,
+      contentKey: 'geo_block',
+      testID: customTestID,
+    });
+
+    expect(getByTestId(`${customTestID}-safe-area-provider`)).toBeTruthy();
+  });
+
   it('uses custom testID when provided', () => {
     const customTestID = 'custom-tooltip-test-id';
     const { getByTestId } = renderBottomSheetTooltip({

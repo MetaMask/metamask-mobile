@@ -72,6 +72,21 @@ describe('MarketInsightsDisclaimerBottomSheet', () => {
     ).toBeOnTheScreen();
   });
 
+  // TAT-3758: on Android this sheet renders inside a react-native <Modal>, which
+  // is its own window. Without a nested SafeAreaProvider the root provider
+  // measures the activity window and reports a bottom inset of 0, collapsing
+  // BottomSheetDialog's bottom padding and leaving "Got it" under the
+  // navigation bar.
+  it('nests a SafeAreaProvider inside the Modal so the bottom inset is measured against the modal window', () => {
+    const { getByTestId } = renderWithProvider(
+      <MarketInsightsDisclaimerBottomSheet onClose={jest.fn()} />,
+    );
+
+    expect(
+      getByTestId('market-insights-disclaimer-safe-area-provider'),
+    ).toBeOnTheScreen();
+  });
+
   it('does not call onClose before the button is pressed', () => {
     const onClose = jest.fn();
 
