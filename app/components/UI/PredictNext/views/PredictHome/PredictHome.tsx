@@ -14,15 +14,23 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useEventList } from '../../hooks/useEventList';
+import { useFeed } from '../../hooks/useFeed';
 import { useVenueStatus } from '../../hooks/useVenueStatus';
-import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
-import { EventCardContent } from '../../components/EventCard/EventCardContent';
+import {
+  KALSHI_VENUE_ID,
+  type PredictEvent,
+  type PredictFeedId,
+} from '../../types';
+import { EventCardGame, EventCardStandard } from '../../events/cards';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { PredictNextRoutes } from '../../navigation/routes';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Engine from '../../../../../core/Engine';
 
 const PAGE_SIZE = 20;
+const NFL_GAMES_FEED_ID = 'sports-football-nfl-games' as PredictFeedId;
+
+const EventSeparator = () => <Box twClassName="h-3" />;
 
 export const PredictHome = () => {
   const navigation =
@@ -31,7 +39,9 @@ export const PredictHome = () => {
     useRoute<RouteProp<PredictNextStackParamList, 'PredictNextHome'>>();
   const entryPoint = route.params?.entryPoint;
   const statusQuery = useVenueStatus(KALSHI_VENUE_ID);
-  const eventsQuery = useEventList(KALSHI_VENUE_ID, { limit: PAGE_SIZE });
+  const eventsQuery = useFeed(KALSHI_VENUE_ID, NFL_GAMES_FEED_ID, {
+    limit: PAGE_SIZE,
+  });
   const endReached = useRef(false);
   const [paginationError, setPaginationError] = useState(false);
 
@@ -48,9 +58,10 @@ export const PredictHome = () => {
   );
 
   const events = useMemo(
-    () => eventsQuery.data?.pages.flatMap((page) => page.items) ?? [],
+    () => eventsQuery.data?.pages.flatMap((page) => page.events) ?? [],
     [eventsQuery.data],
   );
+  const tw = useTailwind();
 
   const openEvent = useCallback(
     (event: PredictEvent) =>
@@ -62,9 +73,12 @@ export const PredictHome = () => {
     [navigation],
   );
   const renderEvent = useCallback(
-    ({ item }: ListRenderItemInfo<PredictEvent>) => (
-      <EventCardContent event={item} onPress={() => openEvent(item)} />
-    ),
+    ({ item }: ListRenderItemInfo<PredictEvent>) =>
+      item.sports?.sport.id === 'american-football' && item.sports.game ? (
+        <EventCardGame event={item} onPress={() => openEvent(item)} />
+      ) : (
+        <EventCardStandard event={item} onPress={() => openEvent(item)} />
+      ),
     [openEvent],
   );
   const retryAll = () => {
@@ -131,6 +145,8 @@ export const PredictHome = () => {
           keyExtractor={(event) => `${event.venueId}:${event.id}`}
           onEndReached={loadNextPage}
           onEndReachedThreshold={0.5}
+          ItemSeparatorComponent={EventSeparator}
+          contentContainerStyle={tw.style('px-4')}
           ListFooterComponent={
             eventsQuery.isFetchingNextPage ? (
               <Text testID="predict-next-footer-loading">Loading…</Text>

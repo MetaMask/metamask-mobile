@@ -74,6 +74,8 @@ export function TemplateLoader({
       );
     case 'buy':
     case 'sell':
+    case 'rampBuy':
+    case 'rampSell':
       return isRampActivityListItem(item) ? (
         <RampDetails item={item} />
       ) : (

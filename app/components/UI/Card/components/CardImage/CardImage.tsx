@@ -10,10 +10,8 @@ import Svg, {
   ClipPath,
   LinearGradient,
   Stop,
-  Text,
 } from 'react-native-svg';
 import { CardStatus, CardType } from '../../types';
-import { truncateAddress } from '../../util/truncateAddress';
 
 const cardImageOriginalWidth = 851;
 const cardImageOriginalHeight = 540;
@@ -22,12 +20,9 @@ const cardImageAspectRatio = cardImageOriginalWidth / cardImageOriginalHeight;
 type CardImageProps = {
   type: CardType;
   status: CardStatus;
-  address?: string;
 } & SvgProps;
 
-const VirtualCardImage = (
-  props: SvgProps & { address?: string; hasLowerOpacity: boolean },
-) => (
+const VirtualCardImage = (props: SvgProps & { hasLowerOpacity: boolean }) => (
   <View style={{ aspectRatio: cardImageAspectRatio }}>
     <Svg
       fill="none"
@@ -105,11 +100,6 @@ const VirtualCardImage = (
           fill="#661800"
         />
       </G>
-      {props.address && (
-        <Text x={40} y={500} fontSize="40px" fontWeight={800} fill="#fff">
-          {props.address}
-        </Text>
-      )}
       <Defs>
         <ClipPath id="clip0_4219_2177">
           <Rect width={850.7} height={540} rx={31.8} fill="#fff" />
@@ -126,9 +116,7 @@ const VirtualCardImage = (
   </View>
 );
 
-const MetalCardImage = (
-  props: SvgProps & { address?: string; hasLowerOpacity: boolean },
-) => (
+const MetalCardImage = (props: SvgProps & { hasLowerOpacity: boolean }) => (
   <View style={{ aspectRatio: cardImageAspectRatio }}>
     <Svg
       fill="none"
@@ -219,11 +207,6 @@ const MetalCardImage = (
           fill="#EEE"
         />
       </G>
-      {props.address && (
-        <Text x={40} y={500} fontSize="40px" fontWeight={800} fill="#EEE">
-          {props.address}
-        </Text>
-      )}
       <Defs>
         <LinearGradient
           id="paint0_linear_4219_2151"
@@ -490,29 +473,16 @@ const MetalCardImage = (
 );
 
 const CardImage = (props: CardImageProps) => {
-  const { type, address: rawAddress, status } = props;
-  const address = truncateAddress(rawAddress);
+  const { type, status } = props;
   const hasLowerOpacity =
     status === CardStatus.FROZEN || status === CardStatus.BLOCKED;
 
   switch (type) {
     case CardType.VIRTUAL:
-      return (
-        <VirtualCardImage
-          {...props}
-          address={address}
-          hasLowerOpacity={hasLowerOpacity}
-        />
-      );
+      return <VirtualCardImage {...props} hasLowerOpacity={hasLowerOpacity} />;
     case CardType.PHYSICAL:
     case CardType.METAL:
-      return (
-        <MetalCardImage
-          {...props}
-          address={address}
-          hasLowerOpacity={hasLowerOpacity}
-        />
-      );
+      return <MetalCardImage {...props} hasLowerOpacity={hasLowerOpacity} />;
   }
 };
 

@@ -1,9 +1,11 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ProSubscription from './index';
+import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
 const mockGoBack = jest.fn();
-const mockNavigation = { goBack: mockGoBack };
+const mockReplace = jest.fn();
+const mockNavigation = { goBack: mockGoBack, replace: mockReplace };
 const mockRoute = { params: {} };
 
 jest.mock('@react-navigation/native', () => ({
@@ -27,15 +29,12 @@ jest.mock('./screens/Benefits', () => {
   const { TouchableOpacity, Text } = require('react-native');
   return ({
     onSuccess,
-    onClose,
     initialPlan,
   }: {
     onSuccess: () => void;
-    onClose: () => void;
     initialPlan?: string;
   }) => (
     <TouchableOpacity testID="mock-benefits" onPress={onSuccess}>
-      <TouchableOpacity testID="mock-benefits-close" onPress={onClose} />
       <Text testID="mock-benefits-plan">{initialPlan ?? 'none'}</Text>
     </TouchableOpacity>
   );
@@ -43,8 +42,8 @@ jest.mock('./screens/Benefits', () => {
 
 jest.mock('./screens/Success', () => {
   const { TouchableOpacity } = require('react-native');
-  return ({ onClose }: { onClose: () => void }) => (
-    <TouchableOpacity testID="mock-success" onPress={onClose} />
+  return ({ onSuccess }: { onSuccess: () => void }) => (
+    <TouchableOpacity testID="mock-success" onPress={onSuccess} />
   );
 });
 /* eslint-enable @typescript-eslint/no-require-imports */
@@ -103,21 +102,32 @@ describe('ProSubscription', () => {
   });
 
   describe('navigation callbacks', () => {
-    it('calls goBack when Benefits onClose fires', () => {
+    it('renders the close button with the correct testID', () => {
       const { getByTestId } = render(<ProSubscription />);
 
-      fireEvent.press(getByTestId('mock-benefits-close'));
+      expect(
+        getByTestId(ProSubscriptionTestIds.CLOSE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls goBack when the close button is pressed', () => {
+      const { getByTestId } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId(ProSubscriptionTestIds.CLOSE_BUTTON));
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('calls goBack when Success onClose fires', () => {
+    it('replaces the current screen with ProHub when Success onSuccess fires', () => {
       const { getByTestId } = render(<ProSubscription />);
 
       fireEvent.press(getByTestId('mock-benefits'));
       fireEvent.press(getByTestId('mock-success'));
 
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockReplace).toHaveBeenCalledWith('ProHub', {
+        source: 'pro_subscription_success',
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
 
