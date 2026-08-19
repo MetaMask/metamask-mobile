@@ -776,8 +776,11 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
           continue;
         }
 
-        for (const [assetId, balanceData] of Object.entries(accountBalances)) {
-          if (!Object.hasOwn(TRON_SPECIAL_ASSET_KEYS, assetId)) {
+        // Look up each known Tron special asset id directly rather than
+        // scanning every balance the account holds.
+        for (const [assetId, key] of Object.entries(TRON_SPECIAL_ASSET_KEYS)) {
+          const balanceData = accountBalances[assetId as CaipAssetType];
+          if (!balanceData) {
             continue;
           }
 
@@ -786,7 +789,6 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
             continue;
           }
 
-          const key = TRON_SPECIAL_ASSET_KEYS[assetId as KnownCaip19Id];
           const amount = balanceData.amount ?? '0';
           const price = assetsPrice[assetId as CaipAssetType]?.price;
           const fiat =
