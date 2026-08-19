@@ -6,23 +6,22 @@ import { strings } from '../../../../../../locales/i18n';
 import { initialState } from '../../_mocks_/initialState';
 import OrdersTabs from './OrdersTabs';
 import { OrdersTabsSelectorsIDs } from './OrdersTabs.testIds';
+import type { OrdersTabsProps } from './OrdersTabs.types';
 
-function renderOrdersTabs(
-  props?: Partial<React.ComponentProps<typeof OrdersTabs>>,
+function renderOrdersTabs<TOpen, THistory>(
+  props: OrdersTabsProps<TOpen, THistory>,
 ) {
-  return renderWithProvider(
-    <OrdersTabs
-      openOrders={{ items: [] }}
-      history={{ items: [] }}
-      {...props}
-    />,
-    { state: initialState },
-  );
+  return renderWithProvider(<OrdersTabs {...props} />, {
+    state: initialState,
+  });
 }
 
 describe('OrdersTabs', () => {
   it('shows open orders empty copy then history empty copy after pressing History', () => {
-    const { getByTestId, getByText, queryByText } = renderOrdersTabs();
+    const { getByTestId, getByText, queryByText } = renderOrdersTabs({
+      openOrders: { items: [] },
+      history: { items: [] },
+    });
 
     expect(getByTestId(OrdersTabsSelectorsIDs.EMPTY_STATE)).toBeOnTheScreen();
     expect(
@@ -39,17 +38,17 @@ describe('OrdersTabs', () => {
     const { getByTestId, queryByTestId } = renderOrdersTabs({
       openOrders: {
         items: [{ id: 'limit-1', price: '2500' }],
-        renderItem: (item: { id: string; price: string }) => (
+        renderItem: (item) => (
           <Text testID="limit-open-order">{item.price}</Text>
         ),
-        keyExtractor: (item: { id: string }) => item.id,
+        keyExtractor: (item) => item.id,
       },
       history: {
         items: [{ hash: '0xabc', executedAt: 1_700_000_000 }],
-        renderItem: (item: { hash: string; executedAt: number }) => (
+        renderItem: (item) => (
           <Text testID="recurring-history">{item.hash}</Text>
         ),
-        keyExtractor: (item: { hash: string }) => item.hash,
+        keyExtractor: (item) => item.hash,
       },
     });
 
