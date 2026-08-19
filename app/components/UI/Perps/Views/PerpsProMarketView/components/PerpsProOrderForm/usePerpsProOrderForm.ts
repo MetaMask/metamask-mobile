@@ -1096,10 +1096,18 @@ export const usePerpsProOrderForm = ({
 
     const list: PerpsProLimitPriceNotice[] = [];
 
+    // Mid writes a display-rounded price, so comparing against the raw live
+    // price warns on the rounding alone for an at-market order. Compare at the
+    // precision the user sees instead.
+    const displayedPrice = formatWithSignificantDigits(
+      assetData.price,
+      DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+    ).value;
+
     if (
       isLimitPriceUnfavorable(
         orderForm.limitPrice ?? '',
-        assetData.price,
+        displayedPrice,
         orderForm.direction,
       )
     ) {

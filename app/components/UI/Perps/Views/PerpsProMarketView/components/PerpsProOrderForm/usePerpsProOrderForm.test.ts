@@ -164,9 +164,15 @@ jest.mock('../../../../../Compliance', () => ({
   }),
 }));
 
+let mockLivePrice = '90000';
+
 jest.mock('../../../../hooks/stream', () => ({
   usePerpsLivePrices: () => ({
-    BTC: { price: '90000', markPrice: '90000', percentChange24h: '1' },
+    BTC: {
+      price: mockLivePrice,
+      markPrice: mockLivePrice,
+      percentChange24h: '1',
+    },
   }),
   usePerpsTopOfBook: () => ({ bestBid: '89999', bestAsk: '90001' }),
 }));
@@ -232,6 +238,7 @@ const renderProForm = () => renderHook(() => usePerpsProOrderForm({ market }));
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLivePrice = '90000';
     mockExecutionOptions = {};
     mockOrderForm.type = 'market';
     mockOrderForm.direction = 'long';
@@ -354,6 +361,42 @@ describe('usePerpsProOrderForm', () => {
         expect(
           result.current.notices.find((n) => n.id === 'unfavorable'),
         ).toBeUndefined();
+      });
+
+      // Mid writes a 5-significant-figure price, which for a real market price
+      // is not the raw value — so an at-market order must not warn on the
+      // rounding difference alone.
+      it.each([
+        ['a long, where Mid rounds up', '68434.78', 'long' as const, '68435'],
+        [
+          'a short, where Mid rounds down',
+          '68434.27',
+          'short' as const,
+          '68434',
+        ],
+      ])(
+        'stays quiet after tapping Mid for %s',
+        (_label, livePrice, direction, midValue) => {
+          mockLivePrice = livePrice;
+          mockOrderForm.type = 'limit';
+          mockOrderForm.direction = direction;
+          mockOrderForm.limitPrice = midValue;
+
+          const { result } = renderProForm();
+
+          expect(result.current.limitPriceNotices).toHaveLength(0);
+        },
+      );
+
+      it('still warns for a genuinely crossing price at a non-round market', () => {
+        mockLivePrice = '68434.27';
+        mockOrderForm.type = 'limit';
+        mockOrderForm.direction = 'long';
+        mockOrderForm.limitPrice = '69000';
+
+        const { result } = renderProForm();
+
+        expect(findUnfavorable(result.current.limitPriceNotices)).toBeDefined();
       });
 
       it('stays quiet for a buy below the market, which rests on the book', () => {
