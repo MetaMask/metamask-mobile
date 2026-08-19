@@ -5,7 +5,12 @@ import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictEventDetailTestIds } from '../PredictEventDetail/PredictEventDetail.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
-import type { PredictEvent, PredictFeedId } from '../../types';
+import type {
+  PredictEntityId,
+  PredictEvent,
+  PredictFeedId,
+  PredictTimestamp,
+} from '../../types';
 import { PredictEventValues } from '../../../Predict/constants/eventNames';
 import {
   NCAA_FEED_SCREEN_ID,
@@ -43,13 +48,69 @@ const makeEvent = (id: string, title: string): PredictEvent => ({
   ],
 });
 
+const makeGameEvent = (
+  id: string,
+  awayTeam: string,
+  homeTeam: string,
+  competition: string,
+): PredictEvent => ({
+  ...makeEvent(id, `${awayTeam} vs ${homeTeam}`),
+  sports: {
+    sport: {
+      id: 'american-football' as PredictEntityId,
+      label: 'American football',
+    },
+    competition: {
+      id: competition.toLowerCase() as PredictEntityId,
+      label: competition,
+    },
+    game: {
+      status: 'in_progress',
+      awayTeam: { name: awayTeam, abbreviation: awayTeam.slice(0, 3) },
+      homeTeam: { name: homeTeam, abbreviation: homeTeam.slice(0, 3) },
+      score: { away: '17', home: '21' },
+      period: 'Q4',
+      clock: '12:22',
+      observedAt: '2026-08-19T12:00:00Z' as PredictTimestamp,
+    },
+  },
+  markets: [
+    {
+      ...makeEvent(id, '').markets[0],
+      id: `${id}-away-market` as PredictEntityId,
+      outcomes: [
+        {
+          ...makeEvent(id, '').markets[0].outcomes[0],
+          gameSelection: 'away',
+        },
+        makeEvent(id, '').markets[0].outcomes[1],
+      ],
+    },
+    {
+      ...makeEvent(id, '').markets[0],
+      id: `${id}-home-market` as PredictEntityId,
+      outcomes: [
+        {
+          ...makeEvent(id, '').markets[0].outcomes[0],
+          id: `${id}-home-yes` as PredictEntityId,
+          gameSelection: 'home',
+        },
+        {
+          ...makeEvent(id, '').markets[0].outcomes[1],
+          id: `${id}-home-no` as PredictEntityId,
+        },
+      ],
+    },
+  ],
+});
+
 const nflEvents = [
-  makeEvent('nfl-1', 'Packers vs Steelers'),
-  makeEvent('nfl-2', 'Panthers vs Cardinals'),
+  makeGameEvent('nfl-1', 'Packers', 'Steelers', 'NFL'),
+  makeGameEvent('nfl-2', 'Panthers', 'Cardinals', 'NFL'),
 ];
 const ncaaEvents = [
-  makeEvent('ncaa-1', 'Pittsburgh vs Miami'),
-  makeEvent('ncaa-2', 'Georgia vs Florida'),
+  makeGameEvent('ncaa-1', 'Pittsburgh', 'Miami', 'NCAAF'),
+  makeGameEvent('ncaa-2', 'Georgia', 'Florida', 'NCAAF'),
 ];
 
 const messengerCall = Engine.controllerMessenger.call as unknown as jest.Mock;
@@ -112,17 +173,41 @@ describe('PredictHome', () => {
       { limit: 2 },
       undefined,
     );
-    expect(await view.findByText('Packers vs Steelers')).toBeOnTheScreen();
-    expect(view.getByText('Panthers vs Cardinals')).toBeOnTheScreen();
+    const firstNflCard = await view.findByTestId(
+      PredictHomeTestIds.event('kalshi', 'nfl-1'),
+    );
+    expect(within(firstNflCard).getByText('Packers')).toBeOnTheScreen();
+    expect(within(firstNflCard).getByText('Steelers')).toBeOnTheScreen();
+    expect(within(firstNflCard).getByText('17')).toBeOnTheScreen();
+    expect(within(firstNflCard).getByText('21')).toBeOnTheScreen();
+    expect(within(firstNflCard).getByText('NFL')).toBeOnTheScreen();
+    expect(within(firstNflCard).getByText('$1.5M Vol')).toBeOnTheScreen();
+
+    const secondNflCard = view.getByTestId(
+      PredictHomeTestIds.event('kalshi', 'nfl-2'),
+    );
+    expect(within(secondNflCard).getByText('Panthers')).toBeOnTheScreen();
+    expect(within(secondNflCard).getByText('Cardinals')).toBeOnTheScreen();
     expect(view.queryByText('Hidden NFL Game')).not.toBeOnTheScreen();
-    expect(view.getByText('Pittsburgh vs Miami')).toBeOnTheScreen();
-    expect(view.getByText('Georgia vs Florida')).toBeOnTheScreen();
+
+    const firstNcaaCard = view.getByTestId(
+      PredictHomeTestIds.event('kalshi', 'ncaa-1'),
+    );
+    expect(within(firstNcaaCard).getByText('Pittsburgh')).toBeOnTheScreen();
+    expect(within(firstNcaaCard).getByText('Miami')).toBeOnTheScreen();
+    expect(within(firstNcaaCard).getByText('NCAAF')).toBeOnTheScreen();
+
+    const secondNcaaCard = view.getByTestId(
+      PredictHomeTestIds.event('kalshi', 'ncaa-2'),
+    );
+    expect(within(secondNcaaCard).getByText('Georgia')).toBeOnTheScreen();
+    expect(within(secondNcaaCard).getByText('Florida')).toBeOnTheScreen();
     expect(view.queryByText('Hidden College Game')).not.toBeOnTheScreen();
   });
 
   it('opens the NFL Feed Screen and returns without refetching previews', async () => {
     const view = renderPredictNext();
-    await view.findByText('Packers vs Steelers');
+    await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
     messengerCall.mockClear();
 
     fireEvent.press(
@@ -177,7 +262,9 @@ describe('PredictHome', () => {
     );
     const view = renderPredictNext();
 
-    expect(await view.findByText('Pittsburgh vs Miami')).toBeOnTheScreen();
+    expect(
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1')),
+    ).toBeOnTheScreen();
     expect(
       view.getByTestId(PredictHomeTestIds.sectionLoading(NFL_FEED_SCREEN_ID)),
     ).toBeOnTheScreen();
@@ -188,7 +275,9 @@ describe('PredictHome', () => {
       title: 'NFL Games',
       events: nflEvents,
     });
-    expect(await view.findByText('Packers vs Steelers')).toBeOnTheScreen();
+    expect(
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+    ).toBeOnTheScreen();
   });
 
   it('keeps an errored NFL preview independent from a successful NCAAF preview', async () => {
@@ -200,7 +289,9 @@ describe('PredictHome', () => {
         PredictHomeTestIds.sectionError(NFL_FEED_SCREEN_ID),
       ),
     ).toBeOnTheScreen();
-    expect(view.getByText('Pittsburgh vs Miami')).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1')),
+    ).toBeOnTheScreen();
     expect(
       view.queryByTestId(PredictHomeTestIds.sectionError(NCAA_FEED_SCREEN_ID)),
     ).not.toBeOnTheScreen();
@@ -209,7 +300,9 @@ describe('PredictHome', () => {
     fireEvent.press(
       view.getByTestId(PredictHomeTestIds.sectionRetry(NFL_FEED_SCREEN_ID)),
     );
-    expect(await view.findByText('Packers vs Steelers')).toBeOnTheScreen();
+    expect(
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+    ).toBeOnTheScreen();
   });
 
   it('keeps an empty NFL preview independent from a successful NCAAF preview', async () => {
@@ -221,7 +314,9 @@ describe('PredictHome', () => {
         PredictHomeTestIds.sectionEmpty(NFL_FEED_SCREEN_ID),
       ),
     ).toBeOnTheScreen();
-    expect(view.getByText('Pittsburgh vs Miami')).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1')),
+    ).toBeOnTheScreen();
   });
 
   it('opens immutable Event detail from a card', async () => {
@@ -251,7 +346,7 @@ describe('PredictHome', () => {
     );
 
     fireEvent.press(
-      within(card).getByTestId(PredictHomeTestIds.outcome('nfl-1', 'yes')),
+      within(card).getByTestId(PredictHomeTestIds.gameQuote('nfl-1', 'away')),
     );
 
     expect(view.getByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();

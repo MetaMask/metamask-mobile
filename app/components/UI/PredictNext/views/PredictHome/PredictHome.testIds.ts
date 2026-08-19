@@ -19,6 +19,8 @@ export const PredictHomeTestIds = {
     `predict-next-event-content-${venueId}-${eventId}`,
   outcome: (eventId: string, side: 'yes' | 'no') =>
     `predict-next-outcome-${eventId}-${side}`,
+  gameQuote: (eventId: string, selection: 'away' | 'home') =>
+    `predict-next-game-quote-${eventId}-${selection}`,
   image: (eventId: string) => `predict-next-event-image-${eventId}`,
   category: (eventId: string) => `predict-next-event-category-${eventId}`,
   volume: (eventId: string) => `predict-next-event-volume-${eventId}`,

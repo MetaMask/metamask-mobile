@@ -70,7 +70,7 @@ export const FeedPreviewSection = ({
           <Box twClassName="h-32 rounded-xl bg-muted" />
           <Box twClassName="h-32 rounded-xl bg-muted" />
         </Box>
-      ) : isError ? (
+      ) : isError && events.length === 0 ? (
         <Box
           testID={PredictHomeTestIds.sectionError(feedScreenId)}
           twClassName="items-start gap-2 py-4"
