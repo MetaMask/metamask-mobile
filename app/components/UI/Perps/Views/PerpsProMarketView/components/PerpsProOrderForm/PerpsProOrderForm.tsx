@@ -139,6 +139,7 @@ interface PriceFieldProps {
   testID: string;
   prefixTestID: string;
   midButtonTestID?: string;
+  isHidden?: boolean;
 }
 
 const PriceField = ({
@@ -152,6 +153,7 @@ const PriceField = ({
   testID,
   prefixTestID,
   midButtonTestID,
+  isHidden,
 }: PriceFieldProps) => (
   <PerpsProCompactInput
     label={label}
@@ -162,6 +164,7 @@ const PriceField = ({
     onFieldPress={onFieldPress}
     testID={testID}
     variant="inline"
+    isHidden={isHidden}
     placeholder="0.00"
     startAccessory={
       <Text
@@ -477,32 +480,30 @@ const PerpsProOrderForm = ({
             >
               {orderTypeTitle}
             </ButtonBase>
-            {showsTriggerPrice ? (
-              <PriceField
-                label={strings('perps.order.trigger_price')}
-                value={triggerPrice}
-                onChangeText={onTriggerPriceChange}
-                onFocus={onTriggerPriceFocus}
-                onBlur={onTriggerPriceBlur}
-                onFieldPress={onTriggerPriceFieldPress}
-                testID={ids.TRIGGER_PRICE_INPUT}
-                prefixTestID={ids.TRIGGER_PRICE_PREFIX}
-              />
-            ) : null}
-            {showsLimitPrice ? (
-              <PriceField
-                label={strings('perps.order.limit_price')}
-                value={limitPrice}
-                onChangeText={onLimitPriceChange}
-                onFocus={onLimitPriceFocus}
-                onBlur={onLimitPriceBlur}
-                onFieldPress={onLimitPriceFieldPress}
-                onUseMidPress={onUseMidPricePress}
-                testID={ids.LIMIT_PRICE_INPUT}
-                prefixTestID={ids.LIMIT_PRICE_PREFIX}
-                midButtonTestID={ids.MID_PRICE_BUTTON}
-              />
-            ) : null}
+            <PriceField
+              label={strings('perps.order.trigger_price')}
+              value={triggerPrice}
+              onChangeText={onTriggerPriceChange}
+              onFocus={onTriggerPriceFocus}
+              onBlur={onTriggerPriceBlur}
+              onFieldPress={onTriggerPriceFieldPress}
+              testID={ids.TRIGGER_PRICE_INPUT}
+              prefixTestID={ids.TRIGGER_PRICE_PREFIX}
+              isHidden={!showsTriggerPrice}
+            />
+            <PriceField
+              label={strings('perps.order.limit_price')}
+              value={limitPrice}
+              onChangeText={onLimitPriceChange}
+              onFocus={onLimitPriceFocus}
+              onBlur={onLimitPriceBlur}
+              onFieldPress={onLimitPriceFieldPress}
+              onUseMidPress={showsLimitPrice ? onUseMidPricePress : undefined}
+              testID={ids.LIMIT_PRICE_INPUT}
+              prefixTestID={ids.LIMIT_PRICE_PREFIX}
+              midButtonTestID={ids.MID_PRICE_BUTTON}
+              isHidden={!showsLimitPrice}
+            />
           </Box>
           {priceCardMessage ? (
             <HelpText
@@ -573,12 +574,8 @@ const PerpsProOrderForm = ({
       {Platform.OS === 'ios' ? (
         <>
           <KeyboardAccessory inputTestID={ids.SIZE_INPUT} />
-          {showsTriggerPrice ? (
-            <KeyboardAccessory inputTestID={ids.TRIGGER_PRICE_INPUT} />
-          ) : null}
-          {showsLimitPrice ? (
-            <KeyboardAccessory inputTestID={ids.LIMIT_PRICE_INPUT} />
-          ) : null}
+          <KeyboardAccessory inputTestID={ids.TRIGGER_PRICE_INPUT} />
+          <KeyboardAccessory inputTestID={ids.LIMIT_PRICE_INPUT} />
         </>
       ) : null}
     </>

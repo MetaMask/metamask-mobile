@@ -1,7 +1,9 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Pressable, Text } from 'react-native';
-import PerpsProCompactInput from './PerpsProCompactInput';
+import PerpsProCompactInput, {
+  getPerpsProInputAccessoryID,
+} from './PerpsProCompactInput';
 
 // Mock Input to expose a spyable `focus` via its forwarded ref, mirroring the
 // design system's real `forwardRef<TextInput>` contract.
@@ -146,6 +148,7 @@ describe('PerpsProCompactInput', () => {
 
     expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
       'inputAccessoryViewID',
+      getPerpsProInputAccessoryID(defaultProps.testID),
     );
     expect(screen.getByTestId(defaultProps.testID)).not.toHaveProp(
       'returnKeyType',
@@ -169,5 +172,23 @@ describe('PerpsProCompactInput', () => {
     expect(
       screen.queryByTestId(`${defaultProps.testID}-footer`),
     ).not.toBeOnTheScreen();
+  });
+
+  it('collapses the field without unmounting the native input when hidden', () => {
+    render(<PerpsProCompactInput {...defaultProps} isHidden />);
+
+    expect(
+      screen.getByTestId(defaultProps.testID, { includeHiddenElements: true }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`${defaultProps.testID}-container`, {
+        includeHiddenElements: true,
+      }),
+    ).toHaveStyle({ height: 0, opacity: 0 });
+    expect(
+      screen.getByTestId(`${defaultProps.testID}-container`, {
+        includeHiddenElements: true,
+      }),
+    ).toHaveProp('pointerEvents', 'none');
   });
 });

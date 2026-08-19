@@ -27,6 +27,11 @@ interface PerpsProCompactInputProps {
   onBlur?: () => void;
   /** Fires on every field tap, including while already focused. Idempotent. */
   onFieldPress?: () => void;
+  /**
+   * Keeps the native input mounted so its iOS keyboard accessory can bind
+   * before the field is shown. Hidden fields take no layout and ignore taps.
+   */
+  isHidden?: boolean;
 }
 
 const PerpsProCompactInput = ({
@@ -43,11 +48,20 @@ const PerpsProCompactInput = ({
   onFocus,
   onBlur,
   onFieldPress,
+  isHidden = false,
 }: PerpsProCompactInputProps) => {
   const tw = useTailwind();
   const inputRef = useRef<TextInput>(null);
   const inputAccessoryViewID =
     Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
+  const hiddenProps = isHidden
+    ? ({
+        pointerEvents: 'none' as const,
+        accessibilityElementsHidden: true,
+        importantForAccessibility: 'no-hide-descendants' as const,
+        style: { height: 0, overflow: 'hidden' as const, opacity: 0 },
+      } as const)
+    : undefined;
   const focusInput = () => {
     inputRef.current?.focus();
     onFieldPress?.();
@@ -78,8 +92,13 @@ const PerpsProCompactInput = ({
   if (variant === 'inline') {
     return (
       <Box
-        twClassName="h-12 flex-row items-center border-t border-muted px-3"
+        twClassName={
+          isHidden
+            ? undefined
+            : 'h-12 flex-row items-center border-t border-muted px-3'
+        }
         testID={`${testID}-container`}
+        {...hiddenProps}
       >
         {/* The input's text occupies only ~20px of this 48px row, so most of
             the row is dead space. Without a pressable filling it, taps there
@@ -102,7 +121,11 @@ const PerpsProCompactInput = ({
   }
 
   return (
-    <Box twClassName="rounded-xl bg-muted p-3" testID={`${testID}-container`}>
+    <Box
+      twClassName={isHidden ? undefined : 'rounded-xl bg-muted p-3'}
+      testID={`${testID}-container`}
+      {...hiddenProps}
+    >
       <Box twClassName="flex-row items-center justify-between">
         {/* Tapping the label focuses the input and opens the keyboard, same
             as tapping the (visually small) input row itself. */}

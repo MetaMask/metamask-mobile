@@ -299,13 +299,60 @@ describe('PerpsProOrderForm', () => {
       expect(onAddFundsPress).toHaveBeenCalledTimes(1);
     });
 
-    it('connects each iOS numeric input to its own keyboard accessory', () => {
-      renderForm({ orderType: 'limit' });
+    const sizeAccessoryID = getPerpsProInputAccessoryID(ids.SIZE_INPUT);
+    const triggerAccessoryID = getPerpsProInputAccessoryID(
+      ids.TRIGGER_PRICE_INPUT,
+    );
+    const limitPriceAccessoryID = getPerpsProInputAccessoryID(
+      ids.LIMIT_PRICE_INPUT,
+    );
+    const mountedAccessoryIDs = () =>
+      screen
+        .UNSAFE_getAllByType(host('RCTInputAccessoryView'))
+        .map((accessory) => accessory.props.nativeID);
 
-      const sizeAccessoryID = getPerpsProInputAccessoryID(ids.SIZE_INPUT);
-      const limitPriceAccessoryID = getPerpsProInputAccessoryID(
-        ids.LIMIT_PRICE_INPUT,
+    it('keeps size, trigger, and limit keyboard accessories mounted on market', () => {
+      renderForm({ orderType: 'market' });
+
+      expect(
+        screen.getByTestId(ids.TRIGGER_PRICE_INPUT, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('inputAccessoryViewID', triggerAccessoryID);
+      expect(
+        screen.getByTestId(ids.LIMIT_PRICE_INPUT, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('inputAccessoryViewID', limitPriceAccessoryID);
+      expect(
+        screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+      expect(mountedAccessoryIDs()).toEqual([
+        sizeAccessoryID,
+        triggerAccessoryID,
+        limitPriceAccessoryID,
+      ]);
+    });
+
+    it('connects the trigger input to its pre-mounted accessory on stop-market', () => {
+      renderForm({ orderType: 'stop_market' });
+
+      expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toHaveProp(
+        'inputAccessoryViewID',
+        triggerAccessoryID,
       );
+      expect(screen.queryByTestId(ids.MID_PRICE_BUTTON)).not.toBeOnTheScreen();
+      expect(mountedAccessoryIDs()).toEqual([
+        sizeAccessoryID,
+        triggerAccessoryID,
+        limitPriceAccessoryID,
+      ]);
+    });
+
+    it('connects each visible iOS numeric input to its own keyboard accessory', () => {
+      renderForm({ orderType: 'limit' });
 
       expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
         'inputAccessoryViewID',
@@ -316,11 +363,11 @@ describe('PerpsProOrderForm', () => {
         limitPriceAccessoryID,
       );
       expect(sizeAccessoryID).not.toBe(limitPriceAccessoryID);
-      expect(
-        screen
-          .UNSAFE_getAllByType(host('RCTInputAccessoryView'))
-          .map((accessory) => accessory.props.nativeID),
-      ).toEqual([sizeAccessoryID, limitPriceAccessoryID]);
+      expect(mountedAccessoryIDs()).toEqual([
+        sizeAccessoryID,
+        triggerAccessoryID,
+        limitPriceAccessoryID,
+      ]);
     });
 
     it('dismisses the keyboard from the custom minimize control', () => {
