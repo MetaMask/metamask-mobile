@@ -119,6 +119,7 @@ const CancelMembership = () => {
       />
 
       <ScrollView
+        style={tw.style('flex-1')}
         contentContainerStyle={tw.style('px-4 pt-2 pb-6')}
         showsVerticalScrollIndicator={false}
       >
