@@ -122,6 +122,33 @@
           <li>Tests without metrics should not be interpreted as application slowness; they indicate an instrumentation, session, or flow failure.</li>
         </ul>
       </section>
+
+      <section class="section">
+        <h2>Steps where TestMu was slower than BrowserStack</h2>
+        <div class="note">
+          Differences are calculated as <strong>TestMu time − BrowserStack time</strong>.
+          Sauce Labs is included for context. Only steps where Standard or HE
+          was slower than BrowserStack are shown.
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Scenario</th>
+                <th>Step</th>
+                <th>BrowserStack</th>
+                <th>Sauce Private</th>
+                <th>TestMu Standard</th>
+                <th>Standard Δ</th>
+                <th>TestMu HE</th>
+                <th>HE Δ</th>
+              </tr>
+            </thead>
+            <tbody id="slower-steps"></tbody>
+          </table>
+        </div>
+      </section>
+
       <p class="foot">Generated for run 32265974787 · Branch MMQA-TestMu-PoC-HyperExecute · All values are expressed in seconds.</p>
     </main>
     <script>
@@ -163,6 +190,60 @@
         }).join("");
         tbody.insertAdjacentHTML("beforeend", `<tr><td>${name}</td>${cells}</tr>`);
       });
+
+      const slowerSteps = [
+        ["Cold Start → Onboarding", "App installed → onboarding screen", 2164, 1247, 2266, 2643],
+        ["Onboarding Import SRP", "Create wallet → social sign-up", 1025, 1361, 1062, 1014],
+        ["Onboarding Import SRP", "Import SRP → SRP field", 722, 985, 533, 933],
+        ["Onboarding Import SRP", "Continue → password fields", 569, 463, 425, 1065],
+        ["Onboarding Import SRP", "Done → ETH and BTC visible", 839, 1965, 526, 1003],
+        ["Account creation", "Account list visible", 1218, 2720, 1526, 593],
+        ["Account creation", "Account created in list", 238, 495, 651, 664],
+        ["Account creation", "Token list visible", 289, 442, 546, 334],
+        ["Seedless Apple", "Create wallet → onboarding sheet", 750, 1465, 464, 1095],
+        ["Seedless Apple", "Apple login → post-OAuth", 49, 300, 300, 600],
+        ["Seedless Apple", "Create Password → success", 562, 3691, 3505, 3250],
+        ["Seedless Apple", "Done → wallet main screen", 140, 876, 485, 413],
+        ["Seedless Google", "Create wallet → onboarding sheet", 564, 1240, 1161, 1009],
+        ["Seedless Google", "Create Password → success", 1200, 2967, 3041, 1584],
+        ["Seedless Telegram", "Create wallet → onboarding sheet", 647, 1345, null, 1144],
+        ["Seedless Telegram", "Telegram login → post-OAuth", 455, 300, null, 2659],
+        ["Seedless Telegram", "Done → wallet main screen", 152, 799, null, 429],
+        ["Aggregated Balance Loading", "Wallet tab → balance stable", 8181, 8800, 8933, 8724],
+        ["Cross-chain swap ETH → SOL", "Swap button → swap page", 908, 2373, 1186, 1240],
+        ["Cross-chain swap ETH → SOL", "Amount entered → quote", 4522, 7612, 7082, 4677],
+        ["Asset View", "Asset button → token overview", 3898, 4681, 2581, 3984],
+        ["Swap ETH → LINK", "Amount entered → quote", 441, 1026, 617, 397],
+        ["Import SRP +50 accounts", "Import SRP → SRP field", 532, 1077, null, 567],
+        ["Perps add funds", "Select Perps main screen", 1391, 1553, 1885, 877],
+        ["Perps add funds", "Open Add Funds", 2077, 2894, 3046, 2049],
+        ["Perps add funds", "Get Quote", 3165, 2863, 3443, 6169],
+        ["Predict Available Balance", "Predict button → balance", 775, 1818, null, 1424],
+        ["Predict Market Details", "Predict button → market list", 837, 3422, 1274, 892],
+        ["Predict Market Details", "About tab visible", 581, 1193, 829, 471],
+        ["Predict Market Details", "Outcomes tab visible", 799, 1808, 1521, 523],
+        ["Predict Deposit", "Continue → quote", 4720, null, 11590, 4093],
+      ];
+
+      document.getElementById("slower-steps").innerHTML = slowerSteps.map(
+        ([scenario, step, browserStack, sauce, standard, he]) => {
+          const delta = (value) =>
+            value === null ? "N/A" : `${value - browserStack} ms`;
+          const cell = (value) => (value === null ? "N/A" : `${value} ms`);
+          const deltaClass = (value) =>
+            value !== null && value > browserStack ? "fail" : "missing";
+          return `<tr>
+            <td>${scenario}</td>
+            <td>${step}</td>
+            <td>${cell(browserStack)}</td>
+            <td>${cell(sauce)}</td>
+            <td>${cell(standard)}</td>
+            <td class="${deltaClass(standard)}">${delta(standard)}</td>
+            <td>${cell(he)}</td>
+            <td class="${deltaClass(he)}">${delta(he)}</td>
+          </tr>`;
+        },
+      ).join("");
     </script>
   </body>
 </html>
