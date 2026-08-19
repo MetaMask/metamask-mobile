@@ -115,10 +115,10 @@ const BridgeLimitOrderViewContent = ({
           </SwapsBanners>
 
           <OrdersTabs
-        enabledChainIds={enabledChainIds}
-        openOrders={LIMIT_MOCK_OPEN_ORDERS_TAB}
-        history={{ items: [] }}
-      />
+            enabledChainIds={enabledChainIds}
+            openOrders={LIMIT_MOCK_OPEN_ORDERS_TAB}
+            history={{ items: [] }}
+          />
         </ScrollView>
 
         <SwapsKeypad

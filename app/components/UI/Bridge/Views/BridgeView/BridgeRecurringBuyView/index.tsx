@@ -130,11 +130,11 @@ const BridgeRecurringBuyViewContent = ({
             onDismissKeypad={dismissInputAndKeypad}
           />
 
-      <OrdersTabs
-        enabledChainIds={enabledChainIds}
-        openOrders={RECURRING_MOCK_OPEN_ORDERS_TAB}
-        history={{ items: [] }}
-      />
+          <OrdersTabs
+            enabledChainIds={enabledChainIds}
+            openOrders={RECURRING_MOCK_OPEN_ORDERS_TAB}
+            history={{ items: [] }}
+          />
         </ScrollView>
 
         <SwapsKeypad
