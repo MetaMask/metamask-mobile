@@ -53,7 +53,6 @@ interface ContentfulRichTextProps {
   textVariant?: TextVariant;
   headingClassName?: string;
   bodyClassName?: string;
-  onLinkPress?: (url: string) => void;
   testID?: string;
 }
 
@@ -101,17 +100,12 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
   textVariant = TextVariant.BodyMd,
   headingClassName = 'text-default',
   bodyClassName = 'text-alternative',
-  onLinkPress,
   testID,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
 
   const handleLinkPress = useCallback(
     (url: string) => {
-      if (onLinkPress) {
-        onLinkPress(url);
-        return;
-      }
       navigation.navigate(Routes.BROWSER.HOME, {
         screen: Routes.BROWSER.VIEW,
         params: {
@@ -120,7 +114,7 @@ const ContentfulRichText: React.FC<ContentfulRichTextProps> = ({
         },
       });
     },
-    [navigation, onLinkPress],
+    [navigation],
   );
 
   if (!isDocument(doc)) {

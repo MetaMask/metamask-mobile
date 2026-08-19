@@ -122,13 +122,6 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
     setIsOptInSheetOpen(false);
   }, []);
 
-  const navigateToOfficialRules = useCallback(() => {
-    setIsOptInSheetOpen(false);
-    navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
-      campaignId: campaign.id,
-    });
-  }, [campaign.id, navigation]);
-
   const handlePress = useCallback(async () => {
     if (isGeoLoading) {
       return;
@@ -188,7 +181,6 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
           title={optInSheetTitle}
           legalTextVariant={TextVariant.BodyXs}
           legalBodyClassName="text-left text-alternative"
-          onLegalLinkPress={navigateToOfficialRules}
           onOptIn={handleCustomOptIn}
           onClose={handleOptInSheetClose}
         />

@@ -108,25 +108,6 @@ describe('ContentfulRichText', () => {
     });
   });
 
-  it('uses a supplied in-app link handler instead of opening the browser', () => {
-    const onLinkPress = jest.fn();
-    const doc = makeDoc(
-      paragraph(hyperlink('https://example.com/rules', 'Official Rules')),
-    );
-    const { getByText } = render(
-      <ContentfulRichText
-        document={doc}
-        onLinkPress={onLinkPress}
-        testID="rt"
-      />,
-    );
-
-    fireEvent.press(getByText('Official Rules'));
-
-    expect(onLinkPress).toHaveBeenCalledWith('https://example.com/rules');
-    expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
   it('renders multiple paragraphs', () => {
     const doc = makeDoc(
       paragraph(text('First paragraph')),

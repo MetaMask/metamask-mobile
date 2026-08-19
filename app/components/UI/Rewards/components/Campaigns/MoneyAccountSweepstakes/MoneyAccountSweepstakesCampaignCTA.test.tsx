@@ -32,7 +32,6 @@ let latestOptInSheetProps: {
   title?: string;
   onOptIn?: () => Promise<boolean>;
   onClose?: () => void;
-  onLegalLinkPress?: (url: string) => void;
 } | null;
 
 jest.mock('@react-navigation/native', () => ({
@@ -99,7 +98,6 @@ jest.mock('../CampaignOptInSheet', () => {
       title: string;
       onOptIn: () => Promise<boolean>;
       onClose: () => void;
-      onLegalLinkPress?: (url: string) => void;
     }) => {
       latestOptInSheetProps = props;
       return ReactActual.createElement(
@@ -337,29 +335,6 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     expect(queryByText('View official rules')).toBeNull();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(latestOptInSheetProps).toBeNull();
-  });
-
-  it('opens the in-app rules page from the opt-in sheet legal link', () => {
-    const { getByTestId, queryByTestId } = render(
-      <MoneyAccountSweepstakesCampaignCTA
-        campaign={buildCampaign()}
-        seriesStatus="active"
-        localizedText={localizedText}
-      />,
-    );
-
-    fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
-    expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
-
-    act(() => {
-      latestOptInSheetProps?.onLegalLinkPress?.('https://example.com/rules');
-    });
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.REWARDS_CAMPAIGN_MECHANICS,
-      { campaignId: 'mas-campaign-1' },
-    );
-    expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
   });
 
   it('returns to the campaign dashboard after a successful opt-in', async () => {
