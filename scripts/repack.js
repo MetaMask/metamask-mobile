@@ -202,45 +202,18 @@ function generateExpoPlistIfNeeded(appPath) {
 }
 
 /**
- * Signing options for the device (.ipa) repack path.
- *
- * `@expo/repack-app` only signs `.ipa` artifacts — it asserts as much — and delegates to
- * fastlane's `resign` action. Returning `undefined` leaves the simulator path unsigned,
- * exactly as before.
- *
- * @returns {{signingIdentity: string, provisioningProfile: string, keychainPath?: string} | undefined}
- */
-function getIosSigningOptions() {
-  const signingIdentity = process.env.REPACK_IOS_SIGNING_IDENTITY;
-  const provisioningProfile = process.env.REPACK_IOS_PROVISIONING_PROFILE;
-  const keychainPath = process.env.REPACK_IOS_KEYCHAIN_PATH;
-
-  if (!signingIdentity && !provisioningProfile) {
-    return undefined;
-  }
-
-  if (!signingIdentity || !provisioningProfile) {
-    logger.error(
-      'REPACK_IOS_SIGNING_IDENTITY and REPACK_IOS_PROVISIONING_PROFILE must be set together. ' +
-      'An unsigned .ipa cannot be installed or uploaded to TestFlight.'
-    );
-    process.exit(1);
-  }
-
-  return {
-    signingIdentity,
-    provisioningProfile,
-    ...(keychainPath ? { keychainPath } : {}),
-  };
-}
-
-/**
- * Repack a signed device .ipa, re-signing it afterwards.
+ * Repack a signed device .ipa. The output is NOT signed.
  *
  * Used by the auto RC repack fast path (.github/workflows/build-rc-repack.yml), where the
  * source is a previous RC run's TestFlight IPA rather than a simulator build. The caller is
- * responsible for patching CFBundleVersion in the source IPA BEFORE this runs: repack
- * re-signs as its last step, so any later edit to the bundle would invalidate the signature.
+ * responsible for patching CFBundleVersion in the source IPA BEFORE this runs, and for
+ * re-signing the output afterwards.
+ *
+ * Signing is deliberately left to the caller. `@expo/repack-app` can re-sign via fastlane,
+ * but it always derives entitlements from the provisioning profile, and a profile enumerates
+ * every capability the App ID is allowed — including development-only keys that App Store
+ * Connect rejects on upload. The `resign_repacked_ipa` fastlane lane re-signs with the
+ * entitlements already inside the donor binary instead.
  *
  * Required env: REPACK_SOURCE_IPA, REPACK_OUTPUT_IPA.
  */
@@ -273,14 +246,6 @@ async function repackIosIpa() {
 
     // Dynamic import for ES module compatibility
     const { repackAppIosAsync } = await import('@expo/repack-app');
-    const iosSigningOptions = getIosSigningOptions();
-
-    if (iosSigningOptions) {
-      logger.info(`Signing identity: ${iosSigningOptions.signingIdentity}`);
-      logger.info(`Provisioning profile: ${iosSigningOptions.provisioningProfile}`);
-    } else {
-      logger.warn('No signing options provided — the output IPA will not be re-signed.');
-    }
 
     await repackAppIosAsync({
       platform: 'ios',
@@ -289,7 +254,6 @@ async function repackIosIpa() {
       outputPath: outputIpa,
       workingDirectory: workingDir,
       verbose: true,
-      ...(iosSigningOptions ? { iosSigningOptions } : {}),
       exportEmbedOptions: {
         sourcemapOutput: sourcemapPath,
       },
@@ -305,6 +269,10 @@ async function repackIosIpa() {
     const duration = Math.round((Date.now() - startTime) / 1000);
     logger.success(`🎉 iOS IPA repack completed in ${duration}s`);
     logger.success(`Output: ${outputIpa} (${(fs.statSync(outputIpa).size / 1024 / 1024).toFixed(1)} MB)`);
+    logger.warn(
+      'The output IPA carries the donor\'s now-stale signature. Re-sign it before installing ' +
+      'or uploading: fastlane ios resign_repacked_ipa ipa_path:<output> ...'
+    );
 
     if (fs.existsSync(sourcemapPath)) {
       logger.success(`Sourcemap: ${sourcemapPath}`);
