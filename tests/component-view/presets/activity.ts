@@ -2192,6 +2192,7 @@ export const buildActivityCvPerpsOverviewUserHistory =
       asset: 'USDC',
       txHash: ACTIVITY_CV_PERPS_DEPOSIT_HASH,
       status: 'completed',
+      details: { source: 'activity-cv' },
     },
     {
       id: 'activity-cv-perps-withdrawal',
@@ -2201,6 +2202,7 @@ export const buildActivityCvPerpsOverviewUserHistory =
       asset: 'USDC',
       txHash: ACTIVITY_CV_PERPS_WITHDRAWAL_HASH,
       status: 'completed',
+      details: { source: 'activity-cv' },
     },
   ];
 
