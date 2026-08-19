@@ -149,7 +149,11 @@ describe('PredictChipList', () => {
 
   describe('selection', () => {
     it('applies muted-pressed background when an inactive chip is pressed', () => {
-      const restArgs = getPredictChipTwArgs('rounded-xl px-4 py-2', false, false);
+      const restArgs = getPredictChipTwArgs(
+        'rounded-xl px-4 py-2',
+        false,
+        false,
+      );
       const pressedArgs = getPredictChipTwArgs(
         'rounded-xl px-4 py-2',
         false,

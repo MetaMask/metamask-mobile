@@ -198,24 +198,24 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={tw.style('px-4 pb-1')}
           >
-          <Box twClassName="gap-2">
-            {skeletonRows.map((row, rowIndex) => (
-              <Box
-                key={`popular-today-skeleton-row-${rowIndex}`}
-                twClassName="flex-row gap-2"
-              >
-                {row.map((index) => (
-                  <Skeleton
-                    key={`popular-today-skeleton-${index}`}
-                    width={104}
-                    height={40}
-                    style={tw.style('rounded-xl')}
-                    testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.SKELETON_PREFIX}-${index}`}
-                  />
-                ))}
-              </Box>
-            ))}
-          </Box>
+            <Box twClassName="gap-2">
+              {skeletonRows.map((row, rowIndex) => (
+                <Box
+                  key={`popular-today-skeleton-row-${rowIndex}`}
+                  twClassName="flex-row gap-2"
+                >
+                  {row.map((index) => (
+                    <Skeleton
+                      key={`popular-today-skeleton-${index}`}
+                      width={104}
+                      height={40}
+                      style={tw.style('rounded-xl')}
+                      testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.SKELETON_PREFIX}-${index}`}
+                    />
+                  ))}
+                </Box>
+              ))}
+            </Box>
           </ScrollView>
         </Box>
       ) : null}
@@ -227,36 +227,36 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={tw.style('px-4 pb-1')}
           >
-          <Box twClassName="gap-2">
-            {chipRows.map((row, rowIndex) => (
-              <Box
-                key={`popular-today-row-${rowIndex}`}
-                testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.ROW_PREFIX}-${rowIndex}`}
-                twClassName="flex-row gap-2"
-              >
-                {row.map(({ key, label, option }) => (
-                  <Pressable
-                    key={key}
-                    testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.CHIP_PREFIX}-${key}`}
-                    onPress={() => handleChipPress(option)}
-                    accessibilityRole="button"
-                    accessibilityLabel={label}
-                    style={({ pressed }) =>
-                      tw.style(...getPopularTodayChipTwArgs(pressed))
-                    }
-                  >
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextDefault}
-                      fontWeight={FontWeight.Medium}
+            <Box twClassName="gap-2">
+              {chipRows.map((row, rowIndex) => (
+                <Box
+                  key={`popular-today-row-${rowIndex}`}
+                  testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.ROW_PREFIX}-${rowIndex}`}
+                  twClassName="flex-row gap-2"
+                >
+                  {row.map(({ key, label, option }) => (
+                    <Pressable
+                      key={key}
+                      testID={`${PREDICT_POPULAR_TODAY_SECTION_TEST_IDS.CHIP_PREFIX}-${key}`}
+                      onPress={() => handleChipPress(option)}
+                      accessibilityRole="button"
+                      accessibilityLabel={label}
+                      style={({ pressed }) =>
+                        tw.style(...getPopularTodayChipTwArgs(pressed))
+                      }
                     >
-                      {label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </Box>
-            ))}
-          </Box>
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextDefault}
+                        fontWeight={FontWeight.Medium}
+                      >
+                        {label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </Box>
+              ))}
+            </Box>
           </ScrollView>
         </Box>
       ) : null}
