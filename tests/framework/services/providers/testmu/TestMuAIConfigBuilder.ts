@@ -99,9 +99,8 @@ export class TestMuAIConfigBuilder {
       devicelog: true,
       network: process.env.TESTMU_NETWORK_LOGS !== 'false',
       appProfiling: true,
-      smartHeal: true,
       'appium:settings[actionAcknowledgmentTimeout]': 3000,
-      'appium:settings[ignoreUnimportantViews]': true,
+      'appium:ignoreUnimportantViews': true,
       'appium:settings[waitForSelectorTimeout]': 1000,
       'appium:includeSafariInWebviews': true,
       'appium:chromedriverAutodownload': true,
@@ -148,9 +147,6 @@ export class TestMuAIConfigBuilder {
         'appium:autoGrantPermissions': true,
         'appium:autoAcceptAlerts': true,
         'appium:fullReset': true,
-        'appium:newCommandTimeout':
-          DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS,
-        'appium:settings[snapshotMaxDepth]': 62,
         ...(testMuDevice.otherApps && testMuDevice.otherApps.length > 0
           ? { 'appium:otherApps': testMuDevice.otherApps as string[] }
           : {}),
