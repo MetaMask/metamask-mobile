@@ -1,15 +1,11 @@
 import { createSelector } from 'reselect';
-import {
-  getDefaultSubscriptionControllerState,
-  type CachedLastSelectedPaymentMethod,
-  type ProductType,
-  type Subscription,
-  type SubscriptionControllerState,
+import type {
+  CachedLastSelectedPaymentMethod,
+  ProductType,
+  Subscription,
+  SubscriptionControllerState,
 } from '@metamask/subscription-controller';
 import { RootState } from '../reducers';
-
-const DEFAULT_SUBSCRIPTION_CONTROLLER_STATE =
-  getDefaultSubscriptionControllerState();
 
 const EMPTY_SUBSCRIPTIONS: Subscription[] = [];
 const EMPTY_TRIALED_PRODUCTS: ProductType[] = [];
@@ -21,17 +17,15 @@ const hasProduct = (
   subscription.products.some((product) => product.name === productType);
 
 /**
- * Selects SubscriptionController state, returning a stable default when the
- * controller has not been hydrated yet (tests and early startup).
+ * Selects SubscriptionController state.
  *
  * @param state - The root Redux state.
- * @returns The SubscriptionController state.
+ * @returns The SubscriptionController state, or undefined when the slice is absent.
  */
 export const selectSubscriptionControllerState = (
   state: RootState,
-): SubscriptionControllerState =>
-  state?.engine?.backgroundState?.SubscriptionController ??
-  DEFAULT_SUBSCRIPTION_CONTROLLER_STATE;
+): SubscriptionControllerState | undefined =>
+  state.engine?.backgroundState?.SubscriptionController;
 
 /**
  * Selects cached subscription pricing. v8 pricing is returned unchanged so
@@ -42,7 +36,7 @@ export const selectSubscriptionControllerState = (
  */
 export const selectSubscriptionPricing = createSelector(
   selectSubscriptionControllerState,
-  (subscriptionControllerState) => subscriptionControllerState.pricing,
+  (subscriptionControllerState) => subscriptionControllerState?.pricing,
 );
 
 /**
@@ -54,7 +48,7 @@ export const selectSubscriptionPricing = createSelector(
 export const selectSubscriptions = createSelector(
   selectSubscriptionControllerState,
   (subscriptionControllerState) =>
-    subscriptionControllerState.subscriptions ?? EMPTY_SUBSCRIPTIONS,
+    subscriptionControllerState?.subscriptions ?? EMPTY_SUBSCRIPTIONS,
 );
 
 /**
@@ -66,7 +60,7 @@ export const selectSubscriptions = createSelector(
 export const selectTrialedSubscriptionProducts = createSelector(
   selectSubscriptionControllerState,
   (subscriptionControllerState) =>
-    subscriptionControllerState.trialedProducts ?? EMPTY_TRIALED_PRODUCTS,
+    subscriptionControllerState?.trialedProducts ?? EMPTY_TRIALED_PRODUCTS,
 );
 
 /**
@@ -97,7 +91,8 @@ export const selectLastSubscriptionByProduct = (
   state: RootState,
   productType: ProductType,
 ): Subscription | undefined => {
-  const { lastSubscription } = selectSubscriptionControllerState(state);
+  const lastSubscription =
+    selectSubscriptionControllerState(state)?.lastSubscription;
   if (!lastSubscription || !hasProduct(lastSubscription, productType)) {
     return undefined;
   }
@@ -116,6 +111,6 @@ export const selectLastSelectedPaymentMethodByProduct = (
   state: RootState,
   productType: ProductType,
 ): CachedLastSelectedPaymentMethod | undefined =>
-  selectSubscriptionControllerState(state).lastSelectedPaymentMethod?.[
+  selectSubscriptionControllerState(state)?.lastSelectedPaymentMethod?.[
     productType
   ];

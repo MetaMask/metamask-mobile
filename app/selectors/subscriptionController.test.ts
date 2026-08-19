@@ -149,15 +149,21 @@ const createState = (
 
 describe('subscriptionController selectors', () => {
   describe('selectSubscriptionControllerState', () => {
-    it('returns stable default state when the controller is absent', () => {
-      const first = selectSubscriptionControllerState(createState());
-      const second = selectSubscriptionControllerState(createState());
+    it('returns undefined when the controller is absent', () => {
+      expect(selectSubscriptionControllerState(createState())).toBeUndefined();
+    });
 
-      expect(first).toEqual({
+    it('returns controller state when present', () => {
+      const subscriptionControllerState = {
         subscriptions: [],
         trialedProducts: [],
-      });
-      expect(first).toBe(second);
+      };
+
+      expect(
+        selectSubscriptionControllerState(
+          createState(subscriptionControllerState),
+        ),
+      ).toBe(subscriptionControllerState);
     });
   });
 
@@ -347,6 +353,23 @@ describe('subscriptionController selectors', () => {
       ).toEqual(lastSubscription);
     });
 
+    it('returns undefined when lastSubscription is absent', () => {
+      const state = createState({
+        subscriptions: [],
+        trialedProducts: [],
+      });
+
+      expect(
+        selectLastSubscriptionByProduct(state, PRODUCT_TYPES.SHIELD),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined when the controller is absent', () => {
+      expect(
+        selectLastSubscriptionByProduct(createState(), PRODUCT_TYPES.SHIELD),
+      ).toBeUndefined();
+    });
+
     it('returns undefined when lastSubscription does not contain the product', () => {
       const state = createState({
         subscriptions: [],
@@ -415,6 +438,15 @@ describe('subscriptionController selectors', () => {
 
       expect(
         selectLastSelectedPaymentMethodByProduct(state, PRODUCT_TYPES.SHIELD),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined when the controller is absent', () => {
+      expect(
+        selectLastSelectedPaymentMethodByProduct(
+          createState(),
+          PRODUCT_TYPES.SHIELD,
+        ),
       ).toBeUndefined();
     });
   });
