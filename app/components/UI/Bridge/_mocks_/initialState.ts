@@ -1,4 +1,5 @@
 import { defaultBridgeControllerState } from './bridgeControllerState';
+import { initialRecurringState } from '../utils/recurringSchedule';
 import { CaipAssetId, Hex } from '@metamask/utils';
 import {
   SolScope,
@@ -830,5 +831,6 @@ export const initialState = {
     bridgeViewMode: undefined,
     isSelectingRecipient: false,
     isSelectingToken: false,
+    recurring: initialRecurringState,
   },
 };

@@ -49,7 +49,10 @@ import {
   MUSD_DECIMALS,
 } from '../../../../../UI/Earn/constants/musd';
 import { selectTransactionsByIds } from '../../../../../../selectors/transactionController';
-import { RELAY_DEPOSIT_TYPES } from '../../../constants/confirmations';
+import {
+  ACTIVITY_FIAT_FRACTION_DIGITS,
+  RELAY_DEPOSIT_TYPES,
+} from '../../../constants/confirmations';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { strings } from '../../../../../../../locales/i18n';
 import MoneyIcon from '../../../../../../images/money.png';
@@ -175,8 +178,13 @@ function AssetLine({
 }
 
 export function TransactionDetailsHero() {
-  const formatFiatPerps = useFiatFormatter({ currency: PERPS_CURRENCY });
-  const formatFiatUser = useFiatFormatter();
+  const formatFiatPerps = useFiatFormatter({
+    currency: PERPS_CURRENCY,
+    fractionDigits: ACTIVITY_FIAT_FRACTION_DIGITS,
+  });
+  const formatFiatUser = useFiatFormatter({
+    fractionDigits: ACTIVITY_FIAT_FRACTION_DIGITS,
+  });
   const formatFiatPay = usePayFiatFormatter();
   const { styles } = useStyles(styleSheet, {});
   const decodedAmount = useDecodedAmount();

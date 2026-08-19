@@ -29,6 +29,7 @@ import {
   TraceOperation,
   trace,
   endTrace,
+  getTraceContext,
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
@@ -96,6 +97,7 @@ jest.mock('../../../util/trace', () => ({
   ...jest.requireActual('../../../util/trace'),
   trace: jest.fn(),
   endTrace: jest.fn(),
+  getTraceContext: jest.fn(),
 }));
 
 const mockCaptureException = jest.fn();
@@ -1518,15 +1520,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
     });
   });
 
-  const renderCreatePasswordUI = async (onboardingTraceCtx?: {
-    traceId: string;
-  }) => {
+  const renderCreatePasswordUI = async () => {
     const { getByText, getByPlaceholderText, getByRole, getByTestId } =
       renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
-        onboardingTraceCtx ? { onboardingTraceCtx } : undefined,
       );
 
     // Enter valid seed phrase and continue to step 2
@@ -2173,27 +2172,31 @@ describe('ImportFromSecretRecoveryPhrase', () => {
   describe('tracing', () => {
     const mockTrace = trace as jest.MockedFunction<typeof trace>;
     const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+    const mockGetTraceContext = getTraceContext as jest.MockedFunction<
+      typeof getTraceContext
+    >;
 
     beforeEach(() => {
       mockTrace.mockClear();
       mockEndTrace.mockClear();
+      mockGetTraceContext.mockReset();
     });
 
-    it('starts and ends trace with onboardingTraceCtx', async () => {
-      const mockOnboardingTraceCtx = {
+    it('starts and ends trace when journey trace context is available', async () => {
+      const mockJourneyCtx = {
         traceId: 'test-trace-id',
       } as unknown as Span;
       const mockTraceCtx = {
         traceId: 'password-setup-trace-id',
       } as unknown as Span;
 
+      mockGetTraceContext.mockReturnValue(mockJourneyCtx);
       mockTrace.mockReturnValue(mockTraceCtx);
 
       const { getByPlaceholderText, getByRole, unmount } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
         { state: initialState },
-        { onboardingTraceCtx: mockOnboardingTraceCtx },
       );
 
       const input = getByPlaceholderText(
@@ -2214,7 +2217,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordSetupAttempt,
         op: TraceOperation.OnboardingUserJourney,
-        parentContext: mockOnboardingTraceCtx,
+        parentContext: mockJourneyCtx,
       });
 
       unmount();
@@ -2273,7 +2276,9 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
     });
 
-    it('does not start trace and end trace when moving to password setup step without onboardingTraceCtx', async () => {
+    it('does not start trace and end trace when moving to password setup step without journey trace context', async () => {
+      mockGetTraceContext.mockReturnValue(undefined);
+
       const { getByPlaceholderText, getByRole, unmount } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
@@ -2306,10 +2311,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(mockEndTrace).not.toHaveBeenCalledWith(passwordSetupTrace);
     });
 
-    it('traces error and reports to Sentry when wallet import fails with onboardingTraceCtx', async () => {
+    it('traces error and reports to Sentry when wallet import fails with journey trace context', async () => {
       mockIsEnabled.mockReturnValue(true);
       mockCaptureException.mockClear();
-      const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
+      const mockJourneyCtx = { traceId: 'test-trace-id' };
+      mockGetTraceContext.mockReturnValue(mockJourneyCtx as unknown as Span);
       const testError = new Error('Authentication failed');
 
       // Mock failing authentication to trigger outer catch block
@@ -2319,9 +2325,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
       mockComponentAuthenticationType.mockRejectedValueOnce(testError);
 
-      const { getByTestId } = await renderCreatePasswordUI(
-        mockOnboardingTraceCtx,
-      );
+      const { getByTestId } = await renderCreatePasswordUI();
 
       const passwordInput = getByTestId(
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -2347,7 +2351,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
           expect(mockTrace).toHaveBeenCalledWith({
             name: TraceName.OnboardingPasswordSetupError,
             op: TraceOperation.OnboardingUserJourney,
-            parentContext: mockOnboardingTraceCtx,
+            parentContext: mockJourneyCtx,
             tags: { errorMessage: 'Error: Authentication failed' },
           });
           expect(mockEndTrace).toHaveBeenCalledWith({
@@ -2365,7 +2369,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
     });
 
-    it('does not trace error when wallet import fails without onboardingTraceCtx', async () => {
+    it('does not trace error when wallet import fails without journey trace context', async () => {
+      mockGetTraceContext.mockReturnValue(undefined);
       const testError = new Error('Authentication failed');
 
       // Mock failing authentication to trigger outer catch block
