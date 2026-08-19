@@ -61,9 +61,16 @@ import EarnNoFeeTag from '../EarnNoFeeTag';
 import Logger from '../../../../../util/Logger';
 import { isEarnAssetBalanceBelowMinDepositAmount } from '../../utils/earnAssets/earnAssetBalance';
 
-interface EarnSectionProps {
+export interface EarnSectionHomeAnalytics {
   sectionIndex: number;
   totalSectionsLoaded: number;
+}
+
+export interface EarnSectionProps {
+  tokenDetailsSource: TokenDetailsSource;
+  homeAnalytics?: EarnSectionHomeAnalytics;
+  showDividers?: boolean;
+  refreshTrigger?: number;
 }
 
 const renderEarnAssetIcon = (token: TokenI) => {
@@ -116,9 +123,15 @@ const renderUnavailableAssetCard = (key: string) => (
 );
 
 const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
-  ({ sectionIndex, totalSectionsLoaded }, ref) => {
+  (
+    { tokenDetailsSource, homeAnalytics, showDividers = false, refreshTrigger },
+    ref,
+  ) => {
     const tw = useTailwind();
     const navigation = useNavigation<AppNavigationProp>();
+    const isHomepageSection = homeAnalytics !== undefined;
+    const sectionIndex = homeAnalytics?.sectionIndex ?? -1;
+    const totalSectionsLoaded = homeAnalytics?.totalSectionsLoaded ?? 0;
 
     const { isMoneyAccountVisible } = useMoneyAccountVisibility();
 
@@ -133,7 +146,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       isLoading,
       hasError,
       refresh,
-    } = useEarnSectionAssets();
+    } = useEarnSectionAssets({ refreshTrigger });
 
     const {
       totalFiatFormatted: moneyAccountBalanceFiat,
@@ -152,13 +165,14 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
     const { onLayout } = useHomeViewedEvent({
-      sectionRef: sectionViewRef,
+      sectionRef: isHomepageSection ? sectionViewRef : null,
       isLoading,
       sectionName: HomeSectionNames.EARN,
       sectionIndex,
       totalSectionsLoaded,
       isEmpty: false,
       itemCount: earnSectionItemCount,
+      fireImmediateWhenNoView: isHomepageSection,
     });
 
     useSectionPerformance({
@@ -166,13 +180,13 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       contentReady: !isLoading,
       isEmpty: false,
       isLoading,
-      enabled: true,
+      enabled: isHomepageSection,
     });
 
     const handleHeaderPress = () => {
       // eslint-disable-next-line no-alert
       alert(
-        'Under construction 🚧 - Implement when adding Earn Section to Explore page',
+        'Under construction 🚧 - Implement when adding Earn Section to Explore search page',
       );
     };
 
@@ -192,7 +206,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
             isETH: token.isETH,
             aggregators: token.aggregators,
             rwaData: token.rwaData,
-            source: TokenDetailsSource.HomeSection,
+            source: tokenDetailsSource,
           });
           return;
         }
@@ -202,13 +216,13 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           params: { assetId: asset.assetId },
         });
       },
-      [navigation],
+      [navigation, tokenDetailsSource],
     );
 
     const handleViewMoreCardPress = () => {
       // eslint-disable-next-line no-alert
       alert(
-        'Under construction 🚧 - Implement when adding Earn Section to Explore page',
+        'Under construction 🚧 - Implement when adding Earn Section to Explore search page',
       );
     };
 
@@ -258,7 +272,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box testID="earn-section">
-          <SectionDivider />
+          {showDividers && <SectionDivider />}
           <SectionHeader
             title={strings('homepage.sections.earn')}
             isInteractive

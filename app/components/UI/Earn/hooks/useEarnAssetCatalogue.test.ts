@@ -12,9 +12,11 @@ import Engine from '../../../../core/Engine';
 import { selectEarnAssetCatalogueInputs } from '../../../../selectors/earnController/earn';
 import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
 import type { RelayFixedSpreadConfig } from '../../../Views/confirmations/utils/relayFixedSpread';
+import useMoneyAccountInfo from '../../Money/hooks/useMoneyAccountInfo';
 import useMoneyAccountVisibility from '../../Money/hooks/useMoneyAccountVisibility';
 import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
 import type { MoneyDepositAsset } from '../../Money/selectors/depositTokens';
+import { invalidateMoneyAccountBalanceCaches } from '../../Money/utils/invalidateMoneyAccountBalanceCaches';
 import useEarnSectionLendingMarkets from './useEarnSectionLendingMarkets';
 import useEarnSectionTokenMetadata from './useEarnSectionTokenMetadata';
 import useTronStakeApy, { FetchStatus } from './useTronStakeApy';
@@ -25,7 +27,11 @@ jest.mock('@metamask/bridge-controller', () => ({
   formatAddressToAssetId: jest.fn(),
 }));
 jest.mock('../../Money/hooks/useMoneyAccountVisibility');
+jest.mock('../../Money/hooks/useMoneyAccountInfo');
 jest.mock('../../Money/hooks/useMoneyVaultApy');
+jest.mock('../../Money/utils/invalidateMoneyAccountBalanceCaches', () => ({
+  invalidateMoneyAccountBalanceCaches: jest.fn(),
+}));
 jest.mock('./useEarnSectionLendingMarkets');
 jest.mock('./useEarnSectionTokenMetadata');
 jest.mock('./useTronStakeApy');
@@ -54,9 +60,15 @@ const mockUseMoneyAccountVisibility =
   useMoneyAccountVisibility as jest.MockedFunction<
     typeof useMoneyAccountVisibility
   >;
+const mockUseMoneyAccountInfo = useMoneyAccountInfo as jest.MockedFunction<
+  typeof useMoneyAccountInfo
+>;
 const mockUseMoneyVaultApy = useMoneyVaultApy as jest.MockedFunction<
   typeof useMoneyVaultApy
 >;
+const mockInvalidateMoneyAccountBalanceCaches = jest.mocked(
+  invalidateMoneyAccountBalanceCaches,
+);
 const mockUseEarnSectionLendingMarkets =
   useEarnSectionLendingMarkets as jest.MockedFunction<
     typeof useEarnSectionLendingMarkets
@@ -194,6 +206,7 @@ const refreshLendingMarkets = jest.fn();
 const refreshLendingMetadata = jest.fn();
 const refetchMoneyApy = jest.fn();
 const refetchTrxApy = jest.fn();
+const MONEY_ACCOUNT_ADDRESS = '0x1234567890123456789012345678901234567890';
 
 const mockSelectorValues = ({
   isPooledStakingEnabled = true,
@@ -242,6 +255,13 @@ const mockDependencies = () => {
   mockUseMoneyAccountVisibility.mockReturnValue({
     isMoneyAccountVisible: true,
   });
+  mockUseMoneyAccountInfo.mockReturnValue({
+    isMoneyAccountFeatureEnabled: true,
+    hasMoneyAccount: true,
+    primaryMoneyAccount: {
+      address: MONEY_ACCOUNT_ADDRESS,
+    },
+  } as ReturnType<typeof useMoneyAccountInfo>);
   mockUseMoneyVaultApy.mockReturnValue({
     apyDecimal: 0.062,
     apyPercent: 6.2,
@@ -293,6 +313,7 @@ describe('useEarnAssetCatalogue', () => {
     refreshLendingMetadata.mockResolvedValue(undefined);
     refetchMoneyApy.mockResolvedValue(undefined);
     refetchTrxApy.mockResolvedValue(undefined);
+    mockInvalidateMoneyAccountBalanceCaches.mockResolvedValue(undefined);
     (
       Engine.context.EarnController
         .refreshPooledStakingVaultApyAverages as jest.MockedFunction<
@@ -689,6 +710,49 @@ describe('useEarnAssetCatalogue', () => {
     expect(refetchTrxApy).toHaveBeenCalledTimes(1);
   });
 
+  it('refreshes the Money APY and balance when Money is visible', async () => {
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    expect(refetchMoneyApy).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledWith(
+      MONEY_ACCOUNT_ADDRESS,
+    );
+  });
+
+  it('skips the Money balance refresh when Money is hidden', async () => {
+    mockUseMoneyAccountVisibility.mockReturnValue({
+      isMoneyAccountVisible: false,
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    expect(mockInvalidateMoneyAccountBalanceCaches).not.toHaveBeenCalled();
+  });
+
+  it('skips the Money balance refresh when no Money account address exists', async () => {
+    mockUseMoneyAccountInfo.mockReturnValue({
+      isMoneyAccountFeatureEnabled: true,
+      hasMoneyAccount: false,
+      primaryMoneyAccount: undefined,
+    } as ReturnType<typeof useMoneyAccountInfo>);
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    expect(mockInvalidateMoneyAccountBalanceCaches).not.toHaveBeenCalled();
+  });
+
   it('reports missing lending decimals as an error', () => {
     mockUseEarnSectionTokenMetadata.mockReturnValue({
       tokensByAssetId: {
@@ -742,5 +806,16 @@ describe('useEarnAssetCatalogue', () => {
     const refreshPromise = act(async () => result.current.refresh());
 
     await expect(refreshPromise).rejects.toThrow('Lending unavailable');
+  });
+
+  it('rejects refresh when the Money balance refresh fails', async () => {
+    mockInvalidateMoneyAccountBalanceCaches.mockRejectedValue(
+      new Error('Money balance unavailable'),
+    );
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    const refreshPromise = act(async () => result.current.refresh());
+
+    await expect(refreshPromise).rejects.toThrow('Money balance unavailable');
   });
 });

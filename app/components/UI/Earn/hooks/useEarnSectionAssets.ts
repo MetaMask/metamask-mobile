@@ -1,14 +1,21 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   EARN_SECTION_ASSET_LIMIT,
   rankEarnSectionAssets,
 } from '../utils/earnSection';
 import useEarnAssetCatalogue from './useEarnAssetCatalogue';
+import Logger from '../../../../util/Logger';
 
 /**
- * Projects the shared Earn asset catalogue into fixed homepage card slots.
+ * Projects the shared Earn asset catalogue into fixed card slots.
  */
-const useEarnSectionAssets = () => {
+interface UseEarnSectionAssetsOptions {
+  refreshTrigger?: number;
+}
+
+const useEarnSectionAssets = ({
+  refreshTrigger,
+}: UseEarnSectionAssetsOptions = {}) => {
   const {
     assets,
     moneyApyPercent,
@@ -18,6 +25,23 @@ const useEarnSectionAssets = () => {
     errors,
     refresh,
   } = useEarnAssetCatalogue();
+
+  useEffect(() => {
+    if (refreshTrigger === undefined || refreshTrigger <= 0) return;
+
+    const refreshEarnAssets = async () => {
+      try {
+        await refresh();
+      } catch (error: unknown) {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          'EarnSection: Failed to refresh Earn data',
+        );
+      }
+    };
+
+    refreshEarnAssets();
+  }, [refresh, refreshTrigger]);
 
   const assetSlots = useMemo(() => rankEarnSectionAssets(assets), [assets]);
   const hasMoreAssets = assets.length > EARN_SECTION_ASSET_LIMIT;

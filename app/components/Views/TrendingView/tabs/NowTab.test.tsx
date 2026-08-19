@@ -129,6 +129,29 @@ jest.mock('../feeds/perps/PerpsSectionProvider', () => {
     createElement(View, null, children);
 });
 
+const mockEarnSection = jest.fn(
+  (props: {
+    homeAnalytics?: unknown;
+    refreshTrigger?: number;
+    showDividers?: boolean;
+    tokenDetailsSource?: string;
+  }) =>
+    React.createElement('View', {
+      testID: 'explore-earn-section',
+      accessibilityLabel: JSON.stringify(props),
+    }),
+);
+
+jest.mock('../../../UI/Earn/components/EarnSection', () => ({
+  __esModule: true,
+  default: (props: {
+    homeAnalytics?: unknown;
+    refreshTrigger?: number;
+    showDividers?: boolean;
+    tokenDetailsSource?: string;
+  }) => mockEarnSection(props),
+}));
+
 const mockWhatsHappeningRefresh = jest.fn();
 const mockUseWhatsHappening = jest.fn(() => ({
   items: [] as { id: string }[],
@@ -197,6 +220,8 @@ import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
+import { selectExploreEarnSectionEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
+import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import WhatsHappeningSection from '../../../UI/WhatsHappening';
 import NowTab from './NowTab';
 import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
@@ -233,15 +258,19 @@ const createMockSelectorImpl =
     perpsEnabled = false,
     predictEnabled = false,
     whatsHappeningEnabled = false,
+    earnSectionEnabled = false,
   }: {
     perpsEnabled?: boolean;
     predictEnabled?: boolean;
     whatsHappeningEnabled?: boolean;
+    earnSectionEnabled?: boolean;
   }) =>
   (selector: unknown) => {
     if (selector === selectPerpsEnabledFlag) return perpsEnabled;
     if (selector === selectPredictEnabledFlag) return predictEnabled;
     if (selector === selectWhatsHappeningEnabled) return whatsHappeningEnabled;
+    if (selector === selectExploreEarnSectionEnabledFlag)
+      return earnSectionEnabled;
     return undefined;
   };
 
@@ -667,6 +696,52 @@ describe('NowTab — Crypto Movers', () => {
 
     expect(screen.getByTestId('section-pill-eip155:1/erc20:0x17')).toBeTruthy();
     expect(screen.queryByTestId('section-pill-eip155:1/erc20:0x18')).toBeNull();
+  });
+});
+
+describe('NowTab — Earn section', () => {
+  it('renders Earn section without Homepage analytics metadata when enabled', () => {
+    const mocks = arrangeMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({ earnSectionEnabled: true }),
+    );
+
+    renderNowTab();
+
+    expect(screen.getByTestId('explore-earn-section')).toBeOnTheScreen();
+    expect(mockEarnSection).toHaveBeenCalledWith({
+      refreshTrigger: 0,
+      tokenDetailsSource: TokenDetailsSource.ExploreEarn,
+    });
+  });
+
+  it('forwards Explore refresh trigger to Earn section', () => {
+    const mocks = arrangeMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({ earnSectionEnabled: true }),
+    );
+
+    renderNowTab({
+      ...defaultTabProps,
+      refresh: { trigger: 1, silentRefresh: true },
+    });
+
+    expect(mockEarnSection).toHaveBeenCalledWith({
+      refreshTrigger: 1,
+      tokenDetailsSource: TokenDetailsSource.ExploreEarn,
+    });
+  });
+
+  it('does not render Earn section when disabled', () => {
+    const mocks = arrangeMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({ earnSectionEnabled: false }),
+    );
+
+    renderNowTab();
+
+    expect(mockEarnSection).not.toHaveBeenCalled();
+    expect(screen.queryByTestId('explore-earn-section')).toBeNull();
   });
 });
 
