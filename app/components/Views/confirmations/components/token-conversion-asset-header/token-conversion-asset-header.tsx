@@ -35,6 +35,8 @@ export const TokenConversionAssetHeaderTestIds = {
   ASSET_HEADER_OUTPUT: 'token-conversion-asset-header-output',
   INPUT_TOKEN_AVATAR: 'token-conversion-asset-header-input-token-avatar',
   OUTPUT_TOKEN_AVATAR: 'token-conversion-asset-header-output-token-avatar',
+  INPUT_NETWORK_BADGE: 'token-conversion-asset-header-input-network-badge',
+  OUTPUT_NETWORK_BADGE: 'token-conversion-asset-header-output-network-badge',
 } as const;
 
 export const TokenConversionAssetHeaderSkeleton = ({
@@ -219,6 +221,7 @@ export const TokenConversionAssetHeader = ({
               <BadgeNetwork
                 name={inputNetworkName}
                 src={inputNetworkImageSource}
+                testID={TokenConversionAssetHeaderTestIds.INPUT_NETWORK_BADGE}
               />
             ) : null
           }
@@ -280,6 +283,7 @@ export const TokenConversionAssetHeader = ({
               <BadgeNetwork
                 name={outputNetworkName}
                 src={outputNetworkImageSource}
+                testID={TokenConversionAssetHeaderTestIds.OUTPUT_NETWORK_BADGE}
               />
             ) : null
           }
