@@ -76,7 +76,7 @@
         <h1>Vendor comparison</h1>
         <p>Comparison of the four providers executed in run 32265974787. Timings represent application metrics and do not fully include provider session creation.</p>
         <nav class="links">
-          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787" target="_blank">Run completo</a>
+          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787" target="_blank">Full run</a>
           <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32248728966" target="_blank">TestMu Standard + HE</a>
           <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32249603472" target="_blank">Sauce Labs</a>
         </nav>
@@ -157,7 +157,7 @@
         const fastest = valid.length ? Math.min(...valid) : null;
         const cells = values.map(([time, status]) => {
           const cls = status === "P" ? "pass" : status === "F" ? "fail" : "missing";
-          const text = time === null ? "N/D" : `${time.toFixed(3)} s`;
+          const text = time === null ? "N/A" : `${time.toFixed(3)} s`;
           const mark = status === "P" ? "Quality gate passed" : status === "F" ? "Quality gate failed" : "No metrics";
           return `<td class="${time === fastest && fastest !== null ? "winner" : ""}"><span class="time ${cls}">${text}</span><span class="status ${cls}">${mark}</span></td>`;
         }).join("");
