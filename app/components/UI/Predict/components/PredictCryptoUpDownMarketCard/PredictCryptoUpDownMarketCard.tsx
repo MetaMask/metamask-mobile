@@ -1188,6 +1188,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
     eventStartTime: targetPriceEventStartTime ?? '',
     variant: getVariant(selectedMarket.series.recurrence),
     endDate: selectedMarket.endDate ?? '',
+    twapWindowSeconds: selectedMarket.twapWindowSeconds,
     enabled:
       !isCompact &&
       Boolean(symbol) &&

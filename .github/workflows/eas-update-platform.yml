@@ -43,13 +43,30 @@ on:
         type: string
         required: false
         default: ''
+      runner_provider:
+        description: >-
+          Runner provider forwarded from the caller. Leave empty to defer to the repo
+          NAMESPACE_RUNNER_* Actions variables (see .github/CONTRIBUTING.md).
+        required: false
+        type: string
+        default: ''
 
 jobs:
   push-update:
     name: Push EAS Update (${{ inputs.platform }})
-    runs-on: ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
     environment: ${{ inputs.github_environment }}
     env:
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
       # OTA-specific vars only — build config + secrets come from builds.yml via steps below
       TARGET_COMMIT_HASH: ${{ inputs.commit_sha }}
       ARTIFACT_NAME: ${{ inputs.artifact_name }}
@@ -61,8 +78,16 @@ jobs:
       # Read by app/constants/ota.ts and inlined into the bundle by babel.
       OTA_RC_AUTO_COMMIT: ${{ inputs.rc_auto_commit_sha }}
     steps:
+      - name: Checkout repository (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          ref: ${{ env.TARGET_COMMIT_HASH }}
+          fetch-depth: 1
+
       - name: Checkout repository
         uses: actions/checkout@v4
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           ref: ${{ env.TARGET_COMMIT_HASH }}
           fetch-depth: 1

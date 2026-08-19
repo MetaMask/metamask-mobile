@@ -64,11 +64,8 @@ import {
   selectIsCardStateResolved,
   selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
-import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
-import {
-  selectMoneyEarningSectionEnabledFlag,
-  selectMoneyEnableMoneyAccountFlag,
-} from '../../selectors/featureFlags';
+import { selectMoneyEarningSectionEnabledFlag } from '../../selectors/featureFlags';
+import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
@@ -221,15 +218,10 @@ const MoneyHomeView = () => {
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isCardStateResolved = useSelector(selectIsCardStateResolved);
   const hasMetalCard = useSelector(selectHasMetalCard);
-  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isMoneyEarningSectionEnabled = useSelector(
     selectMoneyEarningSectionEnabledFlag,
   );
-  const isMoneyAccountGeoEligible = useSelector(
-    selectIsMoneyAccountGeoEligible,
-  );
-  const isMoneyAccountVisible =
-    isMoneyAccountEnabled && isMoneyAccountGeoEligible;
+  const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
     startLinkFlow,
     isCardAuthenticated,
@@ -747,8 +739,12 @@ const MoneyHomeView = () => {
     isCardLinkedToMoneyAccount,
   });
 
+  // Users with no card never fetch card home data, so its status stays 'idle'
+  // for them — `isCardStateResolved` is what tells us the upsell mode is final.
   const isCardAnalyticsReady =
-    cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
+    isCardStateResolved ||
+    cardHomeDataStatus === 'success' ||
+    cardHomeDataStatus === 'error';
 
   const metamaskCardSection = metamaskCardMode
     ? {
