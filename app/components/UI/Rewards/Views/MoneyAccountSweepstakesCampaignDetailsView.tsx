@@ -10,6 +10,8 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
+  BoxFlexDirection,
+  IconName,
   TextVariant,
   Skeleton,
 } from '@metamask/design-system-react-native';
@@ -18,11 +20,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
-import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import MoneyAccountSweepstakesCampaignCTA from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesCampaignCTA';
 import MoneyAccountSweepstakesDrawProofModal from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesDrawProofModal';
 import MoneyAccountSweepstakesDrawScheduleSection from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesDrawScheduleSection';
-import MoneyAccountSweepstakesStatsSummary from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesStatsSummary';
+import MoneyAccountSweepstakesCampaignOverview from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesCampaignOverview';
+import MoneyAccountSweepstakesLearnMoreRows from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesLearnMoreRows';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useGetMoneyAccountSweepstakesStatsMe } from '../hooks/useGetMoneyAccountSweepstakesStatsMe';
 import { useMoneyAccountSweepstakesBinding } from '../hooks/useMoneyAccountSweepstakesBinding';
@@ -31,19 +33,74 @@ import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweeps
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import useRewardsToast from '../hooks/useRewardsToast';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
-import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
 import { buildMoneyAccountSweepstakesTileCampaign } from '../utils/moneyAccountSweepstakesSeries';
+import { navigateToRewardsRoute } from '../utils';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type {
+  CampaignDto,
   CampaignHowItWorks as CampaignHowItWorksData,
   MoneyAccountSweepstakesCampaignDetails,
   MoneyAccountSweepstakesDrawProofDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { documentToPlainText } from '../components/ContentfulRichText/ContentfulRichText';
 
 export const MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW_TEST_IDS = {
   CONTAINER: 'money-account-sweepstakes-campaign-details-container',
+  LOADING_SKELETON: 'money-account-sweepstakes-campaign-details-loading',
 } as const;
+
+const MoneyAccountSweepstakesCampaignDetailsSkeleton: React.FC = () => {
+  const tw = useTailwind();
+
+  return (
+    <Box
+      testID={
+        MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW_TEST_IDS.LOADING_SKELETON
+      }
+    >
+      <Box twClassName="px-4 pb-5 pt-4 gap-4">
+        <Skeleton style={tw.style('h-32 rounded-xl')} />
+        <Box twClassName="gap-2">
+          <Skeleton style={tw.style('h-7 w-56 rounded-md')} />
+          <Skeleton style={tw.style('h-4 w-full rounded-md')} />
+          <Skeleton style={tw.style('h-4 w-4/5 rounded-md')} />
+        </Box>
+      </Box>
+
+      <Box twClassName="border-b border-border-muted" />
+
+      <Box twClassName="px-4 pt-4 gap-4">
+        <Skeleton style={tw.style('h-6 w-40 rounded-md')} />
+        {[0, 1, 2].map((index) => (
+          <Box
+            key={index}
+            flexDirection={BoxFlexDirection.Row}
+            twClassName="gap-3"
+          >
+            <Skeleton style={tw.style('h-8 w-8 rounded-full')} />
+            <Box twClassName="flex-1 gap-2">
+              <Skeleton style={tw.style('h-5 w-44 rounded-md')} />
+              <Skeleton style={tw.style('h-4 w-full rounded-md')} />
+              <Skeleton style={tw.style('h-4 w-5/6 rounded-md')} />
+            </Box>
+          </Box>
+        ))}
+      </Box>
+
+      <Box twClassName="border-b border-border-muted mt-4" />
+
+      <Box twClassName="p-4">
+        <Box twClassName="gap-3 rounded-xl border border-border-muted p-4">
+          <Skeleton style={tw.style('h-5 w-48 rounded-md')} />
+          <Skeleton style={tw.style('h-9 w-32 rounded-md')} />
+          <Skeleton style={tw.style('h-4 w-full rounded-md')} />
+          <Skeleton style={tw.style('h-4 w-3/4 rounded-md')} />
+        </Box>
+      </Box>
+    </Box>
+  );
+};
 
 const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
@@ -59,7 +116,7 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
   } = useRewardCampaigns();
 
   const series = useMoneyAccountSweepstakesSeries();
-  const { displayCampaign, campaigns, seriesStatus, activeCampaign } = series;
+  const { displayCampaign, campaigns, seriesStatus } = series;
 
   const { optedInAny } = useMoneyAccountSweepstakesParticipation(
     Boolean(displayCampaign),
@@ -67,8 +124,12 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
   const { ensureBound } = useMoneyAccountSweepstakesBinding();
   const { showToast, RewardsToastOptions } = useRewardsToast();
 
-  const { stats, isLoading: isStatsLoading } =
-    useGetMoneyAccountSweepstakesStatsMe(displayCampaign?.id);
+  const {
+    stats,
+    isLoading: isStatsLoading,
+    hasError: hasStatsError,
+    refetch: refetchStats,
+  } = useGetMoneyAccountSweepstakesStatsMe(displayCampaign?.id);
 
   const tileCampaign = useMemo(
     () => buildMoneyAccountSweepstakesTileCampaign(series),
@@ -81,8 +142,7 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
 
   const hasBalance = (stats?.currentBalanceUsd ?? 0) > 0;
   const showHowItWorksSection =
-    Boolean(displayCampaign?.details?.howItWorks) && !hasBalance;
-  const showStatsSection = hasBalance;
+    Boolean(displayCampaign?.details?.howItWorks) && !optedInAny && !hasBalance;
 
   useTrackRewardsPageView({
     page_type: 'money_account_sweepstakes_campaign_details',
@@ -123,14 +183,21 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
     RewardsToastOptions,
   ]);
 
-  const navigateToMechanics = useCallback(() => {
-    if (!displayCampaign?.id) return;
-    navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
-      campaignId: displayCampaign.id,
-    });
-  }, [navigation, displayCampaign?.id]);
-
   const statusCampaign = tileCampaign ?? displayCampaign;
+
+  const navigateToWinnerDetails = useCallback(
+    (campaign: CampaignDto) => {
+      navigateToRewardsRoute(
+        navigation,
+        Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_WINNING_VIEW,
+        {
+          campaignId: campaign.id,
+          campaignName: campaign.name,
+        },
+      );
+    },
+    [navigation],
+  );
 
   return (
     <ErrorBoundary
@@ -151,11 +218,6 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
           backButtonProps={{
             testID: 'money-account-sweepstakes-details-back-button',
           }}
-          endButtonIconProps={getCampaignMechanicsButtonProps(
-            displayCampaign != null,
-            navigateToMechanics,
-            'money-account-sweepstakes-details-mechanics-button',
-          )}
           includesTopInset
         />
 
@@ -164,77 +226,106 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
           contentContainerStyle={tw.style('pb-4')}
         >
           {isCampaignsLoading && !displayCampaign && (
-            <Box twClassName="px-4 pt-4 gap-4">
-              <Skeleton style={tw.style('h-48 rounded-xl')} />
-              <Skeleton style={tw.style('h-32 rounded-xl')} />
-            </Box>
+            <MoneyAccountSweepstakesCampaignDetailsSkeleton />
           )}
 
           {!isCampaignsLoading && hasCampaignsError && !displayCampaign && (
             <Box twClassName="px-4 pt-4">
               <RewardsErrorBanner
-                title={strings('rewards.campaigns_view.error_title')}
+                title={strings('rewards.campaign_details.error_title')}
                 description={strings(
-                  'rewards.campaigns_view.error_description',
+                  'rewards.campaign_details.error_description',
                 )}
                 onConfirm={fetchCampaigns}
-                confirmButtonLabel={strings(
-                  'rewards.campaigns_view.retry_button',
-                )}
+                confirmButtonLabel={strings('rewards.campaign_details.retry')}
               />
             </Box>
           )}
 
-          {statusCampaign && (
+          {statusCampaign && localizedText && (
             <>
-              <CampaignStatus campaign={statusCampaign} optedIn={optedInAny} />
+              <MoneyAccountSweepstakesCampaignOverview
+                campaign={statusCampaign}
+                localizedText={localizedText}
+                isParticipating={optedInAny}
+                stats={stats}
+                isStatsLoading={isStatsLoading}
+                hasStatsError={hasStatsError}
+                onRetryStats={refetchStats}
+              >
+                {optedInAny && (
+                  <MoneyAccountSweepstakesCampaignCTA
+                    campaign={displayCampaign ?? statusCampaign}
+                    seriesStatus={seriesStatus}
+                    localizedText={localizedText}
+                    inline
+                  />
+                )}
+              </MoneyAccountSweepstakesCampaignOverview>
 
               {showHowItWorksSection &&
                 displayCampaign?.details?.howItWorks && (
-                  <Box twClassName="p-4">
-                    <CampaignHowItWorks
-                      howItWorks={
-                        displayCampaign.details
-                          .howItWorks as CampaignHowItWorksData
-                      }
-                    />
-                  </Box>
+                  <>
+                    <Box twClassName="border-b border-border-muted" />
+                    <Box twClassName="px-4 pt-4">
+                      <CampaignHowItWorks
+                        howItWorks={
+                          displayCampaign.details
+                            .howItWorks as CampaignHowItWorksData
+                        }
+                        showStepNumbers={false}
+                        showStepDividers
+                        stepIcons={[
+                          IconName.Bank,
+                          IconName.Calendar,
+                          IconName.Trophy,
+                        ]}
+                        title={
+                          documentToPlainText(
+                            displayCampaign.details.howItWorks.title,
+                          ) || undefined
+                        }
+                      />
+                    </Box>
+                    <Box twClassName="border-b border-border-muted" />
+                  </>
                 )}
 
-              {showStatsSection && localizedText && (
-                <Box twClassName="p-4">
-                  <MoneyAccountSweepstakesStatsSummary
-                    stats={stats}
-                    localizedText={localizedText}
-                    isLoading={isStatsLoading}
-                  />
-                </Box>
-              )}
-
-              {campaigns.length > 0 && localizedText && (
+              {campaigns.length > 0 && (
                 <>
-                  <Box twClassName="my-1 border-b border-border-muted" />
                   <Box twClassName="p-4">
                     <MoneyAccountSweepstakesDrawScheduleSection
                       campaigns={campaigns}
                       localizedText={localizedText}
-                      activeCampaignId={activeCampaign?.id ?? null}
+                      entryCount={stats?.entryCount}
+                      isParticipating={optedInAny}
                       onOpenDrawProof={setSelectedDrawProof}
+                      onOpenWinnerDetails={navigateToWinnerDetails}
                     />
                   </Box>
                 </>
+              )}
+
+              {optedInAny && displayCampaign && (
+                <MoneyAccountSweepstakesLearnMoreRows
+                  campaignId={displayCampaign.id}
+                  localizedText={localizedText}
+                />
               )}
             </>
           )}
         </ScrollView>
 
-        {displayCampaign && seriesStatus === 'active' && localizedText && (
-          <MoneyAccountSweepstakesCampaignCTA
-            campaign={displayCampaign}
-            seriesStatus={seriesStatus}
-            localizedText={localizedText}
-          />
-        )}
+        {displayCampaign &&
+          localizedText &&
+          !optedInAny &&
+          seriesStatus === 'active' && (
+            <MoneyAccountSweepstakesCampaignCTA
+              campaign={displayCampaign}
+              seriesStatus={seriesStatus}
+              localizedText={localizedText}
+            />
+          )}
 
         {selectedDrawProof && localizedText && (
           <MoneyAccountSweepstakesDrawProofModal

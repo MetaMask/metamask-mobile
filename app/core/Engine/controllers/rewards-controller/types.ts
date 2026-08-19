@@ -1292,6 +1292,14 @@ export type MoneyAccountSweepstakesLocalizedTextDto = {
   entriesDescription: string;
   entriesCountValue: string;
   drawScheduleTitle: string;
+  drawScheduleSummary: string;
+  drawScheduleCurrentDraw: string;
+  drawScheduleEntriesReset: string;
+  drawScheduleViewResults: string;
+  awardedLabel: string;
+  prizePoolLabel: string;
+  prizeTitle: string;
+  prizeDescription: string;
   addFundsTitle: string;
   addFundsNoBalanceTitle: string;
   addFundsNoBalanceDescription: string;
@@ -1318,8 +1326,19 @@ export type MoneyAccountSweepstakesLocalizedTextDto = {
   bindingConflictTitle: string;
   bindingConflictDescription: string;
   onTrackDescription: string;
-  notYetQualifiedDescription: string;
   lostTodayDescription: string;
+  shortfallDescription: string;
+  currentBalanceTitle: string;
+  balanceTitle: string;
+  qualifiedLabel: string;
+  thisWeekLabel: string;
+  nextDrawTitle: string;
+  dayRemainingValue: string;
+  daysRemainingValue: string;
+  learnHowItWorksTitle: string;
+  learnHowItWorksDescription: string;
+  learnMusdTitle: string;
+  learnMusdDescription: string;
 };
 
 export interface MoneyAccountSweepstakesCampaignDetails

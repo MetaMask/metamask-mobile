@@ -5,9 +5,9 @@ import { CAMPAIGN_CTA_TEST_IDS } from '../CampaignOptInCta';
 import {
   CampaignType,
   type CampaignDto,
-  type MoneyAccountSweepstakesLocalizedTextDto,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { createMoneyAccountSweepstakesLocalizedText } from './testUtils';
 
 const mockNavigate = jest.fn();
 let mockFocusEffectCallback: (() => void) | null;
@@ -28,11 +28,11 @@ const mockEnsureBound = jest.fn(
 );
 const mockShowToast = jest.fn();
 const mockEntriesClosed = jest.fn(() => ({ variant: 'icon' }));
-
 let latestOptInSheetProps: {
   title?: string;
   onOptIn?: () => Promise<boolean>;
   onClose?: () => void;
+  onLegalLinkPress?: (url: string) => void;
 } | null;
 
 jest.mock('@react-navigation/native', () => ({
@@ -99,6 +99,7 @@ jest.mock('../CampaignOptInSheet', () => {
       title: string;
       onOptIn: () => Promise<boolean>;
       onClose: () => void;
+      onLegalLinkPress?: (url: string) => void;
     }) => {
       latestOptInSheetProps = props;
       return ReactActual.createElement(
@@ -116,7 +117,7 @@ jest.mock('../CampaignOptInSheet', () => {
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
-      'rewards.campaign.geo_locked_cta': 'Check eligibility',
+      'rewards.campaign.opt_in_cta': 'Opt in',
       'rewards.campaign.geo_loading': 'Checking eligibility',
       'rewards.campaign.geo_locked_toast_title': 'Not available in your region',
       'rewards.campaign.geo_locked_toast_description':
@@ -126,49 +127,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   },
 }));
 
-const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
-  eligibleBalanceTitle: 'Qualifying deposits',
-  eligibleBalanceDescription:
-    "Net new deposits in your Money Account since you joined. Reach $100 and don't drop below it before midnight UTC to earn today's entry. Balance from before joining doesn't count.",
-  entriesTitle: 'Entries',
-  entriesDescription:
-    'One entry for each UTC day your qualifying deposits stayed at $100 or above. Max 7 per week.',
-  entriesCountValue: '{count} / 7',
-  drawScheduleTitle: 'Draw schedule',
-  addFundsTitle: 'Add funds',
-  addFundsNoBalanceTitle: 'No balance to deposit into Money Account',
-  addFundsNoBalanceDescription:
-    'Deposit crypto or mUSD in your wallet before transferring them to Money Account.',
-  weekTitle: 'Week {number}',
-  completeLabel: 'Complete',
-  activeLabel: 'Active',
-  joinTheSweepstakesTitle: 'Join the Sweepstakes',
-  drawPendingTitle: 'Draw pending',
-  drawCompleteTitle: 'Winners drawn',
-  drawProofTitle: 'Draw proof',
-  merkleRootLabel: 'Merkle root',
-  formulaLabel: 'Formula',
-  drawFormulaLabel: 'Weighted raffle (Efraimidis–Spirakis)',
-  drawFormulaDescription:
-    "Each day your qualifying deposits stayed at $100 or above earned an entry (counted from the day you joined). After the week ended, we locked everyone's entries and published a commitment (the Merkle root) before the random seed existed. The seed is a future block hash nobody can predict. We then run a weighted raffle: more entries improve your odds but don't guarantee a win. Anyone can re-check the commitment, seed, and formula to verify the ranking.",
-  seedBlockLabel: 'Seed block number',
-  seedBlockHashLabel: 'Seed block hash',
-  drawProofEntriesLabel: 'Entries',
-  winnersLabel: 'Winners',
-  reservesLabel: 'Reserves',
-  originalDrawTitle: 'Original draw',
-  reserveSuffix: '(reserve)',
-  refLabel: 'Ref',
-  weightLabel: 'Weight',
-  bindingConflictTitle: 'Money Account already linked',
-  bindingConflictDescription:
-    'Money Account already binds to another Rewards profile.',
-  onTrackDescription: "You are on track to earn today's entry.",
-  notYetQualifiedDescription:
-    "Deposit the shortfall to reach $100 and hold through midnight UTC for today's entry.",
-  lostTodayDescription:
-    "Today's entry is forfeit after dipping below $100. Get back to $100+ to earn again tomorrow.",
-};
+const localizedText = createMoneyAccountSweepstakesLocalizedText();
 
 function buildCampaign(overrides: Partial<CampaignDto> = {}): CampaignDto {
   return {
@@ -201,7 +160,19 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     mockEnsureBound.mockResolvedValue('bound');
   });
 
-  it('renders nothing when series status is not active', () => {
+  it('renders nothing when series status is upcoming', () => {
+    const { queryByTestId } = render(
+      <MoneyAccountSweepstakesCampaignCTA
+        campaign={buildCampaign()}
+        seriesStatus="upcoming"
+        localizedText={localizedText}
+      />,
+    );
+
+    expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
+  });
+
+  it('renders nothing when series status is previous', () => {
     const { queryByTestId } = render(
       <MoneyAccountSweepstakesCampaignCTA
         campaign={buildCampaign()}
@@ -213,7 +184,7 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     expect(queryByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
   });
 
-  it('shows geo-locked CTA and toast when region is restricted', () => {
+  it('checks the region after Join the Sweepstakes is pressed and blocks restricted users', () => {
     mockIsGeoRestricted = true;
 
     const { getByTestId, getByText } = render(
@@ -224,7 +195,7 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
       />,
     );
 
-    expect(getByText('Check eligibility')).toBeOnTheScreen();
+    expect(getByText('Join the Sweepstakes')).toBeOnTheScreen();
     fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
     expect(mockEntriesClosed).toHaveBeenCalledWith(
@@ -353,7 +324,45 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('navigates to add money after a successful opt-in sheet close', async () => {
+  it('keeps the official rules link inside the opt-in sheet', () => {
+    const { getByText, queryByText } = render(
+      <MoneyAccountSweepstakesCampaignCTA
+        campaign={buildCampaign()}
+        seriesStatus="active"
+        localizedText={localizedText}
+      />,
+    );
+
+    expect(getByText('Join the Sweepstakes')).toBeOnTheScreen();
+    expect(queryByText('View official rules')).toBeNull();
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(latestOptInSheetProps).toBeNull();
+  });
+
+  it('opens the in-app rules page from the opt-in sheet legal link', () => {
+    const { getByTestId, queryByTestId } = render(
+      <MoneyAccountSweepstakesCampaignCTA
+        campaign={buildCampaign()}
+        seriesStatus="active"
+        localizedText={localizedText}
+      />,
+    );
+
+    fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
+    expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
+
+    act(() => {
+      latestOptInSheetProps?.onLegalLinkPress?.('https://example.com/rules');
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.REWARDS_CAMPAIGN_MECHANICS,
+      { campaignId: 'mas-campaign-1' },
+    );
+    expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
+  });
+
+  it('returns to the campaign dashboard after a successful opt-in', async () => {
     const { getByTestId } = render(
       <MoneyAccountSweepstakesCampaignCTA
         campaign={buildCampaign()}
@@ -371,18 +380,17 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     fireEvent.press(getByTestId('campaign-opt-in-sheet-close'));
 
     expect(mockEnsureOptedIn).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
-    });
+    expect(mockEnsureOptedIn).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('shows binding conflict toast and does not navigate when opt-in hits conflict', async () => {
+  it('shows binding conflict toast and closes the sheet when opt-in hits conflict', async () => {
     mockEnsureOptedIn.mockResolvedValue({
       success: false,
       reason: 'binding-conflict',
     });
 
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <MoneyAccountSweepstakesCampaignCTA
         campaign={buildCampaign()}
         seriesStatus="active"
@@ -394,8 +402,10 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     await act(async () => {
       await latestOptInSheetProps?.onOptIn?.();
     });
-    fireEvent.press(getByTestId('campaign-opt-in-sheet-close'));
 
+    await waitFor(() => {
+      expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
+    });
     expect(mockEntriesClosed).toHaveBeenCalledWith(
       'Money Account already linked',
       'Money Account already binds to another Rewards profile.',

@@ -93,7 +93,7 @@ describe('useMoneyAccountSweepstakesSeries', () => {
     expect(result.current.seriesStatus).toBe('active');
   });
 
-  it('reports an upcoming series and displays the first week before it starts', () => {
+  it('treats a returned future-dated series as upcoming', () => {
     mockUseSelector.mockReturnValue([
       buildCampaign({
         id: 'future-week',

@@ -4,7 +4,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  IconName,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -28,14 +28,14 @@ interface MoneyAccountSweepstakesCampaignCTAProps {
   campaign: CampaignDto;
   seriesStatus: MoneyAccountSweepstakesSeriesStatus | null;
   localizedText: MoneyAccountSweepstakesLocalizedTextDto;
+  inline?: boolean;
 }
 
 const MoneyAccountSweepstakesCampaignCTA: React.FC<
   MoneyAccountSweepstakesCampaignCTAProps
-> = ({ campaign, seriesStatus, localizedText }) => {
+> = ({ campaign, seriesStatus, localizedText, inline = false }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
-  const shouldNavigateToAddMoneyRef = useRef(false);
   // Toast after Add Money closes — Rewards toast sits under native modals.
   const pendingNoFundingToastRef = useRef(false);
   const { showToast, RewardsToastOptions } = useRewardsToast();
@@ -45,8 +45,9 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
   const { ensureOptedIn } = useMoneyAccountSweepstakesOptIn();
   const { ensureBound, bindingConflict } = useMoneyAccountSweepstakesBinding();
   const hasActionableAddMoneyOptions = useHasActionableAddMoneyOptions();
-
-  const buttonLabel = localizedText.addFundsTitle;
+  const buttonLabel = optedInAny
+    ? localizedText.addFundsTitle
+    : localizedText.joinTheSweepstakesTitle;
   const optInSheetTitle = localizedText.joinTheSweepstakesTitle;
 
   const showBindingConflictToast = useCallback(() => {
@@ -109,23 +110,31 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
     const result = await ensureOptedIn();
     if (result.reason === 'binding-conflict') {
       showBindingConflictToast();
-      shouldNavigateToAddMoneyRef.current = false;
+      // Close the sheet so the toast is the only failure signal (avoids a
+      // generic error banner on top of the conflict-specific toast).
+      setIsOptInSheetOpen(false);
       return false;
     }
-    shouldNavigateToAddMoneyRef.current = result.success;
     return result.success;
   }, [ensureOptedIn, showBindingConflictToast]);
 
   const handleOptInSheetClose = useCallback(() => {
     setIsOptInSheetOpen(false);
-    if (shouldNavigateToAddMoneyRef.current) {
-      shouldNavigateToAddMoneyRef.current = false;
-      navigateToAddMoney();
-    }
-  }, [navigateToAddMoney]);
+  }, []);
+
+  const navigateToOfficialRules = useCallback(() => {
+    setIsOptInSheetOpen(false);
+    navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
+      campaignId: campaign.id,
+    });
+  }, [campaign.id, navigation]);
 
   const handlePress = useCallback(async () => {
     if (isGeoLoading) {
+      return;
+    }
+    if (isGeoRestricted) {
+      handleGeoLockedPress();
       return;
     }
     if (optedInAny) {
@@ -141,10 +150,11 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
       navigateToAddMoney();
       return;
     }
-    shouldNavigateToAddMoneyRef.current = false;
     setIsOptInSheetOpen(true);
   }, [
     isGeoLoading,
+    isGeoRestricted,
+    handleGeoLockedPress,
     optedInAny,
     bindingConflict,
     ensureBound,
@@ -156,26 +166,9 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
     return null;
   }
 
-  if (!isGeoLoading && isGeoRestricted) {
-    return (
-      <Box twClassName="p-4 mb-2">
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          startIconName={IconName.Lock}
-          onPress={handleGeoLockedPress}
-          testID={CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON}
-        >
-          {strings('rewards.campaign.geo_locked_cta')}
-        </Button>
-      </Box>
-    );
-  }
-
   return (
     <>
-      <Box twClassName="p-4 mb-2">
+      <Box twClassName={inline ? 'pt-1' : 'mb-2 gap-2 px-4 pb-2 pt-4'}>
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
@@ -193,6 +186,9 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
         <CampaignOptInSheet
           campaign={campaign}
           title={optInSheetTitle}
+          legalTextVariant={TextVariant.BodyXs}
+          legalBodyClassName="text-left text-alternative"
+          onLegalLinkPress={navigateToOfficialRules}
           onOptIn={handleCustomOptIn}
           onClose={handleOptInSheetClose}
         />

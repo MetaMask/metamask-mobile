@@ -727,7 +727,7 @@ describe('CampaignTile', () => {
       });
     });
 
-    it('navigates to campaign tour for MONEY_ACCOUNT_SWEEPSTAKES when not opted in and tour exists', () => {
+    it('skips the tour and opens Money Account Sweepstakes details when not opted in', () => {
       setupSweepstakesParticipation(false);
       const campaign = createTestCampaign({
         id: 'camp-sweepstakes-tour',
@@ -743,7 +743,7 @@ describe('CampaignTile', () => {
       fireEvent.press(getByTestId('campaign-tile-camp-sweepstakes-tour'));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: Routes.REWARDS_CAMPAIGN_TOUR_STEP,
+        screen: Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
         params: { campaignId: 'camp-sweepstakes-tour' },
       });
     });

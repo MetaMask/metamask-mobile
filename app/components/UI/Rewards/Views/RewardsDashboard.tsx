@@ -60,9 +60,11 @@ import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitc
 import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccountSweepstakesOutcomeToast';
 import VipIcon from '../../../../images/rewards/vip.svg';
 import Engine from '../../../../core/Engine';
+import { handleDeeplink } from '../../../../core/DeeplinkManager';
 
 const VIP_UNLOCK_TAP_COUNT = 5;
 const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
+const MUSD_MONEY_URL = 'metamask://money';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -182,7 +184,7 @@ const RewardsDashboard: React.FC = () => {
         // entry.kind === 'dashboard': stay on dashboard (upcoming / empty)
       }
     } else if (pendingDeeplink.page === 'musd') {
-      navigateToRewardsRoute(navigation, Routes.REWARDS_MUSD_CALCULATOR_VIEW);
+      handleDeeplink({ uri: MUSD_MONEY_URL });
     } else if (pendingDeeplink.page === 'benefits') {
       // Benefits full view is registered at the root MainNavigator level.
       navigation.navigate(Routes.REWARD_BENEFITS_FULL_VIEW);

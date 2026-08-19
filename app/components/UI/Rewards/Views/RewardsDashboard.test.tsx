@@ -7,6 +7,7 @@ import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
+import { handleDeeplink } from '../../../../core/DeeplinkManager';
 
 // Mock dependencies
 const mockDispatch = jest.fn();
@@ -16,6 +17,14 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
+jest.mock('../../../../core/DeeplinkManager', () => ({
+  handleDeeplink: jest.fn(),
+}));
+
+const mockHandleDeeplink = handleDeeplink as jest.MockedFunction<
+  typeof handleDeeplink
+>;
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -909,7 +918,6 @@ describe('RewardsDashboard', () => {
         'predict-the-pitch',
         Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
       ],
-      ['page', 'musd', Routes.REWARDS_MUSD_CALCULATOR_VIEW],
     ])(
       'routes %s=%s into the rewards flow and clears the pending deeplink',
       (key, value, expectedScreen) => {
@@ -922,6 +930,16 @@ describe('RewardsDashboard', () => {
         expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
       },
     );
+
+    it('opens the Money deeplink and clears the pending deeplink for page=musd', () => {
+      renderWithPendingDeeplink({ page: 'musd' });
+
+      expect(mockHandleDeeplink).toHaveBeenCalledWith({
+        uri: 'metamask://money',
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
 
     it('navigates directly to the benefits full view (registered at root) for page=benefits', () => {
       // Benefits is registered at the root MainNavigator level, so the dashboard

@@ -2,8 +2,6 @@ import React, { useCallback } from 'react';
 import {
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -19,26 +17,35 @@ import type {
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { useGetMoneyAccountSweepstakesDrawProof } from '../../../hooks/useGetMoneyAccountSweepstakesDrawProof';
 import { useGetMoneyAccountSweepstakesPrizePool } from '../../../hooks/useGetMoneyAccountSweepstakesPrizePool';
+import { useMoneyAccountSweepstakesOutcome } from '../../../hooks/useMoneyAccountSweepstakesOutcome';
+import { strings } from '../../../../../../../locales/i18n';
 import {
   formatCampaignDateRange,
   getCampaignStatus,
 } from '../CampaignTile.utils';
-import MoneyAccountSweepstakesPrizePool from './MoneyAccountSweepstakesPrizePool';
-import { WEEK_NUMBER_PLACEHOLDER } from './constants';
+import { formatUsd } from '../../../utils/formatUtils';
+import {
+  ENTRIES_COUNT_PLACEHOLDER,
+  WEEK_NUMBER_PLACEHOLDER,
+} from './constants';
 
 export const MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS = {
   CONTAINER: 'money-account-sweepstakes-draw-schedule-container',
   WEEK_ROW: 'money-account-sweepstakes-draw-schedule-week-row',
   DRAW_COMPLETE_BUTTON:
     'money-account-sweepstakes-draw-schedule-draw-complete-button',
+  WINNER_BUTTON: 'money-account-sweepstakes-draw-schedule-winner-button',
 } as const;
 
 interface MoneyAccountSweepstakesDrawScheduleSectionProps {
   campaigns: CampaignDto[];
   localizedText: MoneyAccountSweepstakesLocalizedTextDto;
-  activeCampaignId?: string | null;
+  entryCount?: number;
+  isParticipating?: boolean;
   /** Open draw-proof sheet outside ScrollView (parent mounts the modal). */
   onOpenDrawProof?: (drawProof: MoneyAccountSweepstakesDrawProofDto) => void;
+  /** Open winner details for a won week (parent handles navigation). */
+  onOpenWinnerDetails?: (campaign: CampaignDto) => void;
 }
 
 const formatWeekTitle = (
@@ -47,39 +54,33 @@ const formatWeekTitle = (
 ): string =>
   weekTitleTemplate.replace(WEEK_NUMBER_PLACEHOLDER, String(weekNumber));
 
-const ActiveWeekPrizePool: React.FC<{ campaignId: string }> = ({
-  campaignId,
-}) => {
-  const { prizePool, isLoading, hasError, refetch } =
-    useGetMoneyAccountSweepstakesPrizePool(campaignId);
-
-  return (
-    <MoneyAccountSweepstakesPrizePool
-      prizePool={prizePool}
-      isLoading={isLoading}
-      hasError={hasError}
-      refetch={refetch}
-    />
-  );
-};
-
 interface WeekRowProps {
   campaign: CampaignDto;
   weekNumber: number;
   localizedText: MoneyAccountSweepstakesLocalizedTextDto;
+  entryCount?: number;
+  isParticipating?: boolean;
   onOpenDrawProof?: (drawProof: MoneyAccountSweepstakesDrawProofDto) => void;
+  onOpenWinnerDetails?: (campaign: CampaignDto) => void;
 }
 
 const WeekRow: React.FC<WeekRowProps> = ({
   campaign,
   weekNumber,
   localizedText,
+  entryCount,
+  isParticipating = false,
   onOpenDrawProof,
+  onOpenWinnerDetails,
 }) => {
   const status = getCampaignStatus(campaign);
   const { drawProof } = useGetMoneyAccountSweepstakesDrawProof(
     campaign.id,
     status === 'complete',
+  );
+  const { prizePool } = useGetMoneyAccountSweepstakesPrizePool(campaign.id);
+  const { outcome } = useMoneyAccountSweepstakesOutcome(
+    status === 'complete' ? campaign.id : undefined,
   );
 
   const weekTitle = formatWeekTitle(localizedText.weekTitle, weekNumber);
@@ -95,44 +96,70 @@ const WeekRow: React.FC<WeekRowProps> = ({
     onOpenDrawProof?.(drawProof);
   }, [drawProof, onOpenDrawProof]);
 
+  const openWinnerDetails = useCallback(() => {
+    onOpenWinnerDetails?.(campaign);
+  }, [campaign, onOpenWinnerDetails]);
+
+  const rowTestId = `${MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.WEEK_ROW}-${campaign.id}`;
+  const formattedPrizePoolAmount =
+    prizePool?.unlockedPoolUsd != null
+      ? formatUsd(prizePool.unlockedPoolUsd)
+      : null;
+  const prizePoolLabel = localizedText.prizePoolLabel;
+
   if (status === 'complete') {
     const hasProof = drawProof != null;
+    const hasWon = Boolean(outcome?.winnerVerificationCode);
+    const isOutcomeFinalized = outcome?.outcomeStatus === 'finalized';
 
     return (
-      <Box
-        twClassName="gap-2"
-        testID={`${MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.WEEK_ROW}-${campaign.id}`}
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="gap-2"
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-            twClassName="flex-1"
-          >
-            {weekTitle} · {localizedText.completeLabel}
+      <Box twClassName="flex-row gap-4 py-3" testID={rowTestId}>
+        <Box twClassName="flex-1 gap-1">
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {dateRange}
           </Text>
-          {hasProof ? (
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {weekTitle}
+          </Text>
+        </Box>
+        <Box alignItems={BoxAlignItems.End} twClassName="flex-1 gap-1">
+          {formattedPrizePoolAmount != null && (
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {formattedPrizePoolAmount}
+            </Text>
+          )}
+          {hasWon ? (
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Sm}
+              onPress={
+                isOutcomeFinalized ? openDrawProofSheet : openWinnerDetails
+              }
+              twClassName="self-end bg-success-muted"
+              textProps={{
+                color: TextColor.SuccessDefault,
+                twClassName: 'text-success-default',
+              }}
+              testID={`${MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.WINNER_BUTTON}-${campaign.id}`}
+            >
+              {strings('rewards.campaign_winning.you_won')}
+            </Button>
+          ) : hasProof ? (
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.Sm}
               onPress={openDrawProofSheet}
+              twClassName="self-end"
               testID={
                 MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.DRAW_COMPLETE_BUTTON
               }
             >
-              {localizedText.drawCompleteTitle}
+              {localizedText.drawScheduleViewResults}
             </Button>
           ) : (
             <Text
               variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
+              color={TextColor.TextAlternative}
             >
               {localizedText.drawPendingTitle}
             </Text>
@@ -144,62 +171,59 @@ const WeekRow: React.FC<WeekRowProps> = ({
 
   if (status === 'active') {
     return (
-      <Box
-        twClassName="gap-3"
-        testID={`${MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.WEEK_ROW}-${campaign.id}`}
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="gap-2"
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.SuccessDefault}
-            twClassName="flex-1"
-          >
-            {weekTitle} · {localizedText.activeLabel}
-          </Text>
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.SuccessDefault}
-          >
+      <Box twClassName="flex-row gap-4 py-3" testID={rowTestId}>
+        <Box twClassName="flex-1 gap-1">
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {dateRange}
           </Text>
+          <Text variant={TextVariant.BodySm} color={TextColor.SuccessDefault}>
+            {weekTitle} · {localizedText.drawScheduleCurrentDraw}
+          </Text>
         </Box>
-        <ActiveWeekPrizePool campaignId={campaign.id} />
+        <Box alignItems={BoxAlignItems.End} twClassName="flex-1 gap-1">
+          {formattedPrizePoolAmount != null && (
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {formattedPrizePoolAmount}
+            </Text>
+          )}
+          {isParticipating ? (
+            <Text variant={TextVariant.BodySm} color={TextColor.SuccessDefault}>
+              {localizedText.entriesCountValue.replace(
+                ENTRIES_COUNT_PLACEHOLDER,
+                entryCount == null ? '-' : String(entryCount),
+              )}
+            </Text>
+          ) : (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {prizePoolLabel}
+            </Text>
+          )}
+        </Box>
       </Box>
     );
   }
 
   return (
-    <Box
-      twClassName="gap-1"
-      testID={`${MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.WEEK_ROW}-${campaign.id}`}
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="gap-2"
-      >
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          twClassName="flex-1"
-        >
+    <Box twClassName="flex-row gap-4 py-3" testID={rowTestId}>
+      <Box twClassName="flex-1 gap-1">
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {dateRange}
+        </Text>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {weekTitle}
         </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-        >
-          {dateRange}
+      </Box>
+      <Box alignItems={BoxAlignItems.End} twClassName="flex-1 gap-1">
+        {formattedPrizePoolAmount != null && (
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {formattedPrizePoolAmount}
+          </Text>
+        )}
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {prizePoolLabel}
         </Text>
       </Box>
     </Box>
@@ -208,31 +232,51 @@ const WeekRow: React.FC<WeekRowProps> = ({
 
 const MoneyAccountSweepstakesDrawScheduleSection: React.FC<
   MoneyAccountSweepstakesDrawScheduleSectionProps
-> = ({ campaigns, localizedText, onOpenDrawProof }) => {
+> = ({
+  campaigns,
+  localizedText,
+  entryCount,
+  isParticipating,
+  onOpenDrawProof,
+  onOpenWinnerDetails,
+}) => {
   if (campaigns.length === 0) {
     return null;
   }
 
   return (
     <Box
-      twClassName="gap-4"
+      twClassName="gap-0"
       testID={MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.CONTAINER}
     >
-      <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
-        {localizedText.drawScheduleTitle}
-      </Text>
+      <Box twClassName="gap-1 pb-3">
+        <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
+          {localizedText.drawScheduleTitle}
+        </Text>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {localizedText.drawScheduleSummary}
+        </Text>
+      </Box>
 
       {campaigns.map((campaign, index) => (
         <React.Fragment key={campaign.id}>
-          {index > 0 && <Box twClassName="border-b border-border-muted" />}
           <WeekRow
             campaign={campaign}
             weekNumber={index + 1}
             localizedText={localizedText}
+            entryCount={entryCount}
+            isParticipating={isParticipating}
             onOpenDrawProof={onOpenDrawProof}
+            onOpenWinnerDetails={onOpenWinnerDetails}
           />
         </React.Fragment>
       ))}
+
+      <Box twClassName="border-t border-border-muted pt-3">
+        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+          {localizedText.drawScheduleEntriesReset}
+        </Text>
+      </Box>
     </Box>
   );
 };

@@ -47,6 +47,12 @@ const hyperlink = (uri: string, linkText: string): RichTextNode => ({
   content: [text(linkText)],
 });
 
+const listItem = (...children: RichTextNode[]): RichTextNode => ({
+  nodeType: 'list-item',
+  data: {},
+  content: children,
+});
+
 describe('ContentfulRichText', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -102,6 +108,25 @@ describe('ContentfulRichText', () => {
     });
   });
 
+  it('uses a supplied in-app link handler instead of opening the browser', () => {
+    const onLinkPress = jest.fn();
+    const doc = makeDoc(
+      paragraph(hyperlink('https://example.com/rules', 'Official Rules')),
+    );
+    const { getByText } = render(
+      <ContentfulRichText
+        document={doc}
+        onLinkPress={onLinkPress}
+        testID="rt"
+      />,
+    );
+
+    fireEvent.press(getByText('Official Rules'));
+
+    expect(onLinkPress).toHaveBeenCalledWith('https://example.com/rules');
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('renders multiple paragraphs', () => {
     const doc = makeDoc(
       paragraph(text('First paragraph')),
@@ -119,16 +144,8 @@ describe('ContentfulRichText', () => {
       nodeType: 'unordered-list',
       data: {},
       content: [
-        {
-          nodeType: 'list-item',
-          data: {},
-          content: [paragraph(text('Item one'))],
-        },
-        {
-          nodeType: 'list-item',
-          data: {},
-          content: [paragraph(text('Item two'))],
-        },
+        listItem(paragraph(text('Item one'))),
+        listItem(paragraph(text('Item two'))),
       ],
     });
     const { getByText, getAllByText } = render(
@@ -144,16 +161,8 @@ describe('ContentfulRichText', () => {
       nodeType: 'ordered-list',
       data: {},
       content: [
-        {
-          nodeType: 'list-item',
-          data: {},
-          content: [paragraph(text('First'))],
-        },
-        {
-          nodeType: 'list-item',
-          data: {},
-          content: [paragraph(text('Second'))],
-        },
+        listItem(paragraph(text('First'))),
+        listItem(paragraph(text('Second'))),
       ],
     });
     const { getByText } = render(
@@ -161,6 +170,48 @@ describe('ContentfulRichText', () => {
     );
     expect(getByText('1. ')).toBeOnTheScreen();
     expect(getByText('2. ')).toBeOnTheScreen();
+  });
+
+  it('renders a list item with multiple paragraph blocks', () => {
+    const doc = makeDoc({
+      nodeType: 'unordered-list',
+      data: {},
+      content: [
+        listItem(paragraph(text('First line')), paragraph(text('Second line'))),
+      ],
+    });
+    const { getByText } = render(
+      <ContentfulRichText document={doc} testID="rt" />,
+    );
+
+    expect(getByText('First line')).toBeOnTheScreen();
+    expect(getByText('Second line')).toBeOnTheScreen();
+  });
+
+  it('renders nested ordered and unordered lists from Contentful', () => {
+    const doc = makeDoc({
+      nodeType: 'unordered-list',
+      data: {},
+      content: [
+        listItem(paragraph(text('Parent item')), {
+          nodeType: 'ordered-list',
+          data: {},
+          content: [
+            listItem(paragraph(text('Nested first'))),
+            listItem(paragraph(text('Nested second'))),
+          ],
+        }),
+      ],
+    });
+    const { getByText, getAllByText } = render(
+      <ContentfulRichText document={doc} testID="rt" />,
+    );
+
+    expect(getByText('Parent item')).toBeOnTheScreen();
+    expect(getByText('Nested first')).toBeOnTheScreen();
+    expect(getByText('Nested second')).toBeOnTheScreen();
+    expect(getAllByText('1. ').length).toBe(1);
+    expect(getAllByText('2. ').length).toBe(1);
   });
 
   it('renders a heading', () => {

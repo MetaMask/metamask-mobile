@@ -7,19 +7,19 @@ import {
   CampaignType,
   type CampaignDto,
   type MoneyAccountSweepstakesCampaignDetails,
-  type MoneyAccountSweepstakesLocalizedTextDto,
   type MoneyAccountSweepstakesStatsMeDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
 import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
 import { useGetMoneyAccountSweepstakesStatsMe } from '../hooks/useGetMoneyAccountSweepstakesStatsMe';
-import Routes from '../../../../constants/navigation/Routes';
 import type { MoneyAccountSweepstakesSeries } from '../utils/moneyAccountSweepstakesSeries';
+import { createMoneyAccountSweepstakesLocalizedText } from '../components/Campaigns/MoneyAccountSweepstakes/testUtils';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockFetchCampaigns = jest.fn();
+const mockRefetchStats = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -127,21 +127,6 @@ jest.mock('../components/Campaigns/CampaignHowItWorks', () => {
 });
 
 jest.mock(
-  '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesStatsSummary',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: () =>
-        ReactActual.createElement(View, {
-          testID: 'money-account-sweepstakes-stats-summary',
-        }),
-    };
-  },
-);
-
-jest.mock(
   '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesDrawScheduleSection',
   () => {
     const ReactActual = jest.requireActual('react');
@@ -192,6 +177,14 @@ jest.mock('../hooks/useRewardCampaigns');
 jest.mock('../hooks/useMoneyAccountSweepstakesSeries');
 jest.mock('../hooks/useMoneyAccountSweepstakesParticipation');
 jest.mock('../hooks/useGetMoneyAccountSweepstakesStatsMe');
+jest.mock('../hooks/useMoneyAccountSweepstakesOutcome', () => ({
+  useMoneyAccountSweepstakesOutcome: () => ({
+    outcome: null,
+    isLoading: false,
+    hasError: false,
+    refetch: jest.fn(),
+  }),
+}));
 jest.mock('../hooks/useTrackRewardsPageView', () => jest.fn());
 
 const mockEnsureBound = jest.fn(
@@ -237,49 +230,7 @@ const mockUseGetMoneyAccountSweepstakesStatsMe =
     typeof useGetMoneyAccountSweepstakesStatsMe
   >;
 
-const localizedText: MoneyAccountSweepstakesLocalizedTextDto = {
-  eligibleBalanceTitle: 'Qualifying deposits',
-  eligibleBalanceDescription:
-    "Net new deposits in your Money Account since you joined. Reach $100 and don't drop below it before midnight UTC to earn today's entry. Balance from before joining doesn't count.",
-  entriesTitle: 'Entries',
-  entriesDescription:
-    'One entry for each UTC day your qualifying deposits stayed at $100 or above. Max 7 per week.',
-  entriesCountValue: '{count} / 7',
-  drawScheduleTitle: 'Draw schedule',
-  addFundsTitle: 'Add funds',
-  addFundsNoBalanceTitle: 'No balance to deposit into Money Account',
-  addFundsNoBalanceDescription:
-    'Deposit crypto or mUSD in your wallet before transferring them to Money Account.',
-  weekTitle: 'Week {number}',
-  completeLabel: 'Complete',
-  activeLabel: 'Active',
-  joinTheSweepstakesTitle: 'Join the Sweepstakes',
-  drawPendingTitle: 'Draw pending',
-  drawCompleteTitle: 'Winners drawn',
-  drawProofTitle: 'Draw proof',
-  merkleRootLabel: 'Merkle root',
-  formulaLabel: 'Formula',
-  drawFormulaLabel: 'Weighted raffle (Efraimidis–Spirakis)',
-  drawFormulaDescription:
-    "Each day your qualifying deposits stayed at $100 or above earned an entry (counted from the day you joined). After the week ended, we locked everyone's entries and published a commitment (the Merkle root) before the random seed existed. The seed is a future block hash nobody can predict. We then run a weighted raffle: more entries improve your odds but don't guarantee a win. Anyone can re-check the commitment, seed, and formula to verify the ranking.",
-  seedBlockLabel: 'Seed block number',
-  seedBlockHashLabel: 'Seed block hash',
-  drawProofEntriesLabel: 'Entries',
-  winnersLabel: 'Winners',
-  reservesLabel: 'Reserves',
-  originalDrawTitle: 'Original draw',
-  reserveSuffix: '(reserve)',
-  refLabel: 'Ref',
-  weightLabel: 'Weight',
-  bindingConflictTitle: 'Money Account already linked',
-  bindingConflictDescription:
-    'Money Account already binds to another Rewards profile.',
-  onTrackDescription: "You are on track to earn today's entry.",
-  notYetQualifiedDescription:
-    "Deposit the shortfall to reach $100 and hold through midnight UTC for today's entry.",
-  lostTodayDescription:
-    "Today's entry is forfeit after dipping below $100. Get back to $100+ to earn again tomorrow.",
-};
+const localizedText = createMoneyAccountSweepstakesLocalizedText();
 
 const details: MoneyAccountSweepstakesCampaignDetails = {
   howItWorks: {
@@ -334,6 +285,7 @@ function setupHooks({
   optedInAny = false,
   stats = null as MoneyAccountSweepstakesStatsMeDto | null,
   isStatsLoading = false,
+  hasStatsError = false,
 } = {}) {
   mockUseRewardCampaigns.mockReturnValue({
     campaigns: series.campaigns,
@@ -357,8 +309,8 @@ function setupHooks({
   mockUseGetMoneyAccountSweepstakesStatsMe.mockReturnValue({
     stats,
     isLoading: isStatsLoading,
-    hasError: false,
-    refetch: jest.fn(),
+    hasError: hasStatsError,
+    refetch: mockRefetchStats,
   });
 }
 
@@ -425,7 +377,7 @@ describe('MoneyAccountSweepstakesCampaignDetailsView', () => {
     expect(mockFetchCampaigns).toHaveBeenCalledTimes(1);
   });
 
-  it('shows how-it-works when balance is zero and stats when balance is positive', () => {
+  it('shows how-it-works when balance is zero and hides it once funded', () => {
     setupHooks({ stats: null });
     const withoutBalance = render(
       <MoneyAccountSweepstakesCampaignDetailsView />,
@@ -442,8 +394,45 @@ describe('MoneyAccountSweepstakesCampaignDetailsView', () => {
     const withBalance = render(<MoneyAccountSweepstakesCampaignDetailsView />);
     expect(withBalance.queryByTestId('campaign-how-it-works')).toBeNull();
     expect(
-      withBalance.getByTestId('money-account-sweepstakes-stats-summary'),
+      withBalance.getByTestId('money-account-sweepstakes-hero'),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the balance dashboard after opt-in even when the balance is zero', () => {
+    setupHooks({ optedInAny: true, stats: null });
+
+    const { getByTestId, queryByTestId } = render(
+      <MoneyAccountSweepstakesCampaignDetailsView />,
+    );
+
+    expect(
+      getByTestId('money-account-sweepstakes-balance-header'),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('campaign-how-it-works')).toBeNull();
+  });
+
+  it('shows stats skeletons while opted-in stats are loading with no cached stats', () => {
+    setupHooks({ optedInAny: true, stats: null, isStatsLoading: true });
+
+    const { getByTestId } = render(
+      <MoneyAccountSweepstakesCampaignDetailsView />,
+    );
+
+    expect(
+      getByTestId('money-account-sweepstakes-stats-loading'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows stats error banner and retries stats fetch when opted-in stats fail', () => {
+    setupHooks({ optedInAny: true, stats: null, hasStatsError: true });
+
+    const { getByTestId } = render(
+      <MoneyAccountSweepstakesCampaignDetailsView />,
+    );
+
+    fireEvent.press(getByTestId('error-banner-retry'));
+
+    expect(mockRefetchStats).toHaveBeenCalledTimes(1);
   });
 
   it('renders draw schedule and CTA for an active series', () => {
@@ -469,19 +458,16 @@ describe('MoneyAccountSweepstakesCampaignDetailsView', () => {
     expect(queryByTestId('money-account-sweepstakes-cta')).toBeNull();
   });
 
-  it('navigates to campaign mechanics from the header button', () => {
-    const { getByTestId } = render(
+  it('hides the CTA when series status is upcoming', () => {
+    setupHooks({
+      series: buildSeries({ seriesStatus: 'upcoming' }),
+    });
+
+    const { queryByTestId } = render(
       <MoneyAccountSweepstakesCampaignDetailsView />,
     );
 
-    fireEvent.press(
-      getByTestId('money-account-sweepstakes-details-mechanics-button'),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.REWARDS_CAMPAIGN_MECHANICS,
-      { campaignId: 'mas-campaign-1' },
-    );
+    expect(queryByTestId('money-account-sweepstakes-cta')).toBeNull();
   });
 
   it('navigates back from the header back button', () => {
