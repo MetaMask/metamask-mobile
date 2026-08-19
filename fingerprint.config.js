@@ -154,6 +154,7 @@ const config = {
     '.github/scripts/check-template-and-add-labels.test.ts',
     '.github/scripts/close-release-bug-report-issue.ts',
     '.github/scripts/collect-qa-stats.mjs',
+    '.github/scripts/qa-stats-e2e.cjs',
     '.github/scripts/create-bug-report-issue.ts',
     '.github/scripts/extract-semver.sh',
     '.github/scripts/generate-regression-slack-summary.mjs',
