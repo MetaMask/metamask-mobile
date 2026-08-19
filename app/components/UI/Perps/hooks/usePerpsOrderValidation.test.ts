@@ -553,96 +553,138 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('trigger orders', () => {
-    it('blocks a long stop when the trigger is not above mid', async () => {
-      mockValidateOrder.mockResolvedValue({ isValid: true });
+    it.each([
+      {
+        orderType: 'stop_market',
+        direction: 'long',
+        triggerPrice: '49999',
+        expectedError: 'Trigger price must be higher than mid',
+      },
+      {
+        orderType: 'stop_limit',
+        direction: 'short',
+        triggerPrice: '50001',
+        expectedError: 'Trigger price must be lower than mid',
+      },
+      {
+        orderType: 'take_profit_market',
+        direction: 'long',
+        triggerPrice: '50001',
+        expectedError: 'Trigger price must be lower than mid',
+      },
+      {
+        orderType: 'take_profit_limit',
+        direction: 'short',
+        triggerPrice: '49999',
+        expectedError: 'Trigger price must be higher than mid',
+      },
+    ] as const)(
+      'blocks $direction $orderType when the trigger is on the wrong side of mid',
+      async ({ orderType, direction, triggerPrice, expectedError }) => {
+        mockValidateOrder.mockResolvedValue({ isValid: true });
 
-      const { result } = renderHook(() =>
-        usePerpsOrderValidation({
-          ...defaultParams,
-          orderForm: { ...defaultOrderForm, type: 'stop_market' },
-          triggerPrice: '50000',
-          assetPrice: 50000,
-        }),
-      );
+        const { result } = renderHook(() =>
+          usePerpsOrderValidation({
+            ...defaultParams,
+            orderForm: {
+              ...defaultOrderForm,
+              type: orderType,
+              direction,
+              ...(orderType.endsWith('_limit') ? { limitPrice: '50000' } : {}),
+            },
+            triggerPrice,
+            assetPrice: 50000,
+          }),
+        );
 
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
 
-      await fastWaitFor(() => {
-        expect(result.current.isValidating).toBe(false);
-      });
+        await fastWaitFor(() => {
+          expect(result.current.isValidating).toBe(false);
+        });
 
-      expect(result.current.isValid).toBe(false);
-      expect(result.current.errors).toContain(
-        'Trigger price must be higher than mid',
-      );
-    });
+        expect(result.current.isValid).toBe(false);
+        expect(result.current.errors).toContain(expectedError);
+      },
+    );
 
-    it('passes triggerPrice and omits leftover limit price for a trigger-market order', async () => {
-      mockValidateOrder.mockResolvedValue({ isValid: true });
+    it.each([
+      {
+        orderType: 'stop_market',
+        direction: 'long',
+        triggerPrice: '51000',
+        limitPrice: '48000',
+        expectedPrice: undefined,
+      },
+      {
+        orderType: 'stop_limit',
+        direction: 'short',
+        triggerPrice: '49000',
+        limitPrice: '49500',
+        expectedPrice: '49500',
+      },
+      {
+        orderType: 'take_profit_market',
+        direction: 'long',
+        triggerPrice: '49000',
+        limitPrice: '48000',
+        expectedPrice: undefined,
+      },
+      {
+        orderType: 'take_profit_limit',
+        direction: 'short',
+        triggerPrice: '51000',
+        limitPrice: '50500',
+        expectedPrice: '50500',
+      },
+    ] as const)(
+      'passes valid $direction $orderType prices to protocol validation',
+      async ({
+        orderType,
+        direction,
+        triggerPrice,
+        limitPrice,
+        expectedPrice,
+      }) => {
+        mockValidateOrder.mockResolvedValue({ isValid: true });
 
-      renderHook(() =>
-        usePerpsOrderValidation({
-          ...defaultParams,
-          orderForm: {
-            ...defaultOrderForm,
-            type: 'stop_market',
-            limitPrice: '48000',
-          },
-          triggerPrice: '51000',
-          assetPrice: 50000,
-        }),
-      );
+        renderHook(() =>
+          usePerpsOrderValidation({
+            ...defaultParams,
+            orderForm: {
+              ...defaultOrderForm,
+              type: orderType,
+              direction,
+              limitPrice,
+            },
+            triggerPrice,
+            assetPrice: 50000,
+          }),
+        );
 
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
 
-      await fastWaitFor(() => {
-        expect(mockValidateOrder).toHaveBeenCalled();
-      });
+        await fastWaitFor(() => {
+          expect(mockValidateOrder).toHaveBeenCalled();
+        });
 
-      expect(mockValidateOrder).toHaveBeenCalledWith(
-        expect.objectContaining({
-          orderType: 'stop_market',
-          triggerPrice: '51000',
-        }),
-      );
-      expect(mockValidateOrder.mock.calls[0][0]).not.toHaveProperty('price');
-    });
-
-    it('passes price and triggerPrice for a trigger-limit order', async () => {
-      mockValidateOrder.mockResolvedValue({ isValid: true });
-
-      renderHook(() =>
-        usePerpsOrderValidation({
-          ...defaultParams,
-          orderForm: {
-            ...defaultOrderForm,
-            type: 'take_profit_limit',
-            limitPrice: '49000',
-          },
-          triggerPrice: '48000',
-          assetPrice: 50000,
-        }),
-      );
-
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-
-      await fastWaitFor(() => {
-        expect(mockValidateOrder).toHaveBeenCalled();
-      });
-
-      expect(mockValidateOrder).toHaveBeenCalledWith(
-        expect.objectContaining({
-          orderType: 'take_profit_limit',
-          price: '49000',
-          triggerPrice: '48000',
-        }),
-      );
-    });
+        const validationParams = mockValidateOrder.mock.calls[0][0];
+        expect(validationParams).toEqual(
+          expect.objectContaining({
+            orderType,
+            triggerPrice,
+          }),
+        );
+        if (expectedPrice) {
+          expect(validationParams.price).toBe(expectedPrice);
+        } else {
+          expect(validationParams).not.toHaveProperty('price');
+        }
+      },
+    );
   });
 });

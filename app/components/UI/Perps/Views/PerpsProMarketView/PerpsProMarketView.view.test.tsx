@@ -367,6 +367,38 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
+    'blocks a long take-market trigger above mid after blur',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true);
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_MARKET_OPTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
+      fireEvent.changeText(triggerInput, '3000');
+      fireEvent(triggerInput, 'blur');
+
+      await waitFor(
+        () => {
+          expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+            strings('perps.order.validation.trigger_must_be_below_mid'),
+          );
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  itForPlatforms(
     'submits a stop-limit order with triggerPrice and limit price',
     async () => {
       const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;

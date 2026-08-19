@@ -10,15 +10,77 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+const triggerDirectionCases = [
+  {
+    orderType: 'stop_market',
+    direction: 'long',
+    family: 'stop',
+    requiredSide: 'above',
+    validTrigger: '2501',
+    wrongSideTrigger: '2499',
+  },
+  {
+    orderType: 'stop_market',
+    direction: 'short',
+    family: 'stop',
+    requiredSide: 'below',
+    validTrigger: '2499',
+    wrongSideTrigger: '2501',
+  },
+  {
+    orderType: 'stop_limit',
+    direction: 'long',
+    family: 'stop',
+    requiredSide: 'above',
+    validTrigger: '2501',
+    wrongSideTrigger: '2499',
+  },
+  {
+    orderType: 'stop_limit',
+    direction: 'short',
+    family: 'stop',
+    requiredSide: 'below',
+    validTrigger: '2499',
+    wrongSideTrigger: '2501',
+  },
+  {
+    orderType: 'take_profit_market',
+    direction: 'long',
+    family: 'take_profit',
+    requiredSide: 'below',
+    validTrigger: '2499',
+    wrongSideTrigger: '2501',
+  },
+  {
+    orderType: 'take_profit_market',
+    direction: 'short',
+    family: 'take_profit',
+    requiredSide: 'above',
+    validTrigger: '2501',
+    wrongSideTrigger: '2499',
+  },
+  {
+    orderType: 'take_profit_limit',
+    direction: 'long',
+    family: 'take_profit',
+    requiredSide: 'below',
+    validTrigger: '2499',
+    wrongSideTrigger: '2501',
+  },
+  {
+    orderType: 'take_profit_limit',
+    direction: 'short',
+    family: 'take_profit',
+    requiredSide: 'above',
+    validTrigger: '2501',
+    wrongSideTrigger: '2499',
+  },
+] as const;
+
 describe('getRequiredTriggerSide', () => {
-  it.each([
-    ['stop_market', 'long', 'above'],
-    ['stop_limit', 'short', 'below'],
-    ['take_profit_market', 'long', 'below'],
-    ['take_profit_limit', 'short', 'above'],
-  ] as const)(
-    'returns %s %s must be %s mid',
-    (orderType, direction, requiredSide) => {
+  it.each(triggerDirectionCases)(
+    'returns $requiredSide for $direction $orderType',
+    ({ orderType, direction, requiredSide }) => {
       expect(getRequiredTriggerSide(orderType, direction)).toBe(requiredSide);
     },
   );
@@ -69,53 +131,66 @@ describe('getTriggerPriceValidationIssue', () => {
     expect(issue).toBeUndefined();
   });
 
-  it('returns wrong_side when a long stop trigger equals mid', () => {
-    const issue = getTriggerPriceValidationIssue({
-      ...base,
-      triggerPrice: '2500',
-    });
+  it.each(triggerDirectionCases)(
+    'accepts $direction $orderType strictly $requiredSide mid',
+    ({ orderType, direction, validTrigger }) => {
+      const issue = getTriggerPriceValidationIssue({
+        orderType,
+        direction,
+        triggerPrice: validTrigger,
+        midPrice: 2500,
+      });
 
-    expect(issue).toEqual({
-      code: 'wrong_side',
-      family: 'stop',
-      requiredSide: 'above',
-    });
-  });
+      expect(issue).toBeUndefined();
+    },
+  );
 
-  it('accepts a long stop trigger strictly above mid', () => {
-    const issue = getTriggerPriceValidationIssue({
-      ...base,
-      triggerPrice: '2500.01',
-    });
+  it.each(triggerDirectionCases)(
+    'returns wrong_side for $direction $orderType on the opposite side of mid',
+    ({ orderType, direction, family, requiredSide, wrongSideTrigger }) => {
+      const issue = getTriggerPriceValidationIssue({
+        orderType,
+        direction,
+        triggerPrice: wrongSideTrigger,
+        midPrice: 2500,
+      });
 
-    expect(issue).toBeUndefined();
-  });
+      expect(issue).toEqual({
+        code: 'wrong_side',
+        family,
+        requiredSide,
+      });
+      expect(
+        getTriggerPriceValidationMessage({
+          code: 'wrong_side',
+          family,
+          requiredSide,
+        }),
+      ).toBe(
+        requiredSide === 'above'
+          ? 'perps.order.validation.trigger_must_be_above_mid'
+          : 'perps.order.validation.trigger_must_be_below_mid',
+      );
+    },
+  );
 
-  it('returns wrong_side when a short take trigger is at or below mid', () => {
-    const issue = getTriggerPriceValidationIssue({
-      orderType: 'take_profit_market',
-      direction: 'short',
-      triggerPrice: '2499',
-      midPrice: 2500,
-    });
+  it.each(triggerDirectionCases)(
+    'returns wrong_side for $direction $orderType equal to mid',
+    ({ orderType, direction, family, requiredSide }) => {
+      const issue = getTriggerPriceValidationIssue({
+        orderType,
+        direction,
+        triggerPrice: '2500',
+        midPrice: 2500,
+      });
 
-    expect(issue).toEqual({
-      code: 'wrong_side',
-      family: 'take_profit',
-      requiredSide: 'above',
-    });
-  });
-
-  it('accepts a long take trigger strictly below mid', () => {
-    const issue = getTriggerPriceValidationIssue({
-      orderType: 'take_profit_limit',
-      direction: 'long',
-      triggerPrice: '2499',
-      midPrice: 2500,
-    });
-
-    expect(issue).toBeUndefined();
-  });
+      expect(issue).toEqual({
+        code: 'wrong_side',
+        family,
+        requiredSide,
+      });
+    },
+  );
 });
 
 describe('getTriggerPriceValidationMessage', () => {

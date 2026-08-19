@@ -922,6 +922,8 @@ describe('usePerpsProOrderForm', () => {
     it('shows a blocking helper after the trigger price blurs on the wrong side of mid', () => {
       mockOrderForm.type = 'stop_market';
       mockContextValue.triggerPrice = '1000';
+      mockValidation.isValid = false;
+      mockValidation.errors = ['Trigger price must be higher than mid'];
       const { result } = renderProForm();
 
       expect(result.current.priceCardMessage).toBeUndefined();
@@ -930,8 +932,11 @@ describe('usePerpsProOrderForm', () => {
         result.current.onTriggerPriceBlur();
       });
 
-      expect(result.current.priceCardMessage?.severity).toBe('error');
-      expect(result.current.priceCardMessage?.message).toBeDefined();
+      expect(result.current.priceCardMessage).toEqual({
+        severity: 'error',
+        message: 'Trigger price must be higher than mid',
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it('clears the helper once a valid trigger price is entered', () => {
@@ -947,6 +952,45 @@ describe('usePerpsProOrderForm', () => {
 
       expect(result.current.priceCardMessage).toBeUndefined();
     });
+
+    it('shows the trigger error before the required limit error', () => {
+      mockOrderForm.type = 'stop_limit';
+      mockOrderForm.limitPrice = undefined;
+      mockContextValue.triggerPrice = '1000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onTriggerPriceBlur();
+        result.current.onLimitPriceBlur();
+      });
+
+      expect(result.current.priceCardMessage).toEqual({
+        severity: 'error',
+        message: 'Trigger price must be higher than mid',
+      });
+    });
+
+    it.each(['stop_limit', 'take_profit_limit'] as const)(
+      'shows a required limit error for %s after the limit price blurs',
+      (orderType) => {
+        mockOrderForm.type = orderType;
+        mockOrderForm.limitPrice = undefined;
+        mockContextValue.triggerPrice =
+          orderType === 'stop_limit' ? '91000' : '89000';
+        const { result } = renderProForm();
+
+        expect(result.current.priceCardMessage).toBeUndefined();
+
+        act(() => {
+          result.current.onLimitPriceBlur();
+        });
+
+        expect(result.current.priceCardMessage).toEqual({
+          severity: 'error',
+          message: 'Please set a limit price for limit orders',
+        });
+      },
+    );
   });
 
   describe('additional notices', () => {
