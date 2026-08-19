@@ -101,7 +101,8 @@ const useEarnings = ({ asset }: { asset: TokenI }) => {
     );
   } else if (
     outputToken &&
-    outputToken.experience.type === EARN_EXPERIENCES.POOLED_STAKING
+    (outputToken.experience.type === EARN_EXPERIENCES.POOLED_STAKING ||
+      outputToken.experience.type === EARN_EXPERIENCES.TRX_STAKING)
   ) {
     lifetimeRewards = `${renderFromWei(lifetimeRewardsPooledStakes, 5)} ETH`;
     lifetimeRewardsFiat = renderFiat(
