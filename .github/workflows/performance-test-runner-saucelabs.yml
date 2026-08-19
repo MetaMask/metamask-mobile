@@ -112,7 +112,7 @@ jobs:
             echo "SAUCE_BUILD_TYPE=${{ inputs.build_type }}"
             if [ "${{ inputs.device_mode }}" = "cloud" ]; then
               echo "SAUCE_DEVICE=Google Pixel.*"
-              echo "SAUCE_WORKERS=4"
+              echo "SAUCE_WORKERS=2"
               echo "SAUCE_PRIVATE_DEVICES_ONLY=false"
             else
               echo "SAUCE_DEVICE=Google_Pixel_7_POC(49|05)"
