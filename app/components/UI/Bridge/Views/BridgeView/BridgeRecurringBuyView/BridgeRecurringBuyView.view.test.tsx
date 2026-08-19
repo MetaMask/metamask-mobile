@@ -485,8 +485,6 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toBeOnTheScreen();
     });
     expect(renderResult.queryAllByText(pair)).toHaveLength(0);
-    expect(
-      renderResult.queryByText(strings('bridge.all_networks')),
-    ).toBeNull();
+    expect(renderResult.queryByText(strings('bridge.all_networks'))).toBeNull();
   });
 });

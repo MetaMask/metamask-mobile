@@ -41,10 +41,11 @@ describe('OrdersTabs', () => {
   });
 
   it('shows open orders empty copy then history empty copy after pressing History', () => {
-    const { getByTestId, getByText, queryByText, queryByTestId } = renderOrdersTabs({
-      openOrders: { items: [] },
-      history: { items: [] },
-    });
+    const { getByTestId, getByText, queryByText, queryByTestId } =
+      renderOrdersTabs({
+        openOrders: { items: [] },
+        history: { items: [] },
+      });
 
     expect(getByTestId(OrdersTabsSelectorsIDs.EMPTY_STATE)).toBeOnTheScreen();
     expect(
