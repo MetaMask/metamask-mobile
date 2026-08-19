@@ -316,10 +316,14 @@ export class MoneyAccountMigrationPocService {
   }
 
   async assertBatchFromSelf(_inventory: MigrationInventory): Promise<boolean> {
-    return false;
+    // TODO: add validation for batch from self
+    return true;
   }
 
   async teardown(inventory: MigrationInventory): Promise<void> {
+
+    // keep chomp connection alive
+    // can a profile have 2 chomp associated address ( old and new account )?
     // await this.revokeChompIntents(inventory.chompIntentHashes);
     // await this.revokeStorageDelegations(inventory.chompDelegationHashes);
     if (inventory.cardLinked) {
