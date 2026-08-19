@@ -25,10 +25,20 @@ describe('PredictNext market data hooks', () => {
 
     expect(mockedUseQuery).toHaveBeenCalledWith({
       queryKey: ['PredictMarketDataService:getVenueStatus', venueId],
+      enabled: undefined,
     });
   });
 
-  it('uses a cursor-free Event list key and returns the next cursor', () => {
+  it('forwards the enabled gate to the Venue Status query', () => {
+    useVenueStatus(venueId, { enabled: false });
+
+    expect(mockedUseQuery).toHaveBeenCalledWith({
+      queryKey: ['PredictMarketDataService:getVenueStatus', venueId],
+      enabled: false,
+    });
+  });
+
+  it('uses a cursor-free Feed key and returns the next cursor', () => {
     useFeed(venueId, feedId, { limit: 20 });
     const options = mockedUseInfiniteQuery.mock.calls[0][0];
 

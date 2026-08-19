@@ -20,7 +20,9 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { MembershipTestIds } from './Membership.testIds';
 import {
   MOCK_MEMBERSHIP_STATS,
@@ -183,7 +185,7 @@ const STAT_SHEET_CONTENT: Record<
 };
 
 const Membership = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const [activeSheet, setActiveSheet] = useState<ActiveStatSheet>(null);
 
@@ -208,8 +210,8 @@ const Membership = () => {
   }, []);
 
   const handleCancelMembership = useCallback(() => {
-    // TODO: navigate to cancellation flow
-  }, []);
+    navigation.navigate(Routes.PRO_HUB.CANCEL_MEMBERSHIP);
+  }, [navigation]);
 
   return (
     <SafeAreaView

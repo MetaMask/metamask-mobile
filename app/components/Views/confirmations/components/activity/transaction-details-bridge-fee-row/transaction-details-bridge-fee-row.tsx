@@ -10,9 +10,13 @@ import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/us
 import { BigNumber } from 'bignumber.js';
 import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testIds';
 import { Text } from '@metamask/design-system-react-native';
+import { ACTIVITY_FIAT_FRACTION_DIGITS } from '../../../constants/confirmations';
 
 export function TransactionDetailsBridgeFeeRow() {
-  const formatFiat = useFiatFormatter({ currency: 'usd' });
+  const formatFiat = useFiatFormatter({
+    currency: 'usd',
+    fractionDigits: ACTIVITY_FIAT_FRACTION_DIGITS,
+  });
   const { transactionMeta } = useTransactionDetails();
   const { metamaskPay } = transactionMeta;
   const { bridgeFeeFiat } = metamaskPay || {};
