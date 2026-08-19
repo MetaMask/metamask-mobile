@@ -463,6 +463,7 @@ const Routes = {
   },
   EARN: {
     ROOT: 'EarnScreens',
+    STRATEGY_SELECTION: 'EarnStrategySelection',
     LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {

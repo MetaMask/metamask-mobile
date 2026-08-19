@@ -287,6 +287,27 @@ describe('BrowserTab', () => {
         expect.anything(),
       );
     });
+
+    it('goes back when close button is pressed from Earn strategy selection', async () => {
+      renderWithProvider(
+        <BrowserTab {...mockProps} fromEarnStrategySelection />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      fireEvent.press(screen.getByTestId('browser-tab-close-button'));
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+        Routes.TRENDING_VIEW,
+        expect.anything(),
+      );
+    });
   });
 
   describe('WebView originWhitelist', () => {
