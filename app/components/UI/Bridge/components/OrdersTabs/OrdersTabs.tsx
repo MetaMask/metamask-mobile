@@ -1,5 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { FlashList } from '@shopify/flash-list';
 import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   TabsBar,
   type TabItem,
@@ -8,6 +10,10 @@ import { strings } from '../../../../../../locales/i18n';
 import { OrdersEmptyState } from './OrdersEmptyState';
 import { OrdersTabsSelectorsIDs } from './OrdersTabs.testIds';
 import { OrdersTabKey, type OrdersTabsProps } from './OrdersTabs.types';
+
+function OrdersRowSeparator() {
+  return <Box twClassName="h-2" />;
+}
 
 function OrdersTabPanel<T>({
   items,
@@ -20,18 +26,36 @@ function OrdersTabPanel<T>({
   keyExtractor?: (item: T, index: number) => string;
   emptyDescription: string;
 }) {
+  const tw = useTailwind();
+
+  const listRenderItem = useCallback(
+    ({ item, index }: { item: T; index: number }) =>
+      renderItem ? renderItem(item, index) : null,
+    [renderItem],
+  );
+
+  const listKeyExtractor = useCallback(
+    (item: T, index: number) =>
+      keyExtractor ? keyExtractor(item, index) : String(index),
+    [keyExtractor],
+  );
+
+  const listStyle = useMemo(() => tw.style('flex-1'), [tw]);
+
   if (items.length === 0 || !renderItem) {
     return <OrdersEmptyState description={emptyDescription} />;
   }
 
   return (
-    <Box testID={OrdersTabsSelectorsIDs.CONTENT} twClassName="flex-1 gap-2">
-      {items.map((item, index) => (
-        <React.Fragment key={keyExtractor?.(item, index) ?? String(index)}>
-          {renderItem(item, index)}
-        </React.Fragment>
-      ))}
-    </Box>
+    <FlashList
+      testID={OrdersTabsSelectorsIDs.CONTENT}
+      data={items}
+      renderItem={listRenderItem}
+      keyExtractor={listKeyExtractor}
+      ItemSeparatorComponent={OrdersRowSeparator}
+      showsVerticalScrollIndicator={false}
+      style={listStyle}
+    />
   );
 }
 

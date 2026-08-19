@@ -8,6 +8,10 @@ import OrdersTabs from './OrdersTabs';
 import { OrdersTabsSelectorsIDs } from './OrdersTabs.testIds';
 import type { OrdersTabsProps } from './OrdersTabs.types';
 
+jest.mock('@shopify/flash-list', () =>
+  require('../../../../../util/test/mockFlashList').flashListMock(),
+);
+
 function renderOrdersTabs<TOpen, THistory>(
   props: OrdersTabsProps<TOpen, THistory>,
 ) {
