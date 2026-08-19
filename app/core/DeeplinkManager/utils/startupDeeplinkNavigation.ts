@@ -11,7 +11,32 @@ import {
   cancelDeeplinkNavigatedTrace,
   cancelDeeplinkProcessedTrace,
   startDeeplinkNavigatedTrace,
+  type DeeplinkPerfAppStartType,
 } from '../../Performance/DeeplinkPerformance';
+
+/**
+ * When a killed-app `resolve` produces no intent (legacy handlers), Home
+ * resets and the saga calls `parse`. Stamp that leftover parse as `cold` so
+ * Processed is not tagged `warm` for the same launch.
+ */
+let nextParseAppStartType: DeeplinkPerfAppStartType | undefined;
+
+export const markNextParseAsColdStart = () => {
+  nextParseAppStartType = 'cold';
+};
+
+/** Returns `cold` once after {@link retryPendingDeeplinkAfterDefaultNavigation}. */
+export const consumeNextParseAppStartType = ():
+  | DeeplinkPerfAppStartType
+  | undefined => {
+  const appStartType = nextParseAppStartType;
+  nextParseAppStartType = undefined;
+  return appStartType;
+};
+
+export const resetNextParseAppStartTypeForTesting = () => {
+  nextParseAppStartType = undefined;
+};
 
 const scheduleAfterNavigation = (callback: () => void) => {
   if (typeof requestAnimationFrame === 'function') {
@@ -77,6 +102,7 @@ export const retryPendingDeeplinkAfterDefaultNavigation = () => {
     return;
   }
 
+  markNextParseAsColdStart();
   scheduleAfterNavigation(() => {
     ReduxService.store.dispatch(checkForDeeplink());
   });

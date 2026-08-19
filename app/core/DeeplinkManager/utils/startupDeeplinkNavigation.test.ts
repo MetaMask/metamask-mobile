@@ -6,6 +6,8 @@ import {
   navigateToPostUnlockHome,
   navigateToPendingStartupDeeplink,
   retryPendingDeeplinkAfterDefaultNavigation,
+  consumeNextParseAppStartType,
+  resetNextParseAppStartTypeForTesting,
 } from './startupDeeplinkNavigation';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 
@@ -102,6 +104,7 @@ describe('startupDeeplinkNavigation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetNextParseAppStartTypeForTesting();
     AppStateEventProcessor.pendingDeeplink = null;
     AppStateEventProcessor.pendingDeeplinkSource = null;
     setRequestAnimationFrame(mockRequestAnimationFrame);
@@ -206,6 +209,8 @@ describe('startupDeeplinkNavigation', () => {
 
     expect(mockRequestAnimationFrame).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
+    expect(consumeNextParseAppStartType()).toBe('cold');
+    expect(consumeNextParseAppStartType()).toBeUndefined();
   });
 
   it('navigates directly to a handled startup deeplink after unlock', async () => {

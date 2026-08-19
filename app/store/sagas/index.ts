@@ -31,6 +31,7 @@ import {
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
+import { consumeNextParseAppStartType } from '../../core/DeeplinkManager/utils/startupDeeplinkNavigation';
 import AppConstants from '../../core/AppConstants';
 import {
   SET_COMPLETED_ONBOARDING,
@@ -93,10 +94,15 @@ export function* waitForSDKServicesInitialization() {
   yield join(task);
 }
 
-export function* parseDeeplink(deeplink: string, origin: string) {
+export function* parseDeeplink(
+  deeplink: string,
+  origin: string,
+  appStartType?: 'cold' | 'warm',
+) {
   try {
     yield call([SharedDeeplinkManager, SharedDeeplinkManager.parse], deeplink, {
       origin,
+      ...(appStartType === undefined ? {} : { appStartType }),
     });
   } catch (error) {
     Logger.error(error as Error, 'parseDeeplink: failed to parse deeplink');
@@ -134,7 +140,11 @@ export function* mainNavigatorReadyStateMachine() {
  * navigator" when `handleDeeplinkSaga` runs before the main screen stack
  * has rendered.
  */
-export function* parseDeeplinkAfterNavReady(deeplink: string, origin: string) {
+export function* parseDeeplinkAfterNavReady(
+  deeplink: string,
+  origin: string,
+  appStartType?: 'cold' | 'warm',
+) {
   if (!hasMainNavigatorMounted) {
     const { timedOut } = yield race({
       ready: take(NavigationActionType.MAIN_NAVIGATOR_READY),
@@ -150,7 +160,7 @@ export function* parseDeeplinkAfterNavReady(deeplink: string, origin: string) {
     }
   }
 
-  yield call(parseDeeplink, deeplink, origin);
+  yield call(parseDeeplink, deeplink, origin, appStartType);
 }
 
 /**
@@ -407,7 +417,14 @@ export function* handleDeeplinkSaga() {
 
       // Fork so the saga loop keeps listening for new deeplink events
       // while parseDeeplinkAfterNavReady waits for navigation to settle.
-      yield fork(parseDeeplinkAfterNavReady, deeplink, deeplinkSource);
+      // Capture before clearing pending: the leftover cold-start parse flag
+      // is one-shot and must travel with this fork, not a later warm parse.
+      yield fork(
+        parseDeeplinkAfterNavReady,
+        deeplink,
+        deeplinkSource,
+        consumeNextParseAppStartType(),
+      );
       AppStateEventProcessor.clearPendingDeeplink();
     }
   }

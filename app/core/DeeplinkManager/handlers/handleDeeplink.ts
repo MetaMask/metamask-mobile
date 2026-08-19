@@ -73,14 +73,14 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
       lastHandledDeeplinkAt = now;
 
       AppStateEventProcessor.setCurrentDeeplink(uri, source);
-      // Warm links start Navigated at intake so the saga waits (SDK warm-up,
-      // navigator-ready) the user sits through are measured. On a cold start
-      // the app is still locked here — unlock submit starts the span instead,
-      // excluding the password dwell.
+      // Already-unlocked links start Navigated at intake so the saga waits
+      // (SDK warm-up, navigator-ready) the user sits through are measured.
+      // On a cold start the app is still locked here — unlock submit starts
+      // the span instead, excluding the password dwell.
       if (ReduxService.store.getState().user.userLoggedIn) {
         startDeeplinkNavigatedTrace({
           url: uri,
-          source: 'warm',
+          source: 'intake',
           appStartType: 'warm',
         });
       }

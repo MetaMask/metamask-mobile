@@ -112,7 +112,7 @@ describe('handleDeeplink', () => {
     expect(mockLoggerError).not.toHaveBeenCalled();
   });
 
-  it('starts a warm Deeplink Navigated trace when the app is already unlocked', () => {
+  it('starts a Deeplink Navigated trace at intake when the app is already unlocked', () => {
     mockGetState.mockReturnValue({
       security: { dataCollectionForMarketing: false },
       user: { userLoggedIn: true },
@@ -123,7 +123,7 @@ describe('handleDeeplink', () => {
 
     expect(startDeeplinkNavigatedTrace).toHaveBeenCalledWith({
       url: testUri,
-      source: 'warm',
+      source: 'intake',
       appStartType: 'warm',
     });
   });
