@@ -1,4 +1,4 @@
-import type { PredictDecimal } from '../../types';
+import type { PredictDecimal } from '../../../types';
 import { getAskPricePercent } from './getAskPricePercent';
 
 describe('getAskPricePercent', () => {
