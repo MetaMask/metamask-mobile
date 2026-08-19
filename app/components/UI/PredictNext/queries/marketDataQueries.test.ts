@@ -1,13 +1,14 @@
-import type { PredictEntityId, PredictVenueId } from '../types';
+import type { PredictEntityId, PredictFeedId, PredictVenueId } from '../types';
 import {
   MARKET_DATA_EVENT_STALE_TIME,
-  MARKET_DATA_EVENTS_STALE_TIME,
+  MARKET_DATA_FEED_STALE_TIME,
   MARKET_DATA_VENUE_STATUS_STALE_TIME,
   marketDataQueries,
 } from './marketDataQueries';
 
 const venueId = 'kalshi' as PredictVenueId;
 const eventId = 'event-1' as PredictEntityId;
+const feedId = 'sports-football-nfl-games' as PredictFeedId;
 
 describe('market data query descriptors', () => {
   it('qualifies venue status queries by venue', () => {
@@ -24,12 +25,12 @@ describe('market data query descriptors', () => {
   it('qualifies event list queries by venue and cursor-free parameters', () => {
     const params = { limit: 20 };
 
-    const descriptor = marketDataQueries.getEvents(venueId, params);
+    const descriptor = marketDataQueries.getFeed(venueId, feedId, params);
 
     expect(descriptor).toEqual({
-      queryKey: ['PredictMarketDataService:getEvents', venueId, params],
-      family: ['PredictMarketDataService:getEvents', venueId],
-      staleTime: MARKET_DATA_EVENTS_STALE_TIME,
+      queryKey: ['PredictMarketDataService:getFeed', venueId, feedId, params],
+      family: ['PredictMarketDataService:getFeed', venueId, feedId],
+      staleTime: MARKET_DATA_FEED_STALE_TIME,
       scope: 'venue',
     });
   });

@@ -118,13 +118,7 @@ describe('ProSubscription', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('does not call goBack before the close button is pressed', () => {
-      render(<ProSubscription />);
-
-      expect(mockGoBack).not.toHaveBeenCalled();
-    });
-
-    it('calls goBack when Success onClose fires', () => {
+    it('replaces the current screen with ProHub when Success onSuccess fires', () => {
       const { getByTestId } = render(<ProSubscription />);
 
       fireEvent.press(getByTestId('mock-benefits'));
