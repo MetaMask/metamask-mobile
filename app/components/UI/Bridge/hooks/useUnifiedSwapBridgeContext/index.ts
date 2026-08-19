@@ -17,7 +17,9 @@ import {
 } from '../../utils/exchange-rates';
 import { getSecurityWarnings } from '../../utils/tokenSecurityUtils';
 
-export const useUnifiedSwapBridgeContext = () => {
+export const useUnifiedSwapBridgeContext = (
+  featureId: FeatureId = FeatureId.UNIFIED_SWAP_BRIDGE,
+) => {
   const smartTransactionsEnabled = useSelector(selectShouldUseSmartTransaction);
   const fromToken = useSelector(selectSourceToken);
   const toToken = useSelector(selectDestToken);
@@ -67,7 +69,7 @@ export const useUnifiedSwapBridgeContext = () => {
       security_warnings: getSecurityWarnings(toToken),
       warnings: [], // TODO
       usd_amount_source: usdAmountSource,
-      feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+      feature_id: featureId ?? FeatureId.UNIFIED_SWAP_BRIDGE,
     }),
     [smartTransactionsEnabled, fromToken, toToken, usdAmountSource],
   );
