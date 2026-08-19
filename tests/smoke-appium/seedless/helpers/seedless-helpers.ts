@@ -13,6 +13,7 @@ import {
 } from '../../../framework/PlaywrightUtilities.js';
 import { ChoosePasswordSelectorsIDs } from '../../../../app/components/Views/ChoosePassword/ChoosePassword.testIds.js';
 import { OnboardingSelectorIDs } from '../../../../app/components/Views/Onboarding/Onboarding.testIds.js';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { createOAuthMockttpService } from '../../../api-mocking/seedless-onboarding/index.js';
 import { E2EOAuthHelpers } from '../../../module-mocking/oauth/index.js';
 import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
@@ -188,13 +189,31 @@ export async function setupAppleExistingUserOAuthMock(
   await oAuthMockttpService.setup(mockServer);
 }
 
+export async function setupTelegramNewUserOAuthMock(
+  mockServer: Mockttp,
+): Promise<void> {
+  E2EOAuthHelpers.reset();
+  E2EOAuthHelpers.configureTelegramNewUser();
+  const oAuthMockttpService = createOAuthMockttpService();
+  oAuthMockttpService.configureTelegramNewUser();
+  await oAuthMockttpService.setup(mockServer);
+  // main-e2e does not bake MM_TELEGRAM_LOGIN_ENABLED; e2e/test LD defaults
+  // Telegram off. Override the client-config mock so the onboarding sheet
+  // renders the Telegram button.
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    telegram_login_enabled: true,
+  });
+}
+
+type SocialLoginProvider = 'google' | 'apple' | 'telegram';
+
 /**
  * Social login new-user smoke.
  * Intermediate screen UI is covered by component-view / unit tests; this
  * helper only drives the device path.
  */
 export const completeSocialLoginOnboarding = async (
-  provider: 'google' | 'apple',
+  provider: SocialLoginProvider,
 ): Promise<void> => {
   await waitForOnboardingScreenPlaywright(resolveE2EWaitTimeoutMs(60_000));
 
@@ -206,8 +225,17 @@ export const completeSocialLoginOnboarding = async (
 
   if (provider === 'google') {
     await OnboardingSheet.tapGoogleLoginButton();
-  } else {
+  } else if (provider === 'apple') {
     await OnboardingSheet.tapAppleLoginButton();
+  } else {
+    await Assertions.expectElementToBeVisible(
+      OnboardingSheet.telegramLoginButton,
+      {
+        description:
+          'Telegram login button should be visible when telegram_login_enabled is mocked true',
+      },
+    );
+    await OnboardingSheet.tapTelegramLoginButton();
   }
 
   if (PlatformDetector.isIOS()) {
@@ -282,6 +310,9 @@ export const completeGoogleNewUserOnboarding = (): Promise<void> =>
 
 export const completeAppleNewUserOnboarding = (): Promise<void> =>
   completeSocialLoginOnboarding('apple');
+
+export const completeTelegramNewUserOnboarding = (): Promise<void> =>
+  completeSocialLoginOnboarding('telegram');
 
 /**
  * Confirms the native lock alert. On iOS the confirm button can go stale before
