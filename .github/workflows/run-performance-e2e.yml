@@ -675,8 +675,8 @@ jobs:
       source_ref: ${{ inputs.source_ref || needs.determine-branch-name.outputs.branch_name }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       source_fingerprint: ${{ needs.ensure-fingerprint.outputs.fingerprint }}
-      reuse_latest_main_builds: ${{ inputs.reuse_main_builds && inputs.build_variant == 'e2e' && inputs.enable_saucelabs != true }}
-      main_branch_only: ${{ inputs.reuse_main_builds && inputs.enable_saucelabs != true }}
+      reuse_latest_main_builds: ${{ inputs.reuse_main_builds && inputs.build_variant == 'e2e' }}
+      main_branch_only: ${{ inputs.reuse_main_builds }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
       enable_saucelabs: ${{ inputs.enable_saucelabs == true }}
       # LT_ACCESS_KEY must travel via secrets: inherit — secrets.* is illegal in reusable-workflow `with:`
