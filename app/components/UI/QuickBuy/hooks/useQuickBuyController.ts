@@ -1542,6 +1542,26 @@ export function useQuickBuyController(
       // notification once submitTx resolves.
       beginQuickBuySubmission();
       dispatch(setIsSubmittingTx(true));
+      // TSA-1008: prime the source chain's EIP-1559 metadata before submit.
+      // `TransactionController.addTransaction` calls
+      // `NetworkController.getEIP1559Compatibility(networkClientId)` and
+      // coerces `undefined` → `false`, which then trips
+      // `validateEIP1559Compatibility` because bridge-status-controller always
+      // attaches `maxFeePerGas` / `maxPriorityFeePerGas` from the quote's
+      // `txFee`. The regular Swap flow gets away with it because the
+      // full-screen Bridge view stays mounted long enough for the network
+      // client to be probed and cached. QuickBuy is a bottom sheet that can be
+      // submitted before that probe runs, so we force it here. Errors are
+      // swallowed — worst case we fall back to the pre-fix behaviour.
+      if (sourceNetworkClientId) {
+        try {
+          await Engine.context.NetworkController.getEIP1559Compatibility(
+            sourceNetworkClientId,
+          );
+        } catch {
+          // Non-fatal: submitTx below will surface the real error if any.
+        }
+      }
       const submitResult = await Engine.context.BridgeStatusController.submitTx(
         walletAddress,
         activeQuote,
@@ -1625,6 +1645,7 @@ export function useQuickBuyController(
     activeQuote,
     walletAddress,
     stxEnabled,
+    sourceNetworkClientId,
     dispatch,
     onClose,
     toastRef,

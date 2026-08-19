@@ -190,6 +190,7 @@ jest.mock('../../../../core/Engine', () => ({
       BridgeStatusController: { submitTx: jest.fn() },
       NetworkController: {
         findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
+        getEIP1559Compatibility: jest.fn().mockResolvedValue(true),
       },
     },
   },
