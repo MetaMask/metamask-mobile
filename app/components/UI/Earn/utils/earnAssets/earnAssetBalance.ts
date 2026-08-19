@@ -22,4 +22,6 @@ export const getEarnAssetFiatNumber = (asset: EarnAsset) => {
 };
 
 export const getEarnAssetFiatDisplay = (asset: EarnAsset) =>
-  asset.balanceFiat ?? asset.balanceInSelectedCurrency;
+  asset.isBalanceFiatAvailable !== false
+    ? (asset.balanceFiat ?? asset.balanceInSelectedCurrency)
+    : asset.balanceInSelectedCurrency;
