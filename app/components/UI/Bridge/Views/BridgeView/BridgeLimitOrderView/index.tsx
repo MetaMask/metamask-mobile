@@ -11,6 +11,7 @@ import {
 import { selectBridgeLimitOrderFeatureFlags } from '../../../../../../selectors/bridge/featureFlags';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
+import OrdersTabs from '../../../components/OrdersTabs';
 import {
   HardwareWalletUnsupportedBanner,
   InsufficientNativeReserveBanner,
@@ -101,6 +102,8 @@ const BridgeLimitOrderViewContent = ({
             <InsufficientNativeReserveBanner />
             <MissingPriceDataBanner />
           </SwapsBanners>
+
+          <OrdersTabs openOrders={{ items: [] }} history={{ items: [] }} />
         </ScrollView>
 
         <SwapsKeypad

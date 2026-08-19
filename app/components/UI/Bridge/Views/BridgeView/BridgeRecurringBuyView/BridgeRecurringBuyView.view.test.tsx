@@ -7,6 +7,7 @@ import { describeForPlatforms } from '../../../../../../../tests/component-view/
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { RecurringScheduleFieldsSelectorsIDs } from '../../../components/RecurringScheduleFields';
 import { RecurringIntervalSheetSelectorsIDs } from '../../../components/RecurringIntervalSheet';
+import { OrdersTabsSelectorsIDs } from '../../../components/OrdersTabs';
 import { BuildQuoteSelectors } from '../../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 
 const errorColor = lightTheme.colors.error.default;
@@ -543,5 +544,28 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         ),
       ).toHaveDisplayValue('1');
     });
+  });
+
+  it('shows history empty copy after pressing the History tab', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+
+    expect(
+      renderResult.getByText(strings('bridge.orders.empty.open_orders')),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      renderResult.getByTestId(OrdersTabsSelectorsIDs.HISTORY_TAB),
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.getByText(strings('bridge.orders.empty.history')),
+      ).toBeOnTheScreen();
+    });
+    expect(
+      renderResult.queryByText(strings('bridge.orders.empty.open_orders')),
+    ).toBeNull();
   });
 });

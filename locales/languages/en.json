@@ -8489,6 +8489,16 @@
       "limit": "Limit",
       "recurring": "Recurring"
     },
+    "orders": {
+      "tabs": {
+        "open_orders": "Open orders",
+        "history": "History"
+      },
+      "empty": {
+        "open_orders": "Open orders appear here",
+        "history": "Order history appears here"
+      }
+    },
     "recurring": {
       "every": "Every",
       "repeat": "Repeat",

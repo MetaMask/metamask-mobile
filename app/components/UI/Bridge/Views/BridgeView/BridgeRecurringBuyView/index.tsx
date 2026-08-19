@@ -11,6 +11,7 @@ import {
 import { selectBridgeRecurringBuyFeatureFlags } from '../../../../../../selectors/bridge/featureFlags';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
+import OrdersTabs from '../../../components/OrdersTabs';
 import RecurringScheduleFields from '../../../components/RecurringScheduleFields';
 import {
   HardwareWalletUnsupportedBanner,
@@ -117,6 +118,8 @@ const BridgeRecurringBuyViewContent = ({
             onRepeatPress={focusRepeat}
             onDismissKeypad={dismissInputAndKeypad}
           />
+
+          <OrdersTabs openOrders={{ items: [] }} history={{ items: [] }} />
         </ScrollView>
 
         <SwapsKeypad
