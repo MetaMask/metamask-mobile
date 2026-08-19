@@ -11,21 +11,24 @@ import {
  * Device smoke: Telegram OAuth mock → password → wallet home.
  * Screen-level UI belongs in component-view tests.
  */
-appiumTest.describe(SmokeSeedlessOnboarding('Telegram Login - New User'), () => {
-  appiumTest(
-    'creates a new wallet with Telegram login',
-    async ({ driver: _driver, currentDeviceDetails }) => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder({ onboarding: true }).build(),
-          restartDevice: true,
-          currentDeviceDetails,
-          testSpecificMock: setupTelegramNewUserOAuthMock,
-        },
-        async () => {
-          await completeTelegramNewUserOnboarding();
-        },
-      );
-    },
-  );
-});
+appiumTest.describe(
+  SmokeSeedlessOnboarding('Telegram Login - New User'),
+  () => {
+    appiumTest(
+      'creates a new wallet with Telegram login',
+      async ({ driver: _driver, currentDeviceDetails }) => {
+        await withFixtures(
+          {
+            fixture: new FixtureBuilder({ onboarding: true }).build(),
+            restartDevice: true,
+            currentDeviceDetails,
+            testSpecificMock: setupTelegramNewUserOAuthMock,
+          },
+          async () => {
+            await completeTelegramNewUserOnboarding();
+          },
+        );
+      },
+    );
+  },
+);
