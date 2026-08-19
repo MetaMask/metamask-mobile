@@ -476,14 +476,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         loginError.name?.trim() ||
         String(loginError);
 
-      if (route.params?.onboardingTraceCtx) {
+      // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+      const journeyCtx = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      if (journeyCtx) {
         trace({
           name: TraceName.OnboardingPasswordLoginError,
           op: TraceOperation.OnboardingError,
           tags: { errorMessage: loginErrorMessage },
-          parentContext:
-            passwordLoginAttemptTraceCtxRef.current ??
-            route.params.onboardingTraceCtx,
+          parentContext: passwordLoginAttemptTraceCtxRef.current ?? journeyCtx,
         });
         endTrace({ name: TraceName.OnboardingPasswordLoginError });
       }
@@ -553,7 +555,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       handleSeedlessOnboardingControllerError,
       handlePasswordError,
       setBiometryChoice,
-      route.params?.onboardingTraceCtx,
       isComingFromOauthOnboarding,
       accountType,
     ],
@@ -576,17 +577,19 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       });
       setLoading(true);
 
-      // Start on submit (not mount) so duration is unlock work, not typing/dwell.
+      // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
       // Nest under Existing Social Login when that phase span is open; else journey.
-      const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-      if (onboardingTraceCtx) {
+      const journeyCtx = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      if (journeyCtx) {
         passwordLoginAttemptTraceCtxRef.current = trace({
           name: TraceName.OnboardingPasswordLoginAttempt,
           op: TraceOperation.OnboardingUserJourney,
           parentContext:
             getTraceContext({
               name: TraceName.OnboardingExistingSocialLogin,
-            }) ?? onboardingTraceCtx,
+            }) ?? journeyCtx,
         });
       }
       const passwordLoginAttemptCtx = passwordLoginAttemptTraceCtxRef.current;
@@ -625,7 +628,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               endTrace({ name: TraceName.OnboardingJourneyOverall });
             },
             // Nest OnboardingFetchSrps under Password Login Attempt when present.
-            parentContext: passwordLoginAttemptCtx ?? onboardingTraceCtx,
+            parentContext: passwordLoginAttemptCtx ?? journeyCtx,
           });
         },
       );
@@ -675,7 +678,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     upgradeKeychainAuthAfterSuccessfulUnlock,
     accountType,
     syncMarketingOptInAfterUnlock,
-    route.params?.onboardingTraceCtx,
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
