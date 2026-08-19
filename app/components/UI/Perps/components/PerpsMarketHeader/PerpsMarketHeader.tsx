@@ -119,6 +119,7 @@ const PerpsMarketHeader = ({
   onModeChange,
   scrollY,
   priceSectionHeight,
+  currentPrice: currentPriceOverride,
 }: PerpsMarketHeaderProps) => {
   const fallbackScrollY = useSharedValue(0);
   const fallbackPriceSectionHeight = useSharedValue(0);
@@ -163,7 +164,15 @@ const PerpsMarketHeader = ({
     throttleMs: 1000,
   });
   const priceData = livePrices[market.symbol];
-  const currentPrice = priceData?.price ? parseFloat(priceData.price) : 0;
+  // Same as Lite: when the parent passes the chart-synced price, display it
+  // as-is (including 0 → "$---"). Live mids are only used when the parent
+  // does not supply a price.
+  const currentPrice =
+    currentPriceOverride !== undefined
+      ? currentPriceOverride
+      : priceData?.price
+        ? parseFloat(priceData.price)
+        : 0;
   const percentChange24h =
     priceData?.percentChange24h !== undefined
       ? parseFloat(priceData.percentChange24h)

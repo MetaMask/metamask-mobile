@@ -32,6 +32,10 @@ jest.mock('../../UI/Rewards/hooks/useCandidateSubscriptionId', () => ({
   useCandidateSubscriptionId: () => mockUseCandidateSubscriptionId(),
 }));
 
+jest.mock('../../UI/Rewards/hooks/useRewardsTabPerformance', () => ({
+  useRewardsTabPerformance: jest.fn(),
+}));
+
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectPredictEnabledFlag = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn();
@@ -91,6 +95,8 @@ jest.mock('../../UI/Money/Views/MoneyFirstTimeDepositView', () => ({
   default: () => null,
 }));
 
+jest.mock('../../Views/Settings/SecuritySettings', () => () => null);
+
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../UI/Money/components/MoneyTabPressTracker', () => ({
@@ -100,14 +106,15 @@ jest.mock('../../UI/Money/components/MoneyTabPressTracker', () => ({
 
 const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
+  ...jest.requireActual('../../UI/Money/selectors/featureFlags'),
   selectMoneyEnableMoneyAccountFlag: (state: unknown) =>
     mockSelectMoneyEnableMoneyAccountFlag(state),
 }));
 
-const mockSelectIsMoneyAccountGeoEligible = jest.fn().mockReturnValue(true);
-jest.mock('../../UI/Money/selectors/eligibility', () => ({
-  selectIsMoneyAccountGeoEligible: (state: unknown) =>
-    mockSelectIsMoneyAccountGeoEligible(state),
+const mockSelectIsMoneyAccountVisible = jest.fn().mockReturnValue(false);
+jest.mock('../../UI/Money/selectors/visibility', () => ({
+  selectIsMoneyAccountVisible: (state: unknown) =>
+    mockSelectIsMoneyAccountVisible(state),
 }));
 
 describe('MainNavigator', () => {
@@ -1238,7 +1245,7 @@ describe('MainNavigator', () => {
     });
   });
 
-  it('includes SocialTradersView screen when Social Leaderboard remote flag is enabled', () => {
+  it('includes SocialTradersTabsView screen when Social Leaderboard remote flag is enabled', () => {
     const stateWithSocialLeaderboard = {
       ...initialRootState,
       engine: {
@@ -1287,7 +1294,7 @@ describe('MainNavigator', () => {
     );
 
     expect(topTradersScreen).toBeDefined();
-    expect(topTradersScreen?.component.name).toBe('SocialTradersView');
+    expect(topTradersScreen?.component.name).toBe('SocialTradersTabsView');
   });
 
   describe('Inner navigator component rendering', () => {
@@ -1742,17 +1749,16 @@ describe('MainNavigator', () => {
           .map((child) => child.props.name as string);
       };
 
-      it('includes Money route when feature flag is enabled', () => {
-        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+      it('includes Money route when account is visible', () => {
+        mockSelectIsMoneyAccountVisible.mockReturnValue(true);
 
         const tabScreenNames = getHomeTabsScreenNames();
 
         expect(tabScreenNames).toContain(Routes.MONEY.ROOT);
-        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
       });
 
-      it('excludes Money route when feature flag is disabled', () => {
-        mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+      it('excludes Money route when account is not visible', () => {
+        mockSelectIsMoneyAccountVisible.mockReturnValue(false);
 
         const tabScreenNames = getHomeTabsScreenNames();
 

@@ -191,6 +191,13 @@ export function discoverAndDescribeMigratedPageObjects(
 ): void {
   const files = findPageObjectsWithEncapsulated(pageObjectsDir);
 
+  if (files.length === 0) {
+    it('has no remaining page objects that call encapsulated()', () => {
+      expect(files).toEqual([]);
+    });
+    return;
+  }
+
   const path = jest.requireActual<typeof import('path')>('path');
 
   for (const filePath of files) {

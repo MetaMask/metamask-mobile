@@ -69,9 +69,9 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: jest.fn(() => mockMoneyAccountEnabled),
 }));
 
-const mockMoneyAccountGeoEligible = true;
-jest.mock('../../UI/Money/selectors/eligibility', () => ({
-  selectIsMoneyAccountGeoEligible: jest.fn(() => mockMoneyAccountGeoEligible),
+let mockMoneyAccountVisible = false;
+jest.mock('../../UI/Money/selectors/visibility', () => ({
+  selectIsMoneyAccountVisible: jest.fn(() => mockMoneyAccountVisible),
 }));
 
 // Mock MoneyBalanceCard so the integration test does not depend on its hooks/contexts.
@@ -97,9 +97,17 @@ jest.mock('../../UI/NetworkConnectionBanner', () => ({
 let mockNetworkConnectionBannerVisible = false;
 jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
   useNetworkConnectionBanner: () => ({
-    networkConnectionBannerState: {
-      visible: mockNetworkConnectionBannerVisible,
-    },
+    status: mockNetworkConnectionBannerVisible ? 'unavailable' : 'available',
+    network: mockNetworkConnectionBannerVisible
+      ? {
+          networkClientId: 'test-client',
+          name: 'Test Network',
+          rpcUrl: 'https://test.rpc',
+          chainId: '0x1',
+          isInfuraEndpoint: false,
+          switchableInfuraNetworkClientId: null,
+        }
+      : null,
     updateRpc: jest.fn(),
     switchToInfura: jest.fn(),
   }),
@@ -294,7 +302,6 @@ import Logger from '../../../util/Logger';
 import { useSelector } from 'react-redux';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
 import { initialState as cardInitialState } from '../../../core/redux/slices/card';
-import { initialState as networkConnectionBannerInitialState } from '../../../reducers/networkConnectionBanner';
 import {
   NavigationProp,
   ParamListBase,
@@ -540,7 +547,6 @@ const mockInitialState = {
     newPrivacyPolicyToastShownDate: null,
     newPrivacyPolicyToastClickedOrClosed: false,
   },
-  networkConnectionBanner: networkConnectionBannerInitialState,
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -765,6 +771,7 @@ beforeEach(() => {
   mockPerpsEnabled = true;
   mockPerpsGTMModalEnabled = false;
   mockMoneyAccountEnabled = false;
+  mockMoneyAccountVisible = false;
   mockDiscoveryPillsVariantName = 'control';
   mockActionButtonsGridVariantName = 'control';
   mockBalanceBreakdownVariantName = 'unresolved';
@@ -1866,16 +1873,18 @@ describe('MoneyBalanceCard slot', () => {
     mockBalanceBreakdownVariantName = 'unresolved';
   });
 
-  it('renders the MoneyBalanceCard when Money account is enabled', () => {
+  it('renders the MoneyBalanceCard when Money account is visible', () => {
     mockMoneyAccountEnabled = true;
+    mockMoneyAccountVisible = true;
 
     const { getByTestId } = render(Wallet);
 
     expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
   });
 
-  it('does not render the MoneyBalanceCard when Money account is disabled', () => {
-    mockMoneyAccountEnabled = false;
+  it('does not render the MoneyBalanceCard when Money account is geo-ineligible', () => {
+    mockMoneyAccountEnabled = true;
+    mockMoneyAccountVisible = false;
 
     const { queryByTestId } = render(Wallet);
 
@@ -1884,6 +1893,7 @@ describe('MoneyBalanceCard slot', () => {
 
   it('suppresses the standalone MoneyBalanceCard in breakdown treatment', () => {
     mockMoneyAccountEnabled = true;
+    mockMoneyAccountVisible = true;
     mockBalanceBreakdownVariantName = 'icons';
 
     const { queryByTestId } = render(Wallet);
@@ -1964,6 +1974,13 @@ describe('Homepage balance breakdown ABC test', () => {
           children: expect.anything(),
           hideRows: false,
           layout,
+          transactionActiveAbTests: [
+            {
+              key: 'homeTMCU1209AbtestHomepageBalanceBreakdown',
+              value: variantName,
+              key_value_pair: `homeTMCU1209AbtestHomepageBalanceBreakdown=${variantName}`,
+            },
+          ],
         }),
       }),
     );

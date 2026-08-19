@@ -464,11 +464,11 @@
         "symbol": "mUSD",
         "type": "erc20"
       },
-      "eip155:5042/erc20:0x3600000000000000000000000000000000000000": {
-        "decimals": 6,
+      "eip155:5042/slip44:5042": {
+        "decimals": 18,
         "name": "USDC",
         "symbol": "USDC",
-        "type": "erc20"
+        "type": "native"
       },
       "eip155:59144/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA": {
         "decimals": 6,
@@ -539,7 +539,13 @@
       "chartExpanded": false,
       "orderBookExpanded": false,
       "orderBookPosition": "left",
-      "orderFormPosition": "right"
+      "orderFormPosition": "right",
+      "ordersSideFilter": "all",
+      "ordersSortDirection": "desc",
+      "ordersSortField": "time",
+      "positionsSideFilter": "all",
+      "positionsSortDirection": "desc",
+      "positionsSortField": "positionValue"
     },
     "selectedPaymentToken": null,
     "cachedMarketDataByProvider": {},
@@ -710,6 +716,10 @@
   "MultichainTransactionsController": {
     "nonEvmTransactions": {}
   },
+  "NetworkConnectionBannerController": {
+    "networkConnectionBannerStatus": "available",
+    "networkConnectionBannerNetwork": null
+  },
   "MultichainAssetsController": {
     "accountsAssets": {},
     "assetsMetadata": {},
@@ -745,7 +755,9 @@
     "activeProviderId": "baanx",
     "providerUserId": null,
     "cardHomeData": null,
+    "cardHomeDataAddress": null,
     "cardHomeDataStatus": "idle",
+    "cardHomeDataFetchedThisSession": false,
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {},

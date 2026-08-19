@@ -56,7 +56,7 @@ const GET_NOTIFICATION_PREFERENCES_ACTION =
 const SECTION_TITLES = {
   walletActivity: 'Wallet activity',
   perps: 'Trading activity',
-  agenticCli: 'Agentic CLI',
+  agenticCli: 'Agent wallet',
   socialAI: 'Trading signals',
   marketing: 'Updates and rewards',
   priceAlerts: 'Price alerts',

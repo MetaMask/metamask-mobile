@@ -14,7 +14,7 @@ import {
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import { GLOW_TOTAL_MS } from '../../components/PerpsModeToggle/PerpsModeSwitchPill';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
-import { Linking } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -624,6 +624,35 @@ jest.mock('../../hooks', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsWatchlistActions', () => ({
+  usePerpsWatchlistActions: jest.fn(() => ({
+    addToWatchlist: jest.fn(),
+    removeFromWatchlist: jest.fn(),
+  })),
+}));
+
+// Direct-path mocks for usePerpsMarketHeaderActions dependencies (it does not
+// import these from the hooks barrel).
+jest.mock('../../hooks/usePerpsNavigation', () => ({
+  usePerpsNavigation: jest.fn(() => ({
+    navigateToHome: mockNavigateToHome,
+    navigateToActivity: mockNavigateToActivity,
+    navigateToOrder: mockNavigateToOrder,
+    navigateToTutorial: mockNavigateToTutorial,
+    navigateToMarketList: mockNavigateToMarketList,
+    navigateToMarketListFromHeader: mockNavigateToMarketListFromHeader,
+    navigateBack: mockNavigateBack,
+    canGoBack: mockCanGoBack(),
+  })),
+}));
+
+jest.mock('../../hooks/usePerpsMode', () => ({
+  usePerpsMode: jest.fn(() => ({
+    mode: mockPerpsModeValue,
+    setMode: mockSetPerpsMode,
+  })),
+}));
+
 // Mock useABTest to return default (control/white) variant
 jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: () => ({
@@ -976,6 +1005,44 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
+  describe('chart edge guard', () => {
+    const originalPlatform = Platform.OS;
+
+    afterEach(() => {
+      Platform.OS = originalPlatform;
+    });
+
+    it('covers the chart edge on iOS, where the back swipe starts', () => {
+      Platform.OS = 'ios';
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(PerpsMarketDetailsViewSelectorsIDs.CHART_EDGE_GUARD),
+      ).toBeOnTheScreen();
+    });
+
+    it('is absent on Android, which has no edge-swipe conflict', () => {
+      Platform.OS = 'android';
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        queryByTestId(PerpsMarketDetailsViewSelectorsIDs.CHART_EDGE_GUARD),
+      ).toBeNull();
+    });
+  });
+
   it('renders the asset identity in the Lite header', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsConnectionProvider>
@@ -1010,7 +1077,7 @@ describe('PerpsMarketDetailsView', () => {
     });
   };
 
-  it('shows the active-mode pill next to search when the Pro mode flag is enabled', () => {
+  it('shows the favorite button and active-mode pill when the Pro mode flag is enabled', () => {
     enableProModeFlag();
 
     const { getByTestId } = renderWithProvider(
@@ -1023,7 +1090,7 @@ describe('PerpsMarketDetailsView', () => {
     );
 
     expect(
-      getByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON),
+      getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON),
     ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT),
