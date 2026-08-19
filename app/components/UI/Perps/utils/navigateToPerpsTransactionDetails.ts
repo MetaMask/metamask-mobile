@@ -1,37 +1,50 @@
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { ARBITRUM_MAINNET_CAIP_CHAIN_ID } from '@metamask/perps-controller';
-import { USDC_ARBITRUM_MAINNET_ADDRESS } from '@metamask/perps-controller/constants/hyperLiquidConfig';
+import {
+  getCaipChainId,
+  USDC_ARBITRUM_MAINNET_ADDRESS,
+  USDC_ARBITRUM_TESTNET_ADDRESS,
+} from '@metamask/perps-controller/constants/hyperLiquidConfig';
 import type { CaipChainId } from '@metamask/utils';
 import Routes from '../../../../constants/navigation/Routes';
 import { mapPerpsTransaction } from '../../../../util/activity-adapters';
 import { getActivityDetailsRoute } from '../../../Views/ActivityList/getActivityDetailsRoute';
 import type { PerpsTransaction } from '../types/transactionHistory';
 
-/**
- * HyperLiquid settles on Arbitrum; same chain/collateral ids as
- * `usePerpsActivityItems` so a fill from Perps home/TDP resolves the same
- * Activity row as the unified list.
- */
-const PERPS_ACTIVITY_CHAIN_ID = ARBITRUM_MAINNET_CAIP_CHAIN_ID as CaipChainId;
-const PERPS_COLLATERAL_ASSET_ID = `${PERPS_ACTIVITY_CHAIN_ID}/erc20:${USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase()}`;
+function getPerpsActivityMappingIds(isTestnet: boolean): {
+  chainId: CaipChainId;
+  collateralAssetId: string;
+} {
+  const chainId = getCaipChainId(isTestnet) as CaipChainId;
+  const usdcAddress = (
+    isTestnet ? USDC_ARBITRUM_TESTNET_ADDRESS : USDC_ARBITRUM_MAINNET_ADDRESS
+  ).toLowerCase();
+  return {
+    chainId,
+    collateralAssetId: `${chainId}/erc20:${usdcAddress}`,
+  };
+}
 
 /**
  * Opens Activity details for a mapped Perps history row when
  * `selectIsTransactionsRedesignEnabled` is true. Callers pass that selector
- * result so this module stays store-free. Falls back to the legacy Perps
- * transaction screens when the flag is off or the row cannot be mapped
- * (open orders, unrecognized trades).
+ * result and the active Perps network (`usePerpsNetwork`) so this module stays
+ * store-free. Settlement chain and collateral follow HyperLiquid mainnet vs
+ * testnet. Falls back to the legacy Perps transaction screens when the flag is
+ * off or the row cannot be mapped (open orders, unrecognized trades).
  */
 export function navigateToPerpsTransactionDetails(
   navigation: Pick<NavigationProp<ParamListBase>, 'navigate'>,
   transaction: PerpsTransaction,
   isTransactionsRedesignEnabled: boolean,
+  isTestnet: boolean,
 ): void {
   if (isTransactionsRedesignEnabled) {
+    const { chainId, collateralAssetId } =
+      getPerpsActivityMappingIds(isTestnet);
     const item = mapPerpsTransaction({
       transaction,
-      chainId: PERPS_ACTIVITY_CHAIN_ID,
-      collateralAssetId: PERPS_COLLATERAL_ASSET_ID,
+      chainId,
+      collateralAssetId,
     });
     const detailsRoute = item ? getActivityDetailsRoute(item) : null;
     if (detailsRoute) {

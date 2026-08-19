@@ -39,6 +39,7 @@ import {
 } from '../../constants/perpsConfig';
 import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
 import { selectIsTransactionsRedesignEnabled } from '../../../../../selectors/featureFlagController/activityRedesign';
+import { usePerpsNetwork } from '../../hooks/usePerpsNetwork';
 
 interface PerpsMarketTradesListProps {
   symbol: string; // Market symbol to filter trades
@@ -54,6 +55,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
   const isTransactionsRedesignEnabled = useSelector(
     selectIsTransactionsRedesignEnabled,
   );
+  const isTestnet = usePerpsNetwork() === 'testnet';
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Fetch order fills via WebSocket + REST API for complete history
@@ -98,9 +100,16 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
         navigation,
         transaction,
         isTransactionsRedesignEnabled,
+        isTestnet,
       );
     },
-    [navigation, isTransactionsRedesignEnabled, trackEvent, createEventBuilder],
+    [
+      navigation,
+      isTransactionsRedesignEnabled,
+      isTestnet,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   // Render right content for trades

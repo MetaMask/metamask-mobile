@@ -37,7 +37,11 @@ import {
 // Import PerpsController hooks
 import PerpsTransactionItem from '../../components/PerpsTransactionItem';
 import PerpsTransactionsSkeleton from '../../components/PerpsTransactionsSkeleton';
-import { usePerpsConnection, usePerpsTransactionHistory } from '../../hooks';
+import {
+  usePerpsConnection,
+  usePerpsNetwork,
+  usePerpsTransactionHistory,
+} from '../../hooks';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 import {
@@ -79,6 +83,7 @@ const PerpsTransactionsView: React.FC = () => {
   const isTransactionsRedesignEnabled = useSelector(
     selectIsTransactionsRedesignEnabled,
   );
+  const isTestnet = usePerpsNetwork() === 'testnet';
   const accountId = useMemo(() => {
     if (!selectedAddress || !currentChainId) {
       return undefined;
@@ -334,6 +339,7 @@ const PerpsTransactionsView: React.FC = () => {
       navigation,
       transaction,
       isTransactionsRedesignEnabled,
+      isTestnet,
     );
   };
 

@@ -31,6 +31,7 @@ import {
 } from '../../../../../core/Analytics/events/transactions';
 import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
 import { selectIsTransactionsRedesignEnabled } from '../../../../../selectors/featureFlagController/activityRedesign';
+import { usePerpsNetwork } from '../../hooks/usePerpsNetwork';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
@@ -47,6 +48,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   const isTransactionsRedesignEnabled = useSelector(
     selectIsTransactionsRedesignEnabled,
   );
+  const isTestnet = usePerpsNetwork() === 'testnet';
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activityTitle = strings('perps.home.recent_activity');
 
@@ -77,10 +79,17 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
           navigation,
           transaction,
           isTransactionsRedesignEnabled,
+          isTestnet,
         );
       }
     },
-    [navigation, isTransactionsRedesignEnabled, trackEvent, createEventBuilder],
+    [
+      navigation,
+      isTransactionsRedesignEnabled,
+      isTestnet,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   const renderItem = useCallback(
