@@ -19,6 +19,8 @@ import mockQuotes from '../../_mocks_/mock-quotes-sol-sol';
 // eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
 import * as quoteUtils from '../../utils/quoteUtils';
 import { useBridgeQuoteData } from '.';
+import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
+import useInsufficientBalance from '../useInsufficientBalance';
 
 const defaultSelectBridgeQuotesResults: ReturnType<
   typeof bridgeSlice.selectBridgeQuotes
@@ -101,15 +103,21 @@ const applyQuoteDataState = ({
   return { selectSourceAmountSpy };
 };
 
+const mockUseIsInsufficientBalance =
+  useInsufficientBalance as jest.MockedFunction<typeof useInsufficientBalance>;
+
+const mockUseValidateBridgeTx = useValidateBridgeTx as jest.MockedFunction<
+  typeof useValidateBridgeTx
+>;
+const mockValidateBridgeTx = jest.fn();
+
 export const runQuoteDataCases = ({
+  name,
   mockDispatch,
-  mockValidateBridgeTx,
-  mockUseIsInsufficientBalance,
   renderHook,
 }: {
+  name: string;
   mockDispatch: jest.Mock;
-  mockValidateBridgeTx: jest.Mock;
-  mockUseIsInsufficientBalance: jest.Mock;
   renderHook: (options?: { latestSourceAtomicBalance?: BigNumber }) => {
     result: { current: ReturnType<typeof useBridgeQuoteData> };
     rerender: (props?: unknown) => void;
@@ -127,7 +135,7 @@ export const runQuoteDataCases = ({
     };
   };
 
-  return describe('useBridgeQuoteData', () => {
+  return describe(name, () => {
     let isQuoteExpired: jest.SpyInstance;
     let shouldRefreshQuote: jest.SpyInstance;
     let selectBridgeQuotes: jest.SpyInstance;
@@ -135,7 +143,6 @@ export const runQuoteDataCases = ({
 
     beforeEach(() => {
       jest.clearAllMocks();
-      jest.resetAllMocks();
 
       selectBridgeFeatureFlags = jest
         .spyOn(bridgeSlice, 'selectBridgeFeatureFlags')
@@ -164,6 +171,9 @@ export const runQuoteDataCases = ({
         .mockReturnValue(false);
       mockUseIsInsufficientBalance.mockReturnValue(false);
       mockValidateBridgeTx.mockResolvedValue({ status: 'SUCCESS' });
+      mockUseValidateBridgeTx.mockReturnValue({
+        validateBridgeTx: mockValidateBridgeTx,
+      });
     });
 
     afterEach(() => {

@@ -1,7 +1,5 @@
-import React from 'react';
 import { BigNumber } from 'ethers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import type { BridgeToken } from '../../types';
 import {
   BridgeQuoteDataProvider,
   useBridgeQuoteDataContext,
@@ -12,23 +10,14 @@ jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
 }));
 
-const mockValidateBridgeTx = jest.fn();
 jest.mock('../../../../../util/bridge/hooks/useValidateBridgeTx', () => ({
   __esModule: true,
-  default: () => ({
-    validateBridgeTx: mockValidateBridgeTx,
-  }),
+  default: jest.fn(),
 }));
 
-const mockUseIsInsufficientBalance = jest.fn();
 jest.mock('../useInsufficientBalance', () => ({
   __esModule: true,
-  default: (params: {
-    amount?: string;
-    token?: BridgeToken;
-    latestAtomicBalance?: BigNumber;
-    ignoreGasFees?: boolean;
-  }) => mockUseIsInsufficientBalance(params),
+  default: jest.fn(),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -56,8 +45,7 @@ const Consumer = () => {
 };
 
 runQuoteProviderCases({
-  mockValidateBridgeTx,
-  mockUseIsInsufficientBalance,
+  name: 'BridgeQuoteDataContext',
   missingProviderError:
     'useBridgeQuoteDataContext must be used within BridgeQuoteDataProvider',
   renderProvider: (state) =>

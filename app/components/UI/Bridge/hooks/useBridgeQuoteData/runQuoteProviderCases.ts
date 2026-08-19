@@ -8,21 +8,28 @@ import * as quoteUtils from '../../utils/quoteUtils';
 import * as bridgeController from '@metamask/bridge-controller';
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
+import useInsufficientBalance from '../useInsufficientBalance';
+import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
+
+const mockUseIsInsufficientBalance =
+  useInsufficientBalance as jest.MockedFunction<typeof useInsufficientBalance>;
+
+const mockValidateBridgeTx = useValidateBridgeTx as jest.MockedFunction<
+  typeof useValidateBridgeTx
+>;
 
 export const runQuoteProviderCases = ({
-  mockValidateBridgeTx,
-  mockUseIsInsufficientBalance,
+  name,
   missingProviderError,
   renderProvider,
   renderWithoutProvider,
 }: {
-  mockValidateBridgeTx: jest.Mock;
-  mockUseIsInsufficientBalance: jest.Mock;
+  name: string;
   missingProviderError: string;
   renderProvider: (state: DeepPartial<RootState>) => void;
   renderWithoutProvider: () => void;
 }) =>
-  describe('BridgeQuoteDataContext', () => {
+  describe(name, () => {
     beforeEach(() => {
       jest.clearAllMocks();
       jest.spyOn(quoteUtils, 'isQuoteExpired').mockImplementation(jest.fn());
@@ -33,7 +40,9 @@ export const runQuoteProviderCases = ({
         .spyOn(quoteUtils, 'shouldRefreshQuote')
         .mockImplementation(jest.fn());
       mockUseIsInsufficientBalance.mockReturnValue(false);
-      mockValidateBridgeTx.mockResolvedValue({ status: 'SUCCESS' });
+      mockValidateBridgeTx.mockImplementation(() => ({
+        validateBridgeTx: jest.fn().mockResolvedValue({ status: 'SUCCESS' }),
+      }));
       jest
         .spyOn(bridgeController, 'selectBridgeQuotes')
         .mockImplementation(() => ({

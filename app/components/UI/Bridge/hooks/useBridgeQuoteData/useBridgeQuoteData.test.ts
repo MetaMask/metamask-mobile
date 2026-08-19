@@ -1,7 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
-import { BigNumber } from 'ethers';
 
-import type { BridgeToken } from '../../types';
 import { useBridgeQuoteData } from '.';
 import { runQuoteDataCases } from './runQuoteDataCases';
 
@@ -16,23 +14,14 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: () => 'USD',
 }));
 
-const mockValidateBridgeTx = jest.fn();
 jest.mock('../../../../../util/bridge/hooks/useValidateBridgeTx', () => ({
   __esModule: true,
-  default: () => ({
-    validateBridgeTx: mockValidateBridgeTx,
-  }),
+  default: jest.fn(),
 }));
 
-const mockUseIsInsufficientBalance = jest.fn();
 jest.mock('../useInsufficientBalance', () => ({
   __esModule: true,
-  default: (params: {
-    amount?: string;
-    token?: BridgeToken;
-    latestAtomicBalance?: BigNumber;
-    ignoreGasFees?: boolean;
-  }) => mockUseIsInsufficientBalance(params),
+  default: jest.fn(),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -55,8 +44,7 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
 }));
 
 runQuoteDataCases({
+  name: 'useBridgeQuoteData',
   mockDispatch,
-  mockValidateBridgeTx,
-  mockUseIsInsufficientBalance,
   renderHook: (options) => renderHook(() => useBridgeQuoteData(options)),
 });

@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 
 import { DEBOUNCE_WAIT, useBridgeQuoteRequest } from './';
-import { runQuoteRequestCases } from './runQuoteRequestCases';
+import { mockContext, runQuoteRequestCases } from './runQuoteRequestCases';
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
@@ -16,7 +16,7 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 jest.mock('../useUnifiedSwapBridgeContext', () => ({
-  useUnifiedSwapBridgeContext: jest.fn(),
+  useUnifiedSwapBridgeContext: jest.fn(() => mockContext),
 }));
 
 jest.mock('../useInsufficientBalance', () => ({
