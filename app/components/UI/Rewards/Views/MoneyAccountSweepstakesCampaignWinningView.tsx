@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { useMoneyAccountSweepstakesOutcome } from '../hooks/useMoneyAccountSweepstakesOutcome';
-import { formatUsd } from '../utils/formatUtils';
+import { formatOrdinalRank } from '../utils/formatUtils';
 import CampaignWinningView from './CampaignWinningView';
 import Routes from '../../../../constants/navigation/Routes';
 import { REWARDS_WINNER_CONTACT_EMAIL } from '../constants/campaignWinnerContact';
@@ -33,11 +33,11 @@ const MoneyAccountSweepstakesCampaignWinningView: React.FC = () => {
   const winningCode = outcome?.winnerVerificationCode ?? null;
 
   const rankDisplay = useMemo(() => {
-    if (outcome?.prizeAmountUsd == null) {
+    if (!outcome?.rank) {
       return null;
     }
-    return formatUsd(outcome.prizeAmountUsd);
-  }, [outcome?.prizeAmountUsd]);
+    return formatOrdinalRank(outcome.rank);
+  }, [outcome?.rank]);
 
   const fallbackRoute = useMemo(
     () => ({
