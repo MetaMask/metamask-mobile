@@ -25,21 +25,6 @@ const createStyles = (params: { theme: Theme }) => {
     noNetworkFeeContainer: {
       alignSelf: 'center',
     },
-    titleWithBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    noNetworkFeeBadgeWrapper: {
-      marginLeft: 4,
-      alignSelf: 'center',
-    },
-    noNetworkFeeLabelText: {
-      textTransform: 'none',
-      textAlign: 'center',
-      bottom: 2,
-      paddingTop: 1,
-      fontWeight: 'normal',
-    },
     networkNameText: {
       flexGrow: 0,
       flexShrink: 1,
