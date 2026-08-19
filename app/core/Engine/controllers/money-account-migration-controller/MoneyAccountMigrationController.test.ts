@@ -163,6 +163,24 @@ describe('MoneyAccountMigrationController', () => {
     expect(unlink).toHaveBeenCalledWith(SOURCE);
   });
 
+  it('re-links Card from the persisted plan when live inventory is already unlinked', async () => {
+    const controller = createController({
+      ...EMPTY_SNAPSHOT,
+      status: 'INVENTORIED',
+      inventory: plan({ cardLinked: true }),
+      destination: DEST,
+    });
+    jest
+      .spyOn(controller, 'collectInventory')
+      .mockResolvedValue(plan({ cardLinked: false }));
+    jest.spyOn(controller, 'unlinkCard').mockResolvedValue();
+    const relink = jest.spyOn(controller, 'relinkCard').mockResolvedValue();
+
+    await controller.resume();
+
+    expect(relink).toHaveBeenCalledWith(DEST);
+  });
+
   it('resumes the same source and destination after a crash', async () => {
     const controller = createController({
       ...EMPTY_SNAPSHOT,

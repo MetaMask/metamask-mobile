@@ -412,7 +412,7 @@ export class MoneyAccountMigrationController extends BaseController<
     }
 
     const inventory: MigrationInventory = {
-      ...live,
+      ...snap.inventory,
       destination: snap.destination,
     };
 
