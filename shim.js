@@ -321,6 +321,25 @@ if (enableApiCallLogs || isTestEnvironment) {
     // a NitroHeaders instance and silently drops headers like Content-Type,
     // which makes HyperLiquid reject perps orders/candles with a 415.
     const installedFetch = global.fetch;
+
+    // Hosts that bypass the mock proxy and make direct network requests.
+    const PROXY_BYPASS_PATTERNS = [
+      '.node.web3auth.io',
+      '.uat-node.web3auth.io',
+      'auth-service.uat-api.cx.metamask.io',
+    ];
+
+    const shouldBypassProxy = (targetUrl) => {
+      try {
+        const hostname = new URL(targetUrl).hostname;
+        return PROXY_BYPASS_PATTERNS.some(
+          (p) => hostname === p || hostname.endsWith(p),
+        );
+      } catch {
+        return false;
+      }
+    };
+
     // if mockServer is off we route to original destination
     global.fetch = async (url, options) => {
       // Extract URL string from Request or URL objects
@@ -336,12 +355,14 @@ if (enableApiCallLogs || isTestEnvironment) {
         urlString = String(url);
       }
 
-      return isMockServerAvailable
-        ? installedFetch(
-            `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(urlString)}`,
-            options,
-          ).catch(() => installedFetch(url, options))
-        : installedFetch(url, options);
+      if (!isMockServerAvailable || shouldBypassProxy(urlString)) {
+        return installedFetch(url, options);
+      }
+
+      return installedFetch(
+        `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(urlString)}`,
+        options,
+      ).catch(() => installedFetch(url, options));
     };
 
     if (isMockServerAvailable) {
@@ -382,9 +403,9 @@ if (enableApiCallLogs || isTestEnvironment) {
                 }
                 if (
                   !url.includes(`localhost:${mockServerPort}`) &&
-                  !url.includes('/proxy')
+                  !url.includes('/proxy') &&
+                  !shouldBypassProxy(url)
                 ) {
-                  const originalUrl = url;
                   url = `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(url)}`;
                 }
               }
@@ -499,7 +520,15 @@ if (enableApiCallLogs || isTestEnvironment) {
         if (proto && typeof proto.start === 'function' && !proto.__e2ePatched) {
           const originalStart = proto.start;
           proto.start = function patchedStart(url, init, body) {
-            const targetUrl = shouldProxy(url) ? buildProxyUrl(url) : url;
+            const targetUrl = (() => {
+              if (typeof url !== 'string') {
+                return url;
+              }
+              if (shouldBypassProxy(url)) {
+                return url;
+              }
+              return shouldProxy(url) ? buildProxyUrl(url) : url;
+            })();
             if (targetUrl !== url) {
               // eslint-disable-next-line no-console
               console.log(
@@ -542,6 +571,10 @@ if (enableApiCallLogs || isTestEnvironment) {
             return;
           }
           const patchedExpoFetch = (url, options) => {
+            const urlStr = String(url);
+            if (shouldBypassProxy(urlStr)) {
+              return originalExpoFetch(url, options);
+            }
             if (!shouldProxy(url)) {
               return originalExpoFetch(url, options);
             }

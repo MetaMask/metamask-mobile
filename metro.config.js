@@ -98,16 +98,14 @@ module.exports = function (baseConfig) {
         !isPerformanceTest && process.env.HAS_TEST_OVERRIDES === 'true';
 
       /**
-       * E2E Metro redirects under tests/module-mocking.
-       * Enables both: @metamask/seedless-onboarding-controller + OAuthLoginHandlers mocks.
-       * True when HAS_TEST_OVERRIDES OR E2E_MOCK_OAUTH.
-       * Performance builds set E2E_MOCK_OAUTH=true to keep this mock active
-       * even though hasTestOverrides is false (preventing real OAuth calls to production).
+       * E2E / perf Metro redirect for OAuthLoginHandlers only (tests/module-mocking/oauth).
+       * Active when HAS_TEST_OVERRIDES OR E2E_MOCK_OAUTH.
+       * Performance builds set E2E_MOCK_OAUTH=true to keep this mock active even
+       * though hasTestOverrides is false (preventing real OAuth calls to production).
        */
       const isE2EMockOAuth = process.env.E2E_MOCK_OAUTH === 'true';
 
-      const e2eAllowsSeedlessOAuthMetroMocks =
-        hasTestOverrides || isE2EMockOAuth;
+      const e2eAllowsOAuthMetroMocks = hasTestOverrides || isE2EMockOAuth;
 
       // For less powerful machines, leave room to do other tasks. For instance,
       // if you have 10 cores but only 16GB, only 3 workers would get used.
@@ -267,33 +265,7 @@ module.exports = function (baseConfig) {
                   };
                 }
               }
-              if (e2eAllowsSeedlessOAuthMetroMocks) {
-                // Wallet owns SeedlessOnboardingController construction, so E2E
-                // replaces the package class. Importers under
-                // tests/module-mocking/seedless still resolve the real package
-                // to avoid a circular mock.
-                if (moduleName === '@metamask/seedless-onboarding-controller') {
-                  const originModulePath = context.originModulePath || '';
-                  if (
-                    originModulePath.includes(
-                      `${path.sep}tests${path.sep}module-mocking${path.sep}seedless${path.sep}`,
-                    )
-                  ) {
-                    return {
-                      type: 'sourceFile',
-                      filePath: require.resolve(
-                        '@metamask/seedless-onboarding-controller',
-                      ),
-                    };
-                  }
-                  return {
-                    type: 'sourceFile',
-                    filePath: path.resolve(
-                      __dirname,
-                      'tests/module-mocking/seedless/package.ts',
-                    ),
-                  };
-                }
+              if (e2eAllowsOAuthMetroMocks) {
                 // Skips native Google/Apple UI; tokens still hit auth server (see module mock).
                 if (
                   moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||
