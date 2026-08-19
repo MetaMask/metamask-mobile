@@ -47,7 +47,7 @@ Resolution order, highest priority first:
 
 Push-, schedule- and `merge_group`-triggered workflows have no dispatch inputs, so the variables are the only way to steer them. That is why the input default is empty rather than a concrete provider.
 
-The production build chain (`build.yml`, `setup-node-modules.yml`, `upload-to-testflight.yml` and their callers) and PR CI (`ci.yml` plus the Android/iOS e2e build workflows) are on the switch. BrowserStack native builds go through `build.yml` and follow the fleet; the upload jobs stay on Cirrus / `ubuntu-latest`. OTA `eas-update-platform.yml` is still hardcoded to Cirrus.
+The production build chain (`build.yml`, `setup-node-modules.yml`, `upload-to-testflight.yml` and their callers) and PR CI (`ci.yml` plus the Android/iOS e2e build workflows) are on the switch. BrowserStack native builds go through `build.yml` and follow the fleet. OTA (`eas-update-platform.yml`) and iOS BrowserStack upload follow `NAMESPACE_RUNNER_LINUX` (`ci-linux` vs `ubuntu-latest`). Android BrowserStack upload/repack follows `NAMESPACE_RUNNER_ANDROID` (`metamask-android-build`, which has JDK and `/opt/android-sdk`) and keeps Cirrus / `ubuntu-latest` only for `current` rollback. Do not put that job on `ci-linux`.
 
 Appium jobs, fixture validation, and the scheduled arm64 E2E APK build stay pinned to Cirrus (`runner_provider: current`) until Namespace artifact-store parity. A workflow that hardcodes `current` at its call site is opted out on purpose.
 
