@@ -48,9 +48,9 @@
       },
       "row-present": {
         "action": "ui.wait_for",
-        "text": "Long",
+        "text": "{{params.expectSymbol}}",
         "timeout_ms": 20000,
-        "intent": "A venue trade row (Open/Close Long) is visible in the list.",
+        "intent": "A venue trade row for the expected market is visible (rows render as \"Opened long / 0.0053 ETH\").",
         "next": "shot"
       },
       "shot": {
