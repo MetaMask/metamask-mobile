@@ -27,6 +27,7 @@ export function getPolymarketActivityUrl(activity?: {
 export function getPredictFundsSteps(
   status: ActivityListItem['status'],
   timestamp: number,
+  failureMessage?: string,
 ): ActivityDetailsStep[] {
   const labels = getPredictFundsStepLabels();
   const completedTimestamp = formatPredictDate(timestamp);
@@ -45,13 +46,19 @@ export function getPredictFundsSteps(
       return { label, subtext: completedTimestamp, status: 'completed' };
     }
 
+    if (status === 'failed') {
+      return {
+        label,
+        subtext: strings('transaction.failed'),
+        status: 'failed',
+        failureMessage,
+      };
+    }
+
     return {
       label,
-      subtext:
-        status === 'failed'
-          ? strings('transaction.failed')
-          : strings('transaction.pending'),
-      status: status === 'failed' ? 'failed' : 'pending',
+      subtext: strings('transaction.pending'),
+      status: 'pending',
     };
   });
 }

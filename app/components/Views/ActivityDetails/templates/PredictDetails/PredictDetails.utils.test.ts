@@ -60,6 +60,17 @@ describe('PredictDetails.utils', () => {
       expect(steps[1].subtext).toBe(strings('transaction.failed'));
     });
 
+    it('attaches the failure message to the failed step only', () => {
+      const steps = getPredictFundsSteps('failed', TS, 'Bridge did not land');
+
+      expect(steps[1].failureMessage).toBe('Bridge did not land');
+      expect(steps[0].failureMessage).toBeUndefined();
+    });
+
+    it('leaves the failure message unset when none was classified', () => {
+      expect(getPredictFundsSteps('failed', TS)[1].failureMessage).toBeUndefined();
+    });
+
     it('marks the terminal step pending otherwise', () => {
       const steps = getPredictFundsSteps('pending', TS);
       expect(steps[0].status).toBe('completed');

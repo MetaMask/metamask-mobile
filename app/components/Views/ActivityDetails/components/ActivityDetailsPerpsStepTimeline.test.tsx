@@ -4,6 +4,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { useActivityBlockExplorer } from '../hooks/useActivityBlockExplorer';
 import {
+  getActivityDetailsStepFailureTestId,
   getActivityDetailsStepIconTestId,
   getActivityDetailsStepTestId,
 } from '../ActivityDetails.testIds';
@@ -39,6 +40,54 @@ describe('ActivityDetailsPerpsStepTimeline', () => {
     );
 
     fireEvent.press(getByTestId(getActivityDetailsStepTestId(0)));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: 'https://arbiscan.io/tx/0xdeposit',
+        title: 'Arbiscan',
+      },
+    });
+  });
+
+  it.each([
+    ['deposit' as const, 3],
+    ['withdrawal' as const, 2],
+  ])(
+    'marks the failed %s step with the cross and leaves the rest as dots',
+    (type, failedIndex) => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <ActivityDetailsPerpsStepTimeline
+          explorerTarget={{ chainId: 'eip155:42161', hash: '0xdeposit' }}
+          status="failed"
+          timestamp={1_765_361_640_000}
+          type={type}
+        />,
+      );
+
+      expect(
+        getByTestId(getActivityDetailsStepFailureTestId(failedIndex)),
+      ).toBeDefined();
+
+      for (let index = 0; index < failedIndex; index += 1) {
+        expect(
+          queryByTestId(getActivityDetailsStepFailureTestId(index)),
+        ).toBeNull();
+      }
+    },
+  );
+
+  it('keeps the failed step row linked to the block explorer', () => {
+    const { getByTestId } = renderWithProvider(
+      <ActivityDetailsPerpsStepTimeline
+        explorerTarget={{ chainId: 'eip155:42161', hash: '0xdeposit' }}
+        status="failed"
+        timestamp={1_765_361_640_000}
+        type="deposit"
+      />,
+    );
+
+    fireEvent.press(getByTestId(getActivityDetailsStepTestId(3)));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,

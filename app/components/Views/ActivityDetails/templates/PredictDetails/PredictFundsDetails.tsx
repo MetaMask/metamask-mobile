@@ -16,6 +16,7 @@ import {
   useActivityPayFiat,
   useFormatActivityTokenAmount,
 } from '../../components';
+import { usePayFundsFailure } from '../../hooks/usePayFundsFailure';
 import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
 import {
   getPredictFundsCtaLabel,
@@ -27,6 +28,8 @@ import {
   getPredictFundsStepTitle,
 } from './PredictDetails.utils';
 import { useOpenPredictHome } from './useOpenPredictHome';
+
+const PREDICT_FUNDS_DESTINATION = { network: 'Polygon', symbol: 'USDC.e' };
 
 function PredictFundsMetadata({
   item,
@@ -69,12 +72,17 @@ export function PredictFundsDetails({
   const isDeposit = item.type === 'predictionsAddFunds';
   const amount = formatActivityTokenAmount(item.data.token);
 
+  const pay = useActivityPayFiat(item);
+  const failure = usePayFundsFailure(item, {
+    destination: PREDICT_FUNDS_DESTINATION,
+    payTotalFiat: pay?.totalFiat,
+  });
+
   const steps =
     isDeposit && item.status !== 'cancelled'
-      ? getPredictFundsSteps(item.status, item.timestamp)
+      ? getPredictFundsSteps(item.status, item.timestamp, failure?.message)
       : undefined;
   const completedCount = item.status === 'success' ? 2 : 1;
-  const pay = useActivityPayFiat(item);
   const showPaySection = isDeposit && Boolean(pay);
   const showDetails = showPaySection || Boolean(steps);
 

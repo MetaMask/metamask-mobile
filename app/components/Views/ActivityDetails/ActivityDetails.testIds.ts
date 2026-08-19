@@ -40,7 +40,12 @@ export const ActivityDetailsSelectorsIDs = {
   PENDING_QR_SIGN_BUTTON: 'activity-details-pending-qr-sign-button',
   PENDING_QR_CANCEL_BUTTON: 'activity-details-pending-qr-cancel-button',
   PENDING_LEDGER_SIGN_BUTTON: 'activity-details-pending-ledger-sign-button',
+  STEP_FAILURE_SHEET: 'activity-details-step-failure-sheet',
+  STEP_FAILURE_MESSAGE: 'activity-details-step-failure-message',
 } as const;
+
+export const getActivityDetailsStepFailureTestId = (index: number): string =>
+  `activity-details-step-${index}-failure`;
 
 export const getActivityDetailsStepTestId = (index: number): string =>
   `activity-details-step-${index}`;

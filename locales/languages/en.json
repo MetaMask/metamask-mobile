@@ -10537,7 +10537,16 @@
     "transaction_pending": "Transaction pending",
     "likely_to_confirm_in": "Likely to confirm in",
     "confirm_time_estimate": "< 30 sec",
-    "not_found": "Transaction details are unavailable."
+    "not_found": "Transaction details are unavailable.",
+    "failure": {
+      "title": "Why it failed",
+      "bridged_not_deposited": "You now have {{fiat}} of {{symbol}} on {{network}}. Try your deposit again.",
+      "bridged_not_deposited_no_amount": "Your funds arrived on {{network}}, but the deposit didn't complete. Try depositing again.",
+      "bridge_failed": "The bridge didn't complete, so your funds stayed on the network you paid from. Nothing was deposited.",
+      "approval_failed": "The approval didn't go through, so nothing left your wallet. Try again.",
+      "not_submitted": "This deposit was never sent, so nothing left your wallet.",
+      "unknown": "We couldn't determine why this step failed. Check the block explorer for the full transaction."
+    }
   },
   "sdk_connect_v2": {
     "show_loading": {

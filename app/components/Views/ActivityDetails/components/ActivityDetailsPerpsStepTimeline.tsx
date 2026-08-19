@@ -58,11 +58,13 @@ function getStepSummary({
 
 export function ActivityDetailsPerpsStepTimeline({
   explorerTarget,
+  failureMessage,
   status,
   timestamp,
   type,
 }: {
   explorerTarget?: ActivityDetailsStepExplorerTarget;
+  failureMessage?: string;
   status: PerpsDepositWithdrawalStatus;
   timestamp: number;
   type: 'deposit' | 'withdrawal';
@@ -88,6 +90,7 @@ export function ActivityDetailsPerpsStepTimeline({
     return {
       label,
       subtext,
+      ...(isFailed ? { failureMessage } : {}),
       status: isFailed
         ? 'failed'
         : isPending
