@@ -943,9 +943,9 @@ describe('BrowserTab', () => {
         url: redirectedUrl,
       });
       await waitFor(() => {
-        expect(screen.getByTestId('browser-url-display-text')).toHaveTextContent(
-          'https://other-domain.com/page',
-        );
+        expect(
+          screen.getByTestId('browser-url-display-text'),
+        ).toHaveTextContent('https://other-domain.com/page');
       });
     });
 
