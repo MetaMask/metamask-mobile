@@ -162,7 +162,6 @@ const renderUseBridgeQuoteData = (
 
 describe('useBridgeQuoteData', () => {
   let isQuoteExpired: jest.SpyInstance;
-  let getQuoteRefreshRate: jest.SpyInstance;
   let shouldRefreshQuote: jest.SpyInstance;
   let selectBridgeQuotes: jest.SpyInstance;
   let selectBridgeFeatureFlags: jest.SpyInstance;
@@ -192,9 +191,7 @@ describe('useBridgeQuoteData', () => {
     isQuoteExpired = jest
       .spyOn(quoteUtils, 'isQuoteExpired')
       .mockReturnValue(false);
-    getQuoteRefreshRate = jest
-      .spyOn(quoteUtils, 'getQuoteRefreshRate')
-      .mockReturnValue(5000);
+    jest.spyOn(quoteUtils, 'getQuoteRefreshRate').mockReturnValue(5000);
     shouldRefreshQuote = jest
       .spyOn(quoteUtils, 'shouldRefreshQuote')
       .mockReturnValue(false);
@@ -1990,7 +1987,7 @@ describe('useBridgeQuoteData', () => {
 
       const firstResult = result.current;
 
-      rerender({});
+      rerender({ state: testState });
 
       expect(result.current).toStrictEqual(firstResult);
       expect(result.current).toBe(firstResult);

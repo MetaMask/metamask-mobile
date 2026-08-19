@@ -24,10 +24,6 @@ import * as bridgeSlice from '../../../../../core/redux/slices/bridge';
 // eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
 import * as bridgeUtils from '../../../../../util/bridge';
 
-jest.mock('react-redux', () => ({
-  useSelector: (selector: (state: unknown) => unknown) => selector({}),
-}));
-
 jest.mock('../useBatchSellQuoteRequest', () => ({
   getBatchSellAtomicSourceAmount: jest.fn(
     (_token: BridgeToken, sourceAmount?: string) =>
@@ -233,6 +229,10 @@ const mockBridgeFeatureFlags: ReturnType<typeof selectBridgeFeatureFlags> = {
   support: true,
   minimumVersion: '1.0.0',
 };
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: (state: unknown) => unknown) => selector({}),
+}));
 
 jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => 'USD'),

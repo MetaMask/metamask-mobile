@@ -8,7 +8,7 @@ import Engine from '../../../../../core/Engine';
 import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 import type { BridgeState } from '../../../../../core/redux/slices/bridge';
 // eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
-import bridge, * as bridgeSlice from '../../../../../core/redux/slices/bridge';
+import * as bridgeSlice from '../../../../../core/redux/slices/bridge';
 // eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
 import * as bridgeSelectors from '../../../../../selectors/bridge';
 import useIsInsufficientBalance from '../useInsufficientBalance';
