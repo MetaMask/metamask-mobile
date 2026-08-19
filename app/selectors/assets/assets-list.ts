@@ -12,7 +12,13 @@ import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
   toEvmCaipChainId,
 } from '@metamask/multichain-network-controller';
-import { CaipAssetType, CaipChainId, Hex, isCaipChainId } from '@metamask/utils';
+import {
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  isCaipChainId,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
@@ -770,21 +776,17 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
           continue;
         }
 
-        // Look up each known Tron special asset id directly rather than
-        // scanning every balance the account holds.
-        for (const [assetId, key] of Object.entries(TRON_SPECIAL_ASSET_KEYS)) {
-          const balanceData = accountBalances[assetId as CaipAssetType];
-          if (!balanceData) {
+        for (const [assetId, balanceData] of Object.entries(accountBalances)) {
+          if (!Object.hasOwn(TRON_SPECIAL_ASSET_KEYS, assetId)) {
             continue;
           }
 
-          // The CAIP-2 chain id is the portion of the CAIP-19 asset id before
-          // the first '/'. Skip assets whose Tron network is not enabled.
-          const chainId = assetId.slice(0, assetId.indexOf('/'));
+          const { chainId } = parseCaipAssetType(assetId as CaipAssetType);
           if (!enabledTronNetworksSet.has(chainId)) {
             continue;
           }
 
+          const key = TRON_SPECIAL_ASSET_KEYS[assetId as KnownCaip19Id];
           const amount = balanceData.amount ?? '0';
           const price = assetsPrice[assetId as CaipAssetType]?.price;
           const fiat =
@@ -808,9 +810,15 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
       /**
        * Compute total staked TRX using BigNumber to avoid floating-point precision errors
        */
-      const totalStakedTrxBN = safeParseBigNumber(
+      const stakedTrxForEnergyBN = safeParseBigNumber(
         specialAssetsMap.stakedTrxForEnergy?.balance,
-      ).plus(safeParseBigNumber(specialAssetsMap.stakedTrxForBandwidth?.balance));
+      );
+      const stakedTrxForBandwidthBN = safeParseBigNumber(
+        specialAssetsMap.stakedTrxForBandwidth?.balance,
+      );
+      const totalStakedTrxBN = stakedTrxForEnergyBN.plus(
+        stakedTrxForBandwidthBN,
+      );
 
       specialAssetsMap.totalStakedTrx = totalStakedTrxBN.toNumber();
 

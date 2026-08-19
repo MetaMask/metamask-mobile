@@ -2074,6 +2074,43 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
       trxInLockPeriod: undefined,
     });
   });
+
+  it('ignores special assets whose Tron network is not enabled', () => {
+    const stateWithDisabledNetworkAssets = {
+      ...mockState(),
+      engine: {
+        ...mockState().engine,
+        backgroundState: {
+          ...mockState().engine.backgroundState,
+          AssetsController: {
+            selectedCurrency: 'USD',
+            assetsBalance: {
+              '2d89e6a0-b4e6-45a8-a707-f10cef143b42': {
+                'tron:728126428/slip44:energy': { amount: '400' },
+                [`${TrxScope.Nile}/slip44:energy`]: { amount: '999' },
+              },
+            },
+            assetsPrice: {},
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              [KnownCaipNamespace.Tron]: {
+                [TrxScope.Mainnet]: true,
+                [TrxScope.Nile]: false,
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectTronSpecialAssetsBySelectedAccountGroup(
+      stateWithDisabledNetworkAssets,
+    );
+
+    expect(result.energy?.assetId).toBe('tron:728126428/slip44:energy');
+    expect(result.energy?.balance).toBe('400');
+  });
 });
 
 describe('selectAssetsByAccountGroupId', () => {
