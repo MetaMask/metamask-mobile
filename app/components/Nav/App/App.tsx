@@ -202,7 +202,9 @@ const NativeStack = createNativeStackNavigator();
 
 const ImportFromSecretRecoveryPhraseWithMessenger = withMessenger(
   ImportFromSecretRecoveryPhrase,
-  { capabilities: IMPORT_FROM_SECRET_RECOVERY_PHRASE_ROUTE_ALLOWED_CAPABILITIES },
+  {
+    capabilities: IMPORT_FROM_SECRET_RECOVERY_PHRASE_ROUTE_ALLOWED_CAPABILITIES,
+  },
 );
 
 const AddDeviceToWalletWithMessenger = withMessenger(AddDeviceToWallet, {

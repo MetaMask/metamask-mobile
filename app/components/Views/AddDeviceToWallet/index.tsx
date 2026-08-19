@@ -81,8 +81,10 @@ const AddDeviceToWallet = () => {
   const isBusy = useSelector(selectQrSyncIsBusy);
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
 
-  const handleBack = useCallback(async () => {
-    await messenger.call('QrSyncController:resetState');
+  const handleBack = useCallback(() => {
+    Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+      () => undefined,
+    );
     navigation.goBack();
   }, [messenger, navigation]);
 
@@ -139,9 +141,11 @@ const AddDeviceToWallet = () => {
     [submitQrPayload],
   );
 
-  const openQRScanner = useCallback(async () => {
+  const openQRScanner = useCallback(() => {
     if (isSessionActive) {
-      await messenger.call('QrSyncController:resetState');
+      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+        () => undefined,
+      );
     }
 
     navigation.navigate(Routes.QR_TAB_SWITCHER, {

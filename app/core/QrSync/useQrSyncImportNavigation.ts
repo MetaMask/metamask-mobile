@@ -118,10 +118,22 @@ export const useQrSyncImportNavigation = ({
       hasHandledImportNavigationRef.current = true;
 
       inFlightImportNavigation = (async () => {
-        // Live controller check — Redux can lag/strip ephemeral secrets.
-        const hasPendingSecretImports = await messenger.call(
-          'QrSyncController:hasPendingSecretImports',
-        );
+        let hasPendingSecretImports: boolean;
+        try {
+          // Live controller check — Redux can lag/strip ephemeral secrets.
+          hasPendingSecretImports = await messenger.call(
+            'QrSyncController:hasPendingSecretImports',
+          );
+        } catch (error: unknown) {
+          hasHandledImportNavigationRef.current = false;
+          reportQrSyncFailure(error, {
+            surface: QrSyncSurfaces.IMPORT,
+            operation: QrSyncOperations.EXISTING_USER_IMPORT_NAVIGATION,
+            source: QrSyncTelemetrySources.USE_QR_SYNC_IMPORT_NAVIGATION,
+            syncFlow: QrSyncSyncFlows.EXISTING_USER,
+          });
+          return;
+        }
 
         if (!hasPendingSecretImports) {
           Logger.log(
@@ -132,9 +144,9 @@ export const useQrSyncImportNavigation = ({
           return;
         }
 
-        await finishExistingUserSyncWithoutMnemonic(navigation, messenger);
-      })()
-        .catch(async (error: unknown) => {
+        try {
+          await finishExistingUserSyncWithoutMnemonic(navigation, messenger);
+        } catch (error: unknown) {
           hasHandledImportNavigationRef.current = false;
           await messenger.call('QrSyncController:resetState');
           reportQrSyncFailure(error, {
@@ -143,10 +155,10 @@ export const useQrSyncImportNavigation = ({
             source: QrSyncTelemetrySources.USE_QR_SYNC_IMPORT_NAVIGATION,
             syncFlow: QrSyncSyncFlows.EXISTING_USER,
           });
-        })
-        .finally(() => {
-          inFlightImportNavigation = null;
-        });
+        }
+      })().finally(() => {
+        inFlightImportNavigation = null;
+      });
       return;
     }
 

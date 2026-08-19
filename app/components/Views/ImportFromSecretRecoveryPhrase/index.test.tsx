@@ -159,7 +159,18 @@ function renderWithProvider(
 }
 
 function renderScreen(...args: Parameters<typeof baseRenderScreen>) {
-  const result = baseRenderScreen(...args);
+  const [component, options, providerValues, ...rest] = args;
+  const routeMessenger =
+    providerValues?.routeMessenger ??
+    createMockRouteMessenger({
+      'QrSyncController:resetState': mockQrSyncResetState,
+    });
+  const result = baseRenderScreen(
+    component,
+    options,
+    { ...providerValues, routeMessenger },
+    ...rest,
+  );
   ReduxService.store = result.store as unknown as ReduxStore;
   return result;
 }

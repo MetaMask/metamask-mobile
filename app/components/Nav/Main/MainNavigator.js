@@ -974,7 +974,10 @@ const NotificationsModeView = (props) => (
 
 const SetPasswordFlow = () => (
   <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen name="ChoosePassword" component={ChoosePasswordWithMessenger} />
+    <NativeStack.Screen
+      name="ChoosePassword"
+      component={ChoosePasswordWithMessenger}
+    />
     <NativeStack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}

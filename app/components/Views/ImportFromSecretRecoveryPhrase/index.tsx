@@ -419,9 +419,11 @@ const ImportFromSecretRecoveryPhrase = () => {
     [currentStep, slideAnim],
   );
 
-  const onBackPress = async () => {
+  const onBackPress = () => {
     if (isQrSyncImport) {
-      await messenger.call('QrSyncController:resetState');
+      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+        () => undefined,
+      );
     }
     if (currentStep === 0 || (isQrSyncImport && currentStep === 1)) {
       navigation.goBack();

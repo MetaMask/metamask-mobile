@@ -139,7 +139,9 @@ describe('useQrSyncImportNavigation', () => {
     mockCompletedOnboarding = false;
     mockShouldNavigateToImport = true;
 
-    renderUseQrSyncImportNavigation(() => useQrSyncImportNavigation({ enabled: true }));
+    renderUseQrSyncImportNavigation(() =>
+      useQrSyncImportNavigation({ enabled: true }),
+    );
 
     await flushAsync();
 
@@ -155,7 +157,9 @@ describe('useQrSyncImportNavigation', () => {
       .mockResolvedValueOnce(['0xold'])
       .mockResolvedValueOnce(['0xold', '0xnew']);
 
-    renderUseQrSyncImportNavigation(() => useQrSyncImportNavigation({ enabled: true }));
+    renderUseQrSyncImportNavigation(() =>
+      useQrSyncImportNavigation({ enabled: true }),
+    );
 
     await waitFor(() => {
       expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
@@ -173,7 +177,9 @@ describe('useQrSyncImportNavigation', () => {
     mockHasPendingSecretImports.mockResolvedValue(true);
     mockGetAccounts.mockResolvedValue(['0xexisting']);
 
-    renderUseQrSyncImportNavigation(() => useQrSyncImportNavigation({ enabled: true }));
+    renderUseQrSyncImportNavigation(() =>
+      useQrSyncImportNavigation({ enabled: true }),
+    );
 
     await waitFor(() => {
       expect(mockShowAlreadySyncedSheet).toHaveBeenCalledTimes(1);
@@ -192,7 +198,9 @@ describe('useQrSyncImportNavigation', () => {
     mockGetAccounts.mockResolvedValue(['0xexisting']);
     mockImportRemainingSecrets.mockRejectedValueOnce(new Error('vault locked'));
 
-    renderUseQrSyncImportNavigation(() => useQrSyncImportNavigation({ enabled: true }));
+    renderUseQrSyncImportNavigation(() =>
+      useQrSyncImportNavigation({ enabled: true }),
+    );
 
     await waitFor(() => {
       expect(mockShowImportFailedSheet).toHaveBeenCalledTimes(1);
@@ -210,7 +218,9 @@ describe('useQrSyncImportNavigation', () => {
       .mockResolvedValueOnce(['0xold'])
       .mockResolvedValueOnce(['0xold', '0xnew']);
 
-    renderUseQrSyncImportNavigation(() => useQrSyncImportNavigation({ enabled: true }));
+    renderUseQrSyncImportNavigation(() =>
+      useQrSyncImportNavigation({ enabled: true }),
+    );
 
     await waitFor(() => {
       expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
@@ -228,7 +238,9 @@ describe('useQrSyncImportNavigation', () => {
     mockShouldNavigateToImport = true;
     mockHasPendingSecretImports.mockResolvedValue(false);
 
-    renderUseQrSyncImportNavigation(() => useQrSyncImportNavigation({ enabled: true }));
+    renderUseQrSyncImportNavigation(() =>
+      useQrSyncImportNavigation({ enabled: true }),
+    );
 
     await waitFor(() => {
       expect(mockResetState).toHaveBeenCalledTimes(1);
@@ -270,7 +282,9 @@ describe('useQrSyncImportNavigation', () => {
     mockShouldNavigateToImport = true;
     mockCompletedOnboarding = true;
 
-    renderUseQrSyncImportNavigation(() => useQrSyncImportNavigation({ enabled: false }));
+    renderUseQrSyncImportNavigation(() =>
+      useQrSyncImportNavigation({ enabled: false }),
+    );
 
     expect(mockNavigateToQrSyncImport).not.toHaveBeenCalled();
     expect(mockImportRemainingSecrets).not.toHaveBeenCalled();
@@ -282,11 +296,32 @@ describe('useQrSyncImportNavigation', () => {
     mockHasPendingSecretImports.mockResolvedValue(true);
     mockGetAccounts.mockRejectedValueOnce(new Error('unexpected'));
 
-    renderUseQrSyncImportNavigation(() => useQrSyncImportNavigation({ enabled: true }));
+    renderUseQrSyncImportNavigation(() =>
+      useQrSyncImportNavigation({ enabled: true }),
+    );
 
     await waitFor(() => {
       expect(reportQrSyncFailure).toHaveBeenCalled();
       expect(mockResetState).toHaveBeenCalled();
     });
+  });
+
+  it('does not reset pending secrets when the pending-import probe fails', async () => {
+    mockCompletedOnboarding = true;
+    mockShouldNavigateToImport = true;
+    mockHasPendingSecretImports.mockRejectedValueOnce(
+      new Error('messenger down'),
+    );
+
+    renderUseQrSyncImportNavigation(() =>
+      useQrSyncImportNavigation({ enabled: true }),
+    );
+
+    await waitFor(() => {
+      expect(reportQrSyncFailure).toHaveBeenCalled();
+    });
+
+    expect(mockResetState).not.toHaveBeenCalled();
+    expect(mockImportRemainingSecrets).not.toHaveBeenCalled();
   });
 });

@@ -207,29 +207,25 @@ const QRTabSwitcher = () => {
   }, []);
 
   const goBack = () => {
-    const leaveScanner = async () => {
-      if (isAddDeviceOrigin && isSessionActive) {
-        await messenger.call('QrSyncController:resetState');
-      }
+    if (isAddDeviceOrigin && isSessionActive) {
+      Promise.resolve(messenger.call('QrSyncController:resetState')).catch(
+        () => undefined,
+      );
+    }
 
-      navigation.goBack();
-      const scanErrorCallback = onScanError;
-      try {
-        if (scanErrorCallback) {
-          scanErrorCallback(USER_CANCELLED);
-        }
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          console.warn(`Error setting onScanError: ${error.message}`);
-        } else {
-          console.warn('An unknown error occurred');
-        }
+    navigation.goBack();
+    const scanErrorCallback = onScanError;
+    try {
+      if (scanErrorCallback) {
+        scanErrorCallback(USER_CANCELLED);
       }
-    };
-
-    leaveScanner().catch(() => {
-      navigation.goBack();
-    });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.warn(`Error setting onScanError: ${error.message}`);
+      } else {
+        console.warn('An unknown error occurred');
+      }
+    }
   };
 
   if (showDeviceAddedLoader) {

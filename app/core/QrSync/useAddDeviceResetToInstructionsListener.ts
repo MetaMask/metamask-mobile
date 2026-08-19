@@ -39,7 +39,11 @@ export const useAddDeviceResetToInstructionsListener = ({
         onReset?.();
 
         const resetAndNavigate = async () => {
-          await messenger.call('QrSyncController:resetState');
+          try {
+            await messenger.call('QrSyncController:resetState');
+          } catch {
+            // Still leave the screen if reset fails.
+          }
 
           if (!shouldGoBack) {
             return;
@@ -53,9 +57,7 @@ export const useAddDeviceResetToInstructionsListener = ({
           onNavigateBack?.();
         };
 
-        resetAndNavigate().catch(() => {
-          // Reset failures are already reported by the controller path.
-        });
+        resetAndNavigate().catch(() => undefined);
       },
     );
 
