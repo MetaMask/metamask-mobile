@@ -1644,6 +1644,11 @@ jobs:
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
+      IOS_E2E_ARTIFACT_PROVIDER: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
     if: ${{ inputs.runner_provider != 'bitrise' && !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
     needs: [validate-e2e-fixtures]
     permissions:
@@ -1655,14 +1660,14 @@ jobs:
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
 
       - name: Download fixture validation results (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        if: ${{ env.IOS_E2E_ARTIFACT_PROVIDER == 'namespace' }}
         continue-on-error: true
         uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
         with:
           name: fixture-validation-results-validate-e2e-fixtures
           path: fixture-results/
       - name: Download fixture validation results (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        if: ${{ env.IOS_E2E_ARTIFACT_PROVIDER != 'namespace' }}
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
