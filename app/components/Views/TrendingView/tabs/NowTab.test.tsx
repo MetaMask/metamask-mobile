@@ -711,7 +711,7 @@ describe('NowTab — Earn section', () => {
     expect(screen.getByTestId('explore-earn-section')).toBeOnTheScreen();
     expect(mockEarnSection).toHaveBeenCalledWith({
       refreshTrigger: 0,
-      tokenDetailsSource: TokenDetailsSource.Trending,
+      tokenDetailsSource: TokenDetailsSource.ExploreEarn,
     });
   });
 
@@ -728,7 +728,7 @@ describe('NowTab — Earn section', () => {
 
     expect(mockEarnSection).toHaveBeenCalledWith({
       refreshTrigger: 1,
-      tokenDetailsSource: TokenDetailsSource.Trending,
+      tokenDetailsSource: TokenDetailsSource.ExploreEarn,
     });
   });
 
