@@ -313,16 +313,71 @@ jobs:
       donor_run_id: ${{ needs.resolve-rc-reuse.outputs.run-id }}
     secrets: inherit
 
+  # A repack publishes `ios-ipa-main-rc` / `android-apk-main-rc` — the names build.yml also
+  # uses — before its job is over, and actions/upload-artifact@v4 rejects a duplicate name
+  # within a run. So a repack that fails after that upload would leave the native fallback
+  # below unable to publish its own build. Clearing the failed platform's artifact first is
+  # what keeps the fallback able to finish. The other platform is left alone: its artifact
+  # is either still in use or already good.
+  purge-partial-repack-artifacts:
+    name: Purge artifacts from failed repack
+    runs-on: ubuntu-latest
+    needs:
+      - repack-ios-rc-build
+      - repack-android-rc-build
+    if: >-
+      !cancelled() &&
+      (
+        needs.repack-ios-rc-build.result == 'failure' ||
+        needs.repack-android-rc-build.result == 'failure'
+      )
+    permissions:
+      actions: write
+    steps:
+      - name: Delete artifacts left behind by the failed repack
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IOS_RESULT: ${{ needs.repack-ios-rc-build.result }}
+          ANDROID_RESULT: ${{ needs.repack-android-rc-build.result }}
+        run: |
+          set -euo pipefail
+
+          NAMES=()
+          if [[ "$IOS_RESULT" == "failure" ]]; then
+            NAMES+=("ios-ipa-main-rc")
+          fi
+          if [[ "$ANDROID_RESULT" == "failure" ]]; then
+            NAMES+=("android-apk-main-rc")
+          fi
+
+          for NAME in "${NAMES[@]}"; do
+            IDS=$(gh api --paginate \
+              "/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" \
+              --jq ".artifacts[] | select(.name == \"${NAME}\") | .id")
+
+            if [[ -z "$IDS" ]]; then
+              echo "No '$NAME' in this run — the repack failed before publishing it."
+              continue
+            fi
+
+            for ID in $IDS; do
+              gh api -X DELETE "/repos/${GITHUB_REPOSITORY}/actions/artifacts/${ID}"
+              echo "Deleted '$NAME' ($ID) so the native fallback can publish its own."
+            done
+          done
+
   # Default path, unchanged.
   #
   # `!cancelled()` plus explicit result checks reproduce the implicit `needs` semantics this
   # job had before the fast path existed: `resolve-rc-reuse` and `resolve-ota-context` are
   # both allowed to fail without blocking a build, so their failures must not skip this job.
   #
-  # It also depends on the repack job so it can pick up the pieces: a repack that errors out
-  # leaves this to produce the RC build natively, at the cost of starting late. `ota_bump` is
-  # empty whenever the repack path is off, so that clause only bites on the fast path (the
-  # native path resolves the OTA bump itself, inside auto-rc-ota-build-core.yml).
+  # It also depends on the repack job so it can pick up the pieces. The test is `!= 'success'`
+  # rather than `== 'failure'` because a repack can also never start — `resolve-ota-context`
+  # failing leaves it `skipped`, and treating that as "no fallback needed" would end the run
+  # with no RC build at all. `ota_bump` is empty whenever the repack path is off, so that
+  # clause only bites on the fast path (the native path resolves the OTA bump itself, inside
+  # auto-rc-ota-build-core.yml).
   trigger-ios-rc-build:
     name: Trigger iOS RC Build
     uses: ./.github/workflows/auto-rc-ota-build-core.yml
@@ -332,6 +387,7 @@ jobs:
       - resolve-rc-reuse
       - resolve-ota-context
       - repack-ios-rc-build
+      - purge-partial-repack-artifacts
     if: >-
       !cancelled() &&
       needs.validate-and-find-pr.result == 'success' &&
@@ -341,7 +397,7 @@ jobs:
       needs.resolve-ota-context.outputs.ota_bump != 'true' &&
       (
         needs.resolve-rc-reuse.outputs.found != 'true' ||
-        needs.repack-ios-rc-build.result == 'failure'
+        needs.repack-ios-rc-build.result != 'success'
       )
     with:
       platform: ios
@@ -361,6 +417,7 @@ jobs:
       - resolve-rc-reuse
       - resolve-ota-context
       - repack-android-rc-build
+      - purge-partial-repack-artifacts
     if: >-
       !cancelled() &&
       needs.validate-and-find-pr.result == 'success' &&
@@ -370,7 +427,7 @@ jobs:
       needs.resolve-ota-context.outputs.ota_bump != 'true' &&
       (
         needs.resolve-rc-reuse.outputs.found != 'true' ||
-        needs.repack-android-rc-build.result == 'failure'
+        needs.repack-android-rc-build.result != 'success'
       )
     with:
       platform: android

@@ -416,26 +416,35 @@ jobs:
             --dist "$SENTRY_DIST" \
             "$UPLOAD_DIR"
 
-      - name: Upload repacked artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.ARTIFACT_NAME }}
-          path: ${{ steps.donor.outputs.output }}
-          if-no-files-found: error
-
+      # Suffixed, unlike the IPA/APK below. actions/upload-artifact@v4 rejects a duplicate
+      # name within a run, and a repack that fails here falls back to a native build in the
+      # same run — which uploads build.yml's own copies of these two. The suffix keeps them
+      # from colliding. `build-env-main-rc-*` still matches the pattern post-rc-build-comment
+      # downloads, and build-announce reads the platform off the directory name.
       - name: Upload sourcemaps
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.platform }}-sourcemaps-${{ inputs.build_name }}
+          name: ${{ inputs.platform }}-sourcemaps-${{ inputs.build_name }}-repack
           path: sourcemaps/${{ inputs.platform }}
           if-no-files-found: warn
 
       - name: Upload build environment JSON
         uses: actions/upload-artifact@v4
         with:
-          name: build-env-${{ inputs.build_name }}-${{ inputs.platform }}
+          name: build-env-${{ inputs.build_name }}-${{ inputs.platform }}-repack
           path: build-env.json
           if-no-files-found: warn
+
+      # Cannot be suffixed: upload-to-testflight.yml and the next run's donor lookup both
+      # find it by this exact name. Published last so a failure earlier in the job leaves
+      # nothing for the native fallback to collide with; if it does get published and the
+      # job fails later, purge-partial-repack-artifacts in the caller clears it.
+      - name: Upload repacked artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ steps.donor.outputs.output }}
+          if-no-files-found: error
 
       # Reported from the inputs rather than the checked-out tree: set-build-version.sh is
       # never run here, so the tree still holds the previous build number while the shipped
