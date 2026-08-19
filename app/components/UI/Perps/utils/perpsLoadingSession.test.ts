@@ -318,6 +318,20 @@ describe('perpsLoadingSession', () => {
       expect(valuesReadyRecords()).toHaveLength(2);
     });
 
+    it('preserves initial values when the Homepage prepares the pending session', () => {
+      recordPerpsLoadingSessionValuesReady('markets', 'provider', 4);
+
+      preparePerpsLoadingSession();
+      startPerpsLoadingSession();
+
+      expect(setMeasurement).toHaveBeenCalledWith(
+        { name: TraceName.PerpsLoadingSession, id: 'session-id-1' },
+        'markets_ready_ms',
+        0,
+        'millisecond',
+      );
+    });
+
     it('does not carry post-completion live ticks into the next generation', () => {
       startPerpsLoadingSession();
       finishPerpsLoadingSession({

@@ -55,7 +55,10 @@ import {
   getTerminalGlobalSnapshotUrl,
   resolveTerminalApiUrl,
 } from '../constants/terminalApi';
-import { recordPerpsControllerConstructedAt } from '../utils/perpsLoadingSession';
+import {
+  getActivePerpsLoadingSessionTraceData,
+  recordPerpsControllerConstructedAt,
+} from '../utils/perpsLoadingSession';
 
 /**
  * Resolves the Terminal API base URL based on build environment.
@@ -89,6 +92,19 @@ function getPreloadTraceName(measurementName: string): TraceName | null {
     return TraceName.PerpsUserDataPreload;
   }
   return null;
+}
+
+function getPreloadTraceData(
+  name: PerpsTraceName,
+): { perps_session_id: string } | undefined {
+  const traceName = toTraceName(name);
+  if (
+    traceName !== TraceName.PerpsMarketDataPreload &&
+    traceName !== TraceName.PerpsUserDataPreload
+  ) {
+    return undefined;
+  }
+  return getActivePerpsLoadingSessionTraceData();
 }
 
 /**
@@ -286,12 +302,15 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
         tags?: Record<string, PerpsTraceValue>;
         data?: Record<string, PerpsTraceValue>;
       }): void {
+        const loadingSessionData = getPreloadTraceData(params.name);
         trace({
           name: toTraceName(params.name),
           id: params.id,
           op: params.op,
           tags: params.tags,
-          data: params.data,
+          data: loadingSessionData
+            ? { ...params.data, ...loadingSessionData }
+            : params.data,
         });
       },
       endTrace(params: {

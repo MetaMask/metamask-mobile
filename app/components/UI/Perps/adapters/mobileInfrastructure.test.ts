@@ -4,11 +4,19 @@ import { analytics } from '../../../../util/analytics/analytics';
 import Logger from '../../../../util/Logger';
 import {
   PerpsMeasurementName,
+  PerpsTraceNames,
   type PerpsAnalyticsEvent,
 } from '@metamask/perps-controller';
 import { setMeasurement as setSentryMeasurement } from '@sentry/react-native';
-import { setTraceMeasurement, TraceName } from '../../../../util/trace';
-import { recordPerpsControllerConstructedAt } from '../utils/perpsLoadingSession';
+import {
+  setTraceMeasurement,
+  trace as startTrace,
+  TraceName,
+} from '../../../../util/trace';
+import {
+  getActivePerpsLoadingSessionTraceData,
+  recordPerpsControllerConstructedAt,
+} from '../utils/perpsLoadingSession';
 import {
   createMobileInfrastructure,
   createMobileClientConfig,
@@ -72,6 +80,7 @@ jest.mock('react-native-performance', () => ({
 }));
 
 jest.mock('../utils/perpsLoadingSession', () => ({
+  getActivePerpsLoadingSessionTraceData: jest.fn(),
   recordPerpsControllerConstructedAt: jest.fn(),
 }));
 
@@ -168,6 +177,37 @@ describe('createMobileInfrastructure', () => {
       );
       expect(setSentryMeasurement).not.toHaveBeenCalled();
     });
+
+    it.each([
+      [PerpsTraceNames.MarketDataPreload, TraceName.PerpsMarketDataPreload],
+      [PerpsTraceNames.UserDataPreload, TraceName.PerpsUserDataPreload],
+    ])(
+      'correlates the %s trace with the active loading session',
+      (name, traceName) => {
+        jest.mocked(getActivePerpsLoadingSessionTraceData).mockReturnValue({
+          perps_session_id: 'session-id',
+        });
+        const infra = createMobileInfrastructure();
+
+        infra.tracer.trace({
+          name,
+          id: 'preload-id',
+          op: 'perps.preload',
+          data: { provider: 'hyperliquid' },
+        });
+
+        expect(startTrace).toHaveBeenCalledWith({
+          name: traceName,
+          id: 'preload-id',
+          op: 'perps.preload',
+          tags: undefined,
+          data: {
+            provider: 'hyperliquid',
+            perps_session_id: 'session-id',
+          },
+        });
+      },
+    );
 
     it('preserves ambient measurements without an explicit trace id', () => {
       const infra = createMobileInfrastructure();

@@ -119,8 +119,10 @@ export function preparePerpsLoadingSession(): void {
   if (activeSessionId) {
     return;
   }
-  preSessionEvents = [];
-  preSessionFinishData = null;
+  if (!preSessionBufferArmed) {
+    preSessionEvents = [];
+    preSessionFinishData = null;
+  }
   preSessionBufferArmed = true;
 }
 
