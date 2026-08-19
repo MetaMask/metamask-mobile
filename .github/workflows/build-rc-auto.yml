@@ -36,6 +36,23 @@
 #   here is bundled by `expo export:embed`, not by the bundler scripts/build.sh uses, and
 #   RC builds reach external testers.
 #
+# ⚠️  TEST BRANCH — DO NOT MERGE  ⚠️
+#
+#   This commit exists only on `release/test-repack`, a throwaway branch used to exercise the
+#   repack fast path end to end without touching a real release cycle. Three deviations from
+#   the reviewed workflow, all keyed off the branch name and all inert anywhere else:
+#
+#     1. The branch carries no semver, so `semver` comes from package.json instead.
+#     2. iOS builds pass `distribute_external: false`, keeping test builds off external
+#        TestFlight testers. They still upload, which is the point — the open question is
+#        whether App Store Connect accepts a repacked IPA at all (ITMS-90426 / SwiftSupport).
+#     3. The Slack RC notification is skipped, so test builds do not page the release channel.
+#
+#   The branch is named `release/test-repack` rather than `test-release` because the `build-rc`
+#   environment only permits deployments from `main`, `namespace-runner-trial4` and `release/*`.
+#   Its non-numeric suffix keeps it clear of the automations that key off `release/X.Y.Z`
+#   (merge-previous-release-branches, update-release-changelog, create-bug-report).
+#
 ##############################################################################################
 name: Auto RC builds
 
@@ -81,8 +98,14 @@ jobs:
           echo "Checking branch: $BRANCH_NAME"
           echo "branch-name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
+          # TEST BRANCH: no semver in the name, so take it from package.json — the same
+          # source the build itself and the repack version assertions already use.
+          if [[ "$BRANCH_NAME" == "release/test-repack" ]]; then
+            VERSION=$(jq -r .version package.json)
+            echo "Test branch detected: $BRANCH_NAME (version from package.json: $VERSION)"
+            echo "semver=$VERSION" >> "$GITHUB_OUTPUT"
           # Validate branch matches release/x.y.z or release/x.y.z-ota (OTA hotfix) format
-          if [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+(-ota)?$ ]]; then
+          elif [[ "$BRANCH_NAME" =~ ^release/[0-9]+\.[0-9]+\.[0-9]+(-ota)?$ ]]; then
             VERSION="${BRANCH_NAME#release/}"
             # Strip `-ota` suffix: it is a branch-name convention only. Downstream consumers
             # (build-announce display "RC X.Y.Z", test-plan artifact name) expect strict X.Y.Z.
@@ -287,7 +310,8 @@ jobs:
       source_branch: ${{ github.sha }}
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
       donor_run_id: ${{ needs.resolve-rc-reuse.outputs.run-id }}
-      distribute_external: true
+      # TEST BRANCH: upload to TestFlight but keep it away from external testers.
+      distribute_external: ${{ github.ref_name != 'release/test-repack' }}
     secrets: inherit
 
   repack-android-rc-build:
@@ -405,7 +429,8 @@ jobs:
       # cherry-picks land on the release branch while the two jobs are in flight.
       source_branch: ${{ github.sha }}
       build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
-      distribute_external: true
+      # TEST BRANCH: upload to TestFlight but keep it away from external testers.
+      distribute_external: ${{ github.ref_name != 'release/test-repack' }}
     secrets: inherit
 
   trigger-android-rc-build:
@@ -510,8 +535,10 @@ jobs:
       - trigger-android-rc-build
       - repack-ios-rc-build
       - repack-android-rc-build
+    # TEST BRANCH: no Slack for test builds — the release channel should not see them.
     if: >-
       always() &&
+      github.ref_name != 'release/test-repack' &&
       (needs.trigger-ios-rc-build.result == 'success' || needs.repack-ios-rc-build.result == 'success') &&
       (needs.trigger-android-rc-build.result == 'success' || needs.repack-android-rc-build.result == 'success')
     uses: ./.github/workflows/slack-rc-notification.yml
