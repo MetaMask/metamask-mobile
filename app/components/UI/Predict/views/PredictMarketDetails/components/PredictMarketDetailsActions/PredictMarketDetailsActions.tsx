@@ -59,7 +59,7 @@ const formatPayoutEstimate = (
 
 export interface PredictMarketDetailsActionsProps {
   isClaimablePositionsLoading: boolean;
-  hasPositivePnl: boolean;
+  hasClaimableWinnings: boolean;
   marketStatus: PredictMarketStatus | undefined;
   singleOutcomeMarket: boolean;
   isMarketLoading: boolean;
@@ -74,7 +74,7 @@ export interface PredictMarketDetailsActionsProps {
 const PredictMarketDetailsActions = memo(
   ({
     isClaimablePositionsLoading,
-    hasPositivePnl,
+    hasClaimableWinnings,
     marketStatus,
     singleOutcomeMarket,
     isMarketLoading,
@@ -124,7 +124,7 @@ const PredictMarketDetailsActions = memo(
     };
 
     const content = (() => {
-      if (!isClaimablePositionsLoading && hasPositivePnl) {
+      if (!isClaimablePositionsLoading && hasClaimableWinnings) {
         return (
           <PredictClaimButton
             onPress={onClaimPress}

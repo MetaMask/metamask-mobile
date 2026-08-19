@@ -58,6 +58,7 @@ import { useOpenOutcomes } from './hooks/useOpenOutcomes';
 import { useSelector } from 'react-redux';
 import { usePredictPreviewSheet } from '../../contexts';
 import PredictOffline from '../../components/PredictOffline';
+import { isClaimableWinningPosition } from '../../utils/positions';
 
 // Use theme tokens instead of hex values for multi-series charts
 
@@ -452,10 +453,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     }
   }, [market, tabsReady, activeTab, tabs, trackMarketDetailsOpened]);
 
-  // see if there are any positions with positive percentPnl
-  const hasPositivePnl = claimablePositions.some(
-    (position) => position.percentPnl > 0,
+  const winningClaimablePositions = claimablePositions.filter(
+    isClaimableWinningPosition,
   );
+  const hasClaimableWinnings = winningClaimablePositions.length > 0;
 
   const isMarketUnavailable = isMarketUnresolved;
   const resolvedMarketError = marketError ?? currentSeriesMarketError;
@@ -491,7 +492,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         onBetPress={handleBuyPress}
         onClaimPress={handleClaimPress}
         isClaimablePositionsLoading={isClaimablePositionsLoading}
-        hasPositivePnl={hasPositivePnl}
+        hasClaimableWinnings={hasClaimableWinnings}
         isMarketLoading={isResolvedMarketLoading}
         isClaimPending={isClaimPending}
       />
@@ -506,7 +507,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         refreshing={isRefreshing}
         onBetPress={handleBuyPress}
         onClaimPress={handleClaimPress}
-        claimableAmount={claimablePositions.reduce(
+        claimableAmount={winningClaimablePositions.reduce(
           (sum, p) => sum + (p.currentValue ?? 0),
           0,
         )}
@@ -627,7 +628,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       {!isMarketUnavailable && (
         <PredictMarketDetailsActions
           isClaimablePositionsLoading={isClaimablePositionsLoading}
-          hasPositivePnl={hasPositivePnl}
+          hasClaimableWinnings={hasClaimableWinnings}
           marketStatus={market?.status as PredictMarketStatus | undefined}
           singleOutcomeMarket={singleOutcomeMarket}
           isMarketLoading={isResolvedMarketLoading}

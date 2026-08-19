@@ -208,13 +208,13 @@ jest.mock(
       __esModule: true,
       default: jest.fn(
         ({
-          hasPositivePnl,
+          hasClaimableWinnings,
           onClaimPress,
         }: {
-          hasPositivePnl: boolean;
+          hasClaimableWinnings: boolean;
           onClaimPress: () => void;
         }) =>
-          hasPositivePnl
+          hasClaimableWinnings
             ? React.createElement(TouchableOpacity, {
                 testID: 'predict-market-details-claim-winnings-button',
                 onPress: onClaimPress,
@@ -610,7 +610,7 @@ describe('PredictCryptoUpDownDetails', () => {
         market={market}
         onBack={mockOnBack}
         onClaimPress={onClaimPress}
-        hasPositivePnl
+        hasClaimableWinnings
       />,
     );
 
