@@ -384,13 +384,13 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('shows binding conflict toast and does not navigate when opt-in hits conflict', async () => {
+  it('shows binding conflict toast and closes the sheet when opt-in hits conflict', async () => {
     mockEnsureOptedIn.mockResolvedValue({
       success: false,
       reason: 'binding-conflict',
     });
 
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <MoneyAccountSweepstakesCampaignCTA
         campaign={buildCampaign()}
         seriesStatus="active"
@@ -402,8 +402,10 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
     await act(async () => {
       await latestOptInSheetProps?.onOptIn?.();
     });
-    fireEvent.press(getByTestId('campaign-opt-in-sheet-close'));
 
+    await waitFor(() => {
+      expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
+    });
     expect(mockEntriesClosed).toHaveBeenCalledWith(
       'Money Account already linked',
       'Money Account already binds to another Rewards profile.',

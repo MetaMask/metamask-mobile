@@ -39,7 +39,8 @@ interface CampaignOptInSheetProps {
   onLegalLinkPress?: (url: string) => void;
   /**
    * Optional custom opt-in handler. When provided, called instead of
-   * `optInToCampaign(campaign.id)`. Treats `true` or `void` as success.
+   * `optInToCampaign(campaign.id)`. Treats `true` or `void` as success and
+   * `false` / thrown errors as failure (error banner, sheet stays open).
    */
   onOptIn?: () => Promise<boolean | void>;
 }
@@ -62,18 +63,33 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   const { optInToCampaign, isOptingIn, optInError } = useOptInToCampaign();
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const [isCustomOptingIn, setIsCustomOptingIn] = useState(false);
+  const [customOptInError, setCustomOptInError] = useState<string | undefined>(
+    undefined,
+  );
 
   const isLoading = onOptIn ? isCustomOptingIn : isOptingIn;
+  const displayedOptInError = onOptIn ? customOptInError : optInError;
 
   const handleOptIn = useCallback(async () => {
     try {
       if (onOptIn) {
         setIsCustomOptingIn(true);
+        setCustomOptInError(undefined);
         try {
           const result = await onOptIn();
           if (result === false) {
+            setCustomOptInError(
+              strings('rewards.campaign_details.opt_in_error'),
+            );
             return;
           }
+        } catch (error) {
+          setCustomOptInError(
+            error instanceof Error
+              ? error.message
+              : strings('rewards.campaign_details.opt_in_error'),
+          );
+          return;
         } finally {
           setIsCustomOptingIn(false);
         }
@@ -96,7 +112,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
       );
       onClose?.();
     } catch {
-      // Error is handled by the hook; sheet stays open so user can retry
+      // Default path: error is handled by useOptInToCampaign; sheet stays open.
       setIsCustomOptingIn(false);
     }
   }, [
@@ -154,11 +170,11 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
           </Box>
         )}
 
-        {optInError && (
+        {displayedOptInError && (
           <Box twClassName="mb-4">
             <RewardsErrorBanner
               title={strings('rewards.campaign_details.opt_in_error')}
-              description={optInError}
+              description={displayedOptInError}
               testID="campaign-opt-in-error-banner"
             />
           </Box>

@@ -110,6 +110,9 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
     const result = await ensureOptedIn();
     if (result.reason === 'binding-conflict') {
       showBindingConflictToast();
+      // Close the sheet so the toast is the only failure signal (avoids a
+      // generic error banner on top of the conflict-specific toast).
+      setIsOptInSheetOpen(false);
       return false;
     }
     return result.success;
