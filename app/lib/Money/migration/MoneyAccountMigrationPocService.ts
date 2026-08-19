@@ -87,7 +87,7 @@ const buildExitCalls = (
   },
 ): ExitCall[] => {
   const calls: ExitCall[] = [];
-  if (inventory.vmUsd > 0n) {
+  if (BigInt(inventory.vmUsd) > 0n) {
     if (!boringVault) {
       throw new Error('missing-vault-config');
     }
@@ -95,22 +95,22 @@ const buildExitCalls = (
       to: boringVault as Hex,
       data: ERC20.encodeFunctionData('transfer', [
         inventory.destination,
-        inventory.vmUsd.toString(),
+        inventory.vmUsd,
       ]) as Hex,
       value: ZERO_VALUE,
     });
   }
-  if (inventory.musd > 0n) {
+  if (BigInt(inventory.musd) > 0n) {
     calls.push({
       to: musdAddress,
       data: ERC20.encodeFunctionData('transfer', [
         inventory.destination,
-        inventory.musd.toString(),
+        inventory.musd,
       ]) as Hex,
       value: ZERO_VALUE,
     });
   }
-  if (inventory.vaultAllowance > 0n) {
+  if (BigInt(inventory.vaultAllowance) > 0n) {
     if (!boringVault) {
       throw new Error('missing-vault-config');
     }
@@ -120,7 +120,7 @@ const buildExitCalls = (
       value: ZERO_VALUE,
     });
   }
-  if (inventory.cardAllowance > 0n && cardSpender) {
+  if (BigInt(inventory.cardAllowance) > 0n && cardSpender) {
     calls.push({
       to: musdAddress,
       data: ERC20.encodeFunctionData('approve', [cardSpender, '0']) as Hex,
@@ -286,11 +286,11 @@ export class MoneyAccountMigrationPocService {
       source,
       destination,
       chainId,
-      vmUsd: BigInt(vmUsdBalance.balance),
-      musd: BigInt(musdBalance.balance),
-      nativeWei: BigInt(nativeBalance.toString()),
-      vaultAllowance: BigInt(vaultAllowanceRaw.toString()),
-      cardAllowance: BigInt(cardAllowanceRaw.toString()),
+      vmUsd: BigInt(vmUsdBalance.balance).toString(),
+      musd: BigInt(musdBalance.balance).toString(),
+      nativeWei: BigInt(nativeBalance.toString()).toString(),
+      vaultAllowance: BigInt(vaultAllowanceRaw.toString()).toString(),
+      cardAllowance: BigInt(cardAllowanceRaw.toString()).toString(),
       chompIntentHashes: intents
         .filter((intent) => intent.status === 'active')
         .map((intent) => intent.delegationHash),
@@ -372,7 +372,7 @@ export class MoneyAccountMigrationPocService {
       )?.[inventory.chainId],
     );
     let cardSpender: string | undefined;
-    if (inventory.cardAllowance > 0n) {
+    if (BigInt(inventory.cardAllowance) > 0n) {
       const home = await Engine.context.CardController.getCardHomeData(
         inventory.source,
       );
@@ -384,7 +384,7 @@ export class MoneyAccountMigrationPocService {
       musdAddress:
         MUSD_TOKEN_ADDRESS_BY_CHAIN[inventory.chainId] ?? MUSD_TOKEN_ADDRESS,
       cardSpender,
-      nativeSweepWei: sponsored ? inventory.nativeWei : 0n,
+      nativeSweepWei: sponsored ? BigInt(inventory.nativeWei) : 0n,
     });
     if (calls.length === 0) {
       return null;

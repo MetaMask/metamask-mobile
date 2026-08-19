@@ -73,18 +73,20 @@ const metadata: StateMetadata<MoneyAccountMigrationControllerState> = {
 export const defaultMoneyAccountMigrationControllerState: MoneyAccountMigrationControllerState =
   EMPTY_SNAPSHOT;
 
+const isZeroWei = (amount: string) => BigInt(amount) === 0n;
+
 export function fundsMoved(
   plan: MigrationInventory,
   live: MigrationInventory,
 ): boolean {
-  if (plan.vmUsd === 0n && plan.musd === 0n) {
+  if (isZeroWei(plan.vmUsd) && isZeroWei(plan.musd)) {
     // Empty plan cannot prove a batch ran — allowance=0 is also the
     // pre-migrate state, and treating it as moved would skip teardown.
     return false;
   }
   return (
-    (plan.vmUsd === 0n || live.vmUsd === 0n) &&
-    (plan.musd === 0n || live.musd === 0n)
+    (isZeroWei(plan.vmUsd) || isZeroWei(live.vmUsd)) &&
+    (isZeroWei(plan.musd) || isZeroWei(live.musd))
   );
 }
 
@@ -222,11 +224,11 @@ export class MoneyAccountMigrationController extends BaseController<
       source,
       destination,
       chainId: '0x8f',
-      vmUsd: 0n,
-      musd: 0n,
-      nativeWei: 0n,
-      vaultAllowance: 0n,
-      cardAllowance: 0n,
+      vmUsd: '0',
+      musd: '0',
+      nativeWei: '0',
+      vaultAllowance: '0',
+      cardAllowance: '0',
       chompIntentHashes: [],
       chompDelegationHashes: [],
       cardLinked: false,

@@ -124,11 +124,11 @@ const plan = (
   source: SOURCE,
   destination: DEST,
   chainId: '0x8f',
-  vmUsd: 0n,
-  musd: 0n,
-  nativeWei: 0n,
-  vaultAllowance: 0n,
-  cardAllowance: 0n,
+  vmUsd: '0',
+  musd: '0',
+  nativeWei: '0',
+  vaultAllowance: '0',
+  cardAllowance: '0',
   chompIntentHashes: [],
   chompDelegationHashes: [],
   cardLinked: false,
@@ -353,8 +353,8 @@ describe('MoneyAccountMigrationPocService', () => {
 
     const inventory = await service.collectInventory(SOURCE, DEST);
 
-    expect(inventory.vmUsd).toBe(5n);
-    expect(inventory.musd).toBe(12n);
+    expect(inventory.vmUsd).toBe('5');
+    expect(inventory.musd).toBe('12');
     expect(inventory.chompIntentHashes).toEqual([INTENT_HASH]);
     expect(inventory.chompDelegationHashes).toEqual([DELEGATION_HASH]);
     expect(inventory.cardLinked).toBe(false);
@@ -505,9 +505,9 @@ describe('MoneyAccountMigrationPocService', () => {
 
     const inventory = await service.collectInventory(SOURCE, DEST);
 
-    expect(inventory.nativeWei).toBe(10n ** 16n);
-    expect(inventory.vaultAllowance).toBe(7n);
-    expect(inventory.cardAllowance).toBe(9n);
+    expect(inventory.nativeWei).toBe('10000000000000000');
+    expect(inventory.vaultAllowance).toBe('7');
+    expect(inventory.cardAllowance).toBe('9');
     expect(mockCall).toHaveBeenCalledWith(
       'NetworkController:findNetworkClientIdByChainId',
       '0x8f',
@@ -562,8 +562,8 @@ describe('MoneyAccountMigrationPocService', () => {
 
     const inventory = await service.collectInventory(SOURCE, DEST);
 
-    expect(inventory.vaultAllowance).toBe(7n);
-    expect(inventory.cardAllowance).toBe(0n);
+    expect(inventory.vaultAllowance).toBe('7');
+    expect(inventory.cardAllowance).toBe('0');
     expect(mockAllowance).toHaveBeenCalledTimes(1);
     expect(mockAllowance).toHaveBeenCalledWith(
       SOURCE,
@@ -680,11 +680,11 @@ describe('MoneyAccountMigrationPocService', () => {
 
     const batchId = await service.submitExitBatch(
       plan({
-        vmUsd: 5n,
-        musd: 12n,
-        nativeWei: 10n ** 16n,
-        vaultAllowance: 7n,
-        cardAllowance: 9n,
+        vmUsd: '5',
+        musd: '12',
+        nativeWei: '10000000000000000',
+        vaultAllowance: '7',
+        cardAllowance: '9',
       }),
     );
 
@@ -769,7 +769,7 @@ describe('MoneyAccountMigrationPocService', () => {
     const service = new MoneyAccountMigrationPocService();
 
     await service.submitExitBatch(
-      plan({ musd: 10n, nativeWei: 5n }),
+      plan({ musd: '10', nativeWei: '5' }),
     );
 
     const request = mockCall.mock.calls.find(

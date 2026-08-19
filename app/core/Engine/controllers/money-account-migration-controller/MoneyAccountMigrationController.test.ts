@@ -26,11 +26,11 @@ const plan = (
   source: SOURCE,
   destination: DEST,
   chainId: '0x8f',
-  vmUsd: 0n,
-  musd: 0n,
-  nativeWei: 0n,
-  vaultAllowance: 0n,
-  cardAllowance: 0n,
+  vmUsd: '0',
+  musd: '0',
+  nativeWei: '0',
+  vaultAllowance: '0',
+  cardAllowance: '0',
   chompIntentHashes: [],
   chompDelegationHashes: [],
   cardLinked: false,
@@ -58,12 +58,12 @@ function createController(
 describe('fundsMoved', () => {
   it('returns false when planned vmUSD is still on source', () => {
     expect(
-      fundsMoved(plan({ vmUsd: 10n }), plan({ vmUsd: 10n })),
+      fundsMoved(plan({ vmUsd: '10' }), plan({ vmUsd: '10' })),
     ).toBe(false);
   });
 
   it('returns true when planned vmUSD is gone', () => {
-    expect(fundsMoved(plan({ vmUsd: 10n }), plan({ vmUsd: 0n }))).toBe(
+    expect(fundsMoved(plan({ vmUsd: '10' }), plan({ vmUsd: '0' }))).toBe(
       true,
     );
   });
@@ -78,8 +78,8 @@ describe('reconcile', () => {
     expect(
       reconcile({
         status: 'TORN_DOWN',
-        plan: plan({ vmUsd: 10n }),
-        live: plan({ vmUsd: 0n }),
+        plan: plan({ vmUsd: '10' }),
+        live: plan({ vmUsd: '0' }),
       }),
     ).toBe('BATCH_EXECUTED');
   });
@@ -88,10 +88,37 @@ describe('reconcile', () => {
     expect(
       reconcile({
         status: 'IDLE',
-        plan: plan({ vmUsd: 10n }),
-        live: plan({ vmUsd: 0n }),
+        plan: plan({ vmUsd: '10' }),
+        live: plan({ vmUsd: '0' }),
       }),
     ).toBe('IDLE');
+  });
+});
+
+describe('inventory persistence', () => {
+  it('serializes a snapshot with inventory through JSON.stringify', () => {
+    const controller = createController({
+      ...EMPTY_SNAPSHOT,
+      status: 'INVENTORIED',
+      inventory: plan({
+        vmUsd: '10',
+        musd: '12',
+        nativeWei: '1',
+        vaultAllowance: '2',
+        cardAllowance: '3',
+      }),
+      destination: DEST,
+    });
+
+    expect(() => JSON.stringify(controller.state)).not.toThrow();
+
+    const restored = JSON.parse(
+      JSON.stringify(controller.state),
+    ) as MoneyAccountMigrationControllerState;
+
+    expect(createController(restored).snapshot.inventory).toEqual(
+      controller.snapshot.inventory,
+    );
   });
 });
 
@@ -214,14 +241,14 @@ describe('MoneyAccountMigrationController', () => {
     const controller = createController({
       ...EMPTY_SNAPSHOT,
       status: 'TORN_DOWN',
-      inventory: plan({ vmUsd: 10n }),
+      inventory: plan({ vmUsd: '10' }),
       destination: DEST,
       exitBatchId: BATCH_ID,
       tornDownAt: Date.now(),
     });
     jest
       .spyOn(controller, 'collectInventory')
-      .mockResolvedValue(plan({ vmUsd: 10n }));
+      .mockResolvedValue(plan({ vmUsd: '10' }));
     const submit = jest.spyOn(controller, 'submitExitBatch');
     const awaitBatch = jest
       .spyOn(controller, 'awaitExitBatch')
@@ -238,13 +265,13 @@ describe('MoneyAccountMigrationController', () => {
     const controller = createController({
       ...EMPTY_SNAPSHOT,
       status: 'TORN_DOWN',
-      inventory: plan({ vmUsd: 10n }),
+      inventory: plan({ vmUsd: '10' }),
       destination: DEST,
       tornDownAt: Date.now(),
     });
     jest
       .spyOn(controller, 'collectInventory')
-      .mockResolvedValue(plan({ vmUsd: 0n }));
+      .mockResolvedValue(plan({ vmUsd: '0' }));
     const execute = jest.spyOn(controller, 'executeExitBatch');
 
     await controller.resume();

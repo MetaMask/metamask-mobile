@@ -57,15 +57,16 @@ export type MigrationBlocker = {
   kind: MigrationBlockerKind;
 };
 
+/** Amounts are decimal wei strings so Engine persistence (JSON.stringify) can save the snapshot. */
 export type MigrationInventory = {
   source: Hex;
   destination: Hex;
   chainId: Hex;
-  vmUsd: bigint;
-  musd: bigint;
-  nativeWei: bigint;
-  vaultAllowance: bigint;
-  cardAllowance: bigint;
+  vmUsd: string;
+  musd: string;
+  nativeWei: string;
+  vaultAllowance: string;
+  cardAllowance: string;
   chompIntentHashes: Hex[];
   chompDelegationHashes: Hex[];
   cardLinked: boolean;
