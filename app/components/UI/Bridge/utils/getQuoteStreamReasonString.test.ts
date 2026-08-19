@@ -28,7 +28,10 @@ const REASON_TO_LOCALE_KEY = {
 
 describe('getQuoteStreamReasonString', () => {
   it.each(
-    Object.entries(REASON_TO_LOCALE_KEY) as [QuoteStreamCompleteReason, string][],
+    Object.entries(REASON_TO_LOCALE_KEY) as [
+      QuoteStreamCompleteReason,
+      string,
+    ][],
   )('maps %s to %s locale key', (reason, localeKey) => {
     const result = getQuoteStreamReasonString(reason);
 
