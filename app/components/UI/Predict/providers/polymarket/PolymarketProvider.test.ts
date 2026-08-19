@@ -901,6 +901,49 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  describe('getCryptoTargetPrice', () => {
+    it('requests the matching TWAP price for TWAP markets', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ openPrice: 64544.60401529397 }),
+      });
+
+      const result = await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2026-08-18T22:30:00Z',
+        variant: 'fiveminute',
+        endDate: '2026-08-18T22:35:00Z',
+        twapWindowSeconds: 60,
+      });
+
+      expect(result).toBe(64544.60401529397);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+      const [url] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).toContain('twapEnabled=true');
+      expect(url).toContain('twapLookbackSeconds=60');
+    });
+
+    it('omits TWAP parameters for spot-price markets', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ openPrice: 64551.57 }),
+      });
+
+      await provider.getCryptoTargetPrice({
+        symbol: 'BTC',
+        eventStartTime: '2026-08-18T22:30:00Z',
+        variant: 'fiveminute',
+        endDate: '2026-08-18T22:35:00Z',
+      });
+
+      const [url] = (global.fetch as jest.Mock).mock.calls[0];
+      expect(url).not.toContain('twapEnabled');
+      expect(url).not.toContain('twapLookbackSeconds');
+    });
+  });
+
   beforeAll(() => {
     process.env.MM_PREDICT_BUILDER_CODE =
       '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';

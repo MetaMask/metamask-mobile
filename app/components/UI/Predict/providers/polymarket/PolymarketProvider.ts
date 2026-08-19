@@ -1457,9 +1457,23 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<number | null> {
     try {
       const { CRYPTO_PRICE_ENDPOINT } = getPolymarketEndpoints();
-      const url = `${CRYPTO_PRICE_ENDPOINT}?symbol=${encodeURIComponent(params.symbol)}&eventStartTime=${encodeURIComponent(params.eventStartTime)}&variant=${encodeURIComponent(params.variant)}&endDate=${encodeURIComponent(params.endDate)}`;
+      const queryParams = new URLSearchParams({
+        symbol: params.symbol,
+        eventStartTime: params.eventStartTime,
+        variant: params.variant,
+        endDate: params.endDate,
+      });
+      if (params.twapWindowSeconds !== undefined) {
+        queryParams.set('twapEnabled', 'true');
+        queryParams.set(
+          'twapLookbackSeconds',
+          params.twapWindowSeconds.toString(),
+        );
+      }
 
-      const response = await fetchWithTimeout(url);
+      const response = await fetchWithTimeout(
+        `${CRYPTO_PRICE_ENDPOINT}?${queryParams.toString()}`,
+      );
       if (!response.ok) {
         throw new Error(`Crypto target price API returned ${response.status}`);
       }
