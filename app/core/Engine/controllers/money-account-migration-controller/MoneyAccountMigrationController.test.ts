@@ -93,6 +93,16 @@ describe('reconcile', () => {
       }),
     ).toBe('IDLE');
   });
+
+  it('does not jump INVENTORIED when funds already moved', () => {
+    expect(
+      reconcile({
+        status: 'INVENTORIED',
+        plan: plan({ vmUsd: '10' }),
+        live: plan({ vmUsd: '0' }),
+      }),
+    ).toBe('INVENTORIED');
+  });
 });
 
 describe('inventory persistence', () => {
@@ -258,6 +268,26 @@ describe('MoneyAccountMigrationController', () => {
 
     expect(submit).not.toHaveBeenCalled();
     expect(awaitBatch).toHaveBeenCalledWith(BATCH_ID);
+    expect(controller.snapshot.status).toBe('VERIFIED_INERT');
+  });
+
+  it('runs teardown when resuming INVENTORIED after funds already moved', async () => {
+    const controller = createController({
+      ...EMPTY_SNAPSHOT,
+      status: 'INVENTORIED',
+      inventory: plan({ vmUsd: '10', cardLinked: true }),
+      destination: DEST,
+    });
+    jest
+      .spyOn(controller, 'collectInventory')
+      .mockResolvedValue(plan({ vmUsd: '0', cardLinked: true }));
+    const teardown = jest.spyOn(controller, 'teardown').mockResolvedValue();
+    const execute = jest.spyOn(controller, 'executeExitBatch');
+
+    await controller.resume();
+
+    expect(teardown).toHaveBeenCalled();
+    expect(execute).not.toHaveBeenCalled();
     expect(controller.snapshot.status).toBe('VERIFIED_INERT');
   });
 

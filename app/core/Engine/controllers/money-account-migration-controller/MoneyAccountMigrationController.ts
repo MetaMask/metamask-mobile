@@ -99,10 +99,7 @@ export function reconcile(params: {
   if (status === 'IDLE' || status === 'VERIFIED_INERT') {
     return status;
   }
-  if (
-    (status === 'INVENTORIED' || status === 'TORN_DOWN') &&
-    fundsMoved(plan, live)
-  ) {
+  if (status === 'TORN_DOWN' && fundsMoved(plan, live)) {
     return 'BATCH_EXECUTED';
   }
   return status;
@@ -424,7 +421,11 @@ export class MoneyAccountMigrationController extends BaseController<
         state.status = 'TORN_DOWN';
         state.tornDownAt = Date.now();
       });
-      status = 'TORN_DOWN';
+      status = reconcile({
+        status: 'TORN_DOWN',
+        plan: snap.inventory,
+        live,
+      });
     }
 
     if (status === 'TORN_DOWN') {
