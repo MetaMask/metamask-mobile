@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { Platform } from 'react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MarketInsightsDisclaimerBottomSheet from './MarketInsightsDisclaimerBottomSheet';
 
@@ -77,14 +78,38 @@ describe('MarketInsightsDisclaimerBottomSheet', () => {
   // measures the activity window and reports a bottom inset of 0, collapsing
   // BottomSheetDialog's bottom padding and leaving "Got it" under the
   // navigation bar.
-  it('nests a SafeAreaProvider inside the Modal so the bottom inset is measured against the modal window', () => {
-    const { getByTestId } = renderWithProvider(
-      <MarketInsightsDisclaimerBottomSheet onClose={jest.fn()} />,
-    );
+  describe('modal safe-area inset (TAT-3758)', () => {
+    const originalPlatform = Platform.OS;
 
-    expect(
-      getByTestId('market-insights-disclaimer-safe-area-provider'),
-    ).toBeOnTheScreen();
+    afterEach(() => {
+      Platform.OS = originalPlatform;
+    });
+
+    it('nests a SafeAreaProvider on Android so the bottom inset is measured against the modal window', () => {
+      Platform.OS = 'android';
+
+      const { getByTestId } = renderWithProvider(
+        <MarketInsightsDisclaimerBottomSheet onClose={jest.fn()} />,
+      );
+
+      expect(
+        getByTestId('market-insights-disclaimer-safe-area-provider'),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not nest a SafeAreaProvider on iOS, where the root provider already reports correct insets', () => {
+      Platform.OS = 'ios';
+
+      const { queryByTestId, getByText } = renderWithProvider(
+        <MarketInsightsDisclaimerBottomSheet onClose={jest.fn()} />,
+      );
+
+      expect(
+        queryByTestId('market-insights-disclaimer-safe-area-provider'),
+      ).toBeNull();
+      // The sheet still renders normally on iOS.
+      expect(getByText('AI generated content')).toBeOnTheScreen();
+    });
   });
 
   it('does not call onClose before the button is pressed', () => {
