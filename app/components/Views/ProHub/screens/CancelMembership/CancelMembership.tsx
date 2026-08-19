@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -24,6 +24,7 @@ import {
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   CancelMembershipTestIds,
   getCancelReasonCheckmarkTestId,
@@ -79,9 +80,8 @@ const ReasonItem = ({ id, label, isSelected, onPress }: ReasonItemProps) => (
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 const CancelMembership = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { top } = useSafeAreaInsets();
   const [selectedReasonId, setSelectedReasonId] = useState<string | null>(null);
 
   const handleBack = useCallback(() => {
@@ -93,7 +93,7 @@ const CancelMembership = () => {
   }, [navigation]);
 
   const handleCancelConfirm = useCallback(() => {
-    navigation.navigate(Routes.PRO_HUB.CANCELLATION_SUCCESS as never);
+    navigation.navigate(Routes.PRO_HUB.CANCELLATION_SUCCESS);
   }, [navigation]);
 
   const handleReasonSelect = useCallback((id: string) => {
@@ -101,8 +101,9 @@ const CancelMembership = () => {
   }, []);
 
   return (
-    <View
-      style={[tw.style('flex-1 bg-background-default'), { paddingTop: top }]}
+    <SafeAreaView
+      style={[tw.style('flex-1 bg-background-default')]}
+      edges={['top', 'bottom']}
       testID={CancelMembershipTestIds.CONTAINER}
     >
       <HeaderBase
@@ -226,7 +227,7 @@ const CancelMembership = () => {
           {strings('pro_hub.cancel_membership.cancel')}
         </Button>
       </Box>
-    </View>
+    </SafeAreaView>
   );
 };
 
