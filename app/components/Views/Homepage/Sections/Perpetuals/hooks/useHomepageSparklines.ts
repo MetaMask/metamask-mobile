@@ -108,8 +108,17 @@ export function useHomepageSparklines(
         interval: CandlePeriod.FifteenMinutes,
         duration: TimeDuration.OneDay,
         callback: (candleData: CandleData) => {
+          if (!candleData?.candles || candleData.candles.length === 0) {
+            if (Object.hasOwn(fallbackDataRef.current, symbol)) {
+              const next = { ...fallbackDataRef.current };
+              Reflect.deleteProperty(next, symbol);
+              fallbackDataRef.current = next;
+              scheduleFlush();
+            }
+            return;
+          }
           if (fallbackDataRef.current[symbol]) return;
-          if (!candleData?.candles || candleData.candles.length < 2) return;
+          if (candleData.candles.length < 2) return;
 
           const closes = extractCandleCloses(candleData);
           if (closes.length < 2) return;
