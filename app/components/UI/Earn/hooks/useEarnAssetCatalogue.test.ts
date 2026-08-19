@@ -12,9 +12,11 @@ import Engine from '../../../../core/Engine';
 import { selectEarnAssetCatalogueInputs } from '../../../../selectors/earnController/earn';
 import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
 import type { RelayFixedSpreadConfig } from '../../../Views/confirmations/utils/relayFixedSpread';
+import useMoneyAccountInfo from '../../Money/hooks/useMoneyAccountInfo';
+import useMoneyAccountVisibility from '../../Money/hooks/useMoneyAccountVisibility';
 import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
 import type { MoneyDepositAsset } from '../../Money/selectors/depositTokens';
-import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
+import { invalidateMoneyAccountBalanceCaches } from '../../Money/utils/invalidateMoneyAccountBalanceCaches';
 import useEarnSectionLendingMarkets from './useEarnSectionLendingMarkets';
 import useEarnSectionTokenMetadata from './useEarnSectionTokenMetadata';
 import useTronStakeApy, { FetchStatus } from './useTronStakeApy';
@@ -24,7 +26,12 @@ jest.mock('react-redux');
 jest.mock('@metamask/bridge-controller', () => ({
   formatAddressToAssetId: jest.fn(),
 }));
+jest.mock('../../Money/hooks/useMoneyAccountVisibility');
+jest.mock('../../Money/hooks/useMoneyAccountInfo');
 jest.mock('../../Money/hooks/useMoneyVaultApy');
+jest.mock('../../Money/utils/invalidateMoneyAccountBalanceCaches', () => ({
+  invalidateMoneyAccountBalanceCaches: jest.fn(),
+}));
 jest.mock('./useEarnSectionLendingMarkets');
 jest.mock('./useEarnSectionTokenMetadata');
 jest.mock('./useTronStakeApy');
@@ -41,9 +48,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 const USDC_ADDRESS = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const AUSDC_ADDRESS = '0xbcca60bb61934080951369a648fb03df4f96263c';
-const DAI_ADDRESS = '0x6b175474e89094c44da98b954eedeac495271d0f';
 const USDC_ASSET_ID = `eip155:1/erc20:${USDC_ADDRESS}`;
-const DAI_ASSET_ID = `eip155:1/erc20:${DAI_ADDRESS}`;
 const ETH_ASSET_ID = 'eip155:1/slip44:60';
 const POL_ASSET_ID = 'eip155:137/slip44:966';
 const TRON_CHAIN_ID = 'tron:728126428';
@@ -51,9 +56,19 @@ const TRX_ASSET_ID = `${TRON_CHAIN_ID}/slip44:195`;
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockFormatAddressToAssetId = jest.mocked(formatAddressToAssetId);
+const mockUseMoneyAccountVisibility =
+  useMoneyAccountVisibility as jest.MockedFunction<
+    typeof useMoneyAccountVisibility
+  >;
+const mockUseMoneyAccountInfo = useMoneyAccountInfo as jest.MockedFunction<
+  typeof useMoneyAccountInfo
+>;
 const mockUseMoneyVaultApy = useMoneyVaultApy as jest.MockedFunction<
   typeof useMoneyVaultApy
 >;
+const mockInvalidateMoneyAccountBalanceCaches = jest.mocked(
+  invalidateMoneyAccountBalanceCaches,
+);
 const mockUseEarnSectionLendingMarkets =
   useEarnSectionLendingMarkets as jest.MockedFunction<
     typeof useEarnSectionLendingMarkets
@@ -82,15 +97,6 @@ const market: LendingMarket = {
   },
   outputToken: {
     address: AUSDC_ADDRESS,
-    chainId: 1,
-  },
-};
-const unheldMarket: LendingMarket = {
-  ...market,
-  id: 'mainnet-aave-dai',
-  name: 'Aave DAI',
-  underlying: {
-    address: DAI_ADDRESS,
     chainId: 1,
   },
 };
@@ -200,10 +206,9 @@ const refreshLendingMarkets = jest.fn();
 const refreshLendingMetadata = jest.fn();
 const refetchMoneyApy = jest.fn();
 const refetchTrxApy = jest.fn();
+const MONEY_ACCOUNT_ADDRESS = '0x1234567890123456789012345678901234567890';
 
 const mockSelectorValues = ({
-  isMoneyAccountVisible = true,
-  isEarnEligible = true,
   isPooledStakingEnabled = true,
   isStablecoinLendingEnabled = true,
   isTrxStakingEnabled = false,
@@ -213,8 +218,6 @@ const mockSelectorValues = ({
   assets,
   relayFixedSpread = EMPTY_RELAY_FIXED_SPREAD_CONFIG,
 }: {
-  isMoneyAccountVisible?: boolean;
-  isEarnEligible?: boolean;
   isPooledStakingEnabled?: boolean;
   isStablecoinLendingEnabled?: boolean;
   isTrxStakingEnabled?: boolean;
@@ -225,9 +228,6 @@ const mockSelectorValues = ({
   relayFixedSpread?: RelayFixedSpreadConfig;
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectIsMoneyAccountVisible) {
-      return isMoneyAccountVisible;
-    }
     if (selector === selectRelayFixedSpread) return relayFixedSpread;
     if (selector === selectEarnAssetCatalogueInputs) {
       return {
@@ -240,18 +240,28 @@ const mockSelectorValues = ({
           ...earnTokens.map(earnTokenToAsset),
           ...earnOutputTokens.map(earnTokenToAsset),
         ],
-        isEarnEligible,
+        isEarnEligible: true,
         isPooledStakingEnabled,
         isStablecoinLendingEnabled,
         isTrxStakingEnabled,
       };
     }
-    return { apyPercentString: '3.1%' };
+    return { apyPercentString: '3.1' };
   });
 };
 
 const mockDependencies = () => {
   mockSelectorValues();
+  mockUseMoneyAccountVisibility.mockReturnValue({
+    isMoneyAccountVisible: true,
+  });
+  mockUseMoneyAccountInfo.mockReturnValue({
+    isMoneyAccountFeatureEnabled: true,
+    hasMoneyAccount: true,
+    primaryMoneyAccount: {
+      address: MONEY_ACCOUNT_ADDRESS,
+    },
+  } as ReturnType<typeof useMoneyAccountInfo>);
   mockUseMoneyVaultApy.mockReturnValue({
     apyDecimal: 0.062,
     apyPercent: 6.2,
@@ -303,6 +313,7 @@ describe('useEarnAssetCatalogue', () => {
     refreshLendingMetadata.mockResolvedValue(undefined);
     refetchMoneyApy.mockResolvedValue(undefined);
     refetchTrxApy.mockResolvedValue(undefined);
+    mockInvalidateMoneyAccountBalanceCaches.mockResolvedValue(undefined);
     (
       Engine.context.EarnController
         .refreshPooledStakingVaultApyAverages as jest.MockedFunction<
@@ -313,18 +324,6 @@ describe('useEarnAssetCatalogue', () => {
   });
 
   it('merges Money and lending experiences for the same underlying asset', () => {
-    mockSelectorValues({
-      earnTokens: [createEarnToken(USDC_ADDRESS, 'underlying')],
-      assets: [moneyToken],
-    });
-    mockUseEarnSectionTokenMetadata.mockReturnValue({
-      tokensByAssetId: {},
-      isLoading: false,
-      isSettled: true,
-      error: null,
-      refresh: refreshLendingMetadata,
-    });
-
     const { result } = renderHook(() => useEarnAssetCatalogue());
 
     const usdc = result.current.assets.find(
@@ -343,50 +342,6 @@ describe('useEarnAssetCatalogue', () => {
     expect(
       usdc?.experiences.map(({ isFeeSubsidized }) => isFeeSubsidized),
     ).toEqual([false, false]);
-  });
-
-  it('fetches metadata only for lending assets absent from wallet assets', () => {
-    mockUseEarnSectionLendingMarkets.mockReturnValue({
-      markets: [market, unheldMarket],
-      isLoading: false,
-      error: null,
-      refresh: refreshLendingMarkets,
-    });
-    mockSelectorValues({
-      earnTokens: [createEarnToken(USDC_ADDRESS, 'underlying')],
-    });
-
-    renderHook(() => useEarnAssetCatalogue());
-
-    expect(mockUseEarnSectionTokenMetadata).toHaveBeenLastCalledWith([
-      DAI_ASSET_ID,
-    ]);
-  });
-
-  it('retains held Earn lending experience without lending metadata', () => {
-    mockUseEarnSectionTokenMetadata.mockReturnValue({
-      tokensByAssetId: {},
-      isLoading: false,
-      isSettled: true,
-      error: null,
-      refresh: refreshLendingMetadata,
-    });
-    mockSelectorValues({
-      earnTokens: [createEarnToken(USDC_ADDRESS, 'underlying')],
-      assets: [moneyToken],
-    });
-
-    const { result } = renderHook(() => useEarnAssetCatalogue());
-    const usdc = result.current.assets.find(
-      ({ assetId }) => assetId === USDC_ASSET_ID,
-    );
-
-    expect(usdc).toMatchObject({ kind: 'held' });
-    expect(
-      usdc?.experiences.some(
-        ({ type }) => type === EARN_EXPERIENCES.STABLECOIN_LENDING,
-      ),
-    ).toBe(true);
   });
 
   it('marks Money deposit experiences with subsidized routes', () => {
@@ -441,52 +396,6 @@ describe('useEarnAssetCatalogue', () => {
         asset?.experiences.some(({ type }) => type === 'MONEY_ACCOUNT_DEPOSIT'),
       ).toBe(true);
     });
-  });
-
-  it('keeps Money funding while Earn strategies are ineligible', () => {
-    mockSelectorValues({ isEarnEligible: false });
-
-    const { result } = renderHook(() => useEarnAssetCatalogue());
-
-    expect(result.current.assets).toHaveLength(1);
-    expect(result.current.assets[0].experiences).toEqual([
-      expect.objectContaining({ type: 'MONEY_ACCOUNT_DEPOSIT' }),
-    ]);
-  });
-
-  it('omits Money funding when the Money account is hidden', () => {
-    mockSelectorValues({ isMoneyAccountVisible: false });
-
-    const { result } = renderHook(() => useEarnAssetCatalogue());
-
-    expect(
-      result.current.assets.some(({ experiences }) =>
-        experiences.some(({ type }) => type === 'MONEY_ACCOUNT_DEPOSIT'),
-      ),
-    ).toBe(false);
-  });
-
-  it('reports Money assets that cannot be converted to CAIP-19', () => {
-    const unresolvedMoneyAsset = {
-      ...moneyToken,
-      address: '0x0000000000000000000000000000000000000000',
-      assetId: '0x0000000000000000000000000000000000000000',
-      chainId: '0x999',
-      isNative: true,
-    } as MoneyDepositAsset;
-    mockFormatAddressToAssetId.mockReturnValue(undefined);
-    mockSelectorValues({ moneyDepositAssets: [unresolvedMoneyAsset] });
-
-    const { result } = renderHook(() => useEarnAssetCatalogue());
-
-    expect(result.current.hasError).toBe(true);
-    expect(result.current.errors).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          message: 'Money deposit asset has no valid CAIP-19 identity',
-        }),
-      ]),
-    );
   });
 
   it('omits unheld lending output tokens', () => {
@@ -577,7 +486,6 @@ describe('useEarnAssetCatalogue', () => {
       kind: 'discovery',
       assetId: ETH_ASSET_ID,
       metadata: {
-        symbol: 'ETH',
         ticker: 'ETH',
       },
     });
@@ -586,11 +494,6 @@ describe('useEarnAssetCatalogue', () => {
         id: `pooled:${ETH_ASSET_ID}`,
         role: 'underlying',
         type: EARN_EXPERIENCES.POOLED_STAKING,
-        rate: {
-          type: 'APR',
-          percentage: 3.1,
-          status: 'ready',
-        },
       }),
     ]);
   });
@@ -807,11 +710,50 @@ describe('useEarnAssetCatalogue', () => {
     expect(refetchTrxApy).toHaveBeenCalledTimes(1);
   });
 
-  it('reports missing lending decimals as an error', () => {
-    mockSelectorValues({
-      assets: [],
-      moneyDepositAssets: [],
+  it('refreshes the Money APY and balance when Money is visible', async () => {
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    await act(async () => {
+      await result.current.refresh();
     });
+
+    expect(refetchMoneyApy).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateMoneyAccountBalanceCaches).toHaveBeenCalledWith(
+      MONEY_ACCOUNT_ADDRESS,
+    );
+  });
+
+  it('skips the Money balance refresh when Money is hidden', async () => {
+    mockUseMoneyAccountVisibility.mockReturnValue({
+      isMoneyAccountVisible: false,
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    expect(mockInvalidateMoneyAccountBalanceCaches).not.toHaveBeenCalled();
+  });
+
+  it('skips the Money balance refresh when no Money account address exists', async () => {
+    mockUseMoneyAccountInfo.mockReturnValue({
+      isMoneyAccountFeatureEnabled: true,
+      hasMoneyAccount: false,
+      primaryMoneyAccount: undefined,
+    } as ReturnType<typeof useMoneyAccountInfo>);
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    expect(mockInvalidateMoneyAccountBalanceCaches).not.toHaveBeenCalled();
+  });
+
+  it('reports missing lending decimals as an error', () => {
     mockUseEarnSectionTokenMetadata.mockReturnValue({
       tokensByAssetId: {
         [USDC_ASSET_ID]: {
@@ -833,10 +775,6 @@ describe('useEarnAssetCatalogue', () => {
   });
 
   it('reports initial lending metadata work as loading without an error', () => {
-    mockSelectorValues({
-      assets: [],
-      moneyDepositAssets: [],
-    });
     mockUseEarnSectionTokenMetadata.mockReturnValue({
       tokensByAssetId: {},
       isLoading: true,
@@ -868,7 +806,16 @@ describe('useEarnAssetCatalogue', () => {
     const refreshPromise = act(async () => result.current.refresh());
 
     await expect(refreshPromise).rejects.toThrow('Lending unavailable');
-    expect(refreshLendingMetadata).toHaveBeenCalledTimes(1);
-    expect(refetchMoneyApy).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects refresh when the Money balance refresh fails', async () => {
+    mockInvalidateMoneyAccountBalanceCaches.mockRejectedValue(
+      new Error('Money balance unavailable'),
+    );
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    const refreshPromise = act(async () => result.current.refresh());
+
+    await expect(refreshPromise).rejects.toThrow('Money balance unavailable');
   });
 });

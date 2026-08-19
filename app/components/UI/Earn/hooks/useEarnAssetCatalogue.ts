@@ -11,9 +11,11 @@ import { selectEarnAssetCatalogueInputs } from '../../../../selectors/earnContro
 import { pooledStakingSelectors } from '../../../../selectors/earnController/pooledStaking';
 import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
+import useMoneyAccountInfo from '../../Money/hooks/useMoneyAccountInfo';
 import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
 import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
 import { isMoneyDepositFeeSubsidized } from '../../Money/utils/isMoneyDepositFeeSubsidized';
+import { invalidateMoneyAccountBalanceCaches } from '../../Money/utils/invalidateMoneyAccountBalanceCaches';
 import type { TokenI } from '../../Tokens/types';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import type {
@@ -224,7 +226,9 @@ const getHeldEarnExperiences = ({
  */
 const useEarnAssetCatalogue = () => {
   const relayFixedSpread = useSelector(selectRelayFixedSpread);
-  const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
+    const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
+    const { primaryMoneyAccount } = useMoneyAccountInfo();
+  const moneyAccountAddress = primaryMoneyAccount?.address;
   const {
     earnTokens,
     earnOutputTokens,
@@ -570,11 +574,15 @@ const useEarnAssetCatalogue = () => {
       refreshLendingMetadata(),
       isTrxStakingEnabled ? refetchTrxApy() : Promise.resolve(),
       isMoneyAccountVisible ? refetchMoneyApy() : Promise.resolve(),
+      isMoneyAccountVisible && moneyAccountAddress
+        ? invalidateMoneyAccountBalanceCaches(moneyAccountAddress)
+        : Promise.resolve(),
     ]);
   }, [
     isMoneyAccountVisible,
     isPooledStakingEnabled,
     isTrxStakingEnabled,
+    moneyAccountAddress,
     refetchMoneyApy,
     refetchTrxApy,
     refreshLendingMetadata,
