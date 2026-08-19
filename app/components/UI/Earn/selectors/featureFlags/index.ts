@@ -382,3 +382,17 @@ export const selectEarnHomeSectionEnabledFlag = createSelector(
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
+
+/**
+ * Selects whether the static Earn section is shown on Explore page.
+ */
+export const selectExploreEarnSectionEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_EXPLORE_EARN_SECTION_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnExploreSectionEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
