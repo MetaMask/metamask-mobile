@@ -51,9 +51,9 @@ To save infra resources while waiting for static analysis findings and potential
 
 ## Smart AI E2E test selection
 
-When an E2E-relevant workflow changes, CI conservatively selects the `ALL` tag set
-instead of allowing Smart E2E Selection to return an empty selection. This protects
-workflow and runner changes that can affect every E2E suite.
+When an E2E-relevant workflow changes, CI applies a hard rule before Smart E2E
+Selection runs: the selector job is skipped and downstream jobs use the `ALL` tag
+fallback. This protects workflow and runner changes that can affect every E2E suite.
 
 Runs only when all of the following are true:
 

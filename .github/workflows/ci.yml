@@ -1353,7 +1353,6 @@ jobs:
           repository: ${{ github.repository }}
           post-comment: ${{ inputs.runner_provider != 'bitrise' }}
           base-ref: ${{ github.event.pull_request.base.ref }}
-          force-all-e2e: ${{ needs.get_requirements.outputs.e2e_relevant_workflows_changed == 'true' }}
 
   run-performance-tests-pr:
     name: 'Run Performance Tests (PR)'

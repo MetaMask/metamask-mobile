@@ -97,7 +97,8 @@ function computeE2EPlatformFlags(input) {
     githubEventName === 'pull_request' &&
     e2eNeeded &&
     !isFork &&
-    !shouldSkipE2E;
+    !shouldSkipE2E &&
+    e2eWorkflowsCount === 0;
 
   return {
     android,
