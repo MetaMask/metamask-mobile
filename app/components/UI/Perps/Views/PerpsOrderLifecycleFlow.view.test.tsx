@@ -190,7 +190,8 @@ describe('Order Lifecycle & Funds Flow', () => {
         'perps-select-provider-sheet-option-hyperliquid-mainnet',
       ),
     ).toBeOnTheScreen();
-    // MYX option hidden when feature flag is disabled
+    // The POC selector list replaced the MYX rows with Lighter: the MYX
+    // option is absent even when the MYX feature flag is enabled.
     expect(
       screen.queryByTestId('perps-select-provider-sheet-option-myx-mainnet'),
     ).not.toBeOnTheScreen();
@@ -215,23 +216,27 @@ describe('Order Lifecycle & Funds Flow', () => {
     );
     expect(aggregatedOption.props.accessibilityState?.selected).toBe(true);
     expect(
-      screen.getByTestId('perps-select-provider-sheet-option-myx-mainnet').props
-        .accessibilityState?.selected,
+      screen.queryByTestId('perps-select-provider-sheet-option-myx-mainnet'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        'perps-select-provider-sheet-option-hyperliquid-mainnet',
+      ).props.accessibilityState?.selected,
     ).toBe(false);
 
-    // Trader selects MYX provider — switchProvider is called
+    // Trader selects another provider — switchProvider is called
     await act(async () => {
       cleanup();
     });
     const switchProviderMock = Engine.context.PerpsController
       .switchProvider as jest.Mock;
     renderPerpsSelectProviderView({ overrides: myxEnabledOverrides });
-    const myxOption = await screen.findByTestId(
-      'perps-select-provider-sheet-option-myx-mainnet',
+    const aggregatedTarget = await screen.findByTestId(
+      'perps-select-provider-sheet-option-aggregated-mainnet',
     );
-    fireEvent.press(myxOption);
+    fireEvent.press(aggregatedTarget);
     await waitFor(() => {
-      expect(switchProviderMock).toHaveBeenCalledWith('myx');
+      expect(switchProviderMock).toHaveBeenCalledWith('aggregated');
     });
 
     // ── PHASE 7: Order type selection ────────────────────────────────────

@@ -1,0 +1,91 @@
+{
+  "$schema": "https://farmslot.io/schemas/recipe-v1.schema.json",
+  "title": "Lighter \u2014 close a position through the real close flow",
+  "description": "From market details, presses Close, confirms in the close-position view, and verifies against the venue that no position remains. Re-entrant: when the market is already flat the UI-close leg is skipped and the unit just verifies flatness (ensure semantics via graph branching).",
+  "paramsSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "market": {
+        "type": "string",
+        "default": "ETH"
+      }
+    }
+  },
+  "workflow": {
+    "entry": "check",
+    "nodes": {
+      "market": {
+        "action": "ui.navigate",
+        "page": "perps-market",
+        "market": "{{params.market}}",
+        "intent": "Open the market page that shows the open position.",
+        "next": "settle-market"
+      },
+      "settle-market": {
+        "action": "wait",
+        "duration_ms": 12000,
+        "intent": "Let the position row and Close button render.",
+        "next": "press-close"
+      },
+      "press-close": {
+        "action": "ui.press",
+        "test_id": "perps-market-details-close-button",
+        "intent": "Start the close flow the way a user does.",
+        "next": "settle-close-view"
+      },
+      "settle-close-view": {
+        "action": "wait",
+        "duration_ms": 8000,
+        "intent": "Let the close-position view mount with the full size preselected.",
+        "next": "shot-close"
+      },
+      "shot-close": {
+        "action": "ui.screenshot",
+        "path": "screenshots/close-{{params.market}}-view.png",
+        "intent": "Record the close screen before confirming.",
+        "next": "confirm"
+      },
+      "confirm": {
+        "action": "ui.press",
+        "test_id": "close-position-confirm-button",
+        "intent": "Confirm the full close.",
+        "next": "settle-confirm"
+      },
+      "settle-confirm": {
+        "action": "wait",
+        "duration_ms": 10000,
+        "intent": "Give the venue time to execute the reduce-only close.",
+        "next": "assert-flat"
+      },
+      "assert-flat": {
+        "action": "metamask.perps.assert_positions",
+        "market": "{{params.market}}",
+        "state": "none",
+        "timeout_ms": 30000,
+        "intent": "Venue truth: the position is gone.",
+        "next": "done"
+      },
+      "done": {
+        "action": "end",
+        "status": "pass"
+      },
+      "check": {
+        "action": "metamask.perps.read_positions",
+        "market": "{{params.market}}",
+        "intent": "Read whether a position exists so the unit can converge instead of failing on a re-run.",
+        "next": "branch"
+      },
+      "branch": {
+        "action": "switch",
+        "value": "n:{{outputs.check.matchingCount}}",
+        "equals": "n:0",
+        "cases": {
+          "match": "assert-flat"
+        },
+        "default": "market",
+        "intent": "Drive the UI close only when a position exists; an already-flat market already satisfies this unit."
+      }
+    }
+  }
+}

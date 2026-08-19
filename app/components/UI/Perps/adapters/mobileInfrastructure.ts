@@ -7,6 +7,7 @@
 
 import Logger from '../../../../util/Logger';
 import StorageWrapper from '../../../../store/storage-wrapper';
+import { lighterSignerBridge } from '../Lighter/lighterSignerBridge';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
@@ -223,6 +224,25 @@ export function createMobileClientConfig(): PerpsControllerConfig {
         apiSecretMainnet: process.env.MM_PERPS_MYX_API_SECRET_MAINNET ?? '',
         brokerAddressMainnet:
           process.env.MM_PERPS_MYX_BROKER_ADDRESS_MAINNET ?? '',
+      },
+      lighter: {
+        enabled: process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true',
+        // Lighter Go/WASM signer transport (hidden WebView). Handed to the
+        // controller before the WebView mounts; calls queue behind the
+        // bridge's readiness promise (see lighterSignerBridge.ts). Only
+        // supplied when the same flag that mounts the WebView is set, so
+        // the controller's enablement gate and the client's signer mount
+        // can never disagree (remote flag alone cannot register a trading
+        // provider whose signer was never mounted).
+        ...(process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true'
+          ? { signerBridge: lighterSignerBridge }
+          : {}),
+        accountIndexTestnet: process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET
+          ? Number(process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET)
+          : undefined,
+        apiKeyIndex: process.env.MM_PERPS_LIGHTER_API_KEY_INDEX
+          ? Number(process.env.MM_PERPS_LIGHTER_API_KEY_INDEX)
+          : undefined,
       },
     },
   };

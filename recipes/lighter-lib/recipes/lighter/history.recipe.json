@@ -1,0 +1,68 @@
+{
+  "$schema": "https://farmslot.io/schemas/recipe-v1.schema.json",
+  "title": "Perps \u2014 venue trade history visible in the Activity surface",
+  "description": "From Perps home, opens the Activity screen through the real Activity section header (renders the generic ActivityView; the dedicated PerpsTransactionsView is unrouted dead code on this branch) and verifies the venue's trade history renders (rows served by the ACTIVE provider's history reads \u2014 fills/orders/funding \u2014 so on Lighter these are genuine Lighter venue records).",
+  "paramsSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "expectSymbol": {
+        "type": "string",
+        "default": "ETH"
+      }
+    }
+  },
+  "workflow": {
+    "entry": "home",
+    "nodes": {
+      "home": {
+        "action": "ui.navigate",
+        "page": "perps",
+        "intent": "Land on Perps home where the Activity section lives.",
+        "next": "settle-home"
+      },
+      "settle-home": {
+        "action": "wait",
+        "duration_ms": 8000,
+        "intent": "Let the recent-activity section load its rows.",
+        "next": "open-activity"
+      },
+      "open-activity": {
+        "action": "ui.press",
+        "text": "Activity",
+        "intent": "Open the full Activity screen from the section header.",
+        "next": "settle-activity"
+      },
+      "settle-activity": {
+        "action": "wait",
+        "duration_ms": 6000,
+        "intent": "Let the transactions list mount and fetch history.",
+        "next": "list-present"
+      },
+      "list-present": {
+        "action": "ui.wait_for",
+        "test_id": "activity-list",
+        "timeout_ms": 20000,
+        "intent": "The Activity list is on screen (the generic ActivityView \u2014 the dedicated PerpsTransactionsView is unrouted; perps rows are served by the active provider history reads).",
+        "next": "row-present"
+      },
+      "row-present": {
+        "action": "ui.wait_for",
+        "text": "{{params.expectSymbol}}",
+        "timeout_ms": 20000,
+        "intent": "A venue trade row for the expected market is visible (rows render as \"Opened long / 0.0053 ETH\").",
+        "next": "shot"
+      },
+      "shot": {
+        "action": "ui.screenshot",
+        "path": "screenshots/history-activity.png",
+        "intent": "Record the venue history rendered in the Activity screen.",
+        "next": "done"
+      },
+      "done": {
+        "action": "end",
+        "status": "pass"
+      }
+    }
+  }
+}

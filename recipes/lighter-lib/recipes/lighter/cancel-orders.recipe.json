@@ -1,0 +1,39 @@
+{
+  "$schema": "https://farmslot.io/schemas/recipe-v1.schema.json",
+  "title": "Lighter \u2014 cancel resting orders and verify a clean book",
+  "description": "Cancels every resting order on the market through the app runtime and verifies against the venue that none remain. Cancellation runs through the controller cancel path (the same one the UI buttons call); the UI-side cancel button drive is a follow-up.",
+  "paramsSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "market": {
+        "type": "string",
+        "default": "BTC"
+      }
+    }
+  },
+  "workflow": {
+    "entry": "cancel",
+    "nodes": {
+      "cancel": {
+        "action": "metamask.perps.close_orders",
+        "market": "{{params.market}}",
+        "timeout_ms": 60000,
+        "intent": "Cancel every resting order on the market.",
+        "next": "assert-none"
+      },
+      "assert-none": {
+        "action": "metamask.perps.assert_orders",
+        "market": "{{params.market}}",
+        "state": "none",
+        "timeout_ms": 30000,
+        "intent": "Venue truth: the book is clean for this market.",
+        "next": "done"
+      },
+      "done": {
+        "action": "end",
+        "status": "pass"
+      }
+    }
+  }
+}

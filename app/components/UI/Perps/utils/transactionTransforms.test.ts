@@ -483,6 +483,128 @@ describe('transactionTransforms', () => {
       detailedOrderType: 'Market',
     };
 
+    it('classifies a Buy fill carrying realized PnL as a close with PnL display', () => {
+      // Side-only venues (Lighter) can report a short being closed as a
+      // plain Buy with the realized pnl attached; it must not be
+      // misclassified as a pure open that only shows the fee.
+      const lighterBuyClose = {
+        ...mockFill,
+        direction: 'Buy',
+        pnl: '-0.012901',
+        fee: '0',
+      };
+
+      const result = transformFillsToTransactions([lighterBuyClose]);
+
+      expect(result[0]?.fill).toBeDefined();
+      expect(result[0].category).toBe('position_close');
+      expect(result[0].title).toBe('Bought');
+      expect(result[0].fill?.amount).toBe('-$0.01');
+      expect(result[0].fill?.isPositive).toBe(false);
+    });
+
+    it('keeps a zero-PnL Buy fill an open on the fee display path', () => {
+      const plainBuy = { ...mockFill, direction: 'Buy', pnl: '0', fee: '2' };
+      const result = transformFillsToTransactions([plainBuy]);
+      expect(result[0]?.fill).toBeDefined();
+      expect(result[0].category).toBe('position_open');
+      expect(result[0].title).toBe('Bought');
+      expect(result[0].fill?.amount).toBe('-$2.00');
+    });
+
+    it('sizes flips from |size| - |signed startPosition| in both directions', () => {
+      // Long > Short: was +0.133, sold 0.300 → post-flip short 0.167.
+      const longToShort = {
+        ...mockFill,
+        direction: 'Long > Short',
+        side: 'sell' as const,
+        size: '0.300',
+        startPosition: '0.133',
+        pnl: '0.5',
+        fee: '0',
+      };
+      // Short > Long: was -0.133, bought 0.300 → post-flip long 0.167.
+      const shortToLong = {
+        ...mockFill,
+        direction: 'Short > Long',
+        side: 'buy' as const,
+        size: '0.300',
+        startPosition: '-0.133',
+        pnl: '-0.2',
+        fee: '0',
+      };
+      const result = transformFillsToTransactions([longToShort, shortToLong]);
+      expect(result[0]?.fill).toBeDefined();
+      expect(result[1]?.fill).toBeDefined();
+      // The fill's displayed size is the POST-FLIP position size.
+      expect(result[0].fill?.size).toBe('0.167');
+      expect(result[1].fill?.size).toBe('0.167');
+      expect(result[0].category).toBe('position_close');
+      expect(result[1].category).toBe('position_close');
+    });
+
+    it('presents ambiguous zero-PnL Lighter side-only fills as neutral trades', () => {
+      // A break-even short REDUCTION arrives as a Lighter Buy with zero
+      // PnL — it must not appear as a position open; an ADD-TO-SHORT
+      // arrives as a Lighter Sell with zero PnL — it must not appear as a
+      // close. Neither is knowable, so both stay neutral.
+      const breakEvenReduction = {
+        ...mockFill,
+        direction: 'Buy',
+        pnl: '0',
+        fee: '0',
+        providerId: 'lighter' as const,
+      };
+      const addToShort = {
+        ...mockFill,
+        direction: 'Sell',
+        pnl: '0',
+        fee: '0',
+        providerId: 'lighter' as const,
+      };
+      const result = transformFillsToTransactions([
+        breakEvenReduction,
+        addToShort,
+      ]);
+      expect(result[0]?.fill).toBeDefined();
+      expect(result[1]?.fill).toBeDefined();
+      expect(result[0].category).toBe('trade');
+      expect(result[1].category).toBe('trade');
+      // HyperLiquid spot Buy/Sell keeps its open/close semantics.
+      const hlBuy = { ...mockFill, direction: 'Buy', pnl: '0', fee: '2' };
+      const hlResult = transformFillsToTransactions([hlBuy]);
+      expect(hlResult[0].category).toBe('position_open');
+    });
+
+    it('renders a Lighter Open Short sell as a position open, not a close', () => {
+      const sellOpen = {
+        ...mockFill,
+        direction: 'Open Short',
+        side: 'sell' as const,
+        pnl: '0',
+        fee: '0',
+      };
+      const result = transformFillsToTransactions([sellOpen]);
+      expect(result[0]?.fill).toBeDefined();
+      expect(result[0].category).toBe('position_open');
+      expect(result[0].title).toBe('Opened short');
+    });
+
+    it('renders a Lighter Close Long sell with its realized PnL', () => {
+      const closeLong = {
+        ...mockFill,
+        direction: 'Close Long',
+        side: 'sell' as const,
+        pnl: '-0.012901',
+        fee: '0',
+      };
+      const result = transformFillsToTransactions([closeLong]);
+      expect(result[0]?.fill).toBeDefined();
+      expect(result[0].category).toBe('position_close');
+      expect(result[0].title).toBe('Closed long');
+      expect(result[0].fill?.amount).toBe('-$0.01');
+    });
+
     it('transforms close position fill correctly', () => {
       const closeFill = {
         ...mockFill,

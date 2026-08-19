@@ -61,7 +61,14 @@ yarn-error.log
 
 # React Compiler bailout log (generated at build time)
 react-compiler.log
-.yalc
+# TAT-3766: the Lighter-enabled perps-controller build is committed so the
+# branch is reproducible until the core PR merges and publishes (git cannot
+# descend into an ignored dir, hence the unignored parent chain).
+.yalc/*
+!.yalc/@metamask/
+.yalc/@metamask/*
+!.yalc/@metamask/perps-controller/
+!.yalc/@metamask/perps-controller/**
 yalc.lock
 
 # Yarn v2+
@@ -244,3 +251,8 @@ predict_tsc_summary.txt
 .mm-server
 .mm-daemon.log
 test-artifacts/
+
+# TAT-3766 (must stay after the generic `dist/` rule above): the committed
+# perps-controller build ships its dist output.
+!.yalc/@metamask/perps-controller/dist/
+!.yalc/@metamask/perps-controller/dist/**

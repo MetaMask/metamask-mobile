@@ -13,6 +13,7 @@ import {
   usePerpsLivePositions,
   usePerpsLivePrices,
 } from './stream';
+import { useMinimumOrderAmount } from './useMinimumOrderAmount';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsSelector } from './usePerpsSelector';
@@ -106,31 +107,66 @@ export function usePerpsOrderForm(
   // When paying with a custom token, use selected token amount in USD (including 0); otherwise use Perps balance
   const balanceForMax = effectiveAvailableBalanceParam ?? spendableBalance;
 
-  // Determine default amount based on network
-  const defaultAmount =
+  // Default amount: the venue's per-market minimum (dynamic — e.g. a
+  // Lighter base-size minimum can exceed the flat network default), with
+  // the hook's own network fallback when market metadata is absent.
+  const { minimumOrderAmount } = useMinimumOrderAmount({
+    asset: initialAsset,
+  });
+  const networkDefaultAmount =
     currentNetwork === 'mainnet'
       ? TRADING_DEFAULTS.amount.mainnet
       : TRADING_DEFAULTS.amount.testnet;
+  const defaultAmount = Math.max(networkDefaultAmount, minimumOrderAmount);
   const fallbackAmount = fallbackAmountParam ?? defaultAmount.toString();
 
+  // A restored amount can predate the venue minimum (a saved $10 HyperLiquid
+  // default replayed onto Lighter): seeding it would render a form whose
+  // place button is disabled by validation, and the save-on-unmount snapshot
+  // would re-persist the invalid amount forever. Seeds are floored at the
+  // venue minimum; live user edits stay untouched (validation covers those).
+  const clampSeedToVenueMinimum = useCallback(
+    (value: string): string => {
+      const numeric = Number.parseFloat(value);
+      if (!Number.isFinite(numeric) || numeric >= minimumOrderAmount) {
+        return value;
+      }
+      return minimumOrderAmount.toString();
+    },
+    [minimumOrderAmount],
+  );
+
   // Priority for leverage: navigation param > existing position leverage > pending config > saved config > default (3x)
-  const defaultLeverage =
+  // Clamped to the market's maximum: trade configurations are keyed by
+  // network only, so a leverage saved on a 50x-max venue replays onto a
+  // 25x-max market and would render an invalid selection above the
+  // leverage slider cap.
+  const marketMaxLeverage = marketData?.maxLeverage;
+  const clampLeverageToMarketMax = useCallback(
+    (value: number): number =>
+      marketMaxLeverage && marketMaxLeverage > 0
+        ? Math.min(value, marketMaxLeverage)
+        : value,
+    [marketMaxLeverage],
+  );
+  const defaultLeverage = clampLeverageToMarketMax(
     initialLeverage ||
-    existingPositionLeverage ||
-    pendingConfig?.leverage ||
-    savedConfig?.leverage ||
-    TRADING_DEFAULTS.leverage;
+      existingPositionLeverage ||
+      pendingConfig?.leverage ||
+      savedConfig?.leverage ||
+      TRADING_DEFAULTS.leverage,
+  );
 
   // Priority for amount: navigation param > pending config > calculated default
   // Use memoized calculation for initial amount to ensure it updates when dependencies change
   const initialAmountValue = useMemo(() => {
     // If we have a pending config with amount, use it (unless overridden by navigation param)
     if (initialAmount) {
-      return initialAmount;
+      return clampSeedToVenueMinimum(initialAmount);
     }
 
     if (pendingConfig?.amount) {
-      return pendingConfig.amount;
+      return clampSeedToVenueMinimum(pendingConfig.amount);
     }
 
     // Don't calculate if price is not available yet to avoid temporary 0 values
@@ -170,6 +206,7 @@ export function usePerpsOrderForm(
     currentPrice?.price,
     marketData?.szDecimals,
     defaultLeverage,
+    clampSeedToVenueMinimum,
   ]);
 
   // Priority for order type: pending config > navigation param > default (market)
@@ -233,12 +270,19 @@ export function usePerpsOrderForm(
       ? maxPossibleAmountOverride
       : marginBasedMaxPossibleAmount;
 
-  // Update amount only once when the hook first calculates the initial value
-  // We use a ref to track if we've already set the initial amount to avoid overwriting user input
+  // Seed the amount when the initial value first computes, and keep
+  // following recomputations (e.g. a venue minimum that loads after the
+  // price stream) until the USER edits the amount — a stale flat default
+  // below the venue minimum would land one tick under the floor.
   const hasSetInitialAmount = useRef(false);
+  const userEditedAmount = useRef(false);
   useEffect(() => {
-    if (!hasSetInitialAmount.current && initialAmountValue !== '0') {
-      setOrderForm((prev) => ({ ...prev, amount: initialAmountValue }));
+    if (!userEditedAmount.current && initialAmountValue !== '0') {
+      setOrderForm((prev) =>
+        prev.amount === initialAmountValue
+          ? prev
+          : { ...prev, amount: initialAmountValue },
+      );
       hasSetInitialAmount.current = true;
     }
   }, [initialAmountValue]);
@@ -247,8 +291,12 @@ export function usePerpsOrderForm(
     if (!pendingConfig) return;
     setOrderForm((prev) => ({
       ...prev,
-      ...(pendingConfig.amount && { amount: pendingConfig.amount }),
-      ...(pendingConfig.leverage && { leverage: pendingConfig.leverage }),
+      ...(pendingConfig.amount && {
+        amount: clampSeedToVenueMinimum(pendingConfig.amount),
+      }),
+      ...(pendingConfig.leverage && {
+        leverage: clampLeverageToMarketMax(pendingConfig.leverage),
+      }),
       ...(pendingConfig.takeProfitPrice !== undefined && {
         takeProfitPrice: pendingConfig.takeProfitPrice,
       }),
@@ -263,6 +311,21 @@ export function usePerpsOrderForm(
     // We don't need to depend on pendingConfig because we only want to restore it once when the component mounts
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Market metadata loads asynchronously: leverage is seeded once via
+  // useState, so when maxLeverage arrives after mount a restored over-cap
+  // value must be pulled down (the amount side re-seeds via its own
+  // effect; leverage needs the same treatment).
+  useEffect(() => {
+    if (!marketMaxLeverage || marketMaxLeverage <= 0) {
+      return;
+    }
+    setOrderForm((prev) =>
+      prev.leverage > marketMaxLeverage
+        ? { ...prev, leverage: marketMaxLeverage }
+        : prev,
+    );
+  }, [marketMaxLeverage]);
 
   // Sync leverage from existing position when it loads asynchronously
   // This handles the case where positions haven't loaded yet when form initializes
@@ -320,6 +383,7 @@ export function usePerpsOrderForm(
 
   // Individual setters for common operations
   const setAmount = useCallback((amount: string) => {
+    userEditedAmount.current = true;
     setOrderForm((prev) => ({ ...prev, amount: amount || '0' }));
   }, []);
 

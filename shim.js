@@ -210,6 +210,21 @@ if (typeof global.MessageEvent === 'undefined') {
   global.MessageEvent =
     require('react-native/src/private/webapis/html/events/MessageEvent').default;
 }
+// RN's MessageEvent omits the `source` getter (commented out upstream), but
+// @metamask/post-message-stream asserts its existence at module load
+// (WindowPostMessageStream), which breaks snaps execution-service init.
+// Define a null getter — WindowPostMessageStream is never used at runtime on
+// RN (WebViewMessageStream is), only its load-time assert matters.
+if (
+  !Object.getOwnPropertyDescriptor(global.MessageEvent.prototype, 'source')?.get
+) {
+  Object.defineProperty(global.MessageEvent.prototype, 'source', {
+    get() {
+      return null;
+    },
+    configurable: true,
+  });
+}
 
 class AbortError extends Error {
   constructor(message) {

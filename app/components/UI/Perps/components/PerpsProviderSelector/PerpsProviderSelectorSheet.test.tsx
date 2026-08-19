@@ -63,8 +63,11 @@ describe('PerpsProviderSelectorSheet', () => {
   });
 
   it('renders all matching options when all providers available', () => {
+    // MYX rows were removed from the selector when Lighter replaced it as
+    // the second venue (operator decision, TAT-3766); MYX stays reachable
+    // through the aggregated provider only.
     mockUsePerpsProvider.mockReturnValue({
-      availableProviders: ['hyperliquid', 'myx'],
+      availableProviders: ['hyperliquid', 'lighter'],
     });
 
     const { getByTestId } = render(
@@ -77,8 +80,12 @@ describe('PerpsProviderSelectorSheet', () => {
     expect(
       getByTestId('provider-sheet-option-hyperliquid-testnet'),
     ).toBeOnTheScreen();
-    expect(getByTestId('provider-sheet-option-myx-mainnet')).toBeOnTheScreen();
-    expect(getByTestId('provider-sheet-option-myx-testnet')).toBeOnTheScreen();
+    expect(
+      getByTestId('provider-sheet-option-lighter-mainnet'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('provider-sheet-option-lighter-testnet'),
+    ).toBeOnTheScreen();
   });
 
   it('calls onOptionSelect when an option is pressed', async () => {

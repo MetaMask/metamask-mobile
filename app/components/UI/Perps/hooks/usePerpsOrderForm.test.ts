@@ -267,6 +267,199 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.amount).toBe('125');
     });
 
+    it('clamps a restored pending amount below the venue minimum up to the minimum', () => {
+      // Regression: a saved $10 HyperLiquid default replayed onto a venue
+      // with a higher per-market minimum (Lighter) seeded an amount the
+      // venue rejects, and save-on-unmount re-persisted it forever.
+      mockUsePerpsMarketData.mockReturnValue({
+        marketData: {
+          szDecimals: 6,
+          name: 'BTC',
+          maxLeverage: 10,
+          marginTableId: 1,
+          minimumOrderSize: 130,
+        },
+        refetch: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+      const mockStoreWithLowPendingConfig = configureStore({
+        reducer: {
+          engine: (
+            state = {
+              backgroundState: {
+                PerpsController: {
+                  isTestnet: false,
+                  tradeConfigurations: {
+                    mainnet: {
+                      BTC: {
+                        pendingConfig: {
+                          amount: '125',
+                          timestamp: Date.now(),
+                        },
+                      },
+                    },
+                    testnet: {},
+                  },
+                },
+              },
+            },
+          ) => state,
+        },
+      });
+      const WrapperWithLowPendingConfig = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const streamProvider = React.createElement(PerpsStreamProvider, {
+          testStreamManager: createMockStreamManager(),
+          children,
+        } as React.ComponentProps<typeof PerpsStreamProvider>);
+
+        return React.createElement(Provider, {
+          store: mockStoreWithLowPendingConfig,
+          children: streamProvider,
+        });
+      };
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            fallbackAmount: '',
+          }),
+        { wrapper: WrapperWithLowPendingConfig },
+      );
+
+      expect(result.current.orderForm.amount).toBe('130');
+    });
+
+    it('clamps a restored leverage above the market maximum down to the maximum', () => {
+      // Regression: a 40x leverage saved while trading a 50x-max venue
+      // replayed onto a market whose max is 25x (trade configurations are
+      // keyed by network only, not venue) and rendered an invalid 40x
+      // selection above the leverage slider cap.
+      mockUsePerpsMarketData.mockReturnValue({
+        marketData: {
+          szDecimals: 6,
+          name: 'BTC',
+          maxLeverage: 25,
+          marginTableId: 1,
+        },
+        refetch: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+      const mockStoreWithHighLeverage = configureStore({
+        reducer: {
+          engine: (
+            state = {
+              backgroundState: {
+                PerpsController: {
+                  isTestnet: false,
+                  tradeConfigurations: {
+                    mainnet: {
+                      BTC: {
+                        leverage: 40,
+                        pendingConfig: {
+                          leverage: 40,
+                          timestamp: Date.now(),
+                        },
+                      },
+                    },
+                    testnet: {},
+                  },
+                },
+              },
+            },
+          ) => state,
+        },
+      });
+      const WrapperWithHighLeverage = ({
+        children,
+      }: {
+        children: React.ReactNode;
+      }) => {
+        const streamProvider = React.createElement(PerpsStreamProvider, {
+          testStreamManager: createMockStreamManager(),
+          children,
+        } as React.ComponentProps<typeof PerpsStreamProvider>);
+
+        return React.createElement(Provider, {
+          store: mockStoreWithHighLeverage,
+          children: streamProvider,
+        });
+      };
+
+      const { result } = renderHook(
+        () => usePerpsOrderForm({ initialAsset: 'BTC' }),
+        { wrapper: WrapperWithHighLeverage },
+      );
+
+      expect(result.current.orderForm.leverage).toBe(25);
+    });
+
+    it('pulls an over-cap restored leverage down when market data loads after mount', () => {
+      // Market data starts null and arrives asynchronously: the clamp must
+      // apply retroactively, not only at seed time.
+      mockUsePerpsMarketData
+        .mockReturnValueOnce({
+          marketData: null,
+          refetch: jest.fn(),
+          isLoading: true,
+          error: null,
+        })
+        .mockReturnValue({
+          marketData: {
+            szDecimals: 6,
+            name: 'BTC',
+            maxLeverage: 25,
+            marginTableId: 1,
+          },
+          refetch: jest.fn(),
+          isLoading: false,
+          error: null,
+        });
+      const mockStoreLateData = configureStore({
+        reducer: {
+          engine: (
+            state = {
+              backgroundState: {
+                PerpsController: {
+                  isTestnet: false,
+                  tradeConfigurations: {
+                    mainnet: { BTC: { leverage: 40 } },
+                    testnet: {},
+                  },
+                },
+              },
+            },
+          ) => state,
+        },
+      });
+      const WrapperLateData = ({ children }: { children: React.ReactNode }) => {
+        const streamProvider = React.createElement(PerpsStreamProvider, {
+          testStreamManager: createMockStreamManager(),
+          children,
+        } as React.ComponentProps<typeof PerpsStreamProvider>);
+
+        return React.createElement(Provider, {
+          store: mockStoreLateData,
+          children: streamProvider,
+        });
+      };
+
+      const { result, rerender } = renderHook(
+        () => usePerpsOrderForm({ initialAsset: 'BTC' }),
+        { wrapper: WrapperLateData },
+      );
+      expect(result.current.orderForm.leverage).toBe(40);
+
+      rerender({});
+      expect(result.current.orderForm.leverage).toBe(25);
+    });
+
     it('prioritizes existing position leverage over saved config', () => {
       // Mock existing position with 10x leverage
       mockUsePerpsLivePositions.mockReturnValue({
@@ -376,6 +569,20 @@ describe('usePerpsOrderForm', () => {
     });
 
     it('prioritizes navigation param over existing position leverage', () => {
+      // These scenarios exercise leverage priority, not the market cap:
+      // raise the mock market max so the clamp stays out of the way.
+      mockUsePerpsMarketData.mockReturnValue({
+        marketData: {
+          szDecimals: 6,
+          name: 'BTC',
+          maxLeverage: 50,
+          marginTableId: 1,
+        },
+        refetch: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
       // Mock existing position with 10x leverage
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [createMockPosition('BTC', 10)],
@@ -430,6 +637,20 @@ describe('usePerpsOrderForm', () => {
     });
 
     it('does not update leverage when navigation param is provided even when position loads', () => {
+      // These scenarios exercise leverage priority, not the market cap:
+      // raise the mock market max so the clamp stays out of the way.
+      mockUsePerpsMarketData.mockReturnValue({
+        marketData: {
+          szDecimals: 6,
+          name: 'BTC',
+          maxLeverage: 50,
+          marginTableId: 1,
+        },
+        refetch: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
       // Initial render with navigation param but no existing position
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
@@ -462,6 +683,20 @@ describe('usePerpsOrderForm', () => {
     });
 
     it('initializes with provided values', () => {
+      // These scenarios exercise leverage priority, not the market cap:
+      // raise the mock market max so the clamp stays out of the way.
+      mockUsePerpsMarketData.mockReturnValue({
+        marketData: {
+          szDecimals: 6,
+          name: 'BTC',
+          maxLeverage: 50,
+          marginTableId: 1,
+        },
+        refetch: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
       const { result } = renderHook(
         () =>
           usePerpsOrderForm({

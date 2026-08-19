@@ -125,6 +125,7 @@ import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAll
 import PerpsMoreSection, {
   type PerpsMoreItem,
 } from '../../components/PerpsMoreSection';
+import PerpsRecoveryStatusBanner from '../../components/PerpsRecoveryStatusBanner';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsProducts from '../../components/PerpsProducts';
@@ -1129,6 +1130,9 @@ const PerpsHomeView = () => {
                 />
               </Box>
             )}
+            <Box twClassName="px-4">
+              <PerpsRecoveryStatusBanner />
+            </Box>
             <TitleHub
               testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
               title={perpsScreenTitle}

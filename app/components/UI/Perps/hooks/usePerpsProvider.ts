@@ -31,6 +31,14 @@ export function usePerpsProvider() {
       providers.push('aggregated');
     }
 
+    // Lighter POC (TAT-3766): local env gate only; babel inlines the env read.
+    if (process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true') {
+      providers.push('lighter');
+      if (!providers.includes('aggregated')) {
+        providers.push('aggregated');
+      }
+    }
+
     return providers;
   }, [isMYXProviderEnabled]);
 

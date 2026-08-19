@@ -140,13 +140,18 @@ class PerpsConnectionManagerClass {
         this.previousProvider !== currentProvider;
       const hasHip3Changed = this.previousHip3Version !== currentHip3Version;
 
-      // If account, network, provider, or HIP-3 config changed and we're connected, trigger reconnection
+      // Identity changes must invalidate caches IMMEDIATELY, even while
+      // temporarily disconnected (e.g. a preserveCaches soft reconnect in
+      // flight): the tracked identity advances at the bottom of this
+      // listener regardless of isConnected, so skipping the clear here
+      // would leave the previous account's data cached with no later
+      // change detection. Only reconnection scheduling is gated on
+      // isConnected below.
       if (
-        (hasAccountChanged ||
-          hasPerpsNetworkChanged ||
-          hasProviderChanged ||
-          hasHip3Changed) &&
-        this.isConnected
+        hasAccountChanged ||
+        hasPerpsNetworkChanged ||
+        hasProviderChanged ||
+        hasHip3Changed
       ) {
         DevLogger.log(
           hasHip3Changed
@@ -223,29 +228,45 @@ class PerpsConnectionManagerClass {
             ? this.pendingSkipMarketNotify && accountOnly
             : accountOnly;
 
-        // Debounce: coalesce rapid state changes (e.g. provider switch + network
-        // toggle in the same tick) into a single reconnection attempt.
-        if (this.stateChangeDebounceTimer !== null) {
-          clearTimeout(this.stateChangeDebounceTimer);
-        }
-        this.stateChangeDebounceTimer = setTimeout(() => {
-          this.stateChangeDebounceTimer = null;
-          this.reconnectWithNewContext().catch((error) => {
-            Logger.error(
-              ensureError(error, 'PerpsConnectionManager.setupStateMonitoring'),
-              {
-                tags: { feature: PERPS_CONSTANTS.FeatureName },
-                context: {
-                  name: 'PerpsConnectionManager.setupStateMonitoring',
-                  data: {
-                    message:
-                      'Error reconnecting with new account/network context',
+        // Reconnection scheduling (unlike the cache invalidation above)
+        // only applies while connected: a disconnected/soft-reconnecting
+        // manager reconnects through its own in-flight path, which reads
+        // the new identity when it runs.
+        if (this.isConnected) {
+          // Debounce: coalesce rapid state changes (e.g. provider switch + network
+          // toggle in the same tick) into a single reconnection attempt.
+          if (this.stateChangeDebounceTimer !== null) {
+            clearTimeout(this.stateChangeDebounceTimer);
+          }
+          this.stateChangeDebounceTimer = setTimeout(() => {
+            this.stateChangeDebounceTimer = null;
+            // Re-check at fire time: a soft reconnect/disconnect can take
+            // over inside the debounce window (setting isConnected=false);
+            // firing anyway would run a second reconnection concurrently
+            // with the in-flight one, which reads the new identity itself.
+            if (!this.isConnected) {
+              return;
+            }
+            this.reconnectWithNewContext().catch((error) => {
+              Logger.error(
+                ensureError(
+                  error,
+                  'PerpsConnectionManager.setupStateMonitoring',
+                ),
+                {
+                  tags: { feature: PERPS_CONSTANTS.FeatureName },
+                  context: {
+                    name: 'PerpsConnectionManager.setupStateMonitoring',
+                    data: {
+                      message:
+                        'Error reconnecting with new account/network context',
+                    },
                   },
                 },
-              },
-            );
-          });
-        }, 50);
+              );
+            });
+          }, 50);
+        }
       }
 
       // Abandon pending CUFs on ANY session-identity change — even while
@@ -675,6 +696,15 @@ class PerpsConnectionManagerClass {
       if (this.isConnected || this.isInitialized) {
         // Track that we're disconnecting
         this.isDisconnecting = true;
+
+        // A pending identity-change debounce must not fire into this
+        // takeover: the reconnect path that follows reads the current
+        // identity itself, and a late timer would run a second
+        // reconnection concurrently (or spuriously after completion).
+        if (this.stateChangeDebounceTimer !== null) {
+          clearTimeout(this.stateChangeDebounceTimer);
+          this.stateChangeDebounceTimer = null;
+        }
 
         this.disconnectPromise = (async () => {
           try {

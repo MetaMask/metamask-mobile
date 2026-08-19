@@ -1,0 +1,109 @@
+{
+  "$schema": "https://farmslot.io/schemas/recipe-v1.schema.json",
+  "title": "Lighter \u2014 open a minimal position through the real order form",
+  "description": "Navigates to the market, presses Long/Short, accepts the venue-minimum seeded amount, places the market order through the UI, and verifies the position against the venue. Re-entrant: when a position already exists the UI-open leg is skipped and the unit just verifies it (ensure semantics via graph branching).",
+  "paramsSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "market": {
+        "type": "string",
+        "default": "ETH"
+      },
+      "direction": {
+        "type": "string",
+        "enum": ["long", "short"],
+        "default": "long"
+      }
+    }
+  },
+  "workflow": {
+    "entry": "check",
+    "nodes": {
+      "market": {
+        "action": "ui.navigate",
+        "page": "perps-market",
+        "market": "{{params.market}}",
+        "intent": "Open the market page the trade starts from.",
+        "next": "settle-market"
+      },
+      "settle-market": {
+        "action": "wait",
+        "duration_ms": 12000,
+        "intent": "Let live prices render so the trade buttons are active.",
+        "next": "press-direction"
+      },
+      "press-direction": {
+        "action": "ui.press",
+        "test_id": "perps-market-details-{{params.direction}}-button",
+        "intent": "Start the trade the way a user does.",
+        "next": "settle-form"
+      },
+      "settle-form": {
+        "action": "wait",
+        "duration_ms": 10000,
+        "intent": "Let the order form mount and seed the venue-minimum amount.",
+        "next": "form-ready"
+      },
+      "form-ready": {
+        "action": "ui.wait_for",
+        "test_id": "perps-order-view-place-order-button",
+        "timeout_ms": 30000,
+        "intent": "The order form is on screen with its place button (presence check \u2014 viewport measurement is unreliable under chart load).",
+        "next": "shot-form"
+      },
+      "shot-form": {
+        "action": "ui.screenshot",
+        "path": "screenshots/open-{{params.market}}-form.png",
+        "intent": "Record the seeded order form before placing.",
+        "next": "place"
+      },
+      "place": {
+        "action": "ui.press",
+        "test_id": "perps-order-view-place-order-button",
+        "intent": "Place the market order from the real button.",
+        "next": "settle-place"
+      },
+      "settle-place": {
+        "action": "wait",
+        "duration_ms": 10000,
+        "intent": "Give the venue time to fill and the app time to sync.",
+        "next": "assert-open"
+      },
+      "assert-open": {
+        "action": "metamask.perps.assert_positions",
+        "market": "{{params.market}}",
+        "state": "present",
+        "timeout_ms": 30000,
+        "intent": "Venue truth: the position exists.",
+        "next": "shot-open"
+      },
+      "shot-open": {
+        "action": "ui.screenshot",
+        "path": "screenshots/open-{{params.market}}-filled.png",
+        "intent": "Record what the user sees after the fill.",
+        "next": "done"
+      },
+      "done": {
+        "action": "end",
+        "status": "pass"
+      },
+      "check": {
+        "action": "metamask.perps.read_positions",
+        "market": "{{params.market}}",
+        "intent": "Read whether a position already exists so the unit can converge instead of failing on a re-run.",
+        "next": "branch"
+      },
+      "branch": {
+        "action": "switch",
+        "value": "n:{{outputs.check.matchingCount}}",
+        "equals": "n:0",
+        "cases": {
+          "match": "market"
+        },
+        "default": "assert-open",
+        "intent": "Open through the UI only when no position exists; an existing position already satisfies this unit."
+      }
+    }
+  }
+}
