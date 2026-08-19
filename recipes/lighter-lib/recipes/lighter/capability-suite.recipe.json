@@ -86,7 +86,7 @@
           "market": "{{params.orderMarket}}"
         },
         "intent": "Leave the venue book clean.",
-        "next": "final-flat"
+        "next": "history"
       },
       "final-flat": {
         "action": "metamask.perps.assert_positions",
@@ -116,6 +116,15 @@
         "timeout_ms": 30000,
         "intent": "No orders or triggers are left resting anywhere after the suite.",
         "next": "done"
+      },
+      "history": {
+        "action": "call",
+        "ref": "lighter.history",
+        "params": {
+          "expectSymbol": "{{params.positionMarket}}"
+        },
+        "intent": "Prove the venue trade history renders in the Activity surface.",
+        "next": "final-flat"
       }
     }
   }
