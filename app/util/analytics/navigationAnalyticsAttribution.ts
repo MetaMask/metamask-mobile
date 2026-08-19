@@ -67,6 +67,33 @@ const rememberConsumption = (consumptionKey: string) => {
   }
 };
 
+/**
+ * Consumes the attribution mapping for one navigation context and event.
+ *
+ * Callers that emit related events from the same property set can use the
+ * returned value before building those events. Later emissions for the same
+ * context and event return `undefined`.
+ */
+export const consumeNavigationAnalyticsAttribution = (
+  analyticsContext: NavigationAnalyticsContext,
+  eventName: string,
+): NavigationAttributionMapping | undefined => {
+  const mapping = NAVIGATION_ATTRIBUTION_MAPPINGS[
+    analyticsContext.attribution
+  ]?.find(({ eventName: mappedEventName }) => mappedEventName === eventName);
+  if (!mapping) {
+    return undefined;
+  }
+
+  const consumptionKey = `${analyticsContext.id}:${eventName}`;
+  if (consumedAttributions.has(consumptionKey)) {
+    return undefined;
+  }
+
+  rememberConsumption(consumptionKey);
+  return mapping;
+};
+
 export const enrichWithNavigationAttribution = <
   T extends {
     name: string;
@@ -83,18 +110,13 @@ export const enrichWithNavigationAttribution = <
     return event;
   }
 
-  const mapping = NAVIGATION_ATTRIBUTION_MAPPINGS[
-    analyticsContext.attribution
-  ]?.find(({ eventName }) => eventName === event.name);
+  const mapping = consumeNavigationAnalyticsAttribution(
+    analyticsContext,
+    event.name,
+  );
   if (!mapping) {
     return event;
   }
-
-  const consumptionKey = `${analyticsContext.id}:${event.name}`;
-  if (consumedAttributions.has(consumptionKey)) {
-    return event;
-  }
-  rememberConsumption(consumptionKey);
 
   if (event.properties[mapping.property] !== undefined) {
     return event;

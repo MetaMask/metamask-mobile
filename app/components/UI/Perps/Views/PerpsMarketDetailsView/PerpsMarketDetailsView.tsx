@@ -753,9 +753,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
       [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
       [PERPS_EVENT_PROPERTY.SOURCE]:
-        source ||
-        analyticsContext?.attribution ||
-        PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+        source || PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
       ...chartAnalyticsProperties,
       ...(source_section && {
         [PERPS_EVENT_PROPERTY.SOURCE_SECTION]: source_section,
@@ -775,7 +773,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [
       market?.symbol,
       source,
-      analyticsContext,
       chartAnalyticsProperties,
       source_section,
       existingPosition,
@@ -813,6 +810,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     resetKey: marketDetailsScreenViewResetKey,
     conditions: [isMarketDetailsScreenViewReady],
+    navigationAnalyticsContext: source ? undefined : analyticsContext,
     properties: marketDetailsScreenViewedProperties,
   });
 

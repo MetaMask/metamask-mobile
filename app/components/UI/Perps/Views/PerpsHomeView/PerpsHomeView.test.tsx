@@ -1288,6 +1288,10 @@ describe('PerpsHomeView', () => {
 
     interface TrackingOptions {
       properties?: Record<string, unknown>;
+      navigationAnalyticsContext?: {
+        id: string;
+        attribution: string;
+      };
     }
 
     const getBaseEventProperties = (
@@ -1304,7 +1308,7 @@ describe('PerpsHomeView', () => {
       jest.clearAllMocks();
     });
 
-    it('uses navigation analytics attribution as the source', () => {
+    it('delegates one-time source attribution to Perps event tracking', () => {
       mockRouteParams = {
         analyticsContext: {
           id: 'balance-breakdown-navigation',
@@ -1317,7 +1321,12 @@ describe('PerpsHomeView', () => {
       const properties = getBaseEventProperties(
         mockUsePerpsEventTracking.mock.calls,
       );
-      expect(properties?.source).toBe('homescreen_balance_breakdown');
+      expect(properties?.source).toBe('main_action_button');
+      expect(mockUsePerpsEventTracking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          navigationAnalyticsContext: mockRouteParams.analyticsContext,
+        }),
+      );
     });
 
     it('includes sections_displayed containing balance and explore sections when markets exist', () => {
