@@ -58,6 +58,31 @@
           <li>Tests without metrics indicate an instrumentation, session, or flow failure rather than application slowness.</li>
         </ul>
       </section>
+
+      <section class="section">
+        <h2>Steps where TestMu was slower than BrowserStack</h2>
+        <div class="note">
+          Differences are calculated as <strong>TestMu time − BrowserStack time</strong>.
+          Only steps with valid metrics and a positive difference are shown.
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Scenario</th>
+                <th>Step</th>
+                <th>BrowserStack</th>
+                <th>TestMu Standard</th>
+                <th>Difference</th>
+                <th>TestMu HE</th>
+                <th>Difference</th>
+              </tr>
+            </thead>
+            <tbody id="slower-steps"></tbody>
+          </table>
+        </div>
+      </section>
+
       <p class="foot">Generated for run 32265974787 · Branch MMQA-TestMu-PoC-HyperExecute · All values are expressed in seconds.</p>
     </main>
     <script>
@@ -98,6 +123,53 @@
         }).join("");
         tbody.insertAdjacentHTML("beforeend",`<tr><td>${name}</td>${cells}</tr>`);
       });
+
+      const slowerSteps = [
+        ["Cold Start → Onboarding", "App installed → onboarding screen", 2164, 2266, 2643],
+        ["Onboarding Import SRP", "Create wallet → social sign-up", 1025, 1062, 1014],
+        ["Onboarding Import SRP", "Import SRP → SRP field", 722, 533, 933],
+        ["Onboarding Import SRP", "Continue → password fields", 569, 425, 1065],
+        ["Onboarding Import SRP", "Done → ETH and BTC visible", 839, 526, 1003],
+        ["Account creation", "Account list visible", 1218, 1526, 593],
+        ["Account creation", "Account created in list", 238, 651, 664],
+        ["Account creation", "Token list visible", 289, 546, 334],
+        ["Seedless Apple", "Apple login → post-OAuth", 49, 300, 600],
+        ["Seedless Apple", "Create Password → success", 562, 3505, 3250],
+        ["Seedless Apple", "Done → wallet main screen", 140, 485, 413],
+        ["Seedless Google", "Create wallet → onboarding sheet", 564, 1161, 1009],
+        ["Seedless Google", "Create Password → success", 1200, 3041, 1584],
+        ["Seedless Telegram", "Create wallet → onboarding sheet", 647, null, 1144],
+        ["Seedless Telegram", "Telegram login → post-OAuth", 455, null, 2659],
+        ["Seedless Telegram", "Done → wallet main screen", 152, null, 429],
+        ["Aggregated Balance Loading", "Wallet tab → balance stable", 8181, 8933, 8724],
+        ["Cross-chain swap ETH → SOL", "Swap button → swap page", 908, 1186, 1240],
+        ["Cross-chain swap ETH → SOL", "Amount entered → quote", 4522, 7082, 4677],
+        ["Asset View", "Asset button → token overview", 3898, 2581, 3984],
+        ["Swap ETH → LINK", "Amount entered → quote", 441, 617, 397],
+        ["Perps add funds", "Select Perps main screen", 1391, 1885, 877],
+        ["Perps add funds", "Open Add Funds", 2077, 3046, 2049],
+        ["Perps add funds", "Get Quote", 3165, 3443, 6169],
+        ["Predict Available Balance", "Predict button → balance", 775, null, 1424],
+        ["Predict Market Details", "Predict button → market list", 837, 1274, 892],
+        ["Predict Market Details", "About tab visible", 581, 829, 471],
+        ["Predict Market Details", "Outcomes tab visible", 799, 1521, 523],
+      ];
+
+      document.getElementById("slower-steps").innerHTML = slowerSteps.map(
+        ([scenario, step, browserStack, standard, he]) => {
+          const diff = (value) =>
+            value === null || browserStack === null ? "N/A" : `${value - browserStack} ms`;
+          return `<tr>
+            <td>${scenario}</td>
+            <td>${step}</td>
+            <td>${browserStack === null ? "N/A" : `${browserStack} ms`}</td>
+            <td>${standard === null ? "N/A" : `${standard} ms`}</td>
+            <td class="${standard !== null && standard > browserStack ? "fail" : "missing"}">${diff(standard)}</td>
+            <td>${he === null ? "N/A" : `${he} ms`}</td>
+            <td class="${he !== null && he > browserStack ? "fail" : "missing"}">${diff(he)}</td>
+          </tr>`;
+        },
+      ).join("");
     </script>
   </body>
 </html>
