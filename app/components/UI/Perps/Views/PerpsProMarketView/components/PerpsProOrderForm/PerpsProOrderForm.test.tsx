@@ -133,6 +133,49 @@ describe('PerpsProOrderForm', () => {
       expect(orderTypeCardRef.current).not.toBeNull();
     });
 
+    it('renders a limit price warning under the input, submit still enabled', () => {
+      renderForm({
+        orderType: 'limit',
+        limitPriceNotices: [
+          {
+            id: 'unfavorable',
+            severity: 'warning',
+            message: 'Limit price is above current price.',
+          },
+        ],
+      });
+
+      expect(
+        screen.getByTestId(`${ids.LIMIT_PRICE_NOTICE}-unfavorable`),
+      ).toHaveTextContent('Limit price is above current price.');
+      expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).not.toBeDisabled();
+    });
+
+    it('renders every notice in the slot, whatever the severity', () => {
+      renderForm({
+        orderType: 'limit',
+        limitPriceNotices: [
+          { id: 'unfavorable', severity: 'warning', message: 'Careful' },
+          { id: 'blocked', severity: 'error', message: 'Nope' },
+        ],
+      });
+
+      expect(
+        screen.getByTestId(`${ids.LIMIT_PRICE_NOTICE}-unfavorable`),
+      ).toHaveTextContent('Careful');
+      expect(
+        screen.getByTestId(`${ids.LIMIT_PRICE_NOTICE}-blocked`),
+      ).toHaveTextContent('Nope');
+    });
+
+    it('renders nothing in the notice slot when there are none', () => {
+      renderForm({ orderType: 'limit' });
+
+      expect(
+        screen.queryByTestId(`${ids.LIMIT_PRICE_NOTICE}-unfavorable`),
+      ).not.toBeOnTheScreen();
+    });
+
     it('renders limit price input for limit orders', () => {
       renderForm({ orderType: 'limit' });
 

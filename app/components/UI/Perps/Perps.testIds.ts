@@ -548,6 +548,7 @@ export const PerpsProOrderFormSelectorsIDs = {
   ORDER_TYPE_BUTTON: 'perps-pro-order-form-order-type',
   LIMIT_PRICE_INPUT: 'perps-pro-order-form-limit-price-input',
   LIMIT_PRICE_PREFIX: 'perps-pro-order-form-limit-price-prefix',
+  LIMIT_PRICE_NOTICE: 'perps-pro-order-form-limit-price-notice',
   MID_PRICE_BUTTON: 'perps-pro-order-form-mid-price',
   MARGIN_SETTINGS_ROW: 'perps-pro-order-form-margin-settings',
   SIZE_CARD: 'perps-pro-order-form-size-card',

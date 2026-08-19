@@ -77,6 +77,11 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   isTPSLConfigured: false,
   onTPSLPress: jest.fn(),
   notices: [] as { id: string; variant: string; message?: string }[],
+  limitPriceNotices: [] as {
+    id: string;
+    severity: string;
+    message: string;
+  }[],
   summary: { margin: '$20.00', liquidationPrice: '$80,000', slippage: '1%' },
   isPlaceOrderDisabled: false,
   isPlaceOrderLoading: false,
@@ -446,5 +451,26 @@ describe('PerpsProOrderFormPanel', () => {
 
     // Assert
     expect(screen.getByTestId('mock-tooltip-geo_block')).toBeOnTheScreen();
+  });
+  it('forwards limit price notices through to the rendered form', () => {
+    // Arrange
+    mockHookResult.orderType = 'limit';
+    mockHookResult.limitPriceNotices = [
+      {
+        id: 'unfavorable',
+        severity: 'warning',
+        message: 'Above current price',
+      },
+    ];
+
+    // Act
+    renderPanel();
+
+    // Assert
+    expect(
+      screen.getByTestId(
+        `${PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_NOTICE}-unfavorable`,
+      ),
+    ).toHaveTextContent('Above current price');
   });
 });

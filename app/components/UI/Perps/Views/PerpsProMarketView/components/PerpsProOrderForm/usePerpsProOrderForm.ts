@@ -65,7 +65,10 @@ import {
   deriveOrderSizing,
   getReduceOnlyMaxUsdAmount,
 } from '../../../../utils/orderSizing';
-import { willFlipPosition } from '../../../../utils/orderUtils';
+import {
+  isLimitPriceUnfavorable,
+  willFlipPosition,
+} from '../../../../utils/orderUtils';
 import {
   validateReduceOnlyOrder,
   getReduceOnlyPositionError,
@@ -82,6 +85,7 @@ import {
 } from '../../../../../../Base/Keypad/normalizeNumericTextInput';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../../../selectors/featureFlags';
 import type {
+  PerpsProLimitPriceNotice,
   PerpsProOrderDirection,
   PerpsProOrderNotice,
   PerpsProOrderSummaryProps,
@@ -247,6 +251,7 @@ export interface UsePerpsProOrderFormResult {
   isTPSLConfigured: boolean;
   onTPSLPress: () => void;
   notices: PerpsProOrderNotice[];
+  limitPriceNotices: PerpsProLimitPriceNotice[];
   summary: PerpsProOrderSummaryProps;
   isPlaceOrderDisabled: boolean;
   isPlaceOrderLoading: boolean;
@@ -1084,6 +1089,39 @@ export const usePerpsProOrderForm = ({
     onSlippagePress,
   ]);
 
+  const limitPriceNotices = useMemo<PerpsProLimitPriceNotice[]>(() => {
+    if (isMarketOrder) {
+      return [];
+    }
+
+    const list: PerpsProLimitPriceNotice[] = [];
+
+    if (
+      isLimitPriceUnfavorable(
+        orderForm.limitPrice ?? '',
+        assetData.price,
+        orderForm.direction,
+      )
+    ) {
+      list.push({
+        id: 'unfavorable',
+        severity: 'warning',
+        message: strings(
+          orderForm.direction === 'long'
+            ? 'perps.order.validation.limit_price_above_current_price'
+            : 'perps.order.validation.limit_price_below_current_price',
+        ),
+      });
+    }
+
+    return list;
+  }, [
+    isMarketOrder,
+    orderForm.limitPrice,
+    orderForm.direction,
+    assetData.price,
+  ]);
+
   const isPlaceOrderDisabled =
     !orderValidation.isValid ||
     isAtCap ||
@@ -1231,6 +1269,7 @@ export const usePerpsProOrderForm = ({
     ),
     onTPSLPress,
     notices,
+    limitPriceNotices,
     summary,
     isPlaceOrderDisabled,
     isPlaceOrderLoading: isPlacing,

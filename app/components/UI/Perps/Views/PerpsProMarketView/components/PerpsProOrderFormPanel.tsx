@@ -52,6 +52,7 @@ const PerpsProOrderFormPanel = ({
     limitPrice,
     onLimitPriceChange,
     onLimitPriceBlur,
+    limitPriceNotices,
     onUseMidPricePress,
     sizeInput,
     sizeSlider,
@@ -162,6 +163,7 @@ const PerpsProOrderFormPanel = ({
         onLimitPriceChange={onLimitPriceChange}
         onLimitPriceFocus={onLimitPriceFocus}
         onLimitPriceBlur={onLimitPriceBlurWithKeyboardScroll}
+        limitPriceNotices={limitPriceNotices}
         orderTypeCardRef={orderTypeCardRef}
         onLimitPriceFieldPress={onLimitPriceFieldPress}
         onUseMidPricePress={onUseMidPricePress}

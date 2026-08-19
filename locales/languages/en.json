@@ -1645,6 +1645,8 @@
         "invalid_stop_loss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
         "liquidation_warning": "Position is close to liquidation price",
         "limit_price_required": "Please set a limit price for limit orders",
+        "limit_price_above_current_price": "Limit price is above current price. Your order may execute as a market order.",
+        "limit_price_below_current_price": "Limit price is below current price. Your order may execute as a market order.",
         "price_required": "Price is required",
         "please_set_a_limit_price": "Please set a limit price",
         "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",

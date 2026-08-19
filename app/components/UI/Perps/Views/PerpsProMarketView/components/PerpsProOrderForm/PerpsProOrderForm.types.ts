@@ -37,6 +37,16 @@ export interface PerpsProSizeSliderModel {
   onDragCancel: () => void;
 }
 
+/**
+ * Feedback rendered directly beneath the limit price row. `warning` is advisory
+ * and leaves submission enabled; `error` is for conditions that also block.
+ */
+export interface PerpsProLimitPriceNotice {
+  id: string;
+  severity: 'warning' | 'error';
+  message: string;
+}
+
 export interface PerpsProOrderNotice {
   id: string;
   variant: 'banner' | 'inline';
@@ -75,6 +85,7 @@ export interface PerpsProOrderFormProps {
   onLimitPriceChange: (value: string) => void;
   onLimitPriceFocus?: () => void;
   onLimitPriceBlur?: () => void;
+  limitPriceNotices?: PerpsProLimitPriceNotice[];
   /**
    * Forwarded to the order-type card — which holds the limit price row, and
    * later the trigger price row — so it can be measured for keyboard clearance.

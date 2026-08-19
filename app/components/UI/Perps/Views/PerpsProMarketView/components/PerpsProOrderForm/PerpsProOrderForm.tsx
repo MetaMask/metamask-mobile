@@ -41,6 +41,7 @@ import PerpsProCompactInput, {
 } from './PerpsProCompactInput';
 import PerpsProSizeInput from './PerpsProSizeInput';
 import type {
+  PerpsProLimitPriceNotice,
   PerpsProOrderDirection,
   PerpsProOrderFormProps,
   PerpsProOrderNotice,
@@ -121,6 +122,30 @@ const KeyboardAccessory = ({ inputTestID }: { inputTestID: string }) => (
     </Box>
   </InputAccessoryView>
 );
+
+const LimitPriceNotices = ({
+  notices,
+}: {
+  notices: PerpsProLimitPriceNotice[];
+}) =>
+  notices.length > 0 ? (
+    <Box twClassName="gap-1 px-1">
+      {notices.map((notice) => (
+        <Text
+          key={notice.id}
+          variant={TextVariant.BodyXs}
+          color={
+            notice.severity === 'error'
+              ? TextColor.ErrorDefault
+              : TextColor.WarningDefault
+          }
+          testID={`${ids.LIMIT_PRICE_NOTICE}-${notice.id}`}
+        >
+          {notice.message}
+        </Text>
+      ))}
+    </Box>
+  ) : null;
 
 const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
   notices.length > 0 ? (
@@ -266,6 +291,7 @@ const PerpsProOrderForm = ({
   onLimitPriceChange,
   onLimitPriceFocus,
   onLimitPriceBlur,
+  limitPriceNotices = [],
   orderTypeCardRef,
   onLimitPriceFieldPress,
   onUseMidPricePress,
@@ -438,6 +464,7 @@ const PerpsProOrderForm = ({
               />
             ) : null}
           </Box>
+          <LimitPriceNotices notices={limitPriceNotices} />
           <PerpsProSizeInput
             containerRef={sizeCardRef}
             onFieldPress={onSizeFieldPress}

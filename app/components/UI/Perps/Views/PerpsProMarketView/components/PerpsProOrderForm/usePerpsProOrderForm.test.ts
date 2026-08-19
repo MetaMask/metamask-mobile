@@ -311,6 +311,72 @@ describe('usePerpsProOrderForm', () => {
       expect(banner?.message).toBe('Insufficient funds');
     });
 
+    describe('limit price notices', () => {
+      const findUnfavorable = (
+        notices: { id: string; severity: string; message: string }[],
+      ) => notices.find((n) => n.id === 'unfavorable');
+
+      it('warns without blocking a buy priced above the market', () => {
+        // Arrange: market is 90000, so a long at 95000 crosses and fills now
+        mockOrderForm.type = 'limit';
+        mockOrderForm.direction = 'long';
+        mockOrderForm.limitPrice = '95000';
+
+        // Act
+        const { result } = renderProForm();
+
+        // Assert
+        const notice = findUnfavorable(result.current.limitPriceNotices);
+        expect(notice?.severity).toBe('warning');
+        expect(notice?.message).toContain('above current price');
+        expect(result.current.isPlaceOrderDisabled).toBe(false);
+      });
+
+      it('warns without blocking a sell priced below the market', () => {
+        mockOrderForm.type = 'limit';
+        mockOrderForm.direction = 'short';
+        mockOrderForm.limitPrice = '85000';
+
+        const { result } = renderProForm();
+
+        const notice = findUnfavorable(result.current.limitPriceNotices);
+        expect(notice?.message).toContain('below current price');
+        expect(result.current.isPlaceOrderDisabled).toBe(false);
+      });
+
+      it('does not add it to the blocking notices list', () => {
+        mockOrderForm.type = 'limit';
+        mockOrderForm.direction = 'long';
+        mockOrderForm.limitPrice = '95000';
+
+        const { result } = renderProForm();
+
+        expect(
+          result.current.notices.find((n) => n.id === 'unfavorable'),
+        ).toBeUndefined();
+      });
+
+      it('stays quiet for a buy below the market, which rests on the book', () => {
+        mockOrderForm.type = 'limit';
+        mockOrderForm.direction = 'long';
+        mockOrderForm.limitPrice = '85000';
+
+        const { result } = renderProForm();
+
+        expect(result.current.limitPriceNotices).toHaveLength(0);
+      });
+
+      it('stays quiet on a market order carrying a stale limit price', () => {
+        mockOrderForm.type = 'market';
+        mockOrderForm.direction = 'long';
+        mockOrderForm.limitPrice = '95000';
+
+        const { result } = renderProForm();
+
+        expect(result.current.limitPriceNotices).toHaveLength(0);
+      });
+    });
+
     it('maps an OI cap to a banner notice', () => {
       // Arrange
       mockIsAtCap = true;

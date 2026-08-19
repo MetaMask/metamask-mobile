@@ -16,6 +16,7 @@ import {
   willFlipPosition,
   determineMakerStatus,
   isPriceOutsideDeviationBand,
+  isLimitPriceUnfavorable,
 } from './orderUtils';
 import { Order, OrderParams, type OrderType } from '@metamask/perps-controller';
 import { Position } from '../hooks';
@@ -1553,5 +1554,69 @@ describe('orderUtils', () => {
         );
       },
     );
+  });
+  describe('isLimitPriceUnfavorable', () => {
+    const marketPrice = 3000;
+
+    it('flags a buy priced above the market, which would fill on placement', () => {
+      expect(isLimitPriceUnfavorable('3100', marketPrice, 'long')).toBe(true);
+    });
+
+    it('flags a sell priced below the market, which would fill on placement', () => {
+      expect(isLimitPriceUnfavorable('2900', marketPrice, 'short')).toBe(true);
+    });
+
+    it('leaves a buy below the market alone, since it rests on the book', () => {
+      expect(isLimitPriceUnfavorable('2900', marketPrice, 'long')).toBe(false);
+    });
+
+    it('leaves a sell above the market alone, since it rests on the book', () => {
+      expect(isLimitPriceUnfavorable('3100', marketPrice, 'short')).toBe(false);
+    });
+
+    it.each([['long' as const], ['short' as const]])(
+      'does not flag a price exactly at the market for %s',
+      (direction) => {
+        expect(isLimitPriceUnfavorable('3000', marketPrice, direction)).toBe(
+          false,
+        );
+      },
+    );
+
+    it.each([
+      ['empty while still typing', ''],
+      ['a lone decimal point', '.'],
+      ['non-numeric text', 'abc'],
+      ['zero', '0'],
+      ['negative', '-100'],
+    ])('does not flag %s', (_label, limitPrice) => {
+      expect(isLimitPriceUnfavorable(limitPrice, marketPrice, 'long')).toBe(
+        false,
+      );
+    });
+
+    it.each([
+      ['zero market price', 0],
+      ['negative market price', -5],
+    ])('does not flag anything against a %s', (_label, price) => {
+      expect(isLimitPriceUnfavorable('3100', price, 'long')).toBe(false);
+    });
+
+    // parseFloat would read '3,100' as 3, silencing the warning.
+    it.each([
+      ['grouping commas', '3,100'],
+      ['a currency prefix', '$3100'],
+      ['both', '$3,100'],
+    ])('flags a crossing buy written with %s', (_label, limitPrice) => {
+      expect(isLimitPriceUnfavorable(limitPrice, marketPrice, 'long')).toBe(
+        true,
+      );
+    });
+
+    it('still leaves a formatted price below the market alone', () => {
+      expect(isLimitPriceUnfavorable('$2,900', marketPrice, 'long')).toBe(
+        false,
+      );
+    });
   });
 });

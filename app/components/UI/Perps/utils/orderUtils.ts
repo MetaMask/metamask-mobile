@@ -80,6 +80,38 @@ export const isPriceOutsideDeviationBand = (
   return minPrice < (1 - maxDeviation) * maxPrice;
 };
 
+/**
+ * Whether a limit price sits on the wrong side of the market and so would fill
+ * on placement rather than resting on the book: a buy above the market, or a
+ * sell below it.
+ *
+ * Informational only — the exchange accepts these orders, so callers surface a
+ * warning without blocking submission.
+ *
+ * @param limitPrice - Limit price, which may carry grouping commas or a "$"
+ * @param currentPrice - Current market price to compare against
+ * @param direction - Order direction
+ * @returns True when the order would fill immediately
+ */
+export const isLimitPriceUnfavorable = (
+  limitPrice: string,
+  currentPrice: number,
+  direction: 'long' | 'short',
+): boolean => {
+  if (!currentPrice || currentPrice <= 0) {
+    return false;
+  }
+
+  const parsed = Number.parseFloat(
+    limitPrice.replaceAll(',', '').replace('$', ''),
+  );
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return false;
+  }
+
+  return direction === 'long' ? parsed > currentPrice : parsed < currentPrice;
+};
+
 type OrderPriceLabelKey =
   | 'perps.order.trigger_price'
   | 'perps.order.limit_price'
