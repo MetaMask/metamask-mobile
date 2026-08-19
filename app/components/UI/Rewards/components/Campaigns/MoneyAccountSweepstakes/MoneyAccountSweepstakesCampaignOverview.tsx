@@ -4,6 +4,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   FontWeight,
   Skeleton,
   Text,
@@ -20,6 +21,7 @@ import { formatUsd } from '../../../utils/formatUtils';
 import { AMOUNT_PLACEHOLDER, ENTRIES_COUNT_PLACEHOLDER } from './constants';
 import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { strings } from '../../../../../../../locales/i18n';
+import useMoneyAccountBalance from '../../../../Money/hooks/useMoneyAccountBalance';
 
 export const MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS = {
   CONTAINER: 'campaign-status',
@@ -27,6 +29,8 @@ export const MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS = {
   HERO: 'money-account-sweepstakes-hero',
   STATS_LOADING: 'money-account-sweepstakes-stats-loading',
   STATS_ERROR: 'money-account-sweepstakes-stats-error',
+  MONEY_ACCOUNT_BALANCE_ROW:
+    'money-account-sweepstakes-money-account-balance-row',
 } as const;
 
 interface MoneyAccountSweepstakesCampaignOverviewProps {
@@ -54,6 +58,8 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
 }) => {
   const tw = useTailwind();
   const backgroundImageUrl = campaign.image?.lightModeUrl;
+  const { totalFiatFormatted, lastKnownTotalFiatFormatted, isBalanceLoading } =
+    useMoneyAccountBalance({ enabled: isParticipating });
 
   if (isParticipating) {
     const showStatsLoading = isStatsLoading && !stats;
@@ -135,6 +141,12 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
       }
     })();
     const isPaused = stats?.todayStatus === 'lost_today';
+    const moneyAccountBalanceDisplay =
+      totalFiatFormatted ?? lastKnownTotalFiatFormatted ?? '—';
+    const showMoneyAccountBalanceSkeleton =
+      isBalanceLoading &&
+      totalFiatFormatted === undefined &&
+      lastKnownTotalFiatFormatted === undefined;
 
     return (
       <Box
@@ -198,6 +210,33 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
               {qualificationMessage}
             </Text>
           )}
+          <Box twClassName="border-t border-border-muted" />
+          <Box
+            alignItems={BoxAlignItems.Center}
+            flexDirection={BoxFlexDirection.Row}
+            justifyContent={BoxJustifyContent.Between}
+            testID={
+              MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.MONEY_ACCOUNT_BALANCE_ROW
+            }
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
+              {localizedText.balanceTitle}
+            </Text>
+            {showMoneyAccountBalanceSkeleton ? (
+              <Skeleton style={tw.style('h-5 w-20 rounded-md')} />
+            ) : (
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
+                {moneyAccountBalanceDisplay}
+              </Text>
+            )}
+          </Box>
           {children}
         </Box>
       </Box>

@@ -21,6 +21,15 @@ jest.mock('../../../utils/formatUtils', () => ({
     value == null ? '—' : `$${value.toFixed(2)}`,
 }));
 
+jest.mock('../../../../Money/hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    totalFiatFormatted: '$1,250.00',
+    lastKnownTotalFiatFormatted: undefined,
+    isBalanceLoading: false,
+  })),
+}));
+
 jest.mock('../../RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
   const { Pressable, Text, View } = jest.requireActual('react-native');
@@ -91,6 +100,8 @@ describe('MoneyAccountSweepstakesCampaignOverview', () => {
     expect(
       getByText("Add $60.00 today to reach $100 and earn today's entry."),
     ).toBeOnTheScreen();
+    expect(getByText('Balance')).toBeOnTheScreen();
+    expect(getByText('$1,250.00')).toBeOnTheScreen();
   });
 
   it('renders stats skeletons while participating stats are loading with no data', () => {
@@ -151,5 +162,24 @@ describe('MoneyAccountSweepstakesCampaignOverview', () => {
         MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.STATS_LOADING,
       ),
     ).toBeNull();
+  });
+
+  it('renders Money Account balance from the Money tab source below qualification', () => {
+    const { getByTestId, getByText } = render(
+      <MoneyAccountSweepstakesCampaignOverview
+        campaign={campaign}
+        localizedText={localizedText}
+        isParticipating
+        stats={stats}
+      />,
+    );
+
+    expect(
+      getByTestId(
+        MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.MONEY_ACCOUNT_BALANCE_ROW,
+      ),
+    ).toBeOnTheScreen();
+    expect(getByText('Balance')).toBeOnTheScreen();
+    expect(getByText('$1,250.00')).toBeOnTheScreen();
   });
 });
