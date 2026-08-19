@@ -69,6 +69,8 @@ export const ACTIVITY_FALLBACK_TITLE_RESOLVERS: Partial<
   marketCloseLong: () => strings('transactions.activity_market_close_long'),
   limitLong: () => strings('transactions.activity_limit_long'),
   limitCloseLong: () => strings('transactions.activity_limit_close_long'),
+  rampBuy: () => strings('transactions.activity_buy'),
+  rampSell: () => strings('transactions.activity_sell'),
 };
 
 /**

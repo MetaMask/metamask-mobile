@@ -319,7 +319,6 @@ export function mapKeyringTransaction({
         raw: { type: 'keyringTransaction', data: transaction },
         data: {
           from,
-          to,
           token: rawToken ? { ...rawToken, amount: undefined } : undefined,
           ...(fees ? { fees } : {}),
         },
@@ -353,7 +352,6 @@ export function mapKeyringTransaction({
         raw: { type: 'keyringTransaction', data: transaction },
         data: {
           from,
-          to,
           token: rawToken ? { ...rawToken, amount: undefined } : undefined,
           ...(fees ? { fees } : {}),
         },

@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import Engine from '../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import Logger from '../../../../util/Logger';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useImmersveSiweAuth } from './useImmersveSiweAuth';
 
@@ -114,5 +115,67 @@ describe('useImmersveSiweAuth', () => {
         error_type: 'unexpected_auth_step',
       }),
     );
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        tags: { feature: 'card', provider: 'immersve' },
+        context: expect.objectContaining({
+          name: 'useImmersveSiweAuth',
+          data: expect.objectContaining({
+            method: 'authenticate',
+            error_type: 'unexpected_auth_step',
+            country: 'GB',
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('does not report user cancellation to Sentry', async () => {
+    mockCard.initiateAuth.mockResolvedValue(undefined);
+    mockCard.getCurrentAuthStep.mockReturnValue({
+      type: 'siwe',
+      message: 'sign this',
+    });
+    (mockKeyring.signPersonalMessage as jest.Mock).mockRejectedValue(
+      new Error('User rejected the request'),
+    );
+
+    const { result } = renderHook(() => useImmersveSiweAuth());
+
+    await act(async () => {
+      await expect(
+        result.current.signIn({ country: 'GB', address: '0xabc' }),
+      ).rejects.toThrow();
+    });
+
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        error_type: 'user_cancelled',
+      }),
+    );
+  });
+
+  it('does not report CardProviderError to Sentry (provider already logged)', async () => {
+    const { CardProviderError, CardProviderErrorCode } = jest.requireActual(
+      '../../../../core/Engine/controllers/card-controller/provider-types',
+    );
+    const providerError = new CardProviderError(
+      CardProviderErrorCode.InvalidCredentials,
+      'Authentication failed on initiateAuth',
+      401,
+    );
+    mockCard.initiateAuth.mockRejectedValue(providerError);
+
+    const { result } = renderHook(() => useImmersveSiweAuth());
+
+    await act(async () => {
+      await expect(
+        result.current.signIn({ country: 'GB', address: '0xabc' }),
+      ).rejects.toBe(providerError);
+    });
+
+    expect(Logger.error).not.toHaveBeenCalled();
   });
 });
