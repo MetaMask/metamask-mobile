@@ -1,45 +1,28 @@
 import ChromeCdpHelpers from '../../../framework/ChromeCdpHelpers';
-import { PlatformDetector } from '../../../framework/PlatformLocator';
 import PlaywrightContextHelpers from '../../../framework/PlaywrightContextHelpers';
-import { RedirectWebsiteSelectorsIDs } from '../../../selectors/Browser/RedirectWebsite.selectors';
 
 class RedirectWebsite {
   /**
-   * On Android we can't redirect to HTTP websites because this protocol is
-   * prohibited (error is net::ERR_CLEARTEXT_NOT_PERMITTED). On iOS HTTP
-   * website will be open and redirect itself to HTTPS version.
+   * Runs `window.location.href = targetUrl` in the page at `pageUrl`.
+   * The fixture server's serve-handler cleanUrls rewrites `/redirect.html?…`
+   * to `/redirect` and drops the query, so the target cannot come from the
+   * page — the test passes it in.
    *
-   * @param pageUrl - Full page URL (required for Appium WebView context switching).
+   * @param pageUrl - URL used to select the WebView/CDP target (no query).
+   * @param targetUrl - Cross-origin URL to assign to `location.href`.
    */
-  async tapRedirectButton(pageUrl?: string): Promise<void> {
-    if (!pageUrl) {
-      throw new Error(
-        'pageUrl is required for RedirectWebsite.tapRedirectButton under Appium',
-      );
-    }
-
-    const buttonId = PlatformDetector.isAndroid()
-      ? RedirectWebsiteSelectorsIDs.REDIRECT_BUTTON_HTTPS
-      : RedirectWebsiteSelectorsIDs.REDIRECT_BUTTON_HTTP;
-
-    // Chromedriver XPath / native resource-id taps do not run the page's
-    // click handler under LavaMoat. Same CDP evaluate + el.click() path as
-    // TestDApp / EnsWebsite.
+  async redirectToTarget(pageUrl: string, targetUrl: string): Promise<void> {
     const result = await ChromeCdpHelpers.evaluateInWebView<string>(
       pageUrl,
       `(() => {
-        const el = document.getElementById(${JSON.stringify(buttonId)});
-        const target = new URLSearchParams(window.location.search).get('target');
-        if (!el) return 'missing-button';
-        if (!target) return 'missing-target:' + window.location.href;
-        el.click();
-        return 'clicked';
+        window.location.href = ${JSON.stringify(targetUrl)};
+        return 'ok';
       })()`,
     );
 
-    if (result !== 'clicked') {
+    if (result !== 'ok') {
       throw new Error(
-        `RedirectWebsite.tapRedirectButton failed (${result ?? 'null'}) on ${pageUrl}`,
+        `RedirectWebsite.redirectToTarget failed (${result ?? 'null'}) from ${pageUrl} to ${targetUrl}`,
       );
     }
 

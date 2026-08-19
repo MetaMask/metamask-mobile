@@ -170,20 +170,20 @@ appiumTest.describe(SmokeBrowser('Browser Navigation'), () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
           await navigateToBrowserView();
 
-          // Build redirect URL with dynamic target from second dapp server
-          const redirectTarget = encodeURIComponent(
-            `${getDappUrl(1)}/redirect-target.html`,
-          );
-          const redirectUrl = `${getDappUrl(0)}/redirect.html?target=${redirectTarget}`;
+          // serve-handler cleanUrls maps redirect.html → /redirect and drops
+          // query strings, so pass the target into the WebView from the test.
+          const startUrl = `${getDappUrl(0)}/redirect.html`;
+          const webViewUrl = `${getDappUrl(0)}/redirect`;
+          const targetUrl = `${getDappUrl(1)}/redirect-target.html`;
 
           await Browser.tapUrlInputBox();
-          await Browser.navigateToURL(redirectUrl);
+          await Browser.navigateToURL(startUrl);
           await Browser.expectUrlToContain(
             getOriginFromURL(getDappUrl(0)),
             'URL bar shows the origin of the initial redirect page',
           );
 
-          await RedirectWebsite.tapRedirectButton(redirectUrl);
+          await RedirectWebsite.redirectToTarget(webViewUrl, targetUrl);
           await Browser.expectUrlToContain(
             getOriginFromURL(getDappUrl(1)),
             'URL bar shows the origin of the redirect target page',
