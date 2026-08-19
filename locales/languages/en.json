@@ -10455,8 +10455,8 @@
       "you_received": "You received",
       "token_received": "Token received",
       "money_account": "Money account",
-      "perps_account": "Perps Account 1",
-      "predictions_account": "Predictions Account 1",
+      "perps_account": "Account 1 Perps",
+      "predictions_account": "Account 1 Predictions",
       "steps_completed": "Steps ({{count}} completed)",
       "summary": "Summary"
     },
