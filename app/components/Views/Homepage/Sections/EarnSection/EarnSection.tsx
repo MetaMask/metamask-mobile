@@ -62,9 +62,14 @@ import Logger from '../../../../../util/Logger';
 import { isEarnAssetBalanceBelowMinDepositAmount } from '../../../../UI/Earn/utils/earnAssets/earnAssetBalance';
 import Routes from '../../../../../constants/navigation/Routes';
 
-interface EarnSectionProps {
+export interface EarnSectionHomeAnalytics {
   sectionIndex: number;
   totalSectionsLoaded: number;
+}
+
+export interface EarnSectionProps {
+  homeAnalytics?: EarnSectionHomeAnalytics;
+  showDividers?: boolean;
 }
 
 const renderEarnAssetIcon = (token: TokenI) => {
@@ -117,9 +122,12 @@ const renderUnavailableAssetCard = (key: string) => (
 );
 
 const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
-  ({ sectionIndex, totalSectionsLoaded }, ref) => {
+  ({ homeAnalytics, showDividers = false }, ref) => {
     const tw = useTailwind();
     const navigation = useNavigation<AppNavigationProp>();
+    const isHomepageSection = homeAnalytics !== undefined;
+    const sectionIndex = homeAnalytics?.sectionIndex ?? -1;
+    const totalSectionsLoaded = homeAnalytics?.totalSectionsLoaded ?? 0;
 
     const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
 
@@ -159,13 +167,14 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
     const { onLayout } = useHomeViewedEvent({
-      sectionRef: sectionViewRef,
+      sectionRef: isHomepageSection ? sectionViewRef : null,
       isLoading,
       sectionName: HomeSectionNames.EARN,
       sectionIndex,
       totalSectionsLoaded,
       isEmpty: false,
       itemCount: earnSectionItemCount,
+      fireImmediateWhenNoView: isHomepageSection,
     });
 
     useSectionPerformance({
@@ -173,13 +182,13 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       contentReady: !isLoading,
       isEmpty: false,
       isLoading,
-      enabled: true,
+      enabled: isHomepageSection,
     });
 
     const handleHeaderPress = () => {
       // eslint-disable-next-line no-alert
       alert(
-        'Under construction 🚧 - Implement when adding Earn Section to Explore page',
+        'Under construction 🚧 - Implement when adding Earn Section to Explore search page',
       );
     };
 
@@ -215,7 +224,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     const handleViewMoreCardPress = () => {
       // eslint-disable-next-line no-alert
       alert(
-        'Under construction 🚧 - Implement when adding Earn Section to Explore page',
+        'Under construction 🚧 - Implement when adding Earn Section to Explore search page',
       );
     };
 
@@ -323,7 +332,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
         <Box testID="earn-section">
-          <SectionDivider />
+          {showDividers && <SectionDivider />}
           <SectionHeader
             title={strings('homepage.sections.earn')}
             isInteractive

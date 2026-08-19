@@ -27,6 +27,7 @@ import type {
 } from '../../../../UI/Earn/utils/earnSection';
 import { EARN_EXPERIENCES } from '../../../../UI/Earn/constants/experiences';
 import EarnSection from './EarnSection';
+import HomepageEarnSection from './HomepageEarnSection';
 
 jest.mock('@react-navigation/native');
 jest.mock('react-redux', () => ({
@@ -194,15 +195,46 @@ describe('EarnSection', () => {
   });
 
   it('renders the Earn section title', () => {
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     expect(
       screen.getByText(strings('homepage.sections.earn')),
     ).toBeOnTheScreen();
   });
 
+  it('disables Homepage telemetry for shared Explore rendering', () => {
+    render(<EarnSection />);
+
+    expect(mockUseHomeViewedEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sectionRef: null,
+        sectionIndex: -1,
+        totalSectionsLoaded: 0,
+        fireImmediateWhenNoView: false,
+      }),
+    );
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
+  it('passes required section metadata to Homepage telemetry', () => {
+    render(<HomepageEarnSection sectionIndex={2} totalSectionsLoaded={5} />);
+
+    expect(mockUseHomeViewedEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sectionIndex: 2,
+        totalSectionsLoaded: 5,
+        fireImmediateWhenNoView: true,
+      }),
+    );
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
+  });
+
   it('renders funded lending assets with Get APY copy', () => {
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
     expect(
@@ -237,7 +269,7 @@ describe('EarnSection', () => {
       ],
     });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     expect(
       screen.getByText(
@@ -274,7 +306,7 @@ describe('EarnSection', () => {
       ],
     });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     expect(
       screen.getByTestId('earn-section-asset-0-no-fee-tag'),
@@ -282,7 +314,7 @@ describe('EarnSection', () => {
   });
 
   it('hides No fee when asset experiences are not subsidized', () => {
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     expect(
       screen.queryByTestId('earn-section-asset-0-no-fee-tag'),
@@ -293,7 +325,7 @@ describe('EarnSection', () => {
     mockMoneyAccountVisible = true;
     mockSectionResult({ assetSlots: [] });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     expect(
       screen.getByTestId('earn-section-money-account-card'),
@@ -309,7 +341,7 @@ describe('EarnSection', () => {
     } as ReturnType<typeof useMoneyAccountBalance>);
     mockSectionResult({ assetSlots: [] });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     expect(
       screen.queryByText(strings('earn_module.new_tag')),
@@ -324,7 +356,7 @@ describe('EarnSection', () => {
     } as ReturnType<typeof useMoneyAccountBalance>);
     mockSectionResult({ assetSlots: [] });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     expect(
       screen.queryByText(strings('earn_module.new_tag')),
@@ -343,7 +375,7 @@ describe('EarnSection', () => {
     } as ReturnType<typeof useMoneyAccountBalance>);
     mockSectionResult({ assetSlots: [] });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     expect(
       screen.getByTestId('earn-section-money-account-balance-skeleton'),
@@ -361,7 +393,7 @@ describe('EarnSection', () => {
       moneyRateStatus: 'loading',
     });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     expect(
       screen.getByTestId('earn-section-money-account-apy-skeleton'),
@@ -379,7 +411,7 @@ describe('EarnSection', () => {
       moneyRateStatus: 'unavailable',
     });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     expect(
       screen.getByText(strings('earn_module.rate_unavailable')),
@@ -392,7 +424,7 @@ describe('EarnSection', () => {
   it('uses the asset name for zero-balance tiles', () => {
     mockSectionResult({ assetSlots: [zeroBalanceAssetSlot] });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
     expect(
@@ -406,15 +438,26 @@ describe('EarnSection', () => {
   it('removes green arrows from Money and asset tiles', () => {
     mockMoneyAccountVisible = true;
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     expect(getSuccessArrowIcons()).toHaveLength(0);
+  });
+
+  it('navigates with the selected CAIP-19 asset ID', () => {
+    render(<EarnSection />);
+
+    fireEvent.press(screen.getByTestId('earn-section-asset-0-card'));
+
+    expect(navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+      screen: Routes.EARN.STRATEGY_SELECTION,
+      params: { assetId },
+    });
   });
 
   it('navigates zero-balance assets to Asset Overview', () => {
     mockSectionResult({ assetSlots: [zeroBalanceAssetSlot] });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     fireEvent.press(screen.getByTestId('earn-section-asset-0-card'));
 
@@ -455,7 +498,7 @@ describe('EarnSection', () => {
       hasError: true,
     });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     expect(screen.getByTestId('earn-section-error')).toBeOnTheScreen();
     expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
@@ -467,7 +510,7 @@ describe('EarnSection', () => {
       hasError: true,
       refresh,
     });
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     await act(async () => {
       fireEvent.press(screen.getByTestId('earn-section-error-retry-button'));
@@ -503,7 +546,7 @@ describe('EarnSection', () => {
       hasError: true,
       refresh,
     });
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     const retryButton = screen.getByTestId('earn-section-error-retry-button');
     fireEvent.press(retryButton);
@@ -523,7 +566,7 @@ describe('EarnSection', () => {
   it('renders skeleton slots while catalogue data loads', () => {
     mockSectionResult({ isLoading: true });
 
-    render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
+    render(<EarnSection />);
 
     expect(screen.getByTestId(assetId)).toBeOnTheScreen();
     expect(

@@ -33,7 +33,7 @@ import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager
 import BalanceBreakdownSection, {
   type BalanceBreakdownSectionProps,
 } from './Sections/BalanceBreakdown';
-import EarnSection from './Sections/EarnSection';
+import { HomepageEarnSection } from '../../UI/Earn/components/EarnSection';
 import { selectEarnHomeSectionEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 
 /**
@@ -170,10 +170,11 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               />
             )}
             {isEarnSectionEnabled && (
-              <EarnSection
+              <HomepageEarnSection
                 ref={earnSectionRef}
                 sectionIndex={getSectionIndex(HomeSectionNames.EARN)}
                 totalSectionsLoaded={totalSectionsLoaded}
+                showDividers
               />
             )}
             <PredictionsSection
