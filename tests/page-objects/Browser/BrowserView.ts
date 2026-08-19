@@ -16,6 +16,7 @@ import {
   Utilities,
   sleep,
 } from '../../framework';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 import { executeMobileDeepLink } from '../../framework/PlaywrightUtilities';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
@@ -499,9 +500,30 @@ class Browser {
     // Unfocused URL bar hides TextInput (`browser-modal-url-input`); Appium must
     // read the visible display Text (`browser-url-display-text`). The `url-input`
     // wrapper View often returns empty getText(), which would falsely pass a
-    // not-equal assertion.
+    // not-equal assertion. After a WebView load/tap the driver stays in WEBVIEW
+    // context; getText() there hits LavaMoat scuttling (ShadowRoot).
+    await PlaywrightContextHelpers.switchToNativeContext();
     await Assertions.expectElementToNotHaveText(this.urlBarDisplayText, text, {
       description: description ?? `URL input box text is not "${text}"`,
+    });
+  }
+
+  /**
+   * Assert the unfocused URL bar contains `text`.
+   * Display text is origin + pathname + query, so callers typically pass an origin.
+   */
+  async expectUrlToContain(text: string, description?: string): Promise<void> {
+    await PlaywrightContextHelpers.switchToNativeContext();
+    // Display text is opacity:0 while the editor is focused; dismiss so we
+    // read the committed URL, not leftover inputValue.
+    if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
+      await Gestures.waitAndTap(this.cancelUrlInputButton, {
+        elemDescription: 'Cancel URL input (dismiss URL editor)',
+      });
+    }
+    await Assertions.expectElementToContainText(this.urlBarDisplayText, text, {
+      description: description ?? `URL bar contains "${text}"`,
+      timeout: 30_000,
     });
   }
 
