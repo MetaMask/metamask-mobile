@@ -19,7 +19,7 @@ import ReferralRevenueShareDashboard from '../components/ReferralRevenueShareDas
 const ReferralRewardsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const [isMoreMenuVisible, setIsMoreMenuVisible] = useState(false);
+  const [isQrCodeVisible, setIsQrCodeVisible] = useState(false);
   return (
     <ErrorBoundary navigation={navigation} view="ReferralRewardsView">
       <SafeAreaView
@@ -51,14 +51,14 @@ const ReferralRewardsView: React.FC = () => {
               </Pressable>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="More ways to share"
-                testID="referral-more-button"
-                onPress={() => setIsMoreMenuVisible(true)}
+                accessibilityLabel="Show referral QR code"
+                testID="referral-qr-code-button"
+                onPress={() => setIsQrCodeVisible(true)}
                 hitSlop={10}
                 style={tw.style('h-10 w-10 items-center justify-center')}
               >
                 <Icon
-                  name={IconName.MoreVertical}
+                  name={IconName.QrCode}
                   size={IconSize.Md}
                   color={IconColor.IconDefault}
                 />
@@ -67,8 +67,8 @@ const ReferralRewardsView: React.FC = () => {
           }
         />
         <ReferralRevenueShareDashboard
-          isMoreMenuVisible={isMoreMenuVisible}
-          onMoreMenuClose={() => setIsMoreMenuVisible(false)}
+          isQrCodeVisible={isQrCodeVisible}
+          onQrCodeClose={() => setIsQrCodeVisible(false)}
           onEarningsPress={() =>
             navigation.navigate(Routes.REFERRAL_REWARDS_PERFORMANCE_VIEW)
           }

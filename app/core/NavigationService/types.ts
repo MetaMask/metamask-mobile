@@ -649,6 +649,7 @@ export type RootStackParamList = {
   RewardsPredictThePitchCampaignWinning: RewardsNavigationParamList['RewardsPredictThePitchCampaignWinning'];
   RewardsPredictThePitchCampaignStats: RewardsNavigationParamList['RewardsPredictThePitchCampaignStats'];
   RewardsSelectSheet: RewardsNavigationParamList['RewardsSelectSheet'];
+  ReferralRewardsPerformanceView: RewardsNavigationParamList['ReferralRewardsPerformanceView'];
 
   // Modal routes
   DeleteWalletModal: DeleteWalletModalParams | undefined;
