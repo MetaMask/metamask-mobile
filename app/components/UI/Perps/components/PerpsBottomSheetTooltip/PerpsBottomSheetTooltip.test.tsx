@@ -36,6 +36,13 @@ jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
   })),
 }));
 
+jest.mock('../../hooks/stream/usePerpsLivePositions', () => ({
+  usePerpsLivePositions: jest.fn(() => ({
+    positions: [],
+    isInitialLoading: false,
+  })),
+}));
+
 // Mock usePerpsMarketData to prevent async operations that cause act warnings
 jest.mock('../../hooks/usePerpsMarketData', () => ({
   usePerpsMarketData: jest.fn(() => ({
