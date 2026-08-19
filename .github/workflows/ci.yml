@@ -64,17 +64,20 @@ jobs:
 
   check-diff:
     name: Check diff
+    # Not an iOS job: setup.mjs skips CocoaPods off darwin, so this does not need
+    # Xcode. Keep it off NAMESPACE_RUNNER_IOS so it does not consume reduced
+    # macos/ios-build concurrency.
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ios-build' || 'macos-latest'
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
         }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
@@ -84,15 +87,19 @@ jobs:
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+      - name: Configure Namespace cache
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: yarn
-      - uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
-        with:
-          ruby-version: '3.2.9'
-        env:
-          BUNDLE_GEMFILE: ios/Gemfile
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
@@ -102,13 +109,14 @@ jobs:
           command: yarn install --immutable
       - name: Restore .metamask folder
         id: restore-metamask
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/cache@v4
         with:
           path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+          key: .metamask-${{ runner.os }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Install Foundry if cache missed
-        if: steps.restore-metamask.outputs.cache-hit != 'true'
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.restore-metamask.outputs.cache-hit != 'true' }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 10
@@ -1763,6 +1771,10 @@ jobs:
         }}
     needs: sonar-cloud
     if: ${{ always() && !cancelled() && needs.sonar-cloud.result == 'success' && inputs.runner_provider != 'bitrise' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -1775,6 +1787,8 @@ jobs:
           REPO: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           # Skip step if event is not a PR
           if [[ "${{ github.event_name }}" != "pull_request" ]]; then
@@ -1782,51 +1796,61 @@ jobs:
             exit 0
           fi
 
-          # Bypass step if skip-sonar-cloud label is found
-          LABEL=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-          "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/labels" | \
-          jq -r '.[] | select(.name=="skip-sonar-cloud") | .name')
-
-          if [[ "$LABEL" == "skip-sonar-cloud" ]]; then
-            echo "skip-sonar-cloud label found. Skipping SonarCloud Quality Gate check."
-          else
-            PROJECT_KEY="MetaMask_metamask-mobile"
-            PR_NUMBER="${{ github.event.pull_request.number }}"
-            SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
-
-            if [ -z "$PR_NUMBER" ]; then
-              echo "No pull request number found. Failing the check."
-              exit 1
-            fi
-
-            # Poll until SonarCloud has finished ingesting the analysis (status OK or ERROR),
-            # retrying on NONE/empty which means ingestion is still in progress.
-            # Retries up to 12 times, 15s apart (~2m45s total), then fails the check on timeout.
-            MAX_ATTEMPTS=12
-            SLEEP_INTERVAL=15
-            for i in $(seq 1 $MAX_ATTEMPTS); do
-              RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
-                "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
-              echo "SonarCloud API Response (attempt $i/$MAX_ATTEMPTS): $RESPONSE"
-              STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
-
-              if [[ "$STATUS" == "OK" ]]; then
-                echo "Quality Gate passed."
-                exit 0
-              elif [[ "$STATUS" == "ERROR" ]]; then
-                echo "Quality Gate failed."
-                exit 1
-              fi
-
-              echo "Quality Gate status not yet settled (got: '$STATUS'). Retrying in ${SLEEP_INTERVAL}s..."
-              if [[ $i -lt $MAX_ATTEMPTS ]]; then
-                sleep "$SLEEP_INTERVAL"
-              fi
-            done
-
-            echo "Could not determine Quality Gate status after $MAX_ATTEMPTS attempts."
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No pull request number found. Failing the check."
             exit 1
           fi
+
+          # Bypass step if skip-sonar-cloud label is found. The `type == "array"`
+          # guard keeps a GitHub error payload (rate limit, 403) from aborting the
+          # job: an unreadable label list must not decide the quality gate.
+          LABELS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/labels" | \
+            jq -r 'if type == "array" then .[].name else empty end' 2>/dev/null || true)
+
+          if grep -qx 'skip-sonar-cloud' <<< "$LABELS"; then
+            echo "skip-sonar-cloud label found. Skipping SonarCloud Quality Gate check."
+            exit 0
+          fi
+
+          PROJECT_KEY="MetaMask_metamask-mobile"
+
+          # Poll until SonarCloud has finished ingesting the analysis. OK is final,
+          # but ERROR is only trusted once it survives several polls: right after the
+          # scan the API still serves the previous analysis for this PR number, so an
+          # immediate ERROR is frequently stale and flips to OK within ~2 minutes.
+          MAX_ATTEMPTS=20
+          SLEEP_INTERVAL=15
+          ERROR_STREAK=0
+          ERROR_STREAK_TO_FAIL=8
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
+              "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
+            echo "SonarCloud API Response (attempt $i/$MAX_ATTEMPTS): $RESPONSE"
+            STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status // empty' 2>/dev/null || true)
+
+            if [[ "$STATUS" == "OK" ]]; then
+              echo "Quality Gate passed."
+              exit 0
+            elif [[ "$STATUS" == "ERROR" ]]; then
+              ERROR_STREAK=$((ERROR_STREAK + 1))
+              if [[ $ERROR_STREAK -ge $ERROR_STREAK_TO_FAIL ]]; then
+                echo "Quality Gate failed (ERROR stable across $ERROR_STREAK polls)."
+                exit 1
+              fi
+              echo "Got ERROR ($ERROR_STREAK/$ERROR_STREAK_TO_FAIL), it may be a previous analysis. Retrying in ${SLEEP_INTERVAL}s..."
+            else
+              ERROR_STREAK=0
+              echo "Quality Gate status not yet settled (got: '$STATUS'). Retrying in ${SLEEP_INTERVAL}s..."
+            fi
+
+            if [[ $i -lt $MAX_ATTEMPTS ]]; then
+              sleep "$SLEEP_INTERVAL"
+            fi
+          done
+
+          echo "Could not determine Quality Gate status after $MAX_ATTEMPTS attempts."
+          exit 1
 
   # TEMP: delete the ci-js-deps artifact once all consumers have finished so it
   # does not sit in GitHub artifact storage for the full retention-days: 1

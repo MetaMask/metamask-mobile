@@ -33,6 +33,7 @@ import {
   OPEN_PREDICT_OUTCOME_STATUS,
   PredictMarketStatus,
   PredictOutcomeToken,
+  PredictPositionStatus,
 } from '../../types';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
@@ -453,9 +454,13 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   }, [market, tabsReady, activeTab, tabs, trackMarketDetailsOpened]);
 
   // see if there are any positions with positive percentPnl
-  const hasPositivePnl = claimablePositions.some(
-    (position) => position.percentPnl > 0,
+  const actionableClaimablePositions = claimablePositions.filter(
+    (position) =>
+      (position.status === PredictPositionStatus.WON ||
+        position.status === PredictPositionStatus.REDEEMABLE) &&
+      (position.currentValue ?? 0) > 0,
   );
+  const hasPositivePnl = actionableClaimablePositions.length > 0;
 
   const isMarketUnavailable = isMarketUnresolved;
   const resolvedMarketError = marketError ?? currentSeriesMarketError;
@@ -506,7 +511,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         refreshing={isRefreshing}
         onBetPress={handleBuyPress}
         onClaimPress={handleClaimPress}
-        claimableAmount={claimablePositions.reduce(
+        claimableAmount={actionableClaimablePositions.reduce(
           (sum, p) => sum + (p.currentValue ?? 0),
           0,
         )}
