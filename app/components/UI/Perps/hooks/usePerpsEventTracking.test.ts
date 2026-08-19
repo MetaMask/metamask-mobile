@@ -258,7 +258,7 @@ describe('usePerpsEventTracking', () => {
       });
     });
 
-    it('uses navigation attribution once, then restores the default source', () => {
+    it('keeps navigation attribution across reset-key emissions', () => {
       const navigationAnalyticsContext: NavigationAnalyticsContext = {
         id: 'balance-breakdown-navigation',
         attribution: 'homescreen_balance_breakdown',
@@ -299,12 +299,12 @@ describe('usePerpsEventTracking', () => {
       const secondAssetBuilder = mockCreateEventBuilder.mock.results[3].value;
       expect(secondScreenBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          source: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+          source: 'homescreen_balance_breakdown',
         }),
       );
       expect(secondAssetBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          source: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+          source: 'homescreen_balance_breakdown',
         }),
       );
     });

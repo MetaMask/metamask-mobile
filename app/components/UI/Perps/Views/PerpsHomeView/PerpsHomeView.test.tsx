@@ -1308,7 +1308,7 @@ describe('PerpsHomeView', () => {
       jest.clearAllMocks();
     });
 
-    it('delegates one-time source attribution to Perps event tracking', () => {
+    it('delegates source attribution to Perps event tracking', () => {
       mockRouteParams = {
         analyticsContext: {
           id: 'balance-breakdown-navigation',
