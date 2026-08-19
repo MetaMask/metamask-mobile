@@ -173,6 +173,15 @@ jest.mock('../components/RewardsErrorBanner', () => {
   };
 });
 
+jest.mock('../../Money/hooks/useMoneyAccountBalance', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    totalFiatFormatted: '$1,250.00',
+    lastKnownTotalFiatFormatted: undefined,
+    isBalanceLoading: false,
+  })),
+}));
+
 jest.mock('../hooks/useRewardCampaigns');
 jest.mock('../hooks/useMoneyAccountSweepstakesSeries');
 jest.mock('../hooks/useMoneyAccountSweepstakesParticipation');
