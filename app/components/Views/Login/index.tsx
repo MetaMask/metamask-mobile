@@ -55,6 +55,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { LoginViewSelectors } from './LoginView.testIds';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
+import { trackForgotPasswordBackupOffered } from '../../../util/analytics/accountAccessTracking';
 import { downloadStateLogs } from '../../../util/logs';
 import {
   trace,
@@ -99,11 +100,6 @@ import {
   getLoginPerformanceTags,
   markLoginInteractionCompleted,
 } from './loginPerformanceTags';
-import {
-  cancelHomepageReadyTrace,
-  startHomepageReadyTrace,
-  type HomepageReadyTraceToken,
-} from '../../../core/Performance/HomepageReady';
 
 interface LoginRouteParams {
   locked: boolean;
@@ -313,11 +309,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
-    const homepageReadyTraceToken: HomepageReadyTraceToken | null =
-      startHomepageReadyTrace({
-        source: 'unlock',
-        appStartType: loginPerformanceTags.current.app_start_type,
-      });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -360,10 +351,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
     } catch (loginErr) {
-      cancelHomepageReadyTrace({
-        reason: 'unlock_failed',
-        traceToken: homepageReadyTraceToken,
-      });
       await handleLoginError(loginErr as Error);
     }
     setLoading(false);
@@ -385,11 +372,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
-    const homepageReadyTraceToken: HomepageReadyTraceToken | null =
-      startHomepageReadyTrace({
-        source: 'unlock',
-        appStartType: loginPerformanceTags.current.app_start_type,
-      });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -408,21 +390,47 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
     } catch (loginerror) {
-      cancelHomepageReadyTrace({
-        reason: 'unlock_failed',
-        traceToken: homepageReadyTraceToken,
-      });
       await handleLoginError(loginerror as Error);
     }
     setLoading(false);
   }, [unlockWallet, loading, handleLoginError]);
 
-  const toggleWarningModal = () => {
+  const toggleWarningModal = async () => {
     trackOnboarding(
       MetaMetricsEvents.FORGOT_PASSWORD_CLICKED,
       saveOnboardingEvent,
     );
 
+    // If the currently-entered password can decrypt a vault backup, the
+    // on-device vault is likely stale/corrupted rather than the password
+    // being genuinely forgotten — offer a restore instead of a destructive
+    // reset. Falls through to the destructive reset on any failure.
+    try {
+      if (password) {
+        const backupResult = await getVaultFromBackup();
+        const vaultSeed =
+          backupResult.vault &&
+          (await parseVaultValue(password, backupResult.vault));
+        if (vaultSeed) {
+          trackForgotPasswordBackupOffered(true);
+          navigation.dispatch(
+            StackActions.replace(
+              ...createRestoreWalletNavDetailsNested({
+                previousScreen: Routes.ONBOARDING.LOGIN,
+              }),
+            ),
+          );
+          return;
+        }
+      }
+    } catch (e: unknown) {
+      Logger.error(
+        e as Error,
+        'Login/ toggleWarningModal: vault backup check failed',
+      );
+    }
+
+    trackForgotPasswordBackupOffered(false);
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.DELETE_WALLET,
     });

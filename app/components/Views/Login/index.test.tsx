@@ -41,6 +41,7 @@ import {
 } from './loginPerformanceTags';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
+import { trackForgotPasswordBackupOffered } from '../../../util/analytics/accountAccessTracking';
 import { downloadStateLogs } from '../../../util/logs';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { parseVaultValue } from '../../../util/validators';
@@ -279,18 +280,6 @@ jest.mock('../../../util/trace', () => {
   };
 });
 
-const HOMEPAGE_READY_TRACE_TOKEN = 1;
-const mockStartHomepageReadyTrace = jest.fn(
-  (..._args: unknown[]) => HOMEPAGE_READY_TRACE_TOKEN,
-);
-const mockCancelHomepageReadyTrace = jest.fn();
-jest.mock('../../../core/Performance/HomepageReady', () => ({
-  startHomepageReadyTrace: (...args: unknown[]) =>
-    mockStartHomepageReadyTrace(...args),
-  cancelHomepageReadyTrace: (...args: unknown[]) =>
-    mockCancelHomepageReadyTrace(...args),
-}));
-
 jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest.fn(() => ({
     isConnected: true,
@@ -309,6 +298,10 @@ jest.mock('../../../util/metrics/TrackError/trackErrorAsAnalytics', () => ({
 
 jest.mock('../../../util/analytics/vaultCorruptionTracking', () => ({
   trackVaultCorruption: jest.fn(),
+}));
+
+jest.mock('../../../util/analytics/accountAccessTracking', () => ({
+  trackForgotPasswordBackupOffered: jest.fn(),
 }));
 
 jest.mock('../../../util/logs', () => ({
@@ -354,6 +347,9 @@ describe('Login', () => {
   const mockTrackErrorAsAnalytics =
     trackErrorAsAnalytics as jest.MockedFunction<typeof trackErrorAsAnalytics>;
   const mockTrackVaultCorruption = jest.mocked(trackVaultCorruption);
+  const mockTrackForgotPasswordBackupOffered = jest.mocked(
+    trackForgotPasswordBackupOffered,
+  );
   const mockDownloadStateLogs = jest.mocked(downloadStateLogs);
   const mockGetVaultFromBackup = jest.mocked(getVaultFromBackup);
   const mockParseVaultValue = jest.mocked(parseVaultValue);
@@ -1677,6 +1673,82 @@ describe('Login', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.DELETE_WALLET,
       });
+      expect(mockTrackForgotPasswordBackupOffered).toHaveBeenCalledWith(false);
+    });
+
+    it('offers a restore instead of the destructive reset when the entered password decrypts a vault backup', async () => {
+      mockGetVaultFromBackup.mockResolvedValueOnce({
+        success: true,
+        vault: 'mock-vault',
+      });
+      mockParseVaultValue.mockResolvedValueOnce('mock-seed');
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      expect(mockReplace).toHaveBeenCalledWith(
+        Routes.VAULT_RECOVERY.RESTORE_WALLET,
+        expect.objectContaining({
+          params: {
+            previousScreen: Routes.ONBOARDING.LOGIN,
+          },
+          screen: Routes.VAULT_RECOVERY.RESTORE_WALLET,
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        { screen: Routes.MODAL.DELETE_WALLET },
+      );
+      expect(mockTrackForgotPasswordBackupOffered).toHaveBeenCalledWith(true);
+    });
+
+    it('falls through to the destructive reset when the entered password does not decrypt the backup', async () => {
+      mockGetVaultFromBackup.mockResolvedValueOnce({
+        success: true,
+        vault: 'mock-vault',
+      });
+      mockParseVaultValue.mockResolvedValueOnce(undefined);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'wrong-password123');
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      expect(mockTrackForgotPasswordBackupOffered).toHaveBeenCalledWith(false);
+    });
+
+    it('falls through to the destructive reset when the backup check throws', async () => {
+      mockGetVaultFromBackup.mockRejectedValueOnce(new Error('keychain error'));
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      expect(mockTrackForgotPasswordBackupOffered).toHaveBeenCalledWith(false);
     });
 
     it('navigates to rehydrate on seedless onboarding error', async () => {
@@ -1910,49 +1982,6 @@ describe('Login', () => {
         },
         expect.any(Function),
       );
-    });
-
-    it('cancels Homepage Ready when password unlock fails', async () => {
-      mockUnlockWallet.mockRejectedValueOnce(new Error('Wrong password'));
-      const { getByTestId } = renderWithProvider(<Login />);
-      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
-
-      fireEvent.changeText(passwordInput, 'wrong-password');
-      await act(async () => {
-        fireEvent(passwordInput, 'submitEditing');
-      });
-
-      expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
-        reason: 'unlock_failed',
-        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
-      });
-    });
-
-    it('cancels Homepage Ready when device authentication fails', async () => {
-      mockUseAuthCapabilities.mockReturnValue({
-        capabilities: defaultCapabilities,
-        isLoading: false,
-      });
-      mockGetAuthType.mockResolvedValue({
-        currentAuthType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
-        availableBiometryType: 'TouchID',
-      });
-      mockUnlockWallet.mockRejectedValueOnce(new Error('Biometric failed'));
-      const { getByTestId } = renderWithProvider(<Login />);
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
-      await act(async () => {
-        fireEvent.press(
-          getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
-        );
-      });
-
-      expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
-        reason: 'unlock_failed',
-        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
-      });
     });
   });
 

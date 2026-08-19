@@ -60,9 +60,10 @@ import Logger from '../../util/Logger';
 import { Alert, Platform } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { trackForcedReset } from '../../util/analytics/accountAccessTracking';
+import { UnlockWalletErrorType, ReauthenticateErrorType } from './types';
 import Routes from '../../constants/navigation/Routes';
 import { IconName } from '../../component-library/components/Icons/Icon';
-import { ReauthenticateErrorType } from './types';
 import { toMultichainAccountWalletId } from '@metamask/account-api';
 import { MultichainAccountService } from '@metamask/multichain-account-service';
 import { AuthenticationType, SecurityLevel } from 'expo-local-authentication';
@@ -362,6 +363,11 @@ jest.mock('../../../locales/i18n', () => ({
 jest.mock('../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
   jest.fn(),
 );
+
+jest.mock('../../util/analytics/accountAccessTracking', () => ({
+  trackForcedReset: jest.fn(),
+  trackForgotPasswordBackupOffered: jest.fn(),
+}));
 
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
@@ -5536,6 +5542,28 @@ describe('Authentication', () => {
       expect(trackErrorSpy).toHaveBeenCalledWith(
         'Unlock Wallet Error',
         unlockError.message,
+      );
+    });
+
+    it('tracks the classified error type and reset state when unlock fails', async () => {
+      const trackForcedResetSpy = jest.mocked(trackForcedReset);
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValueOnce(new Error('Failed to rehydrate seed phrase'));
+
+      await expect(
+        Authentication.unlockWallet({
+          password: passwordToUse,
+          authPreference: {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+            oauth2Login: true,
+          },
+        }),
+      ).rejects.toThrow('Failed to rehydrate seed phrase');
+
+      expect(trackForcedResetSpy).toHaveBeenCalledWith(
+        UnlockWalletErrorType.UNRECOGNIZED_ERROR,
+        false,
       );
     });
 
