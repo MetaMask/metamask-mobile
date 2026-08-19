@@ -8501,6 +8501,11 @@
         "history": "Order history appears here"
       }
     },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price"
+    },
     "recurring": {
       "every": "Every",
       "repeat": "Repeat",
@@ -8517,7 +8522,10 @@
         "hour": "Hour",
         "day": "Day",
         "week": "Week"
-      }
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled"
     },
     "continue": "Continue",
     "confirm_bridge": "Bridge",

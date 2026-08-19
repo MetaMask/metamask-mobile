@@ -455,7 +455,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     await openRecurringTab(renderResult);
 
     expect(
-      renderResult.getByText(strings('bridge.orders.empty.open_orders')),
+      renderResult.getByText(
+        strings('bridge.recurring.pair', { source: 'ETH', dest: 'USDC' }),
+      ),
     ).toBeOnTheScreen();
 
     fireEvent.press(
@@ -468,7 +470,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toBeOnTheScreen();
     });
     expect(
-      renderResult.queryByText(strings('bridge.orders.empty.open_orders')),
+      renderResult.queryByText(
+        strings('bridge.recurring.pair', { source: 'ETH', dest: 'USDC' }),
+      ),
     ).toBeNull();
   });
 });

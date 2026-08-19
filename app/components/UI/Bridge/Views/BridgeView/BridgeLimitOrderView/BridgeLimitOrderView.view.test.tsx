@@ -23,7 +23,9 @@ describeForPlatforms('BridgeLimitOrderView', () => {
     await openLimitTab(renderResult);
 
     expect(
-      renderResult.getByText(strings('bridge.orders.empty.open_orders')),
+      renderResult.getByText(
+        strings('bridge.limit.pair', { source: 'ETH', dest: 'USDC' }),
+      ),
     ).toBeOnTheScreen();
 
     fireEvent.press(
@@ -36,7 +38,9 @@ describeForPlatforms('BridgeLimitOrderView', () => {
       ).toBeOnTheScreen();
     });
     expect(
-      renderResult.queryByText(strings('bridge.orders.empty.open_orders')),
+      renderResult.queryByText(
+        strings('bridge.limit.pair', { source: 'ETH', dest: 'USDC' }),
+      ),
     ).toBeNull();
   });
 });
