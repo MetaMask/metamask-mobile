@@ -194,7 +194,6 @@ const RecurringScheduleFields = () => {
 
   return (
     <Box
-      twClassName="flex-1"
       testID={RecurringScheduleFieldsSelectorsIDs.CONTAINER}
       onStartShouldSetResponder={() => true}
       onResponderRelease={closeKeypad}
