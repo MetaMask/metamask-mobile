@@ -10,9 +10,46 @@ import {
 } from '@metamask/perps-controller';
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
+import type {
+  PerpsLoadingLifecycle,
+  PerpsLoadingSessionContext,
+} from '../../../../UI/Perps/utils/perpsLoadingSession';
 
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
+const mockUseSectionPerformance = jest.fn((_config: unknown) => undefined);
+const mockStartPerpsLoadingSession = jest.fn(
+  (_options: unknown) => 'session-id-1',
+);
+const mockFinishPerpsLoadingSession = jest.fn((_data: unknown) => undefined);
+const mockResolvePerpsLoadingLifecycle = jest.fn<PerpsLoadingLifecycle, []>(
+  () => 'cold_no_cache',
+);
+const mockGetActivePerpsLoadingSessionContext = jest.fn<
+  PerpsLoadingSessionContext | null,
+  []
+>(() => ({
+  id: 'session-id-1',
+  marketSource: 'provider',
+  accountSource: 'memory_cache',
+  lifecycle: 'cold_no_cache',
+}));
+
+jest.mock('../../hooks/useSectionPerformance', () => ({
+  useSectionPerformance: (config: unknown) => mockUseSectionPerformance(config),
+}));
+
+jest.mock('../../../../UI/Perps/utils/perpsLoadingSession', () => ({
+  startPerpsLoadingSession: (options: unknown) =>
+    mockStartPerpsLoadingSession(options),
+  finishPerpsLoadingSession: (data: unknown) =>
+    mockFinishPerpsLoadingSession(data),
+  preparePerpsLoadingSession: jest.fn(),
+  getActivePerpsLoadingSessionContext: () =>
+    mockGetActivePerpsLoadingSessionContext(),
+  resolvePerpsMarketSource: () => 'provider',
+  resolvePerpsLoadingLifecycle: () => mockResolvePerpsLoadingLifecycle(),
+}));
 
 const mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests = jest.fn<
   { key: string; value: string; key_value_pair?: string }[] | undefined,
@@ -308,6 +345,13 @@ const spyOnUsePerpsFeed = () =>
 describe('PerpsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockResolvePerpsLoadingLifecycle.mockReturnValue('cold_no_cache');
+    mockGetActivePerpsLoadingSessionContext.mockReturnValue({
+      id: 'session-id-1',
+      marketSource: 'provider',
+      accountSource: 'memory_cache',
+      lifecycle: 'cold_no_cache',
+    });
     usePerpsConnection.mockReset();
     usePerpsConnection.mockImplementation(() => ({
       isConnected: true,
@@ -355,6 +399,99 @@ describe('PerpsSection', () => {
     );
 
     expect(screen.getByText('Perps')).toBeOnTheScreen();
+  });
+
+  it('correlates the existing section trace with the loading session', () => {
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockStartPerpsLoadingSession).not.toHaveBeenCalled();
+    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          lifecycle: 'cold_no_cache',
+          surface: 'homepage',
+          market_source: 'provider',
+          account_source: 'memory_cache',
+        }),
+        data: { perps_session_id: 'session-id-1' },
+      }),
+    );
+  });
+
+  it('delays an immediately-ready TTC until session correlation exists', () => {
+    mockGetActivePerpsLoadingSessionContext.mockReturnValueOnce(null);
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockUseSectionPerformance.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ contentReady: false }),
+    );
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        contentReady: true,
+        data: { perps_session_id: 'session-id-1' },
+      }),
+    );
+  });
+
+  it('does not start a new session when content changes in place', () => {
+    const view = renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+    expect(mockStartPerpsLoadingSession).not.toHaveBeenCalled();
+
+    usePerpsLivePositions.mockReturnValue({
+      positions: [makePosition()],
+      isInitialLoading: false,
+    });
+    view.rerender(<PerpsSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    expect(mockStartPerpsLoadingSession).not.toHaveBeenCalled();
+  });
+
+  it('does not reopen a finished session when lifecycle context changes', () => {
+    const view = renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+    expect(mockStartPerpsLoadingSession).not.toHaveBeenCalled();
+
+    mockGetActivePerpsLoadingSessionContext.mockReturnValue(null);
+    mockResolvePerpsLoadingLifecycle.mockReturnValue('background_short');
+    view.rerender(<PerpsSection sectionIndex={0} totalSectionsLoaded={1} />);
+
+    expect(mockStartPerpsLoadingSession).not.toHaveBeenCalled();
+  });
+
+  it('finishes a visible error even while loading remains true', () => {
+    usePerpsConnection.mockReturnValue({
+      isConnected: false,
+      isConnecting: false,
+      isInitialized: false,
+      error: new Error('offline'),
+      connect: jest.fn(),
+      disconnect: jest.fn(),
+      resetError: jest.fn(),
+      reconnectWithNewContext: mockReconnectWithNewContext,
+    });
+    usePerpsLivePositions.mockReturnValue({
+      positions: [],
+      isInitialLoading: true,
+    });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockFinishPerpsLoadingSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        success: false,
+        content_state: 'error',
+      }),
+    );
   });
 
   it('renders live positions with leverage info', () => {
@@ -1127,6 +1264,22 @@ describe('PerpsSection', () => {
 
       expect(screen.queryByText('Perps movers')).toBeNull();
       expect(screen.toJSON()).toBeNull();
+      const sectionPerformanceConfig = mockUseSectionPerformance.mock.calls[
+        mockUseSectionPerformance.mock.calls.length - 1
+      ][0] as Record<string, unknown>;
+      expect(sectionPerformanceConfig).toEqual(
+        expect.objectContaining({ contentReady: true, isEmpty: true }),
+      );
+      expect(sectionPerformanceConfig).not.toHaveProperty('enabled');
+      expect(mockFinishPerpsLoadingSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          success: true,
+          content_state: 'empty',
+        }),
+      );
+      expect(mockFinishPerpsLoadingSession).not.toHaveBeenCalledWith(
+        expect.objectContaining({ failure_stage: 'surface_not_rendered' }),
+      );
     });
 
     it('renders pills inside the shared section shell when configured', () => {

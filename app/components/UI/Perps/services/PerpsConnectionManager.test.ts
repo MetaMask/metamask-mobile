@@ -55,6 +55,16 @@ jest.mock('../utils/perpsCufTrace', () => ({
   endPerpsCufTrace: jest.fn(),
 }));
 
+jest.mock('../utils/perpsLoadingSession', () => ({
+  getActivePerpsLoadingSessionTraceData: jest.fn(),
+  setPerpsLoadingSessionLifecycle: jest.fn(),
+  startPerpsLoadingSession: jest.fn(),
+}));
+
+jest.mock('../utils/perpsLifecycleContext', () => ({
+  getPerpsLifecycleContext: jest.fn(() => 'warm'),
+}));
+
 // Mock selectors
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(),
@@ -126,6 +136,7 @@ import {
   endPerpsCufTrace,
 } from '../utils/perpsCufTrace';
 import { TraceName } from '../../../../util/trace';
+import { startPerpsLoadingSession } from '../utils/perpsLoadingSession';
 
 const mockClearPendingPerpsCufTraces =
   clearPendingPerpsCufTraces as jest.MockedFunction<
@@ -705,6 +716,11 @@ describe('PerpsConnectionManager', () => {
       expect(
         mockStreamManagerInstance.marketData.clearCache,
       ).not.toHaveBeenCalled();
+      expect(startPerpsLoadingSession).toHaveBeenCalledWith({
+        restart: true,
+        lifecycle: 'account_switch',
+        surface: 'homepage',
+      });
     });
 
     it('detects network changes and triggers reconnection', async () => {
@@ -744,6 +760,35 @@ describe('PerpsConnectionManager', () => {
       expect(
         mockStreamManagerInstance.marketData.clearCache,
       ).toHaveBeenCalledWith();
+      expect(startPerpsLoadingSession).toHaveBeenCalledWith({
+        restart: true,
+        lifecycle: 'network_switch',
+        surface: 'homepage',
+      });
+    });
+
+    it('starts a new account generation while disconnected', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      await PerpsConnectionManager.connect();
+      const callback = storeCallbacks[storeCallbacks.length - 1];
+      (
+        PerpsConnectionManager as unknown as { isConnected: boolean }
+      ).isConnected = false;
+      jest.mocked(startPerpsLoadingSession).mockClear();
+
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xdisconnected' }));
+      callback();
+
+      expect(startPerpsLoadingSession).toHaveBeenCalledWith({
+        restart: true,
+        lifecycle: 'account_switch',
+        surface: 'homepage',
+      });
+      expect(
+        mockStreamManagerInstance.positions.clearCache,
+      ).not.toHaveBeenCalled();
     });
 
     it('debounces rapid state changes into a single reconnection', async () => {

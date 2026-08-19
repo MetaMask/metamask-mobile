@@ -2,7 +2,13 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
 import Logger from '../../../../util/Logger';
-import type { PerpsAnalyticsEvent } from '@metamask/perps-controller';
+import {
+  PerpsMeasurementName,
+  type PerpsAnalyticsEvent,
+} from '@metamask/perps-controller';
+import { setMeasurement as setSentryMeasurement } from '@sentry/react-native';
+import { setTraceMeasurement, TraceName } from '../../../../util/trace';
+import { recordPerpsControllerConstructedAt } from '../utils/perpsLoadingSession';
 import {
   createMobileInfrastructure,
   createMobileClientConfig,
@@ -50,7 +56,11 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 jest.mock('../../../../util/trace', () => ({
   trace: jest.fn(),
   endTrace: jest.fn(),
-  TraceName: {},
+  setTraceMeasurement: jest.fn(),
+  TraceName: {
+    PerpsMarketDataPreload: 'Perps Market Data Preload',
+    PerpsUserDataPreload: 'Perps User Data Preload',
+  },
 }));
 
 jest.mock('@sentry/react-native', () => ({
@@ -59,6 +69,10 @@ jest.mock('@sentry/react-native', () => ({
 
 jest.mock('react-native-performance', () => ({
   now: jest.fn(() => 123),
+}));
+
+jest.mock('../utils/perpsLoadingSession', () => ({
+  recordPerpsControllerConstructedAt: jest.fn(),
 }));
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -121,6 +135,52 @@ jest.mock('../../../../util/intl', () => ({
 describe('createMobileInfrastructure', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('performance tracing', () => {
+    it('forwards the post-hydration controller timestamp', () => {
+      const infra = createMobileInfrastructure();
+
+      infra.performance.onControllerConstructed?.(321);
+
+      expect(recordPerpsControllerConstructedAt).toHaveBeenCalledWith(321);
+    });
+
+    it.each([
+      [
+        PerpsMeasurementName.PerpsMarketDataPreload,
+        TraceName.PerpsMarketDataPreload,
+      ],
+      [
+        PerpsMeasurementName.PerpsUserDataPreload,
+        TraceName.PerpsUserDataPreload,
+      ],
+    ])('targets %s to its explicit preload trace', (name, traceName) => {
+      const infra = createMobileInfrastructure();
+
+      infra.tracer.setMeasurement(name, 42, 'millisecond', 'trace-id');
+
+      expect(setTraceMeasurement).toHaveBeenCalledWith(
+        { name: traceName, id: 'trace-id' },
+        name,
+        42,
+        'millisecond',
+      );
+      expect(setSentryMeasurement).not.toHaveBeenCalled();
+    });
+
+    it('preserves ambient measurements without an explicit trace id', () => {
+      const infra = createMobileInfrastructure();
+
+      infra.tracer.setMeasurement('legacy.measurement', 7, 'millisecond');
+
+      expect(setSentryMeasurement).toHaveBeenCalledWith(
+        'legacy.measurement',
+        7,
+        'millisecond',
+      );
+      expect(setTraceMeasurement).not.toHaveBeenCalled();
+    });
   });
 
   describe('metrics', () => {

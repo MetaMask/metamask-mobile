@@ -188,6 +188,7 @@ export enum TraceName {
   PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
   PerpsMarketDataPreload = 'Perps Market Data Preload',
   PerpsUserDataPreload = 'Perps User Data Preload',
+  PerpsLoadingSession = 'Perps Loading Session',
   // Perps chart: first visible candle after the market detail chart mounts.
   PerpsChartFirstCandle = 'perps.chart.first_candle',
   // Perps chart: fullscreen chart visible after open.
@@ -320,6 +321,7 @@ export enum TraceOperation {
   AccountUi = 'account.ui',
   // Perps
   PerpsOperation = 'perps.operation',
+  PerpsLoading = 'perps.loading',
   PerpsMarketData = 'perps.market_data',
   PerpsOrderSubmission = 'perps.order_submission',
   PerpsPositionManagement = 'perps.position_management',
@@ -536,6 +538,11 @@ interface BufferedTrace<T = TraceRequest | EndTraceRequest> {
   type: 'start' | 'end';
   request: T;
   parentTraceName?: string; // Track parent trace name for reconnecting during flush
+  measurements?: {
+    name: string;
+    value: number;
+    unit: Parameters<typeof setMeasurement>[2];
+  }[];
 }
 
 export function trace<T>(request: TraceRequest, fn: TraceCallback<T>): T;
@@ -634,6 +641,69 @@ export function getTraceContext(
   request: Pick<TraceRequest, 'name' | 'id'>,
 ): TraceContext {
   return tracesByKey.get(getTraceKey(request))?.span;
+}
+
+/** Write a measurement to an explicit pending trace, buffering until consent. */
+export function setTraceMeasurement(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+  name: string,
+  value: number,
+  unit: Parameters<typeof setMeasurement>[2],
+): void {
+  const span = getTraceContext(request);
+  if (span) {
+    setMeasurement(name, value, unit, span);
+    return;
+  }
+
+  const traceKey = getTraceKey(request);
+  for (let index = localBufferedTraces.length - 1; index >= 0; index -= 1) {
+    const bufferedTrace = localBufferedTraces[index];
+    if (
+      bufferedTrace.type !== 'start' ||
+      getTraceKey(bufferedTrace.request) !== traceKey
+    ) {
+      continue;
+    }
+    const measurements = bufferedTrace.measurements ?? [];
+    const existing = measurements.find(
+      (measurement) => measurement.name === name,
+    );
+    if (existing) {
+      existing.value = value;
+      existing.unit = unit;
+    } else {
+      measurements.push({ name, value, unit });
+    }
+    bufferedTrace.measurements = measurements;
+    return;
+  }
+}
+
+export function annotateTraceByRequest(
+  request: Pick<TraceRequest, 'name' | 'id'>,
+  attributes: Record<string, TraceValue>,
+): void {
+  const span = getTraceContext(request);
+  if (span) {
+    annotateTrace(span, attributes);
+    return;
+  }
+
+  const traceKey = getTraceKey(request);
+  for (let index = localBufferedTraces.length - 1; index >= 0; index -= 1) {
+    const bufferedTrace = localBufferedTraces[index];
+    if (
+      bufferedTrace.type === 'start' &&
+      getTraceKey(bufferedTrace.request) === traceKey
+    ) {
+      bufferedTrace.request.data = {
+        ...bufferedTrace.request.data,
+        ...attributes,
+      };
+      return;
+    }
+  }
 }
 
 /**
@@ -846,6 +916,14 @@ export async function flushBufferedTraces() {
       }) as Span;
 
       if (span) {
+        bufferedItem.measurements?.forEach((measurement) => {
+          setMeasurement(
+            measurement.name,
+            measurement.value,
+            measurement.unit,
+            span,
+          );
+        });
         activeSpans.set(traceKey, span);
       }
     } else if (bufferedItem.type === 'end') {

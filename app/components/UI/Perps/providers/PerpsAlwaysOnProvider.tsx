@@ -9,6 +9,7 @@ import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { ensureError } from '../../../../util/errorUtils';
 import { initPerpsLifecycleTracking } from '../utils/perpsLifecycleContext';
+import { startPerpsLoadingSession } from '../utils/perpsLoadingSession';
 
 /**
  * Top-level always-on provider for Perps WebSocket connections.
@@ -43,6 +44,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
       return;
     }
 
+    startPerpsLoadingSession();
     // Keep the legacy preload lifecycle attached to the always-on provider so
     // it runs in both wallet tab and homepage-sections flows.
     controller?.startMarketDataPreload?.();
@@ -50,6 +52,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     let isActive = true;
     let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
     let lastAppState = AppState.currentState;
+    let wasBackgrounded = lastAppState === 'background';
 
     const scheduleSilentEnsureConnected = (source: string, delayMs: number) => {
       if (reconnectTimer) {
@@ -92,6 +95,10 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
       const prevState = lastAppState;
       lastAppState = nextState;
 
+      if (nextState === 'background') {
+        wasBackgrounded = true;
+      }
+
       if (reconnectTimer) {
         clearTimeout(reconnectTimer);
         reconnectTimer = undefined;
@@ -102,6 +109,14 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
       if (prevState === 'active' && nextState.match(/inactive|background/)) {
         PerpsConnectionManager.disconnect();
       } else if (nextState === 'active') {
+        if (wasBackgrounded) {
+          startPerpsLoadingSession({
+            restart: true,
+            lifecycle: 'background_short',
+            surface: 'homepage',
+          });
+        }
+        wasBackgrounded = false;
         // Small delay to allow system to stabilize after background
         scheduleSilentEnsureConnected(
           PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,

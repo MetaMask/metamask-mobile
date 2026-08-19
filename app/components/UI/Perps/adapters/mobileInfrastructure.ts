@@ -11,7 +11,12 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
-import { trace, endTrace, TraceName } from '../../../../util/trace';
+import {
+  trace,
+  endTrace,
+  setTraceMeasurement,
+  TraceName,
+} from '../../../../util/trace';
 import {
   setMeasurement,
   addBreadcrumb,
@@ -22,6 +27,7 @@ import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import Engine from '../../../../core/Engine';
 import {
   PERPS_CONSTANTS,
+  PerpsMeasurementName,
   parseCommaSeparatedString,
   type PerpsPlatformDependencies,
   type PerpsControllerConfig,
@@ -49,6 +55,7 @@ import {
   getTerminalGlobalSnapshotUrl,
   resolveTerminalApiUrl,
 } from '../constants/terminalApi';
+import { recordPerpsControllerConstructedAt } from '../utils/perpsLoadingSession';
 
 /**
  * Resolves the Terminal API base URL based on build environment.
@@ -72,6 +79,16 @@ export function getTerminalApiUrl(): string {
  */
 function toTraceName(name: PerpsTraceName): TraceName {
   return name as unknown as TraceName;
+}
+
+function getPreloadTraceName(measurementName: string): TraceName | null {
+  if (measurementName === PerpsMeasurementName.PerpsMarketDataPreload) {
+    return TraceName.PerpsMarketDataPreload;
+  }
+  if (measurementName === PerpsMeasurementName.PerpsUserDataPreload) {
+    return TraceName.PerpsUserDataPreload;
+  }
+  return null;
 }
 
 /**
@@ -259,6 +276,7 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
       now(): number {
         return performance.now();
       },
+      onControllerConstructed: recordPerpsControllerConstructedAt,
     },
     tracer: {
       trace(params: {
@@ -287,7 +305,22 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
           data: params.data,
         });
       },
-      setMeasurement(name: string, value: number, unit: string): void {
+      setMeasurement(
+        name: string,
+        value: number,
+        unit: string,
+        id?: string,
+      ): void {
+        const traceName = id ? getPreloadTraceName(name) : null;
+        if (id && traceName) {
+          setTraceMeasurement(
+            { name: traceName, id },
+            name,
+            value,
+            unit as Parameters<typeof setTraceMeasurement>[3],
+          );
+          return;
+        }
         setMeasurement(name, value, unit);
       },
       addBreadcrumb(breadcrumb: {

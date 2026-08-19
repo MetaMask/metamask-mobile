@@ -58,6 +58,15 @@ import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsFeed } from '../../../TrendingView/feeds/perps/usePerpsFeed';
 import { HOMEPAGE_THROTTLE_MS, MAX_ITEMS } from './constants';
+import { getPerpsLifecycleContext } from '../../../../UI/Perps/utils/perpsLifecycleContext';
+import {
+  finishPerpsLoadingSession,
+  getActivePerpsLoadingSessionContext,
+  preparePerpsLoadingSession,
+  resolvePerpsMarketSource,
+  resolvePerpsLoadingLifecycle,
+  startPerpsLoadingSession,
+} from '../../../../UI/Perps/utils/perpsLoadingSession';
 
 /**
  * PerpsSection — single "Perps" section on the homepage.
@@ -77,6 +86,11 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     },
     ref,
   ) => {
+    const loadingSessionPrepared = useRef(false);
+    if (!loadingSessionPrepared.current) {
+      preparePerpsLoadingSession();
+      loadingSessionPrepared.current = true;
+    }
     const sectionViewRef = useRef<View>(null);
     const baseTitle = strings('homepage.sections.perps');
     const usesPillsEmptyState = emptyStateContent === 'pills';
@@ -301,13 +315,97 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       fireImmediateWhenNoView: !pillsEmptyFeedHidden,
     });
 
+    const contentVariant =
+      displayPositions.length > 0 && displayOrders.length > 0
+        ? 'positions_and_orders'
+        : displayPositions.length > 0
+          ? 'positions'
+          : displayOrders.length > 0
+            ? 'orders'
+            : shouldShowPillsEmptyState
+              ? 'pills'
+              : 'trending';
+    const proposedLifecycle = resolvePerpsLoadingLifecycle(
+      getPerpsLifecycleContext(),
+    );
+    const [sessionReady, setSessionReady] = useState(
+      () => getActivePerpsLoadingSessionContext() !== null,
+    );
+    useEffect(() => {
+      if (getActivePerpsLoadingSessionContext() || sessionReady) {
+        if (!sessionReady) {
+          setSessionReady(true);
+        }
+        return;
+      }
+      startPerpsLoadingSession({
+        lifecycle: proposedLifecycle,
+        surface: 'homepage',
+      });
+      setSessionReady(true);
+    }, [proposedLifecycle, sessionReady]);
+
+    const sessionContext = getActivePerpsLoadingSessionContext();
+    const lifecycle = sessionContext?.lifecycle ?? proposedLifecycle;
+    const marketSource = resolvePerpsMarketSource(
+      allCarouselMarkets.length > 0 ? allCarouselMarkets : markets,
+      sessionContext?.marketSource,
+    );
+    const accountSource = sessionContext?.accountSource ?? 'unknown';
+    const cohortTags = useMemo(
+      () => ({
+        content_variant: contentVariant,
+        lifecycle,
+        surface: 'homepage',
+        ...(marketSource === 'unknown' ? {} : { market_source: marketSource }),
+        ...(accountSource === 'unknown'
+          ? {}
+          : { account_source: accountSource }),
+      }),
+      [accountSource, contentVariant, lifecycle, marketSource],
+    );
+
     useSectionPerformance({
       sectionId: HomeSectionNames.PERPS,
-      contentReady: !isLoadingSection,
+      contentReady:
+        sessionReady && (Boolean(connectionError) || !isLoadingSection),
       isEmpty: !hasItems,
       contentStateForTrace: connectionError ? 'error' : undefined,
       isLoading: isLoadingSection,
+      tags: cohortTags,
+      data: sessionContext
+        ? { perps_session_id: sessionContext.id }
+        : undefined,
     });
+
+    useEffect(() => {
+      if (!sessionReady) return;
+      if (pillsEmptyFeedHidden) {
+        finishPerpsLoadingSession({
+          success: true,
+          content_state: 'empty',
+          ...cohortTags,
+        });
+        return;
+      }
+      if (isLoadingSection && !connectionError) return;
+      finishPerpsLoadingSession({
+        success: !connectionError,
+        content_state: connectionError
+          ? 'error'
+          : hasItems
+            ? 'filled'
+            : 'empty',
+        ...cohortTags,
+      });
+    }, [
+      cohortTags,
+      connectionError,
+      hasItems,
+      isLoadingSection,
+      pillsEmptyFeedHidden,
+      sessionReady,
+    ]);
 
     const showsVerticalPositions = showSkeleton || pendingTrending || hasItems;
 
