@@ -40,7 +40,7 @@ on:
         type: boolean
         default: false
       enable_saucelabs_cloud:
-        description: 'Run Sauce Labs using four dynamically allocated cloud devices'
+        description: 'Run Sauce Labs using two dynamically allocated cloud devices'
         required: false
         type: boolean
         default: false
