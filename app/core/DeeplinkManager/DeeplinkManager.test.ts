@@ -180,13 +180,25 @@ describe('DeeplinkManager', () => {
 
       expect(mockStartProcessed).toHaveBeenCalledWith({
         url,
-        source: 'warm',
+        source: 'intake',
         appStartType: 'warm',
       });
       expect(mockEndProcessed).toHaveBeenCalledWith({
         seam: 'handler_finished',
       });
       expect(mockCancelProcessed).not.toHaveBeenCalled();
+    });
+
+    it('stamps Processed as cold when parse is the leftover cold-start execute', async () => {
+      mockParseDeeplink.mockResolvedValueOnce(true);
+
+      await deeplinkManager.parse(url, { origin, appStartType: 'cold' });
+
+      expect(mockStartProcessed).toHaveBeenCalledWith({
+        url,
+        source: 'intake',
+        appStartType: 'cold',
+      });
     });
 
     it('cancels as rejected when parse does not handle the link', async () => {

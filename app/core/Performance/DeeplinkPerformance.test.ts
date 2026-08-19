@@ -76,7 +76,7 @@ describe('DeeplinkPerformance', () => {
     it('starts with url-derived tags and forces a transaction', () => {
       const token = startDeeplinkProcessedTrace({
         url: TRENDING_URL,
-        source: 'warm',
+        source: 'intake',
         appStartType: 'warm',
       });
 
@@ -89,7 +89,7 @@ describe('DeeplinkPerformance', () => {
           deeplink_route: 'trending',
           deeplink_variant: 'crypto',
           signed: false,
-          start_source: 'warm',
+          start_source: 'intake',
           app_start_type: 'warm',
         },
       });
@@ -98,13 +98,13 @@ describe('DeeplinkPerformance', () => {
     it('guards against a second start while one is in flight', () => {
       startDeeplinkProcessedTrace({
         url: TRENDING_URL,
-        source: 'warm',
+        source: 'intake',
         appStartType: 'warm',
       });
 
       const second = startDeeplinkProcessedTrace({
         url: 'metamask://swap',
-        source: 'warm',
+        source: 'intake',
         appStartType: 'warm',
       });
 
@@ -115,7 +115,7 @@ describe('DeeplinkPerformance', () => {
     it('ends at the handler_finished seam as a full skipped-interstitial segment', () => {
       startDeeplinkProcessedTrace({
         url: TRENDING_URL,
-        source: 'warm',
+        source: 'intake',
         appStartType: 'warm',
       });
 
@@ -157,7 +157,7 @@ describe('DeeplinkPerformance', () => {
     it('makes the second end a no-op after the pre_navigate seam fired', () => {
       startDeeplinkProcessedTrace({
         url: TRENDING_URL,
-        source: 'warm',
+        source: 'intake',
         appStartType: 'warm',
       });
 
@@ -172,7 +172,7 @@ describe('DeeplinkPerformance', () => {
       (reason) => {
         startDeeplinkProcessedTrace({
           url: TRENDING_URL,
-          source: 'warm',
+          source: 'intake',
           appStartType: 'warm',
         });
 
@@ -190,14 +190,14 @@ describe('DeeplinkPerformance', () => {
     it('releases the guard on cancel so a retry can start', () => {
       startDeeplinkProcessedTrace({
         url: TRENDING_URL,
-        source: 'warm',
+        source: 'intake',
         appStartType: 'warm',
       });
       cancelDeeplinkProcessedTrace({ reason: 'rejected' });
 
       const retry = startDeeplinkProcessedTrace({
         url: TRENDING_URL,
-        source: 'warm',
+        source: 'intake',
         appStartType: 'warm',
       });
 
@@ -209,7 +209,7 @@ describe('DeeplinkPerformance', () => {
     beforeEach(() => {
       startDeeplinkProcessedTrace({
         url: 'https://link.metamask.io/home',
-        source: 'warm',
+        source: 'intake',
         appStartType: 'warm',
       });
     });
@@ -295,7 +295,7 @@ describe('DeeplinkPerformance', () => {
       expect(
         startDeeplinkProcessedTrace({
           url: TRENDING_URL,
-          source: 'warm',
+          source: 'intake',
           appStartType: 'warm',
         }),
       ).not.toBeNull();
@@ -304,7 +304,7 @@ describe('DeeplinkPerformance', () => {
     it('cancels Navigated as interstitial_rejected on rejection', () => {
       startDeeplinkNavigatedTrace({
         url: 'https://link.metamask.io/home',
-        source: 'warm',
+        source: 'intake',
         appStartType: 'warm',
       });
       markDeeplinkInterstitialShown();
@@ -351,7 +351,7 @@ describe('DeeplinkPerformance', () => {
     ])('does not start for a link that never navigates (%s)', (_label, url) => {
       const token = startDeeplinkNavigatedTrace({
         url,
-        source: 'warm',
+        source: 'intake',
         appStartType: 'warm',
       });
 
@@ -417,12 +417,12 @@ describe('DeeplinkPerformance', () => {
     it('infers the end from the first commit after Processed closed', () => {
       startDeeplinkNavigatedTrace({
         url: 'https://link.metamask.io/home',
-        source: 'warm',
+        source: 'intake',
         appStartType: 'warm',
       });
       startDeeplinkProcessedTrace({
         url: 'https://link.metamask.io/home',
-        source: 'warm',
+        source: 'intake',
         appStartType: 'warm',
       });
       endDeeplinkProcessedTrace({ seam: 'handler_finished' });
@@ -445,12 +445,12 @@ describe('DeeplinkPerformance', () => {
     it('does not infer an end while Processed is still open', () => {
       startDeeplinkNavigatedTrace({
         url: 'https://link.metamask.io/home',
-        source: 'warm',
+        source: 'intake',
         appStartType: 'warm',
       });
       startDeeplinkProcessedTrace({
         url: 'https://link.metamask.io/home',
-        source: 'warm',
+        source: 'intake',
         appStartType: 'warm',
       });
 

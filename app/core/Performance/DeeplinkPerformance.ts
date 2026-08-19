@@ -14,7 +14,7 @@ import {
  * `.resolve` entry until immediately before navigation. It fires for every
  * deeplink and needs no destination cooperation, unlike Deeplink Ready.
  *
- * Navigated measures unlock submit (cold) or link intake (warm) until the
+ * Navigated measures unlock submit or link intake until the
  * navigation state commits on the target route. That is "navigation
  * committed", not "pixels on screen" — the startup saga burns an explicit
  * requestAnimationFrame for exactly that gap. First paint is per-route work
@@ -30,7 +30,7 @@ import {
  * `beforeSendTransaction` drops them.
  */
 
-export type DeeplinkPerfStartSource = 'unlock' | 'warm';
+export type DeeplinkPerfStartSource = 'unlock' | 'intake';
 export type DeeplinkPerfAppStartType = 'cold' | 'warm';
 export type DeeplinkProcessedSeam = 'pre_navigate' | 'handler_finished';
 export type DeeplinkTraceToken = number;
@@ -199,8 +199,7 @@ export const startDeeplinkProcessedTrace = ({
 
 /**
  * Ends the `before_gate` segment the moment the interstitial is presented.
- * The user's dwell on the modal is deliberately a hole between segments — in
- * one measured run a user sat 92 s against 3.5 s of app work.
+ * The user's dwell on the modal is deliberately a hole between segments
  */
 export const markDeeplinkInterstitialShown = () => {
   if (processed === null || processed.phase !== 'single') {

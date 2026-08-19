@@ -25,6 +25,7 @@ import {
   startDeeplinkProcessedTrace,
   endDeeplinkProcessedTrace,
   cancelDeeplinkProcessedTrace,
+  type DeeplinkPerfAppStartType,
 } from '../Performance/DeeplinkPerformance';
 
 // `false` means the deeplink was handled but intentionally rejected, for
@@ -89,16 +90,18 @@ export class DeeplinkManager {
       browserCallBack,
       origin,
       onHandled,
+      appStartType = 'warm',
     }: {
       browserCallBack?: (url: string) => void;
       origin: string;
       onHandled?: () => void;
+      appStartType?: DeeplinkPerfAppStartType;
     },
   ): Promise<boolean> {
     startDeeplinkProcessedTrace({
       url,
-      source: 'warm',
-      appStartType: 'warm',
+      source: 'intake',
+      appStartType,
     });
     const result = await parseDeeplink({
       deeplinkManager: this,
@@ -303,6 +306,7 @@ export default {
       browserCallBack?: (url: string) => void;
       origin: string;
       onHandled?: () => void;
+      appStartType?: DeeplinkPerfAppStartType;
     },
   ) => DeeplinkManager.getInstance().parse(url, args),
   resolve: (
