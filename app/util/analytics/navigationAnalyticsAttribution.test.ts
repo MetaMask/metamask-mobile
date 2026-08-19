@@ -73,15 +73,23 @@ describe('navigation analytics attribution', () => {
     expect(result.properties.entry_point).toBe('homescreen_balance_breakdown');
   });
 
-  it('preserves an explicit callsite property', () => {
+  it('preserves an explicit callsite property without consuming attribution', () => {
+    const route = createRoute();
     const event = createEvent(EVENT_NAME.PERPS_SCREEN_VIEWED, {
       source: 'explicit_source',
     });
 
-    const result = enrichWithNavigationAttribution(event, createRoute());
+    const result = enrichWithNavigationAttribution(event, route);
+    const destinationResult = enrichWithNavigationAttribution(
+      createEvent(EVENT_NAME.PERPS_SCREEN_VIEWED),
+      route,
+    );
 
     expect(result).toBe(event);
     expect(result.properties.source).toBe('explicit_source');
+    expect(destinationResult.properties.source).toBe(
+      'homescreen_balance_breakdown',
+    );
   });
 
   it('ignores events outside the attribution allowlist', () => {

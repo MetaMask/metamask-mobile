@@ -67,6 +67,14 @@ const rememberConsumption = (consumptionKey: string) => {
   }
 };
 
+const getNavigationAnalyticsAttribution = (
+  analyticsContext: NavigationAnalyticsContext,
+  eventName: string,
+): NavigationAttributionMapping | undefined =>
+  NAVIGATION_ATTRIBUTION_MAPPINGS[analyticsContext.attribution]?.find(
+    ({ eventName: mappedEventName }) => mappedEventName === eventName,
+  );
+
 /**
  * Consumes the attribution mapping for one navigation context and event.
  *
@@ -78,9 +86,10 @@ export const consumeNavigationAnalyticsAttribution = (
   analyticsContext: NavigationAnalyticsContext,
   eventName: string,
 ): NavigationAttributionMapping | undefined => {
-  const mapping = NAVIGATION_ATTRIBUTION_MAPPINGS[
-    analyticsContext.attribution
-  ]?.find(({ eventName: mappedEventName }) => mappedEventName === eventName);
+  const mapping = getNavigationAnalyticsAttribution(
+    analyticsContext,
+    eventName,
+  );
   if (!mapping) {
     return undefined;
   }
@@ -110,7 +119,7 @@ export const enrichWithNavigationAttribution = <
     return event;
   }
 
-  const mapping = consumeNavigationAnalyticsAttribution(
+  const mapping = getNavigationAnalyticsAttribution(
     analyticsContext,
     event.name,
   );
@@ -119,6 +128,10 @@ export const enrichWithNavigationAttribution = <
   }
 
   if (event.properties[mapping.property] !== undefined) {
+    return event;
+  }
+
+  if (!consumeNavigationAnalyticsAttribution(analyticsContext, event.name)) {
     return event;
   }
 
