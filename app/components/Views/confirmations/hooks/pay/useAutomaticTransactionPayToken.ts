@@ -4,10 +4,7 @@ import { Hex } from 'viem';
 import { createProjectLogger } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import {
-  isHardwareAccount,
-  isQRHardwareAccount,
-} from '../../../../../util/address';
+import { isHardwareAccount } from '../../../../../util/address';
 import {
   CHAIN_IDS,
   TransactionMeta,
@@ -88,8 +85,6 @@ export function useAutomaticTransactionPayToken({
     [from],
   );
 
-  const isQRWallet = useMemo(() => isQRHardwareAccount(from ?? ''), [from]);
-
   const targetToken = useMemo(
     () => requiredTokens.find((token) => !token.allowUnderMinimum),
     [requiredTokens],
@@ -137,7 +132,6 @@ export function useAutomaticTransactionPayToken({
         isHardwareWallet,
         isMoneyPaymentOverride,
         isMoneyAccountWithdraw,
-        isQRWallet,
         isWithdraw,
         lastWithdrawToken,
         minimumRequiredTokenBalance: payTokensFlags.minimumRequiredTokenBalance,
@@ -146,13 +140,11 @@ export function useAutomaticTransactionPayToken({
         preferredTokensFromFlags,
         targetToken,
         tokens,
-        transactionMeta,
       }),
     [
       isHardwareWallet,
       isMoneyPaymentOverride,
       isMoneyAccountWithdraw,
-      isQRWallet,
       isWithdraw,
       lastWithdrawToken,
       relayFixedSpread,
@@ -161,7 +153,6 @@ export function useAutomaticTransactionPayToken({
       preferredTokensFromFlags,
       targetToken,
       tokens,
-      transactionMeta,
     ],
   );
 
@@ -330,7 +321,6 @@ function getBestToken({
   isHardwareWallet,
   isMoneyPaymentOverride,
   isMoneyAccountWithdraw,
-  isQRWallet,
   isWithdraw,
   lastWithdrawToken,
   minimumRequiredTokenBalance,
@@ -339,12 +329,10 @@ function getBestToken({
   preferredTokensFromFlags,
   targetToken,
   tokens,
-  transactionMeta,
 }: {
   isHardwareWallet: boolean;
   isMoneyPaymentOverride: boolean;
   isMoneyAccountWithdraw: boolean;
-  isQRWallet: boolean;
   isWithdraw: boolean;
   lastWithdrawToken?: SetPayTokenRequest;
   minimumRequiredTokenBalance: number;
@@ -353,12 +341,7 @@ function getBestToken({
   preferredTokensFromFlags: PreferredToken[];
   targetToken?: { address: Hex; chainId: Hex };
   tokens: AssetType[];
-  transactionMeta: TransactionMeta;
 }): { address: Hex; chainId: Hex } | undefined {
-  const isMusdConversion = hasTransactionType(transactionMeta, [
-    TransactionType.musdConversion,
-  ]);
-
   const targetTokenFallback = targetToken
     ? {
         address: targetToken.address,
@@ -366,7 +349,7 @@ function getBestToken({
       }
     : undefined;
 
-  if (isHardwareWallet && (!isMusdConversion || isQRWallet)) {
+  if (isHardwareWallet) {
     return targetTokenFallback;
   }
 

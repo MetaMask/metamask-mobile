@@ -2,8 +2,8 @@ import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS,
-} from '../../../../UI/Earn/constants/musd';
-import { TokenI } from '../../../../UI/Tokens/types';
+} from '../../UI/Earn/constants/musd';
+import { TokenI } from '../../UI/Tokens/types';
 
 /**
  * mUSD token icon URL from MetaMask static CDN (matches popular tokens list).

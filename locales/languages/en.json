@@ -4770,7 +4770,6 @@
     "convert": "Convert",
     "bridge": "Bridge",
     "earn": "Earn",
-    "convert_to_musd": "Convert to mUSD",
     "tron": {
       "daily_resource_new_energy": "New daily energy",
       "sufficient_to_cover": "Sufficient to cover",
@@ -7557,67 +7556,9 @@
       "fee": "Fee"
     },
     "musd_conversion": {
-      "ok": "OK",
-      "continue": "Continue",
-      "convert_and_get_percentage_bonus": "Convert and get {{percentage}}%",
-      "your_musd": "Your mUSD",
-      "balance_breakdown_title": "Your mUSD balances by network",
-      "balance_amount": "{{amount}} mUSD",
-      "balance_amount_with_symbol": "{{amount}} {{symbol}}",
-      "balance_fiat_unavailable": "—",
-      "convert_to_musd": "Convert to mUSD",
-      "get_a_percentage_musd_bonus": "Get {{percentage}}% mUSD bonus",
-      "convert": "Convert",
-      "confirm": "Confirm",
-      "convert_tooltip_description": "Convert your stablecoins to mUSD and earn up to a {{percentage}}% annualized bonus that you can claim daily. Powered by Relay.",
-      "fetching_quote": "Fetching quote...",
-      "you_convert": "You convert",
-      "network_fee": "Network fee",
-      "earning": "Earning",
-      "quick_convert_description": "Select a token to convert your full balance or tap the edit icon to enter a custom amount.",
-      "no_tokens_to_convert": "You don't have any tokens that can be converted to mUSD.",
-      "toasts": {
-        "converting": "Converting {{token}} → mUSD",
-        "eta": "~{{time}}",
-        "delivered": "mUSD conversion successful",
-        "delivered_description": "Bonus will be claimable within a day.",
-        "failed": "mUSD conversion failed"
-      },
       "education": {
-        "heading": "GET {{percentage}}% ON\nSTABLECOINS",
-        "description": "Convert your stablecoins to mUSD and earn a {{percentage}}% annualized bonus.",
-        "terms_apply": "Terms apply.",
-        "primary_button": "Get Started",
-        "secondary_button": "Not now",
-        "checklist": {
-          "dollar_backed": "Dollar-backed",
-          "no_lockups": "No lockups",
-          "daily_bonus": "Daily bonus",
-          "metamask_stablecoins": "MetaMask stablecoins",
-          "no_metamask_fee": "No MetaMask fee"
-        }
-      },
-      "buy_musd": "Buy mUSD",
-      "get_musd": "Get mUSD",
-      "bonus_title": "Get {{percentage}}% on your stablecoins",
-      "bonus_description": "Convert your stablecoins to mUSD and get a {{percentage}}% annualized bonus.",
-      "powered_by_relay": "Powered by Relay",
-      "max": "Max",
-      "quick_convert_button": "Convert",
-      "learn_more": "Learn more",
-      "tooltip_title": "Earn yield with mUSD",
-      "tooltip_content": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin. Earn {{apy}} yield on every dollar you hold.",
-      "quick_convert": {
-        "title": "Convert and get {{percentage}}%",
-        "subtitle": "Convert your stablecoins to mUSD and receive up to a {{percentage}}% annualized bonus that you can claim daily.",
-        "inline_failed_message": "Conversion failed. Try again.",
-        "confirmation": {
-          "title": "Convert max"
-        }
-      },
-      "percentage_bonus": "{{percentage}}% bonus",
-      "claim_percentage_bonus": "Claim {{percentage}}% bonus",
-      "rate": "Rate"
+        "terms_apply": "Terms apply."
+      }
     },
     "bonus_claim": {
       "toasts": {
@@ -7625,17 +7566,7 @@
         "delivered": "Your mUSD bonus is here!",
         "failed": "Bonus claim failed"
       }
-    },
-    "rewards": {
-      "rewards_tag_label": "Rewards",
-      "tooltip_title": "Earn rewards with mUSD",
-      "tooltip_points_suffix": "per $100",
-      "tooltip_description": "Convert your USDC, USDT, or DAI for mUSD, MetaMask's dollar-backed stablecoin.\nEarn points every time you convert.",
-      "tooltip_opted_in_footer": "Points will be automatically added to your account.",
-      "tooltip_not_opted_in_footer": "Opt-in to rewards to receive your points.",
-      "tooltip_close": "Close"
-    },
-    "your_stablecoins": "Your stablecoins"
+    }
   },
   "money": {
     "title": "Money",
@@ -7929,16 +7860,6 @@
       "date": "Date"
     },
     "convert_stablecoins": {
-      "title": "Convert your stablecoins",
-      "description_prefix": "Get a ",
-      "description_bonus": "3% annualized bonus",
-      "description_suffix": " by converting USDC, USDT, and DAI to mUSD.",
-      "tag_dollar_backed": "Dollar-backed",
-      "tag_no_lockups": "No lockups",
-      "tag_no_fee": "No MetaMask fee",
-      "tag_daily_bonus": "Daily bonus",
-      "convert_cta": "Convert to mUSD",
-      "learn_more": "Learn more",
       "swap": "Swap",
       "buy": "Buy"
     },
@@ -8351,9 +8272,6 @@
       "predict_withdraw": {
         "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
       },
-      "musd_conversion": {
-        "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
-      },
       "money_account_deposit": {
         "transaction_fee": "Conversion fees include network costs and may include provider fees."
       },
@@ -8464,7 +8382,6 @@
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
     "deposit_edit_amount_money_account_send": "Send",
-    "deposit_edit_amount_musd_conversion": "Convert to mUSD",
     "preparing_order": "Preparing order"
   },
   "change_in_simulation_modal": {
