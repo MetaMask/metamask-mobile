@@ -45,6 +45,8 @@ import { strings } from '../../../../../../locales/i18n';
 import { useScreenTransitionComplete } from '../../../../hooks/useScreenTransitionComplete';
 import { MAX_ITEMS_PER_SECTION } from '../../search/viewMoreLabel';
 import type { ExploreSearchRouteParams } from './ExploreSearchScreen.types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): Icon Lab is the temporary icon-set host
+import { useHomepagePhosphorBoldIcons } from '../../../Homepage/hooks/useHomepagePhosphorBoldIcons';
 
 const ALL_PILL_KEY = 'all' as const;
 type ActivePill = typeof ALL_PILL_KEY | SearchFeedId;
@@ -310,6 +312,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 };
 
 const ExploreSearchScreen: React.FC = () => {
+  useHomepagePhosphorBoldIcons();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<AppNavigationProp>();
   const route =

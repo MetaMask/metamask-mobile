@@ -66,8 +66,11 @@ import { getTraceTags } from '../../../util/sentry/tags';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 import { useAccountsOperationsLoadingStates } from '../../../util/accounts/useAccountsOperationsLoadingStates';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): Icon Lab is the temporary icon-set host
+import { useHomepagePhosphorBoldIcons } from '../Homepage/hooks/useHomepagePhosphorBoldIcons';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
+  useHomepagePhosphorBoldIcons();
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();

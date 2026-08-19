@@ -44,8 +44,11 @@ import {
 } from '../../../selectors/notifications';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { getBetaSupportUrl } from './AccountsMenu.utils';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): Icon Lab is the temporary icon-set host
+import { useHomepagePhosphorBoldIcons } from '../Homepage/hooks/useHomepagePhosphorBoldIcons';
 
 const AccountsMenu = () => {
+  useHomepagePhosphorBoldIcons();
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
