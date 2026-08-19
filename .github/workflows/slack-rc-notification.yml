@@ -41,6 +41,23 @@ on:
         required: false
         type: string
         default: 'rc'
+      ota_commit_short_sha:
+        description: >-
+          Short SHA of an automated RC OTA delivery. When set, the message reports the commit
+          instead of download links, because no new binaries were produced.
+        required: false
+        type: string
+        default: ''
+      ota_native_build_number:
+        description: 'Build number of the native build the OTA update runs on top of'
+        required: false
+        type: string
+        default: ''
+      ota_baseline_short_sha:
+        description: 'Short SHA the OTA update runs on top of'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   actions: read
@@ -90,5 +107,10 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           PR_NUMBER: ${{ inputs.pr_number }}
           BUILD_KIND: ${{ inputs.build_kind }}
+          # Names match scripts/build-announce/utils.ts, same values, so the Slack message and
+          # the PR comment cannot drift apart.
+          OTA_COMMIT_SHORT_SHA: ${{ inputs.ota_commit_short_sha }}
+          OTA_NATIVE_BUILD_NUMBER: ${{ inputs.ota_native_build_number }}
+          OTA_BASELINE_SHORT_SHA: ${{ inputs.ota_baseline_short_sha }}
           # Disable android check msg for now
           #ANDROID_PLAY_STORE_CHECK_MRKDWN_FILE: ${{ github.workspace }}/android-play-store-check-out/android-play-store-check-slack.md
