@@ -7,8 +7,8 @@ import Routes from '../../../constants/navigation/Routes';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
-const mockGoBack = jest.fn();
-const mockNavigate = jest.fn();
+let mockGoBack: jest.Mock;
+let mockNavigate: jest.Mock;
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -35,6 +35,8 @@ const renderProHub = () => render(<ProHub />);
 describe('ProHub', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGoBack = jest.fn();
+    mockNavigate = jest.fn();
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────

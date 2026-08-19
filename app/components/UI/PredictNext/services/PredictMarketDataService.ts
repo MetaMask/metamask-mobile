@@ -14,13 +14,14 @@ import type { VenueMarketDataAdapter } from '../adapters/types';
 import { PredictError, PredictErrorCode } from '../errors';
 import {
   marketDataQueries,
-  type EventListParams,
+  type FeedParams,
   type GetEventResult,
-  type GetEventsResult,
+  type GetFeedResult,
   type GetVenueStatusResult,
 } from '../queries/marketDataQueries';
 import type {
   PredictEntityId,
+  PredictFeedId,
   PredictReadOptions,
   PredictVenueId,
 } from '../types';
@@ -36,14 +37,15 @@ export interface PredictMarketDataServiceGetVenueStatusAction {
   ) => Promise<GetVenueStatusResult>;
 }
 
-export interface PredictMarketDataServiceGetEventsAction {
-  type: 'PredictMarketDataService:getEvents';
+export interface PredictMarketDataServiceGetFeedAction {
+  type: 'PredictMarketDataService:getFeed';
   handler: (
     venueId: PredictVenueId,
-    params: EventListParams,
+    feedId: PredictFeedId,
+    params: FeedParams,
     cursor?: string,
     options?: PredictReadOptions,
-  ) => Promise<GetEventsResult>;
+  ) => Promise<GetFeedResult>;
 }
 
 export interface PredictMarketDataServiceGetEventAction {
@@ -57,7 +59,7 @@ export interface PredictMarketDataServiceGetEventAction {
 
 export type PredictMarketDataServiceActions =
   | PredictMarketDataServiceGetVenueStatusAction
-  | PredictMarketDataServiceGetEventsAction
+  | PredictMarketDataServiceGetFeedAction
   | PredictMarketDataServiceGetEventAction
   | DataServiceInvalidateQueriesAction<typeof PREDICT_MARKET_DATA_SERVICE_NAME>;
 
@@ -125,8 +127,8 @@ export class PredictMarketDataService extends BaseDataService<
       this.getVenueStatus.bind(this),
     );
     messenger.registerActionHandler(
-      'PredictMarketDataService:getEvents',
-      this.getEvents.bind(this),
+      'PredictMarketDataService:getFeed',
+      this.getFeed.bind(this),
     );
     messenger.registerActionHandler(
       'PredictMarketDataService:getEvent',
@@ -150,27 +152,29 @@ export class PredictMarketDataService extends BaseDataService<
     });
   }
 
-  async getEvents(
+  async getFeed(
     venueId: PredictVenueId,
-    params: EventListParams,
+    feedId: PredictFeedId,
+    params: FeedParams,
     cursor?: string,
     options?: PredictReadOptions,
-  ): Promise<GetEventsResult> {
+  ): Promise<GetFeedResult> {
     this.#assertVenue(venueId);
-    const descriptor = marketDataQueries.getEvents(venueId, params);
+    const descriptor = marketDataQueries.getFeed(venueId, feedId, params);
     return this.fetchInfiniteQuery(
       {
         queryKey: descriptor.queryKey,
         staleTime: descriptor.staleTime,
         queryFn: async ({ pageParam, signal }) => {
-          const page = await this.#marketData.fetchEvents(
+          const page = await this.#marketData.fetchFeed(
+            feedId,
             { ...params, cursor: pageParam as string | undefined },
             { signal: options?.signal ?? signal },
           );
           return {
             ...page,
             nextCursor: page.nextCursor || undefined,
-          } as Json & GetEventsResult;
+          } as Json & GetFeedResult;
         },
         getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
       },

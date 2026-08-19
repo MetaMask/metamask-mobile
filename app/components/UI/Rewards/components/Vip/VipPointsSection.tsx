@@ -48,24 +48,25 @@ const VipPointsSection: React.FC<VipPointsSectionProps> = ({
     pointsAllocation.earned >= pointsAllocation.threshold;
   const subtitle = isEquityUnlocked ? equityUnlockedTitle : equityLockedTitle;
 
-  // Only meaningful once equity is unlocked, and only worth showing when the
-  // VIP has actually accrued something — a "lifetime total of 0" would read as
-  // a bug rather than as reassurance.
+  // Lifetime total is never clamped and never shrinks once accrued — a VIP
+  // who has since dropped below the equity tier still keeps it, so this is
+  // NOT gated on `isEquityUnlocked`. Only worth showing when the VIP has
+  // actually accrued something — a "lifetime total of 0" would read as a bug
+  // rather than as reassurance.
   const lifetimeQualifyingPoints = pointsAllocation.lifetimeQualifyingPoints;
   const lifetimePointsText =
-    isEquityUnlocked &&
-    lifetimeQualifyingPoints !== null &&
-    lifetimeQualifyingPoints > 0
+    lifetimeQualifyingPoints !== null && lifetimeQualifyingPoints > 0
       ? equityLifetimePointsDescription
           .split(POINTS_PLACEHOLDER)
           .join(formatCompactValue(lifetimeQualifyingPoints))
       : null;
 
-  const description = isEquityUnlocked
-    ? lifetimePointsText
-      ? `${equityUnlockedDescription} ${lifetimePointsText}`
-      : equityUnlockedDescription
+  const baseDescription = isEquityUnlocked
+    ? equityUnlockedDescription
     : equityLockedDescription;
+  const description = lifetimePointsText
+    ? `${baseDescription} ${lifetimePointsText}`
+    : baseDescription;
 
   return (
     <Box
