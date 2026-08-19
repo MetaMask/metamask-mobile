@@ -32,7 +32,7 @@ import {
 
 export type DeeplinkPerfStartSource = 'unlock' | 'warm';
 export type DeeplinkPerfAppStartType = 'cold' | 'warm';
-export type DeeplinkProcessedSeam = 'pre_navigate' | 'parse_return';
+export type DeeplinkProcessedSeam = 'pre_navigate' | 'handler_finished';
 export type DeeplinkTraceToken = number;
 
 export type DeeplinkProcessedCancelReason =
@@ -241,7 +241,7 @@ export const markDeeplinkInterstitialContinued = () => {
 
 /**
  * Ends Processed at one of two seams. `pre_navigate` (intent handlers, after
- * `intent.prepare()`) is exact; `parse_return` (everything else) includes the
+ * `intent.prepare()`) is exact; `handler_finished` (everything else) includes the
  * handler's own navigate call. The tag makes the imprecision explicit — as
  * handlers migrate to intents they graduate seams with no telemetry change.
  */

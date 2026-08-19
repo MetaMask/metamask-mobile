@@ -112,20 +112,20 @@ describe('DeeplinkPerformance', () => {
       expect(mockTrace).toHaveBeenCalledTimes(1);
     });
 
-    it('ends at the parse_return seam as a full skipped-interstitial segment', () => {
+    it('ends at the handler_finished seam as a full skipped-interstitial segment', () => {
       startDeeplinkProcessedTrace({
         url: TRENDING_URL,
         source: 'warm',
         appStartType: 'warm',
       });
 
-      endDeeplinkProcessedTrace({ seam: 'parse_return' });
+      endDeeplinkProcessedTrace({ seam: 'handler_finished' });
 
       expect(mockEndTrace).toHaveBeenCalledWith({
         name: TraceName.DeeplinkProcessed,
         data: {
           success: true,
-          seam: 'parse_return',
+          seam: 'handler_finished',
           segment: 'full',
           interstitial: 'skipped',
         },
@@ -162,7 +162,7 @@ describe('DeeplinkPerformance', () => {
       });
 
       endDeeplinkProcessedTrace({ seam: 'pre_navigate' });
-      endDeeplinkProcessedTrace({ seam: 'parse_return' });
+      endDeeplinkProcessedTrace({ seam: 'handler_finished' });
 
       expect(mockEndTrace).toHaveBeenCalledTimes(1);
     });
@@ -256,7 +256,7 @@ describe('DeeplinkPerformance', () => {
       markDeeplinkInterstitialContinued();
       mockEndTrace.mockClear();
 
-      endDeeplinkProcessedTrace({ seam: 'parse_return' });
+      endDeeplinkProcessedTrace({ seam: 'handler_finished' });
 
       expect(mockEndTrace).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -272,7 +272,7 @@ describe('DeeplinkPerformance', () => {
       markDeeplinkInterstitialShown();
       mockEndTrace.mockClear();
 
-      endDeeplinkProcessedTrace({ seam: 'parse_return' });
+      endDeeplinkProcessedTrace({ seam: 'handler_finished' });
 
       expect(mockEndTrace).not.toHaveBeenCalled();
     });
@@ -425,7 +425,7 @@ describe('DeeplinkPerformance', () => {
         source: 'warm',
         appStartType: 'warm',
       });
-      endDeeplinkProcessedTrace({ seam: 'parse_return' });
+      endDeeplinkProcessedTrace({ seam: 'handler_finished' });
       mockEndTrace.mockClear();
 
       handleDeeplinkNavigationStateChange({

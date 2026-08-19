@@ -173,7 +173,7 @@ describe('DeeplinkManager', () => {
     const mockEndProcessed = jest.mocked(endDeeplinkProcessedTrace);
     const mockCancelProcessed = jest.mocked(cancelDeeplinkProcessedTrace);
 
-    it('starts on parse and ends at the parse_return seam when handled', async () => {
+    it('starts on parse and ends at the handler_finished seam when handled', async () => {
       mockParseDeeplink.mockResolvedValueOnce(true);
 
       await deeplinkManager.parse(url, { origin });
@@ -183,7 +183,9 @@ describe('DeeplinkManager', () => {
         source: 'warm',
         appStartType: 'warm',
       });
-      expect(mockEndProcessed).toHaveBeenCalledWith({ seam: 'parse_return' });
+      expect(mockEndProcessed).toHaveBeenCalledWith({
+        seam: 'handler_finished',
+      });
       expect(mockCancelProcessed).not.toHaveBeenCalled();
     });
 

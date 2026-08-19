@@ -112,7 +112,7 @@ export class DeeplinkManager {
     if (handled) {
       // No-op when an intent handler already ended the span at the
       // `pre_navigate` seam inside executeDeeplinkIntent.
-      endDeeplinkProcessedTrace({ seam: 'parse_return' });
+      endDeeplinkProcessedTrace({ seam: 'handler_finished' });
     } else {
       cancelDeeplinkProcessedTrace({ reason: 'rejected' });
     }
