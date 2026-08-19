@@ -362,6 +362,8 @@ export const ONBOARDING_MACHINE_TIME_ATTRIBUTE = 'onboarding.machine.ms';
 
 /**
  * Disjoint machine-time spans summed into `onboarding.machine.ms`. Must not overlap.
+ * Retries of the same span key (name + id) keep only the latest successful duration
+ * so multiple social-login attempts in one journey are not added together.
  *
  * `OnboardingCreateKeyAndBackupSrp` is deliberately excluded: it nests inside
  * `OnboardingSRPAccountCreationTime` on the SRP-create-wallet path
@@ -379,9 +381,10 @@ const MACHINE_TIME_TRACE_NAMES: ReadonlySet<TraceName> = new Set([
   TraceName.OnboardingResetPassword,
 ]);
 
-let onboardingMachineTimeMs = 0;
+/** Latest successful duration per machine-time span key (`name:id`). */
+let onboardingMachineTimeByKey = new Map<string, number>();
 /** Harvested from buffered spans on social opt-in discard; applied on journey start/reuse. */
-let pendingOnboardingMachineTimeMs = 0;
+let pendingOnboardingMachineTimeByKey = new Map<string, number>();
 
 const ACCOUNT_TYPE_ATTRIBUTE = 'account_type';
 const ONBOARDING_OP_PREFIX = 'onboarding.';
@@ -658,6 +661,33 @@ export function annotateTrace(
   }
 }
 
+function sumOnboardingMachineTime(byKey: Map<string, number>): number {
+  let total = 0;
+
+  for (const duration of byKey.values()) {
+    total += duration;
+  }
+
+  return total;
+}
+
+function recordOnboardingMachineTime(
+  request: { name: TraceName; id?: string },
+  duration: number,
+  target: Map<string, number> = onboardingMachineTimeByKey,
+): void {
+  target.set(getTraceKey(request), Math.max(duration, 0));
+}
+
+function mergeOnboardingMachineTime(
+  target: Map<string, number>,
+  source: Map<string, number>,
+): void {
+  for (const [key, duration] of source) {
+    target.set(key, duration);
+  }
+}
+
 /** Skip failed spans; capped unmount durations are not real user waits. */
 function addOnboardingMachineTime(
   request: EndTraceRequest,
@@ -671,7 +701,7 @@ function addOnboardingMachineTime(
     return;
   }
 
-  onboardingMachineTimeMs += Math.max(duration, 0);
+  recordOnboardingMachineTime(request, duration);
 }
 
 /** Credit open machine-time spans on successful journey end (e.g. SRP create path). */
@@ -698,7 +728,10 @@ function addOpenOnboardingMachineTime(
       continue;
     }
 
-    onboardingMachineTimeMs += Math.max(cappedEndTime - startTime, 0);
+    recordOnboardingMachineTime(
+      pendingTrace.request,
+      cappedEndTime - startTime,
+    );
   }
 }
 
@@ -709,11 +742,11 @@ function finalizeOnboardingMachineTime(span?: Span): void {
   if (span?.setAttribute !== undefined) {
     span.setAttribute(
       ONBOARDING_MACHINE_TIME_ATTRIBUTE,
-      Math.round(onboardingMachineTimeMs),
+      Math.round(sumOnboardingMachineTime(onboardingMachineTimeByKey)),
     );
   }
 
-  onboardingMachineTimeMs = 0;
+  onboardingMachineTimeByKey = new Map();
 }
 
 export function endTrace(request: EndTraceRequest): void {
@@ -912,64 +945,70 @@ export function updateCachedConsent(consent: boolean) {
 }
 
 /** Pair buffered start/end machine-time spans before social opt-in discard. */
-function harvestBufferedOnboardingMachineTime(): number {
-  const startsByKey = new Map<string, number>();
-  let harvestedMs = 0;
+function harvestBufferedOnboardingMachineTime(): Map<string, number> {
+  const openStartsByKey = new Map<string, number>();
+  const harvestedByKey = new Map<string, number>();
 
   for (const bufferedItem of localBufferedTraces) {
-    if (bufferedItem.type !== 'start') {
+    if (bufferedItem.type === 'start') {
+      const request = bufferedItem.request as TraceRequest;
+      if (!MACHINE_TIME_TRACE_NAMES.has(request.name)) {
+        continue;
+      }
+
+      openStartsByKey.set(
+        getTraceKey(request),
+        request.startTime ?? Date.now(),
+      );
       continue;
     }
 
-    const request = bufferedItem.request as TraceRequest;
-    const { name, startTime } = request;
-    if (!MACHINE_TIME_TRACE_NAMES.has(name)) {
-      continue;
-    }
-
-    startsByKey.set(getTraceKey(request), startTime ?? Date.now());
-  }
-
-  for (const bufferedItem of localBufferedTraces) {
     if (bufferedItem.type !== 'end') {
       continue;
     }
 
     const request = bufferedItem.request as EndTraceRequest;
-    const { name, timestamp, data } = request;
-    if (!MACHINE_TIME_TRACE_NAMES.has(name) || data?.success === false) {
+    const { timestamp, data } = request;
+    if (!MACHINE_TIME_TRACE_NAMES.has(request.name) || data?.success === false) {
       continue;
     }
 
-    const startTime = startsByKey.get(getTraceKey(request));
+    const key = getTraceKey(request);
+    const startTime = openStartsByKey.get(key);
     if (startTime === undefined) {
       continue;
     }
 
-    const endTime = timestamp ?? Date.now();
-    const duration = endTime - startTime;
+    const duration = (timestamp ?? Date.now()) - startTime;
+    openStartsByKey.delete(key);
 
     if (Number.isFinite(duration)) {
-      harvestedMs += Math.max(duration, 0);
+      recordOnboardingMachineTime(request, duration, harvestedByKey);
     }
   }
 
-  return harvestedMs;
+  return harvestedByKey;
 }
 
 /** Apply pending machine time when the journey span is reused after social opt-in. */
 export function applyPendingOnboardingMachineTime(): void {
-  onboardingMachineTimeMs += pendingOnboardingMachineTimeMs;
-  pendingOnboardingMachineTimeMs = 0;
+  mergeOnboardingMachineTime(
+    onboardingMachineTimeByKey,
+    pendingOnboardingMachineTimeByKey,
+  );
+  pendingOnboardingMachineTimeByKey = new Map();
 }
 
 export function _resetOnboardingMachineTimeForTesting(): void {
-  onboardingMachineTimeMs = 0;
-  pendingOnboardingMachineTimeMs = 0;
+  onboardingMachineTimeByKey = new Map();
+  pendingOnboardingMachineTimeByKey = new Map();
 }
 
 export function discardBufferedTraces() {
-  pendingOnboardingMachineTimeMs += harvestBufferedOnboardingMachineTime();
+  mergeOnboardingMachineTime(
+    pendingOnboardingMachineTimeByKey,
+    harvestBufferedOnboardingMachineTime(),
+  );
   localBufferedTraces.length = 0;
 }
 
@@ -1029,8 +1068,8 @@ function startTrace(request: TraceRequest): TraceContext {
   const id = getTraceId(request);
 
   if (name === TraceName.OnboardingJourneyOverall) {
-    onboardingMachineTimeMs = pendingOnboardingMachineTimeMs;
-    pendingOnboardingMachineTimeMs = 0;
+    onboardingMachineTimeByKey = new Map(pendingOnboardingMachineTimeByKey);
+    pendingOnboardingMachineTimeByKey = new Map();
     onboardingAccountType = undefined;
     rememberOnboardingAccountType(request.tags);
   }

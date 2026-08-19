@@ -943,6 +943,58 @@ describe('Trace', () => {
       expectMachineTime(journey, 1_500);
     });
 
+    it('counts only the latest successful duration for a retried social login span', () => {
+      const journey = createSpanMock();
+      queueSpans([
+        journey,
+        createSpanMock(),
+        createSpanMock(),
+        createSpanMock(),
+        createSpanMock(),
+      ]);
+
+      trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
+      trace({
+        name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+        startTime: 1_000,
+      });
+      endTrace({
+        name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+        timestamp: 1_505,
+        data: { success: true },
+      });
+      trace({
+        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+        startTime: 1_600,
+      });
+      endTrace({
+        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+        timestamp: 8_241,
+        data: { success: true },
+      });
+      trace({
+        name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+        startTime: 10_000,
+      });
+      endTrace({
+        name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
+        timestamp: 10_535,
+        data: { success: true },
+      });
+      trace({
+        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+        startTime: 10_600,
+      });
+      endTrace({
+        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
+        timestamp: 12_702,
+        data: { success: true },
+      });
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+      expectMachineTime(journey, 535 + 2_102);
+    });
+
     it('rounds machine time to whole milliseconds', () => {
       const journey = createSpanMock();
       queueSpans([journey, createSpanMock()]);
