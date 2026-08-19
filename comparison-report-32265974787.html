@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Performance E2E · Vendor comparison</title>
+    <style>
+      :root {
+        --bg: #f4f7fb;
+        --card: #ffffff;
+        --ink: #172033;
+        --muted: #667085;
+        --line: #e7ebf2;
+        --blue: #2563eb;
+        --green: #15803d;
+        --red: #b42318;
+        --orange: #b54708;
+        --purple: #7c3aed;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+      }
+      .wrap { max-width: 1500px; margin: 0 auto; padding: 36px 22px 60px; }
+      .hero {
+        background: linear-gradient(135deg, #172554, #2563eb);
+        border-radius: 24px;
+        color: white;
+        padding: 34px;
+        box-shadow: 0 18px 45px #17255425;
+      }
+      .eyebrow { color: #bfdbfe; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: 12px; }
+      h1 { font-size: clamp(28px, 4vw, 48px); line-height: 1.08; margin: 10px 0 12px; }
+      h2 { margin: 0 0 16px; font-size: 21px; }
+      .hero p { max-width: 850px; color: #dbeafe; margin: 0; }
+      .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+      .links a { color: white; border: 1px solid #ffffff55; border-radius: 999px; padding: 7px 12px; text-decoration: none; font-size: 13px; }
+      .grid { display: grid; gap: 16px; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 22px 0; }
+      .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 20px; box-shadow: 0 5px 18px #1018280a; }
+      .metric { color: var(--muted); font-size: 13px; }
+      .metric strong { display: block; color: var(--ink); font-size: 30px; line-height: 1.15; margin-top: 5px; }
+      .provider { border-top: 4px solid var(--blue); }
+      .provider.sauce { border-color: var(--orange); }
+      .provider.standard { border-color: var(--green); }
+      .provider.he { border-color: var(--purple); }
+      .provider h3 { margin: 0 0 4px; font-size: 17px; }
+      .provider small { color: var(--muted); }
+      .section { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px; margin-top: 18px; overflow: hidden; }
+      .note { background: #fffaeb; border: 1px solid #fedf89; color: #7a4b00; border-radius: 12px; padding: 13px 15px; margin: 14px 0 0; }
+      .table-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; min-width: 920px; }
+      th, td { border-bottom: 1px solid var(--line); padding: 12px 10px; text-align: left; vertical-align: middle; }
+      th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; background: #f8fafc; }
+      tr:last-child td { border-bottom: 0; }
+      td:first-child { min-width: 310px; font-weight: 600; }
+      .pass { color: var(--green); font-weight: 700; }
+      .fail { color: var(--red); font-weight: 700; }
+      .missing { color: var(--orange); font-weight: 700; }
+      .time { display: block; font-variant-numeric: tabular-nums; }
+      .status { display: inline-block; font-size: 11px; margin-top: 2px; }
+      .winner { background: #ecfdf3; }
+      .legend { display: flex; flex-wrap: wrap; gap: 14px; color: var(--muted); font-size: 13px; margin-top: 14px; }
+      .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+      .foot { color: var(--muted); font-size: 12px; margin-top: 18px; }
+      @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+      @media (max-width: 560px) { .wrap { padding: 18px 12px 40px; } .hero { padding: 24px; border-radius: 18px; } .grid { grid-template-columns: 1fr 1fr; gap: 10px; } .card { padding: 15px; } .metric strong { font-size: 24px; } }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="hero">
+        <div class="eyebrow">MetaMask Mobile · Performance E2E</div>
+        <h1>Vendor comparison</h1>
+        <p>Comparativa de los cuatro proveedores ejecutados en el run 32265974787. Los tiempos representan métricas de aplicación y no incluyen completamente la creación de sesión del proveedor.</p>
+        <nav class="links">
+          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787" target="_blank">Run completo</a>
+          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32248728966" target="_blank">TestMu Standard + HE</a>
+          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32249603472" target="_blank">Sauce Labs</a>
+        </nav>
+      </header>
+
+      <section class="grid">
+        <div class="card"><div class="metric">Escenarios ejecutados<strong>23</strong></div></div>
+        <div class="card"><div class="metric">BrowserStack · pasados<strong>16 / 23</strong></div></div>
+        <div class="card"><div class="metric">Sauce Labs · pasados<strong>14 / 23</strong></div></div>
+        <div class="card"><div class="metric">TestMu · Standard / HE<strong>17 / 18</strong></div></div>
+      </section>
+
+      <section class="grid">
+        <article class="card provider"><h3>BrowserStack</h3><small>Pixel 7 Pro · Android 13</small></article>
+        <article class="card provider sauce"><h3>Sauce Labs Private</h3><small>Dos dispositivos privados · 2 workers</small></article>
+        <article class="card provider standard"><h3>TestMu Standard</h3><small>Pixel 8 Pro · Android 14</small></article>
+        <article class="card provider he"><h3>TestMu HyperExecute</h3><small>Pixel 8 Pro · Android 14</small></article>
+      </section>
+
+      <section class="section">
+        <h2>Quality gates y tiempos por escenario</h2>
+        <div class="note"><strong>Lectura:</strong> verde = quality gate pasado; rojo = quality gate fallido; naranja = sin métricas. El fondo verde marca el tiempo más bajo entre métricas válidas.</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Escenario</th><th>BrowserStack</th><th>Sauce Private</th><th>TestMu Standard</th><th>TestMu HE</th></tr></thead>
+            <tbody id="results"></tbody>
+          </table>
+        </div>
+        <div class="legend">
+          <span><i class="dot" style="background:#15803d"></i>Quality gate OK</span>
+          <span><i class="dot" style="background:#b42318"></i>Quality gate fallido</span>
+          <span><i class="dot" style="background:#b54708"></i>Sin métricas</span>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Conclusiones rápidas</h2>
+        <ul>
+          <li><strong>HyperExecute</strong> tuvo el mayor número de escenarios pasados: 18/23.</li>
+          <li><strong>TestMu Standard</strong> pasó 17/23 y tuvo un único quality gate fallido.</li>
+          <li><strong>BrowserStack</strong> pasó 16/23 y fue el más rápido en varios flujos válidos.</li>
+          <li><strong>Sauce Labs Private</strong> pasó 14/23 y acumuló cinco quality gates fallidos.</li>
+          <li>Los tests sin métricas no deben interpretarse como lentitud de la aplicación: indican un fallo de instrumentación, sesión o flujo.</li>
+        </ul>
+      </section>
+      <p class="foot">Generado para el run 32265974787 · Branch MMQA-TestMu-PoC-HyperExecute · Todos los valores están expresados en segundos.</p>
+    </main>
+    <script>
+      const rows = [
+        ["Cold Start → Onboarding", [2.164,"P"], [1.247,"P"], [2.266,"P"], [2.643,"P"]],
+        ["Fresh SRP wallet creation", [15.850,"F"], [18.877,"F"], [12.985,"F"], [11.591,"F"]],
+        ["Import SRP onboarding +50 cuentas", [5.183,"P"], [7.524,"P"], [4.448,"P"], [5.904,"P"]],
+        ["Money Home · wallet vacío", [null,"N"], [null,"N"], [null,"N"], [null,"N"]],
+        ["Account creation", [1.745,"P"], [3.657,"F"], [2.723,"P"], [1.591,"P"]],
+        ["Money Home · wallet importado", [null,"N"], [null,"N"], [null,"N"], [null,"N"]],
+        ["Perps open position and close it", [null,"N"], [null,"N"], [null,"N"], [null,"N"]],
+        ["Seedless Apple", [1.501,"P"], [6.332,"P"], [4.754,"P"], [5.358,"P"]],
+        ["Seedless Google", [3.030,"P"], [5.456,"P"], [5.156,"P"], [3.451,"P"]],
+        ["Seedless Telegram", [3.156,"P"], [5.818,"P"], [null,"P"], [5.758,"P"]],
+        ["Aggregated Balance Loading", [8.181,"P"], [8.800,"P"], [8.933,"P"], [8.724,"P"]],
+        ["Cross-chain swap ETH → SOL", [5.430,"P"], [9.985,"P"], [8.268,"P"], [5.917,"P"]],
+        ["Asset View", [3.898,"P"], [4.681,"P"], [2.581,"P"], [3.984,"P"]],
+        ["Cold Start → Login", [5.801,"F"], [7.222,"F"], [null,"P"], [0.387,"P"]],
+        ["Swap ETH → LINK", [1.978,"P"], [3.685,"P"], [1.919,"P"], [1.627,"P"]],
+        ["Import SRP +50 cuentas", [3.486,"P"], [14.563,"F"], [null,"P"], [2.222,"P"]],
+        ["Warm Start → Wallet", [1.554,"P"], [5.493,"F"], [null,"N"], [0.926,"P"]],
+        ["Perps add funds", [6.633,"P"], [7.310,"P"], [8.374,"P"], [9.095,"P"]],
+        ["Warm Start → Login", [0.931,"P"], [1.262,"P"], [0.539,"P"], [0.463,"P"]],
+        ["Predict Available Balance", [0.775,"P"], [1.818,"P"], [null,"P"], [1.424,"P"]],
+        ["Predict Market Details", [3.732,"P"], [8.487,"P"], [3.928,"P"], [2.082,"P"]],
+        ["Predict Deposit", [24.645,"F"], [null,"N"], [19.625,"P"], [7.586,"P"]],
+        ["Rewards tab", [null,"N"], [3.949,"P"], [null,"N"], [null,"N"]]
+      ];
+      const labels = ["BrowserStack", "Sauce Private", "TestMu Standard", "TestMu HE"];
+      const tbody = document.getElementById("results");
+      rows.forEach(([name, ...values]) => {
+        const valid = values.map(v => v[0]).filter(v => typeof v === "number");
+        const fastest = valid.length ? Math.min(...valid) : null;
+        const cells = values.map(([time, status]) => {
+          const cls = status === "P" ? "pass" : status === "F" ? "fail" : "missing";
+          const text = time === null ? "N/D" : `${time.toFixed(3)} s`;
+          const mark = status === "P" ? "Quality OK" : status === "F" ? "Quality fail" : "No metrics";
+          return `<td class="${time === fastest && fastest !== null ? "winner" : ""}"><span class="time ${cls}">${text}</span><span class="status ${cls}">${mark}</span></td>`;
+        }).join("");
+        tbody.insertAdjacentHTML("beforeend", `<tr><td>${name}</td>${cells}</tr>`);
+      });
+    </script>
+  </body>
+</html>
