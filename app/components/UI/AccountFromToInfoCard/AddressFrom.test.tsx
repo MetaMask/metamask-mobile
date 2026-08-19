@@ -114,15 +114,16 @@ describe('AddressFrom', () => {
     expect(getByText(MOCK_NETWORK_NAME)).toBeOnTheScreen();
   });
 
-  it('still renders account when network image is missing', () => {
+  it('hides network badge when network image is missing', () => {
     useNetworkInfoMock.mockReturnValue({
       networkName: MOCK_NETWORK_NAME,
       networkImage: undefined,
       networkNativeCurrency: 'ETH',
     } as unknown as ReturnType<typeof useNetworkInfo>);
 
-    const { getByText } = renderAddressFrom();
+    const { getByText, queryByTestId } = renderAddressFrom();
 
     expect(getByText(MOCK_NETWORK_NAME)).toBeOnTheScreen();
+    expect(queryByTestId('badgenetwork')).not.toBeOnTheScreen();
   });
 });

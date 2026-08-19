@@ -64,6 +64,7 @@ const renderComponent = (
   state: Partial<RootState> & { engine: { backgroundState: EngineState } },
   options?: {
     displayNetworkBadge?: boolean;
+    chainId?: string;
   },
 ) =>
   renderWithProvider(
@@ -73,7 +74,7 @@ const renderComponent = (
       onAccountLongPress={() => null}
       onIconPress={() => null}
       testID="address-element"
-      chainId="0x1"
+      chainId={options?.chainId ?? '0x1'}
       displayNetworkBadge={options?.displayNetworkBadge}
     />,
     { state },
@@ -120,7 +121,16 @@ describe('AddressElement', () => {
       },
     );
 
-    const networkBadge = getByTestId('network-avatar-image');
-    expect(networkBadge).toBeDefined();
+    expect(getByTestId('network-avatar-image')).toBeOnTheScreen();
+  });
+
+  it('does not render network badge when network image source is missing', () => {
+    const { getByTestId, queryByTestId } = renderComponent(initialState, {
+      displayNetworkBadge: true,
+      chainId: '0xdeadbeef',
+    });
+
+    expect(getByTestId('address-element')).toBeOnTheScreen();
+    expect(queryByTestId('badgenetwork')).not.toBeOnTheScreen();
   });
 });

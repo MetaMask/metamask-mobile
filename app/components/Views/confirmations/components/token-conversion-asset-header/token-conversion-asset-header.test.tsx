@@ -128,6 +128,9 @@ describe('TokenConversionAssetHeader', () => {
       targetAmount: { usd: '1230.01', fiat: '1230.01' },
     } as ReturnType<typeof useTransactionPayTotals>);
     mockUseNetworkName.mockReturnValue('Ethereum');
+    jest.mocked(getNetworkImageSource).mockReturnValue({
+      uri: 'mock-network-image',
+    });
   });
 
   afterEach(() => {
@@ -263,6 +266,30 @@ describe('TokenConversionAssetHeader', () => {
     expect(
       getByTestId(TokenConversionAssetHeaderTestIds.OUTPUT_TOKEN_AVATAR),
     ).toBeOnTheScreen();
+  });
+
+  it('hides network badges when network image sources are missing', () => {
+    jest.mocked(getNetworkImageSource).mockReturnValue(undefined);
+
+    const token = createMockToken();
+    const formatFiat = createMockFormatFiat();
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <TokenConversionAssetHeader
+        inputToken={token}
+        outputToken={token}
+        formatFiat={formatFiat}
+      />,
+      { state: initialRootState },
+    );
+
+    expect(
+      getByTestId(TokenConversionAssetHeaderTestIds.INPUT_TOKEN_AVATAR),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(TokenConversionAssetHeaderTestIds.OUTPUT_TOKEN_AVATAR),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('badgenetwork')).not.toBeOnTheScreen();
   });
 
   it('calls getNetworkImageSource with input and output token chainIds', () => {
