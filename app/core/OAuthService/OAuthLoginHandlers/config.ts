@@ -21,15 +21,17 @@ interface OAUTH_CONFIG_TYPE {
   IOS_TELEGRAM_AUTH_CONNECTION_ID: string;
 }
 
-export enum BUILD_TYPE {
-  development = 'development',
-  main_prod = 'main_prod',
-  main_uat = 'main_uat',
-  main_dev = 'main_dev',
-  flask_prod = 'flask_prod',
-  flask_uat = 'flask_uat',
-  flask_dev = 'flask_dev',
-}
+export const BUILD_TYPE = {
+  development: 'development',
+  main_prod: 'main_prod',
+  main_uat: 'main_uat',
+  main_dev: 'main_dev',
+  flask_prod: 'flask_prod',
+  flask_uat: 'flask_uat',
+  flask_dev: 'flask_dev',
+} as const;
+
+export type BUILD_TYPE = (typeof BUILD_TYPE)[keyof typeof BUILD_TYPE];
 
 export const OAUTH_CONFIG: Record<BUILD_TYPE, OAUTH_CONFIG_TYPE> = {
   development: {
