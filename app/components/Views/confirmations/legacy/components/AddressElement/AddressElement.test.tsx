@@ -132,6 +132,8 @@ describe('AddressElement', () => {
     });
 
     expect(getByTestId('address-element')).toBeOnTheScreen();
-    expect(queryByTestId('address-element-network-badge')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId('address-element-network-badge'),
+    ).not.toBeOnTheScreen();
   });
 });
