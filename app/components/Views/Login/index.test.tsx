@@ -280,6 +280,18 @@ jest.mock('../../../util/trace', () => {
   };
 });
 
+const HOMEPAGE_READY_TRACE_TOKEN = 1;
+const mockStartHomepageReadyTrace = jest.fn(
+  (..._args: unknown[]) => HOMEPAGE_READY_TRACE_TOKEN,
+);
+const mockCancelHomepageReadyTrace = jest.fn();
+jest.mock('../../../core/Performance/HomepageReady', () => ({
+  startHomepageReadyTrace: (...args: unknown[]) =>
+    mockStartHomepageReadyTrace(...args),
+  cancelHomepageReadyTrace: (...args: unknown[]) =>
+    mockCancelHomepageReadyTrace(...args),
+}));
+
 jest.mock('@react-native-community/netinfo', () => ({
   useNetInfo: jest.fn(() => ({
     isConnected: true,
@@ -1667,9 +1679,13 @@ describe('Login', () => {
   });
 
   describe('Navigation and lifecycle', () => {
-    it('navigates to forgot password modal when reset wallet is pressed', () => {
+    it('navigates to forgot password modal when reset wallet is pressed', async () => {
       const { getByTestId } = renderWithProvider(<Login />);
-      fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.DELETE_WALLET,
       });
@@ -1982,6 +1998,49 @@ describe('Login', () => {
         },
         expect.any(Function),
       );
+    });
+
+    it('cancels Homepage Ready when password unlock fails', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Wrong password'));
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      fireEvent.changeText(passwordInput, 'wrong-password');
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
+        reason: 'unlock_failed',
+        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
+      });
+    });
+
+    it('cancels Homepage Ready when device authentication fails', async () => {
+      mockUseAuthCapabilities.mockReturnValue({
+        capabilities: defaultCapabilities,
+        isLoading: false,
+      });
+      mockGetAuthType.mockResolvedValue({
+        currentAuthType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+        availableBiometryType: 'TouchID',
+      });
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Biometric failed'));
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+        );
+      });
+
+      expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
+        reason: 'unlock_failed',
+        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
+      });
     });
   });
 
