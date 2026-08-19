@@ -16,7 +16,7 @@ const event = {
     {
       id: 'market-1',
       question: 'Will the team win?',
-      status: 'open',
+      status: 'active',
       outcomes: [
         { id: 'yes', side: 'yes', label: 'Yes', askPrice: '0.42' },
         { id: 'no', side: 'no', label: 'No', askPrice: '0.61' },
