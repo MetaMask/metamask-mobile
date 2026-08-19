@@ -11,8 +11,8 @@ import { selectEarnAssetCatalogueInputs } from '../../../../selectors/earnContro
 import { pooledStakingSelectors } from '../../../../selectors/earnController/pooledStaking';
 import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
 import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip19AssetId';
-import useMoneyAccountVisibility from '../../Money/hooks/useMoneyAccountVisibility';
 import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
+import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
 import { isMoneyDepositFeeSubsidized } from '../../Money/utils/isMoneyDepositFeeSubsidized';
 import type { TokenI } from '../../Tokens/types';
 import { EARN_EXPERIENCES } from '../constants/experiences';
@@ -217,7 +217,7 @@ const getHeldEarnExperiences = ({
  */
 const useEarnAssetCatalogue = () => {
   const relayFixedSpread = useSelector(selectRelayFixedSpread);
-  const { isMoneyAccountVisible } = useMoneyAccountVisibility();
+  const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
     earnTokens,
     earnOutputTokens,
@@ -366,8 +366,7 @@ const useEarnAssetCatalogue = () => {
       });
     }
 
-    // Add unheld lending assets for strategy discovery. Slot padding alone
-    // cannot provide token metadata or a navigable lending opportunity.
+    // Add unheld lending assets for strategy discovery.
     if (isStablecoinLendingEnabled && isEarnEligible) {
       lendingMarkets.forEach((market) => {
         const chainId = toHex(market.chainId) as Hex;

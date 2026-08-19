@@ -12,9 +12,9 @@ import Engine from '../../../../core/Engine';
 import { selectEarnAssetCatalogueInputs } from '../../../../selectors/earnController/earn';
 import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
 import type { RelayFixedSpreadConfig } from '../../../Views/confirmations/utils/relayFixedSpread';
-import useMoneyAccountVisibility from '../../Money/hooks/useMoneyAccountVisibility';
 import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
 import type { MoneyDepositAsset } from '../../Money/selectors/depositTokens';
+import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
 import useEarnSectionLendingMarkets from './useEarnSectionLendingMarkets';
 import useEarnSectionTokenMetadata from './useEarnSectionTokenMetadata';
 import useTronStakeApy, { FetchStatus } from './useTronStakeApy';
@@ -24,7 +24,6 @@ jest.mock('react-redux');
 jest.mock('@metamask/bridge-controller', () => ({
   formatAddressToAssetId: jest.fn(),
 }));
-jest.mock('../../Money/hooks/useMoneyAccountVisibility');
 jest.mock('../../Money/hooks/useMoneyVaultApy');
 jest.mock('./useEarnSectionLendingMarkets');
 jest.mock('./useEarnSectionTokenMetadata');
@@ -50,10 +49,6 @@ const TRX_ASSET_ID = `${TRON_CHAIN_ID}/slip44:195`;
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockFormatAddressToAssetId = jest.mocked(formatAddressToAssetId);
-const mockUseMoneyAccountVisibility =
-  useMoneyAccountVisibility as jest.MockedFunction<
-    typeof useMoneyAccountVisibility
-  >;
 const mockUseMoneyVaultApy = useMoneyVaultApy as jest.MockedFunction<
   typeof useMoneyVaultApy
 >;
@@ -196,6 +191,7 @@ const refetchMoneyApy = jest.fn();
 const refetchTrxApy = jest.fn();
 
 const mockSelectorValues = ({
+  isMoneyAccountVisible = true,
   isPooledStakingEnabled = true,
   isStablecoinLendingEnabled = true,
   isTrxStakingEnabled = false,
@@ -205,6 +201,7 @@ const mockSelectorValues = ({
   assets,
   relayFixedSpread = EMPTY_RELAY_FIXED_SPREAD_CONFIG,
 }: {
+  isMoneyAccountVisible?: boolean;
   isPooledStakingEnabled?: boolean;
   isStablecoinLendingEnabled?: boolean;
   isTrxStakingEnabled?: boolean;
@@ -215,6 +212,9 @@ const mockSelectorValues = ({
   relayFixedSpread?: RelayFixedSpreadConfig;
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectIsMoneyAccountVisible) {
+      return isMoneyAccountVisible;
+    }
     if (selector === selectRelayFixedSpread) return relayFixedSpread;
     if (selector === selectEarnAssetCatalogueInputs) {
       return {
@@ -239,9 +239,6 @@ const mockSelectorValues = ({
 
 const mockDependencies = () => {
   mockSelectorValues();
-  mockUseMoneyAccountVisibility.mockReturnValue({
-    isMoneyAccountVisible: true,
-  });
   mockUseMoneyVaultApy.mockReturnValue({
     apyDecimal: 0.062,
     apyPercent: 6.2,
