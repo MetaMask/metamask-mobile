@@ -27,7 +27,14 @@ import {
   materialVariantKey,
   type MaterialStyle,
 } from './material';
-import { PresentationChartIcon, type IconWeight } from 'phosphor-react-native';
+import {
+  CornersInIcon,
+  CornersOutIcon,
+  FadersIcon,
+  PlusCircleIcon,
+  PresentationChartIcon,
+  type IconWeight,
+} from 'phosphor-react-native';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-expect-error -- deep relative import into the design system CJS build; see above.
 import { assetByIconName } from '../../../../../node_modules/@metamask/design-system-react-native/dist/components/Icon/Icon.assets.cjs';
@@ -42,6 +49,8 @@ type IconComponent = React.ComponentType<Record<string, unknown>>;
 const PHOSPHOR_ALIASES: Record<string, string> = {
   Activity: 'Pulse',
   Add: 'Plus',
+  AddCircle: 'PlusCircle',
+  Ai: 'Sparkle',
   Arrow2Down: 'ArrowDown',
   Arrow2UpRight: 'ArrowUpRight',
   ArrowDown: 'CaretDown',
@@ -56,14 +65,18 @@ const PHOSPHOR_ALIASES: Record<string, string> = {
   Chart: 'ChartBar',
   ClockFilled: 'Clock',
   Close: 'X',
+  Collapse: 'CornersIn',
   Confirmation: 'CheckCircle',
+  Customize: 'Faders',
   Danger: 'WarningCircle',
   Diagram: 'ChartLineUp',
   Edit: 'PencilSimple',
   Ethereum: 'CurrencyEth',
   Exchange: 'CurrencyCircleDollar',
+  Expand: 'CornersOut',
   Explore: 'Compass',
   Flash: 'Lightning',
+  FlashFilled: 'Lightning',
   Global: 'Globe',
   Home: 'House',
   HomeFilled: 'House',
@@ -203,6 +216,10 @@ const PHOSPHOR_REGISTRY = Phosphor as unknown as Record<string, IconComponent>;
  * names (the alias target), not DS names.
  */
 const PHOSPHOR_EXPLICIT: Record<string, IconComponent> = {
+  CornersIn: CornersInIcon as unknown as IconComponent,
+  CornersOut: CornersOutIcon as unknown as IconComponent,
+  Faders: FadersIcon as unknown as IconComponent,
+  PlusCircle: PlusCircleIcon as unknown as IconComponent,
   PresentationChart: PresentationChartIcon as unknown as IconComponent,
 };
 
