@@ -388,6 +388,20 @@ describe('PredictCryptoUpDownMarketCard', () => {
     );
   });
 
+  it('fetches the target price using the market TWAP window', () => {
+    const twapMarket = createMarket({ twapWindowSeconds: 60 });
+    mockUsePredictSeries.mockReturnValue({
+      data: [twapMarket],
+      isLoading: false,
+    });
+
+    renderCard(twapMarket);
+
+    expect(mockUseCryptoTargetPrice).toHaveBeenCalledWith(
+      expect.objectContaining({ twapWindowSeconds: 60 }),
+    );
+  });
+
   it('uses a trailing 24-hour coin-history window for daily markets', () => {
     const dailySeries = {
       ...SERIES,

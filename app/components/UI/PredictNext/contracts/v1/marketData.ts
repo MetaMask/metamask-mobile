@@ -12,9 +12,9 @@ import {
 } from '@metamask/superstruct';
 import { PredictError, PredictErrorCode } from '../../errors';
 import type {
-  FetchEventsParams,
-  PaginatedResult,
+  FetchFeedParams,
   PredictEvent,
+  PredictFeed,
   PredictMarket,
   PredictVenueStatus,
 } from '../../types';
@@ -159,8 +159,11 @@ const eventSchema = object({
   markets: nonEmptyMarkets,
 });
 
-const eventsPageSchema = object({
-  items: array(eventSchema),
+const feedSchema = object({
+  venueId,
+  id: entityId,
+  title: string(),
+  events: array(eventSchema),
   nextCursor: optional(string()),
 });
 
@@ -188,10 +191,8 @@ function parse<T>(value: unknown, schema: Struct<T, unknown>): T {
 export const parsePredictEvent = (value: unknown): PredictEvent =>
   parse(value, eventSchema) as unknown as PredictEvent;
 
-export const parsePredictEventsPage = (
-  value: unknown,
-): PaginatedResult<PredictEvent> =>
-  parse(value, eventsPageSchema) as unknown as PaginatedResult<PredictEvent>;
+export const parsePredictFeed = (value: unknown): PredictFeed =>
+  parse(value, feedSchema) as unknown as PredictFeed;
 
 export const parsePredictMarket = (value: unknown): PredictMarket =>
   parse(value, marketSchema) as unknown as PredictMarket;
@@ -199,5 +200,5 @@ export const parsePredictMarket = (value: unknown): PredictMarket =>
 export const parsePredictVenueStatus = (value: unknown): PredictVenueStatus =>
   parse(value, venueStatusSchema) as unknown as PredictVenueStatus;
 
-export const parseFetchEventsParams = (value: unknown): FetchEventsParams =>
+export const parseFetchFeedParams = (value: unknown): FetchFeedParams =>
   parse(value, eventsParamsSchema);

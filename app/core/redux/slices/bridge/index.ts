@@ -60,6 +60,13 @@ import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/is
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
 import { selectAnalyticsEnabled } from '../../../../selectors/analyticsController';
+import {
+  DEFAULT_RECURRING_EVERY_VALUE,
+  initialRecurringState,
+  validateRecurringSchedule,
+  type RecurringIntervalUnit,
+  type RecurringState,
+} from '../../../../components/UI/Bridge/utils/recurringSchedule';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -114,6 +121,7 @@ export interface BridgeState {
   >;
   batchSellDestToken: BridgeToken | undefined;
   batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>;
+  recurring: RecurringState;
 }
 
 export const initialState: BridgeState = {
@@ -146,6 +154,7 @@ export const initialState: BridgeState = {
   batchSellSourceTokenAmounts: {},
   batchSellDestToken: undefined,
   batchSellSlippages: {},
+  recurring: initialRecurringState,
 };
 
 const name = 'bridge';
@@ -204,6 +213,19 @@ const slice = createSlice({
     },
     setDestAmount: (state, action: PayloadAction<string | undefined>) => {
       state.destAmount = action.payload;
+    },
+    setRecurringEveryValue: (state, action: PayloadAction<string>) => {
+      state.recurring.everyValue = action.payload;
+    },
+    setRecurringRepeatCount: (state, action: PayloadAction<string>) => {
+      state.recurring.repeatCount = action.payload;
+    },
+    setRecurringEveryUnit: (
+      state,
+      action: PayloadAction<RecurringIntervalUnit>,
+    ) => {
+      state.recurring.everyUnit = action.payload;
+      state.recurring.everyValue = DEFAULT_RECURRING_EVERY_VALUE;
     },
     setSelectedSourceChainIds: (
       state,
@@ -425,6 +447,31 @@ export const selectSourceAmount = createSelector(
 export const selectDestAmount = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAmount,
+);
+
+export const selectRecurring = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.recurring ?? initialRecurringState,
+);
+
+export const selectRecurringEveryValue = createSelector(
+  selectRecurring,
+  (recurring) => recurring.everyValue,
+);
+
+export const selectRecurringEveryUnit = createSelector(
+  selectRecurring,
+  (recurring) => recurring.everyUnit,
+);
+
+export const selectRecurringRepeatCount = createSelector(
+  selectRecurring,
+  (recurring) => recurring.repeatCount,
+);
+
+export const selectRecurringScheduleValidation = createSelector(
+  selectRecurring,
+  validateRecurringSchedule,
 );
 
 export const selectIsMaxSourceAmount = createSelector(
@@ -1066,6 +1113,9 @@ export const {
   setSourceAmount,
   setSourceAmountAsMax,
   setDestAmount,
+  setRecurringEveryValue,
+  setRecurringRepeatCount,
+  setRecurringEveryUnit,
   resetBridgeState,
   resetBridgeTokenInputs,
   resetBridgeDestToken,

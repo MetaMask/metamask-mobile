@@ -1,6 +1,12 @@
 import { BrokenCircuitError } from '@metamask/controller-utils';
 import { buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
-import { KALSHI_VENUE_ID, type PredictEntityId } from '../types';
+import {
+  KALSHI_VENUE_ID,
+  type PredictEntityId,
+  type PredictFeedId,
+} from '../types';
+
+const feedId = 'sports-football-nfl-games' as PredictFeedId;
 
 const status = {
   venueId: 'kalshi',
@@ -58,24 +64,37 @@ describe('PredictNext public market data', () => {
   it('progresses event-list pages with cursor outside stable query identity', async () => {
     const harness = buildPredictNextIntegrationHarness((url) => ({
       body: url.includes('cursor=next')
-        ? { items: [{ ...event, id: 'event-2', title: 'Second event' }] }
-        : { items: [event], nextCursor: 'next' },
+        ? {
+            venueId: 'kalshi',
+            id: 'sports-football-nfl-games',
+            title: 'NFL Games',
+            events: [{ ...event, id: 'event-2', title: 'Second event' }],
+          }
+        : {
+            venueId: 'kalshi',
+            id: 'sports-football-nfl-games',
+            title: 'NFL Games',
+            events: [event],
+            nextCursor: 'next',
+          },
     }));
 
     const first = await harness.messenger.call(
-      'PredictMarketDataService:getEvents',
+      'PredictMarketDataService:getFeed',
       KALSHI_VENUE_ID,
+      feedId,
       { limit: 20 },
     );
     const second = await harness.messenger.call(
-      'PredictMarketDataService:getEvents',
+      'PredictMarketDataService:getFeed',
       KALSHI_VENUE_ID,
+      feedId,
       { limit: 20 },
       first.nextCursor,
     );
 
-    expect(first.items[0].id).toBe('event-1');
-    expect(second.items[0].id).toBe('event-2');
+    expect(first.events[0].id).toBe('event-1');
+    expect(second.events[0].id).toBe('event-2');
     expect(harness.fetchMock.mock.calls[1][0]).toContain('cursor=next');
     harness.destroy();
   });
@@ -111,7 +130,14 @@ describe('PredictNext public market data', () => {
 
   it('reads venue status and Events independently without a status preflight', async () => {
     const harness = buildPredictNextIntegrationHarness((url) => ({
-      body: url.endsWith('/status') ? status : { items: [event] },
+      body: url.endsWith('/status')
+        ? status
+        : {
+            venueId: 'kalshi',
+            id: 'sports-football-nfl-games',
+            title: 'NFL Games',
+            events: [event],
+          },
     }));
 
     await Promise.all([
@@ -120,8 +146,9 @@ describe('PredictNext public market data', () => {
         KALSHI_VENUE_ID,
       ),
       harness.messenger.call(
-        'PredictMarketDataService:getEvents',
+        'PredictMarketDataService:getFeed',
         KALSHI_VENUE_ID,
+        feedId,
         {},
       ),
     ]);
@@ -174,8 +201,9 @@ describe('PredictNext public market data', () => {
     ).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
     await expect(
       harness.messenger.call(
-        'PredictMarketDataService:getEvents',
+        'PredictMarketDataService:getFeed',
         KALSHI_VENUE_ID,
+        feedId,
         {},
       ),
     ).rejects.toBeInstanceOf(BrokenCircuitError);
