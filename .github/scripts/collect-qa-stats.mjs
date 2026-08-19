@@ -901,10 +901,10 @@ async function readPlaywrightJsonReport(destDir) {
   ];
   for (const candidate of candidates) {
     try {
-      await access(candidate, fsConstants.F_OK);
+      // Read directly — do not access() first (TOCTOU / CodeQL).
       return JSON.parse(await readFile(candidate, 'utf8'));
-    } catch {
-      // try next candidate
+    } catch (err) {
+      if (err && err.code !== 'ENOENT') throw err;
     }
   }
   const found = await walkFiles(destDir, (name) => name === 'playwright-report.json');
