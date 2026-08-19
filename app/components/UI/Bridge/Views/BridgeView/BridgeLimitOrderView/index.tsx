@@ -126,6 +126,7 @@ const BridgeLimitOrderView = () => (
         items: MOCK_OPEN_ORDERS,
         renderItem: renderLimitOpenOrder,
         keyExtractor: (item) => item.id,
+        getItemChainId: (item) => item.token.chainId,
       }}
       history={{ items: [] }}
     />

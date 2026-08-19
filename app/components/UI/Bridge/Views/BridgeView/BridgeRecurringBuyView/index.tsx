@@ -93,6 +93,7 @@ const BridgeRecurringBuyView = () => (
         items: MOCK_OPEN_ORDERS,
         renderItem: renderRecurringOpenOrder,
         keyExtractor: (item) => item.id,
+        getItemChainId: (item) => item.token.chainId,
       }}
       history={{ items: [] }}
     />

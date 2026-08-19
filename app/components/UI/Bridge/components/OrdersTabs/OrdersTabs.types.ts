@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import type { CaipChainId, Hex } from '@metamask/utils';
 
 export enum OrdersTabKey {
   OpenOrders = 'openOrders',
@@ -9,6 +10,10 @@ export interface OrdersTabConfig<T> {
   items: T[];
   renderItem?: (item: T, index: number) => ReactElement;
   keyExtractor?: (item: T, index: number) => string;
+  /**
+   * Chain used by the All networks filter for this tab's items.
+   */
+  getItemChainId?: (item: T) => Hex | CaipChainId | undefined;
 }
 
 export interface OrdersTabsProps<TOpen, THistory> {

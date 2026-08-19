@@ -461,6 +461,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
 
     expect(renderResult.getAllByText(pair)).toHaveLength(2);
     expect(
+      renderResult.getByText(strings('bridge.all_networks')),
+    ).toBeOnTheScreen();
+    expect(
       renderResult.getByText(
         strings('bridge.recurring.schedule_summary', {
           interval: '1 day',
@@ -482,5 +485,8 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).toBeOnTheScreen();
     });
     expect(renderResult.queryAllByText(pair)).toHaveLength(0);
+    expect(
+      renderResult.queryByText(strings('bridge.all_networks')),
+    ).toBeNull();
   });
 });

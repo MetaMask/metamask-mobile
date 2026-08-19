@@ -26,6 +26,9 @@ describeForPlatforms('BridgeLimitOrderView', () => {
 
     expect(renderResult.getAllByText(pair)).toHaveLength(4);
     expect(
+      renderResult.getByText(strings('bridge.all_networks')),
+    ).toBeOnTheScreen();
+    expect(
       renderResult.getByText(strings('bridge.limit.not_enough_gas')),
     ).toBeOnTheScreen();
     expect(
@@ -49,5 +52,8 @@ describeForPlatforms('BridgeLimitOrderView', () => {
       ).toBeOnTheScreen();
     });
     expect(renderResult.queryAllByText(pair)).toHaveLength(0);
+    expect(
+      renderResult.queryByText(strings('bridge.all_networks')),
+    ).toBeNull();
   });
 });
