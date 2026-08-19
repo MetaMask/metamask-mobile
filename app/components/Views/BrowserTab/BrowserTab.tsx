@@ -772,11 +772,20 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         canGoBack: boolean;
         canGoForward: boolean;
       }) => {
+        const hostName = new URLParse(siteInfo.url).origin;
+        if (resolvedUrlRef.current === siteInfo.url) {
+          titleRef.current = siteInfo.title || titleRef.current;
+          if (siteInfo.icon) iconRef.current = siteInfo.icon;
+          !isUrlBarFocused &&
+            urlBarRef.current?.setNativeProps({ text: hostName });
+          setBackEnabled(siteInfo.canGoBack);
+          setForwardEnabled(siteInfo.canGoForward);
+          return;
+        }
+
         commitResolvedUrl(siteInfo.url);
         titleRef.current = siteInfo.title;
         if (siteInfo.icon) iconRef.current = siteInfo.icon;
-
-        const hostName = new URLParse(siteInfo.url).origin;
 
         // Initialize the background bridge only once the navigation has
         // committed, so the bridge origin always matches the page actually
@@ -1578,7 +1587,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const handleOnNavigationStateChange = useCallback(
       (event: WebViewNavigation) => {
-        const { canGoForward, canGoBack, navigationType, loading } = event;
+        const { canGoForward, canGoBack, navigationType, loading, url, title } =
+          event;
         Logger.log(
           `WEBVIEW NAVIGATING: OnNavigationStateChange \n Values: ${JSON.stringify(
             event,
@@ -1602,9 +1612,26 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           webviewRef.current?.injectJavaScript(
             buildDocumentUrlForUrlBarScript(requestId),
           );
+          return;
+        }
+
+        // JS `location.href` can skip onLoadEnd on both platforms. Commit when
+        // the load finishes at a new origin so the URL bar can catch up.
+        if (!loading && url) {
+          const incomingOrigin = new URLParse(url).origin;
+          const activeOrigin = new URLParse(resolvedUrlRef.current).origin;
+          if (incomingOrigin && incomingOrigin !== activeOrigin) {
+            handleSuccessfulPageResolution({
+              title: title ?? titleRef.current,
+              url,
+              icon: favicon,
+              canGoBack,
+              canGoForward,
+            });
+          }
         }
       },
-      [],
+      [favicon, handleSuccessfulPageResolution],
     );
 
     /*

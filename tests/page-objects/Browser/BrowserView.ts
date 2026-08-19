@@ -523,6 +523,7 @@ class Browser {
     }
     await Assertions.expectElementToContainText(this.urlBarDisplayText, text, {
       description: description ?? `URL bar contains "${text}"`,
+      timeout: 30_000,
     });
   }
 

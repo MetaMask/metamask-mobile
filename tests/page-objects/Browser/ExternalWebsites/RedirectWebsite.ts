@@ -1,5 +1,6 @@
+import ChromeCdpHelpers from '../../../framework/ChromeCdpHelpers';
 import { PlatformDetector } from '../../../framework/PlatformLocator';
-import WebView from '../../../framework/WebView';
+import PlaywrightContextHelpers from '../../../framework/PlaywrightContextHelpers';
 import { RedirectWebsiteSelectorsIDs } from '../../../selectors/Browser/RedirectWebsite.selectors';
 
 class RedirectWebsite {
@@ -21,13 +22,28 @@ class RedirectWebsite {
       ? RedirectWebsiteSelectorsIDs.REDIRECT_BUTTON_HTTPS
       : RedirectWebsiteSelectorsIDs.REDIRECT_BUTTON_HTTP;
 
-    // Android Chromedriver XPath hits LavaMoat ShadowRoot scuttling. Use the
-    // shared WebView helper (CDP / native UiAutomator on Android, WebView
-    // context on iOS) the same way EnsWebsite / TestSnaps tap in-page controls.
-    await WebView.tapById(buttonId, {
+    // Chromedriver XPath / native resource-id taps do not run the page's
+    // click handler under LavaMoat. Same CDP evaluate + el.click() path as
+    // TestDApp / EnsWebsite.
+    const result = await ChromeCdpHelpers.evaluateInWebView<string>(
       pageUrl,
-      description: 'Redirect website redirect button',
-    });
+      `(() => {
+        const el = document.getElementById(${JSON.stringify(buttonId)});
+        const target = new URLSearchParams(window.location.search).get('target');
+        if (!el) return 'missing-button';
+        if (!target) return 'missing-target:' + window.location.href;
+        el.click();
+        return 'clicked';
+      })()`,
+    );
+
+    if (result !== 'clicked') {
+      throw new Error(
+        `RedirectWebsite.tapRedirectButton failed (${result ?? 'null'}) on ${pageUrl}`,
+      );
+    }
+
+    await PlaywrightContextHelpers.switchToNativeContext();
   }
 }
 
