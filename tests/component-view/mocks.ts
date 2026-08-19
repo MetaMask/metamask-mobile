@@ -467,6 +467,7 @@ jest.mock('../../app/core/Engine', () => {
           },
         ]),
         getOrders: jest.fn().mockResolvedValue([]),
+        getFunding: jest.fn().mockResolvedValue([]),
         getOpenOrders: jest.fn().mockResolvedValue([]),
         getAccountState: jest.fn().mockResolvedValue(null),
         depositWithOrder: jest.fn().mockResolvedValue({
