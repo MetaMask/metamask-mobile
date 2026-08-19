@@ -1,18 +1,18 @@
 import React from 'react';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+} from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import BaseTokenIcon from '../../../../Base/TokenIcon';
 import styleSheet from './token-icon.styles';
 import { useStyles } from '../../../../hooks/useStyles';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { useTokenWithBalance } from '../../hooks/tokens/useTokenWithBalance';
 import { getAssetImageUrl } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import { useNetworkName } from '../../hooks/useNetworkName';
 
 export interface TokenIconProps {
   address: Hex;
@@ -39,6 +39,10 @@ export const TokenIcon: React.FC<TokenIconProps> = ({
 
   const token = useTokenWithBalance(address, chainId);
   const symbol = token?.symbol ?? symbolProp;
+  const networkName = useNetworkName(chainId);
+  const networkImageSource = getNetworkImageSource({
+    chainId,
+  });
 
   if (!token && !symbol) {
     return null;
@@ -46,22 +50,18 @@ export const TokenIcon: React.FC<TokenIconProps> = ({
 
   const icon = token?.image ?? getTokenIconUrl(address, chainId);
 
-  const networkImageSource = getNetworkImageSource({
-    chainId,
-  });
-
   return (
     <BadgeWrapper
       style={styles.container}
-      badgePosition={BadgePosition.BottomRight}
-      badgeElement={
-        showNetwork && (
-          <Badge
-            variant={BadgeVariant.Network}
-            imageSource={networkImageSource}
-            style={styles.badge}
+      position={BadgeWrapperPosition.BottomRight}
+      badge={
+        showNetwork && networkImageSource ? (
+          <BadgeNetwork
+            src={networkImageSource}
+            name={networkName}
+            testID="token-icon-network-badge"
           />
-        )
+        ) : null
       }
     >
       <BaseTokenIcon

@@ -8,6 +8,7 @@ import { selectMoneyCardTiltAnimationEnabledFlag } from '../../selectors/feature
 import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
 import { useRiveTiltWriter } from '../../hooks/useRiveTiltWriter';
+import { useRiveRevealTrigger } from '../../hooks/useRiveRevealTrigger';
 import {
   shapeCardTilt,
   pitchToParallaxValue,
@@ -39,6 +40,11 @@ const RIVE_ARTBOARD_METAL = 'CardTiltMetal';
 const RIVE_PROPERTY_X = 'xValue';
 const RIVE_PROPERTY_Y = 'yValue';
 
+const RIVE_TRIGGER_START = 'startAnimation';
+/** Tilt does not need it, but a trigger needs a running state machine. */
+const RIVE_STATE_MACHINE = 'State Machine 1';
+const RIVE_ARTBOARD_ASPECT_RATIO = 620 / 400;
+
 /** Thumbnail size used by the Money home card rows. */
 const DEFAULT_WIDTH = 104;
 const DEFAULT_HEIGHT = 66;
@@ -50,6 +56,9 @@ interface MoneyCardTiltAnimationProps {
   width?: number;
   /** Rendered height in points. Defaults to the Money home thumbnail size. */
   height?: number;
+  fillWidth?: boolean;
+  playRevealOnMount?: boolean;
+  revealDelayMs?: number;
   testID?: string;
 }
 
@@ -57,6 +66,9 @@ const MoneyCardTiltAnimation = ({
   isMetalCard,
   width = DEFAULT_WIDTH,
   height = DEFAULT_HEIGHT,
+  fillWidth = false,
+  playRevealOnMount = false,
+  revealDelayMs = 0,
   testID,
 }: MoneyCardTiltAnimationProps) => {
   const flagEnabled = useSelector(selectMoneyCardTiltAnimationEnabledFlag);
@@ -98,7 +110,22 @@ const MoneyCardTiltAnimation = ({
     setHasRiveError(true);
   }, []);
 
-  const size = useMemo(() => ({ width, height }), [width, height]);
+  const handlePlay = useRiveRevealTrigger({
+    riveRef,
+    triggerName: RIVE_TRIGGER_START,
+    enabled: playRevealOnMount && animate,
+    artboardName,
+    delayMs: revealDelayMs,
+    log,
+  });
+
+  const size = useMemo(
+    () =>
+      fillWidth
+        ? { width: '100%' as const, aspectRatio: RIVE_ARTBOARD_ASPECT_RATIO }
+        : { width, height },
+    [fillWidth, width, height],
+  );
 
   let content: React.ReactNode;
   if (animate) {
@@ -110,9 +137,11 @@ const MoneyCardTiltAnimation = ({
         ref={riveRef}
         source={CardTiltAnimation}
         artboardName={artboardName}
+        stateMachineName={playRevealOnMount ? RIVE_STATE_MACHINE : undefined}
         dataBinding={AutoBind(true)}
         fit={Fit.Contain}
         style={size}
+        onPlay={handlePlay}
         onError={handleError}
         testID={MoneyCardTiltAnimationTestIds.RIVE}
       />

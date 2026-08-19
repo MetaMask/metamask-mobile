@@ -13,7 +13,6 @@ import AddDeviceToWalletView from '../page-objects/Onboarding/AddDeviceToWalletV
 import AddWalletView from '../page-objects/Onboarding/AddWalletView';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import WalletView from '../page-objects/wallet/WalletView';
-import { FrameworkDetector } from '../framework/FrameworkDetector';
 import type CommandQueueServer from '../framework/fixtures/CommandQueueServer';
 import { E2ECommandTypes } from '../framework/types';
 import { sleep } from '../framework/Utilities';
@@ -24,7 +23,6 @@ import {
   dismissExperienceEnhancerModal,
   dismissOnboardingInterestQuestionnaire,
   dismissPushNotificationExistingUserSheet,
-  loginToApp,
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
 } from './wallet.flow';
@@ -188,11 +186,7 @@ export const completeExistingUserQrSyncSrp = async ({
   mnemonic?: string;
   commandQueueServer?: CommandQueueServer;
 } = {}): Promise<void> => {
-  if (FrameworkDetector.isAppium()) {
-    await loginToAppPlaywright({ scenarioType: 'e2e' });
-  } else {
-    await loginToApp();
-  }
+  await loginToAppPlaywright({ scenarioType: 'e2e' });
   await WalletView.tapIdenticon();
   await Assertions.expectElementToBeVisible(
     AccountListBottomSheet.accountList,

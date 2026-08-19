@@ -75,6 +75,13 @@ jest.mock('../../../hooks/usePerpsSelector', () => ({
   usePerpsSelector: () => undefined,
 }));
 
+jest.mock('../../../hooks/stream/usePerpsLivePositions', () => ({
+  usePerpsLivePositions: () => ({
+    positions: [],
+    isInitialLoading: false,
+  }),
+}));
+
 jest.mock('../../../hooks/usePerpsTPSLUpdate', () => ({
   usePerpsTPSLUpdate: () => ({
     handleUpdateTPSL: mockHandleUpdateTPSL,

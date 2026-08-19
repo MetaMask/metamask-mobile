@@ -336,7 +336,7 @@ describe('PriceImpactModal', () => {
     it('passes isDanger=true to PriceImpactDescription when price impact exceeds error threshold', () => {
       mockUseBridgeQuoteData.mockReturnValue({
         activeQuote: {
-          quote: { priceData: { priceImpact: '0.96' } },
+          quote: { priceData: { priceImpact: { amount: '0.96' } } },
         },
         formattedQuoteData: { priceImpact: '96%', priceImpactFiat: '$7.05' },
       } as ReturnType<typeof useBridgeQuoteData>);
@@ -352,7 +352,7 @@ describe('PriceImpactModal', () => {
     it('passes isDanger=false to PriceImpactDescription when price impact is below error threshold', () => {
       mockUseBridgeQuoteData.mockReturnValue({
         activeQuote: {
-          quote: { priceData: { priceImpact: '0.05' } },
+          quote: { priceData: { priceImpact: { amount: '0.05' } } },
         },
         formattedQuoteData: { priceImpact: '5%', priceImpactFiat: '$0.50' },
       } as ReturnType<typeof useBridgeQuoteData>);
@@ -464,7 +464,7 @@ describe('PriceImpactModal', () => {
     it('calls usePriceImpactViewData with the raw priceImpact from activeQuote', () => {
       mockUseBridgeQuoteData.mockReturnValue({
         activeQuote: {
-          quote: { priceData: { priceImpact: '0.12' } },
+          quote: { priceData: { priceImpact: { amount: '0.12' } } },
         },
         formattedQuoteData: { priceImpact: '12%' },
       } as ReturnType<typeof useBridgeQuoteData>);

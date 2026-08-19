@@ -60,6 +60,7 @@ import {
 import useInFlightIds from '../../hooks/useInFlightIds';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { FeatureNotificationsGate } from '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate';
 
 const styles = StyleSheet.create({
   switchDisabled: { opacity: 0.5 },
@@ -449,16 +450,19 @@ const ManagePriceAlertsView: React.FC = () => {
         )}
 
         {!isLoading && alerts.length > 0 && (
-          <View style={tw.style('px-4 pb-4 pt-2')}>
-            <Button
-              variant={ButtonVariant.Primary}
-              onPress={() => handleNavigateToCreate()}
-              testID={ManagePriceAlertsTestIds.ADD_ALERT_BUTTON}
-              twClassName="w-full"
-            >
-              {strings('price_alerts.add_alert')}
-            </Button>
-          </View>
+          <>
+            <View style={tw.style('px-4 pb-4 pt-2')}>
+              <Button
+                variant={ButtonVariant.Primary}
+                onPress={() => handleNavigateToCreate()}
+                testID={ManagePriceAlertsTestIds.ADD_ALERT_BUTTON}
+                twClassName="w-full"
+              >
+                {strings('price_alerts.add_alert')}
+              </Button>
+            </View>
+            <FeatureNotificationsGate feature="priceAlerts" />
+          </>
         )}
       </Box>
     </SafeAreaView>

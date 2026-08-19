@@ -13,6 +13,11 @@ import { createSnapCaller } from './router';
 
 const mockedCall = Engine.controllerMessenger.call as jest.Mock;
 
+const MOCK_ORIGIN_METADATA = {
+  transport: 'WalletConnect',
+  selfReportedOrigin: 'https://metamask.io',
+};
+
 interface TestSpec {
   test_method: {
     params: { foo: string };
@@ -39,6 +44,7 @@ describe('createSnapCaller', () => {
 
     const result = await callSnap({
       origin: 'channel-id-1',
+      originMetadata: MOCK_ORIGIN_METADATA,
       connectedAddresses: ['tron:728126428:TAddr' as CaipAccountId],
       scope: 'tron:728126428' as CaipChainId,
       requestId: 42,
@@ -50,6 +56,7 @@ describe('createSnapCaller', () => {
       {
         connectedAddresses: ['tron:728126428:TAddr'],
         origin: 'channel-id-1',
+        originMetadata: MOCK_ORIGIN_METADATA,
         scope: 'tron:728126428',
         request: {
           jsonrpc: '2.0',
@@ -68,6 +75,7 @@ describe('createSnapCaller', () => {
 
     await callSnap({
       origin: 'channel-id-1',
+      originMetadata: MOCK_ORIGIN_METADATA,
       connectedAddresses: ['tron:728126428:TAddr' as CaipAccountId],
       scope: 'tron:728126428' as CaipChainId,
       requestId: 1,
@@ -75,6 +83,7 @@ describe('createSnapCaller', () => {
     });
     await callSnap({
       origin: 'channel-id-2',
+      originMetadata: MOCK_ORIGIN_METADATA,
       connectedAddresses: ['tron:728126428:TAddr' as CaipAccountId],
       scope: 'tron:728126428' as CaipChainId,
       requestId: 1,
@@ -91,6 +100,7 @@ describe('createSnapCaller', () => {
 
     await callSnap({
       origin: 'channel-id-1',
+      originMetadata: MOCK_ORIGIN_METADATA,
       connectedAddresses: [],
       scope: 'tron:728126428' as CaipChainId,
       requestId: 7,

@@ -38,6 +38,7 @@ export enum TraceName {
   AppStartBiometricAuthentication = 'App start Biometrics Authentication',
   EngineInitialization = 'Engine Initialization',
   UIStartup = 'UI Startup',
+  HomepageReady = 'Homepage Ready',
   NavInit = 'Navigation Initialization',
   Login = 'Login',
   NetworkSwitch = 'Network Switch',
@@ -68,8 +69,6 @@ export enum TraceName {
   EvmDiscoverAccounts = 'EVM Discover Accounts',
   SnapDiscoverAccounts = 'Snap Discover Accounts',
   FetchHistoricalPrices = 'Fetch Historical Prices',
-  CryptoUpDownWsMessage = 'Crypto Up Down WS Message',
-  CryptoUpDownBufferFlush = 'Crypto Up Down Buffer Flush',
   /** Token overview advanced chart: skeleton cleared after initial load / asset or currency change. */
   TokenOverviewAdvancedChartInitialVisible = 'Token Overview Advanced Chart Initial Visible',
   /** Token overview advanced chart: skeleton cleared after time range selector change only. */
@@ -270,6 +269,14 @@ export enum TraceName {
   MoneyHomeTimeToContent = 'Money Home Time To Content',
   MoneyHomeBalanceTimeToContent = 'Money Home Balance Time To Content',
   MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
+  MoneyHomeEarningsTimeToContent = 'Money Home Earnings Time To Content',
+  MoneyHomeApyTimeToContent = 'Money Home APY Time To Content',
+  // Money Home Data Fetches
+  MoneyActivityFetch = 'Money Activity Fetch',
+  CardHomeDataFetch = 'Card Home Data Fetch',
+  // Rewards
+  /** Tap Rewards tab → onboarding content or enrolled dashboard shell. */
+  RewardsTabTimeToContent = 'Rewards Tab Time To Content',
 }
 
 export enum TraceOperation {
@@ -279,6 +286,7 @@ export enum TraceOperation {
   EngineInitialization = 'engine.initialization',
   StorageRehydration = 'storage.rehydration',
   UIStartup = 'ui.startup',
+  HomepagePerformance = 'homepage.performance',
   NavInit = 'navigation.initialization',
   NetworkSwitch = 'network.switch',
   SwitchBuiltInNetwork = 'switch.to.built.in.network',
@@ -299,6 +307,7 @@ export enum TraceOperation {
   CardGetSupportedTokensAllowances = 'card.get.supported.tokens.allowances',
   CardGetPriorityToken = 'card.get.priority.token',
   CardIdentifyCardholder = 'card.identify.cardholder',
+  CardDataFetch = 'card.data_fetch',
   OnboardingUserJourney = 'onboarding.user_journey',
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',
@@ -335,6 +344,8 @@ export enum TraceOperation {
   // Money Home Performance
   MoneyHomePerformance = 'money.home.performance',
   MoneyAccountDataFetch = 'money.account.data_fetch',
+  // Rewards
+  RewardsPerformance = 'rewards.performance',
   RampOperation = 'ramp.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
@@ -392,8 +403,9 @@ function rememberOnboardingAccountType(
 }
 
 /**
- * Resolve the attributes a span starts with, adding the journey's account type to
- * onboarding spans that do not already set one of their own.
+ * Resolve the attributes a span starts with. Tags are mirrored into attributes,
+ * with data taking precedence, and onboarding spans inherit the journey's account
+ * type when they do not set one of their own.
  *
  * @param request - The trace request being started.
  * @returns The attributes to open the span with.
@@ -401,17 +413,27 @@ function rememberOnboardingAccountType(
 function getSpanAttributes(
   request: TraceRequest,
 ): Record<string, TraceValue> | undefined {
-  const { data, op } = request;
+  const { data, op, tags } = request;
+  const attributes =
+    data || tags
+      ? {
+          ...tags,
+          ...data,
+        }
+      : undefined;
 
   if (
     !op?.startsWith(ONBOARDING_OP_PREFIX) ||
     onboardingAccountType === undefined ||
-    data?.[ACCOUNT_TYPE_ATTRIBUTE] !== undefined
+    attributes?.[ACCOUNT_TYPE_ATTRIBUTE] !== undefined
   ) {
-    return data;
+    return attributes;
   }
 
-  return { ...data, [ACCOUNT_TYPE_ATTRIBUTE]: onboardingAccountType };
+  return {
+    ...attributes,
+    [ACCOUNT_TYPE_ATTRIBUTE]: onboardingAccountType,
+  };
 }
 
 export interface PendingTrace {

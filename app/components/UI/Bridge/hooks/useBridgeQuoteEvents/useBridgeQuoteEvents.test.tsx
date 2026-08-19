@@ -3,7 +3,7 @@ import { useBridgeQuoteEvents } from '.';
 import Engine from '../../../../../core/Engine';
 import { createBridgeTestState } from '../../testUtils';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { RequestStatus } from '@metamask/bridge-controller';
+import { RequestStatus, toQuoteResponseV2 } from '@metamask/bridge-controller';
 import {
   selectBridgeQuotes,
   selectControllerFields,
@@ -43,6 +43,7 @@ describe('useBridgeQuoteEvents', () => {
     quoted_time_minutes: 0.08333333333333333,
     token_symbol_destination: 'USDC',
     token_symbol_source: 'SOL',
+    usd_amount_source: 0,
     usd_balance_source: 0,
     usd_quoted_gas: 0,
     usd_quoted_return: 0,
@@ -66,7 +67,7 @@ describe('useBridgeQuoteEvents', () => {
       const bridgeControllerOverrides = {
         quotesLoadingStatus: null,
         quoteFetchError: null,
-        quotes: [mockQuoteWithMetadata],
+        quotes: [toQuoteResponseV2(mockQuoteWithMetadata)],
         quotesRefreshCount: 1,
         ...stateOverrides,
       };

@@ -33,6 +33,7 @@ import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
   CryptoPriceHistoryPoint,
+  CryptoPriceSubscriptionOptions,
   GetCryptoPriceHistoryParams,
   GetPriceHistoryParams,
   GetCryptoTargetPriceParams,
@@ -80,6 +81,7 @@ import {
   PrepareDepositResponse,
   PrepareWithdrawParams,
   PrepareWithdrawResponse,
+  PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   PriceUpdateCallback,
   PublishClaimParams,
@@ -133,6 +135,7 @@ import {
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
+  previewMaxBuyOrder,
   searchEventsFromPolymarketApi,
 } from './utils';
 import { PredictFeatureFlags } from '../../types/flags';
@@ -176,6 +179,7 @@ import {
   waitForDepositWalletDeployed,
   waitForDepositWalletTransaction,
 } from './depositWallet';
+import { fetchWithTimeout } from './fetchWithTimeout';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -571,6 +575,36 @@ export class PolymarketProvider implements PredictProvider {
       this.#hasPermit2Config({ permit2Enabled, executors }) &&
       fakOrdersEnabled === true
     );
+  }
+
+  #decorateOrderPreview({
+    preview,
+    feeCollection,
+    fakOrdersEnabled,
+    signer,
+  }: {
+    preview: OrderPreview;
+    feeCollection: PredictFeatureFlags['feeCollection'];
+    fakOrdersEnabled: boolean;
+    signer: Signer;
+  }): OrderPreview {
+    const orderType = this.#shouldUseFakOrderType({
+      permit2Enabled: feeCollection.permit2Enabled,
+      executors: feeCollection.executors,
+      fakOrdersEnabled,
+    })
+      ? OrderType.FAK
+      : OrderType.FOK;
+
+    const decoratedPreview: OrderPreview = {
+      ...preview,
+      feeRateBps: getPreviewFeeRateBpsForProtocol(),
+      orderType,
+    };
+
+    return this.isRateLimited(signer.address)
+      ? { ...decoratedPreview, rateLimited: true }
+      : decoratedPreview;
   }
 
   #getProtocol(): PolymarketProtocolDefinition {
@@ -1049,7 +1083,7 @@ export class PolymarketProvider implements PredictProvider {
         }),
       );
 
-      return { markets: [], nextCursor: null };
+      throw error;
     }
   }
 
@@ -1076,7 +1110,7 @@ export class PolymarketProvider implements PredictProvider {
         }),
       );
 
-      return { markets: [], nextCursor: null };
+      throw error;
     }
   }
 
@@ -1142,7 +1176,7 @@ export class PolymarketProvider implements PredictProvider {
         }),
       );
 
-      return { markets: [], totalResults: 0 };
+      throw error;
     }
   }
 
@@ -1162,7 +1196,7 @@ export class PolymarketProvider implements PredictProvider {
         ascending: 'true',
       });
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${GAMMA_API_ENDPOINT}/events/keyset?${queryParams.toString()}`,
       );
 
@@ -1206,7 +1240,7 @@ export class PolymarketProvider implements PredictProvider {
         }),
       );
 
-      return [];
+      throw error;
     }
   }
 
@@ -1293,7 +1327,7 @@ export class PolymarketProvider implements PredictProvider {
         searchParams.set('interval', interval);
       }
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${CLOB_ENDPOINT}/prices-history?${searchParams.toString()}`,
         {
           method: 'GET',
@@ -1362,7 +1396,7 @@ export class PolymarketProvider implements PredictProvider {
         limit: String(limit),
       });
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${CHAINLINK_CANDLES_ENDPOINT}?${searchParams.toString()}`,
         { method: 'GET' },
       );
@@ -1455,9 +1489,23 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<number | null> {
     try {
       const { CRYPTO_PRICE_ENDPOINT } = getPolymarketEndpoints();
-      const url = `${CRYPTO_PRICE_ENDPOINT}?symbol=${encodeURIComponent(params.symbol)}&eventStartTime=${encodeURIComponent(params.eventStartTime)}&variant=${encodeURIComponent(params.variant)}&endDate=${encodeURIComponent(params.endDate)}`;
+      const queryParams = new URLSearchParams({
+        symbol: params.symbol,
+        eventStartTime: params.eventStartTime,
+        variant: params.variant,
+        endDate: params.endDate,
+      });
+      if (params.twapWindowSeconds !== undefined) {
+        queryParams.set('twapEnabled', 'true');
+        queryParams.set(
+          'twapLookbackSeconds',
+          params.twapWindowSeconds.toString(),
+        );
+      }
 
-      const response = await fetch(url);
+      const response = await fetchWithTimeout(
+        `${CRYPTO_PRICE_ENDPOINT}?${queryParams.toString()}`,
+      );
       if (!response.ok) {
         throw new Error(`Crypto target price API returned ${response.status}`);
       }
@@ -1506,7 +1554,7 @@ export class PolymarketProvider implements PredictProvider {
         { token_id: query.outcomeTokenId, side: Side.SELL },
       ]);
 
-      const response = await fetch(`${CLOB_ENDPOINT}/prices`, {
+      const response = await fetchWithTimeout(`${CLOB_ENDPOINT}/prices`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1985,7 +2033,7 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     const positionsUrl = `${DATA_API_ENDPOINT}/positions?${queryParams.toString()}`;
-    const response = await fetch(positionsUrl, {
+    const response = await fetchWithTimeout(positionsUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -2056,7 +2104,7 @@ export class PolymarketProvider implements PredictProvider {
         offset: String(offset),
       });
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${DATA_API_ENDPOINT}/activity?${queryParams.toString()}`,
         {
           method: 'GET',
@@ -2108,7 +2156,7 @@ export class PolymarketProvider implements PredictProvider {
       this.#getCachedAccountState(address)?.address ??
       (await this.getAccountState({ ownerAddress: address })).address;
 
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${DATA_API_ENDPOINT}/upnl?user=${predictAddress}`,
       {
         method: 'GET',
@@ -2141,32 +2189,37 @@ export class PolymarketProvider implements PredictProvider {
       ...params,
       feeCollection,
     });
-    const normalizedPreview = {
-      ...basePreview,
-      feeRateBps: getPreviewFeeRateBpsForProtocol(),
-    };
 
-    let orderType = OrderType.FOK;
+    return this.#decorateOrderPreview({
+      preview: basePreview,
+      feeCollection,
+      fakOrdersEnabled,
+      signer: params.signer,
+    });
+  }
 
-    if (
-      this.#shouldUseFakOrderType({
-        permit2Enabled: feeCollection.permit2Enabled,
-        executors: feeCollection.executors,
-        fakOrdersEnabled,
-      })
-    ) {
-      orderType = OrderType.FAK;
+  public async previewMaxBuyOrder(
+    params: PreviewMaxBuyOrderParams & {
+      signer: Signer;
+    },
+  ): Promise<OrderPreview | null> {
+    const { signer, ...previewParams } = params;
+    const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
+    const basePreview = await previewMaxBuyOrder({
+      ...previewParams,
+      feeCollection,
+    });
+
+    if (!basePreview) {
+      return null;
     }
 
-    if (params.signer && this.isRateLimited(params.signer.address)) {
-      return {
-        ...normalizedPreview,
-        orderType,
-        rateLimited: true,
-      };
-    }
-
-    return { ...normalizedPreview, orderType };
+    return this.#decorateOrderPreview({
+      preview: basePreview,
+      feeCollection,
+      fakOrdersEnabled,
+      signer,
+    });
   }
 
   public async placeOrder(
@@ -2565,7 +2618,7 @@ export class PolymarketProvider implements PredictProvider {
     const result: GeoBlockResponse = { isEligible: false };
 
     try {
-      const res = await fetch(GEOBLOCK_API_ENDPOINT);
+      const res = await fetchWithTimeout(GEOBLOCK_API_ENDPOINT);
       const data = (await res.json()) as {
         blocked?: boolean;
         country?: string;
@@ -2751,7 +2804,7 @@ export class PolymarketProvider implements PredictProvider {
       user: address,
       limit: '1',
     });
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${DATA_API_ENDPOINT}/activity?${queryParams.toString()}`,
     );
 
@@ -3396,11 +3449,18 @@ export class PolymarketProvider implements PredictProvider {
   public subscribeToCryptoPrices(
     symbols: string[],
     callback: CryptoPriceUpdateCallback,
+    options?: CryptoPriceSubscriptionOptions,
   ): () => void {
-    return WebSocketManager.getInstance().subscribeToCryptoPrices(
-      symbols,
-      callback,
-    );
+    return options
+      ? WebSocketManager.getInstance().subscribeToCryptoPrices(
+          symbols,
+          callback,
+          options,
+        )
+      : WebSocketManager.getInstance().subscribeToCryptoPrices(
+          symbols,
+          callback,
+        );
   }
 
   public subscribeToConnectionStatus(

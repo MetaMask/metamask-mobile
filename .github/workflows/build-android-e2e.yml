@@ -30,10 +30,12 @@ on:
         default: ''
         type: string
       runner_provider:
-        description: Runner provider forwarded from the caller
+        description: >-
+          Runner provider forwarded from the caller. Leave empty to defer to the repo
+          NAMESPACE_RUNNER_* Actions variables (see .github/CONTRIBUTING.md).
         required: false
         type: string
-        default: current
+        default: ''
       include_arm64:
         description: >-
           Include arm64-v8a in the E2E build (in addition to x86_64) so the APK runs on
@@ -54,10 +56,29 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-android-build' || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') || fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]')) }} # Optimized for lg runner (48GB) with conservative memory settings
+    # The current arm uses the 48 GB Cirrus runner with lower priority outside releases.
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-android-build' ||
+        (startsWith(github.base_ref, 'release/') &&
+         fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
+         fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]'))
+      }}
     timeout-minutes: 40
     env:
-      GRADLE_USER_HOME: ${{ inputs.runner_provider == 'namespace' && '/home/runner/_work/.gradle' || '/home/admin/_work/.gradle' }}
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
+      GRADLE_USER_HOME: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+           vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+          '/home/runner/_work/.gradle' || '/home/admin/_work/.gradle'
+        }}
       CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
       YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
       E2E_BUILD_METADATA_ARTIFACT: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-android-build-metadata
@@ -70,10 +91,10 @@ jobs:
     steps:
       - name: Checkout repo (Namespace)
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - name: Checkout repo
         uses: actions/checkout@v6
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
 
       - name: Check force-builds override
         id: force-builds
@@ -82,7 +103,7 @@ jobs:
           github-token: ${{ github.token }}
 
       - name: Configure Namespace cache
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           cache: |
@@ -98,7 +119,7 @@ jobs:
             ${{ env.GRADLE_USER_HOME }}/apk-cache
 
       - name: Configure Gradle remote build cache
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         run: |
           mkdir -p "$GRADLE_USER_HOME/init.d"
           REF="${GITHUB_REF_NAME}"
@@ -149,7 +170,7 @@ jobs:
 
       - name: Check Namespace E2E APK cache
         id: namespace-apk-cache
-        if: ${{ inputs.runner_provider == 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false }}
         shell: bash
         env:
           APK_TARGET: ${{ steps.determine-target-paths.outputs.apk-target-path }}
@@ -193,7 +214,7 @@ jobs:
 
       - name: Find reusable build from prior run
         id: find-reusable-build
-        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false }}
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
@@ -204,7 +225,7 @@ jobs:
           max-candidates-per-branch: ${{ inputs.reuse-main-builds-only && '30' || '10' }}
 
       - name: Restore APKs matching fingerprint from branch cache
-        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false && inputs.reuse-main-builds-only != true }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false && inputs.reuse-main-builds-only != true }}
         id: apk-cache-restore
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -215,7 +236,7 @@ jobs:
           key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Restore APKs matching fingerprint from main cache
-        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false && (inputs.reuse-main-builds-only == true || (steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main')) }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false && (inputs.reuse-main-builds-only == true || (steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main')) }}
         id: apk-cache-restore-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -365,12 +386,12 @@ jobs:
           setup-simulator: false
           configure-keystores: true
           install-foundry: false
-          runner_provider: ${{ inputs.runner_provider }}
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
       # The Namespace cache action above already includes `.metamask`, so the
       # dedicated actions/cache restore is only needed on non-Namespace runners.
       - name: Restore .metamask folder
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         id: restore-metamask
         uses: actions/cache@v4
         with:
@@ -421,7 +442,7 @@ jobs:
       # seconds of harvest window out of ~4.5 minutes.
       - name: Re-check for a reusable build published since the first lookup
         id: find-reusable-build-late
-        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false && steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false && steps.gate.outputs.needs-native-build == 'true' }}
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
@@ -555,7 +576,7 @@ jobs:
         id: gradle-cache-restore
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && !(steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success') }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && !(steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success') }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
@@ -570,7 +591,7 @@ jobs:
       - name: Restore Gradle dependencies from main cache
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
-        if: ${{ inputs.runner_provider != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' && !(steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success') }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' && !(steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success') }}
         env:
           GRADLE_CACHE_VERSION: 1
         with:
@@ -584,7 +605,7 @@ jobs:
 
       - name: Configure Namespace Gradle remote cache
         id: namespace-gradle-cache
-        if: ${{ inputs.runner_provider == 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
         run: |
           nsc cache gradle setup --init-gradle "$RUNNER_TEMP/namespace-gradle-init.gradle"
           echo "init-script=$RUNNER_TEMP/namespace-gradle-init.gradle" >> "$GITHUB_OUTPUT"
@@ -640,10 +661,9 @@ jobs:
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
-          MM_PREDICT_GTM_MODAL_ENABLED: 'false'
 
       - name: Record Namespace E2E APK cache marker
-        if: ${{ inputs.runner_provider == 'namespace' && steps.gate.outputs.needs-native-build == 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && steps.gate.outputs.needs-native-build == 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false }}
         shell: bash
         env:
           APK_SOURCE: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
@@ -865,7 +885,7 @@ jobs:
 
       - name: Upload Android APK (Namespace)
         id: upload-apk-namespace
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release.apk
@@ -875,7 +895,7 @@ jobs:
 
       - name: Upload Android APK (current)
         id: upload-apk
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release.apk
@@ -885,7 +905,7 @@ jobs:
 
       - name: Upload Android Test APK (Namespace)
         id: upload-test-apk-namespace
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release-androidTest.apk
@@ -895,7 +915,7 @@ jobs:
 
       - name: Upload Android build metadata (Namespace)
         id: upload-metadata-namespace
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
@@ -906,7 +926,7 @@ jobs:
 
       - name: Upload Android build metadata (current)
         id: upload-metadata
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
@@ -917,7 +937,7 @@ jobs:
 
       - name: Upload Android Test APK (current)
         id: upload-test-apk
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release-androidTest.apk

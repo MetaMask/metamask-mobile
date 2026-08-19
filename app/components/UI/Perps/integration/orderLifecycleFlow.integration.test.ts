@@ -15,14 +15,14 @@
  * Catches the wiring between hook and controller in addition to the
  * controller wiring itself. Heavier setup, broader coverage.
  *
- * Reference: tests/integration/harnesses/perps-flow.ts
+ * Reference: tests/integration/harnesses/perps/perps-flow.ts
  *            tests/integration/STRATEGY.md (Shape A vs Shape B discussion)
  */
 
 import { act } from '@testing-library/react-native';
 import { type OrderResult, type Position } from '@metamask/perps-controller';
 
-import { buildPerpsFlowHarness } from '../../../../../tests/integration/harnesses/perps-flow';
+import { buildPerpsFlowHarness } from '../../../../../tests/integration/harnesses/perps/perps-flow';
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
 import { PerpsAnalyticsEvent } from '@metamask/perps-controller/types';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';

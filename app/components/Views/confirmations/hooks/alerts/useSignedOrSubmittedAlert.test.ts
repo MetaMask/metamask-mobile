@@ -342,7 +342,12 @@ describe('useSignedOrSubmittedAlert', () => {
               },
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  confirmations_pay_hardware: { enabled: true },
+                  confirmations_pay_hardware: {
+                    default: { enabled: false },
+                    overrides: {
+                      [TransactionType.musdConversion]: { enabled: true },
+                    },
+                  },
                 },
               },
             },

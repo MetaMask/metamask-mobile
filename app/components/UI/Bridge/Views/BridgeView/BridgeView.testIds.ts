@@ -12,6 +12,14 @@ export const BridgeViewSelectorsIDs = {
   QUOTE_DETAILS_SKELETON: 'bridge-quote-details-skeleton',
   MISSING_PRICE_BANNER: 'bridge-missing-price-banner',
   NO_QUOTES_BANNER: 'bridge-no-quotes',
+  TABS_BAR: 'bridge-tabs-bar',
+  TABS_CONTENT: 'bridge-tabs-content',
+  TABS_SWIPE_GESTURE: 'bridge-tabs-swipe-gesture',
+  MARKET_TAB: 'bridge-market-tab',
+  LIMIT_TAB: 'bridge-limit-tab',
+  RECURRING_TAB: 'bridge-recurring-tab',
+  LIMIT_ORDER_CONTAINER: 'bridge-limit-order-container',
+  RECURRING_BUY_CONTAINER: 'bridge-recurring-buy-container',
 } as const;
 
 export type BridgeViewSelectorsIDsType = typeof BridgeViewSelectorsIDs;

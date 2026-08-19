@@ -39,13 +39,13 @@ import {
   selectIsMoneyAccountDelegatedForCard,
   selectIsCardResidencyBlocked,
   selectMoneyAccountVedaTokenConfig,
+  selectCardActiveProviderId,
 } from '../../../../selectors/cardController';
 import {
   selectPendingMoneyAccountCardLink,
   setPendingMoneyAccountCardLink,
 } from '../../../../core/redux/slices/card';
-import { selectIsMoneyAccountGeoEligible } from '../../Money/selectors/eligibility';
-import { selectMoneyEnableMoneyAccountFlag } from '../../Money/selectors/featureFlags';
+import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
 import {
   hasMoneyAccountCardRequirements,
   resolveMoneyAccountCardToken,
@@ -68,6 +68,7 @@ import {
   CardEntryPoint,
   CardFlow,
   CardLinkingFailureReason,
+  withCardProvider,
 } from '../util/metrics';
 
 export type LinkageStatus =
@@ -149,17 +150,11 @@ export const useMoneyAccountCardLinkage =
     const navigation = useNavigation<AppNavigationProp>();
     const dispatch = useDispatch();
     const { trackEvent, createEventBuilder } = useAnalytics();
+    const activeProviderId = useSelector(selectCardActiveProviderId);
 
     const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
     const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
-    const isMoneyAccountEnabled = useSelector(
-      selectMoneyEnableMoneyAccountFlag,
-    );
-    const isMoneyAccountGeoEligible = useSelector(
-      selectIsMoneyAccountGeoEligible,
-    );
-    const isMoneyAccountVisible =
-      isMoneyAccountEnabled && isMoneyAccountGeoEligible;
+    const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
     const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
     const isCardVerified = useSelector(selectIsCardVerified);
     const isCardholder = useSelector(selectIsCardholder);
@@ -294,14 +289,16 @@ export const useMoneyAccountCardLinkage =
       ) => {
         trackEvent(
           createEventBuilder(eventName)
-            .addProperties({
-              flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
-              ...properties,
-            })
+            .addProperties(
+              withCardProvider(activeProviderId, {
+                flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+                ...properties,
+              }),
+            )
             .build(),
         );
       },
-      [trackEvent, createEventBuilder],
+      [trackEvent, createEventBuilder, activeProviderId],
     );
 
     const openLinkCardSheet = useCallback(

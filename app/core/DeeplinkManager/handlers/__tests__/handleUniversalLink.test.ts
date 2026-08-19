@@ -21,6 +21,7 @@ import { handleWhatsHappeningUrl } from '../immediate/handleWhatsHappeningUrl';
 import { handleSwapUrl } from '../deferred/handleSwapUrl';
 import { handleBatchSellUrl } from '../immediate/handleBatchSellUrl';
 import { handleAssetUrl } from '../immediate/handleAssetUrl';
+import { handlePrivacyUrl } from '../immediate/handlePrivacyUrl';
 import {
   createRewardsDeeplinkIntent,
   handleRewardsUrl,
@@ -54,6 +55,7 @@ jest.mock('../immediate/handleHomeUrl');
 jest.mock('../deferred/handleSwapUrl');
 jest.mock('../immediate/handleBatchSellUrl');
 jest.mock('../immediate/handleAssetUrl');
+jest.mock('../immediate/handlePrivacyUrl');
 jest.mock('../deferred/handleBrowserUrl');
 jest.mock('../deferred/handleDappUrl', () => {
   const actual = jest.requireActual('../deferred/handleDappUrl');
@@ -549,6 +551,30 @@ describe('handleUniversalLink', () => {
       expect(handleAssetUrl).toHaveBeenCalledWith({
         assetPath,
       });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.PRIVACY', () => {
+    it('calls handlePrivacyUrl with the path after the action', async () => {
+      const privacyPath = '?setting=data-collection';
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PRIVACY}${privacyPath}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.PRIVACY}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(handlePrivacyUrl).toHaveBeenCalledWith({ privacyPath });
       expect(handled).toHaveBeenCalled();
     });
   });

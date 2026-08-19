@@ -1,7 +1,7 @@
 import type { CaipChainId } from '@metamask/utils';
 import { ethers } from 'ethers';
 import Logger from '../../../../../util/Logger';
-import type { CardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
+import type { ImmersveProgramConfig } from '../../../../../selectors/featureFlagController/card';
 import {
   ARBITRUM_SEPOLIA_RPC_URL,
   BASE_MAINNET_RPC_URL,
@@ -85,6 +85,33 @@ function getErrorContext(method: string, extra?: Record<string, unknown>) {
     tags: { feature: 'card', provider: 'immersve' },
     context: { name: 'ImmersveProvider', data: { method, ...extra } },
   };
+}
+
+/**
+ * Report non-auth API failures to Sentry, then rethrow as CardProviderError.
+ * Auth-token / 401 errors are intentionally excluded to avoid Sentry noise
+ * (matching setCardPin / getCardHomeData).
+ */
+function reportAndMap(
+  error: unknown,
+  method: string,
+  extra?: Record<string, unknown>,
+): never {
+  const isAuthFailure =
+    isCardAuthTokenError(error) ||
+    (error instanceof CardApiError && error.statusCode === 401);
+  if (!isAuthFailure) {
+    Logger.error(
+      error as Error,
+      getErrorContext(method, {
+        httpStatus:
+          error instanceof CardApiError ? error.statusCode : undefined,
+        errorCode: error instanceof CardApiError ? error.errorCode : undefined,
+        ...extra,
+      }),
+    );
+  }
+  throw mapApiError(error, method);
 }
 
 function mapApiError(error: unknown, operation: string): CardProviderError {
@@ -272,28 +299,29 @@ export class ImmersveProvider implements ICardProvider {
     supportsSensitiveDetailsView: true,
     supportsTravel: false,
     supportsTransactionHistory: false,
+    supportsMoneyAccountLinking: false,
   };
 
   private readonly service: ImmersveService;
   private readonly config: ImmersveProviderConfig;
-  private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
+  private readonly getProgramConfig: () => ImmersveProgramConfig;
 
   constructor({
     service,
     config,
-    getCardFeatureFlag,
+    getProgramConfig,
   }: {
     service: ImmersveService;
     config: ImmersveProviderConfig;
-    getCardFeatureFlag?: () => CardFeatureFlag | null | undefined;
+    getProgramConfig?: () => ImmersveProgramConfig | null | undefined;
   }) {
     this.service = service;
     this.config = config;
-    this.getCardFeatureFlag = () => getCardFeatureFlag?.() ?? null;
+    this.getProgramConfig = () => getProgramConfig?.() ?? {};
   }
 
-  private get programConfig() {
-    return this.getCardFeatureFlag()?.immersve ?? {};
+  private get programConfig(): ImmersveProgramConfig {
+    return this.getProgramConfig();
   }
 
   private get network(): string {
@@ -374,7 +402,10 @@ export class ImmersveProvider implements ICardProvider {
         },
       };
     } catch (error) {
-      throw mapApiError(error, 'initiateAuth');
+      reportAndMap(error, 'initiateAuth', {
+        network: this.network,
+        country,
+      });
     }
   }
 
@@ -399,7 +430,13 @@ export class ImmersveProvider implements ICardProvider {
         },
       );
     } catch (error) {
-      throw mapApiError(error, 'submitCredentials');
+      reportAndMap(error, 'submitCredentials', {
+        network: this.network,
+        country:
+          typeof session._metadata?.country === 'string'
+            ? session._metadata.country
+            : undefined,
+      });
     }
 
     const tokenSet: CardAuthTokens = {
@@ -439,6 +476,8 @@ export class ImmersveProvider implements ICardProvider {
         { origin: this.appUrl },
       );
     } catch (error) {
+      // Auth refresh rejection (400/401/403) is expected session expiry —
+      // do not report to Sentry.
       if (
         error instanceof CardApiError &&
         [400, 401, 403].includes(error.statusCode)
@@ -449,7 +488,7 @@ export class ImmersveProvider implements ICardProvider {
           error.statusCode,
         );
       }
-      throw mapApiError(error, 'refreshTokens');
+      reportAndMap(error, 'refreshTokens');
     }
 
     const refreshToken = response.refreshToken ?? tokens.refreshToken;
@@ -525,7 +564,7 @@ export class ImmersveProvider implements ICardProvider {
         balanceCurrency: response.balanceCurrency,
       };
     } catch (error) {
-      throw mapApiError(error, 'createFundingSource');
+      reportAndMap(error, 'createFundingSource', { network: this.network });
     }
   }
 
@@ -553,7 +592,7 @@ export class ImmersveProvider implements ICardProvider {
         fundingChannelId: item.fundingChannelId,
       }));
     } catch (error) {
-      throw mapApiError(error, 'getFundingSources');
+      reportAndMap(error, 'getFundingSources');
     }
   }
 
@@ -583,7 +622,7 @@ export class ImmersveProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      throw mapApiError(error, 'patchContactDetails');
+      reportAndMap(error, 'patchContactDetails');
     }
   }
 
@@ -608,7 +647,10 @@ export class ImmersveProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      throw mapApiError(error, 'getSpendingPrerequisites');
+      reportAndMap(error, 'getSpendingPrerequisites', {
+        fundingSourceId,
+        kycRegion: params.kycRegion,
+      });
     }
   }
 
@@ -626,7 +668,7 @@ export class ImmersveProvider implements ICardProvider {
         tokens,
       );
     } catch (error) {
-      throw mapApiError(error, 'createCard');
+      reportAndMap(error, 'createCard', { fundingSourceId });
     }
   }
 
@@ -647,7 +689,7 @@ export class ImmersveProvider implements ICardProvider {
         fundingSourceIds: detail.fundingSourceIds ?? [],
       };
     } catch (error) {
-      throw mapApiError(error, 'getResumeCardInfo');
+      reportAndMap(error, 'getResumeCardInfo');
     }
   }
 
@@ -764,7 +806,7 @@ export class ImmersveProvider implements ICardProvider {
         regionCode: detail.regionCode ?? card.regionCode,
       });
     } catch (error) {
-      throw mapApiError(error, 'getCardDetails');
+      reportAndMap(error, 'getCardDetails');
     }
   }
 
@@ -772,7 +814,7 @@ export class ImmersveProvider implements ICardProvider {
     try {
       await this.service.post(`/api/cards/${cardId}/freeze`, {}, tokens);
     } catch (error) {
-      throw mapApiError(error, 'freezeCard');
+      reportAndMap(error, 'freezeCard');
     }
   }
 
@@ -780,7 +822,7 @@ export class ImmersveProvider implements ICardProvider {
     try {
       await this.service.post(`/api/cards/${cardId}/unfreeze`, {}, tokens);
     } catch (error) {
-      throw mapApiError(error, 'unfreezeCard');
+      reportAndMap(error, 'unfreezeCard');
     }
   }
 
@@ -797,18 +839,7 @@ export class ImmersveProvider implements ICardProvider {
         baseURL: this.secureApiBaseUrl,
       });
     } catch (error) {
-      if (!(error instanceof CardApiError && error.statusCode === 401)) {
-        Logger.error(
-          error as Error,
-          getErrorContext('setCardPin', {
-            httpStatus:
-              error instanceof CardApiError ? error.statusCode : undefined,
-            errorCode:
-              error instanceof CardApiError ? error.errorCode : undefined,
-          }),
-        );
-      }
-      throw mapApiError(error, 'setCardPin');
+      reportAndMap(error, 'setCardPin');
     }
   }
 
@@ -832,7 +863,7 @@ export class ImmersveProvider implements ICardProvider {
       );
       return await this.service.get<CardSensitiveDetails>(callbackUrl);
     } catch (error) {
-      throw mapApiError(error, 'getCardSensitiveDetails');
+      reportAndMap(error, 'getCardSensitiveDetails');
     }
   }
 
@@ -846,6 +877,7 @@ export class ImmersveProvider implements ICardProvider {
       holderName: detail.cardholderName,
       isFreezable: status === CardStatus.ACTIVE || status === CardStatus.FROZEN,
       regionCode: detail.regionCode,
+      hasPin: true,
     };
   }
 
