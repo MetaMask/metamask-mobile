@@ -115,9 +115,20 @@ jobs:
           node-version-file: '.nvmrc'
           cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
 
-      # JS-only setup: no pods, no Gradle. This is the setup the E2E and BrowserStack
-      # repack paths already use.
+      # Install before setup, as every other CI job here does: `yarn install` writes the
+      # node_modules state file, without which `yarn <script>` cannot resolve anything
+      # ("Couldn't find the node_modules state file"). build.yml gets this from its
+      # setup-dependencies job; this workflow has no such job, so it installs inline.
       - name: Install dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+
+      # JS-only setup: no pods, no Gradle. Same flags the BrowserStack repack path uses.
+      - name: Setup project with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 20
