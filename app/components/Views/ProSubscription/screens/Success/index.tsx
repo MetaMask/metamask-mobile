@@ -8,8 +8,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  ButtonIcon,
-  ButtonIconSize,
   Icon,
   IconName,
   IconSize,
@@ -24,9 +22,6 @@ interface SuccessProps {
 
 const ALY_NAME = 'Aly';
 
-/**
- * SUB-994: Post-purchase success screen.
- */
 const Success = ({ onSuccess }: SuccessProps) => (
   <Box
     twClassName="flex-1 bg-background-default"
@@ -47,13 +42,13 @@ const Success = ({ onSuccess }: SuccessProps) => (
     </Box>
 
     {/* Title, subtitle and CTA anchored at the bottom */}
-    <Box twClassName="px-6 pb-10 gap-y-4">
+    <Box twClassName="px-4 pb-2 gap-y-4">
       <Box twClassName="gap-y-2">
         <Text
           variant={TextVariant.DisplayMd}
           fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
-          twClassName="w-[90%]"
+          twClassName="w-[85%]"
           testID={SuccessTestIds.TITLE}
         >
           {strings('pro_subscription.success.title', { name: ALY_NAME })}

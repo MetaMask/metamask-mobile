@@ -1419,6 +1419,8 @@ const AppFlow = () => {
         options={{
           headerShown: false,
           gestureEnabled: true,
+          presentation: 'card',
+          animation: 'default',
         }}
       />
       <NativeStack.Screen
@@ -1427,7 +1429,8 @@ const AppFlow = () => {
         options={{
           headerShown: false,
           gestureEnabled: false,
-          animation: 'slide_from_bottom',
+          presentation: 'card',
+          animation: 'default',
         }}
       />
       <NativeStack.Screen
@@ -1436,7 +1439,8 @@ const AppFlow = () => {
         options={{
           headerShown: false,
           gestureEnabled: false,
-          animation: 'slide_from_bottom',
+          presentation: 'card',
+          animation: 'default',
         }}
       />
       <NativeStack.Screen

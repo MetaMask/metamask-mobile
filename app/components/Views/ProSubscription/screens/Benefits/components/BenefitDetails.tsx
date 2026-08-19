@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useCallback } from 'react';
+import { Linking } from 'react-native';
 import {
   BottomSheet,
   Text,
@@ -15,67 +16,77 @@ interface BenefitDetailsProps {
   details: BenefitDetailItem;
 }
 
-const BenefitDetails = ({ onClose, details }: BenefitDetailsProps) => (
-  <BottomSheet
-    onClose={onClose}
-    testID={BenefitsTestIds.BENEFIT_DETAILS_CONTAINER}
-  >
-    <Box twClassName="px-4 py-6 flex flex-col">
-      <Text
-        variant={TextVariant.HeadingMd}
-        color={TextColor.TextDefault}
-        twClassName="mb-4"
-      >
-        {strings(details.title)}
-      </Text>
-      <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextAlternative}
-        twClassName="mb-4"
-      >
-        {strings(details.description)}
-      </Text>
-      {details.subDescription && (
+const BenefitDetails = ({ onClose, details }: BenefitDetailsProps) => {
+  const handleLearnMorePress = useCallback(() => {
+    if (details.learnMoreUrl) {
+      Linking.openURL(details.learnMoreUrl);
+    }
+  }, [details.learnMoreUrl]);
+
+  return (
+    <BottomSheet
+      onClose={onClose}
+      testID={BenefitsTestIds.BENEFIT_DETAILS_CONTAINER}
+    >
+      <Box twClassName="px-4 pt-6 flex flex-col">
+        <Text
+          variant={TextVariant.HeadingMd}
+          color={TextColor.TextDefault}
+          twClassName="mb-4"
+        >
+          {strings(details.title)}
+        </Text>
         <Text
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           twClassName="mb-4"
         >
-          {strings(details.subDescription)}
+          {strings(details.description)}
         </Text>
-      )}
+        {details.subDescription && (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="mb-4"
+          >
+            {strings(details.subDescription)}
+          </Text>
+        )}
 
-      {details.points && (
-        <Box twClassName="flex flex-col gap-y-2 mb-4">
-          {details.points.map((pointKey) => (
-            <Text
-              key={pointKey}
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {`\u2022 ${strings(pointKey)}`}
-            </Text>
-          ))}
-        </Box>
-      )}
+        {details.points && (
+          <Box twClassName="flex flex-col gap-y-2 mb-4">
+            {details.points.map((pointKey) => (
+              <Text
+                key={pointKey}
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {`\u2022 ${strings(pointKey)}`}
+              </Text>
+            ))}
+          </Box>
+        )}
 
-      {details.learnMore && (
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="mb-4"
-        >
-          {strings(details.learnMore)}
-        </Text>
-      )}
+        {details.learnMore && details.learnMoreUrl && (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="mb-4"
+            onPress={handleLearnMorePress}
+            accessibilityRole="link"
+          >
+            {strings(details.learnMore)}
+          </Text>
+        )}
 
-      {details.notes && (
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-          {strings(details.notes)}
-        </Text>
-      )}
-    </Box>
-  </BottomSheet>
-);
+        {details.notes && (
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+            {strings(details.notes)}
+          </Text>
+        )}
+      </Box>
+    </BottomSheet>
+  );
+};
 
 export default BenefitDetails;

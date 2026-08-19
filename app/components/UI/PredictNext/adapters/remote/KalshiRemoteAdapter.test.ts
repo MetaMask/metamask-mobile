@@ -16,7 +16,7 @@ const createEvent = (overrides = {}) => ({
     {
       id: 'market-1',
       question: 'Will the team win?',
-      status: 'open',
+      status: 'active',
       outcomes: [
         {
           id: 'market-1-yes',

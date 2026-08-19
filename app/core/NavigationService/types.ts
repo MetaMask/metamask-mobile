@@ -1034,6 +1034,8 @@ export type RootStackParamList = {
   SmartAccountOptIn: undefined;
   ProSubscription: { source?: string; initialPlan?: string } | undefined;
   ProHub: { source?: string } | undefined;
+  ProHubMembership: undefined;
+  ProHubCancelMembership: undefined;
 
   // Notification routes
   NotificationsView: undefined;

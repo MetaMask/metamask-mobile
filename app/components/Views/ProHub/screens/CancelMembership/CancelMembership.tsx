@@ -206,7 +206,7 @@ const CancelMembership = () => {
       </ScrollView>
 
       {/* ── Bottom actions ─────────────────────────────────────────────────── */}
-      <Box twClassName="px-4 pb-6 gap-y-4 w-full">
+      <Box twClassName="px-4 pb-2 gap-y-4 w-full">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

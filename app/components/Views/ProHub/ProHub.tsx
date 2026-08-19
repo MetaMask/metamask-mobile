@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -18,28 +17,29 @@ import {
 } from '@metamask/design-system-react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ProHubTestIds } from './ProHub.testIds';
 
 const ProHub = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { top } = useSafeAreaInsets();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
+  }, [navigation]);
+
+  const handleManageMembership = useCallback(() => {
+    navigation.navigate(Routes.PRO_HUB.MEMBERSHIP);
   }, [navigation]);
 
   const handleExplorePress = useCallback(() => {
     // TODO: navigate to benefits / ProSubscription flow
   }, []);
 
-  const handleManagePlans = useCallback(() => {
-    navigation.navigate(Routes.PRO_HUB.MEMBERSHIP as never);
-  }, [navigation]);
-
   return (
-    <View
-      style={[tw.style('flex-1 bg-background-default'), { paddingTop: top }]}
+    <SafeAreaView
+      style={tw.style('flex-1 bg-background-default')}
+      edges={['top', 'bottom']}
       testID={ProHubTestIds.CONTAINER}
     >
       {/* Header row */}
@@ -57,8 +57,8 @@ const ProHub = () => {
         endAccessory={
           <ButtonIcon
             iconName={IconName.Setting}
-            onPress={handleManagePlans}
-            accessibilityLabel="Manage Plans"
+            onPress={handleManageMembership}
+            accessibilityLabel={strings('pro_hub.manage')}
             testID={ProHubTestIds.MANAGE_PLANS_BUTTON}
           />
         }
@@ -84,7 +84,7 @@ const ProHub = () => {
       </Box>
 
       {/* Action buttons */}
-      <Box twClassName="px-4 pb-6 gap-y-3">
+      <Box twClassName="px-4 pb-2 gap-y-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
@@ -97,14 +97,14 @@ const ProHub = () => {
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          onPress={handleManagePlans}
+          onPress={handleManageMembership}
           isFullWidth
           testID={ProHubTestIds.MANAGE_BUTTON}
         >
           {strings('pro_hub.manage')}
         </Button>
       </Box>
-    </View>
+    </SafeAreaView>
   );
 };
 

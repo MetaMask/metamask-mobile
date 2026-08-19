@@ -102,7 +102,7 @@ Imperative hooks wrap service-owned workflows but do not recreate state machines
 
 UI uses the MetaMask design system first and may reuse existing venue-neutral presentation. It consumes canonical models and user-meaningful states, not Venue DTOs, credentials, transport errors, or protocol steps.
 
-Reusable primitives, widgets, and views are extracted when real callers prove reuse. The architecture does not require a complete three-tier UI scaffold before implementation.
+Product UI is organized by owning feature or domain. Reusable primitives and views are extracted when real callers prove reuse; do not introduce a generic `widgets` tier. Cross-module consumers use deliberate module-root public APIs, while private composition stays under its owner's `internal/` directory. The architecture does not require a complete UI scaffold before implementation. See [`module-structure.md`](./module-structure.md).
 
 ## Data flows
 
@@ -200,6 +200,6 @@ Follow the repository's canonical unit, component-view, and E2E testing guides. 
 
 ## Module boundary
 
-The feature root eventually exports only stable product-facing views, selected reusable UI, hooks, selectors, domain types, and errors. Services, concrete adapters, backend DTOs, sessions, query descriptors, and future compatibility code remain internal.
+Meaningful feature and domain modules export only stable product-facing views, selected reusable UI, hooks, selectors, domain types, and errors through deliberate module-root `index.ts` files. Services, concrete adapters, backend DTOs, sessions, query descriptors, private UI parts, and future compatibility code remain internal to their owners.
 
-Do not create a full entrypoint allowlist before implementations exist. Code and tests define the implemented public surface; documentation is updated as stable callers appear.
+Do not add barrels at every directory level or create a full PredictNext entrypoint allowlist before stable external consumers exist. Code and tests define the implemented public surface; [`module-structure.md`](./module-structure.md) records placement and import conventions as owners emerge.
