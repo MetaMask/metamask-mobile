@@ -1,0 +1,642 @@
+{
+  "$schema": "https://farmslot.io/schemas/recipe-v1.schema.json",
+  "title": "Lighter vs HyperLiquid \u2014 $150 market + limit orders on ETH/BTC through the real UI, with per-venue max-leverage proof and cleanup",
+  "description": "Drives the actual mobile UI (no controller shortcuts for the trade flow) on Lighter testnet: places a $150 MARKET order on ETH at 40x and a $150 LIMIT order (-2% below mid) on BTC, capturing the leverage bottom sheet on both markets (Lighter max 50x \u2014 the 40x quick-select exists and the slider tops at 50x). Verifies venue state semantically (position + resting order), cleans up (closes the ETH position, cancels the BTC order), then switches to HyperLiquid testnet through the venue picker and captures the same leverage sheets for ETH (max 25x \u2014 no 40x quick-select) and BTC (max 40x) as the comparison proof. Amounts are typed on the real keypad (delete \u00d7 6, then 1-5-0). Run with --record-video=full-run for the video artifact.",
+  "workflow": {
+    "entry": "restart-app",
+    "nodes": {
+      "restart-app": {
+        "action": "app.lifecycle",
+        "command": "restart",
+        "intent": "Deterministic boot for the recorded run.",
+        "next": "settle-boot"
+      },
+      "settle-boot": {
+        "action": "wait",
+        "duration_ms": 20000,
+        "intent": "Give the app time to finish booting.",
+        "next": "unlock-wallet"
+      },
+      "unlock-wallet": {
+        "action": "metamask.wallet.ensure_unlocked",
+        "intent": "Fixture wallet (dev1 owns Lighter venue account 899 with ~$10k testnet collateral; HL testnet holds ~$750).",
+        "next": "navigate-perps"
+      },
+      "navigate-perps": {
+        "action": "ui.navigate",
+        "page": "perps",
+        "intent": "Land on the Perps home surface.",
+        "next": "settle-home"
+      },
+      "settle-home": {
+        "action": "wait",
+        "duration_ms": 10000,
+        "intent": "Give the venue connection time to come up.",
+        "next": "open-provider-picker"
+      },
+      "open-provider-picker": {
+        "action": "ui.press",
+        "test_id": "perps-home-heading-provider-badge",
+        "intent": "Bring up the venue picker so the run pins Lighter testnet.",
+        "next": "wait-picker"
+      },
+      "wait-picker": {
+        "action": "wait",
+        "duration_ms": 2000,
+        "next": "pick-lighter",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "pick-lighter": {
+        "action": "ui.press",
+        "test_id": "perps-select-provider-sheet-option-lighter-testnet",
+        "intent": "Activate Lighter testnet.",
+        "next": "settle-lighter"
+      },
+      "settle-lighter": {
+        "action": "wait",
+        "duration_ms": 10000,
+        "next": "watch-ws",
+        "intent": "Give Lighter time to initialize after the switch."
+      },
+      "watch-ws": {
+        "action": "watch_logs",
+        "scope": "file",
+        "path": "temp/recipe/runtime/app-console.log",
+        "contains": "price stream connected (ws)",
+        "intent": "Confirm the Lighter price stream is live before trading.",
+        "next": "eth-market"
+      },
+      "eth-market": {
+        "action": "ui.navigate",
+        "page": "perps-market",
+        "market": "ETH",
+        "intent": "Open the ETH market page on Lighter.",
+        "next": "eth-settle"
+      },
+      "eth-settle": {
+        "action": "wait",
+        "duration_ms": 12000,
+        "next": "eth-details-shot",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "eth-details-shot": {
+        "action": "ui.screenshot",
+        "path": "screenshots/01-lighter-eth-details.png",
+        "next": "eth-long",
+        "intent": "Record the ETH market page as it looks before the trade starts."
+      },
+      "eth-long": {
+        "action": "ui.press",
+        "test_id": "perps-market-details-long-button",
+        "intent": "Open the order form (the previously-broken one-click path).",
+        "next": "eth-form-settle"
+      },
+      "eth-form-settle": {
+        "action": "wait",
+        "duration_ms": 12000,
+        "next": "eth-form-visible",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "eth-form-visible": {
+        "action": "ui.wait_for",
+        "test_id": "perps-order-view-place-order-button",
+        "timeout_ms": 45000,
+        "intent": "Order form rendered; amount pre-seeded at the venue minimum (~$10.16). (presence assertion: viewport measurement is unreliable under chart load).",
+        "next": "eth-amount-open"
+      },
+      "eth-amount-open": {
+        "action": "ui.press",
+        "test_id": "perps-amount-display-touchable",
+        "intent": "Bring up the keypad to type the ETH notional.",
+        "next": "eth-del-1"
+      },
+      "eth-del-1": {
+        "action": "ui.press",
+        "test_id": "keypad-delete-button",
+        "next": "eth-del-2",
+        "intent": "Clear one keypad character."
+      },
+      "eth-del-2": {
+        "action": "ui.press",
+        "test_id": "keypad-delete-button",
+        "next": "eth-del-3",
+        "intent": "Clear one keypad character."
+      },
+      "eth-del-3": {
+        "action": "ui.press",
+        "test_id": "keypad-delete-button",
+        "next": "eth-del-4",
+        "intent": "Clear one keypad character."
+      },
+      "eth-del-4": {
+        "action": "ui.press",
+        "test_id": "keypad-delete-button",
+        "next": "eth-del-5",
+        "intent": "Clear one keypad character."
+      },
+      "eth-del-5": {
+        "action": "ui.press",
+        "test_id": "keypad-delete-button",
+        "next": "eth-del-6",
+        "intent": "Clear one keypad character."
+      },
+      "eth-del-6": {
+        "action": "ui.press",
+        "test_id": "keypad-delete-button",
+        "next": "eth-key-1",
+        "intent": "Clear one keypad character."
+      },
+      "eth-key-1": {
+        "action": "ui.press",
+        "test_id": "keypad-key-1",
+        "next": "eth-key-5",
+        "intent": "Type digit 1 of the $150 amount."
+      },
+      "eth-key-5": {
+        "action": "ui.press",
+        "test_id": "keypad-key-5",
+        "next": "eth-key-0",
+        "intent": "Type digit 5 of the $150 amount."
+      },
+      "eth-key-0": {
+        "action": "ui.press",
+        "test_id": "keypad-key-0",
+        "next": "eth-keypad-done",
+        "intent": "Type digit 0 of the $150 amount."
+      },
+      "eth-keypad-done": {
+        "action": "ui.press",
+        "test_id": "perps-order-view-keypad-done",
+        "intent": "Finish typing so the form shows the $150 ETH notional.",
+        "next": "eth-amount-assert"
+      },
+      "eth-amount-assert": {
+        "action": "ui.wait_for",
+        "text": "$150",
+        "timeout_ms": 10000,
+        "intent": "The ETH notional now reads $150. (presence assertion: viewport measurement is unreliable under chart load).",
+        "next": "eth-lev-open"
+      },
+      "eth-lev-open": {
+        "action": "ui.press",
+        "test_id": "perps-order-view-leverage-row",
+        "intent": "Open the leverage sheet \u2014 Lighter ETH allows up to 50x.",
+        "next": "eth-lev-settle"
+      },
+      "eth-lev-settle": {
+        "action": "wait",
+        "duration_ms": 3000,
+        "next": "eth-lev-has-40",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "eth-lev-has-40": {
+        "action": "ui.wait_for",
+        "test_id": "leverage-quick-select-40",
+        "timeout_ms": 10000,
+        "intent": "PROOF: the 40x quick-select exists on Lighter ETH (HyperLiquid ETH caps at 25x and has no 40x). (presence assertion: viewport measurement is unreliable under chart load).",
+        "next": "eth-lev-shot"
+      },
+      "eth-lev-shot": {
+        "action": "ui.screenshot",
+        "path": "screenshots/02-lighter-eth-leverage-max50.png",
+        "intent": "Record Lighter ETH leverage choices topping out at 50x.",
+        "next": "eth-lev-pick-40"
+      },
+      "eth-lev-pick-40": {
+        "action": "ui.press",
+        "test_id": "leverage-quick-select-40",
+        "next": "eth-lev-confirm",
+        "intent": "Choose 40x so the placed order uses leverage only Lighter offers on ETH."
+      },
+      "eth-lev-confirm": {
+        "action": "ui.press",
+        "text": "Set 40x",
+        "intent": "Lock in 40x for the ETH market order.",
+        "next": "eth-form-shot"
+      },
+      "eth-form-shot": {
+        "action": "ui.screenshot",
+        "path": "screenshots/03-lighter-eth-form-150-40x.png",
+        "intent": "Record the ready-to-place $150 ETH order at 40x.",
+        "next": "eth-place"
+      },
+      "eth-place": {
+        "action": "ui.press",
+        "test_id": "perps-order-view-place-order-button",
+        "intent": "Place the $150 MARKET order on Lighter.",
+        "next": "eth-place-settle"
+      },
+      "eth-place-settle": {
+        "action": "wait",
+        "duration_ms": 10000,
+        "next": "eth-position-assert",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "eth-position-assert": {
+        "action": "metamask.perps.assert_positions",
+        "market": "ETH",
+        "state": "present",
+        "timeout_ms": 30000,
+        "intent": "Venue truth: the ETH position exists on Lighter.",
+        "next": "eth-position-shot"
+      },
+      "eth-position-shot": {
+        "action": "ui.screenshot",
+        "path": "screenshots/04-lighter-eth-position-open.png",
+        "next": "btc-market",
+        "intent": "Record the screen after the market order fills."
+      },
+      "btc-market": {
+        "action": "ui.navigate",
+        "page": "perps-market",
+        "market": "BTC",
+        "intent": "Open the BTC market page on Lighter.",
+        "next": "btc-settle"
+      },
+      "btc-settle": {
+        "action": "wait",
+        "duration_ms": 12000,
+        "next": "btc-long",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "btc-long": {
+        "action": "ui.press",
+        "test_id": "perps-market-details-long-button",
+        "next": "btc-form-settle",
+        "intent": "Start a BTC long so the limit-order variant can be exercised."
+      },
+      "btc-form-settle": {
+        "action": "wait",
+        "duration_ms": 12000,
+        "next": "btc-form-visible",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "btc-form-visible": {
+        "action": "ui.wait_for",
+        "test_id": "perps-order-view-place-order-button",
+        "timeout_ms": 45000,
+        "intent": "BTC form seeded at the venue minimum (~$12.96 \u2014 Lighter's 0.0002 BTC floor, not the flat $10). (presence assertion: viewport measurement is unreliable under chart load).",
+        "next": "btc-amount-open"
+      },
+      "btc-amount-open": {
+        "action": "ui.press",
+        "test_id": "perps-amount-display-touchable",
+        "next": "btc-del-1",
+        "intent": "Bring up the keypad to type the BTC notional."
+      },
+      "btc-del-1": {
+        "action": "ui.press",
+        "test_id": "keypad-delete-button",
+        "next": "btc-del-2",
+        "intent": "Clear one keypad character."
+      },
+      "btc-del-2": {
+        "action": "ui.press",
+        "test_id": "keypad-delete-button",
+        "next": "btc-del-3",
+        "intent": "Clear one keypad character."
+      },
+      "btc-del-3": {
+        "action": "ui.press",
+        "test_id": "keypad-delete-button",
+        "next": "btc-del-4",
+        "intent": "Clear one keypad character."
+      },
+      "btc-del-4": {
+        "action": "ui.press",
+        "test_id": "keypad-delete-button",
+        "next": "btc-del-5",
+        "intent": "Clear one keypad character."
+      },
+      "btc-del-5": {
+        "action": "ui.press",
+        "test_id": "keypad-delete-button",
+        "next": "btc-del-6",
+        "intent": "Clear one keypad character."
+      },
+      "btc-del-6": {
+        "action": "ui.press",
+        "test_id": "keypad-delete-button",
+        "next": "btc-key-1",
+        "intent": "Clear one keypad character."
+      },
+      "btc-key-1": {
+        "action": "ui.press",
+        "test_id": "keypad-key-1",
+        "next": "btc-key-5",
+        "intent": "Type digit 1 of the $150 amount."
+      },
+      "btc-key-5": {
+        "action": "ui.press",
+        "test_id": "keypad-key-5",
+        "next": "btc-key-0",
+        "intent": "Type digit 5 of the $150 amount."
+      },
+      "btc-key-0": {
+        "action": "ui.press",
+        "test_id": "keypad-key-0",
+        "next": "btc-keypad-done",
+        "intent": "Type digit 0 of the $150 amount."
+      },
+      "btc-keypad-done": {
+        "action": "ui.press",
+        "test_id": "perps-order-view-keypad-done",
+        "next": "btc-amount-assert",
+        "intent": "Finish typing so the form shows the $150 BTC notional."
+      },
+      "btc-amount-assert": {
+        "action": "ui.wait_for",
+        "text": "$150",
+        "timeout_ms": 10000,
+        "next": "btc-lev-open",
+        "intent": "The BTC notional now reads $150. (presence assertion: viewport measurement is unreliable under chart load)."
+      },
+      "btc-lev-open": {
+        "action": "ui.press",
+        "test_id": "perps-order-view-leverage-row",
+        "intent": "Lighter BTC leverage sheet \u2014 also 50x max (HyperLiquid BTC caps at 40x).",
+        "next": "btc-lev-settle"
+      },
+      "btc-lev-settle": {
+        "action": "wait",
+        "duration_ms": 3000,
+        "next": "btc-lev-shot",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "btc-lev-shot": {
+        "action": "ui.screenshot",
+        "path": "screenshots/05-lighter-btc-leverage-max50.png",
+        "next": "btc-lev-pick-40",
+        "intent": "Record Lighter BTC leverage choices topping out at 50x."
+      },
+      "btc-lev-pick-40": {
+        "action": "ui.press",
+        "test_id": "leverage-quick-select-40",
+        "next": "btc-lev-confirm",
+        "intent": "Choose 40x, a tier HyperLiquid BTC also has but at its own cap."
+      },
+      "btc-lev-confirm": {
+        "action": "ui.press",
+        "text": "Set 40x",
+        "next": "btc-type-open",
+        "intent": "Lock in 40x for the BTC limit order."
+      },
+      "btc-type-open": {
+        "action": "ui.press",
+        "test_id": "perps-order-header-order-type-button",
+        "intent": "Switch to a LIMIT order.",
+        "next": "btc-type-settle"
+      },
+      "btc-type-settle": {
+        "action": "wait",
+        "duration_ms": 2000,
+        "next": "btc-type-limit",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "btc-type-limit": {
+        "action": "ui.press",
+        "test_id": "perps-order-type-limit",
+        "intent": "Selecting limit auto-opens the limit-price sheet.",
+        "next": "btc-limit-settle"
+      },
+      "btc-limit-settle": {
+        "action": "wait",
+        "duration_ms": 3000,
+        "next": "btc-limit-preset",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "btc-limit-preset": {
+        "action": "ui.press",
+        "test_id": "perps-limit-price-preset--2",
+        "intent": "-2% below mid \u2192 resting GTC buy.",
+        "next": "btc-limit-confirm"
+      },
+      "btc-limit-confirm": {
+        "action": "ui.press",
+        "test_id": "perps-limit-price-confirm-button",
+        "next": "btc-limit-form-shot",
+        "intent": "Accept the -2% limit price so the order will rest unfilled."
+      },
+      "btc-limit-form-shot": {
+        "action": "ui.screenshot",
+        "path": "screenshots/06-lighter-btc-limit-form.png",
+        "intent": "Record the ready-to-place $150 BTC limit order.",
+        "next": "btc-place"
+      },
+      "btc-place": {
+        "action": "ui.press",
+        "test_id": "perps-order-view-place-order-button",
+        "intent": "Place the $150 LIMIT order on Lighter.",
+        "next": "btc-place-settle"
+      },
+      "btc-place-settle": {
+        "action": "wait",
+        "duration_ms": 10000,
+        "next": "btc-order-assert",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "btc-order-assert": {
+        "action": "metamask.perps.assert_orders",
+        "market": "BTC",
+        "state": "present",
+        "timeout_ms": 30000,
+        "intent": "Venue truth: the BTC limit order rests on Lighter.",
+        "next": "btc-order-shot"
+      },
+      "btc-order-shot": {
+        "action": "ui.screenshot",
+        "path": "screenshots/07-lighter-btc-order-resting.png",
+        "next": "cleanup-positions",
+        "intent": "Record the resting BTC limit order in the app."
+      },
+      "cleanup-positions": {
+        "action": "metamask.perps.close_positions",
+        "market": "ETH",
+        "timeout_ms": 60000,
+        "intent": "CLEANUP: close the ETH position on Lighter.",
+        "next": "cleanup-orders"
+      },
+      "cleanup-orders": {
+        "action": "metamask.perps.close_orders",
+        "market": "BTC",
+        "timeout_ms": 60000,
+        "intent": "CLEANUP: cancel the resting BTC limit order.",
+        "next": "assert-flat-positions"
+      },
+      "assert-flat-positions": {
+        "action": "metamask.perps.assert_positions",
+        "mode": "all",
+        "state": "none",
+        "timeout_ms": 30000,
+        "intent": "No positions remain.",
+        "next": "assert-flat-orders"
+      },
+      "assert-flat-orders": {
+        "action": "metamask.perps.assert_orders",
+        "mode": "all",
+        "state": "none",
+        "timeout_ms": 30000,
+        "intent": "No orders remain.",
+        "next": "hl-home"
+      },
+      "hl-home": {
+        "action": "ui.navigate",
+        "page": "perps",
+        "intent": "Return to Perps home so the venue can be switched.",
+        "next": "hl-home-settle"
+      },
+      "hl-home-settle": {
+        "action": "wait",
+        "duration_ms": 5000,
+        "next": "hl-picker",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "hl-picker": {
+        "action": "ui.press",
+        "test_id": "perps-home-heading-provider-badge",
+        "next": "hl-picker-settle",
+        "intent": "Bring up the venue picker to move off Lighter."
+      },
+      "hl-picker-settle": {
+        "action": "wait",
+        "duration_ms": 2000,
+        "next": "hl-pick",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "hl-pick": {
+        "action": "ui.press",
+        "test_id": "perps-select-provider-sheet-option-hyperliquid-testnet",
+        "intent": "Switch to HyperLiquid testnet.",
+        "next": "hl-settle"
+      },
+      "hl-settle": {
+        "action": "wait",
+        "duration_ms": 10000,
+        "next": "hl-eth-market",
+        "intent": "Give HyperLiquid time to initialize after the switch."
+      },
+      "hl-eth-market": {
+        "action": "ui.navigate",
+        "page": "perps-market",
+        "market": "ETH",
+        "next": "hl-eth-settle",
+        "intent": "Open the ETH market page on HyperLiquid."
+      },
+      "hl-eth-settle": {
+        "action": "wait",
+        "duration_ms": 12000,
+        "next": "hl-eth-long",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "hl-eth-long": {
+        "action": "ui.press",
+        "test_id": "perps-market-details-long-button",
+        "next": "hl-eth-form-settle",
+        "intent": "Open the ETH form on HyperLiquid for the leverage comparison."
+      },
+      "hl-eth-form-settle": {
+        "action": "wait",
+        "duration_ms": 12000,
+        "next": "hl-eth-lev-open",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "hl-eth-lev-open": {
+        "action": "ui.press",
+        "test_id": "perps-order-view-leverage-row",
+        "next": "hl-eth-lev-settle",
+        "intent": "Show what leverage HyperLiquid offers on ETH."
+      },
+      "hl-eth-lev-settle": {
+        "action": "wait",
+        "duration_ms": 3000,
+        "next": "hl-eth-no-40",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "hl-eth-no-40": {
+        "action": "ui.wait_for",
+        "test_id": "leverage-quick-select-40",
+        "visible": false,
+        "timeout_ms": 10000,
+        "intent": "PROOF: no 40x quick-select on HyperLiquid ETH \u2014 max is 25x (vs 50x on Lighter).",
+        "next": "hl-eth-lev-shot"
+      },
+      "hl-eth-lev-shot": {
+        "action": "ui.screenshot",
+        "path": "screenshots/08-hl-eth-leverage-max25.png",
+        "next": "hl-eth-lev-close",
+        "intent": "Record HyperLiquid ETH leverage topping out at 25x."
+      },
+      "hl-eth-lev-close": {
+        "action": "ui.press",
+        "test_id": "leverage-quick-select-20",
+        "intent": "Pick 20x, the highest quick-select HyperLiquid ETH offers.",
+        "next": "hl-eth-lev-confirm"
+      },
+      "hl-eth-lev-confirm": {
+        "action": "ui.press",
+        "text": "Set 20x",
+        "next": "hl-mid-home",
+        "intent": "Dismiss the sheet with a valid 20x pick."
+      },
+      "hl-btc-market": {
+        "action": "ui.navigate",
+        "page": "perps-market",
+        "market": "BTC",
+        "next": "hl-btc-settle",
+        "intent": "Open the BTC market page on HyperLiquid."
+      },
+      "hl-btc-settle": {
+        "action": "wait",
+        "duration_ms": 12000,
+        "next": "hl-btc-long",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "hl-btc-long": {
+        "action": "ui.press",
+        "test_id": "perps-market-details-long-button",
+        "next": "hl-btc-form-settle",
+        "intent": "Open the BTC form on HyperLiquid for the leverage comparison."
+      },
+      "hl-btc-form-settle": {
+        "action": "wait",
+        "duration_ms": 12000,
+        "next": "hl-btc-lev-open",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "hl-btc-lev-open": {
+        "action": "ui.press",
+        "test_id": "perps-order-view-leverage-row",
+        "next": "hl-btc-lev-settle",
+        "intent": "Show what leverage HyperLiquid offers on BTC."
+      },
+      "hl-btc-lev-settle": {
+        "action": "wait",
+        "duration_ms": 3000,
+        "next": "hl-btc-lev-shot",
+        "intent": "Give the screen a moment to finish rendering."
+      },
+      "hl-btc-lev-shot": {
+        "action": "ui.screenshot",
+        "path": "screenshots/09-hl-btc-leverage-max40.png",
+        "intent": "Record HyperLiquid BTC leverage topping out at 40x.",
+        "next": "done"
+      },
+      "done": {
+        "action": "end",
+        "status": "pass"
+      },
+      "hl-mid-home": {
+        "action": "ui.navigate",
+        "page": "perps",
+        "intent": "Leave the ETH order form via Perps home so the BTC market page mounts fresh.",
+        "next": "hl-mid-settle"
+      },
+      "hl-mid-settle": {
+        "action": "wait",
+        "duration_ms": 5000,
+        "intent": "Give Perps home a moment to settle before the BTC leg.",
+        "next": "hl-btc-market"
+      }
+    }
+  }
+}
