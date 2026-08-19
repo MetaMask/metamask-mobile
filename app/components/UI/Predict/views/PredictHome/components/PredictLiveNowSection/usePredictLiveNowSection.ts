@@ -21,11 +21,10 @@ import { interleaveLiveNowMarkets } from './liveNowInterleave';
  * only) still leaves enough to fill the rail.
  *
  * Kept deliberately modest: `listMarkets` does not resolve until the provider
- * has loaded the team rosters for every sports league present in the batch
- * (one `/teams` request per league, all awaited before any market returns).
- * A larger limit pulls in more leagues and makes the whole live list wait on
- * the slowest roster fetch, so this is tuned to roughly 2x the display cap
- * rather than a blanket over-fetch.
+ * has loaded team metadata for sports markets in the batch (one batched
+ * `/teams` request, awaited before any market returns). A larger limit pulls
+ * in more leagues and more abbreviations, so this is tuned to roughly 2x the
+ * display cap rather than a blanket over-fetch.
  */
 export const LIVE_NOW_FETCH_LIMIT = 15;
 

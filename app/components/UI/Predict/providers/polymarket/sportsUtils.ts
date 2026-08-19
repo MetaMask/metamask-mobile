@@ -8,7 +8,6 @@ import { getMatchingSportTeam } from '../../utils/sports';
 import { getEventLeague } from '../../utils/gameParser';
 import type { PredictMarketGame } from '../../types';
 import type { PolymarketApiEvent } from './types';
-import { fetchChildEventsFromGammaApi } from './utils';
 
 interface NegRiskSportsMarket {
   negRisk?: boolean;
@@ -31,11 +30,13 @@ interface SportsFeedEvent {
   markets?: SportsFeedMarket[];
 }
 
-type FetchChildEvents = typeof fetchChildEventsFromGammaApi;
+type FetchChildEvents = (params: {
+  parentEventId: string | number;
+}) => Promise<PolymarketApiEvent[]>;
 
 interface ResolveWorldCupFeedEventsParams {
   extendedSportsMarketsLeagues: string[];
-  fetchChildEvents?: FetchChildEvents;
+  fetchChildEvents: FetchChildEvents;
 }
 
 const normalizeTeamLabel = (value?: string): string | undefined =>
@@ -199,7 +200,7 @@ export const resolveWorldCupFeedEvents = async (
   events: PolymarketApiEvent[],
   {
     extendedSportsMarketsLeagues,
-    fetchChildEvents = fetchChildEventsFromGammaApi,
+    fetchChildEvents,
   }: ResolveWorldCupFeedEventsParams,
 ): Promise<PolymarketApiEvent[]> => {
   if (

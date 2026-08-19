@@ -429,7 +429,7 @@ describe('PolymarketProvider', () => {
       expect(mockSearchEventsFromPolymarketApi).not.toHaveBeenCalled();
     });
 
-    it('adds World Cup child markets to the original feed event before parsing', async () => {
+    it('parses feed events without fetching World Cup child markets', async () => {
       const provider = createProvider({
         extendedSportsMarketsLeagues: ['fifwc'],
         enabledSportsMarketTypes: ['moneyline', 'soccer_team_to_advance'],
@@ -437,10 +437,6 @@ describe('PolymarketProvider', () => {
       const moneylineMarket = {
         id: 'moneyline-market',
         sportsMarketType: 'moneyline',
-      };
-      const teamToAdvanceMarket = {
-        id: 'team-to-advance-market',
-        sportsMarketType: 'soccer_team_to_advance',
       };
       const parentEvent = {
         id: 'parent-event',
@@ -456,20 +452,10 @@ describe('PolymarketProvider', () => {
         ],
         markets: [moneylineMarket],
       };
-      const fetchedParentEvent = {
-        ...parentEvent,
-        title: 'Fetched parent title should not replace feed title',
-        markets: [],
-      };
-      const childEvent = {
-        id: 'child-event',
-        parentEventId: parentEvent.id,
-        markets: [teamToAdvanceMarket],
-      };
       const markets = [
         {
           id: 'market-1',
-          outcomes: [{ id: 'team-to-advance-outcome' }],
+          outcomes: [{ id: 'moneyline-outcome' }],
         },
       ];
 
@@ -478,10 +464,6 @@ describe('PolymarketProvider', () => {
         category: 'trending',
         nextCursor: null,
       } as never);
-      mockFetchChildEventsFromGammaApi.mockResolvedValue([
-        fetchedParentEvent,
-        childEvent,
-      ] as never);
       mockParsePolymarketEvents.mockReturnValue(markets as never);
 
       await expect(
@@ -490,17 +472,9 @@ describe('PolymarketProvider', () => {
         markets,
         nextCursor: null,
       });
-      expect(mockFetchChildEventsFromGammaApi).toHaveBeenCalledWith({
-        parentEventId: parentEvent.id,
-      });
+      expect(mockFetchChildEventsFromGammaApi).not.toHaveBeenCalled();
       expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
-        [
-          expect.objectContaining({
-            id: parentEvent.id,
-            title: parentEvent.title,
-            markets: [moneylineMarket, teamToAdvanceMarket],
-          }),
-        ],
+        [parentEvent],
         expect.any(Object),
       );
     });

@@ -389,6 +389,207 @@ describe('TeamsCache', () => {
     });
   });
 
+  describe('ensureTeamsLoadedForLeagues', () => {
+    const mockNbaTeams: PolymarketApiTeam[] = [
+      createMockTeam({
+        id: 'team-lal',
+        name: 'Los Angeles Lakers',
+        abbreviation: 'LAL',
+        color: TEST_HEX_COLORS.TEAM_LAL,
+        alias: 'Lakers',
+        league: 'nba',
+      }),
+      createMockTeam({
+        id: 'team-bos',
+        name: 'Boston Celtics',
+        abbreviation: 'BOS',
+        color: TEST_HEX_COLORS.TEAM_BOS,
+        alias: 'Celtics',
+        league: 'nba',
+      }),
+    ];
+
+    const nflTeamsWithLeague = mockNflTeams.map((team) => ({
+      ...team,
+      league: 'nfl',
+    }));
+
+    it('fetches all requested leagues in one request', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => [...nflTeamsWithLeague, ...mockNbaTeams],
+      });
+      const cache = TeamsCache.getInstance();
+
+      await cache.ensureTeamsLoadedForLeagues(
+        new Map([
+          ['nfl', ['sea', 'den']],
+          ['nba', ['lal', 'bos']],
+        ]),
+      );
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const callUrl = mockFetch.mock.calls[0][0] as string;
+      expect(callUrl).toContain('league=nba');
+      expect(callUrl).toContain('league=nfl');
+      expect(callUrl).toContain('abbreviation=sea');
+      expect(callUrl).toContain('abbreviation=den');
+      expect(callUrl).toContain('abbreviation=lal');
+      expect(callUrl).toContain('abbreviation=bos');
+    });
+
+    it('caches teams into the league matching team.league', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => [...nflTeamsWithLeague, ...mockNbaTeams],
+      });
+      const cache = TeamsCache.getInstance();
+
+      await cache.ensureTeamsLoadedForLeagues(
+        new Map([
+          ['nfl', ['sea']],
+          ['nba', ['lal']],
+        ]),
+      );
+
+      expect(cache.getTeam('nfl', 'sea')?.name).toBe('Seattle Seahawks');
+      expect(cache.getTeam('nba', 'lal')?.name).toBe('Los Angeles Lakers');
+      expect(cache.getTeam('nfl', 'lal')).toBeUndefined();
+      expect(cache.getTeam('nba', 'sea')).toBeUndefined();
+    });
+
+    it('uses team API aliases when batching leagues', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+      });
+      const cache = TeamsCache.getInstance();
+
+      await cache.ensureTeamsLoadedForLeagues(
+        new Map([
+          ['cs2', ['navi']],
+          ['val', ['sen']],
+        ]),
+      );
+
+      const callUrl = mockFetch.mock.calls[0][0] as string;
+      expect(callUrl).toContain('league=csgo');
+      expect(callUrl).toContain('league=valorant');
+    });
+
+    it('skips fetch when every requested team is already cached', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => nflTeamsWithLeague,
+      });
+      const cache = TeamsCache.getInstance();
+      await cache.ensureLeagueLoaded('nfl');
+      mockFetch.mockClear();
+
+      await cache.ensureTeamsLoadedForLeagues(new Map([['nfl', ['sea']]]));
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('fetches only leagues that still have uncached teams', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => nflTeamsWithLeague,
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockNbaTeams,
+        });
+      const cache = TeamsCache.getInstance();
+      await cache.ensureLeagueLoaded('nfl');
+      mockFetch.mockClear();
+
+      await cache.ensureTeamsLoadedForLeagues(
+        new Map([
+          ['nfl', ['sea']],
+          ['nba', ['lal']],
+        ]),
+      );
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const callUrl = mockFetch.mock.calls[0][0] as string;
+      expect(callUrl).toContain('league=nba');
+      expect(callUrl).not.toContain('league=nfl');
+      expect(cache.getTeam('nba', 'lal')?.name).toBe('Los Angeles Lakers');
+    });
+
+    it('caches teams without league onto the league that requested the abbreviation', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => [mockNflTeams[0]],
+      });
+      const cache = TeamsCache.getInstance();
+
+      await cache.ensureTeamsLoadedForLeagues(new Map([['nfl', ['sea']]]));
+
+      expect(cache.getTeam('nfl', 'sea')?.name).toBe('Seattle Seahawks');
+    });
+
+    it('deduplicates concurrent requests for the same batch', async () => {
+      let resolvePromise: (value: unknown) => void = () => undefined;
+      const fetchPromise = new Promise((resolve) => {
+        resolvePromise = resolve;
+      });
+
+      mockFetch.mockReturnValue(fetchPromise);
+      const cache = TeamsCache.getInstance();
+
+      const promise1 = cache.ensureTeamsLoadedForLeagues(
+        new Map([
+          ['nfl', ['sea']],
+          ['nba', ['lal']],
+        ]),
+      );
+      const promise2 = cache.ensureTeamsLoadedForLeagues(
+        new Map([
+          ['nba', ['lal']],
+          ['nfl', ['sea']],
+        ]),
+      );
+
+      resolvePromise({
+        ok: true,
+        json: async () => [...nflTeamsWithLeague, ...mockNbaTeams],
+      });
+
+      await Promise.all([promise1, promise2]);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fetch when the needed map is empty', async () => {
+      const cache = TeamsCache.getInstance();
+
+      await cache.ensureTeamsLoadedForLeagues(new Map());
+
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('leaves teams uncached when the API returns an error', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+      });
+      const cache = TeamsCache.getInstance();
+
+      await cache.ensureTeamsLoadedForLeagues(
+        new Map([
+          ['nfl', ['sea']],
+          ['nba', ['lal']],
+        ]),
+      );
+
+      expect(cache.getTeam('nfl', 'sea')).toBeUndefined();
+      expect(cache.getTeam('nba', 'lal')).toBeUndefined();
+    });
+  });
+
   describe('getTeam', () => {
     beforeEach(async () => {
       mockFetch.mockResolvedValueOnce({
