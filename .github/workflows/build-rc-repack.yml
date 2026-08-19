@@ -305,9 +305,9 @@ jobs:
           fi
           echo "Signing identity: $IDENTITY"
           {
-            echo "REPACK_IOS_SIGNING_IDENTITY=$IDENTITY"
-            echo "REPACK_IOS_PROVISIONING_PROFILE=$RUNNER_TEMP/build_pp.mobileprovision"
-            echo "REPACK_IOS_KEYCHAIN_PATH=$KEYCHAIN"
+            echo "RESIGN_SIGNING_IDENTITY=$IDENTITY"
+            echo "RESIGN_PROVISIONING_PROFILE=$RUNNER_TEMP/build_pp.mobileprovision"
+            echo "RESIGN_KEYCHAIN_PATH=$KEYCHAIN"
           } >> "$GITHUB_ENV"
 
       - name: Repack iOS IPA
@@ -322,6 +322,24 @@ jobs:
           REPACK_OUTPUT_IPA: ${{ steps.donor.outputs.output }}
           REPACK_SOURCEMAP_PATH: sourcemaps/ios/index.js.map
         run: yarn build:repack:ios
+
+      # Swapping the JS bundle invalidates the donor's signature, so the IPA has to be
+      # re-signed. This is a separate step rather than @expo/repack-app's own signing because
+      # that path takes entitlements from the provisioning profile, which carries every
+      # capability the App ID allows — including development-only iCloud keys that App Store
+      # Connect rejects. The lane re-signs with the entitlements already in the donor binary.
+      - name: Re-sign repacked IPA
+        if: inputs.platform == 'ios'
+        working-directory: ios
+        env:
+          OUTPUT: ${{ steps.donor.outputs.output }}
+        run: |
+          set -euo pipefail
+          bundle exec fastlane ios resign_repacked_ipa \
+            ipa_path:"$OUTPUT" \
+            signing_identity:"$RESIGN_SIGNING_IDENTITY" \
+            provisioning_profile:"$RESIGN_PROVISIONING_PROFILE" \
+            keychain_path:"$RESIGN_KEYCHAIN_PATH"
 
       - name: Repack Android APK
         if: inputs.platform == 'android'
