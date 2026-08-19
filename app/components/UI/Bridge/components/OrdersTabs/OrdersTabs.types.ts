@@ -20,4 +20,9 @@ export interface OrdersTabsProps<TOpen, THistory> {
   openOrders: OrdersTabConfig<TOpen>;
   history: OrdersTabConfig<THistory>;
   initialTab?: OrdersTabKey;
+  /**
+   * Restricts the Open orders network picker to these chains.
+   * Omit to show the default allowed ranking.
+   */
+  enabledChainIds?: CaipChainId[];
 }

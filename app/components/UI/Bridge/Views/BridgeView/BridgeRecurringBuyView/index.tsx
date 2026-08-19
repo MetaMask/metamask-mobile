@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box,
   FontWeight,
@@ -7,6 +8,7 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { selectBridgeRecurringBuyFeatureFlags } from '../../../../../../selectors/bridge/featureFlags';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import RecurringScheduleFields from '../../../components/RecurringScheduleFields';
 import OrdersTabs from '../../../components/OrdersTabs';
@@ -82,22 +84,29 @@ function renderRecurringOpenOrder(item: (typeof MOCK_OPEN_ORDERS)[number]) {
   return <OpenOrderRow token={item.token} {...getRecurringOpenOrderSlots(item)} />;
 }
 
-const BridgeRecurringBuyView = () => (
-  <Box
-    twClassName="flex-1 bg-default"
-    testID={BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER}
-  >
-    <RecurringScheduleFields />
-    <OrdersTabs
-      openOrders={{
-        items: MOCK_OPEN_ORDERS,
-        renderItem: renderRecurringOpenOrder,
-        keyExtractor: (item) => item.id,
-        getItemChainId: (item) => item.token.chainId,
-      }}
-      history={{ items: [] }}
-    />
-  </Box>
-);
+const BridgeRecurringBuyView = () => {
+  const enabledChainIds = useSelector(
+    selectBridgeRecurringBuyFeatureFlags,
+  )?.enabledChainIds;
+
+  return (
+    <Box
+      twClassName="flex-1 bg-default"
+      testID={BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER}
+    >
+      <RecurringScheduleFields />
+      <OrdersTabs
+        enabledChainIds={enabledChainIds}
+        openOrders={{
+          items: MOCK_OPEN_ORDERS,
+          renderItem: renderRecurringOpenOrder,
+          keyExtractor: (item) => item.id,
+          getItemChainId: (item) => item.token.chainId,
+        }}
+        history={{ items: [] }}
+      />
+    </Box>
+  );
+};
 
 export default BridgeRecurringBuyView;

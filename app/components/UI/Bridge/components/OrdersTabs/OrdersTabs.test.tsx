@@ -2,6 +2,7 @@ import React from 'react';
 import { Text } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import type { CaipChainId } from '@metamask/utils';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -75,6 +76,24 @@ describe('OrdersTabs', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
+      params: { enabledChainIds: undefined },
+    });
+  });
+
+  it('opens the network picker restricted to enabledChainIds', () => {
+    const enabledChainIds: CaipChainId[] = ['eip155:1', 'eip155:8453'];
+
+    const { getByTestId } = renderOrdersTabs({
+      enabledChainIds,
+      openOrders: { items: [] },
+      history: { items: [] },
+    });
+
+    fireEvent.press(getByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
+      params: { enabledChainIds },
     });
   });
 

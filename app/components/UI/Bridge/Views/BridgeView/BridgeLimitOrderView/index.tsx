@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import {
   Box,
   FontWeight,
@@ -11,6 +12,7 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { selectBridgeLimitOrderFeatureFlags } from '../../../../../../selectors/bridge/featureFlags';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import OrdersTabs from '../../../components/OrdersTabs';
 import OpenOrderRow from '../../../components/OpenOrderRow';
@@ -116,21 +118,28 @@ function renderLimitOpenOrder(item: (typeof MOCK_OPEN_ORDERS)[number]) {
   );
 }
 
-const BridgeLimitOrderView = () => (
-  <Box
-    twClassName="flex-1 bg-default"
-    testID={BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER}
-  >
-    <OrdersTabs
-      openOrders={{
-        items: MOCK_OPEN_ORDERS,
-        renderItem: renderLimitOpenOrder,
-        keyExtractor: (item) => item.id,
-        getItemChainId: (item) => item.token.chainId,
-      }}
-      history={{ items: [] }}
-    />
-  </Box>
-);
+const BridgeLimitOrderView = () => {
+  const enabledChainIds = useSelector(
+    selectBridgeLimitOrderFeatureFlags,
+  )?.enabledChainIds;
+
+  return (
+    <Box
+      twClassName="flex-1 bg-default"
+      testID={BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER}
+    >
+      <OrdersTabs
+        enabledChainIds={enabledChainIds}
+        openOrders={{
+          items: MOCK_OPEN_ORDERS,
+          renderItem: renderLimitOpenOrder,
+          keyExtractor: (item) => item.id,
+          getItemChainId: (item) => item.token.chainId,
+        }}
+        history={{ items: [] }}
+      />
+    </Box>
+  );
+};
 
 export default BridgeLimitOrderView;

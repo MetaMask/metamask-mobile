@@ -57,11 +57,15 @@ function itemMatchesNetworkFilter<T>(
   );
 }
 
-function OrdersNetworkFilter() {
+function OrdersNetworkFilter({
+  enabledChainIds,
+}: {
+  enabledChainIds?: CaipChainId[];
+}) {
   const navigation = useNavigation<AppNavigationProp>();
   const selectedChainId = useSelector(selectTokenSelectorNetworkFilter);
   const chainRanking = useSelector((state: RootState) =>
-    selectAllowedChainRanking(state),
+    selectAllowedChainRanking(state, enabledChainIds),
   );
 
   const selectedNetwork = selectedChainId
@@ -72,8 +76,9 @@ function OrdersNetworkFilter() {
   const handlePress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
+      params: { enabledChainIds },
     });
-  }, [navigation]);
+  }, [enabledChainIds, navigation]);
 
   return (
     <Button
@@ -167,6 +172,7 @@ function OrdersTabs<TOpen, THistory>({
   openOrders,
   history,
   initialTab = OrdersTabKey.OpenOrders,
+  enabledChainIds,
 }: OrdersTabsProps<TOpen, THistory>) {
   const [selectedTab, setSelectedTab] = useState<OrdersTabKey>(initialTab);
 
@@ -206,7 +212,7 @@ function OrdersTabs<TOpen, THistory>({
       <Box twClassName="mx-4 flex-1 gap-4 py-4">
         {selectedTab === OrdersTabKey.OpenOrders ? (
           <>
-            <OrdersNetworkFilter />
+            <OrdersNetworkFilter enabledChainIds={enabledChainIds} />
             <OrdersTabPanel
               items={openOrders.items}
               renderItem={openOrders.renderItem}
