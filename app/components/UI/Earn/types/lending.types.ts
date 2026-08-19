@@ -14,6 +14,7 @@ export type EarnTokenDetails = TokenI & {
   balanceMinimalUnit: string;
   balanceFiat?: string;
   balanceFiatNumber: number;
+  isBalanceFiatAvailable?: boolean;
   tokenUsdExchangeRate: number;
   readonly experience: EarnTokenDetails['experiences'][0];
   experiences: {

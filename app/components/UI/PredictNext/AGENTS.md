@@ -10,7 +10,10 @@ Read, in order:
 2. `CONTEXT.md` — canonical Predict domain language.
 3. Accepted Kalshi ADRs linked from `README.md`.
 4. `docs/architecture.md` — stable boundaries and invariants.
-5. The Jira issue being implemented.
+5. `docs/canonical-read-model-and-api.md` — agreed working direction for public read types and routes.
+6. `docs/ui-components.md` — composition rules for PredictNext core UI work.
+7. `docs/module-structure.md` — feature ownership and public/internal module boundaries.
+8. The Jira issue being implemented.
 
 ## Scope
 
@@ -26,7 +29,8 @@ Read, in order:
 2. Jira governs current scope and acceptance criteria.
 3. `CONTEXT.md` governs domain vocabulary.
 4. `docs/architecture.md` governs current module boundaries.
-5. Code and tests are the executable truth for implemented interfaces.
+5. `docs/canonical-read-model-and-api.md` governs the agreed next public-read contract until implementation supersedes it.
+6. Code and tests are the executable truth for implemented interfaces.
 
 Proposed ADRs and examples in these docs are working direction, not accepted contracts. Surface conflicts instead of silently choosing a side.
 
@@ -37,6 +41,8 @@ Proposed ADRs and examples in these docs are working direction, not accepted con
 - Create Predict-local ADRs under `docs/adr/` only for durable, non-obvious decisions not governed elsewhere.
 - Never put credentials, bearer tokens, OTPs, PII/KYC values, or transfer-authorization material in Redux, persisted mobile storage, logs, analytics, traces, or fixtures.
 - Follow repository TypeScript, testing, design-system, and security guidance.
+- For core UI, follow `docs/ui-components.md`: prefer explicit variants and children-based composition, avoid boolean mode props, and use compound components only where independently useful parts or shared state justify them.
+- For placement and imports, follow `docs/module-structure.md`: organize product UI by owning feature/domain, import across modules through deliberate `index.ts` APIs, and keep private implementation under the owner's `internal/` directory.
 - Work one behavior at a time: red → green → refactor.
 
 ## Agent readiness

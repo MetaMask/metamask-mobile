@@ -1,77 +1,55 @@
+import Assertions from '../../framework/Assertions';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 import {
-  asPlaywrightElement,
-  encapsulated,
-  encapsulatedAction,
-  EncapsulatedElementType,
   PlatformDetector,
-  PlaywrightAssertions,
-  PlaywrightGestures,
-  PlaywrightMatchers,
   sleep,
-  UnifiedGestures,
+  type EncapsulatedElementType,
 } from '../../framework';
 
 class UniswapDapp {
   private getByXPath(xpath: string): EncapsulatedElementType {
-    return encapsulated({
-      appium: () => PlaywrightMatchers.getLazyElementByXPath(xpath),
-    });
+    return Matchers.getLazyElementByNativeXPath(xpath);
   }
 
   get connectButton(): EncapsulatedElementType {
-    return encapsulated({
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getLazyElementByXPath(
-            '//*[@data-testid="navbar-connect-wallet"]',
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementById('Connect', { exact: true }),
-      },
-    });
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getLazyElementByNativeXPath(
+        '//*[@data-testid="navbar-connect-wallet"]',
+      );
+    }
+    return Matchers.getElementByID('Connect');
   }
 
   get walletConnect(): EncapsulatedElementType {
-    return encapsulated({
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementByXPath(
-            '//*[contains(normalize-space(.), "WalletConnect")]',
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByXPath(
-            '//XCUIElementTypeStaticText[@name="WalletConnect"]',
-          ),
-      },
-    });
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByNativeXPath(
+        '//*[contains(normalize-space(.), "WalletConnect")]',
+      );
+    }
+    return Matchers.getElementByNativeXPath(
+      '//XCUIElementTypeStaticText[@name="WalletConnect"]',
+    );
   }
 
   get metaMaskWalletOption(): EncapsulatedElementType {
-    return encapsulated({
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getLazyElementByXPath(
-            '//android.widget.Button[@text="MetaMask MetaMask"]',
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId('MetaMaskMetaMask'),
-      },
-    });
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getLazyElementByNativeXPath(
+        '//android.widget.Button[@text="MetaMask MetaMask"]',
+      );
+    }
+    return Matchers.getElementByID('MetaMaskMetaMask');
   }
 
   get metaMaskDeeplinkButton(): EncapsulatedElementType {
-    return encapsulated({
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getLazyElementByXPath(
-            '//android.widget.TextView[@text="MetaMask"]',
-          ),
-        ios: () =>
-          PlaywrightMatchers.getLazyElementByXPath(
-            '//XCUIElementTypeOther[@name="textfield"]',
-          ),
-      },
-    });
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getLazyElementByNativeXPath(
+        '//android.widget.TextView[@text="MetaMask"]',
+      );
+    }
+    return Matchers.getLazyElementByNativeXPath(
+      '//XCUIElementTypeOther[@name="textfield"]',
+    );
   }
 
   get uniswapDialog(): EncapsulatedElementType {
@@ -79,16 +57,11 @@ class UniswapDapp {
   }
 
   get uniswapIcon(): EncapsulatedElementType {
-    return encapsulated({
-      appium: () => PlaywrightMatchers.getElementById('account-icon'),
-    });
+    return Matchers.getElementByID('account-icon');
   }
 
   get solanaPopup(): EncapsulatedElementType {
-    return encapsulated({
-      appium: () =>
-        PlaywrightMatchers.getElementByText('Use Solana on Uniswap'),
-    });
+    return Matchers.getElementByText('Use Solana on Uniswap');
   }
 
   get SolanaPopup(): EncapsulatedElementType {
@@ -112,21 +85,17 @@ class UniswapDapp {
   }
 
   async tapConnect(): Promise<void> {
-    await PlaywrightGestures.waitAndTap(
-      await asPlaywrightElement(this.connectButton),
-      {
-        delay: 3000, // 3 seconds - DOM might not be ready yet
-      },
-    );
+    await Gestures.waitAndTap(this.connectButton, {
+      delay: 3000, // DOM might not be ready yet
+      elemDescription: 'Uniswap connect button',
+    });
   }
 
   async tapOnWalletConnect(): Promise<void> {
-    await PlaywrightGestures.waitAndTap(
-      await asPlaywrightElement(this.walletConnect),
-      {
-        delay: 3000, // 3 seconds - DOM might not be ready yet
-      },
-    );
+    await Gestures.waitAndTap(this.walletConnect, {
+      delay: 3000, // DOM might not be ready yet
+      elemDescription: 'Uniswap WalletConnect option',
+    });
   }
 
   async connectWithMetaMask(): Promise<void> {
@@ -146,19 +115,15 @@ class UniswapDapp {
   }
 
   async tapOnMetaMaskWalletOption(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.metaMaskWalletOption, {
-      description: 'tap MetaMask wallet option',
+    await Gestures.waitAndTap(this.metaMaskWalletOption, {
+      elemDescription: 'tap MetaMask wallet option',
     });
   }
 
   async tapOnMetaMaskDeeplinkButton(): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        await sleep(2000);
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.metaMaskDeeplinkButton),
-        );
-      },
+    await sleep(2000);
+    await Gestures.waitAndTap(this.metaMaskDeeplinkButton, {
+      elemDescription: 'MetaMask deeplink button',
     });
   }
 
@@ -170,39 +135,35 @@ class UniswapDapp {
   }
 
   async isUniswapDisplayed(timeoutMs = 30000): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        if (PlatformDetector.isAndroid()) {
-          const dialogVisible = await this.isElementVisible(
-            this.uniswapDialog,
-            timeoutMs,
-          );
+    if (PlatformDetector.isAndroid()) {
+      const dialogVisible = await this.isElementVisible(
+        this.uniswapDialog,
+        timeoutMs,
+      );
 
-          if (dialogVisible) {
-            return;
-          }
+      if (dialogVisible) {
+        return;
+      }
 
-          const iconVisible = await this.isElementVisible(
-            this.uniswapIcon,
-            timeoutMs,
-          );
+      const iconVisible = await this.isElementVisible(
+        this.uniswapIcon,
+        timeoutMs,
+      );
 
-          if (!iconVisible) {
-            throw new Error(
-              'Neither Uniswap dialog nor account icon is visible in Android context',
-            );
-          }
-
-          return;
-        }
-
-        await this.waitForElementVisible(
-          this.solanaPopup,
-          timeoutMs,
-          'UniswapDapp: Solana popup not visible',
+      if (!iconVisible) {
+        throw new Error(
+          'Neither Uniswap dialog nor account icon is visible in Android context',
         );
-      },
-    });
+      }
+
+      return;
+    }
+
+    await this.waitForElementVisible(
+      this.solanaPopup,
+      timeoutMs,
+      'UniswapDapp: Solana popup not visible',
+    );
   }
 
   private async waitForElementVisible(
@@ -210,22 +171,9 @@ class UniswapDapp {
     timeoutMs: number,
     timeoutMsg: string,
   ): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(
-          async () => {
-            const resolvedElement = await asPlaywrightElement(targetElement);
-            await resolvedElement.waitForDisplayed({
-              timeout: timeoutMs,
-              timeoutMsg,
-            });
-          },
-          {
-            maxRetries: 5,
-            description: timeoutMsg,
-          },
-        );
-      },
+    await Assertions.expectElementToBeVisible(targetElement, {
+      timeout: timeoutMs,
+      description: timeoutMsg,
     });
   }
 
@@ -234,8 +182,9 @@ class UniswapDapp {
     timeoutMs: number,
   ): Promise<boolean> {
     try {
-      const resolvedElement = await asPlaywrightElement(targetElement);
-      await resolvedElement.waitForDisplayed({ timeout: timeoutMs });
+      await Assertions.expectElementToBeVisible(targetElement, {
+        timeout: timeoutMs,
+      });
       return true;
     } catch {
       return false;

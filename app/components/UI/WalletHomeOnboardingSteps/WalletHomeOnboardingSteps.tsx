@@ -13,6 +13,7 @@ import {
   Dimensions,
   Easing,
   Image,
+  Platform,
   View,
 } from 'react-native';
 import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
@@ -46,6 +47,7 @@ import onboardChecklistV07Animation from '../../../animations/onboard_checklist_
 import { hasTestOverrides } from '../../../util/test/utils';
 import {
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_ARTBOARD,
+  WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_ANIMATION,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
@@ -338,11 +340,18 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         return;
       }
       try {
-        rive.fireState(
-          WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
-          WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
-        );
-        rive.play();
+        // onboard_checklist_v07.riv does not expose the Main input. On Android,
+        // firing a missing Rive input aborts in JNI before this JS catch can run.
+        // TODO(#33825): Remove this guard after v07 is re-exported with Main on every artboard.
+        if (Platform.OS === 'android') {
+          rive.play(WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_ANIMATION);
+        } else {
+          rive.fireState(
+            WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+            WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
+          );
+          rive.play();
+        }
       } catch (error) {
         Logger.error(
           error as Error,

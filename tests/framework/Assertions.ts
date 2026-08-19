@@ -9,6 +9,7 @@ import {
 } from './EncapsulatedElement.ts';
 import { Json } from '@metamask/utils';
 import { FrameworkDetector } from './FrameworkDetector.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 import PlaywrightAssertions from './PlaywrightAssertions.ts';
 
 /**
@@ -346,6 +347,31 @@ export default class Assertions {
   }
 
   /**
+   * Returns whether a Switch/toggle is currently on.
+   */
+  static async isToggleOn(elem: EncapsulatedElementType): Promise<boolean> {
+    const el = await asPlaywrightElement(elem);
+    // Each Appium driver only supports the attribute native to its Switch:
+    // iOS XCUITest exposes `value` (`"1"` / `"0"`); Android UiAutomator2 exposes
+    // `checked` (`"true"` / `"false"`). Querying the other one throws
+    // `attribute is unknown`, so read only the platform-appropriate attribute.
+    const attributeName = PlatformDetector.isIOS() ? 'value' : 'checked';
+    const attributeValue = await el.getAttribute(attributeName);
+
+    if (attributeValue === '1' || attributeValue === 'true') {
+      return true;
+    }
+    if (attributeValue === '0' || attributeValue === 'false') {
+      return false;
+    }
+    throw new Error(
+      `Unable to determine toggle state from attribute ${attributeName}=${String(
+        attributeValue,
+      )}`,
+    );
+  }
+
+  /**
    * Assert element is enabled with auto-retry
    */
   static async expectToggleToBeOn(
@@ -359,14 +385,8 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        try {
-          const el = (await Utilities.waitForReadyState(
-            elem,
-          )) as Detox.IndexableNativeElement;
-          // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-          await (expect(el) as any).toHaveToggleValue(true);
-        } catch (error) {
-          // Log attributes for debugging
+        const isOn = await this.isToggleOn(elem);
+        if (!isOn) {
           throw new Error(
             [
               '🔄 Toggle state mismatch detected',
@@ -397,13 +417,8 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        try {
-          const el = (await Utilities.waitForReadyState(
-            elem,
-          )) as Detox.IndexableNativeElement;
-          // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-          await (expect(el) as any).toHaveToggleValue(false);
-        } catch (error) {
+        const isOn = await this.isToggleOn(elem);
+        if (isOn) {
           throw new Error(
             [
               '🔄 Toggle state mismatch detected',

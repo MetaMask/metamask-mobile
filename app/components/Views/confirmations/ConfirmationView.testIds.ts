@@ -53,6 +53,9 @@ export const ConfirmationRowComponentIDs = {
 export const ConfirmationFooterSelectorIDs = {
   CANCEL_BUTTON: 'cancel-button',
   CONFIRM_BUTTON: 'confirm-button',
+  STAKING_TERMS_OF_USE_BUTTON: 'confirm-staking-footer-terms-of-use-button',
+  STAKING_RISK_DISCLOSURE_BUTTON:
+    'confirm-staking-footer-risk-disclosure-button',
 } as const;
 
 export const ConfirmationLoaderSelectorIDs = {
@@ -62,7 +65,9 @@ export const ConfirmationLoaderSelectorIDs = {
 export const ConfirmAlertModalSelectorsIDs = {
   CONFIRM_ALERT_CHECKBOX: 'confirm-alert-checkbox',
   CONFIRM_ALERT_BUTTON: 'confirm-alert-confirm-button',
+  CONFIRM_ALERT_CANCEL_BUTTON: 'confirm-alert-cancel-button',
   CONFIRM_ALERT_MODAL: 'confirm-alert-modal',
+  REVIEW_ALERTS_BUTTON: 'confirm-alert-review-alerts-button',
 } as const;
 
 export const AlertModalSelectorsIDs = {

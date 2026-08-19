@@ -1,15 +1,12 @@
+import Assertions from '../../framework/Assertions';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 import {
-  encapsulated,
-  EncapsulatedElementType,
-  asPlaywrightElement,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
-import { expect } from '@playwright/test';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
+  Utilities,
+  sleep,
+  type EncapsulatedElementType,
+} from '../../framework';
 import { MMConnectDappTestIds } from '../../selectors/MMConnect/MMConnectDapp.testIds';
-import { PlaywrightGestures, sleep } from '../../framework';
 
 class BrowserPlaygroundDapp {
   /**
@@ -23,12 +20,9 @@ class BrowserPlaygroundDapp {
     { lazy = false }: { lazy?: boolean } = {},
   ): EncapsulatedElementType {
     const xpath = `//*[@data-testid="${testId}"]`;
-    return encapsulated({
-      appium: () =>
-        lazy
-          ? PlaywrightMatchers.getLazyElementByXPath(xpath)
-          : PlaywrightMatchers.getElementByXPath(xpath),
-    });
+    return lazy
+      ? Matchers.getLazyElementByNativeXPath(xpath)
+      : Matchers.getElementByNativeXPath(xpath);
   }
 
   // App-level selectors
@@ -232,47 +226,69 @@ class BrowserPlaygroundDapp {
 
   // Tap actions
   async tapConnectLegacy(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.connectLegacyButton);
+    await Gestures.waitAndTap(this.connectLegacyButton, {
+      elemDescription: 'BrowserPlayground connect legacy',
+    });
   }
 
   async tapDisconnect(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.disconnectButton);
+    await Gestures.waitAndTap(this.disconnectButton, {
+      elemDescription: 'BrowserPlayground disconnect',
+    });
   }
 
   async tapPersonalSign(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.personalSignButton);
+    await Gestures.waitAndTap(this.personalSignButton, {
+      elemDescription: 'BrowserPlayground personal sign',
+    });
   }
 
   async tapSignTypedDataV4(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.signTypedDataV4Button);
+    await Gestures.waitAndTap(this.signTypedDataV4Button, {
+      elemDescription: 'BrowserPlayground sign typed data v4',
+    });
   }
 
   async tapSendTransaction(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.sendTransactionButton);
+    await Gestures.waitAndTap(this.sendTransactionButton, {
+      elemDescription: 'BrowserPlayground send transaction',
+    });
   }
 
   async tapSwitchToMainnet(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.switchToMainnetButton);
+    await Gestures.waitAndTap(this.switchToMainnetButton, {
+      elemDescription: 'BrowserPlayground switch mainnet',
+    });
   }
 
   async tapSwitchToPolygon(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.switchToPolygonButton);
+    await Gestures.waitAndTap(this.switchToPolygonButton, {
+      elemDescription: 'BrowserPlayground switch polygon',
+    });
   }
 
   async tapSwitchToGoerli(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.switchToGoerliButton);
+    await Gestures.waitAndTap(this.switchToGoerliButton, {
+      elemDescription: 'BrowserPlayground switch goerli',
+    });
   }
 
   async tapGetBalance(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.getBalanceButton);
+    await Gestures.waitAndTap(this.getBalanceButton, {
+      elemDescription: 'BrowserPlayground get balance',
+    });
   }
 
   async tapConnectWagmi(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.connectWagmiButton);
+    await Gestures.waitAndTap(this.connectWagmiButton, {
+      elemDescription: 'BrowserPlayground wagmi connect',
+    });
   }
 
   async tapWagmiDisconnect(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.wagmiDisconnectButton);
+    await Gestures.waitAndTap(this.wagmiDisconnectButton, {
+      elemDescription: 'BrowserPlayground wagmi disconnect',
+    });
   }
 
   async tapWagmiSignMessage({
@@ -282,227 +298,200 @@ class BrowserPlaygroundDapp {
     shouldCooldown?: boolean;
     timeToCooldown?: number;
   } = {}): Promise<void> {
-    await PlaywrightGestures.waitAndTap(
-      await asPlaywrightElement(this.wagmiSignMessageButton),
-      {
-        delay: 2000, // Make sure the keyboard dismiss animation is complete
-      },
-    );
+    await Gestures.waitAndTap(this.wagmiSignMessageButton, {
+      delay: 2000, // Make sure the keyboard dismiss animation is complete
+      elemDescription: 'BrowserPlayground wagmi sign message',
+    });
     if (shouldCooldown) {
       await sleep(timeToCooldown);
     }
   }
 
   async tapWagmiSendTransaction(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.wagmiSendTransactionButton);
+    await Gestures.waitAndTap(this.wagmiSendTransactionButton, {
+      elemDescription: 'BrowserPlayground wagmi send transaction',
+    });
   }
 
   async tapWagmiSwitchChain(chainId: number): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.getWagmiSwitchChainButton(chainId));
+    await Gestures.waitAndTap(this.getWagmiSwitchChainButton(chainId), {
+      elemDescription: `BrowserPlayground wagmi switch chain ${chainId}`,
+    });
   }
 
   async typeWagmiSignMessage(message: string): Promise<void> {
-    await UnifiedGestures.typeText(this.wagmiSignMessageInput, message);
+    await Gestures.typeText(this.wagmiSignMessageInput, message, {
+      elemDescription: 'BrowserPlayground wagmi sign message input',
+    });
   }
 
   async tapSolanaConnect(): Promise<void> {
-    await PlaywrightGestures.waitAndTap(
-      await asPlaywrightElement(this.solanaConnectButton),
-      {
-        delay: 750, // Cooldown period for the button tap
-      },
-    );
+    await Gestures.waitAndTap(this.solanaConnectButton, {
+      delay: 750, // Cooldown period for the button tap
+      elemDescription: 'BrowserPlayground solana connect',
+    });
   }
 
   async tapSolanaDisconnect(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.solanaDisconnectButton);
+    await Gestures.waitAndTap(this.solanaDisconnectButton, {
+      elemDescription: 'BrowserPlayground solana disconnect',
+    });
   }
 
   async tapSolanaSignMessage(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.solanaSignMessageButton);
+    await Gestures.waitAndTap(this.solanaSignMessageButton, {
+      elemDescription: 'BrowserPlayground solana sign message',
+    });
   }
 
   async tapConnect(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.connectButton);
+    await Gestures.waitAndTap(this.connectButton, {
+      elemDescription: 'BrowserPlayground connect',
+    });
   }
 
   async waitForConnectButtonVisible(timeoutMs = 15000): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(this.connectButton),
-        );
-        const element = await asPlaywrightElement(this.connectButton);
-        await element.waitForDisplayed({
-          timeout: timeoutMs,
-          timeoutMsg: 'BrowserPlaygroundDapp: connect button not visible',
-        });
-      },
+    await Gestures.scrollIntoView(this.connectButton);
+    await Assertions.expectElementToBeVisible(this.connectButton, {
+      timeout: timeoutMs,
+      description: 'BrowserPlaygroundDapp: connect button not visible',
     });
   }
 
   // Assertions
   async assertConnected(isConnected = true): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        if (isConnected) {
-          await PlaywrightAssertions.expectConditionWithRetry(async () => {
-            const element = await asPlaywrightElement(this.activeAccount);
-            await element.waitForDisplayed({
-              timeout: 10000,
-              timeoutMsg:
-                'BrowserPlaygroundDapp: active account not visible (expected connected)',
-            });
-          });
-        } else {
-          await PlaywrightAssertions.expectConditionWithRetry(async () => {
-            const element = await asPlaywrightElement(this.connectLegacyButton);
-            await element.waitForDisplayed({
-              timeout: 10000,
-              timeoutMsg:
-                'BrowserPlaygroundDapp: connect legacy button not visible (expected disconnected)',
-            });
-          });
-        }
-      },
-    });
+    if (isConnected) {
+      await Assertions.expectElementToBeVisible(this.activeAccount, {
+        timeout: 10000,
+        description:
+          'BrowserPlaygroundDapp: active account not visible (expected connected)',
+      });
+    } else {
+      await Assertions.expectElementToBeVisible(this.connectLegacyButton, {
+        timeout: 10000,
+        description:
+          'BrowserPlaygroundDapp: connect legacy button not visible (expected disconnected)',
+      });
+    }
   }
 
   async assertChainIdValue(expectedChainId: string): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(async () => {
-          const element = await asPlaywrightElement(this.chainIdValue);
-          const text = await element.textContent();
-          expect(text).toContain(expectedChainId);
-        });
-      },
-    });
+    await this.assertElementContainsText(
+      this.chainIdValue,
+      expectedChainId,
+      `BrowserPlaygroundDapp: chain id should contain "${expectedChainId}"`,
+    );
   }
 
   async assertResponseValue(expectedValue: string): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(async () => {
-          const element = await asPlaywrightElement(this.responseText);
-          const text = await element.textContent();
-          expect(text).toContain(expectedValue);
-        });
-      },
-    });
+    await this.assertElementContainsText(
+      this.responseText,
+      expectedValue,
+      `BrowserPlaygroundDapp: response should contain "${expectedValue}"`,
+    );
   }
 
   async assertActiveAccount(expectedAccount: string): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(async () => {
-          const element = await asPlaywrightElement(this.activeAccount);
-          const text = await element.textContent();
-          expect(text?.toLowerCase()).toContain(expectedAccount.toLowerCase());
-        });
+    await Utilities.executeWithRetry(
+      async () => {
+        const text = await Utilities.getElementText(this.activeAccount);
+        if (!text.toLowerCase().includes(expectedAccount.toLowerCase())) {
+          throw new Error(
+            `Expected active account to contain "${expectedAccount}", got "${text}"`,
+          );
+        }
       },
-    });
+      {
+        timeout: 15000,
+        description: `BrowserPlaygroundDapp: active account should contain "${expectedAccount}"`,
+      },
+    );
   }
 
   async assertAccountsCount(expectedCount: number): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(async () => {
-          const element = await asPlaywrightElement(this.accountsValue);
-          const text = await element.textContent();
-          expect(text).toContain(`${expectedCount} available`);
-        });
-      },
-    });
+    await this.assertElementContainsText(
+      this.accountsValue,
+      `${expectedCount} available`,
+      `BrowserPlaygroundDapp: accounts should contain "${expectedCount} available"`,
+    );
   }
 
   async isConnected(): Promise<boolean> {
     const maxRetries = 5;
     for (let i = 0; i < maxRetries; i++) {
       try {
-        const element = await asPlaywrightElement(this.activeAccount);
-        await element.waitForDisplayed({
+        await Assertions.expectElementToBeVisible(this.activeAccount, {
           timeout: 5000,
-          timeoutMsg:
+          description:
             'BrowserPlaygroundDapp: active account not visible (isConnected check)',
         });
         return true;
-      } catch (error) {
+      } catch {
         console.log(
           `BrowserPlaygroundDapp: active account not visible on attempt ${i + 1}`,
         );
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await sleep(1000);
       }
     }
     return false;
   }
 
   async assertWagmiConnected(isConnected = true): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        if (isConnected) {
-          const element = await asPlaywrightElement(this.wagmiActiveAccount);
-          await element.waitForDisplayed({
-            timeout: 10000,
-            timeoutMsg:
-              'BrowserPlaygroundDapp: wagmi active account not visible (expected connected)',
-          });
-        } else {
-          const element = await asPlaywrightElement(this.connectWagmiButton);
-          await element.waitForDisplayed({
-            timeout: 10000,
-            timeoutMsg:
-              'BrowserPlaygroundDapp: wagmi connect button not visible (expected disconnected)',
-          });
-        }
-      },
-    });
+    if (isConnected) {
+      await Assertions.expectElementToBeVisible(this.wagmiActiveAccount, {
+        timeout: 10000,
+        description:
+          'BrowserPlaygroundDapp: wagmi active account not visible (expected connected)',
+      });
+    } else {
+      await Assertions.expectElementToBeVisible(this.connectWagmiButton, {
+        timeout: 10000,
+        description:
+          'BrowserPlaygroundDapp: wagmi connect button not visible (expected disconnected)',
+      });
+    }
   }
 
   async assertWagmiChainIdValue(
     expectedChainId: string | number,
   ): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(async () => {
-          const element = await asPlaywrightElement(this.wagmiChainIdValue);
-          const text = await element.textContent();
-          expect(text).toContain(String(expectedChainId));
-        });
-      },
-    });
+    await this.assertElementContainsText(
+      this.wagmiChainIdValue,
+      String(expectedChainId),
+      `BrowserPlaygroundDapp: wagmi chain id should contain "${expectedChainId}"`,
+    );
   }
 
   async assertWagmiActiveAccount(expectedAccount: string): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(async () => {
-          const element = await asPlaywrightElement(this.wagmiActiveAccount);
-          const text = await element.textContent();
-          expect(text?.toLowerCase()).toContain(expectedAccount.toLowerCase());
-        });
+    await Utilities.executeWithRetry(
+      async () => {
+        const text = await Utilities.getElementText(this.wagmiActiveAccount);
+        if (!text.toLowerCase().includes(expectedAccount.toLowerCase())) {
+          throw new Error(
+            `Expected wagmi active account to contain "${expectedAccount}", got "${text}"`,
+          );
+        }
       },
-    });
+      {
+        timeout: 15000,
+        description: `BrowserPlaygroundDapp: wagmi active account should contain "${expectedAccount}"`,
+      },
+    );
   }
 
   async assertWagmiSignatureResult(expectedValue: string): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(async () => {
-          const element = await asPlaywrightElement(this.wagmiSignatureResult);
-          const text = await element.textContent();
-          expect(text).toContain(expectedValue);
-        });
-      },
-    });
+    await this.assertElementContainsText(
+      this.wagmiSignatureResult,
+      expectedValue,
+      `BrowserPlaygroundDapp: wagmi signature should contain "${expectedValue}"`,
+    );
   }
 
   async isWagmiConnected(): Promise<boolean> {
     try {
-      const element = await asPlaywrightElement(this.wagmiActiveAccount);
-      await element.waitForDisplayed({
+      await Assertions.expectElementToBeVisible(this.wagmiActiveAccount, {
         timeout: 5000,
-        timeoutMsg:
+        description:
           'BrowserPlaygroundDapp: wagmi active account not visible (isWagmiConnected check)',
       });
       return true;
@@ -512,109 +501,103 @@ class BrowserPlaygroundDapp {
   }
 
   async assertSolanaConnected(isConnected = true): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        if (isConnected) {
-          const element = await asPlaywrightElement(this.solanaCard);
-          await element.waitForDisplayed({
-            timeout: 10000,
-            timeoutMsg:
-              'BrowserPlaygroundDapp: solana card not visible (expected connected)',
-          });
-        } else {
-          const element = await asPlaywrightElement(this.solanaConnectButton);
-          await element.waitForDisplayed({
-            timeout: 10000,
-            timeoutMsg:
-              'BrowserPlaygroundDapp: solana connect button not visible (expected disconnected)',
-          });
-        }
-      },
-    });
+    if (isConnected) {
+      await Assertions.expectElementToBeVisible(this.solanaCard, {
+        timeout: 10000,
+        description:
+          'BrowserPlaygroundDapp: solana card not visible (expected connected)',
+      });
+    } else {
+      await Assertions.expectElementToBeVisible(this.solanaConnectButton, {
+        timeout: 10000,
+        description:
+          'BrowserPlaygroundDapp: solana connect button not visible (expected disconnected)',
+      });
+    }
   }
 
   async assertSolanaActiveAccount(expectedAddress: string): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const element = await asPlaywrightElement(this.solanaAddressContainer);
-        const text = await element.textContent();
-        expect(text?.toLowerCase()).toContain(expectedAddress.toLowerCase());
+    await Utilities.executeWithRetry(
+      async () => {
+        const text = await Utilities.getElementText(
+          this.solanaAddressContainer,
+        );
+        if (!text.toLowerCase().includes(expectedAddress.toLowerCase())) {
+          throw new Error(
+            `Expected solana address to contain "${expectedAddress}", got "${text}"`,
+          );
+        }
       },
-    });
+      {
+        timeout: 15000,
+        description: `BrowserPlaygroundDapp: solana address should contain "${expectedAddress}"`,
+      },
+    );
   }
 
   async assertSolanaSignedMessageResult(expectedValue: string): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const element = await asPlaywrightElement(
-          this.solanaSignedMessageResult,
-        );
-        await element.waitForDisplayed({
-          timeout: 10000,
-          timeoutMsg:
-            'BrowserPlaygroundDapp: solana signed message result not visible',
-        });
-        const text = await element.textContent();
-        expect(text).toContain(expectedValue);
-      },
+    await Assertions.expectElementToBeVisible(this.solanaSignedMessageResult, {
+      timeout: 10000,
+      description:
+        'BrowserPlaygroundDapp: solana signed message result not visible',
     });
+    await this.assertElementContainsText(
+      this.solanaSignedMessageResult,
+      expectedValue,
+      `BrowserPlaygroundDapp: solana signed message should contain "${expectedValue}"`,
+    );
   }
 
   async assertMultichainConnected(isConnected = true): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        if (isConnected) {
-          await PlaywrightAssertions.expectConditionWithRetry(async () => {
-            const element = await asPlaywrightElement(
-              this.connectedScopesSection,
-            );
-            await element.waitForDisplayed({
-              timeout: 10000,
-              timeoutMsg:
-                'BrowserPlaygroundDapp: scopes section not visible (expected multichain connected)',
-            });
-          });
-        } else {
-          await PlaywrightAssertions.expectConditionWithRetry(async () => {
-            const element = await asPlaywrightElement(this.connectButton);
-            await element.waitForDisplayed({
-              timeout: 10000,
-              timeoutMsg:
-                'BrowserPlaygroundDapp: connect button not visible (expected multichain disconnected)',
-            });
-          });
-        }
-      },
-    });
+    if (isConnected) {
+      await Assertions.expectElementToBeVisible(this.connectedScopesSection, {
+        timeout: 10000,
+        description:
+          'BrowserPlaygroundDapp: scopes section not visible (expected multichain connected)',
+      });
+    } else {
+      await Assertions.expectElementToBeVisible(this.connectButton, {
+        timeout: 10000,
+        description:
+          'BrowserPlaygroundDapp: connect button not visible (expected multichain disconnected)',
+      });
+    }
   }
 
   async assertScopeCardVisible(scope: string): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(async () => {
-          const element = await asPlaywrightElement(this.getScopeCard(scope));
-          await element.waitForDisplayed({
-            timeout: 10000,
-            timeoutMsg: `BrowserPlaygroundDapp: scope card "${scope}" not visible`,
-          });
-        });
-      },
+    await Assertions.expectElementToBeVisible(this.getScopeCard(scope), {
+      timeout: 10000,
+      description: `BrowserPlaygroundDapp: scope card "${scope}" not visible`,
     });
   }
 
   async assertScopeCardNotVisible(scope: string): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const element = await asPlaywrightElement(
-          this.getScopeCard(scope, { lazy: true }),
-        );
-        await element.waitForDisplayed({
-          timeout: 10000,
-          reverse: true,
-          timeoutMsg: `BrowserPlaygroundDapp: scope card "${scope}" is visible (expected not displayed)`,
-        });
+    await Assertions.expectElementToNotBeVisible(
+      this.getScopeCard(scope, { lazy: true }),
+      {
+        timeout: 10000,
+        description: `BrowserPlaygroundDapp: scope card "${scope}" is visible (expected not displayed)`,
       },
-    });
+    );
+  }
+
+  private async assertElementContainsText(
+    elem: EncapsulatedElementType,
+    expected: string,
+    description: string,
+  ): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        const text = await Utilities.getElementText(elem);
+        if (!text.includes(expected)) {
+          throw new Error(`Expected "${expected}" in "${text}"`);
+        }
+      },
+      {
+        timeout: 15000,
+        description,
+      },
+    );
   }
 }
 
