@@ -1763,70 +1763,28 @@ jobs:
         }}
     needs: sonar-cloud
     if: ${{ always() && !cancelled() && needs.sonar-cloud.result == 'success' && inputs.runner_provider != 'bitrise' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - name: Checkout code
         uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
       - name: SonarCloud Quality Gate Status
         id: sonar-status
         env:
-          REPO: ${{ github.repository }}
-          ISSUE_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Skip step if event is not a PR
-          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
-            echo "This job only runs for pull requests."
-            exit 0
-          fi
-
-          # Bypass step if skip-sonar-cloud label is found
-          LABEL=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-          "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/labels" | \
-          jq -r '.[] | select(.name=="skip-sonar-cloud") | .name')
-
-          if [[ "$LABEL" == "skip-sonar-cloud" ]]; then
-            echo "skip-sonar-cloud label found. Skipping SonarCloud Quality Gate check."
-          else
-            PROJECT_KEY="MetaMask_metamask-mobile"
-            PR_NUMBER="${{ github.event.pull_request.number }}"
-            SONAR_TOKEN="${{ secrets.SONAR_TOKEN }}"
-
-            if [ -z "$PR_NUMBER" ]; then
-              echo "No pull request number found. Failing the check."
-              exit 1
-            fi
-
-            # Poll until SonarCloud has finished ingesting the analysis (status OK or ERROR),
-            # retrying on NONE/empty which means ingestion is still in progress.
-            # Retries up to 12 times, 15s apart (~2m45s total), then fails the check on timeout.
-            MAX_ATTEMPTS=12
-            SLEEP_INTERVAL=15
-            for i in $(seq 1 $MAX_ATTEMPTS); do
-              RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
-                "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
-              echo "SonarCloud API Response (attempt $i/$MAX_ATTEMPTS): $RESPONSE"
-              STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status')
-
-              if [[ "$STATUS" == "OK" ]]; then
-                echo "Quality Gate passed."
-                exit 0
-              elif [[ "$STATUS" == "ERROR" ]]; then
-                echo "Quality Gate failed."
-                exit 1
-              fi
-
-              echo "Quality Gate status not yet settled (got: '$STATUS'). Retrying in ${SLEEP_INTERVAL}s..."
-              if [[ $i -lt $MAX_ATTEMPTS ]]; then
-                sleep "$SLEEP_INTERVAL"
-              fi
-            done
-
-            echo "Could not determine Quality Gate status after $MAX_ATTEMPTS attempts."
-            exit 1
-          fi
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node .github/scripts/sonar-quality-gate-status.cjs
 
   # TEMP: delete the ci-js-deps artifact once all consumers have finished so it
   # does not sit in GitHub artifact storage for the full retention-days: 1
