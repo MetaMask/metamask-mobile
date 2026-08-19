@@ -11,6 +11,7 @@ import { usePerpsLivePrices } from './stream/usePerpsLivePrices';
 import { usePerpsLivePositions } from './stream/usePerpsLivePositions';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { TRADING_DEFAULTS, type Position } from '@metamask/perps-controller';
+import { PERPS_TRIGGER_MARKET_DEFAULT_BPS } from '../constants/slippageConfig';
 import {
   PerpsStreamProvider,
   PerpsStreamManager,
@@ -1068,6 +1069,10 @@ describe('usePerpsOrderForm', () => {
         result.current.setTriggerPrice('90000');
       });
       const triggerMarketMax = result.current.maxPossibleAmount;
+
+      expect(result.current.effectiveMaxSlippageBps).toBe(
+        PERPS_TRIGGER_MARKET_DEFAULT_BPS,
+      );
 
       act(() => {
         result.current.setOrderType('market');

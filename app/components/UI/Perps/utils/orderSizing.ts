@@ -51,8 +51,6 @@ export interface DeriveOrderSizingResult {
   positionSize: string;
   /** Required margin in USD, or `undefined` while loading / when no amount is set. */
   marginRequired: string | undefined;
-  /** Price used for collateral math, including trigger-market slippage. */
-  marginPrice: number;
 }
 
 export interface TriggerMarketSlippageCapPriceInput {
@@ -215,9 +213,12 @@ export const deriveOrderSizing = ({
   const isTriggerMarketOrder =
     isTriggerOrderType(orderType) && !isLimitExecutionOrderType(orderType);
   const triggerMarketMarginPrice =
-    isTriggerMarketOrder && hasValidTriggerPrice && maxSlippageBps !== undefined
+    isTriggerMarketOrder &&
+    triggerPrice !== undefined &&
+    hasValidTriggerPrice &&
+    maxSlippageBps !== undefined
       ? getTriggerMarketSlippageCapPrice({
-          triggerPrice: triggerPrice as string,
+          triggerPrice,
           isBuy,
           maxSlippageBps,
           szDecimals:
@@ -244,7 +245,7 @@ export const deriveOrderSizing = ({
     });
   }
 
-  return { effectivePrice, positionSize, marginRequired, marginPrice };
+  return { effectivePrice, positionSize, marginRequired };
 };
 
 export interface ReduceOnlyMaxUsdAmountInput {

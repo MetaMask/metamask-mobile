@@ -620,6 +620,32 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder.mock.calls[0][0]).not.toHaveProperty('usdAmount');
     });
 
+    it('keeps a focused max preview from becoming a full close', async () => {
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+      act(() => {
+        result.current.sizeSlider.onValueChange(
+          result.current.sizeSlider.maximumValue,
+        );
+        result.current.sizeInput.onFocus();
+      });
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder.mock.calls[0][0].isFullClose).not.toBe(true);
+      expect(mockExecuteOrder.mock.calls[0][0].size).not.toBe('1');
+    });
+
     it('submits a smaller interrupted reduce-only preview instead of a full close', async () => {
       mockExistingPosition = {
         size: '-1',
@@ -992,20 +1018,24 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('trigger orders', () => {
-    it('falls back to market and rejects trigger selection when the feature is disabled', async () => {
+    it('preserves trigger inputs and blocks submission when the feature is disabled', async () => {
       mockOrderForm.type = 'stop_market';
+      mockOrderForm.limitPrice = '90500';
       mockContextValue.triggerPrice = '91000';
       const { result } = renderProForm(false);
 
-      expect(mockSetOrderType).toHaveBeenCalledWith('market');
-      expect(mockSetLimitPrice).toHaveBeenCalledWith(undefined);
-      expect(mockSetTriggerPrice).toHaveBeenCalledWith(undefined);
+      expect(mockOrderForm.type).toBe('stop_market');
+      expect(mockOrderForm.limitPrice).toBe('90500');
+      expect(mockContextValue.triggerPrice).toBe('91000');
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+      expect(mockSetLimitPrice).not.toHaveBeenCalled();
+      expect(mockSetTriggerPrice).not.toHaveBeenCalled();
 
       act(() => {
         result.current.onOrderTypeSelect('stop_market');
       });
 
-      expect(mockSetOrderType).toHaveBeenCalledTimes(1);
+      expect(mockSetOrderType).not.toHaveBeenCalled();
 
       await act(async () => {
         await result.current.onPlaceOrderPress();

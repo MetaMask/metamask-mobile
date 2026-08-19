@@ -131,13 +131,12 @@ describe('buildPerpsOrderParams', () => {
     expect(params).not.toHaveProperty('stopLossPrice');
   });
 
-  it('uses the 10% TP/SL default for an unconfigured trigger-market order', () => {
+  it('preserves the effective TP/SL slippage for a trigger-market order', () => {
     const params = buildPerpsOrderParams({
       ...base,
       orderType: 'stop_market',
       triggerPrice: '91000',
-      maxSlippageBps: 300,
-      maxSlippageSource: 'default',
+      maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultTpslSlippageBps,
     });
 
     expect(params.maxSlippageBps).toBe(

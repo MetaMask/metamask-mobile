@@ -1,6 +1,7 @@
 import {
   MAX_SLIPPAGE_BOUNDS,
   ORDER_SLIPPAGE_CONFIG,
+  PERPS_EVENT_VALUE,
   isLimitExecutionOrderType,
   isTriggerOrderType,
   type OrderType,
@@ -21,6 +22,9 @@ export const PERPS_SLIPPAGE_STEP_BPS = MAX_SLIPPAGE_BOUNDS.StepBps;
 
 /** Quick-pick presets in basis points (0.5%, 2%, 3%) */
 export const PERPS_SLIPPAGE_QUICK_PICKS_BPS = [50, 200, 300];
+
+export type MaxSlippageSource =
+  (typeof PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE)[keyof typeof PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE];
 
 /** Convert bps to percent for display */
 export const bpsToPercent = (bps: number): number => bps / 100;
@@ -43,10 +47,10 @@ export const resolvePerpsMaxSlippageBps = ({
 }: {
   orderType: OrderType;
   maxSlippageBps: number;
-  maxSlippageSource: string;
+  maxSlippageSource: MaxSlippageSource;
 }): number =>
   isTriggerOrderType(orderType) &&
   !isLimitExecutionOrderType(orderType) &&
-  maxSlippageSource === 'default'
+  maxSlippageSource === PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.DEFAULT
     ? PERPS_TRIGGER_MARKET_DEFAULT_BPS
     : maxSlippageBps;

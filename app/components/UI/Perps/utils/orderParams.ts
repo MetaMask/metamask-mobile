@@ -10,7 +10,6 @@ import {
 } from '@metamask/perps-controller';
 import { derivePerpsTradeAction } from './deriveTradeAction';
 import { toPerpsEntryAttribution } from './perpsAnalyticsAttribution';
-import { resolvePerpsMaxSlippageBps } from '../constants/slippageConfig';
 
 type OrderTrackingData = OrderParams['trackingData'];
 
@@ -99,10 +98,8 @@ export interface BuildPerpsOrderParamsInput {
   effectivePrice: number;
   leverage: number;
   usdAmount?: string;
-  /** User-configured max slippage (bps); limit-execution orders override to the fixed default. */
+  /** Effective max slippage (bps); limit-execution orders override to the fixed default. */
   maxSlippageBps: number;
-  /** Source of the resolved slippage value, used to distinguish defaults. */
-  maxSlippageSource?: string;
   limitPrice?: string;
   /** Trigger price for stop/take placements; omitted for market and limit. */
   triggerPrice?: string;
@@ -137,7 +134,6 @@ export const buildPerpsOrderParams = ({
   leverage,
   usdAmount,
   maxSlippageBps,
-  maxSlippageSource,
   limitPrice,
   triggerPrice,
   takeProfitPrice,
@@ -159,11 +155,7 @@ export const buildPerpsOrderParams = ({
     priceAtCalculation: effectivePrice,
     maxSlippageBps: isLimitExecutionOrderType(orderType)
       ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
-      : resolvePerpsMaxSlippageBps({
-          orderType,
-          maxSlippageBps,
-          maxSlippageSource: maxSlippageSource ?? 'user_configured',
-        }),
+      : maxSlippageBps,
     ...(reduceOnly !== undefined ? { reduceOnly } : {}),
     ...(isFullClose !== undefined ? { isFullClose } : {}),
     ...(isLimitExecutionOrderType(orderType) && limitPrice

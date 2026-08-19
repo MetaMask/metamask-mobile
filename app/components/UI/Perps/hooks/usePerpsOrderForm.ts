@@ -68,6 +68,8 @@ export interface UsePerpsOrderFormReturn {
    * the open position notional). Pass `null` to restore the margin-based cap.
    */
   setMaxPossibleAmountOverride: (amount: number | null) => void;
+  /** Effective max slippage for the current order type. */
+  effectiveMaxSlippageBps: number;
   /** Balance to use for validation and UI (Perps balance or selected token amount in USD when paying with custom token) */
   balanceForValidation: number;
 }
@@ -224,6 +226,15 @@ export function usePerpsOrderForm(
   const [triggerPrice, setTriggerPrice] = useState<string | undefined>();
   const [hasBlurredLimitPrice, setHasBlurredLimitPrice] = useState(false);
   const [hasBlurredTriggerPrice, setHasBlurredTriggerPrice] = useState(false);
+  const effectiveMaxSlippageBps = useMemo(
+    () =>
+      resolvePerpsMaxSlippageBps({
+        orderType: orderForm.type,
+        maxSlippageBps,
+        maxSlippageSource,
+      }),
+    [maxSlippageBps, maxSlippageSource, orderForm.type],
+  );
 
   // Calculate the maximum possible amount; when paying with custom token, capped by selected token amount in USD
   // For priced placements, use the prospective execution price so the 100% slider
@@ -248,11 +259,6 @@ export function usePerpsOrderForm(
     const isTriggerMarketOrder =
       isTriggerOrderType(orderForm.type) &&
       !isLimitExecutionOrderType(orderForm.type);
-    const effectiveMaxSlippageBps = resolvePerpsMaxSlippageBps({
-      orderType: orderForm.type,
-      maxSlippageBps,
-      maxSlippageSource,
-    });
     const triggerMarketCapPrice =
       isTriggerMarketOrder && canonicalTriggerPrice
         ? getTriggerMarketSlippageCapPrice({
@@ -288,8 +294,7 @@ export function usePerpsOrderForm(
     triggerPrice,
     marketData?.szDecimals,
     orderForm.leverage,
-    maxSlippageBps,
-    maxSlippageSource,
+    effectiveMaxSlippageBps,
   ]);
 
   const maxPossibleAmount =
@@ -512,6 +517,7 @@ export function usePerpsOrderForm(
       handleMinAmount,
       maxPossibleAmount,
       setMaxPossibleAmountOverride,
+      effectiveMaxSlippageBps,
       balanceForValidation: balanceForMax,
     }),
     [
@@ -536,6 +542,7 @@ export function usePerpsOrderForm(
       handleMinAmount,
       maxPossibleAmount,
       setMaxPossibleAmountOverride,
+      effectiveMaxSlippageBps,
       balanceForMax,
     ],
   );

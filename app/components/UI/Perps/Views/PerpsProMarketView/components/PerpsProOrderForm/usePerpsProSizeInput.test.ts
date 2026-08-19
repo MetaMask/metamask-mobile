@@ -742,6 +742,38 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.sizeSlider.value).toBe(10);
   });
 
+  it('clears max intent when focus cancels an interrupted max preview', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.sizeSlider.onValueChange(
+        result.current.sizeSlider.maximumValue,
+      );
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(true);
+
+    act(() => {
+      result.current.sizeInput.onFocus();
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+    expect(result.current.effectiveUsdAmount).toBe('100');
+  });
+
+  it('preserves max intent after a committed max selection', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(
+        result.current.sizeSlider.maximumValue,
+      );
+      result.current.sizeInput.onFocus();
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(true);
+  });
+
   it('preserves an interrupted preview when a keyboard edit is rejected', () => {
     const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
     act(() => {

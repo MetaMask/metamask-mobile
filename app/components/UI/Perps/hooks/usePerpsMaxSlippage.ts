@@ -1,10 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
-import { PERPS_SLIPPAGE_DEFAULT_BPS } from '../constants/slippageConfig';
-
-type MaxSlippageSource =
-  (typeof PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE)[keyof typeof PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE];
+import {
+  PERPS_SLIPPAGE_DEFAULT_BPS,
+  type MaxSlippageSource,
+} from '../constants/slippageConfig';
 
 export interface UsePerpsMaxSlippageReturn {
   /** Resolved max slippage in basis points (falls back to the documented default). */

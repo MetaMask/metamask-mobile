@@ -157,15 +157,28 @@ export const usePerpsProSizeInput = ({
     setSliderPreview(null);
   }, []);
 
+  const clearSliderMaxIntent = useCallback(() => {
+    sliderAtMaxRef.current = false;
+    setIsAtMaxAmount(false);
+  }, []);
+
+  const cancelPendingSliderPreview = useCallback(() => {
+    if (sliderPreviewRef.current === null) {
+      return;
+    }
+
+    clearSliderPreview();
+    clearSliderMaxIntent();
+  }, [clearSliderMaxIntent, clearSliderPreview]);
+
   const wasKeepSizeEmptyRef = useRef(keepSizeEmpty);
   useEffect(() => {
     if (wasKeepSizeEmptyRef.current && !keepSizeEmpty) {
       clearSliderPreview();
-      sliderAtMaxRef.current = false;
-      setIsAtMaxAmount(false);
+      clearSliderMaxIntent();
     }
     wasKeepSizeEmptyRef.current = keepSizeEmpty;
-  }, [clearSliderPreview, keepSizeEmpty]);
+  }, [clearSliderMaxIntent, clearSliderPreview, keepSizeEmpty]);
 
   const commitUsdAmount = useCallback(
     (nextUsdAmount: string) => {
@@ -222,8 +235,7 @@ export const usePerpsProSizeInput = ({
 
     // External canonical update (amount clamp, reset, payment-token change).
     clearSliderPreview();
-    sliderAtMaxRef.current = false;
-    setIsAtMaxAmount(false);
+    clearSliderMaxIntent();
     setUsdDraft(usdAmount);
     if (canToggleDenomination) {
       setAssetDraftState({
@@ -234,6 +246,7 @@ export const usePerpsProSizeInput = ({
   }, [
     assetDraftState.source,
     canToggleDenomination,
+    clearSliderMaxIntent,
     clearSliderPreview,
     denominationUnit,
     effectivePrice,
@@ -271,8 +284,7 @@ export const usePerpsProSizeInput = ({
       // A valid keyboard edit supersedes any preview left by an interrupted
       // slider gesture. Invalid edits preserve the current displayed value.
       clearSliderPreview();
-      sliderAtMaxRef.current = false;
-      setIsAtMaxAmount(false);
+      clearSliderMaxIntent();
 
       if (denominationUnit === 'usd') {
         setUsdDraft(result.value);
@@ -290,6 +302,7 @@ export const usePerpsProSizeInput = ({
     [
       assetDraft,
       canToggleDenomination,
+      clearSliderMaxIntent,
       clearSliderPreview,
       commitUsdAmount,
       denominationUnit,
@@ -359,9 +372,9 @@ export const usePerpsProSizeInput = ({
   ]);
 
   const onFocus = useCallback(() => {
-    clearSliderPreview();
+    cancelPendingSliderPreview();
     setIsSizeFocused(true);
-  }, [clearSliderPreview]);
+  }, [cancelPendingSliderPreview]);
 
   const onToggleDenomination = useCallback(() => {
     if (!canToggleDenomination || keepSizeEmpty) {
@@ -369,8 +382,7 @@ export const usePerpsProSizeInput = ({
     }
 
     clearSliderPreview();
-    sliderAtMaxRef.current = false;
-    setIsAtMaxAmount(false);
+    clearSliderMaxIntent();
 
     if (denominationUnit === 'usd') {
       const canonicalUsdDraft = finalizeNumericTextInput(usdDraft);
@@ -394,6 +406,7 @@ export const usePerpsProSizeInput = ({
     denominationUnit,
     effectivePrice,
     keepSizeEmpty,
+    clearSliderMaxIntent,
     szDecimals,
     usdDraft,
   ]);
@@ -491,8 +504,7 @@ export const usePerpsProSizeInput = ({
   const onSliderDragCancel = useCallback(() => {
     if (keepSizeEmpty) {
       clearSliderPreview();
-      sliderAtMaxRef.current = false;
-      setIsAtMaxAmount(false);
+      clearSliderMaxIntent();
       return;
     }
 
@@ -500,7 +512,12 @@ export const usePerpsProSizeInput = ({
     if (nextUsdAmount !== null) {
       commitSliderUsdAmount(nextUsdAmount, sliderAtMaxRef.current);
     }
-  }, [clearSliderPreview, commitSliderUsdAmount, keepSizeEmpty]);
+  }, [
+    clearSliderMaxIntent,
+    clearSliderPreview,
+    commitSliderUsdAmount,
+    keepSizeEmpty,
+  ]);
 
   const commitPendingSliderPreview = useCallback((): boolean => {
     if (keepSizeEmpty) {

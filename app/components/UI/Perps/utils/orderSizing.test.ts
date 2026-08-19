@@ -127,7 +127,7 @@ describe('deriveOrderSizing', () => {
     expect(result.effectivePrice).toBe(87000);
   });
 
-  it('keeps trigger size price separate from the slippage-buffered margin price', () => {
+  it('uses the slippage cap when calculating trigger-market margin', () => {
     const result = deriveOrderSizing({
       ...base,
       amount: '1000',
@@ -136,9 +136,20 @@ describe('deriveOrderSizing', () => {
       isBuy: true,
       maxSlippageBps: 1000,
     });
+    const unbuffered = deriveOrderSizing({
+      ...base,
+      amount: '1000',
+      orderType: 'stop_market',
+      triggerPrice: '90000',
+      isBuy: true,
+    });
 
     expect(result.effectivePrice).toBe(90000);
-    expect(result.marginPrice).toBe(99000);
+    expect(result.marginRequired).toBeDefined();
+    expect(unbuffered.marginRequired).toBeDefined();
+    expect(Number(result.marginRequired)).toBeGreaterThan(
+      Number(unbuffered.marginRequired),
+    );
   });
 
   it('falls back to the market price when a trigger-market order has no trigger', () => {
@@ -146,9 +157,11 @@ describe('deriveOrderSizing', () => {
       ...base,
       orderType: 'stop_market',
       triggerPrice: '0',
+      maxSlippageBps: 1000,
     });
 
     expect(result.effectivePrice).toBe(90000);
+    expect(result.marginRequired).toBeDefined();
   });
 });
 

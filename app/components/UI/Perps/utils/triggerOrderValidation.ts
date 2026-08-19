@@ -93,18 +93,6 @@ export const canonicalizeOrderPrice = (
 };
 
 /**
- * Canonicalizes a trigger price at the venue boundary.
- *
- * @param price - Raw trigger text.
- * @param szDecimals - Asset size decimals.
- * @returns The canonical trigger price, or `undefined` when empty.
- */
-export const canonicalizeTriggerPrice = (
-  price: string | undefined,
-  szDecimals?: number,
-): string | undefined => canonicalizeOrderPrice(price, szDecimals);
-
-/**
  * Required side of mid for a trigger placement.
  *
  * Hyperliquid's order-type guidance: Stop Long `>` mid, Stop Short `<` mid;
@@ -148,7 +136,7 @@ export const getTriggerPriceValidationIssue = ({
     return { code: 'required' };
   }
 
-  const canonicalTrigger = canonicalizeTriggerPrice(trimmed, szDecimals);
+  const canonicalTrigger = canonicalizeOrderPrice(trimmed, szDecimals);
   const trigger = Number.parseFloat(canonicalTrigger ?? '');
   if (!Number.isFinite(trigger) || trigger <= 0) {
     return { code: 'positive' };
@@ -209,7 +197,7 @@ export const getLimitPriceValidationIssue = ({
     return undefined;
   }
 
-  const canonicalTrigger = canonicalizeTriggerPrice(triggerPrice, szDecimals);
+  const canonicalTrigger = canonicalizeOrderPrice(triggerPrice, szDecimals);
   const parsedTrigger = Number.parseFloat(canonicalTrigger ?? '');
   if (!Number.isFinite(parsedTrigger) || parsedTrigger <= 0) {
     return undefined;
@@ -369,7 +357,7 @@ export const getLimitPriceCrossingWarning = ({
   }
 
   if (isTriggerOrderType(orderType)) {
-    const canonicalTrigger = canonicalizeTriggerPrice(triggerPrice, szDecimals);
+    const canonicalTrigger = canonicalizeOrderPrice(triggerPrice, szDecimals);
     const trigger = Number.parseFloat(canonicalTrigger ?? '');
     if (!(trigger > 0)) {
       return undefined;

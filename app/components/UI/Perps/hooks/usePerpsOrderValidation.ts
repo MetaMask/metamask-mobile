@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -49,6 +49,13 @@ interface UsePerpsOrderValidationParams {
   szDecimals?: number;
 }
 
+interface ValidationState {
+  errors: string[];
+  warnings: string[];
+  protocolValid: boolean;
+  isValidating: boolean;
+}
+
 export interface ValidationResult {
   errors: string[];
   warnings: string[];
@@ -60,7 +67,6 @@ export interface ValidationResult {
 // Stable empty array references to prevent unnecessary re-renders
 const EMPTY_ERRORS: string[] = [];
 const EMPTY_WARNINGS: string[] = [];
-const EMPTY_FIELD_ISSUES: OrderFormFieldIssue[] = [];
 const FIELD_OWNED_PROTOCOL_ERRORS = new Set<string>([
   PERPS_ERROR_CODES.ORDER_PRICE_REQUIRED,
   PERPS_ERROR_CODES.ORDER_LIMIT_PRICE_REQUIRED,
@@ -98,18 +104,36 @@ export function usePerpsOrderValidation(
   const { validateOrder } = usePerpsTrading();
   const network = usePerpsNetwork();
 
-  const [validation, setValidation] = useState<ValidationResult>({
+  const [validation, setValidation] = useState<ValidationState>({
     errors: EMPTY_ERRORS,
     warnings: EMPTY_WARNINGS,
-    fieldIssues: EMPTY_FIELD_ISSUES,
-    isValid: false,
+    protocolValid: false,
     isValidating: false, // Start with false to prevent initial flickering
   });
 
   // Use stable array references to prevent unnecessary re-renders
   const stableErrors = useStableArray(validation.errors);
   const stableWarnings = useStableArray(validation.warnings);
-  const stableFieldIssues = useStableArray(validation.fieldIssues);
+
+  const fieldIssues = useMemo(
+    () =>
+      getOrderFormFieldIssues({
+        orderType: orderForm.type,
+        direction: orderForm.direction,
+        triggerPrice,
+        limitPrice: orderForm.limitPrice,
+        midPrice,
+        szDecimals,
+      }),
+    [
+      midPrice,
+      orderForm.direction,
+      orderForm.limitPrice,
+      orderForm.type,
+      szDecimals,
+      triggerPrice,
+    ],
+  );
 
   // Use ref to track debounce timer
   const validationTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -118,7 +142,7 @@ export function usePerpsOrderValidation(
   const hasValidatedOnceRef = useRef(false);
 
   const performValidation = useCallback(
-    async (requestId: number, fieldIssues: OrderFormFieldIssue[]) => {
+    async (requestId: number, requestFieldIssues: OrderFormFieldIssue[]) => {
       if (requestId !== validationRequestIdRef.current) {
         return;
       }
@@ -127,8 +151,6 @@ export function usePerpsOrderValidation(
       // but preserve existing errors to prevent flashing
       setValidation((prev) => ({
         ...prev,
-        fieldIssues,
-        isValid: fieldIssues.length === 0 ? prev.isValid : false,
         isValidating: true,
       }));
 
@@ -213,7 +235,7 @@ export function usePerpsOrderValidation(
           !protocolValidation.isValid &&
           protocolValidation.error &&
           !(
-            fieldIssues.length > 0 &&
+            requestFieldIssues.length > 0 &&
             FIELD_OWNED_PROTOCOL_ERRORS.has(protocolValidation.error)
           )
         ) {
@@ -282,8 +304,7 @@ export function usePerpsOrderValidation(
         setValidation({
           errors: errors.length > 0 ? errors : EMPTY_ERRORS,
           warnings: warnings.length > 0 ? warnings : EMPTY_WARNINGS,
-          fieldIssues,
-          isValid: errors.length === 0 && fieldIssues.length === 0,
+          protocolValid: errors.length === 0,
           isValidating: false,
         });
       } catch (error) {
@@ -297,8 +318,7 @@ export function usePerpsOrderValidation(
         setValidation({
           errors: [strings('perps.order.validation.error')],
           warnings: EMPTY_WARNINGS,
-          fieldIssues,
-          isValid: false,
+          protocolValid: false,
           isValidating: false,
         });
       }
@@ -326,21 +346,11 @@ export function usePerpsOrderValidation(
 
   useEffect(() => {
     const requestId = ++validationRequestIdRef.current;
-    const fieldIssues = getOrderFormFieldIssues({
-      orderType: orderForm.type,
-      direction: orderForm.direction,
-      triggerPrice,
-      limitPrice: orderForm.limitPrice,
-      midPrice,
-      szDecimals,
-    });
 
-    // Synchronous field validation owns the current validity immediately,
-    // before the debounced protocol request can resolve.
+    // Synchronous field validation is derived during render. Only the
+    // asynchronous validation status belongs in state.
     setValidation((prev) => ({
       ...prev,
-      fieldIssues,
-      isValid: fieldIssues.length === 0 ? prev.isValid : false,
       isValidating: !skipValidation,
     }));
 
@@ -355,9 +365,8 @@ export function usePerpsOrderValidation(
       setValidation((prev) => ({
         ...prev,
         errors: EMPTY_ERRORS,
-        fieldIssues,
         isValidating: false,
-        isValid: false,
+        protocolValid: false,
       }));
       return;
     }
@@ -365,10 +374,9 @@ export function usePerpsOrderValidation(
     if (assetPrice === 0) {
       setValidation((prev) => ({
         ...prev,
-        fieldIssues,
         isValidating: false,
         // Keep existing errors but mark as invalid
-        isValid: false,
+        protocolValid: false,
       }));
       return;
     }
@@ -403,6 +411,7 @@ export function usePerpsOrderValidation(
     orderForm.direction,
     orderForm.limitPrice,
     orderForm.type,
+    fieldIssues,
     performValidation,
     positionSize,
     skipValidation,
@@ -414,8 +423,8 @@ export function usePerpsOrderValidation(
   return {
     errors: stableErrors,
     warnings: stableWarnings,
-    fieldIssues: stableFieldIssues,
-    isValid: validation.isValid,
+    fieldIssues,
+    isValid: validation.protocolValid && fieldIssues.length === 0,
     isValidating: validation.isValidating,
   };
 }

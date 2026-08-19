@@ -1,3 +1,4 @@
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import {
   PERPS_SLIPPAGE_DEFAULT_BPS,
   PERPS_TRIGGER_MARKET_DEFAULT_BPS,
@@ -37,7 +38,7 @@ describe('resolvePerpsMaxSlippageBps', () => {
       resolvePerpsMaxSlippageBps({
         orderType: 'stop_market',
         maxSlippageBps: PERPS_SLIPPAGE_DEFAULT_BPS,
-        maxSlippageSource: 'default',
+        maxSlippageSource: PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.DEFAULT,
       }),
     ).toBe(PERPS_TRIGGER_MARKET_DEFAULT_BPS);
   });
@@ -47,7 +48,8 @@ describe('resolvePerpsMaxSlippageBps', () => {
       resolvePerpsMaxSlippageBps({
         orderType: 'stop_market',
         maxSlippageBps: 300,
-        maxSlippageSource: 'user_configured',
+        maxSlippageSource:
+          PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.USER_CONFIGURED,
       }),
     ).toBe(300);
   });
@@ -57,7 +59,7 @@ describe('resolvePerpsMaxSlippageBps', () => {
       resolvePerpsMaxSlippageBps({
         orderType: 'stop_limit',
         maxSlippageBps: PERPS_SLIPPAGE_DEFAULT_BPS,
-        maxSlippageSource: 'default',
+        maxSlippageSource: PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.DEFAULT,
       }),
     ).toBe(PERPS_SLIPPAGE_DEFAULT_BPS);
   });

@@ -88,7 +88,6 @@ import {
 } from '../../../../utils/tpslValidation';
 import {
   canonicalizeOrderPrice,
-  canonicalizeTriggerPrice,
   getLimitPriceCrossingWarning,
   getOrderFormFieldIssueMessage,
   getOrderFormFieldIssues,
@@ -372,22 +371,6 @@ export const usePerpsProOrderForm = ({
     useState<PerpsTooltipContentKey | null>(null);
   const isSubmittingRef = useRef(false);
 
-  useEffect(() => {
-    if (isTriggeredOrdersEnabled || !isTriggerOrderType(orderForm.type)) {
-      return;
-    }
-
-    setOrderType('market');
-    setLimitPrice(undefined);
-    setTriggerPrice(undefined);
-  }, [
-    isTriggeredOrdersEnabled,
-    orderForm.type,
-    setLimitPrice,
-    setOrderType,
-    setTriggerPrice,
-  ]);
-
   const { maxSlippageBps, maxSlippageSource, setMaxSlippage } =
     usePerpsMaxSlippage();
   const resolvedMaxSlippageBps = resolvePerpsMaxSlippageBps({
@@ -448,7 +431,7 @@ export const usePerpsProOrderForm = ({
     };
   }, [currentPrice]);
 
-  const normalizedTriggerPrice = canonicalizeTriggerPrice(
+  const normalizedTriggerPrice = canonicalizeOrderPrice(
     triggerPrice,
     szDecimals,
   );
@@ -702,7 +685,7 @@ export const usePerpsProOrderForm = ({
       (err) => err !== sizePositiveMsg,
     );
     const fieldMessages = new Set(
-      (orderValidation.fieldIssues ?? []).map(getOrderFormFieldIssueMessage),
+      orderValidation.fieldIssues.map(getOrderFormFieldIssueMessage),
     );
     return withoutSize.filter((err) => !fieldMessages.has(err));
   }, [orderValidation.errors, orderValidation.fieldIssues]);
@@ -894,7 +877,6 @@ export const usePerpsProOrderForm = ({
         leverage: orderForm.leverage,
         usdAmount: isExactFullClose ? undefined : effectiveUsdAmount,
         maxSlippageBps: resolvedMaxSlippageBps,
-        maxSlippageSource,
         limitPrice: finalizedLimitPrice,
         triggerPrice: finalizedTriggerPrice,
         takeProfitPrice: isTriggerOrderType(orderForm.type)
@@ -1357,12 +1339,12 @@ export const usePerpsProOrderForm = ({
     const currentTriggerPrice = triggerPrice ?? '';
     const finalizedTriggerPrice = finalizeNumericTextInput(currentTriggerPrice);
     commitTriggerPrice(
-      canonicalizeTriggerPrice(finalizedTriggerPrice, szDecimals),
+      canonicalizeOrderPrice(finalizedTriggerPrice, szDecimals),
     );
   }, [commitTriggerPrice, szDecimals, triggerPrice]);
 
   const priceCardMessage = useMemo(() => {
-    const fieldIssues = orderValidation.fieldIssues ?? [];
+    const fieldIssues = orderValidation.fieldIssues;
     const triggerIssue = fieldIssues.find(
       (fieldIssue) => fieldIssue.field === 'triggerPrice',
     );
