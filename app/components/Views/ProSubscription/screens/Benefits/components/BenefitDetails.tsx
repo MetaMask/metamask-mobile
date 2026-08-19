@@ -28,7 +28,7 @@ const BenefitDetails = ({ onClose, details }: BenefitDetailsProps) => {
       onClose={onClose}
       testID={BenefitsTestIds.BENEFIT_DETAILS_CONTAINER}
     >
-      <Box twClassName="px-4 py-6 flex flex-col">
+      <Box twClassName="px-4 pt-6 flex flex-col">
         <Text
           variant={TextVariant.HeadingMd}
           color={TextColor.TextDefault}
