@@ -1773,18 +1773,76 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
       - name: SonarCloud Quality Gate Status
         id: sonar-status
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          REPO: ${{ github.repository }}
           ISSUE_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: node .github/scripts/sonar-quality-gate-status.cjs
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          # Skip step if event is not a PR
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            echo "This job only runs for pull requests."
+            exit 0
+          fi
+
+          if [ -z "$PR_NUMBER" ]; then
+            echo "No pull request number found. Failing the check."
+            exit 1
+          fi
+
+          # Bypass step if skip-sonar-cloud label is found. The `type == "array"`
+          # guard keeps a GitHub error payload (rate limit, 403) from aborting the
+          # job: an unreadable label list must not decide the quality gate.
+          LABELS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+            "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/labels" | \
+            jq -r 'if type == "array" then .[].name else empty end' 2>/dev/null || true)
+
+          if grep -qx 'skip-sonar-cloud' <<< "$LABELS"; then
+            echo "skip-sonar-cloud label found. Skipping SonarCloud Quality Gate check."
+            exit 0
+          fi
+
+          PROJECT_KEY="MetaMask_metamask-mobile"
+
+          # Poll until SonarCloud has finished ingesting the analysis. OK is final,
+          # but ERROR is only trusted once it survives several polls: right after the
+          # scan the API still serves the previous analysis for this PR number, so an
+          # immediate ERROR is frequently stale and flips to OK within ~2 minutes.
+          MAX_ATTEMPTS=20
+          SLEEP_INTERVAL=15
+          ERROR_STREAK=0
+          ERROR_STREAK_TO_FAIL=8
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
+              "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
+            echo "SonarCloud API Response (attempt $i/$MAX_ATTEMPTS): $RESPONSE"
+            STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status // empty' 2>/dev/null || true)
+
+            if [[ "$STATUS" == "OK" ]]; then
+              echo "Quality Gate passed."
+              exit 0
+            elif [[ "$STATUS" == "ERROR" ]]; then
+              ERROR_STREAK=$((ERROR_STREAK + 1))
+              if [[ $ERROR_STREAK -ge $ERROR_STREAK_TO_FAIL ]]; then
+                echo "Quality Gate failed (ERROR stable across $ERROR_STREAK polls)."
+                exit 1
+              fi
+              echo "Got ERROR ($ERROR_STREAK/$ERROR_STREAK_TO_FAIL), it may be a previous analysis. Retrying in ${SLEEP_INTERVAL}s..."
+            else
+              ERROR_STREAK=0
+              echo "Quality Gate status not yet settled (got: '$STATUS'). Retrying in ${SLEEP_INTERVAL}s..."
+            fi
+
+            if [[ $i -lt $MAX_ATTEMPTS ]]; then
+              sleep "$SLEEP_INTERVAL"
+            fi
+          done
+
+          echo "Could not determine Quality Gate status after $MAX_ATTEMPTS attempts."
+          exit 1
 
   # TEMP: delete the ci-js-deps artifact once all consumers have finished so it
   # does not sit in GitHub artifact storage for the full retention-days: 1
