@@ -5,8 +5,8 @@
  *
  * ## Structure:
  * - `handlers/` - Protocol/orchestration entry points
- * - `handlers/deferred/` - Handlers that can describe a destination before navigating
- * - `handlers/immediate/` - Handlers that navigate immediately
+ * - `handlers/intent/` - Handlers that resolve to a DeeplinkIntent, describing their destination as data before navigating
+ * - `handlers/legacy/` - Handlers that navigate directly with side effects; to be migrated to the intent pattern over time
  * - `utils/` - Shared utilities (URL parsing, signatures, interstitial)
  *
  * ## Main Entry Points:

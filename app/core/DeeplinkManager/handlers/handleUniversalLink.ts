@@ -17,48 +17,48 @@ import {
 import handleDeepLinkModalDisplay from '../utils/handleDeepLinkModalDisplay';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import { capitalize } from '../../../util/general';
-import handleRampUrl from './immediate/handleRampUrl';
-import handleRampReturnUrl from './immediate/handleRampReturnUrl';
-import { navigateToHomeUrl } from './immediate/handleHomeUrl';
+import handleRampUrl from './legacy/handleRampUrl';
+import handleRampReturnUrl from './legacy/handleRampReturnUrl';
+import { navigateToHomeUrl } from './legacy/handleHomeUrl';
 import {
   handleSwapUrl,
   createSwapDeeplinkIntent,
-} from './deferred/handleSwapUrl';
-import { handleBatchSellUrl } from './immediate/handleBatchSellUrl';
-import handleBrowserUrl from './deferred/handleBrowserUrl';
+} from './intent/handleSwapUrl';
+import { handleBatchSellUrl } from './legacy/handleBatchSellUrl';
+import handleBrowserUrl from './intent/handleBrowserUrl';
 import {
   createDappDeeplinkIntent,
   getDappUrlFromUniversalLink,
-} from './deferred/handleDappUrl';
-import { handleCreateAccountUrl } from './immediate/handleCreateAccountUrl';
+} from './intent/handleDappUrl';
+import { handleCreateAccountUrl } from './legacy/handleCreateAccountUrl';
 import {
   handlePerpsUrl,
   createPerpsDeeplinkIntent,
-} from './deferred/handlePerpsUrl';
+} from './intent/handlePerpsUrl';
 import {
   createRewardsDeeplinkIntent,
   handleRewardsUrl,
-} from './deferred/handleRewardsUrl';
+} from './intent/handleRewardsUrl';
 import {
   handlePredictUrl,
   createPredictDeeplinkIntent,
-} from './deferred/handlePredictUrl';
-import handleFastOnboarding from './immediate/handleFastOnboarding';
-import { handleCardOnboarding } from './immediate/handleCardOnboarding';
-import { handleCardHome } from './immediate/handleCardHome';
-import { handleCardKycNotification } from './immediate/handleCardKycNotification';
+} from './intent/handlePredictUrl';
+import handleFastOnboarding from './legacy/handleFastOnboarding';
+import { handleCardOnboarding } from './legacy/handleCardOnboarding';
+import { handleCardHome } from './legacy/handleCardHome';
+import { handleCardKycNotification } from './legacy/handleCardKycNotification';
 import {
   handleTrendingUrl,
   createTrendingDeeplinkIntent,
-} from './deferred/handleTrendingUrl';
-import { handleWhatsHappeningUrl } from './immediate/handleWhatsHappeningUrl';
-import { handleSocialLeaderboardUrl } from './immediate/handleSocialLeaderboardUrl';
-import { handleSocialTraderPositionUrl } from './immediate/handleSocialTraderPositionUrl';
-import { handleEarnMusd } from './immediate/handleEarnMusd';
-import { handleAssetUrl } from './immediate/handleAssetUrl';
-import { handleNftUrl } from './immediate/handleNftUrl';
-import { handleAgenticCliApproval } from './immediate/handleAgenticCliApproval';
-import { handlePrivacyUrl } from './immediate/handlePrivacyUrl';
+} from './intent/handleTrendingUrl';
+import { handleWhatsHappeningUrl } from './legacy/handleWhatsHappeningUrl';
+import { handleSocialLeaderboardUrl } from './legacy/handleSocialLeaderboardUrl';
+import { handleSocialTraderPositionUrl } from './legacy/handleSocialTraderPositionUrl';
+import { handleEarnMusd } from './legacy/handleEarnMusd';
+import { handleAssetUrl } from './legacy/handleAssetUrl';
+import { handleNftUrl } from './legacy/handleNftUrl';
+import { handleAgenticCliApproval } from './legacy/handleAgenticCliApproval';
+import { handlePrivacyUrl } from './legacy/handlePrivacyUrl';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import { SHIELD_WEBSITE_URL } from '../../../constants/shield';
 import {
@@ -84,7 +84,7 @@ import branch from 'react-native-branch';
 import Logger from '../../../util/Logger';
 import type { DeeplinkParseMode } from '../utils/parseDeeplink';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
-import { handleMoney } from './immediate/handleMoney';
+import { handleMoney } from './legacy/handleMoney';
 
 const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
 

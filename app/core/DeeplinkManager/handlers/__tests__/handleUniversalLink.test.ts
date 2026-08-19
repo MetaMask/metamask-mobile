@@ -8,24 +8,24 @@ import { DeeplinkManager } from '../../DeeplinkManager';
 import extractURLParams from '../../utils/extractURLParams';
 import handleUniversalLink from '../handleUniversalLink';
 import handleDeepLinkModalDisplay from '../../utils/handleDeepLinkModalDisplay';
-import handleBrowserUrl from '../deferred/handleBrowserUrl';
-import { createDappDeeplinkIntent } from '../deferred/handleDappUrl';
+import handleBrowserUrl from '../intent/handleBrowserUrl';
+import { createDappDeeplinkIntent } from '../intent/handleDappUrl';
 import { DeepLinkModalLinkType } from '../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
 import Logger from '../../../../util/Logger';
-import handleRampReturnUrl from '../immediate/handleRampReturnUrl';
+import handleRampReturnUrl from '../legacy/handleRampReturnUrl';
 import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
-import { handleSocialLeaderboardUrl } from '../immediate/handleSocialLeaderboardUrl';
-import { handleSocialTraderPositionUrl } from '../immediate/handleSocialTraderPositionUrl';
-import { handleWhatsHappeningUrl } from '../immediate/handleWhatsHappeningUrl';
-import { handleSwapUrl } from '../deferred/handleSwapUrl';
-import { handleBatchSellUrl } from '../immediate/handleBatchSellUrl';
-import { handleAssetUrl } from '../immediate/handleAssetUrl';
-import { handlePrivacyUrl } from '../immediate/handlePrivacyUrl';
+import { handleSocialLeaderboardUrl } from '../legacy/handleSocialLeaderboardUrl';
+import { handleSocialTraderPositionUrl } from '../legacy/handleSocialTraderPositionUrl';
+import { handleWhatsHappeningUrl } from '../legacy/handleWhatsHappeningUrl';
+import { handleSwapUrl } from '../intent/handleSwapUrl';
+import { handleBatchSellUrl } from '../legacy/handleBatchSellUrl';
+import { handleAssetUrl } from '../legacy/handleAssetUrl';
+import { handlePrivacyUrl } from '../legacy/handlePrivacyUrl';
 import {
   createRewardsDeeplinkIntent,
   handleRewardsUrl,
-} from '../deferred/handleRewardsUrl';
+} from '../intent/handleRewardsUrl';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../utils/verifySignature';
@@ -49,31 +49,31 @@ jest.mock('../../../NativeModules', () => ({
   },
 }));
 jest.mock('../../utils/handleDeepLinkModalDisplay');
-jest.mock('../immediate/handleRampUrl');
-jest.mock('../immediate/handleRampReturnUrl');
-jest.mock('../immediate/handleHomeUrl');
-jest.mock('../deferred/handleSwapUrl');
-jest.mock('../immediate/handleBatchSellUrl');
-jest.mock('../immediate/handleAssetUrl');
-jest.mock('../immediate/handlePrivacyUrl');
-jest.mock('../deferred/handleBrowserUrl');
-jest.mock('../deferred/handleDappUrl', () => {
-  const actual = jest.requireActual('../deferred/handleDappUrl');
+jest.mock('../legacy/handleRampUrl');
+jest.mock('../legacy/handleRampReturnUrl');
+jest.mock('../legacy/handleHomeUrl');
+jest.mock('../intent/handleSwapUrl');
+jest.mock('../legacy/handleBatchSellUrl');
+jest.mock('../legacy/handleAssetUrl');
+jest.mock('../legacy/handlePrivacyUrl');
+jest.mock('../intent/handleBrowserUrl');
+jest.mock('../intent/handleDappUrl', () => {
+  const actual = jest.requireActual('../intent/handleDappUrl');
   return {
     __esModule: true,
     ...actual,
     createDappDeeplinkIntent: jest.fn(),
   };
 });
-jest.mock('../immediate/handleCreateAccountUrl');
-jest.mock('../deferred/handlePerpsUrl');
-jest.mock('../deferred/handleRewardsUrl');
-jest.mock('../deferred/handlePredictUrl');
-jest.mock('../immediate/handleFastOnboarding');
-jest.mock('../deferred/handleTrendingUrl');
-jest.mock('../immediate/handleWhatsHappeningUrl');
-jest.mock('../immediate/handleSocialLeaderboardUrl');
-jest.mock('../immediate/handleSocialTraderPositionUrl');
+jest.mock('../legacy/handleCreateAccountUrl');
+jest.mock('../intent/handlePerpsUrl');
+jest.mock('../intent/handleRewardsUrl');
+jest.mock('../intent/handlePredictUrl');
+jest.mock('../legacy/handleFastOnboarding');
+jest.mock('../intent/handleTrendingUrl');
+jest.mock('../legacy/handleWhatsHappeningUrl');
+jest.mock('../legacy/handleSocialLeaderboardUrl');
+jest.mock('../legacy/handleSocialTraderPositionUrl');
 jest.mock('../../../redux', () => ({
   __esModule: true,
   default: {

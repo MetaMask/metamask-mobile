@@ -8,13 +8,13 @@ import SDKConnect from '../../../SDKConnect/SDKConnect';
 import WC2Manager from '../../../WalletConnect/WalletConnectV2';
 import extractURLParams from '../../utils/extractURLParams';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
-import handleRampUrl from '../immediate/handleRampUrl';
+import handleRampUrl from '../legacy/handleRampUrl';
 
 jest.mock('../../../AppConstants');
 jest.mock('../../../SDKConnect/handlers/handleDeeplink');
 jest.mock('../../../SDKConnect/SDKConnect');
 jest.mock('../../../WalletConnect/WalletConnectV2');
-jest.mock('../immediate/handleRampUrl');
+jest.mock('../legacy/handleRampUrl');
 jest.mock('../../../NativeModules', () => ({
   Minimizer: {
     goBack: jest.fn(),

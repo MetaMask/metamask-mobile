@@ -9,7 +9,7 @@ import DevLogger from '../../SDKConnect/utils/DevLogger';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import parseOriginatorInfo from '../utils/parseOriginatorInfo';
 import extractURLParams from '../utils/extractURLParams';
-import handleRampUrl from './immediate/handleRampUrl';
+import handleRampUrl from './legacy/handleRampUrl';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
 

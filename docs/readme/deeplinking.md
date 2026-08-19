@@ -268,7 +268,7 @@ enum SUPPORTED_ACTIONS {
 ### Step 3: Create Handler Function
 
 ```typescript
-// app/core/DeeplinkManager/handlers/immediate/handleYourAction.ts
+// app/core/DeeplinkManager/handlers/legacy/handleYourAction.ts
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
@@ -325,7 +325,7 @@ async function handleUniversalLink(/* ... */) {
 ### Step 5: Add Tests
 
 ```typescript
-// app/core/DeeplinkManager/handlers/immediate/__tests__/handleYourAction.test.ts
+// app/core/DeeplinkManager/handlers/legacy/__tests__/handleYourAction.test.ts
 import { handleYourAction } from '../handleYourAction';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';

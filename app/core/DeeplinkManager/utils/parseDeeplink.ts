@@ -8,7 +8,7 @@ import {
   handleDappUrl,
   createDappDeeplinkIntent,
   getDappUrl,
-} from '../handlers/deferred/handleDappUrl';
+} from '../handlers/intent/handleDappUrl';
 import handleUniversalLink from '../handlers/handleUniversalLink';
 import connectWithWC from '../handlers/connectWithWC';
 import { Alert } from 'react-native';

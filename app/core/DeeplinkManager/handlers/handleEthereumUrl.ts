@@ -14,7 +14,7 @@ import {
   isDeeplinkRedesignedConfirmationCompatible,
 } from '../../../components/Views/confirmations/utils/deeplink';
 import NavigationService from '../../NavigationService';
-import handleApproveUrl from './immediate/handleApproveUrl';
+import handleApproveUrl from './legacy/handleApproveUrl';
 import switchNetwork from '../../../util/networks/switchNetwork';
 
 async function handleEthereumUrl({

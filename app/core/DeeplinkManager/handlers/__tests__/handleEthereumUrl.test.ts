@@ -12,7 +12,7 @@ import {
   isDeeplinkRedesignedConfirmationCompatible,
 } from '../../../../components/Views/confirmations/utils/deeplink';
 import NavigationService from '../../../NavigationService';
-import handleApproveUrl from '../immediate/handleApproveUrl';
+import handleApproveUrl from '../legacy/handleApproveUrl';
 import switchNetwork from '../../../../util/networks/switchNetwork';
 
 jest.mock('../../../NavigationService', () => ({
@@ -23,7 +23,7 @@ jest.mock('../../../NavigationService', () => ({
 
 jest.mock('react-native');
 
-jest.mock('../immediate/handleApproveUrl');
+jest.mock('../legacy/handleApproveUrl');
 
 jest.mock('eth-url-parser', () => ({
   parse: jest.fn(),

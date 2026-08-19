@@ -4,7 +4,7 @@ import {
   handleDappUrl,
   createDappDeeplinkIntent,
   getDappUrl,
-} from '../handlers/deferred/handleDappUrl';
+} from '../handlers/intent/handleDappUrl';
 import handleUniversalLink from '../handlers/handleUniversalLink';
 import connectWithWC from '../handlers/connectWithWC';
 import parseDeeplink from './parseDeeplink';
@@ -15,7 +15,7 @@ jest.mock('../../../constants/deeplinks');
 jest.mock('../../../util/Logger');
 jest.mock('../DeeplinkManager');
 jest.mock('../../SDKConnect/utils/DevLogger');
-jest.mock('../handlers/deferred/handleDappUrl');
+jest.mock('../handlers/intent/handleDappUrl');
 jest.mock('../handlers/handleUniversalLink');
 jest.mock('../handlers/connectWithWC');
 jest.mock('../handlers/handleEthereumUrl');
