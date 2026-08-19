@@ -3,8 +3,9 @@ import { Text } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { CaipChainId } from '@metamask/utils';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  type DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -13,9 +14,12 @@ import OrdersTabs from './OrdersTabs';
 import { OrdersTabsSelectorsIDs } from './OrdersTabs.testIds';
 import type { OrdersTabsProps } from './OrdersTabs.types';
 
-jest.mock('@shopify/flash-list', () =>
-  require('../../../../../util/test/mockFlashList').flashListMock(),
-);
+jest.mock('@shopify/flash-list', () => {
+  const { flashListMock } = jest.requireActual(
+    '../../../../../util/test/mockFlashList',
+  );
+  return flashListMock();
+});
 
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   ...jest.requireActual('../../../../../util/remoteFeatureFlag'),
