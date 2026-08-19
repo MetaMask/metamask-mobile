@@ -8489,6 +8489,24 @@
       "limit": "Limit",
       "recurring": "Recurring"
     },
+    "recurring": {
+      "every": "Every",
+      "repeat": "Repeat",
+      "times": "times",
+      "confirm": "Confirm",
+      "unit": {
+        "minute": "minute",
+        "hour": "hour",
+        "day": "day",
+        "week": "week"
+      },
+      "unit_option": {
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day",
+        "week": "Week"
+      }
+    },
     "continue": "Continue",
     "confirm_bridge": "Bridge",
     "confirm_swap": "Swap",
