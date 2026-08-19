@@ -1,0 +1,116 @@
+{
+  "$schema": "https://farmslot.io/schemas/recipe-v1.schema.json",
+  "title": "Lighter \u2014 place a resting limit order through the real order form",
+  "description": "Opens the order form, switches to a limit order via the order-type sheet, picks a below-mid percentage preset so the order rests, places it, and verifies the resting order against the venue.",
+  "paramsSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "market": {
+        "type": "string",
+        "default": "BTC"
+      },
+      "preset": {
+        "type": "string",
+        "enum": ["-1", "-2"],
+        "default": "-2"
+      }
+    }
+  },
+  "workflow": {
+    "entry": "market",
+    "nodes": {
+      "market": {
+        "action": "ui.navigate",
+        "page": "perps-market",
+        "market": "{{params.market}}",
+        "intent": "Open the market page the order starts from.",
+        "next": "settle-market"
+      },
+      "settle-market": {
+        "action": "wait",
+        "duration_ms": 12000,
+        "intent": "Let live prices render so the trade buttons are active.",
+        "next": "press-long"
+      },
+      "press-long": {
+        "action": "ui.press",
+        "test_id": "perps-market-details-long-button",
+        "intent": "Open the order form.",
+        "next": "settle-form"
+      },
+      "settle-form": {
+        "action": "wait",
+        "duration_ms": 10000,
+        "intent": "Let the form seed the venue-minimum amount.",
+        "next": "type-open"
+      },
+      "type-open": {
+        "action": "ui.press",
+        "test_id": "perps-order-header-order-type-button",
+        "intent": "Bring up the order-type sheet.",
+        "next": "settle-type"
+      },
+      "settle-type": {
+        "action": "wait",
+        "duration_ms": 2000,
+        "intent": "Let the sheet finish rendering.",
+        "next": "pick-limit"
+      },
+      "pick-limit": {
+        "action": "ui.press",
+        "test_id": "perps-order-type-limit",
+        "intent": "Choose limit \u2014 the price sheet opens automatically.",
+        "next": "settle-price"
+      },
+      "settle-price": {
+        "action": "wait",
+        "duration_ms": 3000,
+        "intent": "Let the limit-price sheet open.",
+        "next": "pick-preset"
+      },
+      "pick-preset": {
+        "action": "ui.press",
+        "test_id": "perps-limit-price-preset-{{params.preset}}",
+        "intent": "Pick a below-mid price so the order will rest unfilled.",
+        "next": "confirm-price"
+      },
+      "confirm-price": {
+        "action": "ui.press",
+        "test_id": "perps-limit-price-confirm-button",
+        "intent": "Accept the limit price.",
+        "next": "shot-form"
+      },
+      "shot-form": {
+        "action": "ui.screenshot",
+        "path": "screenshots/limit-{{params.market}}-form.png",
+        "intent": "Record the ready-to-place limit order.",
+        "next": "place"
+      },
+      "place": {
+        "action": "ui.press",
+        "test_id": "perps-order-view-place-order-button",
+        "intent": "Place the limit order from the real button.",
+        "next": "settle-place"
+      },
+      "settle-place": {
+        "action": "wait",
+        "duration_ms": 10000,
+        "intent": "Give the venue time to accept the resting order.",
+        "next": "assert-order"
+      },
+      "assert-order": {
+        "action": "metamask.perps.assert_orders",
+        "market": "{{params.market}}",
+        "state": "present",
+        "timeout_ms": 30000,
+        "intent": "Venue truth: the limit order rests on the book.",
+        "next": "done"
+      },
+      "done": {
+        "action": "end",
+        "status": "pass"
+      }
+    }
+  }
+}
