@@ -6,6 +6,7 @@ import MoneyAccountSweepstakesCampaignWinningView, {
 import { useMoneyAccountSweepstakesOutcome } from '../hooks/useMoneyAccountSweepstakesOutcome';
 import CampaignWinningView from './CampaignWinningView';
 import Routes from '../../../../constants/navigation/Routes';
+import { REWARDS_WINNER_CONTACT_EMAIL } from '../constants/campaignWinnerContact';
 
 jest.mock('./CampaignWinningView', () => {
   const ReactActual = jest.requireActual('react');
@@ -78,7 +79,7 @@ describe('MoneyAccountSweepstakesCampaignWinningView', () => {
         testID:
           MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_WINNING_VIEW_TEST_IDS.CONTAINER,
         viewName: 'MoneyAccountSweepstakesCampaignWinningView',
-        prizeEmail: 'moneycampaign@consensys.net',
+        prizeEmail: REWARDS_WINNER_CONTACT_EMAIL,
         campaignName: 'Money Account Sweepstakes',
         campaignId: 'mas-campaign-1',
         analyticsPageType: 'money_account_sweepstakes_campaign_winning',

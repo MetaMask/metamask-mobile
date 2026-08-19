@@ -4,8 +4,7 @@ import { useMoneyAccountSweepstakesOutcome } from '../hooks/useMoneyAccountSweep
 import { formatUsd } from '../utils/formatUtils';
 import CampaignWinningView from './CampaignWinningView';
 import Routes from '../../../../constants/navigation/Routes';
-
-const PRIZE_EMAIL = 'moneycampaign@consensys.net';
+import { REWARDS_WINNER_CONTACT_EMAIL } from '../constants/campaignWinnerContact';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type MoneyAccountSweepstakesCampaignWinningRouteParams = {
@@ -54,7 +53,7 @@ const MoneyAccountSweepstakesCampaignWinningView: React.FC = () => {
         MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_WINNING_VIEW_TEST_IDS.CONTAINER
       }
       viewName="MoneyAccountSweepstakesCampaignWinningView"
-      prizeEmail={PRIZE_EMAIL}
+      prizeEmail={REWARDS_WINNER_CONTACT_EMAIL}
       campaignName={campaignName}
       campaignId={campaignId}
       analyticsPageType="money_account_sweepstakes_campaign_winning"
