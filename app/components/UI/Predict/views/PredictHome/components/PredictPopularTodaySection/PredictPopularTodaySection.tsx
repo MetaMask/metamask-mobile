@@ -189,11 +189,12 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
       />
 
       {isLoading ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('pb-1')}
-        >
+        <Box twClassName="-mx-4">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={tw.style('px-4 pb-1')}
+          >
           <Box twClassName="gap-2">
             {skeletonRows.map((row, rowIndex) => (
               <Box
@@ -212,15 +213,17 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
               </Box>
             ))}
           </Box>
-        </ScrollView>
+          </ScrollView>
+        </Box>
       ) : null}
 
       {!isLoading && chips.length > 0 ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('pb-1')}
-        >
+        <Box twClassName="-mx-4">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={tw.style('px-4 pb-1')}
+          >
           <Box twClassName="gap-2">
             {chipRows.map((row, rowIndex) => (
               <Box
@@ -249,7 +252,8 @@ const PredictPopularTodaySection: React.FC<PredictPopularTodaySectionProps> = ({
               </Box>
             ))}
           </Box>
-        </ScrollView>
+          </ScrollView>
+        </Box>
       ) : null}
     </Box>
   );
