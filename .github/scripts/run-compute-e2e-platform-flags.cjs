@@ -95,7 +95,6 @@ const outputLines = [
   `e2e_needed=${flags.e2eNeeded}`,
   `native_build_needed=${flags.nativeBuildNeeded}`,
   `run_smart_e2e_selection=${flags.runSmartE2ESelection}`,
-  `e2e_relevant_workflows_changed=${e2eWorkflowsCount > 0}`,
   `block_merge=${blockMerge}`,
   `run_performance=${runPerformance}`,
   `run_appium_ios=${runAppiumIos}`,

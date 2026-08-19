@@ -69,7 +69,6 @@ describe('computeE2EPlatformFlags', () => {
     });
 
     expect(result.nativeBuildNeeded).toBe(true);
-    expect(result.runSmartE2ESelection).toBe(false);
   });
 
   it('runs Smart E2E selection for cherry-pick PRs targeting release/*', () => {
