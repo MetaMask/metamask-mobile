@@ -271,7 +271,7 @@ const EarnInputView = () => {
 
       ///: BEGIN:ONLY_INCLUDE_IF(tron)
       // Navigate to TRX staking learn more modal
-      if (tokenExperience === EARN_EXPERIENCES.TRX_STAKING || isTronNative) {
+      if (isTronNative) {
         navigation.navigate('StakeModals', {
           screen: Routes.STAKING.MODALS.TRX_LEARN_MORE,
         });
@@ -890,13 +890,12 @@ const EarnInputView = () => {
   ]);
 
   const handleInfoPress = useCallback(() => {
-    const isTronStakingExperience =
-      stakingExperienceType === EARN_EXPERIENCES.TRX_STAKING;
-    const apr = isTronStakingExperience
-      ? (tronApyPercent ?? undefined)
-      : earnToken?.experience?.apr !== undefined
-        ? `${earnToken.experience.apr}%`
-        : undefined;
+    const apr =
+      stakingExperienceType === EARN_EXPERIENCES.TRX_STAKING
+        ? (tronApyPercent ?? undefined)
+        : earnToken?.experience?.apr !== undefined
+          ? `${earnToken.experience.apr}%`
+          : undefined;
     const tooltipName =
       stakingExperienceType === EARN_EXPERIENCES.STABLECOIN_LENDING
         ? 'Lending Historic Market APY Graph'

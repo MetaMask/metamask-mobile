@@ -1,7 +1,6 @@
 import type { Asset } from '@metamask/assets-controllers';
 import type { LendingMarket } from '@metamask/stake-sdk';
 import type { CaipAssetType } from '@metamask/utils';
-import type { TokenI } from '../../Tokens/types';
 import type { EARN_EXPERIENCES } from '../constants/experiences';
 
 export type EarnAssetId = CaipAssetType;

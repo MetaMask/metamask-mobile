@@ -170,8 +170,10 @@ const getHeldEarnExperiences = ({
     const isPooledStaking = experience.type === EARN_EXPERIENCES.POOLED_STAKING;
     const isTrxStaking = experience.type === EARN_EXPERIENCES.TRX_STAKING;
 
-    // Output assets are receipt or position tokens used by withdrawal flows.
-    // They must not be exposed as deposit strategies in the Earn catalogue.
+    /**
+     * Output assets are receipt or position tokens used by withdrawal flows.
+     * They must not be exposed as deposit strategies in the Earn catalogue.
+     */
     if (isPooledStaking && (!isPooledStakingEnabled || role === 'output')) {
       return [];
     }
@@ -185,7 +187,8 @@ const getHeldEarnExperiences = ({
       return [];
     }
 
-    const market = experience.market; // Markets only available for stablecoin lending.
+    // Markets only available for stablecoin lending.
+    const market = experience.market;
     const percentage = isTrxStaking
       ? trxRatePercent
       : parseRatePercent(experience.apr);
@@ -306,8 +309,10 @@ const useEarnAssetCatalogue = () => {
   const candidates = useMemo(() => {
     const nextCandidates: EarnAsset[] = [];
 
-    // Held candidates are added before discovery candidates so buildEarnAssets
-    // preserves held metadata, balances, and rates for matching CAIP-19 IDs.
+    /**
+     * Held candidates are added before discovery candidates so buildEarnAssets
+     * preserves held metadata, balances, and rates for matching CAIP-19 IDs.
+     */
     if (isEarnEligible) {
       const addHeldEarnAssets = (
         tokens: typeof earnTokens,
