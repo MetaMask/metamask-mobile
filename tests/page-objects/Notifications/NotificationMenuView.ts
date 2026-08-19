@@ -5,6 +5,7 @@ import {
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
 
 /** Matches `TEST_IDS.loadingContainer` in Notification List. */
 const NOTIFICATION_LIST_LOADING_TEST_ID = 'notification-list-loading';
@@ -82,12 +83,32 @@ class NotificationMenuView {
    *
    * FlatList virtualizes off-screen rows, so `expectElementToExist` alone can
    * time out even when mocks have merged — the item is simply not mounted yet.
+   *
+   * Wallet rows can also arrive *after* the loading spinner clears (feature
+   * announcements often paint first). A single scroll budget then fails with
+   * WDIO "scroll limit … scrolling up" (POM `direction: 'down'`) even though
+   * waiting longer would find the row. Retry short scroll passes until the
+   * outer timeout so late mock merges still succeed.
    */
   async waitForNotificationItem(
     id: string,
     options?: { direction?: 'up' | 'down'; timeout?: number },
   ): Promise<void> {
-    await this.scrollToNotificationItem(id, options);
+    const timeout = options?.timeout ?? 90_000;
+    await Utilities.executeWithRetry(
+      async () => {
+        await this.scrollToNotificationItem(id, {
+          direction: options?.direction ?? 'down',
+          // ~4 scrolls per attempt (GestureStrategy: timeout/5000, capped 3–12)
+          timeout: 20_000,
+        });
+      },
+      {
+        timeout,
+        interval: 1_000,
+        description: `Notification item ${id} in list`,
+      },
+    );
   }
 
   async scrollToNotificationItem(
