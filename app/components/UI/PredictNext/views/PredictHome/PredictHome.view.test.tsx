@@ -53,8 +53,16 @@ const makeGameEvent = (
   awayTeam: string,
   homeTeam: string,
   competition: string,
+  {
+    volume = '1500000',
+    score = { away: '17', home: '21' },
+  }: {
+    volume?: string;
+    score?: { away: string; home: string };
+  } = {},
 ): PredictEvent => ({
   ...makeEvent(id, `${awayTeam} vs ${homeTeam}`),
+  volume,
   sports: {
     sport: {
       id: 'american-football' as PredictEntityId,
@@ -68,7 +76,7 @@ const makeGameEvent = (
       status: 'in_progress',
       awayTeam: { name: awayTeam, abbreviation: awayTeam.slice(0, 3) },
       homeTeam: { name: homeTeam, abbreviation: homeTeam.slice(0, 3) },
-      score: { away: '17', home: '21' },
+      score,
       period: 'Q4',
       clock: '12:22',
       observedAt: '2026-08-19T12:00:00Z' as PredictTimestamp,
@@ -106,11 +114,20 @@ const makeGameEvent = (
 
 const nflEvents = [
   makeGameEvent('nfl-1', 'Packers', 'Steelers', 'NFL'),
-  makeGameEvent('nfl-2', 'Panthers', 'Cardinals', 'NFL'),
+  makeGameEvent('nfl-2', 'Panthers', 'Cardinals', 'NFL', {
+    volume: '2500',
+    score: { away: '10', home: '7' },
+  }),
 ];
 const ncaaEvents = [
-  makeGameEvent('ncaa-1', 'Pittsburgh', 'Miami', 'NCAAF'),
-  makeGameEvent('ncaa-2', 'Georgia', 'Florida', 'NCAAF'),
+  makeGameEvent('ncaa-1', 'Pittsburgh', 'Miami', 'NCAAF', {
+    volume: '500',
+    score: { away: '24', home: '31' },
+  }),
+  makeGameEvent('ncaa-2', 'Georgia', 'Florida', 'NCAAF', {
+    volume: '900000',
+    score: { away: '3', home: '0' },
+  }),
 ];
 
 const messengerCall = Engine.controllerMessenger.call as unknown as jest.Mock;
@@ -144,6 +161,44 @@ const configureFeeds = ({
   );
 };
 
+const expectGameCard = (
+  section: Parameters<typeof within>[0],
+  eventId: string,
+  {
+    away,
+    home,
+    awayScore,
+    homeScore,
+    competition,
+    volume,
+  }: {
+    away: string;
+    home: string;
+    awayScore: string;
+    homeScore: string;
+    competition: string;
+    volume: string;
+  },
+) => {
+  const card = within(section).getByTestId(
+    PredictHomeTestIds.event('kalshi', eventId),
+  );
+  const scoped = within(card);
+
+  expect(scoped.getByText(away)).toBeOnTheScreen();
+  expect(scoped.getByText(home)).toBeOnTheScreen();
+  expect(scoped.getByText(awayScore)).toBeOnTheScreen();
+  expect(scoped.getByText(homeScore)).toBeOnTheScreen();
+  expect(scoped.getByText(competition)).toBeOnTheScreen();
+  expect(scoped.getByText(volume)).toBeOnTheScreen();
+  expect(
+    scoped.getByTestId(PredictHomeTestIds.gameQuote(eventId, 'away')),
+  ).toBeOnTheScreen();
+  expect(
+    scoped.getByTestId(PredictHomeTestIds.gameQuote(eventId, 'home')),
+  ).toBeOnTheScreen();
+};
+
 describe('PredictHome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -173,36 +228,65 @@ describe('PredictHome', () => {
       { limit: 2 },
       undefined,
     );
-    const firstNflCard = await view.findByTestId(
-      PredictHomeTestIds.event('kalshi', 'nfl-1'),
-    );
-    expect(within(firstNflCard).getByText('Packers')).toBeOnTheScreen();
-    expect(within(firstNflCard).getByText('Steelers')).toBeOnTheScreen();
-    expect(within(firstNflCard).getByText('17')).toBeOnTheScreen();
-    expect(within(firstNflCard).getByText('21')).toBeOnTheScreen();
-    expect(within(firstNflCard).getByText('NFL')).toBeOnTheScreen();
-    expect(within(firstNflCard).getByText('$1.5M Vol')).toBeOnTheScreen();
 
-    const secondNflCard = view.getByTestId(
-      PredictHomeTestIds.event('kalshi', 'nfl-2'),
-    );
-    expect(within(secondNflCard).getByText('Panthers')).toBeOnTheScreen();
-    expect(within(secondNflCard).getByText('Cardinals')).toBeOnTheScreen();
-    expect(view.queryByText('Hidden NFL Game')).not.toBeOnTheScreen();
+    await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
+    await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-2'));
 
-    const firstNcaaCard = view.getByTestId(
-      PredictHomeTestIds.event('kalshi', 'ncaa-1'),
+    const nflSection = view.getByTestId(
+      PredictHomeTestIds.section(NFL_FEED_SCREEN_ID),
     );
-    expect(within(firstNcaaCard).getByText('Pittsburgh')).toBeOnTheScreen();
-    expect(within(firstNcaaCard).getByText('Miami')).toBeOnTheScreen();
-    expect(within(firstNcaaCard).getByText('NCAAF')).toBeOnTheScreen();
+    expectGameCard(nflSection, 'nfl-1', {
+      away: 'Packers',
+      home: 'Steelers',
+      awayScore: '17',
+      homeScore: '21',
+      competition: 'NFL',
+      volume: '$1.5M Vol',
+    });
+    expectGameCard(nflSection, 'nfl-2', {
+      away: 'Panthers',
+      home: 'Cardinals',
+      awayScore: '10',
+      homeScore: '7',
+      competition: 'NFL',
+      volume: '$2.5k Vol',
+    });
+    expect(
+      within(nflSection).queryByText('Hidden NFL Game'),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(nflSection).queryByTestId(
+        PredictHomeTestIds.event('kalshi', 'ncaa-1'),
+      ),
+    ).not.toBeOnTheScreen();
 
-    const secondNcaaCard = view.getByTestId(
-      PredictHomeTestIds.event('kalshi', 'ncaa-2'),
+    const ncaaSection = view.getByTestId(
+      PredictHomeTestIds.section(NCAA_FEED_SCREEN_ID),
     );
-    expect(within(secondNcaaCard).getByText('Georgia')).toBeOnTheScreen();
-    expect(within(secondNcaaCard).getByText('Florida')).toBeOnTheScreen();
-    expect(view.queryByText('Hidden College Game')).not.toBeOnTheScreen();
+    expectGameCard(ncaaSection, 'ncaa-1', {
+      away: 'Pittsburgh',
+      home: 'Miami',
+      awayScore: '24',
+      homeScore: '31',
+      competition: 'NCAAF',
+      volume: '$500 Vol',
+    });
+    expectGameCard(ncaaSection, 'ncaa-2', {
+      away: 'Georgia',
+      home: 'Florida',
+      awayScore: '3',
+      homeScore: '0',
+      competition: 'NCAAF',
+      volume: '$900k Vol',
+    });
+    expect(
+      within(ncaaSection).queryByText('Hidden College Game'),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(ncaaSection).queryByTestId(
+        PredictHomeTestIds.event('kalshi', 'nfl-1'),
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens the NFL Feed Screen and returns without refetching previews', async () => {
