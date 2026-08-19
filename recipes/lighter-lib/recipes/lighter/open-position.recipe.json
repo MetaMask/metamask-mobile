@@ -1,7 +1,7 @@
 {
   "$schema": "https://farmslot.io/schemas/recipe-v1.schema.json",
   "title": "Lighter \u2014 open a minimal position through the real order form",
-  "description": "Navigates to the market, presses Long/Short, accepts the venue-minimum seeded amount, places the market order through the UI, and verifies the position against the venue.",
+  "description": "Navigates to the market, presses Long/Short, accepts the venue-minimum seeded amount, places the market order through the UI, and verifies the position against the venue. Re-entrant: when a position already exists the UI-open leg is skipped and the unit just verifies it (ensure semantics via graph branching).",
   "paramsSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -18,7 +18,7 @@
     }
   },
   "workflow": {
-    "entry": "market",
+    "entry": "check",
     "nodes": {
       "market": {
         "action": "ui.navigate",
@@ -87,6 +87,22 @@
       "done": {
         "action": "end",
         "status": "pass"
+      },
+      "check": {
+        "action": "metamask.perps.read_positions",
+        "market": "{{params.market}}",
+        "intent": "Read whether a position already exists so the unit can converge instead of failing on a re-run.",
+        "next": "branch"
+      },
+      "branch": {
+        "action": "switch",
+        "value": "n:{{outputs.check.matchingCount}}",
+        "equals": "n:0",
+        "cases": {
+          "match": "market"
+        },
+        "default": "assert-open",
+        "intent": "Open through the UI only when no position exists; an existing position already satisfies this unit."
       }
     }
   }
