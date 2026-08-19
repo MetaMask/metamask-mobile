@@ -59,7 +59,7 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
   const tw = useTailwind();
   const backgroundImageUrl = campaign.image?.lightModeUrl;
   const { totalFiatFormatted, lastKnownTotalFiatFormatted, isBalanceLoading } =
-    useMoneyAccountBalance({ enabled: isParticipating });
+    useMoneyAccountBalance();
 
   if (isParticipating) {
     const showStatsLoading = isStatsLoading && !stats;
