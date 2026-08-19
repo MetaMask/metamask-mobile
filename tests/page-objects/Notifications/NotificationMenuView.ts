@@ -94,13 +94,13 @@ class NotificationMenuView {
     id: string,
     options?: { direction?: 'up' | 'down'; timeout?: number },
   ): Promise<void> {
-    const timeout = options?.timeout ?? 90_000;
+    const timeout = options?.timeout ?? 30_000;
     await Utilities.executeWithRetry(
       async () => {
         await this.scrollToNotificationItem(id, {
           direction: options?.direction ?? 'down',
-          // ~4 scrolls per attempt (GestureStrategy: timeout/5000, capped 3–12)
-          timeout: 20_000,
+          // ~3 scrolls per attempt (GestureStrategy: timeout/5000, capped 3–12)
+          timeout: 10_000,
         });
       },
       {
