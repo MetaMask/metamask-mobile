@@ -131,6 +131,20 @@ describe('buildPerpsOrderParams', () => {
     expect(params).not.toHaveProperty('stopLossPrice');
   });
 
+  it('uses the 10% TP/SL default for an unconfigured trigger-market order', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'stop_market',
+      triggerPrice: '91000',
+      maxSlippageBps: 300,
+      maxSlippageSource: 'default',
+    });
+
+    expect(params.maxSlippageBps).toBe(
+      ORDER_SLIPPAGE_CONFIG.DefaultTpslSlippageBps,
+    );
+  });
+
   it('includes triggerPrice, limit price, and default limit slippage for a take-limit order', () => {
     const params = buildPerpsOrderParams({
       ...base,
@@ -156,6 +170,24 @@ describe('buildPerpsOrderParams', () => {
 
     expect(params).not.toHaveProperty('triggerPrice');
     expect(params).not.toHaveProperty('price');
+  });
+
+  it('omits usdAmount for an exact full reduce-only close', () => {
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'market',
+      size: '0.123',
+      usdAmount: undefined,
+      reduceOnly: true,
+      isFullClose: true,
+    });
+
+    expect(params).toMatchObject({
+      size: '0.123',
+      reduceOnly: true,
+      isFullClose: true,
+    });
+    expect(params).not.toHaveProperty('usdAmount');
   });
 });
 

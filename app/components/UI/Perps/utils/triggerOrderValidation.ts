@@ -1,4 +1,6 @@
 import {
+  DECIMAL_PRECISION_CONFIG,
+  formatHyperLiquidPrice,
   getTriggerDirection,
   isLimitExecutionOrderType,
   isTriggerOrderType,
@@ -17,12 +19,32 @@ export type TriggerPriceValidationIssue =
       requiredSide: 'above' | 'below';
     };
 
+export type LimitPriceValidationIssue =
+  | { code: 'required' }
+  | { code: 'positive' }
+  | {
+      code: 'below_trigger' | 'above_trigger';
+      requiredRelation: 'at_or_above' | 'at_or_below';
+    };
+
+export type OrderFormFieldIssue =
+  | {
+      field: 'triggerPrice';
+      issue: TriggerPriceValidationIssue;
+    }
+  | {
+      field: 'limitPrice';
+      issue: LimitPriceValidationIssue;
+    };
+
 export interface TriggerPriceValidationInput {
   orderType: OrderType;
   direction: 'long' | 'short';
   triggerPrice: string | undefined;
-  /** Live mid used only for placement-side checks; mark activates on venue. */
-  midPrice: number;
+  /** Live mid used for client-side placement checks. */
+  midPrice?: number;
+  /** Asset size decimals used by Hyperliquid's price formatter. */
+  szDecimals?: number;
 }
 
 export interface LimitPriceCrossingWarningInput {
@@ -30,6 +52,8 @@ export interface LimitPriceCrossingWarningInput {
   direction: 'long' | 'short';
   limitPrice: string | undefined;
   midPrice: number;
+  triggerPrice?: string;
+  szDecimals?: number;
 }
 
 const TRIGGER_WRONG_SIDE_KEYS = {
@@ -37,11 +61,54 @@ const TRIGGER_WRONG_SIDE_KEYS = {
   below: 'perps.order.validation.trigger_must_be_below_mid',
 } as const;
 
+const getPriceDecimals = (szDecimals?: number): number =>
+  szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
+
+/**
+ * Formats a user-entered price using Hyperliquid's significant-figure and
+ * decimal-place rules before it is compared or submitted.
+ *
+ * @param price - Raw numeric text.
+ * @param szDecimals - Asset size decimals.
+ * @returns The venue-formatted price, or `undefined` for empty input.
+ */
+export const canonicalizeOrderPrice = (
+  price: string | undefined,
+  szDecimals?: number,
+): string | undefined => {
+  const trimmed = price?.trim() ?? '';
+  if (!trimmed) {
+    return undefined;
+  }
+
+  const parsed = Number.parseFloat(trimmed);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return trimmed;
+  }
+
+  return formatHyperLiquidPrice({
+    price: trimmed,
+    szDecimals: getPriceDecimals(szDecimals),
+  });
+};
+
+/**
+ * Canonicalizes a trigger price at the venue boundary.
+ *
+ * @param price - Raw trigger text.
+ * @param szDecimals - Asset size decimals.
+ * @returns The canonical trigger price, or `undefined` when empty.
+ */
+export const canonicalizeTriggerPrice = (
+  price: string | undefined,
+  szDecimals?: number,
+): string | undefined => canonicalizeOrderPrice(price, szDecimals);
+
 /**
  * Required side of mid for a trigger placement.
  *
- * Hyperliquid: Stop Long `>` mid, Stop Short `<` mid; Take Long `<` mid,
- * Take Short `>` mid. Equality is invalid.
+ * Hyperliquid's order-type guidance: Stop Long `>` mid, Stop Short `<` mid;
+ * Take Long `<` mid, Take Short `>` mid. Equality is invalid.
  *
  * @param orderType - Trigger order type.
  * @param direction - Intended position side.
@@ -59,8 +126,8 @@ export const getRequiredTriggerSide = (
 };
 
 /**
- * Client-only trigger-vs-mid check. The controller does not validate
- * direction against mid; Hyperliquid mark later activates the resting order.
+ * Client-only trigger-vs-mid check. Hyperliquid uses mark price later to
+ * activate TP/SL orders; this check only validates the placement-side rule.
  *
  * @param input - Order type, side, typed trigger, and live mid.
  * @returns A typed issue, or `undefined` when the trigger is valid or N/A.
@@ -70,6 +137,7 @@ export const getTriggerPriceValidationIssue = ({
   direction,
   triggerPrice,
   midPrice,
+  szDecimals,
 }: TriggerPriceValidationInput): TriggerPriceValidationIssue | undefined => {
   if (!isTriggerOrderType(orderType)) {
     return undefined;
@@ -80,18 +148,22 @@ export const getTriggerPriceValidationIssue = ({
     return { code: 'required' };
   }
 
-  const trigger = Number.parseFloat(trimmed);
+  const canonicalTrigger = canonicalizeTriggerPrice(trimmed, szDecimals);
+  const trigger = Number.parseFloat(canonicalTrigger ?? '');
   if (!Number.isFinite(trigger) || trigger <= 0) {
     return { code: 'positive' };
   }
 
-  if (!(midPrice > 0)) {
+  const referencePrice = midPrice ?? 0;
+  if (!(referencePrice > 0)) {
     return undefined;
   }
 
   const requiredSide = getRequiredTriggerSide(orderType, direction);
   const isOnValidSide =
-    requiredSide === 'above' ? trigger > midPrice : trigger < midPrice;
+    requiredSide === 'above'
+      ? trigger > referencePrice
+      : trigger < referencePrice;
 
   if (isOnValidSide) {
     return undefined;
@@ -102,6 +174,109 @@ export const getTriggerPriceValidationIssue = ({
     family: getTriggerDirection(orderType),
     requiredSide,
   };
+};
+
+/**
+ * Validates the execution price for limit and trigger-limit placements.
+ *
+ * @param input - Order type, direction, and candidate prices.
+ * @returns A typed limit-price issue, or `undefined`.
+ */
+export const getLimitPriceValidationIssue = ({
+  orderType,
+  direction,
+  limitPrice,
+  triggerPrice,
+  szDecimals,
+}: {
+  orderType: OrderType;
+  direction: 'long' | 'short';
+  limitPrice: string | undefined;
+  triggerPrice?: string;
+  szDecimals?: number;
+}): LimitPriceValidationIssue | undefined => {
+  if (!isLimitExecutionOrderType(orderType)) {
+    return undefined;
+  }
+
+  const canonicalLimit = canonicalizeOrderPrice(limitPrice, szDecimals);
+  const parsedLimit = Number.parseFloat(canonicalLimit ?? '');
+  if (!Number.isFinite(parsedLimit) || parsedLimit <= 0) {
+    return limitPrice?.trim() ? { code: 'positive' } : { code: 'required' };
+  }
+
+  if (!isTriggerOrderType(orderType)) {
+    return undefined;
+  }
+
+  const canonicalTrigger = canonicalizeTriggerPrice(triggerPrice, szDecimals);
+  const parsedTrigger = Number.parseFloat(canonicalTrigger ?? '');
+  if (!Number.isFinite(parsedTrigger) || parsedTrigger <= 0) {
+    return undefined;
+  }
+
+  if (direction === 'long' && parsedLimit < parsedTrigger) {
+    return {
+      code: 'below_trigger',
+      requiredRelation: 'at_or_above',
+    };
+  }
+
+  if (direction === 'short' && parsedLimit > parsedTrigger) {
+    return {
+      code: 'above_trigger',
+      requiredRelation: 'at_or_below',
+    };
+  }
+
+  return undefined;
+};
+
+/**
+ * Builds all blocking price-field issues for an order form.
+ *
+ * @param input - Current order form prices and market reference.
+ * @returns Typed issues with field ownership.
+ */
+export const getOrderFormFieldIssues = ({
+  orderType,
+  direction,
+  triggerPrice,
+  limitPrice,
+  midPrice,
+  szDecimals,
+}: {
+  orderType: OrderType;
+  direction: 'long' | 'short';
+  triggerPrice?: string;
+  limitPrice?: string;
+  midPrice: number;
+  szDecimals?: number;
+}): OrderFormFieldIssue[] => {
+  const issues: OrderFormFieldIssue[] = [];
+  const triggerIssue = getTriggerPriceValidationIssue({
+    orderType,
+    direction,
+    triggerPrice,
+    midPrice,
+    szDecimals,
+  });
+  if (triggerIssue) {
+    issues.push({ field: 'triggerPrice', issue: triggerIssue });
+  }
+
+  const limitIssue = getLimitPriceValidationIssue({
+    orderType,
+    direction,
+    limitPrice,
+    triggerPrice,
+    szDecimals,
+  });
+  if (limitIssue) {
+    issues.push({ field: 'limitPrice', issue: limitIssue });
+  }
+
+  return issues;
 };
 
 /**
@@ -123,8 +298,43 @@ export const getTriggerPriceValidationMessage = (
 };
 
 /**
+ * Localizes a typed limit-price issue.
+ *
+ * @param issue - Limit-price validation issue.
+ * @returns User-facing helper text.
+ */
+export const getLimitPriceValidationMessage = (
+  issue: LimitPriceValidationIssue,
+): string => {
+  if (issue.code === 'required') {
+    return strings('perps.order.validation.limit_price_required');
+  }
+  if (issue.code === 'positive') {
+    return strings('perps.errors.orderValidation.pricePositive');
+  }
+  return strings(
+    issue.requiredRelation === 'at_or_above'
+      ? 'perps.order.validation.limit_price_must_be_at_or_above_trigger'
+      : 'perps.order.validation.limit_price_must_be_at_or_below_trigger',
+  );
+};
+
+/**
+ * Localizes any field-owned order-price issue.
+ *
+ * @param issue - Typed field issue.
+ * @returns User-facing helper text.
+ */
+export const getOrderFormFieldIssueMessage = (
+  issue: OrderFormFieldIssue,
+): string =>
+  issue.field === 'triggerPrice'
+    ? getTriggerPriceValidationMessage(issue.issue)
+    : getLimitPriceValidationMessage(issue.issue);
+
+/**
  * Non-blocking warning when a limit (or trigger-limit) price would cross mid
- * and may fill as a market order. Equality is not a warning.
+ * and may fill as a taker limit. Equality is not a warning.
  *
  * @param input - Order type, side, typed limit, and live mid.
  * @returns Localized warning copy, or `undefined`.
@@ -134,13 +344,40 @@ export const getLimitPriceCrossingWarning = ({
   direction,
   limitPrice,
   midPrice,
+  triggerPrice,
+  szDecimals,
 }: LimitPriceCrossingWarningInput): string | undefined => {
   if (!isLimitExecutionOrderType(orderType)) {
     return undefined;
   }
 
-  const limit = Number.parseFloat(limitPrice ?? '');
-  if (!(limit > 0) || !(midPrice > 0)) {
+  const canonicalLimit = canonicalizeOrderPrice(limitPrice, szDecimals);
+  const limit = Number.parseFloat(canonicalLimit ?? '');
+  if (!(limit > 0)) {
+    return undefined;
+  }
+
+  if (isTriggerOrderType(orderType)) {
+    const canonicalTrigger = canonicalizeTriggerPrice(triggerPrice, szDecimals);
+    const trigger = Number.parseFloat(canonicalTrigger ?? '');
+    if (!(trigger > 0)) {
+      return undefined;
+    }
+
+    if (direction === 'long' && limit > trigger) {
+      return strings(
+        'perps.order.validation.trigger_limit_price_above_warning',
+      );
+    }
+    if (direction === 'short' && limit < trigger) {
+      return strings(
+        'perps.order.validation.trigger_limit_price_below_warning',
+      );
+    }
+    return undefined;
+  }
+
+  if (!(midPrice > 0)) {
     return undefined;
   }
 
@@ -153,18 +390,3 @@ export const getLimitPriceCrossingWarning = ({
 
   return undefined;
 };
-
-/**
- * True when `message` is a trigger-form price helper that belongs under the
- * price card rather than in the notices list.
- *
- * @param message - Localized validation string.
- */
-export const isTriggerFormPriceMessage = (message: string): boolean =>
-  message === strings('perps.order.validation.please_set_a_trigger_price') ||
-  message === strings('perps.errors.orderValidation.triggerPricePositive') ||
-  message === strings('perps.errors.orderValidation.limitPriceRequired') ||
-  message === strings('perps.order.validation.limit_price_required') ||
-  message === strings('perps.order.validation.please_set_a_limit_price') ||
-  message === strings(TRIGGER_WRONG_SIDE_KEYS.above) ||
-  message === strings(TRIGGER_WRONG_SIDE_KEYS.below);

@@ -1,8 +1,10 @@
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import {
   deriveOrderSizing,
+  getMaxAllowedAmountAtExecutionPrice,
   getProspectiveExecutionPrice,
   getReduceOnlyMaxUsdAmount,
+  getTriggerMarketSlippageCapPrice,
 } from './orderSizing';
 
 describe('deriveOrderSizing', () => {
@@ -125,6 +127,20 @@ describe('deriveOrderSizing', () => {
     expect(result.effectivePrice).toBe(87000);
   });
 
+  it('keeps trigger size price separate from the slippage-buffered margin price', () => {
+    const result = deriveOrderSizing({
+      ...base,
+      amount: '1000',
+      orderType: 'stop_market',
+      triggerPrice: '90000',
+      isBuy: true,
+      maxSlippageBps: 1000,
+    });
+
+    expect(result.effectivePrice).toBe(90000);
+    expect(result.marginPrice).toBe(99000);
+  });
+
   it('falls back to the market price when a trigger-market order has no trigger', () => {
     const result = deriveOrderSizing({
       ...base,
@@ -133,6 +149,51 @@ describe('deriveOrderSizing', () => {
     });
 
     expect(result.effectivePrice).toBe(90000);
+  });
+});
+
+describe('getTriggerMarketSlippageCapPrice', () => {
+  it('calculates a buy-side cap and applies venue precision', () => {
+    expect(
+      getTriggerMarketSlippageCapPrice({
+        triggerPrice: '90000',
+        isBuy: true,
+        maxSlippageBps: 1000,
+        szDecimals: 3,
+      }),
+    ).toBe(99000);
+  });
+
+  it('calculates a sell-side cap', () => {
+    expect(
+      getTriggerMarketSlippageCapPrice({
+        triggerPrice: '90000',
+        isBuy: false,
+        maxSlippageBps: 1000,
+        szDecimals: 3,
+      }),
+    ).toBe(81000);
+  });
+});
+
+describe('getMaxAllowedAmountAtExecutionPrice', () => {
+  it('reduces a buy maximum when the capped execution price is higher', () => {
+    const uncapped = getMaxAllowedAmountAtExecutionPrice({
+      spendableBalance: 1000,
+      sizePrice: 90000,
+      executionPrice: 90000,
+      assetSzDecimals: 3,
+      leverage: 5,
+    });
+    const capped = getMaxAllowedAmountAtExecutionPrice({
+      spendableBalance: 1000,
+      sizePrice: 90000,
+      executionPrice: 99000,
+      assetSzDecimals: 3,
+      leverage: 5,
+    });
+
+    expect(capped).toBeLessThan(uncapped);
   });
 });
 

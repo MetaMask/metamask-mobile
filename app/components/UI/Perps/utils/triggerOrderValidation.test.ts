@@ -1,9 +1,12 @@
 import {
+  canonicalizeOrderPrice,
+  getLimitPriceValidationIssue,
+  getLimitPriceValidationMessage,
   getLimitPriceCrossingWarning,
+  getOrderFormFieldIssues,
   getRequiredTriggerSide,
   getTriggerPriceValidationIssue,
   getTriggerPriceValidationMessage,
-  isTriggerFormPriceMessage,
 } from './triggerOrderValidation';
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -233,15 +236,18 @@ describe('getLimitPriceCrossingWarning', () => {
     expect(warning).toBe('perps.order.validation.limit_price_above_warning');
   });
 
-  it('warns when a short trigger-limit is below mid', () => {
+  it('warns when a short trigger-limit is below its trigger', () => {
     const warning = getLimitPriceCrossingWarning({
       orderType: 'stop_limit',
       direction: 'short',
       limitPrice: '2400',
       midPrice: 2500,
+      triggerPrice: '2450',
     });
 
-    expect(warning).toBe('perps.order.validation.limit_price_below_warning');
+    expect(warning).toBe(
+      'perps.order.validation.trigger_limit_price_below_warning',
+    );
   });
 
   it('returns undefined when the limit does not cross mid', () => {
@@ -264,20 +270,49 @@ describe('getLimitPriceCrossingWarning', () => {
   });
 });
 
-describe('isTriggerFormPriceMessage', () => {
-  it('recognizes trigger helper copy and omits unrelated notices', () => {
+describe('typed order price validation', () => {
+  it('canonicalizes a price using venue precision', () => {
+    const result = canonicalizeOrderPrice('123.456', 0);
+
+    expect(result).toBe('123.46');
+  });
+
+  it('returns a blocking relationship issue when a long trigger-limit cannot fill', () => {
+    const result = getLimitPriceValidationIssue({
+      orderType: 'stop_limit',
+      direction: 'long',
+      triggerPrice: '2500',
+      limitPrice: '2499',
+      szDecimals: 3,
+    });
+
+    expect(result).toEqual({
+      code: 'below_trigger',
+      requiredRelation: 'at_or_above',
+    });
     expect(
-      isTriggerFormPriceMessage(
-        'perps.order.validation.please_set_a_trigger_price',
+      getLimitPriceValidationMessage(
+        result as {
+          code: 'below_trigger';
+          requiredRelation: 'at_or_above';
+        },
       ),
-    ).toBe(true);
-    expect(
-      isTriggerFormPriceMessage(
-        'perps.order.validation.trigger_must_be_below_mid',
-      ),
-    ).toBe(true);
-    expect(
-      isTriggerFormPriceMessage('perps.order.validation.insufficient_funds'),
-    ).toBe(false);
+    ).toBe('perps.order.validation.limit_price_must_be_at_or_above_trigger');
+  });
+
+  it('assigns trigger and limit issues to their owning fields', () => {
+    const result = getOrderFormFieldIssues({
+      orderType: 'stop_limit',
+      direction: 'long',
+      triggerPrice: '2400',
+      limitPrice: '2300',
+      midPrice: 2500,
+      szDecimals: 3,
+    });
+
+    expect(result.map(({ field }) => field)).toEqual([
+      'triggerPrice',
+      'limitPrice',
+    ]);
   });
 });

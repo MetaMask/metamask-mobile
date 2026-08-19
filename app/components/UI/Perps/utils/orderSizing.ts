@@ -1,6 +1,8 @@
 import {
   DECIMAL_PRECISION_CONFIG,
+  getMaxAllowedAmount,
   PERPS_CONSTANTS,
+  formatHyperLiquidPrice,
   calculateMarginRequired,
   calculatePositionSize,
   isLimitExecutionOrderType,
@@ -34,6 +36,10 @@ export interface DeriveOrderSizingInput {
   leverage: number;
   /** Asset size decimals from market data; falls back when unknown. */
   szDecimals: number | null;
+  /** Direction used to calculate trigger-market slippage caps. */
+  isBuy?: boolean;
+  /** Effective max slippage used by trigger-market placements. */
+  maxSlippageBps?: number;
   /** True while market data is still loading (defers derived values). */
   isLoadingMarketData: boolean;
 }
@@ -45,7 +51,98 @@ export interface DeriveOrderSizingResult {
   positionSize: string;
   /** Required margin in USD, or `undefined` while loading / when no amount is set. */
   marginRequired: string | undefined;
+  /** Price used for collateral math, including trigger-market slippage. */
+  marginPrice: number;
 }
+
+export interface TriggerMarketSlippageCapPriceInput {
+  triggerPrice: string;
+  isBuy: boolean;
+  maxSlippageBps: number;
+  szDecimals: number;
+}
+
+/**
+ * Resolves the worst-case execution price used to reserve trigger-market
+ * margin. Hyperliquid applies the slippage cap after a trigger activates.
+ *
+ * @param input - Trigger price, direction, slippage, and asset precision.
+ * @returns The venue-formatted cap price, or `undefined` for invalid input.
+ */
+export const getTriggerMarketSlippageCapPrice = ({
+  triggerPrice,
+  isBuy,
+  maxSlippageBps,
+  szDecimals,
+}: TriggerMarketSlippageCapPriceInput): number | undefined => {
+  const parsedTriggerPrice = new BigNumber(triggerPrice);
+  if (
+    !parsedTriggerPrice.isFinite() ||
+    parsedTriggerPrice.lte(0) ||
+    !Number.isFinite(maxSlippageBps) ||
+    maxSlippageBps < 0
+  ) {
+    return undefined;
+  }
+
+  const slippageMultiplier = isBuy
+    ? 1 + maxSlippageBps / 10_000
+    : 1 - maxSlippageBps / 10_000;
+  if (slippageMultiplier <= 0) {
+    return undefined;
+  }
+
+  const formattedPrice = formatHyperLiquidPrice({
+    price: parsedTriggerPrice.times(slippageMultiplier).toString(),
+    szDecimals,
+  });
+  const capPrice = Number.parseFloat(formattedPrice);
+  return Number.isFinite(capPrice) && capPrice > 0 ? capPrice : undefined;
+};
+
+/**
+ * Calculates a USD max using a target size price and a potentially different
+ * submitted execution price. This keeps size semantics at the trigger while
+ * reserving enough margin for a buy-side slippage cap.
+ *
+ * @param input - Balance, target price, execution price, precision, and leverage.
+ * @returns The buffered maximum USD amount.
+ */
+export const getMaxAllowedAmountAtExecutionPrice = ({
+  spendableBalance,
+  sizePrice,
+  executionPrice,
+  assetSzDecimals,
+  leverage,
+}: {
+  spendableBalance: number;
+  sizePrice: number;
+  executionPrice: number;
+  assetSzDecimals: number;
+  leverage: number;
+}): number => {
+  if (
+    !Number.isFinite(sizePrice) ||
+    sizePrice <= 0 ||
+    !Number.isFinite(executionPrice) ||
+    executionPrice <= 0
+  ) {
+    return 0;
+  }
+
+  return getMaxAllowedAmount({
+    spendableBalance,
+    assetPrice: sizePrice,
+    assetSzDecimals,
+    leverage,
+    ...(executionPrice > sizePrice
+      ? {
+          orderType: 'limit',
+          limitPrice: executionPrice,
+        }
+      : {}),
+  });
+};
 
 /**
  * Prospective execution price for sizing, margin, liquidation, and fees.
@@ -96,6 +193,8 @@ export const deriveOrderSizing = ({
   markPrice,
   leverage,
   szDecimals,
+  isBuy = true,
+  maxSlippageBps,
   isLoadingMarketData,
 }: DeriveOrderSizingInput): DeriveOrderSizingResult => {
   const parsedLimitPrice = isLimitExecutionOrderType(orderType)
@@ -112,6 +211,22 @@ export const deriveOrderSizing = ({
     triggerPrice,
     marketPrice,
   });
+  const hasValidTriggerPrice = parsedTriggerPrice > 0;
+  const isTriggerMarketOrder =
+    isTriggerOrderType(orderType) && !isLimitExecutionOrderType(orderType);
+  const triggerMarketMarginPrice =
+    isTriggerMarketOrder && hasValidTriggerPrice && maxSlippageBps !== undefined
+      ? getTriggerMarketSlippageCapPrice({
+          triggerPrice: triggerPrice as string,
+          isBuy,
+          maxSlippageBps,
+          szDecimals:
+            szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
+        })
+      : undefined;
+  const marginPrice =
+    triggerMarketMarginPrice ??
+    (hasPricedReference ? effectivePrice : markPrice);
 
   const positionSize = isLoadingMarketData
     ? PERPS_CONSTANTS.FallbackDataDisplay
@@ -123,14 +238,13 @@ export const deriveOrderSizing = ({
 
   let marginRequired: string | undefined;
   if (!isLoadingMarketData && amount) {
-    const priceForMargin = hasPricedReference ? effectivePrice : markPrice;
     marginRequired = calculateMarginRequired({
-      amount: BigNumber(priceForMargin).times(positionSize).toString(),
+      amount: BigNumber(marginPrice).times(positionSize).toString(),
       leverage,
     });
   }
 
-  return { effectivePrice, positionSize, marginRequired };
+  return { effectivePrice, positionSize, marginRequired, marginPrice };
 };
 
 export interface ReduceOnlyMaxUsdAmountInput {

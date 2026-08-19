@@ -636,6 +636,36 @@ describe('usePerpsProSizeInput', () => {
     expect(mockSetAmount).toHaveBeenCalledWith('250');
   });
 
+  it('preserves explicit maximum-slider intent separately from the floored amount', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(createParams({ maxPossibleAmount: 1000.75 })),
+    );
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(1000.75);
+    });
+
+    expect(result.current.sizeInput.value).toBe('1000');
+    expect(result.current.isAtMaxAmount).toBe(true);
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(500);
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+  });
+
+  it('clears maximum-slider intent after a manual size edit', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(1000);
+      result.current.sizeInput.onChange('250');
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+  });
+
   it('commits the terminal drag value instead of an earlier preview', () => {
     const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
     act(() => {

@@ -8,6 +8,7 @@ import PerpsProCompactInput, {
 // Mock Input to expose a spyable `focus` via its forwarded ref, mirroring the
 // design system's real `forwardRef<TextInput>` contract.
 const mockInputFocus = jest.fn();
+const mockInputBlur = jest.fn();
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const MockReact = jest.requireActual('react');
@@ -16,7 +17,10 @@ jest.mock('@metamask/design-system-react-native', () => {
     ...actual,
     Input: MockReact.forwardRef(
       (props: Record<string, unknown>, ref: React.Ref<unknown>) => {
-        MockReact.useImperativeHandle(ref, () => ({ focus: mockInputFocus }));
+        MockReact.useImperativeHandle(ref, () => ({
+          focus: mockInputFocus,
+          blur: mockInputBlur,
+        }));
         return MockReact.createElement(TextInput, props);
       },
     ),
@@ -190,5 +194,17 @@ describe('PerpsProCompactInput', () => {
         includeHiddenElements: true,
       }),
     ).toHaveProp('pointerEvents', 'none');
+  });
+
+  it('blurs the native input when the field becomes hidden', () => {
+    const { rerender } = render(
+      <PerpsProCompactInput {...defaultProps} isHidden={false} />,
+    );
+
+    expect(mockInputBlur).not.toHaveBeenCalled();
+
+    rerender(<PerpsProCompactInput {...defaultProps} isHidden />);
+
+    expect(mockInputBlur).toHaveBeenCalledTimes(1);
   });
 });

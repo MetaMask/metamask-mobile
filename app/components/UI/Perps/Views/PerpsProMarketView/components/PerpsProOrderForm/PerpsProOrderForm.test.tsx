@@ -104,6 +104,12 @@ describe('PerpsProOrderForm', () => {
       expect(screen.queryByTestId(ids.MID_PRICE_BUTTON)).not.toBeOnTheScreen();
     });
 
+    it('renders the Mid chip for a plain limit order when provided', () => {
+      renderForm({ orderType: 'limit', onUseMidPricePress: jest.fn() });
+
+      expect(screen.getByTestId(ids.MID_PRICE_BUTTON)).toBeOnTheScreen();
+    });
+
     it('wires limit price blur to onLimitPriceBlur', () => {
       const onLimitPriceBlur = jest.fn();
       renderForm({ orderType: 'limit', onLimitPriceBlur });
@@ -167,7 +173,7 @@ describe('PerpsProOrderForm', () => {
 
       expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
       expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
-      expect(screen.getByTestId(ids.MID_PRICE_BUTTON)).toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.MID_PRICE_BUTTON)).not.toBeOnTheScreen();
       expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
         'Stop limit',
       );
@@ -214,12 +220,12 @@ describe('PerpsProOrderForm', () => {
         orderType: 'stop_market',
         priceCardMessage: {
           severity: 'error',
-          message: 'Trigger price must be higher than mid',
+          message: 'Trigger price must be higher than mid price',
         },
       });
 
       expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
-        'Trigger price must be higher than mid',
+        'Trigger price must be higher than mid price',
       );
     });
 

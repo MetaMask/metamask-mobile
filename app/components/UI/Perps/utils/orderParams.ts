@@ -10,6 +10,7 @@ import {
 } from '@metamask/perps-controller';
 import { derivePerpsTradeAction } from './deriveTradeAction';
 import { toPerpsEntryAttribution } from './perpsAnalyticsAttribution';
+import { resolvePerpsMaxSlippageBps } from '../constants/slippageConfig';
 
 type OrderTrackingData = OrderParams['trackingData'];
 
@@ -91,15 +92,17 @@ export const buildPerpsOrderTrackingData = ({
 export interface BuildPerpsOrderParamsInput {
   asset: string;
   isBuy: boolean;
-  /** Position size (token units) — kept for backward compat; provider recalculates from usdAmount. */
+  /** Position size (token units); exact full closes intentionally omit usdAmount. */
   size: string;
   orderType: OrderType;
   /** Effective price used for both `currentPrice` and `priceAtCalculation`. */
   effectivePrice: number;
   leverage: number;
-  usdAmount: string;
+  usdAmount?: string;
   /** User-configured max slippage (bps); limit-execution orders override to the fixed default. */
   maxSlippageBps: number;
+  /** Source of the resolved slippage value, used to distinguish defaults. */
+  maxSlippageSource?: string;
   limitPrice?: string;
   /** Trigger price for stop/take placements; omitted for market and limit. */
   triggerPrice?: string;
@@ -134,6 +137,7 @@ export const buildPerpsOrderParams = ({
   leverage,
   usdAmount,
   maxSlippageBps,
+  maxSlippageSource,
   limitPrice,
   triggerPrice,
   takeProfitPrice,
@@ -151,11 +155,15 @@ export const buildPerpsOrderParams = ({
     orderType,
     currentPrice: effectivePrice,
     leverage,
-    usdAmount,
+    ...(usdAmount !== undefined ? { usdAmount } : {}),
     priceAtCalculation: effectivePrice,
     maxSlippageBps: isLimitExecutionOrderType(orderType)
       ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
-      : maxSlippageBps,
+      : resolvePerpsMaxSlippageBps({
+          orderType,
+          maxSlippageBps,
+          maxSlippageSource: maxSlippageSource ?? 'user_configured',
+        }),
     ...(reduceOnly !== undefined ? { reduceOnly } : {}),
     ...(isFullClose !== undefined ? { isFullClose } : {}),
     ...(isLimitExecutionOrderType(orderType) && limitPrice

@@ -1,6 +1,7 @@
 import {
   DECIMAL_PRECISION_CONFIG,
   PERPS_CONSTANTS,
+  formatHyperLiquidSize,
   getTriggerExecution,
   isLimitExecutionOrderType,
   isTriggerOrderType,
@@ -17,6 +18,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import BigNumber from 'bignumber.js';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -29,7 +31,10 @@ import { useVipTier } from '../../../../../Rewards/hooks/useVipTier';
 import { useComplianceGate } from '../../../../../Compliance';
 import type { PerpsTooltipContentKey } from '../../../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
-import { bpsToPercent } from '../../../../constants/slippageConfig';
+import {
+  bpsToPercent,
+  resolvePerpsMaxSlippageBps,
+} from '../../../../constants/slippageConfig';
 import { usePerpsOrderContext } from '../../../../contexts/PerpsOrderContext';
 import {
   useHasExistingPosition,
@@ -68,7 +73,10 @@ import {
   getProspectiveExecutionPrice,
   getReduceOnlyMaxUsdAmount,
 } from '../../../../utils/orderSizing';
-import { willFlipPosition } from '../../../../utils/orderUtils';
+import {
+  getOrderManagementToastKey,
+  willFlipPosition,
+} from '../../../../utils/orderUtils';
 import {
   validateReduceOnlyOrder,
   getReduceOnlyPositionError,
@@ -79,10 +87,11 @@ import {
   type PerpsOrderTpSlWarnings,
 } from '../../../../utils/tpslValidation';
 import {
+  canonicalizeOrderPrice,
+  canonicalizeTriggerPrice,
   getLimitPriceCrossingWarning,
-  getTriggerPriceValidationIssue,
-  getTriggerPriceValidationMessage,
-  isTriggerFormPriceMessage,
+  getOrderFormFieldIssueMessage,
+  getOrderFormFieldIssues,
 } from '../../../../utils/triggerOrderValidation';
 import { MAX_PERPS_INPUT_DIGITS } from '../../../../constants/perpsConfig';
 import {
@@ -232,6 +241,8 @@ const getTpslNotices = ({
 
 export interface UsePerpsProOrderFormParams {
   market: PerpsMarketData;
+  /** Feature-gate trigger order placement as well as the type picker. */
+  isTriggeredOrdersEnabled?: boolean;
 }
 
 export interface UsePerpsProOrderFormResult {
@@ -311,6 +322,7 @@ export interface UsePerpsProOrderFormResult {
  */
 export const usePerpsProOrderForm = ({
   market,
+  isTriggeredOrdersEnabled = true,
 }: UsePerpsProOrderFormParams): UsePerpsProOrderFormResult => {
   const symbol = market.symbol;
 
@@ -339,6 +351,10 @@ export const usePerpsProOrderForm = ({
     setTakeProfitPrice,
     setStopLossPrice,
     setLimitPrice,
+    commitLimitPrice,
+    commitTriggerPrice,
+    hasBlurredLimitPrice,
+    hasBlurredTriggerPrice,
     triggerPrice,
     setTriggerPrice,
     setOrderType,
@@ -349,8 +365,6 @@ export const usePerpsProOrderForm = ({
 
   // Local (Pro-only) state
   const [reduceOnly, setReduceOnly] = useState(false);
-  const [hasBlurredTriggerPrice, setHasBlurredTriggerPrice] = useState(false);
-  const [hasBlurredLimitPrice, setHasBlurredLimitPrice] = useState(false);
   const [isLeverageVisible, setIsLeverageVisible] = useState(false);
   const [isSlippageVisible, setIsSlippageVisible] = useState(false);
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
@@ -358,8 +372,29 @@ export const usePerpsProOrderForm = ({
     useState<PerpsTooltipContentKey | null>(null);
   const isSubmittingRef = useRef(false);
 
+  useEffect(() => {
+    if (isTriggeredOrdersEnabled || !isTriggerOrderType(orderForm.type)) {
+      return;
+    }
+
+    setOrderType('market');
+    setLimitPrice(undefined);
+    setTriggerPrice(undefined);
+  }, [
+    isTriggeredOrdersEnabled,
+    orderForm.type,
+    setLimitPrice,
+    setOrderType,
+    setTriggerPrice,
+  ]);
+
   const { maxSlippageBps, maxSlippageSource, setMaxSlippage } =
     usePerpsMaxSlippage();
+  const resolvedMaxSlippageBps = resolvePerpsMaxSlippageBps({
+    orderType: orderForm.type,
+    maxSlippageBps,
+    maxSlippageSource,
+  });
   const { isAtCap } = usePerpsOICap(symbol);
   const vipTier = useVipTier();
 
@@ -413,15 +448,29 @@ export const usePerpsProOrderForm = ({
     };
   }, [currentPrice]);
 
+  const normalizedTriggerPrice = canonicalizeTriggerPrice(
+    triggerPrice,
+    szDecimals,
+  );
+  const normalizedLimitPrice = canonicalizeOrderPrice(
+    orderForm.limitPrice,
+    szDecimals,
+  );
+
   const effectiveInputPrice = useMemo(
     () =>
       getProspectiveExecutionPrice({
         orderType: orderForm.type,
-        limitPrice: orderForm.limitPrice,
-        triggerPrice,
+        limitPrice: normalizedLimitPrice,
+        triggerPrice: normalizedTriggerPrice,
         marketPrice: assetData.price,
       }),
-    [assetData.price, orderForm.limitPrice, orderForm.type, triggerPrice],
+    [
+      assetData.price,
+      normalizedLimitPrice,
+      normalizedTriggerPrice,
+      orderForm.type,
+    ],
   );
 
   const reduceOnlyPositionError = useMemo(
@@ -464,6 +513,7 @@ export const usePerpsProOrderForm = ({
     sizeSlider,
     effectiveUsdAmount,
     commitPendingSliderPreview,
+    isAtMaxAmount,
   } = usePerpsProSizeInput({
     usdAmount: orderForm.amount,
     setAmount,
@@ -480,7 +530,7 @@ export const usePerpsProOrderForm = ({
     amount: effectiveUsdAmount,
     symbol: orderForm.asset,
     isClosing: reduceOnly,
-    limitPrice: orderForm.limitPrice,
+    limitPrice: normalizedLimitPrice,
     direction: orderForm.direction,
     currentAskPrice: currentTopOfBook?.bestAsk
       ? Number.parseFloat(currentTopOfBook.bestAsk)
@@ -524,33 +574,70 @@ export const usePerpsProOrderForm = ({
   const exceedsMaxSlippage =
     isMarketOrder &&
     typeof estimatedSlippageBps === 'number' &&
-    estimatedSlippageBps > maxSlippageBps;
+    estimatedSlippageBps > resolvedMaxSlippageBps;
 
   const { effectivePrice, positionSize, marginRequired } = useMemo(
     () =>
       deriveOrderSizing({
         amount: effectiveUsdAmount,
         orderType: orderForm.type,
-        limitPrice: orderForm.limitPrice,
-        triggerPrice,
+        limitPrice: normalizedLimitPrice,
+        triggerPrice: normalizedTriggerPrice,
         marketPrice: assetData.price,
         markPrice: assetData.markPrice,
         leverage: orderForm.leverage,
         szDecimals,
+        isBuy: orderForm.direction === 'long',
+        maxSlippageBps: resolvedMaxSlippageBps,
         isLoadingMarketData,
       }),
     [
       effectiveUsdAmount,
       orderForm.type,
-      orderForm.limitPrice,
-      triggerPrice,
+      normalizedLimitPrice,
+      normalizedTriggerPrice,
       orderForm.leverage,
+      orderForm.direction,
       assetData.price,
       assetData.markPrice,
       szDecimals,
       isLoadingMarketData,
+      resolvedMaxSlippageBps,
     ],
   );
+
+  const exactFullCloseSize = useMemo(() => {
+    if (
+      !reduceOnly ||
+      !isAtMaxAmount ||
+      isReduceOnlyPositionLoading ||
+      keepReduceOnlySizeEmpty ||
+      !currentMarketPosition?.size
+    ) {
+      return undefined;
+    }
+
+    const absolutePositionSize = new BigNumber(
+      currentMarketPosition.size,
+    ).abs();
+    if (!absolutePositionSize.isFinite() || absolutePositionSize.lte(0)) {
+      return undefined;
+    }
+
+    return formatHyperLiquidSize({
+      size: absolutePositionSize.toString(),
+      szDecimals,
+    });
+  }, [
+    currentMarketPosition?.size,
+    isAtMaxAmount,
+    isReduceOnlyPositionLoading,
+    keepReduceOnlySizeEmpty,
+    reduceOnly,
+    szDecimals,
+  ]);
+  const submissionPositionSize = exactFullCloseSize ?? positionSize;
+  const isExactFullClose = exactFullCloseSize !== undefined;
 
   const liquidationPriceParams = useMemo(
     () => ({
@@ -575,15 +662,20 @@ export const usePerpsProOrderForm = ({
       validateReduceOnlyOrder({
         reduceOnly,
         direction: orderForm.direction,
-        orderSize: positionSize,
+        orderSize: submissionPositionSize,
         position: currentMarketPosition,
       }),
-    [reduceOnly, orderForm.direction, positionSize, currentMarketPosition],
+    [
+      reduceOnly,
+      orderForm.direction,
+      submissionPositionSize,
+      currentMarketPosition,
+    ],
   );
 
   const orderValidation = usePerpsOrderValidation({
     orderForm: effectiveOrderForm,
-    positionSize,
+    positionSize: submissionPositionSize,
     assetPrice: assetData.price,
     spendableBalance,
     // Reduce-only orders release margin from the existing position; they don't
@@ -594,10 +686,12 @@ export const usePerpsProOrderForm = ({
     // Skip protocol validation until position data is ready so we don't flash
     // unrelated errors while waiting for the position snapshot.
     skipValidation: isReduceOnlyPositionLoading,
-    originalUsdAmount: effectiveUsdAmount,
+    originalUsdAmount: isExactFullClose ? undefined : effectiveUsdAmount,
     reduceOnly,
-    isFullClose: reduceOnlyValidation.isFullClose,
-    triggerPrice,
+    isFullClose: reduceOnlyValidation.isFullClose || isExactFullClose,
+    triggerPrice: normalizedTriggerPrice,
+    midPrice: assetData.price,
+    szDecimals,
   });
 
   const filteredErrors = useMemo(() => {
@@ -607,11 +701,11 @@ export const usePerpsProOrderForm = ({
     const withoutSize = orderValidation.errors.filter(
       (err) => err !== sizePositiveMsg,
     );
-    if (!isTriggerOrderType(orderForm.type)) {
-      return withoutSize;
-    }
-    return withoutSize.filter((err) => !isTriggerFormPriceMessage(err));
-  }, [orderForm.type, orderValidation.errors]);
+    const fieldMessages = new Set(
+      (orderValidation.fieldIssues ?? []).map(getOrderFormFieldIssueMessage),
+    );
+    return withoutSize.filter((err) => !fieldMessages.has(err));
+  }, [orderValidation.errors, orderValidation.fieldIssues]);
 
   const {
     doesStopLossRiskLiquidation,
@@ -620,7 +714,7 @@ export const usePerpsProOrderForm = ({
     tpslPriceType,
   } = getPerpsOrderTpSlWarnings({
     orderType: orderForm.type,
-    limitPrice: orderForm.limitPrice,
+    limitPrice: normalizedLimitPrice,
     direction: orderForm.direction,
     takeProfitPrice: orderForm.takeProfitPrice,
     stopLossPrice: orderForm.stopLossPrice,
@@ -632,14 +726,18 @@ export const usePerpsProOrderForm = ({
     onSuccess: () => {
       showToast(
         PerpsToastOptions.orderManagement[
-          getTriggerExecution(orderForm.type)
-        ].confirmed(orderForm.direction, positionSize, orderForm.asset),
+          getOrderManagementToastKey(orderForm.type)
+        ].confirmed(
+          orderForm.direction,
+          submissionPositionSize,
+          orderForm.asset,
+        ),
       );
     },
     onError: (error) => {
       showToast(
         PerpsToastOptions.orderManagement[
-          getTriggerExecution(orderForm.type)
+          getOrderManagementToastKey(orderForm.type)
         ].creationFailed(error),
       );
     },
@@ -670,9 +768,36 @@ export const usePerpsProOrderForm = ({
       [PERPS_EVENT_PROPERTY.DIRECTION]: directionTrackingValue,
     });
 
+    if (!isTriggeredOrdersEnabled && isTriggerOrderType(orderForm.type)) {
+      showToast(
+        PerpsToastOptions.formValidation.orderForm.validationError(
+          strings('perps.order.validation.trigger_orders_unavailable'),
+        ),
+      );
+      return;
+    }
+
+    const currentFieldIssues = getOrderFormFieldIssues({
+      orderType: orderForm.type,
+      direction: orderForm.direction,
+      triggerPrice: normalizedTriggerPrice,
+      limitPrice: normalizedLimitPrice,
+      midPrice: assetData.price,
+      szDecimals,
+    });
+    if (currentFieldIssues.length > 0) {
+      const firstIssue = currentFieldIssues[0];
+      const message = getOrderFormFieldIssueMessage(firstIssue);
+      showToast(
+        PerpsToastOptions.formValidation.orderForm.validationError(message),
+      );
+      isSubmittingRef.current = false;
+      return;
+    }
+
     if (exceedsMaxSlippage && typeof estimatedSlippageBps === 'number') {
       const estPct = bpsToPercent(estimatedSlippageBps);
-      const maxPct = bpsToPercent(maxSlippageBps);
+      const maxPct = bpsToPercent(resolvedMaxSlippageBps);
       showToast(
         PerpsToastOptions.formValidation.orderForm.validationError(
           strings('perps.slippage.exceeds_max', {
@@ -707,7 +832,8 @@ export const usePerpsProOrderForm = ({
 
     try {
       if (!orderValidation.isValid) {
-        const firstError = orderValidation.errors[0];
+        const firstError =
+          orderValidation.errors[0] || strings('perps.order.validation.error');
         showToast(
           PerpsToastOptions.formValidation.orderForm.validationError(
             firstError,
@@ -748,21 +874,23 @@ export const usePerpsProOrderForm = ({
       // uses pay-with-any-token, so those tracking fields are omitted.
       // Finalize trailing decimals so Place Order does not depend on blur timing.
       const finalizedLimitPrice = orderForm.limitPrice
-        ? finalizeNumericTextInput(orderForm.limitPrice)
+        ? canonicalizeOrderPrice(
+            finalizeNumericTextInput(orderForm.limitPrice),
+            szDecimals,
+          )
         : orderForm.limitPrice;
-      const finalizedTriggerPrice = triggerPrice
-        ? finalizeNumericTextInput(triggerPrice)
-        : triggerPrice;
+      const finalizedTriggerPrice = normalizedTriggerPrice;
 
       const orderParams = buildPerpsOrderParams({
         asset: orderForm.asset,
         isBuy: orderForm.direction === 'long',
-        size: positionSize,
+        size: submissionPositionSize,
         orderType: orderForm.type,
         effectivePrice,
         leverage: orderForm.leverage,
-        usdAmount: effectiveUsdAmount,
-        maxSlippageBps,
+        usdAmount: isExactFullClose ? undefined : effectiveUsdAmount,
+        maxSlippageBps: resolvedMaxSlippageBps,
+        maxSlippageSource,
         limitPrice: finalizedLimitPrice,
         triggerPrice: finalizedTriggerPrice,
         takeProfitPrice: isTriggerOrderType(orderForm.type)
@@ -772,7 +900,9 @@ export const usePerpsProOrderForm = ({
           ? undefined
           : orderForm.stopLossPrice,
         reduceOnly,
-        isFullClose: reduceOnly ? reduceOnlyValidation.isFullClose : undefined,
+        isFullClose: reduceOnly
+          ? reduceOnlyValidation.isFullClose || isExactFullClose
+          : undefined,
         trackingData: buildPerpsOrderTrackingData({
           marginRequired,
           feeResults,
@@ -789,8 +919,12 @@ export const usePerpsProOrderForm = ({
 
       showToast(
         PerpsToastOptions.orderManagement[
-          getTriggerExecution(orderForm.type)
-        ].submitted(orderForm.direction, positionSize, orderForm.asset),
+          getOrderManagementToastKey(orderForm.type)
+        ].submitted(
+          orderForm.direction,
+          submissionPositionSize,
+          orderForm.asset,
+        ),
       );
 
       const shouldHandleTPSLSeparately =
@@ -845,9 +979,8 @@ export const usePerpsProOrderForm = ({
         takeProfitPrice: undefined,
         stopLossPrice: undefined,
       });
+      setLimitPrice(undefined);
       setTriggerPrice(undefined);
-      setHasBlurredTriggerPrice(false);
-      setHasBlurredLimitPrice(false);
       setReduceOnly(false);
     } finally {
       isSubmittingRef.current = false;
@@ -857,37 +990,42 @@ export const usePerpsProOrderForm = ({
     orderForm.asset,
     orderForm.direction,
     orderForm.type,
+    normalizedTriggerPrice,
+    normalizedLimitPrice,
     orderForm.leverage,
     orderForm.limitPrice,
     orderForm.takeProfitPrice,
     orderForm.stopLossPrice,
-    triggerPrice,
     effectiveUsdAmount,
     exceedsMaxSlippage,
     estimatedSlippageBps,
-    maxSlippageBps,
+    resolvedMaxSlippageBps,
     maxSlippageSource,
+    isTriggeredOrdersEnabled,
     hasTpslBlocker,
     isReduceOnlyPositionLoading,
     reduceOnlyValidation.isValid,
     reduceOnlyValidation.isFullClose,
+    isExactFullClose,
     directionTrackingValue,
     orderValidation.isValid,
     orderValidation.errors,
     currentMarketPosition,
     navigation,
-    positionSize,
+    submissionPositionSize,
     effectivePrice,
     reduceOnly,
     marginRequired,
     feeResults,
     assetData.price,
+    szDecimals,
     source,
     sourceSection,
     chartLibrary,
     vipTier,
     executeOrder,
     updateOrderForm,
+    setLimitPrice,
     setTriggerPrice,
     updatePositionTPSL,
     showToast,
@@ -907,7 +1045,7 @@ export const usePerpsProOrderForm = ({
       direction: orderForm.direction,
       leverage: orderForm.leverage,
       orderType: orderForm.type,
-      limitPrice: orderForm.limitPrice,
+      limitPrice: normalizedLimitPrice,
       initialTakeProfitPrice: orderForm.takeProfitPrice,
       initialStopLossPrice: orderForm.stopLossPrice,
       amount: effectiveUsdAmount,
@@ -923,6 +1061,7 @@ export const usePerpsProOrderForm = ({
     });
   }, [
     PerpsToastOptions.formValidation.orderForm.limitPriceRequired,
+    normalizedLimitPrice,
     orderForm.limitPrice,
     orderForm.type,
     orderForm.asset,
@@ -1011,29 +1150,38 @@ export const usePerpsProOrderForm = ({
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_OPENED,
       [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: bpsToPercent(maxSlippageBps),
+      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: bpsToPercent(
+        resolvedMaxSlippageBps,
+      ),
       [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
     });
-  }, [track, orderForm.asset, maxSlippageBps, maxSlippageSource]);
+  }, [track, orderForm.asset, resolvedMaxSlippageBps, maxSlippageSource]);
 
   const onOrderTypeSelect = useCallback(
     (type: OrderType) => {
+      if (!isTriggeredOrdersEnabled && isTriggerOrderType(type)) {
+        setIsOrderTypeVisible(false);
+        return;
+      }
       setOrderType(type);
       setIsOrderTypeVisible(false);
     },
-    [setOrderType],
+    [isTriggeredOrdersEnabled, setOrderType],
   );
 
   const onUseMidPricePress = useCallback(() => {
     if (assetData.price > 0) {
-      setLimitPrice(
-        formatWithSignificantDigits(
-          assetData.price,
-          DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
-        ).value.toString(),
+      commitLimitPrice(
+        canonicalizeOrderPrice(
+          formatWithSignificantDigits(
+            assetData.price,
+            DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+          ).value.toString(),
+          szDecimals,
+        ),
       );
     }
-  }, [assetData.price, setLimitPrice]);
+  }, [assetData.price, commitLimitPrice, szDecimals]);
 
   const availableBalance = useMemo(() => {
     if (!isInitialized) {
@@ -1097,7 +1245,7 @@ export const usePerpsProOrderForm = ({
     if (!hidesSlippage) {
       if (isTriggerMarketOrder) {
         slippage = strings('perps.slippage.row_format_max', {
-          value: bpsToPercent(maxSlippageBps),
+          value: bpsToPercent(resolvedMaxSlippageBps),
         });
       } else if (isMarketOrder) {
         slippage =
@@ -1138,6 +1286,7 @@ export const usePerpsProOrderForm = ({
     liquidationPrice,
     estimatedSlippagePctDisplay,
     maxSlippageBps,
+    resolvedMaxSlippageBps,
     estimatedFees,
     undiscountedEstimatedFees,
     feeResults.feeDiscountPercentage,
@@ -1151,6 +1300,7 @@ export const usePerpsProOrderForm = ({
     isLoadingMarketData ||
     isReduceOnlyPositionLoading ||
     (reduceOnly && !reduceOnlyValidation.isValid) ||
+    (!isTriggeredOrdersEnabled && isTriggerOrderType(orderForm.type)) ||
     hasTpslBlocker;
 
   const onDirectionChange = useCallback(
@@ -1181,11 +1331,8 @@ export const usePerpsProOrderForm = ({
   const onLimitPriceBlur = useCallback(() => {
     const currentLimitPrice = orderForm.limitPrice ?? '';
     const finalizedLimitPrice = finalizeNumericTextInput(currentLimitPrice);
-    if (finalizedLimitPrice !== currentLimitPrice) {
-      setLimitPrice(finalizedLimitPrice);
-    }
-    setHasBlurredLimitPrice(true);
-  }, [orderForm.limitPrice, setLimitPrice]);
+    commitLimitPrice(canonicalizeOrderPrice(finalizedLimitPrice, szDecimals));
+  }, [commitLimitPrice, orderForm.limitPrice, szDecimals]);
 
   const onTriggerPriceChange = useCallback(
     (value: string) => {
@@ -1204,35 +1351,30 @@ export const usePerpsProOrderForm = ({
   const onTriggerPriceBlur = useCallback(() => {
     const currentTriggerPrice = triggerPrice ?? '';
     const finalizedTriggerPrice = finalizeNumericTextInput(currentTriggerPrice);
-    if (finalizedTriggerPrice !== currentTriggerPrice) {
-      setTriggerPrice(finalizedTriggerPrice);
-    }
-    setHasBlurredTriggerPrice(true);
-  }, [setTriggerPrice, triggerPrice]);
+    commitTriggerPrice(
+      canonicalizeTriggerPrice(finalizedTriggerPrice, szDecimals),
+    );
+  }, [commitTriggerPrice, szDecimals, triggerPrice]);
 
   const priceCardMessage = useMemo(() => {
-    const triggerIssue = getTriggerPriceValidationIssue({
-      orderType: orderForm.type,
-      direction: orderForm.direction,
-      triggerPrice,
-      midPrice: assetData.price,
-    });
-    if (hasBlurredTriggerPrice && triggerIssue) {
+    const fieldIssues = orderValidation.fieldIssues ?? [];
+    const triggerIssue = fieldIssues.find(
+      (fieldIssue) => fieldIssue.field === 'triggerPrice',
+    );
+    if (hasBlurredTriggerPrice && triggerIssue?.field === 'triggerPrice') {
       return {
         severity: 'error' as const,
-        message: getTriggerPriceValidationMessage(triggerIssue),
+        message: getOrderFormFieldIssueMessage(triggerIssue),
       };
     }
 
-    const parsedLimitPrice = Number.parseFloat(orderForm.limitPrice ?? '');
-    if (
-      hasBlurredLimitPrice &&
-      isLimitExecutionOrderType(orderForm.type) &&
-      !(parsedLimitPrice > 0)
-    ) {
+    const limitIssue = fieldIssues.find(
+      (fieldIssue) => fieldIssue.field === 'limitPrice',
+    );
+    if (hasBlurredLimitPrice && limitIssue?.field === 'limitPrice') {
       return {
         severity: 'error' as const,
-        message: strings('perps.order.validation.limit_price_required'),
+        message: getOrderFormFieldIssueMessage(limitIssue),
       };
     }
 
@@ -1243,8 +1385,10 @@ export const usePerpsProOrderForm = ({
     const warning = getLimitPriceCrossingWarning({
       orderType: orderForm.type,
       direction: orderForm.direction,
-      limitPrice: orderForm.limitPrice,
+      limitPrice: normalizedLimitPrice,
       midPrice: assetData.price,
+      triggerPrice: normalizedTriggerPrice,
+      szDecimals,
     });
     if (!warning) {
       return undefined;
@@ -1253,12 +1397,14 @@ export const usePerpsProOrderForm = ({
     return { severity: 'warning' as const, message: warning };
   }, [
     assetData.price,
+    normalizedTriggerPrice,
     hasBlurredLimitPrice,
     hasBlurredTriggerPrice,
     orderForm.direction,
-    orderForm.limitPrice,
+    normalizedLimitPrice,
     orderForm.type,
-    triggerPrice,
+    orderValidation.fieldIssues,
+    szDecimals,
   ]);
 
   const onPlaceOrderPress = useCallback(() => {
@@ -1383,7 +1529,7 @@ export const usePerpsProOrderForm = ({
     closeLeverage: () => setIsLeverageVisible(false),
     // Slippage sheet
     isSlippageVisible,
-    maxSlippageBps,
+    maxSlippageBps: resolvedMaxSlippageBps,
     onSlippageSave,
     closeSlippage: () => setIsSlippageVisible(false),
     // Order type sheet

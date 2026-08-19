@@ -1053,6 +1053,31 @@ describe('usePerpsOrderForm', () => {
     });
   });
 
+  describe('trigger-market sizing', () => {
+    it('uses the TP/SL default cap when calculating the maximum buy amount', () => {
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialType: 'stop_market',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      act(() => {
+        result.current.setTriggerPrice('90000');
+      });
+      const triggerMarketMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setOrderType('market');
+      });
+      const marketMax = result.current.maxPossibleAmount;
+
+      expect(triggerMarketMax).toBeLessThan(marketMax);
+    });
+  });
+
   describe('empty amount handling', () => {
     it('converts empty string to 0', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {

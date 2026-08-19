@@ -419,7 +419,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       const limitInput = await screen.findByTestId(ids.LIMIT_PRICE_INPUT);
       fireEvent.changeText(triggerInput, '2600');
       fireEvent(triggerInput, 'blur');
-      fireEvent.changeText(limitInput, '2550');
+      fireEvent.changeText(limitInput, '2650');
       fireEvent(limitInput, 'blur');
 
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
@@ -438,7 +438,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
               symbol: 'ETH',
               orderType: 'stop_limit',
               triggerPrice: '2600',
-              price: '2550',
+              price: '2650',
             }),
           );
         },

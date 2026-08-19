@@ -89,6 +89,8 @@ const mockUsePerpsEventTracking = jest.fn((_options?: unknown) => ({
 // provider is a passthrough and the shared order-form setters are captured so
 // the order-book → order-form wiring (TAT-3643) can be asserted directly.
 const mockSetLimitPrice = jest.fn();
+const mockCommitLimitPrice = jest.fn();
+const mockCommitTriggerPrice = jest.fn();
 const mockSetOrderType = jest.fn();
 const mockSetTriggerPrice = jest.fn();
 let mockOrderFormType: 'market' | 'limit' | 'stop_market' | 'stop_limit' =
@@ -318,6 +320,8 @@ jest.mock('../../contexts/PerpsOrderContext', () => ({
   usePerpsOrderContext: () => ({
     orderForm: { type: mockOrderFormType },
     setLimitPrice: mockSetLimitPrice,
+    commitLimitPrice: mockCommitLimitPrice,
+    commitTriggerPrice: mockCommitTriggerPrice,
     setOrderType: mockSetOrderType,
     setTriggerPrice: mockSetTriggerPrice,
   }),
@@ -928,7 +932,8 @@ describe('PerpsProMarketView', () => {
     );
 
     expect(mockSetOrderType).toHaveBeenCalledWith('limit');
-    expect(mockSetLimitPrice).toHaveBeenCalledWith('89950');
+    expect(mockCommitLimitPrice).toHaveBeenCalledWith('89950');
+    expect(mockSetLimitPrice).not.toHaveBeenCalled();
     expect(mockSetTriggerPrice).not.toHaveBeenCalled();
   });
 
@@ -968,7 +973,8 @@ describe('PerpsProMarketView', () => {
     );
 
     expect(mockSetOrderType).not.toHaveBeenCalled();
-    expect(mockSetLimitPrice).toHaveBeenCalledWith('89950');
+    expect(mockCommitLimitPrice).toHaveBeenCalledWith('89950');
+    expect(mockSetLimitPrice).not.toHaveBeenCalled();
     expect(mockSetTriggerPrice).not.toHaveBeenCalled();
   });
 
@@ -1008,7 +1014,8 @@ describe('PerpsProMarketView', () => {
     );
 
     expect(mockSetOrderType).not.toHaveBeenCalled();
-    expect(mockSetTriggerPrice).toHaveBeenCalledWith('89950');
-    expect(mockSetLimitPrice).not.toHaveBeenCalled();
+    expect(mockCommitTriggerPrice).toHaveBeenCalledWith('89950');
+    expect(mockSetTriggerPrice).not.toHaveBeenCalled();
+    expect(mockCommitLimitPrice).not.toHaveBeenCalled();
   });
 });

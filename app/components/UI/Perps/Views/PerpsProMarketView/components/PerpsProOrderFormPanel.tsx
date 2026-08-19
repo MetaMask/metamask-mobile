@@ -42,6 +42,10 @@ const PerpsProOrderFormPanel = ({
   onRequestScrollBy,
   scrollViewRef,
 }: PerpsProOrderFormPanelProps) => {
+  const isProModeActive = useIsPerpsProModeActive();
+  const isTriggeredOrdersEnabled = useSelector(
+    selectPerpsProTriggeredOrdersEnabledFlag,
+  );
   const {
     direction,
     onDirectionChange,
@@ -91,13 +95,12 @@ const PerpsProOrderFormPanel = ({
     feeProtocolFeeRate,
     feeOriginalMetamaskFeeRate,
     feeDiscountPercentage,
-  } = usePerpsProOrderForm({ market });
+  } = usePerpsProOrderForm({
+    market,
+    isTriggeredOrdersEnabled: isProModeActive && isTriggeredOrdersEnabled,
+  });
 
   const { styles } = useStyles(createStyles, {});
-  const isProModeActive = useIsPerpsProModeActive();
-  const isTriggeredOrdersEnabled = useSelector(
-    selectPerpsProTriggeredOrdersEnabledFlag,
-  );
   const showTriggeredTypes = isProModeActive && isTriggeredOrdersEnabled;
 
   const [isMarginModeVisible, setIsMarginModeVisible] = useState(false);

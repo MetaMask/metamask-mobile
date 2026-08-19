@@ -69,6 +69,7 @@ import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
 import { createStyles } from './PerpsProMarketView.styles';
+import { canonicalizeOrderPrice } from '../../utils/triggerOrderValidation';
 
 interface PerpsProOrderBookColumnProps {
   symbol: string;
@@ -88,7 +89,7 @@ const PerpsProOrderBookColumn = ({
   marketPrice,
   onCollapse,
 }: PerpsProOrderBookColumnProps) => {
-  const { orderForm, setLimitPrice, setOrderType, setTriggerPrice } =
+  const { orderForm, commitLimitPrice, setOrderType, commitTriggerPrice } =
     usePerpsOrderContext();
   // Drives the ladder's price precision and base-size decimals — without it
   // every price falls back to magnitude-based formatting.
@@ -98,17 +99,27 @@ const PerpsProOrderBookColumn = ({
     (price: string) => {
       if (isTriggerOrderType(orderForm.type)) {
         if (isLimitExecutionOrderType(orderForm.type)) {
-          setLimitPrice(price);
+          commitLimitPrice(
+            canonicalizeOrderPrice(price, marketData?.szDecimals),
+          );
           return;
         }
-        setTriggerPrice(price);
+        commitTriggerPrice(
+          canonicalizeOrderPrice(price, marketData?.szDecimals),
+        );
         return;
       }
 
       setOrderType('limit');
-      setLimitPrice(price);
+      commitLimitPrice(canonicalizeOrderPrice(price, marketData?.szDecimals));
     },
-    [orderForm.type, setLimitPrice, setOrderType, setTriggerPrice],
+    [
+      commitLimitPrice,
+      commitTriggerPrice,
+      marketData?.szDecimals,
+      orderForm.type,
+      setOrderType,
+    ],
   );
 
   return (

@@ -6,7 +6,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Platform, Pressable, type TextInput } from 'react-native';
 
 export const getPerpsProInputAccessoryID = (testID: string) =>
@@ -54,6 +54,12 @@ const PerpsProCompactInput = ({
   const inputRef = useRef<TextInput>(null);
   const inputAccessoryViewID =
     Platform.OS === 'ios' ? getPerpsProInputAccessoryID(testID) : undefined;
+  useEffect(() => {
+    if (isHidden) {
+      inputRef.current?.blur();
+    }
+  }, [isHidden]);
+
   const hiddenProps = isHidden
     ? ({
         pointerEvents: 'none' as const,
