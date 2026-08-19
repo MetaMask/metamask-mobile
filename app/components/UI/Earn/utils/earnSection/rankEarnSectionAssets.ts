@@ -7,11 +7,11 @@ import { getEarnAssetFiatNumber, hasEarnAssetBalance } from '../earnAssets';
 
 export const EARN_SECTION_ASSET_LIMIT = 5;
 
-export interface EarnSectionRankedAsset extends EarnAsset {
+export type EarnSectionRankedAsset = EarnAsset & {
   highestRatePercent?: number;
   highestRateExperience?: EarnExperience;
   rateStatus: EarnRateStatus;
-}
+};
 
 export type EarnSectionAssetSlot =
   | {

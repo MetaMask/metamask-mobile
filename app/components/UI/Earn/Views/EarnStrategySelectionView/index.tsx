@@ -44,6 +44,7 @@ import { useStablecoinLendingRedirect } from '../../hooks/useStablecoinLendingRe
 import useStakingChain from '../../../Stake/hooks/useStakingChain';
 import { useMoneyAccountDeposit } from '../../../Money/hooks/useMoneyAccount';
 import type { EarnAssetId, EarnExperienceType } from '../../types/earnAssets';
+import { earnAssetToToken, getEarnAssetMetadata } from '../../utils/earnAssets';
 
 export interface EarnStrategySelectionViewRouteParams {
   assetId: EarnAssetId;
@@ -66,12 +67,24 @@ const EarnStrategySelectionView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } = useRoute<EarnStrategySelectionRoute>();
   const { assetId } = params;
-  const { asset, strategies, isLoading, hasError } =
-    useEarnAssetStrategies(assetId);
+  const {
+    asset: earnAsset,
+    strategies,
+    isLoading,
+    hasError,
+  } = useEarnAssetStrategies(assetId);
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>();
   const { isStakingSupportedChain } = useStakingChain();
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const handleLendingRedirect = useStablecoinLendingRedirect({ asset });
+  const token = useMemo(
+    () => (earnAsset ? earnAssetToToken(earnAsset) : undefined),
+    [earnAsset],
+  );
+  const tokenMetadata = useMemo(
+    () => (earnAsset ? getEarnAssetMetadata(earnAsset) : undefined),
+    [earnAsset],
+  );
+  const handleLendingRedirect = useStablecoinLendingRedirect({ asset: token });
 
   useEffect(() => {
     if (
@@ -86,22 +99,25 @@ const EarnStrategySelectionView = () => {
     () => strategies.find(({ id }) => id === selectedStrategyId),
     [selectedStrategyId, strategies],
   );
-  const tokenLabel = asset?.ticker ?? asset?.symbol ?? asset?.name ?? '';
+  const tokenLabel =
+    tokenMetadata?.ticker ?? tokenMetadata?.symbol ?? tokenMetadata?.name ?? '';
 
   const handleGetStartedPress = useCallback(async () => {
-    if (!selectedStrategy || !asset) return;
+    if (!selectedStrategy || !earnAsset) return;
 
     const experienceType = selectedStrategy.experience.type;
 
     if (experienceType === 'MONEY_ACCOUNT_DEPOSIT') {
-      if (!asset.chainId) {
-        throw new Error('Earn strategy asset is missing a chain ID');
+      if (earnAsset.kind !== 'held' || !('address' in earnAsset.asset)) {
+        throw new Error(
+          'Money deposit requires a held asset with address property',
+        );
       }
 
       await initiateDeposit({
         preferredPaymentToken: {
-          address: asset.address as Hex,
-          chainId: asset.chainId as Hex,
+          address: earnAsset.asset.address as Hex,
+          chainId: earnAsset.asset.chainId as Hex,
         },
         intent: 'convert',
       });
@@ -122,19 +138,24 @@ const EarnStrategySelectionView = () => {
       );
     }
 
+    if (!token) {
+      throw new Error('Earn strategy asset metadata is unavailable');
+    }
+
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE,
       params: {
-        token: asset,
+        token,
       },
     });
   }, [
-    asset,
+    earnAsset,
     handleLendingRedirect,
     initiateDeposit,
     isStakingSupportedChain,
     navigation,
     selectedStrategy,
+    token,
   ]);
 
   const handleLearnMorePress = useCallback(() => {
@@ -209,7 +230,7 @@ const EarnStrategySelectionView = () => {
               <Skeleton height={170} twClassName="flex-1 rounded-2xl" />
               <Skeleton height={170} twClassName="flex-1 rounded-2xl" />
             </Box>
-          ) : !asset ? (
+          ) : !earnAsset ? (
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.ErrorDefault}

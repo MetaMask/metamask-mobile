@@ -1115,6 +1115,7 @@ describe('Earn Controller Selectors', () => {
         earnTokensData,
         [MOCK_LENDING_MARKET_USDC],
         [],
+        {},
         true,
         true,
         true,

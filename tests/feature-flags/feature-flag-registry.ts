@@ -3410,8 +3410,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnModuleEnabled: {
-    name: 'earnModuleEnabled',
+  earnHomeSectionEnabled: {
+    name: 'earnHomeSectionEnabled',
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: {

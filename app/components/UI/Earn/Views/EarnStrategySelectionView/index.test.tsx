@@ -1,4 +1,6 @@
 import React from 'react';
+import type { Asset } from '@metamask/assets-controllers';
+import { EthAccountType } from '@metamask/keyring-api';
 import {
   act,
   fireEvent,
@@ -95,17 +97,23 @@ const createStrategy = (
 
 const createHookResult = (): ReturnType<typeof useEarnAssetStrategies> => ({
   asset: {
+    kind: 'held',
     assetId,
-    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-    chainId: '0x1',
-    decimals: 6,
-    image: 'usdc.png',
-    name: 'USD Coin',
-    symbol: 'USDC',
-    ticker: 'USDC',
-    balance: '10',
-    logo: 'usdc.png',
-    isETH: false,
+    asset: {
+      accountType: EthAccountType.Eoa,
+      accountId: 'account-id',
+      assetId: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      chainId: '0x1',
+      decimals: 6,
+      image: 'usdc.png',
+      name: 'USD Coin',
+      symbol: 'USDC',
+      balance: '10',
+      rawBalance: '0x989680',
+      fiat: { balance: 10, currency: 'USD', conversionRate: 1 },
+      isNative: false,
+    } as Asset,
     experiences: [],
   },
   strategies: [
@@ -309,8 +317,15 @@ describe('EarnStrategySelectionView', () => {
 
     expect(initiateDeposit).toHaveBeenCalledWith({
       preferredPaymentToken: {
-        address: hookResult.asset?.address,
-        chainId: hookResult.asset?.chainId,
+        address:
+          hookResult.asset?.kind === 'held' &&
+          'address' in hookResult.asset.asset
+            ? hookResult.asset.asset.address
+            : undefined,
+        chainId:
+          hookResult.asset?.kind === 'held'
+            ? hookResult.asset.asset.chainId
+            : undefined,
       },
       intent: 'convert',
     });
@@ -369,7 +384,11 @@ describe('EarnStrategySelectionView', () => {
       expect(navigate).toHaveBeenCalledWith('StakeScreens', {
         screen: Routes.STAKING.STAKE,
         params: {
-          token: hookResult.asset,
+          token: expect.objectContaining({
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            chainId: '0x1',
+            symbol: 'USDC',
+          }),
         },
       });
     },

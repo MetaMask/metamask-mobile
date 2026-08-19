@@ -38,6 +38,7 @@ import {
 } from '../../../components/UI/Earn/selectors/featureFlags';
 import { EarnTokenDetails } from '../../../components/UI/Earn/types/lending.types';
 import { selectMoneyDepositEligibleAssets } from '../../../components/UI/Money/selectors/depositTokens';
+import { selectAssetsBySelectedAccountGroup } from '../../assets/assets-list';
 import { createDeepEqualSelector } from '../../util';
 import { toFormattedAddress } from '../../../util/address';
 import { EVM_SCOPE } from '../../../components/UI/Earn/constants/networks';
@@ -534,6 +535,7 @@ export const selectEarnAssetCatalogueInputs = createDeepEqualSelector(
     selectEarnTokens,
     selectAllLendingMarkets,
     selectMoneyDepositEligibleAssets,
+    selectAssetsBySelectedAccountGroup,
     pooledStakingSelectors.selectEligibility,
     selectPooledStakingEnabledFlag,
     selectStablecoinLendingEnabledFlag,
@@ -543,6 +545,7 @@ export const selectEarnAssetCatalogueInputs = createDeepEqualSelector(
     earnTokensData,
     lendingMarkets,
     moneyDepositAssets,
+    assetsByChain,
     isEarnEligible,
     isPooledStakingEnabled,
     isStablecoinLendingEnabled,
@@ -552,6 +555,7 @@ export const selectEarnAssetCatalogueInputs = createDeepEqualSelector(
     earnOutputTokens: earnTokensData.earnOutputTokens,
     lendingMarkets,
     moneyDepositAssets,
+    assets: Object.values(assetsByChain).flat(),
     isEarnEligible,
     isPooledStakingEnabled,
     isStablecoinLendingEnabled,

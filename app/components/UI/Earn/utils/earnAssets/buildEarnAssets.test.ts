@@ -1,22 +1,32 @@
+import type { Asset } from '@metamask/assets-controllers';
+import { EthAccountType } from '@metamask/keyring-api';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import type { EarnAsset, EarnAssetId } from '../../types/earnAssets';
+import type {
+  DiscoveryEarnAsset,
+  EarnAsset,
+  EarnAssetId,
+} from '../../types/earnAssets';
 import { buildEarnAssets } from './buildEarnAssets';
 
 const assetId =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId;
 
-const createAsset = (overrides: Partial<EarnAsset> = {}): EarnAsset => ({
+const createAsset = (
+  overrides: Partial<DiscoveryEarnAsset> = {},
+): DiscoveryEarnAsset => ({
+  kind: 'discovery',
   assetId,
-  address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-  chainId: '0x1',
-  decimals: 6,
-  image: 'usdc.png',
-  name: 'USD Coin',
-  symbol: 'USDC',
-  ticker: 'USDC',
-  balance: '10',
-  logo: 'usdc.png',
-  isETH: false,
+  metadata: {
+    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    chainId: '0x1',
+    decimals: 6,
+    image: 'usdc.png',
+    name: 'USD Coin',
+    symbol: 'USDC',
+    ticker: 'USDC',
+    logo: 'usdc.png',
+    isETH: false,
+  },
   experiences: [
     {
       id: 'money:usdc',
@@ -29,39 +39,59 @@ const createAsset = (overrides: Partial<EarnAsset> = {}): EarnAsset => ({
   ...overrides,
 });
 
+const createHeldAsset = (): EarnAsset => ({
+  kind: 'held',
+  assetId,
+  asset: {
+    accountType: EthAccountType.Eoa,
+    accountId: 'account-id',
+    assetId: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    chainId: '0x1',
+    decimals: 6,
+    image: 'held-usdc.png',
+    name: 'Held USD Coin',
+    symbol: 'USDC',
+    balance: '10',
+    rawBalance: '0x989680',
+    fiat: { balance: 10, currency: 'USD', conversionRate: 1 },
+    isNative: false,
+  } as Asset,
+  experiences: [],
+});
+
 describe('buildEarnAssets', () => {
   it('returns one asset for each CAIP-19 identity', () => {
     const usdt = createAsset({
       assetId:
         'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7' as EarnAssetId,
-      address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
-      symbol: 'USDT',
+      metadata: {
+        ...createAsset().metadata,
+        address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        symbol: 'USDT',
+      },
     });
 
     const result = buildEarnAssets([createAsset(), usdt]);
 
-    expect(result.map(({ symbol }) => symbol)).toEqual(['USDC', 'USDT']);
+    expect(
+      result.map((asset) =>
+        asset.kind === 'discovery' ? asset.metadata.symbol : asset.asset.symbol,
+      ),
+    ).toEqual(['USDC', 'USDT']);
   });
 
-  it('keeps metadata from the first candidate', () => {
-    const held = createAsset({ name: 'Held USD Coin' });
-    const discovery = createAsset({ name: 'Remote USD Coin', balance: '0' });
+  it('keeps wallet asset data over discovery metadata', () => {
+    const held = createHeldAsset();
+    const discovery = createAsset();
 
-    const [result] = buildEarnAssets([held, discovery]);
+    const [result] = buildEarnAssets([discovery, held]);
 
-    expect(result.name).toBe('Held USD Coin');
-    expect(result.balance).toBe('10');
-  });
-
-  it('adds fields missing from the first candidate', () => {
-    const held = createAsset({ fiat: undefined });
-    const money = createAsset({
-      fiat: { balance: 10, currency: 'usd' },
-    });
-
-    const [result] = buildEarnAssets([held, money]);
-
-    expect(result.fiat).toEqual({ balance: 10, currency: 'usd' });
+    expect(result.kind).toBe('held');
+    if (result.kind === 'held') {
+      expect(result.asset.name).toBe('Held USD Coin');
+      expect(result.asset.balance).toBe('10');
+    }
   });
 
   it('merges experiences by stable experience ID', () => {

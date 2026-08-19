@@ -1,51 +1,41 @@
+import type { Asset } from '@metamask/assets-controllers';
+import { EthAccountType } from '@metamask/keyring-api';
 import type { EarnAsset, EarnAssetId } from '../../types/earnAssets';
 import {
   getEarnAssetFiatDisplay,
   getEarnAssetFiatNumber,
   hasEarnAssetBalance,
+  isEarnAssetBalanceBelowMinDepositAmount,
 } from './earnAssetBalance';
 
-const createAsset = (overrides: Partial<EarnAsset> = {}): EarnAsset => ({
+const createWalletAsset = (overrides: Partial<Asset> = {}): Asset =>
+  ({
+    accountType: EthAccountType.Eoa,
+    accountId: 'account-id',
+    assetId: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    chainId: '0x1',
+    decimals: 6,
+    image: 'usdc.png',
+    name: 'USD Coin',
+    symbol: 'USDC',
+    balance: '0',
+    rawBalance: '0x0',
+    fiat: undefined,
+    isNative: false,
+    ...overrides,
+  }) as Asset;
+
+const createAsset = (overrides: Partial<Asset> = {}): EarnAsset => ({
+  kind: 'held',
   assetId:
     'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId,
-  address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-  chainId: '0x1',
-  decimals: 6,
-  image: 'usdc.png',
-  name: 'USD Coin',
-  symbol: 'USDC',
-  ticker: 'USDC',
-  balance: '0',
-  logo: 'usdc.png',
-  isETH: false,
+  asset: createWalletAsset(overrides),
   experiences: [],
-  ...overrides,
 });
 
 describe('hasEarnAssetBalance', () => {
-  it('uses balanceMinimalUnit when it is available', () => {
-    const asset = createAsset({
-      balance: '0',
-      balanceMinimalUnit: '1000000',
-    });
-
-    const result = hasEarnAssetBalance(asset);
-
-    expect(result).toBe(true);
-  });
-
-  it('returns false for a zero balanceMinimalUnit', () => {
-    const asset = createAsset({
-      balance: '100',
-      balanceMinimalUnit: '0',
-    });
-
-    const result = hasEarnAssetBalance(asset);
-
-    expect(result).toBe(false);
-  });
-
-  it('uses rawBalance when balanceMinimalUnit is unavailable', () => {
+  it('returns true for a positive controller raw balance', () => {
     const asset = createAsset({
       rawBalance: '0x1',
     });
@@ -55,7 +45,7 @@ describe('hasEarnAssetBalance', () => {
     expect(result).toBe(true);
   });
 
-  it('returns false for an empty raw balance', () => {
+  it('returns false for a zero controller raw balance', () => {
     const asset = createAsset({
       rawBalance: '0x0',
     });
@@ -65,22 +55,34 @@ describe('hasEarnAssetBalance', () => {
     expect(result).toBe(false);
   });
 
-  it('uses decimal balance when higher-priority balances are unavailable', () => {
-    const asset = createAsset({
-      balance: '0.01',
-    });
+  it('returns false for a discovery asset', () => {
+    const asset: EarnAsset = {
+      kind: 'discovery',
+      assetId:
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId,
+      metadata: {
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x1',
+        decimals: 6,
+        image: 'usdc.png',
+        name: 'USD Coin',
+        symbol: 'USDC',
+        logo: 'usdc.png',
+        isETH: false,
+      },
+      experiences: [],
+    };
 
     const result = hasEarnAssetBalance(asset);
 
-    expect(result).toBe(true);
+    expect(result).toBe(false);
   });
 });
 
 describe('getEarnAssetFiatNumber', () => {
-  it('returns an available balanceFiatNumber', () => {
+  it('returns the controller fiat balance', () => {
     const asset = createAsset({
-      balanceFiatNumber: 12.34,
-      fiat: { balance: 56.78, currency: 'USD' },
+      fiat: { balance: 12.34, currency: 'USD', conversionRate: 1 },
     });
 
     const result = getEarnAssetFiatNumber(asset);
@@ -88,22 +90,8 @@ describe('getEarnAssetFiatNumber', () => {
     expect(result).toBe(12.34);
   });
 
-  it('uses fiat balance when balanceFiatNumber is unavailable', () => {
-    const asset = createAsset({
-      balanceFiatNumber: undefined,
-      fiat: { balance: 56.78, currency: 'USD' },
-    });
-
-    const result = getEarnAssetFiatNumber(asset);
-
-    expect(result).toBe(56.78);
-  });
-
-  it('does not expose balanceFiatNumber when fiat is unavailable', () => {
-    const asset = createAsset({
-      isBalanceFiatAvailable: false,
-      balanceFiatNumber: 12.34,
-    });
+  it('returns undefined when controller fiat is unavailable', () => {
+    const asset = createAsset({ fiat: undefined });
 
     const result = getEarnAssetFiatNumber(asset);
 
@@ -112,10 +100,9 @@ describe('getEarnAssetFiatNumber', () => {
 });
 
 describe('getEarnAssetFiatDisplay', () => {
-  it('prefers formatted balanceFiat over selected-currency balance', () => {
+  it('formats the controller fiat balance', () => {
     const asset = createAsset({
-      balanceFiat: '$12.34',
-      balanceInSelectedCurrency: '$56.78',
+      fiat: { balance: 12.34, currency: 'USD', conversionRate: 1 },
     });
 
     const result = getEarnAssetFiatDisplay(asset);
@@ -123,13 +110,74 @@ describe('getEarnAssetFiatDisplay', () => {
     expect(result).toBe('$12.34');
   });
 
-  it('uses selected-currency balance when formatted balanceFiat is unavailable', () => {
-    const asset = createAsset({
-      balanceInSelectedCurrency: '$56.78',
-    });
+  it('returns undefined when controller fiat is unavailable', () => {
+    const asset = createAsset({ fiat: undefined });
 
     const result = getEarnAssetFiatDisplay(asset);
 
-    expect(result).toBe('$56.78');
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('isEarnAssetBalanceBelowMinDepositAmount', () => {
+  it('returns true for a held asset below the minimum deposit amount', () => {
+    const asset = createAsset({
+      fiat: { balance: 0.009, currency: 'USD', conversionRate: 1 },
+    });
+
+    const result = isEarnAssetBalanceBelowMinDepositAmount(asset);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false for a held asset at the minimum deposit amount', () => {
+    const asset = createAsset({
+      fiat: { balance: 0.01, currency: 'USD', conversionRate: 1 },
+    });
+
+    const result = isEarnAssetBalanceBelowMinDepositAmount(asset);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false for a held asset above the minimum deposit amount', () => {
+    const asset = createAsset({
+      fiat: { balance: 0.011, currency: 'USD', conversionRate: 1 },
+    });
+
+    const result = isEarnAssetBalanceBelowMinDepositAmount(asset);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true for a held asset without a fiat balance', () => {
+    const asset = createAsset({ fiat: undefined });
+
+    const result = isEarnAssetBalanceBelowMinDepositAmount(asset);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true for a discovery asset', () => {
+    const asset: EarnAsset = {
+      kind: 'discovery',
+      assetId:
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId,
+      metadata: {
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x1',
+        decimals: 6,
+        image: 'usdc.png',
+        name: 'USD Coin',
+        symbol: 'USDC',
+        logo: 'usdc.png',
+        isETH: false,
+      },
+      experiences: [],
+    };
+
+    const result = isEarnAssetBalanceBelowMinDepositAmount(asset);
+
+    expect(result).toBe(true);
   });
 });

@@ -1,4 +1,6 @@
 import { act, renderHook } from '@testing-library/react-native';
+import type { Asset } from '@metamask/assets-controllers';
+import { EthAccountType } from '@metamask/keyring-api';
 import { useSelector } from 'react-redux';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { LendingMarket } from '@metamask/stake-sdk';
@@ -6,14 +8,13 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import { MUSD_TOKEN_ADDRESS } from '../constants/musd';
 import { type EarnTokenDetails, LendingProtocol } from '../types/lending.types';
-import type { AssetType } from '../../../Views/confirmations/types/token';
 import Engine from '../../../../core/Engine';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectEarnAssetCatalogueInputs } from '../../../../selectors/earnController/earn';
 import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
 import type { RelayFixedSpreadConfig } from '../../../Views/confirmations/utils/relayFixedSpread';
 import useMoneyAccountVisibility from '../../Money/hooks/useMoneyAccountVisibility';
 import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
+import type { MoneyDepositAsset } from '../../Money/selectors/depositTokens';
 import useEarnSectionLendingMarkets from './useEarnSectionLendingMarkets';
 import useEarnSectionTokenMetadata from './useEarnSectionTokenMetadata';
 import useTronStakeApy, { FetchStatus } from './useTronStakeApy';
@@ -88,7 +89,10 @@ const market: LendingMarket = {
   },
 };
 
-const moneyToken: AssetType = {
+const moneyToken: MoneyDepositAsset = {
+  accountType: EthAccountType.Eoa,
+  accountId: 'account-id',
+  assetId: USDC_ADDRESS,
   address: USDC_ADDRESS,
   chainId: '0x1',
   decimals: 6,
@@ -96,14 +100,14 @@ const moneyToken: AssetType = {
   name: 'USD Coin',
   symbol: 'USDC',
   balance: '10',
-  logo: 'usdc.png',
-  isETH: false,
   isNative: false,
+  rawBalance: '0x989680',
   fiat: {
     balance: 10,
     currency: 'USD',
+    conversionRate: 1,
   },
-};
+} as MoneyDepositAsset;
 const EMPTY_RELAY_FIXED_SPREAD_CONFIG: RelayFixedSpreadConfig = { routes: [] };
 const RELAY_CONFIG_WITH_MONEY_DEPOSIT_ROUTE: RelayFixedSpreadConfig = {
   routes: [
@@ -121,11 +125,17 @@ const createEarnToken = (
   role: 'underlying' | 'output',
 ): EarnTokenDetails =>
   ({
-    ...moneyToken,
     address,
+    chainId: '0x1',
+    decimals: 6,
+    image: 'usdc.png',
     name: role === 'underlying' ? 'USD Coin' : 'Aave USDC',
     symbol: role === 'underlying' ? 'USDC' : 'aUSDC',
     ticker: role === 'underlying' ? 'USDC' : 'aUSDC',
+    balance: '1',
+    logo: 'usdc.png',
+    isETH: false,
+    isNative: false,
     balanceMinimalUnit: '1000000',
     balanceFormatted: '1 USDC',
     balanceFiat: '$1.00',
@@ -146,6 +156,40 @@ const createEarnToken = (
     ],
   }) as EarnTokenDetails;
 
+const earnTokenToAsset = (token: EarnTokenDetails): Asset => {
+  const shared = {
+    accountId: 'account-id',
+    assetId: token.address,
+    chainId: token.chainId,
+    decimals: token.decimals,
+    image: token.image,
+    name: token.name,
+    symbol: token.symbol,
+    balance: token.balance,
+    rawBalance:
+      `0x${BigInt(token.balanceMinimalUnit).toString(16)}` as `0x${string}`,
+    fiat: {
+      balance: token.balanceFiatNumber,
+      currency: 'USD',
+      conversionRate: token.tokenUsdExchangeRate,
+    },
+    isNative: token.isNative ?? false,
+  };
+
+  if (token.chainId?.startsWith('tron:')) {
+    return {
+      ...shared,
+      accountType: token.accountType,
+    } as Asset;
+  }
+
+  return {
+    ...shared,
+    accountType: EthAccountType.Eoa,
+    address: token.address,
+  } as Asset;
+};
+
 const refreshLendingMarkets = jest.fn();
 const refreshLendingMetadata = jest.fn();
 const refetchMoneyApy = jest.fn();
@@ -158,6 +202,7 @@ const mockSelectorValues = ({
   earnTokens = [],
   earnOutputTokens = [],
   moneyDepositAssets = [moneyToken],
+  assets,
   relayFixedSpread = EMPTY_RELAY_FIXED_SPREAD_CONFIG,
 }: {
   isPooledStakingEnabled?: boolean;
@@ -165,11 +210,11 @@ const mockSelectorValues = ({
   isTrxStakingEnabled?: boolean;
   earnTokens?: EarnTokenDetails[];
   earnOutputTokens?: EarnTokenDetails[];
-  moneyDepositAssets?: AssetType[];
+  moneyDepositAssets?: MoneyDepositAsset[];
+  assets?: Asset[];
   relayFixedSpread?: RelayFixedSpreadConfig;
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectCurrentCurrency) return 'USD';
     if (selector === selectRelayFixedSpread) return relayFixedSpread;
     if (selector === selectEarnAssetCatalogueInputs) {
       return {
@@ -177,6 +222,11 @@ const mockSelectorValues = ({
         earnOutputTokens,
         lendingMarkets: [market],
         moneyDepositAssets,
+        assets: assets ?? [
+          ...moneyDepositAssets,
+          ...earnTokens.map(earnTokenToAsset),
+          ...earnOutputTokens.map(earnTokenToAsset),
+        ],
         isEarnEligible: true,
         isPooledStakingEnabled,
         isStablecoinLendingEnabled,
@@ -236,6 +286,9 @@ describe('useEarnAssetCatalogue', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockReset();
+    mockFormatAddressToAssetId.mockImplementation((_address, chainId) =>
+      chainId === '0x1' ? ETH_ASSET_ID : POL_ASSET_ID,
+    );
     refreshLendingMarkets.mockResolvedValue(undefined);
     refreshLendingMetadata.mockResolvedValue(undefined);
     refetchMoneyApy.mockResolvedValue(undefined);
@@ -256,7 +309,7 @@ describe('useEarnAssetCatalogue', () => {
       ({ assetId }) => assetId === USDC_ASSET_ID,
     );
 
-    expect(usdc).toMatchObject(moneyToken);
+    expect(usdc).toMatchObject({ kind: 'held', asset: moneyToken });
     expect(usdc?.experiences.map(({ type }) => type)).toEqual([
       'MONEY_ACCOUNT_DEPOSIT',
       EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -287,31 +340,30 @@ describe('useEarnAssetCatalogue', () => {
   });
 
   it('adds Money funding to every deposit token including native assets', () => {
-    const polToken: AssetType = {
+    const polToken = {
       ...moneyToken,
       assetId: '0x0000000000000000000000000000000000000000',
       address: '0x0000000000000000000000000000000000000000',
       chainId: '0x89',
       name: 'Polygon Ecosystem Token',
       symbol: 'POL',
-      ticker: 'POL',
       isNative: true,
-    };
-    const ethToken: AssetType = {
+    } as MoneyDepositAsset;
+    const ethToken = {
       ...moneyToken,
-      assetId: ETH_ASSET_ID,
+      assetId: '0x0000000000000000000000000000000000000000',
       address: '0x0000000000000000000000000000000000000000',
       chainId: '0x1',
       name: 'Ethereum',
       symbol: 'ETH',
-      ticker: 'ETH',
-      isETH: true,
       isNative: true,
-    };
+    } as MoneyDepositAsset;
     mockSelectorValues({
       moneyDepositAssets: [moneyToken, polToken, ethToken],
     });
-    mockFormatAddressToAssetId.mockReturnValue(POL_ASSET_ID);
+    mockFormatAddressToAssetId.mockImplementation((_address, chainId) =>
+      chainId === '0x1' ? ETH_ASSET_ID : POL_ASSET_ID,
+    );
 
     const { result } = renderHook(() => useEarnAssetCatalogue());
 
@@ -329,7 +381,9 @@ describe('useEarnAssetCatalogue', () => {
     const { result } = renderHook(() => useEarnAssetCatalogue());
 
     expect(
-      result.current.assets.some(({ address }) => address === AUSDC_ADDRESS),
+      result.current.assets.some(
+        ({ assetId }) => assetId === `eip155:1/erc20:${AUSDC_ADDRESS}`,
+      ),
     ).toBe(false);
   });
 
@@ -342,7 +396,9 @@ describe('useEarnAssetCatalogue', () => {
     const { result } = renderHook(() => useEarnAssetCatalogue());
 
     expect(
-      result.current.assets.some(({ address }) => address === AUSDC_ADDRESS),
+      result.current.assets.some(
+        ({ assetId }) => assetId === `eip155:1/erc20:${AUSDC_ADDRESS}`,
+      ),
     ).toBe(false);
   });
 
@@ -406,9 +462,11 @@ describe('useEarnAssetCatalogue', () => {
     );
 
     expect(eth).toMatchObject({
+      kind: 'discovery',
       assetId: ETH_ASSET_ID,
-      balance: '0',
-      ticker: 'ETH',
+      metadata: {
+        ticker: 'ETH',
+      },
     });
     expect(eth?.experiences).toEqual([
       expect.objectContaining({
@@ -438,7 +496,7 @@ describe('useEarnAssetCatalogue', () => {
           apr: '3.1',
         },
       ],
-    } as EarnTokenDetails;
+    } as unknown as EarnTokenDetails;
     mockSelectorValues({
       earnTokens: [ethToken],
       earnOutputTokens: [],
@@ -451,12 +509,35 @@ describe('useEarnAssetCatalogue', () => {
     );
 
     expect(eth).toMatchObject({
-      name: 'Held Ethereum',
-      balance: '2',
-      balanceMinimalUnit: '2000000000000000000',
+      kind: 'held',
+      asset: {
+        name: 'Held Ethereum',
+        balance: '2',
+        rawBalance: '0x1bc16d674ec80000',
+      },
     });
     expect(eth?.experiences).toHaveLength(1);
     expect(eth?.experiences[0].rate.type).toBe('APR');
+  });
+
+  it('reports held Earn tokens missing from AssetsController', () => {
+    const heldToken = createEarnToken(USDC_ADDRESS, 'underlying');
+    mockSelectorValues({
+      earnTokens: [heldToken],
+      moneyDepositAssets: [],
+      assets: [],
+    });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    expect(result.current.hasError).toBe(true);
+    expect(result.current.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: 'Held Earn token has no matching AssetsController asset',
+        }),
+      ]),
+    );
   });
 
   it('uses canonical TRX staking metadata for held and discovery assets', () => {
@@ -485,7 +566,7 @@ describe('useEarnAssetCatalogue', () => {
           apr: '0',
         },
       ],
-    } as EarnTokenDetails;
+    } as unknown as EarnTokenDetails;
     mockUseSelector.mockReset();
     mockSelectorValues({
       isPooledStakingEnabled: false,
@@ -520,8 +601,11 @@ describe('useEarnAssetCatalogue', () => {
       },
     ]);
     expect(trxAsset).toMatchObject({
-      balanceMinimalUnit: '1000000',
-      name: 'TRON',
+      kind: 'held',
+      asset: {
+        rawBalance: '0xf4240',
+        name: 'TRON',
+      },
     });
   });
 
@@ -540,9 +624,11 @@ describe('useEarnAssetCatalogue', () => {
     );
 
     expect(trx).toMatchObject({
+      kind: 'discovery',
       assetId: TRX_ASSET_ID,
-      balance: '0',
-      ticker: 'TRX',
+      metadata: {
+        ticker: 'TRX',
+      },
     });
     expect(trx?.experiences[0]).toMatchObject({
       id: `trx-staking:${TRX_ASSET_ID}`,

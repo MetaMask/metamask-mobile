@@ -5,6 +5,7 @@ import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EarnStrategyRiskLevel } from '../components/EarnStrategyCard';
 import type { EarnAssetId, EarnExperience } from '../types/earnAssets';
 import { truncateNumber } from '../utils';
+import { getEarnAssetMetadata } from '../utils/earnAssets';
 import useEarnAssetCatalogue from './useEarnAssetCatalogue';
 
 export interface EarnStrategyInfo {
@@ -105,7 +106,9 @@ const useEarnAssetStrategies = (assetId: EarnAssetId) => {
   const asset = assetsById[assetId.toLowerCase()];
   const strategies = useMemo(() => {
     if (!asset) return [];
-    const assetLabel = asset.ticker ?? asset.symbol ?? asset.name ?? '';
+    const metadata = getEarnAssetMetadata(asset);
+    const assetLabel =
+      metadata.ticker ?? metadata.symbol ?? metadata.name ?? '';
     return asset.experiences.map((experience) =>
       getStrategy(experience, assetLabel, moneyApyPercent),
     );

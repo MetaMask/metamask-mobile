@@ -15,17 +15,19 @@ const assetId =
 
 const createCatalogueResult = (): ReturnType<typeof useEarnAssetCatalogue> => {
   const asset: EarnAsset = {
+    kind: 'discovery',
     assetId,
-    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-    chainId: '0x1',
-    decimals: 6,
-    image: 'usdc.png',
-    name: 'USD Coin',
-    symbol: 'USDC',
-    ticker: 'USDC',
-    balance: '10',
-    logo: 'usdc.png',
-    isETH: false,
+    metadata: {
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      chainId: '0x1',
+      decimals: 6,
+      image: 'usdc.png',
+      name: 'USD Coin',
+      symbol: 'USDC',
+      ticker: 'USDC',
+      logo: 'usdc.png',
+      isETH: false,
+    },
     experiences: [
       {
         id: 'money:usdc',

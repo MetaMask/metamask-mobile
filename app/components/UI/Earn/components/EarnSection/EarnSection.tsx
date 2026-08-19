@@ -47,8 +47,9 @@ import { useNavigation } from '@react-navigation/native';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
 import { truncateNumber } from '../../utils';
 import {
+  earnAssetToToken,
   getEarnAssetFiatDisplay,
-  hasEarnAssetBalance,
+  getEarnAssetMetadata,
 } from '../../utils/earnAssets';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
@@ -58,6 +59,7 @@ import type { EarnAsset } from '../../types/earnAssets';
 import EarnNewTag from '../EarnNewTag';
 import EarnNoFeeTag from '../EarnNoFeeTag';
 import Logger from '../../../../../util/Logger';
+import { isEarnAssetBalanceBelowMinDepositAmount } from '../../utils/earnAssets/earnAssetBalance';
 
 interface EarnSectionProps {
   sectionIndex: number;
@@ -176,19 +178,20 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
 
     const handleAssetCardPress = useCallback(
       (asset: EarnAsset) => {
-        if (!hasEarnAssetBalance(asset)) {
+        const token = earnAssetToToken(asset);
+        if (isEarnAssetBalanceBelowMinDepositAmount(asset)) {
           navigation.navigate('Asset', {
-            address: asset.address,
-            chainId: asset.chainId,
-            symbol: asset.symbol,
-            name: asset.name,
-            decimals: asset.decimals,
-            image: asset.image,
-            balance: asset.balance ?? '0',
-            isNative: asset.isNative,
-            isETH: asset.isETH,
-            aggregators: asset.aggregators,
-            rwaData: asset.rwaData,
+            address: token.address,
+            chainId: token.chainId,
+            symbol: token.symbol,
+            name: token.name,
+            decimals: token.decimals,
+            image: token.image,
+            balance: token.balance,
+            isNative: token.isNative,
+            isETH: token.isETH,
+            aggregators: token.aggregators,
+            rwaData: token.rwaData,
             source: TokenDetailsSource.HomeSection,
           });
           return;
@@ -334,7 +337,9 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                   }
 
                   const { asset } = slot;
-                  const hasAssetBalance = hasEarnAssetBalance(asset);
+                  const metadata = getEarnAssetMetadata(asset);
+                  const hasMinDepositAmount =
+                    !isEarnAssetBalanceBelowMinDepositAmount(asset);
                   const hasSubsidizedFee = asset.experiences.some(
                     ({ isFeeSubsidized }) => isFeeSubsidized,
                   );
@@ -344,7 +349,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                     asset.highestRatePercent === undefined
                       ? strings('earn_module.rate_unavailable')
                       : strings(
-                          hasAssetBalance
+                          hasMinDepositAmount
                             ? isApr
                               ? 'earn_module.get_rate_apr'
                               : 'earn_module.get_rate_apy'
@@ -361,7 +366,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                   return (
                     <EarnSectionAssetCard
                       key={slot.key}
-                      icon={renderEarnAssetIcon(asset)}
+                      icon={renderEarnAssetIcon(earnAssetToToken(asset))}
                       tag={
                         hasSubsidizedFee ? (
                           <EarnNoFeeTag
@@ -369,12 +374,14 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                           />
                         ) : undefined
                       }
-                      primaryText={asset.ticker ?? asset.symbol}
+                      primaryText={metadata.ticker ?? metadata.symbol}
                       secondaryText={
-                        hasAssetBalance
+                        hasMinDepositAmount
                           ? (getEarnAssetFiatDisplay(asset) ??
                             strings('earn_module.balance_unavailable'))
-                          : (asset.name ?? asset.ticker ?? asset.symbol)
+                          : (metadata.name ??
+                            metadata.ticker ??
+                            metadata.symbol)
                       }
                       tertiaryText={rateText}
                       testID={`earn-section-asset-${index}-card`}

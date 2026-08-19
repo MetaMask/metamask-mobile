@@ -1,25 +1,37 @@
 import BigNumber from 'bignumber.js';
+import { moneyFormatFiat } from '../../../Money/utils/moneyFormatFiat';
 import type { EarnAsset } from '../../types/earnAssets';
 
-export const hasEarnAssetBalance = (asset: EarnAsset) => {
-  if (asset.balanceMinimalUnit !== undefined) {
-    return new BigNumber(asset.balanceMinimalUnit).isGreaterThan(0);
+export const hasEarnAssetBalance = (earnAsset: EarnAsset) =>
+  earnAsset.kind === 'held' &&
+  new BigNumber(earnAsset.asset.rawBalance).isGreaterThan(0);
+
+export const getEarnAssetFiatNumber = (asset: EarnAsset) =>
+  asset.kind === 'held' && Number.isFinite(asset.asset.fiat?.balance)
+    ? asset.asset.fiat?.balance
+    : undefined;
+
+export const getEarnAssetFiatDisplay = (earnAsset: EarnAsset) => {
+  if (earnAsset.kind !== 'held' || !earnAsset.asset.fiat) {
+    return undefined;
   }
-  if (asset.rawBalance !== undefined) {
-    return asset.rawBalance !== '0x0';
-  }
-  return new BigNumber(asset.balance || 0).isGreaterThan(0);
+
+  return moneyFormatFiat(
+    new BigNumber(earnAsset.asset.fiat.balance),
+    earnAsset.asset.fiat.currency,
+  );
 };
 
-export const getEarnAssetFiatNumber = (asset: EarnAsset) => {
-  if (
-    asset.isBalanceFiatAvailable !== false &&
-    Number.isFinite(asset.balanceFiatNumber)
-  ) {
-    return asset.balanceFiatNumber;
-  }
-  return Number.isFinite(asset.fiat?.balance) ? asset.fiat?.balance : undefined;
-};
+const MIN_DEPOSIT_BALANCE = 0.01;
 
-export const getEarnAssetFiatDisplay = (asset: EarnAsset) =>
-  asset.balanceFiat ?? asset.balanceInSelectedCurrency;
+export const isEarnAssetBalanceBelowMinDepositAmount = (
+  earnAsset: EarnAsset,
+) => {
+  if (earnAsset.kind !== 'held') {
+    return true;
+  }
+
+  return new BigNumber(earnAsset.asset.fiat?.balance ?? 0).isLessThan(
+    MIN_DEPOSIT_BALANCE,
+  );
+};

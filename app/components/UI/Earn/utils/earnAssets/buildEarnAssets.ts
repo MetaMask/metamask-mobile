@@ -42,33 +42,18 @@ const mergeExperiences = (
   return [...experiencesById.values()];
 };
 
-/**
- * Adds undefined fields from an incoming candidate without overwriting fields
- * owned by the current candidate.
- *
- * @param current - Candidate with precedence for already-defined fields.
- * @param incoming - Candidate that may provide missing fields.
- * @returns Asset containing the current fields and any missing incoming fields.
- */
-const fillMissingTokenFields = (
+const selectCanonicalAsset = (
   current: EarnAsset,
   incoming: EarnAsset,
-): EarnAsset => {
-  const merged = { ...current };
-  (Object.keys(incoming) as (keyof EarnAsset)[]).forEach((key) => {
-    if (merged[key] === undefined) {
-      Object.assign(merged, { [key]: incoming[key] });
-    }
-  });
-  return merged;
-};
+): EarnAsset =>
+  current.kind === 'held' || incoming.kind === 'discovery' ? current : incoming;
 
 /**
  * Builds one asset per CAIP-19 identity.
  *
- * Earlier candidates own conflicting token fields; later candidates can only
- * fill fields that are absent. Experiences are merged by stable experience ID
- * and ordered by strategy priority.
+ * Wallet assets always own asset data when a discovery candidate has the same
+ * identity. Experiences are merged by stable experience ID and ordered by
+ * strategy priority.
  *
  * @param candidates - Asset candidates contributed by Earn data sources.
  * @returns Deduplicated Earn assets in first-seen candidate order.
@@ -90,7 +75,7 @@ export const buildEarnAssets = (
         }
 
         assetsById.set(identity, {
-          ...fillMissingTokenFields(current, candidate),
+          ...selectCanonicalAsset(current, candidate),
           experiences: orderExperiencesByRank(
             mergeExperiences(current.experiences, candidate.experiences),
           ),

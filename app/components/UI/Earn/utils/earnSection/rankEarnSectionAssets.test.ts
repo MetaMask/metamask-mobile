@@ -1,5 +1,12 @@
+import type { Asset } from '@metamask/assets-controllers';
+import { EthAccountType } from '@metamask/keyring-api';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
-import type { EarnAsset, EarnAssetId } from '../../types/earnAssets';
+import type {
+  EarnAsset,
+  EarnAssetId,
+  EarnExperience,
+} from '../../types/earnAssets';
+import { getEarnAssetMetadata } from '../earnAssets';
 import {
   EARN_SECTION_ASSET_LIMIT,
   rankEarnSectionAssets,
@@ -7,21 +14,22 @@ import {
 
 const createAsset = (
   symbol: string,
-  overrides: Partial<EarnAsset> = {},
+  experiences?: readonly EarnExperience[],
 ): EarnAsset => ({
+  kind: 'discovery',
   assetId:
     `eip155:1/erc20:0x${symbol.toLowerCase().padEnd(40, '0')}` as EarnAssetId,
-  address: `0x${symbol.toLowerCase().padEnd(40, '0')}`,
-  chainId: '0x1',
-  decimals: 6,
-  image: `${symbol}.png`,
-  name: symbol,
-  symbol,
-  balance: '0',
-  balanceMinimalUnit: '0',
-  logo: `${symbol}.png`,
-  isETH: false,
-  experiences: [
+  metadata: {
+    address: `0x${symbol.toLowerCase().padEnd(40, '0')}`,
+    chainId: '0x1',
+    decimals: 6,
+    image: `${symbol}.png`,
+    name: symbol,
+    symbol,
+    logo: `${symbol}.png`,
+    isETH: false,
+  },
+  experiences: experiences ?? [
     {
       id: `lending:1:aave:${symbol}`,
       type: EARN_EXPERIENCES.STABLECOIN_LENDING,
@@ -34,76 +42,89 @@ const createAsset = (
       isFeeSubsidized: false,
     },
   ],
-  ...overrides,
 });
+
+const createHeldAsset = (symbol: string, fiatBalance: number): EarnAsset => {
+  const discovery = createAsset(symbol);
+  return {
+    kind: 'held',
+    assetId: discovery.assetId,
+    experiences: discovery.experiences,
+    asset: {
+      accountType: EthAccountType.Eoa,
+      accountId: 'account-id',
+      assetId: `0x${symbol.toLowerCase().padEnd(40, '0')}`,
+      address: `0x${symbol.toLowerCase().padEnd(40, '0')}`,
+      chainId: '0x1',
+      decimals: 6,
+      image: `${symbol}.png`,
+      name: symbol,
+      symbol,
+      balance: '1',
+      rawBalance: '0x1',
+      fiat: { balance: fiatBalance, currency: 'USD', conversionRate: 1 },
+      isNative: false,
+    } as Asset,
+  };
+};
 
 describe('rankEarnSectionAssets', () => {
   it('ranks held assets by descending fiat balance before unheld assets', () => {
     const unheld = createAsset('USDT');
-    const smallerHeld = createAsset('DAI', {
-      balanceMinimalUnit: '1',
-      balanceFiatNumber: 10,
-    });
-    const largerHeld = createAsset('USDC', {
-      balanceMinimalUnit: '1',
-      balanceFiatNumber: 20,
-    });
+    const smallerHeld = createHeldAsset('DAI', 10);
+    const largerHeld = createHeldAsset('USDC', 20);
 
     const result = rankEarnSectionAssets([unheld, smallerHeld, largerHeld]);
 
     expect(
       result.flatMap((slot) =>
-        slot.kind === 'asset' ? [slot.asset.symbol] : [],
+        slot.kind === 'asset' ? [getEarnAssetMetadata(slot.asset).symbol] : [],
       ),
     ).toEqual(['USDC', 'DAI', 'USDT']);
   });
 
   it('ranks unheld assets by descending highest rate', () => {
     const lowerRate = createAsset('USDT');
-    const higherRate = createAsset('USDC', {
-      experiences: [
-        {
-          id: 'money:usdc',
-          type: 'MONEY_ACCOUNT_DEPOSIT',
-          role: 'funding',
-          rate: {
-            type: 'APY',
-            percentage: 6.2,
-            status: 'ready',
-          },
-          isFeeSubsidized: false,
+    const higherRate = createAsset('USDC', [
+      {
+        id: 'money:usdc',
+        type: 'MONEY_ACCOUNT_DEPOSIT',
+        role: 'funding',
+        rate: {
+          type: 'APY',
+          percentage: 6.2,
+          status: 'ready',
         },
-      ],
-    });
+        isFeeSubsidized: false,
+      },
+    ]);
 
     const result = rankEarnSectionAssets([lowerRate, higherRate]);
 
     expect(
       result.flatMap((slot) =>
-        slot.kind === 'asset' ? [slot.asset.symbol] : [],
+        slot.kind === 'asset' ? [getEarnAssetMetadata(slot.asset).symbol] : [],
       ),
     ).toEqual(['USDC', 'USDT']);
   });
 
   it('selects the experience with the highest available rate', () => {
-    const asset = createAsset('USDC', {
-      experiences: [
-        {
-          id: 'lending:usdc',
-          type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-          role: 'underlying',
-          rate: { type: 'APR', percentage: 4, status: 'ready' },
-          isFeeSubsidized: false,
-        },
-        {
-          id: 'money:usdc',
-          type: 'MONEY_ACCOUNT_DEPOSIT',
-          role: 'funding',
-          rate: { type: 'APY', percentage: 6.2, status: 'ready' },
-          isFeeSubsidized: false,
-        },
-      ],
-    });
+    const asset = createAsset('USDC', [
+      {
+        id: 'lending:usdc',
+        type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        role: 'underlying',
+        rate: { type: 'APR', percentage: 4, status: 'ready' },
+        isFeeSubsidized: false,
+      },
+      {
+        id: 'money:usdc',
+        type: 'MONEY_ACCOUNT_DEPOSIT',
+        role: 'funding',
+        rate: { type: 'APY', percentage: 6.2, status: 'ready' },
+        isFeeSubsidized: false,
+      },
+    ]);
 
     const [result] = rankEarnSectionAssets([asset]);
 
@@ -133,17 +154,15 @@ describe('rankEarnSectionAssets', () => {
   });
 
   it('reports an error rate when no experience has a value', () => {
-    const asset = createAsset('USDC', {
-      experiences: [
-        {
-          id: 'lending:usdc',
-          type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-          role: 'underlying',
-          rate: { type: 'APR', status: 'error' },
-          isFeeSubsidized: false,
-        },
-      ],
-    });
+    const asset = createAsset('USDC', [
+      {
+        id: 'lending:usdc',
+        type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        role: 'underlying',
+        rate: { type: 'APR', status: 'error' },
+        isFeeSubsidized: false,
+      },
+    ]);
 
     const [result] = rankEarnSectionAssets([asset]);
 

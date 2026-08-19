@@ -1,4 +1,6 @@
 import React from 'react';
+import type { Asset } from '@metamask/assets-controllers';
+import { EthAccountType } from '@metamask/keyring-api';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -17,7 +19,10 @@ import useHomeViewedEvent from '../../../../Views/Homepage/hooks/useHomeViewedEv
 import { useSectionPerformance } from '../../../../Views/Homepage/hooks/useSectionPerformance';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { EarnAssetId } from '../../types/earnAssets';
-import type { EarnSectionAssetSlot } from '../../utils/earnSection';
+import type {
+  EarnSectionAssetSlot,
+  EarnSectionRankedAsset,
+} from '../../utils/earnSection';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import EarnSection from './EarnSection';
 
@@ -56,23 +61,33 @@ const mockUseSectionPerformance = useSectionPerformance as jest.MockedFunction<
 
 const assetId =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId;
-const assetSlot: EarnSectionAssetSlot = {
+type HeldEarnSectionAsset = Extract<EarnSectionRankedAsset, { kind: 'held' }>;
+
+const assetSlot: {
+  kind: 'asset';
+  key: string;
+  asset: HeldEarnSectionAsset;
+} = {
   kind: 'asset',
   key: assetId,
   asset: {
+    kind: 'held',
     assetId,
-    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-    chainId: '0x1',
-    decimals: 6,
-    image: 'usdc.png',
-    name: 'USD Coin',
-    symbol: 'USDC',
-    balance: '10',
-    balanceMinimalUnit: '10000000',
-    logo: 'usdc.png',
-    isETH: false,
-    balanceFiatNumber: 10,
-    balanceFiat: '$10.00',
+    asset: {
+      accountType: EthAccountType.Eoa,
+      accountId: 'account-id',
+      assetId: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      chainId: '0x1',
+      decimals: 6,
+      image: 'usdc.png',
+      name: 'USD Coin',
+      symbol: 'USDC',
+      balance: '10',
+      rawBalance: '0x989680',
+      fiat: { balance: 10, currency: 'USD', conversionRate: 1 },
+      isNative: false,
+    } as Asset,
     experiences: [
       {
         id: 'lending:1:aave:usdc',
@@ -101,14 +116,16 @@ const assetSlot: EarnSectionAssetSlot = {
     rateStatus: 'ready',
   },
 };
-const zeroBalanceAssetSlot: EarnSectionAssetSlot = {
+const zeroBalanceAssetSlot: typeof assetSlot = {
   ...assetSlot,
   asset: {
     ...assetSlot.asset,
-    balance: '0',
-    balanceMinimalUnit: '0',
-    balanceFiat: '$0.00',
-    balanceFiatNumber: 0,
+    asset: {
+      ...assetSlot.asset.asset,
+      balance: '0',
+      rawBalance: '0x0',
+      fiat: { balance: 0, currency: 'USD', conversionRate: 1 },
+    } as Asset,
   },
 };
 const navigate = jest.fn();
@@ -380,7 +397,9 @@ describe('EarnSection', () => {
     render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
 
     expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
-    expect(screen.getByText(zeroBalanceAssetSlot.asset.name)).toBeOnTheScreen();
+    expect(
+      screen.getByText(zeroBalanceAssetSlot.asset.asset.name),
+    ).toBeOnTheScreen();
     expect(
       screen.queryByText(strings('earn_module.get_started')),
     ).not.toBeOnTheScreen();
@@ -417,15 +436,15 @@ describe('EarnSection', () => {
     expect(navigate).toHaveBeenCalledWith(
       'Asset',
       expect.objectContaining({
-        address: zeroBalanceAssetSlot.asset.address,
-        chainId: zeroBalanceAssetSlot.asset.chainId,
-        symbol: zeroBalanceAssetSlot.asset.symbol,
-        name: zeroBalanceAssetSlot.asset.name,
-        decimals: zeroBalanceAssetSlot.asset.decimals,
-        image: zeroBalanceAssetSlot.asset.image,
+        address: zeroBalanceAssetSlot.asset.asset.assetId,
+        chainId: zeroBalanceAssetSlot.asset.asset.chainId,
+        symbol: zeroBalanceAssetSlot.asset.asset.symbol,
+        name: zeroBalanceAssetSlot.asset.asset.name,
+        decimals: zeroBalanceAssetSlot.asset.asset.decimals,
+        image: zeroBalanceAssetSlot.asset.asset.image,
         balance: '0',
-        isNative: zeroBalanceAssetSlot.asset.isNative,
-        isETH: zeroBalanceAssetSlot.asset.isETH,
+        isNative: zeroBalanceAssetSlot.asset.asset.isNative,
+        isETH: false,
         source: TokenDetailsSource.HomeSection,
       }),
     );

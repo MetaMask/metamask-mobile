@@ -6,9 +6,7 @@ import { toHex } from '@metamask/controller-utils';
 import { ChainId, type LendingMarket } from '@metamask/stake-sdk';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { isCaipAssetType, type CaipAssetType, type Hex } from '@metamask/utils';
-import BigNumber from 'bignumber.js';
 import Engine from '../../../../core/Engine';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectEarnAssetCatalogueInputs } from '../../../../selectors/earnController/earn';
 import { pooledStakingSelectors } from '../../../../selectors/earnController/pooledStaking';
 import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
@@ -16,17 +14,22 @@ import { buildEvmCaip19AssetId } from '../../../../util/multichain/buildEvmCaip1
 import useMoneyAccountVisibility from '../../Money/hooks/useMoneyAccountVisibility';
 import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
 import { isMoneyDepositFeeSubsidized } from '../../Money/utils/isMoneyDepositFeeSubsidized';
-import { moneyFormatFiat } from '../../Money/utils/moneyFormatFiat';
 import type { TokenI } from '../../Tokens/types';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import type {
   EarnAsset,
   EarnAssetId,
+  EarnAssetMetadata,
   EarnAssetRole,
   EarnExperience,
   EarnRateStatus,
 } from '../types/earnAssets';
-import { buildEarnAssets } from '../utils/earnAssets';
+import {
+  buildEarnAssets,
+  createDiscoveryEarnAsset,
+  createHeldEarnAsset,
+  getAssetEarnId,
+} from '../utils/earnAssets';
 import useEarnSectionLendingMarkets from './useEarnSectionLendingMarkets';
 import useEarnSectionTokenMetadata from './useEarnSectionTokenMetadata';
 import useTronStakeApy, { FetchStatus } from './useTronStakeApy';
@@ -68,14 +71,13 @@ const getRateStatus = ({
  * selected account or mainnet configuration. In normal wallet state the held
  * ETH candidate is emitted first and keeps its metadata during deduplication.
  */
-const createEthDiscoveryToken = (): TokenI => ({
+const createEthDiscoveryMetadata = (): EarnAssetMetadata => ({
   address: getNativeTokenAddress(CHAIN_IDS.MAINNET),
   decimals: 18,
   image: '',
   name: 'Ethereum',
   symbol: 'Ethereum',
   ticker: 'ETH',
-  balance: '0',
   logo: undefined,
   isETH: true,
   isNative: true,
@@ -87,14 +89,13 @@ const createEthDiscoveryToken = (): TokenI => ({
  * Provides TRX-staking discovery while asynchronous Snap account provisioning
  * has not yet populated the multichain token selector.
  */
-const createTrxDiscoveryToken = (): TokenI => ({
+const createTrxDiscoveryMetadata = (): EarnAssetMetadata => ({
   address: TRX_NATIVE_TOKEN_ADDRESS,
   decimals: 6,
   image: '',
   name: 'TRON',
   symbol: 'TRX',
   ticker: 'TRX',
-  balance: '0',
   logo: undefined,
   isETH: false,
   isNative: true,
@@ -213,13 +214,13 @@ const getHeldEarnExperiences = ({
  * lending, and staking authorities.
  */
 const useEarnAssetCatalogue = () => {
-  const preferredCurrency = useSelector(selectCurrentCurrency);
   const relayFixedSpread = useSelector(selectRelayFixedSpread);
   const { isMoneyAccountVisible } = useMoneyAccountVisibility();
   const {
     earnTokens,
     earnOutputTokens,
     moneyDepositAssets,
+    assets: walletAssets,
     isEarnEligible,
     isPooledStakingEnabled,
     isStablecoinLendingEnabled,
@@ -289,6 +290,16 @@ const useEarnAssetCatalogue = () => {
   });
   const ethRatePercent = parseRatePercent(mainnetVaultApy?.apyPercentString);
   const ethRateStatus = getRateStatus({ percentage: ethRatePercent });
+  const walletAssetsById = useMemo(
+    () =>
+      new Map(
+        walletAssets.flatMap((asset) => {
+          const assetId = getAssetEarnId(asset);
+          return assetId ? [[assetId.toLowerCase(), asset] as const] : [];
+        }),
+      ),
+    [walletAssets],
+  );
 
   const candidates = useMemo(() => {
     const nextCandidates: EarnAsset[] = [];
@@ -314,12 +325,12 @@ const useEarnAssetCatalogue = () => {
             isTrxStakingEnabled,
           });
           if (experiences.length === 0) return;
+          const walletAsset = walletAssetsById.get(assetId.toLowerCase());
+          if (!walletAsset) return;
 
-          nextCandidates.push({
-            ...token,
-            assetId,
-            experiences,
-          });
+          nextCandidates.push(
+            createHeldEarnAsset(walletAsset, assetId, experiences),
+          );
         });
       };
 
@@ -329,20 +340,11 @@ const useEarnAssetCatalogue = () => {
 
     if (isMoneyAccountVisible) {
       moneyDepositAssets.forEach((token) => {
-        const assetId = getTokenAssetId(token);
+        const assetId = getAssetEarnId(token);
         if (!assetId) return;
 
-        nextCandidates.push({
-          ...token,
-          assetId,
-          balanceFiat:
-            token.fiat?.balance !== undefined
-              ? moneyFormatFiat(
-                  new BigNumber(token.fiat.balance.toString()),
-                  preferredCurrency,
-                )
-              : undefined,
-          experiences: [
+        nextCandidates.push(
+          createHeldEarnAsset(token, assetId, [
             {
               id: `money:${assetId}`,
               type: 'MONEY_ACCOUNT_DEPOSIT',
@@ -357,8 +359,8 @@ const useEarnAssetCatalogue = () => {
                 token,
               ),
             },
-          ],
-        });
+          ]),
+        );
       });
     }
 
@@ -375,77 +377,85 @@ const useEarnAssetCatalogue = () => {
         const metadata = lendingMetadata[assetId];
         if (!metadata || metadata.decimals === undefined) return;
 
-        nextCandidates.push({
-          address,
-          assetId,
-          decimals: metadata.decimals,
-          image: metadata.iconUrl ?? '',
-          name: metadata.name,
-          symbol: metadata.symbol,
-          balance: '0',
-          logo: metadata.iconUrl,
-          isETH: false,
-          isNative: false,
-          isStaked: false,
-          chainId,
-          experiences: [
+        nextCandidates.push(
+          createDiscoveryEarnAsset(
+            assetId,
             {
-              id: experienceId,
-              type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-              role: 'underlying',
-              rate: {
-                type: 'APY',
-                percentage: ratePercentage,
-                status: getRateStatus({
-                  percentage: ratePercentage,
-                }),
-              },
-              isFeeSubsidized: false,
-              market,
+              address,
+              decimals: metadata.decimals,
+              image: metadata.iconUrl ?? '',
+              name: metadata.name,
+              symbol: metadata.symbol,
+              ticker: metadata.symbol,
+              logo: metadata.iconUrl,
+              isETH: false,
+              isNative: false,
+              isStaked: false,
+              chainId,
             },
-          ],
-        });
+            [
+              {
+                id: experienceId,
+                type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+                role: 'underlying',
+                rate: {
+                  type: 'APY',
+                  percentage: ratePercentage,
+                  status: getRateStatus({
+                    percentage: ratePercentage,
+                  }),
+                },
+                isFeeSubsidized: false,
+                market,
+              },
+            ],
+          ),
+        );
       });
     }
 
     if (isPooledStakingEnabled && isEarnEligible) {
-      nextCandidates.push({
-        ...createEthDiscoveryToken(),
-        assetId: ETH_MAINNET_ASSET_ID,
-        experiences: [
-          {
-            id: `pooled:${ETH_MAINNET_ASSET_ID}`,
-            type: EARN_EXPERIENCES.POOLED_STAKING,
-            role: 'underlying',
-            rate: {
-              type: 'APR',
-              percentage: ethRatePercent,
-              status: ethRateStatus,
+      nextCandidates.push(
+        createDiscoveryEarnAsset(
+          ETH_MAINNET_ASSET_ID,
+          createEthDiscoveryMetadata(),
+          [
+            {
+              id: `pooled:${ETH_MAINNET_ASSET_ID}`,
+              type: EARN_EXPERIENCES.POOLED_STAKING,
+              role: 'underlying',
+              rate: {
+                type: 'APR',
+                percentage: ethRatePercent,
+                status: ethRateStatus,
+              },
+              isFeeSubsidized: false,
             },
-            isFeeSubsidized: false,
-          },
-        ],
-      });
+          ],
+        ),
+      );
     }
 
     if (isTrxStakingEnabled && isEarnEligible) {
-      nextCandidates.push({
-        ...createTrxDiscoveryToken(),
-        assetId: TRX_NATIVE_TOKEN_ADDRESS,
-        experiences: [
-          {
-            id: `trx-staking:${TRX_NATIVE_TOKEN_ADDRESS}`,
-            type: EARN_EXPERIENCES.TRX_STAKING,
-            role: 'underlying',
-            rate: {
-              type: 'APR',
-              percentage: trxRatePercent,
-              status: trxRateStatus,
+      nextCandidates.push(
+        createDiscoveryEarnAsset(
+          TRX_NATIVE_TOKEN_ADDRESS,
+          createTrxDiscoveryMetadata(),
+          [
+            {
+              id: `trx-staking:${TRX_NATIVE_TOKEN_ADDRESS}`,
+              type: EARN_EXPERIENCES.TRX_STAKING,
+              role: 'underlying',
+              rate: {
+                type: 'APR',
+                percentage: trxRatePercent,
+                status: trxRateStatus,
+              },
+              isFeeSubsidized: false,
             },
-            isFeeSubsidized: false,
-          },
-        ],
-      });
+          ],
+        ),
+      );
     }
 
     return nextCandidates;
@@ -464,10 +474,10 @@ const useEarnAssetCatalogue = () => {
     moneyApyPercent,
     moneyDepositAssets,
     moneyRateStatus,
-    preferredCurrency,
     relayFixedSpread,
     trxRatePercent,
     trxRateStatus,
+    walletAssetsById,
   ]);
 
   const assets = useMemo(() => buildEarnAssets(candidates), [candidates]);
@@ -478,7 +488,6 @@ const useEarnAssetCatalogue = () => {
       ),
     [assets],
   );
-
   const hasMissingLendingMetadata =
     isLendingMetadataSettled &&
     lendingAssetIds.some(
@@ -486,7 +495,13 @@ const useEarnAssetCatalogue = () => {
     );
   const hasUnresolvedMoneyAsset =
     isMoneyAccountVisible &&
-    moneyDepositAssets.some((token) => !getTokenAssetId(token));
+    moneyDepositAssets.some((token) => !getAssetEarnId(token));
+  const hasUnresolvedHeldEarnAsset =
+    isEarnEligible &&
+    earnTokens.some((token) => {
+      const assetId = getTokenAssetId(token);
+      return assetId !== undefined && !walletAssetsById.has(assetId);
+    });
   const isLendingLoading =
     isStablecoinLendingEnabled &&
     isEarnEligible &&
@@ -508,6 +523,9 @@ const useEarnAssetCatalogue = () => {
         hasUnresolvedMoneyAsset
           ? new Error('Money deposit asset has no valid CAIP-19 identity')
           : null,
+        hasUnresolvedHeldEarnAsset
+          ? new Error('Held Earn token has no matching AssetsController asset')
+          : null,
         isMoneyAccountVisible &&
         isMoneyApyError &&
         moneyApyPercent === undefined
@@ -521,6 +539,7 @@ const useEarnAssetCatalogue = () => {
       ].filter((error): error is Error => error instanceof Error),
     [
       hasMissingLendingMetadata,
+      hasUnresolvedHeldEarnAsset,
       hasUnresolvedMoneyAsset,
       isMoneyAccountVisible,
       isMoneyApyError,

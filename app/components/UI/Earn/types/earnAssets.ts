@@ -1,6 +1,7 @@
+import type { Asset } from '@metamask/assets-controllers';
 import type { LendingMarket } from '@metamask/stake-sdk';
 import type { CaipAssetType } from '@metamask/utils';
-import type { AssetType } from '../../../Views/confirmations/types/token';
+import type { TokenI } from '../../Tokens/types';
 import type { EARN_EXPERIENCES } from '../constants/experiences';
 
 export type EarnAssetId = CaipAssetType;
@@ -26,13 +27,37 @@ export interface EarnExperience {
   market?: LendingMarket;
 }
 
-export interface EarnAsset
-  extends Omit<AssetType, 'assetId' | 'experience' | 'experiences'> {
+/**
+ * Metadata for an Earn opportunity that is not present in the selected
+ * account's AssetsController state.
+ */
+export interface EarnAssetMetadata {
+  address: string;
+  chainId: string;
+  decimals: number;
+  image: string;
+  name: string;
+  symbol: string;
+  ticker?: string;
+  logo: string | undefined;
+  isNative?: boolean;
+  isETH: boolean | undefined;
+  isStaked?: boolean;
+}
+
+interface EarnAssetBase {
   assetId: EarnAssetId;
   experiences: readonly EarnExperience[];
-  balanceFormatted?: string;
-  balanceMinimalUnit?: string;
-  balanceFiatNumber?: number;
-  isBalanceFiatAvailable?: boolean;
-  tokenUsdExchangeRate?: number;
 }
+
+export interface HeldEarnAsset extends EarnAssetBase {
+  kind: 'held';
+  asset: Asset;
+}
+
+export interface DiscoveryEarnAsset extends EarnAssetBase {
+  kind: 'discovery';
+  metadata: EarnAssetMetadata;
+}
+
+export type EarnAsset = HeldEarnAsset | DiscoveryEarnAsset;
