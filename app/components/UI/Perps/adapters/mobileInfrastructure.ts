@@ -27,7 +27,6 @@ import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import Engine from '../../../../core/Engine';
 import {
   PERPS_CONSTANTS,
-  PerpsMeasurementName,
   parseCommaSeparatedString,
   type PerpsPlatformDependencies,
   type PerpsControllerConfig,
@@ -82,16 +81,6 @@ export function getTerminalApiUrl(): string {
  */
 function toTraceName(name: PerpsTraceName): TraceName {
   return name as unknown as TraceName;
-}
-
-function getPreloadTraceName(measurementName: string): TraceName | null {
-  if (measurementName === PerpsMeasurementName.PerpsMarketDataPreload) {
-    return TraceName.PerpsMarketDataPreload;
-  }
-  if (measurementName === PerpsMeasurementName.PerpsUserDataPreload) {
-    return TraceName.PerpsUserDataPreload;
-  }
-  return null;
 }
 
 function getPreloadTraceData(
@@ -261,6 +250,7 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
   const terminalGlobalSnapshotUrl = getTerminalGlobalSnapshotUrl(
     terminalMarketDataUrl,
   );
+  const traceNamesById = new Map<string, TraceName>();
 
   return {
     // === Observability (stateless utilities) ===
@@ -302,9 +292,11 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
         tags?: Record<string, PerpsTraceValue>;
         data?: Record<string, PerpsTraceValue>;
       }): void {
+        const traceName = toTraceName(params.name);
         const loadingSessionData = getPreloadTraceData(params.name);
+        traceNamesById.set(params.id, traceName);
         trace({
-          name: toTraceName(params.name),
+          name: traceName,
           id: params.id,
           op: params.op,
           tags: params.tags,
@@ -323,6 +315,7 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
           id: params.id,
           data: params.data,
         });
+        traceNamesById.delete(params.id);
       },
       setMeasurement(
         name: string,
@@ -330,8 +323,11 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
         unit: string,
         id?: string,
       ): void {
-        const traceName = id ? getPreloadTraceName(name) : null;
-        if (id && traceName) {
+        if (id) {
+          const traceName = traceNamesById.get(id);
+          if (!traceName) {
+            return;
+          }
           setTraceMeasurement(
             { name: traceName, id },
             name,

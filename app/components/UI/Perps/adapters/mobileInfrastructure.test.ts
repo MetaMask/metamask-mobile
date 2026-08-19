@@ -158,23 +158,71 @@ describe('createMobileInfrastructure', () => {
     it.each([
       [
         PerpsMeasurementName.PerpsMarketDataPreload,
+        PerpsTraceNames.MarketDataPreload,
         TraceName.PerpsMarketDataPreload,
       ],
       [
         PerpsMeasurementName.PerpsUserDataPreload,
+        PerpsTraceNames.UserDataPreload,
         TraceName.PerpsUserDataPreload,
       ],
-    ])('targets %s to its explicit preload trace', (name, traceName) => {
-      const infra = createMobileInfrastructure();
+    ])(
+      'targets %s to its explicit preload trace',
+      (name, coreName, traceName) => {
+        const infra = createMobileInfrastructure();
+        infra.tracer.trace({
+          name: coreName,
+          id: 'trace-id',
+          op: 'perps.preload',
+        });
 
-      infra.tracer.setMeasurement(name, 42, 'millisecond', 'trace-id');
+        infra.tracer.setMeasurement(name, 42, 'millisecond', 'trace-id');
+
+        expect(setTraceMeasurement).toHaveBeenCalledWith(
+          { name: traceName, id: 'trace-id' },
+          name,
+          42,
+          'millisecond',
+        );
+        expect(setSentryMeasurement).not.toHaveBeenCalled();
+      },
+    );
+
+    it('targets child measurements to the trace that opened their id', () => {
+      const infra = createMobileInfrastructure();
+      infra.tracer.trace({
+        name: PerpsTraceNames.MarketDataPreload,
+        id: 'trace-id',
+        op: 'perps.preload',
+      });
+
+      infra.tracer.setMeasurement(
+        'terminal_request_duration_ms',
+        17,
+        'millisecond',
+        'trace-id',
+      );
 
       expect(setTraceMeasurement).toHaveBeenCalledWith(
-        { name: traceName, id: 'trace-id' },
-        name,
-        42,
+        { name: TraceName.PerpsMarketDataPreload, id: 'trace-id' },
+        'terminal_request_duration_ms',
+        17,
         'millisecond',
       );
+      expect(setSentryMeasurement).not.toHaveBeenCalled();
+    });
+
+    it('does not write an explicit-id measurement without its trace', () => {
+      const infra = createMobileInfrastructure();
+
+      infra.tracer.setMeasurement(
+        'unknown.measurement',
+        1,
+        'millisecond',
+        'missing-trace-id',
+      );
+
+      expect(setTraceMeasurement).not.toHaveBeenCalled();
       expect(setSentryMeasurement).not.toHaveBeenCalled();
     });
 
