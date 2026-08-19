@@ -68,6 +68,7 @@ import {
   selectBridgeFeatureFlags,
   selectDestAddress,
   selectIsEvmNonEvmBridge,
+  selectIsGasIncludedSTXSendBundleSupported,
   selectIsNonEvmNonEvmBridge,
   selectIsNonEvmSourced,
   selectIsSolanaSourced,
@@ -81,7 +82,6 @@ import {
 } from '../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { isHardwareAccount } from '../../../../util/address';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
@@ -93,6 +93,7 @@ import { useRampNavigation } from '../../Ramp/hooks/useRampNavigation';
 import { useHasSufficientGas } from '../../Bridge/hooks/useHasSufficientGas';
 import { useInitialSlippage } from '../../Bridge/hooks/useInitialSlippage';
 import useIsInsufficientBalance from '../../Bridge/hooks/useInsufficientBalance';
+import { useIsGasIncluded7702Supported } from '../../Bridge/hooks/useIsGasIncluded7702Supported';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
 import { useIsNetworkFeeUnavailable } from '../../Bridge/hooks/useIsNetworkFeeUnavailable';
 import { useLatestBalance } from '../../Bridge/hooks/useLatestBalance';
@@ -590,6 +591,11 @@ export function useQuickBuyController(
 
   useRefreshSmartTransactionsLiveness(sourceChainId);
   useIsGasIncludedSTXSendBundleSupported(sourceChainId);
+  // Same as BridgeView: keep `selectGasIncludedQuoteParams` in sync with the
+  // *source* chain. Without this, a leftover 7702 flag from Ethereum makes
+  // QuickBuy request gas-included quotes (maxFeePerGas) for Robinhood sells
+  // that TransactionController then rejects (TSA-1008).
+  useIsGasIncluded7702Supported(sourceChainId);
 
   useEffect(() => {
     if (sourceToken && destToken) {
@@ -964,7 +970,11 @@ export function useQuickBuyController(
   const hasInsufficientGas =
     !isNetworkFeeUnavailable && hasSufficientGas === false;
 
-  const stxEnabled = useSelector(selectShouldUseSmartTransaction);
+  // Same flag Swap's `useSubmitBridgeTx` uses: STX + sendBundle on the *source*
+  // chain. `selectShouldUseSmartTransaction()` without a chainId is the
+  // currently selected network, which is wrong when QuickBuy sells on
+  // Robinhood while the wallet is still on Ethereum (TSA-1008).
+  const stxEnabled = useSelector(selectIsGasIncludedSTXSendBundleSupported);
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
   const isDestinationAddressMissing = hasDestinationPicker && !destAddress;
 
@@ -1542,26 +1552,6 @@ export function useQuickBuyController(
       // notification once submitTx resolves.
       beginQuickBuySubmission();
       dispatch(setIsSubmittingTx(true));
-      // TSA-1008: prime the source chain's EIP-1559 metadata before submit.
-      // `TransactionController.addTransaction` calls
-      // `NetworkController.getEIP1559Compatibility(networkClientId)` and
-      // coerces `undefined` → `false`, which then trips
-      // `validateEIP1559Compatibility` because bridge-status-controller always
-      // attaches `maxFeePerGas` / `maxPriorityFeePerGas` from the quote's
-      // `txFee`. The regular Swap flow gets away with it because the
-      // full-screen Bridge view stays mounted long enough for the network
-      // client to be probed and cached. QuickBuy is a bottom sheet that can be
-      // submitted before that probe runs, so we force it here. Errors are
-      // swallowed — worst case we fall back to the pre-fix behaviour.
-      if (sourceNetworkClientId) {
-        try {
-          await Engine.context.NetworkController.getEIP1559Compatibility(
-            sourceNetworkClientId,
-          );
-        } catch {
-          // Non-fatal: submitTx below will surface the real error if any.
-        }
-      }
       const submitResult = await Engine.context.BridgeStatusController.submitTx(
         walletAddress,
         activeQuote,
@@ -1645,7 +1635,6 @@ export function useQuickBuyController(
     activeQuote,
     walletAddress,
     stxEnabled,
-    sourceNetworkClientId,
     dispatch,
     onClose,
     toastRef,
