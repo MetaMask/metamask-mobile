@@ -326,7 +326,8 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
         StorageWrapper.removeItem(key).then(() => undefined),
     },
 
-    // === Terminal API (preferred market data source with HyperLiquid fallback) ===
+    // v1 remains available for legacy metadata enrichment; v2 provides the
+    // atomic bootstrap snapshot. Both routes use the same environment host.
     terminalApi: {
       marketDataUrl: terminalMarketDataUrl,
       globalSnapshotUrl: terminalGlobalSnapshotUrl,
