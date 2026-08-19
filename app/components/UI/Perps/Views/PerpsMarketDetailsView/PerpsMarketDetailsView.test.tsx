@@ -998,7 +998,7 @@ describe('PerpsMarketDetailsView', () => {
     jest.useRealTimers();
   });
 
-  it('omits the default source when navigation analytics context is present', () => {
+  it('uses navigation analytics attribution as the source', () => {
     mockRouteParams.analyticsContext = {
       id: 'balance-breakdown-navigation',
       attribution: 'homescreen_balance_breakdown',
@@ -1014,8 +1014,8 @@ describe('PerpsMarketDetailsView', () => {
     expect(jest.mocked(usePerpsEventTracking)).toHaveBeenCalledWith(
       expect.objectContaining({
         eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-        properties: expect.not.objectContaining({
-          [PERPS_EVENT_PROPERTY.SOURCE]: expect.anything(),
+        properties: expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.SOURCE]: 'homescreen_balance_breakdown',
         }),
       }),
     );

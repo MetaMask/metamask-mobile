@@ -105,6 +105,7 @@ describe('usePerpsEventTracking', () => {
       const { result } = renderHook(() => usePerpsEventTracking());
       const customProps = {
         screen_type: 'home',
+        source: 'homescreen_balance_breakdown',
         [PERPS_EVENT_PROPERTY.OPEN_POSITION]: 2,
       };
 
@@ -134,6 +135,7 @@ describe('usePerpsEventTracking', () => {
       expect(assetViewedProperties).toEqual({
         [PERPS_EVENT_PROPERTY.TIMESTAMP]: 1234567890,
         screen_type: 'home',
+        source: 'homescreen_balance_breakdown',
         open_positions_count: 2,
         trade_type: 'Perps',
         implementation_type: 'native',
