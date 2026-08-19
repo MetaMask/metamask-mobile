@@ -34,6 +34,7 @@ import {
   PERPS_EVENT_PROPERTY as PERPS_CHART_EVENT_PROPERTY,
   PERPS_EVENT_VALUE as PERPS_CHART_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 
 const mockPerpsAdvancedChartMount = jest.fn();
 const mockPerpsAdvancedChartUnmount = jest.fn();
@@ -241,7 +242,12 @@ const mockRouteParams: {
     asset: string;
     monitor: 'orders' | 'positions' | 'both';
   };
+  source?: string;
   source_section?: string;
+  analyticsContext?: {
+    id: string;
+    attribution: 'homescreen_balance_breakdown';
+  };
   transactionActiveAbTests?: {
     key: string;
     value: string;
@@ -961,7 +967,9 @@ describe('PerpsMarketDetailsView', () => {
       maxLeverage: '40x',
     };
     mockRouteParams.transactionActiveAbTests = undefined;
+    mockRouteParams.source = undefined;
     mockRouteParams.source_section = undefined;
+    mockRouteParams.analyticsContext = undefined;
 
     // Reset order fills mock to default
     mockUsePerpsLiveFillsImpl.mockReturnValue({
@@ -985,6 +993,29 @@ describe('PerpsMarketDetailsView', () => {
     mockPerpsModeValue = 'lite';
     mockHasCompletedPerpsModeSelection.mockResolvedValue(true);
     jest.useRealTimers();
+  });
+
+  it('omits the default source when navigation analytics context is present', () => {
+    mockRouteParams.analyticsContext = {
+      id: 'balance-breakdown-navigation',
+      attribution: 'homescreen_balance_breakdown',
+    };
+
+    renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      { state: initialState },
+    );
+
+    expect(jest.mocked(usePerpsEventTracking)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        properties: expect.not.objectContaining({
+          [PERPS_EVENT_PROPERTY.SOURCE]: expect.anything(),
+        }),
+      }),
+    );
   });
 
   it('renders correctly', () => {

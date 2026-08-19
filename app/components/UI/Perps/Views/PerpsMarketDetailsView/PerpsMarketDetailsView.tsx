@@ -177,12 +177,13 @@ import {
   type TransactionActiveAbTestEntry,
   withPendingTransactionActiveAbTests,
 } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { NavigationAnalyticsRouteParams } from '../../../../../util/analytics/navigationAnalyticsAttribution';
 import PerpsSelectAdjustMarginActionView from '../PerpsSelectAdjustMarginActionView';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 
-interface MarketDetailsRouteParams {
+interface MarketDetailsRouteParams extends NavigationAnalyticsRouteParams {
   market: PerpsMarketData;
   monitoringIntent?: Partial<DataMonitorParams>;
   isNavigationFromOrderSuccess?: boolean;
@@ -225,6 +226,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     source,
     source_section,
     transactionActiveAbTests,
+    analyticsContext,
   } = route.params || {};
   const { track } = usePerpsEventTracking();
   const isRelatedMarketsEnabled = useSelector(
@@ -750,8 +752,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
       [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
-      [PERPS_EVENT_PROPERTY.SOURCE]:
-        source || PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+      ...((source || !analyticsContext) && {
+        [PERPS_EVENT_PROPERTY.SOURCE]:
+          source || PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+      }),
       ...chartAnalyticsProperties,
       ...(source_section && {
         [PERPS_EVENT_PROPERTY.SOURCE_SECTION]: source_section,
@@ -771,6 +775,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [
       market?.symbol,
       source,
+      analyticsContext,
       chartAnalyticsProperties,
       source_section,
       existingPosition,

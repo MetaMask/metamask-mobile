@@ -78,7 +78,7 @@ export const usePerpsNavigationHandlers = ({
 
       if (isFirstTimePerpsUser) {
         navigation.navigate(Routes.PERPS.TUTORIAL, {
-          source,
+          source: analyticsContext?.attribution ?? source,
           redirectScreen: target.screen,
           redirectParams: target.params,
         });
