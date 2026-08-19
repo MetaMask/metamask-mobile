@@ -37,7 +37,7 @@ import { HOMEPAGE_APP_SESSION_ID } from '../../../util/analytics/homepageSession
 import { baseStyles } from '../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
-import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
+import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
 import WalletHeader from './components/WalletHeader/WalletHeader';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
@@ -373,11 +373,7 @@ const Wallet = ({
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
-  const isMoneyAccountGeoEligible = useSelector(
-    selectIsMoneyAccountGeoEligible,
-  );
-  const isMoneyAccountVisible =
-    isMoneyAccountEnabled && isMoneyAccountGeoEligible;
+  const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const showMoneyBalanceCard =
     isMoneyAccountVisible && !inWalletHomePostOnboardingFlow;
 
@@ -1040,7 +1036,7 @@ const Wallet = ({
 
   // Hide growth banners when money account is enabled but user is geo-blocked.
   const growthBanner =
-    !isMoneyAccountEnabled || isMoneyAccountGeoEligible
+    !isMoneyAccountEnabled || isMoneyAccountVisible
       ? homeGrowthBannerContent
       : null;
 
