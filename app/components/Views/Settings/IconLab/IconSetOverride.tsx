@@ -104,10 +104,12 @@ const PHOSPHOR_ALIASES: Record<string, string> = {
   Warning: 'Warning',
 };
 
-/** DS filled glyphs that must keep Phosphor `fill` even when the set weight is outline. */
-const PHOSPHOR_FILL_WEIGHT_NAMES: ReadonlySet<string> = new Set([
-  'VerifiedFilled',
-]);
+/**
+ * DS filled glyphs keep Phosphor `fill` even when the set weight is outline.
+ * Selected tab icons (HomeFilled, MusdFilled, ClockFilled, …) depend on this.
+ */
+const phosphorWeightFor = (name: string, weight: IconWeight): IconWeight =>
+  name.endsWith('Filled') ? 'fill' : weight;
 
 /** DS names that resolve to a Phosphor export of the same name. */
 const PHOSPHOR_DIRECT: readonly string[] = [
@@ -529,10 +531,9 @@ const applySetToMap = (
     }
     if (set === 'phosphor') {
       const icon = PHOSPHOR_BY_DS_NAME[name];
-      const phosphorWeight = PHOSPHOR_FILL_WEIGHT_NAMES.has(name)
-        ? 'fill'
-        : weight;
-      map[name] = icon ? adaptPhosphor(icon, phosphorWeight) : originals[name];
+      map[name] = icon
+        ? adaptPhosphor(icon, phosphorWeightFor(name, weight))
+        : originals[name];
       return;
     }
     if (set === 'lucide') {

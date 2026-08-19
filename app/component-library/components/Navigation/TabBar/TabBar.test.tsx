@@ -14,6 +14,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 // Internal dependencies
 import TabBar from './TabBar';
 import { TabBarIconKey, ExtendedBottomTabDescriptor } from './TabBar.types';
+import { IconName } from '../../Icons/Icon';
 import Routes from '../../../../constants/navigation/Routes';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 
@@ -463,5 +464,134 @@ describe('TabBar', () => {
       Routes.MODAL.ROOT_MODAL_FLOW,
       { screen: Routes.MODAL.WALLET_ACTIONS },
     );
+  });
+
+  it('renders filled home icon when wallet tab is selected', () => {
+    const { UNSAFE_getByProps } = renderWithProvider(
+      <TabBar
+        state={state as TabNavigationState<ParamListBase>}
+        descriptors={descriptors as Record<string, ExtendedBottomTabDescriptor>}
+        navigation={navigation}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(UNSAFE_getByProps({ name: IconName.HomeFilled })).toBeTruthy();
+  });
+
+  it('renders outline home icon when wallet tab is not selected', () => {
+    const unselectedWalletState = {
+      index: 1,
+      routes: [
+        { key: '1', name: 'Tab 1' },
+        { key: '2', name: 'Tab 2' },
+      ],
+    };
+    const unselectedWalletDescriptors: TestDescriptors = {
+      '1': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Wallet,
+          rootScreenName: Routes.WALLET_VIEW,
+        },
+      },
+      '2': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Activity,
+          rootScreenName: Routes.TRANSACTIONS_VIEW,
+        },
+      },
+    };
+
+    const { UNSAFE_getByProps, UNSAFE_queryByProps } = renderWithProvider(
+      <TabBar
+        state={unselectedWalletState as TabNavigationState<ParamListBase>}
+        descriptors={
+          unselectedWalletDescriptors as Record<
+            string,
+            ExtendedBottomTabDescriptor
+          >
+        }
+        navigation={navigation}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(UNSAFE_getByProps({ name: IconName.Home })).toBeTruthy();
+    expect(UNSAFE_queryByProps({ name: IconName.HomeFilled })).toBeNull();
+  });
+
+  it('renders filled money icon when money tab is selected', () => {
+    const selectedMoneyState = {
+      index: 1,
+      routes: [
+        { key: '1', name: 'Tab 1' },
+        { key: '2', name: 'Tab 2' },
+      ],
+    };
+    const moneyDescriptors: TestDescriptors = {
+      '1': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Wallet,
+          rootScreenName: Routes.WALLET_VIEW,
+        },
+      },
+      '2': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Money,
+          rootScreenName: Routes.MONEY.HOME,
+        },
+      },
+    };
+
+    const { UNSAFE_getByProps } = renderWithProvider(
+      <TabBar
+        state={selectedMoneyState as TabNavigationState<ParamListBase>}
+        descriptors={
+          moneyDescriptors as Record<string, ExtendedBottomTabDescriptor>
+        }
+        navigation={navigation}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(UNSAFE_getByProps({ name: IconName.MusdFilled })).toBeTruthy();
+  });
+
+  it('renders outline money icon when money tab is not selected', () => {
+    const unselectedMoneyState = {
+      index: 0,
+      routes: [
+        { key: '1', name: 'Tab 1' },
+        { key: '2', name: 'Tab 2' },
+      ],
+    };
+    const moneyDescriptors: TestDescriptors = {
+      '1': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Wallet,
+          rootScreenName: Routes.WALLET_VIEW,
+        },
+      },
+      '2': {
+        options: {
+          tabBarIconKey: TabBarIconKey.Money,
+          rootScreenName: Routes.MONEY.HOME,
+        },
+      },
+    };
+
+    const { UNSAFE_getByProps, UNSAFE_queryByProps } = renderWithProvider(
+      <TabBar
+        state={unselectedMoneyState as TabNavigationState<ParamListBase>}
+        descriptors={
+          moneyDescriptors as Record<string, ExtendedBottomTabDescriptor>
+        }
+        navigation={navigation}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(UNSAFE_getByProps({ name: IconName.Musd })).toBeTruthy();
+    expect(UNSAFE_queryByProps({ name: IconName.MusdFilled })).toBeNull();
   });
 });
