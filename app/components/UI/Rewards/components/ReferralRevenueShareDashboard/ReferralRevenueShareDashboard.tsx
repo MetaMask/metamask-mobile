@@ -16,7 +16,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  ActionListItem,
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
@@ -34,7 +33,6 @@ import {
   IconSize,
   Text,
   TextColor,
-  TextField,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -43,6 +41,10 @@ import referralShareHero from '../../../../../images/rewards/referral-share-hero
 import MoneyEarnings from '../../../Money/components/MoneyEarnings';
 
 const CREATOR_REFERRAL_CODE = '8F3A21';
+// Placeholder program values — configured by the backend in production.
+const REFERRER_REVENUE_SHARE_RATE = '25%';
+const REFERRED_USER_CASHBACK_RATE = '10%';
+const REFERRED_USER_BENEFIT_DURATION = '12 months';
 const buildReferralLink = (code: string) =>
   `https://link.metamask.io/rewards?referral=${code}`;
 const IOS_SHEET_PUSH_DURATION = 350;
@@ -65,28 +67,6 @@ const createSheetPushAnimations = (direction: 1 | -1, width: number) => {
     }).duration(IOS_SHEET_PUSH_DURATION),
   };
 };
-
-interface MetricProps {
-  label: string;
-  value: string;
-  helper?: string;
-}
-
-const Metric = ({ label, value, helper }: MetricProps) => (
-  <Box twClassName="flex-1 gap-1">
-    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-      {label}
-    </Text>
-    <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-      {value}
-    </Text>
-    {helper ? (
-      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-        {helper}
-      </Text>
-    ) : null}
-  </Box>
-);
 
 interface StatusRowProps {
   label: string;
@@ -303,6 +283,7 @@ const PayoutDetailsSheet = ({
 interface FunnelRowProps {
   label: string;
   value: string;
+  description?: string;
   widthClassName: string;
   colorClassName: string;
 }
@@ -310,6 +291,7 @@ interface FunnelRowProps {
 const FunnelRow = ({
   label,
   value,
+  description,
   widthClassName,
   colorClassName,
 }: FunnelRowProps) => (
@@ -330,152 +312,30 @@ const FunnelRow = ({
         twClassName={`h-full rounded-full ${colorClassName} ${widthClassName}`}
       />
     </Box>
+    {description ? (
+      <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        {description}
+      </Text>
+    ) : null}
   </Box>
 );
 
-const CustomizeCodeSheet = ({
-  visible,
-  currentCode,
-  onClose,
-  onBack,
-  onSave,
-}: {
-  visible: boolean;
-  currentCode: string;
-  onClose: () => void;
-  onBack: () => void;
-  onSave: (code: string) => void;
-}) => {
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const [draft, setDraft] = useState(currentCode);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (visible) {
-      setDraft(currentCode);
-      setError(null);
-    }
-  }, [currentCode, visible]);
-
-  const saveCode = () => {
-    const normalized = draft.trim().toUpperCase();
-    if (!/^[A-Z0-9]{4,16}$/.test(normalized)) {
-      setError('Use 4–16 letters or numbers, with no spaces.');
-      return;
-    }
-    bottomSheetRef.current?.onCloseBottomSheet(() => onSave(normalized));
-  };
-
-  const handleBack = () => {
-    bottomSheetRef.current?.onCloseBottomSheet(onBack);
-  };
-
-  return (
-    <Modal visible={visible} transparent animationType="none">
-      <BottomSheet ref={bottomSheetRef} onClose={onClose}>
-        <BottomSheetHeader onBack={handleBack}>
-          Customize your link
-        </BottomSheetHeader>
-        <Box twClassName="px-4 pb-4 gap-5">
-          <Box twClassName="gap-2">
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              Custom link
-            </Text>
-            <TextField
-              value={draft}
-              placeholder="YOURCODE"
-              onChangeText={(value) => {
-                setDraft(value.toUpperCase());
-                setError(null);
-              }}
-              isError={Boolean(error)}
-              inputProps={{
-                autoCapitalize: 'characters',
-                autoCorrect: false,
-                maxLength: 16,
-                accessibilityLabel: 'Custom referral code',
-                testID: 'custom-referral-code-input',
-                returnKeyType: 'done',
-                onSubmitEditing: saveCode,
-              }}
-            />
-            <Text
-              variant={TextVariant.BodySm}
-              color={error ? TextColor.ErrorDefault : TextColor.TextAlternative}
-            >
-              {error ??
-                '4–16 letters or numbers. Links are not case-sensitive.'}
-            </Text>
-          </Box>
-        </Box>
-        <BottomSheetFooter
-          primaryButtonProps={{
-            children: 'Save link',
-            onPress: saveCode,
-            size: ButtonSize.Lg,
-            testID: 'save-custom-referral-code-button',
-          }}
-          twClassName="px-4"
-        />
-      </BottomSheet>
-    </Modal>
-  );
-};
-
-const MoreWaysToShareSheet = ({
+const ReferralQrCodeSheet = ({
   visible,
   onClose,
   referralCode,
-  onSaveCode,
 }: {
   visible: boolean;
   onClose: () => void;
   referralCode: string;
-  onSaveCode: (code: string) => void;
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const qrCodeRef = useRef<{
     toDataURL: (callback: (data: string) => void) => void;
   } | null>(null);
-  const { width: windowWidth } = useWindowDimensions();
-  const [page, setPage] = useState<'menu' | 'qr' | 'customize'>('menu');
-  const [direction, setDirection] = useState<1 | -1>(1);
-  const [draft, setDraft] = useState(referralCode);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (visible) {
-      setPage('menu');
-      setDirection(1);
-      setDraft(referralCode);
-      setError(null);
-    }
-  }, [referralCode, visible]);
 
   const handleClose = () => {
     bottomSheetRef.current?.onCloseBottomSheet();
-  };
-
-  const transitionTo = (
-    nextPage: 'menu' | 'qr' | 'customize',
-    nextDirection: 1 | -1,
-  ) => {
-    setDirection(nextDirection);
-    if (nextPage === 'customize') {
-      setDraft(referralCode);
-      setError(null);
-    }
-    setPage(nextPage);
-  };
-
-  const saveCode = () => {
-    const normalized = draft.trim().toUpperCase();
-    if (!/^[A-Z0-9]{4,16}$/.test(normalized)) {
-      setError('Use 4–16 letters or numbers, with no spaces.');
-      return;
-    }
-    onSaveCode(normalized);
-    transitionTo('menu', -1);
   };
 
   const getQrCodeDataUrl = () =>
@@ -506,167 +366,9 @@ const MoreWaysToShareSheet = ({
       url,
       type: 'image/png',
       filename: `metamask-referral-${referralCode}`,
-      message: `Use my MetaMask referral code ${referralCode}. ${buildReferralLink(referralCode)}`,
+      message: `Use my MetaMask referral code ${referralCode} to get cashback on eligible Perps and Swaps fees. I may receive compensation from your eligible activity. Terms apply. ${buildReferralLink(referralCode)}`,
       failOnCancel: false,
     });
-  };
-
-  const headerTitle =
-    page === 'menu'
-      ? 'More ways to share'
-      : page === 'qr'
-        ? 'Your referral code'
-        : 'Customize your link';
-  const { entering, exiting } = createSheetPushAnimations(
-    direction,
-    windowWidth,
-  );
-
-  return (
-    <Modal visible={visible} transparent animationType="none">
-      <BottomSheet ref={bottomSheetRef} onClose={onClose}>
-        <Box twClassName="overflow-hidden">
-          <Animated.View key={page} entering={entering} exiting={exiting}>
-            <BottomSheetHeader
-              onBack={
-                page !== 'menu' ? () => transitionTo('menu', -1) : undefined
-              }
-              onClose={handleClose}
-            >
-              {headerTitle}
-            </BottomSheetHeader>
-
-            {page === 'menu' ? (
-              <Box twClassName="pb-4">
-                <ActionListItem
-                  label="QR code"
-                  iconName={IconName.QrCode}
-                  onPress={() => transitionTo('qr', 1)}
-                  testID="referral-qr-code-option"
-                />
-                <ActionListItem
-                  label="Customize link"
-                  iconName={IconName.Edit}
-                  onPress={() => transitionTo('customize', 1)}
-                  testID="customize-referral-link-option"
-                />
-              </Box>
-            ) : page === 'qr' ? (
-              <>
-                <Box twClassName="items-center px-4 pb-8 gap-3">
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                    twClassName="text-center"
-                  >
-                    Have someone scan this code with their camera to get
-                    started.
-                  </Text>
-                  <Box twClassName="rounded-2xl bg-white p-5 mt-3">
-                    <QRCode
-                      value={buildReferralLink(referralCode)}
-                      size={220}
-                      getRef={(ref) => {
-                        qrCodeRef.current = ref;
-                      }}
-                    />
-                  </Box>
-                </Box>
-                <BottomSheetFooter
-                  primaryButtonProps={{
-                    children: 'Save QR code',
-                    onPress: () => {
-                      saveQrCode().catch(() => undefined);
-                    },
-                    size: ButtonSize.Lg,
-                    testID: 'save-referral-qr-code-button',
-                  }}
-                  secondaryButtonProps={{
-                    children: 'Share',
-                    onPress: () => {
-                      shareQrCode().catch(() => undefined);
-                    },
-                    size: ButtonSize.Lg,
-                    testID: 'share-referral-qr-code-button',
-                  }}
-                  buttonsAlignment={ButtonsAlignment.Vertical}
-                  twClassName="px-4"
-                />
-              </>
-            ) : (
-              <>
-                <Box twClassName="px-4 pb-4 gap-5">
-                  <Box twClassName="gap-2">
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                    >
-                      Custom link
-                    </Text>
-                    <TextField
-                      value={draft}
-                      placeholder="YOURCODE"
-                      onChangeText={(value) => {
-                        setDraft(value.toUpperCase());
-                        setError(null);
-                      }}
-                      isError={Boolean(error)}
-                      inputProps={{
-                        autoCapitalize: 'characters',
-                        autoCorrect: false,
-                        maxLength: 16,
-                        accessibilityLabel: 'Custom referral code',
-                        testID: 'custom-referral-code-input',
-                        returnKeyType: 'done',
-                        onSubmitEditing: saveCode,
-                      }}
-                    />
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={
-                        error
-                          ? TextColor.ErrorDefault
-                          : TextColor.TextAlternative
-                      }
-                    >
-                      {error ??
-                        '4–16 letters or numbers. Links are not case-sensitive.'}
-                    </Text>
-                  </Box>
-                </Box>
-                <BottomSheetFooter
-                  primaryButtonProps={{
-                    children: 'Save link',
-                    onPress: saveCode,
-                    size: ButtonSize.Lg,
-                    testID: 'save-custom-referral-code-button',
-                  }}
-                  twClassName="px-4"
-                />
-              </>
-            )}
-          </Animated.View>
-        </Box>
-      </BottomSheet>
-    </Modal>
-  );
-};
-
-const ReferralQrCodeSheet = ({
-  visible,
-  referralLink,
-  onClose,
-  onShare,
-}: {
-  visible: boolean;
-  referralLink: string;
-  onClose: () => void;
-  onShare: () => void;
-}) => {
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
-
-  const handleClose = () => {
-    bottomSheetRef.current?.onCloseBottomSheet();
   };
 
   return (
@@ -675,7 +377,7 @@ const ReferralQrCodeSheet = ({
         <BottomSheetHeader onClose={handleClose}>
           Your referral code
         </BottomSheetHeader>
-        <Box twClassName="items-center px-4 pb-4 gap-3">
+        <Box twClassName="items-center px-4 pb-8 gap-3">
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
@@ -684,16 +386,33 @@ const ReferralQrCodeSheet = ({
             Have someone scan this code with their camera to get started.
           </Text>
           <Box twClassName="rounded-2xl bg-white p-5 mt-3">
-            <QRCode value={referralLink} size={220} />
+            <QRCode
+              value={buildReferralLink(referralCode)}
+              size={220}
+              getRef={(ref) => {
+                qrCodeRef.current = ref;
+              }}
+            />
           </Box>
         </Box>
         <BottomSheetFooter
           primaryButtonProps={{
-            children: 'Share QR code',
-            onPress: onShare,
+            children: 'Save QR code',
+            onPress: () => {
+              saveQrCode().catch(() => undefined);
+            },
+            size: ButtonSize.Lg,
+            testID: 'save-referral-qr-code-button',
+          }}
+          secondaryButtonProps={{
+            children: 'Share',
+            onPress: () => {
+              shareQrCode().catch(() => undefined);
+            },
             size: ButtonSize.Lg,
             testID: 'share-referral-qr-code-button',
           }}
+          buttonsAlignment={ButtonsAlignment.Vertical}
           twClassName="px-4"
         />
       </BottomSheet>
@@ -823,17 +542,18 @@ const ClaimEarningsSheet = ({
 const ReferralRevenueShareDashboard = ({
   mode = 'overview',
   onEarningsPress,
-  isMoreMenuVisible = false,
-  onMoreMenuClose,
+  isQrCodeVisible = false,
+  onQrCodeClose,
 }: {
   mode?: 'overview' | 'performance';
   onEarningsPress?: () => void;
-  isMoreMenuVisible?: boolean;
-  onMoreMenuClose?: () => void;
+  isQrCodeVisible?: boolean;
+  onQrCodeClose?: () => void;
 }) => {
   const tw = useTailwind();
   const [isCodeCopied, setIsCodeCopied] = useState(false);
-  const [referralCode, setReferralCode] = useState(CREATOR_REFERRAL_CODE);
+  // Vanity codes are assigned via backend/support workflows; not user-editable.
+  const referralCode = CREATOR_REFERRAL_CODE;
   const [claimSheetVisible, setClaimSheetVisible] = useState(false);
   const [payoutDetailsVisible, setPayoutDetailsVisible] = useState(false);
   const [earningsStatusInfo, setEarningsStatusInfo] =
@@ -940,7 +660,7 @@ const ReferralRevenueShareDashboard = ({
                       fontWeight={FontWeight.Bold}
                       color={TextColor.TextDefault}
                     >
-                      25%
+                      {REFERRER_REVENUE_SHARE_RATE}
                     </Text>
                     <Text variant={TextVariant.BodySm}>of eligible fees</Text>
                   </Box>
@@ -950,14 +670,14 @@ const ReferralRevenueShareDashboard = ({
                       variant={TextVariant.BodySm}
                       color={TextColor.TextAlternative}
                     >
-                      Followers get
+                      Referred users get
                     </Text>
                     <Text
                       variant={TextVariant.DisplayMd}
                       fontWeight={FontWeight.Bold}
                       color={TextColor.TextDefault}
                     >
-                      10%
+                      {REFERRED_USER_CASHBACK_RATE}
                     </Text>
                     <Text variant={TextVariant.BodySm}>back on fees</Text>
                   </Box>
@@ -970,7 +690,7 @@ const ReferralRevenueShareDashboard = ({
               color={TextColor.TextAlternative}
               twClassName="px-1 -mt-4 text-center"
             >
-              Offer applies to eligible Perps and Swaps fees for 12 months.
+              {`Offer applies to eligible Perps and Swaps fees for ${REFERRED_USER_BENEFIT_DURATION}.`}
             </Text>
 
             <Box twClassName="h-px bg-border-muted -mx-4" />
@@ -1027,7 +747,7 @@ const ReferralRevenueShareDashboard = ({
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
                 >
-                  Last 30 days
+                  Last 30 days · Updated daily
                 </Text>
               </Box>
 
@@ -1050,24 +770,28 @@ const ReferralRevenueShareDashboard = ({
                 <FunnelRow
                   label="Code uses"
                   value="142"
+                  description="Times your code or link was applied"
                   widthClassName="w-full"
                   colorClassName="bg-icon-default"
                 />
                 <FunnelRow
-                  label="First eligible action"
+                  label="Confirmed referrals"
                   value="68"
+                  description="Referred users who completed a first eligible action"
                   widthClassName="w-1/2"
                   colorClassName="bg-icon-default"
                 />
                 <FunnelRow
-                  label="Active wallets"
+                  label="Active referees"
                   value="24"
+                  description="Referred profiles with activity in the period"
                   widthClassName="w-1/4"
                   colorClassName="bg-icon-default"
                 />
                 <FunnelRow
-                  label="Revenue generating"
+                  label="Fee-generating referees"
                   value="18"
+                  description="Referred profiles whose activity generated eligible fees"
                   widthClassName="w-1/6"
                   colorClassName="bg-icon-default"
                 />
@@ -1172,12 +896,11 @@ const ReferralRevenueShareDashboard = ({
         </Box>
       )}
 
-      {isMoreMenuVisible ? (
-        <MoreWaysToShareSheet
+      {isQrCodeVisible ? (
+        <ReferralQrCodeSheet
           visible
-          onClose={() => onMoreMenuClose?.()}
+          onClose={() => onQrCodeClose?.()}
           referralCode={referralCode}
-          onSaveCode={setReferralCode}
         />
       ) : null}
       <ClaimEarningsSheet
