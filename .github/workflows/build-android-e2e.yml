@@ -895,7 +895,7 @@ jobs:
 
       - name: Upload Android APK (current)
         id: upload-apk
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' || inputs.include_arm64 == true }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release.apk
