@@ -17,32 +17,29 @@ import {
 } from '@metamask/design-system-react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ProHubTestIds } from './ProHub.testIds';
 
 const ProHub = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleManagePress = useCallback(() => {
-    navigation.navigate(Routes.PRO_HUB.MEMBERSHIP as never);
+  const handleManageMembership = useCallback(() => {
+    navigation.navigate(Routes.PRO_HUB.MEMBERSHIP);
   }, [navigation]);
 
   const handleExplorePress = useCallback(() => {
     // TODO: navigate to benefits / ProSubscription flow
   }, []);
 
-  const handleManagePlans = useCallback(() => {
-    navigation.navigate(Routes.PRO_HUB.MEMBERSHIP as never);
-  }, [navigation]);
-
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
-      edges={['top']}
+      edges={['top', 'bottom']}
       testID={ProHubTestIds.CONTAINER}
     >
       {/* Header row */}
@@ -60,15 +57,15 @@ const ProHub = () => {
         endAccessory={
           <ButtonIcon
             iconName={IconName.Setting}
-            onPress={handleManagePlans}
-            accessibilityLabel="Manage Plans"
+            onPress={handleManageMembership}
+            accessibilityLabel={strings('pro_hub.manage')}
             testID={ProHubTestIds.MANAGE_PLANS_BUTTON}
           />
         }
       />
 
       {/* Content */}
-      <Box twClassName="flex-1 px-6 pt-6 gap-y-2">
+      <Box twClassName="flex-1 px-4 pt-6 gap-y-2">
         <Text
           variant={TextVariant.DisplayMd}
           fontWeight={FontWeight.Bold}
@@ -87,7 +84,7 @@ const ProHub = () => {
       </Box>
 
       {/* Action buttons */}
-      <Box twClassName="px-6 pb-10 gap-y-3">
+      <Box twClassName="px-4 pb-2 gap-y-4">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
@@ -100,7 +97,7 @@ const ProHub = () => {
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          onPress={handleManagePress}
+          onPress={handleManageMembership}
           isFullWidth
           testID={ProHubTestIds.MANAGE_BUTTON}
         >

@@ -11,7 +11,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
-const mockGoBack = jest.fn();
+let mockGoBack: jest.Mock;
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -46,6 +46,7 @@ const renderMembership = () => render(<Membership />);
 describe('Membership', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGoBack = jest.fn();
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────

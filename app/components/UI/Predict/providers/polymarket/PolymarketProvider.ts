@@ -81,6 +81,7 @@ import {
   PrepareDepositResponse,
   PrepareWithdrawParams,
   PrepareWithdrawResponse,
+  PreviewMaxBuyOrderParams,
   PreviewOrderParams,
   PriceUpdateCallback,
   PublishClaimParams,
@@ -134,6 +135,7 @@ import {
   parsePolymarketEvents,
   parsePolymarketPositions,
   previewOrder,
+  previewMaxBuyOrder,
   searchEventsFromPolymarketApi,
 } from './utils';
 import { PredictFeatureFlags } from '../../types/flags';
@@ -573,6 +575,36 @@ export class PolymarketProvider implements PredictProvider {
       this.#hasPermit2Config({ permit2Enabled, executors }) &&
       fakOrdersEnabled === true
     );
+  }
+
+  #decorateOrderPreview({
+    preview,
+    feeCollection,
+    fakOrdersEnabled,
+    signer,
+  }: {
+    preview: OrderPreview;
+    feeCollection: PredictFeatureFlags['feeCollection'];
+    fakOrdersEnabled: boolean;
+    signer: Signer;
+  }): OrderPreview {
+    const orderType = this.#shouldUseFakOrderType({
+      permit2Enabled: feeCollection.permit2Enabled,
+      executors: feeCollection.executors,
+      fakOrdersEnabled,
+    })
+      ? OrderType.FAK
+      : OrderType.FOK;
+
+    const decoratedPreview: OrderPreview = {
+      ...preview,
+      feeRateBps: getPreviewFeeRateBpsForProtocol(),
+      orderType,
+    };
+
+    return this.isRateLimited(signer.address)
+      ? { ...decoratedPreview, rateLimited: true }
+      : decoratedPreview;
   }
 
   #getProtocol(): PolymarketProtocolDefinition {
@@ -1457,9 +1489,23 @@ export class PolymarketProvider implements PredictProvider {
   ): Promise<number | null> {
     try {
       const { CRYPTO_PRICE_ENDPOINT } = getPolymarketEndpoints();
-      const url = `${CRYPTO_PRICE_ENDPOINT}?symbol=${encodeURIComponent(params.symbol)}&eventStartTime=${encodeURIComponent(params.eventStartTime)}&variant=${encodeURIComponent(params.variant)}&endDate=${encodeURIComponent(params.endDate)}`;
+      const queryParams = new URLSearchParams({
+        symbol: params.symbol,
+        eventStartTime: params.eventStartTime,
+        variant: params.variant,
+        endDate: params.endDate,
+      });
+      if (params.twapWindowSeconds !== undefined) {
+        queryParams.set('twapEnabled', 'true');
+        queryParams.set(
+          'twapLookbackSeconds',
+          params.twapWindowSeconds.toString(),
+        );
+      }
 
-      const response = await fetchWithTimeout(url);
+      const response = await fetchWithTimeout(
+        `${CRYPTO_PRICE_ENDPOINT}?${queryParams.toString()}`,
+      );
       if (!response.ok) {
         throw new Error(`Crypto target price API returned ${response.status}`);
       }
@@ -2143,32 +2189,37 @@ export class PolymarketProvider implements PredictProvider {
       ...params,
       feeCollection,
     });
-    const normalizedPreview = {
-      ...basePreview,
-      feeRateBps: getPreviewFeeRateBpsForProtocol(),
-    };
 
-    let orderType = OrderType.FOK;
+    return this.#decorateOrderPreview({
+      preview: basePreview,
+      feeCollection,
+      fakOrdersEnabled,
+      signer: params.signer,
+    });
+  }
 
-    if (
-      this.#shouldUseFakOrderType({
-        permit2Enabled: feeCollection.permit2Enabled,
-        executors: feeCollection.executors,
-        fakOrdersEnabled,
-      })
-    ) {
-      orderType = OrderType.FAK;
+  public async previewMaxBuyOrder(
+    params: PreviewMaxBuyOrderParams & {
+      signer: Signer;
+    },
+  ): Promise<OrderPreview | null> {
+    const { signer, ...previewParams } = params;
+    const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
+    const basePreview = await previewMaxBuyOrder({
+      ...previewParams,
+      feeCollection,
+    });
+
+    if (!basePreview) {
+      return null;
     }
 
-    if (params.signer && this.isRateLimited(params.signer.address)) {
-      return {
-        ...normalizedPreview,
-        orderType,
-        rateLimited: true,
-      };
-    }
-
-    return { ...normalizedPreview, orderType };
+    return this.#decorateOrderPreview({
+      preview: basePreview,
+      feeCollection,
+      fakOrdersEnabled,
+      signer,
+    });
   }
 
   public async placeOrder(

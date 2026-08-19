@@ -42,10 +42,12 @@ const baseProps: React.ComponentProps<typeof VipPointsSection> = {
   equityLockedDescription: 'Keep earning to unlock equity.',
   equityUnlockedTitle: 'Unlocked allocation',
   equityUnlockedDescription: 'Your equity allocation is unlocked.',
+  equityLifetimePointsDescription: 'Lifetime total: {points}',
   pointsAllocation: {
     earned: 5_555_555,
     threshold: 7_777_777,
     percent: 71.4,
+    lifetimeQualifyingPoints: null,
   },
 };
 
@@ -77,6 +79,7 @@ describe('VipPointsSection', () => {
           earned: 7_777_777,
           threshold: 7_777_777,
           percent: 100,
+          lifetimeQualifyingPoints: null,
         }}
       />,
     );
@@ -96,6 +99,7 @@ describe('VipPointsSection', () => {
           earned: 9_999_999,
           threshold: 7_777_777,
           percent: 128.6,
+          lifetimeQualifyingPoints: null,
         }}
       />,
     );
@@ -113,6 +117,7 @@ describe('VipPointsSection', () => {
           earned: 9_999_999,
           threshold: 7_777_777,
           percent: 128.6,
+          lifetimeQualifyingPoints: null,
         }}
       />,
     );
@@ -129,5 +134,63 @@ describe('VipPointsSection', () => {
     const { getByTestId } = render(<VipPointsSection {...baseProps} />);
 
     expect(getByTestId(VIP_POINTS_SECTION_TEST_IDS.RADIAL)).toBeOnTheScreen();
+  });
+
+  describe('lifetime equity-qualifying points sub-row', () => {
+    const unlockedWithLifetime = (lifetimeQualifyingPoints: number | null) => ({
+      earned: 7_777_777,
+      threshold: 7_777_777,
+      percent: 100,
+      lifetimeQualifyingPoints,
+    });
+
+    it('renders the formatted lifetime total when equity is unlocked', () => {
+      const { getByTestId } = render(
+        <VipPointsSection
+          {...baseProps}
+          pointsAllocation={unlockedWithLifetime(12_345_678)}
+        />,
+      );
+
+      expect(
+        getByTestId(VIP_POINTS_SECTION_TEST_IDS.LIFETIME_POINTS),
+      ).toHaveTextContent(
+        'Your equity allocation is unlocked. Lifetime total: 12.35M',
+      );
+    });
+
+    it('is hidden while equity is still locked, even with a positive lifetime total', () => {
+      const { queryByTestId } = render(
+        <VipPointsSection
+          {...baseProps}
+          pointsAllocation={{
+            earned: 5_555_555,
+            threshold: 7_777_777,
+            percent: 71.4,
+            lifetimeQualifyingPoints: 12_345_678,
+          }}
+        />,
+      );
+
+      expect(
+        queryByTestId(VIP_POINTS_SECTION_TEST_IDS.LIFETIME_POINTS),
+      ).toBeNull();
+    });
+
+    it.each([
+      ['null (legacy backend mode)', null],
+      ['zero', 0],
+    ])('is hidden when the lifetime total is %s', (_label, value) => {
+      const { queryByTestId } = render(
+        <VipPointsSection
+          {...baseProps}
+          pointsAllocation={unlockedWithLifetime(value)}
+        />,
+      );
+
+      expect(
+        queryByTestId(VIP_POINTS_SECTION_TEST_IDS.LIFETIME_POINTS),
+      ).toBeNull();
+    });
   });
 });

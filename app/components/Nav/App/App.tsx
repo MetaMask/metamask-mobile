@@ -1418,6 +1418,8 @@ const AppFlow = () => {
         options={{
           headerShown: false,
           gestureEnabled: true,
+          presentation: 'card',
+          animation: 'default',
         }}
       />
       <NativeStack.Screen
@@ -1426,6 +1428,8 @@ const AppFlow = () => {
         options={{
           headerShown: false,
           gestureEnabled: true,
+          presentation: 'card',
+          animation: 'default',
         }}
       />
       <NativeStack.Screen

@@ -477,6 +477,7 @@ export interface GetCryptoTargetPriceParams {
   eventStartTime: string;
   variant: string;
   endDate: string;
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
 }
 
 /**
@@ -849,6 +850,13 @@ export interface PreviewOrderParams {
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
+}
+
+export interface PreviewMaxBuyOrderParams {
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: string;
+  availableBalance: number;
 }
 
 export type PredictWalletType = 'safe' | 'deposit-wallet';

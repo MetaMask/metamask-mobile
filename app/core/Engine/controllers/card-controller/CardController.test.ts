@@ -1127,6 +1127,48 @@ describe('CardController — auth methods', () => {
       expect(fetchSpy).not.toHaveBeenCalled();
     });
   });
+
+  describe('syncSessionAfterExternalAuth', () => {
+    it('returns early without clearing or refetching when not authenticated', async () => {
+      const provider = buildMockProvider();
+      mockTokenStore.get.mockResolvedValue(null);
+      const controller = buildController(provider, {
+        cardHomeData: mockCardHomeData as unknown as Record<string, null>,
+        cardHomeDataStatus: 'success',
+      });
+      const fetchSpy = jest
+        .spyOn(controller, 'fetchCardHomeData')
+        .mockResolvedValue();
+
+      await controller.syncSessionAfterExternalAuth();
+
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+      expect(controller.state.cardHomeDataStatus).toBe('success');
+    });
+
+    it('clears stale card home data and force-refetches when authenticated', async () => {
+      const provider = buildMockProvider();
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      provider.validateTokens.mockReturnValue('valid');
+      provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
+      const { controller } = buildControllerWithMockMessenger(provider, {
+        isAuthenticated: false,
+        cardHomeData: {
+          ...mockCardHomeData,
+          delegationSettings: null,
+        } as unknown as Record<string, null>,
+        cardHomeDataStatus: 'success',
+      });
+
+      await controller.syncSessionAfterExternalAuth();
+
+      expect(controller.state.isAuthenticated).toBe(true);
+      expect(controller.state.cardHomeDataStatus).toBe('success');
+      expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+      expect(provider.getCardHomeData).toHaveBeenCalled();
+    });
+  });
 });
 
 describe('CardController — 401 retry and forced logout', () => {
@@ -1523,14 +1565,42 @@ describe('CardController — event subscriptions', () => {
     const validateSpy = jest
       .spyOn(controller, 'validateAndRefreshSession')
       .mockResolvedValue({ isAuthenticated: false });
+    const fetchSpy = jest
+      .spyOn(controller, 'fetchCardHomeData')
+      .mockResolvedValue();
 
     // Simulate unlock event
     const unlockHandler = (
       mockMessenger.subscribe as jest.Mock
     ).mock.calls.find(([event]) => event === 'KeyringController:unlock')?.[1];
     await unlockHandler?.();
+    await Promise.resolve();
 
     expect(validateSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('prefetches card home data on unlock when the Card session is authenticated', async () => {
+    const provider = buildMockProvider();
+    const mockMessenger = buildMessengerForUnlock();
+    const controller = new CardController({
+      cardService: buildMockCardService(),
+      messenger: mockMessenger,
+      providers: { baanx: provider },
+      state: { activeProviderId: 'baanx' },
+    });
+    jest
+      .spyOn(controller, 'validateAndRefreshSession')
+      .mockResolvedValue({ isAuthenticated: true });
+    const fetchSpy = jest
+      .spyOn(controller, 'fetchCardHomeData')
+      .mockResolvedValue();
+
+    getHandler(mockMessenger, 'KeyringController:unlock')?.();
+    await Promise.resolve();
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).toHaveBeenCalledWith({});
   });
 
   function buildMessengerForUnlock() {

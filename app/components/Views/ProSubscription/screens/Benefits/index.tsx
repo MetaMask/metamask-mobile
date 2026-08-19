@@ -17,7 +17,6 @@ import {
   DEFAULT_PLAN,
   PLANS,
   type BenefitDetailItem,
-  type BenefitItem,
   type PlanId,
   BENEFIT_DETAILS,
 } from './Benefits.constants';
@@ -59,7 +58,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
       testID={BenefitsTestIds.CONTAINER}
     >
       {/* Header */}
-      <Box twClassName="px-5 pt-2 pb-5">
+      <Box twClassName="px-4 pt-2 pb-5">
         <Text
           variant={TextVariant.HeadingLg}
           twClassName="mb-2"
@@ -85,7 +84,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Benefits list */}
-        <Box twClassName="px-5 pb-2">
+        <Box twClassName="px-4 pb-2">
           {BENEFITS.map((item) => (
             <BenefitRow
               key={item.id}
@@ -97,7 +96,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
       </ScrollView>
 
       {/* Plan selector */}
-      <Box twClassName="flex flex-col gap-y-4 px-4 pt-4 pb-8 border-t-2 border-border-muted">
+      <Box twClassName="flex flex-col gap-y-4 px-4 pt-4 pb-2 border-t-2 border-border-muted">
         {PLANS.map((plan) => (
           <PlanSelectorCard
             key={plan.id}

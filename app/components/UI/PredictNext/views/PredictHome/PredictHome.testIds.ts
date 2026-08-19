@@ -10,4 +10,10 @@ export const PredictHomeTestIds = {
     `predict-next-event-${venueId}-${eventId}`,
   eventContent: (venueId: string, eventId: string) =>
     `predict-next-event-content-${venueId}-${eventId}`,
+  outcome: (eventId: string, side: 'yes' | 'no') =>
+    `predict-next-outcome-${eventId}-${side}`,
+  image: (eventId: string) => `predict-next-event-image-${eventId}`,
+  category: (eventId: string) => `predict-next-event-category-${eventId}`,
+  volume: (eventId: string) => `predict-next-event-volume-${eventId}`,
+  more: (eventId: string) => `predict-next-event-more-${eventId}`,
 } as const;
