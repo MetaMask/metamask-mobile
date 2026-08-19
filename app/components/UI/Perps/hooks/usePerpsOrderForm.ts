@@ -137,12 +137,25 @@ export function usePerpsOrderForm(
   );
 
   // Priority for leverage: navigation param > existing position leverage > pending config > saved config > default (3x)
-  const defaultLeverage =
+  // Clamped to the market's maximum: trade configurations are keyed by
+  // network only, so a leverage saved on a 50x-max venue replays onto a
+  // 25x-max market and would render an invalid selection above the
+  // leverage slider cap.
+  const marketMaxLeverage = marketData?.maxLeverage;
+  const clampLeverageToMarketMax = useCallback(
+    (value: number): number =>
+      marketMaxLeverage && marketMaxLeverage > 0
+        ? Math.min(value, marketMaxLeverage)
+        : value,
+    [marketMaxLeverage],
+  );
+  const defaultLeverage = clampLeverageToMarketMax(
     initialLeverage ||
-    existingPositionLeverage ||
-    pendingConfig?.leverage ||
-    savedConfig?.leverage ||
-    TRADING_DEFAULTS.leverage;
+      existingPositionLeverage ||
+      pendingConfig?.leverage ||
+      savedConfig?.leverage ||
+      TRADING_DEFAULTS.leverage,
+  );
 
   // Priority for amount: navigation param > pending config > calculated default
   // Use memoized calculation for initial amount to ensure it updates when dependencies change
@@ -281,7 +294,9 @@ export function usePerpsOrderForm(
       ...(pendingConfig.amount && {
         amount: clampSeedToVenueMinimum(pendingConfig.amount),
       }),
-      ...(pendingConfig.leverage && { leverage: pendingConfig.leverage }),
+      ...(pendingConfig.leverage && {
+        leverage: clampLeverageToMarketMax(pendingConfig.leverage),
+      }),
       ...(pendingConfig.takeProfitPrice !== undefined && {
         takeProfitPrice: pendingConfig.takeProfitPrice,
       }),
