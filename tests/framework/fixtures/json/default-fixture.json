@@ -42,13 +42,8 @@
       "isMaxSourceAmount": false,
       "isSelectingRecipient": false,
       "isSelectingToken": false,
-      "isSlippageUserOverride": false,
       "isSubmittingTx": false,
-      "recurring": {
-        "everyUnit": "hour",
-        "everyValue": "1",
-        "repeatCount": "10"
-      }
+      "slippage": "0.5"
     },
     "browser": {
       "activeTab": 1692550481062,
@@ -65,14 +60,12 @@
       "whitelist": []
     },
     "card": {
-      "cardArrivalAnimationSeen": false,
-      "cardArrivalPreviewRequested": false,
       "geoLocation": "UNKNOWN",
+      "hasViewedCardButton": false,
       "isDaimoDemo": false,
       "onboarding": {
         "consentSetId": null,
         "contactVerificationId": null,
-        "immersveFundingSourceId": null,
         "onboardingId": null
       },
       "pendingMoneyAccountCardLink": null
@@ -149,25 +142,28 @@
         },
         "CardController": {
           "activeProviderId": "baanx",
-          "cardHomeData": null,
-          "cardHomeDataAddress": null,
-          "cardHomeDataFetchedThisSession": false,
+          "cardHomeData": {
+            "account": null,
+            "actions": [
+              {
+                "enabled": true,
+                "type": "add_funds"
+              }
+            ],
+            "alerts": [],
+            "availableFundingAssets": [],
+            "card": null,
+            "delegationSettings": null,
+            "fundingAssets": [],
+            "primaryFundingAsset": null
+          },
           "cardHomeDataStatus": "success",
           "cardholderAccounts": [],
           "isAuthenticated": false,
           "lastUnauthenticatedReason": null,
           "moneyAccountCardLinkInProgress": false,
           "providerData": {},
-          "providerUserId": null,
           "selectedCountry": null
-        },
-        "ClaimsController": {
-          "claims": [],
-          "claimsConfigurations": {
-            "supportedNetworks": ["0x1", "0xe708"],
-            "validSubmissionWindowDays": 21
-          },
-          "drafts": []
         },
         "ClientController": {
           "isUiOpen": false
@@ -206,13 +202,10 @@
           "nonRPCGasFeeApisDisabled": false
         },
         "GeolocationController": {
-          "country": "US",
           "error": null,
           "lastFetchedAt": 1775751316942,
           "location": "UNKNOWN",
-          "region": "CA",
-          "status": "idle",
-          "timezone": null
+          "status": "idle"
         },
         "KeyringController": {
           "keyrings": [
@@ -227,9 +220,7 @@
         "MoneyAccountController": {
           "moneyAccounts": {}
         },
-        "MoneyAccountUpgradeController": {
-          "upgradedAccounts": {}
-        },
+        "MoneyAccountUpgradeController": {},
         "MultichainAssetsController": {
           "accountsAssets": {},
           "assetsMetadata": {}
@@ -321,10 +312,6 @@
           },
           "networksWithTransactionActivity": {},
           "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
-        },
-        "NetworkConnectionBannerController": {
-          "networkConnectionBannerNetwork": null,
-          "networkConnectionBannerStatus": "available"
         },
         "NetworkController": {
           "networkConfigurationsByChainId": {
@@ -472,7 +459,7 @@
           "lastCompletedWithdrawalTxHashes": [],
           "lastDepositResult": null,
           "lastDepositTransactionId": null,
-          "lastError": "CLIENT_NOT_INITIALIZED",
+          "lastError": null,
           "lastUpdateTimestamp": 0,
           "lastWithdrawResult": null,
           "marketFilterPreferences": {
@@ -649,31 +636,6 @@
           "userRegion": null
         },
         "RemoteFeatureFlagController": {
-          "featureFlagThresholdGroups": {
-            "assetsASSETS3205AbtestAmbientPriceColor": "treatment",
-            "assetsASSETS3380AbtestExploreQuickBuy": "control",
-            "backendWebSocketConnection": "feature is ON",
-            "cardCARD338AbtestAttentionBadge": "control",
-            "confirmationsCONF1775AbtestMoneyAccountDepositPrefill": "control",
-            "coreMCU747AbtestPredictPositionsEmptyState": "treatment",
-            "homeTMCU1103AbtestActionButtonsGrid": "control",
-            "homeTMCU610AbtestWalletHomePostOnboardingSteps": "postOnboardingSteps",
-            "homeTMCU725AbtestHomepagePerpsPillsEmptyState": "treatment",
-            "homeTMCU926AbtestDiscoveryPills": "control",
-            "socialAiTSA531AbtestWhatsHappeningExplore": "control",
-            "socialAiTSA612AbtestQuickBuy": "control",
-            "socialAiTSA901AbtestTopTradersBuyAction": "treatment",
-            "stxMigrationBatchStatus": "sentinel on",
-            "stxMigrationCancel": "sentinel on",
-            "stxMigrationGetFees": "sentinel on",
-            "stxMigrationSubmitTransactions": "sentinel on",
-            "swapsSWAPS4135AbtestNumpadQuickAmounts": "treatment",
-            "swapsSWAPS4242AbtestTokenSelectorBalanceLayout": "treatment",
-            "swapsSWAPS4784AbtestCTAButtonColor": "control",
-            "swapsSWAPS4825AbtestChainValueOrder": "control",
-            "tokenDetailsV2AbTest": "Control is OFF",
-            "trendingTokens": "feature is ON"
-          },
           "localOverrides": {},
           "remoteFeatureFlags": {
             "bitcoinAccounts": {
@@ -698,19 +660,11 @@
             }
           }
         },
-        "ShieldController": {
-          "coverageResults": {},
-          "orderedTransactionHistory": []
-        },
         "SnapController": {},
         "SocialController": {
           "followingAddresses": [],
           "followingProfileIds": [],
           "leaderboardEntries": []
-        },
-        "SubscriptionController": {
-          "subscriptions": [],
-          "trialedProducts": []
         },
         "TokenBalancesController": {
           "tokenBalances": {}
@@ -732,7 +686,6 @@
       }
     },
     "experimentalSettings": {
-      "mmPayDebugEnabled": false,
       "securityAlertsEnabled": true
     },
     "fiatOrders": {
@@ -803,12 +756,14 @@
       "signMessageModalVisible": true
     },
     "moneyBalance": {
-      "lastKnownBalance": null,
-      "redeemable": null
+      "lastKnownBalance": null
     },
     "navigation": {
       "currentBottomNavRoute": "Wallet",
       "currentRoute": "AdvancedSettings"
+    },
+    "networkConnectionBanner": {
+      "visible": false
     },
     "networkOnboarded": {
       "networkOnboardedState": {},
@@ -834,7 +789,6 @@
       "iosGoogleWarningSheetLastDismissedAt": null,
       "onboardingVersion": "7.74.0 (4138)",
       "pendingSocialLoginMarketingConsentBackfill": null,
-      "pushNotificationOsPromptRequested": false,
       "walletHomeOnboardingSkipInitialBalanceWait": false,
       "walletHomeOnboardingSteps": {
         "stepIndex": 0,
@@ -891,15 +845,6 @@
       "candidateSubscriptionId": "pending",
       "currentTier": null,
       "dismissedCampaignOutcomeToasts": {},
-      "firstPredictionOnUsInteraction": {
-        "marketId": null,
-        "offerViewed": false,
-        "orderStatus": null,
-        "outcome": null,
-        "predictAccountAddress": null,
-        "skipped": false,
-        "transactionHash": null
-      },
       "geoLocation": null,
       "hideCurrentAccountNotOptedInBanner": [],
       "hideUnlinkedAccountsBanner": false,
@@ -954,8 +899,7 @@
       "vipRefereeDashboardError": false,
       "vipRefereeDashboardLoading": false,
       "vipRefereeSplashAccepted": {},
-      "vipSplashAccepted": {},
-      "vipTransactions": {}
+      "vipSplashAccepted": {}
     },
     "rpcEvents": {
       "signingEvent": {
@@ -1000,7 +944,6 @@
       "hasOnboarded": false,
       "isLive": true
     },
-    "terminalOrderAnalytics": {},
     "user": {
       "ambiguousAddressEntries": {},
       "appInstallEventFired": true,
@@ -1021,7 +964,6 @@
       "musdConversionEducationSeen": false,
       "onboardingStepperProgress": {},
       "passwordSet": true,
-      "pendingAppInstall": null,
       "protectWalletModalVisible": false,
       "seedphraseBackedUp": true,
       "tokenIndicators": [],
