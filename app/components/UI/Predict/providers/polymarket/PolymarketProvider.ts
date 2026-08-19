@@ -111,6 +111,7 @@ import {
   SignatureType,
   PolymarketApiActivity,
   PolymarketApiEvent,
+  PolymarketApiEventsKeysetResponse,
   PolymarketApiTeam,
   PolymarketPosition,
 } from './types';
@@ -1196,20 +1197,21 @@ export class PolymarketProvider implements PredictProvider {
       });
 
       const response = await fetchWithTimeout(
-        `${GAMMA_API_ENDPOINT}/events?${queryParams.toString()}`,
+        `${GAMMA_API_ENDPOINT}/events/keyset?${queryParams.toString()}`,
       );
 
       if (!response.ok) {
         throw new Error('Failed to fetch series events');
       }
 
-      const responseData = (await response.json()) as unknown;
+      const responseData =
+        (await response.json()) as PolymarketApiEventsKeysetResponse;
 
-      if (!Array.isArray(responseData)) {
-        throw new Error('Malformed series events response');
+      if (!Array.isArray(responseData.events)) {
+        throw new Error('Malformed keyset series events response');
       }
 
-      const events = responseData as PolymarketApiEvent[];
+      const events = responseData.events;
 
       if (events.length === 0) {
         return [];

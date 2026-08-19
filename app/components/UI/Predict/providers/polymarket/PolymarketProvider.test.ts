@@ -802,13 +802,13 @@ describe('PolymarketProvider', () => {
       ]);
     });
 
-    it('fetches market series from the endpoint that includes live event metadata', async () => {
+    it('fetches market series from keyset endpoint', async () => {
       const provider = createProvider();
       const events = [{ id: 'event-1' }];
       const markets = [{ id: 'market-1', outcomes: [{ id: 'outcome-1' }] }];
       global.fetch = jest.fn().mockResolvedValue({
         ok: true,
-        json: jest.fn().mockResolvedValue(events),
+        json: jest.fn().mockResolvedValue({ events, next_cursor: null }),
       });
       mockParsePolymarketEvents.mockReturnValue(markets as never);
 
@@ -821,8 +821,7 @@ describe('PolymarketProvider', () => {
       ).resolves.toEqual(markets);
 
       const [url] = (global.fetch as jest.Mock).mock.calls[0];
-      expect(url).toContain('https://gamma-api.polymarket.com/events?');
-      expect(url).not.toContain('/events/keyset?');
+      expect(url).toContain('https://gamma-api.polymarket.com/events/keyset?');
       expect(url).toContain('series_id=series-1');
     });
 

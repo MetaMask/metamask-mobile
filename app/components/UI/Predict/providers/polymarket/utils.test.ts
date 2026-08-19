@@ -37,7 +37,6 @@ import {
   getClobMarketInfoSafe,
   getContractConfig,
   getIsApprovedForAll,
-  getMarketDetailsFromGammaApi,
   getOrderBook,
   getPredictPositionStatus,
   getRawBalance,
@@ -2033,36 +2032,6 @@ describe('polymarket utils', () => {
     });
   });
 
-  describe('getMarketDetailsFromGammaApi', () => {
-    it('uses the collection endpoint so live event metadata is included', async () => {
-      const event = { id: 'event-1', eventMetadata: { priceToBeat: 64544.6 } };
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue([event]),
-      });
-
-      await expect(
-        getMarketDetailsFromGammaApi({ marketId: event.id }),
-      ).resolves.toEqual(event);
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://gamma-api.polymarket.com/events?id=event-1',
-        expect.any(Object),
-      );
-    });
-
-    it('throws when the collection does not contain the requested event', async () => {
-      mockFetch.mockResolvedValue({
-        ok: true,
-        json: jest.fn().mockResolvedValue([]),
-      });
-
-      await expect(
-        getMarketDetailsFromGammaApi({ marketId: 'missing' }),
-      ).rejects.toThrow('Market details not found');
-    });
-  });
-
   describe('fetchRelatedTagsFromPolymarketApi', () => {
     it('builds the related-tags endpoint URL for the general "all" root', async () => {
       mockFetch.mockResolvedValue({
@@ -2869,7 +2838,7 @@ describe('polymarket utils', () => {
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: jest.fn().mockResolvedValue([{ tags: [] }]),
+          json: jest.fn().mockResolvedValue({ tags: [] }),
         });
 
       const preview = await previewMaxBuyOrder({
