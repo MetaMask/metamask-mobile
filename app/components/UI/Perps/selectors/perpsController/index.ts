@@ -15,7 +15,6 @@ import {
   type PerpsMode,
   type ProLayoutPreferences,
 } from '@metamask/perps-controller';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 const selectPerpsControllerState = (state: RootState) =>
   state.engine.backgroundState.PerpsController;
@@ -29,12 +28,6 @@ const selectPerpsProvider = createSelector(
 const selectPerpsAccountState = createSelector(
   selectPerpsControllerState,
   (perpsControllerState) => perpsControllerState?.accountState || null,
-);
-
-/** Lowercase EVM address for identity-safe Perps cache comparisons. */
-const selectPerpsSelectedAccountAddress = createSelector(
-  selectSelectedAccountGroupEvmInternalAccount,
-  (account): string | undefined => account?.address.toLowerCase(),
 );
 
 const selectPerpsDepositState = createSelector(
@@ -239,7 +232,6 @@ export const createSelectIsWatchlistMarket = (symbol: string) =>
 export {
   selectPerpsProvider,
   selectPerpsAccountState,
-  selectPerpsSelectedAccountAddress,
   selectPerpsDepositState,
   selectPerpsEligibility,
   selectPerpsNetwork,

@@ -5,7 +5,7 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { type Position, type PriceUpdate } from '@metamask/perps-controller';
 import { calculateRoEForPrice } from '../../utils/tpslValidation';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
-import { selectPerpsSelectedAccountAddress } from '../../selectors/perpsController';
+import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_POSITIONS: Position[] = [];

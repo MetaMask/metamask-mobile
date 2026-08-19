@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { type AccountState } from '@metamask/perps-controller';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
-import { selectPerpsSelectedAccountAddress } from '../../selectors/perpsController';
+import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
 
 export interface UsePerpsLiveAccountOptions {
   /** Whether to subscribe to account updates. */
