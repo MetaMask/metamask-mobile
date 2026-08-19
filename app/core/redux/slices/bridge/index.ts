@@ -451,7 +451,7 @@ export const selectDestAmount = createSelector(
 
 export const selectRecurring = createSelector(
   selectBridgeState,
-  (bridgeState) => bridgeState.recurring,
+  (bridgeState) => bridgeState.recurring ?? initialRecurringState,
 );
 
 export const selectRecurringEveryValue = createSelector(

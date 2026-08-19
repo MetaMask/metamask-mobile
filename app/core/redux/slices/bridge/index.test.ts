@@ -1550,6 +1550,20 @@ describe('bridge slice', () => {
       expect(newState.recurring).toEqual(initialState.recurring);
     });
 
+    it('defaults to the initial recurring state when it is missing', () => {
+      const mockState = {
+        ...mockRootState,
+        bridge: {
+          ...initialState,
+          recurring: undefined,
+        },
+      } as unknown as RootState;
+
+      const result = selectRecurring(mockState);
+
+      expect(result).toEqual(initialState.recurring);
+    });
+
     it('selects the recurring object from state', () => {
       const mockState = {
         ...mockRootState,
