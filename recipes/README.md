@@ -15,6 +15,7 @@ Short, parameterizable units composed via `call` nodes:
 | `lighter.setup`            | `network`, `market`                        | idempotent venue convergence — one `start_state` ensure node; switches provider/network only when they differ (`changed:false` on a no-op) |
 | `lighter.open-position`    | `market`, `direction`                      | Long/Short → order form seeded at the venue minimum → place → venue-verified position                                                      |
 | `lighter.close-position`   | `market`                                   | Close button → close-position screen → confirm → venue-verified flat                                                                       |
+| `lighter.tpsl`             | `market`, `tpPreset`, `slPreset`           | position card auto-close → TP/SL screen → RoE presets → Set → venue-verified OCO trigger pair (SL line rendered on the chart)              |
 | `lighter.limit-order`      | `market`, `preset`                         | order-type sheet → limit → price preset → venue-verified resting order                                                                     |
 | `lighter.cancel-orders`    | `market`                                   | book cleaned, venue-verified (controller cancel path; UI cancel button is a follow-up)                                                     |
 | `lighter.capability-suite` | `network`, `positionMarket`, `orderMarket` | composed end-to-end run of all of the above; the same suite is the mainnet validation runner (`-p network=mainnet`)                        |
@@ -24,8 +25,10 @@ mm-harness run lighter.capability-suite --library lighter=recipes/lighter-lib \
   --record-video=full-run
 ```
 
-First live run: 54/54 nodes green on Lighter testnet, video recorded, venue
-verified flat afterwards.
+Latest run: 67/67 nodes green on Lighter testnet (TP/SL leg included), both
+re-entrancy switch branches exercised, video recorded, venue verified flat
+afterwards. `setup` takes `provider` (default `lighter`) — the UI steps are
+protocol-agnostic, so the units graduate to the shared library as-is.
 
 ## Standalone recipes
 

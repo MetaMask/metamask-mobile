@@ -1,0 +1,103 @@
+{
+  "$schema": "https://farmslot.io/schemas/recipe-v1.schema.json",
+  "title": "Lighter \u2014 attach TP/SL to an open position through the real TP/SL screen",
+  "description": "From market details with an open position, opens the Add TP/SL screen, picks RoE percentage presets for both take-profit and stop-loss, sets them, and verifies against the venue that the trigger orders exist (Lighter places them as a native OCO-linked pair).",
+  "paramsSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "market": {
+        "type": "string",
+        "default": "ETH"
+      },
+      "tpPreset": {
+        "type": "string",
+        "enum": ["10", "25", "50", "100"],
+        "default": "25"
+      },
+      "slPreset": {
+        "type": "string",
+        "enum": ["-5", "-10", "-25", "-50"],
+        "default": "-10"
+      }
+    }
+  },
+  "workflow": {
+    "entry": "market",
+    "nodes": {
+      "market": {
+        "action": "ui.navigate",
+        "page": "perps-market",
+        "market": "{{params.market}}",
+        "intent": "Open the market page that shows the open position.",
+        "next": "settle-market"
+      },
+      "settle-market": {
+        "action": "wait",
+        "duration_ms": 12000,
+        "intent": "Let the position card render below the chart.",
+        "next": "open-tpsl"
+      },
+      "open-tpsl": {
+        "action": "ui.press",
+        "test_id": "position-card-auto-close-toggle",
+        "intent": "Open the TP/SL screen from the position card auto-close control (the way a user does).",
+        "next": "settle-tpsl"
+      },
+      "settle-tpsl": {
+        "action": "wait",
+        "duration_ms": 6000,
+        "intent": "Let the TP/SL screen mount with live prices.",
+        "next": "pick-tp"
+      },
+      "pick-tp": {
+        "action": "ui.press",
+        "test_id": "perps-tpsl-take-profit-percentage-button-{{params.tpPreset}}",
+        "intent": "Pick the take-profit RoE preset.",
+        "next": "pick-sl"
+      },
+      "pick-sl": {
+        "action": "ui.press",
+        "test_id": "perps-tpsl-stop-loss-percentage-button-{{params.slPreset}}",
+        "intent": "Pick the stop-loss RoE preset.",
+        "next": "shot-tpsl"
+      },
+      "shot-tpsl": {
+        "action": "ui.screenshot",
+        "path": "screenshots/tpsl-{{params.market}}-form.png",
+        "intent": "Record the filled TP/SL screen before setting.",
+        "next": "set"
+      },
+      "set": {
+        "action": "ui.press",
+        "test_id": "perps-tpsl-set-button",
+        "intent": "Set both triggers from the real button.",
+        "next": "settle-set"
+      },
+      "settle-set": {
+        "action": "wait",
+        "duration_ms": 12000,
+        "intent": "Give the venue time to accept the OCO-linked trigger pair.",
+        "next": "assert-triggers"
+      },
+      "assert-triggers": {
+        "action": "metamask.perps.assert_orders",
+        "market": "{{params.market}}",
+        "state": "present",
+        "timeout_ms": 30000,
+        "intent": "Venue truth: the trigger orders rest on the book.",
+        "next": "shot-set"
+      },
+      "shot-set": {
+        "action": "ui.screenshot",
+        "path": "screenshots/tpsl-{{params.market}}-set.png",
+        "intent": "Record the position with TP/SL attached.",
+        "next": "done"
+      },
+      "done": {
+        "action": "end",
+        "status": "pass"
+      }
+    }
+  }
+}
