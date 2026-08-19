@@ -130,7 +130,12 @@ jest.mock('../feeds/perps/PerpsSectionProvider', () => {
 });
 
 const mockEarnSection = jest.fn(
-  (props: { homeAnalytics?: unknown; showDividers?: boolean }) =>
+  (props: {
+    homeAnalytics?: unknown;
+    refreshTrigger?: number;
+    showDividers?: boolean;
+    tokenDetailsSource?: string;
+  }) =>
     React.createElement('View', {
       testID: 'explore-earn-section',
       accessibilityLabel: JSON.stringify(props),
@@ -139,8 +144,12 @@ const mockEarnSection = jest.fn(
 
 jest.mock('../../../UI/Earn/components/EarnSection', () => ({
   __esModule: true,
-  default: (props: { homeAnalytics?: unknown; showDividers?: boolean }) =>
-    mockEarnSection(props),
+  default: (props: {
+    homeAnalytics?: unknown;
+    refreshTrigger?: number;
+    showDividers?: boolean;
+    tokenDetailsSource?: string;
+  }) => mockEarnSection(props),
 }));
 
 const mockWhatsHappeningRefresh = jest.fn();
@@ -212,6 +221,7 @@ import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 import { selectExploreEarnSectionEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
+import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import WhatsHappeningSection from '../../../UI/WhatsHappening';
 import NowTab from './NowTab';
 import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
@@ -699,7 +709,27 @@ describe('NowTab — Earn section', () => {
     renderNowTab();
 
     expect(screen.getByTestId('explore-earn-section')).toBeOnTheScreen();
-    expect(mockEarnSection).toHaveBeenCalledWith({});
+    expect(mockEarnSection).toHaveBeenCalledWith({
+      refreshTrigger: 0,
+      tokenDetailsSource: TokenDetailsSource.Trending,
+    });
+  });
+
+  it('forwards Explore refresh trigger to Earn section', () => {
+    const mocks = arrangeMocks();
+    mocks.useSelector.mockImplementation(
+      createMockSelectorImpl({ earnSectionEnabled: true }),
+    );
+
+    renderNowTab({
+      ...defaultTabProps,
+      refresh: { trigger: 1, silentRefresh: true },
+    });
+
+    expect(mockEarnSection).toHaveBeenCalledWith({
+      refreshTrigger: 1,
+      tokenDetailsSource: TokenDetailsSource.Trending,
+    });
   });
 
   it('does not render Earn section when disabled', () => {

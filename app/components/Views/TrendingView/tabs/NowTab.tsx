@@ -371,7 +371,12 @@ const NowTabContent: React.FC<TabProps> = ({
     if (isEarnSectionEnabled) {
       items.push({
         key: 'earn',
-        content: <EarnSection />,
+        content: (
+          <EarnSection
+            refreshTrigger={refresh.trigger}
+            tokenDetailsSource={TokenDetailsSource.ExploreEarn}
+          />
+        ),
       });
     }
 
