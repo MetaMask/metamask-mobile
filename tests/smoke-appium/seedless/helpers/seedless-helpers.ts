@@ -239,8 +239,23 @@ export const completeSocialLoginOnboarding = async (
   }
 
   if (PlatformDetector.isIOS()) {
-    await SocialLoginView.isIosNewUserScreenVisible();
-    await SocialLoginView.tapIosNewUserSetPinButton();
+    if (provider === 'telegram') {
+      try {
+        await Assertions.expectElementToBeVisible(
+          SocialLoginView.iosNewUserTitle,
+          {
+            timeout: 8000,
+            description: 'iOS set-PIN screen may appear after Telegram login',
+          },
+        );
+        await SocialLoginView.tapIosNewUserSetPinButton();
+      } catch {
+        // Telegram can skip SocialLoginIosUser and land on create-password.
+      }
+    } else {
+      await SocialLoginView.isIosNewUserScreenVisible();
+      await SocialLoginView.tapIosNewUserSetPinButton();
+    }
   }
 
   await waitForCreatePasswordScreenPlaywright(resolveE2EWaitTimeoutMs(60_000));
