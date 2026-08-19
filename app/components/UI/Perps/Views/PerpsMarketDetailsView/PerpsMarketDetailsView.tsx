@@ -752,10 +752,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
       [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
-      ...((source || !analyticsContext) && {
-        [PERPS_EVENT_PROPERTY.SOURCE]:
-          source || PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
-      }),
+      [PERPS_EVENT_PROPERTY.SOURCE]:
+        source ||
+        analyticsContext?.attribution ||
+        PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
       ...chartAnalyticsProperties,
       ...(source_section && {
         [PERPS_EVENT_PROPERTY.SOURCE_SECTION]: source_section,

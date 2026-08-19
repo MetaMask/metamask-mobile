@@ -1304,7 +1304,7 @@ describe('PerpsHomeView', () => {
       jest.clearAllMocks();
     });
 
-    it('omits the default source when navigation analytics context is present', () => {
+    it('uses navigation analytics attribution as the source', () => {
       mockRouteParams = {
         analyticsContext: {
           id: 'balance-breakdown-navigation',
@@ -1317,7 +1317,7 @@ describe('PerpsHomeView', () => {
       const properties = getBaseEventProperties(
         mockUsePerpsEventTracking.mock.calls,
       );
-      expect(properties?.source).toBeUndefined();
+      expect(properties?.source).toBe('homescreen_balance_breakdown');
     });
 
     it('includes sections_displayed containing balance and explore sections when markets exist', () => {

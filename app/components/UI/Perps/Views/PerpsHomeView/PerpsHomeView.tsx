@@ -430,9 +430,8 @@ const PerpsHomeView = () => {
   // Track home screen viewed event
   const source =
     route.params?.source ||
-    (analyticsContext
-      ? undefined
-      : PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON);
+    analyticsContext?.attribution ||
+    PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON;
 
   // Get perp balance status for tracking
   const livePositions = usePerpsLivePositions({ throttleMs: 5000 });
@@ -510,9 +509,7 @@ const PerpsHomeView = () => {
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.PERPS_HOME,
-      ...(source && {
-        [PERPS_EVENT_PROPERTY.SOURCE]: source,
-      }),
+      [PERPS_EVENT_PROPERTY.SOURCE]: source,
       [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: livePositions.positions.length,
       [PERPS_EVENT_PROPERTY.OPEN_ORDER]: orders?.length || 0,
