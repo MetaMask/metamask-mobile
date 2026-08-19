@@ -76,8 +76,10 @@ describe('resolveOAuthConfigKey', () => {
     process.env.OAUTH_BUILD_TYPE = 'not_a_real_key';
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
     const { resolveOAuthConfigKey } = require('./oauthBuildType');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    const { OAUTH_CONFIG: freshOAuthConfig } = require('./config');
     const key = resolveOAuthConfigKey();
     expect(key).not.toBe('not_a_real_key');
-    expect(key in OAUTH_CONFIG).toBe(true);
+    expect(key in freshOAuthConfig).toBe(true);
   });
 });
