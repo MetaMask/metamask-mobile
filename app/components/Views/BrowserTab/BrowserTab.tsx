@@ -124,6 +124,7 @@ import {
   isDisallowedExplicitPort,
   isDocumentUrlForUrlBarPayload,
   isENSUrl,
+  resolveCommittedDocumentUrl,
 } from './utils';
 import { getURLProtocol } from '../../../util/general';
 import { PROTOCOLS } from '../../../constants/deeplinks';
@@ -826,6 +827,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * Resolves the URL bar from a document URL reported by the WebView after a
      * back/forward navigation. Only the message matching the pending request is
      * applied; messages without a matching request are ignored.
+     *
+     * Same-origin document URLs are used so SPA path updates still apply.
+     * Otherwise the navigation event URL is used.
      */
     const handleDocumentUrlForUrlBar = useCallback(
       (payload: unknown) => {
@@ -840,9 +844,30 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         pendingBackForwardNavRef.current = null;
 
+        const committedUrl = resolveCommittedDocumentUrl(
+          pendingNav.url,
+          payload.url,
+        );
+
+        if (!committedUrl) {
+          Logger.log(
+            `Skipping back/forward address bar update. Navigation: ${pendingNav.url} Document: ${payload.url}`,
+          );
+          return;
+        }
+
+        const usedPageReportedUrl = committedUrl === payload.url;
+        if (!usedPageReportedUrl) {
+          Logger.log(
+            `Using navigation URL for address bar. Navigation: ${pendingNav.url} Document: ${payload.url}`,
+          );
+        }
+
         handleSuccessfulPageResolution({
-          title: payload.title ?? titleRef.current,
-          url: payload.url,
+          title: usedPageReportedUrl
+            ? (payload.title ?? pendingNav.title ?? titleRef.current)
+            : (pendingNav.title ?? titleRef.current),
+          url: committedUrl,
           icon: favicon,
           canGoBack: pendingNav.canGoBack,
           canGoForward: pendingNav.canGoForward,
@@ -1611,7 +1636,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
     const handleOnNavigationStateChange = useCallback(
       (event: WebViewNavigation) => {
-        const { canGoForward, canGoBack, navigationType, loading } = event;
+        const { canGoForward, canGoBack, navigationType, loading, url, title } =
+          event;
         Logger.log(
           `WEBVIEW NAVIGATING: OnNavigationStateChange \n Values: ${JSON.stringify(
             event,
@@ -1624,11 +1650,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             return;
           }
 
+          if (!url) {
+            return;
+          }
+
           // Sync the URL bar from the document; navigation events are not always
           // aligned with window.location after back/forward transitions.
           const requestId = createRequestId();
           pendingBackForwardNavRef.current = {
             requestId,
+            url,
+            title,
             canGoBack,
             canGoForward,
           };

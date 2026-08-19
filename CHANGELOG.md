@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed the in-app browser address bar so it matches the page shown after back/forward navigation
+
 ## [8.7.0]
 
 ### Added
