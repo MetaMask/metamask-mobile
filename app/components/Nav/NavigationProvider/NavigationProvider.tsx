@@ -19,8 +19,6 @@ import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { NavigationProviderProps } from './types';
 import { getNavIntegration } from '../../../util/sentry/utils';
-// TEMPORARY — remove with the audit itself before the v7 PR merges.
-import { attachNavigateAudit } from '../../../util/navigation/devNavigateAudit';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -65,11 +63,6 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
       return;
     }
     NavigationService.navigation = ref;
-
-    // TEMPORARY — reports v6-vs-v7 `navigate` differences during the upgrade.
-    // Attached to the raw ref because NavigationService wraps it. Remove before
-    // the v7 PR merges.
-    attachNavigateAudit(ref);
 
     // registerNavigationContainer is safe to call before Sentry.init completes:
     // the SDK stores the ref and attaches listeners immediately; afterAllSetup
