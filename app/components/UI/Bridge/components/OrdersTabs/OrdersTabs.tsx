@@ -85,6 +85,7 @@ function OrdersNetworkFilter({
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Md}
       endIconName={IconName.ArrowDown}
+      contentWrapperProps={{ twClassName: 'items-center' }}
       onPress={handlePress}
       testID={OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON}
     >
@@ -99,7 +100,7 @@ function OrdersNetworkFilter({
             size={AvatarNetworkSize.Xs}
             name={filterLabel}
             shape={AvatarBaseShape.Square}
-            twClassName="rounded translate-y-px"
+            twClassName="rounded"
             testID={OrdersTabsSelectorsIDs.NETWORK_FILTER_AVATAR}
           />
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
