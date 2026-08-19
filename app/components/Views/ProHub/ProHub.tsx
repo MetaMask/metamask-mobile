@@ -15,27 +15,25 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ProHubTestIds } from './ProHub.testIds';
 
 const ProHub = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleManagePress = useCallback(() => {
-    // TODO: navigate to subscription management
-  }, []);
+  const handleManageMembership = useCallback(() => {
+    navigation.navigate(Routes.PRO_HUB.MEMBERSHIP);
+  }, [navigation]);
 
   const handleExplorePress = useCallback(() => {
     // TODO: navigate to benefits / ProSubscription flow
-  }, []);
-
-  const handleManagePlans = useCallback(() => {
-    // TODO: navigate to subscription management
   }, []);
 
   return (
@@ -59,7 +57,7 @@ const ProHub = () => {
         endAccessory={
           <ButtonIcon
             iconName={IconName.Setting}
-            onPress={handleManagePlans}
+            onPress={handleManageMembership}
             accessibilityLabel={strings('pro_hub.manage')}
             testID={ProHubTestIds.MANAGE_PLANS_BUTTON}
           />
@@ -99,7 +97,7 @@ const ProHub = () => {
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          onPress={handleManagePress}
+          onPress={handleManageMembership}
           isFullWidth
           testID={ProHubTestIds.MANAGE_BUTTON}
         >

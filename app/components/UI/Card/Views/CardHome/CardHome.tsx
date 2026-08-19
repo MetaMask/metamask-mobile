@@ -607,13 +607,6 @@ const CardHome = () => {
                 onCopyDetail={actions.copyCardDetail}
                 cardType={data?.card?.type}
                 cardStatus={data?.card?.status}
-                walletAddress={
-                  isAuthenticated
-                    ? primaryToken?.isMoneyAccountEntry
-                      ? strings('card.card_spending_limit.money_account_label')
-                      : data?.primaryFundingAsset?.walletAddress
-                    : undefined
-                }
               />
             )}
           </Animated.View>

@@ -109,8 +109,13 @@ const configureQueries = (
         checkedAt: '2026-01-01T00:00:00Z',
       });
     }
-    if (action === 'PredictMarketDataService:getEvents') {
-      return Promise.resolve({ items: events });
+    if (action === 'PredictMarketDataService:getFeed') {
+      return Promise.resolve({
+        venueId: 'kalshi',
+        id: 'sports-football-nfl-games',
+        title: 'NFL Games',
+        events,
+      });
     }
     return Promise.resolve(undefined);
   });
@@ -292,19 +297,58 @@ describe('PredictHome', () => {
     const view = renderPredictNext();
 
     expect(await view.findByText('No predictions yet.')).toBeOnTheScreen();
+    expect(
+      messengerCall.mock.calls.some(
+        (call) => call[0] === 'PredictMarketDataService:getVenueStatus',
+      ),
+    ).toBe(true);
   });
 
-  it('retries both queries after a first-page error', async () => {
+  it('does not fetch Venue Status when Events are available', async () => {
+    const view = renderPredictNext();
+
+    expect(
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'event-1')),
+    ).toBeOnTheScreen();
+    expect(
+      messengerCall.mock.calls.filter(
+        (call) => call[0] === 'PredictMarketDataService:getVenueStatus',
+      ),
+    ).toHaveLength(0);
+  });
+
+  it('retries the Feed after a first-page error', async () => {
     configureQueries();
-    messengerCall.mockRejectedValueOnce(new Error('status failed'));
-    messengerCall.mockRejectedValueOnce(new Error('events failed'));
+    messengerCall.mockImplementation((action: string) => {
+      if (action === 'PredictMarketDataService:getFeed') {
+        return Promise.reject(new Error('feed failed'));
+      }
+      return Promise.resolve(undefined);
+    });
     const view = renderPredictNext();
     const retry = await view.findByText('Retry');
+    configureQueries();
     messengerCall.mockClear();
 
     fireEvent.press(retry);
 
-    await waitFor(() => expect(messengerCall).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getFeed',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        undefined,
+      ),
+    );
+    expect(
+      messengerCall.mock.calls.filter(
+        (call) => call[0] === 'PredictMarketDataService:getVenueStatus',
+      ),
+    ).toHaveLength(0);
+    expect(
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'event-1')),
+    ).toBeOnTheScreen();
   });
 
   it('shows unavailable when no Events can be displayed', async () => {
@@ -328,16 +372,25 @@ describe('PredictHome', () => {
           checkedAt: '2026-01-01T00:00:00Z',
         });
       }
-      if (action === 'PredictMarketDataService:getEvents') {
+      if (action === 'PredictMarketDataService:getFeed') {
         eventRequest += 1;
         if (eventRequest === 1) {
-          return Promise.resolve({ items: [event], nextCursor: 'next' });
+          return Promise.resolve({
+            venueId: 'kalshi',
+            id: 'sports-football-nfl-games',
+            title: 'NFL Games',
+            events: [event],
+            nextCursor: 'next',
+          });
         }
         if (eventRequest === 2) {
           return Promise.reject(new Error('next page failed'));
         }
         return Promise.resolve({
-          items: [{ ...event, id: 'event-2', title: 'Second Event' }],
+          venueId: 'kalshi',
+          id: 'sports-football-nfl-games',
+          title: 'NFL Games',
+          events: [{ ...event, id: 'event-2', title: 'Second Event' }],
         });
       }
       return Promise.resolve(undefined);
