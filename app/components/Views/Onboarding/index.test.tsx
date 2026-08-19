@@ -673,7 +673,6 @@ describe('Onboarding', () => {
         'ChoosePassword',
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
       expect(annotateTrace).toHaveBeenCalledWith(
@@ -844,7 +843,6 @@ describe('Onboarding', () => {
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
           expect.objectContaining({
             [PREVIOUS_SCREEN]: ONBOARDING,
-            onboardingTraceCtx: expect.any(Object),
           }),
         );
       });
@@ -1016,7 +1014,6 @@ describe('Onboarding', () => {
         expect.objectContaining({
           accountName: 'test@example.com',
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
     });
@@ -1074,7 +1071,6 @@ describe('Onboarding', () => {
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
 
@@ -1134,7 +1130,6 @@ describe('Onboarding', () => {
         expect.objectContaining({
           accountName: 'test@icloud.com',
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
     });
@@ -1477,7 +1472,6 @@ describe('Onboarding', () => {
         expect.objectContaining({
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
     });
@@ -2032,7 +2026,6 @@ describe('Onboarding', () => {
         expect.objectContaining({
           accountName: 'existing@example.com',
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
     });
@@ -2077,7 +2070,6 @@ describe('Onboarding', () => {
         expect.objectContaining({
           accountName: 'newuser@icloud.com',
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
         }),
       );
     });
@@ -2338,7 +2330,6 @@ describe('Onboarding', () => {
         'ChoosePassword',
         expect.objectContaining({
           oauthLoginSuccess: true,
-          onboardingTraceCtx: expect.any(Object),
           [PREVIOUS_SCREEN]: ONBOARDING,
           provider: 'google',
         }),

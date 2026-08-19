@@ -13,6 +13,17 @@ import otaConfig from '../../ota.config.js';
  * Kept here (not only in ota.config.js) so changes there do not alter the Expo fingerprint and break CI.
  */
 export const OTA_VERSION: string = 'vX.XX.X';
+
+/**
+ * Short commit SHA the running automated release-candidate OTA update was published from.
+ *
+ * The automated RC path publishes on every JS-only push to a `release/*` branch, so it never
+ * bumps `OTA_VERSION` and the commit is the only thing that identifies which update a tester is
+ * on. Set by CI at publish time and inlined into the bundle by babel's
+ * `transform-inline-environment-variables`; empty for native builds and every other OTA flow.
+ */
+export const OTA_RC_AUTO_COMMIT: string = process.env.OTA_RC_AUTO_COMMIT || '';
+
 export const RUNTIME_VERSION = otaConfig.RUNTIME_VERSION;
 export const PROJECT_ID = otaConfig.PROJECT_ID;
 export const UPDATE_URL = otaConfig.UPDATE_URL;

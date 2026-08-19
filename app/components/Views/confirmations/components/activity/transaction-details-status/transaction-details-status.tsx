@@ -20,6 +20,9 @@ import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { ARBITRUM_USDC } from '../../../constants/perps';
 import { StatusIcon } from '../../status-icon';
 import { getErrorMessage, getSeverity } from '../../../utils/transaction';
+import { BigNumber } from 'bignumber.js';
+import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { ACTIVITY_FIAT_FRACTION_DIGITS } from '../../../constants/confirmations';
 
 export function TransactionDetailsStatus({
   gap,
@@ -35,15 +38,20 @@ export function TransactionDetailsStatus({
   const { status } = transactionMeta;
   const isMoneyContext = useIsMoneyAccountContext();
   const hasSuccessfulPerpsBridge = useHasSuccessfulPerpsBridge();
-  const { fiat } = useTokenAmount({ transactionMeta });
+  const { fiatUnformatted } = useTokenAmount({ transactionMeta });
   const errorMessage = getErrorMessage(transactionMeta);
+  // useTokenAmount's own `fiat` lets the decimals follow the amount, which would
+  // disagree with the pinned rows elsewhere on this screen.
+  const formatFiat = useFiatFormatter({
+    fractionDigits: ACTIVITY_FIAT_FRACTION_DIGITS,
+  });
 
   const statusText = text ?? getStatusText(status);
 
   const solutionText =
     !text && status === TransactionStatus.failed && hasSuccessfulPerpsBridge
       ? strings('transaction_details.perps_deposit_solution', {
-          fiat: fiat ?? '0.00',
+          fiat: formatFiat(new BigNumber(fiatUnformatted ?? 0)),
         })
       : undefined;
 

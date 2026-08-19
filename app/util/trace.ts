@@ -254,6 +254,11 @@ export enum TraceName {
   PredictGetPrices = 'Predict Get Prices',
   PredictGetUnrealizedPnL = 'Predict Get Unrealized PnL',
   PredictGetCryptoTargetPrice = 'Predict Get Crypto Target Price',
+  // PredictNext
+  PredictNextHomeView = 'PredictNext Home View',
+  PredictNextGetVenueStatus = 'PredictNext Get Venue Status',
+  PredictNextGetFeed = 'PredictNext Get Feed',
+  PredictNextGetEvent = 'PredictNext Get Event',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',
@@ -271,6 +276,9 @@ export enum TraceName {
   MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
   MoneyHomeEarningsTimeToContent = 'Money Home Earnings Time To Content',
   MoneyHomeApyTimeToContent = 'Money Home APY Time To Content',
+  // Money Home Data Fetches
+  MoneyActivityFetch = 'Money Activity Fetch',
+  CardHomeDataFetch = 'Card Home Data Fetch',
   // Rewards
   /** Tap Rewards tab → onboarding content or enrolled dashboard shell. */
   RewardsTabTimeToContent = 'Rewards Tab Time To Content',
@@ -304,6 +312,7 @@ export enum TraceOperation {
   CardGetSupportedTokensAllowances = 'card.get.supported.tokens.allowances',
   CardGetPriorityToken = 'card.get.priority.token',
   CardIdentifyCardholder = 'card.identify.cardholder',
+  CardDataFetch = 'card.data_fetch',
   OnboardingUserJourney = 'onboarding.user_journey',
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',
@@ -622,9 +631,12 @@ function finishPendingTrace(
  */
 /**
  * Return the in-flight span for a pending manual trace, if any.
- * Used to nest a security op (e.g. Create Key and Backup SRP) under an
- * already-open journey span (e.g. New Social Create Wallet) without
- * threading the span through route params.
+ * Used to nest a child span under an already-open parent span without
+ * threading the span through route params (perf_fix: trace-registry-v1).
+ *
+ * Onboarding screens call this with `TraceName.OnboardingJourneyOverall` to
+ * fetch the parent context instead of receiving it as a non-serializable
+ * React Navigation route param.
  */
 export function getTraceContext(
   request: Pick<TraceRequest, 'name' | 'id'>,

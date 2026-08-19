@@ -111,9 +111,15 @@ describe('TransactionDetailsAccountRow', () => {
 
     const { getByTestId, UNSAFE_getByProps } = render();
     expect(UNSAFE_getByProps({ accountAddress: ADDRESS_MOCK })).toBeDefined();
-    expect(
-      getByTestId('transaction-details-account-network-badge'),
-    ).toBeOnTheScreen();
+    expect(getByTestId('badgenetwork')).toBeOnTheScreen();
+  });
+
+  it('hides network badge when network image is missing', () => {
+    useNetworkInfoMock.mockReturnValue({});
+
+    const { queryByTestId } = render();
+
+    expect(queryByTestId('badgenetwork')).not.toBeOnTheScreen();
   });
 
   it('renders "From" row with money account label for moneyAccountWithdraw', () => {
