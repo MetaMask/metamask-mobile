@@ -289,6 +289,81 @@ describe('HardwareWalletProvider', () => {
     });
 
     describe('adapter lifecycle (regression: deviceId change must not destroy adapter)', () => {
+      it('destroys the Ledger adapter when switching to software after signing', async () => {
+        const { result, rerender } = renderWithActions();
+
+        const ledgerCall = mockCreateAdapter.mock.calls.find(
+          (call) => call[0] === HardwareWalletType.Ledger,
+        );
+        const onDeviceEvent = ledgerCall?.[1]?.onDeviceEvent as (
+          payload: DeviceEventPayload,
+        ) => void;
+
+        await act(async () => {
+          onDeviceEvent({
+            event: DeviceEvent.Connected,
+            deviceId: 'device-123',
+          });
+          result.current.actions.showAwaitingConfirmation('transaction');
+          result.current.actions.hideAwaitingConfirmation();
+        });
+
+        // The selected account is now software, while the stale device ID
+        // remains in provider state after the signing UI is dismissed.
+        mockUseSelector.mockReturnValue({ address: '0xsoftware' });
+        mockGetHardwareWalletType.mockReturnValue(undefined);
+        rerender();
+
+        expect(mockAdapterInstance.destroy).toHaveBeenCalledTimes(1);
+      });
+
+      it('destroys the Ledger adapter when switching to software while connected', async () => {
+        const { result, rerender } = renderWithActions();
+
+        const ledgerCall = mockCreateAdapter.mock.calls.find(
+          (call) => call[0] === HardwareWalletType.Ledger,
+        );
+        const onDeviceEvent = ledgerCall?.[1]?.onDeviceEvent as (
+          payload: DeviceEventPayload,
+        ) => void;
+        await act(async () => {
+          onDeviceEvent({
+            event: DeviceEvent.Connected,
+            deviceId: 'device-123',
+          });
+        });
+
+        mockUseSelector.mockReturnValue({ address: '0xsoftware' });
+        mockGetHardwareWalletType.mockReturnValue(undefined);
+        rerender();
+
+        expect(mockAdapterInstance.destroy).toHaveBeenCalledTimes(1);
+      });
+
+      it('destroys the Ledger adapter when switching to software while ready', async () => {
+        const { result, rerender } = renderWithActions();
+
+        const ledgerCall = mockCreateAdapter.mock.calls.find(
+          (call) => call[0] === HardwareWalletType.Ledger,
+        );
+        const onDeviceEvent = ledgerCall?.[1]?.onDeviceEvent as (
+          payload: DeviceEventPayload,
+        ) => void;
+        await act(async () => {
+          onDeviceEvent({
+            event: DeviceEvent.Connected,
+            deviceId: 'device-123',
+          });
+          await result.current.actions.ensureDeviceReady('device-123');
+        });
+
+        mockUseSelector.mockReturnValue({ address: '0xsoftware' });
+        mockGetHardwareWalletType.mockReturnValue(undefined);
+        rerender();
+
+        expect(mockAdapterInstance.destroy).toHaveBeenCalledTimes(1);
+      });
+
       it('does not destroy the adapter when a Connected event sets deviceId mid-flow', async () => {
         renderWithActions();
 
@@ -321,8 +396,8 @@ describe('HardwareWalletProvider', () => {
       it('keeps the adapter across an effectiveWalletType ledger→null→ledger blip (send account-context switch)', async () => {
         const { result } = renderWithActions();
 
-        // Ledger adapter created on mount; simulate the device connecting so
-        // deviceId is set (precondition for the transient-null keep).
+        // Ledger adapter created on mount; simulate the device connecting and
+        // completing readiness (the precondition for the transient-null keep).
         const ledgerCall = mockCreateAdapter.mock.calls.find(
           (call) => call[0] === HardwareWalletType.Ledger,
         );
@@ -335,10 +410,12 @@ describe('HardwareWalletProvider', () => {
             deviceId: 'device-123',
           });
         });
+        await act(async () => {
+          await result.current.actions.ensureDeviceReady('device-123');
+        });
 
-        // Prime pendingOperationWalletType=Ledger so the next steps are real
-        // state changes (setPendingOperationAddress with a mock yielding null
-        // when pending is already null would be a no-op re-render-wise).
+        // Prime pendingOperationWalletType=Ledger. Later setPending calls with
+        // a lookup miss increment the pin count but must not clear this type.
         await act(async () => {
           mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
           result.current.actions.setPendingOperationAddress('0x1234');
@@ -346,18 +423,11 @@ describe('HardwareWalletProvider', () => {
 
         const initialCreateCalls = mockCreateAdapter.mock.calls.length;
 
-        // Account-context switch: walletType → null. pendingOperationWalletType
-        // Ledger → null forces a re-render; effectiveWalletType → null with
-        // deviceId set → isTransientNull keeps the adapter.
         await act(async () => {
           mockGetHardwareWalletType.mockReturnValue(undefined);
           result.current.actions.setPendingOperationAddress('0x1234');
         });
 
-        // setPendingOperationAddress then restores the type (pending null →
-        // ledger, walletType → ledger), swinging effectiveWalletType null →
-        // ledger. Before Fix D this re-ran the effect and destroyed the Ledger
-        // adapter mid-operation.
         await act(async () => {
           mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
           result.current.actions.setPendingOperationAddress('0x1234');
@@ -389,6 +459,56 @@ describe('HardwareWalletProvider', () => {
         });
 
         expect(mockAdapterInstance.destroy).toHaveBeenCalled();
+      });
+
+      it('keeps the Ledger adapter when switching to software during a pending operation', async () => {
+        const { result, rerender } = renderWithActions();
+
+        await act(async () => {
+          result.current.actions.setPendingOperationAddress('0x1234');
+        });
+
+        mockUseSelector.mockReturnValue({ address: '0xsoftware' });
+        mockGetHardwareWalletType.mockReturnValue(undefined);
+        rerender();
+
+        expect(mockAdapterInstance.destroy).not.toHaveBeenCalled();
+      });
+
+      it('keeps the adapter until the last nested pending operation is cleared', async () => {
+        const { result, rerender } = renderWithActions();
+
+        await act(async () => {
+          result.current.actions.setPendingOperationAddress('0x1234');
+          result.current.actions.setPendingOperationAddress('0x1234');
+        });
+
+        mockUseSelector.mockReturnValue({ address: '0xsoftware' });
+        mockGetHardwareWalletType.mockReturnValue(undefined);
+        rerender();
+
+        await act(async () => {
+          result.current.actions.setPendingOperationAddress(null);
+        });
+
+        expect(mockAdapterInstance.destroy).not.toHaveBeenCalled();
+
+        await act(async () => {
+          result.current.actions.setPendingOperationAddress(null);
+        });
+
+        expect(mockAdapterInstance.destroy).toHaveBeenCalledTimes(1);
+      });
+
+      it('keeps the Ledger adapter when targetWalletType changes to QR during a pending operation', async () => {
+        const { result } = renderWithActions();
+
+        await act(async () => {
+          result.current.actions.setPendingOperationAddress('0x1234');
+          result.current.actions.setTargetWalletType(HardwareWalletType.Qr);
+        });
+
+        expect(mockAdapterInstance.destroy).not.toHaveBeenCalled();
       });
     });
 

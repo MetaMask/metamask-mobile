@@ -21,14 +21,6 @@ import { selectRemoteFeatureFlags } from '../../../selectors/featureFlagControll
 
 interface UseAdapterLifecycleOptions {
   walletType: HardwareWalletType | null;
-  /**
-   * Device id of the currently-connected hardware wallet, or null. Used to
-   * keep the adapter alive across selected-account fluctuations during a
-   * signing flow (the Redux-derived `walletType` can transiently null while
-   * a device is still connected — tearing the adapter down then would kill an
-   * in-flight operation).
-   */
-  deviceId: string | null;
   adapterRef: React.MutableRefObject<HardwareWalletAdapter | null>;
   handleDeviceEvent: (payload: DeviceEventPayload) => void;
   handleError: (error: unknown) => void;
@@ -46,7 +38,7 @@ interface UseAdapterLifecycleResult {
 
 /**
  * Manages the hardware wallet adapter lifecycle: creates the appropriate adapter
- * when the effective wallet type changes, subscribes to transport state changes,
+ * when the wallet type changes, subscribes to transport state changes,
  * and cleans up on unmount.
  *
  * The provider always keeps an adapter instance — for non-hardware accounts,
@@ -60,7 +52,6 @@ interface UseAdapterLifecycleResult {
  */
 export const useAdapterLifecycle = ({
   walletType,
-  deviceId,
   adapterRef,
   handleDeviceEvent,
   handleError,
@@ -128,30 +119,17 @@ export const useAdapterLifecycle = ({
     [],
   );
 
-  // Adapter create/recreate. The body decides whether to KEEP the existing
-  // adapter or tear it down + build a new one; the cleanup is a no-op so that a
-  // dep-change re-run never destroys an adapter out from under an in-flight
-  // operation (React runs the previous run's cleanup BEFORE the new body, so a
-  // destroying cleanup here would always win — the keep logic could never
-  // engage). Final destruction on unmount is handled by the effect below.
+  // Adapter create/recreate. Cleanup is a no-op: React runs the previous
+  // effect's cleanup BEFORE the next body, so a destroying cleanup would
+  // always tear down the adapter on walletType change. Unmount destruction
+  // is the effect below.
   //
-  // The adapter is KEPT (not recreated) when:
-  //  - isTransientNull: `walletType` (effectiveWalletType) is null but a device
-  //    is still connected. walletType is derived from the Redux selected
-  //    account and can transiently null during a send's account-context switch.
-  //  - isSameAdapterType: effectiveWalletType swung away and back to the same
-  //    type (e.g. ledger → null → ledger when setPendingOperationAddress
-  //    restores the type mid-send). Recreating an identical adapter would call
-  //    destroy() on a session with an in-flight APDU → "Adapter has been
-  //    destroyed".
-  // `deviceId` is intentionally NOT a dependency: device identity is owned and
-  // re-pointed by the adapter itself (adapter.connect(deviceId)). Treating it
-  // as a dep previously tore the adapter down mid-connect.
+  // The provider pins `walletType` to the in-flight operation while
+  // setPendingOperationAddress is held, so this effect only replaces the
+  // adapter when the type actually changes (ledger → qr, hardware → software).
   useEffect(() => {
     const current = adapterRef.current;
-    const isTransientNull = !walletType && Boolean(deviceId);
-    const isSameAdapterType = current?.walletType === walletType;
-    if (current && (isTransientNull || isSameAdapterType)) {
+    if (current && current.walletType === walletType) {
       // eslint-disable-next-line no-empty-function
       return () => {};
     }
@@ -181,8 +159,7 @@ export const useAdapterLifecycle = ({
 
     // eslint-disable-next-line no-empty-function
     return () => {};
-    // createAdapterWithCallbacks + initializeAdapter are identity-stable
-    // (deps: []), so this effect only re-runs when walletType changes.
+    // createAdapterWithCallbacks + initializeAdapter are identity-stable.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [walletType, createAdapterWithCallbacks, initializeAdapter]);
 
