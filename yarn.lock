@@ -7625,7 +7625,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/account-tree-controller@npm:^7.5.0, @metamask/account-tree-controller@npm:^7.6.1":
+"@metamask/account-tree-controller@npm:^7.6.1":
   version: 7.6.1
   resolution: "@metamask/account-tree-controller@npm:7.6.1"
   dependencies:
@@ -7888,7 +7888,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controllers@npm:^111.0.0, @metamask/assets-controllers@npm:^111.1.0, @metamask/assets-controllers@npm:^111.1.1":
+"@metamask/assets-controllers@npm:^111.1.0, @metamask/assets-controllers@npm:^111.1.1":
   version: 111.1.1
   resolution: "@metamask/assets-controllers@npm:111.1.1"
   dependencies:
@@ -8333,7 +8333,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/core-backend@npm:^8.0.0, @metamask/core-backend@npm:^8.1.1, @metamask/core-backend@npm:^8.1.2":
+"@metamask/core-backend@npm:^8.1.1, @metamask/core-backend@npm:^8.1.2":
   version: 8.1.2
   resolution: "@metamask/core-backend@npm:8.1.2"
   dependencies:
