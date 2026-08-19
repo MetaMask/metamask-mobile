@@ -29,8 +29,16 @@ const createMarketData = (): jest.Mocked<VenueMarketDataAdapter> => ({
 describe('PredictMarketDataService', () => {
   const services: PredictMarketDataService[] = [];
 
+  beforeAll(() => {
+    jest.useFakeTimers({ advanceTimers: true });
+  });
+
   afterEach(() => {
     services.splice(0).forEach((service) => service.destroy());
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
   });
 
   const buildService = (marketData: VenueMarketDataAdapter) => {

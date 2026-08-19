@@ -477,6 +477,7 @@ export interface GetCryptoTargetPriceParams {
   eventStartTime: string;
   variant: string;
   endDate: string;
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
 }
 
 /**

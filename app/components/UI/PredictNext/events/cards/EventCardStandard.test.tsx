@@ -25,7 +25,7 @@ const outcome = (
 const market = (id: string, askPrice = '0.42'): PredictMarket => ({
   id: id as PredictEntityId,
   question: `Question ${id}`,
-  status: 'open',
+  status: 'active',
   outcomes: [
     outcome('yes', askPrice, `Candidate ${id}`),
     outcome('no', '0.58'),
