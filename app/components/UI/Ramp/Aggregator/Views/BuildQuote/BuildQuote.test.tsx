@@ -1194,7 +1194,7 @@ describe('BuildQuote View', () => {
       mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
         '1',
         mockUseRampSDKValues.selectedAsset?.decimals || 18,
-      ) as BN4;
+      );
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
       fireEvent.press(getByRoleButton(`0 ${symbol}`));
       fireEvent.press(getByRoleButton('Max'));
@@ -1208,7 +1208,7 @@ describe('BuildQuote View', () => {
       mockUseBalanceValues.balanceBN = toTokenMinimalUnit(
         '1',
         mockUseRampSDKValues.selectedAsset?.decimals || 18,
-      ) as BN4;
+      );
       render(BuildQuote);
       const symbol = mockUseRampSDKValues.selectedAsset?.symbol;
 
@@ -1295,7 +1295,13 @@ describe('BuildQuote View', () => {
       fireEvent.press(getByRoleButton('75%'));
       expect(getByRoleButton(`0.73 ${symbol}`)).toBeTruthy();
 
-      fireEvent.press(getByRoleButton(`0.73 ${symbol}`));
+      // Quick percentages are replaced by Done once an amount is set.
+      for (let i = 0; i < 4; i++) {
+        fireEvent.press(
+          screen.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+        );
+      }
+
       fireEvent.press(getByRoleButton('50%'));
       expect(getByRoleButton(`0.5 ${symbol}`)).toBeTruthy();
     });
