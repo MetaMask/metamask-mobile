@@ -77,10 +77,11 @@ interface PredictReadOptions {
 
 interface VenueMarketDataAdapter {
   fetchVenueStatus(options?: PredictReadOptions): Promise<PredictVenueStatus>;
-  fetchEvents(
-    params: FetchEventsParams,
+  fetchFeed(
+    feedId: PredictFeedId,
+    params: FetchFeedParams,
     options?: PredictReadOptions,
-  ): Promise<PaginatedResult<PredictEvent>>;
+  ): Promise<PredictFeed>;
   fetchEvent(
     eventId: PredictEntityId,
     options?: PredictReadOptions,
