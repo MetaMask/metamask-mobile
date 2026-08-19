@@ -1,7 +1,7 @@
 {
   "$schema": "https://farmslot.io/schemas/recipe-v1.schema.json",
   "title": "Lighter \u2014 composed mobile capability suite",
-  "description": "Composes the small parameterizable units end-to-end on one network: activate the venue, open and close a position on one market, place and cancel a resting limit order on another, and leave the venue flat. Run with --record-video=full-run for a video artifact.",
+  "description": "Composes the small parameterizable units end-to-end on one network: activate the venue, open a position, attach TP/SL through the real TP/SL screen, and close it on one market, place and cancel a resting limit order on another, and leave the venue flat. Run with --record-video=full-run for a video artifact.",
   "paramsSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -18,6 +18,10 @@
       "orderMarket": {
         "type": "string",
         "default": "BTC"
+      },
+      "provider": {
+        "type": "string",
+        "default": "lighter"
       }
     }
   },
@@ -40,7 +44,8 @@
         "action": "call",
         "ref": "lighter.setup",
         "params": {
-          "network": "{{params.network}}"
+          "network": "{{params.network}}",
+          "provider": "{{params.provider}}"
         },
         "intent": "Activate Lighter on the requested network.",
         "next": "open"
@@ -53,7 +58,7 @@
           "direction": "long"
         },
         "intent": "Prove order placement through the real form.",
-        "next": "close"
+        "next": "tpsl"
       },
       "close": {
         "action": "call",
@@ -89,11 +94,28 @@
         "state": "none",
         "timeout_ms": 30000,
         "intent": "Nothing is left open anywhere after the suite.",
-        "next": "done"
+        "next": "final-orders-flat"
       },
       "done": {
         "action": "end",
         "status": "pass"
+      },
+      "tpsl": {
+        "action": "call",
+        "ref": "lighter.tpsl",
+        "params": {
+          "market": "{{params.positionMarket}}"
+        },
+        "intent": "Prove TP/SL attachment through the real TP/SL screen.",
+        "next": "close"
+      },
+      "final-orders-flat": {
+        "action": "metamask.perps.assert_orders",
+        "mode": "all",
+        "state": "none",
+        "timeout_ms": 30000,
+        "intent": "No orders or triggers are left resting anywhere after the suite.",
+        "next": "done"
       }
     }
   }

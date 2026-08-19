@@ -1,7 +1,7 @@
 {
   "$schema": "https://farmslot.io/schemas/recipe-v1.schema.json",
-  "title": "Lighter \u2014 ensure venue active on a chosen network (idempotent)",
-  "description": "Converges to 'Lighter active on the requested network' using ensure semantics: wallet unlocked, Perps entered, provider and network switched ONLY when they differ from the request (the underlying action reports changed:false on a no-op), signer readiness asserted. Re-running when already converged performs no switches \u2014 cheap enough to prefix every unit.",
+  "title": "Perps \u2014 ensure a venue active on a chosen network (idempotent, venue-generic)",
+  "description": "Converges to '<provider> active on the requested network' using ensure semantics: wallet unlocked, Perps entered, provider and network switched ONLY when they differ from the request (the underlying action reports changed:false on a no-op), signer readiness asserted. Re-running when already converged performs no switches \u2014 cheap enough to prefix every unit.",
   "paramsSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -14,6 +14,10 @@
       "market": {
         "type": "string",
         "default": "ETH"
+      },
+      "provider": {
+        "type": "string",
+        "default": "lighter"
       }
     }
   },
@@ -22,13 +26,13 @@
     "nodes": {
       "ensure-venue": {
         "action": "metamask.perps.start_state",
-        "provider": "lighter",
+        "provider": "{{params.provider}}",
         "network": "{{params.network}}",
         "market": "{{params.market}}",
         "page": "home",
         "orders": false,
         "positions": false,
-        "intent": "Converge to Lighter on the requested network \u2014 switching only if the app is not already there \u2014 and prove the venue signer is ready to trade.",
+        "intent": "Converge to the requested venue and network \u2014 switching only if the app is not already there \u2014 and prove the venue signer is ready to trade.",
         "next": "done"
       },
       "done": {
