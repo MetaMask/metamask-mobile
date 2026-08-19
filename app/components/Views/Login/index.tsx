@@ -100,10 +100,10 @@ import {
   markLoginInteractionCompleted,
 } from './loginPerformanceTags';
 import {
-  cancelHomepageReadyTrace,
-  startHomepageReadyTrace,
-  type HomepageReadyTraceToken,
-} from '../../../core/Performance/HomepageReady';
+  cancelUnlockDeeplinkTraces,
+  startUnlockDeeplinkTraces,
+  type UnlockDeeplinkTraceTokens,
+} from '../../../core/Performance/unlockDeeplinkTraces';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 /** Returns true if `candidatePassword` decrypts the on-device vault backup. */
@@ -332,9 +332,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
-    const homepageReadyTraceToken: HomepageReadyTraceToken | null =
-      startHomepageReadyTrace({
-        source: 'unlock',
+    const unlockTraceTokens: UnlockDeeplinkTraceTokens =
+      startUnlockDeeplinkTraces({
         appStartType: loginPerformanceTags.current.app_start_type,
       });
     endTrace({
@@ -380,10 +379,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
     } catch (loginErr) {
-      cancelHomepageReadyTrace({
-        reason: 'unlock_failed',
-        traceToken: homepageReadyTraceToken,
-      });
+      cancelUnlockDeeplinkTraces(unlockTraceTokens);
       await handleLoginError(loginErr as Error);
     }
     setLoading(false);
@@ -405,9 +401,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
-    const homepageReadyTraceToken: HomepageReadyTraceToken | null =
-      startHomepageReadyTrace({
-        source: 'unlock',
+    const unlockTraceTokens: UnlockDeeplinkTraceTokens =
+      startUnlockDeeplinkTraces({
         appStartType: loginPerformanceTags.current.app_start_type,
       });
     endTrace({
@@ -428,10 +423,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
     } catch (loginerror) {
-      cancelHomepageReadyTrace({
-        reason: 'unlock_failed',
-        traceToken: homepageReadyTraceToken,
-      });
+      cancelUnlockDeeplinkTraces(unlockTraceTokens);
       await handleLoginError(loginerror as Error);
     }
     setLoading(false);

@@ -21,6 +21,11 @@ import {
 } from '../AppStateEventListener';
 import type { DeeplinkIntent } from './types/DeeplinkIntent';
 import NotificationsService from '../../util/notifications/services/NotificationService';
+import {
+  startDeeplinkProcessedTrace,
+  endDeeplinkProcessedTrace,
+  cancelDeeplinkProcessedTrace,
+} from '../Performance/DeeplinkPerformance';
 
 // `false` means the deeplink was handled but intentionally rejected, for
 // example when the user dismisses the interstitial during startup resolution.
@@ -90,6 +95,11 @@ export class DeeplinkManager {
       onHandled?: () => void;
     },
   ): Promise<boolean> {
+    startDeeplinkProcessedTrace({
+      url,
+      source: 'warm',
+      appStartType: 'warm',
+    });
     const result = await parseDeeplink({
       deeplinkManager: this,
       url,
@@ -98,7 +108,15 @@ export class DeeplinkManager {
       onHandled,
     });
 
-    return typeof result === 'boolean' ? result : Boolean(result);
+    const handled = typeof result === 'boolean' ? result : Boolean(result);
+    if (handled) {
+      // No-op when an intent handler already ended the span at the
+      // `pre_navigate` seam inside executeDeeplinkIntent.
+      endDeeplinkProcessedTrace({ seam: 'parse_return' });
+    } else {
+      cancelDeeplinkProcessedTrace({ reason: 'rejected' });
+    }
+    return handled;
   }
 
   async resolve(
@@ -109,6 +127,14 @@ export class DeeplinkManager {
       origin: string;
     },
   ): Promise<DeeplinkResolveResult> {
+    // Resolve mode only runs on the cold startup path. On success the span
+    // stays open past this return — executeStartupDeeplinkIntent ends it at
+    // the `pre_navigate` seam, after `intent.prepare()`.
+    startDeeplinkProcessedTrace({
+      url,
+      source: 'unlock',
+      appStartType: 'cold',
+    });
     const result = await parseDeeplink({
       deeplinkManager: this,
       url,
@@ -117,10 +143,15 @@ export class DeeplinkManager {
     });
 
     if (result === false) {
+      cancelDeeplinkProcessedTrace({ reason: 'rejected' });
       return false;
     }
 
-    return result && typeof result !== 'boolean' ? result : null;
+    const intent = result && typeof result !== 'boolean' ? result : null;
+    if (intent === null) {
+      cancelDeeplinkProcessedTrace({ reason: 'unresolved' });
+    }
+    return intent;
   }
 
   static start() {

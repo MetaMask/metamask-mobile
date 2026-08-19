@@ -13,6 +13,7 @@ import {
   SignatureStatus,
 } from '../types/deepLinkAnalytics.types';
 import { detectAppInstallation } from '../util/deeplinks/deepLinkAnalytics';
+import { startDeeplinkNavigatedTrace } from '../../Performance/DeeplinkPerformance';
 
 /**
  * Time window during which an identical deeplink is treated as a duplicate and
@@ -72,6 +73,17 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
       lastHandledDeeplinkAt = now;
 
       AppStateEventProcessor.setCurrentDeeplink(uri, source);
+      // Warm links start Navigated at intake so the saga waits (SDK warm-up,
+      // navigator-ready) the user sits through are measured. On a cold start
+      // the app is still locked here — unlock submit starts the span instead,
+      // excluding the password dwell.
+      if (ReduxService.store.getState().user.userLoggedIn) {
+        startDeeplinkNavigatedTrace({
+          url: uri,
+          source: 'warm',
+          appStartType: 'warm',
+        });
+      }
       if (
         ReduxService.store.getState().security.dataCollectionForMarketing ===
         true
