@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-- Fixed the in-app browser so back/forward navigation uses the WebView's committed URL for origin, rather than a page-supplied value
+- Fixed the in-app browser so back/forward navigation uses the WebView's committed URL for origin, rather than a page-supplied value (#35021)
 
 ## [8.7.0]
 
