@@ -1,6 +1,7 @@
 import type {
-  FetchEventsParams,
+  FetchFeedParams,
   PredictEntityId,
+  PredictFeedId,
   PredictMarketHistoryRange,
   PredictReadOptions,
   PredictVenueId,
@@ -11,9 +12,10 @@ export interface PredictApiReadTransport {
     venueId: PredictVenueId,
     options?: PredictReadOptions,
   ): Promise<unknown>;
-  fetchEvents(
+  fetchFeed(
     venueId: PredictVenueId,
-    params: FetchEventsParams,
+    feedId: PredictFeedId,
+    params: FetchFeedParams,
     options?: PredictReadOptions,
   ): Promise<unknown>;
   fetchEvent(
@@ -29,7 +31,7 @@ export interface PredictApiReadTransport {
   ): Promise<unknown>;
 }
 
-type PredictApiReadQueryParams = FetchEventsParams & {
+type PredictApiReadQueryParams = FetchFeedParams & {
   range?: PredictMarketHistoryRange;
 };
 
@@ -71,12 +73,17 @@ export class PredictApiReadClient implements PredictApiReadTransport {
     return this.#get(['v1', 'venues', venueId, 'status'], undefined, options);
   }
 
-  fetchEvents(
+  fetchFeed(
     venueId: PredictVenueId,
-    params: FetchEventsParams,
+    feedId: PredictFeedId,
+    params: FetchFeedParams,
     options?: PredictReadOptions,
   ): Promise<unknown> {
-    return this.#get(['v1', 'venues', venueId, 'events'], params, options);
+    return this.#get(
+      ['v1', 'venues', venueId, 'feeds', feedId],
+      params,
+      options,
+    );
   }
 
   fetchEvent(

@@ -45,8 +45,7 @@ import {
   selectPendingMoneyAccountCardLink,
   setPendingMoneyAccountCardLink,
 } from '../../../../core/redux/slices/card';
-import { selectIsMoneyAccountGeoEligible } from '../../Money/selectors/eligibility';
-import { selectMoneyEnableMoneyAccountFlag } from '../../Money/selectors/featureFlags';
+import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
 import {
   hasMoneyAccountCardRequirements,
   resolveMoneyAccountCardToken,
@@ -155,14 +154,7 @@ export const useMoneyAccountCardLinkage =
 
     const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
     const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
-    const isMoneyAccountEnabled = useSelector(
-      selectMoneyEnableMoneyAccountFlag,
-    );
-    const isMoneyAccountGeoEligible = useSelector(
-      selectIsMoneyAccountGeoEligible,
-    );
-    const isMoneyAccountVisible =
-      isMoneyAccountEnabled && isMoneyAccountGeoEligible;
+    const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
     const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
     const isCardVerified = useSelector(selectIsCardVerified);
     const isCardholder = useSelector(selectIsCardholder);

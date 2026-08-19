@@ -15,7 +15,7 @@ const event: PredictEvent = {
     {
       id: 'market-1' as PredictEvent['markets'][number]['id'],
       question: 'Candidate A wins',
-      status: 'open',
+      status: 'active',
       outcomes: [
         {
           id: 'market-1:yes' as PredictEvent['markets'][number]['outcomes'][number]['id'],
@@ -32,7 +32,7 @@ const event: PredictEvent = {
     {
       id: 'market-2' as PredictEvent['markets'][number]['id'],
       question: 'Candidate B wins',
-      status: 'open',
+      status: 'active',
       outcomes: [
         {
           id: 'market-2:yes' as PredictEvent['markets'][number]['outcomes'][number]['id'],
@@ -72,8 +72,13 @@ const configureQueries = () => {
           checkedAt: '2026-08-17T20:00:00Z',
         });
       }
-      if (action === 'PredictMarketDataService:getEvents') {
-        return Promise.resolve({ items: [event] });
+      if (action === 'PredictMarketDataService:getFeed') {
+        return Promise.resolve({
+          venueId: 'kalshi',
+          id: 'sports-football-nfl-games',
+          title: 'NFL Games',
+          events: [event],
+        });
       }
       if (action === 'PredictMarketDataService:getEvent') {
         return Promise.resolve(event);

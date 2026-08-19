@@ -1,8 +1,9 @@
 import type {
-  FetchEventsParams,
-  PaginatedResult,
+  FetchFeedParams,
   PredictEntityId,
   PredictEvent,
+  PredictFeed,
+  PredictFeedId,
   PredictMarketHistory,
   PredictMarketHistoryRange,
   PredictReadOptions,
@@ -11,10 +12,11 @@ import type {
 
 export interface VenueMarketDataAdapter {
   fetchVenueStatus(options?: PredictReadOptions): Promise<PredictVenueStatus>;
-  fetchEvents(
-    params: FetchEventsParams,
+  fetchFeed(
+    feedId: PredictFeedId,
+    params: FetchFeedParams,
     options?: PredictReadOptions,
-  ): Promise<PaginatedResult<PredictEvent>>;
+  ): Promise<PredictFeed>;
   fetchEvent(
     eventId: PredictEntityId,
     options?: PredictReadOptions,

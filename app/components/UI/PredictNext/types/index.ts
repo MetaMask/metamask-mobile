@@ -1,20 +1,72 @@
 export type PredictVenueId = string & { readonly __brand: 'PredictVenueId' };
 export type PredictEntityId = string & { readonly __brand: 'PredictEntityId' };
+export type PredictFeedId = string & { readonly __brand: 'PredictFeedId' };
 export type PredictTimestamp = string & {
   readonly __brand: 'PredictTimestamp';
 };
 export type PredictDecimal = string & { readonly __brand: 'PredictDecimal' };
+export type PredictHttpsUrl = string & { readonly __brand: 'PredictHttpsUrl' };
+export type PredictHexColor = string & { readonly __brand: 'PredictHexColor' };
 
 export const KALSHI_VENUE_ID = 'kalshi' as PredictVenueId;
 
-export type PredictEntityStatus =
-  | 'upcoming'
-  | 'open'
+export type PredictMarketStatus =
+  | 'initialized'
+  | 'active'
+  | 'inactive'
   | 'closed'
-  | 'resolved'
-  | 'unavailable';
+  | 'determined'
+  | 'disputed'
+  | 'amended'
+  | 'finalized';
 
 export type PredictOutcomeSide = 'yes' | 'no';
+export type PredictGameSelection = 'home' | 'away' | 'draw';
+
+export interface PredictSport {
+  id: PredictEntityId;
+  label: string;
+}
+
+export interface PredictCompetition {
+  id: PredictEntityId;
+  label: string;
+}
+
+export interface PredictTeam {
+  name: string;
+  abbreviation?: string;
+  logoUrl?: PredictHttpsUrl;
+  primaryColor?: PredictHexColor;
+}
+
+export type PredictGameStatus =
+  | 'scheduled'
+  | 'in_progress'
+  | 'delayed'
+  | 'suspended'
+  | 'postponed'
+  | 'completed'
+  | 'canceled';
+
+export interface PredictGame {
+  status: PredictGameStatus;
+  homeTeam: PredictTeam;
+  awayTeam: PredictTeam;
+  score?: {
+    home: string;
+    away: string;
+  };
+  period?: string;
+  clock?: string;
+  observedAt: PredictTimestamp;
+}
+
+export interface PredictSportsContext {
+  sport: PredictSport;
+  competition?: PredictCompetition;
+  game?: PredictGame;
+}
 
 export type PredictMarketHistoryRange = 'LIVE' | '1D' | '1W' | '1M' | '1Y';
 
@@ -38,13 +90,16 @@ export interface PredictOutcome {
   label: string;
   askPrice?: PredictDecimal;
   bidPrice?: PredictDecimal;
+  gameSelection?: PredictGameSelection;
 }
 
 export interface PredictMarket {
   id: PredictEntityId;
   question: string;
   outcomes: readonly [PredictOutcome, PredictOutcome];
-  status: PredictEntityStatus;
+  status: PredictMarketStatus;
+  volume?: string;
+  volume24h?: string;
   createdAt?: PredictTimestamp;
   updatedAt?: PredictTimestamp;
   opensAt?: PredictTimestamp;
@@ -61,16 +116,24 @@ export interface PredictEvent {
   closesAt?: PredictTimestamp;
   updatedAt?: PredictTimestamp;
   description?: string;
+  category?: string;
+  volume?: string;
+  volume24h?: string;
+  imageUrl?: string;
+  sports?: PredictSportsContext;
   markets: readonly PredictMarket[];
 }
 
-export interface FetchEventsParams {
+export interface FetchFeedParams {
   cursor?: string;
   limit?: number;
 }
 
-export interface PaginatedResult<T> {
-  items: readonly T[];
+export interface PredictFeed {
+  venueId: PredictVenueId;
+  id: PredictFeedId;
+  title: string;
+  events: readonly PredictEvent[];
   nextCursor?: string;
 }
 

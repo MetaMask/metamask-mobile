@@ -26,6 +26,14 @@ const status: PredictVenueStatus = {
 };
 
 describe('PredictNextController', () => {
+  beforeAll(() => {
+    jest.useFakeTimers({ advanceTimers: true });
+  });
+
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });

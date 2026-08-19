@@ -6,8 +6,9 @@ The agreed next-contract direction is documented in [`canonical-read-model-and-a
 
 ## Canonical read models
 
-- `PredictEvent` is returned by both `getEvents` and `getEvent` and contains one or more `PredictMarket` values.
-- Event list pagination uses `{ items, nextCursor? }`; cursors are opaque.
+- `PredictFeed` is returned by `getFeed` and contains the Feed identity, title, Events, and optional pagination cursor.
+- `PredictEvent` is returned within a Feed and by `getEvent`, and contains one or more `PredictMarket` values.
+- Feed pagination uses `{ venueId, id, title, events, nextCursor? }`; cursors are opaque.
 - `PredictMarket` contains exactly two `PredictOutcome` values: one `yes` and one `no`.
 - Each Event, Market, and Outcome retains its own opaque ID. Only the root Event carries `venueId`; nested scope and parent relationships come from containment.
 - Each Outcome may contain independent `askPrice` and `bidPrice` decimal strings in the inclusive range `[0, 1]`. Missing means no current quote, not zero.
@@ -28,7 +29,7 @@ The reduced browse status will be replaced by the Kalshi lifecycle vocabulary: `
 
 ```ts
 marketDataQueries.getVenueStatus(venueId);
-marketDataQueries.getEvents(venueId, params);
+marketDataQueries.getFeed(venueId, feedId, params);
 marketDataQueries.getEvent(venueId, eventId);
 marketDataQueries.getMarketHistory(venueId, marketId, range);
 ```

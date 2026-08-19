@@ -1,7 +1,7 @@
 /**
- * Vendored Activity adapters from metamask-extension shared/lib/activity/
- * Branch: origin/n3ps/activity-v3-prototype
- * TODO: Replace with shared @metamask/activity-adapters package when published.
+ * Activity adapters for MetaMask Mobile.
+ * Core transaction mappers come from `@metamask/client-utils`; mobile-only
+ * adapters (perps/predict/ramp) and UI helpers remain local until shared.
  */
 export type {
   ActivityFee,
@@ -12,13 +12,15 @@ export type {
   TokenAmount,
 } from './types';
 export { PERPS_ORDER_KINDS, isPerpsOrderKind } from './types';
-export { mapApiEvmTransactions } from './adapters/api-evm-transactions';
 export {
   isNftTransferType,
   isUnlimitedApprovalAmount,
 } from './adapters/helpers';
 export { mapKeyringTransaction } from './adapters/keyring-transaction';
-export { mapLocalTransaction } from './adapters/local-transaction';
+export {
+  enrichLocalActivity,
+  prepareLocalTransactionGroup,
+} from './adapters/enrich-local-activity';
 export { mapPredictActivity } from './adapters/predict-activity';
 export { mapPerpsTransaction } from './adapters/perps-transaction';
 export { mapRampOrder } from './adapters/ramp-order';

@@ -539,7 +539,13 @@
       "chartExpanded": false,
       "orderBookExpanded": false,
       "orderBookPosition": "left",
-      "orderFormPosition": "right"
+      "orderFormPosition": "right",
+      "ordersSideFilter": "all",
+      "ordersSortDirection": "desc",
+      "ordersSortField": "time",
+      "positionsSideFilter": "all",
+      "positionsSortDirection": "desc",
+      "positionsSortField": "positionValue"
     },
     "selectedPaymentToken": null,
     "cachedMarketDataByProvider": {},
@@ -710,6 +716,10 @@
   "MultichainTransactionsController": {
     "nonEvmTransactions": {}
   },
+  "NetworkConnectionBannerController": {
+    "networkConnectionBannerStatus": "available",
+    "networkConnectionBannerNetwork": null
+  },
   "MultichainAssetsController": {
     "accountsAssets": {},
     "assetsMetadata": {},
@@ -745,7 +755,9 @@
     "activeProviderId": "baanx",
     "providerUserId": null,
     "cardHomeData": null,
+    "cardHomeDataAddress": null,
     "cardHomeDataStatus": "idle",
+    "cardHomeDataFetchedThisSession": false,
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {},
