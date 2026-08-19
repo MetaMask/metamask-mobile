@@ -244,3 +244,6 @@ predict_tsc_summary.txt
 .mm-server
 .mm-daemon.log
 test-artifacts/
+
+# Platform API docs
+.platform-api-docs/
