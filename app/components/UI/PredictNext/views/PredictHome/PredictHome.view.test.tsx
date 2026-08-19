@@ -292,19 +292,57 @@ describe('PredictHome', () => {
     const view = renderPredictNext();
 
     expect(await view.findByText('No predictions yet.')).toBeOnTheScreen();
+    expect(
+      messengerCall.mock.calls.some(
+        (call) => call[0] === 'PredictMarketDataService:getVenueStatus',
+      ),
+    ).toBe(true);
   });
 
-  it('retries both queries after a first-page error', async () => {
+  it('does not fetch Venue Status when Events are available', async () => {
+    const view = renderPredictNext();
+
+    expect(
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'event-1')),
+    ).toBeOnTheScreen();
+    expect(
+      messengerCall.mock.calls.filter(
+        (call) => call[0] === 'PredictMarketDataService:getVenueStatus',
+      ),
+    ).toHaveLength(0);
+  });
+
+  it('retries the Event list after a first-page error', async () => {
     configureQueries();
-    messengerCall.mockRejectedValueOnce(new Error('status failed'));
-    messengerCall.mockRejectedValueOnce(new Error('events failed'));
+    messengerCall.mockImplementation((action: string) => {
+      if (action === 'PredictMarketDataService:getEvents') {
+        return Promise.reject(new Error('events failed'));
+      }
+      return Promise.resolve(undefined);
+    });
     const view = renderPredictNext();
     const retry = await view.findByText('Retry');
+    configureQueries();
     messengerCall.mockClear();
 
     fireEvent.press(retry);
 
-    await waitFor(() => expect(messengerCall).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getEvents',
+        expect.anything(),
+        expect.anything(),
+        undefined,
+      ),
+    );
+    expect(
+      messengerCall.mock.calls.filter(
+        (call) => call[0] === 'PredictMarketDataService:getVenueStatus',
+      ),
+    ).toHaveLength(0);
+    expect(
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'event-1')),
+    ).toBeOnTheScreen();
   });
 
   it('shows unavailable when no Events can be displayed', async () => {

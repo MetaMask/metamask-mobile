@@ -10,6 +10,7 @@ import {
 } from '@metamask/controller-utils';
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
+import { TraceName, TraceOperation } from '../../../../util/trace';
 import type { VenueMarketDataAdapter } from '../adapters/types';
 import { PredictError, PredictErrorCode } from '../errors';
 import {
@@ -24,6 +25,7 @@ import type {
   PredictReadOptions,
   PredictVenueId,
 } from '../types';
+import { withPredictNextTrace } from './withPredictNextTrace';
 
 export const PREDICT_MARKET_DATA_SERVICE_NAME =
   'PredictMarketDataService' as const;
@@ -140,14 +142,24 @@ export class PredictMarketDataService extends BaseDataService<
   ): Promise<GetVenueStatusResult> {
     this.#assertVenue(venueId);
     const descriptor = marketDataQueries.getVenueStatus(venueId);
-    return this.fetchQuery({
-      queryKey: descriptor.queryKey,
-      staleTime: descriptor.staleTime,
-      queryFn: ({ signal }) =>
-        this.#marketData.fetchVenueStatus({
-          signal: options?.signal ?? signal,
-        }) as Promise<Json & GetVenueStatusResult>,
-    });
+    return withPredictNextTrace(
+      {
+        method: 'getVenueStatus',
+        name: TraceName.PredictNextGetVenueStatus,
+        op: TraceOperation.PredictDataFetch,
+        tags: { venueId },
+        resultData: (result) => ({ status: result.status }),
+      },
+      () =>
+        this.fetchQuery({
+          queryKey: descriptor.queryKey,
+          staleTime: descriptor.staleTime,
+          queryFn: ({ signal }) =>
+            this.#marketData.fetchVenueStatus({
+              signal: options?.signal ?? signal,
+            }) as Promise<Json & GetVenueStatusResult>,
+        }),
+    );
   }
 
   async getEvents(
@@ -158,23 +170,37 @@ export class PredictMarketDataService extends BaseDataService<
   ): Promise<GetEventsResult> {
     this.#assertVenue(venueId);
     const descriptor = marketDataQueries.getEvents(venueId, params);
-    return this.fetchInfiniteQuery(
+    return withPredictNextTrace(
       {
-        queryKey: descriptor.queryKey,
-        staleTime: descriptor.staleTime,
-        queryFn: async ({ pageParam, signal }) => {
-          const page = await this.#marketData.fetchEvents(
-            { ...params, cursor: pageParam as string | undefined },
-            { signal: options?.signal ?? signal },
-          );
-          return {
-            ...page,
-            nextCursor: page.nextCursor || undefined,
-          } as Json & GetEventsResult;
+        method: 'getEvents',
+        name: TraceName.PredictNextGetEvents,
+        op: TraceOperation.PredictDataFetch,
+        tags: { venueId },
+        data: {
+          hasCursor: Boolean(cursor),
+          limit: params.limit ?? 0,
         },
-        getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
+        resultData: (result) => ({ itemCount: result.items.length }),
       },
-      cursor,
+      () =>
+        this.fetchInfiniteQuery(
+          {
+            queryKey: descriptor.queryKey,
+            staleTime: descriptor.staleTime,
+            queryFn: async ({ pageParam, signal }) => {
+              const page = await this.#marketData.fetchEvents(
+                { ...params, cursor: pageParam as string | undefined },
+                { signal: options?.signal ?? signal },
+              );
+              return {
+                ...page,
+                nextCursor: page.nextCursor || undefined,
+              } as Json & GetEventsResult;
+            },
+            getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
+          },
+          cursor,
+        ),
     );
   }
 
@@ -185,14 +211,23 @@ export class PredictMarketDataService extends BaseDataService<
   ): Promise<GetEventResult> {
     this.#assertVenue(venueId);
     const descriptor = marketDataQueries.getEvent(venueId, eventId);
-    return this.fetchQuery({
-      queryKey: descriptor.queryKey,
-      staleTime: descriptor.staleTime,
-      queryFn: ({ signal }) =>
-        this.#marketData.fetchEvent(eventId, {
-          signal: options?.signal ?? signal,
-        }) as Promise<Json & GetEventResult>,
-    });
+    return withPredictNextTrace(
+      {
+        method: 'getEvent',
+        name: TraceName.PredictNextGetEvent,
+        op: TraceOperation.PredictDataFetch,
+        tags: { venueId },
+      },
+      () =>
+        this.fetchQuery({
+          queryKey: descriptor.queryKey,
+          staleTime: descriptor.staleTime,
+          queryFn: ({ signal }) =>
+            this.#marketData.fetchEvent(eventId, {
+              signal: options?.signal ?? signal,
+            }) as Promise<Json & GetEventResult>,
+        }),
+    );
   }
 
   #assertVenue(venueId: PredictVenueId): void {

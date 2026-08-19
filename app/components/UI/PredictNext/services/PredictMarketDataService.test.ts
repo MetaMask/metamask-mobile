@@ -1,12 +1,32 @@
 import { ConstantBackoff } from '@metamask/controller-utils';
 import { Messenger } from '@metamask/messenger';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import type { VenueMarketDataAdapter } from '../adapters/types';
+import { PREDICT_NEXT_FEATURE_NAME } from '../constants';
 import { PredictError, PredictErrorCode } from '../errors';
 import { KALSHI_VENUE_ID, type PredictVenueId } from '../types';
 import {
   PredictMarketDataService,
   type PredictMarketDataServiceMessenger,
 } from './PredictMarketDataService';
+
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    PredictNextGetVenueStatus: 'PredictNext Get Venue Status',
+    PredictNextGetEvents: 'PredictNext Get Events',
+    PredictNextGetEvent: 'PredictNext Get Event',
+  },
+  TraceOperation: {
+    PredictDataFetch: 'predict.data_fetch',
+  },
+}));
 
 const createService = (marketData: VenueMarketDataAdapter) => {
   const messenger: PredictMarketDataServiceMessenger = new Messenger({
@@ -111,5 +131,28 @@ describe('PredictMarketDataService', () => {
       code: PredictErrorCode.INVALID_RESPONSE,
     });
     expect(marketData.fetchVenueStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it('traces Event list fetches with item count', async () => {
+    const marketData = createMarketData();
+    marketData.fetchEvents.mockResolvedValue({
+      items: [{ id: 'event-1' }],
+    } as never);
+    const service = buildService(marketData);
+
+    await service.getEvents(KALSHI_VENUE_ID, { limit: 20 });
+
+    expect(trace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextGetEvents,
+      op: TraceOperation.PredictDataFetch,
+      id: expect.stringMatching(/^getEvents-\d+$/u),
+      tags: { feature: PREDICT_NEXT_FEATURE_NAME, venueId: KALSHI_VENUE_ID },
+      data: { hasCursor: false, limit: 20 },
+    });
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextGetEvents,
+      id: expect.stringMatching(/^getEvents-\d+$/u),
+      data: { success: true, itemCount: 1 },
+    });
   });
 });

@@ -254,6 +254,11 @@ export enum TraceName {
   PredictGetPrices = 'Predict Get Prices',
   PredictGetUnrealizedPnL = 'Predict Get Unrealized PnL',
   PredictGetCryptoTargetPrice = 'Predict Get Crypto Target Price',
+  // PredictNext
+  PredictNextHomeView = 'PredictNext Home View',
+  PredictNextGetVenueStatus = 'PredictNext Get Venue Status',
+  PredictNextGetEvents = 'PredictNext Get Events',
+  PredictNextGetEvent = 'PredictNext Get Event',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',

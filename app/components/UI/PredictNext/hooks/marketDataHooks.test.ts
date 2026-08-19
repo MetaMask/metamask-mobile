@@ -24,6 +24,16 @@ describe('PredictNext market data hooks', () => {
 
     expect(mockedUseQuery).toHaveBeenCalledWith({
       queryKey: ['PredictMarketDataService:getVenueStatus', venueId],
+      enabled: undefined,
+    });
+  });
+
+  it('forwards the enabled gate to the Venue Status query', () => {
+    useVenueStatus(venueId, { enabled: false });
+
+    expect(mockedUseQuery).toHaveBeenCalledWith({
+      queryKey: ['PredictMarketDataService:getVenueStatus', venueId],
+      enabled: false,
     });
   });
 

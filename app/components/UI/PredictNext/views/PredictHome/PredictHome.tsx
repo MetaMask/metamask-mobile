@@ -15,6 +15,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useEventList } from '../../hooks/useEventList';
+import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useVenueStatus } from '../../hooks/useVenueStatus';
 import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
 import { EventCardGame, EventCardStandard } from '../../events/cards';
@@ -22,10 +23,38 @@ import type { PredictNextStackParamList } from '../../navigation/types';
 import { PredictNextRoutes } from '../../navigation/routes';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Engine from '../../../../../core/Engine';
+import { TraceName } from '../../../../../util/trace';
 
 const PAGE_SIZE = 20;
 
 const EventSeparator = () => <Box twClassName="h-3" />;
+
+const isAmericanFootballGameEvent = (event: PredictEvent): boolean =>
+  event.sports?.sport.id === 'american-football' && Boolean(event.sports.game);
+
+const getEventItemType = (event: PredictEvent): 'game' | 'standard' =>
+  isAmericanFootballGameEvent(event) ? 'game' : 'standard';
+
+interface EventFeedItemProps {
+  event: PredictEvent;
+  onOpenEvent: (event: PredictEvent) => void;
+}
+
+const EventFeedItem = React.memo(
+  ({ event, onOpenEvent }: EventFeedItemProps) => {
+    const handlePress = useCallback(
+      () => onOpenEvent(event),
+      [event, onOpenEvent],
+    );
+
+    return isAmericanFootballGameEvent(event) ? (
+      <EventCardGame event={event} onPress={handlePress} />
+    ) : (
+      <EventCardStandard event={event} onPress={handlePress} />
+    );
+  },
+);
+EventFeedItem.displayName = 'EventFeedItem';
 
 export const PredictHome = () => {
   const navigation =
@@ -33,10 +62,31 @@ export const PredictHome = () => {
   const route =
     useRoute<RouteProp<PredictNextStackParamList, 'PredictNextHome'>>();
   const entryPoint = route.params?.entryPoint;
-  const statusQuery = useVenueStatus(KALSHI_VENUE_ID);
   const eventsQuery = useEventList(KALSHI_VENUE_ID, { limit: PAGE_SIZE });
+  const events = useMemo(
+    () => eventsQuery.data?.pages.flatMap((page) => page.items) ?? [],
+    [eventsQuery.data],
+  );
+  const needsVenueStatus =
+    !eventsQuery.isLoading && !eventsQuery.isError && events.length === 0;
+  const statusQuery = useVenueStatus(KALSHI_VENUE_ID, {
+    enabled: needsVenueStatus,
+  });
   const endReached = useRef(false);
   const [paginationError, setPaginationError] = useState(false);
+
+  usePredictNextMeasurement({
+    traceName: TraceName.PredictNextHomeView,
+    conditions: [
+      !eventsQuery.isLoading,
+      events.length > 0 || eventsQuery.isError || !statusQuery.isLoading,
+    ],
+    debugContext: {
+      eventCount: events.length,
+      eventsError: eventsQuery.isError,
+      venueStatus: statusQuery.data?.status ?? 'unknown',
+    },
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -50,10 +100,6 @@ export const PredictHome = () => {
     }, [entryPoint, navigation]),
   );
 
-  const events = useMemo(
-    () => eventsQuery.data?.pages.flatMap((page) => page.items) ?? [],
-    [eventsQuery.data],
-  );
   const tw = useTailwind();
 
   const openEvent = useCallback(
@@ -66,17 +112,16 @@ export const PredictHome = () => {
     [navigation],
   );
   const renderEvent = useCallback(
-    ({ item }: ListRenderItemInfo<PredictEvent>) =>
-      item.sports?.sport.id === 'american-football' && item.sports.game ? (
-        <EventCardGame event={item} onPress={() => openEvent(item)} />
-      ) : (
-        <EventCardStandard event={item} onPress={() => openEvent(item)} />
-      ),
+    ({ item }: ListRenderItemInfo<PredictEvent>) => (
+      <EventFeedItem event={item} onOpenEvent={openEvent} />
+    ),
     [openEvent],
   );
   const retryAll = () => {
-    statusQuery.refetch();
     eventsQuery.refetch();
+    if (needsVenueStatus) {
+      statusQuery.refetch();
+    }
   };
   const loadNextPage = () => {
     if (
@@ -135,6 +180,7 @@ export const PredictHome = () => {
           testID="predict-next-event-feed"
           data={events}
           renderItem={renderEvent}
+          getItemType={getEventItemType}
           keyExtractor={(event) => `${event.venueId}:${event.id}`}
           onEndReached={loadNextPage}
           onEndReachedThreshold={0.5}
