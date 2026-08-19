@@ -38,11 +38,6 @@ import {
 
 import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
 
-// The link layout gives the card slightly more room than the upsell and manage
-// rows, which use the component's default thumbnail size.
-const LINK_CARD_WIDTH = 111;
-const LINK_CARD_HEIGHT = 70;
-
 interface MoneyMetaMaskCardProps {
   /**
    * 'upsell' (default): virtual/metal card rows.
@@ -222,8 +217,6 @@ const LinkContent = ({
         >
           <MoneyCardTiltAnimation
             isMetalCard={showMetalCard}
-            width={LINK_CARD_WIDTH}
-            height={LINK_CARD_HEIGHT}
             testID={MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}
           />
           <Box twClassName="gap-2 flex-1 justify-center">

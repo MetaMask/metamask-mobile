@@ -30,6 +30,7 @@ import React, {
 } from 'react';
 import {
   Linking,
+  Platform,
   RefreshControl,
   View,
   type LayoutChangeEvent,
@@ -1590,47 +1591,56 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 />
               )}
 
-              {isAdvancedChartEnabled && market?.symbol ? (
-                <PerpsAdvancedChart
-                  key={`${market.symbol}-${advancedChartResetKey}`}
-                  symbol={market.symbol}
-                  interval={selectedCandlePeriod}
-                  visibleCandleCount={
-                    visibleCandleCount ??
-                    PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT
-                  }
-                  height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
-                  tpslLines={tpslLines}
-                  positionSize={existingPosition?.size}
-                  szDecimals={marketData?.szDecimals}
-                  onCrosshairDataChange={setOhlcData}
-                  onLatestPriceChange={setAdvancedChartCurrentPrice}
-                  onError={handleChartError}
-                  fallbackCandleData={candleData}
-                  fallbackFetchMoreHistory={fetchMoreHistory}
-                  paginationDuration={TimeDuration.YearToDate}
-                />
-              ) : hasHistoricalData ? (
-                <TradingViewChart
-                  ref={chartRef}
-                  candleData={candleData}
-                  height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
-                  visibleCandleCount={visibleCandleCount}
-                  tpslLines={tpslLines}
-                  symbol={market?.symbol}
-                  showOverlay={false}
-                  coloredVolume
-                  onOhlcDataChange={setOhlcData}
-                  onNeedMoreHistory={fetchMoreHistory}
-                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
-                />
-              ) : (
-                <Skeleton
-                  height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
-                  width="100%"
-                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
-                />
-              )}
+              <View style={styles.chartTouchContainer}>
+                {Platform.OS === 'ios' && (
+                  <View
+                    style={styles.chartEdgeGuard}
+                    pointerEvents="box-only"
+                    testID={PerpsMarketDetailsViewSelectorsIDs.CHART_EDGE_GUARD}
+                  />
+                )}
+                {isAdvancedChartEnabled && market?.symbol ? (
+                  <PerpsAdvancedChart
+                    key={`${market.symbol}-${advancedChartResetKey}`}
+                    symbol={market.symbol}
+                    interval={selectedCandlePeriod}
+                    visibleCandleCount={
+                      visibleCandleCount ??
+                      PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT
+                    }
+                    height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+                    tpslLines={tpslLines}
+                    positionSize={existingPosition?.size}
+                    szDecimals={marketData?.szDecimals}
+                    onCrosshairDataChange={setOhlcData}
+                    onLatestPriceChange={setAdvancedChartCurrentPrice}
+                    onError={handleChartError}
+                    fallbackCandleData={candleData}
+                    fallbackFetchMoreHistory={fetchMoreHistory}
+                    paginationDuration={TimeDuration.YearToDate}
+                  />
+                ) : hasHistoricalData ? (
+                  <TradingViewChart
+                    ref={chartRef}
+                    candleData={candleData}
+                    height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+                    visibleCandleCount={visibleCandleCount}
+                    tpslLines={tpslLines}
+                    symbol={market?.symbol}
+                    showOverlay={false}
+                    coloredVolume
+                    onOhlcDataChange={setOhlcData}
+                    onNeedMoreHistory={fetchMoreHistory}
+                    testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+                  />
+                ) : (
+                  <Skeleton
+                    height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+                    width="100%"
+                    testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
+                  />
+                )}
+              </View>
             </ComponentErrorBoundary>
 
             {/* Candle Period Selector */}
