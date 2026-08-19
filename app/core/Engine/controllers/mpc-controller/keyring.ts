@@ -1,6 +1,6 @@
 import { MPCKeyringOpts, MPCKeyring } from '@metamask/eth-mpc-keyring';
 import { getMfaCloudSignerUrl, getMfaRelayerUrl } from './utils';
-import { KeyringTypes } from '@metamask/keyring-controller';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { dkls19Lib } from '@metamask/mpc-libs-react-native/src/wrapper';
 
 export const mpcKeyringInit = () => {
@@ -27,5 +27,7 @@ export const mpcKeyringInit = () => {
       // return PasskeyOffscreenBridge.sign(verifierId);
     ,
   };
-  return Object.assign(() => new MPCKeyring(opts), { type: KeyringTypes.mpc });
+  return Object.assign(() => new MPCKeyring(opts), {
+    type: ExtendedKeyringTypes.mpc,
+  });
 };

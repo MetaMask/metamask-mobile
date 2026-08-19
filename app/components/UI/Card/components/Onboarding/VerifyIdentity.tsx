@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Image } from 'react-native';
 import { useNavigation, StackActions } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import VeriffSdk, { type VeriffBranding } from '@veriff/react-native-sdk';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
@@ -13,30 +13,29 @@ import {
   IconSize,
   Text,
   TextVariant,
-} from '@metamask/design-system-react-native';
-import Button, {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import useStartVerification from '../../hooks/useStartVerification';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import MM_CARD_VERIFY_IDENTITY from '../../../../../images/card-fingerprint-kyc-image.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { selectSelectedCountry } from '../../../../../core/redux/slices/card';
 import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
 import { brandColor } from '@metamask/design-tokens';
+import useRegions from '../../hooks/useRegions';
 
 const VerifyIdentity = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const selectedCountry = useSelector(selectSelectedCountry);
+  const { userCountry: selectedCountry } = useRegions();
   const [isLaunchingVeriff, setIsLaunchingVeriff] = useState(false);
 
   const veriffBranding: VeriffBranding = useMemo(
@@ -59,12 +58,12 @@ const VerifyIdentity = () => {
       iOSFont: {
         regular: 'Geist-Regular',
         medium: 'Geist-Medium',
-        bold: 'Geist-Bold',
+        bold: 'Geist-SemiBold',
       },
       androidFont: {
         regular: 'Geist-Regular',
         medium: 'Geist-Medium',
-        bold: 'Geist-Bold',
+        bold: 'Geist-SemiBold',
       },
     }),
     [colors],
@@ -81,9 +80,11 @@ const VerifyIdentity = () => {
   const handleContinue = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.VERIFY_IDENTITY_BUTTON,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.VERIFY_IDENTITY_BUTTON,
+          }),
+        )
         .build(),
     );
 
@@ -104,26 +105,53 @@ const VerifyIdentity = () => {
           case VeriffSdk.statusCanceled:
             break;
           case VeriffSdk.statusError:
-            Logger.error(
-              new Error('Veriff verification failed'),
-              `Veriff verification failed with error=${result.error}`,
-            );
+            Logger.error(new Error('Veriff verification failed'), {
+              tags: { feature: 'card', provider: 'baanx' },
+              context: {
+                name: 'VerifyIdentity',
+                data: {
+                  method: 'veriffSdk',
+                  status: 'error',
+                  errorCode: result.error,
+                  country: selectedCountry?.key,
+                },
+              },
+            });
             break;
         }
       } catch (error) {
-        Logger.error(error as Error, 'Veriff SDK launch failed unexpectedly');
+        Logger.error(error as Error, {
+          tags: { feature: 'card', provider: 'baanx' },
+          context: {
+            name: 'VerifyIdentity',
+            data: {
+              method: 'veriffSdk',
+              status: 'launch_failed',
+              country: selectedCountry?.key,
+            },
+          },
+        });
       } finally {
         setIsLaunchingVeriff(false);
       }
     }
-  }, [navigation, sessionUrl, trackEvent, createEventBuilder, veriffBranding]);
+  }, [
+    navigation,
+    sessionUrl,
+    trackEvent,
+    createEventBuilder,
+    veriffBranding,
+    selectedCountry?.key,
+  ]);
 
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.VERIFY_IDENTITY,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.VERIFY_IDENTITY,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -192,15 +220,16 @@ const VerifyIdentity = () => {
 
   const renderActions = () => (
     <Button
-      variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.continue_button')}
+      variant={ButtonVariant.Primary}
       size={ButtonSize.Lg}
       onPress={handleContinue}
-      width={ButtonWidthTypes.Full}
+      isFullWidth
       isDisabled={!sessionUrl || isLaunchingVeriff}
-      loading={isLaunchingVeriff}
+      isLoading={isLaunchingVeriff}
       testID="verify-identity-continue-button"
-    />
+    >
+      {strings('card.card_onboarding.continue_button')}
+    </Button>
   );
   return (
     <OnboardingStep
@@ -208,6 +237,7 @@ const VerifyIdentity = () => {
       description={strings('card.card_onboarding.verify_identity.description')}
       formFields={renderFormFields()}
       actions={renderActions()}
+      headerMode="close-with-confirmation"
     />
   );
 };

@@ -5,17 +5,18 @@ import type { FocusState } from '../NetworkDetailsView.types';
 export interface UseFormFocusReturn {
   focus: FocusState;
 
-  inputRpcURL: React.RefObject<TextInput>;
-  inputNameRpcURL: React.RefObject<TextInput>;
-  inputChainId: React.RefObject<TextInput>;
-  inputSymbol: React.RefObject<TextInput>;
-  inputBlockExplorerURL: React.RefObject<TextInput>;
+  inputRpcURL: React.RefObject<TextInput | null>;
+  inputNameRpcURL: React.RefObject<TextInput | null>;
+  inputChainId: React.RefObject<TextInput | null>;
+  inputSymbol: React.RefObject<TextInput | null>;
+  inputBlockExplorerURL: React.RefObject<TextInput | null>;
 
   onNameFocused: () => void;
   onNameBlur: () => void;
   onSymbolFocused: () => void;
   onSymbolBlur: () => void;
   onRpcUrlFocused: () => void;
+  onRpcUrlBlur: () => void;
   onChainIdFocused: () => void;
   onChainIdBlur: () => void;
 
@@ -59,6 +60,10 @@ export const useFormFocus = (): UseFormFocusReturn => {
     () => setFocus((prev) => ({ ...prev, isRpcUrlFieldFocused: true })),
     [],
   );
+  const onRpcUrlBlur = useCallback(
+    () => setFocus((prev) => ({ ...prev, isRpcUrlFieldFocused: false })),
+    [],
+  );
   const onChainIdFocused = useCallback(
     () => setFocus((prev) => ({ ...prev, isChainIdFieldFocused: true })),
     [],
@@ -88,6 +93,7 @@ export const useFormFocus = (): UseFormFocusReturn => {
     onSymbolFocused,
     onSymbolBlur,
     onRpcUrlFocused,
+    onRpcUrlBlur,
     onChainIdFocused,
     onChainIdBlur,
     jumpToRpcURL,

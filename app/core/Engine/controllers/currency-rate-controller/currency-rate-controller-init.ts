@@ -2,9 +2,11 @@ import {
   CurrencyRateController,
   CurrencyRateMessenger,
 } from '@metamask/assets-controllers';
-import type { ControllerInitFunction } from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
 import { defaultCurrencyRateState } from './constants';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { selectIsControllerDeprecated } from '../../../../selectors/featureFlagController/assetsUnifyState';
+import { store } from '../../../../store';
 
 /**
  * Initialize the CurrencyRateController.
@@ -20,7 +22,7 @@ interface CurrencyRateEntry {
   usdConversionRate: number | null;
 }
 
-export const currencyRateControllerInit: ControllerInitFunction<
+export const currencyRateControllerInit: MessengerClientInitFunction<
   CurrencyRateController,
   CurrencyRateMessenger
 > = (request) => {
@@ -54,6 +56,8 @@ export const currencyRateControllerInit: ControllerInitFunction<
     },
     useExternalServices: () => selectBasicFunctionalityEnabled(getState()),
     tokenPricesService: codefiTokenApiV2,
+    isDeprecated: () =>
+      selectIsControllerDeprecated('CurrencyRateController')(store.getState()),
   });
 
   return { controller };

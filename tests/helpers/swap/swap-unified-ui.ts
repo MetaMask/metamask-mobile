@@ -1,13 +1,39 @@
-import TestHelpers from '../../helpers';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import SlippageModal from '../../page-objects/swaps/SlippageModal';
-import Assertions from '../../framework/Assertions';
+import PostTradeBottomSheet from '../../page-objects/swaps/PostTradeBottomSheet';
+import { Assertions, FrameworkDetector } from '../../framework';
+import { createLogger } from '../../framework/logger';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+
+const logger = createLogger({ name: 'SwapUnifiedUI' });
 
 interface SwapOptions {
   /** Custom slippage percentage (e.g., "2.5" for 2.5%) */
   slippage?: string;
+}
+
+/**
+ * Selects source/destination tokens and enters an amount without waiting for quotes.
+ */
+export async function enterSwapQuote(
+  quantity: string,
+  sourceTokenSymbol: string,
+  destTokenSymbol: string,
+  chainId: string,
+): Promise<void> {
+  await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea, {
+    timeout: 20000,
+  });
+  if (sourceTokenSymbol !== 'ETH') {
+    await QuoteView.tapSourceToken();
+    await QuoteView.tapToken(chainId, sourceTokenSymbol);
+  }
+  await QuoteView.tapSourceAmountInput();
+  await QuoteView.enterAmount(quantity);
+  await QuoteView.tapDestinationToken();
+  await QuoteView.tapToken(chainId, destTokenSymbol);
+  await QuoteView.dismissKeypad();
 }
 
 export async function submitSwapUnifiedUI(
@@ -18,7 +44,10 @@ export async function submitSwapUnifiedUI(
   options?: SwapOptions,
 ) {
   const DEFAULT_SLIPPAGE_VALUE = '2';
-  await device.disableSynchronization();
+  // Detox-only: Appium has no synchronization service equivalent.
+  if (!FrameworkDetector.isAppium()) {
+    await device.disableSynchronization();
+  }
   await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea, {
     timeout: 20000,
   });
@@ -31,9 +60,14 @@ export async function submitSwapUnifiedUI(
   await QuoteView.tapDestinationToken();
   await QuoteView.tapToken(chainId, destTokenSymbol);
 
-  await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
-    timeout: 60000,
-  });
+  const getQuoteStarted = Date.now();
+  // Prefer destination-amount readiness over "Network fee" text — the fee row
+  // can exist while the keypad BottomSheet reports it as not displayed.
+  await QuoteView.waitForQuoteReady({ timeout: 60000 });
+  logger.debug(`⏳ Quote visible after ${Date.now() - getQuoteStarted}ms`);
+
+  // Dismiss the keypad so quote details (slippage, confirm) are not obscured
+  await QuoteView.dismissKeypad();
 
   // Set custom slippage if provided
   if (options?.slippage) {
@@ -56,8 +90,12 @@ export async function checkSwapActivity(
   const FIRST_ROW: number = 0;
   const SECOND_ROW: number = 1;
 
+  // Post-trade modal is always shown after confirm; open Activity from there.
+  await PostTradeBottomSheet.tapViewActivity();
+
   // Check the swap activity completed
   await Assertions.expectElementToBeVisible(ActivitiesView.title);
+
   await Assertions.expectElementToBeVisible(
     ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
   );
@@ -76,7 +114,4 @@ export async function checkSwapActivity(
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
     );
   }
-
-  // Wait for tx toast to clear
-  await TestHelpers.delay(5000);
 }

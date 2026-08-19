@@ -9,10 +9,12 @@ import { wipeTransactions } from '../../../../../util/transaction-controller';
 import { wipeSmartTransactions } from '../../../../../util/smart-transactions';
 import { wipeBridgeStatus } from '../../../../UI/Bridge/utils';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { usePerpsFirstTimeUser } from '../../../../UI/Perps/hooks/usePerpsFirstTimeUser';
+import { AdvancedViewSelectorsIDs } from '../AdvancedView.testIds';
 
 export const ResetAccountModal = ({
   resetModalVisible,
@@ -24,7 +26,7 @@ export const ResetAccountModal = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   styles: any;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -50,6 +52,7 @@ export const ResetAccountModal = ({
       modalVisible={resetModalVisible}
       confirmText={strings('app_settings.reset_account_confirm_button')}
       cancelText={strings('app_settings.reset_account_cancel_button')}
+      confirmTestID={AdvancedViewSelectorsIDs.RESET_ACCOUNT_CONFIRM_BUTTON}
       onCancelPress={cancelResetAccount}
       onRequestClose={cancelResetAccount}
       onConfirmPress={resetAccount}

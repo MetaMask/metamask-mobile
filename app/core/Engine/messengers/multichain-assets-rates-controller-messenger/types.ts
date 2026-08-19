@@ -4,7 +4,7 @@ import {
 } from '@metamask/keyring-controller';
 import {
   CurrencyRateStateChange,
-  GetCurrencyRateState,
+  CurrencyRateControllerGetStateAction,
   MultichainAssetsControllerGetStateAction,
   MultichainAssetsControllerAccountAssetListUpdatedEvent,
 } from '@metamask/assets-controllers';
@@ -12,12 +12,12 @@ import {
   AccountsControllerAccountAddedEvent,
   AccountsControllerListMultichainAccountsAction,
 } from '@metamask/accounts-controller';
-import { HandleSnapRequest } from '@metamask/snaps-controllers';
+import { SnapControllerHandleRequestAction } from '@metamask/snaps-controllers';
 
 export type MultichainAssetsRatesControllerMessengerActions =
-  | HandleSnapRequest
+  | SnapControllerHandleRequestAction
   | AccountsControllerListMultichainAccountsAction
-  | GetCurrencyRateState
+  | CurrencyRateControllerGetStateAction
   | MultichainAssetsControllerGetStateAction;
 
 export type MultichainAssetsRatesControllerMessengerEvents =

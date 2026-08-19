@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { usePerpsActions } from './usePerpsActions';
 import { usePerpsMarketForAsset } from '../../Perps/hooks/usePerpsMarketForAsset';
+import { useIsPerpsProModeActive } from '../../Perps/utils/perpsModeSwitch';
 import Routes from '../../../../constants/navigation/Routes';
 
 jest.mock('@react-navigation/native', () => ({
@@ -13,13 +14,19 @@ jest.mock('../../Perps/hooks/usePerpsMarketForAsset', () => ({
   usePerpsMarketForAsset: jest.fn(),
 }));
 
+jest.mock('../../Perps/utils/perpsModeSwitch', () => ({
+  useIsPerpsProModeActive: jest.fn(),
+}));
+
 const mockNavigate = jest.fn();
 const mockUseNavigation = jest.mocked(useNavigation);
 const mockUsePerpsMarketForAsset = jest.mocked(usePerpsMarketForAsset);
+const mockUseIsPerpsProModeActive = jest.mocked(useIsPerpsProModeActive);
 
 describe('usePerpsActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseIsPerpsProModeActive.mockReturnValue(false);
     mockUseNavigation.mockReturnValue({ navigate: mockNavigate } as never);
   });
 
@@ -129,6 +136,40 @@ describe('usePerpsActions', () => {
     });
   });
 
+  it('opens the Pro market with the side preselected while Pro mode is active', () => {
+    // Arrange
+    mockUseIsPerpsProModeActive.mockReturnValue(true);
+    const marketData = {
+      symbol: 'ETH',
+      name: 'ETH',
+      maxLeverage: '50x',
+      price: '',
+      change24h: '',
+      change24hPercent: '',
+      volume: '',
+    };
+    mockUsePerpsMarketForAsset.mockReturnValue({
+      hasPerpsMarket: true,
+      marketData,
+      isLoading: false,
+      error: null,
+    });
+
+    const { result } = renderHook(() => usePerpsActions({ symbol: 'ETH' }));
+
+    // Act
+    result.current.handlePerpsAction?.('short');
+
+    // Assert
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: expect.objectContaining({
+        market: marketData,
+        direction: 'short',
+      }),
+    });
+  });
+
   it('passes null symbol through to usePerpsMarketForAsset', () => {
     // Arrange
     mockUsePerpsMarketForAsset.mockReturnValue({
@@ -164,75 +205,6 @@ describe('usePerpsActions', () => {
 
     // Assert
     expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  it('includes assetsASSETS2493AbtestTokenDetailsLayout in nav params when provided', () => {
-    // Arrange
-    mockUsePerpsMarketForAsset.mockReturnValue({
-      hasPerpsMarket: true,
-      marketData: {
-        symbol: 'ETH',
-        name: 'ETH',
-        maxLeverage: '50x',
-        price: '',
-        change24h: '',
-        change24hPercent: '',
-        volume: '',
-      },
-      isLoading: false,
-      error: null,
-    });
-
-    const { result } = renderHook(() =>
-      usePerpsActions({
-        symbol: 'ETH',
-        abTestTokenDetailsLayout: 'treatment',
-      }),
-    );
-
-    // Act
-    result.current.handlePerpsAction?.('long');
-
-    // Assert
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.ORDER_REDIRECT,
-      params: expect.objectContaining({
-        direction: 'long',
-        asset: 'ETH',
-        assetsASSETS2493AbtestTokenDetailsLayout: 'treatment',
-      }),
-    });
-  });
-
-  it('omits assetsASSETS2493AbtestTokenDetailsLayout from nav params when not provided', () => {
-    // Arrange
-    mockUsePerpsMarketForAsset.mockReturnValue({
-      hasPerpsMarket: true,
-      marketData: {
-        symbol: 'ETH',
-        name: 'ETH',
-        maxLeverage: '50x',
-        price: '',
-        change24h: '',
-        change24hPercent: '',
-        volume: '',
-      },
-      isLoading: false,
-      error: null,
-    });
-
-    const { result } = renderHook(() => usePerpsActions({ symbol: 'ETH' }));
-
-    // Act
-    result.current.handlePerpsAction?.('long');
-
-    // Assert
-    const navParams = mockNavigate.mock.calls[0][1] as {
-      params: Record<string, unknown>;
-    };
-    expect(navParams.params).not.toHaveProperty(
-      'assetsASSETS2493AbtestTokenDetailsLayout',
-    );
   });
 
   it('forwards isLoading and error from usePerpsMarketForAsset', () => {

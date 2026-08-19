@@ -92,6 +92,26 @@ const mockBitcoinToken: AssetType = {
   rawBalance: '0xdef0',
 } as unknown as AssetType;
 
+const mockStellarToken: AssetType = {
+  address: 'stellar:pubnet/slip44:148',
+  chainId: 'stellar:pubnet',
+  symbol: 'XLM',
+  ticker: 'XLM',
+  decimals: 7,
+  balance: '50',
+  balanceFiat: '$6.00',
+  image: 'https://example.com/xlm.png',
+  aggregators: [],
+  logo: 'https://example.com/xlm.png',
+  isNative: true,
+  accountType: 'stellar:pubnet/slip44:148',
+  networkBadgeSource: 'network-badge-source',
+  balanceInSelectedCurrency: '$6.00',
+  standard: TokenStandard.ERC20,
+  fiat: { balance: '6' },
+  rawBalance: '0xabcd',
+} as unknown as AssetType;
+
 describe('useSendTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -104,10 +124,12 @@ describe('useSendTokens', () => {
       isSolanaSendType: undefined,
       isBitcoinSendType: undefined,
       isTronSendType: undefined,
+      isStellarSendType: undefined,
       isPredefinedEvm: false,
       isPredefinedSolana: false,
       isPredefinedBitcoin: false,
       isPredefinedTron: false,
+      isPredefinedStellar: false,
     });
   });
 
@@ -131,7 +153,8 @@ describe('useSendTokens', () => {
 
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
-      includeAllTokens: false,
+      tokenFilter: undefined,
+      enrichTokenRequests: undefined,
     });
     expect(result.current).toHaveLength(4);
   });
@@ -154,7 +177,8 @@ describe('useSendTokens', () => {
 
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
-      includeAllTokens: false,
+      tokenFilter: undefined,
+      enrichTokenRequests: undefined,
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockEvmToken);
@@ -178,7 +202,8 @@ describe('useSendTokens', () => {
 
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
-      includeAllTokens: false,
+      tokenFilter: undefined,
+      enrichTokenRequests: undefined,
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockSolanaToken);
@@ -202,7 +227,8 @@ describe('useSendTokens', () => {
 
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
-      includeAllTokens: false,
+      tokenFilter: undefined,
+      enrichTokenRequests: undefined,
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockTronToken);
@@ -226,10 +252,33 @@ describe('useSendTokens', () => {
 
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
-      includeAllTokens: false,
+      tokenFilter: undefined,
+      enrichTokenRequests: undefined,
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockBitcoinToken);
+  });
+
+  it('filters to Stellar tokens when isPredefinedStellar is true', () => {
+    createMockUseSendType({
+      isPredefinedEvm: false,
+      isPredefinedSolana: false,
+      isPredefinedTron: false,
+      isPredefinedBitcoin: false,
+      isPredefinedStellar: true,
+    });
+    mockUseAccountTokens.mockReturnValue([
+      mockEvmToken,
+      mockSolanaToken,
+      mockTronToken,
+      mockBitcoinToken,
+      mockStellarToken,
+    ]);
+
+    const { result } = renderHook(() => useSendTokens());
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0]).toEqual(mockStellarToken);
   });
 
   it('passes includeNoBalance option to useAccountTokens', () => {
@@ -239,7 +288,42 @@ describe('useSendTokens', () => {
 
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: true,
-      includeAllTokens: false,
+      tokenFilter: undefined,
+      enrichTokenRequests: undefined,
+    });
+  });
+
+  it('forwards tokenFilter to useAccountTokens', () => {
+    mockUseAccountTokens.mockReturnValue([mockEvmToken]);
+    const filter = jest.fn(() => true);
+
+    renderHook(() =>
+      useSendTokens({
+        tokenFilter: filter,
+      }),
+    );
+
+    expect(mockUseAccountTokens).toHaveBeenCalledWith({
+      includeNoBalance: false,
+      tokenFilter: filter,
+      enrichTokenRequests: undefined,
+    });
+  });
+
+  it('forwards enrichTokenRequests to useAccountTokens', () => {
+    mockUseAccountTokens.mockReturnValue([mockEvmToken]);
+    const requests = [{ chainId: '0x1' as const, address: '0xabc' }];
+
+    renderHook(() =>
+      useSendTokens({
+        enrichTokenRequests: requests,
+      }),
+    );
+
+    expect(mockUseAccountTokens).toHaveBeenCalledWith({
+      includeNoBalance: false,
+      tokenFilter: undefined,
+      enrichTokenRequests: requests,
     });
   });
 

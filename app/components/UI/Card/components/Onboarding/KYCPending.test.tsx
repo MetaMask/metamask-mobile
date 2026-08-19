@@ -10,6 +10,14 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => 'baanx'),
+}));
+
+import { useSelector } from 'react-redux';
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(),
 }));
@@ -42,24 +50,47 @@ jest.mock('@metamask/design-system-react-native', () => {
       children?: React.ReactNode;
       testID?: string;
     }) => ReactActual.createElement(Text, { testID, ...props }, children),
+    Button: ({
+      children,
+      testID,
+      onPress,
+      label,
+      isDisabled,
+      disabled,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      onPress?: () => void;
+      label?: string;
+      isDisabled?: boolean;
+      disabled?: boolean;
+    }) => {
+      const { TouchableOpacity } = jest.requireActual('react-native');
+      return ReactActual.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: disabled || isDisabled, ...props },
+        ReactActual.createElement(Text, {}, children || label),
+      );
+    },
     TextVariant: {
       HeadingLg: 'HeadingLg',
       BodyMd: 'BodyMd',
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
   };
 });
 
 // Mock react-native-safe-area-context
-jest.mock('react-native-safe-area-context', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-
-  return {
-    SafeAreaView: ({ children, ...props }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(View, props, children),
-  };
-});
-
 // Mock react-native Image and Dimensions
 jest.mock('react-native', () => {
   const ReactActual = jest.requireActual('react');
@@ -201,6 +232,7 @@ describe('KYCPending Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockReturnValue('baanx');
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
     });
@@ -285,12 +317,11 @@ describe('KYCPending Component', () => {
     });
 
     it('displays the correct button label', () => {
-      const { getByTestId } = render(<KYCPending />);
+      const { getByTestId, getByText } = render(<KYCPending />);
 
-      const buttonLabel = getByTestId('kyc-pending-got-it-button-label');
-
-      expect(buttonLabel).toBeTruthy();
-      expect(buttonLabel.props.children).toBe('Got it');
+      const button = getByTestId('kyc-pending-got-it-button');
+      expect(button).toBeTruthy();
+      expect(getByText('Got it')).toBeTruthy();
     });
 
     it('navigates to wallet home when Got it button is pressed', () => {
@@ -308,7 +339,7 @@ describe('KYCPending Component', () => {
 
       const button = getByTestId('kyc-pending-got-it-button');
 
-      expect(button.props.disabled).toBeFalsy();
+      expect(button).not.toBeDisabled();
     });
   });
 
@@ -363,6 +394,33 @@ describe('KYCPending Component', () => {
       const addPropertiesCall =
         mockCreateEventBuilder.mock.results[0].value.addProperties;
       expect(addPropertiesCall).toHaveBeenCalledWith({
+        provider: 'baanx',
+        screen: 'KYC_PENDING',
+      });
+    });
+
+    it('does not track while activeProviderId is null', () => {
+      mockUseSelector.mockReturnValue(null);
+
+      render(<KYCPending />);
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('tracks once when provider resolves after a null provider render', () => {
+      mockUseSelector.mockReturnValue(null);
+      const { rerender } = render(<KYCPending />);
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      mockUseSelector.mockReturnValue('immersve');
+      rerender(<KYCPending />);
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      const addPropertiesCall =
+        mockCreateEventBuilder.mock.results[0].value.addProperties;
+      expect(addPropertiesCall).toHaveBeenCalledWith({
+        provider: 'immersve',
         screen: 'KYC_PENDING',
       });
     });
@@ -388,11 +446,9 @@ describe('KYCPending Component', () => {
     });
 
     it('uses correct i18n key for Got it button', () => {
-      const { getByTestId } = render(<KYCPending />);
+      const { getByText } = render(<KYCPending />);
 
-      const buttonLabel = getByTestId('kyc-pending-got-it-button-label');
-
-      expect(buttonLabel.props.children).toBe('Got it');
+      expect(getByText('Got it')).toBeTruthy();
     });
   });
 

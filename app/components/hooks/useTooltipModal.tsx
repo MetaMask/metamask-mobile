@@ -1,13 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../core/NavigationService/types';
 import Routes from '../../constants/navigation/Routes';
 import { ReactNode, useCallback, useMemo } from 'react';
 
-interface TooltipOptions {
-  bottomPadding?: number;
-}
-
 const useTooltipModal = () => {
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
 
   const openTooltipModal = useCallback(
     (
@@ -15,7 +12,8 @@ const useTooltipModal = () => {
       tooltip: string | ReactNode,
       footerText?: string,
       buttonText?: string,
-      options?: TooltipOptions,
+      onButtonPress?: () => void,
+      dismissOnButtonPress?: boolean,
     ) =>
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.TOOLTIP_MODAL,
@@ -24,7 +22,8 @@ const useTooltipModal = () => {
           tooltip,
           footerText,
           buttonText,
-          bottomPadding: options?.bottomPadding,
+          onButtonPress,
+          dismissOnButtonPress,
         },
       }),
     [navigate],

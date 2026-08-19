@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import { StyleSheet, View, Text } from 'react-native';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { fontStyles } from '../../../styles/common';
@@ -53,15 +54,15 @@ const createStyles = (colors: any) =>
     },
   });
 
-interface Props {
-  route: {
-    params: {
-      onConfirm: () => void;
-    };
-  };
+interface AssetHideConfirmationRouteParams {
+  onConfirm: () => void;
 }
 
-const AssetHideConfirmation = ({ route }: Props) => {
+const AssetHideConfirmation = () => {
+  const route =
+    useRoute<
+      RouteProp<{ params: AssetHideConfirmationRouteParams }, 'params'>
+    >();
   const { onConfirm } = route.params;
   const modalRef = useRef<ReusableModalRef>(null);
   const { colors } = useTheme();

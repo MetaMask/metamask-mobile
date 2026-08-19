@@ -8,12 +8,9 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 jest.mock('../../Bridge/hooks/useTokensWithBalance');
-jest.mock('../utils/tokenIconUtils');
 jest.mock('./index');
 jest.mock('./stream');
 jest.mock('../../../../selectors/networkController');
-jest.mock('../../../../selectors/tokenListController');
-jest.mock('../../../../selectors/preferencesController');
 
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
@@ -40,7 +37,6 @@ const mockUseSelector = jest.requireMock('react-redux').useSelector;
 const mockUseTokensWithBalance = jest.requireMock(
   '../../Bridge/hooks/useTokensWithBalance',
 );
-const mockEnhanceTokenWithIcon = jest.requireMock('../utils/tokenIconUtils');
 const mockUsePerpsLiveAccount =
   jest.requireMock('./stream').usePerpsLiveAccount;
 const mockUsePerpsNetwork = jest.requireMock('./index').usePerpsNetwork;
@@ -52,20 +48,9 @@ describe('usePerpsPaymentTokens', () => {
     '0x89': { chainId: '0x89', name: 'Polygon', ticker: 'MATIC' },
   };
 
-  const mockTokenList = {
-    '0xaf88d065e77c8cC2239327C5EDb3A432268e5831': {
-      address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
-      symbol: 'USDC',
-      decimals: 6,
-      name: 'USD Coin',
-      iconUrl: 'https://example.com/usdc-icon.png',
-      aggregators: [],
-      occurrences: 1,
-    },
-  };
-
   const mockAccountState: AccountState = {
-    availableBalance: '1000.50',
+    spendableBalance: '1000.50',
+    withdrawableBalance: '1000.50',
     marginUsed: '300.25',
     unrealizedPnl: '50.25',
     returnOnEquity: '0',
@@ -109,10 +94,7 @@ describe('usePerpsPaymentTokens', () => {
     jest.clearAllMocks();
 
     // Set up mock return values
-    mockUseSelector
-      .mockReturnValueOnce(mockNetworkConfigurations) // selectNetworkConfigurations
-      .mockReturnValueOnce(mockTokenList) // selectTokenList
-      .mockReturnValueOnce(false); // selectIsIpfsGatewayEnabled
+    mockUseSelector.mockReturnValueOnce(mockNetworkConfigurations); // selectNetworkConfigurations
 
     mockUseTokensWithBalance.useTokensWithBalance.mockReturnValue(
       mockTokensWithBalance,
@@ -122,12 +104,6 @@ describe('usePerpsPaymentTokens', () => {
       isInitialLoading: false,
     });
     mockUsePerpsNetwork.mockReturnValue('mainnet');
-    mockEnhanceTokenWithIcon.enhanceTokenWithIcon.mockImplementation(
-      ({ token }: { token: BridgeToken }) => ({
-        ...token,
-        image: `enhanced-${token.symbol?.toLowerCase()}.png`,
-      }),
-    );
   });
 
   describe('Basic functionality', () => {
@@ -176,12 +152,8 @@ describe('usePerpsPaymentTokens', () => {
     });
 
     it('handles missing network configurations', () => {
-      // Clear previous mock setup and set new values
       mockUseSelector.mockClear();
-      mockUseSelector
-        .mockReturnValueOnce(null) // selectNetworkConfigurations
-        .mockReturnValueOnce(mockTokenList) // selectTokenList
-        .mockReturnValueOnce(false); // selectIsIpfsGatewayEnabled
+      mockUseSelector.mockReturnValueOnce(null); // selectNetworkConfigurations
 
       const { result } = renderHook(() => usePerpsPaymentTokens());
 
@@ -288,20 +260,19 @@ describe('usePerpsPaymentTokens', () => {
     });
   });
 
-  describe('Token enhancement', () => {
-    it('enhances tokens with icons', () => {
-      renderHook(() => usePerpsPaymentTokens());
+  describe('Token icons', () => {
+    it('sets USDC_TOKEN_ICON_URL as image for Hyperliquid USDC', () => {
+      const { result } = renderHook(() => usePerpsPaymentTokens());
 
-      expect(
-        mockEnhanceTokenWithIcon.enhanceTokenWithIcon,
-      ).toHaveBeenCalledWith({
-        token: expect.objectContaining({
-          symbol: 'USDC',
-          name: 'USDC • Hyperliquid',
-        }),
-        tokenList: mockTokenList,
-        isIpfsGatewayEnabled: false,
-      });
+      const hyperliquidUsdc = result.current[0];
+      expect(hyperliquidUsdc.image).toContain('tokenIcons');
+    });
+
+    it('passes through image from useTokensWithBalance for other tokens', () => {
+      const { result } = renderHook(() => usePerpsPaymentTokens());
+
+      const ethToken = result.current.find((t) => t.symbol === 'ETH');
+      expect(ethToken?.image).toBe('https://example.com/eth.png');
     });
   });
 
@@ -309,7 +280,8 @@ describe('usePerpsPaymentTokens', () => {
     it('handles zero Hyperliquid balance', () => {
       const zeroBalanceAccountState = {
         ...mockAccountState,
-        availableBalance: '0',
+        spendableBalance: '0',
+        withdrawableBalance: '0',
       };
 
       mockUsePerpsLiveAccount.mockReturnValue({
@@ -322,6 +294,27 @@ describe('usePerpsPaymentTokens', () => {
       const hyperliquidUsdc = result.current[0];
       expect(hyperliquidUsdc.balance).toBe('0');
       expect(hyperliquidUsdc.balanceFiat).toBe('$0.00');
+    });
+
+    it('uses spendableBalance for Unified Account users', () => {
+      // Unified Account / Portfolio Margin: collateral lives in spot. The
+      // provider folds free spot USDC into spendableBalance via
+      // addSpotBalanceToAccountState, so the Pay-with sheet sees the unified
+      // total without branching on mode.
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          ...mockAccountState,
+          spendableBalance: '2500.00',
+          withdrawableBalance: '2500.00',
+        },
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() => usePerpsPaymentTokens());
+
+      const hyperliquidUsdc = result.current[0];
+      expect(hyperliquidUsdc.balance).toBe('2500000000');
+      expect(hyperliquidUsdc.balanceFiat).toBe('$2500.00');
     });
 
     it('handles null account state', () => {
@@ -344,19 +337,6 @@ describe('usePerpsPaymentTokens', () => {
 
       expect(result.current).toHaveLength(1);
       expect(result.current[0].symbol).toBe('USDC');
-    });
-
-    it('handles missing token list', () => {
-      // Clear previous mock setup and set new values
-      mockUseSelector.mockClear();
-      mockUseSelector
-        .mockReturnValueOnce(mockNetworkConfigurations) // selectNetworkConfigurations
-        .mockReturnValueOnce(null) // selectTokenList
-        .mockReturnValueOnce(false); // selectIsIpfsGatewayEnabled
-
-      const { result } = renderHook(() => usePerpsPaymentTokens());
-
-      expect(result.current.length).toBeGreaterThan(0);
     });
 
     it('handles malformed balance fiat values', () => {

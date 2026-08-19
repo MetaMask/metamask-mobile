@@ -20,6 +20,7 @@ import {
 import Button from '../../../component-library/components/Buttons/Button/Button';
 import { strings } from '../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Routes from '../../../constants/navigation/Routes';
 import { useStyles } from '../../../component-library/hooks';
 import { getNftImage } from '../../../util/get-nft-image';
@@ -37,17 +38,21 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
   onPressColectible,
   isTokenImage,
   isFullRatio,
+  onLoad,
 }) => {
   const [sourceUri, setSourceUri] = useState<string | null>(null);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
 
   const { styles } = useStyles(createStyles, {
     backgroundColor: collectible.backgroundColor,
   });
 
-  const fallback = useCallback(() => setSourceUri(null), []);
+  const fallback = useCallback(() => {
+    setSourceUri(null);
+    onLoad?.();
+  }, [onLoad]);
 
   useEffect(() => {
     const { image, imageOriginal, imagePreview, address } = collectible;
@@ -134,6 +139,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
           <View
             style={[
               styles.textContainer,
+              styles.noFlex,
               style,
               tiny && styles.tinyImage,
               small && styles.smallImage,
@@ -204,6 +210,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
             ]}
             chainId={collectible.chainId}
             onError={fallback}
+            onLoad={onLoad}
             testID="nft-image"
             isTokenImage={isTokenImage}
             isFullRatio={isFullRatio}
@@ -240,6 +247,7 @@ const CollectibleMedia: React.FC<CollectibleMediaProps> = ({
     isTokenImage,
     isFullRatio,
     collectible.chainId,
+    onLoad,
   ]);
 
   return <View style={styles.container}>{renderMedia()}</View>;

@@ -1,46 +1,19 @@
-import type { ControllerInitFunction } from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
 import {
   RampsController,
   RampsControllerMessenger,
   getDefaultRampsControllerState,
 } from '@metamask/ramps-controller';
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
-import { hasMinimumRequiredVersion } from '../../../../components/UI/Ramp/utils/hasMinimumRequiredVersion';
 import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
 
-interface RampsUnifiedBuyV2Config {
-  active?: boolean;
-  minimumVersion?: string;
-}
-
-const RAMPS_UNIFIED_BUY_V2_FLAG_KEY = 'rampsUnifiedBuyV2';
-
 /**
- * Determines whether the ramps unified buy V2 feature is enabled
- * by reading the remote feature flag state.
- *
- * @param initMessenger - The init messenger to read RemoteFeatureFlagController state.
- * @returns Whether V2 is enabled.
+ * Opt-in for the Ramps WebSocket debug dashboard (`RAMPS_DEBUG_DASHBOARD=true` in `.js.env`).
+ * Only used under `__DEV__`; see `app/components/UI/Ramp/debug/README.md`.
  */
-function getIsRampsUnifiedBuyV2Enabled(
-  initMessenger: RampsControllerInitMessenger,
-): boolean {
-  try {
-    const remoteState = initMessenger.call(
-      'RemoteFeatureFlagController:getState',
-    );
-    const config = (remoteState?.remoteFeatureFlags?.[
-      RAMPS_UNIFIED_BUY_V2_FLAG_KEY
-    ] ?? {}) as RampsUnifiedBuyV2Config;
-
-    return hasMinimumRequiredVersion(
-      config.minimumVersion,
-      config.active ?? false,
-    );
-  } catch {
-    return false;
-  }
+function isRampsDebugDashboardEnabled(): boolean {
+  return process.env.RAMPS_DEBUG_DASHBOARD === 'true';
 }
 
 /**
@@ -49,10 +22,10 @@ function getIsRampsUnifiedBuyV2Enabled(
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @param request.persistedState - The persisted state.
- * @param request.initMessenger - The init messenger for reading feature flags.
+ * @param request.initMessenger - The init messenger for order event subscriptions.
  * @returns The initialized controller.
  */
-export const rampsControllerInit: ControllerInitFunction<
+export const rampsControllerInit: MessengerClientInitFunction<
   RampsController,
   RampsControllerMessenger,
   RampsControllerInitMessenger
@@ -63,23 +36,33 @@ export const rampsControllerInit: ControllerInitFunction<
   const controller = new RampsController({
     messenger: controllerMessenger,
     state: rampsControllerState,
+    // The all-providers widening is driven by the `moneyHeadlessAllProviders`
+    // remote feature flag, which the controller reads itself through the
+    // `RemoteFeatureFlagController:getState` messenger action per quote call.
+    // The widened-path default redirect URL is now derived inside core via
+    // `RampsService:getDefaultRedirectCallbackUrl` (same environment as the
+    // service). Keep that action delegated in the controller messenger.
   });
 
-  const isV2Enabled = getIsRampsUnifiedBuyV2Enabled(initMessenger);
+  let orderSubscriptionsRegistered = false;
 
-  if (isV2Enabled) {
+  const registerOrderSubscriptions = (): void => {
+    if (orderSubscriptionsRegistered) {
+      return;
+    }
+    orderSubscriptionsRegistered = true;
     initMessenger.subscribe(
       'RampsController:orderStatusChanged',
       handleOrderStatusChangedForNotifications,
     );
-
     initMessenger.subscribe(
       'RampsController:orderStatusChanged',
       handleOrderStatusChangedForMetrics,
     );
+  };
 
-    // Start init immediately so tokens (and providers) load on app start.
-    // init() is async and does not block controller creation.
+  const startRampsController = (): void => {
+    registerOrderSubscriptions();
     controller
       .init()
       .then(() => {
@@ -88,6 +71,22 @@ export const rampsControllerInit: ControllerInitFunction<
       .catch(() => {
         // Initialization failed - error state will be available via selectors
       });
+  };
+
+  startRampsController();
+
+  // Dev-only: streams controller state / traffic to the local dashboard (see Ramp/debug/README.md).
+  // Use require (not dynamic import) so Jest can mock the module; Metro drops this block in prod (__DEV__ false).
+  // Opt-in: set RAMPS_DEBUG_DASHBOARD=true (see `isRampsDebugDashboardEnabled` above).
+  if (__DEV__ && isRampsDebugDashboardEnabled()) {
+    try {
+      const { initRampsDebugBridge } =
+        // eslint-disable-next-line @typescript-eslint/no-require-imports -- dev-only optional tooling; Jest cannot mock dynamic import()
+        require('../../../../components/UI/Ramp/debug/RampsDebugBridge');
+      initRampsDebugBridge(controller, controllerMessenger);
+    } catch {
+      /* optional dev tooling — ignore load failures */
+    }
   }
 
   return {

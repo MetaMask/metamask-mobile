@@ -14,9 +14,12 @@ import Alert, { AlertType } from '../../Base/Alert';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTheme } from '../../../util/theme';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { QrScanRequest, QrScanRequestType } from '@metamask/eth-qr-keyring';
+import { useQrScanErrorForwarding } from '../../../core/HardwareWallet/hooks/useQrScanErrorForwarding';
+import { useHardwareWallet } from '../../../core/HardwareWallet/contexts';
 
 interface IQRSigningDetails {
   pendingScanRequest: QrScanRequest;
@@ -111,9 +114,10 @@ const QRSigningDetails = ({
   fromAddress,
 }: IQRSigningDetails) => {
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { setQrScanRetryHandler } = useHardwareWallet();
   const styles = createStyles(colors);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [scannerVisible, setScannerVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [shouldPause, setShouldPause] = useState(false);
@@ -136,18 +140,30 @@ const QRSigningDetails = ({
     return unsubscribe;
   }, [pendingScanRequest, hasSentOrCanceled, navigation]);
 
-  const resetError = () => {
+  const resetError = useCallback(() => {
     setErrorMessage('');
-  };
+  }, []);
 
-  const showScanner = () => {
+  const showScanner = useCallback(() => {
     setScannerVisible(true);
     resetError();
-  };
+  }, [resetError]);
 
-  const hideScanner = () => {
+  const hideScanner = useCallback(() => {
     setScannerVisible(false);
-  };
+  }, []);
+  const { onQRHardwareScanError, handleScannerModalHide } =
+    useQrScanErrorForwarding({ hideScanner });
+
+  useEffect(() => {
+    setQrScanRetryHandler?.(() => {
+      showScanner();
+    });
+
+    return () => {
+      setQrScanRetryHandler?.(null);
+    };
+  }, [setQrScanRetryHandler, showScanner]);
 
   const onCancel = useCallback(async () => {
     if (pendingScanRequest) {
@@ -158,7 +174,7 @@ const QRSigningDetails = ({
     setSentOrCanceled(true);
     hideScanner();
     cancelCallback?.();
-  }, [pendingScanRequest, cancelCallback]);
+  }, [pendingScanRequest, hideScanner, cancelCallback]);
 
   const onScanSuccess = useCallback(
     (ur: UR) => {
@@ -194,6 +210,7 @@ const QRSigningDetails = ({
       successCallback,
       trackEvent,
       createEventBuilder,
+      hideScanner,
     ],
   );
   const onScanError = useCallback(
@@ -202,7 +219,7 @@ const QRSigningDetails = ({
       setErrorMessage(_errorMessage);
       failureCallback?.(_errorMessage);
     },
-    [failureCallback],
+    [hideScanner, failureCallback],
   );
 
   const renderAlert = () =>
@@ -261,8 +278,6 @@ const QRSigningDetails = ({
               {showHint ? (
                 <View
                   style={[
-                    // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
-                    // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
                     styles.description,
                     tighten ? styles.descriptionTighten : undefined,
                   ]}
@@ -297,6 +312,8 @@ const QRSigningDetails = ({
         purpose={QrScanRequestType.SIGN}
         onScanSuccess={onScanSuccess}
         onScanError={onScanError}
+        onQRHardwareScanError={onQRHardwareScanError}
+        onModalHideComplete={handleScannerModalHide}
         hideModal={hideScanner}
       />
     </Fragment>

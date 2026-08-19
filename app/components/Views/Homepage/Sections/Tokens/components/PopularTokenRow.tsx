@@ -2,6 +2,8 @@ import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Button,
@@ -144,7 +146,8 @@ const formatPercentageChange = (
  * Tapping the row navigates to asset details, tapping Buy navigates to buy flow.
  */
 const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
-  const navigation = useNavigation();
+  const tw = useTailwind();
+  const navigation = useNavigation<AppNavigationProp>();
   const { goToBuy } = useRampNavigation();
   const { trackBuyButtonClicked } = useRampsButtonClickedEvent();
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -167,9 +170,9 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
   }, [navigation, token.assetId, token.symbol]);
 
   const handleBuy = useCallback(() => {
-    trackBuyButtonClicked();
-    goToBuy({ assetId: token.assetId });
-  }, [trackBuyButtonClicked, goToBuy, token.assetId]);
+    trackBuyButtonClicked(token.symbol);
+    goToBuy({ assetId: token.assetId }, { buyFlowOrigin: 'homeTokenList' });
+  }, [trackBuyButtonClicked, goToBuy, token.assetId, token.symbol]);
 
   const priceDisplay = useMemo(() => {
     if (token.price === undefined) {
@@ -184,69 +187,67 @@ const PopularTokenRow: React.FC<PopularTokenRowProps> = ({ token }) => {
   );
 
   return (
-    <TouchableOpacity onPress={handleRowPress} activeOpacity={0.7}>
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="py-2"
-      >
-        {/* Token Avatar */}
-        <AvatarToken
-          name={token.name}
-          imageSource={{ uri: token.iconUrl }}
-          size={AvatarSize.Lg}
-        />
+    <TouchableOpacity
+      onPress={handleRowPress}
+      activeOpacity={0.7}
+      testID={`popular-token-row-${token.symbol}`}
+      style={tw.style('flex-row items-center py-2')}
+    >
+      {/* Token Avatar */}
+      <AvatarToken
+        name={token.name}
+        imageSource={{ uri: token.iconUrl }}
+        size={AvatarSize.Lg}
+      />
 
-        {/* Token Info - matches TokenListItem balances style: flex-1, justify-center, ml-5 */}
-        <Box
-          flexDirection={BoxFlexDirection.Column}
-          twClassName="flex-1 justify-center ml-5"
-        >
-          <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
-            {token.name}
+      {/* Token Info - matches TokenListItem balances style: flex-1, justify-center, ml-5 */}
+      <Box
+        flexDirection={BoxFlexDirection.Column}
+        twClassName="flex-1 justify-center ml-5"
+      >
+        <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
+          {token.name}
+        </Text>
+        {token.description ? (
+          <Text
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
+          >
+            {token.description}
           </Text>
-          {token.description ? (
+        ) : (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+          >
             <Text
               variant={TextVariant.BodySMMedium}
               color={TextColor.Alternative}
             >
-              {token.description}
+              {priceDisplay}
+              {percentageChange.text ? ' \u2022 ' : ''}
             </Text>
-          ) : (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-            >
+            {percentageChange.text ? (
               <Text
                 variant={TextVariant.BodySMMedium}
-                color={TextColor.Alternative}
+                color={percentageChange.color}
               >
-                {priceDisplay}
+                {percentageChange.text}
               </Text>
-              {percentageChange.text ? (
-                <Box twClassName="ml-2">
-                  <Text
-                    variant={TextVariant.BodySMMedium}
-                    color={percentageChange.color}
-                  >
-                    {percentageChange.text}
-                  </Text>
-                </Box>
-              ) : null}
-            </Box>
-          )}
-        </Box>
+            ) : null}
+          </Box>
+        )}
+      </Box>
 
-        {/* Buy Button */}
-        <Box twClassName="self-center">
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Md}
-            onPress={handleBuy}
-          >
-            {strings('asset_overview.buy_button')}
-          </Button>
-        </Box>
+      {/* Buy Button */}
+      <Box twClassName="self-center">
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Md}
+          onPress={handleBuy}
+        >
+          {strings('asset_overview.buy_button')}
+        </Button>
       </Box>
     </TouchableOpacity>
   );

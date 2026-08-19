@@ -6,7 +6,11 @@ import AppConstants from '../../core/AppConstants';
 import {
   Caip25CaveatType,
   KnownSessionProperties,
+  getSessionProperties,
 } from '@metamask/chain-agnostic-permission';
+import { createMultichainApiMethodMiddleware } from '../RPCMethods/utils';
+import Logger from '../../util/Logger';
+import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import {
   EthAccountType,
   SolAccountType,
@@ -14,6 +18,10 @@ import {
   TrxAccountType,
   TrxScope,
 } from '@metamask/keyring-api';
+import {
+  getPermittedEip155ChainIds,
+  getSessionCapabilities,
+} from '../RPCMethods/getSessionCapabilities';
 
 jest.mock('../Engine', () => ({
   init: jest.fn(),
@@ -42,15 +50,18 @@ jest.mock('../Engine', () => ({
     subscribe: jest.fn(),
     tryUnsubscribe: jest.fn(),
     unsubscribe: jest.fn(),
+    delegate: jest.fn(),
   },
   context: {
     AccountsController: {
+      name: 'AccountsController',
       listAccounts: jest.fn(),
       listMultichainAccounts: jest.fn(),
       getSelectedAccount: jest.fn(),
       getAccountByAddress: jest.fn(),
     },
     PermissionController: {
+      name: 'PermissionController',
       createPermissionMiddleware: jest.fn(),
       requestPermissions: jest.fn(),
       getCaveat: jest.fn(),
@@ -105,6 +116,37 @@ jest.mock('../Permissions', () => ({
   ...jest.requireActual('../Permissions'),
   getPermittedAccounts: jest.fn(),
 }));
+
+jest.mock('../RPCMethods/getSessionCapabilities', () => ({
+  buildGetCapabilitiesHooks: jest.fn(() => ({})),
+  getSessionCapabilities: jest.fn(async () => ({
+    '0x1': { atomic: { status: 'supported' } },
+  })),
+  getPermittedEip155ChainIds: jest.fn(() => ['0x1']),
+}));
+
+// Wrap the real createMultichainApiMethodMiddleware so we can inspect the
+// options object (and its getCapabilities hook) that BackgroundBridge wires up,
+// while preserving the actual middleware behaviour for every other test.
+jest.mock('../RPCMethods/utils', () => {
+  const actual = jest.requireActual('../RPCMethods/utils');
+  return {
+    ...actual,
+    createMultichainApiMethodMiddleware: jest.fn(
+      actual.createMultichainApiMethodMiddleware,
+    ),
+  };
+});
+
+// Wrap the real getSessionProperties so individual tests can force it to throw
+// and exercise the scopes-only fallback path in notifyCaipAuthorizationChange.
+jest.mock('@metamask/chain-agnostic-permission', () => {
+  const actual = jest.requireActual('@metamask/chain-agnostic-permission');
+  return {
+    ...actual,
+    getSessionProperties: jest.fn(actual.getSessionProperties),
+  };
+});
 
 jest.mock('@metamask/eth-query', () => () => ({
   sendAsync: jest.fn().mockResolvedValue(1),
@@ -274,7 +316,7 @@ describe('BackgroundBridge', () => {
         chainId: '0x2',
         networkVersion: '2',
       };
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const mmBridge = setupBackgroundBridge(url, true);
       // Mock the getProviderNetworkState method to return the expected network state
@@ -304,7 +346,7 @@ describe('BackgroundBridge', () => {
         chainId: '0x1',
         networkVersion: '1',
       };
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationEip1193');
       const getProviderSpy = jest.spyOn(bridge, 'getProviderNetworkState');
@@ -434,7 +476,7 @@ describe('BackgroundBridge', () => {
 
   describe('notifySolanaAccountChangedForCurrentAccount', () => {
     it('emits nothing if there is no CAIP-25 permission', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -447,7 +489,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if there are no permitted solana scopes and `solana_accountChanged_notifications` session property is set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -475,7 +517,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if there are permitted solana accounts, but the `solana_accountChanged_notifications` session property is not set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -501,7 +543,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if there are permitted solana scopes but no accounts and the `solana_accountChanged_notifications` session property is set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -529,7 +571,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits a solana accountChanged event when there are permitted solana accounts and the `solana_accountChanged_notifications` session property is set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -566,7 +608,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('prioritizes solana account from selected account group over scope accounts', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -614,7 +656,7 @@ describe('BackgroundBridge', () => {
 
   describe('handleSolanaAccountChangedFromScopeChanges', () => {
     it('emits nothing if the current and previous permissions both did not have `solana_accountChanged_notifications` session property set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -652,7 +694,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if currently and previously selected solana accounts did not change', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -694,7 +736,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits the currently selected solana account if the currently selected solana accounts did change', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -747,7 +789,7 @@ describe('BackgroundBridge', () => {
 
   describe('handleSolanaAccountChangedFromSelectedAccountChanges', () => {
     it('emits nothing if the selected account is not a solana account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -778,7 +820,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if the selected account did not change from the last seen solana account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -810,7 +852,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if there is no CAIP-25 permission', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -827,7 +869,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if the `solana_accountChanged_notifications` session property is not set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -856,7 +898,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if the selected account does not match a permitted solana account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -887,7 +929,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits a solana accountChanged event for the selected account if it does match a permitted solana account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -933,7 +975,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing when AccountTreeController returns no accounts', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const handleSolanaAccountSpy = jest.spyOn(
         bridge,
@@ -952,7 +994,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing when AccountTreeController returns only non-Solana accounts', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const handleSolanaAccountSpy = jest.spyOn(
         bridge,
@@ -976,7 +1018,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('calls handleSolanaAccountChangedFromSelectedAccountChanges when AccountTreeController returns a Solana account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const handleSolanaAccountSpy = jest.spyOn(
         bridge,
@@ -1001,7 +1043,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('processes only the first Solana account when multiple valid Solana accounts exist', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const handleSolanaAccountSpy = jest.spyOn(
         bridge,
@@ -1040,7 +1082,7 @@ describe('BackgroundBridge', () => {
 
   describe('notifyTronAccountChangedForCurrentAccount', () => {
     it('emits nothing if there is no CAIP-25 permission', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1053,7 +1095,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if there are no permitted tron scopes and `tron_accountChanged_notifications` session property is set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1081,7 +1123,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if there are permitted tron accounts, but the `tron_accountChanged_notifications` session property is not set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1107,7 +1149,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if there are permitted tron scopes but no accounts and the `tron_accountChanged_notifications` session property is set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1135,7 +1177,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits a tron accountChanged event when there are permitted tron accounts and the `tron_accountChanged_notifications` session property is set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1172,7 +1214,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('prioritizes tron account from selected account group over scope accounts', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1218,7 +1260,7 @@ describe('BackgroundBridge', () => {
 
   describe('handleTronAccountChangedFromScopeChanges', () => {
     it('emits nothing if the current and previous permissions both did not have `tron_accountChanged_notifications` session property set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1256,7 +1298,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if currently and previously selected tron accounts did not change', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1298,7 +1340,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits the currently selected tron account if the currently selected tron accounts did change', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1351,7 +1393,7 @@ describe('BackgroundBridge', () => {
 
   describe('handleTronAccountChangedFromSelectedAccountChanges', () => {
     it('emits nothing if the selected account is not a tron account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1382,7 +1424,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if the selected account did not change from the last seen tron account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1414,7 +1456,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if there is no CAIP-25 permission', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1431,7 +1473,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if the `tron_accountChanged_notifications` session property is not set', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1460,7 +1502,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing if the selected account does not match a permitted tron account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1491,7 +1533,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits a tron accountChanged event for the selected account if it does match a permitted tron account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const sendNotificationSpy = jest.spyOn(
         bridge,
@@ -1537,7 +1579,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing when AccountTreeController returns no accounts', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const handleTronAccountSpy = jest.spyOn(
         bridge,
@@ -1556,7 +1598,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('emits nothing when AccountTreeController returns only non-Tron accounts', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const handleTronAccountSpy = jest.spyOn(
         bridge,
@@ -1580,7 +1622,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('calls handleTronAccountChangedFromSelectedAccountChanges when AccountTreeController returns a Tron account', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const handleTronAccountSpy = jest.spyOn(
         bridge,
@@ -1605,7 +1647,7 @@ describe('BackgroundBridge', () => {
     });
 
     it('processes only the first Tron account when multiple valid Tron accounts exist', () => {
-      const url = 'https:www.mock.io';
+      const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const handleTronAccountSpy = jest.spyOn(
         bridge,
@@ -1639,6 +1681,487 @@ describe('BackgroundBridge', () => {
       );
       expect(handleTronAccountSpy).toHaveBeenCalledWith(mockTronAccount1);
       expect(handleTronAccountSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('onDisconnect', () => {
+    const eventsUnsubscribedByStableRef = [
+      [AppConstants.NETWORK_STATE_CHANGE_EVENT],
+      ['PreferencesController:stateChange'],
+      ['AccountsController:selectedAccountChange'],
+      ['SelectedNetworkController:stateChange'],
+      ['KeyringController:lock'],
+      ['KeyringController:unlock'],
+    ];
+
+    it.each(eventsUnsubscribedByStableRef)(
+      'unsubscribes from %s using the handler reference that was subscribed',
+      (eventName) => {
+        const bridge = setupBackgroundBridge('https://www.mock.io');
+        const subscribeCall =
+          Engine.controllerMessenger.subscribe.mock.calls.find(
+            (call) => call[0] === eventName,
+          );
+        expect(subscribeCall).toBeDefined();
+        const subscribedHandler = subscribeCall[1];
+
+        bridge.onDisconnect();
+
+        expect(Engine.controllerMessenger.tryUnsubscribe).toHaveBeenCalledWith(
+          eventName,
+          subscribedHandler,
+        );
+      },
+    );
+
+    it('unsubscribes every PermissionController:stateChange handler that was subscribed in the constructor', () => {
+      const bridge = setupBackgroundBridge('https://www.mock.io');
+      const subscribedHandlers = Engine.controllerMessenger.subscribe.mock.calls
+        .filter((call) => call[0] === 'PermissionController:stateChange')
+        .map((call) => call[1]);
+
+      expect(subscribedHandlers.length).toBeGreaterThan(0);
+
+      bridge.onDisconnect();
+
+      const unsubscribedHandlers = [
+        ...Engine.controllerMessenger.tryUnsubscribe.mock.calls,
+        ...Engine.controllerMessenger.unsubscribe.mock.calls,
+      ]
+        .filter((call) => call[0] === 'PermissionController:stateChange')
+        .map((call) => call[1]);
+
+      subscribedHandlers.forEach((handler) => {
+        expect(unsubscribedHandlers).toContain(handler);
+      });
+    });
+
+    it('does not throw when called multiple times', () => {
+      const bridge = setupBackgroundBridge('https://www.mock.io');
+
+      expect(() => {
+        bridge.onDisconnect();
+        bridge.onDisconnect();
+      }).not.toThrow();
+    });
+
+    it('does not repeat teardown work on subsequent calls', () => {
+      const bridge = setupBackgroundBridge('https://www.mock.io');
+
+      bridge.onDisconnect();
+      const firstCallCount =
+        Engine.controllerMessenger.tryUnsubscribe.mock.calls.length +
+        Engine.controllerMessenger.unsubscribe.mock.calls.length;
+
+      bridge.onDisconnect();
+      const secondCallCount =
+        Engine.controllerMessenger.tryUnsubscribe.mock.calls.length +
+        Engine.controllerMessenger.unsubscribe.mock.calls.length;
+
+      expect(secondCallCount).toBe(firstCallCount);
+    });
+  });
+
+  describe('handleSessionChangedFromSelectedAccountGroupChanges', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+      PermissionController.getCaveat.mockReset();
+    });
+
+    it('does nothing if there is no CAIP-25 permission', () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      bridge.multichainEngine = { emit: jest.fn() };
+
+      PermissionController.getCaveat.mockImplementation(() => {
+        throw new PermissionDoesNotExistError('clientId', 'endowment:caip25');
+      });
+
+      bridge.handleSessionChangedFromSelectedAccountGroupChanges();
+
+      expect(bridge.multichainEngine.emit).not.toHaveBeenCalled();
+    });
+
+    it('does nothing if getCaveat returns falsy', () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      bridge.multichainEngine = { emit: jest.fn() };
+
+      PermissionController.getCaveat.mockReturnValue(undefined);
+
+      bridge.handleSessionChangedFromSelectedAccountGroupChanges();
+
+      expect(bridge.multichainEngine.emit).not.toHaveBeenCalled();
+    });
+
+    it('calls notifyCaipAuthorizationChange with the caveat value', () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const notifySpy = jest.spyOn(bridge, 'notifyCaipAuthorizationChange');
+
+      const mockCaveatValue = {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:1': {
+            accounts: ['eip155:1:0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571'],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+      PermissionController.getCaveat.mockClear();
+      PermissionController.getCaveat.mockReturnValueOnce({
+        type: Caip25CaveatType,
+        value: mockCaveatValue,
+      });
+
+      bridge.handleSessionChangedFromSelectedAccountGroupChanges();
+
+      expect(PermissionController.getCaveat).toHaveBeenCalledTimes(1);
+      expect(notifySpy).toHaveBeenCalledWith(mockCaveatValue);
+    });
+
+    it('rethrows unexpected errors from getCaveat', () => {
+      const url = 'https:www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const notifySpy = jest.spyOn(bridge, 'notifyCaipAuthorizationChange');
+
+      const unexpectedError = new Error('unexpected');
+      PermissionController.getCaveat.mockImplementation(() => {
+        throw unexpectedError;
+      });
+
+      expect(() =>
+        bridge.handleSessionChangedFromSelectedAccountGroupChanges(),
+      ).toThrow(unexpectedError);
+      expect(notifySpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('notifyCaipAuthorizationChange', () => {
+    it('emits a wallet_sessionChanged notification with session scopes and eip155 capabilities', async () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      bridge.multichainEngine = { emit: jest.fn() };
+
+      const authorization = {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:1': {
+            accounts: ['eip155:1:0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571'],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+
+      await bridge.notifyCaipAuthorizationChange(authorization);
+
+      expect(bridge.multichainEngine.emit).toHaveBeenCalledTimes(1);
+      const [event, payload] = bridge.multichainEngine.emit.mock.calls[0];
+      expect(event).toBe('notification');
+      expect(payload.method).toBe('wallet_sessionChanged');
+      expect(payload.params.sessionScopes).toEqual(expect.any(Object));
+
+      const { eip155Capabilities } = payload.params.sessionProperties;
+      expect(Object.keys(eip155Capabilities)).toHaveLength(1);
+      expect(Object.values(eip155Capabilities)[0]).toStrictEqual({
+        '0x1': { atomic: { status: 'supported' } },
+      });
+
+      // Hydration is scoped to the authorization's permitted eip155 chains
+      // (derived from the authorization itself, not a store lookup).
+      expect(getSessionCapabilities).toHaveBeenCalledWith(expect.any(String), [
+        '0x1',
+      ]);
+    });
+
+    it('still emits sessionScopes when capability hydration fails', async () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      bridge.multichainEngine = { emit: jest.fn() };
+
+      getSessionCapabilities.mockImplementationOnce(() =>
+        Promise.reject(new Error('capabilities boom')),
+      );
+
+      const authorization = {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:1': {
+            accounts: ['eip155:1:0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571'],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+
+      await bridge.notifyCaipAuthorizationChange(authorization);
+
+      expect(bridge.multichainEngine.emit).toHaveBeenCalledTimes(1);
+      const [, payload] = bridge.multichainEngine.emit.mock.calls[0];
+      expect(payload.method).toBe('wallet_sessionChanged');
+      expect(payload.params.sessionScopes).toEqual(expect.any(Object));
+      // getSessionProperties swallows the per-address capability error, so the
+      // address is omitted from eip155Capabilities; the event is not dropped.
+      expect(payload.params.sessionProperties.eip155Capabilities).toStrictEqual(
+        {},
+      );
+    });
+
+    it('drops a superseded emit (latest-wins) when an earlier call hydrates after a later one', async () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const emitted = [];
+      bridge.multichainEngine = {
+        emit: jest.fn((_event, payload) => emitted.push(payload)),
+      };
+
+      const addr1 = '0x1111111111111111111111111111111111111111';
+      const addr2 = '0x2222222222222222222222222222222222222222';
+      const makeAuth = (addr) => ({
+        requiredScopes: {},
+        optionalScopes: { 'eip155:1': { accounts: [`eip155:1:${addr}`] } },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      });
+
+      // Hold both calls' capability hydration open so we control resolution
+      // order. Call A (addr1) is started first, then superseded by call B
+      // (addr2). We resolve B first (it emits), then resolve A (should be
+      // dropped because it was superseded by the newer generation).
+      let resolveA;
+      let resolveB;
+      getSessionCapabilities
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveA = resolve;
+            }),
+        )
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveB = resolve;
+            }),
+        );
+
+      const pA = bridge.notifyCaipAuthorizationChange(makeAuth(addr1));
+      const pB = bridge.notifyCaipAuthorizationChange(makeAuth(addr2));
+
+      // Flush microtasks so both calls have started hydration and captured
+      // their resolvers. Use a fixed iteration count (not a mutable-flag loop
+      // condition) to avoid the no-unmodified-loop-condition eslint rule.
+      for (let i = 0; i < 5; i++) {
+        await Promise.resolve();
+      }
+      expect(resolveA).toBeDefined();
+      expect(resolveB).toBeDefined();
+
+      // The later call (B) resolves and emits.
+      resolveB({ '0x2': { atomic: { status: 'supported' } } });
+      await pB;
+
+      // The earlier call (A) resolves after being superseded; it must not emit.
+      resolveA({ '0x1': { atomic: { status: 'supported' } } });
+      await pA;
+
+      expect(emitted).toHaveLength(1);
+      const emittedKey = Object.keys(
+        emitted[0].params.sessionProperties.eip155Capabilities,
+      )[0];
+      expect(emittedKey.toLowerCase()).toBe(addr2.toLowerCase());
+    });
+
+    it('returns early without hydrating or emitting when multichainEngine is null', async () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      bridge.multichainEngine = null;
+
+      const authorization = {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:1': {
+            accounts: ['eip155:1:0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571'],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+
+      await expect(
+        bridge.notifyCaipAuthorizationChange(authorization),
+      ).resolves.toBeUndefined();
+
+      expect(getSessionProperties).not.toHaveBeenCalled();
+    });
+
+    it('drops the emit when multichainEngine is torn down while hydrating', async () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const emit = jest.fn();
+      bridge.multichainEngine = { emit };
+
+      let resolveHydration;
+      getSessionProperties.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveHydration = resolve;
+          }),
+      );
+
+      const authorization = {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:1': {
+            accounts: ['eip155:1:0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571'],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+
+      const pending = bridge.notifyCaipAuthorizationChange(authorization);
+
+      for (let i = 0; i < 5; i++) {
+        await Promise.resolve();
+      }
+      expect(resolveHydration).toBeDefined();
+
+      // Tear down the bridge while hydration is still in-flight.
+      bridge.multichainEngine = null;
+      resolveHydration({ eip155Capabilities: {} });
+      await pending;
+
+      expect(emit).not.toHaveBeenCalled();
+    });
+
+    it('emits sessionScopes only (no sessionProperties) when getSessionProperties throws', async () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      bridge.multichainEngine = { emit: jest.fn() };
+
+      const loggerSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+      getSessionProperties.mockRejectedValueOnce(
+        new Error('session properties boom'),
+      );
+
+      const authorization = {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:1': {
+            accounts: ['eip155:1:0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571'],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+
+      await bridge.notifyCaipAuthorizationChange(authorization);
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.stringContaining('failed to compute session properties'),
+      );
+      expect(bridge.multichainEngine.emit).toHaveBeenCalledTimes(1);
+      const [, payload] = bridge.multichainEngine.emit.mock.calls[0];
+      expect(payload.method).toBe('wallet_sessionChanged');
+      expect(payload.params.sessionScopes).toEqual(expect.any(Object));
+      expect(payload.params.sessionProperties).toBeUndefined();
+
+      loggerSpy.mockRestore();
+    });
+  });
+
+  describe('getCapabilities session hook wiring', () => {
+    it('wires getSessionCapabilities into the multichain getCapabilities hook scoped to permitted chains', () => {
+      const url = 'https://www.mock.io';
+      setupBackgroundBridge(url);
+
+      expect(createMultichainApiMethodMiddleware).toHaveBeenCalled();
+      const options = createMultichainApiMethodMiddleware.mock.calls.at(-1)[0];
+      const address = '0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571';
+
+      options.getCapabilities({ address });
+
+      expect(getPermittedEip155ChainIds).toHaveBeenCalled();
+      expect(getSessionCapabilities).toHaveBeenCalledWith(address, ['0x1']);
+    });
+  });
+
+  describe('notifyCaipAuthorizationChange rejection logging', () => {
+    const flushMicrotasks = async () => {
+      for (let i = 0; i < 10; i++) {
+        await Promise.resolve();
+      }
+    };
+
+    it('logs when notifyCaipAuthorizationChange rejects in handleCaipSessionScopeChanges', async () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+
+      const err = new Error('notify failed');
+      jest
+        .spyOn(bridge, 'notifyCaipAuthorizationChange')
+        .mockRejectedValueOnce(err);
+      const loggerSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      const authorization = {
+        requiredScopes: {},
+        optionalScopes: {},
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+
+      await bridge.handleCaipSessionScopeChanges(authorization, authorization);
+      await flushMicrotasks();
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        err,
+        expect.stringContaining('failed to notify CAIP authorization change'),
+      );
+
+      loggerSpy.mockRestore();
+    });
+
+    it('logs when notifyCaipAuthorizationChange rejects in handleSessionChangedFromSelectedAccountGroupChanges', async () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+
+      PermissionController.getCaveat.mockReturnValueOnce({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {},
+          isMultichainOrigin: true,
+          sessionProperties: {},
+        },
+      });
+
+      const err = new Error('notify failed');
+      jest
+        .spyOn(bridge, 'notifyCaipAuthorizationChange')
+        .mockRejectedValueOnce(err);
+      const loggerSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      bridge.handleSessionChangedFromSelectedAccountGroupChanges();
+      await flushMicrotasks();
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        err,
+        expect.stringContaining('failed to notify CAIP authorization change'),
+      );
+
+      loggerSpy.mockRestore();
     });
   });
 });

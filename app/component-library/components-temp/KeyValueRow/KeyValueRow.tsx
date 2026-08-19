@@ -13,6 +13,11 @@ import KeyValueRowLabel from './KeyValueLabel/KeyValueLabel';
 import KeyValueRowRoot from './KeyValueRoot/KeyValueRoot';
 
 /**
+ * @deprecated Please update your code to use `KeyValueRow` from `@metamask/design-system-react-native`.
+ * The API has changed — the new component uses flat props (`keyLabel`, `value`, `variant`) instead of nested `field`/`value` objects.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/KeyValueRow/README.md}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#keyvaluerow-api Migration docs}
+ *
  * Prebuilt convenience component to format and render a key/value KeyValueRowLabel pair.
  * The KeyValueRowLabel component has props to display a tooltip and icon.
  *

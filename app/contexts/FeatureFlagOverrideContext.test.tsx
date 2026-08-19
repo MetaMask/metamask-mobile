@@ -1,5 +1,11 @@
 import React from 'react';
-import { renderHook, act, render, screen } from '@testing-library/react-native';
+import {
+  renderHook,
+  act,
+  render,
+  screen,
+  fireEvent,
+} from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { Text } from 'react-native';
 import {
@@ -8,9 +14,9 @@ import {
 } from './FeatureFlagOverrideContext';
 import { FeatureFlagType, getFeatureFlagType } from '../util/feature-flags';
 import {
-  selectRemoteFeatureFlags,
+  selectRemoteFeatureFlagsUnfiltered,
   selectLocalOverrides,
-  selectRawFeatureFlags,
+  selectRawRemoteFeatureFlags,
 } from '../selectors/featureFlagController';
 
 jest.mock('react-redux', () => ({
@@ -37,13 +43,13 @@ jest.mock('../core/Engine', () => ({
 }));
 
 jest.mock('../selectors/featureFlagController', () => ({
-  selectRemoteFeatureFlags: jest.fn(),
+  selectRemoteFeatureFlagsUnfiltered: jest.fn(),
   selectLocalOverrides: jest.fn(),
-  selectRawFeatureFlags: jest.fn(),
+  selectRawRemoteFeatureFlags: jest.fn(),
 }));
 
 // Mock whenEngineReady to prevent Engine access after Jest teardown
-jest.mock('../core/Analytics/whenEngineReady', () => ({
+jest.mock('../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -112,23 +118,20 @@ describe('FeatureFlagOverrideContext', () => {
   });
 
   /**
-   * Helper to setup useSelector mock for the three selectors
+   * Helper to setup useSelector mock for the selectors
    */
   const setupSelectorMocks = (rawFlags: Record<string, unknown>) => {
     currentRawFlags = rawFlags;
     currentOverrides = {};
 
-    // We need to identify which selector is being used
-    // by comparing the selector function directly
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectRemoteFeatureFlags) {
-        // Return raw flags merged with overrides
+      if (selector === selectRemoteFeatureFlagsUnfiltered) {
         return { ...currentRawFlags, ...currentOverrides };
       }
       if (selector === selectLocalOverrides) {
         return { ...currentOverrides };
       }
-      if (selector === selectRawFeatureFlags) {
+      if (selector === selectRawRemoteFeatureFlags) {
         return currentRawFlags;
       }
       return undefined;
@@ -503,6 +506,32 @@ describe('FeatureFlagOverrideContext', () => {
       expect(result.current.featureFlags.objectFlag.type).toBe('object');
     });
 
+    it('classifies A/B test group arrays as abTest from the raw value', () => {
+      // The controller resolves this to a single group value, so the effective
+      // value is no longer `{ name, value }`. Detection must use the raw array.
+      const abGroups = [
+        {
+          name: 'control',
+          value: { variant: 'A' },
+          scope: { type: 'threshold', value: 0 },
+        },
+        {
+          name: 'treatment',
+          value: { variant: 'B' },
+          scope: { type: 'threshold', value: 1 },
+        },
+      ];
+      setupSelectorMocks({ myAbFlag: abGroups });
+
+      const { result } = renderHook(() => useFeatureFlagOverride(), {
+        wrapper: createWrapper,
+      });
+
+      expect(result.current.featureFlags.myAbFlag.type).toBe(
+        FeatureFlagType.FeatureFlagAbTest,
+      );
+    });
+
     it('handles flags with null/undefined values', () => {
       const mockFlags = {
         nullFlag: null,
@@ -646,7 +675,7 @@ describe('FeatureFlagOverrideContext', () => {
       expect(screen.getByText('Override count: 0')).toBeTruthy();
 
       act(() => {
-        screen.getByText('Add Override').props.onPress();
+        fireEvent.press(screen.getByText('Add Override'));
       });
 
       // Verify Engine method was called

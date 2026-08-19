@@ -4,17 +4,21 @@ import {
   TransactionPayTotals,
   TransactionPayRequiredToken,
   TransactionPaySourceAmount,
+  TransactionFiatPayment,
 } from '@metamask/transaction-pay-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
+  useIsTransactionPaySubmitReady,
   useTransactionPayQuotes,
+  useTransactionPayQuotesLastUpdated,
   useTransactionPayRequiredTokens,
   useTransactionPaySourceAmounts,
   useTransactionPayTotals,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
+  useTransactionPayFiatPayment,
 } from './useTransactionPayData';
 import { cloneDeep, merge } from 'lodash';
 import {
@@ -31,7 +35,7 @@ import {
 jest.mock('../../context/confirmation-context');
 
 const QUOTE_MOCK = {
-  strategy: TransactionPayStrategy.Test,
+  strategy: TransactionPayStrategy.Relay,
 } as TransactionPayQuote<Json>;
 
 const REQUIRED_TOKEN_MOCK = {
@@ -43,6 +47,13 @@ const SOURCE_AMOUNT_MOCK = {} as TransactionPaySourceAmount;
 const TOTALS_MOCK = {
   total: { usd: '1000', fiat: '1234' },
 } as TransactionPayTotals;
+
+const QUOTES_LAST_UPDATED_MOCK = 123;
+
+const FIAT_PAYMENT_MOCK: TransactionFiatPayment = {
+  selectedPaymentMethodId: 'pm-123',
+  amountFiat: '50.00',
+};
 
 const state = merge(
   {},
@@ -58,9 +69,11 @@ const state = merge(
               isMaxAmount: true,
               isPostQuote: true,
               quotes: [QUOTE_MOCK],
+              quotesLastUpdated: QUOTES_LAST_UPDATED_MOCK,
               sourceAmounts: [SOURCE_AMOUNT_MOCK],
               tokens: [REQUIRED_TOKEN_MOCK],
               totals: TOTALS_MOCK,
+              fiatPayment: FIAT_PAYMENT_MOCK,
             },
           },
         },
@@ -84,6 +97,13 @@ describe('useTransactionPayData', () => {
     expect(
       renderHookWithProvider(useTransactionPayQuotes, { state }).result.current,
     ).toStrictEqual([QUOTE_MOCK]);
+  });
+
+  it('returns the quote update timestamp', () => {
+    expect(
+      renderHookWithProvider(useTransactionPayQuotesLastUpdated, { state })
+        .result.current,
+    ).toBe(QUOTES_LAST_UPDATED_MOCK);
   });
 
   it('returns required tokens', () => {
@@ -176,6 +196,35 @@ describe('useTransactionPayData', () => {
 
     expect(
       renderHookWithProvider(useTransactionPayIsPostQuote, {
+        state: updatedState,
+      }).result.current,
+    ).toBe(false);
+  });
+
+  it('returns fiatPayment', () => {
+    expect(
+      renderHookWithProvider(useTransactionPayFiatPayment, { state }).result
+        .current,
+    ).toStrictEqual(FIAT_PAYMENT_MOCK);
+  });
+
+  it('returns submit ready when an executable quote is in state', () => {
+    expect(
+      renderHookWithProvider(useIsTransactionPaySubmitReady, { state }).result
+        .current,
+    ).toBe(true);
+  });
+
+  it('returns not submit ready when only a no-op quote is in state', () => {
+    const updatedState = cloneDeep(state);
+    updatedState.engine.backgroundState.TransactionPayController.transactionData[
+      transactionIdMock
+    ].quotes = [
+      { strategy: TransactionPayStrategy.None } as TransactionPayQuote<Json>,
+    ];
+
+    expect(
+      renderHookWithProvider(useIsTransactionPaySubmitReady, {
         state: updatedState,
       }).result.current,
     ).toBe(false);

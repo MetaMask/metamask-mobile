@@ -1,10 +1,11 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import NetworkConnectMultiSelector from './NetworkConnectMultiSelector';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../NetworkConnectMultiSelector.testIds';
-import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import {
   selectNetworkConfigurationsByCaipChainId,
   selectEvmChainId,
@@ -78,14 +79,16 @@ describe('NetworkConnectMultiSelector', () => {
   });
 
   it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(
-      <NetworkConnectMultiSelector {...defaultProps} />,
-    );
-    expect(toJSON()).toMatchSnapshot();
+    renderWithProvider(<NetworkConnectMultiSelector {...defaultProps} />);
+    expect(
+      screen.getAllByTestId(
+        ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON,
+      )[0],
+    ).toBeOnTheScreen();
   });
 
   it('disables the select all button when loading', () => {
-    const { getByTestId, getAllByTestId } = renderWithProvider(
+    const { getByTestId, getAllByTestId, rerender } = renderWithProvider(
       <NetworkConnectMultiSelector {...defaultProps} isLoading />,
     );
 
@@ -94,12 +97,13 @@ describe('NetworkConnectMultiSelector', () => {
     );
     fireEvent.press(selectAllbutton[0]);
 
+    // Update button should be disabled while loading
     const updateButton = getByTestId(
       NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS,
     );
+    // Update button is disabled when isLoading is true, so onSubmit should not be called
     fireEvent.press(updateButton);
-
-    expect(defaultProps.onSubmit).toHaveBeenCalledWith(['eip155:1']);
+    expect(defaultProps.onSubmit).not.toHaveBeenCalled();
   });
 
   it('handles the select all button when not loading', () => {

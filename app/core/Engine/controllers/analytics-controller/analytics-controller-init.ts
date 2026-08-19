@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../../types';
+import { MessengerClientInitFunction } from '../../types';
 import {
   AnalyticsController,
   AnalyticsControllerMessenger,
@@ -7,7 +7,42 @@ import {
 } from '@metamask/analytics-controller';
 import { createPlatformAdapter } from './platform-adapter';
 import { createPlatformAdapter as createE2EPlatformAdapter } from './platform-adapter-e2e';
-import { isE2E } from '../../../../util/test/utils';
+import { hasTestOverrides } from '../../../../util/test/utils';
+import { getBrazePlugin } from '../../../Braze';
+import type { AnalyticsControllerInitMessenger } from '../../messengers/analytics-controller-messenger';
+import type { AccountsControllerState } from '@metamask/accounts-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
+import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
+import { analytics } from '../../../../util/analytics/analytics';
+import AppVersionSegmentPlugin from '../../../../util/analytics/appVersionSegmentPlugin';
+import { getAccountCompositionTraits } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import Logger from '../../../../util/Logger';
+
+/**
+ * Produces a stable string fingerprint from only the fields that affect wallet
+ * composition metrics. Fields like `lastSelected` and account names are
+ * intentionally excluded so that account switches and renames do not trigger
+ * an unnecessary identify call.
+ */
+type InternalAccounts = AccountsControllerState['internalAccounts']['accounts'];
+
+function getCompositionFingerprint(accounts: InternalAccounts): string {
+  return Object.entries(accounts)
+    .map(([id, acct]) => {
+      const keyringType = acct.metadata?.keyring?.type ?? '';
+      const entropy: InternalAccount['options']['entropy'] =
+        acct.options?.entropy;
+      const isMnemonic =
+        entropy?.type === KeyringAccountEntropyTypeOption.Mnemonic &&
+        !!entropy.id &&
+        entropy.groupIndex !== undefined;
+      const entropyId = isMnemonic ? entropy.id : '';
+      const entropyGroupIndex = isMnemonic ? entropy.groupIndex : '';
+      return `${id}|${keyringType}|${entropy?.type ?? ''}|${entropyId}|${entropyGroupIndex}`;
+    })
+    .sort((a, b) => a.localeCompare(b))
+    .join(';');
+}
 
 /**
  * Initialize the analytics controller.
@@ -16,33 +51,64 @@ import { isE2E } from '../../../../util/test/utils';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @param request.analyticsId - The analytics ID to use.
  * @param request.persistedState - The persisted state for all controllers.
+ * @param request.initMessenger - The init messenger for accounts state subscriptions.
  * @returns The initialized controller.
  */
-export const analyticsControllerInit: ControllerInitFunction<
+export const analyticsControllerInit: MessengerClientInitFunction<
   AnalyticsController,
-  AnalyticsControllerMessenger
-> = ({ controllerMessenger, analyticsId, persistedState }) => {
-  // Get persisted state for AnalyticsController, or use defaults
+  AnalyticsControllerMessenger,
+  AnalyticsControllerInitMessenger
+> = ({ controllerMessenger, analyticsId, persistedState, initMessenger }) => {
   const persistedAnalyticsState = persistedState.AnalyticsController;
   const defaultState = getDefaultAnalyticsControllerState();
 
   const state: AnalyticsControllerState = {
     optedIn: persistedAnalyticsState?.optedIn ?? defaultState.optedIn,
+    consentDecisionMade:
+      persistedAnalyticsState?.consentDecisionMade ??
+      defaultState.consentDecisionMade,
     analyticsId,
   };
 
-  const platformAdapter = isE2E
+  const platformAdapter = hasTestOverrides
     ? createE2EPlatformAdapter()
-    : createPlatformAdapter();
+    : createPlatformAdapter([getBrazePlugin(), new AppVersionSegmentPlugin()]);
 
   const controller = new AnalyticsController({
     messenger: controllerMessenger,
     state,
     platformAdapter,
     isAnonymousEventsFeatureEnabled: true,
+    // Geolocation enrichment is intentionally disabled. With this off, the
+    // controller never calls `GeolocationController:getGeolocationData`, so that
+    // action does not need to be delegated to the analytics messenger.
+    isGeolocationEnabled: false,
   });
 
-  controller.init();
+  // `AnalyticsController.init` is asynchronous as of `@metamask/analytics-controller@2`.
+  // We intentionally don't block controller initialization on it; log any failure.
+  controller.init().catch((error) => {
+    Logger.error(error as Error, 'analyticsControllerInit: Error initializing');
+  });
+
+  let lastCompositionFingerprint = '';
+  initMessenger.subscribe(
+    'AccountsController:stateChange',
+    (accounts: InternalAccounts) => {
+      const fingerprint = getCompositionFingerprint(accounts);
+      if (fingerprint === lastCompositionFingerprint) return;
+      try {
+        analytics.identify(getAccountCompositionTraits(accounts));
+        lastCompositionFingerprint = fingerprint;
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'analyticsControllerInit: Error updating account composition traits',
+        );
+      }
+    },
+    (accountsState) => accountsState.internalAccounts.accounts,
+  );
 
   return {
     controller,

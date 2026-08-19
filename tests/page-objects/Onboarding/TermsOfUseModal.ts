@@ -1,28 +1,47 @@
 import { TermsOfUseModalSelectorsIDs } from '../../../app/util/termsOfUse/TermsOfUseModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class TermsOfUseModal {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.CONTAINER);
   }
 
-  get checkbox(): DetoxElement {
+  get checkbox(): EncapsulatedElementType {
     return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.CHECKBOX);
   }
 
-  get scrollArrowButton(): DetoxElement {
+  get scrollArrowButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON,
     );
   }
 
-  get acceptButton(): DetoxElement {
+  get acceptButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
   }
 
-  get closeButton(): DetoxElement {
+  get webview(): EncapsulatedElementType {
+    return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.WEBVIEW);
+  }
+
+  get lastUpdatedText(): EncapsulatedElementType {
+    return Matchers.getElementByNativeXPath(
+      this.getCatchAllXPath('Last Updated'),
+    );
+  }
+
+  get closeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TermsOfUseModalSelectorsIDs.CLOSE_BUTTON);
+  }
+
+  private getCatchAllXPath(identifier: string): string {
+    if (PlatformDetector.isAndroid()) {
+      return `//*[@resource-id='${identifier}' or contains(@text,'${identifier}') or contains(@content-desc,'${identifier}')]`;
+    }
+    return `//*[contains(@name,'${identifier}') or contains(@label,'${identifier}') or contains(@text,'${identifier}')]`;
   }
 
   async tapAgreeCheckBox(): Promise<void> {

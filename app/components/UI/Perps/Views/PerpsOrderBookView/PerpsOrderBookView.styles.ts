@@ -10,50 +10,20 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       backgroundColor: colors.background.default,
     },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
-    },
-    headerBackButton: {
-      marginRight: 12,
-    },
-    headerTitleContainer: {
-      flex: 1,
-    },
-    // Header unit toggle (BTC/USD)
-    headerUnitToggle: {
-      flexDirection: 'row',
+    groupingSelectButtonAccessory: {
       marginRight: 8,
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      overflow: 'hidden',
-    },
-    headerUnitButton: {
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-    },
-    headerUnitButtonActive: {
-      backgroundColor: colors.primary.default,
+      alignSelf: 'center',
+      justifyContent: 'center',
     },
     controlsRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
       paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
+      paddingVertical: 12,
     },
     scrollView: {
       flex: 1,
     },
     scrollContent: {
-      paddingBottom: 140,
+      paddingBottom: 12,
     },
     section: {
       paddingHorizontal: 16,
@@ -66,16 +36,9 @@ const styleSheet = (params: { theme: Theme }) => {
       // No flex or minHeight - let content determine size
     },
     footer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
       paddingHorizontal: 16,
       paddingTop: 12,
-      // paddingBottom is calculated dynamically in component with safe area insets
       backgroundColor: colors.background.default,
-      borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
     },
     spreadContainer: {
       flexDirection: 'row',
@@ -111,33 +74,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     midPriceText: {
       marginHorizontal: 8,
-    },
-    // Depth band dropdown button
-    depthBandButton: {
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 8,
-      backgroundColor: colors.background.muted,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
-    depthBandButtonPressed: {
-      opacity: 0.7,
-    },
-    // Bottom sheet content
-    depthBandSheetContent: {
-      paddingHorizontal: 16,
-      paddingBottom: 24,
-    },
-    depthBandOption: {
-      paddingVertical: 16,
-      paddingHorizontal: 16,
-      borderRadius: 8,
-      marginBottom: 8,
-    },
-    depthBandOptionSelected: {
-      backgroundColor: colors.primary.muted,
     },
   });
 };

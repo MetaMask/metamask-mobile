@@ -8,12 +8,17 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useStyles } from '../../../../component-library/hooks';
 import {
   Box,
   BoxFlexDirection,
   BoxAlignItems,
   IconName as DSIconName,
+  HeaderStandard,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Icon, {
@@ -21,11 +26,6 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../component-library/components/Texts/Text';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { useTheme } from '../../../../util/theme';
 import type { ListHeaderWithSearchProps } from './ListHeaderWithSearch.types';
 import styleSheet from './ListHeaderWithSearch.styles';
@@ -83,7 +83,7 @@ const ListHeaderWithSearch: React.FC<ListHeaderWithSearchProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   // Default back handler
   const defaultHandleBack = useCallback(() => {
@@ -130,7 +130,7 @@ const ListHeaderWithSearch: React.FC<ListHeaderWithSearchProps> = ({
             onPress={onSearchToggle}
             testID={testID ? `${testID}-search-close` : undefined}
           >
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
               {cancelText}
             </Text>
           </TouchableOpacity>
@@ -140,7 +140,7 @@ const ListHeaderWithSearch: React.FC<ListHeaderWithSearchProps> = ({
   }
 
   return (
-    <HeaderCompactStandard
+    <HeaderStandard
       title={title || defaultTitle}
       onBack={handleBack}
       backButtonProps={{

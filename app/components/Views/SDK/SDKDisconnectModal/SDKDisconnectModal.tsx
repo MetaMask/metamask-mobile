@@ -3,14 +3,13 @@ import React, { useMemo, useRef } from 'react';
 
 // External dependencies
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -42,21 +41,18 @@ const createStyles = (
     },
   });
 
-interface SDKDisconnectModalProps {
-  route: {
-    params: {
-      channelId?: string;
-      account?: string;
-      accountName?: string;
-      dapp?: string;
-      accountsLength?: number;
-      isV2?: boolean;
-    };
-  };
+interface SDKDisconnectModalRouteParams {
+  channelId?: string;
+  account?: string;
+  accountName?: string;
+  dapp?: string;
+  accountsLength?: number;
+  isV2?: boolean;
 }
 
-const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
-  const { params } = route;
+const SDKDisconnectModal = () => {
+  const { params } =
+    useRoute<RouteProp<{ params: SDKDisconnectModalRouteParams }, 'params'>>();
   const { channelId, account, accountsLength, accountName, dapp, isV2 } =
     params ?? {};
 
@@ -66,7 +62,7 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
   const safeAreaInsets = useSafeAreaInsets();
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
 
   const { title, description } = useMemo(() => {
     let _title, _description;
@@ -145,17 +141,19 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
           {strings(description, { account: accountName, dapp })}
         </Text>
         <Button
-          label={strings('sdk_disconnect_modal.disconnect_confirm')}
           style={styles.btn}
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           onPress={onConfirm}
-        />
+        >
+          {strings('sdk_disconnect_modal.disconnect_confirm')}
+        </Button>
         <Button
-          label={strings('sdk_disconnect_modal.cancel')}
           style={styles.btn}
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariant.Secondary}
           onPress={onCancel}
-        />
+        >
+          {strings('sdk_disconnect_modal.cancel')}
+        </Button>
       </View>
     </BottomSheet>
   );

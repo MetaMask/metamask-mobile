@@ -1,24 +1,22 @@
 /* eslint-disable react/prop-types */
 
-// Third party dependencies.
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   StyleProp,
+  StyleSheet,
   TextInput,
-  View,
   NativeSyntheticEvent,
-  TextInputFocusEventData,
   TouchableWithoutFeedback,
   TextInputSelectionChangeEventData,
   TextStyle,
+  type BlurEvent,
+  type FocusEvent,
 } from 'react-native';
 
-// External dependencies.
-import { useStyles } from '../../../component-library/hooks';
-import Input from './Input';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { Box } from '@metamask/design-system-react-native';
 
-// Internal dependencies.
-import styleSheet from '../../../component-library/components/Form/TextField/TextField.styles';
+import Input from './Input';
 import { TextFieldProps } from '../../../component-library/components/Form/TextField/TextField.types';
 import {
   TEXTFIELD_TEST_ID,
@@ -26,7 +24,6 @@ import {
   TEXTFIELD_ENDACCESSORY_TEST_ID,
 } from '../../../component-library/components/Form/TextField/TextField.constants';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
-import Device from '../../../util/device';
 
 const TextField = React.forwardRef<
   TextInput,
@@ -54,69 +51,85 @@ const TextField = React.forwardRef<
     },
     ref,
   ) => {
+    const tw = useTailwind();
+    const inputRef = useRef<TextInput | null>(null);
     const [isFocused, setIsFocused] = useState(false);
     const [inputSelection, setInputSelection] = useState<
       { start: number; end: number } | undefined
     >(undefined);
 
-    const { styles } = useStyles(styleSheet, {
-      style,
-      isError,
-      isDisabled,
-      isFocused,
-    });
+    const assignRef = useCallback(
+      (node: TextInput | null) => {
+        inputRef.current = node;
+        if (typeof ref === 'function') {
+          ref(node);
+        } else if (ref) {
+          ref.current = node;
+        }
+      },
+      [ref],
+    );
+
+    const placeCaretAtEnd = useCallback(() => {
+      const end = value?.length ?? 0;
+      const selection = { start: end, end };
+      setInputSelection(selection);
+      inputRef.current?.setNativeProps({ selection });
+    }, [value]);
 
     const onBlurHandler = useCallback(
-      (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+      (e: BlurEvent) => {
         if (!isDisabled) {
           setIsFocused(false);
           onBlur?.(e);
         }
-        if (Device.isAndroid()) {
-          setInputSelection({ start: 0, end: 0 });
-        }
+        const end = value?.length ?? 0;
+        setInputSelection({ start: end, end });
       },
-      [isDisabled, setIsFocused, onBlur],
+      [isDisabled, onBlur, value],
     );
 
     const onFocusHandler = useCallback(
-      (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+      (e: FocusEvent) => {
         if (!isDisabled) {
           setIsFocused(true);
           onFocus?.(e);
-
-          if (Device.isAndroid()) {
-            setInputSelection({
-              start: value?.length ?? 0,
-              end: value?.length ?? 0,
-            });
-          }
+          placeCaretAtEnd();
         }
       },
-      [isDisabled, setIsFocused, onFocus, value],
+      [isDisabled, onFocus, placeCaretAtEnd],
     );
 
     const handleSelectionChange = (
       event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
     ) => {
-      // Update selection state when user manually changes cursor position
-      if (Device.isAndroid()) {
-        setInputSelection(event.nativeEvent.selection);
-      }
+      setInputSelection(event.nativeEvent.selection);
     };
+
+    let borderStyleClass = 'border-muted';
+    if (isError) {
+      borderStyleClass = 'border-error-default';
+    } else if (isFocused) {
+      borderStyleClass = 'border-default';
+    }
 
     return (
       <TouchableWithoutFeedback onPress={onInputFocus}>
-        <View style={styles.base} testID={TEXTFIELD_TEST_ID}>
-          {startAccessory && (
-            <View
-              style={styles.startAccessory}
-              testID={TEXTFIELD_STARTACCESSORY_TEST_ID}
-            >
-              {startAccessory}
-            </View>
+        <Box
+          style={tw.style(
+            'flex-row items-center rounded-xl h-12 border px-4 bg-muted',
+            isDisabled && 'opacity-50',
+            borderStyleClass,
+            ...(style ? [StyleSheet.flatten(style)] : []),
           )}
-          <View style={[styles.input, styles.inputContainer]}>
+          testID={TEXTFIELD_TEST_ID}
+        >
+          {startAccessory && (
+            <Box twClassName="mr-3" testID={TEXTFIELD_STARTACCESSORY_TEST_ID}>
+              {startAccessory}
+            </Box>
+          )}
+          <Box twClassName="flex-1 h-[46px]">
             {inputElement ?? (
               <Input
                 textVariant={TextVariant.BodyMD}
@@ -126,7 +139,7 @@ const TextField = React.forwardRef<
                 onFocus={onFocusHandler}
                 testID={testID}
                 {...props}
-                ref={ref}
+                ref={assignRef}
                 isStateStylesDisabled
                 inputStyle={inputStyle}
                 selection={inputSelection}
@@ -134,16 +147,13 @@ const TextField = React.forwardRef<
                 value={value}
               />
             )}
-          </View>
+          </Box>
           {endAccessory && (
-            <View
-              style={styles.endAccessory}
-              testID={TEXTFIELD_ENDACCESSORY_TEST_ID}
-            >
+            <Box twClassName="ml-3" testID={TEXTFIELD_ENDACCESSORY_TEST_ID}>
               {endAccessory}
-            </View>
+            </Box>
           )}
-        </View>
+        </Box>
       </TouchableWithoutFeedback>
     );
   },

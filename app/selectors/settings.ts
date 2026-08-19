@@ -4,6 +4,8 @@ import { AvatarAccountType } from '../component-library/components/Avatars/Avata
 
 const selectSettings = (state: RootState) => state.settings;
 
+export const selectLockTime = (state: RootState) => state.settings.lockTime;
+
 export const selectShowFiatInTestnets = createSelector(
   selectSettings,
   (settingsState: Record<string, unknown>) =>
@@ -31,6 +33,12 @@ export const selectDeepLinkModalDisabled = createSelector(
   selectSettings,
   (settingsState: Record<string, unknown>) =>
     Boolean(settingsState.deepLinkModalDisabled),
+);
+
+export const selectHapticsEnabled = createSelector(
+  selectSettings,
+  (settingsState: Record<string, unknown>) =>
+    settingsState.hapticsEnabled !== false,
 );
 
 export const selectAvatarAccountType = createSelector(

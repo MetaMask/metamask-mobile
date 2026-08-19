@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 
 import { QuoteError, QuoteResponse } from '@consensys/on-ramp-sdk';
 import { DeepPartial } from '../../../../../../util/test/renderWithProvider';

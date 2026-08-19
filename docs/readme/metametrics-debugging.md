@@ -11,8 +11,8 @@ This guide covers both verifying that events are working correctly and debugging
 
 Before diving into detailed debugging, verify these basics:
 
-- [ ] Is analytics enabled? (check `IS_TEST` environment variable is NOT set to `true`)
-- [ ] Is the user opted into analytics? (`isEnabled()` from `useMetrics` hook)
+- [ ] Is analytics enabled? (check `HAS_TEST_OVERRIDES` environment variable is NOT set to `true`)
+- [ ] Is the user opted into analytics? (`isEnabled()` from `useAnalytics` hook)
 - [ ] Are you using the correct event builder pattern?
 - [ ] Are events being flushed? (automatic every 30s or 20 events, or custom interval via env vars)
 - [ ] Are you in the correct environment? (development vs production)
@@ -21,13 +21,13 @@ Before diving into detailed debugging, verify these basics:
 
 ## Environment Variables
 
-### IS_TEST Flag
+### HAS_TEST_OVERRIDES Flag
 
-The most common cause of missing events is the `IS_TEST=true` environment variable.
+The most common cause of missing events is the `HAS_TEST_OVERRIDES=true` environment variable.
 If set to true, events will not be sent to Segment.
 This is intentional for testing environments.
 
-**Impact**: When `IS_TEST=true`, the Segment client is replaced with a mock that does nothing.
+**Impact**: When `HAS_TEST_OVERRIDES=true`, the Segment client is replaced with a mock that does nothing.
 
 ### Segment Flush Policy Override
 
@@ -207,7 +207,7 @@ Confirm events are appearing in Mixpanel:
 
 **Debugging Steps**:
 
-1. Check `IS_TEST` environment variable
+1. Check `HAS_TEST_OVERRIDES` environment variable
 2. Verify user consent (`isEnabled()`)
 3. Check network connectivity
 4. Verify Segment configuration in your `.js.env` file

@@ -6,8 +6,10 @@ import {
   RouteProp,
   ParamListBase,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
-import { InteractionManager, SafeAreaView } from 'react-native';
+import { InteractionManager } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // External dependencies
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -19,12 +21,11 @@ import TextField from '../../../component-library/components/Form/TextField/Text
 import { formatAddress, getAddressAccountType } from '../../../util/address';
 import { EditAccountNameSelectorIDs } from './EditAccountName.testIds';
 
-import Button from '../../../component-library/components/Buttons/Button/Button';
 import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../component-library/hooks';
 import { getEditAccountNameNavBarOptions } from '../../../components/UI/Navbar';
 import Engine from '../../../core/Engine';
@@ -59,7 +60,7 @@ const EditAccountName = () => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { styles } = useStyles(styleSheet, {});
-  const { setOptions, goBack, navigate } = useNavigation();
+  const { setOptions, goBack, navigate } = useNavigation<AppNavigationProp>();
   const [accountName, setAccountName] = useState<string>();
   const [ens, setEns] = useState<string>();
 
@@ -160,27 +161,29 @@ const EditAccountName = () => {
       </View>
       <View style={styles.buttonsContainer}>
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('address_book.cancel')}
+          isFullWidth
           onPress={goBack}
           style={styles.cancelButton}
-        />
+        >
+          {strings('address_book.cancel')}
+        </Button>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('address_book.save')}
+          isFullWidth
           onPress={saveAccountName}
           style={
             !accountName?.length
               ? { ...styles.saveButton, ...styles.saveButtonDisabled }
               : styles.saveButton
           }
-          disabled={!accountName?.length || accountName?.trim() === ''}
+          isDisabled={!accountName?.length || accountName?.trim() === ''}
           testID={EditAccountNameSelectorIDs.EDIT_ACCOUNT_NAME_SAVE}
-        />
+        >
+          {strings('address_book.save')}
+        </Button>
       </View>
     </SafeAreaView>
   );

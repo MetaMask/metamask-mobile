@@ -74,6 +74,10 @@ jest.mock('redux-persist-filesystem-storage', () => ({
 }));
 jest.mock('../../util/device');
 jest.mock('../../util/Logger');
+jest.mock('../../util/storage/diskSpaceError', () => ({
+  reportStorageWriteError: jest.fn(),
+}));
+import { reportStorageWriteError } from '../../util/storage/diskSpaceError';
 jest.mock('@metamask/base-controller', () => ({
   getPersistentState: (
     state: Record<string, unknown>,
@@ -126,6 +130,10 @@ describe('persistConfig', () => {
     (Device.isIos as jest.Mock).mockReturnValue(true);
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('configuration', () => {
     it('have correct basic configuration', () => {
       expect(persistConfig.key).toBe('root');
@@ -146,6 +154,17 @@ describe('persistConfig', () => {
       expect(persistConfig.storage).toBeDefined();
       expect(persistConfig.stateReconciler).toBeDefined();
       expect(persistConfig.migrate).toBeDefined();
+    });
+
+    it('reports storage write errors via writeFailHandler', () => {
+      const persistError = new Error('No space left on device');
+
+      persistConfig.writeFailHandler?.(persistError);
+
+      expect(reportStorageWriteError).toHaveBeenCalledWith(persistError, {
+        message: 'Error persisting data',
+        source: 'redux_persist',
+      });
     });
   });
 
@@ -195,6 +214,19 @@ describe('persistConfig', () => {
       );
     });
 
+    it('reports storage write errors when setItem fails', async () => {
+      const storageError = new Error('No space left on device');
+      (FilesystemStorage.setItem as jest.Mock).mockRejectedValue(storageError);
+
+      await persistConfig.storage.setItem(mockKey, mockValue);
+
+      expect(reportStorageWriteError).toHaveBeenCalledWith(storageError, {
+        message: `Failed to set item for ${mockKey}`,
+        key: mockKey,
+        source: 'persist_storage',
+      });
+    });
+
     it('remove item using FilesystemStorage', async () => {
       await persistConfig.storage.removeItem(mockKey);
       expect(FilesystemStorage.removeItem).toHaveBeenCalledWith(mockKey);
@@ -219,9 +251,6 @@ describe('persistConfig', () => {
         if (key === 'persist:KeyringController') {
           return JSON.stringify({ vault: 'encrypted_data', isUnlocked: false });
         }
-        if (key === 'persist:PreferencesController') {
-          return JSON.stringify({ selectedAddress: '0x123' });
-        }
         // Other controllers have no data
         return null;
       });
@@ -231,7 +260,6 @@ describe('persistConfig', () => {
       expect(result).toEqual({
         backgroundState: {
           KeyringController: { vault: 'encrypted_data', isUnlocked: false },
-          PreferencesController: { selectedAddress: '0x123' },
         },
       });
     });
@@ -351,7 +379,6 @@ describe('persistConfig', () => {
     });
 
     it('handles overall method failure gracefully', async () => {
-      const originalPromiseAll = Promise.all;
       jest
         .spyOn(Promise, 'all')
         .mockRejectedValueOnce(new Error('Promise.all failed'));
@@ -365,14 +392,12 @@ describe('persistConfig', () => {
           message: 'Failed to gather controller states',
         }),
       );
-
-      Promise.all = originalPromiseAll;
     });
   });
 
   describe('transforms', () => {
     it('have correct number of transforms', () => {
-      expect(persistConfig.transforms).toHaveLength(2);
+      expect(persistConfig.transforms).toHaveLength(3);
     });
 
     it('have user transform configured', () => {
@@ -389,6 +414,14 @@ describe('persistConfig', () => {
         unknown
       > & { whitelist?: string[] };
       expect(onboardingTransform.whitelist).toEqual(['onboarding']);
+    });
+
+    it('has card transform configured', () => {
+      const cardTransform = persistConfig.transforms[2] as Transform<
+        unknown,
+        unknown
+      > & { whitelist?: string[] };
+      expect(cardTransform.whitelist).toEqual(['card']);
     });
   });
 
@@ -439,7 +472,7 @@ describe('persistConfig', () => {
       // Arrange
       jest.spyOn(ControllerStorage, 'setItem').mockResolvedValue();
       const persistController = createPersistController();
-      const filteredState = { selectedAddress: '0x123' };
+      const filteredState = { privacyMode: false };
       const controllerName = 'PreferencesController';
 
       // Act

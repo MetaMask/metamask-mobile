@@ -1,0 +1,747 @@
+/**
+ * TDD Parity Tests: BigInt API vs Legacy BN.js API
+ *
+ * These tests verify that every function in bigint.ts produces
+ * identical results to its legacy counterpart in index.js.
+ * They are the safety net for the migration — if these pass,
+ * a call-site can be switched from legacy → bigint with confidence.
+ */
+import {
+  hexToBigInt,
+  bigIntToHex,
+  fromWei as bigintFromWei,
+  toWei as bigintToWei,
+  fromTokenMinimalUnit as bigintFromTokenMinimalUnit,
+  toTokenMinimalUnit as bigintToTokenMinimalUnit,
+  renderFromWei as bigintRenderFromWei,
+  renderFromTokenMinimalUnit as bigintRenderFromTokenMinimalUnit,
+  weiToFiat as bigintWeiToFiat,
+  weiToFiatNumber as bigintWeiToFiatNumber,
+  balanceToFiat as bigintBalanceToFiat,
+  balanceToFiatNumber as bigintBalanceToFiatNumber,
+  fiatNumberToWei as bigintFiatNumberToWei,
+  fiatNumberToTokenMinimalUnit as bigintFiatNumberToTokenMinimalUnit,
+  safeNumberToBigInt,
+  addHexPrefix as bigintAddHexPrefix,
+  renderNumber as bigintRenderNumber,
+  toHexadecimal as bigintToHexadecimal,
+  isZeroValue as bigintIsZeroValue,
+  calculateEthFeeForMultiLayer as bigintCalculateEthFeeForMultiLayer,
+  safeBigIntToHex,
+  addCurrencySymbol as bigintAddCurrencySymbol,
+  normalizeToDotDecimal as bigintNormalizeToDotDecimal,
+  formatAmountWithThreshold as bigintFormatAmountWithThreshold,
+} from './bigint';
+
+import {
+  hexToBN,
+  BNToHex,
+  fromWei as legacyFromWei,
+  toWei as legacyToWei,
+  fromTokenMinimalUnit as legacyFromTokenMinimalUnit,
+  toTokenMinimalUnit as legacyToTokenMinimalUnit,
+  renderFromWei as legacyRenderFromWei,
+  renderFromTokenMinimalUnit as legacyRenderFromTokenMinimalUnit,
+  weiToFiat as legacyWeiToFiat,
+  weiToFiatNumber as legacyWeiToFiatNumber,
+  balanceToFiat as legacyBalanceToFiat,
+  balanceToFiatNumber as legacyBalanceToFiatNumber,
+  fiatNumberToWei as legacyFiatNumberToWei,
+  fiatNumberToTokenMinimalUnit as legacyFiatNumberToTokenMinimalUnit,
+  safeNumberToBN,
+  addHexPrefix as legacyAddHexPrefix,
+  renderNumber as legacyRenderNumber,
+  toHexadecimal as legacyToHexadecimal,
+  isZeroValue as legacyIsZeroValue,
+  calculateEthFeeForMultiLayer as legacyCalculateEthFeeForMultiLayer,
+  safeBNToHex,
+  addCurrencySymbol as legacyAddCurrencySymbol,
+  normalizeToDotDecimal as legacyNormalizeToDotDecimal,
+  formatAmountWithThreshold as legacyFormatAmountWithThreshold,
+} from './index';
+
+/**
+ * --------------------------------------------------------------------------
+ * Section 1: Hex ↔ Integer Conversion Parity
+ * --------------------------------------------------------------------------
+ */
+describe('Parity: hex ↔ integer conversion', () => {
+  const HEX_CASES = [
+    '0x0',
+    '0x1',
+    '0x539',
+    '0xde0b6b3a7640000', // 1 ether in wei
+    '0x00',
+    '0xffffffffffffffff',
+  ];
+
+  it.each(HEX_CASES)(
+    'hexToBigInt(%s) equals hexToBN(%s) numerically',
+    (hex) => {
+      const fromBigInt = hexToBigInt(hex);
+      const fromBN = hexToBN(hex);
+      expect(fromBigInt.toString(10)).toBe(fromBN.toString(10));
+    },
+  );
+
+  it.each([0n, 1n, 1337n, 1000000000000000000n])(
+    'bigIntToHex(%s) equals BNToHex for same value',
+    (value) => {
+      const bigIntResult = bigIntToHex(value);
+      // BNToHex expects a BN instance — pass the decimal string representation
+      const bnResult = BNToHex(hexToBN(`0x${value.toString(16)}`));
+      expect(bigIntResult).toBe(bnResult);
+    },
+  );
+
+  it('round-trip: hexToBigInt → bigIntToHex is lossless for 1 ether', () => {
+    const oneEtherHex = '0xde0b6b3a7640000';
+    const roundTripped = bigIntToHex(hexToBigInt(oneEtherHex));
+    expect(roundTripped).toBe(oneEtherHex);
+  });
+});
+
+/**
+ * --------------------------------------------------------------------------
+ * Section 2: Wei ↔ Ether Conversion Parity
+ * --------------------------------------------------------------------------
+ */
+describe('Parity: fromWei', () => {
+  const WEI_CASES: [string | number, string][] = [
+    [0, 'ether'],
+    [1337, 'ether'],
+    ['1000000000000000000', 'ether'],
+    ['500000000000000000', 'ether'],
+    ['1000000000', 'gwei'],
+  ];
+
+  it.each(WEI_CASES)(
+    'bigintFromWei(%s, %s) matches legacyFromWei',
+    (value, unit) => {
+      const bigintResult = bigintFromWei(value, unit as 'ether' | 'gwei');
+      const legacyResult = legacyFromWei(value, unit);
+      expect(bigintResult).toBe(legacyResult);
+    },
+  );
+});
+
+describe('Parity: toWei', () => {
+  const ETHER_CASES: [string | number, string][] = [
+    [1, 'ether'],
+    ['1', 'ether'],
+    ['0.5', 'ether'],
+    ['0.000000000000001337', 'ether'],
+    [1337, 'ether'],
+  ];
+
+  it.each(ETHER_CASES)(
+    'bigintToWei(%s, %s) matches legacyToWei',
+    (value, unit) => {
+      const bigintResult = bigintToWei(value, unit as 'ether').toString();
+      const legacyResult = legacyToWei(value, unit).toString(10);
+      expect(bigintResult).toBe(legacyResult);
+    },
+  );
+});
+
+/**
+ * --------------------------------------------------------------------------
+ * Section 3: Token Minimal Unit Conversion Parity
+ * --------------------------------------------------------------------------
+ */
+describe('Parity: fromTokenMinimalUnit', () => {
+  const CASES: [string | number, number][] = [
+    ['1337', 6],
+    ['1337', 0],
+    ['1337', 18],
+    [1337, 6],
+    ['1000000', 6],
+    ['1000000000000000000', 18],
+  ];
+
+  it.each(CASES)(
+    'bigintFromTokenMinimalUnit(%s, %i) matches legacy',
+    (value, decimals) => {
+      const bigintResult = bigintFromTokenMinimalUnit(value, decimals);
+      const legacyResult = legacyFromTokenMinimalUnit(value, decimals);
+      expect(bigintResult).toBe(legacyResult);
+    },
+  );
+});
+
+describe('Parity: toTokenMinimalUnit', () => {
+  const CASES: [string | number, number][] = [
+    ['1337', 6],
+    ['1337', 0],
+    ['0.001337', 6],
+    [1337, 6],
+    ['1', 18],
+  ];
+
+  it.each(CASES)(
+    'bigintToTokenMinimalUnit(%s, %i) matches legacy',
+    (value, decimals) => {
+      const bigintResult = bigintToTokenMinimalUnit(value, decimals).toString();
+      const legacyResult = legacyToTokenMinimalUnit(value, decimals).toString(
+        10,
+      );
+      expect(bigintResult).toBe(legacyResult);
+    },
+  );
+});
+
+/**
+ * --------------------------------------------------------------------------
+ * Section 4: Rendering Parity
+ * --------------------------------------------------------------------------
+ */
+describe('Parity: renderFromWei', () => {
+  const CASES: [string | number][] = [
+    ['133700000000000000'],
+    ['1337'],
+    ['0'],
+    [0],
+    ['1000000000000000000'],
+  ];
+
+  it.each(CASES)('bigintRenderFromWei(%s) matches legacy', (value) => {
+    expect(bigintRenderFromWei(value)).toBe(legacyRenderFromWei(value));
+  });
+});
+
+describe('Parity: renderFromTokenMinimalUnit', () => {
+  const CASES: [string | number, number][] = [
+    ['1337', 6],
+    ['1337', 0],
+    ['1337', 10],
+    ['0', 10],
+    [1337, 6],
+  ];
+
+  it.each(CASES)(
+    'bigintRenderFromTokenMinimalUnit(%s, %i) matches legacy',
+    (value, decimals) => {
+      expect(bigintRenderFromTokenMinimalUnit(value, decimals)).toBe(
+        legacyRenderFromTokenMinimalUnit(value, decimals),
+      );
+    },
+  );
+});
+
+/**
+ * `renderNumber` is intentionally NOT at parity with the legacy implementation.
+ *
+ * The legacy version checks `indexOf('.') === 0` to detect "no decimal point",
+ * which is a typo — `indexOf` returns `-1` when not found, not `0`. As a
+ * result, legacy `renderNumber('123456789')` returns `'12345'` (truncates the
+ * integer to 5 characters), while bigint correctly returns `'123456789'`.
+ *
+ * The migration guide (`docs/bigint-migration-guide.md`) documents this
+ * divergence. These tests pin both behaviors so the divergence cannot
+ * silently regress in either direction.
+ */
+describe('Divergence: renderNumber (legacy bug fixed in bigint)', () => {
+  describe('cases where legacy and bigint agree', () => {
+    const AGREE_CASES: [string, string][] = [
+      ['1.123456789', '1.12345'],
+      ['1.123', '1.123'],
+      ['12345', '12345'],
+      ['1', '1'],
+      ['.123', '.123'],
+    ];
+
+    it.each(AGREE_CASES)(
+      'renderNumber(%p) → %p in both APIs',
+      (input, expected) => {
+        expect(legacyRenderNumber(input)).toBe(expected);
+        expect(bigintRenderNumber(input)).toBe(expected);
+      },
+    );
+  });
+
+  describe('cases where bigint corrects the legacy bug', () => {
+    const DIVERGENCE_CASES: {
+      input: string;
+      legacy: string;
+      bigint: string;
+    }[] = [
+      { input: '123456', legacy: '12345', bigint: '123456' },
+      { input: '123456789', legacy: '12345', bigint: '123456789' },
+      {
+        input: '1000000000000000000',
+        legacy: '10000',
+        bigint: '1000000000000000000',
+      },
+    ];
+
+    it.each(DIVERGENCE_CASES)(
+      'renderNumber($input): legacy=$legacy, bigint=$bigint',
+      ({ input, legacy, bigint }) => {
+        expect(legacyRenderNumber(input)).toBe(legacy);
+        expect(bigintRenderNumber(input)).toBe(bigint);
+      },
+    );
+  });
+
+  // Pin the divergence to the exact input shape used by real call sites:
+  // Ramp / Bridge / Deposit pass `String(cryptoAmount)` (or `token.balance ?? '0'`)
+  // straight into `renderNumber`. cryptoAmount may be either a decimal string
+  // (e.g. "1.5") or a large integer string (e.g. "123456789" for sats / wei).
+  // These inputs must produce the documented output in BOTH APIs so a future
+  // refactor cannot silently shift behavior for these specific call sites.
+  describe('call-site input shapes (Ramp / Bridge / Deposit cryptoAmount)', () => {
+    const CRYPTO_AMOUNT_CASES: {
+      label: string;
+      input: string;
+      legacy: string;
+      bigint: string;
+    }[] = [
+      {
+        label: 'small integer crypto amount (no divergence)',
+        input: '12345',
+        legacy: '12345',
+        bigint: '12345',
+      },
+      {
+        label: 'large integer crypto amount (sats / wei) — divergence',
+        input: '123456789',
+        legacy: '12345',
+        bigint: '123456789',
+      },
+      {
+        label: 'decimal crypto amount (no divergence)',
+        input: '1.5',
+        legacy: '1.5',
+        bigint: '1.5',
+      },
+      {
+        label: 'decimal crypto amount with > 5 decimals (no divergence)',
+        input: '0.123456789',
+        legacy: '0.12345',
+        bigint: '0.12345',
+      },
+      {
+        label: 'fallback "0" used by Bridge useTokensWithBalance',
+        input: '0',
+        legacy: '0',
+        bigint: '0',
+      },
+    ];
+
+    it.each(CRYPTO_AMOUNT_CASES)(
+      '$label: legacy=$legacy, bigint=$bigint',
+      ({ input, legacy, bigint }) => {
+        expect(legacyRenderNumber(input)).toBe(legacy);
+        expect(bigintRenderNumber(input)).toBe(bigint);
+      },
+    );
+  });
+});
+
+/**
+ * --------------------------------------------------------------------------
+ * Section 5: Fiat Conversion Parity
+ * --------------------------------------------------------------------------
+ */
+describe('Parity: weiToFiat', () => {
+  it('produces identical fiat strings for 1 ETH at various rates', () => {
+    const oneEtherWei = bigintToWei('1');
+    const legacyOneEtherWei = legacyToWei('1');
+
+    const rates = [1, 0.5, 0.1, 2000, 3456.78];
+    for (const rate of rates) {
+      const bigintResult = bigintWeiToFiat(oneEtherWei, rate, 'usd');
+      const legacyResult = legacyWeiToFiat(legacyOneEtherWei, rate, 'usd');
+      expect(bigintResult).toBe(legacyResult);
+    }
+  });
+
+  it('returns undefined for null conversion rate in both APIs', () => {
+    const oneEtherWei = bigintToWei('1');
+    const legacyOneEtherWei = legacyToWei('1');
+    expect(bigintWeiToFiat(oneEtherWei, null, 'usd')).toBe(
+      legacyWeiToFiat(legacyOneEtherWei, null, 'usd'),
+    );
+  });
+});
+
+describe('Parity: weiToFiatNumber', () => {
+  it('produces identical numbers for 1 ETH', () => {
+    const oneEtherWei = bigintToWei('1');
+    const legacyOneEtherWei = legacyToWei('1');
+
+    const rates = [0.1234512345, 0.5, 0.111112];
+    for (const rate of rates) {
+      expect(bigintWeiToFiatNumber(oneEtherWei, rate)).toBe(
+        legacyWeiToFiatNumber(legacyOneEtherWei, rate),
+      );
+    }
+  });
+});
+
+describe('Parity: balanceToFiat', () => {
+  it.each([
+    [0.1, 0.1, 0.1, 'usd'],
+    [0.0001, 0.1, 0.1, 'usd'],
+    [1, 2000, 1, 'usd'],
+  ] as const)(
+    'balanceToFiat(%s, %s, %s, %s) matches',
+    (balance, convRate, exchRate, currency) => {
+      expect(bigintBalanceToFiat(balance, convRate, exchRate, currency)).toBe(
+        legacyBalanceToFiat(balance, convRate, exchRate, currency),
+      );
+    },
+  );
+});
+
+describe('Parity: balanceToFiatNumber', () => {
+  it.each([
+    [0.1, 0.1, 0.1],
+    [0.0001, 0.1, 0.1],
+    [1, 2000, 1],
+  ] as const)(
+    'balanceToFiatNumber(%s, %s, %s) matches',
+    (balance, convRate, exchRate) => {
+      expect(bigintBalanceToFiatNumber(balance, convRate, exchRate)).toBe(
+        legacyBalanceToFiatNumber(balance, convRate, exchRate),
+      );
+    },
+  );
+});
+
+describe('Parity: addCurrencySymbol', () => {
+  it.each([
+    [0.1, 'usd'],
+    [0.0001, 'usd'],
+    [1234.56, 'eur'],
+  ] as const)('addCurrencySymbol(%s, %s) matches', (amount, currency) => {
+    expect(bigintAddCurrencySymbol(amount, currency)).toBe(
+      legacyAddCurrencySymbol(amount, currency),
+    );
+  });
+});
+
+describe('Parity: normalizeToDotDecimal', () => {
+  const CASES = [
+    '9,336822',
+    '1.234,56',
+    '1,234.56',
+    '$1,234.56',
+    '-1.234,56',
+    '  12.5  ',
+    '',
+    null,
+    undefined,
+  ] as const;
+
+  it.each(CASES)('normalizeToDotDecimal(%p) matches legacy', (input) => {
+    expect(bigintNormalizeToDotDecimal(input as never)).toBe(
+      legacyNormalizeToDotDecimal(input as never),
+    );
+  });
+
+  it('matches for numeric input', () => {
+    expect(bigintNormalizeToDotDecimal(1.25)).toBe(
+      legacyNormalizeToDotDecimal(1.25),
+    );
+  });
+});
+
+describe('Parity: formatAmountWithThreshold', () => {
+  const CASES: [number, number | undefined][] = [
+    [0.000001, undefined],
+    [0.00001, undefined],
+    [1.234567, 2],
+    [0, undefined],
+    [-0.000001, 5],
+  ];
+
+  it.each(CASES)(
+    'formatAmountWithThreshold(%s, %s) matches legacy',
+    (num, maxDecimals) => {
+      const legacy =
+        maxDecimals === undefined
+          ? legacyFormatAmountWithThreshold(num)
+          : legacyFormatAmountWithThreshold(num, maxDecimals);
+      const bigint =
+        maxDecimals === undefined
+          ? bigintFormatAmountWithThreshold(num)
+          : bigintFormatAmountWithThreshold(num, maxDecimals);
+      expect(bigint).toBe(legacy);
+    },
+  );
+
+  it('formatAmountWithThreshold(NaN) matches legacy (raw NaN number)', () => {
+    const legacy = legacyFormatAmountWithThreshold(Number.NaN);
+    const bigint = bigintFormatAmountWithThreshold(Number.NaN);
+    // Both must return the raw NaN number (not the string "NaN").
+    expect(typeof bigint).toBe(typeof legacy);
+    expect(typeof bigint).toBe('number');
+    expect(Number.isNaN(bigint as unknown as number)).toBe(true);
+    expect(Number.isNaN(legacy as unknown as number)).toBe(true);
+  });
+});
+
+/**
+ * --------------------------------------------------------------------------
+ * Section 6: Utility Parity
+ * --------------------------------------------------------------------------
+ */
+describe('Parity: safeNumberToBigInt vs safeNumberToBN', () => {
+  const CASES: (number | string)[] = [
+    '1650000007.7',
+    1650000007.7,
+    '16500',
+    16500,
+    '-1650000007.7',
+    '0x75BCD15',
+    '0',
+    NaN,
+  ];
+
+  it.each(CASES)(
+    'safeNumberToBigInt(%s) matches safeNumberToBN numerically',
+    (value) => {
+      const bigIntResult = safeNumberToBigInt(value).toString();
+      const bnResult = safeNumberToBN(value).toString();
+      expect(bigIntResult).toBe(bnResult);
+    },
+  );
+});
+
+/**
+ * `addHexPrefix` is intentionally NOT at full parity with the legacy
+ * implementation. The legacy version has a long-standing bug for uppercase
+ * `0X` prefixes — its early-return guards on `regex.hexPrefix` (lowercase
+ * only), but the second branch that's supposed to normalize `0X → 0x`
+ * uses the same regex and is therefore unreachable. Uppercase inputs fall
+ * through to the default branch and get a stray `0x` prepended.
+ *
+ * The bigint version fixes this by branching on `/^-?0X/u` for the uppercase
+ * normalization. See `docs/bigint-migration-guide.md` (`addHexPrefix
+ * behavior change`) for the full table.
+ *
+ * These tests pin BOTH behaviors so lowercase/unprefixed/negative inputs are
+ * guaranteed identical (safe drop-in migration paths) and the uppercase
+ * divergence cannot silently regress in either direction.
+ */
+describe('Divergence: addHexPrefix (legacy bug fixed in bigint)', () => {
+  describe('cases where legacy and bigint agree (safe migration paths)', () => {
+    const AGREE_CASES: [string, string][] = [
+      ['0x1a2b', '0x1a2b'],
+      ['1a2b', '0x1a2b'],
+      ['-1a2b', '-0x1a2b'],
+      ['-0x1a2b', '-0x1a2b'],
+      ['', '0x'],
+    ];
+
+    it.each(AGREE_CASES)(
+      'addHexPrefix(%p) → %p in both APIs',
+      (input, expected) => {
+        expect(legacyAddHexPrefix(input)).toBe(expected);
+        expect(bigintAddHexPrefix(input)).toBe(expected);
+      },
+    );
+  });
+
+  describe('cases where bigint corrects the legacy bug (uppercase 0X)', () => {
+    const DIVERGENCE_CASES: {
+      input: string;
+      legacy: string;
+      bigint: string;
+    }[] = [
+      { input: '0X1A2B', legacy: '0x0X1A2B', bigint: '0x1A2B' },
+      { input: '-0X1A2B', legacy: '-0x0X1A2B', bigint: '-0x1A2B' },
+    ];
+
+    it.each(DIVERGENCE_CASES)(
+      'addHexPrefix($input): legacy=$legacy, bigint=$bigint',
+      ({ input, legacy, bigint }) => {
+        expect(legacyAddHexPrefix(input)).toBe(legacy);
+        expect(bigintAddHexPrefix(input)).toBe(bigint);
+      },
+    );
+  });
+});
+
+describe('Parity: toHexadecimal', () => {
+  const MATCHING_CASES: (string | number)[] = ['001', '0x01', 2, 1232];
+
+  it.each(MATCHING_CASES)('toHexadecimal(%s) matches legacy', (value) => {
+    expect(bigintToHexadecimal(value)).toBe(legacyToHexadecimal(value));
+  });
+
+  // null and undefined: BOTH APIs pass the input through unchanged.
+  // This is parity, contrary to what an earlier draft of the migration guide claimed.
+  it('toHexadecimal(null) matches legacy (both passthrough)', () => {
+    expect(bigintToHexadecimal(null)).toBeNull();
+    expect(legacyToHexadecimal(null)).toBeNull();
+    expect(bigintToHexadecimal(null)).toBe(legacyToHexadecimal(null));
+  });
+
+  it('toHexadecimal(undefined) matches legacy (both passthrough)', () => {
+    expect(bigintToHexadecimal(undefined as unknown as null)).toBeUndefined();
+    expect(legacyToHexadecimal(undefined)).toBeUndefined();
+    expect(bigintToHexadecimal(undefined as unknown as null)).toBe(
+      legacyToHexadecimal(undefined),
+    );
+  });
+
+  // 0 and '' are documented divergences (legacy short-circuits via !decimal).
+  // Pin both behaviors so the divergence cannot silently change.
+  describe('Divergence: non-null falsy inputs (0 and "")', () => {
+    it('toHexadecimal(0): legacy=0 (number), bigint="0" (string)', () => {
+      expect(legacyToHexadecimal(0)).toBe(0);
+      expect(bigintToHexadecimal(0)).toBe('0');
+    });
+
+    it("toHexadecimal(''): legacy='' (string), bigint='0' (string)", () => {
+      expect(legacyToHexadecimal('')).toBe('');
+      expect(bigintToHexadecimal('')).toBe('0');
+    });
+  });
+});
+
+describe('Parity: isZeroValue', () => {
+  const CASES: (number | string)[] = [0, '0x0', 0x0, '0', 1, '0x1'];
+
+  it.each(CASES)('isZeroValue(%s) matches legacy', (value) => {
+    expect(bigintIsZeroValue(value)).toBe(legacyIsZeroValue(value));
+  });
+});
+
+describe('Parity: calculateEthFeeForMultiLayer', () => {
+  it('matches when multiLayerL1FeeTotal is present', () => {
+    const params = {
+      multiLayerL1FeeTotal: 'ce37bdd0b8b8',
+      ethFee: 0.000001,
+    };
+    expect(bigintCalculateEthFeeForMultiLayer(params)).toBe(
+      legacyCalculateEthFeeForMultiLayer(params),
+    );
+  });
+
+  it('matches when multiLayerL1FeeTotal is absent', () => {
+    const params = {
+      multiLayerL1FeeTotal: undefined,
+      ethFee: 0.000001,
+    };
+    expect(bigintCalculateEthFeeForMultiLayer(params)).toBe(
+      legacyCalculateEthFeeForMultiLayer(params),
+    );
+  });
+});
+
+describe('Parity: safeBigIntToHex vs safeBNToHex', () => {
+  it('returns same hex for BigInt(255) vs BN(255)', () => {
+    expect(safeBigIntToHex(BigInt(255))).toBe(safeBNToHex(hexToBN('0xff')));
+  });
+
+  it.each([undefined, null])(
+    'returns original for %s in both APIs',
+    (value) => {
+      expect(safeBigIntToHex(value)).toBe(safeBNToHex(value));
+    },
+  );
+});
+
+/**
+ * --------------------------------------------------------------------------
+ * Section 7: Balance Pipeline Parity (the hot path)
+ *
+ * This simulates what Engine.getTotalEvmFiatAccountBalance does.
+ * It verifies that the BigInt pipeline produces the same fiat values
+ * as the BN.js pipeline for identical hex inputs.
+ * --------------------------------------------------------------------------
+ */
+describe('Parity: balance computation pipeline (Engine hot path)', () => {
+  const BALANCE_HEX = '0xde0b6b3a7640000'; // 1 ETH
+  const STAKED_HEX = '0x6f05b59d3b20000'; // 0.5 ETH
+  const CONVERSION_RATE = 2000;
+
+  it('computes identical fiat for native balance + staked balance via BN vs BigInt', () => {
+    // Legacy BN.js path (mirrors Engine.ts lines 870-881)
+    const balanceBN = hexToBN(BALANCE_HEX);
+    const stakedBN = hexToBN(STAKED_HEX);
+    const totalHexBN = balanceBN.add(stakedBN).toString('hex');
+    const legacyFiat = legacyWeiToFiatNumber(totalHexBN, CONVERSION_RATE);
+
+    // New BigInt path
+    const balanceBigInt = hexToBigInt(BALANCE_HEX);
+    const stakedBigInt = hexToBigInt(STAKED_HEX);
+    const totalBigInt = balanceBigInt + stakedBigInt;
+    const bigintFiat = bigintWeiToFiatNumber(totalBigInt, CONVERSION_RATE);
+
+    expect(bigintFiat).toBe(legacyFiat);
+  });
+
+  it('computes identical fiat for zero balances', () => {
+    const balanceBN = hexToBN('0x0');
+    const stakedBN = hexToBN('0x0');
+    const totalHexBN = balanceBN.add(stakedBN).toString('hex');
+    const legacyFiat = legacyWeiToFiatNumber(totalHexBN, CONVERSION_RATE);
+
+    const totalBigInt = hexToBigInt('0x0') + hexToBigInt('0x0');
+    const bigintFiat = bigintWeiToFiatNumber(totalBigInt, CONVERSION_RATE);
+
+    expect(bigintFiat).toBe(legacyFiat);
+  });
+
+  it('computes identical renderFromWei for balance display', () => {
+    expect(bigintRenderFromWei(BALANCE_HEX)).toBe(
+      legacyRenderFromWei(BALANCE_HEX),
+    );
+    expect(bigintRenderFromWei(STAKED_HEX)).toBe(
+      legacyRenderFromWei(STAKED_HEX),
+    );
+  });
+
+  it('computes identical token fiat via renderFromTokenMinimalUnit', () => {
+    const TOKEN_BALANCE_HEX = '0x5f5e100'; // 100000000 (100 USDC with 6 decimals)
+    const decimals = 6;
+    expect(bigintRenderFromTokenMinimalUnit(TOKEN_BALANCE_HEX, decimals)).toBe(
+      legacyRenderFromTokenMinimalUnit(TOKEN_BALANCE_HEX, decimals),
+    );
+  });
+});
+
+/**
+ * --------------------------------------------------------------------------
+ * Section 8: Large-scale balance iteration parity
+ *
+ * Simulates the cross-chain balance aggregation pattern from
+ * useGetTotalFiatBalanceCrossChains. Verifies that iterating
+ * over many chains produces identical aggregate fiat totals.
+ * --------------------------------------------------------------------------
+ */
+describe('Parity: cross-chain balance aggregation', () => {
+  const CHAIN_BALANCES = [
+    { balance: '0xde0b6b3a7640000', staked: '0x0', rate: 2000 },
+    { balance: '0x6f05b59d3b20000', staked: '0x6f05b59d3b20000', rate: 2000 },
+    { balance: '0x16345785d8a0000', staked: '0x0', rate: 1500 },
+    { balance: '0x0', staked: '0x0', rate: 3000 },
+    { balance: '0x2386f26fc10000', staked: '0x0', rate: 0.05 },
+  ];
+
+  it('produces identical aggregate fiat via BN vs BigInt', () => {
+    // Legacy path
+    let legacyTotal = 0;
+    for (const chain of CHAIN_BALANCES) {
+      if (chain.rate === 0) continue;
+      const bal = hexToBN(chain.balance);
+      const stk = hexToBN(chain.staked);
+      const totalHex = bal.add(stk).toString('hex');
+      legacyTotal += legacyWeiToFiatNumber(totalHex, chain.rate);
+    }
+
+    // BigInt path
+    let bigintTotal = 0;
+    for (const chain of CHAIN_BALANCES) {
+      if (chain.rate === 0) continue;
+      const total = hexToBigInt(chain.balance) + hexToBigInt(chain.staked);
+      bigintTotal += bigintWeiToFiatNumber(total, chain.rate);
+    }
+
+    expect(bigintTotal).toBeCloseTo(legacyTotal, 5);
+  });
+});

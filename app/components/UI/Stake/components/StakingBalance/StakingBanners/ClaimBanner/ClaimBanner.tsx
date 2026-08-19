@@ -1,4 +1,5 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -19,10 +20,8 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
 
-import {
-  MetaMetricsEvents,
-  useMetrics,
-} from '../../../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import { EVENT_LOCATIONS } from '../../../../constants/events';
 import usePooledStakes from '../../../../hooks/usePooledStakes';
 import usePoolStakedClaim from '../../../../hooks/usePoolStakedClaim';
@@ -42,7 +41,7 @@ type StakeBannerProps = Pick<BannerProps, 'style'> & {
 
 const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [isSubmittingClaimTransaction, setIsSubmittingClaimTransaction] =
     useState(false);
   const { MultichainNetworkController } = Engine.context;
@@ -60,7 +59,7 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
   const { isStakingSupportedChain } = useStakingChain();
   // TODO: Remove dead code as we are not using the legacy confirmations anymore
   const isStakingDepositRedesignedEnabled = true;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   useFocusEffect(
     useCallback(() => {

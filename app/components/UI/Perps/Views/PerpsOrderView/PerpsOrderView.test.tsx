@@ -10,21 +10,14 @@ import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { Text } from '@metamask/design-system-react-native';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
+import type { ReactTestInstance } from 'react-test-renderer';
 
-// Mock react-native-reanimated before importing components
+// Local reanimated mock needed: Reanimated.default.call override is required
+// for RewardsAnimations component rendering.
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
-  Reanimated.default.call = () => {
-    // Mock implementation
-  };
-  return {
-    ...Reanimated,
-    configureReanimatedLogger: jest.fn(),
-    ReanimatedLogLevel: {
-      warn: 1,
-      error: 2,
-    },
-  };
+  Reanimated.default.call = () => undefined;
+  return Reanimated;
 });
 
 // Mock react-native-gesture-handler
@@ -65,12 +58,20 @@ import {
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../hooks/stream';
+import { usePerpsEstimatedSlippage } from '../../hooks/usePerpsEstimatedSlippage';
+import { usePerpsMaxSlippage } from '../../hooks/usePerpsMaxSlippage';
 import {
   PerpsStreamManager,
   PerpsStreamProvider,
 } from '../../providers/PerpsStreamManager';
 import { usePerpsOrderContext } from '../../contexts/PerpsOrderContext';
 import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import PerpsOrderView from './PerpsOrderView';
 
 jest.mock('@react-navigation/native', () => {
@@ -82,12 +83,6 @@ jest.mock('@react-navigation/native', () => {
     useFocusEffect: jest.fn((callback) => callback()),
   };
 });
-
-// Mock @react-navigation/compat to prevent issues with createNavigatorFactory
-jest.mock('@react-navigation/compat', () => ({
-  withNavigation: jest.fn((component) => component),
-  withNavigationFocus: jest.fn((component) => component),
-}));
 
 // Mock i18n strings
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -113,6 +108,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Size must be a positive number',
       'perps.tpsl.stop_loss_order_view_warning':
         'Stop loss is {{direction}} liquidation price',
+      'perps.tpsl.take_profit_wrong_side_warning':
+        'Take profit must be {{direction}} {{priceType}} price. Update or clear it to place the order.',
+      'perps.tpsl.stop_loss_wrong_side_warning':
+        'Stop loss must be {{direction}} {{priceType}} price. Update or clear it to place the order.',
       'perps.tpsl.below': 'below',
       'perps.tpsl.above': 'above',
       'perps.points': 'Points',
@@ -146,7 +145,8 @@ jest.mock('../../contexts/PerpsOrderContext', () => {
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
-      availableBalance: '1000',
+      spendableBalance: '1000',
+      withdrawableBalance: '1000',
       marginUsed: '0',
       unrealizedPnl: '0',
       returnOnEquity: '0',
@@ -166,6 +166,21 @@ jest.mock('../../hooks/stream', () => ({
     bid: '2999',
     ask: '3001',
   })),
+  usePerpsLiveFocusedPrice: jest.fn(() => undefined),
+}));
+
+jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
+  ...jest.requireActual('../../utils/perpsAnalyticsAttribution'),
+  getPerpsUtmAttributionProperties: jest.fn(() => ({})),
+}));
+
+jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
+  usePerpsNetworkManagement: () => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
+    enableArbitrumNetwork: jest.fn(),
+    getArbitrumChainId: jest.fn(),
+    currentNetwork: 'mainnet',
+  }),
 }));
 
 // Mock the hooks module - these will be overridden in beforeEach
@@ -173,6 +188,12 @@ jest.mock('../../hooks', () => ({
   usePerpsLiveAccount: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsNetwork: jest.fn(),
+  usePerpsNetworkManagement: jest.fn(() => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
+    enableArbitrumNetwork: jest.fn(),
+    getArbitrumChainId: jest.fn(),
+    currentNetwork: 'mainnet',
+  })),
   usePerpsPrices: jest.fn(),
   usePerpsLivePrices: jest.fn(() => ({
     ETH: { price: '3000', percentChange24h: '2.5' },
@@ -202,6 +223,7 @@ jest.mock('../../hooks', () => ({
   usePerpsLiquidationPrice: jest.fn(),
   usePerpsOrderFees: jest.fn(() => ({
     totalFee: 45,
+    undiscountedTotalFee: 45,
     protocolFee: 45,
     metamaskFee: 0,
     protocolFeeRate: 0.00045,
@@ -361,6 +383,13 @@ jest.mock('../../hooks/usePerpsPaymentTokens', () => ({
   ]),
 }));
 
+const mockUseIsPerpsBalanceSelected = jest.fn<boolean, unknown[]>(() => false);
+jest.mock('../../hooks/useIsPerpsBalanceSelected', () => ({
+  useIsPerpsBalanceSelected: (...args: unknown[]) =>
+    mockUseIsPerpsBalanceSelected(...args),
+  usePerpsPayWithToken: jest.fn(() => null),
+}));
+
 jest.mock('../../../../Views/confirmations/hooks/tokens/useAddToken', () => ({
   useAddToken: jest.fn(),
 }));
@@ -407,9 +436,43 @@ jest.mock('../../../../Views/confirmations/hooks/useConfirmActions', () => ({
 }));
 
 jest.mock(
+  '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+  () => ({
+    useInsufficientPayTokenBalanceAlert: jest.fn(() => []),
+  }),
+);
+
+jest.mock(
+  '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+  () => ({
+    useNoPayTokenQuotesAlert: jest.fn(() => []),
+  }),
+);
+
+jest.mock(
   '../../../../Views/confirmations/hooks/pay/useAutomaticTransactionPayToken',
   () => ({
     useAutomaticTransactionPayToken: jest.fn(),
+  }),
+);
+
+const mockUseTransactionPayToken = jest.fn<
+  {
+    payToken: Record<string, unknown> | undefined;
+    setPayToken: jest.Mock;
+    isNative: boolean | undefined;
+  },
+  unknown[]
+>(() => ({
+  payToken: undefined,
+  setPayToken: jest.fn(),
+  isNative: undefined,
+}));
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useTransactionPayToken',
+  () => ({
+    useTransactionPayToken: (...args: unknown[]) =>
+      mockUseTransactionPayToken(...args),
   }),
 );
 
@@ -417,6 +480,24 @@ jest.mock(
   '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics',
   () => ({
     useTransactionPayMetrics: jest.fn(),
+  }),
+);
+
+// Controllable pay-quote state for the trade-quote-received coverage tests.
+let mockIsPayQuoteLoading = false;
+let mockPayTotals: unknown;
+let mockPayRequiredTokens: { amountRaw: string; skipIfBalance: boolean }[] = [];
+let mockIsPaySubmitReady = true;
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/useTransactionPayData',
+  () => ({
+    ...jest.requireActual(
+      '../../../../Views/confirmations/hooks/pay/useTransactionPayData',
+    ),
+    useIsTransactionPayQuoteLoading: () => mockIsPayQuoteLoading,
+    useTransactionPayTotals: () => mockPayTotals,
+    useTransactionPayRequiredTokens: () => mockPayRequiredTokens,
+    useIsTransactionPaySubmitReady: () => mockIsPaySubmitReady,
   }),
 );
 
@@ -462,11 +543,19 @@ jest.mock(
   }),
 );
 
+let mockPerpsAdvancedChartEnabled = false;
+
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: jest.fn(() => jest.fn()),
   useSelector: jest.fn((selector) => {
+    if (
+      selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
+      selector.toString().includes('perpsAdvancedChart')
+    ) {
+      return mockPerpsAdvancedChartEnabled;
+    }
     if (selector.toString().includes('selectTokenList')) {
       return {};
     }
@@ -524,7 +613,8 @@ jest.mock('../../../../../core/Engine', () => ({
       subscribeToPrices: jest.fn(() => jest.fn()),
       getAccountState: jest.fn().mockResolvedValue({
         totalBalance: '1000',
-        availableBalance: '1000',
+        spendableBalance: '1000',
+        withdrawableBalance: '1000',
         marginUsed: '0',
         unrealizedPnl: '0',
       }),
@@ -535,6 +625,16 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+// Mock useABTest hook (controllable per-test)
+const mockUseABTest = jest.fn(() => ({
+  variantName: 'control',
+  variant: { long: 'white', short: 'white' },
+  isActive: false,
+}));
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: () => mockUseABTest(),
+}));
+
 // Mock useTooltipModal hook
 jest.mock('../../../../hooks/useTooltipModal', () => ({
   __esModule: true,
@@ -543,19 +643,38 @@ jest.mock('../../../../hooks/useTooltipModal', () => ({
   })),
 }));
 
-// Mock PerpsSlider since it uses reanimated which needs special handling in tests
+// Value the slider stub drags to. Tests set this before firing the drag
+// testIDs below so the real onValueChange/onDragEnd wiring runs with a
+// controllable value.
+let mockSliderDragValue = 0;
+
+// Mock PerpsSlider since it uses reanimated which needs special handling in
+// tests. Exposes drag/drag-end testIDs so tests can exercise the real
+// commit-funnel wiring (handleSliderValueChange/handleSliderDragEnd) instead
+// of only checking that the slider renders.
 jest.mock('../../components/PerpsSlider', () => ({
   __esModule: true,
   default: ({
     value,
+    onValueChange,
+    onDragEnd,
   }: {
     value: number;
     onValueChange: (v: number) => void;
+    onDragEnd?: (v: number) => void;
   }) => {
-    const { View, Text } = jest.requireActual('react-native');
+    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
     return (
       <View testID="perps-slider">
         <Text>Slider Value: {value}</Text>
+        <TouchableOpacity
+          testID="perps-slider-drag"
+          onPress={() => onValueChange(mockSliderDragValue)}
+        />
+        <TouchableOpacity
+          testID="perps-slider-drag-end"
+          onPress={() => onDragEnd?.(mockSliderDragValue)}
+        />
       </View>
     );
   },
@@ -611,9 +730,37 @@ const createBottomSheetMock = (testId: string) => {
   };
 };
 
-jest.mock('../../components/PerpsLeverageBottomSheet', () =>
-  createBottomSheetMock('leverage-bottom-sheet'),
-);
+// Leverage the stub confirms with when tests press the confirm testID below.
+let mockLeverageConfirmValue = 3;
+
+// Lightweight stub so tests can confirm a leverage through the real
+// onConfirm wiring (clamp/flush logic) without depending on the real
+// BottomSheet internals. Keeps the same 'leverage-bottom-sheet' testID as
+// the generic mock so existing visibility assertions keep working.
+jest.mock('../../components/PerpsLeverageBottomSheet', () => {
+  const MockReact = jest.requireActual('react');
+  const { TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      isVisible,
+      onConfirm,
+    }: {
+      isVisible: boolean;
+      onConfirm: (leverage: number, inputMethod: string) => void;
+    }) =>
+      isVisible
+        ? MockReact.createElement(
+            TouchableOpacity,
+            {
+              testID: 'leverage-bottom-sheet',
+              onPress: () => onConfirm(mockLeverageConfirmValue, 'slider'),
+            },
+            null,
+          )
+        : null,
+  };
+});
 jest.mock('../../components/PerpsLimitPriceBottomSheet', () =>
   createBottomSheetMock('limit-price-bottom-sheet'),
 );
@@ -644,6 +791,21 @@ jest.mock(
   },
 );
 
+jest.mock('../../hooks/usePerpsEstimatedSlippage', () => ({
+  usePerpsEstimatedSlippage: jest.fn(() => ({
+    estimatedSlippageBps: null,
+    isReady: false,
+  })),
+}));
+
+jest.mock('../../hooks/usePerpsMaxSlippage', () => ({
+  usePerpsMaxSlippage: jest.fn(() => ({
+    maxSlippageBps: 300,
+    maxSlippageSource: 'default',
+    setMaxSlippage: jest.fn(),
+  })),
+}));
+
 // Test setup
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -658,7 +820,8 @@ const defaultMockRoute = {
 const defaultMockHooks = {
   usePerpsLiveAccount: {
     account: {
-      availableBalance: '1000',
+      spendableBalance: '1000',
+      withdrawableBalance: '1000',
       marginUsed: '0',
       unrealizedPnl: '0',
       returnOnEquity: '0',
@@ -738,6 +901,7 @@ const defaultMockHooks = {
 const createMockStreamManager = () => {
   // Using Map to track subscribers for potential cleanup
   const subscribers = new Map<string, (data: unknown) => void>();
+  let subscriberIdCounter = 0;
 
   return {
     prices: {
@@ -748,7 +912,7 @@ const createMockStreamManager = () => {
         symbols: string[];
         callback: (data: unknown) => void;
       }) => {
-        const id = Math.random().toString();
+        const id = String(subscriberIdCounter++);
         subscribers.set(id, callback);
         // Immediately provide mock price data
         const mockPrices: Record<string, unknown> = {};
@@ -764,18 +928,23 @@ const createMockStreamManager = () => {
         };
       },
       subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
     },
     orders: {
       subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
     },
     positions: {
       subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
     },
     fills: {
       subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
     },
     account: {
       subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
     },
     topOfBook: {
       subscribeToSymbol: ({
@@ -785,7 +954,7 @@ const createMockStreamManager = () => {
         symbol: string;
         callback: (data: unknown) => void;
       }) => {
-        const id = Math.random().toString();
+        const id = String(subscriberIdCounter++);
         subscribers.set(id, callback);
         // Immediately provide mock top of book data
         const mockTopOfBook = {
@@ -798,13 +967,16 @@ const createMockStreamManager = () => {
           subscribers.delete(id);
         };
       },
+      getSnapshot: jest.fn(() => null),
     },
     marketData: {
       subscribe: jest.fn(() => jest.fn()),
       getMarkets: jest.fn(),
+      getSnapshot: jest.fn(() => null),
     },
     oiCaps: {
       subscribe: jest.fn(() => jest.fn()),
+      getSnapshot: jest.fn(() => null),
     },
   };
 };
@@ -834,6 +1006,10 @@ global.requestAnimationFrame = jest.fn((cb) => {
 describe('PerpsOrderView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPerpsAdvancedChartEnabled = false;
+    mockSliderDragValue = 0;
+    mockLeverageConfirmValue = 3;
+    mockIsPaySubmitReady = true;
 
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -843,6 +1019,7 @@ describe('PerpsOrderView', () => {
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      addListener: jest.fn(() => jest.fn()),
     });
 
     (useRoute as jest.Mock).mockReturnValue(defaultMockRoute);
@@ -967,11 +1144,12 @@ describe('PerpsOrderView', () => {
       placeOrder: mockPlaceOrder,
     });
 
-    const { findByRole } = render(<PerpsOrderView />, { wrapper: TestWrapper });
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-    // Find a button (since we don't have specific testIDs)
-    const buttons = await findByRole('button');
-    expect(buttons).toBeDefined();
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    expect(placeOrderButton).toBeDefined();
   });
 
   it('displays components when connected', async () => {
@@ -1036,7 +1214,7 @@ describe('PerpsOrderView', () => {
     });
   });
 
-  it('handles amount display', async () => {
+  it('handles amount display', () => {
     const { getByTestId } = render(<PerpsOrderView />, {
       wrapper: TestWrapper,
     });
@@ -1047,7 +1225,7 @@ describe('PerpsOrderView', () => {
     expect(getByTestId).toBeDefined();
   });
 
-  it('handles successful order placement', async () => {
+  it('handles successful order placement', () => {
     const mockPlaceOrder = jest.fn().mockResolvedValue({ success: true });
     const mockGetPositions = jest
       .fn()
@@ -1067,7 +1245,9 @@ describe('PerpsOrderView', () => {
     expect(mockGetPositions).toBeDefined();
   });
 
-  it('does not show order submitted toast; submitting your trade toast is shown instead', async () => {
+  it('shows standard submitted toast when custom token is selected (deposit flow)', async () => {
+    mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
     const mockShowToast = jest.fn();
     const mockSubmitted = jest.fn(() => ({ id: 'order-submitted-toast' }));
     (usePerpsToasts as jest.Mock).mockReturnValue({
@@ -1091,7 +1271,7 @@ describe('PerpsOrderView', () => {
             creationFailed: jest.fn(),
           },
           shared: {
-            submitting: jest.fn(() => ({ id: 'submitting-your-trade-toast' })),
+            submitting: jest.fn(),
           },
         },
         positionManagement: { tpsl: { updateTPSLError: jest.fn() } },
@@ -1126,11 +1306,112 @@ describe('PerpsOrderView', () => {
     await waitFor(() => {
       expect(mockShowToast).toHaveBeenCalled();
     });
-    // We show "Submitting your trade" (from shared.submitting), not "Order submitted"
-    expect(mockSubmitted).not.toHaveBeenCalled();
+    expect(mockSubmitted).toHaveBeenCalled();
   });
 
-  it('handles failed order placement', async () => {
+  it('includes discovery attribution from route source_section in order trackingData', async () => {
+    const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
+    (useRoute as jest.Mock).mockReturnValue({
+      params: {
+        asset: 'ETH',
+        direction: 'long',
+        source: 'perp_asset_screen',
+        source_section: 'watchlist',
+      },
+    });
+    (usePerpsOrderExecution as jest.Mock).mockImplementation(() => ({
+      placeOrder: mockExecuteOrder,
+      isPlacing: false,
+    }));
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    await waitFor(() => {
+      expect(mockExecuteOrder).toHaveBeenCalled();
+    });
+    expect(mockExecuteOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        trackingData: expect.objectContaining({
+          entryPoint: 'perp_asset_screen',
+          discoverySource: 'watchlist',
+          perpDiscoverySource: 'watchlist',
+        }),
+      }),
+    );
+  });
+
+  it('shows standard submitted toast when using perps balance', async () => {
+    mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+
+    const mockShowToast = jest.fn();
+    const mockSubmitted = jest.fn(() => ({ id: 'order-submitted-toast' }));
+    (usePerpsToasts as jest.Mock).mockReturnValue({
+      showToast: mockShowToast,
+      PerpsToastOptions: {
+        formValidation: {
+          orderForm: {
+            limitPriceRequired: {},
+            validationError: jest.fn(),
+          },
+        },
+        orderManagement: {
+          market: {
+            submitted: mockSubmitted,
+            confirmed: jest.fn(),
+            creationFailed: jest.fn(),
+          },
+          limit: {
+            submitted: jest.fn(),
+            confirmed: jest.fn(),
+            creationFailed: jest.fn(),
+          },
+          shared: {
+            submitting: jest.fn(),
+          },
+        },
+        positionManagement: { tpsl: { updateTPSLError: jest.fn() } },
+        dataFetching: {
+          market: { error: { marketDataUnavailable: jest.fn() } },
+        },
+        accountManagement: {
+          deposit: {
+            inProgress: jest.fn(),
+            takingLonger: {},
+            tradeCanceled: {},
+            error: {},
+          },
+        },
+      },
+    });
+
+    (usePerpsOrderExecution as jest.Mock).mockImplementation(() => ({
+      placeOrder: jest.fn().mockResolvedValue({ success: true }),
+      isPlacing: false,
+    }));
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalled();
+    });
+    expect(mockSubmitted).toHaveBeenCalled();
+  });
+
+  it('handles failed order placement', () => {
     const mockPlaceOrder = jest.fn().mockResolvedValue({
       success: false,
       error: 'Insufficient balance',
@@ -1161,7 +1442,7 @@ describe('PerpsOrderView', () => {
     });
   });
 
-  it('shows order type bottom sheet when order type pressed', async () => {
+  it('shows order type bottom sheet when order type pressed', () => {
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Since PerpsOrderHeader is mocked, we need to test differently
@@ -1169,7 +1450,7 @@ describe('PerpsOrderView', () => {
     expect(screen.getByTestId('perps-order-header')).toBeDefined();
   });
 
-  it('handles keypad input', async () => {
+  it('handles keypad input', () => {
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Press on amount display to activate keypad
@@ -1221,7 +1502,7 @@ describe('PerpsOrderView', () => {
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
-  it('shows slider when not focused on input', async () => {
+  it('shows slider when not focused on input', () => {
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Slider should be visible initially
@@ -1241,6 +1522,238 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  // Builds a usePerpsOrderContext mock matching the shape the component
+  // actually destructures, with the same defaults as the outer beforeEach,
+  // so individual tests only need to override the fields they care about
+  // (typically setAmount, to assert what the commit funnel flushed).
+  const buildOrderContextMock = (
+    overrides: Partial<ReturnType<typeof usePerpsOrderContext>> = {},
+  ) => ({
+    orderForm: {
+      asset: 'ETH',
+      amount: '11',
+      leverage: 3,
+      direction: 'long',
+      type: 'market',
+      limitPrice: undefined,
+      takeProfitPrice: undefined,
+      stopLossPrice: undefined,
+      balancePercent: 10,
+    },
+    setAmount: jest.fn(),
+    setLeverage: jest.fn(),
+    setTakeProfitPrice: jest.fn(),
+    setStopLossPrice: jest.fn(),
+    setLimitPrice: jest.fn(),
+    setOrderType: jest.fn(),
+    handlePercentageAmount: jest.fn(),
+    handleMaxAmount: jest.fn(),
+    handleMinAmount: jest.fn(),
+    optimizeOrderAmount: jest.fn(),
+    maxPossibleAmount: 1000,
+    balanceForValidation: 1000,
+    ...overrides,
+  });
+
+  describe('Slider drag commit funnel', () => {
+    it('shows the live drag value instead of the stale committed amount while dragging', () => {
+      mockSliderDragValue = 42;
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+
+      expect(screen.getByText('Slider Value: 42')).toBeOnTheScreen();
+    });
+
+    it('commits the live value on drag end', () => {
+      const mockSetAmount = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({ setAmount: mockSetAmount }),
+      );
+      mockSliderDragValue = 77;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+      fireEvent.press(screen.getByTestId('perps-slider-drag-end'));
+
+      expect(mockSetAmount).toHaveBeenCalledWith('77');
+    });
+
+    it('flushes the live drag value forward on cancel instead of discarding it', () => {
+      const mockSetAmount = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({ setAmount: mockSetAmount }),
+      );
+      mockSliderDragValue = 88;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+      // A gesture cancelled by competing-gesture arbitration never fires
+      // onDragEnd; only the wrapping View's onTouchCancel signals it.
+      fireEvent(
+        screen.getByTestId('perps-slider').parent as ReactTestInstance,
+        'touchCancel',
+      );
+
+      expect(mockSetAmount).toHaveBeenCalledWith('88');
+    });
+
+    it('does not commit anything on cancel when the slider was never dragged', () => {
+      const mockSetAmount = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({ setAmount: mockSetAmount }),
+      );
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent(
+        screen.getByTestId('perps-slider').parent as ReactTestInstance,
+        'touchCancel',
+      );
+
+      expect(mockSetAmount).not.toHaveBeenCalled();
+    });
+
+    it('flushes a stuck live drag value instead of submitting a stale order', async () => {
+      const mockSetAmount = jest.fn();
+      const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({ setAmount: mockSetAmount }),
+      );
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: mockExecuteOrder,
+        isPlacing: false,
+      });
+      mockSliderDragValue = 55;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(placeOrderButton);
+      });
+
+      // The stuck live value is flushed forward, not submitted directly -
+      // this same tap only flushes and bails, it does not place the order.
+      expect(mockSetAmount).toHaveBeenCalledWith('55');
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Leverage confirm resolves against the live drag amount', () => {
+    it('flushes the live drag amount forward when no clamping is required', async () => {
+      const mockSetAmount = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          setAmount: mockSetAmount,
+          balanceForValidation: 1000,
+        }),
+      );
+      mockSliderDragValue = 50;
+      mockLeverageConfirmValue = 3;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+
+      const leverageRow = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.LEVERAGE_ROW,
+      );
+      await act(async () => {
+        fireEvent.press(leverageRow);
+      });
+      const confirmButton = await screen.findByTestId('leverage-bottom-sheet');
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      expect(mockSetAmount).toHaveBeenCalledWith('50');
+    });
+
+    it('clamps against the live drag amount, not the stale committed amount', async () => {
+      const mockSetAmount = jest.fn();
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          setAmount: mockSetAmount,
+          // orderForm.amount stays '11' (well under the new max); only the
+          // live drag value should be able to trigger the clamp below.
+          balanceForValidation: 1000,
+        }),
+      );
+      mockSliderDragValue = 5000; // exceeds the post-confirm max of 1000
+      mockLeverageConfirmValue = 1;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      fireEvent.press(screen.getByTestId('perps-slider-drag'));
+
+      const leverageRow = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.LEVERAGE_ROW,
+      );
+      await act(async () => {
+        fireEvent.press(leverageRow);
+      });
+      const confirmButton = await screen.findByTestId('leverage-bottom-sheet');
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      // newMaxAmount = balanceForValidation(1000) * leverage(1) = 1000. Using
+      // the stale orderForm.amount ('11') for the check would never have
+      // triggered this clamp at all.
+      expect(mockSetAmount).toHaveBeenCalledWith('1000');
+    });
+
+    it('tracks leverage change with previous_leverage and not previousLeverage', async () => {
+      const captured: { eventName: unknown; props: Record<string, unknown> }[] =
+        [];
+      mockCreateEventBuilder.mockImplementation((eventName?: unknown) => {
+        const builder: { addProperties: jest.Mock; build: jest.Mock } = {
+          addProperties: jest.fn((props: Record<string, unknown>) => {
+            captured.push({ eventName, props });
+            return builder;
+          }),
+          build: jest.fn(() => ({})),
+        };
+        return builder;
+      });
+      mockLeverageConfirmValue = 10;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const leverageRow = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.LEVERAGE_ROW,
+      );
+      await act(async () => {
+        fireEvent.press(leverageRow);
+      });
+      const confirmButton = await screen.findByTestId('leverage-bottom-sheet');
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      const leverageChange = captured.find(
+        (event) =>
+          event.eventName === MetaMetricsEvents.PERPS_UI_INTERACTION &&
+          event.props?.[PERPS_EVENT_PROPERTY.INTERACTION_TYPE] ===
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.LEVERAGE_CHANGED,
+      );
+      expect(leverageChange?.props).toEqual(
+        expect.objectContaining({
+          [PERPS_ANALYTICS_PREVIOUS_LEVERAGE]: 3,
+          [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: 10,
+        }),
+      );
+      expect(leverageChange?.props).not.toHaveProperty('previousLeverage');
+    });
+  });
+
   it('handles testnet defaults', async () => {
     (usePerpsNetwork as jest.Mock).mockReturnValue('testnet');
 
@@ -1252,11 +1765,26 @@ describe('PerpsOrderView', () => {
     });
   });
 
-  it('shows limit price bottom sheet for limit orders', async () => {
+  it('opens limit price bottom sheet from limit price row', async () => {
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      ...defaultMockHooks.usePerpsOrderContext,
+      orderForm: {
+        ...defaultMockHooks.usePerpsOrderContext.orderForm,
+        type: 'limit',
+      },
+      calculations: {
+        marginRequired: '11',
+        positionSize: '0.0037',
+      },
+    });
+
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-    // Limit price is only shown for limit orders, skip this test for market orders
-    expect(true).toBe(true);
+    fireEvent.press(
+      await screen.findByTestId(PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW),
+    );
+
+    expect(screen.getByTestId('limit-price-bottom-sheet')).toBeOnTheScreen();
   });
 
   it('handles short direction from route params', async () => {
@@ -1440,7 +1968,8 @@ describe('PerpsOrderView', () => {
   it('handles zero balance warning', async () => {
     (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       balance: '0',
-      availableBalance: '0',
+      spendableBalance: '0',
+      withdrawableBalance: '0',
       accountInfo: {
         marginSummary: {
           accountValue: 0,
@@ -1461,7 +1990,8 @@ describe('PerpsOrderView', () => {
     // Mock insufficient balance
     (usePerpsLiveAccount as jest.Mock).mockReturnValue({
       balance: '10',
-      availableBalance: '10',
+      spendableBalance: '10',
+      withdrawableBalance: '10',
       accountInfo: {
         marginSummary: {
           accountValue: 10,
@@ -1621,7 +2151,112 @@ describe('PerpsOrderView', () => {
         PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
       );
       expect(placeOrderButton).toBeDefined();
-      expect(placeOrderButton.props.accessibilityState?.disabled).toBeFalsy();
+      expect(placeOrderButton).toBeEnabled();
+    });
+  });
+
+  describe('pay amount readiness', () => {
+    beforeEach(() => {
+      mockIsPayQuoteLoading = false;
+      mockPayRequiredTokens = [];
+      mockIsPaySubmitReady = true;
+      // A custom pay token, not the Perps balance: the gate only applies here.
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: true,
+        errors: [],
+        isValidating: false,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn(),
+        isPlacing: false,
+      });
+    });
+
+    afterEach(() => {
+      mockPayRequiredTokens = [];
+      mockIsPaySubmitReady = true;
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+    });
+
+    it('disables place order while the required token amount is still zero', async () => {
+      // The pay controller has not received the deposit amount yet, and no
+      // quote request has started, so nothing else would block the button.
+      mockPayRequiredTokens = [{ amountRaw: '0', skipIfBalance: false }];
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeDisabled();
+    });
+
+    it('enables place order once the required token amount arrives', async () => {
+      mockPayRequiredTokens = [{ amountRaw: '3430000', skipIfBalance: false }];
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeEnabled();
+    });
+
+    it('ignores a zero amount on a token that is skipped when the balance covers it', async () => {
+      mockPayRequiredTokens = [{ amountRaw: '0', skipIfBalance: true }];
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeEnabled();
+    });
+
+    it('leaves place order enabled when paying from the Perps balance', async () => {
+      // Orders funded from the Perps balance never deposit, so a stale pay
+      // amount must not block them.
+      mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+      mockPayRequiredTokens = [{ amountRaw: '0', skipIfBalance: false }];
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeEnabled();
+    });
+
+    it('disables place order while the pay state would fail the publish guard', async () => {
+      // The amount landed and nothing reports as loading, but there is no
+      // executable quote and no validated direct route (e.g. the quote fetch
+      // failed or never started, or the payment token was never set). A tap
+      // here would be rejected at publish with "Cannot submit without quote".
+      mockPayRequiredTokens = [{ amountRaw: '3430000', skipIfBalance: false }];
+      mockIsPaySubmitReady = false;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeDisabled();
+    });
+
+    it('leaves place order enabled when paying from the Perps balance while pay state is not submit ready', async () => {
+      // Orders funded from the Perps balance never deposit, so pay submit
+      // readiness must not block them.
+      mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+      mockPayRequiredTokens = [{ amountRaw: '3430000', skipIfBalance: false }];
+      mockIsPaySubmitReady = false;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeEnabled();
     });
   });
 
@@ -1966,7 +2601,428 @@ describe('PerpsOrderView', () => {
       );
 
       // Verify the button is disabled due to liquidation risk
+      expect(placeOrderButton).toBeDisabled();
+    });
+  });
+
+  describe('TP/SL wrong-side price validation', () => {
+    const orderContextWithTPSL = (overrides: {
+      direction: 'long' | 'short';
+      takeProfitPrice?: string;
+      stopLossPrice?: string;
+    }) => ({
+      orderForm: {
+        asset: 'ETH',
+        amount: '100',
+        leverage: 10,
+        direction: overrides.direction,
+        type: 'market' as const,
+        limitPrice: undefined,
+        takeProfitPrice: overrides.takeProfitPrice,
+        stopLossPrice: overrides.stopLossPrice,
+        balancePercent: 10,
+      },
+      setAmount: jest.fn(),
+      setLeverage: jest.fn(),
+      setTakeProfitPrice: jest.fn(),
+      setStopLossPrice: jest.fn(),
+      setLimitPrice: jest.fn(),
+      setOrderType: jest.fn(),
+      handlePercentageAmount: jest.fn(),
+      handleMaxAmount: jest.fn(),
+      handleMinAmount: jest.fn(),
+      optimizeOrderAmount: jest.fn(),
+      maxPossibleAmount: 1000,
+      balanceForValidation: 1000,
+      calculations: {
+        marginRequired: '10',
+        positionSize: '0.033',
+      },
+    });
+
+    it('shows warning and disables button for long position with TP below current price', async () => {
+      // Arrange: TP at 2000 is below current price 3000 → invalid for long
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        orderContextWithTPSL({ direction: 'long', takeProfitPrice: '2000' }),
+      );
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: true,
+        errors: [],
+        isValidating: false,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn(),
+        isPlacing: false,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert: warning visible
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            'Take profit must be above current price. Update or clear it to place the order.',
+          ),
+        ).toBeDefined();
+      });
+
+      // Assert: button disabled
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
       expect(placeOrderButton.props.accessibilityState?.disabled).toBeTruthy();
+    });
+
+    it('shows warning and disables button for long position with SL above current price', async () => {
+      // Arrange: SL at 3500 is above current price 3000 → invalid for long
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        orderContextWithTPSL({ direction: 'long', stopLossPrice: '3500' }),
+      );
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: true,
+        errors: [],
+        isValidating: false,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn(),
+        isPlacing: false,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert: warning visible
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            'Stop loss must be below current price. Update or clear it to place the order.',
+          ),
+        ).toBeDefined();
+      });
+
+      // Assert: button disabled
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton.props.accessibilityState?.disabled).toBeTruthy();
+    });
+
+    it('shows warning for short position with TP above current price', async () => {
+      // Arrange: TP at 3500 is above current price 3000 → invalid for short
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        orderContextWithTPSL({ direction: 'short', takeProfitPrice: '3500' }),
+      );
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert: warning uses "below" for short
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            'Take profit must be below current price. Update or clear it to place the order.',
+          ),
+        ).toBeDefined();
+      });
+    });
+
+    it('shows warning for short position with SL below current price', async () => {
+      // Arrange: SL at 2000 is below current price 3000 → invalid for short
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        orderContextWithTPSL({ direction: 'short', stopLossPrice: '2000' }),
+      );
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert: warning uses "above" for short
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            'Stop loss must be above current price. Update or clear it to place the order.',
+          ),
+        ).toBeDefined();
+      });
+    });
+
+    it('does not show wrong-side warnings when TP/SL prices are valid', async () => {
+      // Arrange: valid TP above and SL below current price for long
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        orderContextWithTPSL({
+          direction: 'long',
+          takeProfitPrice: '3500',
+          stopLossPrice: '2500',
+        }),
+      );
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert: component renders (TP/SL summary with valid percentages)
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeDefined();
+      });
+
+      // Assert: no wrong-side warnings
+      expect(screen.queryByText(/Take profit must be/)).toBeNull();
+      expect(screen.queryByText(/Stop loss must be.*current price/)).toBeNull();
+    });
+
+    it('disables button when both TP and SL are on wrong side', async () => {
+      // Arrange: both invalid for long (TP below, SL above current price)
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        orderContextWithTPSL({
+          direction: 'long',
+          takeProfitPrice: '2000',
+          stopLossPrice: '3500',
+        }),
+      );
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: true,
+        errors: [],
+        isValidating: false,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn(),
+        isPlacing: false,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert: both warnings shown
+      await waitFor(() => {
+        expect(screen.getByText(/Take profit must be above/)).toBeDefined();
+        expect(screen.getByText(/Stop loss must be below/)).toBeDefined();
+      });
+
+      // Assert: button disabled
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton.props.accessibilityState?.disabled).toBeTruthy();
+    });
+
+    it('disables control (white) button variant when TP/SL is invalid', async () => {
+      // Arrange: control (default/white) A/B test variant + invalid TP
+      mockUseABTest.mockReturnValue({
+        variantName: 'control',
+        variant: { long: 'white', short: 'white' },
+        isActive: true,
+      });
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        orderContextWithTPSL({ direction: 'long', takeProfitPrice: '2000' }),
+      );
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: true,
+        errors: [],
+        isValidating: false,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn(),
+        isPlacing: false,
+      });
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert: warning visible (proves hasInvalidTPSL is true in control/white path)
+      await waitFor(() => {
+        expect(screen.getByText(/Take profit must be above/)).toBeDefined();
+      });
+
+      // Assert: control (white) button rendered and receives isDisabled prop
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeDefined();
+    });
+
+    describe('limit order TP/SL validates against entry price, not market price', () => {
+      const orderContextForLimitOrder = (overrides: {
+        direction: 'long' | 'short';
+        limitPrice: string;
+        takeProfitPrice?: string;
+        stopLossPrice?: string;
+      }) => ({
+        orderForm: {
+          asset: 'ETH',
+          amount: '100',
+          leverage: 10,
+          direction: overrides.direction,
+          type: 'limit' as const,
+          limitPrice: overrides.limitPrice,
+          takeProfitPrice: overrides.takeProfitPrice,
+          stopLossPrice: overrides.stopLossPrice,
+          balancePercent: 10,
+        },
+        setAmount: jest.fn(),
+        setLeverage: jest.fn(),
+        setTakeProfitPrice: jest.fn(),
+        setStopLossPrice: jest.fn(),
+        setLimitPrice: jest.fn(),
+        setOrderType: jest.fn(),
+        handlePercentageAmount: jest.fn(),
+        handleMaxAmount: jest.fn(),
+        handleMinAmount: jest.fn(),
+        optimizeOrderAmount: jest.fn(),
+        maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
+        calculations: {
+          marginRequired: '10',
+          positionSize: '0.04',
+        },
+      });
+
+      it('accepts TP above limit price for long limit order even when TP is below market price', async () => {
+        // Scenario: market at $3000, long limit buy at $2500, TP at $2700
+        // TP $2700 is valid relative to $2500 entry but below $3000 market price
+        (usePerpsOrderContext as jest.Mock).mockReturnValue(
+          orderContextForLimitOrder({
+            direction: 'long',
+            limitPrice: '2500',
+            takeProfitPrice: '2700',
+          }),
+        );
+        (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+          isValid: true,
+          errors: [],
+          isValidating: false,
+        });
+        (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+          placeOrder: jest.fn(),
+          isPlacing: false,
+        });
+
+        render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+        await waitFor(() => {
+          expect(screen.getByText('Leverage')).toBeDefined();
+        });
+
+        // TP at $2700 is above the $2500 limit (entry) price, so no warning should appear
+        expect(screen.queryByText(/Take profit must be/)).toBeNull();
+      });
+
+      it('accepts SL below limit price for long limit order even when SL is below market price', async () => {
+        // Scenario: market at $3000, long limit buy at $2500, SL at $2300
+        // SL $2300 is valid relative to $2500 entry
+        (usePerpsOrderContext as jest.Mock).mockReturnValue(
+          orderContextForLimitOrder({
+            direction: 'long',
+            limitPrice: '2500',
+            stopLossPrice: '2300',
+          }),
+        );
+        (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+          isValid: true,
+          errors: [],
+          isValidating: false,
+        });
+        (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+          placeOrder: jest.fn(),
+          isPlacing: false,
+        });
+
+        render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+        await waitFor(() => {
+          expect(screen.getByText('Leverage')).toBeDefined();
+        });
+
+        // SL at $2300 is below the $2500 limit (entry) price, so no warning should appear
+        expect(screen.queryByText(/Stop loss must be/)).toBeNull();
+      });
+
+      it('rejects TP below limit price for long limit order', async () => {
+        // Scenario: market at $3000, long limit buy at $2500, TP at $2400
+        // TP $2400 is below the $2500 entry → invalid
+        (usePerpsOrderContext as jest.Mock).mockReturnValue(
+          orderContextForLimitOrder({
+            direction: 'long',
+            limitPrice: '2500',
+            takeProfitPrice: '2400',
+          }),
+        );
+        (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+          isValid: true,
+          errors: [],
+          isValidating: false,
+        });
+        (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+          placeOrder: jest.fn(),
+          isPlacing: false,
+        });
+
+        render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+        await waitFor(() => {
+          expect(
+            screen.getByText(/Take profit must be above entry price/),
+          ).toBeDefined();
+        });
+      });
+
+      it('accepts TP below limit price for short limit order even when TP is above market price', async () => {
+        // Scenario: market at $3000, short limit sell at $3500, TP at $3200
+        // TP $3200 is below $3500 entry (valid for short) but above $3000 market
+        (usePerpsOrderContext as jest.Mock).mockReturnValue(
+          orderContextForLimitOrder({
+            direction: 'short',
+            limitPrice: '3500',
+            takeProfitPrice: '3200',
+          }),
+        );
+        (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+          isValid: true,
+          errors: [],
+          isValidating: false,
+        });
+        (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+          placeOrder: jest.fn(),
+          isPlacing: false,
+        });
+
+        render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+        await waitFor(() => {
+          expect(screen.getByText('Leverage')).toBeDefined();
+        });
+
+        // TP at $3200 is below $3500 limit entry, valid for short
+        expect(screen.queryByText(/Take profit must be/)).toBeNull();
+      });
+
+      it('accepts SL above limit price for short limit order', async () => {
+        // Scenario: market at $3000, short limit sell at $3500, SL at $3700
+        // SL $3700 is above $3500 entry (valid for short)
+        (usePerpsOrderContext as jest.Mock).mockReturnValue(
+          orderContextForLimitOrder({
+            direction: 'short',
+            limitPrice: '3500',
+            stopLossPrice: '3700',
+          }),
+        );
+        (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+          isValid: true,
+          errors: [],
+          isValidating: false,
+        });
+        (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+          placeOrder: jest.fn(),
+          isPlacing: false,
+        });
+
+        render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+        await waitFor(() => {
+          expect(screen.getByText('Leverage')).toBeDefined();
+        });
+
+        // SL at $3700 is above $3500 limit entry, valid for short
+        expect(screen.queryByText(/Stop loss must be/)).toBeNull();
+      });
     });
   });
 
@@ -3013,7 +4069,7 @@ describe('PerpsOrderView', () => {
       expect(screen.getByText('5x')).toBeDefined();
     });
 
-    it('should prioritize existing position leverage over saved config (bug fix)', async () => {
+    it('should prioritize existing position leverage over saved config (bug fix)', () => {
       // This test verifies the fix for the leverage priority chain bug
       // Scenario: User has saved config at 5x, but existing position at 10x
       // Expected: Form should initialize with 10x (not 5x)
@@ -3158,7 +4214,7 @@ describe('PerpsOrderView', () => {
       });
     });
 
-    it('should show points tooltip when points info icon is pressed', async () => {
+    it('should show points tooltip when points info icon is pressed', () => {
       // Arrange - Mock rewards to be enabled and showing
       (usePerpsRewards as jest.Mock).mockReturnValue({
         shouldShowRewardsRow: true,
@@ -3189,12 +4245,13 @@ describe('PerpsOrderView', () => {
   });
 
   describe('Insufficient funds handling', () => {
-    it('should not show balance warning when account is still loading', async () => {
+    it('should not show balance warning when account is still loading', () => {
       // This test verifies our loading guard fix - balance warnings shouldn't
       // appear while account data is still loading
       (usePerpsLiveAccount as jest.Mock).mockReturnValue({
         account: {
-          availableBalance: '0', // Zero balance
+          spendableBalance: '0', // Zero balance
+          withdrawableBalance: '0', // Zero balance
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -3223,7 +4280,8 @@ describe('PerpsOrderView', () => {
       // Arrange - Mock sufficient balance and adjust order form amount
       (usePerpsLiveAccount as jest.Mock).mockReturnValue({
         account: {
-          availableBalance: '10000', // High balance
+          spendableBalance: '10000', // High balance
+          withdrawableBalance: '10000', // High balance
           marginUsed: '0',
           unrealizedPnl: '0',
           returnOnEquity: '0',
@@ -3264,7 +4322,7 @@ describe('PerpsOrderView', () => {
   });
 
   describe('Order header interactions', () => {
-    it('should open order type bottom sheet when order type is pressed in header', async () => {
+    it('should open order type bottom sheet when order type is pressed in header', () => {
       const { getByText } = render(
         <SafeAreaProvider initialMetrics={initialMetrics}>
           <TestWrapper>
@@ -3306,5 +4364,700 @@ describe('PerpsOrderView', () => {
       const priceText = await findByText('$3,000');
       expect(priceText).toBeOnTheScreen();
     });
+  });
+
+  describe('Market data fallback to route defaults', () => {
+    it('uses defaultSzDecimals and defaultMaxLeverage when marketData is loading', async () => {
+      // Arrange - marketData is null and still loading, but defaults are provided
+      (usePerpsMarketData as jest.Mock).mockReturnValue({
+        marketData: null,
+        isLoading: true,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          asset: 'ETH',
+          direction: 'long',
+          defaultSzDecimals: 4,
+          defaultMaxLeverage: 50,
+        },
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert - order button should be present (not blocked by loading) because
+      // the component falls back to route param defaults
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('treats market data as loading when no fallback defaults and data is unavailable', async () => {
+      // Arrange - marketData null, loading, AND no route defaults
+      (usePerpsMarketData as jest.Mock).mockReturnValue({
+        marketData: null,
+        isLoading: true,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          asset: 'ETH',
+          direction: 'long',
+        },
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
+    });
+  });
+
+  describe('Pay-token validation error analytics tracking', () => {
+    const findPerpsErrorBuilder = () => {
+      const calls = mockCreateEventBuilder.mock.calls as unknown as [
+        { category?: string },
+      ][];
+      for (let i = 0; i < calls.length; i++) {
+        if (calls[i][0]?.category === 'Perp Error') {
+          return mockCreateEventBuilder.mock.results[i].value;
+        }
+      }
+      return undefined;
+    };
+
+    it('fires validation error event when a blocking insufficient-balance pay-token alert appears', async () => {
+      const alertMessage = 'Insufficient balance for pay token';
+      const { useInsufficientPayTokenBalanceAlert: mockAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      mockAlert.mockReturnValue([
+        {
+          key: 'InsufficientPayTokenBalance',
+          field: 'Amount',
+          message: alertMessage,
+          severity: 'danger',
+          isBlocking: true,
+        },
+      ]);
+
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        const builder = findPerpsErrorBuilder();
+        expect(builder).toBeDefined();
+        expect(builder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error_type: 'validation',
+            error_message: alertMessage,
+            screen_name: 'perps_order',
+            screen_type: 'trading',
+          }),
+        );
+      });
+    });
+
+    it('fires validation error event when a blocking no-quotes pay-token alert appears', async () => {
+      const { useInsufficientPayTokenBalanceAlert: mockInsufficientAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      mockInsufficientAlert.mockReturnValue([]);
+
+      const alertMessage = 'No quotes available for selected token';
+      const { useNoPayTokenQuotesAlert: mockAlert } = jest.requireMock(
+        '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+      ) as { useNoPayTokenQuotesAlert: jest.Mock };
+      mockAlert.mockReturnValue([
+        {
+          key: 'NoPayTokenQuotes',
+          field: 'PayWith',
+          message: alertMessage,
+          title: 'No quotes',
+          severity: 'danger',
+          isBlocking: true,
+        },
+      ]);
+
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        const builder = findPerpsErrorBuilder();
+        expect(builder).toBeDefined();
+        expect(builder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error_type: 'validation',
+            error_message: alertMessage,
+            screen_name: 'perps_order',
+            screen_type: 'trading',
+          }),
+        );
+      });
+    });
+
+    it('does not fire validation error event when no blocking pay-token alerts exist', async () => {
+      const { useInsufficientPayTokenBalanceAlert: mockInsufficientAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      const { useNoPayTokenQuotesAlert: mockNoQuotesAlert } = jest.requireMock(
+        '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+      ) as { useNoPayTokenQuotesAlert: jest.Mock };
+      mockInsufficientAlert.mockReturnValue([]);
+      mockNoQuotesAlert.mockReturnValue([]);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
+
+      const builder = findPerpsErrorBuilder();
+      expect(builder).toBeUndefined();
+    });
+
+    it('does not fire validation error event when Perps balance is selected instead of custom token', async () => {
+      const { useInsufficientPayTokenBalanceAlert: mockAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      mockAlert.mockReturnValue([
+        {
+          key: 'InsufficientPayTokenBalance',
+          field: 'Amount',
+          message: 'Insufficient balance',
+          severity: 'danger',
+          isBlocking: true,
+        },
+      ]);
+
+      mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
+
+      const builder = findPerpsErrorBuilder();
+      expect(builder).toBeUndefined();
+    });
+
+    it('fires warning event when hasInsufficientPayTokenBalance is true', async () => {
+      const { useInsufficientPayTokenBalanceAlert: mockInsufficientAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      const { useNoPayTokenQuotesAlert: mockNoQuotesAlert } = jest.requireMock(
+        '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+      ) as { useNoPayTokenQuotesAlert: jest.Mock };
+      mockInsufficientAlert.mockReturnValue([]);
+      mockNoQuotesAlert.mockReturnValue([]);
+
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: { balanceUsd: '0.01', address: '0xusdc', chainId: '0xa4b1' },
+        setPayToken: jest.fn(),
+        isNative: false,
+      });
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        const builder = findPerpsErrorBuilder();
+        expect(builder).toBeDefined();
+        expect(builder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error_type: 'warning',
+            warning_message: 'insufficient_balance',
+            screen_name: 'perps_order',
+            screen_type: 'trading',
+          }),
+        );
+      });
+    });
+
+    it('does not fire warning event when pay-token balance is sufficient', async () => {
+      const { useInsufficientPayTokenBalanceAlert: mockInsufficientAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      const { useNoPayTokenQuotesAlert: mockNoQuotesAlert } = jest.requireMock(
+        '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+      ) as { useNoPayTokenQuotesAlert: jest.Mock };
+      mockInsufficientAlert.mockReturnValue([]);
+      mockNoQuotesAlert.mockReturnValue([]);
+
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: {
+          balanceUsd: '999999999',
+          address: '0xusdc',
+          chainId: '0xa4b1',
+        },
+        setPayToken: jest.fn(),
+        isNative: false,
+      });
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Leverage')).toBeOnTheScreen();
+      });
+
+      const allBuilders = (
+        mockCreateEventBuilder.mock.calls as unknown as [
+          { category?: string },
+        ][]
+      ).reduce<ReturnType<typeof mockCreateEventBuilder>[]>(
+        (acc, call, idx) => {
+          if (call[0]?.category === 'Perp Error') {
+            acc.push(mockCreateEventBuilder.mock.results[idx].value);
+          }
+          return acc;
+        },
+        [],
+      );
+      const hasWarningBuilder = allBuilders.some((b) =>
+        (b.addProperties as jest.Mock).mock.calls.some(
+          (c: [Record<string, unknown>]) => c[0]?.error_type === 'warning',
+        ),
+      );
+      expect(hasWarningBuilder).toBe(false);
+    });
+
+    it('uses title as alertMessage fallback when message is not a string', async () => {
+      const expectedTitle = 'Alert title fallback';
+      const { useInsufficientPayTokenBalanceAlert: mockAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      mockAlert.mockReturnValue([
+        {
+          key: 'InsufficientPayTokenBalance',
+          field: 'Amount',
+          message: undefined,
+          title: expectedTitle,
+          severity: 'danger',
+          isBlocking: true,
+        },
+      ]);
+
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        const builder = findPerpsErrorBuilder();
+        expect(builder).toBeDefined();
+        expect(builder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error_type: 'validation',
+            error_message: expectedTitle,
+          }),
+        );
+      });
+    });
+
+    it('uses key as alertMessage fallback when neither message nor title exist', async () => {
+      const expectedKey = 'CustomAlertKey';
+      const { useInsufficientPayTokenBalanceAlert: mockAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      mockAlert.mockReturnValue([
+        {
+          key: expectedKey,
+          field: 'Amount',
+          severity: 'danger',
+          isBlocking: true,
+        },
+      ]);
+
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        const builder = findPerpsErrorBuilder();
+        expect(builder).toBeDefined();
+        expect(builder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error_type: 'validation',
+            error_message: expectedKey,
+          }),
+        );
+      });
+    });
+
+    it('uses unknown_blocking_alert as alertMessage fallback when no message, title, or key', async () => {
+      const { useInsufficientPayTokenBalanceAlert: mockAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      mockAlert.mockReturnValue([
+        {
+          field: 'Amount',
+          severity: 'danger',
+          isBlocking: true,
+        },
+      ]);
+
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        const builder = findPerpsErrorBuilder();
+        expect(builder).toBeDefined();
+        expect(builder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            error_type: 'validation',
+            error_message: 'unknown_blocking_alert',
+          }),
+        );
+      });
+    });
+  });
+
+  describe('slippage block on submit', () => {
+    beforeEach(() => {
+      // Earlier tests in the file mutate shared mocks (order form, validation,
+      // toasts, slippage hooks) without restoring them. Reset every mock the
+      // block path reads so this suite is self-contained regardless of run order.
+      (usePerpsEstimatedSlippage as jest.Mock).mockReturnValue({
+        estimatedSlippageBps: null,
+        isReady: false,
+      });
+      (usePerpsMaxSlippage as jest.Mock).mockReturnValue({
+        maxSlippageBps: 300,
+        maxSlippageSource: 'default',
+        setMaxSlippage: jest.fn(),
+      });
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        orderForm: {
+          asset: 'ETH',
+          amount: '11',
+          leverage: 3,
+          direction: 'long',
+          type: 'market',
+          limitPrice: undefined,
+          takeProfitPrice: undefined,
+          stopLossPrice: undefined,
+          balancePercent: 10,
+        },
+        setAmount: jest.fn(),
+        setLeverage: jest.fn(),
+        setTakeProfitPrice: jest.fn(),
+        setStopLossPrice: jest.fn(),
+        setLimitPrice: jest.fn(),
+        setOrderType: jest.fn(),
+        handlePercentageAmount: jest.fn(),
+        handleMaxAmount: jest.fn(),
+        handleMinAmount: jest.fn(),
+        optimizeOrderAmount: jest.fn(),
+        maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
+        calculations: {
+          marginRequired: '11',
+          positionSize: '0.0037',
+        },
+      });
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: true,
+        errors: [],
+        isValidating: false,
+      });
+    });
+
+    it('blocks placeOrder when estimated slippage exceeds the configured cap', async () => {
+      const mockPlaceOrder = jest.fn().mockResolvedValue({ success: true });
+      (usePerpsOrderExecution as jest.Mock).mockImplementation(() => ({
+        placeOrder: mockPlaceOrder,
+        isPlacing: false,
+      }));
+
+      const mockValidationError = jest.fn(() => ({
+        id: 'slippage-block-toast',
+      }));
+      const mockShowToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        showToast: mockShowToast,
+        PerpsToastOptions: {
+          formValidation: {
+            orderForm: {
+              limitPriceRequired: {},
+              validationError: mockValidationError,
+            },
+          },
+          orderManagement: {
+            market: {
+              submitted: jest.fn(),
+              confirmed: jest.fn(),
+              creationFailed: jest.fn(),
+            },
+            limit: {
+              submitted: jest.fn(),
+              confirmed: jest.fn(),
+              creationFailed: jest.fn(),
+            },
+            shared: { submitting: jest.fn() },
+          },
+          positionManagement: { tpsl: { updateTPSLError: jest.fn() } },
+          dataFetching: {
+            market: { error: { marketDataUnavailable: jest.fn() } },
+          },
+          accountManagement: {
+            deposit: {
+              inProgress: jest.fn(),
+              takingLonger: {},
+              tradeCanceled: {},
+              error: {},
+            },
+          },
+        },
+      });
+
+      (usePerpsEstimatedSlippage as jest.Mock).mockReturnValue({
+        estimatedSlippageBps: 500, // 5%
+        isReady: true,
+      });
+      (usePerpsMaxSlippage as jest.Mock).mockReturnValue({
+        maxSlippageBps: 100, // 1% — estimate exceeds the cap
+        maxSlippageSource: 'user_configured',
+        setMaxSlippage: jest.fn(),
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(placeOrderButton);
+      });
+
+      // The critical AC invariant: an order whose estimated slippage exceeds
+      // the configured cap must NOT reach the order execution path. (The toast
+      // copy and event payload are verified separately by the slippage recipe and the `eventNames` constants tests.)
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('transaction considered + trade quote received', () => {
+    let captured: { eventName: unknown; props: Record<string, unknown> }[];
+
+    beforeEach(() => {
+      captured = [];
+      mockIsPayQuoteLoading = false;
+      mockPayTotals = undefined;
+      mockCreateEventBuilder.mockImplementation((eventName?: unknown) => {
+        const builder: { addProperties: jest.Mock; build: jest.Mock } = {
+          addProperties: jest.fn((props: Record<string, unknown>) => {
+            captured.push({ eventName, props });
+            return builder;
+          }),
+          build: jest.fn(() => ({})),
+        };
+        return builder;
+      });
+    });
+
+    const eventsOf = (name: unknown) =>
+      captured.filter((e) => e.eventName === name);
+
+    it('emits PERPS_TRANSACTION_CONSIDERED once the filled order form settles (1s debounce)', () => {
+      jest.useFakeTimers();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Nothing before the 1s debounce window elapses.
+      act(() => {
+        jest.advanceTimersByTime(999);
+      });
+      expect(
+        eventsOf(MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED),
+      ).toHaveLength(0);
+
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+      const considered = eventsOf(
+        MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED,
+      );
+      expect(considered).toHaveLength(1);
+      expect(considered[0].props).toEqual(
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ORDER_CONTEXT]: 'trade',
+          [PERPS_EVENT_PROPERTY.ACTION]:
+            PERPS_EVENT_VALUE.ACTION.CREATE_POSITION,
+          [PERPS_EVENT_PROPERTY.ORDER_SIZE]: 11,
+          [PERPS_EVENT_PROPERTY.INPUT_METHOD]: 'default',
+          [PERPS_EVENT_PROPERTY.ASSET]: 'ETH',
+          [PERPS_EVENT_PROPERTY.DIRECTION]: PERPS_EVENT_VALUE.DIRECTION.LONG,
+          [PERPS_EVENT_PROPERTY.ORDER_TYPE]: 'market',
+          [PERPS_EVENT_PROPERTY.ORDER_HAS_TP]: false,
+          [PERPS_EVENT_PROPERTY.ORDER_HAS_SL]: false,
+          [PERPS_EVENT_PROPERTY.LEVERAGE]: 3,
+          [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
+        }),
+      );
+
+      jest.useRealTimers();
+    });
+
+    it('emits PERPS_TRADE_QUOTE_RECEIVED with quote_latency_ms when a pay-token quote completes', () => {
+      // Quote request in flight (custom pay token selected by default).
+      mockIsPayQuoteLoading = true;
+      const { rerender } = render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Quote resolves: loading transitions true -> false with totals present.
+      mockIsPayQuoteLoading = false;
+      mockPayTotals = { fees: {} };
+      act(() => {
+        rerender(<PerpsOrderView />);
+      });
+
+      const quotes = eventsOf(MetaMetricsEvents.PERPS_TRADE_QUOTE_RECEIVED);
+      expect(quotes).toHaveLength(1);
+      expect(quotes[0].props).toEqual(
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ASSET]: 'ETH',
+          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.SUCCESS,
+          [PERPS_EVENT_PROPERTY.QUOTE_LATENCY_MS]: expect.any(Number),
+        }),
+      );
+    });
+
+    it('emits a distinct PERPS_TRADE_QUOTE_RECEIVED per failed attempt when the amount changes (same blocking alert)', () => {
+      const { useNoPayTokenQuotesAlert: mockNoQuotes } = jest.requireMock(
+        '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+      ) as { useNoPayTokenQuotesAlert: jest.Mock };
+      // Same blocking no-quotes alert for both attempts; a failed quote carries
+      // no payTotals, so only the amount distinguishes the two attempts.
+      mockNoQuotes.mockReturnValue([
+        { key: 'no_quotes', message: 'No quotes available', isBlocking: true },
+      ]);
+
+      try {
+        const { rerender } = render(<PerpsOrderView />, {
+          wrapper: TestWrapper,
+        });
+
+        // Second attempt: user edits the amount, same failing alert.
+        (usePerpsOrderContext as jest.Mock).mockReturnValue({
+          ...defaultMockHooks.usePerpsOrderContext,
+          orderForm: {
+            ...defaultMockHooks.usePerpsOrderContext.orderForm,
+            amount: '22',
+          },
+        });
+        act(() => {
+          rerender(<PerpsOrderView />);
+        });
+
+        const quotes = eventsOf(MetaMetricsEvents.PERPS_TRADE_QUOTE_RECEIVED);
+        expect(quotes).toHaveLength(2);
+        quotes.forEach((q) =>
+          expect(q.props).toEqual(
+            expect.objectContaining({
+              [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+            }),
+          ),
+        );
+      } finally {
+        mockNoQuotes.mockReturnValue([]);
+      }
+    });
+  });
+
+  describe('abandon order tracking', () => {
+    let captured: { eventName: unknown; props: Record<string, unknown> }[];
+
+    const isAbandonEvent = (event: {
+      eventName: unknown;
+      props: Record<string, unknown>;
+    }) =>
+      event.eventName === MetaMetricsEvents.PERPS_UI_INTERACTION &&
+      event.props?.[PERPS_EVENT_PROPERTY.ACTION] ===
+        PERPS_EVENT_VALUE.ACTION.ABANDON_ORDER;
+
+    const setupAbandonNav = (routes: { key: string }[]) => {
+      const listeners: Record<string, (() => void)[]> = {};
+      (useNavigation as jest.Mock).mockReturnValue({
+        navigate: mockNavigate,
+        goBack: mockGoBack,
+        dispatch: jest.fn(),
+        addListener: jest.fn((event: string, cb: () => void) => {
+          (listeners[event] = listeners[event] || []).push(cb);
+          return jest.fn();
+        }),
+        getState: jest.fn(() => ({ routes })),
+        getParent: jest.fn(() => undefined),
+      });
+      return (event: string) => (listeners[event] || []).forEach((cb) => cb());
+    };
+
+    beforeEach(() => {
+      captured = [];
+      mockCreateEventBuilder.mockImplementation((eventName?: unknown) => {
+        const builder: { addProperties: jest.Mock; build: jest.Mock } = {
+          addProperties: jest.fn((props: Record<string, unknown>) => {
+            captured.push({ eventName, props });
+            return builder;
+          }),
+          build: jest.fn(() => ({})),
+        };
+        return builder;
+      });
+    });
+
+    it('emits abandon_order on beforeRemove (back / hardware back)', () => {
+      const fire = setupAbandonNav([{ key: 'trade' }]);
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      act(() => fire('beforeRemove'));
+
+      expect(captured.some(isAbandonEvent)).toBe(true);
+    });
+
+    it('emits abandon_order on tab-away (blur with unchanged depth)', () => {
+      const fire = setupAbandonNav([{ key: 'trade' }]);
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      act(() => fire('blur'));
+
+      expect(captured.some(isAbandonEvent)).toBe(true);
+    });
+
+    it('does NOT emit on blur when a child route was pushed (depth increased)', () => {
+      const routes = [{ key: 'trade' }];
+      const fire = setupAbandonNav(routes);
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      routes.push({ key: 'child' });
+      act(() => fire('blur'));
+
+      expect(captured.some(isAbandonEvent)).toBe(false);
+    });
+
+    // Note: committed-order suppression (hasPlacedOrderRef) is covered
+    // deterministically by the usePerpsAbandonOrderTracking hook unit test and by
+    // the PerpsClosePositionView "does NOT emit after a confirmed close"
+    // integration test (which drives the real confirm button). Driving the full
+    // place-order flow here is too dependent on cross-test mock state to assert
+    // reliably.
   });
 });

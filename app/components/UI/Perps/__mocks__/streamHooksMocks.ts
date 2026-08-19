@@ -16,7 +16,8 @@ import {
  * Default mock account state for testing
  */
 export const defaultMockAccountState: AccountState = {
-  availableBalance: '1000.50',
+  spendableBalance: '1000.50',
+  withdrawableBalance: '1000.50',
   totalBalance: '1500.00',
   marginUsed: '500.00',
   unrealizedPnl: '25.50',
@@ -73,6 +74,7 @@ export const defaultMockPriceUpdate: PriceUpdate = {
   symbol: 'ETH',
   price: '2000.00',
   timestamp: Date.now(),
+  isTradable: true,
   volume24h: 1000000,
 };
 

@@ -19,13 +19,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock('../../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: { section: '#eee', subsection: '#fff' },
-    },
-  }),
-}));
+jest.mock('../../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 describe('PerpsPositionSkeleton', () => {
   it('renders skeleton rows', () => {

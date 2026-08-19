@@ -3,10 +3,12 @@ import { useWindowDimensions, View } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
 import type { Provider } from '@metamask/ramps-controller';
 import { useSelector } from 'react-redux';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
+import {
+  BottomSheet,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   createNavigationDetails,
   useParams,
@@ -16,13 +18,17 @@ import ProviderSelection from './ProviderSelection';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
+import { getRampCallbackBaseUrl } from '../../../utils/getRampCallbackBaseUrl';
 import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
-import { selectRampsOrders } from '../../../../../../selectors/rampsController';
+import { selectRampsOrdersForSelectedAccountGroup } from '../../../../../../selectors/rampsController';
 import { completedOrdersFromRampsOrders } from '../../../utils/determinePreferredProvider';
+import { providerSupportsAsset } from '../../../utils/providerSupportsAsset';
+import { parseUserFacingError } from '../../../utils/parseUserFacingError';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { strings } from '../../../../../../../locales/i18n';
 
 export interface ProviderSelectionModalParams {
   amount?: number;
@@ -43,7 +49,7 @@ function ProviderSelectionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, { screenHeight });
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     amount: routeAmount,
     assetId: paramAssetId,
@@ -59,7 +65,9 @@ function ProviderSelectionModal() {
   } = useRampsController();
 
   const legacyOrdersProviders = useSelector(getOrdersProviders);
-  const controllerOrders = useSelector(selectRampsOrders);
+  const controllerOrders = useSelector(
+    selectRampsOrdersForSelectedAccountGroup,
+  );
 
   const ordersProviders = useMemo(() => {
     const v2ProviderIds = completedOrdersFromRampsOrders(controllerOrders).map(
@@ -80,12 +88,17 @@ function ProviderSelectionModal() {
     '';
   const assetId = paramAssetId ?? selectedToken?.assetId ?? '';
 
+  /**
+   * Only list (and quote) providers that support the effective asset. Uses the
+   * same id as `getQuotes` (`paramAssetId ?? selectedToken?.assetId`), so flows
+   * without route `assetId` still filter when `selectedToken` is set.
+   */
   const displayProviders = useMemo(() => {
-    if (!paramAssetId) return providers;
-    return providers.filter(
-      (p) => p.supportedCryptoCurrencies?.[paramAssetId] === true,
-    );
-  }, [providers, paramAssetId]);
+    if (!assetId) {
+      return providers;
+    }
+    return providers.filter((p) => providerSupportsAsset(p, assetId));
+  }, [providers, assetId]);
 
   const providerIds = useMemo(
     () => displayProviders.map((p) => p.id),
@@ -94,16 +107,18 @@ function ProviderSelectionModal() {
 
   const quoteFetchParams = useMemo(
     () =>
-      !skipQuotes && amount > 0 && walletAddress && assetId
+      !skipQuotes &&
+      amount > 0 &&
+      walletAddress &&
+      assetId &&
+      selectedPaymentMethod
         ? {
             amount,
             walletAddress,
             assetId,
+            redirectUrl: getRampCallbackBaseUrl(),
             providers: providerIds,
-            paymentMethods: selectedPaymentMethod
-              ? [selectedPaymentMethod.id]
-              : undefined,
-            forceRefresh: true,
+            paymentMethods: [selectedPaymentMethod.id],
           }
         : null,
     [
@@ -121,6 +136,17 @@ function ProviderSelectionModal() {
     loading: quotesLoading,
     error: quotesError,
   } = useRampsQuotes(quoteFetchParams);
+
+  const handleDismiss = useCallback(
+    (hasPendingAction?: boolean) => {
+      if (!hasPendingAction && skipQuotes) {
+        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
+          screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
+        });
+      }
+    },
+    [navigation, skipQuotes],
+  );
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -151,14 +177,26 @@ function ProviderSelectionModal() {
   );
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      onClose={handleDismiss}
+    >
       <View style={styles.container}>
         <ProviderSelection
           providers={displayProviders}
+          amount={amount}
           quotes={quotes}
           quotesLoading={quotesLoading}
-          quotesError={quotesError}
-          showQuotes={!skipQuotes && amount > 0}
+          quotesError={
+            quotesError
+              ? parseUserFacingError(
+                  quotesError,
+                  strings('fiat_on_ramp.no_quotes_available'),
+                )
+              : null
+          }
+          showQuotes={!skipQuotes && amount > 0 && !!selectedPaymentMethod}
           showBackButton={hasPaymentModalInStack}
           ordersProviders={ordersProviders.filter(
             (id): id is string => id != null,

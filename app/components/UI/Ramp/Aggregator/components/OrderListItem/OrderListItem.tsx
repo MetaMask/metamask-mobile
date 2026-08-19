@@ -10,7 +10,10 @@ import {
 } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../../util/date';
-import { addCurrencySymbol, renderFiat } from '../../../../../../util/number';
+import {
+  addCurrencySymbol,
+  renderFiat,
+} from '../../../../../../util/number/bigint';
 import { getOrderAmount } from '../../utils';
 import Text, {
   TextColor,
@@ -27,10 +30,10 @@ import Badge, {
 } from '../../../../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 
-/* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
+/* eslint-disable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const transactionIconReceived = require('images/transaction-icons/receive.png');
 const transactionIconSent = require('images/transaction-icons/receive-inverted.png');
-/* eslint-enable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
+/* eslint-enable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 
 interface Props {
   readonly order: FiatOrder;

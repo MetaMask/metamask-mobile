@@ -1,11 +1,13 @@
-///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
     snapSettingsContainer: {
       flex: 1,
-      marginHorizontal: 16,
+    },
+    scrollContent: {
+      paddingHorizontal: 16,
     },
     itemPaddedContainer: {
       paddingVertical: 16,

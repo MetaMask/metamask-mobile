@@ -3,11 +3,15 @@ import { View, FlatList, StyleProp, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CaipChainId, toCaipChainId } from '@metamask/utils';
+import {
+  Text,
+  TextColor,
+  TextFieldSearch,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 import { useStyles } from '../../../hooks';
 import styleSheet from './MultichainAddressRowsList.styles';
-import Text, { TextVariant, TextColor } from '../../../components/Texts/Text';
-import TextFieldSearch from '../../../components/Form/TextFieldSearch';
 import { strings } from '../../../../../locales/i18n';
 import MultichainAddressRow, { SAMPLE_ICONS } from '../MultichainAddressRow';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
@@ -122,8 +126,8 @@ const MultichainAddressRowsList: React.FC<MultichainAddressRowsListProps> = ({
     return (
       <View style={styles.emptyContainer}>
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
           testID={MULTICHAIN_ADDRESS_ROWS_LIST_EMPTY_MESSAGE_TEST_ID}
         >
           {strings(messageKey)}
@@ -142,7 +146,9 @@ const MultichainAddressRowsList: React.FC<MultichainAddressRowsListProps> = ({
           value={searchPattern}
           onChangeText={handleSearchChange}
           onPressClearButton={() => handleSearchChange('')}
-          testID={MULTICHAIN_ADDRESS_ROWS_LIST_SEARCH_TEST_ID}
+          inputProps={{
+            testID: MULTICHAIN_ADDRESS_ROWS_LIST_SEARCH_TEST_ID,
+          }}
         />
       </View>
 

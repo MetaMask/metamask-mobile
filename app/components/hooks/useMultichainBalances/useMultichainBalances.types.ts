@@ -1,6 +1,12 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AggregatedPercentageProps } from '../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.types';
 import { AggregatedPercentageCrossChainsProps } from '../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains.types';
+
+export interface AggregatedBalance {
+  ethFiat: number;
+  tokenFiat: number;
+  tokenFiat1dAgo: number;
+  ethFiat1dAgo: number;
+}
 
 export interface MultichainBalancesData {
   displayBalance?: string;
@@ -11,7 +17,7 @@ export interface MultichainBalancesData {
   nativeTokenUnit: string;
   shouldShowAggregatedPercentage: boolean;
   isPortfolioViewEnabled: boolean;
-  aggregatedBalance: AggregatedPercentageProps;
+  aggregatedBalance: AggregatedBalance;
   isLoadingAccount: boolean;
 }
 

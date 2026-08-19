@@ -2,11 +2,14 @@ import React, {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useRef,
   useState,
 } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { ActivityIndicator, RefreshControl } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { Order } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -26,7 +29,6 @@ import {
   updateFiatOrder,
 } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { processFiatOrder } from '../../../index';
 import {
@@ -63,7 +65,7 @@ const OrderDetails = () => {
   const [error, setError] = useState<string | null>(null);
   const theme = useTheme();
   const { colors } = theme;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
   const getAggregatorOrderNetworkName = useAggregatorOrderNetworkName();
@@ -71,12 +73,6 @@ const OrderDetails = () => {
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRefreshingInterval, setIsRefreshingInterval] = useState(false);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
 
   const navigateToSendTransaction = useCallback(() => {
     if (order?.id) {
@@ -101,44 +97,47 @@ const OrderDetails = () => {
     order?.sellTxHash,
   ]);
 
+  const hasTrackedDetailsViewRef = useRef(false);
+
   useEffect(() => {
-    if (order) {
-      const { data, state, cryptocurrency, orderType, currency, network } =
-        order;
-
-      const providerName = (data as Order).provider?.name;
-
-      const payload = {
-        status: state,
-        payment_method_id: (data as Order).paymentMethod?.id,
-        order_type: orderType,
-      };
-      if (order.orderType === OrderOrderTypeEnum.Buy) {
-        trackEvent('ONRAMP_PURCHASE_DETAILS_VIEWED', {
-          ...payload,
-          currency_destination: cryptocurrency,
-          currency_destination_symbol: cryptocurrency,
-          currency_destination_network: getAggregatorOrderNetworkName(
-            data as Order,
-          ),
-          currency_source: currency,
-          provider_onramp: providerName,
-          chain_id_destination: network,
-        });
-      } else {
-        trackEvent('OFFRAMP_PURCHASE_DETAILS_VIEWED', {
-          ...payload,
-          currency_source: cryptocurrency,
-          currency_source_symbol: cryptocurrency,
-          currency_source_network: getAggregatorOrderNetworkName(data as Order),
-          currency_destination: currency,
-          provider_offramp: providerName,
-          chain_id_source: network,
-        });
-      }
+    if (!order || hasTrackedDetailsViewRef.current) {
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trackEvent]);
+    hasTrackedDetailsViewRef.current = true;
+
+    const { data, state, cryptocurrency, orderType, currency, network } = order;
+
+    const providerName = (data as Order).provider?.name;
+
+    const payload = {
+      status: state,
+      payment_method_id: (data as Order).paymentMethod?.id,
+      order_type: orderType,
+    };
+    if (order.orderType === OrderOrderTypeEnum.Buy) {
+      trackEvent('ONRAMP_PURCHASE_DETAILS_VIEWED', {
+        ...payload,
+        currency_destination: cryptocurrency,
+        currency_destination_symbol: cryptocurrency,
+        currency_destination_network: getAggregatorOrderNetworkName(
+          data as Order,
+        ),
+        currency_source: currency,
+        provider_onramp: providerName,
+        chain_id_destination: network,
+      });
+    } else {
+      trackEvent('OFFRAMP_PURCHASE_DETAILS_VIEWED', {
+        ...payload,
+        currency_source: cryptocurrency,
+        currency_source_symbol: cryptocurrency,
+        currency_source_network: getAggregatorOrderNetworkName(data as Order),
+        currency_destination: currency,
+        provider_offramp: providerName,
+        chain_id_source: network,
+      });
+    }
+  }, [order, trackEvent, getAggregatorOrderNetworkName]);
 
   const dispatchUpdateFiatOrder = useCallback(
     (updatedOrder: FiatOrder) => {
@@ -178,13 +177,19 @@ const OrderDetails = () => {
     [dispatchThunk, dispatchUpdateFiatOrder, order],
   );
 
+  // Preserve prior mount-only semantics: evaluate once on first effect run so
+  // a later transition into CREATED cannot trigger a second auto-refresh.
+  const hasAttemptedInitialCreatedRefreshRef = useRef(false);
+
   useEffect(() => {
+    if (hasAttemptedInitialCreatedRefreshRef.current) {
+      return;
+    }
+    hasAttemptedInitialCreatedRefreshRef.current = true;
     if (order?.state === FIAT_ORDER_STATES.CREATED) {
       handleOnRefresh();
     }
-    // only run on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [order?.state, handleOnRefresh]);
 
   const handleMakeAnotherPurchase = useCallback(() => {
     navigation.goBack();
@@ -214,7 +219,7 @@ const OrderDetails = () => {
   if (!order) {
     return (
       <ScreenLayout>
-        <HeaderCompactStandard
+        <HeaderStandard
           includesTopInset
           title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
           onBack={() => navigation.goBack()}
@@ -226,7 +231,7 @@ const OrderDetails = () => {
   if (isLoading) {
     return (
       <ScreenLayout>
-        <HeaderCompactStandard
+        <HeaderStandard
           includesTopInset
           title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
           onBack={() => navigation.goBack()}
@@ -243,7 +248,7 @@ const OrderDetails = () => {
   if (error) {
     return (
       <ScreenLayout>
-        <HeaderCompactStandard
+        <HeaderStandard
           includesTopInset
           title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
           onBack={() => navigation.goBack()}
@@ -261,7 +266,7 @@ const OrderDetails = () => {
 
   return (
     <ScreenLayout>
-      <HeaderCompactStandard
+      <HeaderStandard
         includesTopInset
         title={strings('fiat_on_ramp_aggregator.order_details.details_main')}
         onBack={() => navigation.goBack()}

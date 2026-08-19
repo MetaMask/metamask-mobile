@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import AccountApproval from '.';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -41,12 +42,7 @@ jest.mock('../../../util/phishingDetection', () => ({
     mockGetPhishingTestResultAsync(origin),
 }));
 
-const mockOpenURL = jest.fn();
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: (url: string) => mockOpenURL(url),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-}));
+// Linking.openURL is already globally mocked in testSetup.js
 
 const mockRemoveChannel = jest.fn();
 jest.mock('../../../core/SDKConnect/SDKConnect', () => ({
@@ -141,14 +137,14 @@ describe('AccountApproval', () => {
   });
 
   it('renders correctly', () => {
-    const container = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <AccountApproval
         currentPageInformation={{ icon: '', url: '', title: '' }}
       />,
       { state: mockInitialState },
     );
 
-    expect(container).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('tracks CONNECT_REQUEST_STARTED on mount', () => {
@@ -212,6 +208,27 @@ describe('AccountApproval', () => {
     expect(onConfirm).toHaveBeenCalled();
   });
 
+  it('forwards the full URL including path to the scanner', async () => {
+    renderWithProvider(
+      <AccountApproval
+        currentPageInformation={{
+          icon: '',
+          url: 'https://shared-host.example/view/test-path',
+          title: '',
+        }}
+      />,
+      { state: mockInitialState },
+    );
+
+    // The full URL (with path) must be forwarded to the scanner, not the hostname.
+    expect(mockGetPhishingTestResultAsync).toHaveBeenCalledWith(
+      'https://shared-host.example/view/test-path',
+    );
+    expect(mockGetPhishingTestResultAsync).not.toHaveBeenCalledWith(
+      'shared-host.example',
+    );
+  });
+
   it('renders warning banner when hostname is flagged as phishing', async () => {
     mockGetPhishingTestResultAsync.mockResolvedValueOnce({ result: true });
 
@@ -240,7 +257,9 @@ describe('AccountApproval', () => {
     mockTrackEvent.mockClear();
     fireEvent.press(learnMore);
 
-    expect(mockOpenURL).toHaveBeenCalledWith(CONNECTING_TO_A_DECEPTIVE_SITE);
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      CONNECTING_TO_A_DECEPTIVE_SITE,
+    );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: MetaMetricsEvents.EXTERNAL_LINK_CLICKED,

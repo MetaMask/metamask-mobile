@@ -1,4 +1,114 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
+
+const {
+  routeIsolationZones,
+} = require('./scripts/eslint-route-isolation-zones');
+
+// Existing BN.js migration zone, kept in a named const so it can be
+// re-declared by the route-isolation overrides below without duplicating
+// the message text.
+const utilNumberDeprecationZone = {
+  target: 'app',
+  from: 'app/util/number/index.js',
+  message:
+    'app/util/number/index.js is deprecated. Import the BigInt-based replacement from app/util/number/bigint instead. See app/util/number/bigint-migration-reference.test.ts for migration patterns.',
+};
+
+/**
+ * Files still allowed to import deprecated `app/util/number/index.js` during
+ * the BN.js → BigInt migration. Kept in one array so the default import-fence
+ * override can exclude them while the follow-up override below re-applies only
+ * the expo-haptics / perps restrictions (see comments on those overrides).
+ */
+const utilNumberImportBurndownFiles = [
+  'app/component-library/components-temp/CustomSpendCap/CustomInput/CustomInput.tsx',
+  'app/component-library/components-temp/CustomSpendCap/CustomSpendCap.tsx',
+  'app/components/UI/AccountInfoCard/index.js',
+  'app/components/UI/Bridge/components/QuoteSelectorView/QuoteRow.tsx',
+  'app/components/UI/Bridge/components/QuoteSelectorView/index.tsx',
+  'app/components/UI/Bridge/hooks/useBridgeQuoteData/index.ts',
+  'app/components/UI/Bridge/hooks/useFormattedBalanceWithThreshold/index.ts',
+  'app/components/UI/Bridge/hooks/useHasSufficientGas/index.ts',
+  'app/components/UI/Bridge/hooks/useInsufficientBalance/index.ts',
+  'app/components/UI/Bridge/hooks/useTokenBalanceInUsd/index.ts',
+  'app/components/UI/Bridge/hooks/useTokensWithBalance/index.ts',
+  'app/components/UI/Bridge/utils/exchange-rates.ts',
+  'app/components/UI/Bridge/utils/formatNetworkFee.test.ts',
+  'app/components/UI/Bridge/utils/formatNetworkFee.ts',
+  'app/components/UI/Bridge/utils/transaction-history.ts',
+  'app/components/UI/Card/hooks/useAssetBalances.tsx',
+  'app/components/UI/Card/hooks/useCardDelegation.test.ts',
+  'app/components/UI/Card/hooks/useCardDelegation.ts',
+  'app/components/UI/Card/hooks/useNeedsGasFaucet.ts',
+  'app/components/UI/Card/sdk/CardSDK.ts',
+  'app/components/UI/Earn/Views/EarnInputView/EarnInputView.test.tsx',
+  'app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/Erc20TokenHero/index.tsx',
+  'app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/index.tsx',
+  'app/components/UI/Earn/Views/EarnLendingWithdrawalConfirmationView/index.tsx',
+  'app/components/UI/Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView.tsx',
+  'app/components/UI/Earn/components/EarnLendingBalance/index.tsx',
+  'app/components/UI/Earn/components/Earnings/EarningsHistory/EarningsHistory.utils.ts',
+  'app/components/UI/Earn/components/InputDisplay/InputDisplay.test.tsx',
+  'app/components/UI/Earn/hooks/useEarnGasFee.ts',
+  'app/components/UI/Earn/hooks/useEarnInput.ts',
+  'app/components/UI/Earn/hooks/useEarnings.ts',
+  'app/components/UI/Earn/hooks/useInput.ts',
+  'app/components/UI/Earn/hooks/useMultichainInputHandlers.ts',
+  'app/components/UI/Earn/hooks/useMusdBalance.ts',
+  'app/components/UI/Earn/hooks/useMusdCtaVisibility.ts',
+  'app/components/UI/Earn/utils/number.ts',
+  'app/components/UI/Earn/utils/token/index.ts',
+  'app/components/UI/Earn/utils/tron.ts',
+  'app/components/UI/HardwareWallet/AccountDetails/index.tsx',
+  'app/components/UI/Money/constants/activityStyles.ts',
+  'app/components/UI/Money/hooks/useMoneyAccountBalance.ts',
+  'app/components/UI/Money/utils/moneyActivityFiat.ts',
+  'app/components/UI/MultichainBridgeTransactionListItem/MultichainBridgeTransactionListItem.tsx',
+  'app/components/UI/Notification/TransactionNotification/index.js',
+  'app/components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx',
+  'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.test.tsx',
+  'app/components/UI/Stake/components/StakingConfirmation/TokenValueStack/TokenValueStack.tsx',
+  'app/components/UI/Stake/hooks/useBalance.ts',
+  'app/components/UI/UrlAutocomplete/Result.tsx',
+  'app/components/Views/GasEducationCarousel/index.js',
+  'app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkValidation.ts',
+  'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyBottomSheet.ts',
+  'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyQuotes.ts',
+  'app/components/Views/SocialLeaderboard/utils/formatters.ts',
+  'app/components/Views/confirmations/components/gas/max-base-fee-input/max-base-fee-input.tsx',
+  'app/components/Views/confirmations/components/gas/priority-fee-input/priority-fee-input.tsx',
+  'app/components/Views/confirmations/components/info/typed-sign-v3v4/simulation/components/native-value-display/native-value-display.tsx',
+  'app/components/Views/confirmations/components/info/typed-sign-v3v4/simulation/components/value-display/value-display.tsx',
+  'app/components/Views/confirmations/components/transactions/custom-amount/custom-amount.tsx',
+  'app/components/Views/confirmations/external/staking/hooks/useStakingDetails.ts',
+  'app/components/Views/confirmations/hooks/gas/useCancelSpeedupGas/useCancelSpeedupGas.ts',
+  'app/components/Views/confirmations/hooks/send/useBalance.ts',
+  'app/components/Views/confirmations/hooks/send/useCurrencyConversions.ts',
+  'app/components/Views/confirmations/hooks/send/usePercentageAmount.ts',
+  'app/components/Views/confirmations/hooks/useTokenAmount.ts',
+  'app/components/Views/confirmations/legacy/components/CustomNonceModal/index.js',
+  'app/components/Views/confirmations/legacy/components/WatchAssetRequest/index.js',
+  'app/components/Views/confirmations/utils/send.ts',
+  'app/components/hooks/useAddressBalance/useAddressBalance.ts',
+  'app/components/hooks/useGetFormattedTokensPerChain.tsx',
+  'app/components/hooks/useGetTotalFiatBalanceCrossChains.tsx',
+  'app/core/Engine/Engine.ts',
+  'app/core/GasPolling/GasPolling.ts',
+  'app/core/NotificationManager.js',
+  'app/selectors/earnController/earn/index.ts',
+  'app/selectors/multichain/evm.ts',
+  // `app/util/**` importers of `./number` or `../number` (resolves to `index.js`);
+  // same burndown contract as feature files — remove when migrated to
+  // `../number/bigint` (or `./number/bigint` from `app/util/`).
+  'app/util/confirm-tx.js',
+  'app/util/conversions.js',
+
+  'app/util/confirmation/transactions.ts',
+  'app/util/custom-gas/index.js',
+  'app/util/transactions/index.js',
+  'app/util/transactions/index.test.ts',
+];
+
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
@@ -9,7 +119,7 @@ module.exports = {
     '@react-native',
     'eslint:recommended',
     // '@metamask/eslint-config', // TODO: Enable when ready
-    'plugin:import/warnings',
+    'plugin:import-x/warnings',
     'plugin:react/recommended',
   ],
   // ESLint can find the plugin without the `eslint-plugin-` prefix. Ex. `eslint-plugin-react-compiler` -> `react-compiler`
@@ -22,8 +132,24 @@ module.exports = {
   ],
   overrides: [
     {
-      files: ['tests/**/*.{js,ts}', 'appwright/**/*.{js,ts}'],
+      files: ['tests/**/*.{js,ts}'],
       extends: ['./tests/framework/.eslintrc.js'],
+    },
+    {
+      // These files intentionally omit dependencies from a useEffect/useCallback
+      // (documented inline at each call site). The React Compiler refuses to
+      // optimize any file containing an inline `eslint-disable` for a React
+      // rule, so the suppression is relocated here (invisible to the compiler)
+      // instead of being a per-line comment. Runtime behavior is unchanged.
+      files: [
+        'app/components/hooks/useAsyncResult.ts',
+        'app/components/hooks/useOTAUpdates.ts',
+        'app/components/Nav/Main/index.js',
+        'app/components/Nav/App/App.tsx',
+      ],
+      rules: {
+        'react-hooks/exhaustive-deps': 'off',
+      },
     },
     {
       files: ['*.{ts,tsx}'],
@@ -42,6 +168,11 @@ module.exports = {
           'interface',
         ],
         '@typescript-eslint/no-explicit-any': 'error',
+        // Surface JSDoc @deprecated annotations at every use-site (warn for now;
+        // ratchet to 'error' once the BN.js → BigInt migration is complete).
+        // Pairs with the `import-x/no-restricted-paths` fence on
+        // `app/util/number/index.js` in the app import-fence override below.
+        '@typescript-eslint/no-deprecated': 'warn',
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
         '@typescript-eslint/no-shadow': [
@@ -49,6 +180,116 @@ module.exports = {
           {
             builtinGlobals: true,
             allow: ['Text'],
+          },
+        ],
+
+        // These rule modifications are removing changes to our shared ESLint config made after
+        // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
+        // at which point we can restore the intended rules and use error suppression instead.
+        //
+        // TODO: Remove these modifications after the ESLint v9 update
+        '@typescript-eslint/await-thenable': 'off',
+        '@typescript-eslint/consistent-type-imports': 'off',
+        '@typescript-eslint/consistent-type-exports': 'off',
+        '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/naming-convention': 'off',
+        '@typescript-eslint/no-base-to-string': 'off',
+        '@typescript-eslint/no-duplicate-type-constituents': 'off',
+        '@typescript-eslint/no-empty-object-type': 'off',
+        '@typescript-eslint/no-floating-promises': 'off',
+        '@typescript-eslint/no-implied-eval': 'off',
+        '@typescript-eslint/no-misused-promises': 'off',
+        '@typescript-eslint/no-redundant-type-constituents': 'off',
+        '@typescript-eslint/no-throw-literal': 'off',
+        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
+        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
+        '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
+        '@typescript-eslint/no-unused-vars': 'off',
+        '@typescript-eslint/no-wrapper-object-types': 'off',
+        '@typescript-eslint/only-throw-error': 'off',
+        '@typescript-eslint/prefer-enum-initializers': 'off',
+        '@typescript-eslint/prefer-includes': 'off',
+        '@typescript-eslint/prefer-nullish-coalescing': 'off',
+        '@typescript-eslint/prefer-optional-chain': 'off',
+        '@typescript-eslint/prefer-promise-reject-errors': 'off',
+        '@typescript-eslint/prefer-readonly': 'off',
+        '@typescript-eslint/prefer-reduce-type-parameter': 'off',
+        '@typescript-eslint/prefer-string-starts-ends-with': 'off',
+        '@typescript-eslint/promise-function-async': 'off',
+        '@typescript-eslint/restrict-plus-operands': 'off',
+        '@typescript-eslint/restrict-template-expressions': 'off',
+        '@typescript-eslint/switch-exhaustiveness-check': 'off',
+        '@typescript-eslint/unbound-method': 'off',
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          // {
+          //   selector: "BinaryExpression[operator='in']",
+          //   message: 'The "in" operator is not allowed',
+          // },
+          // {
+          //   selector:
+          //     "PropertyDefinition[accessibility='private'], MethodDefinition[accessibility='private'], TSParameterProperty[accessibility='private']",
+          //   message: 'Use a hash name instead.',
+          // },
+        ],
+      },
+    },
+    // MMQA-2174 / MMQA-2173: re-apply after *.{ts,tsx} override which replaces no-restricted-syntax
+    {
+      files: ['tests/page-objects/**/*.{js,ts}', 'tests/flows/**/*.{js,ts}'],
+      excludedFiles: [
+        'tests/page-objects/**/*.test.ts',
+        'tests/page-objects/**/*.test.js',
+        'tests/flows/**/*.test.ts',
+        'tests/flows/**/*.test.js',
+      ],
+      rules: {
+        // UnifiedGestures Identifier stays out of this error list so legacy PO
+        // usages remain warn-only via no-restricted-imports (MMQA-2174).
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+        ],
+      },
+    },
+    {
+      files: ['tests/smoke-appium/**/*.{js,ts}'],
+      excludedFiles: ['tests/smoke-appium/**/*.test.ts'],
+      rules: {
+        'no-restricted-syntax': [
+          'error',
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
+          },
+          {
+            selector: "Identifier[name='UnifiedGestures']",
+            message: 'Use Gestures instead of UnifiedGestures.',
+          },
+          {
+            selector: "Identifier[name='FrameworkDetector']",
+            message:
+              'Do not use FrameworkDetector in specs. Use Gestures/Assertions/Matchers.',
           },
         ],
       },
@@ -86,16 +327,20 @@ module.exports = {
       },
       rules: {
         'no-console': 'off',
-        'import/no-commonjs': 'off',
-        'import/no-nodejs-modules': 'off',
+        'import-x/no-commonjs': 'off',
+        'import-x/no-nodejs-modules': 'off',
       },
     },
     {
-      files: ['scripts/**/*.js', 'tests/tools/**/*.{js,ts}', 'app.config.js'],
+      files: [
+        'scripts/**/*.{js,ts}',
+        'tests/tools/**/*.{js,ts}',
+        'app.config.js',
+      ],
       rules: {
         'no-console': 'off',
-        'import/no-commonjs': 'off',
-        'import/no-nodejs-modules': 'off',
+        'import-x/no-commonjs': 'off',
+        'import-x/no-nodejs-modules': 'off',
       },
     },
     {
@@ -105,24 +350,9 @@ module.exports = {
       },
     },
     {
-      // Temporary rollout strategy:
-      // Keep color-no-hex disabled for all tests by default, then re-enable it
-      // for specific folders in small PR batches. Once migration is complete,
-      // remove this override and enforce across all tests in:
-      // - app/components/
-      // - app/component-library/
-      files: ['**/*.test.{js,ts,tsx}', '**/*.stories.{js,ts,tsx}'],
-      rules: {
-        '@metamask/design-tokens/color-no-hex': 'off',
-      },
-    },
-    {
       files: [
-        'app/components/UI/Card/**/*.{js,jsx,ts,tsx}',
-        'app/components/Snaps/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/Predict/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/Rewards/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/Perps/**/*.{js,jsx,ts,tsx}',
+        'app/components/**/*.{js,jsx,ts,tsx}',
+        'app/component-library/**/*.{js,jsx,ts,tsx}',
       ],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'error',
@@ -200,6 +430,33 @@ module.exports = {
         ],
       },
     },
+    {
+      files: ['**/*.test.{js,ts,tsx,jsx}', '**/*.spec.{js,ts,tsx,jsx}'],
+      plugins: ['jest'],
+      rules: {
+        // Prevent new file-based snapshots. Inline snapshots (toMatchInlineSnapshot)
+        // are still allowed as they keep assertions co-located with the test.
+        'jest/no-restricted-matchers': [
+          'error',
+          {
+            toMatchSnapshot:
+              'Use toMatchInlineSnapshot() or an explicit assertion instead. File-based snapshots are being phased out.',
+          },
+        ],
+      },
+    },
+    {
+      // Matches CODEOWNERS `**/snaps/**` and `**/Snaps/**` (@MetaMask/core-platform).
+      // ESLint cannot read CODEOWNERS.
+      files: [
+        '**/snaps/**/*.{test,spec}.{js,ts,tsx,jsx}',
+        '**/Snaps/**/*.{test,spec}.{js,ts,tsx,jsx}',
+      ],
+      plugins: ['jest'],
+      rules: {
+        'jest/no-restricted-matchers': 'off',
+      },
+    },
     // ── Perps controller Core-alignment override ──
     // Enforces the same ESLint rules that Core's @metamask/eslint-config
     // applies to packages/perps-controller so that code written in mobile
@@ -212,7 +469,7 @@ module.exports = {
     //
     // See docs/perps/perps-core-sync.md for the full sync workflow.
     {
-      files: ['app/controllers/perps/**/*.{ts,tsx}'],
+      files: ['app/**/*-method-action-types*.ts'],
       excludedFiles: ['**/*.test.ts', '**/*.test.tsx'],
       rules: {
         // === Existing rule ===
@@ -235,6 +492,22 @@ module.exports = {
             selector: "PropertyDefinition[accessibility='private']",
             message:
               'Use ES private class fields (#field) instead of TypeScript private keyword.',
+          },
+          // Mirror @metamask/eslint-config base rule — prevents `'x' in obj`
+          // type-guards that would land in core as new `no-restricted-syntax`
+          // suppressions. Use `hasProperty()` from `@metamask/utils` instead.
+          {
+            selector: "BinaryExpression[operator='in']",
+            message:
+              'The "in" operator is not allowed. Use `hasProperty()` from `@metamask/utils` instead.',
+          },
+          {
+            selector: 'WithStatement',
+            message: 'With statements are not allowed',
+          },
+          {
+            selector: 'SequenceExpression',
+            message: 'Sequence expressions are not allowed',
           },
         ],
         'id-denylist': [
@@ -356,15 +629,24 @@ module.exports = {
         '@typescript-eslint/no-floating-promises': 'error',
         '@typescript-eslint/restrict-template-expressions': 'error',
 
-        // === Import rules (using 'import' plugin, not 'import-x') ===
-        'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
-        'import/no-named-as-default': 'error',
-        'import/order': [
+        // === Import rules ===
+        'import-x/consistent-type-specifier-style': [
+          'error',
+          'prefer-top-level',
+        ],
+        'import-x/no-named-as-default': 'error',
+        'import-x/order': [
           'error',
           {
             groups: [
               ['builtin', 'external'],
               ['internal', 'parent', 'sibling', 'index'],
+            ],
+            pathGroups: [
+              {
+                pattern: '#*/**',
+                group: 'internal',
+              },
             ],
             alphabetize: { order: 'asc', caseInsensitive: true },
             'newlines-between': 'always',
@@ -388,28 +670,116 @@ module.exports = {
       },
     },
     {
-      // Perps test files use top-level type imports (import type + import from same module),
-      // which conflicts with the global no-duplicate-imports rule.
-      files: ['app/controllers/perps/**/*.test.{ts,tsx}'],
-      rules: {
-        'no-duplicate-imports': 'off',
-      },
-    },
-    {
-      files: ['app/**/*.{ts,tsx}'],
-      excludedFiles: ['app/controllers/perps/**/*.{ts,tsx}'],
+      // Default app import fences (expo-haptics, perps, deprecated util/number/index.js).
+      // `excludedFiles` applies to the whole override — listing burn-down paths
+      // here would incorrectly skip expo/perps for those files, so burn-down is
+      // excluded from *this* block only and picked up by the next override.
+      files: ['app/**/*.{ts,tsx,js,jsx}'],
+      excludedFiles: [
+        // Designated expo-haptics wrapper — only this tree may import expo-haptics.
+        'app/util/haptics/**/*.{ts,tsx,js,jsx}',
+        // Legacy number utils + parity tests.
+        'app/util/number/**',
+        // BN.js → BigInt burn-down: still allowed util/number imports; see next override.
+        ...utilNumberImportBurndownFiles,
+      ],
       rules: {
         'no-restricted-imports': [
           'error',
           {
+            paths: [
+              {
+                name: 'expo-haptics',
+                message:
+                  'Import from app/util/haptics instead of expo-haptics directly.',
+              },
+            ],
             patterns: [
               {
-                group: ['**/controllers/perps', '**/controllers/perps/**'],
+                group: ['expo-haptics/*'],
                 message:
-                  'Use @metamask/perps-controller instead of relative imports into app/controllers/perps/.',
+                  'Import from app/util/haptics instead of expo-haptics directly.',
               },
             ],
           },
+        ],
+        // Fences the deprecated `app/util/number/index.js` module. We use
+        // `import-x/no-restricted-paths` (not `no-restricted-imports`) because
+        // it resolves each import to its absolute file, which means a single
+        // entry catches every spelling that lands on `index.js` — bare
+        // (`from '../util/number'`), explicit (`'../util/number/index'`),
+        // and explicit-with-extension. Sibling modules like `bigint`,
+        // `bignumber`, and `subscriptNotation` resolve to different files
+        // and are unaffected, so no negation list is needed. Inherits the
+        // burn-down allowlist from this override's `excludedFiles`; the
+        // burn-down override below intentionally does not re-declare this
+        // rule, so allow-listed files remain exempt.
+        'import-x/no-restricted-paths': [
+          'error',
+          { zones: [utilNumberDeprecationZone] },
+        ],
+      },
+    },
+    {
+      // Re-apply expo-haptics + perps only for burn-down files. A second
+      // override is required because ESLint replaces `no-restricted-imports`
+      // when the same rule is set again — we cannot use one override with only
+      // `excludedFiles` for util/number without silently dropping other fences.
+      files: utilNumberImportBurndownFiles,
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            paths: [
+              {
+                name: 'expo-haptics',
+                message:
+                  'Import from app/util/haptics instead of expo-haptics directly.',
+              },
+            ],
+            patterns: [
+              {
+                group: ['expo-haptics/*'],
+                message:
+                  'Import from app/util/haptics instead of expo-haptics directly.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // Route-module isolation per ADR 0020 (modularize-routes), scoped to
+      // `app/components/Views/**`. Declared in its own override because the
+      // BN.js migration override above excludes `excludedFiles`, which would
+      // otherwise silently exempt every Views file on the burn-down list
+      // from route isolation. Re-declares the BN.js zone here so that
+      // non-burn-down Views files keep their BN.js fence (ESLint replaces
+      // `import-x/no-restricted-paths` per override rather than merging).
+      // See scripts/eslint-route-isolation-zones.js for zone generation.
+      files: ['app/components/Views/**/*.{ts,tsx,js,jsx}'],
+      excludedFiles: utilNumberImportBurndownFiles,
+      rules: {
+        'import-x/no-restricted-paths': [
+          'error',
+          {
+            zones: [utilNumberDeprecationZone, ...routeIsolationZones],
+          },
+        ],
+      },
+    },
+    {
+      // Burn-down Views files (and all other burn-down files): apply only
+      // the route-isolation zones. The BN.js fence stays disabled while
+      // those files complete their BigInt migration; route isolation must
+      // still apply so new cross-route imports added to a burn-down file
+      // are caught. Route-isolation zones target only `Views/<route>`
+      // paths, so this override is a no-op for non-Views burn-down files.
+      files: utilNumberImportBurndownFiles,
+      rules: {
+        'import-x/no-restricted-paths': [
+          'error',
+          { zones: routeIsolationZones },
         ],
       },
     },
@@ -436,10 +806,10 @@ module.exports = {
   },
 
   settings: {
-    'import/resolver': {
+    'import-x/resolver': {
       typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
     },
-    'import/internal-regex': '^@metamask/perps-controller',
+    'import-x/internal-regex': '^@metamask/perps-controller',
   },
 
   rules: {
@@ -461,7 +831,7 @@ module.exports = {
     'no-bitwise': 'off',
     'class-methods-use-this': 'off',
     'eol-last': 'warn',
-    'import/no-named-as-default': 'off',
+    'import-x/no-named-as-default': 'off',
     'no-invalid-this': 'off',
     'no-new': 'off',
     'react/jsx-handler-names': 'off',
@@ -472,14 +842,14 @@ module.exports = {
     'arrow-body-style': 'error',
     'dot-notation': 'error',
     eqeqeq: 'error',
-    'import/no-amd': 'error',
-    'import/no-commonjs': 'error',
-    'import/no-duplicates': 'error',
-    'import/no-extraneous-dependencies': ['error', { packageDir: ['./'] }],
-    'import/no-mutable-exports': 'error',
-    'import/no-namespace': 'error',
-    'import/no-nodejs-modules': 'error',
-    'import/prefer-default-export': 'off',
+    'import-x/no-amd': 'error',
+    'import-x/no-commonjs': 'error',
+    'import-x/no-duplicates': 'error',
+    'import-x/no-extraneous-dependencies': ['error', { packageDir: ['./'] }],
+    'import-x/no-mutable-exports': 'error',
+    'import-x/no-namespace': 'error',
+    'import-x/no-nodejs-modules': 'error',
+    'import-x/prefer-default-export': 'off',
     'no-alert': 'error',
     'no-constant-condition': [
       'error',
@@ -527,7 +897,7 @@ module.exports = {
     'prefer-const': 'error',
     'prefer-rest-params': 'error',
     'prefer-spread': 'error',
-    'import/no-unresolved': 'error',
+    'import-x/no-unresolved': 'error',
     'eslint-comments/no-unlimited-disable': 'off',
     'eslint-comments/no-unused-disable': 'off',
     'react-native/no-color-literals': 'error',
@@ -552,9 +922,17 @@ module.exports = {
     'react/no-string-refs': 'error',
     'react/no-unused-prop-types': 'error',
     'react/prefer-es6-class': 'error',
-    '@metamask/design-tokens/color-no-hex': 'warn',
+    '@metamask/design-tokens/color-no-hex': 'off',
     radix: 'off',
+
+    // These rule modifications are removing changes to our shared ESLint config made after
+    // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
+    // at which point we can restore the intended rules and use error suppression instead.
+    //
+    // TODO: Remove these modifications after the ESLint v9 update
+    'react-hooks/rules-of-hooks': 'off',
+    'no-loss-of-precision': 'off',
   },
 
-  ignorePatterns: ['wdio.conf.js', 'app/util/termsOfUse/termsOfUseContent.ts'],
+  ignorePatterns: ['app/util/termsOfUse/termsOfUseContent.ts'],
 };

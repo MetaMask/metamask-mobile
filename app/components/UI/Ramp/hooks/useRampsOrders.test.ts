@@ -2,18 +2,44 @@ import { renderHook, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
+import { AccountGroupType } from '@metamask/account-api';
 import { RampsOrderStatus, type RampsOrder } from '@metamask/ramps-controller';
+import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import { useRampsOrders } from './useRampsOrders';
 
+const RAMP_HOOKS_TEST_WALLET_ID = 'keyring:use-ramps-orders-test' as const;
+const RAMP_HOOKS_TEST_GROUP_ID =
+  `${RAMP_HOOKS_TEST_WALLET_ID}/ethereum` as const;
+const RAMP_HOOKS_TEST_ACCOUNT_ID = 'account-rh-1';
+/** Must be a valid EVM address (20 bytes) so `areAddressesEqual` treats it as EVM. */
+const RAMP_HOOKS_TEST_ADDRESS = '0x2990079bcdee240329a520d2444386fc119da21a';
+
+const rampHooksTestInternalAccount = {
+  ...createMockInternalAccount(RAMP_HOOKS_TEST_ADDRESS, 'Test'),
+  id: RAMP_HOOKS_TEST_ACCOUNT_ID,
+};
+
 const mockAddOrder = jest.fn();
+const mockAddPrecreatedOrder = jest.fn();
 const mockRemoveOrder = jest.fn();
 const mockGetOrder = jest.fn();
 const mockGetOrderFromCallback = jest.fn();
+const mockEmitTerminalOrderAnalyticsFromCallback = jest.fn();
+
+jest.mock(
+  '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics',
+  () => ({
+    emitTerminalOrderAnalyticsFromCallback: (...args: unknown[]) =>
+      mockEmitTerminalOrderAnalyticsFromCallback(...args),
+  }),
+);
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
       addOrder: (...args: unknown[]) => mockAddOrder(...args),
+      addPrecreatedOrder: (...args: unknown[]) =>
+        mockAddPrecreatedOrder(...args),
       removeOrder: (...args: unknown[]) => mockRemoveOrder(...args),
       getOrder: (...args: unknown[]) => mockGetOrder(...args),
       getOrderFromCallback: (...args: unknown[]) =>
@@ -32,7 +58,7 @@ const createMockOrder = (overrides: Partial<RampsOrder> = {}): RampsOrder => ({
   createdAt: Date.now(),
   totalFeesFiat: 5,
   txHash: '0xabc',
-  walletAddress: '0x123',
+  walletAddress: RAMP_HOOKS_TEST_ADDRESS,
   status: RampsOrderStatus.Completed,
   network: { name: 'Ethereum', chainId: 'eip155:1' },
   canBeUpdated: false,
@@ -51,6 +77,45 @@ const createMockStore = (orders: RampsOrder[] = []) =>
           RampsController: {
             orders,
           },
+          AccountTreeController: {
+            accountTree: {
+              wallets: {
+                [RAMP_HOOKS_TEST_WALLET_ID]: {
+                  id: RAMP_HOOKS_TEST_WALLET_ID,
+                  metadata: { name: 'Test wallet' },
+                  groups: {
+                    [RAMP_HOOKS_TEST_GROUP_ID]: {
+                      id: RAMP_HOOKS_TEST_GROUP_ID,
+                      type: AccountGroupType.SingleAccount,
+                      accounts: [RAMP_HOOKS_TEST_ACCOUNT_ID],
+                      metadata: { name: 'Test Group' },
+                    },
+                  },
+                },
+              },
+            },
+            selectedAccountGroup: RAMP_HOOKS_TEST_GROUP_ID,
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccounts: {
+                enabled: true,
+                featureVersion: '1',
+                minimumVersion: '1.0.0',
+              },
+            },
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [RAMP_HOOKS_TEST_ACCOUNT_ID]: rampHooksTestInternalAccount,
+              },
+              selectedAccount: RAMP_HOOKS_TEST_ACCOUNT_ID,
+            },
+          },
+          KeyringController: {
+            keyrings: [],
+          },
         },
       }),
     },
@@ -66,43 +131,76 @@ describe('useRampsOrders', () => {
     jest.clearAllMocks();
   });
 
-  it('returns empty orders when none exist', () => {
-    const store = createMockStore();
-    const { result } = renderHook(() => useRampsOrders(), {
-      wrapper: wrapper(store),
+  describe('orders (group-scoped for ramp order lists)', () => {
+    it('returns empty orders when none exist', () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsOrders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.orders).toEqual([]);
     });
 
-    expect(result.current.orders).toEqual([]);
+    it('returns orders from the store when walletAddress matches the selected account group', () => {
+      const order = createMockOrder();
+      const store = createMockStore([order]);
+      const { result } = renderHook(() => useRampsOrders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.orders).toEqual([order]);
+    });
+
+    it('excludes orders whose walletAddress is not in the selected account group', () => {
+      const foreignOrder = createMockOrder({
+        providerOrderId: 'foreign-order',
+        walletAddress: '0x0000000000000000000000000000000000000001',
+      });
+      const store = createMockStore([foreignOrder]);
+      const { result } = renderHook(() => useRampsOrders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.orders).toEqual([]);
+    });
   });
 
-  it('returns orders from the store', () => {
-    const order = createMockOrder();
-    const store = createMockStore([order]);
-    const { result } = renderHook(() => useRampsOrders(), {
-      wrapper: wrapper(store),
+  describe('getOrderById (all cached orders for point lookups)', () => {
+    it('finds a cached order by id even when its wallet is outside the selected account group', () => {
+      const moneyAccountOrder = createMockOrder({
+        providerOrderId: 'money-account-order',
+        walletAddress: '0x0000000000000000000000000000000000000002',
+      });
+      const store = createMockStore([moneyAccountOrder]);
+      const { result } = renderHook(() => useRampsOrders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(result.current.orders).toEqual([]);
+      expect(result.current.getOrderById('money-account-order')).toEqual(
+        moneyAccountOrder,
+      );
     });
 
-    expect(result.current.orders).toEqual([order]);
-  });
+    it('finds an order by providerOrderId', () => {
+      const order1 = createMockOrder({ providerOrderId: 'order-1' });
+      const order2 = createMockOrder({ providerOrderId: 'order-2' });
+      const store = createMockStore([order1, order2]);
+      const { result } = renderHook(() => useRampsOrders(), {
+        wrapper: wrapper(store),
+      });
 
-  it('finds an order by providerOrderId', () => {
-    const order1 = createMockOrder({ providerOrderId: 'order-1' });
-    const order2 = createMockOrder({ providerOrderId: 'order-2' });
-    const store = createMockStore([order1, order2]);
-    const { result } = renderHook(() => useRampsOrders(), {
-      wrapper: wrapper(store),
+      expect(result.current.getOrderById('order-2')).toEqual(order2);
     });
 
-    expect(result.current.getOrderById('order-2')).toEqual(order2);
-  });
+    it('returns undefined for non-existent order id', () => {
+      const store = createMockStore([createMockOrder()]);
+      const { result } = renderHook(() => useRampsOrders(), {
+        wrapper: wrapper(store),
+      });
 
-  it('returns undefined for non-existent order id', () => {
-    const store = createMockStore([createMockOrder()]);
-    const { result } = renderHook(() => useRampsOrders(), {
-      wrapper: wrapper(store),
+      expect(result.current.getOrderById('non-existent')).toBeUndefined();
     });
-
-    expect(result.current.getOrderById('non-existent')).toBeUndefined();
   });
 
   it('calls Engine.context.RampsController.addOrder', () => {
@@ -117,6 +215,25 @@ describe('useRampsOrders', () => {
     });
 
     expect(mockAddOrder).toHaveBeenCalledWith(order);
+  });
+
+  // TRAM-3691: addOrder is the boundary that emits terminal analytics for
+  // callback-fetched orders, so the views never touch analytics internals.
+  it('emits terminal order analytics after adding the order', () => {
+    const store = createMockStore();
+    const { result } = renderHook(() => useRampsOrders(), {
+      wrapper: wrapper(store),
+    });
+    const order = createMockOrder();
+
+    act(() => {
+      result.current.addOrder(order);
+    });
+
+    expect(mockAddOrder).toHaveBeenCalledWith(order);
+    expect(mockEmitTerminalOrderAnalyticsFromCallback).toHaveBeenCalledWith(
+      order,
+    );
   });
 
   it('calls Engine.context.RampsController.removeOrder', () => {
@@ -182,6 +299,29 @@ describe('useRampsOrders', () => {
     expect(returnedOrder).toEqual(callbackOrder);
   });
 
+  it('calls Engine.context.RampsController.addPrecreatedOrder', () => {
+    const store = createMockStore();
+    const { result } = renderHook(() => useRampsOrders(), {
+      wrapper: wrapper(store),
+    });
+
+    act(() => {
+      result.current.addPrecreatedOrder({
+        orderId: '/providers/transak/orders/abc-123',
+        providerCode: 'transak',
+        walletAddress: '0xabc',
+        chainId: '1',
+      });
+    });
+
+    expect(mockAddPrecreatedOrder).toHaveBeenCalledWith({
+      orderId: '/providers/transak/orders/abc-123',
+      providerCode: 'transak',
+      walletAddress: '0xabc',
+      chainId: '1',
+    });
+  });
+
   it('exposes all expected functions', () => {
     const store = createMockStore();
     const { result } = renderHook(() => useRampsOrders(), {
@@ -190,6 +330,7 @@ describe('useRampsOrders', () => {
 
     expect(typeof result.current.getOrderById).toBe('function');
     expect(typeof result.current.addOrder).toBe('function');
+    expect(typeof result.current.addPrecreatedOrder).toBe('function');
     expect(typeof result.current.removeOrder).toBe('function');
     expect(typeof result.current.refreshOrder).toBe('function');
     expect(typeof result.current.getOrderFromCallback).toBe('function');

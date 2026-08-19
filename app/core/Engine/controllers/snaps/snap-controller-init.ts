@@ -1,11 +1,11 @@
-import { SnapController } from '@metamask/snaps-controllers';
+import {
+  SnapController,
+  SnapControllerMessenger,
+} from '@metamask/snaps-controllers';
 import { Duration, inMilliseconds } from '@metamask/utils';
 import { hmacSha512 } from '@metamask/native-utils';
-import { ControllerInitFunction } from '../../types';
-import {
-  SnapControllerInitMessenger,
-  SnapControllerMessenger,
-} from '../../messengers/snaps';
+import { MessengerClientInitFunction } from '../../types';
+import { SnapControllerInitMessenger } from '../../messengers/snaps';
 import {
   EndowmentPermissions,
   ExcludedSnapEndowments,
@@ -18,18 +18,12 @@ import {
   pbkdf2,
 } from '../../../Encryptor';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { store, runSaga } from '../../../../store';
+import { store } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
-import { buildAndTrackEvent } from '../../utils/analytics';
-import type { AnalyticsUnfilteredProperties } from '../../../../util/analytics/analytics.types';
-import { take } from 'redux-saga/effects';
-import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
-import {
-  SET_COMPLETED_ONBOARDING,
-  SetCompletedOnboardingAction,
-} from '../../../../actions/onboarding';
-import { SagaIterator } from 'redux-saga';
 import { getMnemonicSeed } from '../../../Snaps/permissions/utils';
+import { getClientConfig } from './utils';
+import { ensureOnboardingComplete } from '../../utils/ensureOnboardingComplete';
+import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../../constants/snaps';
 
 /**
  * Initialize the Snap controller.
@@ -42,13 +36,13 @@ import { getMnemonicSeed } from '../../../Snaps/permissions/utils';
  * @param request.persistedState - The persisted state of the extension.
  * @returns The initialized controller.
  */
-export const snapControllerInit: ControllerInitFunction<
+export const snapControllerInit: MessengerClientInitFunction<
   SnapController,
   SnapControllerMessenger,
   SnapControllerInitMessenger
 > = ({ initMessenger, controllerMessenger, persistedState }) => {
   const requireAllowlist = process.env.METAMASK_BUILD_TYPE !== 'flask';
-  const disableSnapInstallation = process.env.METAMASK_BUILD_TYPE !== 'flask';
+  const disableSnapInstallation = !CAN_INSTALL_THIRD_PARTY_SNAPS;
   const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
   const autoUpdatePreinstalledSnaps = true;
 
@@ -75,33 +69,6 @@ export const snapControllerInit: ControllerInitFunction<
     };
   }
 
-  function* ensureOnboardingCompleteSaga(): SagaIterator {
-    while (true) {
-      const result = (yield take([
-        SET_COMPLETED_ONBOARDING,
-      ])) as SetCompletedOnboardingAction;
-
-      if (result.completedOnboarding) {
-        return;
-      }
-    }
-  }
-
-  let onboardingPromise: Promise<void> | null = null;
-
-  async function ensureOnboardingComplete() {
-    if (selectCompletedOnboarding(store.getState())) {
-      return;
-    }
-
-    if (!onboardingPromise) {
-      onboardingPromise = runSaga(ensureOnboardingCompleteSaga).toPromise();
-    }
-
-    await onboardingPromise;
-    onboardingPromise = null;
-  }
-
   const controller = new SnapController({
     environmentEndowmentPermissions: Object.values(EndowmentPermissions),
     excludedPermissions: {
@@ -113,10 +80,6 @@ export const snapControllerInit: ControllerInitFunction<
     // the expected type.
     // TODO: Look into the type mismatch.
     state: persistedState.SnapController,
-
-    // @ts-expect-error: `controllerMessenger` is not compatible with the
-    // expected type.
-    // TODO: Look into the type mismatch.
     messenger: controllerMessenger,
     maxIdleTime: inMilliseconds(5, Duration.Minute),
     maxRequestTime: inMilliseconds(2, Duration.Minute),
@@ -150,16 +113,8 @@ export const snapControllerInit: ControllerInitFunction<
       pbkdf2Sha512: pbkdf2,
       hmacSha512: async (key, data) => hmacSha512(key, data),
     },
-    trackEvent: (params: {
-      event: string;
-      properties?: Record<string, unknown>;
-    }) => {
-      buildAndTrackEvent(
-        initMessenger,
-        params.event,
-        params.properties as AnalyticsUnfilteredProperties,
-      );
-    },
+
+    clientConfig: getClientConfig(),
   });
 
   initMessenger.subscribe('KeyringController:lock', () => {

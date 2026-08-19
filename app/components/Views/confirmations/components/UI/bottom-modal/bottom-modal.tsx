@@ -1,15 +1,17 @@
-import React, { ReactChild } from 'react';
+import React, { ReactNode } from 'react';
 import Modal from 'react-native-modal';
 import { View } from 'react-native';
+
+import { brandColor } from '@metamask/design-tokens';
 
 import { useTheme } from '../../../../../../util/theme';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './bottom-modal.styles';
 
-const OPAQUE_GRAY = '#414141';
+const OPAQUE_GRAY = brandColor.grey600;
 interface BottomModalProps {
   avoidKeyboard?: boolean;
-  children: ReactChild;
+  children: ReactNode;
   hideBackground?: boolean;
   isTooltip?: boolean;
   onBackButtonPress?: () => void;
@@ -21,8 +23,10 @@ interface BottomModalProps {
 }
 
 /**
- * TODO replace BottomModal instances with BottomSheet
- * {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}}
+ * @deprecated Please update your code to use `BottomSheet` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BottomSheet/README.md}
+ * @since @metamask/design-system-react-native@0.11.0
  */
 const BottomModal = ({
   avoidKeyboard,

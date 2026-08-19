@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import Engine from '../../../../../core/Engine';
 import {
   formatAddressToCaipReference,
+  isValidQuoteRequest,
   type GenericQuoteRequest,
 } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
@@ -24,11 +25,17 @@ import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useLatestBalance } from '../useLatestBalance';
 import { BigNumber } from 'ethers';
+import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
+import { endTrace, trace, TraceName } from '../../../../../util/trace';
 
 export const DEBOUNCE_WAIT = 300;
 
 interface UseBridgeQuoteRequestOptions {
   latestSourceAtomicBalance?: BigNumber;
+}
+
+interface UpdateQuoteParamsOptions {
+  isRefresh?: boolean;
 }
 
 /**
@@ -68,7 +75,7 @@ export const useBridgeQuoteRequest = (
   // The full balance check with gas fees is used separately within the BridgeView to block user from executing
   // the swap in insufficient balance.
   // This prevents the infinite loop: quote request → gas data changes → insufficientBal changes → new quote request
-  const insufficientBal = useIsInsufficientBalance({
+  const insufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
     token: sourceToken,
     latestAtomicBalance: sourceAtomicBalance,
@@ -79,59 +86,95 @@ export const useBridgeQuoteRequest = (
     selectGasIncludedQuoteParams,
   );
 
+  const insufficientNativeReserveError = useInsufficientNativeReserveError({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: sourceAtomicBalance,
+    walletAddress,
+  });
+
+  const insufficientBal =
+    insufficientBalance || Boolean(insufficientNativeReserveError);
+
   /**
    * Updates quote parameters in the bridge controller
    */
-  const updateQuoteParams = useCallback(async () => {
-    if (
-      !sourceToken ||
-      !destToken ||
-      sourceAmount === undefined ||
-      !destChainId ||
-      !walletAddress
-    ) {
-      return;
-    }
+  const updateQuoteParams = useCallback(
+    async ({ isRefresh = false }: UpdateQuoteParamsOptions = {}) => {
+      if (
+        !sourceToken ||
+        !destToken ||
+        sourceAmount === undefined ||
+        !destChainId ||
+        !walletAddress
+      ) {
+        return;
+      }
 
-    const normalizedSourceAmount =
-      sourceAmount && sourceToken?.decimals
-        ? calcTokenValue(
-            sourceAmount === '.' ? '0' : sourceAmount || '0',
-            sourceToken.decimals,
-          ).toFixed(0)
-        : '0';
+      const normalizedSourceAmount =
+        sourceAmount && sourceToken?.decimals
+          ? calcTokenValue(
+              sourceAmount === '.' ? '0' : sourceAmount || '0',
+              sourceToken.decimals,
+            ).toFixed(0)
+          : '0';
 
-    const params: GenericQuoteRequest = {
-      srcChainId: getDecimalChainId(sourceToken.chainId),
-      srcTokenAddress: formatAddressToCaipReference(sourceToken.address),
-      destChainId: getDecimalChainId(destChainId),
-      destTokenAddress: formatAddressToCaipReference(destToken.address),
-      srcTokenAmount: normalizedSourceAmount,
-      slippage: slippage ? Number(slippage) : undefined,
+      const params: GenericQuoteRequest = {
+        srcChainId: getDecimalChainId(sourceToken.chainId),
+        srcTokenAddress: formatAddressToCaipReference(sourceToken.address),
+        destChainId: getDecimalChainId(destChainId),
+        destTokenAddress: formatAddressToCaipReference(destToken.address),
+        srcTokenAmount: normalizedSourceAmount,
+        slippage: slippage ? Number(slippage) : undefined,
+        walletAddress,
+        destWalletAddress: destAddress ?? walletAddress,
+        gasIncluded,
+        gasIncluded7702,
+        insufficientBal,
+      };
+
+      const shouldTrace = isValidQuoteRequest(params);
+
+      try {
+        if (shouldTrace) {
+          trace({
+            name: TraceName.SwapQuoteFetch,
+            data: { isRefresh },
+            startTime: Date.now(),
+          });
+        }
+
+        await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
+          params,
+          context,
+          0,
+          1,
+        );
+      } catch (error) {
+        if (shouldTrace) {
+          endTrace({
+            name: TraceName.SwapQuoteFetch,
+            timestamp: Date.now(),
+            data: { success: false },
+          });
+        }
+        throw error;
+      }
+    },
+    [
+      sourceToken,
+      destToken,
+      sourceAmount,
+      destChainId,
+      slippage,
       walletAddress,
-      destWalletAddress: destAddress ?? walletAddress,
+      destAddress,
+      context,
       gasIncluded,
       gasIncluded7702,
       insufficientBal,
-    };
-
-    await Engine.context.BridgeController.updateBridgeQuoteRequestParams(
-      params,
-      context,
-    );
-  }, [
-    sourceToken,
-    destToken,
-    sourceAmount,
-    destChainId,
-    slippage,
-    walletAddress,
-    destAddress,
-    context,
-    gasIncluded,
-    gasIncluded7702,
-    insufficientBal,
-  ]);
+    ],
+  );
 
   // Create a stable debounced function that persists across renders
   return useMemo(

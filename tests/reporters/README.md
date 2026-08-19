@@ -8,7 +8,6 @@ Architecture for the performance test reporting system.
 tests/reporters/
 ├── PerformanceReporter.ts              # Main Playwright reporter (entry point)
 ├── PerformanceTracker.ts               # Timer management + metrics attachment
-├── DetoxPerformanceTestReporter.ts     # Detox reporter (independent, untouched)
 ├── types.ts                            # Shared TypeScript types
 ├── providers/
 │   ├── SessionDataEnricher.ts          # Interface for provider-agnostic enrichment
@@ -17,7 +16,7 @@ tests/reporters/
 ├── generators/
 │   ├── HtmlReportGenerator.ts          # HTML report generation
 │   ├── CsvReportGenerator.ts           # CSV report generation
-│   └── JsonReportGenerator.ts          # JSON device reports + failed-tests-by-team
+│   └── JsonReportGenerator.ts          # JSON device reports + per-scenario app profiling + failed-tests-by-team
 └── utils/
     └── DeviceInfoExtractor.ts          # Device info extraction helper
 ```
@@ -26,7 +25,7 @@ tests/reporters/
 
 ### PerformanceReporter.ts
 
-Main Playwright reporter registered in `appwright.config.ts`. Handles test lifecycle events (`onBegin`, `onTestEnd`, `onEnd`) and orchestrates session enrichment and report generation.
+Main Playwright reporter registered in `playwright.config.ts`. Handles test lifecycle events (`onBegin`, `onTestEnd`, `onEnd`) and orchestrates session enrichment and report generation.
 
 ### PerformanceTracker.ts
 
@@ -46,7 +45,7 @@ Each generator takes a `ReportData` object and produces output in a specific for
 
 - **HtmlReportGenerator** — Full HTML report with test tables, quality gates, profiling cards
 - **CsvReportGenerator** — CSV with per-test step rows and profiling summaries
-- **JsonReportGenerator** — Device-specific JSON files + `failed-tests-by-team.json`
+- **JsonReportGenerator** — Device-specific JSON files + one `reports/app-profiling/app-profiling-*.json` file per scenario (profiling + API calls) + `failed-tests-by-team.json`
 
 ### utils/DeviceInfoExtractor.ts
 
@@ -116,7 +115,7 @@ private async enrichSessionsWithProviderData(): Promise<void> {
 
 Replace `detectBrowserStackRun()` with a generic check, or always call `enrichSessionsWithProviderData()` and let the registry decide.
 
-### 4. Add project config in appwright.config.ts
+### 4. Add project config in playwright.config.ts
 
 Add a project whose `name` includes the prefix your enricher's `canHandle()` matches on.
 
@@ -127,7 +126,7 @@ Add a project whose `name` includes the prefix your enricher's `canHandle()` mat
 | `providers/<provider>/<Provider>Enricher.ts`               | **New** — enricher class                 |
 | `framework/services/providers/<provider>/<Provider>API.ts` | **New** (if needed) — API client         |
 | `PerformanceReporter.ts`                                   | Import enricher, add to `getEnrichers()` |
-| `appwright.config.ts`                                      | Add project entry with matching name     |
+| `playwright.config.ts`                                     | Add project entry with matching name     |
 
 ## Data Flow
 

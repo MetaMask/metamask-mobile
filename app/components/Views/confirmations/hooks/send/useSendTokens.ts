@@ -1,22 +1,29 @@
 import { useMemo } from 'react';
 import { AssetType } from '../../types/token';
-import { useAccountTokens } from './useAccountTokens';
+import { useAccountTokens, EnrichTokenRequest } from './useAccountTokens';
 import { useSendType } from './useSendType';
 
 export function useSendTokens({
   includeNoBalance = false,
-  includeAllTokens = false,
+  tokenFilter,
+  enrichTokenRequests,
 }: {
   includeNoBalance?: boolean;
-  includeAllTokens?: boolean;
+  tokenFilter?: (chainId: string, address: string) => boolean;
+  enrichTokenRequests?: EnrichTokenRequest[];
 } = {}): AssetType[] {
   const {
     isPredefinedTron,
     isPredefinedBitcoin,
     isPredefinedSolana,
     isPredefinedEvm,
+    isPredefinedStellar,
   } = useSendType();
-  const allTokens = useAccountTokens({ includeNoBalance, includeAllTokens });
+  const allTokens = useAccountTokens({
+    includeNoBalance,
+    tokenFilter,
+    enrichTokenRequests,
+  });
 
   return useMemo(() => {
     const accountTypeMap: Record<string, boolean> = {
@@ -24,6 +31,7 @@ export function useSendTokens({
       solana: !!isPredefinedSolana,
       tron: !!isPredefinedTron,
       bip122: !!isPredefinedBitcoin,
+      stellar: !!isPredefinedStellar,
     };
 
     const matchedAccountType = Object.entries(accountTypeMap).find(
@@ -43,5 +51,6 @@ export function useSendTokens({
     isPredefinedSolana,
     isPredefinedTron,
     isPredefinedBitcoin,
+    isPredefinedStellar,
   ]);
 }

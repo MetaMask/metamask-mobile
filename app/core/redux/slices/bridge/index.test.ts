@@ -5,9 +5,12 @@ import reducer, {
   setSourceAmount,
   setDestAmount,
   resetBridgeState,
+  resetBridgeDestToken,
   setSlippage,
+  setSlippageUserOverride,
   setBridgeViewMode,
   selectBridgeViewMode,
+  setSourceToken,
   setDestToken,
   setIsDestTokenManuallySet,
   selectIsDestTokenManuallySet,
@@ -20,16 +23,63 @@ import reducer, {
   selectVisiblePillChainIds,
   setSelectedQuoteRequestId,
   selectSelectedQuoteRequestId,
+  selectIsRwaSwap,
+  setBatchSellSourceTokens,
+  selectBatchSellSourceTokens,
+  setBatchSellSourceTokenAmount,
+  setBatchSellSourceTokenAmounts,
+  selectBatchSellSourceTokenAmounts,
+  setBatchSellDestToken,
+  selectBatchSellDestToken,
+  selectBatchSellDestStablecoins,
+  selectBatchSellDestStablecoinsByChain,
+  selectHardwareWalletsSwaps,
+  updateHardwareWalletsSwaps,
+  selectBridgeQuotes,
+  selectBatchSellQuotes,
+  selectBatchSellTrades,
+  selectControllerFields,
+  selectBatchSellSlippages,
+  setBatchSellTokenSlippage,
+  setBatchSellTokenSlippages,
+  selectIsNonEvmSourced,
 } from '.';
+import { FEATURE_FLAG_NAME } from '../../../../selectors/featureFlagController/rwa';
 import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
-import { CaipChainId, Hex } from '@metamask/utils';
+import {
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
+import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
+import {
+  HardwareWalletsSwapsEventType,
+  HardwareWalletsSwapsStatus,
+  initialHardwareWalletsSwapsState,
+} from '../../../../components/UI/HardwareWallet/Swaps/HardwareWalletsSwaps.state';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 
 describe('bridge slice', () => {
+  function getChecksummedBridgeTokenMetadata(assetId: CaipAssetType) {
+    const metadata = BridgeTokenMetadata[assetId];
+    const formattedAssetId = formatAddressToAssetId(
+      metadata.address,
+      metadata.chainId,
+    ) as CaipAssetType;
+    const { assetReference } = parseCaipAssetType(formattedAssetId);
+
+    return {
+      ...metadata,
+      address: assetReference,
+    };
+  }
+
   const mockToken: BridgeToken = {
     address: '0x123',
     symbol: 'ETH',
@@ -52,6 +102,15 @@ describe('bridge slice', () => {
     balanceFiat: '100',
   };
 
+  const polygonNativeToken: BridgeToken = {
+    address: '0x0000000000000000000000000000000000001010',
+    symbol: 'POL',
+    decimals: 18,
+    image: '',
+    chainId: '0x89' as Hex,
+    name: 'POL',
+  };
+
   describe('initial state', () => {
     it('has correct initial state', () => {
       expect(initialState).toEqual({
@@ -65,7 +124,8 @@ describe('bridge slice', () => {
         destAddress: undefined,
         selectedSourceChainIds: undefined,
         selectedDestChainId: undefined,
-        slippage: '0.5',
+        slippage: undefined,
+        isSlippageUserOverride: false,
         isSubmittingTx: false,
         isSelectingRecipient: false,
         isSelectingToken: false,
@@ -74,7 +134,13 @@ describe('bridge slice', () => {
         tokenSelectorNetworkFilter: undefined,
         visiblePillChainIds: undefined,
         selectedQuoteRequestId: undefined,
+        balanceRefreshKey: 0,
         abTestContext: undefined,
+        hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
+        batchSellSourceTokens: [],
+        batchSellSourceTokenAmounts: {},
+        batchSellDestToken: undefined,
+        batchSellSlippages: {},
       });
     });
   });
@@ -165,6 +231,12 @@ describe('bridge slice', () => {
 
       expect(state.slippage).toBe(slippage);
     });
+
+    it('records an explicit Auto override', () => {
+      const state = reducer(initialState, setSlippageUserOverride(undefined));
+
+      expect(state.isSlippageUserOverride).toBe(true);
+    });
   });
 
   describe('setDestAmount', () => {
@@ -185,6 +257,14 @@ describe('bridge slice', () => {
   });
 
   describe('setDestToken', () => {
+    it('normalizes Polygon native token address', () => {
+      const state = reducer(initialState, setDestToken(polygonNativeToken));
+
+      expect(state.destToken?.address).toBe(
+        '0x0000000000000000000000000000000000000000',
+      );
+    });
+
     it('sets the destination token and updates selectedDestChainId', () => {
       const action = setDestToken(mockDestToken);
       const state = reducer(initialState, action);
@@ -203,6 +283,228 @@ describe('bridge slice', () => {
       const state = reducer(stateWithManualFlag, action);
 
       expect(state.isDestTokenManuallySet).toBe(true);
+    });
+
+    it('clears slippage when the token changes', () => {
+      const state = reducer(
+        { ...initialState, slippage: '2', isSlippageUserOverride: true },
+        setDestToken(mockDestToken),
+      );
+
+      expect(state.slippage).toBeUndefined();
+      expect(state.isSlippageUserOverride).toBe(false);
+    });
+  });
+
+  describe('setSourceToken', () => {
+    it('normalizes Polygon native token address', () => {
+      const state = reducer(initialState, setSourceToken(polygonNativeToken));
+
+      expect(state.sourceToken?.address).toBe(
+        '0x0000000000000000000000000000000000000000',
+      );
+    });
+
+    it('clears slippage when the source token changes', () => {
+      const state = reducer(
+        { ...initialState, slippage: '2', isSlippageUserOverride: true },
+        setSourceToken(mockToken),
+      );
+
+      expect(state.slippage).toBeUndefined();
+      expect(state.isSlippageUserOverride).toBe(false);
+    });
+
+    it('keeps slippage when the source token identity is unchanged', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          sourceToken: mockToken,
+          slippage: '2',
+          isSlippageUserOverride: true,
+        },
+        setSourceToken({ ...mockToken }),
+      );
+
+      expect(state.slippage).toBe('2');
+      expect(state.isSlippageUserOverride).toBe(true);
+    });
+
+    it('clears slippage when the token address is unchanged on another network', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          sourceToken: mockToken,
+          slippage: '2',
+          isSlippageUserOverride: true,
+        },
+        setSourceToken({
+          ...mockToken,
+          chainId: '0x89',
+        }),
+      );
+
+      expect(state.slippage).toBeUndefined();
+      expect(state.isSlippageUserOverride).toBe(false);
+    });
+  });
+
+  describe('batch sell state', () => {
+    it('sets final Batch Sell source tokens for handoff', () => {
+      const state = reducer(
+        initialState,
+        setBatchSellSourceTokens([mockToken]),
+      );
+
+      expect(state.batchSellSourceTokens).toEqual([mockToken]);
+    });
+
+    it('normalizes Batch Sell source token addresses', () => {
+      const state = reducer(
+        initialState,
+        setBatchSellSourceTokens([polygonNativeToken]),
+      );
+
+      expect(state.batchSellSourceTokens[0].address).toBe(
+        '0x0000000000000000000000000000000000000000',
+      );
+    });
+
+    it('selects final Batch Sell source tokens', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          batchSellSourceTokens: [mockToken],
+        },
+      } as RootState;
+
+      expect(selectBatchSellSourceTokens(mockState)).toEqual([mockToken]);
+    });
+
+    it('sets Batch Sell source token amount by asset ID', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+
+      const state = reducer(
+        initialState,
+        setBatchSellSourceTokenAmount({ assetId, amount: '1.5' }),
+      );
+
+      expect(state.batchSellSourceTokenAmounts[assetId]).toBe('1.5');
+    });
+
+    it('replaces Batch Sell source token amount map', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+
+      const state = reducer(
+        {
+          ...initialState,
+          batchSellSourceTokenAmounts: {
+            'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7': '0.5',
+          },
+        },
+        setBatchSellSourceTokenAmounts({ [assetId]: '3' }),
+      );
+
+      expect(state.batchSellSourceTokenAmounts).toEqual({ [assetId]: '3' });
+    });
+
+    it('selects Batch Sell source token amount map', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+      const mockState = {
+        bridge: {
+          ...initialState,
+          batchSellSourceTokenAmounts: { [assetId]: '2' },
+        },
+      } as RootState;
+
+      expect(selectBatchSellSourceTokenAmounts(mockState)).toEqual({
+        [assetId]: '2',
+      });
+    });
+
+    it('sets Batch Sell destination token metadata', () => {
+      const state = reducer(initialState, setBatchSellDestToken(mockToken));
+
+      expect(state.batchSellDestToken).toEqual(mockToken);
+    });
+
+    it('normalizes Batch Sell destination token addresses', () => {
+      const state = reducer(
+        initialState,
+        setBatchSellDestToken(polygonNativeToken),
+      );
+
+      expect(state.batchSellDestToken?.address).toBe(
+        '0x0000000000000000000000000000000000000000',
+      );
+    });
+
+    it('selects Batch Sell destination token metadata', () => {
+      const mockState = {
+        bridge: {
+          ...initialState,
+          batchSellDestToken: mockToken,
+        },
+      } as RootState;
+
+      expect(selectBatchSellDestToken(mockState)).toEqual(mockToken);
+    });
+
+    it('sets Batch Sell token slippage by asset ID', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+
+      const state = reducer(
+        initialState,
+        setBatchSellTokenSlippage({ assetId, slippage: '2' }),
+      );
+
+      expect(state.batchSellSlippages[assetId]).toBe('2');
+    });
+
+    it('stores undefined Batch Sell token slippage for Auto', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+
+      const state = reducer(
+        initialState,
+        setBatchSellTokenSlippage({ assetId, slippage: undefined }),
+      );
+
+      expect(state.batchSellSlippages).toHaveProperty(assetId, undefined);
+    });
+
+    it('replaces Batch Sell token slippage map', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+
+      const state = reducer(
+        {
+          ...initialState,
+          batchSellSlippages: {
+            'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7': '0.5',
+          },
+        },
+        setBatchSellTokenSlippages({ [assetId]: '3' }),
+      );
+
+      expect(state.batchSellSlippages).toEqual({ [assetId]: '3' });
+    });
+
+    it('selects Batch Sell token slippage map', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+      const mockState = {
+        bridge: {
+          ...initialState,
+          batchSellSlippages: { [assetId]: '2' },
+        },
+      } as RootState;
+
+      expect(selectBatchSellSlippages(mockState)).toEqual({ [assetId]: '2' });
     });
   });
 
@@ -260,6 +562,8 @@ describe('bridge slice', () => {
         destAmount: '100',
         sourceToken: mockToken,
         destToken: mockDestToken,
+        slippage: '3.5',
+        isSlippageUserOverride: true,
         bridgeViewMode: BridgeViewMode.Bridge,
       };
 
@@ -278,6 +582,41 @@ describe('bridge slice', () => {
       const newState = reducer(stateWithVisiblePills, resetBridgeState());
 
       expect(newState.visiblePillChainIds).toBeUndefined();
+    });
+  });
+
+  describe('resetBridgeDestToken', () => {
+    const stateWithDestSelection = {
+      ...initialState,
+      sourceToken: mockToken,
+      sourceAmount: '1.5',
+      destToken: mockDestToken,
+      selectedDestChainId: '0x89' as Hex,
+      isDestTokenManuallySet: true,
+      slippage: '3.5',
+      isSlippageUserOverride: true,
+    };
+
+    it('clears the destination token, its chain and the manual selection flag', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.destToken).toBeUndefined();
+      expect(newState.selectedDestChainId).toBeUndefined();
+      expect(newState.isDestTokenManuallySet).toBe(false);
+    });
+
+    it('clears slippage since it belonged to the cleared token pair', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.slippage).toBeUndefined();
+      expect(newState.isSlippageUserOverride).toBe(false);
+    });
+
+    it('leaves the source selection and amount untouched', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.sourceToken).toEqual(mockToken);
+      expect(newState.sourceAmount).toBe('1.5');
     });
   });
 
@@ -575,6 +914,138 @@ describe('bridge slice', () => {
         ),
       ).toBe(true);
     });
+
+    it('restricts chainRanking to enabledChainIds when provided, ignoring ALLOWED_BRIDGE_CHAIN_IDS', () => {
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
+        [
+          { chainId: 'eip155:1', name: 'Ethereum' },
+          { chainId: 'eip155:137', name: 'Polygon' },
+          // Not in ALLOWED_BRIDGE_CHAIN_IDS, but included in enabledChainIds below.
+          { chainId: 'eip155:99999', name: 'Unsupported Future Chain' },
+        ];
+
+      const result = selectAllowedChainRanking(
+        mockState as unknown as RootState,
+        ['eip155:1' as CaipChainId, 'eip155:99999' as CaipChainId],
+      );
+
+      expect(result).toEqual([
+        { chainId: 'eip155:1', name: 'Ethereum' },
+        { chainId: 'eip155:99999', name: 'Unsupported Future Chain' },
+      ]);
+    });
+
+    it('returns an empty array when enabledChainIds is an empty array', () => {
+      const result = selectAllowedChainRanking(
+        mockRootState as unknown as RootState,
+        [],
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('falls back to the ALLOWED_BRIDGE_CHAIN_IDS filter when enabledChainIds is undefined', () => {
+      const withoutOverride = selectAllowedChainRanking(
+        mockRootState as unknown as RootState,
+      );
+      const withUndefinedOverride = selectAllowedChainRanking(
+        mockRootState as unknown as RootState,
+        undefined,
+      );
+
+      expect(withUndefinedOverride).toEqual(withoutOverride);
+    });
+  });
+
+  describe('selectBatchSellDestStablecoins', () => {
+    it('returns configured stablecoins with local metadata', () => {
+      const mockState = cloneDeep(mockRootState);
+      const ethUsdc =
+        'eip155:1/erc20:0xA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48' as CaipAssetType;
+      const unknownStablecoin =
+        'eip155:1/erc20:0x0000000000000000000000000000000000000001' as CaipAssetType;
+
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
+        'eip155:1'
+      ] = {
+        ...mockState.engine.backgroundState.RemoteFeatureFlagController
+          .remoteFeatureFlags.bridgeConfigV2.chains['eip155:1'],
+        batchSellDestStablecoins: [unknownStablecoin, ethUsdc],
+      } as unknown as any;
+
+      expect(
+        selectBatchSellDestStablecoins(
+          mockState as unknown as RootState,
+          '0x1',
+        ),
+      ).toEqual([
+        {
+          symbol: 'USDC',
+          name: 'USD Coin',
+          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          decimals: 6,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+          chainId: '0x1',
+        },
+      ]);
+    });
+
+    it('returns configured stablecoins by chain with local metadata', () => {
+      const mockState = cloneDeep(mockRootState);
+      const ethUsdc =
+        'eip155:1/erc20:0xA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48' as CaipAssetType;
+      const baseUsdc =
+        'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' as CaipAssetType;
+      const unknownStablecoin =
+        'eip155:1/erc20:0x0000000000000000000000000000000000000001' as CaipAssetType;
+
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
+        'eip155:1'
+      ] = {
+        ...mockState.engine.backgroundState.RemoteFeatureFlagController
+          .remoteFeatureFlags.bridgeConfigV2.chains['eip155:1'],
+        batchSellDestStablecoins: [unknownStablecoin, ethUsdc],
+      } as unknown as any;
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
+        'eip155:8453'
+      ] = {
+        ...mockState.engine.backgroundState.RemoteFeatureFlagController
+          .remoteFeatureFlags.bridgeConfigV2.chains['eip155:8453'],
+        isActiveSrc: true,
+        isActiveDest: true,
+        isGaslessSwapEnabled: false,
+        batchSellDestStablecoins: [baseUsdc],
+      } as unknown as any;
+
+      const expectedEthUsdc = getChecksummedBridgeTokenMetadata(
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType,
+      );
+      const expectedBaseUsdc = getChecksummedBridgeTokenMetadata(
+        'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' as CaipAssetType,
+      );
+
+      const result = selectBatchSellDestStablecoinsByChain(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          'eip155:1': [expectedEthUsdc],
+          'eip155:8453': [expectedBaseUsdc],
+        }),
+      );
+    });
+
+    it('returns an empty array when no chain is selected', () => {
+      const result = selectBatchSellDestStablecoins(
+        mockRootState as unknown as RootState,
+        undefined,
+      );
+
+      expect(result).toEqual([]);
+    });
   });
 
   describe('setTokenSelectorNetworkFilter', () => {
@@ -606,6 +1077,96 @@ describe('bridge slice', () => {
       const state = reducer(stateWithFilter, action);
 
       expect(state.tokenSelectorNetworkFilter).toBe('eip155:137');
+    });
+  });
+
+  describe('selectBatchSellQuotes', () => {
+    it('uses the BridgeController quote request count', () => {
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.BridgeController.quoteRequest = [
+        { srcTokenAddress: '0x1111111111111111111111111111111111111111' },
+        { srcTokenAddress: '0x2222222222222222222222222222222222222222' },
+      ] as unknown as typeof mockState.engine.backgroundState.BridgeController.quoteRequest;
+
+      const result = selectBatchSellQuotes(mockState as unknown as RootState);
+
+      expect(result.recommendedQuotes).toHaveLength(2);
+    });
+  });
+
+  describe('bridge controller quote selectors', () => {
+    beforeEach(() => {
+      selectControllerFields.resetRecomputations();
+      selectBridgeQuotes.resetRecomputations();
+      selectBatchSellQuotes.resetRecomputations();
+      selectBatchSellTrades.resetRecomputations();
+    });
+
+    it('updates controller fields when analytics opt-in changes', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      mockState.engine.backgroundState.AnalyticsController = {
+        ...mockState.engine.backgroundState.AnalyticsController,
+        optedIn: false,
+        analyticsId: 'test-analytics-id',
+      };
+
+      expect(selectControllerFields(mockState).participateInMetaMetrics).toBe(
+        false,
+      );
+
+      const controllerFieldsRecomputations =
+        selectControllerFields.recomputations();
+
+      const optedInState = cloneDeep(mockState);
+      optedInState.engine.backgroundState.AnalyticsController.optedIn = true;
+
+      expect(
+        selectControllerFields(optedInState).participateInMetaMetrics,
+      ).toBe(true);
+      expect(selectControllerFields.recomputations()).toBe(
+        controllerFieldsRecomputations + 1,
+      );
+    });
+
+    it('does not recompute when unrelated bridge UI state changes', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+
+      selectBridgeQuotes(mockState);
+      selectBatchSellQuotes(mockState);
+      selectBatchSellTrades(mockState);
+
+      const controllerFieldsRecomputations =
+        selectControllerFields.recomputations();
+      const bridgeQuotesRecomputations = selectBridgeQuotes.recomputations();
+      const batchSellQuotesRecomputations =
+        selectBatchSellQuotes.recomputations();
+      const batchSellTradesRecomputations =
+        selectBatchSellTrades.recomputations();
+
+      const unrelatedState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceAmount: '1',
+        },
+      } as RootState;
+
+      selectBridgeQuotes(unrelatedState);
+      selectBatchSellQuotes(unrelatedState);
+      selectBatchSellTrades(unrelatedState);
+
+      expect(selectControllerFields.recomputations()).toBe(
+        controllerFieldsRecomputations,
+      );
+      expect(selectBridgeQuotes.recomputations()).toBe(
+        bridgeQuotesRecomputations,
+      );
+      expect(selectBatchSellQuotes.recomputations()).toBe(
+        batchSellQuotesRecomputations,
+      );
+      expect(selectBatchSellTrades.recomputations()).toBe(
+        batchSellTradesRecomputations,
+      );
     });
   });
 
@@ -741,6 +1302,39 @@ describe('bridge slice', () => {
     });
   });
 
+  describe('selectHardwareWalletsSwaps', () => {
+    it('returns initial hardware wallet swaps state from bridge state', () => {
+      const mockState = {
+        bridge: initialState,
+      } as RootState;
+
+      expect(selectHardwareWalletsSwaps(mockState)).toEqual(
+        initialHardwareWalletsSwapsState,
+      );
+    });
+
+    it('returns updated hardware wallet swaps state after reducer action', () => {
+      const bridgeState = reducer(
+        initialState,
+        updateHardwareWalletsSwaps({
+          type: HardwareWalletsSwapsEventType.Start,
+          payload: { totalSteps: 1 },
+        }),
+      );
+      const mockState = {
+        bridge: bridgeState,
+      } as RootState;
+
+      expect(selectHardwareWalletsSwaps(mockState)).toEqual({
+        ...initialHardwareWalletsSwapsState,
+        status: HardwareWalletsSwapsStatus.Waiting,
+        currentStep: 0,
+        totalSteps: 1,
+        steps: expect.any(Array),
+      });
+    });
+  });
+
   describe('resetBridgeState with selectedQuoteRequestId', () => {
     it('resets selectedQuoteRequestId when bridge state resets', () => {
       const stateWithSelection = {
@@ -752,6 +1346,89 @@ describe('bridge slice', () => {
       const newState = reducer(stateWithSelection, resetBridgeState());
 
       expect(newState.selectedQuoteRequestId).toBeUndefined();
+    });
+  });
+
+  describe('selectIsRwaSwap', () => {
+    const stockToken: BridgeToken = {
+      address: '0xstock',
+      symbol: 'STOCK',
+      decimals: 18,
+      image: '',
+      chainId: '0x1' as Hex,
+      name: 'Stock Token',
+      rwaData: { instrumentType: 'stock' } as BridgeToken['rwaData'],
+    };
+
+    const nonRwaToken: BridgeToken = {
+      address: '0xusdc',
+      symbol: 'USDC',
+      decimals: 6,
+      image: '',
+      chainId: '0x1' as Hex,
+      name: 'USDC',
+    };
+
+    const buildState = (
+      sourceToken: BridgeToken | undefined,
+      destToken: BridgeToken | undefined,
+      rwaEnabled: boolean,
+    ) => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = {
+        ...initialState,
+        sourceToken,
+        destToken,
+      };
+      (
+        mockState as any
+      ).engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags[
+        FEATURE_FLAG_NAME
+      ] = rwaEnabled;
+      return mockState as unknown as RootState;
+    };
+
+    it('returns false when source and dest chains differ (bridge, not a swap)', () => {
+      const state = buildState(
+        { ...stockToken, chainId: '0x1' as Hex },
+        { ...nonRwaToken, chainId: '0xa' as Hex },
+        true,
+      );
+      expect(selectIsRwaSwap(state)).toBe(false);
+    });
+
+    it('returns false when it is an EVM swap but no token has RWA data', () => {
+      const state = buildState(nonRwaToken, nonRwaToken, true);
+      expect(selectIsRwaSwap(state)).toBe(false);
+    });
+
+    it('returns false when source token is a stock RWA but the RWA flag is disabled', () => {
+      const state = buildState(stockToken, nonRwaToken, false);
+      expect(selectIsRwaSwap(state)).toBe(false);
+    });
+
+    it('returns true when source token is a stock RWA and the RWA flag is enabled', () => {
+      const state = buildState(stockToken, nonRwaToken, true);
+      expect(selectIsRwaSwap(state)).toBe(true);
+    });
+
+    it('returns true when dest token is a stock RWA and the RWA flag is enabled', () => {
+      const state = buildState(nonRwaToken, stockToken, true);
+      expect(selectIsRwaSwap(state)).toBe(true);
+    });
+
+    it('returns true when both tokens are stock RWA and the RWA flag is enabled', () => {
+      const state = buildState(stockToken, stockToken, true);
+      expect(selectIsRwaSwap(state)).toBe(true);
+    });
+
+    it('returns false when source token instrument type is not stock', () => {
+      const bondToken: BridgeToken = {
+        ...stockToken,
+        rwaData: { instrumentType: 'bond' } as BridgeToken['rwaData'],
+      };
+      const state = buildState(bondToken, nonRwaToken, true);
+      expect(selectIsRwaSwap(state)).toBe(false);
     });
   });
 
@@ -772,6 +1449,56 @@ describe('bridge slice', () => {
       );
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectIsNonEvmSourced', () => {
+    const buildState = (sourceToken: BridgeToken | undefined) => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = {
+        ...initialState,
+        sourceToken,
+      };
+      return mockState as unknown as RootState;
+    };
+
+    const tokenOn = (chainId: string): BridgeToken =>
+      ({
+        address: '0xsource',
+        symbol: 'SRC',
+        decimals: 18,
+        image: '',
+        chainId: chainId as BridgeToken['chainId'],
+        name: 'Source',
+      }) as BridgeToken;
+
+    it('returns true for a Solana source token', () => {
+      const state = buildState(
+        tokenOn('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'),
+      );
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns true for a Tron source token', () => {
+      const state = buildState(tokenOn('tron:728126428'));
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns true for a Bitcoin source token', () => {
+      const state = buildState(
+        tokenOn('bip122:000000000019d6689c085ae165831e93'),
+      );
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns false for an EVM source token', () => {
+      const state = buildState(tokenOn('0x1'));
+      expect(selectIsNonEvmSourced(state)).toBe(false);
+    });
+
+    it('returns a falsy value when there is no source token', () => {
+      const state = buildState(undefined);
+      expect(selectIsNonEvmSourced(state)).toBeFalsy();
     });
   });
 });

@@ -1,4 +1,7 @@
-import type { AnalyticsTrackingEvent } from './AnalyticsEventBuilder';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from './AnalyticsEventBuilder';
 import type {
   AnalyticsEventProperties,
   AnalyticsUserTraits,
@@ -55,20 +58,27 @@ jest.mock('../../core/Engine/Engine', () => ({
   },
 }));
 
-jest.mock('../../core/Analytics/whenEngineReady', () => ({
+jest.mock('./whenEngineReady', () => ({
   whenEngineReady: jest.fn(),
 }));
 
 jest.mock('../Logger');
 
+jest.mock('../../components/UI/Perps/utils/perpsModeAnalytics', () => ({
+  PERPS_MODE_ANALYTICS_PROPERTY: 'perps_mode',
+  getPerpsModeAnalyticsProperties: jest.fn(() => ({ perps_mode: 'lite' })),
+}));
+
 import { analytics } from './analytics';
 import { getAnalyticsId as getAnalyticsIdFromStorage } from './analyticsId';
 import { store } from '../../store';
+import initialRootState from '../test/initial-root-state';
 import {
   selectAnalyticsEnabled,
   selectAnalyticsOptedIn,
 } from '../../selectors/analyticsController';
 import Logger from '../Logger';
+import { getPerpsModeAnalyticsProperties } from '../../components/UI/Perps/utils/perpsModeAnalytics';
 
 const mockedGetAnalyticsIdFromStorage =
   getAnalyticsIdFromStorage as jest.MockedFunction<
@@ -103,18 +113,9 @@ describe('analytics', () => {
 
   describe('trackEvent', () => {
     it('queues trackEvent operation', () => {
-      const event: AnalyticsTrackingEvent = {
-        name: 'test_event',
-        properties: { prop1: 'value1' },
-        sensitiveProperties: {},
-        saveDataRecording: false,
-        get isAnonymous(): boolean {
-          return false;
-        },
-        get hasProperties(): boolean {
-          return true;
-        },
-      };
+      const event = AnalyticsEventBuilder.createEventBuilder('test_event')
+        .addProperties({ prop1: 'value1' })
+        .build();
 
       analytics.trackEvent(event);
 
@@ -124,21 +125,99 @@ describe('analytics', () => {
       );
     });
 
+    it('injects Lite/Pro mode onto Perps events before queueing', () => {
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        'Perp Screen Viewed',
+      )
+        .addProperties({ screen_type: 'trading' })
+        .build();
+
+      analytics.trackEvent(event);
+
+      expect(getPerpsModeAnalyticsProperties).toHaveBeenCalled();
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'trackEvent',
+        expect.objectContaining({
+          name: 'Perp Screen Viewed',
+          properties: expect.objectContaining({
+            perps_mode: 'lite',
+            screen_type: 'trading',
+          }),
+        }),
+      );
+    });
+
+    it('injects Lite/Pro mode onto Perps Asset Viewed companion events', () => {
+      const event = AnalyticsEventBuilder.createEventBuilder('Asset Viewed')
+        .addProperties({ trade_type: 'Perps', screen_type: 'asset_details' })
+        .build();
+
+      analytics.trackEvent(event);
+
+      expect(getPerpsModeAnalyticsProperties).toHaveBeenCalled();
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'trackEvent',
+        expect.objectContaining({
+          name: 'Asset Viewed',
+          properties: expect.objectContaining({
+            perps_mode: 'lite',
+            trade_type: 'Perps',
+          }),
+        }),
+      );
+    });
+
+    it('enriches allowlisted events before queueing them', () => {
+      mockedStore.getState.mockReturnValue({
+        ...initialRootState,
+        engine: {
+          ...initialRootState.engine,
+          backgroundState: {
+            ...initialRootState.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              ...initialRootState.engine.backgroundState
+                .RemoteFeatureFlagController,
+              remoteFeatureFlags: {
+                assetsASSETS3205AbtestAmbientPriceColor: 'treatment',
+              },
+              localOverrides: {},
+            },
+          },
+        },
+      } as ReturnType<typeof store.getState>);
+
+      const event = AnalyticsEventBuilder.createEventBuilder(
+        'Token Details Opened',
+      )
+        .addProperties({ source: 'wallet' })
+        .build();
+
+      analytics.trackEvent(event);
+
+      expect(mockQueueManagerFromFactory.queueOperation).toHaveBeenCalledWith(
+        'trackEvent',
+        expect.objectContaining({
+          name: 'Token Details Opened',
+          properties: {
+            source: 'wallet',
+            active_ab_tests: [
+              {
+                key: 'assetsASSETS3205AbtestAmbientPriceColor',
+                value: 'treatment',
+                key_value_pair:
+                  'assetsASSETS3205AbtestAmbientPriceColor=treatment',
+              },
+            ],
+          },
+        }),
+      );
+    });
+
     it('logs error when queueOperation rejects', async () => {
       const error = new Error('Queue operation failed');
       mockQueueManagerFromFactory.queueOperation.mockRejectedValue(error);
-      const event: AnalyticsTrackingEvent = {
-        name: 'test_event',
-        properties: {},
-        sensitiveProperties: {},
-        saveDataRecording: false,
-        get isAnonymous(): boolean {
-          return false;
-        },
-        get hasProperties(): boolean {
-          return false;
-        },
-      };
+      const event =
+        AnalyticsEventBuilder.createEventBuilder('test_event').build();
 
       analytics.trackEvent(event);
 

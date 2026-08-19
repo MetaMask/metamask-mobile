@@ -81,6 +81,14 @@ const mockHighlightedAsset: HighlightedItem = {
   action: jest.fn(),
 };
 
+jest.mock('../../../hooks/send/useSendNavbar', () => ({
+  useSendNavbar: () => ({
+    Amount: { header: () => null },
+    Asset: { header: () => null },
+    Recipient: { header: () => null },
+  }),
+}));
+
 jest.mock('../../../hooks/send/useSendTokens', () => ({
   useSendTokens: jest.fn(),
 }));
@@ -248,7 +256,7 @@ describe('Asset', () => {
     jest.clearAllMocks();
 
     mockUseSendTokens.mockReturnValue(mockTokens);
-    mockUseEVMNfts.mockReturnValue(mockNfts);
+    mockUseEVMNfts.mockReturnValue({ nfts: mockNfts, isLoading: false });
 
     mockUseTokenSearch.mockReturnValue({
       searchQuery: '',
@@ -281,7 +289,7 @@ describe('Asset', () => {
     render(<Asset />);
 
     const searchInput = screen.getByTestId('search-input');
-    expect(searchInput.props.placeholder).toBe('Search tokens and NFTs');
+    expect(searchInput).toHaveProp('placeholder', 'Search tokens and NFTs');
   });
 
   it('renders TokenList with filtered tokens', () => {
@@ -699,7 +707,7 @@ describe('Asset', () => {
   });
 
   it('works correctly with empty nfts from useEVMNfts', () => {
-    mockUseEVMNfts.mockReturnValue([]);
+    mockUseEVMNfts.mockReturnValue({ nfts: [], isLoading: false });
     mockUseTokenSearch.mockReturnValue({
       searchQuery: '',
       setSearchQuery: mockSetSearchQuery,

@@ -1,25 +1,32 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { OnboardingSheetSelectorIDs } from '../../../app/components/Views/OnboardingSheet/OnboardingSheet.testIds';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class OnboardingSheet {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(OnboardingSheetSelectorIDs.CONTAINER_ID);
   }
 
-  get googleLoginButton(): DetoxElement {
+  get googleLoginButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON,
     );
   }
 
-  get appleLoginButton(): DetoxElement {
+  get appleLoginButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON,
     );
   }
 
-  get importSeedButton(): DetoxElement {
+  get telegramLoginButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON,
+    );
+  }
+
+  get importSeedButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON,
     );
@@ -34,6 +41,12 @@ class OnboardingSheet {
   async tapAppleLoginButton(): Promise<void> {
     await Gestures.waitAndTap(this.appleLoginButton, {
       elemDescription: 'Apple Login Button in Onboarding Sheet',
+    });
+  }
+
+  async tapTelegramLoginButton(): Promise<void> {
+    await Gestures.waitAndTap(this.telegramLoginButton, {
+      elemDescription: 'Telegram Login Button in Onboarding Sheet',
     });
   }
 

@@ -1,0 +1,68 @@
+import React from 'react';
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
+import MoneySectionHeader from '../MoneySectionHeader';
+import { MoneyHowItWorksTestIds } from './MoneyHowItWorks.testIds';
+import { isPositiveNumber } from '../../utils/number';
+
+interface MoneyHowItWorksProps {
+  /** APY expressed as a percentage (e.g. 3 for 3%). */
+  apy: number | undefined;
+  isLoading?: boolean;
+  onHeaderPress?: () => void;
+}
+
+const MoneyHowItWorks = ({
+  apy,
+  isLoading = false,
+  onHeaderPress,
+}: MoneyHowItWorksProps) => {
+  const showApy = !isLoading && isPositiveNumber(apy);
+
+  let descriptionContent: React.ReactNode;
+  if (showApy) {
+    descriptionContent = (
+      <>
+        {strings('money.how_it_works.description_prefix')}
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.SuccessDefault}
+          testID={MoneyHowItWorksTestIds.APY}
+        >
+          {' '}
+          {strings('money.apy_label', { percentage: apy })}
+        </Text>
+        {strings('money.how_it_works.description_suffix')}
+      </>
+    );
+  } else {
+    descriptionContent = strings('money.how_it_works.description_no_apy');
+  }
+
+  return (
+    <Box twClassName="px-4 pt-7 pb-3" testID={MoneyHowItWorksTestIds.CONTAINER}>
+      <MoneySectionHeader
+        title={strings('money.how_it_works.title')}
+        onPress={onHeaderPress}
+      />
+      <Box twClassName="mt-3">
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          testID={MoneyHowItWorksTestIds.DESCRIPTION}
+        >
+          {descriptionContent}
+        </Text>
+      </Box>
+    </Box>
+  );
+};
+
+export default MoneyHowItWorks;

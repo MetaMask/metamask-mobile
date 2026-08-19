@@ -32,7 +32,25 @@ exports[`SnapUIAssetSelector should render 1`] = `
       testID="snap-ui-renderer__scrollview"
     >
       <View>
-        <TouchableHighlight>
+        <View
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          focusable={false}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+        >
           <View
             color="Default"
             flexDirection="column"
@@ -64,12 +82,35 @@ exports[`SnapUIAssetSelector should render 1`] = `
                 ]
               }
             >
-              <TouchableOpacity
+              <View
                 accessibilityRole="button"
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": false,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessibilityValue={
+                  {
+                    "max": undefined,
+                    "min": undefined,
+                    "now": undefined,
+                    "text": undefined,
+                  }
+                }
                 accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
                 style={
                   {
                     "alignItems": "center",
@@ -83,6 +124,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                     "justifyContent": "center",
                     "maxHeight": 58,
                     "minHeight": 48,
+                    "opacity": 1,
                     "overflow": "hidden",
                     "paddingBottom": 8,
                     "paddingHorizontal": 16,
@@ -211,17 +253,10 @@ exports[`SnapUIAssetSelector should render 1`] = `
                                 "justifyContent": "center",
                                 "overflow": "hidden",
                                 "shadowColor": "#0000001a",
-                                "shadowOffset": {
-                                  "height": 2,
-                                  "width": 0,
-                                },
+                                "shadowOffset": [Object],
                                 "shadowOpacity": 1,
                                 "shadowRadius": 4,
-                                "transform": [
-                                  {
-                                    "scale": 1,
-                                  },
-                                ],
+                                "transform": [Array],
                                 "width": 32,
                               }
                             }
@@ -230,12 +265,7 @@ exports[`SnapUIAssetSelector should render 1`] = `
                               onError={[Function]}
                               resizeMode="contain"
                               source={1}
-                              style={
-                                {
-                                  "height": 32,
-                                  "width": 32,
-                                }
-                              }
+                              style={[Object]}
                               testID="network-avatar-image"
                             />
                           </View>
@@ -352,11 +382,10 @@ exports[`SnapUIAssetSelector should render 1`] = `
                   }
                   width={16}
                 />
-              </TouchableOpacity>
+              </View>
             </View>
-            <View />
           </View>
-        </TouchableHighlight>
+        </View>
       </View>
     </RCTScrollView>
   </View>

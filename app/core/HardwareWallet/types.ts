@@ -60,6 +60,15 @@ export interface HardwareWalletAdapter {
   isConnected(): boolean;
 
   /**
+   * Attempt to reconnect to a known device by scanning in the background
+   * without showing the scanning UI. Returns true if connected.
+   */
+  backgroundReconnect?(
+    targetDeviceId: string,
+    timeoutMs?: number,
+  ): Promise<boolean>;
+
+  /**
    * Reset the adapter state without emitting events.
    * Used when closing device selection to ensure clean state for next attempt.
    */
@@ -106,21 +115,35 @@ export interface HardwareWalletAdapter {
   stopDeviceDiscovery(): void;
 
   /**
-   * Check if the underlying transport mechanism is available.
+   * Ensure required OS permissions are granted for this adapter.
+   * Requests permissions if needed; opens OS Settings when permanently denied.
+   *
+   * @returns `true` if permissions are granted, `false` if the user was
+   * redirected to Settings.
+   */
+  ensurePermissions(): Promise<boolean>;
+
+  /**
+   * Check if the underlying transport mechanism is available for adapters that
+   * participate in persistent transport monitoring.
    * For Ledger: Bluetooth is enabled
-   * For QR: Camera permission granted
+   * For QR: not used for camera permission gating
    * For Non-hardware: always true
    */
   isTransportAvailable(): Promise<boolean>;
 
   /**
    * Subscribe to transport availability changes (e.g., Bluetooth on/off).
-   * The adapter will call the callback when transport state changes.
+   * The adapter will call the callback when transport state changes, and
+   * MUST invoke it once at subscription time with the current state.
+   *
+   * All adapter implementations (Ledger, QR, NonHardware) are required to
+   * provide this — the provider always wires transport monitoring.
    *
    * @param callback - Called when transport state changes
    * @returns Cleanup function to unsubscribe
    */
-  onTransportStateChange?(callback: (isAvailable: boolean) => void): () => void;
+  onTransportStateChange(callback: (isAvailable: boolean) => void): () => void;
 
   /**
    * Get the required app name for this wallet type.
@@ -133,11 +156,18 @@ export interface HardwareWalletAdapter {
    * Get the ErrorCode to use when this adapter's transport is unavailable,
    * or null if this adapter does not require persistent transport monitoring.
    *
-   * Returning a non-null value means the provider will monitor transport
-   * availability and show an error if it becomes unavailable during an
-   * active operation.
+   * Returning a non-null value means the provider will preflight and monitor
+   * transport availability, showing an error if it becomes unavailable during
+   * an active operation.
    */
   getTransportDisabledErrorCode(): ErrorCode | null;
+
+  /**
+   * Tear down the adapter: stop BLE monitoring, close sessions, release native
+   * resources. Called when the adapter is being discarded (provider unmount,
+   * wallet-type change).
+   */
+  destroy(): void;
 }
 
 /**

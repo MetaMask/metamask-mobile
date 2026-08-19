@@ -1,14 +1,18 @@
 import ScreenView from '../../../../Base/ScreenView';
 import {
   Box,
+  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useMemo } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import { getHeaderCompactStandardNavbarOptions } from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { useStyles } from '../../../../../component-library/hooks';
+import { createStyles } from './QuoteSelectorView.styles';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectDestToken,
@@ -28,21 +32,16 @@ import { startCase } from 'lodash';
 import { QUOTES_PLACEHOLDER_DATA } from './constants';
 import { useTrackAllQuotesSortedEvent } from '../../hooks/useTrackAllQuotesSortedEvent';
 import { fromTokenMinimalUnit } from '../../../../../util/number';
+import { sumAmounts } from '@metamask/bridge-controller';
 
 export const QuoteSelectorView = () => {
-  const navigation = useNavigation();
+  const { styles } = useStyles(createStyles, {});
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const selectedQuoteRequestId = useSelector(selectSelectedQuoteRequestId);
   const currency = useSelector(selectCurrentCurrency);
-  const {
-    validQuotes,
-    bestQuote,
-    isLoading,
-    blockaidError,
-    quoteFetchError,
-    isExpired,
-    willRefresh,
-  } = useBridgeQuoteData();
+  const { validQuotes, bestQuote, isLoading, blockaidError, quoteFetchError } =
+    useBridgeQuoteData();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const latestSourceBalance = useLatestBalance({
@@ -80,23 +79,26 @@ export const QuoteSelectorView = () => {
       (quote) =>
         ({
           formattedTotalCost: formatFiat(
-            new BigNumber(quote.sentAmount.valueInCurrency ?? '0').plus(
+            new BigNumber(quote.quote.src.valueInCurrency ?? '0').plus(
               isGaslessQuote(quote.quote)
-                ? (quote.includedTxFees?.valueInCurrency ?? '0')
-                : (quote.totalNetworkFee?.valueInCurrency ??
-                    quote.gasFee?.effective?.valueInCurrency ??
-                    '0'),
+                ? (sumAmounts(quote.quote.feeData?.txFee)?.valueInCurrency ??
+                    '0')
+                : (sumAmounts(
+                    quote.quote.feeData?.network,
+                    quote.quote.feeData?.relayer,
+                  )?.valueInCurrency ?? '0'),
             ),
             currency,
           ),
-          receiveAmount: destToken
-            ? fromTokenMinimalUnit(
-                quote.quote.destTokenAmount,
-                destToken.decimals,
-              )
-            : undefined,
+          receiveAmount:
+            destToken && quote.quote.dest.amount
+              ? fromTokenMinimalUnit(
+                  quote.quote.dest.amount,
+                  destToken.decimals,
+                )
+              : undefined,
           provider: {
-            name: startCase(quote.quote.bridges[0]),
+            name: startCase(quote.quote.protocols[0] ?? quote.quote.aggregator),
           },
           quoteRequestId: quote.quote.requestId,
           onPress: onQuoteSelect,
@@ -119,31 +121,31 @@ export const QuoteSelectorView = () => {
     destToken,
   ]);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getHeaderCompactStandardNavbarOptions({
-        title: strings('bridge.select_quote'),
-        onBack: () => navigation.goBack(),
-        includesTopInset: true,
-      }),
-    );
-  }, [navigation]);
-
   // Go back to bridge view only if there's an error or quotes are expired
   useEffect(() => {
-    if (quoteFetchError || blockaidError || (isExpired && !willRefresh)) {
+    if (quoteFetchError || blockaidError) {
       navigation.goBack();
     }
-  }, [quoteFetchError, blockaidError, isExpired, navigation, willRefresh]);
+  }, [quoteFetchError, blockaidError, navigation]);
 
   return (
-    <ScreenView>
-      <Box padding={4}>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('bridge.select_quote_info')}
-        </Text>
-      </Box>
-      <QuoteList data={data} />
-    </ScreenView>
+    <SafeAreaView
+      style={styles.screenWrapper}
+      edges={['bottom', 'left', 'right']}
+    >
+      <HeaderStandard
+        title={strings('bridge.select_quote')}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
+      <ScreenView safeAreaEdges={[]}>
+        <Box padding={4}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('bridge.select_quote_info')}
+          </Text>
+        </Box>
+        <QuoteList data={data} />
+      </ScreenView>
+    </SafeAreaView>
   );
 };

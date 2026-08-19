@@ -3,15 +3,16 @@ import GraphTooltip, { GraphTooltipProps } from '.';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 
 describe('GraphTooltip', () => {
-  it('render matches snapshot', () => {
+  it('renders title and subtitle', () => {
     const props: GraphTooltipProps = {
       title: 'Sample Title',
       subtitle: 'Sample Subtitle',
       color: 'blue',
     };
 
-    const { toJSON } = renderWithProvider(<GraphTooltip {...props} />);
+    const { getByText } = renderWithProvider(<GraphTooltip {...props} />);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(props.title)).toBeOnTheScreen();
+    expect(getByText(props.subtitle)).toBeOnTheScreen();
   });
 });

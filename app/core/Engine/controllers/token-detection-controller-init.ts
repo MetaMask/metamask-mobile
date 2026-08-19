@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   TokenDetectionController,
   type TokenDetectionControllerMessenger,
@@ -7,10 +7,13 @@ import {
 import { TokenDetectionControllerInitMessenger } from '../messengers/token-detection-controller-messenger';
 import { MetaMetricsEvents } from '../../Analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import type { AnalyticsTrackingEvent as PackageAnalyticsTrackingEvent } from '@metamask/analytics-controller';
 import { getDecimalChainId } from '../../../util/networks';
 import { getGlobalChainId } from '../../../util/networks/global-network';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectIsControllerDeprecated } from '../../../selectors/featureFlagController/assetsUnifyState';
+import { store } from '../../../store';
 
 /**
  * Initialize the tokenDetection controller.
@@ -19,12 +22,18 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const tokenDetectionControllerInit: ControllerInitFunction<
+export const tokenDetectionControllerInit: MessengerClientInitFunction<
   TokenDetectionController,
   TokenDetectionControllerMessenger,
   TokenDetectionControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, getController, getState }) => {
-  const networkController = getController('NetworkController');
+> = ({
+  controllerMessenger,
+  initMessenger,
+  getMessengerClient,
+  getState,
+  tokenListService,
+}) => {
+  const networkController = getMessengerClient('NetworkController');
 
   const getBalancesInSingleCall = (
     selectedAddress: string,
@@ -44,6 +53,7 @@ export const tokenDetectionControllerInit: ControllerInitFunction<
     messenger: controllerMessenger,
     disabled: false,
     getBalancesInSingleCall,
+    tokenListService,
     useTokenDetection: () => selectUseTokenDetection(getState()),
     useExternalServices: () => selectBasicFunctionalityEnabled(getState()),
     trackMetaMetricsEvent: () => {
@@ -58,12 +68,20 @@ export const tokenDetectionControllerInit: ControllerInitFunction<
           })
           .build();
 
-        initMessenger.call('AnalyticsController:trackEvent', event);
+        // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
+        initMessenger.call(
+          'AnalyticsController:trackEvent',
+          event as unknown as PackageAnalyticsTrackingEvent,
+        );
       } catch (error) {
         // Analytics tracking failures should not break token detection
         // Error is logged but not thrown
       }
     },
+    isDeprecated: () =>
+      selectIsControllerDeprecated('TokenDetectionController')(
+        store.getState(),
+      ),
   });
 
   return {

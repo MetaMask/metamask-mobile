@@ -1,5 +1,6 @@
 import {
   GasFeeEstimateLevel,
+  UserFeeLevel,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
@@ -11,6 +12,8 @@ import type {
   TransactionMetricsBuilderRequest,
 } from '../types';
 import type { RootState } from '../../../../../reducers';
+import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
+import { safeToChecksumAddress } from '../../../../../util/address';
 
 export function getGasMetricsProperties({
   transactionMeta,
@@ -66,7 +69,10 @@ export function getGasMetricsProperties({
     properties: {
       gas_estimation_failed: !gasFeeEstimatesLoaded,
       gas_fee_presented: presentedGasFeeOption,
-      gas_fee_selected: userFeeLevel,
+      gas_fee_selected:
+        userFeeLevel === UserFeeLevel.DAPP_SUGGESTED
+          ? 'dapp_proposed'
+          : userFeeLevel,
       gas_insufficient_native_asset,
       gas_paid_with,
       gas_payment_tokens_available,
@@ -88,10 +94,13 @@ function getNativeBalance(
   chainId: string,
   address: string,
 ): BigNumber {
-  const accountsByChainId =
-    state.engine?.backgroundState?.AccountTrackerController?.accountsByChainId;
+  const accountsByChainId = selectAccountsByChainId(state);
 
-  const account = accountsByChainId?.[chainId]?.[address?.toLowerCase()];
+  const checksummedAddress = safeToChecksumAddress(address);
+  const account =
+    checksummedAddress !== undefined
+      ? accountsByChainId?.[chainId]?.[checksummedAddress]
+      : undefined;
 
   return new BigNumber((account?.balance as Hex) ?? '0x0');
 }

@@ -1,4 +1,5 @@
-import { initialStatePerps } from './perpsStatePreset';
+import { DEFAULT_PRO_LAYOUT_PREFERENCES } from '@metamask/perps-controller';
+import { initialStatePerps, initialStatePerpsPro } from './perpsStatePreset';
 
 describe('initialStatePerps', () => {
   it('returns a builder with build method', () => {
@@ -31,8 +32,33 @@ describe('initialStatePerps', () => {
     expect(network?.selectedNetworkClientId).toBe('mainnet');
 
     const prefs = state?.engine?.backgroundState?.PreferencesController as
-      | { selectedAddress?: string }
+      | {
+          tokenSortConfig?: {
+            key: string;
+            order: string;
+            sortCallback: string;
+          };
+        }
       | undefined;
-    expect(prefs?.selectedAddress).toBe('0x1234567890abcdef');
+    expect(prefs?.tokenSortConfig).toStrictEqual({
+      key: 'tokenFiatAmount',
+      order: 'dsc',
+      sortCallback: 'stringNumeric',
+    });
+  });
+
+  it('builds Pro state with layout preferences', () => {
+    const state = initialStatePerpsPro().build();
+
+    const perps = state?.engine?.backgroundState?.PerpsController as
+      | {
+          mode?: string;
+          proLayoutPreferences?: typeof DEFAULT_PRO_LAYOUT_PREFERENCES;
+        }
+      | undefined;
+    expect(perps?.mode).toBe('pro');
+    expect(perps?.proLayoutPreferences).toMatchObject(
+      DEFAULT_PRO_LAYOUT_PREFERENCES,
+    );
   });
 });

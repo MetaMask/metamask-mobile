@@ -105,26 +105,28 @@ const MarketInsightsFeedbackBottomSheet: React.FC<
   const isSomethingElse =
     selectedReason === MarketInsightsFeedbackReason.SomethingElse;
 
+  const trimmedFeedback = additionalFeedback.trim();
+
+  const canSubmit =
+    selectedReason !== null && (!isSomethingElse || trimmedFeedback.length > 0);
+
   const remainingChars = useMemo(
     () => MAX_FEEDBACK_LENGTH - additionalFeedback.length,
     [additionalFeedback],
   );
 
   const handleSubmit = useCallback(() => {
-    if (!selectedReason) {
+    if (!canSubmit) {
       return;
     }
 
-    const trimmedFeedback = additionalFeedback.trim();
-    const shouldIncludeFeedbackText =
-      selectedReason === MarketInsightsFeedbackReason.SomethingElse &&
-      Boolean(trimmedFeedback);
-
     onSubmit({
       reason: selectedReason,
-      ...(shouldIncludeFeedbackText ? { feedbackText: trimmedFeedback } : {}),
+      ...(isSomethingElse && trimmedFeedback
+        ? { feedbackText: trimmedFeedback }
+        : {}),
     });
-  }, [selectedReason, additionalFeedback, onSubmit]);
+  }, [canSubmit, selectedReason, isSomethingElse, trimmedFeedback, onSubmit]);
 
   const handleReasonPress = useCallback(
     (reason: MarketInsightsFeedbackReason) => {
@@ -206,9 +208,8 @@ const MarketInsightsFeedbackBottomSheet: React.FC<
         {isSomethingElse ? (
           <Box twClassName="mt-5">
             <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextDefault}
               twClassName="mb-2"
             >
               {strings('market_insights.feedback.additional_feedback_label')}
@@ -224,13 +225,13 @@ const MarketInsightsFeedbackBottomSheet: React.FC<
                 'market_insights.feedback.additional_feedback_placeholder',
               )}
               style={tw.style(
-                'min-h-[96px] rounded-xl border border-muted bg-muted px-3 py-3 text-default',
+                'min-h-[96px] rounded-xl border border-muted bg-muted px-3 py-3 text-body-md text-default',
               )}
               testID={MarketInsightsSelectorsIDs.FEEDBACK_ADDITIONAL_INPUT}
             />
             <Text
               variant={TextVariant.BodySm}
-              color={TextColor.TextMuted}
+              color={TextColor.TextAlternative}
               twClassName="mt-2"
             >
               {strings('market_insights.feedback.characters_remaining', {
@@ -245,7 +246,7 @@ const MarketInsightsFeedbackBottomSheet: React.FC<
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
-            isDisabled={!selectedReason}
+            isDisabled={!canSubmit}
             onPress={handleSubmit}
             testID={MarketInsightsSelectorsIDs.FEEDBACK_SUBMIT_BUTTON}
           >

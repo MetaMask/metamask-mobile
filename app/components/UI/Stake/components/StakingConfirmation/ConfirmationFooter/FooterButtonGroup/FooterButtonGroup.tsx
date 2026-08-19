@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { formatEther } from 'ethers/lib/utils';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../../../locales/i18n';
 import Button, {
   ButtonVariants,
@@ -22,13 +23,13 @@ import {
   FooterButtonGroupActions,
   FooterButtonGroupProps,
 } from './FooterButtonGroup.types';
-import Routes from '../../../../../../../constants/navigation/Routes';
+import { navigateToActivityAfterConfirmation } from '../../../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import usePoolStakedUnstake from '../../../../hooks/usePoolStakedUnstake';
+import { useAnalytics } from '../../../../../../hooks/useAnalytics/useAnalytics';
 import {
   MetaMetricsEvents,
-  useMetrics,
-} from '../../../../../../hooks/useMetrics';
-import { IMetaMetricsEvent } from '../../../../../../../core/Analytics';
+  IMetaMetricsEvent,
+} from '../../../../../../../core/Analytics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../../../constants/events';
 import { EVM_SCOPE } from '../../../../../Earn/constants/networks';
 
@@ -58,10 +59,9 @@ const STAKING_TX_METRIC_EVENTS: Record<
 const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const navigation = useNavigation();
-  const { navigate } = navigation;
+  const navigation = useNavigation<AppNavigationProp>();
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
@@ -117,7 +117,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         () => {
           submitTxMetaMetric(STAKING_TX_METRIC_EVENTS[action].SUBMITTED);
           setDidSubmitTransaction(false);
-          navigate(Routes.TRANSACTIONS_VIEW);
+          navigateToActivityAfterConfirmation(navigation);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -148,7 +148,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [action, navigate, submitTxMetaMetric],
+    [action, navigation, submitTxMetaMetric],
   );
 
   const handleConfirmation = async () => {

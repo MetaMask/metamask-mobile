@@ -2,24 +2,25 @@ import React from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
-import { useStyles } from '../../../../component-library/hooks';
 import BackupAndSyncToggle from '../../../UI/Identity/BackupAndSyncToggle/BackupAndSyncToggle';
 import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
 import { RootState } from '../../../../reducers';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import styleSheet from '../DefaultSettings/index.styles';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 
 const GeneralSettings = () => {
-  useOnboardingHeader(strings('default_settings.drawer_general_title'));
-  const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const tw = useTailwind();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
@@ -56,8 +57,13 @@ const GeneralSettings = () => {
   };
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
-      <ScrollView style={styles.scrollRoot}>
+    <SafeAreaView edges={{ bottom: 'additive' }} style={tw.style('flex-1')}>
+      <HeaderStandard
+        includesTopInset
+        title={strings('default_settings.drawer_general_title')}
+        onBack={() => navigation.goBack()}
+      />
+      <ScrollView style={tw.style('flex-1 pt-4 px-4')}>
         <BasicFunctionalityComponent handleSwitchToggle={handleSwitchToggle} />
         <BackupAndSyncToggle
           trackBackupAndSyncToggleEventOverride={trackBackupAndSyncToggleEvent}

@@ -10,10 +10,54 @@ import {
   selectPredictAccountMeta,
   selectPredictAccountMetaByAddress,
   selectPredictWithdrawTransaction,
+  selectPredictActiveBuyOrder,
+  selectPredictSelectedPaymentToken,
 } from './index';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
+
+const FIXED_VALID_UNTIL = 9999999999999;
+
+const makeWonPosition = (
+  overrides: Partial<PredictPosition> = {},
+): PredictPosition =>
+  ({
+    id: 'pos-1',
+    providerId: POLYMARKET_PROVIDER_ID,
+    marketId: 'market-1',
+    outcomeId: 'outcome-1',
+    outcome: 'Yes',
+    outcomeTokenId: '123',
+    currentValue: 100,
+    title: 'Test Market',
+    icon: 'icon-url',
+    amount: 50,
+    price: 0.5,
+    status: PredictPositionStatus.WON,
+    size: 100,
+    outcomeIndex: 0,
+    percentPnl: 50,
+    cashPnl: 25,
+    claimable: true,
+    initialValue: 75,
+    avgPrice: 0.75,
+    endDate: '2024-12-31',
+    ...overrides,
+  }) as PredictPosition;
+
+const makeClaimablePositionsState = (
+  claimablePositions: Record<string, PredictPosition[]>,
+) => ({
+  engine: {
+    backgroundState: {
+      PredictController: {
+        claimablePositions,
+      },
+    },
+  },
+});
+
 describe('Predict Controller Selectors', () => {
   describe('selectPredictControllerState', () => {
     it('selects the PredictController state', () => {
@@ -139,6 +183,87 @@ describe('Predict Controller Selectors', () => {
     });
   });
 
+  describe('selectPredictActiveBuyOrder', () => {
+    const mockAccountsController = {
+      internalAccounts: {
+        selectedAccount: 'acct-1',
+        accounts: {
+          'acct-1': {
+            address: '0xabc123',
+            type: 'eip155:eoa',
+            id: 'acct-1',
+            metadata: {
+              name: 'Account 1',
+              keyring: { type: 'HD Key Tree' },
+              importTime: 0,
+              lastSelected: 0,
+            },
+            options: {},
+            methods: [],
+            scopes: [],
+          },
+        },
+      },
+    };
+
+    it('returns active buy order for the selected account address', () => {
+      const activeBuyOrder = {
+        state: 'preview',
+        transactionId: 'tx-1',
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              activeBuyOrders: { '0xabc123': activeBuyOrder },
+            },
+            AccountsController: mockAccountsController,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictActiveBuyOrder(mockState as any);
+
+      expect(result).toEqual(activeBuyOrder);
+    });
+
+    it('returns null when no order exists for the selected address', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              activeBuyOrders: {},
+            },
+            AccountsController: mockAccountsController,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictActiveBuyOrder(mockState as any);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when PredictController state is undefined', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: undefined,
+            AccountsController: mockAccountsController,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictActiveBuyOrder(mockState as any);
+
+      expect(result).toBeNull();
+    });
+  });
+
   describe('selectPredictClaimablePositions', () => {
     it('returns claimable positions when they exist', () => {
       const testAddress = '0x123';
@@ -219,7 +344,7 @@ describe('Predict Controller Selectors', () => {
   });
 
   describe('selectPredictWonPositions', () => {
-    it('filters positions with WON status', () => {
+    it('filters positions with WON or REDEEMABLE status', () => {
       const testAddress = '0x123';
       const claimablePositions = {
         [testAddress]: [
@@ -243,6 +368,28 @@ describe('Predict Controller Selectors', () => {
             claimable: true,
             initialValue: 75,
             avgPrice: 0.75,
+            endDate: '2024-12-31',
+          },
+          {
+            id: 'pos-push',
+            providerId: POLYMARKET_PROVIDER_ID,
+            marketId: 'market-push',
+            outcomeId: 'outcome-push',
+            outcome: 'Yes',
+            outcomeTokenId: '789',
+            currentValue: 50,
+            title: 'Pushed Market',
+            icon: 'icon-url-push',
+            amount: 50,
+            price: 0.5,
+            status: PredictPositionStatus.REDEEMABLE,
+            size: 100,
+            outcomeIndex: 0,
+            percentPnl: 0,
+            cashPnl: 0,
+            claimable: true,
+            initialValue: 50,
+            avgPrice: 0.5,
             endDate: '2024-12-31',
           },
           {
@@ -280,14 +427,17 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const selector = selectPredictWonPositions({ address: testAddress });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selector(mockState as any) as PredictPosition[];
+      const result = selectPredictWonPositions(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        testAddress,
+      ) as PredictPosition[];
 
-      expect(result).toHaveLength(1);
+      expect(result).toHaveLength(2);
       expect(result[0].status).toBe(PredictPositionStatus.WON);
       expect(result[0].id).toBe('pos-1');
+      expect(result[1].status).toBe(PredictPositionStatus.REDEEMABLE);
+      expect(result[1].id).toBe('pos-push');
     });
 
     it('returns empty array when no positions have WON status', () => {
@@ -329,9 +479,10 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const result = selectPredictWonPositions({ address: testAddress })(
+      const result = selectPredictWonPositions(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockState as any,
+        testAddress,
       );
 
       expect(result).toEqual([]);
@@ -351,12 +502,41 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const result = selectPredictWonPositions({ address: testAddress })(
+      const result = selectPredictWonPositions(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockState as any,
+        testAddress,
       );
 
       expect(result).toEqual([]);
+    });
+
+    it('retains memoized results across different addresses', () => {
+      const addressA = '0xaaa';
+      const addressB = '0xbbb';
+      const mockState = makeClaimablePositionsState({
+        [addressA]: [makeWonPosition({ id: 'pos-a' })],
+        [addressB]: [makeWonPosition({ id: 'pos-b', marketId: 'market-2' })],
+      });
+
+      selectPredictWonPositions.resetRecomputations();
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resultA1 = selectPredictWonPositions(mockState as any, addressA);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resultB = selectPredictWonPositions(mockState as any, addressB);
+      const recomputationsAfterTwoAddresses =
+        selectPredictWonPositions.recomputations();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const resultA2 = selectPredictWonPositions(mockState as any, addressA);
+
+      // A → B → A must not recompute A again (weakMap multi-arg cache).
+      // Default createSelector LRU (maxSize: 1) would recompute on the third call.
+      expect(resultA2).toBe(resultA1);
+      expect(resultB).not.toBe(resultA1);
+      expect(selectPredictWonPositions.recomputations()).toBe(
+        recomputationsAfterTwoAddresses,
+      );
     });
   });
 
@@ -422,9 +602,10 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const result = selectPredictWinFiat({ address: testAddress })(
+      const result = selectPredictWinFiat(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockState as any,
+        testAddress,
       );
 
       expect(result).toBe(300);
@@ -444,9 +625,10 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const result = selectPredictWinFiat({ address: testAddress })(
+      const result = selectPredictWinFiat(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockState as any,
+        testAddress,
       );
 
       expect(result).toBe(0);
@@ -491,9 +673,10 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const result = selectPredictWinFiat({ address: testAddress })(
+      const result = selectPredictWinFiat(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockState as any,
+        testAddress,
       );
 
       expect(result).toBe(0);
@@ -562,9 +745,10 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const result = selectPredictWinPnl({ address: testAddress })(
+      const result = selectPredictWinPnl(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockState as any,
+        testAddress,
       );
 
       expect(result).toBe(75);
@@ -584,9 +768,10 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const result = selectPredictWinPnl({ address: testAddress })(
+      const result = selectPredictWinPnl(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockState as any,
+        testAddress,
       );
 
       expect(result).toBe(0);
@@ -631,9 +816,10 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const result = selectPredictWinPnl({ address: testAddress })(
+      const result = selectPredictWinPnl(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockState as any,
+        testAddress,
       );
 
       expect(result).toBe(-10);
@@ -645,15 +831,15 @@ describe('Predict Controller Selectors', () => {
       const balances = {
         '0x123': {
           balance: 1000,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
         '0x456': {
           balance: 2000,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
         '0xabc': {
           balance: 500,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
       };
 
@@ -726,15 +912,15 @@ describe('Predict Controller Selectors', () => {
       const balances = {
         '0x123': {
           balance: 1000,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
         '0x456': {
           balance: 2000,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
         '0xabc': {
           balance: 500,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
       };
 
@@ -748,11 +934,11 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const selector = selectPredictBalanceByAddress({
-        address: '0x123',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selector(mockState as any);
+      const result = selectPredictBalanceByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        '0x123',
+      );
 
       expect(result).toBe(1000);
     });
@@ -761,7 +947,7 @@ describe('Predict Controller Selectors', () => {
       const balances = {
         '0x123': {
           balance: 1000,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
       };
 
@@ -775,11 +961,11 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const selector = selectPredictBalanceByAddress({
-        address: '0x123',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selector(mockState as any);
+      const result = selectPredictBalanceByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        '0x123',
+      );
 
       expect(result).toBe(1000);
     });
@@ -788,7 +974,7 @@ describe('Predict Controller Selectors', () => {
       const balances = {
         '0x123': {
           balance: 1000,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
       };
 
@@ -802,11 +988,11 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const selector = selectPredictBalanceByAddress({
-        address: '0xnonexistent',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selector(mockState as any);
+      const result = selectPredictBalanceByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        '0xnonexistent',
+      );
 
       expect(result).toBe(0);
     });
@@ -822,11 +1008,11 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const selector = selectPredictBalanceByAddress({
-        address: '0x123',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selector(mockState as any);
+      const result = selectPredictBalanceByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        '0x123',
+      );
 
       expect(result).toBe(0);
     });
@@ -840,11 +1026,11 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const selector = selectPredictBalanceByAddress({
-        address: '0x123',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selector(mockState as any);
+      const result = selectPredictBalanceByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        '0x123',
+      );
 
       expect(result).toBe(0);
     });
@@ -853,19 +1039,19 @@ describe('Predict Controller Selectors', () => {
       const balances = {
         '0x123': {
           balance: 1000,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
         '0x456': {
           balance: 2000,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
         '0xabc': {
           balance: 500,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
         '0xdef': {
           balance: 750,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
       };
 
@@ -879,17 +1065,17 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const selector1 = selectPredictBalanceByAddress({
-        address: '0x456',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result1 = selector1(mockState as any);
+      const result1 = selectPredictBalanceByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        '0x456',
+      );
 
-      const selector2 = selectPredictBalanceByAddress({
-        address: '0xdef',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result2 = selector2(mockState as any);
+      const result2 = selectPredictBalanceByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        '0xdef',
+      );
 
       expect(result1).toBe(2000);
       expect(result2).toBe(750);
@@ -899,7 +1085,7 @@ describe('Predict Controller Selectors', () => {
       const balances = {
         '0x123': {
           balance: 0,
-          validUntil: Date.now() + 1000,
+          validUntil: FIXED_VALID_UNTIL,
         },
       };
 
@@ -913,11 +1099,11 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const selector = selectPredictBalanceByAddress({
-        address: '0x123',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selector(mockState as any);
+      const result = selectPredictBalanceByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        '0x123',
+      );
 
       expect(result).toBe(0);
     });
@@ -1040,12 +1226,12 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const selector = selectPredictAccountMetaByAddress({
-        providerId: POLYMARKET_PROVIDER_ID,
-        address: '0x123',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selector(mockState as any);
+      const result = selectPredictAccountMetaByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        POLYMARKET_PROVIDER_ID,
+        '0x123',
+      );
 
       expect(result).toEqual({ isOnboarded: true });
     });
@@ -1069,12 +1255,12 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const selector = selectPredictAccountMetaByAddress({
-        providerId: POLYMARKET_PROVIDER_ID,
-        address: '0x123',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selector(mockState as any);
+      const result = selectPredictAccountMetaByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        POLYMARKET_PROVIDER_ID,
+        '0x123',
+      );
 
       expect(result).toEqual({ isOnboarded: false });
     });
@@ -1098,12 +1284,12 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const selector = selectPredictAccountMetaByAddress({
-        providerId: 'kalshi',
-        address: '0x123',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selector(mockState as any);
+      const result = selectPredictAccountMetaByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        'kalshi',
+        '0x123',
+      );
 
       expect(result).toEqual({});
     });
@@ -1127,12 +1313,12 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const selector = selectPredictAccountMetaByAddress({
-        providerId: POLYMARKET_PROVIDER_ID,
-        address: '0xNonExistent',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selector(mockState as any);
+      const result = selectPredictAccountMetaByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        POLYMARKET_PROVIDER_ID,
+        '0xNonExistent',
+      );
 
       expect(result).toEqual({});
     });
@@ -1146,12 +1332,12 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const selector = selectPredictAccountMetaByAddress({
-        providerId: POLYMARKET_PROVIDER_ID,
-        address: '0x123',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selector(mockState as any);
+      const result = selectPredictAccountMetaByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        POLYMARKET_PROVIDER_ID,
+        '0x123',
+      );
 
       expect(result).toEqual({});
     });
@@ -1186,19 +1372,19 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const selector1 = selectPredictAccountMetaByAddress({
-        providerId: POLYMARKET_PROVIDER_ID,
-        address: '0x456',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result1 = selector1(mockState as any);
+      const result1 = selectPredictAccountMetaByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        POLYMARKET_PROVIDER_ID,
+        '0x456',
+      );
 
-      const selector2 = selectPredictAccountMetaByAddress({
-        providerId: 'kalshi',
-        address: '0xabc',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result2 = selector2(mockState as any);
+      const result2 = selectPredictAccountMetaByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        'kalshi',
+        '0xabc',
+      );
 
       expect(result1).toEqual({ isOnboarded: false });
       expect(result2).toEqual({ isOnboarded: true });
@@ -1223,12 +1409,12 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const selector = selectPredictAccountMetaByAddress({
-        providerId: POLYMARKET_PROVIDER_ID,
-        address: '0x123',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selector(mockState as any);
+      const result = selectPredictAccountMetaByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        POLYMARKET_PROVIDER_ID,
+        '0x123',
+      );
 
       expect(result).toEqual({ isOnboarded: true });
     });
@@ -1244,14 +1430,112 @@ describe('Predict Controller Selectors', () => {
         },
       };
 
-      const selector = selectPredictAccountMetaByAddress({
-        providerId: POLYMARKET_PROVIDER_ID,
-        address: '0x123',
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selector(mockState as any);
+      const result = selectPredictAccountMetaByAddress(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        POLYMARKET_PROVIDER_ID,
+        '0x123',
+      );
 
       expect(result).toEqual({});
+    });
+  });
+
+  describe('selectPredictSelectedPaymentToken', () => {
+    it('returns null when selectedPaymentToken is null', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              selectedPaymentToken: null,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictSelectedPaymentToken(mockState as any);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns token object when selectedPaymentToken is set', () => {
+      const selectedPaymentToken = {
+        address: '0x1234567890123456789012345678901234567890',
+        chainId: '0x1',
+        symbol: 'USDC',
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              selectedPaymentToken,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictSelectedPaymentToken(mockState as any);
+
+      expect(result).toEqual(selectedPaymentToken);
+    });
+
+    it('returns null when PredictController state is undefined', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: undefined,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictSelectedPaymentToken(mockState as any);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when selectedPaymentToken property is missing', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {},
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictSelectedPaymentToken(mockState as any);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns token with all properties', () => {
+      const selectedPaymentToken = {
+        address: '0xabcdef1234567890abcdef1234567890abcdef12',
+        chainId: '0x89',
+        symbol: 'DAI',
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              selectedPaymentToken,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictSelectedPaymentToken(mockState as any);
+
+      expect(result).toEqual(selectedPaymentToken);
+      expect(result?.address).toBe(selectedPaymentToken.address);
+      expect(result?.chainId).toBe(selectedPaymentToken.chainId);
+      expect(result?.symbol).toBe(selectedPaymentToken.symbol);
     });
   });
 });

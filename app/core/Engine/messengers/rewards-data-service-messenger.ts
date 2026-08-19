@@ -14,14 +14,12 @@ import { RewardsDataServiceMessenger } from '../controllers/rewards-controller/s
  * @returns The RewardsDataServiceMessenger.
  */
 export function getRewardsDataServiceMessenger(
-  rootMessenger: RootMessenger,
-): RewardsDataServiceMessenger {
-  const messenger = new Messenger<
-    'RewardsDataService',
+  rootMessenger: RootMessenger<
     MessengerActions<RewardsDataServiceMessenger>,
-    MessengerEvents<RewardsDataServiceMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<RewardsDataServiceMessenger>
+  >,
+): RewardsDataServiceMessenger {
+  const messenger: RewardsDataServiceMessenger = new Messenger({
     namespace: 'RewardsDataService',
     parent: rootMessenger,
   });

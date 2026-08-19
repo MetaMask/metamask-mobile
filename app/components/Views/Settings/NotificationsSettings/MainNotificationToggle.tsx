@@ -1,44 +1,77 @@
 import React, { useCallback } from 'react';
 import { useTheme } from '../../../../util/theme';
 
-import { Linking, Switch, View } from 'react-native';
+import { Switch, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../component-library/hooks';
-import AppConstants from '../../../../core/AppConstants';
 import { useMainNotificationToggle } from './MainNotificationToggle.hooks';
 import styleSheet from './NotificationsSettings.styles';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
+import { NotificationChannel } from '../../../../core/Analytics/events/channels';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 
 export const MAIN_NOTIFICATION_TOGGLE_TEST_ID = 'main-notification-toggle';
-export const MAIN_NOTIFICATION_TOGGLE_LEARN_MORE_TEST_ID =
-  'main-notification-toggle--learn-more-button';
 
-export const MainNotificationToggle = () => {
+export interface MainNotificationToggleProps {
+  /** When false, hides the settings description copy. Defaults to true. */
+  showDescription?: boolean;
+  /** Disables the switch (in addition to the updating state). */
+  disabled?: boolean;
+}
+
+export const MainNotificationToggle = ({
+  showDescription = true,
+  disabled = false,
+}: MainNotificationToggleProps) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { onToggle, value, isUpdating } = useMainNotificationToggle();
 
-  const { onToggle, value } = useMainNotificationToggle();
-
-  const goToLearnMore = useCallback(() => {
-    Linking.openURL(AppConstants.URLS.PROFILE_SYNC);
-  }, []);
+  const trackNotificationToggleEvent = useCallback(async () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
+        .addProperties({
+          settings_type: 'master',
+          notification_channel: NotificationChannel.ALL,
+          enabled: !value,
+        })
+        .build(),
+    );
+  }, [value, trackEvent, createEventBuilder]);
 
   return (
     <>
+      {showDescription ? (
+        <Text color={TextColor.TextAlternative} variant={TextVariant.BodySm}>
+          {strings('app_settings.allow_notifications_desc')}
+        </Text>
+      ) : null}
       <View
         style={styles.switchElement}
         testID={MAIN_NOTIFICATION_TOGGLE_TEST_ID}
       >
-        <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+        <Text
+          color={TextColor.TextDefault}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+        >
           {strings('app_settings.allow_notifications')}
         </Text>
         <Switch
           value={value}
-          onChange={onToggle}
+          disabled={disabled || isUpdating}
+          onValueChange={(newValue) => {
+            trackNotificationToggleEvent();
+            onToggle(newValue);
+          }}
           trackColor={{
             true: theme.colors.primary.default,
             false: theme.colors.border.muted,
@@ -48,19 +81,6 @@ export const MainNotificationToggle = () => {
           ios_backgroundColor={theme.colors.border.muted}
           testID={NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE}
         />
-      </View>
-      <View style={styles.setting}>
-        <Text color={TextColor.Alternative} variant={TextVariant.BodyMD}>
-          {strings('app_settings.allow_notifications_desc')}{' '}
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Info}
-            onPress={goToLearnMore}
-            testID={MAIN_NOTIFICATION_TOGGLE_LEARN_MORE_TEST_ID}
-          >
-            {strings('notifications.activation_card.learn_more')}
-          </Text>
-        </Text>
       </View>
     </>
   );

@@ -12,14 +12,12 @@ import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from './useNetworkSelection';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import {
   selectPopularNetworkConfigurationsByCaipChainId,
   selectNetworkConfigurationsByCaipChainId,
 } from '../../../selectors/networkController';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 import Engine from '../../../core/Engine';
-import NavigationService from '../../../core/NavigationService';
 
 const mockEnableNetwork = jest.fn();
 const mockDisableNetwork = jest.fn();
@@ -97,13 +95,6 @@ jest.mock('../useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: jest.fn(),
 }));
 
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: jest.fn(),
-  }),
-);
-
 jest.mock('../../../core/Engine', () => ({
   context: {
     MultichainNetworkController: {
@@ -148,7 +139,6 @@ jest.mock('../../../reducers/swaps', () => ({
 
 jest.mock('../../../selectors/tokensController', () => ({
   selectTokens: jest.fn(),
-  selectTokensControllerState: jest.fn(),
   selectAllTokens: jest.fn(),
 }));
 
@@ -171,26 +161,6 @@ jest.mock('../../../selectors/networkController', () => ({
   selectNetworkConfigurationsByCaipChainId: jest.fn(),
 }));
 
-jest.mock('../../../core/NavigationService', () => {
-  const mockNavigate = jest.fn();
-  return {
-    navigation: {
-      navigate: mockNavigate,
-    },
-    default: {
-      navigation: {
-        navigate: mockNavigate,
-      },
-    },
-  };
-});
-
-jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
-  WalletClientType: {
-    Bitcoin: 'bitcoin',
-  },
-}));
-
 jest.mock('../../../core/Multichain/utils', () => ({
   isNonEvmChainId: jest.fn(
     (chainId: string) =>
@@ -205,9 +175,7 @@ jest.mock('../../../constants/navigation/Routes', () => ({
   MODAL: {
     ROOT_MODAL_FLOW: 'RootModalFlow',
   },
-  SHEET: {
-    ADD_ACCOUNT: 'AddAccount',
-  },
+  SHEET: {},
 }));
 
 describe('useNetworkSelection', () => {
@@ -318,9 +286,6 @@ describe('useNetworkSelection', () => {
       }
       if (selector === selectNetworkConfigurationsByCaipChainId) {
         return mockNetworkConfigurations;
-      }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return false;
       }
       if (selector === selectInternalAccounts) {
         return [];
@@ -673,11 +638,9 @@ describe('useNetworkSelection', () => {
       });
     });
 
-    it('selectCustomNetwork with multichain enabled calls MultichainNetworkController', async () => {
-      // Mock multichain enabled
+    it('selectCustomNetwork calls MultichainNetworkController', async () => {
       mockUseSelector
         .mockReturnValueOnce(mockPopularNetworkConfigurations)
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled = true
         .mockReturnValueOnce([]); // selectInternalAccounts
 
       const customChainId = 'eip155:999' as CaipChainId;
@@ -976,9 +939,6 @@ describe('useNetworkSelection', () => {
         if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
           return initialPopularNetworks;
         }
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return false;
-        }
         if (selector === selectInternalAccounts) {
           return [];
         }
@@ -1208,9 +1168,6 @@ describe('useNetworkSelection', () => {
         if (selector === selectNetworkConfigurationsByCaipChainId) {
           return mockNetworkConfigurations;
         }
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return false;
-        }
         if (selector === selectInternalAccounts) {
           return [mockBitcoinAccount];
         }
@@ -1222,53 +1179,6 @@ describe('useNetworkSelection', () => {
         namespace: 'bip122',
         reference: '000000000019d6689c085ae165831e93',
       });
-    });
-
-    it('selectCustomNetwork creates new account when no Bitcoin account exists', async () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
-          return [
-            {
-              caipChainId: 'eip155:1' as CaipChainId,
-              chainId: '0x1',
-              name: 'Ethereum Mainnet',
-            },
-            {
-              caipChainId: bitcoinMainnet,
-              chainId: 'btc-mainnet',
-              name: 'Bitcoin Mainnet',
-            },
-          ];
-        }
-        if (selector === selectNetworkConfigurationsByCaipChainId) {
-          return mockNetworkConfigurations;
-        }
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return false;
-        }
-        if (selector === selectInternalAccounts) {
-          return [];
-        }
-        return undefined;
-      });
-
-      const { result } = renderHook(() =>
-        useNetworkSelection({ networks: mockNetworks }),
-      );
-
-      await result.current.selectCustomNetwork(bitcoinMainnet);
-
-      expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-        'RootModalFlow',
-        {
-          screen: 'AddAccount',
-          params: {
-            clientType: 'bitcoin',
-            scope: bitcoinMainnet,
-          },
-        },
-      );
-      expect(mockEnableNetwork).not.toHaveBeenCalled();
     });
 
     it('selectCustomNetwork sets selected address when Bitcoin account exists', async () => {
@@ -1825,9 +1735,6 @@ describe('useNetworkSelection', () => {
           if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
             return newPopularConfigs;
           }
-          if (selector === selectMultichainAccountsState2Enabled) {
-            return false;
-          }
           if (selector === selectInternalAccounts) {
             return [];
           }
@@ -1838,57 +1745,6 @@ describe('useNetworkSelection', () => {
 
         const secondResult = result.current.customNetworksToReset;
         expect(firstResult).not.toBe(secondResult); // Different reference due to dependency change
-      });
-    });
-
-    describe('NavigationService integration', () => {
-      it('handles NavigationService navigation failures gracefully', async () => {
-        const bitcoinMainnet =
-          'bip122:000000000019d6689c085ae165831e93' as CaipChainId;
-
-        // Mock no Bitcoin account exists
-        mockUseSelector.mockImplementation((selector) => {
-          if (selector === selectPopularNetworkConfigurationsByCaipChainId) {
-            return [
-              {
-                caipChainId: bitcoinMainnet,
-                chainId: 'btc-mainnet',
-                name: 'Bitcoin Mainnet',
-              },
-            ];
-          }
-          if (selector === selectMultichainAccountsState2Enabled) {
-            return false;
-          }
-          if (selector === selectInternalAccounts) {
-            return []; // No Bitcoin accounts
-          }
-          return undefined;
-        });
-
-        // Mock NavigationService to throw
-        const mockNavigate = jest.fn().mockImplementation(() => {
-          throw new Error('Navigation failed');
-        });
-        (NavigationService.navigation.navigate as jest.Mock) = mockNavigate;
-
-        (isCaipChainId as unknown as jest.Mock).mockReturnValue(true);
-        (parseCaipChainId as jest.Mock).mockReturnValue({
-          namespace: 'bip122',
-          reference: '000000000019d6689c085ae165831e93',
-        });
-
-        const { result } = renderHook(() =>
-          useNetworkSelection({ networks: mockNetworks }),
-        );
-
-        // Should throw when navigation fails
-        await expect(
-          result.current.selectCustomNetwork(bitcoinMainnet),
-        ).rejects.toThrow('Navigation failed');
-
-        expect(mockNavigate).toHaveBeenCalled();
-        expect(mockEnableNetwork).not.toHaveBeenCalled();
       });
     });
 

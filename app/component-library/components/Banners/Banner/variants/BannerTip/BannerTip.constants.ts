@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-require-imports */
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 /* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 // External dependencies.
 import { ButtonVariants } from '../../../../Buttons/Button';
 

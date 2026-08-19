@@ -3,7 +3,9 @@ import {
   type MultichainAssetsRatesControllerMessenger,
   MultichainAssetsRatesControllerState,
 } from '@metamask/assets-controllers';
-import type { ControllerInitFunction } from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
+import { selectIsControllerDeprecated } from '../../../../selectors/featureFlagController/assetsUnifyState';
+import { store } from '../../../../store';
 
 /**
  * Initialize the MultichainAssetsRatesController.
@@ -11,7 +13,7 @@ import type { ControllerInitFunction } from '../../types';
  * @param request - The request object.
  * @returns The MultichainAssetsRatesController.
  */
-export const multichainAssetsRatesControllerInit: ControllerInitFunction<
+export const multichainAssetsRatesControllerInit: MessengerClientInitFunction<
   MultichainAssetsRatesController,
   MultichainAssetsRatesControllerMessenger
 > = (request) => {
@@ -24,6 +26,10 @@ export const multichainAssetsRatesControllerInit: ControllerInitFunction<
     messenger: controllerMessenger,
     state: multichainAssetsRatesControllerState,
     interval: 180000,
+    isDeprecated: () =>
+      selectIsControllerDeprecated('MultichainAssetsRatesController')(
+        store.getState(),
+      ),
   });
 
   return { controller };

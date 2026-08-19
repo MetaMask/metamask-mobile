@@ -26,7 +26,7 @@ Both files include safe no-ops and lightweight console logs for debugging (prefi
 
 Metro resolver is configured to alias Sentry packages to the E2E mocks when the E2E flag is set. The condition is:
 
-- `IS_TEST === 'true'` or `METAMASK_ENVIRONMENT === 'e2e'`
+- `HAS_TEST_OVERRIDES === 'true'`
 
 This logic resides in `metro.config.js` via a custom `resolveRequest` that redirects requests for `@sentry/react-native` and `@sentry/core` to the mock files under `tests/module-mocking/sentry/`.
 

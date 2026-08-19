@@ -3,7 +3,9 @@ import {
   type MultichainAssetsControllerMessenger,
   MultichainAssetsControllerState,
 } from '@metamask/assets-controllers';
-import type { ControllerInitFunction } from '../../types';
+import type { MessengerClientInitFunction } from '../../types';
+import { selectIsControllerDeprecated } from '../../../../selectors/featureFlagController/assetsUnifyState';
+import { store } from '../../../../store';
 
 /**
  * Initialize the MultichainAssetsController.
@@ -11,7 +13,7 @@ import type { ControllerInitFunction } from '../../types';
  * @param request - The request object.
  * @returns The MultichainAssetsController.
  */
-export const multichainAssetsControllerInit: ControllerInitFunction<
+export const multichainAssetsControllerInit: MessengerClientInitFunction<
   MultichainAssetsController,
   MultichainAssetsControllerMessenger
 > = (request) => {
@@ -23,6 +25,10 @@ export const multichainAssetsControllerInit: ControllerInitFunction<
   const controller = new MultichainAssetsController({
     messenger: controllerMessenger,
     state: multichainAssetsControllerState,
+    isDeprecated: () =>
+      selectIsControllerDeprecated('MultichainAssetsController')(
+        store.getState(),
+      ),
   });
 
   return { controller };

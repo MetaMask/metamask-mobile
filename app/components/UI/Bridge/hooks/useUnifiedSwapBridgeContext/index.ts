@@ -1,3 +1,4 @@
+import { FeatureId } from '@metamask/bridge-controller';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -14,6 +15,7 @@ import {
   calcTokenFiatValue,
   calcUsdAmountFromFiat,
 } from '../../utils/exchange-rates';
+import { getSecurityWarnings } from '../../utils/tokenSecurityUtils';
 
 export const useUnifiedSwapBridgeContext = () => {
   const smartTransactionsEnabled = useSelector(selectShouldUseSmartTransaction);
@@ -61,9 +63,11 @@ export const useUnifiedSwapBridgeContext = () => {
       stx_enabled: smartTransactionsEnabled,
       token_symbol_source: fromToken?.symbol ?? '',
       token_symbol_destination: toToken?.symbol ?? '',
-      security_warnings: [], // TODO
+      token_security_type_destination: toToken?.securityData?.type ?? null,
+      security_warnings: getSecurityWarnings(toToken),
       warnings: [], // TODO
       usd_amount_source: usdAmountSource,
+      feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
     }),
     [smartTransactionsEnabled, fromToken, toToken, usdAmountSource],
   );

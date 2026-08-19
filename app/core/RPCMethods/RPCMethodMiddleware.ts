@@ -27,7 +27,8 @@ import { store } from '../../store';
 import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
-import PPOMUtil from '../../lib/ppom/ppom-util';
+import { TransportType } from '../../components/hooks/useAnalytics/useAnalytics.types';
+import PPOMUtil, { type PPOMRequest } from '../../lib/ppom/ppom-util';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -46,6 +47,7 @@ import {
   getCaip25PermissionFromLegacyPermissions,
   requestPermittedChainsPermissionIncremental,
 } from '@metamask/chain-agnostic-permission';
+import { preprocessTypedSignRequest } from '../../components/Views/confirmations/utils/typed-sign-security';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -75,7 +77,7 @@ export enum ApprovalTypes {
   RESULT_ERROR = 'result_error',
   RESULT_SUCCESS = 'result_success',
   SMART_TRANSACTION_STATUS = 'smart_transaction_status',
-  ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
   SNAP_DIALOG = 'snap_dialog',
@@ -198,6 +200,19 @@ export const checkActiveAccountAndChainId = async ({
   }
 };
 
+/**
+ * Attach `remote_session_id` only when the upstream bridge supplied one.
+ * Don't inline as `analytics?.remote_session_id`: bridges emit `''` for older
+ * SDKs without an anonId, and the schema requires the property be absent on
+ * non-remote paths.
+ */
+const withRemoteSessionId = (
+  analytics: { remote_session_id?: string } | undefined,
+): Partial<{ remote_session_id: string }> =>
+  analytics?.remote_session_id
+    ? { remote_session_id: analytics.remote_session_id }
+    : {};
+
 const generateRawSignature = async ({
   version,
   req,
@@ -243,7 +258,8 @@ const generateRawSignature = async ({
       channelId,
       analytics: {
         request_source: getSource(),
-        request_platform: analytics?.platform,
+        remote_request_platform: analytics?.platform,
+        ...withRemoteSessionId(analytics),
       },
     },
   };
@@ -260,7 +276,7 @@ const generateRawSignature = async ({
 
   const rawSig = await signatureController.newUnsignedTypedMessage(
     {
-      data: req.params[1],
+      data: preprocessTypedSignRequest(req.params[1]),
       from: req.params[0],
       requestId: req.id,
       ...pageMeta,
@@ -342,15 +358,15 @@ export const getRpcMethodMiddlewareHooks = ({
         requestPermissionsIncremental: (
           subject,
           requestedPermissions,
-          options,
+          incrementalOptions,
         ) =>
           Engine.context.PermissionController.requestPermissionsIncremental(
             subject,
             requestedPermissions,
             {
-              ...options,
+              ...incrementalOptions,
               metadata: {
-                ...options?.metadata,
+                ...incrementalOptions?.metadata,
                 pageMeta: {
                   url: url.current,
                   title: title.current,
@@ -358,7 +374,8 @@ export const getRpcMethodMiddlewareHooks = ({
                   channelId,
                   analytics: {
                     request_source: getSource(),
-                    request_platform: analytics?.platform,
+                    remote_request_platform: analytics?.platform,
+                    ...withRemoteSessionId(analytics),
                   },
                 },
               },
@@ -367,7 +384,7 @@ export const getRpcMethodMiddlewareHooks = ({
       },
     }),
   hasApprovalRequestsForOrigin: () =>
-    Engine.context.ApprovalController.has({ origin }),
+    Engine.context.ApprovalController.hasRequest({ origin }),
   getCurrentChainIdForDomain: (domain: string) => {
     const networkClientId =
       Engine.context.SelectedNetworkController.getNetworkClientIdForDomain(
@@ -414,11 +431,38 @@ export const getRpcMethodMiddleware = ({
   const origin = channelId ?? hostname;
 
   const getSource = () => {
-    if (analytics?.isRemoteConn)
-      return AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
+    if (analytics?.isRemoteConn) {
+      return analytics?.transport === TransportType.MWP
+        ? AppConstants.REQUEST_SOURCES.MM_CONNECT
+        : AppConstants.REQUEST_SOURCES.SDK_REMOTE_CONN;
+    }
     if (isWalletConnect) return AppConstants.REQUEST_SOURCES.WC;
     return AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
   };
+
+  /**
+   * Drop `req.origin` when the request arrived over a remote transport
+   * (WalletConnect / SDK v1 / MetaMask Connect), so it never influences the
+   * PPOM security scan. On those paths the origin is self-reported by the
+   * dapp and unverifiable, and Blockaid treats the URL as a core heuristic
+   * that can flip a verdict between malicious and benign. In-app browser
+   * requests keep their origin, which the wallet itself verified by loading
+   * the page.
+   */
+  const sanitizeRequestForPPOM = <Request extends PPOMRequest>(
+    req: Request,
+  ) => {
+    const isVerifiableOrigin =
+      getSource() === AppConstants.REQUEST_SOURCES.IN_APP_BROWSER;
+    return isVerifiableOrigin ? req : { ...req, origin: undefined };
+  };
+
+  /**
+   * Validate a request with PPOM, dropping `req.origin` for remote
+   * transports (see {@link sanitizeRequestForPPOM}).
+   */
+  const validateRequestWithPPOM = (req: PPOMRequest) =>
+    PPOMUtil.validateRequest(sanitizeRequestForPPOM(req));
 
   const hooks = getRpcMethodMiddlewareHooks({
     origin,
@@ -457,7 +501,7 @@ export const getRpcMethodMiddleware = ({
 
     const requestUserApproval = async ({ type = '', requestData = {} }) => {
       checkTabActive();
-      await Engine.context.ApprovalController.clear(
+      await Engine.context.ApprovalController.clearRequests(
         providerErrors.userRejectedRequest(),
       );
 
@@ -473,7 +517,8 @@ export const getRpcMethodMiddleware = ({
             channelId,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics?.platform,
+              remote_request_platform: analytics?.platform,
+              ...withRemoteSessionId(analytics),
             },
           },
         },
@@ -678,10 +723,21 @@ export const getRpcMethodMiddleware = ({
         const transactionAnalytics = {
           dapp_url: url.current,
           request_source: getSource(),
+          ...withRemoteSessionId(analytics),
         };
         return RPCMethods.eth_sendTransaction({
           hostname,
-          req,
+          // eth_sendTransaction forwards this request to the PPOM security
+          // scan. ppom-util already drops origins it can recognize as
+          // unverifiable (transport prefixes, bare connection UUIDs,
+          // deeplink/qr-code placeholders), but that net has a hole: SDK v1
+          // channel ids arrive via deeplink params unvalidated, so a
+          // malicious sender could pick a domain-looking channel id that
+          // slips through and reaches Blockaid as a plausible origin. The
+          // transport is known here, so drop the origin at the source for
+          // anything that is not the in-app browser, mirroring the signature
+          // handlers (validateRequestWithPPOM).
+          req: sanitizeRequestForPPOM(req),
           res,
           sendTransaction: addTransaction,
           validateAccountAndChainId: async ({
@@ -726,7 +782,8 @@ export const getRpcMethodMiddleware = ({
             icon: icon.current,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics?.platform,
+              remote_request_platform: analytics?.platform,
+              ...withRemoteSessionId(analytics),
             },
           },
         };
@@ -746,7 +803,7 @@ export const getRpcMethodMiddleware = ({
 
         trace(
           { name: TraceName.PPOMValidation, parentContext: req.traceContext },
-          () => PPOMUtil.validateRequest(req),
+          () => validateRequestWithPPOM(req),
         );
 
         const rawSig = await signatureController.newUnsignedPersonalMessage(
@@ -790,7 +847,8 @@ export const getRpcMethodMiddleware = ({
             channelId,
             analytics: {
               request_source: getSource(),
-              request_platform: analytics?.platform,
+              remote_request_platform: analytics?.platform,
+              ...withRemoteSessionId(analytics),
             },
           },
         };
@@ -808,7 +866,7 @@ export const getRpcMethodMiddleware = ({
 
         trace(
           { name: TraceName.PPOMValidation, parentContext: req.traceContext },
-          () => PPOMUtil.validateRequest(req),
+          () => validateRequestWithPPOM(req),
         );
 
         const rawSig = await signatureController.newUnsignedTypedMessage(
@@ -839,7 +897,7 @@ export const getRpcMethodMiddleware = ({
 
         trace(
           { name: TraceName.PPOMValidation, parentContext: req.traceContext },
-          () => PPOMUtil.validateRequest(req),
+          () => validateRequestWithPPOM(req),
         );
 
         res.result = await generateRawSignature({
@@ -868,7 +926,7 @@ export const getRpcMethodMiddleware = ({
 
         trace(
           { name: TraceName.PPOMValidation, parentContext: req.traceContext },
-          () => PPOMUtil.validateRequest(req),
+          () => validateRequestWithPPOM(req),
         );
 
         res.result = await generateRawSignature({
@@ -946,6 +1004,7 @@ export const getRpcMethodMiddleware = ({
             analytics: {
               request_source: getSource(),
               request_platform: analytics?.platform,
+              ...withRemoteSessionId(analytics),
             },
           },
         }),
@@ -980,6 +1039,7 @@ export const getRpcMethodMiddleware = ({
           analytics: {
             request_source: getSource(),
             request_platform: analytics?.platform,
+            ...withRemoteSessionId(analytics),
           },
           hooks,
         });
@@ -993,6 +1053,7 @@ export const getRpcMethodMiddleware = ({
           analytics: {
             request_source: getSource(),
             request_platform: analytics?.platform,
+            ...withRemoteSessionId(analytics),
           },
           hooks,
         });

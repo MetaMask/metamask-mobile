@@ -3,7 +3,6 @@ import { renderHookWithProvider } from '../../../../util/test/renderWithProvider
 import initialRootState from '../../../../util/test/initial-root-state';
 import { handleFetch } from '@metamask/controller-utils';
 import { useRampTokens, RampsToken } from './useRampTokens';
-import { UnifiedRampRoutingType } from '../../../../reducers/fiatOrders';
 import Logger from '../../../../util/Logger';
 
 jest.mock('@metamask/controller-utils', () => ({
@@ -78,15 +77,16 @@ const createMockResponse = (
   allTokens,
 });
 
-const createMockState = (
-  rampRoutingDecision: UnifiedRampRoutingType | null = null,
-  detectedGeolocation?: string,
-) => ({
+const createMockState = (detectedGeolocation?: string) => ({
   ...initialRootState,
-  fiatOrders: {
-    ...initialRootState.fiatOrders,
-    rampRoutingDecision,
-    detectedGeolocation,
+  engine: {
+    ...initialRootState.engine,
+    backgroundState: {
+      ...initialRootState.engine.backgroundState,
+      GeolocationController: {
+        location: detectedGeolocation ?? 'UNKNOWN',
+      },
+    },
   },
 });
 
@@ -104,7 +104,7 @@ describe('useRampTokens', () => {
   });
 
   describe('fetches tokens with correct parameters', () => {
-    it('fetches tokens for AGGREGATOR routing decision', async () => {
+    it('fetches buy tokens for the detected region', async () => {
       const mockTopTokens = [
         createMockToken(),
         createMockToken({ symbol: 'BTC' }),
@@ -122,22 +122,21 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
         expect(mockHandleFetch).toHaveBeenCalledWith(
           'https://on-ramp-cache.uat-api.cx.metamask.io/regions/us-ca/tokens?action=buy&sdk=2.1.5',
         );
+        expect(result.current.topTokens).toEqual(mockTopTokens);
+        expect(result.current.allTokens).toEqual(mockAllTokens);
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.error).toBeNull();
       });
-
-      expect(result.current.topTokens).toEqual(mockTopTokens);
-      expect(result.current.allTokens).toEqual(mockAllTokens);
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBeNull();
     });
 
-    it('fetches tokens for DEPOSIT routing decision', async () => {
+    it('lowercases the detected region in the request URL', async () => {
       const mockTopTokens = [createMockToken()];
       const mockAllTokens = [
         ...mockTopTokens,
@@ -147,19 +146,18 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'uk'),
+        state: createMockState('UK'),
       });
 
       await waitFor(() => {
         expect(mockHandleFetch).toHaveBeenCalledWith(
-          'https://on-ramp-cache.uat-api.cx.metamask.io/regions/uk/tokens?action=deposit&sdk=2.1.5',
+          'https://on-ramp-cache.uat-api.cx.metamask.io/regions/uk/tokens?action=buy&sdk=2.1.5',
         );
+        expect(result.current.topTokens).toEqual(mockTopTokens);
+        expect(result.current.allTokens).toEqual(mockAllTokens);
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.error).toBeNull();
       });
-
-      expect(result.current.topTokens).toEqual(mockTopTokens);
-      expect(result.current.allTokens).toEqual(mockAllTokens);
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBeNull();
     });
 
     it('includes SDK version in query parameters', async () => {
@@ -170,7 +168,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
@@ -193,7 +191,7 @@ describe('useRampTokens', () => {
       const { result } = renderHookWithProvider(
         () => useRampTokens({ fetchOnMount: false }),
         {
-          state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+          state: createMockState('us-ca'),
         },
       );
 
@@ -215,7 +213,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
@@ -234,12 +232,12 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
         expect(mockHandleFetch).toHaveBeenCalledWith(
-          'https://on-ramp-cache.api.cx.metamask.io/regions/us-ca/tokens?action=deposit&sdk=2.1.5',
+          'https://on-ramp-cache.api.cx.metamask.io/regions/us-ca/tokens?action=buy&sdk=2.1.5',
         );
       });
     });
@@ -253,7 +251,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
@@ -272,12 +270,12 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
         expect(mockHandleFetch).toHaveBeenCalledWith(
-          'https://on-ramp-cache.uat-api.cx.metamask.io/regions/us-ca/tokens?action=deposit&sdk=2.1.5',
+          'https://on-ramp-cache.uat-api.cx.metamask.io/regions/us-ca/tokens?action=buy&sdk=2.1.5',
         );
       });
     });
@@ -291,7 +289,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
@@ -310,12 +308,12 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
         expect(mockHandleFetch).toHaveBeenCalledWith(
-          'https://on-ramp-cache.uat-api.cx.metamask.io/regions/us-ca/tokens?action=deposit&sdk=2.1.5',
+          'https://on-ramp-cache.uat-api.cx.metamask.io/regions/us-ca/tokens?action=buy&sdk=2.1.5',
         );
       });
     });
@@ -329,7 +327,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
@@ -343,42 +341,8 @@ describe('useRampTokens', () => {
   describe('returns null for invalid scenarios', () => {
     it('returns null when no region detected', () => {
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR),
+        state: createMockState(),
       });
-
-      expect(result.current.topTokens).toBeNull();
-      expect(result.current.allTokens).toBeNull();
-      expect(result.current.isLoading).toBe(false);
-      expect(mockHandleFetch).not.toHaveBeenCalled();
-    });
-
-    it('returns null for UNSUPPORTED routing decision', () => {
-      const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.UNSUPPORTED, 'us-ca'),
-      });
-
-      expect(result.current.topTokens).toBeNull();
-      expect(result.current.allTokens).toBeNull();
-      expect(result.current.isLoading).toBe(false);
-      expect(mockHandleFetch).not.toHaveBeenCalled();
-    });
-
-    it('returns null for ERROR routing decision', () => {
-      const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.ERROR, 'us-ca'),
-      });
-
-      expect(result.current.topTokens).toBeNull();
-      expect(result.current.allTokens).toBeNull();
-      expect(result.current.isLoading).toBe(false);
-      expect(mockHandleFetch).not.toHaveBeenCalled();
-    });
-
-    it('returns null for null routing decision', () => {
-      const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(null, 'us-ca'),
-      });
-
       expect(result.current.topTokens).toBeNull();
       expect(result.current.allTokens).toBeNull();
       expect(result.current.isLoading).toBe(false);
@@ -392,16 +356,15 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockRejectedValueOnce(mockError);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
         expect(result.current.error).toEqual(mockError);
+        expect(result.current.topTokens).toBeNull();
+        expect(result.current.allTokens).toBeNull();
+        expect(result.current.isLoading).toBe(false);
       });
-
-      expect(result.current.topTokens).toBeNull();
-      expect(result.current.allTokens).toBeNull();
-      expect(result.current.isLoading).toBe(false);
     });
 
     it('logs error when fetch fails', async () => {
@@ -409,7 +372,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockRejectedValueOnce(mockError);
 
       renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
@@ -428,7 +391,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
@@ -439,10 +402,9 @@ describe('useRampTokens', () => {
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
+        expect(result.current.topTokens).toEqual(mockResponse.topTokens);
+        expect(result.current.allTokens).toEqual(mockResponse.allTokens);
       });
-
-      expect(result.current.topTokens).toEqual(mockResponse.topTokens);
-      expect(result.current.allTokens).toEqual(mockResponse.allTokens);
     });
   });
 
@@ -455,15 +417,14 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
+        expect(result.current.topTokens).toEqual(mockResponse.topTokens);
+        expect(result.current.allTokens).toEqual(mockResponse.allTokens);
       });
-
-      expect(result.current.topTokens).toEqual(mockResponse.topTokens);
-      expect(result.current.allTokens).toEqual(mockResponse.allTokens);
     });
 
     it('sets loading to false after failed fetch', async () => {
@@ -471,14 +432,13 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockRejectedValueOnce(mockError);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
+        expect(result.current.error).toEqual(mockError);
       });
-
-      expect(result.current.error).toEqual(mockError);
     });
   });
 
@@ -502,7 +462,7 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
@@ -540,11 +500,11 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.DEPOSIT, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
-        expect(result.current.topTokens).toBeDefined();
+        expect(result.current.topTokens).not.toBeNull();
       });
 
       // All networks from mock config are in the user's wallet
@@ -567,11 +527,11 @@ describe('useRampTokens', () => {
       mockHandleFetch.mockResolvedValueOnce(mockResponse);
 
       const { result } = renderHookWithProvider(() => useRampTokens(), {
-        state: createMockState(UnifiedRampRoutingType.AGGREGATOR, 'us-ca'),
+        state: createMockState('us-ca'),
       });
 
       await waitFor(() => {
-        expect(result.current.topTokens).toBeDefined();
+        expect(result.current.topTokens).not.toBeNull();
       });
 
       // Should exclude token with empty chainId

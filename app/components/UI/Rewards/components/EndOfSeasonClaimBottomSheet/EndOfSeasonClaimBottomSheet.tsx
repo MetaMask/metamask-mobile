@@ -9,9 +9,10 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import useRewardsToast from '../../hooks/useRewardsToast';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import { TouchableOpacity } from 'react-native';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -26,6 +27,7 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -33,7 +35,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import {
   ClaimRewardDto,
   SeasonRewardType,
@@ -46,6 +47,7 @@ import { RootState } from '../../../../../reducers';
 import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import useClaimReward from '../../hooks/useClaimReward';
@@ -108,7 +110,7 @@ const EndOfSeasonClaimBottomSheet = ({
     showTelegram = false,
     rewardId,
   } = route.params;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const hasTrackedRewardViewed = useRef(false);
 
   // Email and telegram state
@@ -403,17 +405,7 @@ const EndOfSeasonClaimBottomSheet = ({
       );
     }
 
-    // default return title
-    return (
-      <Box
-        twClassName="flex-col items-center justify-center w-full"
-        testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL_TITLE}
-      >
-        <Text variant={TextVariant.HeadingLg} twClassName="text-center">
-          {title}
-        </Text>
-      </Box>
-    );
+    return null;
   };
 
   const renderDescription = () => (
@@ -430,8 +422,9 @@ const EndOfSeasonClaimBottomSheet = ({
   );
 
   const handleOpenAccountSelector = useCallback(() => {
-    navigation.navigate(
-      ...createAccountSelectorNavDetails({
+    navigateWithDetails(
+      navigation,
+      createAccountSelectorNavDetails({
         disablePrivacyMode: true,
         disableAddAccountButton: true,
       }),
@@ -523,9 +516,11 @@ const EndOfSeasonClaimBottomSheet = ({
       testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL}
       keyboardAvoidingViewEnabled={!needsKeyboardAvoiding}
     >
-      <BottomSheetHeader onClose={handleModalClose}>
-        {strings('rewards.end_of_season_rewards.reward_details')}
-      </BottomSheetHeader>
+      <HeaderStandard
+        title={title}
+        onClose={handleModalClose}
+        closeButtonProps={{ testID: 'close-button' }}
+      />
       {needsKeyboardAvoiding ? (
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"

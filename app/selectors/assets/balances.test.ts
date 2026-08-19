@@ -1,5 +1,3 @@
-import type { RootState } from '../../reducers';
-
 // Mock the core calculation functions from assets-controllers BEFORE importing
 jest.mock('@metamask/assets-controllers', () => {
   const actual = jest.requireActual('@metamask/assets-controllers');
@@ -97,6 +95,56 @@ jest.mock('@metamask/assets-controllers', () => {
   };
 });
 
+jest.mock('@metamask/assets-controller', () => {
+  const actual = jest.requireActual('@metamask/assets-controller');
+  return {
+    ...actual,
+    calculateBalanceForAllWallets: jest.fn().mockReturnValue({
+      userCurrency: 'usd',
+      wallets: {
+        'wallet-1': {
+          totalBalanceInUserCurrency: 1500,
+          groups: {
+            'wallet-1/group-1': {
+              walletId: 'wallet-1',
+              groupId: 'wallet-1/group-1',
+              totalBalanceInUserCurrency: 750,
+              userCurrency: 'usd',
+            },
+            'wallet-1/group-2': {
+              walletId: 'wallet-1',
+              groupId: 'wallet-1/group-2',
+              totalBalanceInUserCurrency: 750,
+              userCurrency: 'usd',
+            },
+          },
+        },
+      },
+    }),
+    calculateBalanceChangeForAccountGroup: jest.fn().mockReturnValue({
+      period: '1d',
+      currentTotalInUserCurrency: 750,
+      previousTotalInUserCurrency: 700,
+      amountChangeInUserCurrency: 50,
+      percentChange: 7.14,
+      userCurrency: 'usd',
+    }),
+    getAggregatedBalanceForAccount: jest.fn().mockReturnValue({
+      totalBalanceInFiat: 750,
+    }),
+  };
+});
+
+jest.mock('../featureFlagController/assetsUnifyState', () => {
+  const actual = jest.requireActual(
+    '../featureFlagController/assetsUnifyState',
+  );
+  return {
+    ...actual,
+    selectIsAssetsUnifyStateEnabled: jest.fn(() => false),
+  };
+});
+
 // Now import the selectors
 import {
   selectBalanceForAllWallets,
@@ -108,7 +156,29 @@ import {
   selectBalanceBySelectedAccountGroup,
   selectBalanceChangeBySelectedAccountGroup,
   selectAccountGroupBalanceForEmptyState,
+  selectTokenBalancesStateForBalances,
+  selectUnifiedBalanceBySelectedAccountGroup,
+  getUnifiedBalanceForAccountGroup,
+  augmentAssetControllersState,
 } from './balances';
+import {
+  calculateBalanceForAllWallets as calculateBalanceForAllWalletsLegacy,
+  calculateBalanceChangeForAccountGroup as calculateBalanceChangeForAccountGroupLegacy,
+  type TokenBalancesControllerState,
+} from '@metamask/assets-controllers';
+import {
+  calculateBalanceForAllWallets as calculateBalanceForAllWalletsUnified,
+  calculateBalanceChangeForAccountGroup as calculateBalanceChangeForAccountGroupUnified,
+  getAggregatedBalanceForAccount,
+  type AssetsControllerState,
+} from '@metamask/assets-controller';
+import { selectIsAssetsUnifyStateEnabled } from '../featureFlagController/assetsUnifyState';
+import { NETWORKS_CHAIN_ID } from '../../constants/network';
+import {
+  ARC_USDC_ERC20_TOKEN_ADDRESS,
+  STABLE_USDT0_ERC20_ADDRESS,
+} from '../../enablement/assets/networks-customization';
+import type { RootState } from '../../reducers';
 
 // Enhanced state factory with realistic data
 const makeState = (overrides: Record<string, unknown> = {}) => ({
@@ -131,8 +201,8 @@ const makeState = (overrides: Record<string, unknown> = {}) => ({
               },
             },
           },
-          selectedAccountGroup: 'wallet-1/group-1',
         },
+        selectedAccountGroup: 'wallet-1/group-1',
       },
       AccountsController: {
         internalAccounts: {
@@ -196,11 +266,29 @@ const makeState = (overrides: Record<string, unknown> = {}) => ({
           BAT: { conversionRate: 0.5 },
         },
       },
+      AssetsController: {
+        assetsInfo: {},
+        assetsBalance: {},
+        assetsPrice: {},
+        assetPreferences: {},
+        customAssets: {},
+        selectedCurrency: 'usd',
+      },
       NetworkEnablementController: {
         enabledNetworkMap: {
           '0x1': { '0x1': true },
           '0x137': { '0x137': true },
         },
+      },
+      // Provides selectNetworkConfigurations (EVM + non-EVM configs merged)
+      NetworkController: {
+        networkConfigurationsByChainId: {
+          '0x1': { chainId: '0x1', name: 'Ethereum Mainnet' },
+          '0x89': { chainId: '0x89', name: 'Polygon Mainnet' },
+        },
+      },
+      MultichainNetworkController: {
+        multichainNetworkConfigurationsByChainId: {},
       },
     },
   },
@@ -211,7 +299,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
   describe('selectBalanceForAllWallets', () => {
     it('returns calculated balance for all wallets', () => {
       const state = makeState() as unknown as RootState;
-      const result = selectBalanceForAllWallets(state);
+      const result = selectBalanceForAllWallets()(state);
 
       expect(result.userCurrency).toBe('usd');
       expect(result.wallets).toHaveProperty('wallet-1');
@@ -220,12 +308,87 @@ describe('assets balance and balance change selectors (mobile)', () => {
       expect(result.wallets['wallet-2'].totalBalanceInUserCurrency).toBe(2000);
     });
 
+    it('passes networkConfigurationsByChainId as 11th argument to calculateBalanceForAllWallets', () => {
+      const mockCalculateBalanceForAllWallets = jest.requireMock(
+        '@metamask/assets-controllers',
+      ).calculateBalanceForAllWallets;
+      mockCalculateBalanceForAllWallets.mockClear();
+
+      const state = makeState() as unknown as RootState;
+      selectBalanceForAllWallets()(state);
+
+      expect(mockCalculateBalanceForAllWallets).toHaveBeenCalledTimes(1);
+      // 11th argument (index 10) is networkConfigurationsByChainId
+      const networkConfigsArg =
+        mockCalculateBalanceForAllWallets.mock.calls[0][10];
+      expect(networkConfigsArg).toEqual({
+        '0x1': { chainId: '0x1', name: 'Ethereum Mainnet' },
+        '0x89': { chainId: '0x89', name: 'Polygon Mainnet' },
+      });
+    });
+
+    it('includes non-EVM network configs in the 11th argument when present', () => {
+      const mockCalculateBalanceForAllWallets = jest.requireMock(
+        '@metamask/assets-controllers',
+      ).calculateBalanceForAllWallets;
+      mockCalculateBalanceForAllWallets.mockClear();
+
+      const state = makeState({
+        engine: {
+          backgroundState: {
+            ...makeState().engine.backgroundState,
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                '0x1': { chainId: '0x1', name: 'Ethereum Mainnet' },
+              },
+            },
+            MultichainNetworkController: {
+              multichainNetworkConfigurationsByChainId: {
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                  chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                  name: 'Solana Mainnet',
+                },
+              },
+            },
+          },
+        },
+      }) as unknown as RootState;
+
+      selectBalanceForAllWallets()(state);
+
+      const networkConfigsArg =
+        mockCalculateBalanceForAllWallets.mock.calls[0][10];
+      expect(networkConfigsArg).toHaveProperty('0x1');
+      expect(networkConfigsArg).toHaveProperty(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
+    });
+
+    it('passes networkConfigurationsByChainId when called with popular chain IDs', () => {
+      const mockCalculateBalanceForAllWallets = jest.requireMock(
+        '@metamask/assets-controllers',
+      ).calculateBalanceForAllWallets;
+      mockCalculateBalanceForAllWallets.mockClear();
+
+      const state = makeState() as unknown as RootState;
+      selectBalanceForAllWallets(['eip155:1', 'eip155:137'])(state);
+
+      expect(mockCalculateBalanceForAllWallets).toHaveBeenCalledTimes(1);
+      const networkConfigsArg =
+        mockCalculateBalanceForAllWallets.mock.calls[0][10];
+      expect(networkConfigsArg).toEqual({
+        '0x1': { chainId: '0x1', name: 'Ethereum Mainnet' },
+        '0x89': { chainId: '0x89', name: 'Polygon Mainnet' },
+      });
+    });
+
     it('handles empty state gracefully', () => {
       const state = makeState({
         engine: {
           backgroundState: {
             AccountTreeController: {
-              accountTree: { wallets: {}, selectedAccountGroup: '' },
+              accountTree: { wallets: {} },
+              selectedAccountGroup: '',
             },
             AccountsController: {
               internalAccounts: { accounts: {}, selectedAccount: '' },
@@ -249,11 +412,15 @@ describe('assets balance and balance change selectors (mobile)', () => {
               currencyRates: {},
             },
             NetworkEnablementController: { enabledNetworkMap: {} },
+            NetworkController: { networkConfigurationsByChainId: {} },
+            MultichainNetworkController: {
+              multichainNetworkConfigurationsByChainId: {},
+            },
           },
         },
       }) as unknown as RootState;
 
-      const result = selectBalanceForAllWallets(state);
+      const result = selectBalanceForAllWallets()(state);
       expect(result).toBeDefined();
     });
   });
@@ -418,7 +585,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
   describe('selectBalanceBySelectedAccountGroup', () => {
     it('returns selected group balance when group exists', () => {
       const state = makeState() as unknown as RootState;
-      const result = selectBalanceBySelectedAccountGroup(state);
+      const result = selectBalanceBySelectedAccountGroup()(state);
 
       expect(result).toEqual({
         walletId: 'wallet-1',
@@ -430,10 +597,10 @@ describe('assets balance and balance change selectors (mobile)', () => {
 
     it('returns zeroed fallback when selected group does not exist', () => {
       const state = makeState() as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         'keyring:wallet-1/group-999';
 
-      const result = selectBalanceBySelectedAccountGroup(state);
+      const result = selectBalanceBySelectedAccountGroup()(state);
       expect(result).toEqual({
         walletId: 'keyring:wallet-1',
         groupId: 'keyring:wallet-1/group-999',
@@ -444,10 +611,10 @@ describe('assets balance and balance change selectors (mobile)', () => {
 
     it('returns null when no selected account group', () => {
       const state = makeState() as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         '';
 
-      const result = selectBalanceBySelectedAccountGroup(state);
+      const result = selectBalanceBySelectedAccountGroup()(state);
       expect(result).toBeNull();
     });
   });
@@ -470,7 +637,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
 
     it('returns change for selected wallet-2 group (1d)', () => {
       const state = makeState() as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         'keyring:wallet-2/group-1';
 
       const selector = selectBalanceChangeBySelectedAccountGroup('1d');
@@ -488,7 +655,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
 
     it('returns null when no selected account group', () => {
       const state = makeState() as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         '';
 
       const selector = selectBalanceChangeBySelectedAccountGroup('1d');
@@ -570,7 +737,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
           },
         },
       }) as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         '';
 
       const result = selectAccountGroupBalanceForEmptyState(state);
@@ -595,7 +762,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
           },
         },
       }) as unknown as RootState;
-      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+      state.engine.backgroundState.AccountTreeController.selectedAccountGroup =
         'keyring:wallet-1/group-999';
 
       const result = selectAccountGroupBalanceForEmptyState(state);
@@ -604,6 +771,188 @@ describe('assets balance and balance change selectors (mobile)', () => {
         groupId: 'keyring:wallet-1/group-999',
         totalBalanceInUserCurrency: 0,
         userCurrency: 'usd',
+      });
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Arc USDC ERC-20 filtering in selectTokenBalancesStateForBalances
+// ---------------------------------------------------------------------------
+
+describe('selectTokenBalancesStateForBalances - Arc USDC ERC-20 filtering', () => {
+  const ACCOUNT = '0xaccount';
+  const OTHER_TOKEN = '0xother000000000000000000000000000000000000';
+
+  it('strips Arc USDC ERC-20 balance from Arc chain', () => {
+    const tokenBalances = {
+      [ACCOUNT]: {
+        [NETWORKS_CHAIN_ID.ARC]: {
+          [ARC_USDC_ERC20_TOKEN_ADDRESS]: '0x3b9aca00', // 1 USDC (6 decimals)
+          [OTHER_TOKEN]: '0xde0b6b3a7640000',
+        },
+      },
+    } as TokenBalancesControllerState['tokenBalances'];
+
+    const result =
+      selectTokenBalancesStateForBalances.resultFunc(tokenBalances);
+
+    expect(
+      result.tokenBalances[ACCOUNT][NETWORKS_CHAIN_ID.ARC],
+    ).not.toHaveProperty(ARC_USDC_ERC20_TOKEN_ADDRESS);
+    expect(
+      result.tokenBalances[ACCOUNT][NETWORKS_CHAIN_ID.ARC][OTHER_TOKEN],
+    ).toBe('0xde0b6b3a7640000');
+  });
+
+  it('does not affect balances on other chains', () => {
+    const tokenBalances = {
+      [ACCOUNT]: {
+        '0x1': {
+          [ARC_USDC_ERC20_TOKEN_ADDRESS]: '0x1', // same address on Ethereum — must be kept
+          [OTHER_TOKEN]: '0x2',
+        },
+        [NETWORKS_CHAIN_ID.ARC]: {
+          [ARC_USDC_ERC20_TOKEN_ADDRESS]: '0x3b9aca00', // must be stripped
+        },
+      },
+    } as TokenBalancesControllerState['tokenBalances'];
+
+    const result =
+      selectTokenBalancesStateForBalances.resultFunc(tokenBalances);
+
+    // Ethereum entry with same address is preserved
+    expect(result.tokenBalances[ACCOUNT]['0x1']).toHaveProperty(
+      ARC_USDC_ERC20_TOKEN_ADDRESS,
+    );
+    // Arc entry is stripped
+    expect(
+      result.tokenBalances[ACCOUNT][NETWORKS_CHAIN_ID.ARC],
+    ).not.toHaveProperty(ARC_USDC_ERC20_TOKEN_ADDRESS);
+  });
+
+  it('passes through unchanged when no Arc chain is present', () => {
+    const tokenBalances = {
+      [ACCOUNT]: {
+        '0x1': { [OTHER_TOKEN]: '0xabc' },
+      },
+    } as TokenBalancesControllerState['tokenBalances'];
+
+    const result =
+      selectTokenBalancesStateForBalances.resultFunc(tokenBalances);
+
+    expect(result.tokenBalances).toStrictEqual(tokenBalances);
+  });
+});
+
+describe('assets unify state balance path', () => {
+  beforeEach(() => {
+    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(false);
+    jest.clearAllMocks();
+  });
+
+  it('uses unified calculateBalanceForAllWallets when assetsUnifyState is enabled', () => {
+    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(true);
+    const state = makeState() as unknown as RootState;
+
+    const result = selectBalanceForAllWallets()(state);
+
+    expect(calculateBalanceForAllWalletsUnified).toHaveBeenCalled();
+    expect(calculateBalanceForAllWalletsLegacy).not.toHaveBeenCalled();
+    expect(result.wallets['wallet-1'].groups['wallet-1/group-1']).toEqual(
+      expect.objectContaining({
+        totalBalanceInUserCurrency: 750,
+      }),
+    );
+  });
+
+  it('uses unified balance change when assetsUnifyState is enabled', () => {
+    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(true);
+    const state = makeState() as unknown as RootState;
+
+    const result = selectBalanceChangeBySelectedAccountGroup('1d')(state);
+
+    expect(calculateBalanceChangeForAccountGroupUnified).toHaveBeenCalled();
+    expect(calculateBalanceChangeForAccountGroupLegacy).not.toHaveBeenCalled();
+    expect(result?.amountChangeInUserCurrency).toBe(50);
+  });
+
+  it('selectUnifiedBalanceBySelectedAccountGroup uses getAggregatedBalanceForAccount', () => {
+    const state = makeState() as unknown as RootState;
+
+    const result = selectUnifiedBalanceBySelectedAccountGroup()(state);
+
+    expect(getAggregatedBalanceForAccount).toHaveBeenCalled();
+    expect(result).toEqual({
+      walletId: 'wallet-1',
+      groupId: 'wallet-1/group-1',
+      totalBalanceInUserCurrency: 750,
+      userCurrency: 'usd',
+    });
+  });
+
+  it('getUnifiedBalanceForAccountGroup returns zero when group has no accounts', () => {
+    const accountTreeState = {
+      accountTree: { wallets: {} },
+      selectedAccountGroup: '',
+      accountGroupsMetadata: {},
+      accountWalletsMetadata: {},
+    } as never;
+
+    expect(
+      getUnifiedBalanceForAccountGroup(
+        {
+          assetsInfo: {},
+          assetsBalance: {},
+          assetsPrice: {},
+          assetPreferences: {},
+          customAssets: {},
+          selectedCurrency: 'usd',
+        },
+        accountTreeState,
+        'wallet-1/group-1',
+        undefined,
+      ),
+    ).toEqual({
+      walletId: 'wallet-1',
+      groupId: 'wallet-1/group-1',
+      totalBalanceInUserCurrency: 0,
+      userCurrency: 'usd',
+    });
+  });
+
+  describe('augmentAssetControllersState', () => {
+    const arcErc20UsdcAssetId = `eip155:5042/erc20:${ARC_USDC_ERC20_TOKEN_ADDRESS}`;
+    const stableErc20Usdt0AssetId = `eip155:988/erc20:${STABLE_USDT0_ERC20_ADDRESS}`;
+    const otherAssetId =
+      'eip155:1/erc20:0x1111111111111111111111111111111111111111';
+    const arcNativeAssetId = 'eip155:5042/slip44:60';
+    const stableNativeAssetId = 'eip155:988/slip44:60';
+
+    it('strips Arc ERC20 USDC and Stable ERC20 USDT0 from assetsBalance', () => {
+      const state = {
+        assetsInfo: {},
+        assetsPrice: {},
+        assetPreferences: {},
+        customAssets: {},
+        selectedCurrency: 'usd',
+        assetsBalance: {
+          'account-1': {
+            [arcErc20UsdcAssetId]: { balance: '1' },
+            [stableErc20Usdt0AssetId]: { balance: '2' },
+            [arcNativeAssetId]: { balance: '3' },
+            [stableNativeAssetId]: { balance: '4' },
+            [otherAssetId]: { balance: '5' },
+          },
+        },
+      } as unknown as AssetsControllerState;
+
+      expect(
+        augmentAssetControllersState(state).assetsBalance['account-1'],
+      ).toEqual({
+        [arcNativeAssetId]: { balance: '3' },
+        [stableNativeAssetId]: { balance: '4' },
+        [otherAssetId]: { balance: '5' },
       });
     });
   });

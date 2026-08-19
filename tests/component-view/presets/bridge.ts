@@ -34,9 +34,26 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
     .withMinimalTokenRates()
     .withMinimalMultichainAssetsRates()
     .withMinimalMultichainBalances()
+    .withOverrides({
+      engine: {
+        backgroundState: {
+          // useBridgeQuoteEvents -> selectTokensBalances
+          TokenBalancesController: { tokenBalances: {} },
+        },
+      },
+    } as unknown as DeepPartial<RootState>)
     .withMinimalAnalyticsController()
     .withAccountTreeForSelectedAccount()
-    .withRemoteFeatureFlags({});
+    .withRemoteFeatureFlags({
+      enableFiatToggle: true,
+      // Limit/Recurring tabs are WIP; enabled by default here so existing
+      // tab-behavior tests exercise them. Tests covering the disabled state
+      // override these back to `{ enabled: false }`. RemoteFeatureFlagController
+      // resolves the LaunchDarkly `{ versions: {...} }` config into this plain
+      // `{ enabled }` shape before it ever reaches Redux state.
+      swapsLimitOrder: { enabled: true },
+      swapsRecurringBuy: { enabled: true },
+    });
 
   if (options?.deterministicFiat) {
     builder.withOverrides({

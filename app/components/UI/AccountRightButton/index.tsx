@@ -14,7 +14,8 @@ import {
   Platform,
   EmitterSubscription,
 } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Device from '../../../util/device';
 import AvatarAccount from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AccountRightButtonProps } from './AccountRightButton.types';
@@ -27,11 +28,11 @@ import {
   getNetworkImageSource,
 } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from './AccountOverview.testIds';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
-import UrlParser from 'url-parse';
 import { selectEvmChainId } from '../../../selectors/networkController';
 import {
   selectIsEvmNetworkSelected,
@@ -63,11 +64,12 @@ const styles = StyleSheet.create({
 const AccountRightButton = ({
   selectedAddress,
   onPress,
+  dappOrigin,
 }: AccountRightButtonProps) => {
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
-  const { navigate } = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
 
   // TODO: Replace "any" with type
@@ -126,12 +128,24 @@ const AccountRightButton = ({
   const handleButtonPress = useCallback(() => {
     dismissKeyboard();
     if (!selectedAddress) {
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.NETWORK_SELECTOR,
-        params: {
-          chainId: isEvmSelected ? chainId : selectedNonEvmNetworkChainId,
+      navigateWithDetails(navigation, [
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        {
+          screen: Routes.SHEET.NETWORK_SELECTOR,
+          params: {
+            chainId: isEvmSelected ? chainId : selectedNonEvmNetworkChainId,
+            ...(dappOrigin
+              ? {
+                  hostInfo: {
+                    metadata: {
+                      origin: dappOrigin,
+                    },
+                  },
+                }
+              : {}),
+          },
         },
-      });
+      ]);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
           .addProperties({
@@ -145,24 +159,19 @@ const AccountRightButton = ({
   }, [
     dismissKeyboard,
     selectedAddress,
-    navigate,
+    navigation,
     trackEvent,
     createEventBuilder,
     chainId,
     onPress,
     selectedNonEvmNetworkChainId,
     isEvmSelected,
+    dappOrigin,
   ]);
 
-  const route = useRoute<RouteProp<Record<string, { url: string }>, string>>();
-  // url is defined if opened while in a dapp
-  const currentUrl = route.params?.url;
-  let hostname;
-  if (currentUrl) {
-    hostname = new UrlParser(currentUrl)?.origin;
-  }
-
-  const { networkName, networkImageSource } = useNetworkInfo(hostname);
+  const { networkName, networkImageSource } = useNetworkInfo(
+    dappOrigin || undefined,
+  );
 
   const nonEvmNetworkImageSource = useMemo(() => {
     if (!isEvmSelected && selectedNonEvmNetworkChainId) {

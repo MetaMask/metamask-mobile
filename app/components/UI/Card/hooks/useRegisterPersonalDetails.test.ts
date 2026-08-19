@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-native';
 import { useCardSDK, ICardSDK } from '../sdk';
 import {
   RegisterPersonalDetailsRequest,
@@ -147,13 +147,18 @@ describe('useRegisterPersonalDetails', () => {
 
       const { result } = renderHook(() => useRegisterPersonalDetails());
 
-      await expect(
-        act(async () => {
+      let thrownError: unknown;
+      await act(async () => {
+        try {
           await result.current.registerPersonalDetails(
             mockPersonalDetailsRequest,
           );
-        }),
-      ).rejects.toThrow('Card SDK not initialized');
+        } catch (e) {
+          thrownError = e;
+        }
+      });
+
+      expect(thrownError).toEqual(new Error('Card SDK not initialized'));
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(false);
@@ -169,15 +174,15 @@ describe('useRegisterPersonalDetails', () => {
 
       const { result } = renderHook(() => useRegisterPersonalDetails());
 
-      try {
-        await act(async () => {
+      await act(async () => {
+        try {
           await result.current.registerPersonalDetails(
             mockPersonalDetailsRequest,
           );
-        });
-      } catch (error) {
-        // Expected to throw
-      }
+        } catch (_e) {
+          // expected
+        }
+      });
 
       expect(mockRegisterPersonalDetails).toHaveBeenCalledWith({
         ...mockPersonalDetailsRequest,
@@ -199,15 +204,15 @@ describe('useRegisterPersonalDetails', () => {
 
       const { result } = renderHook(() => useRegisterPersonalDetails());
 
-      try {
-        await act(async () => {
+      await act(async () => {
+        try {
           await result.current.registerPersonalDetails(
             mockPersonalDetailsRequest,
           );
-        });
-      } catch (error) {
-        // Expected to throw
-      }
+        } catch (_e) {
+          // expected
+        }
+      });
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(networkError);
       expect(result.current.isLoading).toBe(false);
@@ -226,15 +231,15 @@ describe('useRegisterPersonalDetails', () => {
 
       const { result } = renderHook(() => useRegisterPersonalDetails());
 
-      try {
-        await act(async () => {
+      await act(async () => {
+        try {
           await result.current.registerPersonalDetails(
             mockPersonalDetailsRequest,
           );
-        });
-      } catch (error) {
-        // Expected to throw
-      }
+        } catch (_e) {
+          // expected
+        }
+      });
 
       expect(mockGetErrorMessage).toHaveBeenCalledWith(genericError);
       expect(result.current.isLoading).toBe(false);
@@ -298,15 +303,15 @@ describe('useRegisterPersonalDetails', () => {
       const { result } = renderHook(() => useRegisterPersonalDetails());
 
       // First call should fail
-      try {
-        await act(async () => {
+      await act(async () => {
+        try {
           await result.current.registerPersonalDetails(
             mockPersonalDetailsRequest,
           );
-        });
-      } catch (error) {
-        // Expected to throw
-      }
+        } catch (_e) {
+          // expected
+        }
+      });
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Invalid details');
@@ -335,15 +340,15 @@ describe('useRegisterPersonalDetails', () => {
       const { result } = renderHook(() => useRegisterPersonalDetails());
 
       // Trigger error
-      try {
-        await act(async () => {
+      await act(async () => {
+        try {
           await result.current.registerPersonalDetails(
             mockPersonalDetailsRequest,
           );
-        });
-      } catch (err) {
-        // Expected to throw
-      }
+        } catch (_e) {
+          // expected
+        }
+      });
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Test error');
@@ -403,15 +408,15 @@ describe('useRegisterPersonalDetails', () => {
       const { result } = renderHook(() => useRegisterPersonalDetails());
 
       // Trigger error
-      try {
-        await act(async () => {
+      await act(async () => {
+        try {
           await result.current.registerPersonalDetails(
             mockPersonalDetailsRequest,
           );
-        });
-      } catch (err) {
-        // Expected to throw
-      }
+        } catch (_e) {
+          // expected
+        }
+      });
 
       expect(result.current.isError).toBe(true);
       expect(result.current.error).toBe('Test error');
@@ -462,13 +467,18 @@ describe('useRegisterPersonalDetails', () => {
 
       const { result } = renderHook(() => useRegisterPersonalDetails());
 
-      await expect(
-        act(async () => {
+      let thrownError: unknown;
+      await act(async () => {
+        try {
           await result.current.registerPersonalDetails(
             mockPersonalDetailsRequest,
           );
-        }),
-      ).rejects.toThrow('Card SDK not initialized');
+        } catch (e) {
+          thrownError = e;
+        }
+      });
+
+      expect(thrownError).toEqual(new Error('Card SDK not initialized'));
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isSuccess).toBe(false);
@@ -511,7 +521,7 @@ describe('useRegisterPersonalDetails', () => {
       const initialClearError = result.current.clearError;
       const initialReset = result.current.reset;
 
-      rerender();
+      rerender(undefined);
 
       expect(result.current.registerPersonalDetails).toBe(
         initialRegisterPersonalDetails,

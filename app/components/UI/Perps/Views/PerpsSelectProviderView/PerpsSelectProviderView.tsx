@@ -1,5 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { useSelector } from 'react-redux';
 import Logger from '../../../../../util/Logger';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
@@ -7,6 +9,7 @@ import { usePerpsNetworkConfig } from '../../hooks/usePerpsNetworkConfig';
 import { selectPerpsNetwork } from '../../selectors/perpsController';
 import PerpsProviderSelectorSheet from '../../components/PerpsProviderSelector/PerpsProviderSelectorSheet';
 import type { ProviderNetworkOption } from '../../components/PerpsProviderSelector/PerpsProviderSelector.types';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 
 /**
  * PerpsSelectProviderView
@@ -15,7 +18,7 @@ import type { ProviderNetworkOption } from '../../components/PerpsProviderSelect
  * Handles combined provider + network switching.
  */
 const PerpsSelectProviderView: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { activeProvider, switchProvider } = usePerpsProvider();
   const { toggleTestnet } = usePerpsNetworkConfig();
   const network = useSelector(selectPerpsNetwork);
@@ -47,7 +50,19 @@ const PerpsSelectProviderView: React.FC = () => {
             new Error(
               `Failed to switch perps provider to ${option.providerId}`,
             ),
-            { message: result.error },
+            {
+              tags: {
+                feature: PERPS_CONSTANTS.FeatureName,
+              },
+              context: {
+                name: 'PerpsSelectProviderView',
+                data: {
+                  action: 'switch_provider',
+                  providerId: option.providerId,
+                  error: result.error,
+                },
+              },
+            },
           );
           return;
         }
@@ -58,7 +73,17 @@ const PerpsSelectProviderView: React.FC = () => {
         const result = await toggleTestnet();
         if (!result.success) {
           Logger.error(new Error(`Failed to toggle perps testnet`), {
-            message: result.error,
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+            },
+            context: {
+              name: 'PerpsSelectProviderView',
+              data: {
+                action: 'toggle_testnet',
+                targetNetwork: option.isTestnet ? 'testnet' : 'mainnet',
+                error: result.error,
+              },
+            },
           });
           return;
         }
@@ -69,7 +94,6 @@ const PerpsSelectProviderView: React.FC = () => {
 
   return (
     <PerpsProviderSelectorSheet
-      isVisible
       onClose={handleClose}
       selectedOptionId={selectedOptionId}
       onOptionSelect={handleOptionSelect}

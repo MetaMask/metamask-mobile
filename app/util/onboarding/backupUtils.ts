@@ -1,18 +1,18 @@
-import {
-  CommonActions,
-  NavigationProp,
-  ParamListBase,
-} from '@react-navigation/native';
-import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
+import { CommonActions } from '@react-navigation/native';
+import { AnalyticsEventBuilder } from '../analytics/AnalyticsEventBuilder';
 import trackOnboarding from '../metrics/TrackOnboarding/trackOnboarding';
 import Routes from '../../constants/navigation/Routes';
-import { ONBOARDING_SUCCESS_FLOW } from '../../constants/onboarding';
+import {
+  AccountType,
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../constants/onboarding';
 import { TraceName, endTrace } from '../trace';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import {
   ITrackingEvent,
   IMetaMetricsEvent,
 } from '../../core/Analytics/MetaMetrics.types';
+import type { AppNavigationProp } from '../../core/NavigationService/types';
 
 /**
  * Type for the track function
@@ -25,7 +25,7 @@ type TrackFunction = (
 /**
  * Type for navigation object
  */
-type NavigationObject = NavigationProp<ParamListBase>;
+type NavigationObject = AppNavigationProp;
 
 /**
  * Type for route params
@@ -47,9 +47,12 @@ export const createTrackFunction =
     event: IMetaMetricsEvent,
     properties: Record<string, string | boolean | number> = {},
   ) => {
-    const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
-    eventBuilder.addProperties(properties);
-    trackOnboarding(eventBuilder.build(), saveOnboardingEvent);
+    trackOnboarding(
+      AnalyticsEventBuilder.createEventBuilder(event)
+        .addProperties(properties)
+        .build(),
+      saveOnboardingEvent,
+    );
   };
 
 /**
@@ -84,6 +87,7 @@ interface HandleSkipBackupParams {
   routeParams: RouteParams;
   isMetricsEnabled: () => boolean;
   track: TrackFunction;
+  successFlow?: ONBOARDING_SUCCESS_FLOW;
 }
 
 /**
@@ -95,6 +99,7 @@ export const handleSkipBackup = async ({
   routeParams,
   isMetricsEnabled,
   track,
+  successFlow,
 }: HandleSkipBackupParams): Promise<void> => {
   track(MetaMetricsEvents.WALLET_SECURITY_SKIP_CONFIRMED, {
     wallet_setup_type: 'new',
@@ -109,9 +114,8 @@ export const handleSkipBackup = async ({
     navigation.dispatch(resetAction);
   } else {
     navigation.navigate('OptinMetrics', {
-      onContinue: () => {
-        navigation.dispatch(resetAction);
-      },
+      accountType: AccountType.Metamask,
+      successFlow,
     });
   }
 };

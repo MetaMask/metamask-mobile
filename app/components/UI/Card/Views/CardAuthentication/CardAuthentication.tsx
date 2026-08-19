@@ -1,41 +1,72 @@
-import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  CommonActions,
+} from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Platform, TouchableOpacity, TextInputProps } from 'react-native';
 import {
   Box,
   FontWeight,
+  Label,
   Text,
   TextVariant,
   Icon,
   IconName,
   IconSize,
-} from '@metamask/design-system-react-native';
-import TextField from '../../../../../component-library/components/Form/TextField';
-import Label from '../../../../../component-library/components/Form/Label';
-
-import Button, {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+  TextField,
+} from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
-import useCardProviderAuthentication from '../../hooks/useCardProviderAuthentication';
+import { useCardAuth } from '../../hooks/useCardAuth';
 import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useDispatch, useSelector } from 'react-redux';
+import { setOnboardingId } from '../../../../../core/redux/slices/card';
+import { selectCardUserLocation } from '../../../../../selectors/cardController';
 import {
-  selectUserCardLocation,
-  setOnboardingId,
-  setUserCardLocation,
-} from '../../../../../core/redux/slices/card';
-import { CardActions, CardScreens } from '../../util/metrics';
+  selectCardForgotPasswordFeatureEnabled,
+  selectImmersveOnboardingEnabled,
+} from '../../../../../selectors/featureFlagController/card';
+import { CardMessageBoxType, type CardLocation } from '../../types';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardScreens,
+  withCardProvider,
+} from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
+import SelectField from '../../components/Onboarding/SelectField';
+import NavigationService from '../../../../../core/NavigationService';
+import Engine from '../../../../../core/Engine';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { safeToChecksumAddress } from '../../../../../util/address';
+import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
+import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
+import { useImmersveResumeOnboarding } from '../../hooks/useImmersveResumeOnboarding';
+import { getCardProviderErrorMessage } from '../../util/getCardProviderErrorMessage';
+
+type LocationSelection = CardLocation | 'uk';
+const IMMERSVE_UK_COUNTRY_KEY = 'GB';
 
 const CODE_LENGTH = 6;
 const autoComplete = Platform.select<TextInputProps['autoComplete']>({
@@ -43,20 +74,50 @@ const autoComplete = Platform.select<TextInputProps['autoComplete']>({
   default: 'one-time-code',
 });
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+type CardAuthenticationParams = {
+  CardAuthentication:
+    | {
+        showAuthPrompt?: boolean;
+        postAuthRedirect?: { screen: string; params?: object };
+      }
+    | undefined;
+};
+
 const CardAuthentication = () => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const navigation = useNavigation();
-  const [step, setStep] = useState<'login' | 'otp'>('login');
+  const navigation = useNavigation<AppNavigationProp>();
+  const route =
+    useRoute<RouteProp<CardAuthenticationParams, 'CardAuthentication'>>();
+  const showAuthPrompt = route.params?.showAuthPrompt ?? false;
+  const postAuthRedirect = route.params?.postAuthRedirect;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const location = useSelector(selectUserCardLocation);
-  const [otpData, setOtpData] = useState<{
-    userId: string;
-    maskedPhoneNumber?: string;
-  } | null>(null);
+  const persistedLocation = useSelector(selectCardUserLocation);
+  const isForgotPasswordEnabled = useSelector(
+    selectCardForgotPasswordFeatureEnabled,
+  );
+  const immersveEnabled = useSelector(selectImmersveOnboardingEnabled);
+  const [selection, setSelection] = useState<LocationSelection>(
+    persistedLocation ?? 'international',
+  );
+  const isUkMode = selection === 'uk';
+  const selectedLocation: CardLocation =
+    selection === 'uk' ? 'international' : selection;
+  const lastTrackedAuthView = useRef<string | null>(null);
+
+  const accountName = useAccountGroupName();
+  const selectAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
+  const immersveAddress = safeToChecksumAddress(
+    selectAccountByScope('eip155:0')?.address,
+  );
+  const resumeImmersveOnboarding = useImmersveResumeOnboarding();
+  const [isUkSubmitting, setIsUkSubmitting] = useState(false);
+  const [ukError, setUkError] = useState<string | null>(null);
   const [confirmCode, setConfirmCode] = useState('');
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
@@ -64,68 +125,78 @@ const CardAuthentication = () => {
   const [resendCooldown, setResendCooldown] = useState(60);
   const dispatch = useDispatch();
   const theme = useTheme();
+
   const {
-    login,
-    error,
-    clearError,
-    sendOtpLogin,
-    otpError,
-    clearOtpError,
-    otpLoading,
-  } = useCardProviderAuthentication();
+    currentStep,
+    initiate,
+    submit,
+    stepAction,
+    resetToLogin,
+    getErrorMessage,
+  } = useCardAuth();
+
+  // React Query guarantees mutate is referentially stable — safe to use as effect dep
+  const { mutate: triggerStepAction } = stepAction;
+
+  // Derived state — no useState needed for these
+  const isOtpStep = currentStep.type === 'otp';
+  const loading = initiate.isPending || submit.isPending;
+  const otpLoading = stepAction.isPending;
+  const error =
+    initiate.error || submit.error
+      ? getErrorMessage(initiate.error ?? submit.error)
+      : null;
+  const otpError = stepAction.error ? getErrorMessage(stepAction.error) : null;
+  const maskedPhoneNumber =
+    isOtpStep && currentStep.type === 'otp'
+      ? currentStep.destination
+      : undefined;
 
   const handleEmailChange = useCallback(
     (newEmail: string) => {
       setEmail(newEmail);
-      if (error) {
-        clearError();
+      if (initiate.error || submit.error) {
+        initiate.reset();
+        submit.reset();
       }
     },
-    [error, clearError],
+    [initiate, submit],
   );
 
   const handlePasswordChange = useCallback(
     (newPassword: string) => {
       setPassword(newPassword);
-      if (error) {
-        clearError();
+      if (initiate.error || submit.error) {
+        initiate.reset();
+        submit.reset();
       }
     },
-    [error, clearError],
+    [initiate, submit],
   );
 
   const handleOtpValueChange = useCallback(
     (text: string) => {
       setConfirmCode(text);
       setLatestValueSubmitted(null);
-      if (error) {
-        clearError();
+      if (submit.error) {
+        submit.reset();
       }
-      if (otpError) {
-        clearOtpError();
+      if (stepAction.error) {
+        stepAction.reset();
       }
     },
-    [error, clearError, otpError, clearOtpError],
+    [submit, stepAction],
   );
 
   // Send OTP when entering OTP step
   useEffect(() => {
-    if (step === 'otp' && otpData?.userId) {
-      const sendOtp = async () => {
-        try {
-          await sendOtpLogin({
-            userId: otpData.userId,
-          });
-          // Reset countdown when OTP is sent
-          setResendCooldown(60);
-        } catch (err) {
-          Logger.log('CardAuthentication::Send OTP login failed', err);
-        }
-      };
-
-      sendOtp();
-    }
-  }, [step, otpData?.userId, sendOtpLogin]);
+    if (!isOtpStep) return;
+    triggerStepAction(undefined, {
+      onSuccess: () => setResendCooldown(60),
+      onError: (err) =>
+        Logger.log('CardAuthentication::Send OTP login failed', err),
+    });
+  }, [isOtpStep, triggerStepAction]);
 
   // Cooldown timer effect
   useEffect(() => {
@@ -139,177 +210,269 @@ const CardAuthentication = () => {
   }, [resendCooldown]);
 
   useEffect(() => {
-    const screenName =
-      step === 'login'
-        ? CardScreens.AUTHENTICATION
-        : CardScreens.OTP_AUTHENTICATION;
+    const screenName = isOtpStep
+      ? CardScreens.OTP_AUTHENTICATION
+      : CardScreens.AUTHENTICATION;
+    const provider = isUkMode
+      ? CardProviderIds.Immersve
+      : CardProviderIds.Baanx;
+    // Fire once per screen+provider so UK toggles update attribution without
+    // spamming identical re-renders.
+    const viewKey = `${screenName}:${provider}`;
+    if (lastTrackedAuthView.current === viewKey) {
+      return;
+    }
+    lastTrackedAuthView.current = viewKey;
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: screenName,
-        })
+        .addProperties(
+          withCardProvider(provider, {
+            screen: screenName,
+          }),
+        )
         .build(),
     );
-  }, [trackEvent, createEventBuilder, step]);
+  }, [trackEvent, createEventBuilder, isOtpStep, isUkMode]);
 
   const performLogin = useCallback(
     async (otpCode?: string) => {
-      const action =
-        step === 'login'
-          ? CardActions.AUTHENTICATION_LOGIN_BUTTON
-          : CardActions.OTP_AUTHENTICATION_CONFIRM_BUTTON;
+      const action = isOtpStep
+        ? CardActions.OTP_AUTHENTICATION_CONFIRM_BUTTON
+        : CardActions.AUTHENTICATION_LOGIN_BUTTON;
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action,
+            }),
+          )
           .build(),
       );
 
       try {
-        setLoading(true);
-        const loginResponse = await login({
+        if (!isOtpStep) {
+          // US/International are Baanx; a prior UK (Immersve) selection persists
+          // activeProviderId, so re-resolve it before initiating this Baanx login.
+          Engine.context.CardController.setSelectedCountry(selectedLocation);
+          await initiate.mutateAsync(selectedLocation);
+        }
+        const result = await submit.mutateAsync({
+          type: 'email_password',
           email,
           password,
           ...(otpCode ? { otpCode } : {}),
         });
 
-        if (loginResponse?.isOtpRequired) {
-          // Switch to OTP step instead of navigating
-          setOtpData({
-            userId: loginResponse.userId,
-            maskedPhoneNumber: loginResponse.phoneNumber ?? undefined,
-          });
-          setStep('otp');
+        if (result.nextStep?.type === 'otp') {
+          // currentStep is updated by useCardAuth — view re-renders to OTP form automatically
           return;
         }
 
-        if (loginResponse?.phase) {
-          dispatch(setOnboardingId(loginResponse.userId));
+        if (result.onboardingRequired) {
+          dispatch(setOnboardingId(result.onboardingRequired.sessionId));
           navigation.reset({
             index: 0,
             routes: [
               {
                 name: Routes.CARD.ONBOARDING.ROOT,
-                params: { cardUserPhase: loginResponse.phase },
+                params: { cardUserPhase: result.onboardingRequired.phase },
               },
             ],
           });
           return;
         }
 
-        // Successful login - navigate to home
+        if (postAuthRedirect) {
+          if (postAuthRedirect.screen === Routes.HOME_TABS) {
+            NavigationService.navigation?.navigate(
+              postAuthRedirect.screen,
+              postAuthRedirect.params,
+            );
+          } else {
+            navigation.dispatch(
+              CommonActions.navigate(
+                postAuthRedirect.screen,
+                postAuthRedirect.params,
+              ),
+            );
+          }
+          return;
+        }
+
+        // Successful login — navigate to home
         navigation.reset({
           index: 0,
           routes: [{ name: Routes.CARD.HOME }],
         });
       } catch (err) {
         Logger.log('CardAuthentication::Login failed', err);
-      } finally {
-        setLoading(false);
+        // errors are displayed via the derived `error` variable above
       }
     },
     [
       email,
-      login,
+      initiate,
+      submit,
+      isOtpStep,
+      selectedLocation,
       password,
-      step,
       navigation,
       dispatch,
       trackEvent,
       createEventBuilder,
+      postAuthRedirect,
     ],
   );
 
   // Auto-submit when all OTP digits are entered
   useEffect(() => {
     if (
-      step === 'otp' &&
+      isOtpStep &&
       confirmCode.length === CODE_LENGTH &&
       latestValueSubmitted !== confirmCode
     ) {
       setLatestValueSubmitted(confirmCode);
       performLogin(confirmCode);
     }
-  }, [confirmCode, performLogin, latestValueSubmitted, step]);
+  }, [confirmCode, performLogin, latestValueSubmitted, isOtpStep]);
 
   const isLoginDisabled = useMemo(
     () => !!error || email.length === 0 || password.length === 0,
     [error, email, password],
   );
 
-  const handleResendOtp = useCallback(async () => {
-    if (resendCooldown > 0 || !otpData?.userId || otpLoading) {
-      return;
-    }
-
-    try {
-      await sendOtpLogin({
-        userId: otpData.userId,
-      });
-      setResendCooldown(60);
-    } catch (err) {
-      Logger.log('CardAuthentication::Resend OTP failed', err);
-    }
-  }, [resendCooldown, otpData?.userId, sendOtpLogin, otpLoading]);
+  const handleResendOtp = useCallback(() => {
+    if (resendCooldown > 0 || otpLoading) return;
+    triggerStepAction(undefined, {
+      onSuccess: () => setResendCooldown(60),
+      onError: (err) =>
+        Logger.log('CardAuthentication::Resend OTP failed', err),
+    });
+  }, [resendCooldown, triggerStepAction, otpLoading]);
 
   const handleBackToLogin = useCallback(() => {
-    setStep('login');
     setConfirmCode('');
     setLatestValueSubmitted(null);
-    setOtpData(null);
     setResendCooldown(60);
-    clearOtpError();
-  }, [clearOtpError]);
+    resetToLogin();
+  }, [resetToLogin]);
+
+  const handleForgotPassword = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.AUTHENTICATION_FORGOT_PASSWORD,
+          }),
+        )
+        .build(),
+    );
+    navigation.navigate(Routes.CARD.MODALS.ID, {
+      screen: Routes.CARD.MODALS.FORGOT_PASSWORD,
+      params: { location: selectedLocation },
+    });
+  }, [navigation, trackEvent, createEventBuilder, selectedLocation]);
+
+  const openAccountSelector = useCallback(() => {
+    navigateWithDetails(
+      navigation,
+      createAccountSelectorNavDetails({
+        isEvmOnly: true,
+        isSelectOnly: true,
+        disableAddAccountButton: true,
+      }),
+    );
+  }, [navigation]);
+
+  const handleUkSignIn = useCallback(async () => {
+    if (!immersveAddress) return;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            action: CardActions.AUTHENTICATION_LOGIN_BUTTON,
+          }),
+        )
+        .build(),
+    );
+    setUkError(null);
+    setIsUkSubmitting(true);
+    try {
+      await resumeImmersveOnboarding({
+        country: IMMERSVE_UK_COUNTRY_KEY,
+        address: immersveAddress,
+        showAccountExistsToast: false,
+        navigateFromRoot: true,
+        entrypoint: CardEntryPoint.AUTHENTICATION,
+      });
+    } catch (err) {
+      setUkError(getCardProviderErrorMessage(err));
+    } finally {
+      setIsUkSubmitting(false);
+    }
+  }, [
+    immersveAddress,
+    resumeImmersveOnboarding,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const title = useMemo(
     () =>
-      step === 'otp'
+      isOtpStep
         ? strings('card.card_otp_authentication.title')
         : strings('card.card_authentication.title'),
-    [step],
+    [isOtpStep],
   );
+
   const description = useMemo(
     () =>
-      step === 'otp'
-        ? otpData?.maskedPhoneNumber
+      isOtpStep
+        ? maskedPhoneNumber
           ? strings(
               'card.card_otp_authentication.description_with_phone_number',
-              { maskedPhoneNumber: otpData.maskedPhoneNumber },
+              { maskedPhoneNumber },
             )
           : strings(
               'card.card_otp_authentication.description_without_phone_number',
             )
-        : '',
-    [otpData?.maskedPhoneNumber, step],
+        : undefined,
+    [maskedPhoneNumber, isOtpStep],
   );
+
+  const locationLabelVariant = immersveEnabled
+    ? TextVariant.BodyXs
+    : TextVariant.BodySm;
+  const locationBoxPadding = immersveEnabled ? 'px-2 py-3' : 'p-4';
 
   const formFields = useMemo(
     () =>
-      step === 'otp' ? (
+      isOtpStep ? (
         <>
           <Box>
             <TextField
-              autoCapitalize={'none'}
               onChangeText={handleOtpValueChange}
-              numberOfLines={1}
               value={confirmCode}
-              keyboardType="number-pad"
-              textContentType="oneTimeCode"
-              autoComplete={autoComplete}
-              maxLength={CODE_LENGTH}
-              accessibilityLabel={strings(
-                'card.card_otp_authentication.confirm_code_label',
-              )}
               isError={!!error}
-              testID="otp-code-field"
               autoFocus
+              inputProps={{
+                autoCapitalize: 'none',
+                numberOfLines: 1,
+                keyboardType: 'number-pad',
+                textContentType: 'oneTimeCode',
+                autoComplete,
+                maxLength: CODE_LENGTH,
+                accessibilityLabel: strings(
+                  'card.card_otp_authentication.confirm_code_label',
+                ),
+                testID: CardAuthenticationSelectors.OTP_CODE_FIELD,
+              }}
             />
             {error && (
               <Text
-                testID="otp-code-field-error"
+                testID={CardAuthenticationSelectors.OTP_CODE_FIELD_ERROR}
                 variant={TextVariant.BodySm}
                 twClassName="text-error-default"
               >
@@ -323,7 +486,7 @@ const CardAuthentication = () => {
             <Text
               variant={TextVariant.BodySm}
               twClassName="text-text-alternative"
-              testID="otp-resend-verification"
+              testID={CardAuthenticationSelectors.OTP_RESEND_VERIFICATION}
             >
               {resendCooldown > 0 ? (
                 strings('card.card_otp_authentication.resend_cooldown', {
@@ -347,7 +510,7 @@ const CardAuthentication = () => {
             </Text>
             {otpError && (
               <Text
-                testID="otp-error-text"
+                testID={CardAuthenticationSelectors.OTP_ERROR_TEXT}
                 variant={TextVariant.BodySm}
                 twClassName="text-error-default"
               >
@@ -358,93 +521,178 @@ const CardAuthentication = () => {
         </>
       ) : (
         <>
+          {showAuthPrompt && (
+            <CardMessageBox messageType={CardMessageBoxType.AuthPrompt} />
+          )}
           <Box twClassName="flex-row justify-between gap-2">
             <TouchableOpacity
-              onPress={() => dispatch(setUserCardLocation('international'))}
+              onPress={() => setSelection('international')}
               style={tw.style(
-                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${location === 'international' ? 'border border-text-default' : ''}`,
+                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${selection === 'international' ? 'border border-text-default' : ''}`,
               )}
             >
               <Box
-                twClassName="flex flex-col items-center justify-center w-full p-4"
-                testID="international-location-box"
+                twClassName={`flex flex-col items-center justify-center w-full ${locationBoxPadding}`}
+                testID={CardAuthenticationSelectors.INTERNATIONAL_LOCATION_BOX}
               >
                 <Icon name={IconName.Global} size={IconSize.Lg} />
                 <Text
-                  twClassName="text-center text-body-sm font-medium"
-                  variant={TextVariant.BodySm}
+                  twClassName="text-center font-medium"
+                  variant={locationLabelVariant}
                 >
                   {strings('card.card_authentication.location_button_text')}
                 </Text>
               </Box>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => dispatch(setUserCardLocation('us'))}
+              onPress={() => setSelection('us')}
               style={tw.style(
-                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${location === 'us' ? 'border border-text-default' : ''}`,
+                `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${selection === 'us' ? 'border border-text-default' : ''}`,
               )}
             >
               <Box
-                twClassName="flex flex-col items-center justify-center flex-1 w-full p-4"
-                testID="us-location-box"
+                twClassName={`flex flex-col items-center justify-center flex-1 w-full ${locationBoxPadding}`}
+                testID={CardAuthenticationSelectors.US_LOCATION_BOX}
               >
                 <Text twClassName="text-center">{countryCodeToFlag('US')}</Text>
                 <Text
-                  twClassName="text-center text-body-sm font-medium"
-                  variant={TextVariant.BodySm}
+                  twClassName="text-center font-medium"
+                  variant={locationLabelVariant}
                 >
                   {strings('card.card_authentication.location_button_text_us')}
                 </Text>
               </Box>
             </TouchableOpacity>
+            {immersveEnabled && (
+              <TouchableOpacity
+                onPress={() => setSelection('uk')}
+                style={tw.style(
+                  `flex flex-col items-center justify-center flex-1 bg-background-muted rounded-lg ${selection === 'uk' ? 'border border-text-default' : ''}`,
+                )}
+              >
+                <Box
+                  twClassName={`flex flex-col items-center justify-center flex-1 w-full ${locationBoxPadding}`}
+                  testID={CardAuthenticationSelectors.UK_LOCATION_BOX}
+                >
+                  <Text twClassName="text-center">
+                    {countryCodeToFlag('GB')}
+                  </Text>
+                  <Text
+                    twClassName="text-center font-medium"
+                    variant={locationLabelVariant}
+                  >
+                    {strings(
+                      'card.card_authentication.location_button_text_uk',
+                    )}
+                  </Text>
+                </Box>
+              </TouchableOpacity>
+            )}
           </Box>
 
-          <Box>
-            <Label>{strings('card.card_authentication.email_label')}</Label>
-            <TextField
-              autoCapitalize={'none'}
-              autoComplete="one-time-code"
-              onChangeText={handleEmailChange}
-              numberOfLines={1}
-              value={email}
-              returnKeyType={'next'}
-              keyboardType="email-address"
-              maxLength={255}
-              accessibilityLabel={strings(
-                'card.card_authentication.email_label',
-              )}
-              testID="email-field"
-            />
-          </Box>
-          <Box>
-            <Label>{strings('card.card_authentication.password_label')}</Label>
-            <TextField
-              autoCapitalize={'none'}
-              onChangeText={handlePasswordChange}
-              autoComplete="one-time-code"
-              numberOfLines={1}
-              value={password}
-              maxLength={255}
-              returnKeyType={'done'}
-              onSubmitEditing={() => performLogin()}
-              secureTextEntry={!isPasswordVisible}
-              accessibilityLabel={strings(
-                'card.card_authentication.password_label',
-              )}
-              testID="password-field"
-              endAccessory={
-                <TouchableOpacity
-                  onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-                  testID="password-visibility-toggle"
+          {isUkMode ? (
+            <Box>
+              <Label>
+                {strings('card.card_onboarding.sign_up.account_label')}
+              </Label>
+              <SelectField
+                value={accountName ?? undefined}
+                onPress={openAccountSelector}
+                testID={CardAuthenticationSelectors.UK_ACCOUNT_SELECT}
+              />
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-text-alternative mt-1"
+              >
+                {strings('card.card_onboarding.sign_up.account_description')}
+              </Text>
+              {ukError ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName="text-error-default mt-1"
+                  testID={CardAuthenticationSelectors.UK_LOGIN_ERROR_TEXT}
                 >
-                  <Icon
-                    name={isPasswordVisible ? IconName.EyeSlash : IconName.Eye}
-                    size={IconSize.Md}
-                  />
-                </TouchableOpacity>
-              }
-            />
-          </Box>
+                  {ukError}
+                </Text>
+              ) : null}
+            </Box>
+          ) : (
+            <>
+              <Box>
+                <Label>{strings('card.card_authentication.email_label')}</Label>
+                <TextField
+                  onChangeText={handleEmailChange}
+                  value={email}
+                  inputProps={{
+                    autoCapitalize: 'none',
+                    autoComplete: 'username',
+                    numberOfLines: 1,
+                    returnKeyType: 'next',
+                    keyboardType: 'email-address',
+                    maxLength: 255,
+                    accessibilityLabel: strings(
+                      'card.card_authentication.email_label',
+                    ),
+                    testID: CardAuthenticationSelectors.EMAIL_FIELD,
+                  }}
+                />
+              </Box>
+              <Box>
+                <Label>
+                  {strings('card.card_authentication.password_label')}
+                </Label>
+                <TextField
+                  onChangeText={handlePasswordChange}
+                  value={password}
+                  endAccessory={
+                    <TouchableOpacity
+                      onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                      testID={
+                        CardAuthenticationSelectors.PASSWORD_VISIBILITY_TOGGLE
+                      }
+                    >
+                      <Icon
+                        name={
+                          isPasswordVisible ? IconName.EyeSlash : IconName.Eye
+                        }
+                        size={IconSize.Md}
+                      />
+                    </TouchableOpacity>
+                  }
+                  inputProps={{
+                    autoCapitalize: 'none',
+                    autoComplete: 'password',
+                    numberOfLines: 1,
+                    maxLength: 255,
+                    returnKeyType: 'done',
+                    onSubmitEditing: () => performLogin(),
+                    secureTextEntry: !isPasswordVisible,
+                    accessibilityLabel: strings(
+                      'card.card_authentication.password_label',
+                    ),
+                    testID: CardAuthenticationSelectors.PASSWORD_FIELD,
+                  }}
+                />
+                {isForgotPasswordEnabled && (
+                  <TouchableOpacity
+                    onPress={handleForgotPassword}
+                    testID={CardAuthenticationSelectors.FORGOT_PASSWORD_BUTTON}
+                    style={tw.style('self-end mt-2')}
+                  >
+                    <Text
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      twClassName="text-default"
+                    >
+                      {strings(
+                        'card.card_authentication.forgot_password_button',
+                      )}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </Box>
+            </>
+          )}
         </>
       ),
     [
@@ -452,40 +700,51 @@ const CardAuthentication = () => {
       email,
       error,
       handleEmailChange,
+      handleForgotPassword,
       handleOtpValueChange,
       handlePasswordChange,
       handleResendOtp,
+      isForgotPasswordEnabled,
       isPasswordVisible,
+      isOtpStep,
       otpError,
       otpLoading,
       password,
       performLogin,
       resendCooldown,
-      step,
+      showAuthPrompt,
       tw,
-      dispatch,
-      location,
+      selection,
+      isUkMode,
+      immersveEnabled,
+      locationLabelVariant,
+      locationBoxPadding,
+      accountName,
+      openAccountSelector,
+      ukError,
     ],
   );
+
   const actions = useMemo(
     () =>
-      step === 'otp' ? (
+      isOtpStep ? (
         <>
           <Button
-            variant={ButtonVariants.Primary}
-            label={strings('card.card_otp_authentication.confirm_button')}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={() => performLogin(confirmCode)}
-            loading={loading}
+            isLoading={loading}
             isDisabled={
               loading || !confirmCode || confirmCode.length < CODE_LENGTH
             }
-            width={ButtonWidthTypes.Full}
-            testID="otp-confirm-button"
-          />
+            isFullWidth
+            testID={CardAuthenticationSelectors.OTP_CONFIRM_BUTTON}
+          >
+            {strings('card.card_otp_authentication.confirm_button')}
+          </Button>
           <TouchableOpacity
             onPress={handleBackToLogin}
-            testID="otp-back-to-login-button"
+            testID={CardAuthenticationSelectors.OTP_BACK_TO_LOGIN_BUTTON}
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -498,26 +757,33 @@ const CardAuthentication = () => {
         </>
       ) : (
         <Box twClassName="flex flex-col justify-center gap-2">
-          {error && (
+          {error && !isUkMode && (
             <Text
               variant={TextVariant.BodySm}
               style={{ color: theme.colors.error.default }}
-              testID="login-error-text"
+              testID={CardAuthenticationSelectors.LOGIN_ERROR_TEXT}
             >
               {error}
             </Text>
           )}
           <Box>
             <Button
-              variant={ButtonVariants.Primary}
-              label={strings('card.card_authentication.login_button')}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
               testID={CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON}
-              onPress={() => performLogin()}
-              loading={loading}
-              width={ButtonWidthTypes.Full}
-              isDisabled={isLoginDisabled || loading}
-            />
+              onPress={isUkMode ? handleUkSignIn : () => performLogin()}
+              isLoading={isUkMode ? isUkSubmitting : loading}
+              isFullWidth
+              isDisabled={
+                isUkMode
+                  ? isUkSubmitting || !immersveAddress
+                  : isLoginDisabled || loading
+              }
+            >
+              {isUkMode
+                ? strings('card.card_authentication.uk_login_button')
+                : strings('card.card_authentication.login_button')}
+            </Button>
             <TouchableOpacity
               onPress={() => navigation.navigate(Routes.CARD.ONBOARDING.ROOT)}
             >
@@ -538,11 +804,15 @@ const CardAuthentication = () => {
       error,
       handleBackToLogin,
       isLoginDisabled,
+      isOtpStep,
       loading,
       navigation,
       performLogin,
-      step,
       theme.colors.error.default,
+      isUkMode,
+      handleUkSignIn,
+      isUkSubmitting,
+      immersveAddress,
     ],
   );
 
@@ -552,6 +822,7 @@ const CardAuthentication = () => {
       description={description}
       formFields={formFields}
       actions={actions}
+      headerMode="back"
     />
   );
 };

@@ -6,6 +6,8 @@ import {
   getSendBundleSupportedChains,
   isSendBundleSupported,
   clearSentinelNetworkCache,
+  setSentinelApiAuth,
+  getSentinelApiHeadersAsync,
 } from './sentinel-api';
 
 const fetchMock = jest.fn();
@@ -64,10 +66,48 @@ describe('sentinel-api', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     clearSentinelNetworkCache();
+    setSentinelApiAuth(undefined);
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  describe('setSentinelApiAuth and getSentinelApiHeadersAsync', () => {
+    it('returns empty headers when no auth setter is configured', async () => {
+      const headers = await getSentinelApiHeadersAsync();
+      expect(headers).toEqual({});
+    });
+
+    it('includes Authorization when getter returns a token', async () => {
+      setSentinelApiAuth(async () => 'test-token');
+      const headers = await getSentinelApiHeadersAsync();
+      expect(headers).toMatchObject({ Authorization: 'Bearer test-token' });
+    });
+
+    it('adds Bearer prefix when getter returns raw token', async () => {
+      setSentinelApiAuth(async () => 'raw-token');
+      const headers = await getSentinelApiHeadersAsync();
+      expect((headers as Record<string, string>).Authorization).toBe(
+        'Bearer raw-token',
+      );
+    });
+
+    it('omits Authorization when getter returns undefined', async () => {
+      setSentinelApiAuth(async () => undefined);
+      const headers = await getSentinelApiHeadersAsync();
+      expect(headers).toEqual({});
+      expect((headers as Record<string, string>).Authorization).toBeUndefined();
+    });
+
+    it('omits Authorization when getter throws', async () => {
+      setSentinelApiAuth(async () => {
+        throw new Error('token error');
+      });
+      const headers = await getSentinelApiHeadersAsync();
+      expect(headers).toEqual({});
+      expect((headers as Record<string, string>).Authorization).toBeUndefined();
+    });
   });
 
   describe('buildUrl', () => {
@@ -115,10 +155,10 @@ describe('sentinel-api', () => {
       expect(result).toBeUndefined();
     });
 
-    it('throws if getNetworkData throws', async () => {
+    it('prefixes errors if getNetworkData throws', async () => {
       fetchMock.mockRejectedValueOnce(new Error('API connection error'));
       await expect(getSentinelNetworkFlags('0x1' as Hex)).rejects.toThrow(
-        'API connection error',
+        'Sentinel: API connection error',
       );
     });
   });
@@ -242,7 +282,7 @@ describe('sentinel-api', () => {
 
       // First call throws error
       await expect(getSentinelNetworkFlags('0x1' as Hex)).rejects.toThrow(
-        'Failed to fetch sentinel network flags: 503 - Service Unavailable',
+        'Sentinel: Failed to fetch network flags: 503',
       );
 
       // Second call retries and succeeds (error was not cached)
@@ -268,21 +308,15 @@ describe('sentinel-api', () => {
 
       expect(results[0]).toEqual({
         status: 'rejected',
-        reason: new Error(
-          'Failed to fetch sentinel network flags: 500 - Internal Server Error',
-        ),
+        reason: new Error('Sentinel: Failed to fetch network flags: 500'),
       });
       expect(results[1]).toEqual({
         status: 'rejected',
-        reason: new Error(
-          'Failed to fetch sentinel network flags: 500 - Internal Server Error',
-        ),
+        reason: new Error('Sentinel: Failed to fetch network flags: 500'),
       });
       expect(results[2]).toEqual({
         status: 'rejected',
-        reason: new Error(
-          'Failed to fetch sentinel network flags: 500 - Internal Server Error',
-        ),
+        reason: new Error('Sentinel: Failed to fetch network flags: 500'),
       });
 
       // Only one fetch was made (concurrent deduplication worked)

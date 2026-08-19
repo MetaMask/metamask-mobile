@@ -1,8 +1,8 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 
-const StoryBookStack = createStackNavigator();
+const StoryBookStack = createNativeStackNavigator();
 
 const withNavigation = (story: any) => {
   const StorybookScreen = () => story();

@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as PushNotificationsHooks from '../../../../util/notifications/hooks/usePushNotifications';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as NotificationService from '../../../../util/notifications/services/NotificationService';
 import { usePushNotificationSettingsToggle } from './PushNotificationToggle.hooks';
 

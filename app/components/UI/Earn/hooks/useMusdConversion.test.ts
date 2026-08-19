@@ -1,5 +1,8 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useMusdConversion } from './useMusdConversion';
+import {
+  useMusdConversion,
+  selectPendingApprovalIds,
+} from './useMusdConversion';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
@@ -67,8 +70,6 @@ const mockNavigation = {
   addListener: jest.fn(),
   removeListener: jest.fn(),
   getId: jest.fn(),
-  dangerouslyGetParent: jest.fn(),
-  dangerouslyGetState: jest.fn(),
 };
 
 const mockNetworkController = {
@@ -85,7 +86,7 @@ const mockTransactionPayController = {
 };
 
 const mockApprovalController = {
-  reject: jest.fn(),
+  rejectRequest: jest.fn(),
 };
 
 const mockFetchGasFeeEstimates = jest.fn().mockResolvedValue(undefined);
@@ -357,6 +358,7 @@ describe('useMusdConversion', () => {
         {
           networkClientId: 'mainnet',
           origin: ORIGIN_METAMASK,
+          isInternal: true,
           skipInitialGasEstimate: true,
           type: TransactionType.musdConversion,
         },
@@ -439,6 +441,32 @@ describe('useMusdConversion', () => {
             address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
             chainId: '0x1',
           },
+        },
+      });
+    });
+
+    it('threads returnTo into education screen params when first-time user triggers custom conversion', async () => {
+      setupUseSelectorMock({
+        hasSeenConversionEducationScreen: false,
+      });
+
+      const { result } = renderHook(() => useMusdConversion());
+
+      await act(async () => {
+        await result.current.initiateCustomConversion({
+          preferredPaymentToken: {
+            address: '0xabc' as Hex,
+            chainId: '0x1' as Hex,
+          },
+          returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
+        });
+      });
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
+        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+        params: {
+          preferredPaymentToken: { address: '0xabc', chainId: '0x1' },
+          returnTo: { screen: Routes.WALLET.CASH_TOKENS_FULL_VIEW },
         },
       });
     });
@@ -967,7 +995,7 @@ describe('useMusdConversion', () => {
         ).rejects.toThrow(postCreationError);
       });
 
-      expect(mockApprovalController.reject).toHaveBeenCalledWith(
+      expect(mockApprovalController.rejectRequest).toHaveBeenCalledWith(
         'tx-max-123',
         expect.objectContaining({
           message:
@@ -1004,7 +1032,7 @@ describe('useMusdConversion', () => {
       );
 
       const rejectCleanupError = new Error('Failed to reject pending approval');
-      mockApprovalController.reject.mockImplementation(() => {
+      mockApprovalController.rejectRequest.mockImplementation(() => {
         throw rejectCleanupError;
       });
 
@@ -1016,7 +1044,7 @@ describe('useMusdConversion', () => {
         ).rejects.toThrow(postCreationError);
       });
 
-      expect(mockApprovalController.reject).toHaveBeenCalledTimes(1);
+      expect(mockApprovalController.rejectRequest).toHaveBeenCalledTimes(1);
       expect(Logger.error).toHaveBeenCalledWith(
         rejectCleanupError,
         '[mUSD Max Conversion] Failed to reject transaction after post-creation configuration error',
@@ -1074,5 +1102,54 @@ describe('useMusdConversion', () => {
 
       expect(result.current.error).toBeNull();
     });
+  });
+});
+
+describe('selectPendingApprovalIds', () => {
+  const buildState = (pendingApprovals: Record<string, unknown>) =>
+    ({
+      engine: {
+        backgroundState: {
+          ApprovalController: {
+            pendingApprovals,
+          },
+        },
+      },
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    }) as any;
+
+  it('returns the keys of the pending approvals map', () => {
+    const pendingApprovals = { '1': { id: '1' }, '2': { id: '2' } };
+
+    expect(selectPendingApprovalIds(buildState(pendingApprovals))).toEqual([
+      '1',
+      '2',
+    ]);
+  });
+
+  it('returns an empty array when there are no pending approvals', () => {
+    expect(selectPendingApprovalIds(buildState({}))).toEqual([]);
+  });
+
+  it('returns a stable array reference when the underlying approvals are unchanged', () => {
+    const state = buildState({ '1': { id: '1' } });
+
+    const firstResult = selectPendingApprovalIds(state);
+    const secondResult = selectPendingApprovalIds(state);
+
+    expect(secondResult).toBe(firstResult);
+  });
+
+  it('returns a new array reference when the underlying approvals change', () => {
+    const firstResult = selectPendingApprovalIds(
+      buildState({ '1': { id: '1' } }),
+    );
+    const secondResult = selectPendingApprovalIds(
+      buildState({ '1': { id: '1' }, '2': { id: '2' } }),
+    );
+
+    expect(secondResult).not.toBe(firstResult);
+    expect(secondResult).toEqual(['1', '2']);
   });
 });

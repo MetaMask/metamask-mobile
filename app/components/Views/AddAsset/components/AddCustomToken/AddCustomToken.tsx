@@ -9,10 +9,19 @@ import { TextInput, Platform, ActivityIndicator } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
-import { useNavigation, type ParamListBase } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { useNavigation } from '@react-navigation/native';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
@@ -32,11 +41,6 @@ import {
 } from '../../../../../util/networks';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { formatIconUrlWithProxy } from '@metamask/assets-controllers';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconName,
   IconSize,
@@ -55,6 +59,10 @@ import {
 } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { ImportAsset } from '../../utils/utils';
+import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
+import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import useAssetVisibility from '../../../../UI/TokenDetails/components/useAssetVisibility';
+import type { TokenI } from '../../../../UI/Tokens/types';
 
 // --- Types ---
 
@@ -185,7 +193,7 @@ const AddCustomToken = ({
   const symbolInputRef = useRef<TextInput>(null);
   const decimalsInputRef = useRef<TextInput>(null);
 
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const { colors, themeAppearance } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();
@@ -204,6 +212,19 @@ const AddCustomToken = ({
 
   const networkName = networkConfig?.name ?? '';
   const networkClientId = defaultEndpoint?.networkClientId ?? null;
+
+  const isAssetsUnifyStateEnabled = useSelector(
+    selectIsAssetsUnifyStateEnabled,
+  );
+
+  // Provide address + chainId so the hook can determine whether the token is
+  // already hidden in AssetsController (isHidden) vs brand-new (not tracked).
+  const tokenForVisibility = useMemo(
+    () => (address && chainId ? ({ address, chainId } as TokenI) : undefined),
+    [address, chainId],
+  );
+  const { handleAddCustomAsset, handleHideToken, isHidden } =
+    useAssetVisibility(tokenForVisibility);
 
   // Token metadata (async validation + RPC fetch)
   const {
@@ -279,6 +300,30 @@ const AddCustomToken = ({
     });
     endTrace({ name: TraceName.ImportTokens });
 
+    if (isAssetsUnifyStateEnabled) {
+      const caipChainId = formatChainIdToCaip(chainId as SupportedCaipChainId);
+      const trimmedAddress = address.trim();
+      const caipAssetType = toAssetId(trimmedAddress, caipChainId);
+      if (caipAssetType) {
+        try {
+          if (isHidden) {
+            // Token exists but was hidden — unhide it instead of re-adding
+            handleHideToken();
+          } else {
+            await handleAddCustomAsset(caipAssetType, {
+              address: trimmedAddress,
+              symbol,
+              name,
+              decimals: Number(decimals),
+              chainId: caipChainId,
+            });
+          }
+        } catch (error) {
+          Logger.error(error as Error, 'AddCustomToken: addCustomAsset failed');
+        }
+      }
+    }
+
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
@@ -316,6 +361,10 @@ const AddCustomToken = ({
     chainId,
     trackEvent,
     createEventBuilder,
+    isAssetsUnifyStateEnabled,
+    handleAddCustomAsset,
+    handleHideToken,
+    isHidden,
   ]);
 
   const handleNext = useCallback(() => {
@@ -525,10 +574,16 @@ const AddCustomToken = ({
                 <Text
                   variant={TextVariant.BodyMd}
                   style={tw.style('text-info-default')}
+                  testID={
+                    ImportTokenViewSelectorsIDs.PRECISION_WARNING_EXPLORER_LINK
+                  }
                   onPress={() => {
                     navigation.navigate('Webview', {
                       screen: 'SimpleWebview',
-                      params: { url: explorerUrl, title: explorerTitle },
+                      params: {
+                        url: explorerUrl ?? undefined,
+                        title: explorerTitle ?? undefined,
+                      },
                     });
                   }}
                 >
@@ -547,14 +602,15 @@ const AddCustomToken = ({
 
       <Box style={tw.style('pt-4 m-4', { paddingBottom: bottomInset })}>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('transaction.next')}
+          isFullWidth
           onPress={handleNext}
           isDisabled={isNextDisabled}
           testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
-        />
+        >
+          {strings('transaction.next')}
+        </Button>
       </Box>
     </Box>
   );

@@ -1,5 +1,6 @@
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,10 +13,11 @@ import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonBaseSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -65,7 +67,7 @@ export const SDKSessionItem = ({
   const styles = createStyles(colors, typography, safeAreaInsets);
   const [sessionName, setSessionName] = useState('');
   const [icon, setIcon] = useState<string>();
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const [permittedAccountsAddresses, setPermittedAccountsAddresses] = useState<
     string[]
   >([]);
@@ -145,12 +147,13 @@ export const SDKSessionItem = ({
         </Text>
       </View>
       <Button
-        label={strings('sdk.manage')}
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariant.Secondary}
         style={styles.selfCenter}
-        size={ButtonSize.Sm}
+        size={ButtonBaseSize.Sm}
         onPress={() => onManage()}
-      />
+      >
+        {strings('sdk.manage')}
+      </Button>
     </View>
   );
 };

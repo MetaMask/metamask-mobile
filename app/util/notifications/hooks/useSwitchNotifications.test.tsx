@@ -1,16 +1,15 @@
 import { act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../locales/i18n';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Actions from '../../../actions/notification/helpers';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Selectors from '../../../selectors/notifications';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as UseNotificationsModule from './useNotifications';
 import {
   useAccountNotificationsToggle,
-  useFeatureAnnouncementToggle,
   useFetchAccountNotifications,
   useNotificationsToggle,
   useSwitchNotificationLoadingText,
@@ -78,82 +77,6 @@ describe('useSwitchNotifications - useNotificationsToggle', () => {
       expect(mocks.mockDisableNotifications).toHaveBeenCalled(),
     );
     expect(mocks.mockEnableNotifications).not.toHaveBeenCalled();
-  });
-});
-
-describe('useSwitchNotifications - useFeatureAnnouncementToggle()', () => {
-  const arrangeMocks = () => {
-    const mockListNotifications = jest.fn();
-    const mockUseListNotifications = jest
-      .spyOn(UseNotificationsModule, 'useListNotifications')
-      .mockReturnValue({
-        error: null,
-        isLoading: false,
-        notificationsData: [],
-        listNotifications: mockListNotifications,
-      });
-
-    const mockSelectIsEnabled = jest
-      .spyOn(Selectors, 'selectIsMetamaskNotificationsEnabled')
-      .mockReturnValue(true);
-    const mockSelectIsFeatureAnnouncementsEnabled = jest
-      .spyOn(Selectors, 'selectIsFeatureAnnouncementsEnabled')
-      .mockReturnValue(true);
-
-    const mockToggleFeatureAnnouncement = jest
-      .spyOn(Actions, 'toggleFeatureAnnouncements')
-      .mockImplementation(jest.fn());
-
-    return {
-      mockListNotifications,
-      mockUseListNotifications,
-      mockSelectIsEnabled,
-      mockSelectIsFeatureAnnouncementsEnabled,
-      mockToggleFeatureAnnouncement,
-    };
-  };
-
-  type Mocks = ReturnType<typeof arrangeMocks>;
-  const arrangeAct = async (val: boolean, mutateMocks?: (m: Mocks) => void) => {
-    // Arrange
-    const mocks = arrangeMocks();
-    mutateMocks?.(mocks);
-    const hook = renderHookWithProvider(() => useFeatureAnnouncementToggle());
-
-    // Act
-    await act(() => hook.result.current.switchFeatureAnnouncements(val));
-
-    return { mocks, hook };
-  };
-
-  it('performs enable flow', async () => {
-    const { mocks } = await arrangeAct(true);
-    await waitFor(() =>
-      expect(mocks.mockToggleFeatureAnnouncement).toHaveBeenCalledWith(true),
-    );
-    await waitFor(() => expect(mocks.mockListNotifications).toHaveBeenCalled());
-  });
-
-  it('performs disable flow', async () => {
-    const { mocks } = await arrangeAct(false);
-    await waitFor(() =>
-      expect(mocks.mockToggleFeatureAnnouncement).toHaveBeenCalledWith(false),
-    );
-    await waitFor(() => expect(mocks.mockListNotifications).toHaveBeenCalled());
-  });
-
-  it('bails if notifications are not enabled', async () => {
-    const { mocks } = await arrangeAct(true, (m) =>
-      m.mockSelectIsEnabled.mockReturnValue(false),
-    );
-    await waitFor(() =>
-      expect(mocks.mockToggleFeatureAnnouncement).not.toHaveBeenCalledWith(
-        true,
-      ),
-    );
-    await waitFor(() =>
-      expect(mocks.mockListNotifications).not.toHaveBeenCalled(),
-    );
   });
 });
 
@@ -458,15 +381,14 @@ describe('useSwitchNotifications - useSwitchNotificationLoadingText()', () => {
     );
   });
 
-  it('returns updating account settings text when accounts are being updated', () => {
+  it('returns undefined when accounts are being updated (no modal for account updates)', () => {
     const { hook } = arrangeAct((m) => {
       m.mockSelectIsUpdatingMetamaskNotificationsAccount.mockReturnValue([
         '0xAddr1',
       ]);
     });
-    expect(hook.result.current).toBe(
-      strings('app_settings.updating_account_settings'),
-    );
+    // Account loading is now handled inline per-toggle, not in a modal
+    expect(hook.result.current).toBeUndefined();
   });
 
   it('returns undefined when no loading state is active', () => {

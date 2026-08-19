@@ -7,7 +7,8 @@ import React, {
 } from 'react';
 import { ImageSourcePropType, Platform, Pressable } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -18,6 +19,10 @@ import {
   Text,
   TextVariant,
   FontWeight,
+  HeaderStandard,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 
 import { CaipChainId } from '@metamask/utils';
@@ -30,7 +35,6 @@ import {
 } from '../../../../util/networks';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { selectIsRpcFailoverEnabled } from '../../../../selectors/featureFlagController/walletFramework';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import Icon, {
@@ -38,11 +42,6 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../component-library/components/Icons/Icon';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../component-library/components/Buttons/Button';
 import { BottomSheetRef } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import InfoModal from '../../../Base/InfoModal';
 import DeleteNetworkModal from '../components/DeleteNetworkModal';
@@ -64,7 +63,11 @@ import BlockExplorerSection, {
 
 import { NetworkDetailsViewSelectorsIDs } from './NetworkDetailsView.testIds';
 import createStyles from './NetworkDetailsView.styles';
-import type { NetworkDetailsViewParams } from './NetworkDetailsView.types';
+import type {
+  NetworkDetailsViewParams,
+  NetworkFormState,
+  UrlSheetPersistOptions,
+} from './NetworkDetailsView.types';
 
 type NetworkDetailsRouteParams = RouteProp<
   { AddNetworkForm: NetworkDetailsViewParams },
@@ -73,7 +76,7 @@ type NetworkDetailsRouteParams = RouteProp<
 
 const NetworkDetailsView = () => {
   const route = useRoute<NetworkDetailsRouteParams>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = route.params;
   const tw = useTailwind();
   const { colors, themeAppearance } = useTheme();
@@ -103,16 +106,42 @@ const NetworkDetailsView = () => {
     });
   }, [formHook, validation]);
 
+  // `editable` only locks name/symbol fields — RPC & block explorer lists still change;
+  // Save / sheet persist must run when those lists diverge from the last saved baseline.
   const isActionDisabled =
     !formHook.enableAction ||
-    formHook.form.editable === false ||
     validation.disabledByChainId(formHook.form) ||
+    validation.disabledByName(formHook.form) ||
     validation.disabledBySymbol(formHook.form);
+
+  // Latest form + deps for sheet persist. Reassigned every render; async persist reads
+  // `persistSheetCtxRef.current` at invoke time so data is never "initial render" stale.
+  const persistSheetCtxRef = useRef({
+    form: formHook.form,
+    enableAction: formHook.enableAction,
+    validation,
+    operations,
+    isCustomMainnet,
+    shouldNetworkSwitchPopToWallet,
+    trackRpcUpdateFromBanner,
+    commitBaselineFromFormState: formHook.commitBaselineFromFormState,
+  });
+  persistSheetCtxRef.current = {
+    form: formHook.form,
+    enableAction: formHook.enableAction,
+    validation,
+    operations,
+    isCustomMainnet,
+    shouldNetworkSwitchPopToWallet,
+    trackRpcUpdateFromBanner,
+    commitBaselineFromFormState: formHook.commitBaselineFromFormState,
+  };
 
   const handleSave = useCallback(async () => {
     await operations.saveNetwork(formHook.form, {
       enableAction: formHook.enableAction,
       disabledByChainId: validation.disabledByChainId(formHook.form),
+      disabledByName: validation.disabledByName(formHook.form),
       disabledBySymbol: validation.disabledBySymbol(formHook.form),
       isCustomMainnet,
       shouldNetworkSwitchPopToWallet,
@@ -128,6 +157,54 @@ const NetworkDetailsView = () => {
     shouldNetworkSwitchPopToWallet,
     trackRpcUpdateFromBanner,
   ]);
+
+  /**
+   * Persist after RPC / block-explorer sheet mutations. Callers pass the committed
+   * `NetworkFormState` snapshot produced by the same pure transforms as the form hook.
+   *
+   * Intentionally `[]` deps: the callback must stay referentially stable for sheet children,
+   * and always reads fresh `form` / `operations` / `validation` via `persistSheetCtxRef.current`
+   * at invoke time (ref is updated synchronously each render above).
+   */
+  const schedulePersistAfterUrlSheetMutation = useCallback(
+    async (
+      committedFormSnapshot: NetworkFormState,
+      persistOptions?: UrlSheetPersistOptions,
+    ): Promise<boolean> => {
+      const ctx = persistSheetCtxRef.current;
+      if (committedFormSnapshot.addMode) {
+        return false;
+      }
+      try {
+        const saved = await ctx.operations.saveNetwork(committedFormSnapshot, {
+          enableAction: ctx.enableAction,
+          disabledByChainId: ctx.validation.disabledByChainId(
+            committedFormSnapshot,
+          ),
+          disabledByName: ctx.validation.disabledByName(committedFormSnapshot),
+          disabledBySymbol: ctx.validation.disabledBySymbol(
+            committedFormSnapshot,
+          ),
+          isCustomMainnet: ctx.isCustomMainnet,
+          shouldNetworkSwitchPopToWallet: ctx.shouldNetworkSwitchPopToWallet,
+          trackRpcUpdateFromBanner: ctx.trackRpcUpdateFromBanner,
+          validateChainIdOnSubmit: ctx.validation.validateChainIdOnSubmit,
+          skipPostSaveNavigation: true,
+          bypassEnableActionGuard: true,
+          bypassFormDisabledGuards: true,
+          skipChainIdSubmitValidation:
+            persistOptions?.skipChainIdSubmitValidation === true,
+        });
+        if (saved === true) {
+          ctx.commitBaselineFromFormState(committedFormSnapshot);
+        }
+        return saved === true;
+      } catch {
+        return false;
+      }
+    },
+    [],
+  );
 
   const handleValidateChainId = useCallback(() => {
     validation.validateChainId(formHook.form);
@@ -187,13 +264,14 @@ const NetworkDetailsView = () => {
       edges={['top', 'bottom']}
       testID={NetworkDetailsViewSelectorsIDs.CONTAINER}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         onBack={handleBack}
         endAccessory={
           !formHook.form.addMode &&
           canDeleteNetwork(formHook.form.chainId ?? '') ? (
             <Pressable
               onPress={handleDelete}
+              testID={NetworkDetailsViewSelectorsIDs.REMOVE_NETWORK_BUTTON}
               style={({ pressed }) =>
                 tw.style(
                   'w-9 h-9 mr-2 items-center justify-center',
@@ -204,7 +282,7 @@ const NetworkDetailsView = () => {
               <Icon
                 name={IconName.Trash}
                 size={IconSize.Md}
-                color={IconColor.Error}
+                color={IconColor.Default}
               />
             </Pressable>
           ) : undefined
@@ -230,14 +308,13 @@ const NetworkDetailsView = () => {
             {headerTitle}
           </Text>
         </Box>
-      </HeaderCompactStandard>
+      </HeaderStandard>
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style('flex-grow px-4')}
         showsVerticalScrollIndicator={false}
-        enableOnAndroid
-        enableAutomaticScroll
-        extraScrollHeight={Platform.OS === 'android' ? 120 : 20}
         keyboardShouldPersistTaps="handled"
+        bottomOffset={Platform.OS === 'android' ? 120 : 20}
+        disableScrollOnKeyboardHide
       >
         <Box twClassName="flex-1 gap-4 pt-4 mb-6">
           {/* Network Name */}
@@ -284,22 +361,21 @@ const NetworkDetailsView = () => {
       {/* Save / Add button — sticky footer */}
       <Box twClassName="px-4 pt-2 pb-4">
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           onPress={handleSave}
-          label={
-            isCustomMainnet
-              ? strings('app_settings.networks_default_cta')
-              : strings('app_settings.network_save')
-          }
           size={ButtonSize.Lg}
           isDisabled={isActionDisabled}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           testID={
             isCustomMainnet
               ? NetworkDetailsViewSelectorsIDs.USE_THIS_NETWORK_BUTTON
               : NetworkDetailsViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON
           }
-        />
+        >
+          {isCustomMainnet
+            ? strings('app_settings.networks_default_cta')
+            : strings('app_settings.network_save')}
+        </Button>
       </Box>
 
       {/* RPC & Block Explorer modals — only in edit mode */}
@@ -313,12 +389,14 @@ const NetworkDetailsView = () => {
             styles={styles}
             themeAppearance={themeAppearance}
             placeholderTextColor={placeholderTextColor}
+            onUrlSheetMutationCommitted={schedulePersistAfterUrlSheetMutation}
           />
           <BlockExplorerModals
             formHook={formHook}
             styles={styles}
             themeAppearance={themeAppearance}
             placeholderTextColor={placeholderTextColor}
+            onUrlSheetMutationCommitted={schedulePersistAfterUrlSheetMutation}
           />
         </>
       )}

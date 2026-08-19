@@ -16,6 +16,7 @@ import {
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../constants/musd';
 import { useRampNavigation } from '../../../../Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../../Ramp/constants/rampsBuyCufTags';
 import { RampIntent } from '../../../../Ramp/types';
 import { strings } from '../../../../../../../locales/i18n';
 import { EARN_TEST_IDS } from '../../../constants/testIds';
@@ -40,9 +41,6 @@ import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetw
 import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../types/musd.types';
-import { selectMusdQuickConvertEnabledFlag } from '../../../selectors/featureFlags';
-import { useSelector } from 'react-redux';
 
 enum CTA_CLICK_TARGET {
   CTA_BUTTON = 'cta_button',
@@ -51,8 +49,6 @@ enum CTA_CLICK_TARGET {
 
 const MusdConversionAssetListCta = () => {
   const { styles } = useStyles(styleSheet, {});
-
-  const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
 
   const { goToBuy } = useRampNavigation();
 
@@ -88,9 +84,7 @@ const MusdConversionAssetListCta = () => {
         return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
       }
 
-      return isQuickConvertEnabled
-        ? EVENT_LOCATIONS.QUICK_CONVERT_HOME_SCREEN
-        : EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
+      return EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
     };
 
     const ctaText =
@@ -123,7 +117,7 @@ const MusdConversionAssetListCta = () => {
       const rampIntent: RampIntent = {
         assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId],
       };
-      goToBuy(rampIntent);
+      goToBuy(rampIntent, { surface: RAMPS_BUY_CUF_SURFACE.EARN });
       return;
     }
 
@@ -140,7 +134,6 @@ const MusdConversionAssetListCta = () => {
     try {
       await initiateCustomConversion({
         preferredPaymentToken: paymentToken,
-        navigationOverride: MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT,
       });
     } catch (error) {
       Logger.error(
@@ -204,14 +197,12 @@ const MusdConversionAssetListCta = () => {
       </View>
 
       <Button
-        variant={ButtonVariant.Secondary}
+        variant={ButtonVariant.Primary}
         style={styles.button}
         onPress={() => handlePress(CTA_CLICK_TARGET.CTA_BUTTON)}
         size={ButtonSize.Sm}
       >
-        <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
-          {buttonText}
-        </Text>
+        {buttonText}
       </Button>
     </View>
   );

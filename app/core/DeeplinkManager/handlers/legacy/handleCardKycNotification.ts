@@ -2,27 +2,17 @@ import Logger from '../../../../util/Logger';
 import ReduxService from '../../../redux';
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
+import { selectOnboardingId } from '../../../redux/slices/card';
 import {
-  selectIsAuthenticatedCard,
-  selectOnboardingId,
-  selectSelectedCountry,
-  selectUserCardLocation,
-  selectCardGeoLocation,
-  selectAlwaysShowCardButton,
-} from '../../../redux/slices/card';
+  selectCardUserLocation,
+  selectIsCardAuthenticated,
+} from '../../../../selectors/cardController';
 import {
-  selectCardSupportedCountries,
-  selectDisplayCardButtonFeatureFlag,
   selectCardFeatureFlag,
   CardFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
-import { isBaanxLoginEnabled } from '../../../../components/UI/Card/hooks/isBaanxLoginEnabled';
 import { CardSDK } from '../../../../components/UI/Card/sdk/CardSDK';
-import { mapCountryToLocation } from '../../../../components/UI/Card/util/mapCountryToLocation';
-import {
-  CardLocation,
-  CardVerificationState,
-} from '../../../../components/UI/Card/types';
+import { CardVerificationState } from '../../../../components/UI/Card/types';
 
 /**
  * Card KYC notification deeplink handler
@@ -56,27 +46,9 @@ export const handleCardKycNotification = async () => {
   try {
     const state = ReduxService.store.getState();
 
-    // Check feature flags
-    const shouldHandleKycNotification = isBaanxLoginEnabled({
-      alwaysShowCardButton: selectAlwaysShowCardButton(state),
-      cardGeoLocation: selectCardGeoLocation(state) as string,
-      cardSupportedCountries: selectCardSupportedCountries(state) as Record<
-        string,
-        boolean
-      >,
-      displayCardButtonFeatureFlag: selectDisplayCardButtonFeatureFlag(state),
-    });
-
-    if (!shouldHandleKycNotification) {
-      Logger.log(
-        '[handleCardKycNotification] Card feature is not enabled, skipping',
-      );
-      return;
-    }
-
     // Get user state
     const onboardingId = selectOnboardingId(state);
-    const isAuthenticated = selectIsAuthenticatedCard(state);
+    const isAuthenticated = selectIsCardAuthenticated(state);
     const cardFeatureFlag = selectCardFeatureFlag(state);
 
     Logger.log('[handleCardKycNotification] User state:', {
@@ -149,13 +121,9 @@ async function handleOnboardingFlow(
   );
 
   // Get location from selectedCountry
-  const selectedCountry = selectSelectedCountry(state);
-  const location: CardLocation = mapCountryToLocation(
-    selectedCountry?.key ?? null,
-  );
+  const location = selectCardUserLocation(state);
 
   Logger.log('[handleCardKycNotification] Determined location:', {
-    selectedCountryKey: selectedCountry?.key,
     location,
   });
 
@@ -188,7 +156,7 @@ async function handleAuthenticatedFlow(
   Logger.log('[handleCardKycNotification] Handling authenticated flow');
 
   // Get location directly from userCardLocation (already stored for authenticated users)
-  const userCardLocation = selectUserCardLocation(state);
+  const userCardLocation = selectCardUserLocation(state);
 
   Logger.log(
     '[handleCardKycNotification] User card location:',

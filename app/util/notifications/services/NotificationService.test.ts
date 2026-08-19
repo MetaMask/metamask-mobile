@@ -10,7 +10,14 @@ import {
   ChannelId,
   notificationChannels,
 } from '../../../util/notifications/androidChannels';
-import NotificationService, { getPushPermission } from './NotificationService';
+import NotificationService, {
+  getPushPermission,
+  getPushPermissionStatus,
+  isPushPermissionGranted,
+  isPushPermissionPromptable,
+  requestPushPermissions,
+} from './NotificationService';
+import { markPushNotificationOsPromptRequested } from '../../../actions/onboarding';
 import { store } from '../../../store';
 
 jest.mock('@notifee/react-native', () => ({
@@ -143,6 +150,118 @@ describe('getPushPermission', () => {
     expect(await getPushPermission()).toBe('authorized');
     mocks.mockGetAllPermissions.mockResolvedValue({ permission: 'denied' });
     expect(await getPushPermission()).toBe('denied');
+  });
+});
+
+describe('isPushPermissionGranted', () => {
+  const arrangeMocks = (status: string) =>
+    jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
+      authorizationStatus: status,
+    } as unknown as NotificationSettings);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each([
+    { status: AuthorizationStatus.AUTHORIZED, expected: true },
+    { status: AuthorizationStatus.PROVISIONAL, expected: true },
+    { status: AuthorizationStatus.DENIED, expected: false },
+    { status: AuthorizationStatus.NOT_DETERMINED, expected: false },
+  ])(
+    'returns $expected when status is $status',
+    async ({ status, expected }) => {
+      arrangeMocks(status as unknown as string);
+      expect(await isPushPermissionGranted()).toBe(expected);
+    },
+  );
+
+  it('returns false when getNotificationSettings throws', async () => {
+    jest
+      .mocked(notifee.getNotificationSettings)
+      .mockRejectedValue(new Error('TEST ERROR'));
+    expect(await isPushPermissionGranted()).toBe(false);
+  });
+});
+
+describe('getPushPermissionStatus', () => {
+  const arrangeMocks = (status: string) =>
+    jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
+      authorizationStatus: status,
+    } as unknown as NotificationSettings);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each([
+    { status: AuthorizationStatus.AUTHORIZED, expected: 'granted' },
+    { status: AuthorizationStatus.PROVISIONAL, expected: 'granted' },
+    { status: AuthorizationStatus.NOT_DETERMINED, expected: 'promptable' },
+    { status: AuthorizationStatus.DENIED, expected: 'denied' },
+  ])(
+    'returns $expected when status is $status',
+    async ({ status, expected }) => {
+      arrangeMocks(status as unknown as string);
+
+      const result = await getPushPermissionStatus();
+
+      expect(result).toBe(expected);
+    },
+  );
+
+  it('returns denied when getNotificationSettings throws', async () => {
+    jest
+      .mocked(notifee.getNotificationSettings)
+      .mockRejectedValue(new Error('TEST ERROR'));
+
+    const result = await getPushPermissionStatus();
+
+    expect(result).toBe('denied');
+  });
+});
+
+describe('isPushPermissionPromptable', () => {
+  const arrangeMocks = (status: string) =>
+    jest.mocked(notifee.getNotificationSettings).mockResolvedValue({
+      authorizationStatus: status,
+    } as unknown as NotificationSettings);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(Platform).OS = 'ios';
+  });
+
+  it.each([
+    { status: AuthorizationStatus.AUTHORIZED, expected: false },
+    { status: AuthorizationStatus.PROVISIONAL, expected: false },
+    { status: AuthorizationStatus.NOT_DETERMINED, expected: true },
+    { status: AuthorizationStatus.DENIED, expected: false },
+  ])(
+    'returns $expected when status is $status',
+    async ({ status, expected }) => {
+      arrangeMocks(status as unknown as string);
+      expect(await isPushPermissionPromptable()).toBe(expected);
+    },
+  );
+
+  it.each([
+    { status: AuthorizationStatus.AUTHORIZED, expected: false },
+    { status: AuthorizationStatus.DENIED, expected: true },
+  ])(
+    'returns $expected on android when status is $status',
+    async ({ status, expected }) => {
+      jest.mocked(Platform).OS = 'android';
+      arrangeMocks(status as unknown as string);
+      expect(await isPushPermissionPromptable()).toBe(expected);
+    },
+  );
+
+  it('returns false when getNotificationSettings throws', async () => {
+    jest
+      .mocked(notifee.getNotificationSettings)
+      .mockRejectedValue(new Error('TEST ERROR'));
+    expect(await isPushPermissionPromptable()).toBe(false);
   });
 });
 
@@ -426,7 +545,67 @@ describe('NotificationService - displayNotification', () => {
         title: notification.title,
         body: notification.body,
         data: { dataStr: JSON.stringify(notification.data) },
+        android: expect.objectContaining({
+          smallIcon: 'ic_notification_small',
+        }),
       }),
+    );
+    const displayCall = mocks.mockNotifeeDisplayNotification.mock.calls[0][0];
+    expect(displayCall.android).not.toHaveProperty('largeIcon');
+  });
+});
+
+describe('requestPushPermissions', () => {
+  const arrangeMocks = (permission: 'authorized' | 'denied') => {
+    const mockGetAllPermissions = jest
+      .spyOn(NotificationService, 'getAllPermissions')
+      .mockResolvedValue({ permission });
+    const mockDispatch = jest.spyOn(store, 'dispatch');
+
+    return { mockGetAllPermissions, mockDispatch };
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('records the OS push prompt request so the onboarding checklist stops nudging', async () => {
+    const mocks = arrangeMocks('authorized');
+
+    const result = await requestPushPermissions();
+
+    expect(result).toBe(true);
+    expect(mocks.mockGetAllPermissions).toHaveBeenCalledWith(true);
+    expect(mocks.mockDispatch).toHaveBeenCalledWith(
+      markPushNotificationOsPromptRequested(),
+    );
+  });
+
+  it('records the request even when the user denies OS permission', async () => {
+    const mocks = arrangeMocks('denied');
+
+    const result = await requestPushPermissions();
+
+    expect(result).toBe(false);
+    expect(mocks.mockDispatch).toHaveBeenCalledWith(
+      markPushNotificationOsPromptRequested(),
+    );
+  });
+
+  it('does not record the request when the permission flow throws before asking the OS', async () => {
+    jest
+      .spyOn(NotificationService, 'getAllPermissions')
+      .mockRejectedValue(new Error('Timeout'));
+    const mockDispatch = jest.spyOn(store, 'dispatch');
+
+    await expect(requestPushPermissions()).rejects.toThrow('Timeout');
+
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      markPushNotificationOsPromptRequested(),
     );
   });
 });

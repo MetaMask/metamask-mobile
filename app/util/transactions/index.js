@@ -34,7 +34,6 @@ import {
   toTokenMinimalUnit,
 } from '../number';
 import AppConstants from '../../core/AppConstants';
-import { isMainnetByChainId } from '../networks';
 import FIRST_PARTY_CONTRACT_NAMES from '../../constants/first-party-contracts';
 import {
   UINT256_BN_MAX_VALUE,
@@ -129,6 +128,7 @@ export const TRANSACTION_TYPES = {
   SITE_INTERACTION: 'transaction_site_interaction',
   SWAPS_TRANSACTION: 'swaps_transaction',
   BRIDGE_TRANSACTION: 'bridge_transaction',
+  BATCH_SELL_TRANSACTION: 'batch_sell_transaction',
 };
 
 const MULTIPLIER_HEX = 16;
@@ -178,6 +178,12 @@ const reviewActionKeys = {
   ),
   [TransactionType.musdConversion]: strings(
     'transactions.tx_review_musd_conversion',
+  ),
+  [TransactionType.moneyAccountDeposit]: strings(
+    'transactions.money_account_deposit',
+  ),
+  [TransactionType.moneyAccountWithdraw]: strings(
+    'transactions.money_account_withdraw',
   ),
 };
 
@@ -235,8 +241,17 @@ const actionKeys = {
   [TransactionType.predictWithdraw]: strings(
     'transactions.tx_review_predict_withdraw',
   ),
+  [TransactionType.perpsWithdraw]: strings(
+    'transactions.tx_review_perps_withdraw',
+  ),
   [TransactionType.musdConversion]: strings(
     'transactions.tx_review_musd_conversion',
+  ),
+  [TransactionType.moneyAccountDeposit]: strings(
+    'transactions.money_account_deposit',
+  ),
+  [TransactionType.moneyAccountWithdraw]: strings(
+    'transactions.money_account_withdraw',
   ),
 };
 
@@ -509,15 +524,6 @@ export async function isSmartContractAddress(
 
   address = toChecksumAddress(address);
 
-  // If in contract map we don't need to cache it
-  if (
-    isMainnetByChainId(chainId) &&
-    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
-      ?.data?.[address]
-  ) {
-    return Promise.resolve(true);
-  }
-
   const { NetworkController } = Engine.context;
   const finalNetworkClientId =
     networkClientId ?? NetworkController.findNetworkClientIdByChainId(chainId);
@@ -579,6 +585,8 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.perpsDepositAndOrder,
       TransactionType.musdConversion,
       TransactionType.musdClaim,
+      TransactionType.moneyAccountDeposit,
+      TransactionType.moneyAccountWithdraw,
     ].includes(type)
   ) {
     return type;
@@ -612,6 +620,18 @@ export async function getTransactionActionKey(transaction, chainId) {
     return TransactionType.predictWithdraw;
   }
 
+  if (hasTransactionType(transaction, [TransactionType.perpsWithdraw])) {
+    return TransactionType.perpsWithdraw;
+  }
+
+  if (hasTransactionType(transaction, [TransactionType.moneyAccountDeposit])) {
+    return TransactionType.moneyAccountDeposit;
+  }
+
+  if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
+    return TransactionType.moneyAccountWithdraw;
+  }
+
   if (!to) {
     return CONTRACT_METHOD_DEPLOY;
   }
@@ -638,6 +658,10 @@ export async function getTransactionActionKey(transaction, chainId) {
 
   if (type === TransactionType.contractInteraction) {
     return SMART_CONTRACT_INTERACTION_ACTION_KEY;
+  }
+
+  if (type === TransactionType.simpleSend) {
+    return SEND_ETHER_ACTION_KEY;
   }
 
   const toSmartContract =

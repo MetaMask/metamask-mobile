@@ -1,15 +1,17 @@
 import React from 'react';
 import { View } from 'react-native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import { TooltipContentProps } from './types';
 import createStyles from './FeesTooltipContent.styles';
 import { formatFeeRate } from '../../../hooks/usePerpsOrderFees';
-import FoxIcon from '../../FoxIcon/FoxIcon';
+import VipIcon from '../../../../../../images/rewards/vip.svg';
+import RewardsVipBadge from '../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
+import {
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 interface FeesTooltipContentProps extends TooltipContentProps {
   data?: {
@@ -24,22 +26,19 @@ interface FeesTooltipContentProps extends TooltipContentProps {
 const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
   const { styles } = useStyles(createStyles, {});
 
-  // Use passed fee rates or show N/A if not provided
   const metamaskFee = formatFeeRate(data?.metamaskFeeRate);
   const providerFee = formatFeeRate(data?.protocolFeeRate);
   const originalFee = formatFeeRate(data?.originalMetamaskFeeRate);
   const discountPercentage = data?.feeDiscountPercentage;
 
-  // Check if there's a discount to display
   const hasDiscount = discountPercentage && discountPercentage > 0;
 
   return (
     <View testID={testID}>
-      {/* Discount Banner */}
       {hasDiscount && (
         <View style={styles.discountBanner}>
-          <FoxIcon width={16} height={16} />
-          <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+          <VipIcon name="VipIcon" width={14} height={14} />
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings('perps.tooltips.fees.discount_message', {
               percentage: discountPercentage.toString(),
             })}
@@ -47,44 +46,42 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
         </View>
       )}
 
-      {/* MetaMask Fee Row */}
       <View style={styles.feeRow}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('perps.tooltips.fees.metamask_fee')}
         </Text>
         <View style={styles.feeValueContainer}>
+          {hasDiscount && <RewardsVipBadge />}
           {hasDiscount && (
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Muted}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextMuted}
               style={styles.strikethroughText}
             >
               {originalFee}
             </Text>
           )}
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {metamaskFee}
           </Text>
         </View>
       </View>
 
-      {/* Provider Fee Row */}
       <View style={styles.feeRow}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('perps.tooltips.fees.provider_fee')}
         </Text>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {providerFee}
         </Text>
       </View>
 
-      {/* Bridge Fee Row (when paying with custom token) */}
       {data?.bridgeFeeFormatted ? (
         <View style={styles.feeRow}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {strings('perps.tooltips.fees.bridge_fee')}
           </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {data.bridgeFeeFormatted}
           </Text>
         </View>

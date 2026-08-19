@@ -6,9 +6,13 @@ const initialState = {
   primaryCurrency: 'ETH',
   lockTime: -1, // Disabled by default,
   avatarAccountType: AvatarAccountType.Maskicon,
-  hideZeroBalanceTokens: false,
+  hideZeroBalanceTokens: true,
   basicFunctionalityEnabled: true,
   deepLinkModalDisabled: false,
+  hapticsEnabled: true,
+  // Whether this account is shown on the Top Traders leaderboard. Local mirror
+  // of the backend opt-in/out state; defaults to shown. Not persisted to AUS.
+  showAccountOnLeaderboard: true,
   // Perps chart preferences
   perpsChartPreferences: {
     preferredCandlePeriod: '15m', // Default to 15 minutes
@@ -66,6 +70,16 @@ const settingsReducer = (state = initialState, action) => {
       return {
         ...state,
         deepLinkModalDisabled: action.deepLinkModalDisabled,
+      };
+    case 'SET_HAPTICS_ENABLED':
+      return {
+        ...state,
+        hapticsEnabled: action.hapticsEnabled,
+      };
+    case 'SET_SHOW_ACCOUNT_ON_LEADERBOARD':
+      return {
+        ...state,
+        showAccountOnLeaderboard: action.showAccountOnLeaderboard,
       };
     case 'SET_PERPS_CHART_PREFERRED_CANDLE_PERIOD':
       return {

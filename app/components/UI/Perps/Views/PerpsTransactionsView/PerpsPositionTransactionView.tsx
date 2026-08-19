@@ -1,24 +1,25 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, { useLayoutEffect, useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+  HeaderStandard,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import Routes from '../../../../../constants/navigation/Routes';
 import ScreenView from '../../../../Base/ScreenView';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
 import {
@@ -36,10 +37,13 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 
 const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route = useRoute<PerpsPositionTransactionRouteProp>();
   const selectedInternalAccount = useSelector(
     selectSelectedInternalAccountByScope,
@@ -69,10 +73,7 @@ const PerpsPositionTransactionView: React.FC = () => {
     // Handle missing transaction data
     return (
       <ScreenView>
-        <HeaderCompactStandard
-          includesTopInset
-          onBack={() => navigation.goBack()}
-        />
+        <HeaderStandard includesTopInset onBack={() => navigation.goBack()} />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
@@ -88,6 +89,11 @@ const PerpsPositionTransactionView: React.FC = () => {
     if (!explorerUrl) {
       return;
     }
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+      location: 'perps_transaction_details',
+      text: strings('perps.transactions.view_on_explorer'),
+      url: explorerUrl,
+    });
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -138,14 +144,19 @@ const PerpsPositionTransactionView: React.FC = () => {
   ].filter(Boolean);
 
   // Secondary detail rows - only show if values exist
-  const secondaryDetailRows = [
-    transaction.fill?.fee !== undefined &&
-      transaction.fill?.fee !== null && {
-        label: strings('perps.transactions.position.fees'),
-        value: formatPositiveFiat(transaction.fill.fee),
-        textColor: TextColor.Default,
-      },
-  ].filter(Boolean);
+  const secondaryDetailRows: {
+    label: string;
+    value: string;
+    textColor: TextColor;
+  }[] = [];
+
+  if (transaction.fill?.fee !== undefined && transaction.fill?.fee !== null) {
+    secondaryDetailRows.push({
+      label: strings('perps.transactions.position.fees'),
+      value: formatPositiveFiat(transaction.fill.fee),
+      textColor: TextColor.TextDefault,
+    });
+  }
 
   if (
     transaction.fill?.pnl &&
@@ -158,7 +169,7 @@ const PerpsPositionTransactionView: React.FC = () => {
     secondaryDetailRows.push({
       label: strings('perps.transactions.position.pnl'),
       value: transaction.fill?.amount || '0',
-      textColor: isPositive ? TextColor.Success : TextColor.Error,
+      textColor: isPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault,
     });
   }
 
@@ -168,13 +179,13 @@ const PerpsPositionTransactionView: React.FC = () => {
   //   secondaryDetailRows.push({
   //     label: strings('perps.transactions.position.points'),
   //     value: `+${transaction.fill?.points}`,
-  //     textColor: TextColor.Success,
+  //     textColor: TextColor.SuccessDefault,
   //   });
   // }
 
   return (
     <ScreenView>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={transaction?.fill?.shortTitle || ''}
         onBack={() => navigation.goBack()}
         includesTopInset
@@ -200,14 +211,14 @@ const PerpsPositionTransactionView: React.FC = () => {
                     ]}
                   >
                     <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Alternative}
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
                     >
                       {detail.label}
                     </Text>
                     <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Default}
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextDefault}
                     >
                       {detail.value}
                     </Text>
@@ -234,7 +245,7 @@ const PerpsPositionTransactionView: React.FC = () => {
                   >
                     <Text style={styles.detailLabel}>{detail.label}</Text>
                     <Text
-                      variant={TextVariant.BodySM}
+                      variant={TextVariant.BodySm}
                       color={detail.textColor}
                       style={styles.detailValue}
                     >
@@ -249,22 +260,24 @@ const PerpsPositionTransactionView: React.FC = () => {
             {/* Trade again button */}
             {market && (
               <Button
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={strings('perps.transactions.trade_again')}
+                isFullWidth
                 onPress={handleTradeAgain}
-              />
+              >
+                {strings('perps.transactions.trade_again')}
+              </Button>
             )}
             {/* Block explorer button */}
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('perps.transactions.view_on_explorer')}
+              isFullWidth
               onPress={handleViewOnBlockExplorer}
               style={styles.blockExplorerButton}
-            />
+            >
+              {strings('perps.transactions.view_on_explorer')}
+            </Button>
           </View>
         </View>
       </ScrollView>

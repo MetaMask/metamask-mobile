@@ -20,7 +20,8 @@ platform :ios do
     # Convert groups parameter to array (Fastlane CLI passes strings, not arrays)
     groups_param = options[:groups] || ['MetaMask BETA & Release Candidates']
     groups = groups_param.is_a?(Array) ? groups_param : [groups_param]
-    notify_external_testers = true
+    distribute_external = options[:distribute_external].nil? ? false : options[:distribute_external].to_s.downcase == 'true'
+    notify_external_testers = distribute_external
     
     if ipa_path.nil? || ipa_path.empty?
       UI.user_error!("You must provide an ipa_path using ipa_path: '/path/to/app.ipa'")
@@ -92,15 +93,43 @@ platform :ios do
       key_filepath: api_key_key_filepath,
     )
     
-    # Upload to TestFlight with API key from app_store_connect_api_key action
-    upload_to_testflight(
+    # Upload to TestFlight with API key from app_store_connect_api_key action.
+    # When distribute_external is false we skip_submission so the action only
+    # uploads the IPA binary. This avoids TestFlight management API calls that
+    # require an App Manager (or higher) role API key — a Developer role key
+    # can upload builds but cannot manage distribution.
+    testflight_options = {
       api_key: api_key,
       ipa: ipa_path,
-      distribute_external: true,
+      reject_build_waiting_for_review: false,
+      distribute_external: distribute_external,
       groups: groups,
       notify_external_testers: notify_external_testers,
       changelog: changelog_message
-    )
+    }
+
+    if distribute_external
+      testflight_options[:distribute_external] = true
+      testflight_options[:notify_external_testers] = true
+      testflight_options[:groups] = groups
+    else
+      testflight_options[:skip_submission] = true
+    end
+
+    begin
+      upload_to_testflight(testflight_options)
+    rescue => e
+      # When distribute_external is true, Apple only allows one build "Waiting for Review"
+      # per external group at a time. If the previous build is still pending review, the
+      # submission will fail. We treat this as a non-fatal warning so the build is still
+      # uploaded (internal testers can use it) and the in-review build is not cancelled.
+      if distribute_external && e.message.to_s =~ /waiting.for.review|another.build|submission.already|in review/i
+        UI.important("⚠️  External distribution skipped: a build is already waiting for Apple review.")
+        UI.important("   The uploaded build is available to internal testers.")
+        UI.important("   The in-review build will not be cancelled and should complete review normally.")
+      else
+        raise e
+      end
+    end
   end
 end
-

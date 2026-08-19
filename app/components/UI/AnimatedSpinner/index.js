@@ -82,6 +82,11 @@ const createStyles = (colors, measures) =>
     },
   });
 
+/**
+ * @deprecated Use `Spinner` from `@metamask/design-system-react-native`
+ * instead. This component relies on the deprecated `react-native-vector-icons`
+ * package and predates the design-system spinner.
+ */
 export default class AnimatedSpinner extends PureComponent {
   spinValue = new Animated.Value(0);
 

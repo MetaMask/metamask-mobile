@@ -1,5 +1,11 @@
 import React from 'react';
-import { fireEvent, within } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import {
+  InteractionManager,
+  ScrollView,
+  View,
+  type HostInstance,
+} from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import SecuritySettings from './SecuritySettings';
@@ -14,14 +20,12 @@ import {
   SDK_SECTION,
   SECURITY_SETTINGS_DELETE_WALLET_BUTTON,
 } from './SecuritySettings.constants';
-import { useAccountMenuEnabled } from '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 import { SecurityPrivacyViewSelectorsIDs } from './SecurityPrivacyView.testIds';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { strings } from '../../../../../locales/i18n';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { ReduxStore } from '../../../../core/redux/types';
-
 const initialState = {
   privacy: { approvedHosts: {} },
   browser: { history: [] },
@@ -54,7 +58,7 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetOptions,
       goBack: mockGoBack,
     }),
-    useFocusEffect: jest.fn(),
+    useFocusEffect: jest.fn((callback: () => void) => callback()),
   };
 });
 
@@ -64,9 +68,9 @@ jest.mock('@react-native-cookies/cookies', () => ({
 }));
 
 let mockUseParamsValues: {
-  scrollToDetectNFTs?: boolean;
+  scrollToSection?: 'metametrics' | 'data-collection';
 } = {
-  scrollToDetectNFTs: undefined,
+  scrollToSection: undefined,
 };
 
 jest.mock('../../../../util/navigation/navUtils', () => ({
@@ -91,19 +95,26 @@ jest.mock('../../../../core/Authentication/hooks/useAuthCapabilities', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled',
-  () => ({
-    useAccountMenuEnabled: jest.fn(() => false),
-  }),
-);
-
 describe('SecuritySettings', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     mockGoBack.mockClear();
     mockUseParamsValues = {
-      scrollToDetectNFTs: undefined,
+      scrollToSection: undefined,
     };
+
+    jest
+      .spyOn(ScrollView.prototype, 'getNativeScrollRef')
+      .mockReturnValue({} as HostInstance);
+
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((callback) => {
+        setTimeout(() => {
+          if (typeof callback === 'function') callback();
+        }, 0);
+        return { then: jest.fn(), done: jest.fn(), cancel: jest.fn() };
+      });
 
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       dispatch: jest.fn(),
@@ -122,10 +133,80 @@ describe('SecuritySettings', () => {
     jest.restoreAllMocks();
   });
   it('renders correctly', () => {
-    const wrapper = renderWithProvider(<SecuritySettings />, {
+    const { getByText } = renderWithProvider(<SecuritySettings />, {
       state: initialState,
     });
-    expect(wrapper.toJSON()).toMatchSnapshot();
+    expect(getByText(strings('app_settings.security_title'))).toBeOnTheScreen();
+  });
+
+  it('renders the metametrics sections when scrollToSection param is set', () => {
+    mockUseParamsValues = {
+      scrollToSection: 'data-collection',
+    };
+    const { getByTestId } = renderWithProvider(<SecuritySettings />, {
+      state: initialState,
+    });
+    expect(getByTestId(META_METRICS_SECTION)).toBeOnTheScreen();
+    expect(getByTestId(META_METRICS_DATA_MARKETING_SECTION)).toBeOnTheScreen();
+  });
+
+  it.each(['metametrics', 'data-collection'] as const)(
+    'scrolls to the %s section when scrollToSection param is set',
+    async (scrollToSection) => {
+      const measuredSectionTop = 42;
+      const measureLayoutSpy = jest
+        .spyOn(View.prototype, 'measureLayout')
+        .mockImplementationOnce((_node, onSuccess) =>
+          onSuccess(0, measuredSectionTop, 0, 0),
+        );
+      const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+
+      mockUseParamsValues = { scrollToSection };
+      renderWithProvider(<SecuritySettings />, { state: initialState });
+
+      await waitFor(() =>
+        expect(scrollToSpy).toHaveBeenCalledWith({
+          y: measuredSectionTop,
+          animated: true,
+        }),
+      );
+
+      measureLayoutSpy.mockRestore();
+      scrollToSpy.mockRestore();
+    },
+  );
+
+  it('does not measure when the native scroll ref is unavailable', async () => {
+    jest
+      .spyOn(ScrollView.prototype, 'getNativeScrollRef')
+      .mockReturnValue(null);
+    const measureLayoutSpy = jest.spyOn(View.prototype, 'measureLayout');
+
+    mockUseParamsValues = { scrollToSection: 'metametrics' };
+    renderWithProvider(<SecuritySettings />, { state: initialState });
+
+    await waitFor(() =>
+      expect(InteractionManager.runAfterInteractions).toHaveBeenCalled(),
+    );
+    expect(measureLayoutSpy).not.toHaveBeenCalled();
+
+    measureLayoutSpy.mockRestore();
+  });
+
+  it('does not scroll when the section layout cannot be measured', async () => {
+    const measureLayoutSpy = jest
+      .spyOn(View.prototype, 'measureLayout')
+      .mockImplementationOnce((_node, _onSuccess, onFail) => onFail?.());
+    const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+
+    mockUseParamsValues = { scrollToSection: 'metametrics' };
+    renderWithProvider(<SecuritySettings />, { state: initialState });
+
+    await waitFor(() => expect(measureLayoutSpy).toHaveBeenCalled());
+    expect(scrollToSpy).not.toHaveBeenCalled();
+
+    measureLayoutSpy.mockRestore();
+    scrollToSpy.mockRestore();
   });
 
   it('renders inline header with Security and privacy title', () => {
@@ -145,33 +226,7 @@ describe('SecuritySettings', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('renders all sections when account menu is disabled', () => {
-    const { getByText, getByTestId } = renderWithProvider(
-      <SecuritySettings />,
-      {
-        state: initialState,
-      },
-    );
-    expect(getByText(strings('app_settings.protect_title'))).toBeTruthy();
-    expect(
-      getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
-    ).toBeTruthy();
-    expect(getByTestId(AUTO_LOCK_SECTION)).toBeTruthy();
-    expect(
-      getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
-    ).toBeTruthy();
-    expect(getByTestId(SDK_SECTION)).toBeTruthy();
-    expect(getByTestId(CLEAR_PRIVACY_SECTION)).toBeTruthy();
-    expect(getByTestId(CLEAR_BROWSER_HISTORY_SECTION)).toBeTruthy();
-    expect(getByTestId(META_METRICS_SECTION)).toBeTruthy();
-    expect(getByTestId(DELETE_METRICS_BUTTON)).toBeTruthy();
-    expect(getByTestId(META_METRICS_DATA_MARKETING_SECTION)).toBeTruthy();
-    expect(getByTestId(SECURITY_SETTINGS_DELETE_WALLET_BUTTON)).toBeTruthy();
-  });
-
-  it('renders all sections without SDK section when account menu is enabled', () => {
-    jest.mocked(useAccountMenuEnabled).mockReturnValue(true);
-
+  it('renders all sections without SDK section (SDK is in account menu)', () => {
     const { getByText, getByTestId, queryByTestId } = renderWithProvider(
       <SecuritySettings />,
       {
@@ -186,7 +241,7 @@ describe('SecuritySettings', () => {
     expect(
       getByTestId(SecurityPrivacyViewSelectorsIDs.DEVICE_SECURITY_TOGGLE),
     ).toBeTruthy();
-    expect(queryByTestId(SDK_SECTION)).toBeNull();
+    expect(queryByTestId(SDK_SECTION)).not.toBeOnTheScreen();
     expect(getByTestId(CLEAR_PRIVACY_SECTION)).toBeTruthy();
     expect(getByTestId(CLEAR_BROWSER_HISTORY_SECTION)).toBeTruthy();
     expect(getByTestId(META_METRICS_SECTION)).toBeTruthy();

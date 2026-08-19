@@ -6,30 +6,40 @@ import React, {
   useContext,
   useRef,
 } from 'react';
-import { Linking, View } from 'react-native';
+import { Linking } from 'react-native';
+import {
+  useNavigation,
+  useRoute,
+  StackActions,
+} from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import {
+  BannerBase,
+  Box,
+  HeaderStandard,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import ActionView from '../../UI/ActionView';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { passwordRequirementsMet } from '../../../util/password';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import { createStyles } from './styles';
 import { RevealSeedViewSelectorsIDs } from './RevealSeedView.testIds';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import Banner, {
-  BannerAlertSeverity,
-  BannerVariant,
-} from '../../../component-library/components/Banners/Banner';
 import { IconName as IconNameLibrary } from '../../../component-library/components/Icons/Icon';
 import {
   ButtonIconVariant,
@@ -44,16 +54,21 @@ import {
   SRPTabView,
 } from './components';
 import { useRevealCredential, useSRPQuiz } from './hooks';
-import { IRevealPrivateCredentialProps, RevealSrpStage } from './types';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-
+import {
+  IRevealPrivateCredentialProps,
+  RevealPrivateCredentialRouteProp,
+  RevealSrpStage,
+} from './types';
 const RevealPrivateCredential = ({
-  navigation,
   cancel,
-  route,
   showCancelButton,
 }: IRevealPrivateCredentialProps) => {
-  const hasNavigation = !!navigation;
+  const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<RevealPrivateCredentialRouteProp>();
+  const tabBarHeight = useContext(BottomTabBarHeightContext);
+  const { bottom: safeAreaBottom } = useSafeAreaInsets();
+  const bottomSpacing = tabBarHeight ?? safeAreaBottom;
+  const hasNavigation = !cancel;
   const shouldUpdateNav = route?.params?.shouldUpdateNav;
   const keyringId = route?.params?.keyringId;
 
@@ -66,11 +81,7 @@ const RevealPrivateCredential = ({
   const checkSummedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-
-  const theme = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { colors } = theme;
-  const styles = createStyles(theme, colors);
 
   const selectedAddress =
     route?.params?.selectedAccount?.address || checkSummedAddress;
@@ -145,14 +156,14 @@ const RevealPrivateCredential = ({
       return;
     }
     if (route?.params?.popToTopOnDone) {
-      navigation.popToTop();
+      navigation.dispatch(StackActions.popToTop());
       return;
     }
     if (shouldUpdateNav) {
-      navigation.pop();
+      navigation.dispatch(StackActions.pop());
       return;
     }
-    navigation.pop();
+    navigation.dispatch(StackActions.pop());
   }, [
     hasNavigation,
     shouldUpdateNav,
@@ -257,31 +268,36 @@ const RevealPrivateCredential = ({
   }, [trackEvent, createEventBuilder, clipboardPrivateCredential, toastRef]);
 
   const renderSRPExplanation = () => (
-    <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
       {strings('reveal_credential.seed_phrase_explanation')[0]}{' '}
-      <Text color={colors.primary.default} onPress={handleLearnMoreClick}>
+      <Text color={TextColor.PrimaryDefault} onPress={handleLearnMoreClick}>
         {strings('reveal_credential.seed_phrase_explanation')[1]}
       </Text>{' '}
       {strings('reveal_credential.seed_phrase_explanation')[2]}{' '}
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {strings('reveal_credential.seed_phrase_explanation')[3]}
       </Text>
     </Text>
   );
 
   const renderWarning = () => (
-    <View testID={RevealSeedViewSelectorsIDs.SEED_PHRASE_WARNING_ID}>
-      <Banner
-        variant={BannerVariant.Alert}
-        severity={BannerAlertSeverity.Error}
+    <Box testID={RevealSeedViewSelectorsIDs.SEED_PHRASE_WARNING_ID}>
+      <BannerBase
+        startAccessory={
+          <Icon
+            name={IconName.Danger}
+            color={IconColor.ErrorDefault}
+            size={IconSize.Lg}
+          />
+        }
         title={
-          <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
             {strings('reveal_credential.seed_phrase_warning_explanation')}
           </Text>
         }
-        style={styles.warningWrapper}
+        twClassName="mt-6 border border-error-default bg-error-muted"
       />
-    </View>
+    </Box>
   );
 
   const renderActionView = () => (
@@ -309,12 +325,14 @@ const RevealPrivateCredential = ({
       extraScrollHeight={40}
       showsVerticalScrollIndicator={false}
     >
-      <View>
-        {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
-        <View style={[styles.rowWrapper, styles.normalText]}>
+      <>
+        <Box twClassName="p-5 pb-0">
           <>
             {unlocked ? (
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings('reveal_credential.reveal_srp_description')}
               </Text>
             ) : (
@@ -322,7 +340,7 @@ const RevealPrivateCredential = ({
             )}
             {unlocked ? null : renderWarning()}
           </>
-        </View>
+        </Box>
         {unlocked ? (
           <SRPTabView
             clipboardPrivateCredential={clipboardPrivateCredential}
@@ -331,21 +349,20 @@ const RevealPrivateCredential = ({
             onRevealSeedPhrase={() => setShowSeedPhrase(!showSeedPhrase)}
             onCopyToClipboard={copyPrivateCredentialToClipboard}
             onTabChange={onTabBarChange}
-            styles={styles}
           />
         ) : (
-          <View style={styles.rowWrapper}>
+          <Box twClassName="p-5 pb-0">
             <PasswordEntry
+              password={password}
               onPasswordChange={setPassword}
               onSubmit={tryUnlock}
               warningMessage={warningIncorrectPassword}
               showPassword={showPassword}
               onToggleShowPassword={() => setShowPassword(!showPassword)}
-              styles={styles}
             />
-          </View>
+          </Box>
         )}
-      </View>
+      </>
     </ActionView>
   );
 
@@ -355,7 +372,6 @@ const RevealPrivateCredential = ({
         <SRPQuizIntroduction
           onGetStarted={handleGetStartedClick}
           onLearnMore={handleLearnMoreClick}
-          styles={styles}
         />
       );
     }
@@ -368,7 +384,6 @@ const RevealPrivateCredential = ({
           onAnswerClick={handleQuestionAnswerClick}
           onContinueClick={handleAnsweredQuestionClick}
           onLearnMore={handleLearnMoreClick}
-          styles={styles}
         />
       );
     }
@@ -376,11 +391,12 @@ const RevealPrivateCredential = ({
   };
 
   return (
-    <View
-      style={styles.wrapper}
+    <Box
+      twClassName="flex-1 h-full bg-default"
+      style={{ paddingBottom: bottomSpacing }}
       testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('reveal_credential.seed_phrase_title')}
         onBack={headerNavigationBack}
         backButtonProps={{
@@ -394,7 +410,7 @@ const RevealPrivateCredential = ({
         isSRP
         hasNavigation={hasNavigation}
       />
-    </View>
+    </Box>
   );
 };
 

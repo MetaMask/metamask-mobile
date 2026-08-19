@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useCallback, useContext } from 'react';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
@@ -11,11 +12,12 @@ import {
 } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
 import { selectPredictWithdrawTransaction } from '../selectors/predictController';
+import Routes from '../../../../constants/navigation/Routes';
 
 export const usePredictWithdraw = () => {
   const { prepareWithdraw } = usePredictTrading();
   const { navigateToConfirmation } = useConfirmNavigation();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { toastRef } = useContext(ToastContext);
 
   const withdrawTransaction = useSelector(selectPredictWithdrawTransaction);
@@ -24,6 +26,7 @@ export const usePredictWithdraw = () => {
     try {
       navigateToConfirmation({
         loader: ConfirmationLoader.CustomAmount,
+        stack: Routes.PREDICT.ROOT,
       });
 
       const response = await prepareWithdraw({});

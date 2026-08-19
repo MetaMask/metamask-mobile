@@ -7,21 +7,24 @@ import {
   NetworkManagerSelectorIDs,
   NetworkManagerSelectorText,
 } from '../../../app/components/UI/NetworkMultiSelector/NetworkManager.testIds';
-import TestHelpers from '../../helpers';
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import { EncapsulatedElementType } from '../../framework';
+import { PlatformDetector } from '../../framework/PlatformLocator';
+import WalletView from './WalletView';
+import TokensFullView from './HomeSections';
 
 class NetworkManager {
   /**
    * Button to open the network manager
    */
-  get openNetworkManagerButton(): DetoxElement {
+  get openNetworkManagerButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
   /**
    * Select the bottom sheet of the network manager
    */
-  get networkManagerBottomSheet(): DetoxElement {
+  get networkManagerBottomSheet(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.NETWORK_MANAGER_BOTTOM_SHEET,
     );
@@ -30,7 +33,7 @@ class NetworkManager {
   /**
    * Select the tab of the popular networks
    */
-  get popularNetworksTab(): DetoxElement {
+  get popularNetworksTab(): EncapsulatedElementType {
     return Matchers.getElementByText(
       NetworkManagerSelectorText.POPULAR_NETWORKS_TAB,
     );
@@ -39,7 +42,7 @@ class NetworkManager {
   /**
    * Select the tab of the custom networks
    */
-  get customNetworksTab(): DetoxElement {
+  get customNetworksTab(): EncapsulatedElementType {
     return Matchers.getElementByText(
       NetworkManagerSelectorText.CUSTOM_NETWORKS_TAB,
     );
@@ -48,7 +51,7 @@ class NetworkManager {
   /**
    * Select the container of the popular networks tab
    */
-  get popularNetworksContainer(): DetoxElement {
+  get popularNetworksContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.POPULAR_NETWORKS_CONTAINER,
     );
@@ -57,7 +60,7 @@ class NetworkManager {
   /**
    * Select the container of the custom networks tab
    */
-  get customNetworksContainer(): DetoxElement {
+  get customNetworksContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.CUSTOM_NETWORKS_CONTAINER,
     );
@@ -66,7 +69,7 @@ class NetworkManager {
   /**
    * Select the button to select all popular networks
    */
-  get selectAllPopularNetworksSelected(): DetoxElement {
+  get selectAllPopularNetworksSelected(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.SELECT_ALL_POPULAR_NETWORKS_SELECTED,
     );
@@ -75,7 +78,7 @@ class NetworkManager {
   /**
    * Select the button to select all popular networks
    */
-  get selectAllPopularNetworksNotSelected(): DetoxElement {
+  get selectAllPopularNetworksNotSelected(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.SELECT_ALL_POPULAR_NETWORKS_NOT_SELECTED,
     );
@@ -84,7 +87,7 @@ class NetworkManager {
   /**
    * Select the network by name wether it is selected or not
    */
-  getNetworkByCaipChainId(caipChainId: CaipChainId): DetoxElement {
+  getNetworkByCaipChainId(caipChainId: CaipChainId): EncapsulatedElementType {
     return Matchers.getElementByID(
       new RegExp(`^network-list-item-${caipChainId}-(selected|not-selected)$`),
     );
@@ -93,7 +96,9 @@ class NetworkManager {
   /**
    * Select the network by name if it is selected
    */
-  getSelectedNetworkByCaipChainId(caipChainId: CaipChainId): DetoxElement {
+  getSelectedNetworkByCaipChainId(
+    caipChainId: CaipChainId,
+  ): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.NETWORK_LIST_ITEM(caipChainId, true),
     );
@@ -102,7 +107,9 @@ class NetworkManager {
   /**
    * Select the network by name if it is not selected
    */
-  getNotSelectedNetworkByCaipChainId(caipChainId: CaipChainId): DetoxElement {
+  getNotSelectedNetworkByCaipChainId(
+    caipChainId: CaipChainId,
+  ): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkManagerSelectorIDs.NETWORK_LIST_ITEM(caipChainId, false),
     );
@@ -111,7 +118,7 @@ class NetworkManager {
   /**
    * Select the network by name in the base control bar
    */
-  getBaseControlBarText(caipChainId: CaipChainId): DetoxElement {
+  getBaseControlBarText(caipChainId: CaipChainId): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}-${caipChainId}`,
     );
@@ -121,7 +128,7 @@ class NetworkManager {
    * Get token element by symbol
    * Note: Gets the first instance in case of duplicates during render cycles
    */
-  getTokenBySymbol(symbol: string): DetoxElement {
+  getTokenBySymbol(symbol: string): EncapsulatedElementType {
     return Matchers.getElementByID(`asset-${symbol}`, 0);
   }
 
@@ -142,6 +149,7 @@ class NetworkManager {
     const tokenElement = this.getTokenBySymbol(symbol);
     await Assertions.expectElementToNotBeVisible(tokenElement, {
       elemDescription: `Token ${symbol} should not be visible`,
+      timeout: 3000,
     });
   }
 
@@ -193,10 +201,45 @@ class NetworkManager {
   }
 
   /**
+   * Navigate to the TokensFullView (via the homepage Tokens section header)
+   * so that the network filter control bar becomes accessible.
+   */
+  async navigateToTokensFullView(): Promise<void> {
+    await WalletView.tapOnNewTokensSection();
+    await TokensFullView.waitForVisible();
+  }
+
+  /**
+   * Navigate back from TokensFullView to the homepage.
+   */
+  async navigateBackFromTokensFullView(): Promise<void> {
+    const backButton = Matchers.getElementByID(
+      WalletViewSelectorsIDs.BACK_BUTTON,
+    );
+    await Gestures.waitAndTap(backButton, {
+      elemDescription: 'Back button (return from TokensFullView)',
+    });
+  }
+
+  /**
+   * Open the network manager from the redesigned homepage.
+   * The TOKEN_NETWORK_FILTER control only exists in TokensFullView,
+   * so this navigates there first, then opens the network manager sheet.
+   */
+  async openNetworkManagerFromHomepage(): Promise<void> {
+    await this.navigateToTokensFullView();
+    await Gestures.waitAndTap(this.openNetworkManagerButton, {
+      elemDescription: 'Open Network Manager Button (from TokensFullView)',
+      timeout: 10_000,
+    });
+    await this.waitForNetworkManagerToLoad();
+  }
+
+  /**
    * Check if the network manager is currently visible
    */
   async isNetworkManagerVisible(): Promise<boolean> {
-    return Utilities.isElementVisible(this.networkManagerBottomSheet, 1000);
+    return Utilities.isElementVisible(this.popularNetworksContainer, 1000);
   }
 
   /**
@@ -301,7 +344,7 @@ class NetworkManager {
   /**
    * Get network by display name (for custom networks)
    */
-  getNetworkByName(networkName: string): DetoxElement {
+  getNetworkByName(networkName: string): EncapsulatedElementType {
     return Matchers.getElementByText(networkName);
   }
 
@@ -329,13 +372,43 @@ class NetworkManager {
    * Wait for network manager to be fully loaded
    */
   async waitForNetworkManagerToLoad() {
-    await Assertions.expectElementToBeVisible(this.networkManagerBottomSheet, {
-      elemDescription: 'Network Manager Bottom Sheet',
-      timeout: 10000,
+    // Anvil/localhost fixtures often open the sheet on the Custom tab, so
+    // popular-networks-selector-container is not mounted until we switch.
+    await Utilities.waitUntil(
+      async () =>
+        (await Utilities.isElementVisible(
+          this.popularNetworksContainer,
+          500,
+        )) ||
+        (await Utilities.isElementVisible(this.customNetworksContainer, 500)) ||
+        (await Utilities.isElementVisible(this.popularNetworksTab, 500)),
+      {
+        timeout: 15_000,
+        interval: 500,
+      },
+    );
+
+    if (
+      !(await Utilities.isElementVisible(this.popularNetworksContainer, 1_000))
+    ) {
+      await this.tapPopularNetworksTab();
+    }
+
+    await Assertions.expectElementToBeVisible(this.popularNetworksContainer, {
+      elemDescription: 'Popular Networks Container',
+      timeout: 15_000,
     });
-    // Wait for bottom sheet animation to complete
-    // eslint-disable-next-line no-restricted-syntax
-    await TestHelpers.delay(1000); // Allow for bottom sheet slide-up animation
+    // Android only: on iOS XCUITest finds the BottomSheet testID but reports
+    // displayed=false.
+    if (PlatformDetector.isAndroid()) {
+      await Assertions.expectElementToBeVisible(
+        this.networkManagerBottomSheet,
+        {
+          elemDescription: 'Network Manager Bottom Sheet after open',
+          timeout: 10_000,
+        },
+      );
+    }
   }
 
   /**

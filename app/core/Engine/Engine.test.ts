@@ -9,21 +9,24 @@ import {
   MOCK_ADDRESS_1,
 } from '../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../util/test/network';
-import { Hex, KnownCaipNamespace } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
-import { NetworkController } from '@metamask/network-controller';
 import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
+import { ConnectivityController } from '@metamask/connectivity-controller';
 import { backupVault } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
 import { AppState, AppStateStatus } from 'react-native';
 import ReduxService from '../redux';
 import configureStore from '../../util/test/configureStore';
-import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { isEmpty } from 'lodash';
+import { store } from '../../store';
+import Logger from '../../util/Logger';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
+  getBundleId: jest.fn().mockReturnValue('io.metamask.MetaMask'),
 }));
 
 jest.mock('redux-persist-filesystem-storage');
@@ -57,6 +60,7 @@ jest.mock('../../store', () => ({
         },
       },
     })),
+    subscribe: jest.fn(),
   },
 }));
 jest.mock('../../selectors/smartTransactionsController', () => ({
@@ -95,6 +99,18 @@ jest.mock('@metamask/remote-feature-flag-controller', () => ({
   }),
 }));
 
+// `__esModule: true` lets the override test mutate
+// `isRemoteFeatureFlagOverrideActivated` live; interop would otherwise snapshot
+// the export. Other exports are preserved via `requireActual`.
+jest.mock('./controllers/remote-feature-flag-controller', () => ({
+  __esModule: true,
+  ...jest.requireActual('./controllers/remote-feature-flag-controller'),
+  isRemoteFeatureFlagOverrideActivated: false,
+}));
+const mockRemoteFeatureFlagControllerModule = jest.requireMock(
+  './controllers/remote-feature-flag-controller',
+) as { isRemoteFeatureFlagOverrideActivated: boolean };
+
 jest.mock('./utils', () => ({
   ...jest.requireActual('./utils'),
   rejectOriginApprovals: jest.fn(),
@@ -125,7 +141,6 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('AccountTrackerController');
     expect(engine.context).toHaveProperty('AddressBookController');
     expect(engine.context).toHaveProperty('AssetsContractController');
-    expect(engine.context).toHaveProperty('TokenListController');
     expect(engine.context).toHaveProperty('TokenDetectionController');
     expect(engine.context).toHaveProperty('NftDetectionController');
     expect(engine.context).toHaveProperty('NftController');
@@ -154,13 +169,43 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('EarnController');
     expect(engine.context).toHaveProperty('MultichainTransactionsController');
     expect(engine.context).toHaveProperty('DeFiPositionsController');
+    expect(engine.context).toHaveProperty('DeFiPositionsControllerV2');
     expect(engine.context).toHaveProperty('NetworkEnablementController');
     expect(engine.context).toHaveProperty('PerpsController');
     expect(engine.context).toHaveProperty('GatorPermissionsController');
     expect(engine.context).toHaveProperty('RampsController');
     expect(engine.context).toHaveProperty('RampsService');
     expect(engine.context).toHaveProperty('ConnectivityController');
+    expect(engine.context).toHaveProperty('SubscriptionController');
+    expect(engine.context).toHaveProperty('ShieldController');
+    expect(engine.context).toHaveProperty('ClaimsController');
     expect(engine.context).toHaveProperty('AiDigestController');
+    expect(engine.context).toHaveProperty('MoneyAccountController');
+  });
+
+  it('hydrates address poisoning known recipients from persisted address book state', () => {
+    const knownAddress = '0x111122223333444455556666777788889999aaaa';
+    const candidateAddress = '0x1111ffffffffffffffffffffffffffffffffaaaa';
+
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      AddressBookController: {
+        addressBook: {
+          '0x1': {
+            [knownAddress]: {
+              address: knownAddress,
+              chainId: '0x1',
+              isEns: false,
+              memo: '',
+              name: 'Known recipient',
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      engine.context.PhishingController.checkAddressPoisoning(candidateAddress),
+    ).toEqual([expect.objectContaining({ knownAddress })]);
   });
 
   it('calling Engine.init twice returns the same instance', () => {
@@ -262,15 +307,10 @@ describe('Engine', () => {
       .spyOn(engine.context.AccountsController, 'setSelectedAccount')
       .mockImplementation();
 
-    const setSelectedAddressSpy = jest
-      .spyOn(engine.context.PreferencesController, 'setSelectedAddress')
-      .mockImplementation();
-
     engine.setSelectedAccount(validAddress);
 
     expect(getAccountByAddressSpy).toHaveBeenCalledWith(validAddress);
     expect(setSelectedAccountSpy).toHaveBeenCalledWith(mockAccount.id);
-    expect(setSelectedAddressSpy).toHaveBeenCalledWith(validAddress);
   });
 
   it('setAccountLabel successfully updates account label when address exists', () => {
@@ -285,15 +325,10 @@ describe('Engine', () => {
       .spyOn(engine.context.AccountsController, 'setAccountName')
       .mockImplementation();
 
-    const setAccountLabelSpy = jest
-      .spyOn(engine.context.PreferencesController, 'setAccountLabel')
-      .mockImplementation();
-
     engine.setAccountLabel(validAddress, label);
 
     expect(getAccountByAddressSpy).toHaveBeenCalledWith(validAddress);
     expect(setAccountNameSpy).toHaveBeenCalledWith(mockAccount.id, label);
-    expect(setAccountLabelSpy).toHaveBeenCalledWith(validAddress, label);
   });
 
   it('setAccountLabel throws an error if no account exists for the given address', () => {
@@ -306,168 +341,177 @@ describe('Engine', () => {
     );
   });
 
-  it('getSnapKeyring gets or creates a snap keyring', async () => {
-    const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
-    jest
-      .spyOn(engine.keyringController, 'getKeyringsByType')
-      .mockImplementation(() => [mockSnapKeyring]);
+  describe('RemoteFeatureFlagController startup fetch', () => {
+    afterEach(() => {
+      // `jest.mock` return values survive `restoreAllMocks()`, so reset the
+      // ones these tests override back to their file-level defaults.
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: matches the file-level default shape.
+        .mockReturnValue({ remoteFeatureFlags: {}, cacheTimestamp: 0 });
+      mockRemoteFeatureFlagControllerModule.isRemoteFeatureFlagOverrideActivated = false;
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
+    });
 
-    const getSnapKeyringSpy = jest
-      .spyOn(engine, 'getSnapKeyring')
-      .mockImplementation(async () => mockSnapKeyring);
+    it('logs and skips the fetch when basic functionality is disabled', () => {
+      // The selector is read twice per init (the RFFC instance-options builder
+      // seeds `disabled`, then the Engine startup gate re-reads it), so use a
+      // persistent return rather than `mockReturnValueOnce`.
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      const fetchRemoteFeatureFlags = jest.fn();
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
+        .mockReturnValue({ fetchRemoteFeatureFlags });
+      const logSpy = jest.spyOn(Logger, 'log');
 
-    const result = await engine.getSnapKeyring();
-    expect(getSnapKeyringSpy).toHaveBeenCalled();
-    expect(result).toEqual(mockSnapKeyring);
-  });
+      Engine.init(TEST_ANALYTICS_ID, {});
 
-  it('getSnapKeyring creates a new snap keyring if none exists', async () => {
-    const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
+      expect(logSpy).toHaveBeenCalledWith('Feature flag controller disabled.');
+      expect(fetchRemoteFeatureFlags).not.toHaveBeenCalled();
+    });
 
-    jest
-      .spyOn(engine.keyringController, 'getKeyringsByType')
-      .mockImplementationOnce(() => [])
-      .mockImplementationOnce(() => [mockSnapKeyring]);
+    it('logs and skips the fetch when the override is active', () => {
+      mockRemoteFeatureFlagControllerModule.isRemoteFeatureFlagOverrideActivated = true;
+      const fetchRemoteFeatureFlags = jest.fn();
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
+        .mockReturnValue({ fetchRemoteFeatureFlags });
+      const logSpy = jest.spyOn(Logger, 'log');
 
-    jest
-      .spyOn(engine.keyringController, 'addNewKeyring')
-      .mockResolvedValue({ id: '1234', name: 'Snap Keyring' });
+      Engine.init(TEST_ANALYTICS_ID, {});
 
-    const getSnapKeyringSpy = jest
-      .spyOn(engine, 'getSnapKeyring')
-      .mockImplementation(async () => mockSnapKeyring);
+      expect(logSpy).toHaveBeenCalledWith(
+        'Remote feature flags override activated.',
+      );
+      expect(fetchRemoteFeatureFlags).not.toHaveBeenCalled();
+    });
 
-    const result = await engine.getSnapKeyring();
-    expect(getSnapKeyringSpy).toHaveBeenCalled();
-    expect(result).toEqual(mockSnapKeyring);
-  });
-
-  it('enables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is already enabled', () => {
-    const state = {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          walletFrameworkRpcFailoverEnabled: true,
-        },
-        cacheTimestamp: 0,
-      },
-    };
-    const enableRpcFailoverSpy = jest.spyOn(
-      NetworkController.prototype,
-      'enableRpcFailover',
-    );
-
-    Engine.init(TEST_ANALYTICS_ID, state);
-
-    expect(enableRpcFailoverSpy).toHaveBeenCalled();
-  });
-
-  it('disables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is already disabled', () => {
-    const state = {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          walletFrameworkRpcFailoverEnabled: false,
-        },
-        cacheTimestamp: 0,
-      },
-    };
-    const disableRpcFailoverSpy = jest.spyOn(
-      NetworkController.prototype,
-      'disableRpcFailover',
-    );
-
-    Engine.init(TEST_ANALYTICS_ID, state);
-
-    expect(disableRpcFailoverSpy).toHaveBeenCalled();
-  });
-
-  it('enables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is enabled later', async () => {
-    (Date.now as jest.Mock).mockReturnValue(1000000);
-    const state = {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          walletFrameworkRpcFailoverEnabled: false,
-        },
-        cacheTimestamp: 0,
-      },
-    };
-    const keyringState = null;
-    const analyticsId = '24d24a09-b210-4971-9601-4603c60b23c3';
-    const enableRpcFailoverSpy = jest.spyOn(
-      NetworkController.prototype,
-      'enableRpcFailover',
-    );
-    ClientConfigApiServiceMock
-      // @ts-expect-error We aren't supplying a complete ClientConfigApiService;
-      // all we need to override is `fetchRemoteFeatureFlags`
-      .mockReturnValue({
-        async fetchRemoteFeatureFlags() {
-          return {
-            remoteFeatureFlags: {
-              walletFrameworkRpcFailoverEnabled: true,
-            },
+    it('logs success after the startup fetch resolves', async () => {
+      (Date.now as jest.Mock).mockReturnValue(1000000);
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
+        .mockReturnValue({
+          fetchRemoteFeatureFlags: jest.fn().mockResolvedValue({
+            remoteFeatureFlags: {},
             cacheTimestamp: 1,
-          };
+          }),
+        });
+      const logSpy = jest.spyOn(Logger, 'log');
+
+      Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {},
+          cacheTimestamp: 0,
         },
       });
 
-    Engine.init(analyticsId, state, keyringState);
+      while (
+        !logSpy.mock.calls.some(
+          ([message]) => message === 'Feature flags updated',
+        )
+      ) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 50));
+      }
 
-    // We can't await RemoteFeatureFlagController:stateChange because can't
-    // guarantee it hasn't been called already, so this is the next best option
-    while (enableRpcFailoverSpy.mock.calls.length === 0) {
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, 100);
+      expect(logSpy).toHaveBeenCalledWith('Feature flags updated');
+    });
+
+    it('logs failure when the startup fetch rejects', async () => {
+      (Date.now as jest.Mock).mockReturnValue(1000000);
+      const fetchError = new Error('Network error');
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
+        .mockReturnValue({
+          fetchRemoteFeatureFlags: jest.fn().mockRejectedValue(fetchError),
+        });
+      const logSpy = jest.spyOn(Logger, 'log');
+
+      Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {},
+          cacheTimestamp: 0,
+        },
       });
-    }
-    expect(enableRpcFailoverSpy).toHaveBeenCalled();
+
+      while (
+        !logSpy.mock.calls.some(
+          ([message]) => message === 'Feature flags update failed: ',
+        )
+      ) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 50));
+      }
+
+      expect(logSpy).toHaveBeenCalledWith(
+        'Feature flags update failed: ',
+        fetchError,
+      );
+    });
+
+    it('clears cached remote flags when basic functionality is disabled at init', () => {
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: { otaUpdatesEnabled: true },
+          rawRemoteFeatureFlags: { otaUpdatesEnabled: true },
+          localOverrides: { testOverride: true },
+          cacheTimestamp: 123,
+        },
+      });
+      const controller = engine.context.RemoteFeatureFlagController;
+
+      expect(controller.state).toEqual(
+        expect.objectContaining({
+          remoteFeatureFlags: {},
+          rawRemoteFeatureFlags: {},
+          localOverrides: { testOverride: true },
+          cacheTimestamp: 0,
+        }),
+      );
+    });
+
+    it('subscribes to basic functionality changes', () => {
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      expect(store.subscribe).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    it('syncs controller when basic functionality changes', () => {
+      jest.mocked(store.subscribe).mockClear();
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: { otaUpdatesEnabled: true },
+          rawRemoteFeatureFlags: { otaUpdatesEnabled: true },
+          cacheTimestamp: 123,
+        },
+      });
+      const subscribeCallback = jest.mocked(store.subscribe).mock
+        .calls[0][0] as () => void;
+      const controller = engine.context.RemoteFeatureFlagController;
+      const disableSpy = jest.spyOn(controller, 'disable');
+
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      subscribeCallback();
+
+      expect(disableSpy).toHaveBeenCalled();
+      expect(controller.state).toEqual(
+        expect.objectContaining({
+          remoteFeatureFlags: {},
+          rawRemoteFeatureFlags: {},
+          cacheTimestamp: 0,
+        }),
+      );
+    });
   });
 
-  it('disables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is disabled later', async () => {
-    (Date.now as jest.Mock).mockReturnValue(1000000);
-    const state = {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          walletFrameworkRpcFailoverEnabled: true,
-        },
-        cacheTimestamp: 0,
-      },
-    };
-    const keyringState = null;
-    const analyticsId = '24d24a09-b210-4971-9601-4603c60b23c3';
-    const disableRpcFailoverSpy = jest.spyOn(
-      NetworkController.prototype,
-      'disableRpcFailover',
-    );
-    ClientConfigApiServiceMock
-      // @ts-expect-error We aren't supplying a complete ClientConfigApiService;
-      // all we need to override is `fetchRemoteFeatureFlags`
-      .mockReturnValue({
-        async fetchRemoteFeatureFlags() {
-          return {
-            remoteFeatureFlags: {
-              walletFrameworkRpcFailoverEnabled: false,
-            },
-            cacheTimestamp: 1,
-          };
-        },
-      });
+  describe('ConnectivityController startup seeding', () => {
+    it('seeds the initial connectivity status via init() on startup', () => {
+      const initSpy = jest
+        .spyOn(ConnectivityController.prototype, 'init')
+        .mockResolvedValue(undefined);
 
-    Engine.init(analyticsId, state, keyringState);
+      Engine.init(TEST_ANALYTICS_ID, {});
 
-    // We can't await RemoteFeatureFlagController:stateChange because can't
-    // guarantee it hasn't been called already, so this is the next best option
-    while (disableRpcFailoverSpy.mock.calls.length === 0) {
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, 100);
-      });
-    }
-    expect(disableRpcFailoverSpy).toHaveBeenCalled();
+      expect(initSpy).toHaveBeenCalled();
+    });
   });
 
   describe('getTotalEvmFiatAccountBalance', () => {
@@ -521,23 +565,29 @@ describe('Engine', () => {
     };
 
     it('calculates when theres no balances', () => {
-      const engine = Engine.init(
-        TEST_ANALYTICS_ID,
-        {
-          ...state,
-          AccountTrackerController: {
-            accountsByChainId: {
-              [chainId]: {
-                [selectedAddress]: {
-                  balance: '0',
-                  stakedBalance: '0',
+      const engine = Engine.init(TEST_ANALYTICS_ID, state);
+
+      (store.getState as jest.Mock).mockReturnValueOnce({
+        onboarding: {
+          completedOnboarding: true,
+        },
+        engine: {
+          backgroundState: {
+            ...state,
+            AccountTrackerController: {
+              accountsByChainId: {
+                [chainId]: {
+                  [selectedAddress]: {
+                    balance: '0',
+                    stakedBalance: '0',
+                  },
                 },
               },
             },
           },
         },
-        null,
-      );
+      });
+
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
       expect(totalFiatBalance).toStrictEqual({
         ethFiat: 0,
@@ -552,22 +602,27 @@ describe('Engine', () => {
     it('calculates when theres only ETH', () => {
       const ethPricePercentChange1d = 5; // up 5%
 
-      const engine = Engine.init(
-        TEST_ANALYTICS_ID,
-        {
-          ...state,
-          TokenRatesController: {
-            marketData: {
-              [chainId]: {
-                [zeroAddress()]: {
-                  pricePercentChange1d: ethPricePercentChange1d,
-                } as Partial<MarketDataDetails> as MarketDataDetails,
+      const engine = Engine.init(TEST_ANALYTICS_ID, state);
+
+      (store.getState as jest.Mock).mockReturnValueOnce({
+        onboarding: {
+          completedOnboarding: true,
+        },
+        engine: {
+          backgroundState: {
+            ...state,
+            TokenRatesController: {
+              marketData: {
+                [chainId]: {
+                  [zeroAddress()]: {
+                    pricePercentChange1d: ethPricePercentChange1d,
+                  } as Partial<MarketDataDetails> as MarketDataDetails,
+                },
               },
             },
           },
         },
-        null,
-      );
+      });
 
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
 
@@ -607,56 +662,61 @@ describe('Engine', () => {
         },
       ];
 
-      const engine = Engine.init(
-        TEST_ANALYTICS_ID,
-        {
-          ...state,
-          TokensController: {
-            allTokens: {
-              [chainId]: {
-                [selectedAddress]: tokens.map(
-                  ({ address, balance, decimals, symbol }) => ({
-                    address,
-                    balance,
-                    decimals,
-                    symbol,
-                  }),
-                ),
+      const engine = Engine.init(TEST_ANALYTICS_ID, state);
+
+      (store.getState as jest.Mock).mockReturnValueOnce({
+        onboarding: {
+          completedOnboarding: true,
+        },
+        engine: {
+          backgroundState: {
+            ...state,
+            TokensController: {
+              allTokens: {
+                [chainId]: {
+                  [selectedAddress]: tokens.map(
+                    ({ address, balance, decimals, symbol }) => ({
+                      address,
+                      balance,
+                      decimals,
+                      symbol,
+                    }),
+                  ),
+                },
+              },
+              allIgnoredTokens: {},
+              allDetectedTokens: {},
+            },
+            TokenBalancesController: {
+              tokenBalances: {
+                [selectedAddress as Hex]: {
+                  [chainId]: {
+                    [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
+                    [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
+                  },
+                },
               },
             },
-            allIgnoredTokens: {},
-            allDetectedTokens: {},
-          },
-          TokenBalancesController: {
-            tokenBalances: {
-              [selectedAddress as Hex]: {
+            TokenRatesController: {
+              marketData: {
                 [chainId]: {
-                  [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
-                  [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
+                  [zeroAddress()]: {
+                    pricePercentChange1d: ethPricePercentChange1d,
+                  } as unknown as MarketDataDetails,
+                  [token1Address]: {
+                    price: tokens[0].price,
+                    pricePercentChange1d: tokens[0].pricePercentChange1d,
+                  } as unknown as MarketDataDetails,
+                  [token2Address]: {
+                    price: tokens[1].price,
+                    pricePercentChange1d: tokens[1].pricePercentChange1d,
+                  } as unknown as MarketDataDetails,
                 },
               },
             },
           },
-          TokenRatesController: {
-            marketData: {
-              [chainId]: {
-                [zeroAddress()]: {
-                  pricePercentChange1d: ethPricePercentChange1d,
-                } as unknown as MarketDataDetails,
-                [token1Address]: {
-                  price: tokens[0].price,
-                  pricePercentChange1d: tokens[0].pricePercentChange1d,
-                } as unknown as MarketDataDetails,
-                [token2Address]: {
-                  price: tokens[1].price,
-                  pricePercentChange1d: tokens[1].pricePercentChange1d,
-                } as unknown as MarketDataDetails,
-              },
-            },
-          },
         },
-        null,
-      );
+      });
 
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
 
@@ -707,68 +767,74 @@ describe('Engine', () => {
         },
       ];
 
-      const engine = Engine.init(
-        TEST_ANALYTICS_ID,
-        {
-          ...state,
-          AccountTrackerController: {
-            accountsByChainId: {
-              [chainId]: {
-                [selectedAddress]: {
-                  balance: (ethBalance * 1e18).toString(),
-                  stakedBalance: (stakedEthBalance * 1e18).toString(),
-                },
-              },
-            },
-          },
-          TokensController: {
-            allTokens: {
-              [chainId]: {
-                [selectedAddress]: tokens.map(
-                  ({ address, balance, decimals, symbol }) => ({
-                    address,
-                    balance,
-                    decimals,
-                    symbol,
-                  }),
-                ),
-              },
-            },
-            allIgnoredTokens: {},
-            allDetectedTokens: {},
-          },
-          TokenBalancesController: {
-            tokenBalances: {
-              [selectedAddress as Hex]: {
+      const engine = Engine.init(TEST_ANALYTICS_ID, state);
+
+      (store.getState as jest.Mock).mockReturnValueOnce({
+        onboarding: {
+          completedOnboarding: true,
+        },
+        engine: {
+          backgroundState: {
+            ...state,
+            AccountTrackerController: {
+              accountsByChainId: {
                 [chainId]: {
-                  [token1Address]: '0x0de0b6b3a7640000', // 1 token with 18 decimals in hex
-                  [token2Address]: '0x1bc16d674ec80000', // 2 tokens with 18 decimals in hex
+                  [selectedAddress]: {
+                    balance: (ethBalance * 1e18).toString(),
+                    stakedBalance: (stakedEthBalance * 1e18).toString(),
+                  },
                 },
               },
             },
-          },
-          TokenRatesController: {
-            marketData: {
-              [chainId]: {
-                [zeroAddress()]: {
-                  pricePercentChange1d: ethPricePercentChange1d,
-                } as unknown as MarketDataDetails,
-                [token1Address]: {
-                  price: tokens[0].price,
-                  pricePercentChange1d: tokens[0].pricePercentChange1d,
-                } as unknown as MarketDataDetails,
-                [token2Address]: {
-                  price: tokens[1].price,
-                  pricePercentChange1d: tokens[1].pricePercentChange1d,
-                } as unknown as MarketDataDetails,
+            TokensController: {
+              allTokens: {
+                [chainId]: {
+                  [selectedAddress]: tokens.map(
+                    ({ address, balance, decimals, symbol }) => ({
+                      address,
+                      balance,
+                      decimals,
+                      symbol,
+                    }),
+                  ),
+                },
+              },
+              allIgnoredTokens: {},
+              allDetectedTokens: {},
+            },
+            TokenBalancesController: {
+              tokenBalances: {
+                [selectedAddress as Hex]: {
+                  [chainId]: {
+                    [token1Address]: '0x0de0b6b3a7640000',
+                    [token2Address]: '0x1bc16d674ec80000',
+                  },
+                },
+              },
+            },
+            TokenRatesController: {
+              marketData: {
+                [chainId]: {
+                  [zeroAddress()]: {
+                    pricePercentChange1d: ethPricePercentChange1d,
+                  } as unknown as MarketDataDetails,
+                  [token1Address]: {
+                    price: tokens[0].price,
+                    pricePercentChange1d: tokens[0].pricePercentChange1d,
+                  } as unknown as MarketDataDetails,
+                  [token2Address]: {
+                    price: tokens[1].price,
+                    pricePercentChange1d: tokens[1].pricePercentChange1d,
+                  } as unknown as MarketDataDetails,
+                },
               },
             },
           },
         },
-        null,
-      );
+      });
 
       const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
+
       const ethFiat = (ethBalance + stakedEthBalance) * ethConversionRate;
       const [tokenFiat, tokenFiat1dAgo] = tokens.reduce(
         ([fiat, fiat1d], token) => {
@@ -800,17 +866,13 @@ describe('Engine', () => {
       },
     );
 
-    const engine = Engine.init(
-      TEST_ANALYTICS_ID,
-      {
-        ...backgroundState,
-        KeyringController: {
-          ...backgroundState.KeyringController,
-          isUnlocked: true,
-        },
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
       },
-      null,
-    );
+    });
 
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
@@ -831,17 +893,13 @@ describe('Engine', () => {
       },
     );
 
-    const engine = Engine.init(
-      TEST_ANALYTICS_ID,
-      {
-        ...backgroundState,
-        KeyringController: {
-          ...backgroundState.KeyringController,
-          isUnlocked: true,
-        },
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: true,
       },
-      null,
-    );
+    });
 
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
@@ -869,7 +927,7 @@ describe('Engine', () => {
 
     expect(messengerSpy).not.toHaveBeenCalledWith(
       'SnapController:setClientActive',
-      expect.anything(),
+      undefined,
     );
   });
 
@@ -881,17 +939,13 @@ describe('Engine', () => {
       },
     );
 
-    const engine = Engine.init(
-      TEST_ANALYTICS_ID,
-      {
-        ...backgroundState,
-        KeyringController: {
-          ...backgroundState.KeyringController,
-          isUnlocked: false,
-        },
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      ...backgroundState,
+      KeyringController: {
+        ...backgroundState.KeyringController,
+        isUnlocked: false,
       },
-      null,
-    );
+    });
 
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
@@ -900,7 +954,7 @@ describe('Engine', () => {
 
     expect(messengerSpy).not.toHaveBeenCalledWith(
       'SnapController:setClientActive',
-      expect.anything(),
+      undefined,
     );
   });
 
@@ -960,265 +1014,87 @@ describe('Engine', () => {
     );
   });
 
-  describe('lookupEnabledNetworks', () => {
-    it('should lookup all enabled networks successfully', async () => {
+  describe('BridgeStatusController:destinationTransactionCompleted', () => {
+    const EVM_CAIP_ASSET = 'eip155:10/slip44:60';
+    const NON_EVM_CAIP_ASSET =
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const getBridgeStatusMessenger = (engine: any) =>
+      engine.context.BridgeStatusController.messenger;
+
+    it('refreshes tokens, balances, account tracker, and incoming transactions for EVM destination chain', () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const mockNetworkClientId1 = 'network-client-1';
-      const mockNetworkClientId2 = 'network-client-2';
+      const mockNetworkClientId = 'optimism-network-client';
 
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {
-              '0x1': true,
-              '0x89': true,
-              '0x38': false,
-            },
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      const findNetworkClientIdByChainIdSpy = jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValueOnce(mockNetworkClientId1)
-        .mockReturnValueOnce(mockNetworkClientId2);
-
-      const lookupNetworkSpy = jest
-        .spyOn(engine.context.NetworkController, 'lookupNetwork')
+      const detectTokensSpy = jest
+        .spyOn(engine.context.TokenDetectionController, 'detectTokens')
         .mockImplementation(() => Promise.resolve());
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x1');
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x89');
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
-
-      expect(lookupNetworkSpy).toHaveBeenCalledWith(mockNetworkClientId1);
-      expect(lookupNetworkSpy).toHaveBeenCalledWith(mockNetworkClientId2);
-      expect(lookupNetworkSpy).toHaveBeenCalledTimes(2);
-    });
-
-    it('should only lookup enabled networks and skip disabled ones', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const mockNetworkClientId1 = 'network-client-1';
-      const mockNetworkClientId2 = 'network-client-2';
-
-      const findNetworkClientIdByChainIdSpy = jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValueOnce(mockNetworkClientId1)
-        .mockReturnValueOnce(mockNetworkClientId2);
-
-      jest
-        .spyOn(engine.context.NetworkController, 'lookupNetwork')
+      const updateBalancesSpy = jest
+        .spyOn(engine.context.TokenBalancesController, 'updateBalances')
         .mockImplementation(() => Promise.resolve());
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {
-              '0x1': true,
-              '0x89': true,
-              '0x38': false,
-            },
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      // Should only call for enabled networks (0x1 and 0x89), not for disabled (0x38)
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x1');
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x89');
-      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalledWith('0x38');
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
-    });
-
-    it('should handle empty enabled networks list', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-
-      const findNetworkClientIdByChainIdSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'findNetworkClientIdByChainId',
-      );
-
-      const lookupNetworkSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'lookupNetwork',
-      );
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {},
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
-      expect(lookupNetworkSpy).not.toHaveBeenCalled();
-    });
-
-    it('should handle undefined enabledNetworkMap', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-
-      const findNetworkClientIdByChainIdSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'findNetworkClientIdByChainId',
-      );
-
-      const lookupNetworkSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'lookupNetwork',
-      );
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: undefined as unknown as Record<
-            string,
-            Record<string, boolean>
-          >,
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
-      expect(lookupNetworkSpy).not.toHaveBeenCalled();
-    });
-
-    it('should handle undefined Eip155 namespace in enabledNetworkMap', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-
-      const findNetworkClientIdByChainIdSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'findNetworkClientIdByChainId',
-      );
-
-      const lookupNetworkSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'lookupNetwork',
-      );
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {},
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
-      expect(lookupNetworkSpy).not.toHaveBeenCalled();
-    });
-
-    it('should handle network lookup failures gracefully', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const mockNetworkClientId1 = 'network-client-1';
-      const mockNetworkClientId2 = 'network-client-2';
-
-      const findNetworkClientIdByChainIdSpy = jest
+      const findNetworkClientIdSpy = jest
         .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValueOnce(mockNetworkClientId1)
-        .mockReturnValueOnce(mockNetworkClientId2);
-
-      const lookupNetworkSpy = jest
-        .spyOn(engine.context.NetworkController, 'lookupNetwork')
-        .mockRejectedValueOnce(new Error('Network lookup failed'))
+        .mockReturnValue(mockNetworkClientId);
+      const refreshSpy = jest
+        .spyOn(engine.context.AccountTrackerController, 'refresh')
         .mockImplementation(() => Promise.resolve());
+      getBridgeStatusMessenger(engine).publish(
+        'BridgeStatusController:destinationTransactionCompleted',
+        EVM_CAIP_ASSET,
+      );
 
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {
-              '0x1': true,
-              '0x89': true,
-              '0x38': false,
-            },
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
-      expect(lookupNetworkSpy).toHaveBeenCalledTimes(2);
+      expect(detectTokensSpy).toHaveBeenCalledWith({ chainIds: ['0xa'] });
+      expect(updateBalancesSpy).toHaveBeenCalledWith({ chainIds: ['0xa'] });
+      expect(findNetworkClientIdSpy).toHaveBeenCalledWith('0xa');
+      expect(refreshSpy).toHaveBeenCalledWith([mockNetworkClientId]);
     });
 
-    it('should handle findNetworkClientIdByChainId returning undefined', async () => {
+    it('does not refresh anything for non-EVM destination chains', () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
 
-      const findNetworkClientIdByChainIdSpy = jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValueOnce(undefined as unknown as string)
-        .mockReturnValueOnce('network-client-2');
-
-      const lookupNetworkSpy = jest
-        .spyOn(engine.context.NetworkController, 'lookupNetwork')
+      const detectTokensSpy = jest
+        .spyOn(engine.context.TokenDetectionController, 'detectTokens')
         .mockImplementation(() => Promise.resolve());
+      const updateBalancesSpy = jest
+        .spyOn(engine.context.TokenBalancesController, 'updateBalances')
+        .mockImplementation(() => Promise.resolve());
+      const refreshSpy = jest
+        .spyOn(engine.context.AccountTrackerController, 'refresh')
+        .mockImplementation(() => Promise.resolve());
+      getBridgeStatusMessenger(engine).publish(
+        'BridgeStatusController:destinationTransactionCompleted',
+        NON_EVM_CAIP_ASSET,
+      );
 
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {
-              '0x1': true,
-              '0x89': true,
-              '0x38': false,
-            },
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
-      expect(lookupNetworkSpy).toHaveBeenCalledWith('network-client-2');
-      expect(lookupNetworkSpy).toHaveBeenCalledTimes(1);
+      expect(detectTokensSpy).not.toHaveBeenCalled();
+      expect(updateBalancesSpy).not.toHaveBeenCalled();
+      expect(refreshSpy).not.toHaveBeenCalled();
     });
 
-    it('should handle mixed success and failure scenarios', async () => {
+    it('does not refresh balance when findNetworkClientIdByChainId throws', () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const mockNetworkClientId1 = 'network-client-1';
-      const mockNetworkClientId2 = 'network-client-2';
-      const mockNetworkClientId3 = 'network-client-3';
-
-      const findNetworkClientIdByChainIdSpy = jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValueOnce(mockNetworkClientId1)
-        .mockReturnValueOnce(mockNetworkClientId2)
-        .mockReturnValueOnce(mockNetworkClientId3);
-
-      const lookupNetworkSpy = jest
-        .spyOn(engine.context.NetworkController, 'lookupNetwork')
-        .mockResolvedValueOnce(undefined)
-        .mockRejectedValueOnce(new Error('Network 2 failed'))
-        .mockImplementation(() => Promise.resolve());
 
       jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {
-              '0x1': true,
-              '0x89': true,
-              '0xa': true,
-            },
-          },
-          nativeAssetIdentifiers: {},
+        .spyOn(engine.context.TokenDetectionController, 'detectTokens')
+        .mockImplementation(() => Promise.resolve());
+      jest
+        .spyOn(engine.context.TokenBalancesController, 'updateBalances')
+        .mockImplementation(() => Promise.resolve());
+      jest
+        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
+        .mockImplementation(() => {
+          throw new Error('Unknown chain');
         });
+      const refreshSpy = jest
+        .spyOn(engine.context.AccountTrackerController, 'refresh')
+        .mockImplementation(() => Promise.resolve());
+      getBridgeStatusMessenger(engine).publish(
+        'BridgeStatusController:destinationTransactionCompleted',
+        EVM_CAIP_ASSET,
+      );
 
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(3);
-      expect(lookupNetworkSpy).toHaveBeenCalledTimes(3);
+      expect(refreshSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -1231,10 +1107,12 @@ describe('Engine', () => {
       Engine.init(TEST_ANALYTICS_ID, {});
       const controllersWithState = Object.entries(Engine.context)
         .filter(
-          ([_, controller]) =>
+          ([controllerName, controller]) =>
             'state' in controller &&
             Boolean(controller.state) &&
-            !isEmpty(controller.state),
+            (!isEmpty(controller.state) ||
+              controllerName === 'ComplianceController' ||
+              controllerName === 'DelegationController'),
         )
         .map(([controllerName]) => controllerName);
 
@@ -1243,6 +1121,52 @@ describe('Engine', () => {
       const sortedControllersInState = Object.keys(state).sort();
       const sortedExpectedControllers = controllersWithState.sort();
       expect(sortedControllersInState).toEqual(sortedExpectedControllers);
+    });
+  });
+
+  describe('resetState', () => {
+    it('calls MoneyAccountController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.MoneyAccountController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('calls SubscriptionController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.SubscriptionController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('calls ShieldController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.ShieldController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('calls ClaimsController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.ClaimsController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
     });
   });
 });

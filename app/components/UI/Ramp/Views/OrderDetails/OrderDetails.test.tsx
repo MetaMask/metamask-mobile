@@ -1,157 +1,538 @@
 import React from 'react';
-import { processFiatOrder } from '../../index';
-import { screen } from '@testing-library/react-native';
-import OrderDetails from './OrderDetails';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import {
-  FIAT_ORDER_STATES,
-  FIAT_ORDER_PROVIDERS,
-} from '../../../../../constants/on-ramp';
-import type { RampsOrder } from '@metamask/ramps-controller';
-import { getOrderById, FiatOrder } from '../../../../../reducers/fiatOrders';
+import { ActivityIndicator } from 'react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
+import OrderDetails, {
+  createRampsOrderDetailsNavDetails,
+} from './OrderDetails';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../constants/navigation/Routes';
+import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 
-const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
 const mockGoBack = jest.fn();
-const mockDispatch = jest.fn();
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useDispatch: () => mockDispatch,
-}));
-
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      setOptions: mockSetOptions,
-      goBack: mockGoBack,
-    }),
-    useRoute: () => ({
-      params: {
-        orderId: 'test-order-id',
-      },
-    }),
-  };
-});
-
-jest.mock('../../../../../reducers/fiatOrders', () => ({
-  getOrderById: jest.fn(),
-  updateFiatOrder: jest.fn().mockReturnValue({ type: 'FIAT_UPDATE_ORDER' }),
-  getProviderName: jest.fn().mockReturnValue('Transak'),
-}));
-
-function mockGetUpdatedOrder(order: FiatOrder) {
-  return {
-    ...order,
-    lastTimeFetched: (order.lastTimeFetched || 0) + 100,
-  };
-}
-
-jest.mock('../../index', () => ({
-  processFiatOrder: jest.fn().mockImplementation((order, onSuccess) => {
-    const updatedOrder = mockGetUpdatedOrder(order);
-    if (onSuccess) {
-      onSuccess(updatedOrder);
-    }
-    return Promise.resolve();
+const mockNavigate = jest.fn();
+const mockSetParams = jest.fn();
+const mockReset = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    goBack: mockGoBack,
+    setParams: mockSetParams,
+    reset: mockReset,
   }),
 }));
 
-describe('Ramps OrderDetails Component', () => {
-  const mockRampsOrder: RampsOrder = {
-    id: 'provider-order-123',
-    isOnlyLink: false,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    provider: { id: '/providers/transak', name: 'Transak', links: [] } as any,
-    success: true,
-    cryptoAmount: 0.05,
-    fiatAmount: 100,
-    cryptoCurrency: {
-      symbol: 'USDC',
-      decimals: 6,
-      iconUrl: 'https://example.com/usdc.png',
-    },
-    fiatCurrency: {
-      symbol: 'USD',
-      decimals: 2,
-      denomSymbol: '$',
-    },
-    providerOrderId: 'transak_order_123',
-    providerOrderLink: 'https://transak.com/order/123',
-    createdAt: Date.now(),
-    paymentMethod: {
-      id: '/payments/card',
-      name: 'Credit Card',
-    },
-    totalFeesFiat: 2.5,
-    txHash: '',
-    walletAddress: '0x1234567890123456789012345678901234567890',
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    status: 'COMPLETED' as any,
-    network: {
-      name: 'Ethereum',
-      chainId: '1',
-    },
-    canBeUpdated: false,
-    idHasExpired: false,
-    excludeFromPurchases: false,
-    timeDescriptionPending: '1-2 minutes',
-    orderType: 'BUY',
-  };
+const mockGetOrderById = jest.fn();
+const mockRefreshOrder = jest.fn();
+const mockGetOrderFromCallback = jest.fn();
+const mockAddOrder = jest.fn();
+jest.mock('../../hooks/useRampsOrders', () => ({
+  useRampsOrders: () => ({
+    getOrderById: mockGetOrderById,
+    refreshOrder: mockRefreshOrder,
+    getOrderFromCallback: mockGetOrderFromCallback,
+    addOrder: mockAddOrder,
+  }),
+}));
 
-  const mockOrder: FiatOrder = {
-    id: '/providers/transak/orders/123',
-    provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
-    createdAt: Date.now(),
-    amount: 100,
-    currency: 'USD',
-    cryptoAmount: 0.05,
-    cryptocurrency: 'USDC',
-    fee: 2.5,
-    state: FIAT_ORDER_STATES.COMPLETED,
-    account: '0x1234567890123456789012345678901234567890',
-    network: '1',
-    excludeFromPurchases: false,
-    orderType: 'BUY',
-    data: mockRampsOrder,
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
   };
+});
 
+jest.mock('../../utils/v2OrderToast', () => ({
+  showV2OrderToast: jest.fn(),
+}));
+
+const mockEmitOrderConfirmedAnalyticsFromCallback = jest.fn();
+const mockEmitTerminalOrderAnalyticsFromCallback = jest.fn();
+jest.mock(
+  '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics',
+    ),
+    emitOrderConfirmedAnalyticsFromCallback: (...args: unknown[]) =>
+      mockEmitOrderConfirmedAnalyticsFromCallback(...args),
+    emitTerminalOrderAnalyticsFromCallback: (...args: unknown[]) =>
+      mockEmitTerminalOrderAnalyticsFromCallback(...args),
+  }),
+);
+
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: () => ({
+      addProperties: (props: object) => ({ build: () => ({ ...props }) }),
+    }),
+  }),
+}));
+
+const mockUseParams = jest.fn<Record<string, string | undefined>, []>(() => ({
+  orderId: 'test-order-123',
+}));
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+  useParams: () => mockUseParams(),
+}));
+
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
+}));
+
+jest.mock('./OrderContent', () => {
+  /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, @typescript-eslint/no-shadow */
+  const ReactActual = require('react');
+  const { View, Text } = require('react-native');
+  return {
+    __esModule: true,
+    default: ({ order }: { order: { providerOrderId: string } }) =>
+      ReactActual.createElement(
+        View,
+        { testID: 'order-content' },
+        ReactActual.createElement(Text, null, order?.providerOrderId ?? ''),
+      ),
+  };
+});
+
+jest.mock('../../Aggregator/components/ScreenLayout', () => {
+  /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, @typescript-eslint/no-shadow */
+  const ReactActual = require('react');
+  const { View } = require('react-native');
+  const Layout = ({
+    children,
+    testID,
+  }: {
+    children: React.ReactNode;
+    testID?: string;
+  }) => ReactActual.createElement(View, { testID }, children);
+  Layout.Body = ({ children }: { children: React.ReactNode }) =>
+    ReactActual.createElement(View, null, children);
+  Layout.Content = ({ children }: { children: React.ReactNode }) =>
+    ReactActual.createElement(View, null, children);
+  return { __esModule: true, default: Layout };
+});
+
+const mockOrder = {
+  providerOrderId: 'ord-123',
+  status: RampsOrderStatus.Completed,
+  provider: { id: 'paypal' },
+  walletAddress: '0x123',
+};
+
+function render() {
+  return renderScreen(OrderDetails, {
+    name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+  });
+}
+
+describe('OrderDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (getOrderById as jest.Mock).mockReturnValue(mockOrder);
-    (processFiatOrder as jest.Mock).mockResolvedValue(undefined);
+    mockGetOrderById.mockReturnValue(mockOrder);
+    mockUseParams.mockReturnValue({ orderId: 'ord-123' });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  it('emits RAMPS_TRANSACTION_CONFIRMED for a non-terminal callback order', async () => {
+    const pendingOrder = {
+      providerOrderId: 'ord-pending-cb',
+      status: RampsOrderStatus.Pending,
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.1',
+      provider: { id: 'moonpay' },
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockResolvedValue(pendingOrder);
+
+    render();
+
+    await waitFor(() => {
+      expect(mockEmitOrderConfirmedAnalyticsFromCallback).toHaveBeenCalledWith(
+        pendingOrder,
+        { rampType: 'UNIFIED_BUY_2' },
+      );
+    });
+    expect(mockEmitTerminalOrderAnalyticsFromCallback).not.toHaveBeenCalled();
   });
 
-  it('renders OrderDetails component', () => {
-    renderWithProvider(<OrderDetails />, {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
+  it('does not refresh after callback params clear for a still-pending order', async () => {
+    const pendingOrder = {
+      providerOrderId: 'ord-pending-cb',
+      status: RampsOrderStatus.Pending,
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.1',
+      provider: { id: 'moonpay' },
+      walletAddress: '0x123',
+    };
+
+    let routeParams: Record<string, string | undefined> = {
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockImplementation(() => routeParams);
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockResolvedValue(pendingOrder);
+    mockRefreshOrder.mockResolvedValue(undefined);
+
+    const OrderDetailsHarness = () => {
+      const [, setVersion] = React.useState(0);
+
+      React.useEffect(() => {
+        mockSetParams.mockImplementation(
+          (next: Record<string, string | undefined>) => {
+            routeParams = { ...routeParams, ...next };
+            mockGetOrderById.mockReturnValue(pendingOrder);
+            setVersion((version) => version + 1);
+          },
+        );
+      }, []);
+
+      return <OrderDetails />;
+    };
+
+    renderScreen(OrderDetailsHarness, {
+      name: Routes.RAMP.RAMPS_ORDER_DETAILS,
     });
 
-    expect(screen.toJSON()).toBeTruthy();
-  });
-
-  it('sets navigation options on mount', () => {
-    renderWithProvider(<OrderDetails />, {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
+    await waitFor(() => {
+      expect(mockSetParams).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderId: 'ord-pending-cb',
+          callbackUrl: undefined,
+          providerCode: undefined,
+          walletAddress: undefined,
+        }),
+      );
     });
 
-    expect(mockSetOptions).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockGetOrderById).toHaveBeenCalled();
+    });
+
+    expect(mockRefreshOrder).not.toHaveBeenCalled();
+  });
+
+  it('emits terminal analytics instead of confirmed for a completed callback order', async () => {
+    const completedOrder = {
+      providerOrderId: 'ord-cb-1',
+      status: RampsOrderStatus.Completed,
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.1',
+      provider: { id: 'moonpay' },
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockResolvedValue(completedOrder);
+
+    render();
+
+    await waitFor(() => {
+      expect(mockEmitTerminalOrderAnalyticsFromCallback).toHaveBeenCalledWith(
+        completedOrder,
+      );
+    });
+    expect(mockEmitOrderConfirmedAnalyticsFromCallback).not.toHaveBeenCalled();
+  });
+
+  it('displays order content when order exists', async () => {
+    mockRefreshOrder.mockResolvedValue(undefined);
+    const { getByTestId } = render();
+    await waitFor(() => {
+      expect(mockGetOrderById).toHaveBeenCalledWith('ord-123');
+    });
+    expect(getByTestId('order-content')).toBeOnTheScreen();
+  });
+
+  it('displays order content when order is loaded', async () => {
+    const { getByTestId } = render();
+    await waitFor(() => {
+      expect(
+        getByTestId(RampsOrderDetailsSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+    expect(getByTestId('order-content')).toBeOnTheScreen();
+  });
+
+  it('renders empty ScreenLayout when order is not found', () => {
+    mockGetOrderById.mockReturnValue(undefined);
+    const { queryByTestId } = render();
+    expect(queryByTestId('order-content')).not.toBeOnTheScreen();
+  });
+
+  it('shows loading state when order is pending and refreshing', () => {
+    mockUseParams.mockReturnValue({ orderId: 'ord-123' });
+    mockGetOrderById.mockReturnValue({
+      ...mockOrder,
+      status: RampsOrderStatus.Pending,
+    });
+    // eslint-disable-next-line no-empty-function -- Never-resolving promise for loading state test
+    mockRefreshOrder.mockImplementation(() => new Promise<never>(() => {}));
+    const { UNSAFE_getAllByType } = render();
+    const indicators = UNSAFE_getAllByType(ActivityIndicator);
+    expect(indicators.length).toBeGreaterThan(0);
+  });
+
+  it('shows error state with retry when refresh fails', async () => {
+    mockUseParams.mockReturnValue({ orderId: 'ord-pending' });
+    mockGetOrderById.mockReturnValue({
+      ...mockOrder,
+      status: RampsOrderStatus.Pending,
+    });
+    mockRefreshOrder.mockRejectedValue(new Error('Refresh failed'));
+
+    const { getByText } = render();
+
+    await waitFor(() => {
+      expect(getByText('ramps_order_details.try_again')).toBeOnTheScreen();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('ramps_order_details.try_again'));
+    });
+    expect(mockRefreshOrder).toHaveBeenCalled();
+  });
+
+  it('shows localized error when pending order refresh rejects with non-Error', async () => {
+    mockUseParams.mockReturnValue({ orderId: 'ord-pending' });
+    mockGetOrderById.mockReturnValue({
+      ...mockOrder,
+      status: RampsOrderStatus.Pending,
+    });
+    mockRefreshOrder.mockRejectedValue('not-an-error');
+
+    const { getByText } = render();
+
+    await waitFor(() => {
+      expect(getByText('ramps_order_details.error_message')).toBeOnTheScreen();
+    });
+  });
+
+  it('tracks RAMPS_SCREEN_VIEWED when order is displayed', async () => {
+    render();
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: 'Order Details',
+          ramp_type: 'UNIFIED_BUY_2',
+        }),
+      );
+    });
+  });
+
+  it('createRampsOrderDetailsNavDetails returns correct route', () => {
+    const result = createRampsOrderDetailsNavDetails();
+    expect(result[0]).toBe(Routes.RAMP.RAMPS_ORDER_DETAILS);
+  });
+
+  it('calls navigation.goBack when header back is pressed with loaded order', async () => {
+    const { getByTestId } = render();
+
+    await waitFor(() => {
+      expect(getByTestId('order-content')).toBeOnTheScreen();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('ramps-order-details-back-navbar-button'));
+    });
+
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('shows V2 order toast when callback fetch succeeds', async () => {
+    const { showV2OrderToast } = jest.requireMock(
+      '../../utils/v2OrderToast',
+    ) as { showV2OrderToast: jest.Mock };
+    const completedOrder = {
+      providerOrderId: 'ord-cb-1',
+      status: RampsOrderStatus.Completed,
+      cryptoCurrency: { symbol: 'ETH' },
+      cryptoAmount: '0.1',
+      provider: { id: 'moonpay' },
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockResolvedValue(completedOrder);
+
+    render();
+
+    await waitFor(() => {
+      expect(showV2OrderToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderId: 'ord-cb-1',
+          cryptocurrency: 'ETH',
+        }),
+      );
+    });
+  });
+
+  it('resets to build quote when callback returns no order', async () => {
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockResolvedValue(null);
+
+    render();
+
+    await waitFor(() => {
+      expect(mockReset).toHaveBeenCalled();
+    });
+    const resetArg = mockReset.mock.calls[0][0] as {
+      routes: { name: string }[];
+    };
+    expect(resetArg.routes[0].name).toBe(Routes.RAMP.BUILD_QUOTE);
+  });
+
+  it('resets to build quote when callback order is in a bailed status', async () => {
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockResolvedValue({
+      providerOrderId: 'ord-bail',
+      status: RampsOrderStatus.Precreated,
+      provider: { id: 'moonpay' },
+      walletAddress: '0x123',
+    });
+
+    render();
+
+    await waitFor(() => {
+      expect(mockReset).toHaveBeenCalled();
+    });
+    expect(mockAddOrder).not.toHaveBeenCalled();
+  });
+
+  it('uses route cryptocurrency for toast when callback order has no crypto symbol', async () => {
+    const { showV2OrderToast } = jest.requireMock(
+      '../../utils/v2OrderToast',
+    ) as { showV2OrderToast: jest.Mock };
+    const orderWithoutCryptoSymbol = {
+      providerOrderId: 'ord-cb-2',
+      status: RampsOrderStatus.Completed,
+      cryptoAmount: '1',
+      provider: { id: 'moonpay' },
+      walletAddress: '0x123',
+    };
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+      cryptocurrency: 'SOL',
+    });
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockResolvedValue(orderWithoutCryptoSymbol);
+
+    render();
+
+    await waitFor(() => {
+      expect(showV2OrderToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderId: 'ord-cb-2',
+          cryptocurrency: 'SOL',
+        }),
+      );
+    });
+  });
+
+  it('shows localized error when callback fetch rejects with Error that has no message', async () => {
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'https://callback.example?x=1',
+      providerCode: 'moonpay',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockRejectedValue(new Error(''));
+
+    const { getByText } = render();
+
+    await waitFor(() => {
+      expect(getByText('ramps_order_details.error_message')).toBeOnTheScreen();
+    });
+  });
+
+  it.each([
+    ['undefined', undefined],
+    ['plain object', { foo: 'bar' }],
+    ['string', 'oops'],
+    ['null', null],
+  ])(
+    'shows localized error when callback fetch rejects with non-Error value (%s)',
+    async (_label, rejectedValue) => {
+      mockUseParams.mockReturnValue({
+        callbackUrl: 'https://callback.example?x=1',
+        providerCode: 'moonpay',
+        walletAddress: '0x123',
+      });
+      mockGetOrderById.mockReturnValue(undefined);
+      mockGetOrderFromCallback.mockRejectedValue(rejectedValue);
+
+      const { getByText, queryByText } = render();
+
+      await waitFor(() => {
+        expect(
+          getByText('ramps_order_details.error_message'),
+        ).toBeOnTheScreen();
+      });
+      expect(queryByText('undefined')).toBeNull();
+      expect(queryByText('[object Object]')).toBeNull();
+      expect(queryByText('null')).toBeNull();
+    },
+  );
+
+  it('shows error state with retry when initial callback fetch fails', async () => {
+    mockUseParams.mockReturnValue({
+      callbackUrl: 'metamask://on-ramp/providers/paypal?orderId=abc',
+      providerCode: 'paypal',
+      walletAddress: '0x123',
+    });
+    mockGetOrderById.mockReturnValue(undefined);
+    mockGetOrderFromCallback.mockRejectedValue(
+      new Error('Network request failed'),
+    );
+
+    const { getByText } = render();
+
+    await waitFor(() => {
+      expect(getByText('Network request failed')).toBeOnTheScreen();
+    });
+    expect(getByText('ramps_order_details.try_again')).toBeOnTheScreen();
+
+    await act(async () => {
+      fireEvent.press(getByText('ramps_order_details.try_again'));
+    });
+    expect(mockGetOrderFromCallback).toHaveBeenCalledTimes(2);
+    expect(mockGetOrderFromCallback).toHaveBeenNthCalledWith(
+      2,
+      'paypal',
+      'metamask://on-ramp/providers/paypal?orderId=abc',
+      '0x123',
+    );
   });
 });

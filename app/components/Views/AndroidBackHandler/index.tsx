@@ -18,19 +18,21 @@ interface AndroidBackHandlerProps {
  */
 export default class AndroidBackHandler extends PureComponent<AndroidBackHandlerProps> {
   pressed = false;
+  backHandlerSubscription?: { remove: () => void };
 
   componentDidMount() {
     InteractionManager.runAfterInteractions(() => {
-      BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+      this.backHandlerSubscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        this.handleBackPress,
+      );
     });
   }
 
   componentWillUnmount() {
     InteractionManager.runAfterInteractions(() => {
-      BackHandler.removeEventListener(
-        'hardwareBackPress',
-        this.handleBackPress,
-      );
+      this.backHandlerSubscription?.remove();
+      this.backHandlerSubscription = undefined;
     });
   }
 

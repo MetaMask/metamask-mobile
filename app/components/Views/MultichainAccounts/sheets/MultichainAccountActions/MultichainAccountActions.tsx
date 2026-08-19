@@ -6,6 +6,7 @@ import {
   ParamListBase,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 
 import { AccountGroupObject } from '@metamask/account-tree-controller';
@@ -13,6 +14,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AccountAction from '../../../AccountAction/AccountAction';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -28,7 +30,11 @@ import {
   MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES,
 } from './MultichainAccountActions.testIds';
 import { createAddressListNavigationDetails } from '../../AddressList/AddressList';
-import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
+import { AddressListViewedSource } from '../../../../../util/analytics/addressListViewedTracking';
+import {
+  createNavigationDetails,
+  navigateWithDetails,
+} from '../../../../../util/navigation/navUtils';
 import {
   endTrace,
   trace,
@@ -63,7 +69,7 @@ const MultichainAccountActions = () => {
 
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = React.useRef<BottomSheetRef>(null);
-  const { navigate, goBack } = useNavigation();
+  const { navigate, goBack } = useNavigation<AppNavigationProp>();
 
   const handleOnClose = useCallback(() => {
     // Close the entire modal stack by going back to the parent
@@ -73,8 +79,9 @@ const MultichainAccountActions = () => {
   const goToAccountDetails = useCallback(() => {
     // Close the modal and navigate to account details
     goBack();
-    navigate(
-      ...createAccountGroupDetailsNavigationDetails({
+    navigateWithDetails(
+      { navigate },
+      createAccountGroupDetailsNavigationDetails({
         accountGroup,
       }),
     );
@@ -90,6 +97,10 @@ const MultichainAccountActions = () => {
     });
   }, [navigate, goBack, accountGroup]);
 
+  const endShowAccountAddressListTrace = useCallback(() => {
+    endTrace({ name: TraceName.ShowAccountAddressList });
+  }, []);
+
   const goToAddresses = useCallback(() => {
     // Start the trace before navigating to the address list to include the
     // navigation and render times in the trace.
@@ -101,20 +112,31 @@ const MultichainAccountActions = () => {
       },
     });
 
-    // Close the modal and navigate to address list
-    goBack();
-    navigate(
-      ...createAddressListNavigationDetails({
-        groupId: accountGroup.id,
-        title: `${strings('multichain_accounts.address_list.addresses')} / ${
-          accountGroup.metadata.name
-        }`,
-        onLoad: () => {
-          endTrace({ name: TraceName.ShowAccountAddressList });
-        },
-      }),
-    );
-  }, [accountGroup.id, accountGroup.metadata.name, navigate, goBack]);
+    try {
+      // Close the modal and navigate to address list
+      goBack();
+      navigateWithDetails(
+        { navigate },
+        createAddressListNavigationDetails({
+          groupId: accountGroup.id,
+          title: `${strings('multichain_accounts.address_list.addresses')} / ${
+            accountGroup.metadata.name
+          }`,
+          source: AddressListViewedSource.ACCOUNT_ACTIONS,
+          onLoad: endShowAccountAddressListTrace,
+        }),
+      );
+    } catch (error) {
+      endShowAccountAddressListTrace();
+      throw error;
+    }
+  }, [
+    accountGroup.id,
+    accountGroup.metadata.name,
+    endShowAccountAddressListTrace,
+    navigate,
+    goBack,
+  ]);
 
   return (
     <BottomSheet ref={sheetRef}>

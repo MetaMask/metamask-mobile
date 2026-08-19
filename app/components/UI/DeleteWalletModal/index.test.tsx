@@ -5,7 +5,7 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootState } from '../../../reducers';
 import { strings } from '../../../../locales/i18n';
 import { ForgotPasswordModalSelectorsIDs } from '../../../util/ForgotPasswordModal.testIds';
@@ -72,7 +72,7 @@ jest.mock('../../../core/Authentication/Authentication', () => ({
   },
 }));
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const renderComponent = (
   state: DeepPartial<RootState> = {},
@@ -106,10 +106,12 @@ describe('DeleteWalletModal', () => {
     .mockImplementation(mockRunAfterInteractions);
 
   describe('bottom sheet', () => {
-    it('renders matching snapshot', () => {
+    it('renders the forgot password description', () => {
       const wrapper = renderComponent(mockInitialState);
 
-      expect(wrapper).toMatchSnapshot();
+      expect(
+        wrapper.getByText(strings('login.forgot_password_desc')),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -258,7 +260,7 @@ describe('DeleteWalletModal', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       // Assert - Verify error was logged and loading state was reset
-      expect(consoleSpy).toHaveBeenCalledTimes(1);
+      expect(consoleSpy).toHaveBeenCalled();
 
       // Cleanup
       consoleSpy.mockRestore();

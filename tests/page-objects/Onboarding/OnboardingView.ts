@@ -1,31 +1,46 @@
 import { OnboardingSelectorIDs } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class OnboardingView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(OnboardingSelectorIDs.CONTAINER_ID);
   }
 
-  get existingWalletButton() {
+  get existingWalletButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
     );
   }
 
-  get newWalletButton(): DetoxElement {
+  get newWalletButton(): EncapsulatedElementType {
     return Matchers.getElementByID(OnboardingSelectorIDs.NEW_WALLET_BUTTON);
   }
 
   async tapCreateWallet(): Promise<void> {
     await Gestures.waitAndTap(this.newWalletButton, {
-      elemDescription: 'Onboarding  - Create New Wallet Button',
+      elemDescription: 'Onboarding Create New Wallet Button',
+      checkForDisplayed: true,
+      checkEnabled: true,
+      waitForInteractive: true,
+      checkStability: true,
+      timeout: 15_000,
     });
   }
 
-  async tapHaveAnExistingWallet() {
+  async tapCreateNewWalletButton(): Promise<void> {
+    await this.tapCreateWallet();
+  }
+
+  async tapHaveAnExistingWallet(): Promise<void> {
     await Gestures.waitAndTap(this.existingWalletButton, {
       elemDescription: 'Onboarding Have an Existing Wallet Button',
+      checkForDisplayed: true,
+      checkEnabled: true,
+      waitForInteractive: true,
+      checkStability: true,
+      timeout: 15_000,
     });
   }
 }

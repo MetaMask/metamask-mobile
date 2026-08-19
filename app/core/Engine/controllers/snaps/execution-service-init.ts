@@ -1,8 +1,10 @@
-import { AbstractExecutionService } from '@metamask/snaps-controllers';
-// eslint-disable-next-line import/no-nodejs-modules
+import {
+  ExecutionService,
+  ExecutionServiceMessenger,
+} from '@metamask/snaps-controllers';
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
-import { ControllerInitFunction } from '../../types';
-import { ExecutionServiceMessenger } from '../../messengers/snaps';
+import { MessengerClientInitFunction } from '../../types';
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
 import { createWebView, removeWebView } from '../../../../lib/snaps';
 import Logger from '../../../../util/Logger';
@@ -17,8 +19,8 @@ import { SnapId } from '@metamask/snaps-sdk';
  * @param request.controllerMessenger - The messenger to use for the service.
  * @returns The initialized controller.
  */
-export const executionServiceInit: ControllerInitFunction<
-  AbstractExecutionService<unknown>,
+export const executionServiceInit: MessengerClientInitFunction<
+  ExecutionService,
   ExecutionServiceMessenger
 > = ({ controllerMessenger }) => {
   /**

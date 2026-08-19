@@ -1,11 +1,11 @@
-import { buildControllerInitRequestMock } from '../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import {
   getTokenBalancesControllerInitMessenger,
   getTokenBalancesControllerMessenger,
   TokenBalancesControllerInitMessenger,
 } from '../messengers/token-balances-controller-messenger';
-import { ControllerInitRequest } from '../types';
+import { MessengerClientInitRequest } from '../types';
 import { tokenBalancesControllerInit } from './token-balances-controller-init';
 import {
   TokenBalancesController,
@@ -16,7 +16,7 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 jest.mock('@metamask/assets-controllers');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     TokenBalancesControllerMessenger,
     TokenBalancesControllerInitMessenger
   >
@@ -26,7 +26,7 @@ function getInitRequestMock(): jest.Mocked<
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getTokenBalancesControllerMessenger(baseMessenger),
     initMessenger: getTokenBalancesControllerInitMessenger(baseMessenger),
   };
@@ -75,6 +75,7 @@ describe('TokenBalancesControllerInit', () => {
       accountsApiChainIds: expect.any(Function),
       platform: 'mobile',
       isOnboarded: expect.any(Function),
+      isDeprecated: expect.any(Function),
     });
   });
 
@@ -94,6 +95,7 @@ describe('TokenBalancesControllerInit', () => {
       accountsApiChainIds: expect.any(Function),
       platform: 'mobile',
       isOnboarded: expect.any(Function),
+      isDeprecated: expect.any(Function),
     });
   });
 
@@ -114,6 +116,7 @@ describe('TokenBalancesControllerInit', () => {
       accountsApiChainIds: expect.any(Function),
       platform: 'mobile',
       isOnboarded: expect.any(Function),
+      isDeprecated: expect.any(Function),
     });
   });
 });

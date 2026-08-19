@@ -1,7 +1,9 @@
 /**
- * Market hours utilities for equity trading
+ * Market hours utilities for stock-like asset trading
  * Market hours: 9:30 AM - 4:00 PM EST, Monday-Friday
  */
+
+import { MarketCategory } from '@metamask/perps-controller';
 
 export interface MarketHoursStatus {
   isOpen: boolean;
@@ -282,9 +284,20 @@ export const getMarketHoursStatus = (
 };
 
 /**
- * Check if an asset is an equity that requires market hours display
+ * Stock-like market types that replaced the former 'equity' MarketType.
+ * These assets follow traditional market hours.
+ */
+export const STOCK_LIKE_MARKET_TYPES: ReadonlySet<string> = new Set([
+  MarketCategory.Stock,
+  MarketCategory.PreIpo,
+  MarketCategory.Index,
+  MarketCategory.Etf,
+]);
+
+/**
+ * Check if an asset is a stock-like type that requires market hours display
  * @param marketType - The market type from PerpsMarketData
- * @returns true if the asset is an equity
+ * @returns true if the asset is a stock, pre-ipo, index, or etf
  */
 export const isEquityAsset = (marketType?: string): boolean =>
-  marketType === 'equity';
+  marketType !== undefined && STOCK_LIKE_MARKET_TYPES.has(marketType);

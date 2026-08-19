@@ -1,16 +1,15 @@
-import BN from 'bnjs4';
 import {
-  hexToBN,
+  hexToBigInt,
+  toBigInt,
   weiToFiat,
   renderFromWei,
   balanceToFiat,
-  isBN,
   renderFromTokenMinimalUnit,
   fromTokenMinimalUnit,
   balanceToFiatNumber,
   weiToFiatNumber,
   addCurrencySymbol,
-} from '../../../util/number';
+} from '../../../util/number/bigint';
 import { strings } from '../../../../locales/i18n';
 import {
   renderFullAddress,
@@ -25,11 +24,12 @@ import {
   TRANSACTION_TYPES,
   isTransactionIncomplete,
 } from '../../../util/transactions';
-import Engine from '../../../core/Engine';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
+  decodeBatchSellTx,
   decodeBridgeTx,
   decodeSwapsTx,
+  isBridgeTxHistoryItemBridge,
 } from '../Bridge/utils/transaction-history';
 import { calculateTotalGas, renderGwei } from './utils-gas';
 import { getTokenTransferData } from '../../Views/confirmations/utils/transaction-pay';
@@ -52,8 +52,11 @@ const POSITIVE_TRANSFER_TRANSACTION_TYPES = [
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
 ];
 
 function getTokenTransfer(args) {
@@ -79,12 +82,12 @@ function getTokenTransfer(args) {
 
   // Try to decode amount from transaction data
   const [, , encodedAmount] = decodeTransferData('transfer', data);
-  let amount = hexToBN(encodedAmount);
+  let amount = encodedAmount ? hexToBigInt(encodedAmount) : 0n;
 
   // If data is incomplete/truncated, use transferInformation if available
-  if ((!encodedAmount || amount.isZero()) && tx.transferInformation?.amount) {
+  if ((!encodedAmount || amount === 0n) && tx.transferInformation?.amount) {
     // transferInformation.amount is a decimal string, not hex
-    amount = new BN(tx.transferInformation.amount, 10);
+    amount = toBigInt.dec(tx.transferInformation.amount);
   }
 
   const userHasToken = toFormattedAddress(to) in tokens;
@@ -221,17 +224,21 @@ function getMetamaskPayTargetFiat(tx, decimals) {
 
   const targetFiatNoDecimals = new BigNumber(targetFiat)
     .shiftedBy(decimals ?? 0)
-    .toFixed();
+    .toFixed(0);
 
-  return new BN(targetFiatNoDecimals);
+  return toBigInt.dec(targetFiatNoDecimals);
 }
 
 // For post-quote predict withdrawals, derive the received token amount and
 // user-currency fiat from the USD targetFiat stored in metamaskPay.
 function getPostQuoteDisplay(tx, currentCurrency) {
   const { metamaskPay } = tx ?? {};
+
   if (
-    !hasTransactionType(tx, [TransactionType.predictWithdraw]) ||
+    !hasTransactionType(tx, [
+      TransactionType.predictWithdraw,
+      TransactionType.perpsWithdraw,
+    ]) ||
     !metamaskPay?.isPostQuote ||
     !metamaskPay?.targetFiat
   ) {
@@ -434,7 +441,7 @@ function decodeIncomingTransfer(args) {
   const isIncoming = from?.toLowerCase() !== selectedAddress?.toLowerCase();
   const actualRecipient = decodedData[0] || (isIncoming ? selectedAddress : to);
 
-  const amount = hexToBN(value);
+  const amount = value ? hexToBigInt(value) : 0n;
   const token = { symbol, decimals, address: contractAddress };
 
   const renderTokenAmount = token
@@ -754,7 +761,7 @@ function decodeDeploymentTx(args) {
     conversionRate,
     currentCurrency,
   );
-  const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
+  const totalEth = value ? hexToBigInt(value) + totalGas : totalGas;
 
   const renderFrom = renderFullAddress(from);
   const renderTo = strings('transactions.to_contract');
@@ -819,7 +826,7 @@ function decodeConfirmTx(args) {
     selectedAddress,
     ticker,
   } = args;
-  const totalEth = hexToBN(value);
+  const totalEth = value ? hexToBigInt(value) : 0n;
   const renderTotalEth = `${renderFromWei(totalEth)} ${ticker}`;
   const renderTotalEthFiat = weiToFiat(
     totalEth,
@@ -828,19 +835,11 @@ function decodeConfirmTx(args) {
   );
 
   const totalGas = calculateTotalGas(txParams);
-  const totalValue = isBN(totalEth) ? totalEth.add(totalGas) : totalGas;
+  const totalValue = totalEth + totalGas;
 
   const renderFrom = renderFullAddress(from);
   const renderTo = renderFullAddress(to);
-  const chainId = txChainId;
 
-  const tokenList =
-    Engine.context.TokenListController.state.tokensChainsCache?.[chainId]
-      ?.data || [];
-  let symbol;
-  if (renderTo in tokenList) {
-    symbol = tokenList[renderTo].symbol;
-  }
   let transactionType;
   if (actionKey === strings('transactions.approve'))
     transactionType = TRANSACTION_TYPES.APPROVE;
@@ -869,7 +868,7 @@ function decodeConfirmTx(args) {
   const transactionElement = {
     renderTo,
     renderFrom,
-    actionKey: symbol ? `${symbol} ${actionKey}` : actionKey,
+    actionKey,
     value: renderTotalEth,
     fiatValue: renderTotalEthFiat,
     transactionType,
@@ -1023,22 +1022,29 @@ export default async function decodeTransaction(args) {
   );
   let transactionElement, transactionDetails;
 
-  if (args.bridgeTxHistoryData?.bridgeTxHistoryItem) {
+  const bridgeTxHistoryItem = args.bridgeTxHistoryData?.bridgeTxHistoryItem;
+  if (bridgeTxHistoryItem) {
     // Unified Swaps, reads tx data from BridgeStatusController
-    if (tx.type === TransactionType.swap) {
-      const [transactionElement, transactionDetails] = decodeSwapsTx({
-        ...args,
-        actionKey,
-      });
-      return [transactionElement, transactionDetails];
-    }
-    if (tx.type === TransactionType.bridge) {
+    if (
+      tx.type === TransactionType.bridge ||
+      isBridgeTxHistoryItemBridge(bridgeTxHistoryItem)
+    ) {
       const [transactionElement, transactionDetails] = decodeBridgeTx({
         ...args,
         actionKey,
       });
       return [transactionElement, transactionDetails];
     }
+
+    if (args.bridgeTxHistoryData?.is7702Batch) {
+      return decodeBatchSellTx(args);
+    }
+
+    const [transactionElement, transactionDetails] = decodeSwapsTx({
+      ...args,
+      actionKey,
+    });
+    return [transactionElement, transactionDetails];
   }
 
   if (isTransfer) {
@@ -1050,8 +1056,11 @@ export default async function decodeTransaction(args) {
     switch (actionKey) {
       case strings('transactions.tx_review_musd_conversion'):
       case strings('transactions.tx_review_perps_deposit'):
+      case strings('transactions.tx_review_perps_withdraw'):
       case strings('transactions.tx_review_predict_deposit'):
       case strings('transactions.tx_review_predict_withdraw'):
+      case strings('transactions.money_account_deposit'):
+      case strings('transactions.money_account_withdraw'):
         [transactionElement, transactionDetails] = await decodeTransferTx({
           ...args,
           actionKey,

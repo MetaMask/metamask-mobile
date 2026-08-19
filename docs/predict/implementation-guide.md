@@ -309,7 +309,9 @@ export function usePredictBalance() {
   const { ensurePolygonNetworkExists } = usePredictNetworkManagement();
 
   // Read from Redux
-  const balance = useSelector(selectPredictBalanceByAddress());
+  const balance = useSelector((state) =>
+    selectPredictBalanceByAddress(state, selectedAddress),
+  );
 
   // Memoize callbacks
   const loadBalance = useCallback(async () => {
@@ -538,8 +540,12 @@ jest.mock('../hooks/usePredictMarket', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn((selector) => {
-    if (selector === selectPredictBalanceByAddress) {
-      return '1000.00';
+    // Parameterized selectors are invoked via inline wrappers:
+    // useSelector((state) => selectPredictBalanceByAddress(state, address))
+    if (typeof selector === 'function') {
+      return selector({
+        /* mock RootState slice as needed */
+      });
     }
     return undefined;
   }),
@@ -1240,5 +1246,6 @@ yarn lint && yarn lint:tsc && yarn jest app/components/UI/Predict/
 
 - [Architecture Overview](./architecture-overview.md) - Current vs target architecture
 - [Refactoring Tasks](./refactoring-tasks.md) - Task breakdown with progress tracking
-- [UI Development Guidelines](../../.cursor/rules/ui-development-guidelines.mdc) - MetaMask-wide UI patterns
-- [Unit Testing Guidelines](../../.cursor/rules/unit-testing-guidelines.mdc) - Testing best practices
+- [Unit Testing Guidelines](../testing/unit-testing.md) - Testing best practices
+
+UI development guidance is provided by the centralized `mms-*` skill set (install via `yarn skills`).

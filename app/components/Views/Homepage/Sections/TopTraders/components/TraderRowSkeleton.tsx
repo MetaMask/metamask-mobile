@@ -1,0 +1,51 @@
+import React from 'react';
+import { View } from 'react-native';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useTheme } from '../../../../../../util/theme';
+import { TRADER_ROW_HEIGHT } from './TraderRow';
+
+/**
+ * TraderRowSkeleton — loading placeholder that mirrors the TraderRow layout.
+ *
+ * Uses react-native-skeleton-placeholder to animate shimmer effect
+ * over rank, avatar, username/stats text, and action button shapes.
+ *
+ * Outer wrapper height is locked to `TRADER_ROW_HEIGHT` so the skeleton
+ * occupies the exact same vertical space as a rendered <TraderRow />.
+ */
+const TraderRowSkeleton: React.FC = () => {
+  const tw = useTailwind();
+  const { colors } = useTheme();
+
+  return (
+    <View
+      style={[tw.style('px-4 justify-center'), { height: TRADER_ROW_HEIGHT }]}
+    >
+      <SkeletonPlaceholder
+        backgroundColor={colors.background.section}
+        highlightColor={colors.background.subsection}
+      >
+        <View style={tw.style('flex-row items-center')}>
+          {/* Avatar placeholder */}
+          <View style={tw.style('w-10 h-10 rounded-full mr-3')} />
+
+          {/* Text info placeholder — total height matches the avatar (40px)
+              so the two bars line up with the actual BodyMd + BodySm text rows
+              (~20px + ~16px) and don't appear vertically centered with gaps. */}
+          <View style={tw.style('flex-1 gap-1')}>
+            <View style={tw.style('w-24 h-5 rounded')} />
+            <View style={tw.style('w-40 h-4 rounded')} />
+          </View>
+
+          {/* Button placeholder — 80×40 (ButtonSize.Md) matches the real
+              button so the row's right edge stays stable when the button
+              toggles between Follow and Following. */}
+          <View style={tw.style('w-20 h-10 rounded-xl ml-3')} />
+        </View>
+      </SkeletonPlaceholder>
+    </View>
+  );
+};
+
+export default TraderRowSkeleton;

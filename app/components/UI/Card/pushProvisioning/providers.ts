@@ -3,30 +3,27 @@
  *
  * Simple factory functions that return the appropriate card and wallet providers
  * based on user location and platform OS.
- *
- * NOTE: This is the base module. Platform-specific branches will override
- * getWalletProvider to return the appropriate adapter (GoogleWalletAdapter or AppleWalletAdapter).
  */
 
-import { CardSDK } from '../sdk/CardSDK';
-import { GalileoCardAdapter, ICardProviderAdapter } from './adapters/card';
-import { IWalletProviderAdapter } from './adapters/wallet';
+import { Platform } from 'react-native';
+import { ControllerCardAdapter, ICardProviderAdapter } from './adapters/card';
+import {
+  AppleWalletAdapter,
+  GoogleWalletAdapter,
+  IWalletProviderAdapter,
+} from './adapters/wallet';
 import { CardLocation } from '../types';
 
 /**
- * Get the appropriate card provider adapter based on user location
- *
- * @param userCardLocation - The user's card location ('us' or 'international')
- * @param cardSDK - The CardSDK instance
- * @returns The card provider adapter for the user's location
+ * Get the appropriate card provider adapter based on user location.
+ * Uses CardController under the hood (no direct SDK dependency).
  */
 export function getCardProvider(
-  userCardLocation: CardLocation,
-  cardSDK: CardSDK,
+  userCardLocation: CardLocation | null,
 ): ICardProviderAdapter | null {
   switch (userCardLocation) {
     case 'us':
-      return new GalileoCardAdapter(cardSDK);
+      return new ControllerCardAdapter();
     case 'international':
     default:
       return null;
@@ -34,15 +31,15 @@ export function getCardProvider(
 }
 
 /**
- * Get the appropriate wallet provider adapter based on platform OS
- *
- * NOTE: Base implementation returns null. Platform-specific branches
- * (feat/apple-in-app-provisioning, feat/google-in-app-provisioning)
- * will override this to return the appropriate adapter.
- *
- * @returns The wallet provider adapter for the current platform, or null if not supported
+ * Get the appropriate wallet provider adapter based on platform
  */
 export function getWalletProvider(): IWalletProviderAdapter | null {
-  // Platform-specific branches will implement this
-  return null;
+  switch (Platform.OS) {
+    case 'android':
+      return new GoogleWalletAdapter();
+    case 'ios':
+      return new AppleWalletAdapter();
+    default:
+      return null;
+  }
 }

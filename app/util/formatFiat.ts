@@ -27,6 +27,7 @@ const formatFiat = (fiatAmount: BigNumber, currency?: string) => {
     result = getIntlNumberFormatter(I18n.locale, {
       style: 'currency',
       currency,
+      currencyDisplay: 'narrowSymbol',
       minimumFractionDigits: hasDecimals ? 2 : 0,
       // string is valid parameter for format function
       // for some reason it gives TS issue
@@ -36,8 +37,6 @@ const formatFiat = (fiatAmount: BigNumber, currency?: string) => {
     // Fallback for unknown or unsupported currencies
     result = `${value} ${currency}`;
   }
-
-  result = result.replace('US$', '$');
 
   return isSmall ? `<${result}` : result;
 };

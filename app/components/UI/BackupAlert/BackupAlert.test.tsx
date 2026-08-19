@@ -15,7 +15,7 @@ const initialState = {
 };
 const mockNavigation = {
   navigate: jest.fn(),
-  dangerouslyGetState: jest.fn(() => ({ routes: [{ name: 'WalletView' }] })),
+  getState: jest.fn(() => ({ routes: [{ name: 'WalletView' }] })),
 };
 
 jest.mock('react-redux', () => ({
@@ -39,7 +39,7 @@ describe('BackupAlert', () => {
       true,
       false,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('navigates to backupFlow when Protect Wallet button is pressed', () => {

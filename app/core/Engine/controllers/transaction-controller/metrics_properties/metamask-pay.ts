@@ -1,39 +1,67 @@
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
-import { TransactionMetricsBuilder } from '../types';
-import { JsonMap } from '../../../../Analytics/MetaMetrics.types';
-import { orderBy } from 'lodash';
+import { TransactionMetrics, TransactionMetricsBuilder } from '../types';
+import { JsonMap } from '../../../../../util/analytics/analytics.types';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
-import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
 import {
-  TransactionPayBridgeQuote,
-  TransactionPayQuote,
-  TransactionPayStrategy,
-} from '@metamask/transaction-pay-controller';
+  getMetaMaskPayFiatChainTarget,
+  normalizeMetaMaskPayPaymentMethod,
+} from '../../../../../components/Views/confirmations/utils/transaction-pay-metrics';
+import {
+  MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY,
+  MM_PAY_AMOUNT_INPUT_TYPE_KEY,
+  MM_PAY_AMOUNT_INPUT_TYPE_PREFILLED,
+  resolveMoneyAccountDepositPrefillPresented,
+} from '../../../../../components/Views/confirmations/utils/pay-amount-input-metrics';
+import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { RootState } from '../../../../../reducers';
+import { isNoOpQuote } from '../../../../../selectors/transactionPayController';
+import { selectRampsOrders } from '../../../../../selectors/rampsController';
 import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/tokensController';
 import { Hex } from '@metamask/utils';
+import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
+import { BigNumber } from 'bignumber.js';
 
 const FOUR_BYTE_SAFE_PROXY_CREATE = '0xa1884d2c';
 
-const COPY_METRICS = [
-  'mm_pay',
-  'mm_pay_use_case',
-  'mm_pay_transaction_step_total',
-  'mm_pay_sending_value_usd',
-  'mm_pay_receiving_value_usd',
-  'mm_pay_metamask_fee_usd',
-] as const;
-
 const PAY_TYPES = [
+  TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
+  TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
+  TransactionType.predictDepositAndOrder,
   TransactionType.predictWithdraw,
 ];
 
+const USE_CASE_MAP: [TransactionType[], string][] = [
+  [[TransactionType.predictWithdraw], 'predict_withdraw'],
+  [[TransactionType.predictDeposit], 'predict_deposit'],
+  [[TransactionType.predictDepositAndOrder], 'predict_deposit_and_order'],
+  [[TransactionType.perpsDeposit], 'perps_deposit'],
+  [[TransactionType.perpsWithdraw], 'perps_withdraw'],
+  [[TransactionType.moneyAccountDeposit], 'money_account_deposit'],
+  [[TransactionType.moneyAccountWithdraw], 'money_account_withdraw'],
+];
+
+const UI_PAYMENT_METHOD_PROPERTIES = [
+  'mm_pay_payment_method_available',
+  'mm_pay_payment_method_presented',
+] as const;
+
+const UI_AMOUNT_INPUT_PROPERTIES = [
+  MM_PAY_AMOUNT_INPUT_TYPE_KEY,
+  MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY,
+] as const;
+
+type TransactionPayData =
+  RootState['engine']['backgroundState']['TransactionPayController']['transactionData'][string];
+
 export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
+  eventType,
   transactionMeta,
   allTransactions,
   getUIMetrics,
@@ -41,122 +69,405 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
 }) => {
   const properties: JsonMap = {};
   const sensitiveProperties: JsonMap = {};
-  const { batchId, id: transactionId, type } = transactionMeta;
+  const state = getState();
 
-  const parentTransaction = allTransactions.find(
-    (tx) =>
-      tx.requiredTransactionIds?.includes(transactionId) ||
-      (batchId && hasTransactionType(tx, PAY_TYPES) && tx.batchId === batchId),
-  );
+  const parentTransaction = hasTransactionType(transactionMeta, PAY_TYPES)
+    ? undefined
+    : allTransactions.find((tx) =>
+        tx.requiredTransactionIds?.includes(transactionMeta.id),
+      );
 
-  if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    properties.polymarket_account_created = (
-      transactionMeta?.nestedTransactions ?? []
-    ).some((t) => t.data?.startsWith(FOUR_BYTE_SAFE_PROXY_CREATE));
-  }
+  const payTransaction = parentTransaction ?? transactionMeta;
+  const txPayData = getTransactionPayData(state, payTransaction.id);
 
-  if (hasTransactionType(transactionMeta, PAY_TYPES) || !parentTransaction) {
-    addFallbackProperties(properties, transactionMeta, getState());
+  // polymarket_account_created
+  addPolymarketAccountCreated(properties, transactionMeta);
 
-    return {
-      properties,
-      sensitiveProperties,
-    };
-  }
+  if (isPayTransaction(payTransaction)) {
+    // mm_pay, mm_pay_payment_method_selected, mm_pay_chain_selected,
+    // mm_pay_token_selected, mm_pay_use_case
+    addBaselinePayProperties(properties, {
+      transaction: payTransaction,
+      txPayData,
+      state,
+    });
 
-  const parentMetrics = getUIMetrics(parentTransaction.id);
+    if (txPayData) {
+      // mm_pay_sending_value_usd, mm_pay_receiving_value_usd,
+      // mm_pay_metamask_fee_usd, mm_pay_provider_fee_usd, mm_pay_network_fee_usd
+      addAmountProperties(properties, txPayData);
 
-  for (const key of COPY_METRICS) {
-    if (parentMetrics?.properties?.[key] !== undefined) {
-      properties[key] = parentMetrics.properties[key];
+      // mm_pay_quote_skipped, mm_pay_strategy,
+      // mm_pay_transaction_step, mm_pay_transaction_step_total
+      addQuoteProperties(properties, txPayData);
+
+      // mm_pay_payment_method_selected, mm_pay_fiat_provider,
+      // mm_pay_fiat_token_target, mm_pay_fiat_chain_target
+      addFiatPaymentProperties(properties, txPayData);
+    } else {
+      // mm_pay_receiving_value_usd, mm_pay_provider_fee_usd,
+      // mm_pay_network_fee_usd, mm_pay_strategy, mm_pay_fiat_provider,
+      // mm_pay_payment_method_selected
+      addPersistedPayMetadata(properties, payTransaction, state);
     }
+
+    // mm_pay_amount_input_type, mm_pay_amount_input_prefill_presented
+    // UI fragment wins; intent-to-treat only on Transaction Added.
+    addAmountInputProperties(properties, {
+      eventType,
+      transaction: payTransaction,
+      uiMetrics: getUIMetrics(payTransaction.id),
+      state,
+    });
   }
 
-  const batchTransactionIds = parentTransaction.batchId
-    ? orderBy(
-        allTransactions.filter(
-          (tx) => tx.batchId === parentTransaction.batchId,
-        ),
-        (t) => parseInt(t.txParams.nonce ?? '0x0', 16),
-        'asc',
-      ).map((t) => t.id)
-    : undefined;
-
-  const relatedTransactionIds =
-    parentTransaction.requiredTransactionIds ?? batchTransactionIds ?? [];
-
-  properties.mm_pay_transaction_step =
-    relatedTransactionIds.indexOf(transactionId) + 1;
-
-  if (
-    [TransactionType.bridge, TransactionType.swap].includes(
-      type as TransactionType,
-    )
-  ) {
-    const quotes =
-      getState().engine.backgroundState.TransactionPayController
-        .transactionData[parentTransaction.id]?.quotes ?? [];
-
-    const quoteTransactionIds = relatedTransactionIds.filter((id) =>
-      allTransactions.some(
-        (tx) =>
-          tx.id === id &&
-          [TransactionType.bridge, TransactionType.swap].includes(
-            tx.type as TransactionType,
-          ),
-      ),
+  if (parentTransaction) {
+    // mm_pay_payment_method_available, mm_pay_payment_method_presented,
+    // mm_pay_amount_input_type, mm_pay_amount_input_prefill_presented
+    addParentPaymentMethodUIMetrics(
+      properties,
+      getUIMetrics(parentTransaction.id),
+    );
+    addParentAmountInputUIMetrics(
+      properties,
+      getUIMetrics(parentTransaction.id),
     );
 
-    const quoteIndex = quoteTransactionIds.indexOf(transactionMeta.id);
-    const quote = quotes[quoteIndex];
+    // mm_pay_transaction_step
+    addChildTransactionStep(properties, transactionMeta, parentTransaction);
 
-    if (quote?.strategy === TransactionPayStrategy.Bridge) {
-      const bridgeQuote =
-        quote as TransactionPayQuote<TransactionPayBridgeQuote>;
-
-      const metrics = bridgeQuote.original.metrics;
-
-      properties.mm_pay_quotes_attempts = metrics?.attempts;
-      properties.mm_pay_quotes_buffer_size = metrics?.buffer;
-      properties.mm_pay_quotes_latency = metrics?.latency;
-      properties.mm_pay_bridge_provider = bridgeQuote.original.quote.bridgeId;
-    }
-
-    if (quote && quote.request.targetTokenAddress !== NATIVE_TOKEN_ADDRESS) {
-      properties.mm_pay_dust_usd = parentMetrics?.properties?.mm_pay_dust_usd;
-    }
+    // mm_pay_dust_usd
+    addDustProperties(properties, {
+      transactionMeta,
+      parentTransaction,
+      allTransactions,
+      txPayData,
+    });
+  } else {
+    // mm_pay_time_to_complete_s
+    addTimeToComplete(properties, eventType, transactionMeta, allTransactions);
   }
 
-  return {
-    properties,
-    sensitiveProperties,
-  };
+  return { properties, sensitiveProperties };
 };
 
-function addFallbackProperties(
+function isPayTransaction(transaction: TransactionMeta): boolean {
+  const { metamaskPay } = transaction;
+
+  return (
+    hasTransactionType(transaction, PAY_TYPES) ||
+    Boolean(metamaskPay?.chainId && metamaskPay?.tokenAddress)
+  );
+}
+
+function addPolymarketAccountCreated(
+  properties: JsonMap,
+  transactionMeta: TransactionMeta,
+) {
+  if (
+    !hasTransactionType(transactionMeta, [
+      TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
+    ])
+  ) {
+    return;
+  }
+
+  properties.polymarket_account_created = (
+    transactionMeta?.nestedTransactions ?? []
+  ).some((t) => t.data?.startsWith(FOUR_BYTE_SAFE_PROXY_CREATE));
+}
+
+function addChildTransactionStep(
+  properties: JsonMap,
+  transactionMeta: TransactionMeta,
+  parentTransaction: TransactionMeta,
+) {
+  const relatedTransactionIds = parentTransaction.requiredTransactionIds ?? [];
+
+  properties.mm_pay_transaction_step =
+    relatedTransactionIds.indexOf(transactionMeta.id) + 1;
+}
+
+function addDustProperties(
+  properties: JsonMap,
+  {
+    transactionMeta,
+    parentTransaction,
+    allTransactions,
+    txPayData,
+  }: {
+    transactionMeta: TransactionMeta;
+    parentTransaction: TransactionMeta;
+    allTransactions: TransactionMeta[];
+    txPayData: TransactionPayData | undefined;
+  },
+) {
+  if (!isSwapOrBridge(transactionMeta.type)) {
+    return;
+  }
+
+  const quotes = txPayData?.quotes ?? [];
+
+  const relatedTransactionIds = parentTransaction.requiredTransactionIds ?? [];
+
+  const quoteTransactionIds = relatedTransactionIds.filter((id) =>
+    allTransactions.some((tx) => tx.id === id && isSwapOrBridge(tx.type)),
+  );
+
+  const quoteIndex = quoteTransactionIds.indexOf(transactionMeta.id);
+  const quote = quotes[quoteIndex];
+
+  if (quote && quote.request.targetTokenAddress !== NATIVE_TOKEN_ADDRESS) {
+    properties.mm_pay_dust_usd = quote.dust.usd;
+  }
+}
+
+function getLatestChildSubmittedTime(
+  transactionMeta: TransactionMeta,
+  allTransactions: TransactionMeta[],
+): number | undefined {
+  const { requiredTransactionIds } = transactionMeta;
+
+  const submittedTimes = allTransactions
+    .filter((tx) => requiredTransactionIds?.includes(tx.id))
+    .map((tx) => tx.submittedTime)
+    .filter((t): t is number => typeof t === 'number');
+
+  return submittedTimes.length > 0 ? Math.max(...submittedTimes) : undefined;
+}
+
+function addTimeToComplete(
+  properties: JsonMap,
+  eventType: Parameters<TransactionMetricsBuilder>[0]['eventType'],
+  transactionMeta: TransactionMeta,
+  allTransactions: TransactionMeta[],
+) {
+  if (
+    !properties.mm_pay ||
+    eventType !== TRANSACTION_EVENTS.TRANSACTION_FINALIZED
+  ) {
+    return;
+  }
+
+  const submittedTime =
+    getLatestChildSubmittedTime(transactionMeta, allTransactions) ??
+    transactionMeta.submittedTime;
+
+  if (typeof submittedTime !== 'number') {
+    return;
+  }
+
+  properties.mm_pay_time_to_complete_s =
+    Math.round(Date.now() - submittedTime) / 1000;
+}
+
+/**
+ * Backfills mm_pay_* properties from the persisted transactionMeta.metamaskPay
+ * when the non-persisted TransactionPayController.transactionData is no longer
+ * available, e.g. after the app restarted mid-flight.
+ */
+function addPersistedPayMetadata(
   properties: JsonMap,
   transaction: TransactionMeta,
   state: RootState,
 ) {
   const { metamaskPay } = transaction;
 
-  if (
-    !metamaskPay?.chainId ||
-    !metamaskPay?.tokenAddress ||
-    properties.mm_pay
-  ) {
+  if (!metamaskPay) {
     return;
   }
 
-  const { chainId, tokenAddress } = metamaskPay;
+  const { bridgeFeeFiat, fiat, networkFeeFiat, targetFiat } = metamaskPay;
+
+  if (targetFiat !== undefined) {
+    properties.mm_pay_receiving_value_usd = Number(targetFiat);
+  }
+
+  if (bridgeFeeFiat !== undefined) {
+    properties.mm_pay_provider_fee_usd = bridgeFeeFiat;
+  }
+
+  if (networkFeeFiat !== undefined) {
+    properties.mm_pay_network_fee_usd = networkFeeFiat;
+  }
+
+  if (!fiat) {
+    // Non-fiat strategy is not persisted on metamaskPay yet, so assume the
+    // most common one until the strategy is persisted in TransactionController
+    // state.
+    properties.mm_pay_strategy = 'relay';
+    return;
+  }
+
+  properties.mm_pay_strategy = 'fiat';
+
+  const providerCode = extractFiatProviderCode(fiat.provider);
+
+  if (providerCode) {
+    properties.mm_pay_fiat_provider = providerCode;
+  }
+
+  const paymentMethodId = selectRampsOrders(state).find(
+    (order) => order.providerOrderId === fiat.orderId,
+  )?.paymentMethod?.id;
+
+  if (paymentMethodId) {
+    properties.mm_pay_payment_method_selected =
+      normalizeMetaMaskPayPaymentMethod(paymentMethodId);
+  } else {
+    properties.mm_pay_payment_method_selected = 'fiat';
+  }
+}
+
+function addBaselinePayProperties(
+  properties: JsonMap,
+  {
+    transaction,
+    txPayData,
+    state,
+  }: {
+    transaction: TransactionMeta;
+    txPayData: TransactionPayData | undefined;
+    state: RootState;
+  },
+) {
+  const { metamaskPay } = transaction;
+  const chainId = metamaskPay?.chainId;
+  const tokenAddress = metamaskPay?.tokenAddress;
 
   properties.mm_pay = true;
-  properties.mm_pay_chain_selected = chainId;
+  properties.mm_pay_payment_method_selected = 'crypto';
 
-  properties.mm_pay_token_selected = getTokenSymbol(
-    state,
-    chainId,
-    tokenAddress,
+  if (chainId) {
+    properties.mm_pay_chain_selected = chainId;
+  }
+
+  const tokenSymbol =
+    txPayData?.paymentToken?.symbol ??
+    (chainId && tokenAddress
+      ? getTokenSymbol(state, chainId, tokenAddress)
+      : undefined);
+
+  if (tokenSymbol !== undefined) {
+    properties.mm_pay_token_selected = tokenSymbol;
+  }
+
+  for (const [types, useCase] of USE_CASE_MAP) {
+    if (hasTransactionType(transaction, types)) {
+      properties.mm_pay_use_case = useCase;
+      break;
+    }
+  }
+}
+
+function addAmountProperties(
+  properties: JsonMap,
+  txPayData: TransactionPayData,
+) {
+  const { totals, tokens } = txPayData;
+
+  const primaryRequiredToken = tokens?.find(
+    (t: { skipIfBalance: boolean }) => !t.skipIfBalance,
+  );
+
+  if (primaryRequiredToken) {
+    properties.mm_pay_sending_value_usd = Number(
+      primaryRequiredToken.amountUsd ?? '0',
+    );
+  }
+
+  if (totals) {
+    properties.mm_pay_receiving_value_usd = Number(totals.targetAmount.usd);
+    properties.mm_pay_metamask_fee_usd = Number(totals.fees.metaMask.usd);
+    properties.mm_pay_provider_fee_usd = totals.fees.provider.usd;
+    properties.mm_pay_network_fee_usd = new BigNumber(
+      totals.fees.sourceNetwork.estimate.usd,
+    )
+      .plus(totals.fees.targetNetwork.usd)
+      .toString(10);
+  }
+}
+
+function addQuoteProperties(
+  properties: JsonMap,
+  txPayData: TransactionPayData,
+) {
+  // No-op quotes mark routes the controller validated as needing no
+  // conversion. They are not executable, so strategy and step totals must
+  // only count real quotes.
+  const quotes = (txPayData.quotes ?? []).filter(
+    (quote) => !isNoOpQuote(quote),
+  );
+
+  properties.mm_pay_quote_skipped =
+    (txPayData.quotes ?? []).length > quotes.length;
+
+  const strategy = quotes[0]?.strategy;
+
+  if (strategy === TransactionPayStrategy.Relay) {
+    properties.mm_pay_strategy = 'relay';
+  } else if (strategy === TransactionPayStrategy.Fiat) {
+    properties.mm_pay_strategy = 'fiat';
+  }
+
+  properties.mm_pay_transaction_step_total = quotes.length + 1;
+  properties.mm_pay_transaction_step = properties.mm_pay_transaction_step_total;
+}
+
+function addFiatPaymentProperties(
+  properties: JsonMap,
+  txPayData: TransactionPayData,
+) {
+  const fiatPayment = txPayData.fiatPayment;
+  const selectedPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
+
+  if (!selectedPaymentMethodId) {
+    return;
+  }
+
+  properties.mm_pay_payment_method_selected = normalizeMetaMaskPayPaymentMethod(
+    selectedPaymentMethodId,
+  );
+
+  if (fiatPayment?.rampsQuote) {
+    const providerCode = extractFiatProviderCode(
+      fiatPayment.rampsQuote.provider,
+    );
+
+    if (providerCode) {
+      properties.mm_pay_fiat_provider = providerCode;
+    }
+
+    const fiatTokenTargetSymbol =
+      fiatPayment.rampsQuote.quote.cryptoTranslation?.symbol;
+
+    if (fiatTokenTargetSymbol) {
+      properties.mm_pay_fiat_token_target = fiatTokenTargetSymbol;
+    }
+  }
+
+  const fiatChainTarget = getMetaMaskPayFiatChainTarget({
+    caipAssetId: fiatPayment?.caipAssetId,
+    chainId: fiatPayment?.rampsQuote?.quote.cryptoTranslation?.chainId,
+  });
+
+  if (fiatChainTarget) {
+    properties.mm_pay_fiat_chain_target = fiatChainTarget;
+  }
+}
+
+function getTransactionPayData(
+  state: RootState,
+  transactionId: string,
+): TransactionPayData | undefined {
+  return state?.engine?.backgroundState?.TransactionPayController
+    ?.transactionData?.[transactionId];
+}
+
+function isSwapOrBridge(type: TransactionType | undefined): boolean {
+  return [TransactionType.bridge, TransactionType.swap].includes(
+    type as TransactionType,
   );
 }
 
@@ -168,4 +479,117 @@ function getTokenSymbol(state: RootState, chainId: Hex, tokenAddress: Hex) {
   );
 
   return token?.symbol;
+}
+
+function addParentPaymentMethodUIMetrics(
+  properties: JsonMap,
+  parentMetrics: TransactionMetrics | undefined,
+) {
+  for (const property of UI_PAYMENT_METHOD_PROPERTIES) {
+    const value = parentMetrics?.properties?.[property];
+
+    if (value !== undefined) {
+      properties[property] = value;
+    }
+  }
+}
+
+function addParentAmountInputUIMetrics(
+  properties: JsonMap,
+  parentMetrics: TransactionMetrics | undefined,
+) {
+  for (const property of UI_AMOUNT_INPUT_PROPERTIES) {
+    const value = parentMetrics?.properties?.[property];
+
+    if (value !== undefined) {
+      properties[property] = value;
+    }
+  }
+}
+
+/**
+ * Attaches amount-input metrics on every Transaction * event.
+ *
+ * Prefers the confirmation UI fragment (last edit + sticky prefill_presented).
+ * Intent-to-treat from the A/B / kill-switch assignment is only applied on
+ * Transaction Added when the UI has not recorded an amount input yet — never
+ * backfill `prefill_presented` on later events from assignment alone.
+ */
+function addAmountInputProperties(
+  properties: JsonMap,
+  {
+    eventType,
+    transaction,
+    uiMetrics,
+    state,
+  }: {
+    eventType: Parameters<TransactionMetricsBuilder>[0]['eventType'];
+    transaction: TransactionMeta;
+    uiMetrics: TransactionMetrics | undefined;
+    state: RootState;
+  },
+) {
+  if (!hasTransactionType(transaction, [TransactionType.moneyAccountDeposit])) {
+    return;
+  }
+
+  const uiType = uiMetrics?.properties?.[MM_PAY_AMOUNT_INPUT_TYPE_KEY];
+  const uiPresented =
+    uiMetrics?.properties?.[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY];
+
+  if (uiType !== undefined) {
+    properties[MM_PAY_AMOUNT_INPUT_TYPE_KEY] = uiType;
+  }
+  if (uiPresented !== undefined) {
+    properties[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY] = uiPresented;
+  }
+
+  // Keypad / manual writes only set amount_input_type. That must not be treated
+  // as "prefill presented" via A/B assignment on later Transaction events.
+  if (uiType !== undefined) {
+    if (uiPresented === undefined) {
+      properties[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY] = false;
+    }
+    return;
+  }
+
+  if (
+    eventType !== TRANSACTION_EVENTS.TRANSACTION_ADDED ||
+    uiPresented !== undefined
+  ) {
+    return;
+  }
+
+  const presented = resolveMoneyAccountDepositPrefillPresented(
+    transaction,
+    state,
+  );
+  properties[MM_PAY_AMOUNT_INPUT_PREFILL_PRESENTED_KEY] = presented;
+  if (presented) {
+    properties[MM_PAY_AMOUNT_INPUT_TYPE_KEY] =
+      MM_PAY_AMOUNT_INPUT_TYPE_PREFILLED;
+  }
+}
+
+/**
+ * Extracts the provider code from a Ramps provider string.
+ *
+ * Accepts the canonical provider code (e.g. `transak-native`) and, for
+ * backwards compatibility, the legacy path form (e.g. `/providers/transak-native`).
+ *
+ * @param provider - Canonical provider code, or legacy provider path.
+ * @returns The provider code, or `null` if the format is invalid.
+ */
+function extractFiatProviderCode(provider: string | undefined): string | null {
+  if (!provider) {
+    return null;
+  }
+
+  const parts = provider.split('/').filter(Boolean);
+
+  if (parts[0] === 'providers') {
+    return parts[1] ?? null;
+  }
+
+  return parts.length === 1 ? parts[0] : null;
 }

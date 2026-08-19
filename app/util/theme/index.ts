@@ -9,8 +9,22 @@ import {
 import { throttle } from 'lodash';
 import { AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
-import { lightTheme, darkTheme, brandColor } from '@metamask/design-tokens';
+import {
+  lightTheme,
+  resolveDarkTheme,
+  brandColor,
+} from '@metamask/design-tokens';
 import Device from '../device';
+
+const resolvedDarkTheme = resolveDarkTheme(true);
+
+/**
+ * Darker success green used in light mode for better contrast on charts,
+ * price indicators, and action buttons. The design-system token
+ * `success.default` is too faint against a light background.
+ */
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex
+export const LIGHT_MODE_SUCCESS_GREEN = '#00881A';
 
 /**
  * This is needed to make our unit tests pass since Enzyme doesn't support contextType
@@ -39,7 +53,9 @@ export const ThemeContext = React.createContext<any>(undefined);
  */
 export const getAssetFromTheme = (
   appTheme: AppThemeKey,
-  osColorScheme: ColorSchemeName,
+  // `Appearance.getColorScheme()` (and therefore `useColorScheme`) can resolve
+  // to `null`/`undefined`, which RN 0.83 no longer includes in `ColorSchemeName`.
+  osColorScheme: ColorSchemeName | null | undefined,
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   light: any,
@@ -146,9 +162,9 @@ export const useAppTheme = (): Theme => {
         setLightStatusBar();
         break;
       } else if (osThemeName === AppThemeKey.dark) {
-        colors = darkTheme.colors;
-        typography = darkTheme.typography;
-        shadows = darkTheme.shadows;
+        colors = resolvedDarkTheme.colors;
+        typography = resolvedDarkTheme.typography;
+        shadows = resolvedDarkTheme.shadows;
         setDarkStatusBar();
         break;
       } else {
@@ -166,9 +182,9 @@ export const useAppTheme = (): Theme => {
       setLightStatusBar();
       break;
     case AppThemeKey.dark:
-      colors = darkTheme.colors;
-      typography = darkTheme.typography;
-      shadows = darkTheme.shadows;
+      colors = resolvedDarkTheme.colors;
+      typography = resolvedDarkTheme.typography;
+      shadows = resolvedDarkTheme.shadows;
       setDarkStatusBar();
       break;
     default:

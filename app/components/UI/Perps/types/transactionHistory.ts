@@ -24,9 +24,17 @@ export enum FillType {
   AutoDeleveraging = 'auto_deleveraging',
 }
 
+export enum PerpsTransactionType {
+  Trade = 'trade',
+  Order = 'order',
+  Funding = 'funding',
+  Deposit = 'deposit',
+  Withdrawal = 'withdrawal',
+}
+
 export interface PerpsTransaction {
   id: string;
-  type: 'trade' | 'order' | 'funding' | 'deposit' | 'withdrawal';
+  type: `${PerpsTransactionType}`;
   category:
     | 'position_open'
     | 'position_close'
@@ -60,12 +68,18 @@ export interface PerpsTransaction {
   };
   // For orders: order info
   order?: {
+    /** Hyperliquid order ID used to correlate recorded execution fills. */
+    orderId?: string;
     text: PerpsOrderTransactionStatus;
     statusType: PerpsOrderTransactionStatusType;
     type: 'limit' | 'market';
     size: string;
     limitPrice: string;
     filled: string;
+    side?: 'buy' | 'sell';
+    reduceOnly?: boolean;
+    isTrigger?: boolean;
+    detailedOrderType?: string;
   };
   // For funding: funding info
   fundingAmount?: {
@@ -98,8 +112,6 @@ export type ListItem =
   | { type: 'transaction'; transaction: PerpsTransaction; id: string };
 
 export type FilterTab = 'Trades' | 'Orders' | 'Funding' | 'Deposits';
-
-export interface PerpsTransactionsViewProps {}
 
 export type PerpsPositionTransactionRouteProp = RouteProp<
   PerpsNavigationParamList,

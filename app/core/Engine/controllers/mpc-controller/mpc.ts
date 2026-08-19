@@ -1,12 +1,14 @@
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { MPCKeyring, Custodian } from '@metamask/eth-mpc-keyring';
 import EngineInstance from '../../Engine';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 
 const getKeyringController = () => EngineInstance.context.KeyringController;
 
 export const createMpcKeyring = async (verifierId: string) => {
   const keyringController = getKeyringController();
-  const { id } = await keyringController.addNewKeyring(KeyringTypes.mpc);
+  const { id } = await keyringController.addNewKeyring(
+    ExtendedKeyringTypes.mpc,
+  );
   await keyringController.withKeyring({ id }, async ({ keyring }) => {
     await (keyring as MPCKeyring).setup({ verifierIds: [verifierId] });
   });
@@ -40,7 +42,9 @@ export const joinMpcWallet = async (
   joinData: string,
 ): Promise<string> => {
   const keyringController = getKeyringController();
-  const { id } = await keyringController.addNewKeyring(KeyringTypes.mpc);
+  const { id } = await keyringController.addNewKeyring(
+    ExtendedKeyringTypes.mpc,
+  );
   await keyringController.withKeyring({ id }, async ({ keyring }) => {
     await (keyring as MPCKeyring).setup({
       verifierIds: [verifierId],

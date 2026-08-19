@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import fs from 'fs';
 import path from 'path';
@@ -17,7 +17,10 @@ const logger = createLogger({
   name: 'AnvilManager',
 });
 
-export const DEFAULT_ANVIL_PORT = 8545;
+import { DEFAULT_ANVIL_PORT } from '../framework/Constants';
+
+// Re-export so existing consumers aren't broken by the relocation.
+export { DEFAULT_ANVIL_PORT };
 
 /**
  * Represents the available Ethereum hardforks for the Anvil server

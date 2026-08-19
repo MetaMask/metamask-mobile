@@ -3,11 +3,17 @@ import { useSelector } from 'react-redux';
 import { selectMinSolBalance } from '../../../../../selectors/bridgeController';
 import { parseUnits } from 'ethers/lib/utils';
 import { BridgeToken } from '../../types';
-import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
+import {
+  isNativeAddress,
+  isSolanaChainId,
+  sumAmounts,
+} from '@metamask/bridge-controller';
 import { selectBridgeQuotes } from '../../../../../core/redux/slices/bridge';
 import { BigNumber } from 'ethers';
 import { BigNumber as BigNumberJS } from 'bignumber.js';
 import { isNumberValue } from '../../../../../util/number';
+
+type QuoteOverride = ReturnType<typeof selectBridgeQuotes>['recommendedQuote'];
 
 interface UseIsInsufficientBalanceParams {
   amount: string | undefined;
@@ -19,6 +25,12 @@ interface UseIsInsufficientBalanceParams {
    * If false (default), includes gas fees in the calculation for UI display.
    */
   ignoreGasFees?: boolean;
+  /**
+   * When provided, takes precedence over the Redux-held `selectBridgeQuotes` for
+   * extracting gas fee info. Flows that run their own quote fetching (e.g.
+   * QuickBuy) populate this so the balance check still accounts for gas.
+   */
+  quoteOverride?: QuoteOverride;
 }
 
 const normalizeAmount = (value: string, decimals: number): string => {
@@ -54,6 +66,7 @@ const useIsInsufficientBalance = ({
   token,
   latestAtomicBalance,
   ignoreGasFees = false,
+  quoteOverride,
 }: UseIsInsufficientBalanceParams): boolean => {
   const quotes = useSelector(selectBridgeQuotes);
   const minSolBalance = useSelector(selectMinSolBalance);
@@ -61,7 +74,8 @@ const useIsInsufficientBalance = ({
   // Extract only the required data from quote to prevent
   // unnecessary rerenders that can cause infinite loops.
   // When ignoreGasFees is true, we skip gas data to avoid circular dependencies.
-  const bestQuote = quotes?.recommendedQuote;
+  const bestQuote =
+    quoteOverride !== undefined ? quoteOverride : quotes?.recommendedQuote;
   const gasIncluded = ignoreGasFees ? false : bestQuote?.quote?.gasIncluded;
   const gasIncluded7702 = ignoreGasFees
     ? false
@@ -69,7 +83,10 @@ const useIsInsufficientBalance = ({
   const gasSponsored = ignoreGasFees ? false : bestQuote?.quote?.gasSponsored;
   const gasAmount = ignoreGasFees
     ? undefined
-    : bestQuote?.gasFee?.effective?.amount;
+    : sumAmounts(
+        bestQuote?.quote.feeData?.network,
+        bestQuote?.quote.feeData?.relayer,
+      )?.normalizedAmount;
 
   return useMemo(() => {
     const isValidAmount =
@@ -107,10 +124,10 @@ const useIsInsufficientBalance = ({
     // NOTE: If gas is sponsored/included, we skip adding gas to the calculation but still check token balance
     let atomicGasFee = BigNumber.from(0);
     if (isNativeToken && !isGasless && !gasSponsored) {
-      const effectiveGasFee = isNumberValue(gasAmount)
-        ? // we guard against null and undefined values of gasAmount when checked isNumberValue
-          new BigNumberJS(gasAmount as string | number).toFixed()
-        : null;
+      const effectiveGasFee =
+        isNumberValue(gasAmount) && gasAmount
+          ? new BigNumberJS(gasAmount).toFixed()
+          : null;
 
       if (effectiveGasFee) {
         atomicGasFee = parseAmount(effectiveGasFee, token.decimals);

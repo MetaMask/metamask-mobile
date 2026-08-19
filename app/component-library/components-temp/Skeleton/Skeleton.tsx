@@ -3,10 +3,13 @@ import {
   Skeleton as DSRNSkeleton,
   SkeletonProps,
 } from '@metamask/design-system-react-native';
-import { isE2E } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 
 const Skeleton: React.FC<SkeletonProps> = (props) => (
-  <DSRNSkeleton autoPlay={!isE2E && !process.env.JEST_WORKER_ID} {...props} />
+  <DSRNSkeleton
+    autoPlay={!hasTestOverrides && !process.env.JEST_WORKER_ID}
+    {...props}
+  />
 );
 
 export default Skeleton;

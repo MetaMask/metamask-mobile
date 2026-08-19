@@ -1,14 +1,15 @@
 import React, { useCallback, useEffect } from 'react';
 
 import { View, Switch, Linking, InteractionManager } from 'react-native';
-// import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
-// import { strings } from '../../../../../locales/i18n';
 import styles from './BackupAndSyncToggle.styles';
 import AppConstants from '../../../../core/AppConstants';
 import { useBackupAndSync } from '../../../../util/identity/hooks/useBackupAndSync';
@@ -18,14 +19,15 @@ import {
   selectIsBackupAndSyncEnabled,
   selectIsBackupAndSyncUpdateLoading,
 } from '../../../../selectors/identity';
-// import Routes from '../../../../constants/navigation/Routes';
 import SwitchLoadingModal from '../../Notification/SwitchLoadingModal';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import Routes from '../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../locales/i18n';
+import { BACKUP_AND_SYNC_TOGGLE_TEST_IDS } from './BackupAndSyncToggle.testIds';
 
 interface Props {
   trackBackupAndSyncToggleEventOverride?: (newValue: boolean) => void;
@@ -40,8 +42,8 @@ const BackupAndSyncToggle = ({
   trackBackupAndSyncToggleEventOverride,
 }: Readonly<Props>) => {
   const theme = useTheme();
-  const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { colors } = theme;
 
@@ -148,7 +150,7 @@ const BackupAndSyncToggle = ({
   return (
     <View style={styles.setting}>
       <View style={styles.heading}>
-        <Text variant={TextVariant.HeadingSM}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('backupAndSync.title')}
         </Text>
         <Switch
@@ -160,12 +162,21 @@ const BackupAndSyncToggle = ({
           }}
           thumbColor={theme.brandColors.white}
           ios_backgroundColor={colors.border.muted}
-          testID="toggle-backupAndSync"
+          testID={BACKUP_AND_SYNC_TOGGLE_TEST_IDS.TOGGLE}
         />
       </View>
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+      >
         {strings('backupAndSync.enable.description')}
-        <Text color={TextColor.Info} onPress={handleLink}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.InfoDefault}
+          onPress={handleLink}
+        >
           {strings('backupAndSync.privacyLink')}
         </Text>
       </Text>

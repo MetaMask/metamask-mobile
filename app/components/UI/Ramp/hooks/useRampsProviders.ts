@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { strings } from '../../../../../locales/i18n';
 import {
   selectProviders,
-  selectRampsOrders,
+  selectUserRegion,
+  selectRampsOrdersForSelectedAccountGroup,
 } from '../../../../selectors/rampsController';
 import { type Provider } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
@@ -11,7 +14,9 @@ import {
   completedOrdersFromFiatOrders,
   completedOrdersFromRampsOrders,
 } from '../utils/determinePreferredProvider';
+import { parseUserFacingError } from '../utils/parseUserFacingError';
 import { getOrders } from '../../../../reducers/fiatOrders';
+import { rampsQueries } from '../queries';
 
 /**
  * Result returned by the useRampsProviders hook.
@@ -28,8 +33,25 @@ export interface UseRampsProvidersResult {
   /**
    * Sets the selected provider by ID.
    * @param provider - The provider to select, or null to clear selection.
+   * @param options - Optional settings forwarded to the controller.
+   * @param options.autoSelected - When true the selection is treated as a system guess rather than an explicit user choice.
    */
-  setSelectedProvider: (provider: Provider | null) => void;
+  setSelectedProvider: (
+    provider: Provider | null,
+    options?: { autoSelected?: boolean },
+  ) => void;
+  /**
+   * Switches providers.selected to the first provider that serves the given
+   * CAIP-19 asset, when the currently selected provider does not.
+   * No-op when providers are not loaded, the current provider already serves
+   * the asset, or no alternative does. Returns true if a switch was made.
+   *
+   * Delegates to RampsController:setSelectedProviderForAsset (MetaMask/core#9759).
+   */
+  setSelectedProviderForAsset: (
+    assetId: string,
+    options?: { autoSelected?: boolean },
+  ) => boolean;
   /**
    * Whether the providers request is currently loading.
    */
@@ -41,21 +63,72 @@ export interface UseRampsProvidersResult {
 }
 
 /**
- * Hook to get providers state from RampsController.
- * This hook assumes Engine is already initialized.
+ * Hook to get providers via React Query.
+ *
+ * The query fires when the region changes. Provider data is read from the
+ * React Query cache (not controller state) so that region-switching with
+ * cached data works correctly.
  *
  * @returns Providers state.
  */
-export function useRampsProviders(): UseRampsProvidersResult {
+/**
+ * @param options.enableSideEffects - When true, runs region-change invalidation and provider auto-selection.
+ * Should only be true in RampsBootstrap to avoid duplicate side effects from multiple consumers.
+ */
+export function useRampsProviders(options?: {
+  enableSideEffects?: boolean;
+}): UseRampsProvidersResult {
+  const enableSideEffects = options?.enableSideEffects ?? false;
+  const providersState = useSelector(selectProviders);
   const {
-    data: providers,
+    data: providersStateData,
     selected: selectedProvider,
-    isLoading,
-    error,
-  } = useSelector(selectProviders);
+    isLoading: providersStateIsLoading,
+    error: providersStateError,
+  } = providersState;
+
+  const userRegion = useSelector(selectUserRegion);
+  const regionCode = userRegion?.regionCode ?? '';
+  const queryClient = useQueryClient();
+
+  // Mark all ramp queries as stale when region changes so that switching
+  // back to a previously visited region triggers a fresh fetch instead of
+  // serving cached data. refetchType: 'none' avoids a duplicate fetch —
+  // the query-key change already causes React Query to fetch for the new
+  // region; without 'none', invalidateQueries would trigger a second fetch
+  // on the same active query.
+  const prevRegionRef = useRef(regionCode);
+  useEffect(() => {
+    if (
+      enableSideEffects &&
+      regionCode &&
+      prevRegionRef.current !== regionCode
+    ) {
+      prevRegionRef.current = regionCode;
+      queryClient.invalidateQueries({
+        queryKey: ['ramps'],
+        refetchType: 'none',
+      });
+    }
+  }, [enableSideEffects, regionCode, queryClient]);
+
+  const providersQuery = useQuery({
+    ...rampsQueries.providers.options({ regionCode }),
+    enabled: Boolean(regionCode),
+  });
+
+  // Keep a stable array reference for hook dependencies.
+  // React Query is authoritative when present; fallback to controller state
+  // keeps initial renders and test mocks resilient.
+  const providers = useMemo(
+    () => providersQuery?.data ?? providersStateData ?? [],
+    [providersQuery?.data, providersStateData],
+  );
 
   const legacyOrders = useSelector(getOrders);
-  const controllerOrders = useSelector(selectRampsOrders);
+  const controllerOrders = useSelector(
+    selectRampsOrdersForSelectedAccountGroup,
+  );
 
   const completedOrders = useMemo(
     () => [
@@ -66,24 +139,66 @@ export function useRampsProviders(): UseRampsProvidersResult {
   );
 
   const setSelectedProvider = useCallback(
-    (provider: Provider | null) =>
-      Engine.context.RampsController.setSelectedProvider(provider?.id ?? null),
+    (provider: Provider | null, setOptions?: { autoSelected?: boolean }) =>
+      Engine.context.RampsController.setSelectedProvider(
+        provider?.id ?? null,
+        setOptions,
+      ),
+    [],
+  );
+
+  const setSelectedProviderForAsset = useCallback(
+    (assetId: string, setOptions?: { autoSelected?: boolean }): boolean =>
+      Engine.context.RampsController.setSelectedProviderForAsset(
+        assetId,
+        setOptions,
+      ),
     [],
   );
 
   useEffect(() => {
-    if (providers.length > 0 && !selectedProvider) {
-      setSelectedProvider(
-        determinePreferredProvider(completedOrders, providers),
-      );
+    if (
+      enableSideEffects &&
+      providers &&
+      providers.length > 0 &&
+      !selectedProvider
+    ) {
+      const result = determinePreferredProvider(completedOrders, providers);
+      if (result) {
+        (
+          Engine.context.RampsController as {
+            setSelectedProvider: (
+              providerOrId: Provider | string | null,
+              options?: { autoSelected?: boolean },
+            ) => void;
+          }
+        ).setSelectedProvider(result.provider, {
+          autoSelected: result.autoSelected,
+        });
+      }
     }
-  }, [providers, selectedProvider, setSelectedProvider, completedOrders]);
+  }, [enableSideEffects, providers, selectedProvider, completedOrders]);
+
+  let error: string | null = null;
+
+  if (providersQuery?.error != null) {
+    error = parseUserFacingError(
+      providersQuery.error,
+      strings('fiat_on_ramp.payment_error'),
+    );
+  } else if (providersStateError) {
+    error = parseUserFacingError(
+      providersState,
+      strings('fiat_on_ramp.payment_error'),
+    );
+  }
 
   return {
     providers,
     selectedProvider,
     setSelectedProvider,
-    isLoading,
+    setSelectedProviderForAsset,
+    isLoading: providersQuery?.isLoading ?? providersStateIsLoading,
     error,
   };
 }

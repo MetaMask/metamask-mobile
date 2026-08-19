@@ -1,3 +1,10 @@
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) =>
+    key === 'fiat_on_ramp.circuit_breaker_open'
+      ? 'This service is temporarily unavailable. Please try again in about 30 minutes.'
+      : key,
+}));
+
 import { parseUserFacingError } from './parseUserFacingError';
 
 const FALLBACK = 'Something went wrong';
@@ -71,6 +78,37 @@ describe('parseUserFacingError', () => {
 
   it('returns fallback for Error with empty message', () => {
     expect(parseUserFacingError(new Error(''), FALLBACK)).toBe(FALLBACK);
+  });
+
+  it('returns fallback for circuit breaker errors with errorKey metadata', () => {
+    const circuitBreakerError = Object.assign(
+      new Error('Execution prevented because the circuit breaker is open'),
+      { errorKey: 'CIRCUIT_BREAKER_OPEN' },
+    );
+
+    expect(parseUserFacingError(circuitBreakerError, FALLBACK)).toBe(
+      'This service is temporarily unavailable. Please try again in about 30 minutes.',
+    );
+  });
+
+  it('returns fallback for resource-like circuit breaker errors', () => {
+    expect(
+      parseUserFacingError(
+        {
+          error: 'Execution prevented because the circuit breaker is open',
+          errorKey: 'CIRCUIT_BREAKER_OPEN',
+        },
+        FALLBACK,
+      ),
+    ).toBe(
+      'This service is temporarily unavailable. Please try again in about 30 minutes.',
+    );
+  });
+
+  it('returns fallback for resource-like errors with non-string error values', () => {
+    expect(
+      parseUserFacingError({ error: { message: 'Nested object' } }, FALLBACK),
+    ).toBe(FALLBACK);
   });
 
   it('handles JSON body where error.message is empty', () => {

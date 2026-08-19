@@ -3,14 +3,15 @@ import { Image, View } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../locales/i18n';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import { useIsTransactionPayAmountStale } from '../../../hooks/pay/useIsTransactionPayAmountStale';
+import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useAlerts } from '../../../context/alert-system-context';
 import { TotalRow } from '../../rows/total-row';
 import { BridgeFeeRow } from '../../rows/bridge-fee-row';
@@ -48,8 +49,9 @@ export const MusdMaxConversionInfo = () => {
 
   const transactionMetadata = useTransactionMetadataRequest();
   const isQuoteLoading = useIsTransactionPayLoading();
+  const isPayAmountStale = useIsTransactionPayAmountStale();
 
-  const { onConfirm } = useTransactionConfirm();
+  const { onConfirm } = useConfirmActions();
   const { alerts } = useAlerts();
 
   const blockingAlert = alerts.find(
@@ -60,7 +62,8 @@ export const MusdMaxConversionInfo = () => {
 
   const isLoading = !transactionMetadata || isQuoteLoading;
 
-  const isConfirmDisabled = isLoading || Boolean(blockingAlert);
+  const isConfirmDisabled =
+    isLoading || isPayAmountStale || Boolean(blockingAlert);
 
   const buttonLabel = useMemo(
     () => blockingAlert?.title ?? strings('earn.musd_conversion.convert'),
@@ -103,14 +106,15 @@ export const MusdMaxConversionInfo = () => {
       <BlockingAlertMessage />
       <View style={styles.buttonContainer}>
         <Button
-          onPress={onConfirm}
-          label={buttonLabel}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
+          onPress={() => onConfirm()}
+          variant={ButtonVariant.Primary}
+          isFullWidth
           size={ButtonSize.Lg}
           isDisabled={isConfirmDisabled}
           testID={MusdMaxConversionInfoTestIds.CONFIRM_BUTTON}
-        />
+        >
+          {buttonLabel}
+        </Button>
       </View>
     </View>
   );

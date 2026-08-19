@@ -8,6 +8,7 @@ import { isAddress as isSolanaAddress } from '@solana/addresses';
 import {
   isBtcMainnetAddress,
   isTronAddress,
+  isStellarAddress,
 } from '../../core/Multichain/utils';
 import {
   getChecksumAddress,
@@ -245,7 +246,9 @@ export function isQRHardwareAccount(address: string) {
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
   const qrKeyrings = keyrings.filter(
-    (keyring) => keyring.type === ExtendedKeyringTypes.qr,
+    (keyring) =>
+      keyring.type === ExtendedKeyringTypes.qr ||
+      keyring.type === ExtendedKeyringTypes.oneKey,
   );
   let qrAccounts: string[] = [];
   for (const qrKeyring of qrKeyrings) {
@@ -287,7 +290,8 @@ export function isHardwareAccount(
   accountTypes = [
     ExtendedKeyringTypes.qr,
     ExtendedKeyringTypes.ledger,
-    KeyringTypes.mpc,
+    ExtendedKeyringTypes.mpc,
+    ExtendedKeyringTypes.oneKey,
   ],
 ) {
   const keyring = getKeyringByAddress(address);
@@ -368,10 +372,13 @@ export function isAddressCompatibleWithChainId(
 export function getInternalAccountByAddress(
   address: string,
 ): InternalAccount | undefined {
-  const { accounts } = Engine.context.AccountsController.state.internalAccounts;
-  return Object.values(accounts).find((a: InternalAccount) =>
-    areAddressesEqual(a.address, address),
-  );
+  const {
+    internalAccounts: { accounts },
+    accountIdByAddress,
+  } = Engine.context.AccountsController.state;
+  const id =
+    accountIdByAddress[address] ?? accountIdByAddress[address?.toLowerCase()];
+  return id ? accounts[id] : undefined;
 }
 
 /**
@@ -811,7 +818,7 @@ export async function validateAddressOrENS(
     confusableCollection,
   };
 }
-/** Method to evaluate if an input is a valid ethereum, solana, bitcoin, or tron address
+/** Method to evaluate if an input is a valid ethereum, solana, bitcoin, stellar or tron address
  * via QR code scanning.
  *
  * @param {string} input - a random string.
@@ -827,6 +834,10 @@ export function isValidAddressInputViaQRCode(input: string) {
   }
 
   if (isTronAddress(input)) {
+    return true;
+  }
+
+  if (isStellarAddress(input)) {
     return true;
   }
 

@@ -2,9 +2,7 @@ import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 
 import ClipboardManager from '../../../core/ClipboardManager';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const ClipboardText = ({
   text,
@@ -27,7 +25,7 @@ const ClipboardText = ({
       style={styles.clipboardText}
       testID={testID}
     >
-      <Text variant={TextVariant.BodyMD}>{text}</Text>
+      <Text variant={TextVariant.BodyMd}>{text}</Text>
     </TouchableOpacity>
   );
 };

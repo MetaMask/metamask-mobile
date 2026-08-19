@@ -33,7 +33,7 @@ const styleSheet = (params: {
     } as ViewStyle) as ViewStyle,
     sheet: Object.assign(
       {
-        backgroundColor: colors.background.default,
+        backgroundColor: theme.colors.background.elevated1,
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         maxHeight: maxSheetHeight,
@@ -44,7 +44,8 @@ const styleSheet = (params: {
           default: screenBottomPadding + 16,
         }),
         borderWidth: 1,
-        borderColor: colors.border.muted,
+        borderBottomWidth: 0,
+        borderColor: colors.border.alternative,
         ...(isFullscreen && { height: maxSheetHeight }),
         ...shadows.size.lg,
       },

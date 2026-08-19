@@ -1,160 +1,11 @@
-import { CaipChainId } from '@metamask/utils';
-import { SolScope } from '@metamask/keyring-api';
 import {
-  normalizeSymbol,
-  getCaipChainId,
-  shouldProcessNetwork,
-  buildTokenListFromSettings,
-  buildQuickSelectTokens,
-  QUICK_SELECT_TOKENS,
+  buildDelegationTokenList,
   LINEA_CAIP_CHAIN_ID,
 } from './buildTokenList';
-import {
-  AllowanceState,
-  CardTokenAllowance,
-  DelegationSettingsResponse,
-} from '../types';
+import { FundingStatus, DelegationSettingsResponse } from '../types';
 
-describe('buildTokenList utilities', () => {
-  describe('normalizeSymbol', () => {
-    it('uppercases USDT', () => {
-      expect(normalizeSymbol('usdt')).toBe('USDT');
-      expect(normalizeSymbol('Usdt')).toBe('USDT');
-      expect(normalizeSymbol('USDT')).toBe('USDT');
-    });
-
-    it('uppercases USDC', () => {
-      expect(normalizeSymbol('usdc')).toBe('USDC');
-      expect(normalizeSymbol('Usdc')).toBe('USDC');
-      expect(normalizeSymbol('USDC')).toBe('USDC');
-    });
-
-    it('uppercases DAI', () => {
-      expect(normalizeSymbol('dai')).toBe('DAI');
-      expect(normalizeSymbol('Dai')).toBe('DAI');
-    });
-
-    it('uppercases WETH', () => {
-      expect(normalizeSymbol('weth')).toBe('WETH');
-    });
-
-    it('uppercases WBTC', () => {
-      expect(normalizeSymbol('wbtc')).toBe('WBTC');
-    });
-
-    it('preserves casing for non-stablecoin symbols', () => {
-      expect(normalizeSymbol('mUSD')).toBe('mUSD');
-      expect(normalizeSymbol('ETH')).toBe('ETH');
-      expect(normalizeSymbol('btc')).toBe('btc');
-    });
-  });
-
-  describe('getCaipChainId', () => {
-    it('returns Solana mainnet scope for solana network', () => {
-      const network = {
-        network: 'solana',
-        chainId: '1',
-        environment: 'production',
-        delegationContract: '0x123',
-        tokens: {},
-      };
-
-      const result = getCaipChainId(network);
-
-      expect(result).toBe(SolScope.Mainnet);
-    });
-
-    it('converts decimal chainId to CAIP format', () => {
-      const network = {
-        network: 'linea',
-        chainId: '59144',
-        environment: 'production',
-        delegationContract: '0x123',
-        tokens: {},
-      };
-
-      const result = getCaipChainId(network);
-
-      expect(result).toBe('eip155:59144');
-    });
-
-    it('converts hex chainId to CAIP format', () => {
-      const network = {
-        network: 'base',
-        chainId: '0x2105',
-        environment: 'production',
-        delegationContract: '0x123',
-        tokens: {},
-      };
-
-      const result = getCaipChainId(network);
-
-      expect(result).toBe('eip155:8453');
-    });
-  });
-
-  describe('shouldProcessNetwork', () => {
-    const createNetwork = (
-      network: string,
-      environment = 'production',
-    ): DelegationSettingsResponse['networks'][0] => ({
-      network,
-      chainId: '59144',
-      environment,
-      delegationContract: '0x123',
-      tokens: {},
-    });
-
-    it('returns false for unsupported networks', () => {
-      const network = createNetwork('ethereum');
-
-      const result = shouldProcessNetwork(network, false);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false for networks with no network name', () => {
-      const network = createNetwork('');
-
-      const result = shouldProcessNetwork(network, false);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false for solana when hideSolana is true', () => {
-      const network = createNetwork('solana');
-
-      const result = shouldProcessNetwork(network, true);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns true for solana when hideSolana is false', () => {
-      const network = createNetwork('solana');
-
-      const result = shouldProcessNetwork(network, false);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns true for linea when user is international', () => {
-      const network = createNetwork('linea');
-
-      const result = shouldProcessNetwork(network, false);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns true for base network', () => {
-      const network = createNetwork('base');
-
-      const result = shouldProcessNetwork(network, false);
-
-      expect(result).toBe(true);
-    });
-  });
-
-  describe('buildTokenListFromSettings', () => {
+describe('buildTokenList', () => {
+  describe('buildDelegationTokenList', () => {
     const createDelegationSettings = (
       networks: DelegationSettingsResponse['networks'],
     ): DelegationSettingsResponse => ({
@@ -164,20 +15,22 @@ describe('buildTokenList utilities', () => {
     });
 
     it('returns empty array when delegationSettings is null', () => {
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings: null,
+        getSupportedTokensByChainId: () => [],
       });
 
       expect(result).toEqual([]);
     });
 
     it('returns empty array when networks is undefined', () => {
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings: {
           networks: undefined,
           count: 0,
           _links: { self: '' },
         } as unknown as DelegationSettingsResponse,
+        getSupportedTokensByChainId: () => [],
       });
 
       expect(result).toEqual([]);
@@ -196,8 +49,11 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings,
+        getSupportedTokensByChainId: () => [
+          { symbol: 'USDC', address: '0xUSDC', name: 'USD Coin' },
+        ],
       });
 
       expect(result).toHaveLength(1);
@@ -207,14 +63,14 @@ describe('buildTokenList utilities', () => {
           symbol: 'USDC',
           decimals: 6,
           caipChainId: 'eip155:59144',
-          allowanceState: AllowanceState.NotEnabled,
-          allowance: '0',
+          fundingStatus: FundingStatus.NotEnabled,
+          spendableBalance: '0',
           delegationContract: '0xDelegation',
         }),
       );
     });
 
-    it('normalizes stablecoin symbols', () => {
+    it('uses SDK symbol casing over raw API symbol', () => {
       const delegationSettings = createDelegationSettings([
         {
           network: 'linea',
@@ -227,8 +83,11 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings,
+        getSupportedTokensByChainId: () => [
+          { symbol: 'USDT', address: '0xUSDT', name: 'Tether' },
+        ],
       });
 
       expect(result[0].symbol).toBe('USDT');
@@ -247,8 +106,9 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings,
+        getSupportedTokensByChainId: () => [],
       });
 
       expect(result).toHaveLength(0);
@@ -268,8 +128,9 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings,
+        getSupportedTokensByChainId: () => [],
       });
 
       expect(result).toHaveLength(1);
@@ -294,7 +155,7 @@ describe('buildTokenList utilities', () => {
           { symbol: 'USDC', address: '0xProductionUSDC', name: 'USD Coin' },
         ]);
 
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings,
         getSupportedTokensByChainId: mockGetSupportedTokens,
       });
@@ -316,8 +177,9 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings,
+        getSupportedTokensByChainId: () => [],
       });
 
       expect(result[0].stagingTokenAddress).toBe('0xStagingUSDC');
@@ -336,14 +198,15 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings,
+        getSupportedTokensByChainId: () => [],
       });
 
       expect(result[0].stagingTokenAddress).toBeUndefined();
     });
 
-    it('filters out Solana when hideSolana is true', () => {
+    it('includes Solana tokens', () => {
       const delegationSettings = createDelegationSettings([
         {
           network: 'solana',
@@ -365,133 +228,183 @@ describe('buildTokenList utilities', () => {
         },
       ]);
 
-      const result = buildTokenListFromSettings({
+      const result = buildDelegationTokenList({
         delegationSettings,
-        hideSolana: true,
+        getSupportedTokensByChainId: () => [],
+      });
+
+      expect(result).toHaveLength(2);
+      expect(result[0].symbol).toBe('SOL');
+      expect(result[0].caipChainId).toBe(
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      );
+      expect(result[1].symbol).toBe('usdc');
+    });
+  });
+
+  describe('constants', () => {
+    it('exports LINEA_CAIP_CHAIN_ID', () => {
+      expect(LINEA_CAIP_CHAIN_ID).toBe('eip155:59144');
+    });
+  });
+
+  describe('veda token handling', () => {
+    const createDelegationSettings = (
+      networks: DelegationSettingsResponse['networks'],
+    ): DelegationSettingsResponse => ({
+      networks,
+      count: networks.length,
+      _links: { self: 'https://api.example.com' },
+    });
+
+    it('uses the delegation-settings address (no SDK remap) for veda even in non-production', () => {
+      const VEDA_ADDRESS = '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae';
+      const result = buildDelegationTokenList({
+        delegationSettings: createDelegationSettings([
+          {
+            network: 'monad',
+            chainId: '143',
+            environment: 'staging',
+            delegationContract: '0xDelegation',
+            tokens: {
+              veda: { symbol: 'veda', decimals: 6, address: VEDA_ADDRESS },
+            },
+          },
+        ]),
+        getSupportedTokensByChainId: () => [
+          { symbol: 'veda', address: '0xSdkAddress', name: 'Veda' },
+        ],
+      });
+
+      expect(result[0].address).toBe(VEDA_ADDRESS);
+      expect(result[0].stagingTokenAddress).toBeUndefined();
+      expect(result[0].displaySymbol).toBe('mUSD');
+      expect(result[0].symbol).toBe('veda');
+    });
+
+    it('does not set displaySymbol on non-veda tokens', () => {
+      const result = buildDelegationTokenList({
+        delegationSettings: createDelegationSettings([
+          {
+            network: 'monad',
+            chainId: '143',
+            environment: 'staging',
+            delegationContract: '0xDelegation',
+            tokens: {
+              usdc: { symbol: 'usdc', decimals: 6, address: '0xUsdc' },
+            },
+          },
+        ]),
+        getSupportedTokensByChainId: () => [],
+      });
+
+      expect(result[0].displaySymbol).toBeUndefined();
+    });
+  });
+
+  describe('enforceSupportList', () => {
+    const createDelegationSettings = (
+      networks: DelegationSettingsResponse['networks'],
+    ): DelegationSettingsResponse => ({
+      networks,
+      count: networks.length,
+      _links: { self: 'https://api.example.com' },
+    });
+
+    const lineaUsdcAndFoo = createDelegationSettings([
+      {
+        network: 'linea',
+        chainId: '59144',
+        environment: 'production',
+        delegationContract: '0xDelegation',
+        tokens: {
+          usdc: { symbol: 'usdc', decimals: 6, address: '0xUSDC' },
+          foo: { symbol: 'foo', decimals: 18, address: '0xFOO' },
+        },
+      },
+    ]);
+
+    const vedaOnMonad = createDelegationSettings([
+      {
+        network: 'monad',
+        chainId: '143',
+        environment: 'production',
+        delegationContract: '0xDelegation',
+        tokens: {
+          veda: { symbol: 'veda', decimals: 6, address: '0xVEDA' },
+        },
+      },
+    ]);
+
+    it('drops tokens absent from the support list when enforceSupportList is true', () => {
+      const result = buildDelegationTokenList({
+        delegationSettings: lineaUsdcAndFoo,
+        enforceSupportList: true,
+        getSupportedTokensByChainId: () => [
+          { symbol: 'USDC', address: '0xUSDC', name: 'USD Coin' },
+        ],
       });
 
       expect(result).toHaveLength(1);
       expect(result[0].symbol).toBe('USDC');
     });
 
-    it('includes Solana when hideSolana is false', () => {
-      const delegationSettings = createDelegationSettings([
-        {
-          network: 'solana',
-          chainId: '1',
-          environment: 'production',
-          delegationContract: '0xDelegation',
-          tokens: {
-            sol: { symbol: 'SOL', decimals: 9, address: 'SolAddress' },
-          },
-        },
-      ]);
+    it('keeps unsupported tokens when enforceSupportList is false (default)', () => {
+      const result = buildDelegationTokenList({
+        delegationSettings: lineaUsdcAndFoo,
+        getSupportedTokensByChainId: () => [],
+      });
 
-      const result = buildTokenListFromSettings({
-        delegationSettings,
-        hideSolana: false,
+      expect(result).toHaveLength(2);
+    });
+
+    it('matches the support list by address even when the symbol differs', () => {
+      const result = buildDelegationTokenList({
+        delegationSettings: lineaUsdcAndFoo,
+        enforceSupportList: true,
+        getSupportedTokensByChainId: () => [
+          { symbol: 'USD Coin', address: '0xusdc', name: 'USD Coin' },
+        ],
       });
 
       expect(result).toHaveLength(1);
-      expect(result[0].symbol).toBe('SOL');
-    });
-  });
-
-  describe('buildQuickSelectTokens', () => {
-    const createMockToken = (
-      symbol: string,
-      caipChainId: CaipChainId = LINEA_CAIP_CHAIN_ID,
-    ): CardTokenAllowance => ({
-      address: `0x${symbol}`,
-      symbol,
-      name: symbol,
-      decimals: 18,
-      caipChainId,
-      walletAddress: undefined,
-      allowanceState: AllowanceState.NotEnabled,
-      allowance: '0',
-      delegationContract: '0xDelegation',
+      expect(result[0].address).toBe('0xUSDC');
     });
 
-    it('returns quick select tokens with correct symbols', () => {
-      const allTokens = [createMockToken('mUSD'), createMockToken('USDC')];
+    it('drops the veda entry when it is not in the support list', () => {
+      const result = buildDelegationTokenList({
+        delegationSettings: vedaOnMonad,
+        enforceSupportList: true,
+        getSupportedTokensByChainId: () => [],
+      });
 
-      const result = buildQuickSelectTokens(allTokens, null);
-
-      expect(result).toHaveLength(2);
-      expect(result[0].symbol).toBe('mUSD');
-      expect(result[1].symbol).toBe('USDC');
+      expect(result).toHaveLength(0);
     });
 
-    it('finds tokens case-insensitively', () => {
-      const allTokens = [createMockToken('musd'), createMockToken('usdc')];
-
-      const result = buildQuickSelectTokens(allTokens, null);
-
-      expect(result[0].token).not.toBeNull();
-      expect(result[1].token).not.toBeNull();
-    });
-
-    it('returns null for missing tokens', () => {
-      const allTokens: CardTokenAllowance[] = [];
-
-      const result = buildQuickSelectTokens(allTokens, null);
-
-      expect(result[0].token).toBeNull();
-      expect(result[1].token).toBeNull();
-    });
-
-    it('only matches tokens on Linea chain', () => {
-      const baseToken = createMockToken('USDC', 'eip155:8453' as CaipChainId);
-      const allTokens = [baseToken];
-
-      const result = buildQuickSelectTokens(allTokens, null);
-
-      expect(result[1].token).toBeNull();
-    });
-
-    it('uses delegation settings as fallback for Linea tokens', () => {
-      const delegationSettings: DelegationSettingsResponse = {
-        networks: [
-          {
-            network: 'linea',
-            chainId: '59144',
-            environment: 'production',
-            delegationContract: '0xDelegation',
-            tokens: {
-              musd: { symbol: 'mUSD', decimals: 18, address: '0xmUSD' },
-            },
-          },
+    it('keeps the veda entry (as mUSD) when present in the support list by symbol', () => {
+      const result = buildDelegationTokenList({
+        delegationSettings: vedaOnMonad,
+        enforceSupportList: true,
+        getSupportedTokensByChainId: () => [
+          { symbol: 'veda', address: '0xVEDA', name: 'Veda' },
         ],
-        count: 1,
-        _links: { self: 'https://api.example.com' },
-      };
+      });
 
-      const result = buildQuickSelectTokens([], delegationSettings);
-
-      expect(result[0].token).not.toBeNull();
-      expect(result[0].token?.address).toBe('0xmUSD');
+      expect(result).toHaveLength(1);
+      expect(result[0].displaySymbol).toBe('mUSD');
     });
 
-    it('preserves display symbol casing from QUICK_SELECT_TOKENS', () => {
-      const allTokens = [createMockToken('MUSD'), createMockToken('usdc')];
+    it('keeps the veda entry when matched by address even if the support-list symbol differs', () => {
+      const result = buildDelegationTokenList({
+        delegationSettings: vedaOnMonad,
+        enforceSupportList: true,
+        getSupportedTokensByChainId: () => [
+          { symbol: 'mUSD', address: '0xveda', name: 'MetaMask USD' },
+        ],
+      });
 
-      const result = buildQuickSelectTokens(allTokens, null);
-
-      expect(result[0].symbol).toBe('mUSD');
-      expect(result[1].symbol).toBe('USDC');
-    });
-  });
-
-  describe('constants', () => {
-    it('exports QUICK_SELECT_TOKENS with mUSD and USDC', () => {
-      expect(QUICK_SELECT_TOKENS).toContain('mUSD');
-      expect(QUICK_SELECT_TOKENS).toContain('USDC');
-      expect(QUICK_SELECT_TOKENS).toHaveLength(2);
-    });
-
-    it('exports LINEA_CAIP_CHAIN_ID', () => {
-      expect(LINEA_CAIP_CHAIN_ID).toBe('eip155:59144');
+      expect(result).toHaveLength(1);
+      expect(result[0].displaySymbol).toBe('mUSD');
     });
   });
 });

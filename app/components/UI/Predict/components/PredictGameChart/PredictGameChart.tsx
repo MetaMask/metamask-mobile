@@ -8,6 +8,14 @@ import React, {
 import { PredictGameStatus, PredictPriceHistoryInterval } from '../../types';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import { usePredictGame } from '../../hooks/usePredictGame';
+import {
+  getPrimaryMoneylineOutcomes,
+  isDrawCapableMarket,
+  resolvePredictSportCardButtons,
+} from '../../utils/sports';
+import { getLeagueTeamOrder } from '../../utils/gameParser';
+import { useTheme } from '../../../../../util/theme';
 import PredictGameChartContent from './PredictGameChartContent';
 import {
   PredictGameChartProps,
@@ -65,24 +73,62 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
   market,
   testID,
 }) => {
-  const game = market.game;
+  const { game } = usePredictGame(market, { live: false });
+  const { colors } = useTheme();
   const gameStatus = game?.status;
   const isGameEnded = gameStatus === 'ended';
   const isGameOngoing = gameStatus === 'ongoing';
+  const moneylineOutcomes = useMemo(
+    () => getPrimaryMoneylineOutcomes(market.outcomes),
+    [market.outcomes],
+  );
+  const drawButtonResolution = useMemo(() => {
+    if (!game || !isDrawCapableMarket({ game, outcomes: market.outcomes })) {
+      return null;
+    }
+
+    const resolution = resolvePredictSportCardButtons({
+      outcomes: market.outcomes,
+      game,
+      showDraw: true,
+    });
+
+    return resolution.home && resolution.draw && resolution.away
+      ? resolution
+      : null;
+  }, [game, market.outcomes]);
 
   const tokenIds = useMemo(() => {
-    const tokens = market.outcomes[0]?.tokens ?? [];
-    return tokens.map((t) => t.id);
-  }, [market.outcomes]);
-
-  const seriesConfig: [GameChartSeriesConfig, GameChartSeriesConfig] | null =
-    useMemo(() => {
-      if (!game) return null;
+    if (drawButtonResolution) {
       return [
-        { label: game.awayTeam.abbreviation, color: game.awayTeam.color },
+        drawButtonResolution.home?.token.id,
+        drawButtonResolution.draw?.token.id,
+        drawButtonResolution.away?.token.id,
+      ].filter((id): id is string => Boolean(id));
+    }
+    const tokens = moneylineOutcomes[0]?.tokens ?? [];
+    return tokens.map((t) => t.id);
+  }, [moneylineOutcomes, drawButtonResolution]);
+
+  const seriesConfig: GameChartSeriesConfig[] | null = useMemo(() => {
+    if (!game) return null;
+    if (drawButtonResolution) {
+      return [
         { label: game.homeTeam.abbreviation, color: game.homeTeam.color },
+        { label: 'DRAW', color: colors.icon.muted },
+        { label: game.awayTeam.abbreviation, color: game.awayTeam.color },
       ];
-    }, [game]);
+    }
+    const orderedTeams =
+      getLeagueTeamOrder(game.league) === 'home-away'
+        ? [game.homeTeam, game.awayTeam]
+        : [game.awayTeam, game.homeTeam];
+
+    return orderedTeams.map((team) => ({
+      label: team.abbreviation,
+      color: team.color,
+    }));
+  }, [game, drawButtonResolution, colors.icon.muted]);
 
   const [timeframe, setTimeframe] = useState<ChartTimeframe>(() =>
     getDefaultTimeframe(gameStatus),
@@ -119,19 +165,20 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
       startTs,
       endTs,
       fidelity,
-      enabled: tokenIds.length === 2,
+      enabled: tokenIds.length >= 2,
     });
 
   const { prices } = useLiveMarketPrices(tokenIds, {
-    enabled: isLive && tokenIds.length === 2,
+    enabled: isLive && tokenIds.length >= 2,
   });
 
   const historicalChartData: GameChartSeries[] = useMemo(() => {
-    if (priceHistories.length < 2 || !seriesConfig) return [];
+    if (priceHistories.length < tokenIds.length || !seriesConfig) return [];
 
     return tokenIds.map((_tokenId, index) => {
       const history = priceHistories[index] ?? [];
       const config = seriesConfig[index];
+      if (!config) return { label: '', color: '', data: [] };
 
       return {
         label: config.label,
@@ -170,9 +217,8 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
     }
 
     if (
-      historicalChartData.length === 2 &&
-      historicalChartData[0].data.length > 0 &&
-      historicalChartData[1].data.length > 0
+      historicalChartData.length >= 2 &&
+      historicalChartData.every((s) => s.data.length > 0)
     ) {
       setLiveChartData(historicalChartData);
       initialDataLoadedRef.current = true;
@@ -186,7 +232,7 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
     const currentMinute = getMinuteTimestamp(now);
 
     setLiveChartData((prevData) => {
-      if (prevData.length !== 2) return prevData;
+      if (prevData.length < 2) return prevData;
 
       const lastPointSeries0 = prevData[0].data[prevData[0].data.length - 1];
       if (!lastPointSeries0) return prevData;
@@ -240,9 +286,7 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
 
   const chartData = isLive ? liveChartData : historicalChartData;
   const hasChartData =
-    chartData.length >= 2 &&
-    chartData[0]?.data?.length > 0 &&
-    chartData[1]?.data?.length > 0;
+    chartData.length >= 2 && chartData.every((s) => s?.data?.length > 0);
   const isLoading =
     isFetching || !hasChartData || (isLive && !initialDataLoadedRef.current);
 

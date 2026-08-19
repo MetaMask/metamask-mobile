@@ -1,14 +1,17 @@
 import { Nft } from '@metamask/assets-controllers';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Text from '../../../../../component-library/components/Texts/Text';
+import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import CollectibleMedia from '../../../../UI/CollectibleMedia';
 import { useNft } from '../../hooks/nft/useNft';
@@ -24,7 +27,7 @@ const NftImageAndNetworkBadge = ({
   chainId: string;
   nft?: Nft;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { networkName, networkImage } = useNetworkInfo(chainId);
 
@@ -62,14 +65,15 @@ const NftImageAndNetworkBadge = ({
   return (
     <TouchableOpacity onPress={onPress} style={styles.touchableOpacity}>
       <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          <Badge
-            imageSource={networkImage}
-            name={networkName}
-            variant={BadgeVariant.Network}
-            testID="hero-nft-badge-network"
-          />
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
+          networkImage ? (
+            <BadgeNetwork
+              src={networkImage}
+              name={networkName}
+              testID="hero-nft-badge-network"
+            />
+          ) : null
         }
       >
         <CollectibleMedia
@@ -81,10 +85,45 @@ const NftImageAndNetworkBadge = ({
   );
 };
 
-export const HeroNft = () => {
+const HeroNftHorizontal = () => {
+  const { styles } = useStyles(styleSheet, { layout: 'horizontal' });
+  const { chainId, name, nft } = useNft();
+  const { tokenId } = nft ?? {};
+
+  return (
+    <View style={styles.horizontalContainer}>
+      <View style={styles.textContainer}>
+        <Text style={styles.label} variant={TextVariant.BodyMD}>
+          {strings('confirm.label.sending')}
+        </Text>
+        <Text style={styles.nameText} variant={TextVariant.HeadingLG}>
+          {name}
+        </Text>
+        {tokenId !== undefined && (
+          <Text style={styles.tokenIdText} variant={TextVariant.BodyMD}>
+            {`#${tokenId}`}
+          </Text>
+        )}
+      </View>
+      <View style={styles.iconContainer}>
+        <NftImageAndNetworkBadge chainId={chainId} nft={nft} />
+      </View>
+    </View>
+  );
+};
+
+interface HeroNftProps {
+  layout?: 'default' | 'horizontal';
+}
+
+export const HeroNft = ({ layout = 'default' }: HeroNftProps) => {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { chainId, name, nft } = useNft();
   const { tokenId } = nft ?? {};
+
+  if (layout === 'horizontal') {
+    return <HeroNftHorizontal />;
+  }
 
   return (
     <Hero

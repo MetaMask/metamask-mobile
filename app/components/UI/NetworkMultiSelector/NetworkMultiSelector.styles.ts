@@ -1,9 +1,12 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../util/theme/models';
 
-const stylesheet = () =>
-  StyleSheet.create({
+const stylesheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  return StyleSheet.create({
     bodyContainer: {
       flex: 1,
+      backgroundColor: theme.colors.background.elevated1,
     },
     // custom network
     customNetworkContainer: {
@@ -14,5 +17,6 @@ const stylesheet = () =>
       alignItems: 'center',
     },
   });
+};
 
 export default stylesheet;

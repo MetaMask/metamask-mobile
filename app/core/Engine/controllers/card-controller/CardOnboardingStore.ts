@@ -13,12 +13,14 @@ export interface CardOnboardingData {
   selectedCountry: string | null;
 }
 
-export const EMPTY_ONBOARDING_DATA: CardOnboardingData = {
-  onboardingId: null,
-  contactVerificationId: null,
-  consentSetId: null,
-  selectedCountry: null,
-};
+export function emptyOnboardingData(): CardOnboardingData {
+  return {
+    onboardingId: null,
+    contactVerificationId: null,
+    consentSetId: null,
+    selectedCountry: null,
+  };
+}
 
 function scopeOptions(providerId: string) {
   return {
@@ -43,7 +45,7 @@ export const CardOnboardingStore = {
     try {
       const data: Partial<CardOnboardingData> = JSON.parse(item.value);
       return {
-        ...EMPTY_ONBOARDING_DATA,
+        ...emptyOnboardingData(),
         ...data,
       };
     } catch (parseError) {
@@ -64,7 +66,7 @@ export const CardOnboardingStore = {
   ): Promise<boolean> {
     try {
       const current =
-        (await CardOnboardingStore.get(providerId)) ?? EMPTY_ONBOARDING_DATA;
+        (await CardOnboardingStore.get(providerId)) ?? emptyOnboardingData();
       const merged = { ...current, ...data };
 
       const result = await SecureKeychain.setSecureItem(

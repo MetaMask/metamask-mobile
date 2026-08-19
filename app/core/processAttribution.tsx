@@ -35,6 +35,7 @@ export function processAttribution({
     const { params } = extractURLParams(currentDeeplink);
     const {
       attributionId,
+      attribution_id,
       utm_source,
       utm_medium,
       utm_campaign,
@@ -42,8 +43,13 @@ export function processAttribution({
       utm_content,
     } = params;
 
+    // Prefer camelCase attributionId; fall back to snake_case attribution_id
+    // so URLs using either form are handled consistently.
+    const resolvedAttributionId =
+      attributionId?.trim() || attribution_id?.trim() || undefined;
+
     return {
-      attributionId,
+      attributionId: resolvedAttributionId,
       utm_source,
       utm_medium,
       utm_campaign,

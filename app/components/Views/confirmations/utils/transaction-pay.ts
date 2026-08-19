@@ -1,24 +1,95 @@
 import {
+  CHAIN_IDS,
+  NestedTransactionMetadata,
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
+import {
+  PaymentOverride,
+  TransactionFiatPayment,
+  TransactionPayRequiredToken,
+  TransactionPayTotals,
+  TransactionPaymentToken,
+} from '@metamask/transaction-pay-controller';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
-import { hasTransactionType } from './transaction';
 import { Hex } from '@metamask/utils';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { AssetType, TokenStandard } from '../types/token';
-import {
-  TransactionPayRequiredToken,
-  TransactionPaymentToken,
-} from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import { isTestNet } from '../../../../util/networks';
-import { store } from '../../../../store';
-import { selectGasFeeTokenFlags } from '../../../../selectors/featureFlagController/confirmations';
+import {
+  BlockedTokensListConfig,
+  BlockedTokensConfig,
+} from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import Logger from '../../../../util/Logger';
+import Engine from '../../../../core/Engine';
+import { updateAtomicBatchData } from '../../../../util/transaction-controller';
+import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
+import { isTransactionPayWithdraw } from './transaction';
+
+interface ResolvedPayTokenRequest {
+  address: Hex;
+  chainId: Hex;
+}
 
 const FOUR_BYTE_TOKEN_TRANSFER = '0xa9059cbb';
+
+function toAddressWord(address: string): string {
+  return address.toLowerCase().replace(/^0x/, '').padStart(64, '0');
+}
+
+/**
+ * Replace every occurrence of `oldAddress` (encoded as a 32-byte ABI word)
+ * inside the `data` of each nested transaction with `newAddress`, and persist
+ * the change via `updateAtomicBatchData`. No-ops when there are no nested
+ * transactions or no old address to replace.
+ */
+export function replaceAccountInNestedTransactions({
+  transactionId,
+  nestedTransactions,
+  oldAddress,
+  newAddress,
+}: {
+  transactionId: string;
+  nestedTransactions: NestedTransactionMetadata[] | undefined;
+  oldAddress: string | undefined;
+  newAddress: string;
+}): void {
+  if (!oldAddress || !nestedTransactions?.length) {
+    return;
+  }
+
+  const oldWord = toAddressWord(oldAddress);
+  const newWord = toAddressWord(newAddress);
+
+  if (oldWord === newWord) {
+    return;
+  }
+
+  nestedTransactions.forEach((nested, index) => {
+    const data = nested.data;
+    if (!data) {
+      return;
+    }
+
+    const lowerData = data.toLowerCase();
+    if (!lowerData.includes(oldWord)) {
+      return;
+    }
+
+    const newData = lowerData.split(oldWord).join(newWord) as Hex;
+
+    updateAtomicBatchData({
+      transactionId,
+      transactionIndex: index,
+      transactionData: newData,
+    }).catch((error) => {
+      Logger.error(error, 'Failed to update account in nested transaction');
+    });
+  });
+}
 
 export function getRequiredBalance(
   transactionMeta: TransactionMeta,
@@ -80,6 +151,11 @@ export function getTokenAddress(
     return nestedCall.to;
   }
 
+  const requiredAssetAddress = transactionMeta?.requiredAssets?.[0]?.address;
+  if (requiredAssetAddress) {
+    return requiredAssetAddress;
+  }
+
   return transactionMeta?.txParams?.to as Hex;
 }
 
@@ -87,12 +163,16 @@ export function getAvailableTokens({
   payToken,
   requiredTokens,
   tokens,
+  blockedTokens,
+  fiatPayment,
 }: {
   payToken?: TransactionPaymentToken;
   requiredTokens?: TransactionPayRequiredToken[];
   tokens: AssetType[];
+  blockedTokens?: BlockedTokensListConfig;
+  fiatPayment?: TransactionFiatPayment;
 }): AssetType[] {
-  const supportedGasFeeTokens = getSupportedGasFeeTokens();
+  const hasFiatPayment = Boolean(fiatPayment?.selectedPaymentMethodId);
 
   return tokens
     .filter((token) => {
@@ -126,29 +206,18 @@ export function getAvailableTokens({
       return new BigNumber(token.balance).gt(0);
     })
     .map((token) => {
-      const chainId = (token.chainId as Hex) ?? '0x0';
+      const blocked = isTokenBlocked(token, blockedTokens);
 
-      const nativeToken = tokens.find(
-        (t) =>
-          t.chainId === chainId && t.address === getNativeTokenAddress(chainId),
-      );
+      const disabled = blocked;
 
-      const noNativeBalance =
-        !nativeToken || new BigNumber(nativeToken.balance).isZero();
-
-      const isGasStationSupported = supportedGasFeeTokens[chainId]?.includes(
-        token.address?.toLowerCase() as Hex,
-      );
-
-      const disabled = noNativeBalance && !isGasStationSupported;
-
-      const disabledMessage = disabled
-        ? strings('pay_with_modal.no_gas')
+      const disabledMessage = blocked
+        ? strings('pay_with_modal.not_supported')
         : undefined;
 
-      const isSelected =
-        payToken?.address.toLowerCase() === token.address.toLowerCase() &&
-        payToken?.chainId === token.chainId;
+      const isSelected = hasFiatPayment
+        ? false
+        : payToken?.address.toLowerCase() === token.address.toLowerCase() &&
+          payToken?.chainId === token.chainId;
 
       return {
         ...token,
@@ -156,20 +225,168 @@ export function getAvailableTokens({
         disabledMessage,
         isSelected,
       };
-    });
+    })
+    .sort((a, b) => Number(a.disabled) - Number(b.disabled));
 }
 
-function getSupportedGasFeeTokens(): Record<Hex, Hex[]> {
-  const state = store.getState();
-  const { gasFeeTokens } = selectGasFeeTokenFlags(state);
+export function getBlockedTokensForTransactionType(
+  blockedTokens: BlockedTokensConfig,
+  transactionType?: string,
+): BlockedTokensListConfig {
+  const config =
+    transactionType && blockedTokens.overrides[transactionType]
+      ? blockedTokens.overrides[transactionType]
+      : blockedTokens.default;
 
-  return Object.keys(gasFeeTokens).reduce(
-    (acc, chainId) => ({
-      ...acc,
-      [chainId]: gasFeeTokens[chainId as Hex].tokens.map(
-        (token) => token.address.toLowerCase() as Hex,
-      ),
-    }),
-    {},
+  return {
+    chainIds: config.chainIds ?? [],
+    tokens: config.tokens ?? [],
+  };
+}
+
+export function isTokenBlocked(
+  token: { address: string; chainId?: string },
+  blockedConfig?: BlockedTokensListConfig,
+): boolean {
+  if (blockedConfig === undefined || blockedConfig === null) {
+    return false;
+  }
+
+  if (
+    token.chainId &&
+    blockedConfig.chainIds.some(
+      (id) => id.toLowerCase() === token.chainId?.toLowerCase(),
+    )
+  ) {
+    return true;
+  }
+
+  return blockedConfig.tokens.some(
+    (blocked) =>
+      blocked.address.toLowerCase() === token.address.toLowerCase() &&
+      blocked.chainId.toLowerCase() === token.chainId?.toLowerCase(),
+  );
+}
+
+export function isMatchingPayToken(
+  token: { address?: string; chainId?: string } | undefined,
+  target: { address: string; chainId: string } | undefined,
+): boolean {
+  if (!token || !target) {
+    return false;
+  }
+  return (
+    token.address?.toLowerCase() === target.address.toLowerCase() &&
+    token.chainId?.toLowerCase() === target.chainId.toLowerCase()
+  );
+}
+
+/**
+ * Resolves the preferred pay token for a transaction.
+ *
+ * Returns the explicit override when provided. Otherwise, falls back to
+ * mUSD on Monad for moneyAccountWithdraw transactions so the preferred-token
+ * row in the pay-with bottom sheet reflects the withdraw-default asset.
+ *
+ */
+export function resolvePreferredPayToken({
+  override,
+  transactionMeta,
+}: {
+  override?: ResolvedPayTokenRequest;
+  transactionMeta: TransactionMeta | undefined;
+}): ResolvedPayTokenRequest | undefined {
+  if (override) {
+    return override;
+  }
+
+  if (
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
+  ) {
+    return {
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: CHAIN_IDS.MONAD,
+    };
+  }
+
+  return undefined;
+}
+
+/**
+ * Sets the Money Account payment override on a transaction and clears any
+ * previously selected fiat payment method.
+ *
+ * `paymentOverride` is set unconditionally; the additional flow-specific
+ * fields are set only for the flows that need them.
+ *
+ * Perps/Predict withdraw → MA sets `atomic: false` so the post-Relay transfer
+ * to the Money Account runs in `submitPostNonAtomic`. The quote recipient is
+ * derived by the pay controller via the `getPaymentOverrideData` callback.
+ * Deposit-direction flows funded by the Money Account (Money Account, Perps,
+ * and Predict deposits) set `refundTo: MA` so failed Relay bridges refund to
+ * the MA rather than the funding EOA. Money Account deposits additionally
+ * flip `atomic: false` later via `setMoneyAccountDepositMaxAtomic` when the
+ * user toggles max amount.
+ *
+ * Money Account withdraw (`moneyAccountWithdraw`) keeps the default atomic
+ * path with no recipient override: `processTransactions` overwrites the quote
+ * recipient with the actual token-transfer target from the nested batch.
+ */
+export function applyMoneyAccountOverride(
+  transactionId: string,
+  moneyAccountAddress: string | undefined,
+  transactionMeta: TransactionMeta | undefined,
+): void {
+  const isPerpsOrPredictWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.perpsWithdraw,
+    TransactionType.predictWithdraw,
+  ]);
+  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+
+  Engine.context.TransactionPayController.setTransactionConfig(
+    transactionId,
+    (config) => {
+      config.paymentOverride = PaymentOverride.MoneyAccount;
+      if (isPerpsOrPredictWithdraw) {
+        config.atomic = false;
+      }
+      if (!isWithdraw && moneyAccountAddress) {
+        config.refundTo = moneyAccountAddress as Hex;
+      }
+    },
+  );
+
+  Engine.context.TransactionPayController.updateFiatPayment({
+    transactionId,
+    callback: (fp) => {
+      fp.selectedPaymentMethodId = undefined;
+    },
+  });
+}
+
+/**
+ * Toggle non-atomic mode on a Money Account deposit based on whether the user
+ * has selected the max-amount option. Only max-amount deposits need the
+ * post-Relay vault-deposit path; regular deposits stay atomic (EXPECTED_OUTPUT
+ * with the vault deposit embedded in the Relay bundle).
+ */
+export function getTotalPayFeesUsd(
+  fees: TransactionPayTotals['fees'],
+): BigNumber {
+  return new BigNumber(fees.provider?.usd ?? 0)
+    .plus(fees.sourceNetwork?.estimate?.usd ?? 0)
+    .plus(fees.targetNetwork?.usd ?? 0)
+    .plus(fees.metaMask?.usd ?? 0);
+}
+
+export function setMoneyAccountDepositMaxAtomic(
+  transactionId: string,
+  isMax: boolean,
+): void {
+  Engine.context.TransactionPayController.setTransactionConfig(
+    transactionId,
+    (config) => {
+      config.atomic = isMax ? false : undefined;
+    },
   );
 }

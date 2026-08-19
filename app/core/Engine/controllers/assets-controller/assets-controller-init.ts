@@ -1,23 +1,28 @@
 import { createApiPlatformClient } from '@metamask/core-backend';
+import { getVersion } from 'react-native-device-info';
 import {
   AssetsController,
-  AssetsControllerFirstInitFetchMetaMetricsPayload,
+  AssetsControllerMessenger,
   type AssetsControllerOptions,
 } from '@metamask/assets-controller';
+import type {
+  TraceCallback as ControllerTraceCallback,
+  TraceContext as ControllerTraceContext,
+  TraceRequest as ControllerTraceRequest,
+} from '@metamask/controller-utils';
 import {
   isAssetsUnifyStateFeatureEnabled,
+  isAssetsUnifyStateTracesEnabled,
   ASSETS_UNIFY_STATE_FLAG,
   ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
 } from '../../../../selectors/featureFlagController/assetsUnifyState';
-import type { ControllerInitFunction } from '../../types';
-import {
-  type AssetsControllerMessenger,
-  type AssetsControllerInitMessenger,
-} from '../../messengers/assets-controller';
+import type { MessengerClientInitFunction } from '../../types';
+import { type AssetsControllerInitMessenger } from '../../messengers/assets-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import { store } from '../../../../store';
-import { MetaMetricsEvents } from '../../../Analytics';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { selectIsUnlocked } from '../../../../selectors/keyringController';
+import { trace, type TraceRequest } from '../../../../util/trace';
 
 type QueryApiClient = AssetsControllerOptions['queryApiClient'];
 
@@ -73,10 +78,78 @@ function getApiClient(
   if (!apiClient) {
     apiClient = createApiPlatformClient({
       clientProduct: 'metamask-mobile',
+      clientVersion: getVersion(),
       getBearerToken: () => safeGetBearerToken(initMessenger),
     });
   }
   return apiClient;
+}
+
+/**
+ * Whether AssetsController Sentry tracing is enabled via
+ * `assetsUnifyState.tracesEnabled` (requires unify itself to be enabled).
+ *
+ * @param initMessenger - The initialization messenger.
+ * @returns True when tracing should run, false otherwise.
+ */
+function isAssetsControllerTracesEnabled(
+  initMessenger: AssetsControllerInitMessenger,
+): boolean {
+  try {
+    const { remoteFeatureFlags } = initMessenger.call(
+      'RemoteFeatureFlagController:getState',
+    );
+    return isAssetsUnifyStateTracesEnabled(
+      remoteFeatureFlags?.[ASSETS_UNIFY_STATE_FLAG],
+      ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Adapter that wraps mobile's synchronous {@link trace} into the async
+ * {@link ControllerTraceCallback} signature expected by AssetsController.
+ *
+ * @param req - The controller trace request.
+ * @param fn - Optional work to run inside the span.
+ * @returns The result of `fn`, resolved as a Promise.
+ */
+const traceAsControllerCallback: ControllerTraceCallback = <Result>(
+  req: ControllerTraceRequest,
+  fn?: (ctx?: ControllerTraceContext) => Result,
+): Promise<Result> => {
+  // Controller TraceContext is `unknown`; mobile TraceContext is a Sentry Span.
+  const taggedRequest: TraceRequest = {
+    ...req,
+    name: req.name as TraceRequest['name'],
+    parentContext: req.parentContext as TraceRequest['parentContext'],
+  };
+  return Promise.resolve(
+    fn ? trace(taggedRequest, fn) : trace(taggedRequest),
+  ) as Promise<Result>;
+};
+
+/**
+ * Trace callback gated by `assetsUnifyState.tracesEnabled`.
+ * When the flag is off, runs `fn` (if provided) without creating a Sentry span.
+ *
+ * @param initMessenger - The initialization messenger used to read the flag.
+ * @returns A {@link ControllerTraceCallback} suitable for AssetsController.
+ */
+function createAssetsControllerTrace(
+  initMessenger: AssetsControllerInitMessenger,
+): ControllerTraceCallback {
+  return <Result>(
+    req: ControllerTraceRequest,
+    fn?: (ctx?: ControllerTraceContext) => Result,
+  ): Promise<Result> => {
+    if (!isAssetsControllerTracesEnabled(initMessenger)) {
+      return Promise.resolve(fn?.() as Result);
+    }
+    return traceAsControllerCallback(req, fn);
+  };
 }
 
 /**
@@ -86,10 +159,10 @@ function getApiClient(
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @param request.persistedState - The persisted state of the extension.
  * @param request.initMessenger - The init messenger to use for the controller.
- * @param request.getController - Function to get a controller by name.
+ * @param request.getMessengerClient - Function to get a controller by name.
  * @returns The initialized controller.
  */
-export const assetsControllerInit: ControllerInitFunction<
+export const assetsControllerInit: MessengerClientInitFunction<
   AssetsController,
   AssetsControllerMessenger,
   AssetsControllerInitMessenger
@@ -97,7 +170,7 @@ export const assetsControllerInit: ControllerInitFunction<
   controllerMessenger,
   persistedState,
   initMessenger,
-  getController: _getController,
+  getMessengerClient: _getController,
 }) => {
   /**
    * Check if the AssetsController feature is enabled based on the remote feature flag.
@@ -107,6 +180,9 @@ export const assetsControllerInit: ControllerInitFunction<
    */
   const isEnabled = (): boolean => {
     try {
+      if (!selectIsUnlocked(store.getState())) {
+        return false;
+      }
       const remoteFeatureFlagState = initMessenger.call(
         'RemoteFeatureFlagController:getState',
       );
@@ -127,36 +203,10 @@ export const assetsControllerInit: ControllerInitFunction<
     }
   };
 
-  // Track first init fetch duration and per-data-source latency when AssetsController
-  // completes initial load after unlock. Uses AnalyticsController:trackEvent (same pattern
-  // as SmartTransactionsController and other controller inits).
-  const trackMetaMetricsEvent = (
-    payload: AssetsControllerFirstInitFetchMetaMetricsPayload,
-  ): void => {
-    try {
-      const event = AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.ASSETS_FIRST_INIT_FETCH_COMPLETED,
-      )
-        .addProperties({
-          duration_ms: payload.durationMs,
-          chain_ids: payload.chainIds,
-          duration_by_data_source: payload.durationByDataSource,
-        })
-        .build();
-      initMessenger.call('AnalyticsController:trackEvent', event);
-    } catch {
-      // AnalyticsController may not be available (e.g. init order); skip tracking.
-    }
-  };
-
   // Create the controller - it now creates all data sources internally
   const controller = new AssetsController({
     messenger: controllerMessenger,
-    state: persistedState?.AssetsController ?? {
-      assetPreferences: {},
-      assetsInfo: {},
-      assetsBalance: {},
-    },
+    state: persistedState?.AssetsController,
     isBasicFunctionality: () =>
       selectBasicFunctionalityEnabled(store.getState()),
     isEnabled,
@@ -173,7 +223,13 @@ export const assetsControllerInit: ControllerInitFunction<
       pollInterval: 30_000,
       enabled: true,
     },
-    trackMetaMetricsEvent,
+    isOnboarded: () => selectCompletedOnboarding(store.getState()),
+    trace: createAssetsControllerTrace(initMessenger),
+    // TEMPORARY (ASSETS-3346): legacy state slices used to heal wiped `assetsInfo` metadata.
+    tempMigrateAssetsInfoMetadataAssets3346: () => ({
+      TokensController: persistedState?.TokensController,
+      AccountsController: persistedState?.AccountsController,
+    }),
   });
 
   return { controller };

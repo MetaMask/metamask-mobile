@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { RouteProp, useRoute } from '@react-navigation/native';
 import { ImageSourcePropType, StyleSheet, View } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
@@ -6,23 +7,21 @@ import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import Button from '../../../component-library/components/Buttons/Button/Button';
 import Icon, {
   IconSize,
   IconName,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import TagUrl from '../../../component-library/components/Tags/TagUrl';
 import { resetOriginSpamState } from '../../../core/redux/slices/originThrottling';
+import {
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 
 export const BLOCK_BUTTON_TEST_ID = 'block-origin-button';
 export const CONTINUE_BUTTON_TEST_ID = 'continue-origin-button';
@@ -93,7 +92,7 @@ const MultipleRequestContent = ({
         size={IconSize.Xl}
       />
       <View style={styles.titleWrapper}>
-        <Text style={styles.title} variant={TextVariant.HeadingMD}>
+        <Text style={styles.title} variant={TextVariant.HeadingMd}>
           {strings('spam_filter.title')}
         </Text>
       </View>
@@ -109,26 +108,28 @@ const MultipleRequestContent = ({
       </Text>
       <View style={styles.buttonsWrapper}>
         <Button
-          label={strings('spam_filter.cancel')}
           onPress={() => {
             onResetOriginSpamState();
             onCloseModal();
           }}
           size={ButtonSize.Lg}
           testID={CONTINUE_BUTTON_TEST_ID}
-          variant={ButtonVariants.Secondary}
-          width={ButtonWidthTypes.Full}
-        />
+          variant={ButtonVariant.Secondary}
+          isFullWidth
+        >
+          {strings('spam_filter.cancel')}
+        </Button>
         <Button
-          label={strings('spam_filter.block_origin_requests_for_1_minute')}
           onPress={() => {
             setBlockOrigin(true);
           }}
           size={ButtonSize.Lg}
           testID={BLOCK_BUTTON_TEST_ID}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-        />
+          variant={ButtonVariant.Primary}
+          isFullWidth
+        >
+          {strings('spam_filter.block_origin_requests_for_1_minute')}
+        </Button>
       </View>
     </>
   );
@@ -147,24 +148,27 @@ const SiteBlockedContent = ({ onCloseModal }: { onCloseModal: () => void }) => {
       <Text>{strings('spam_filter.site_blocked_description')}</Text>
       <View style={styles.buttonsWrapper}>
         <Button
-          label={strings('spam_filter.got_it')}
           onPress={() => {
             onCloseModal();
           }}
           size={ButtonSize.Lg}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-        />
+          variant={ButtonVariant.Primary}
+          isFullWidth
+        >
+          {strings('spam_filter.got_it')}
+        </Button>
       </View>
     </>
   );
 };
 
-const OriginSpamModal = ({
-  route,
-}: {
-  route: { params: { origin: string } };
-}) => {
+interface OriginSpamModalRouteParams {
+  origin: string;
+}
+
+const OriginSpamModal = () => {
+  const route =
+    useRoute<RouteProp<{ params: OriginSpamModalRouteParams }, 'params'>>();
   const dispatch = useDispatch();
   const { origin } = route.params;
   const styles = createStyles();

@@ -1,0 +1,43 @@
+import { queryOptions } from '@tanstack/react-query';
+import type {
+  PaymentMethod,
+  PaymentMethodsResponse,
+} from '@metamask/ramps-controller';
+import Engine from '../../../../core/Engine';
+
+interface PaymentMethodsQueryParams {
+  regionCode: string;
+  assetId: string;
+  providerId: string;
+}
+
+export const rampsPaymentMethodsKeys = {
+  all: () => ['ramps', 'paymentMethods'] as const,
+  detail: ({
+    regionCode,
+    providerId,
+  }: Pick<PaymentMethodsQueryParams, 'regionCode' | 'providerId'>) =>
+    [
+      ...rampsPaymentMethodsKeys.all(),
+      regionCode.trim().toLowerCase(),
+      providerId,
+    ] as const,
+};
+
+export const rampsPaymentMethodsOptions = (params: PaymentMethodsQueryParams) =>
+  queryOptions({
+    queryKey: rampsPaymentMethodsKeys.detail(params),
+    queryFn: async (): Promise<PaymentMethod[]> => {
+      const response: PaymentMethodsResponse =
+        await Engine.context.RampsController.getPaymentMethods(
+          params.regionCode,
+          {
+            assetId: params.assetId,
+            provider: params.providerId,
+          },
+        );
+
+      return response.payments;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });

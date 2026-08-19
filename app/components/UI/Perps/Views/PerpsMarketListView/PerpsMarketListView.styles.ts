@@ -135,9 +135,14 @@ const styleSheet = (params: { theme: Theme }) => {
     animatedListContainer: {
       flex: 1,
     },
+    watchlistScrollContainer: {
+      flex: 1,
+    },
+    watchlistScrollContent: {
+      paddingBottom: 120,
+    },
     searchBarRow: {
       paddingHorizontal: 16,
-      paddingTop: 12,
       paddingBottom: 8,
     },
     searchContainer: {
@@ -166,25 +171,6 @@ const styleSheet = (params: { theme: Theme }) => {
     clearButton: {
       padding: 4,
       marginLeft: 8,
-    },
-    emptyStateContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 24,
-      paddingVertical: 48,
-      marginBottom: 120, // Account for tab bar height
-    },
-    emptyStateIcon: {
-      marginBottom: 16,
-    },
-    emptyStateTitle: {
-      textAlign: 'center',
-      marginBottom: 8,
-    },
-    emptyStateDescription: {
-      textAlign: 'center',
-      maxWidth: 280,
     },
   });
 };

@@ -1,3 +1,4 @@
+import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import DeFiFullView from './DeFiFullView';
 import { useNavigation } from '@react-navigation/native';
@@ -13,6 +14,14 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+}));
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      setTokenSortConfig: jest.fn(),
+    },
+  },
 }));
 
 jest.mock('../../UI/DeFiPositions/DeFiPositionsList', () => {
@@ -44,13 +53,12 @@ describe('DeFiFullView', () => {
   });
 
   it('renders header with title and back button', () => {
-    const { getByTestId } = renderScreen(DeFiFullView, {
+    const { getByTestId, getByText } = renderScreen(DeFiFullView, {
       name: 'DeFiFullView',
     });
 
-    expect(getByTestId('header')).toBeOnTheScreen();
-    expect(getByTestId('header-title')).toBeOnTheScreen();
     expect(getByTestId('back-button')).toBeOnTheScreen();
+    expect(getByText('DeFi')).toBeOnTheScreen();
   });
 
   it('renders DeFi positions list', () => {
@@ -66,7 +74,7 @@ describe('DeFiFullView', () => {
       name: 'DeFiFullView',
     });
 
-    getByTestId('back-button').props.onPress();
+    fireEvent.press(getByTestId('back-button'));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });

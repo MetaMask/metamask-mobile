@@ -1,4 +1,5 @@
 import { cloneDeep } from 'lodash';
+import { TransactionType } from '@metamask/transaction-controller';
 import {
   selectMetaMaskPayFlags,
   selectMetaMaskPayTokensFlags,
@@ -7,18 +8,27 @@ import {
   ATTEMPTS_MAX_DEFAULT,
   SLIPPAGE_DEFAULT,
   BUFFER_SUBSEQUENT_DEFAULT,
+  STX_DISABLED_DEFAULT,
   selectNonZeroUnusedApprovalsAllowList,
-  selectGasFeeTokenFlags,
-  GasFeeTokenFlags,
   selectPayQuoteConfig,
   selectMetaMaskPayFiatFlags,
-  PAY_FIAT_ENABLED_DEFAULT,
+  PAY_FIAT_ENABLED_TRANSACTION_TYPES,
+  PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
+  selectPayHardwareConfig,
+  PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT,
+  PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT,
+  PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT,
+  PAY_HARDWARE_ENABLED_DEFAULT,
+  selectDepositLimits,
+  PAY_DEPOSIT_LIMITS_DEFAULT,
+  PAY_PREFILLED_AMOUNT_DEFAULT,
+  selectPrefilledAmountConfig,
   PreferredToken,
   getPreferredTokensForTransactionType,
+  selectRelayFixedSpread,
 } from '.';
 import mockedEngine from '../../../core/__mocks__/MockedEngine';
 import { mockedEmptyFlagsState, mockedUndefinedFlagsState } from '../mocks';
-import { Hex } from '@metamask/utils';
 import { RootState } from '../../../reducers';
 
 jest.mock('../../../core/Engine', () => ({
@@ -120,6 +130,25 @@ describe('MetaMask Pay Feature Flags', () => {
 
     expect(selectMetaMaskPayFlags(state).slippage).toEqual(0.123);
   });
+
+  it('returns default stxDisabled if not in feature flags', () => {
+    expect(selectMetaMaskPayFlags(mockedEmptyFlagsState).stxDisabled).toEqual(
+      STX_DISABLED_DEFAULT,
+    );
+  });
+
+  it('returns stxDisabled from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay: {
+          stxDisabled: true,
+        },
+      };
+
+    expect(selectMetaMaskPayFlags(state).stxDisabled).toEqual(true);
+  });
 });
 
 describe('Non-Zero Unused Approvals Allow List', () => {
@@ -182,84 +211,6 @@ describe('Non-Zero Unused Approvals Allow List', () => {
       undefinedFeatureFlagState,
     );
     expect(result).toEqual([]);
-  });
-});
-
-describe('Gas Fee Token Flags', () => {
-  const chainIdMock = '0x1' as Hex;
-
-  const mockedGasFeeTokenFlags: GasFeeTokenFlags = {
-    gasFeeTokens: {
-      [chainIdMock]: {
-        name: 'Ethereum',
-        tokens: [
-          {
-            name: 'USDC',
-            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex,
-          },
-          {
-            name: 'DAI',
-            address: '0x6b175474e89094c44da98b954eedeac495271d0f' as Hex,
-          },
-        ],
-      },
-      '0x89': {
-        name: 'Polygon',
-        tokens: [{ name: 'USDC.e', address: '0xusdce' as Hex }],
-      },
-    },
-  };
-
-  const mockedStateWithGasFeeTokenFlags = {
-    engine: {
-      backgroundState: {
-        RemoteFeatureFlagController: {
-          remoteFeatureFlags: {
-            confirmations_gas_fee_tokens: mockedGasFeeTokenFlags,
-          },
-          cacheTimestamp: 0,
-        },
-      },
-    },
-  };
-
-  it('returns empty gasFeeTokens when empty feature flag state', () => {
-    const result = selectGasFeeTokenFlags(mockedEmptyFlagsState);
-
-    expect(result).toEqual({ gasFeeTokens: {} });
-  });
-
-  it('returns empty gasFeeTokens when undefined RemoteFeatureFlagController state', () => {
-    const result = selectGasFeeTokenFlags(mockedUndefinedFlagsState);
-
-    expect(result).toEqual({ gasFeeTokens: {} });
-  });
-
-  it('returns gas fee tokens from feature flag', () => {
-    const result = selectGasFeeTokenFlags(
-      mockedStateWithGasFeeTokenFlags as never,
-    );
-
-    expect(result).toEqual(mockedGasFeeTokenFlags);
-  });
-
-  it('returns empty gasFeeTokens when confirmations_gas_fee_tokens exists but gasFeeTokens is undefined', () => {
-    const stateWithUndefinedGasFeeTokens = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              confirmations_gas_fee_tokens: {},
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-    };
-
-    const result = selectGasFeeTokenFlags(stateWithUndefinedGasFeeTokens);
-
-    expect(result).toEqual({ gasFeeTokens: {} });
   });
 });
 
@@ -352,6 +303,40 @@ describe('selectMetaMaskPayTokensFlags (confirmations_pay_tokens)', () => {
     const result = selectMetaMaskPayTokensFlags(mockedEmptyFlagsState);
 
     expect(result.preferredTokens).toEqual({ default: [], overrides: {} });
+  });
+
+  it('returns default empty blockedTokens when confirmations_pay_tokens is missing', () => {
+    const result = selectMetaMaskPayTokensFlags(mockedEmptyFlagsState);
+
+    expect(result.blockedTokens).toEqual({
+      default: { chainIds: [], tokens: [] },
+      overrides: {},
+    });
+  });
+
+  it('returns blockedTokens with overrides from feature flag', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_tokens: {
+          blockedTokens: {
+            default: { chainIds: ['0xa4b1'], tokens: [] },
+            overrides: {
+              perpsDeposit: {
+                chainIds: [],
+                tokens: [{ address: '0xabc', chainId: '0x1' }],
+              },
+            },
+          },
+        },
+      };
+
+    const result = selectMetaMaskPayTokensFlags(state);
+    expect(result.blockedTokens.default.chainIds).toEqual(['0xa4b1']);
+    expect(result.blockedTokens.overrides.perpsDeposit).toEqual({
+      chainIds: [],
+      tokens: [{ address: '0xabc', chainId: '0x1' }],
+    });
   });
 
   it('returns default minimumRequiredTokenBalance of 0 when not in feature flags', () => {
@@ -449,19 +434,387 @@ describe('getPreferredTokensForTransactionType', () => {
 });
 
 describe('selectMetaMaskPayFiatFlags', () => {
-  it('returns default when flag is absent', () => {
+  it('returns defaults when flag is absent', () => {
     expect(selectMetaMaskPayFiatFlags(mockedEmptyFlagsState)).toEqual({
-      enabled: PAY_FIAT_ENABLED_DEFAULT,
+      enabledTransactionTypes: PAY_FIAT_ENABLED_TRANSACTION_TYPES,
+      maxDelayMinutesForPaymentMethods:
+        PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
     });
   });
 
-  it('returns enabled from flag value', () => {
+  it('returns enabledTransactionTypes from flag value', () => {
     const state = cloneDeep(mockedEmptyFlagsState);
     state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
       {
-        confirmations_pay_fiat: { enabled: true },
+        confirmations_pay_fiat: {
+          enabledTransactionTypes: ['simpleSend', 'swap'],
+        },
       };
 
-    expect(selectMetaMaskPayFiatFlags(state)).toEqual({ enabled: true });
+    expect(selectMetaMaskPayFiatFlags(state)).toEqual({
+      enabledTransactionTypes: ['simpleSend', 'swap'],
+      maxDelayMinutesForPaymentMethods:
+        PAY_FIAT_MAX_DELAY_MINUTES_FOR_PAYMENT_METHODS,
+    });
+  });
+
+  it('returns maxDelayMinutesForPaymentMethods from flag value', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_fiat: {
+          maxDelayMinutesForPaymentMethods: 30,
+        },
+      };
+
+    expect(selectMetaMaskPayFiatFlags(state)).toEqual({
+      enabledTransactionTypes: PAY_FIAT_ENABLED_TRANSACTION_TYPES,
+      maxDelayMinutesForPaymentMethods: 30,
+    });
+  });
+});
+
+describe('selectPayHardwareConfig', () => {
+  function stateWithHardwareFlags(flags: Record<string, unknown>) {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      { confirmations_pay_hardware: flags };
+    return state;
+  }
+
+  const baseFlags = {
+    default: { enabled: false },
+    overrides: {
+      [TransactionType.musdConversion]: { enabled: true },
+      [TransactionType.moneyAccountDeposit]: { enabled: true },
+    },
+  };
+
+  it('returns disabled default when flag is absent', () => {
+    expect(
+      selectPayHardwareConfig(mockedEmptyFlagsState as unknown as RootState),
+    ).toEqual({ enabled: PAY_HARDWARE_ENABLED_DEFAULT });
+  });
+
+  it('returns default config when no transaction type is provided', () => {
+    const state = stateWithHardwareFlags(baseFlags);
+
+    expect(selectPayHardwareConfig(state as unknown as RootState)).toEqual({
+      enabled: false,
+    });
+  });
+
+  it('returns default config when transaction type does not exist in overrides', () => {
+    const state = stateWithHardwareFlags(baseFlags);
+
+    expect(
+      selectPayHardwareConfig(
+        state as unknown as RootState,
+        TransactionType.perpsDeposit,
+      ).enabled,
+    ).toBe(false);
+  });
+
+  it('uses override value when transaction type matches', () => {
+    const state = stateWithHardwareFlags(baseFlags);
+
+    expect(
+      selectPayHardwareConfig(
+        state as unknown as RootState,
+        TransactionType.moneyAccountDeposit,
+      ).enabled,
+    ).toBe(true);
+  });
+
+  it('inherits enabled from default when override omits enabled', () => {
+    const state = stateWithHardwareFlags({
+      default: { enabled: true },
+      overrides: { [TransactionType.moneyAccountDeposit]: {} },
+    });
+
+    expect(
+      selectPayHardwareConfig(
+        state as unknown as RootState,
+        TransactionType.moneyAccountDeposit,
+      ).enabled,
+    ).toBe(true);
+  });
+
+  it('disables a single type while default is enabled', () => {
+    const state = stateWithHardwareFlags({
+      default: { enabled: true },
+      overrides: {
+        [TransactionType.moneyAccountDeposit]: { enabled: false },
+      },
+    });
+
+    expect(
+      selectPayHardwareConfig(
+        state as unknown as RootState,
+        TransactionType.moneyAccountDeposit,
+      ).enabled,
+    ).toBe(false);
+  });
+});
+
+describe('selectMetaMaskPayFlags extended flags', () => {
+  it('returns default enableDepositWalletWithdraw when flag is absent', () => {
+    expect(
+      selectMetaMaskPayFlags(mockedEmptyFlagsState).enableDepositWalletWithdraw,
+    ).toEqual(PAY_ENABLE_DEPOSIT_WALLET_WITHDRAW_DEFAULT);
+  });
+
+  it('returns enableDepositWalletWithdraw from flag value', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: { enableDepositWalletWithdraw: true },
+      };
+
+    expect(selectMetaMaskPayFlags(state).enableDepositWalletWithdraw).toEqual(
+      true,
+    );
+  });
+
+  it('returns default enableMoneyAccountTransactions when flag is absent', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+
+    expect(
+      selectMetaMaskPayFlags(state).enableMoneyAccountTransactions,
+    ).toEqual(PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT);
+  });
+
+  it('returns enableMoneyAccountTransactions from flag value', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: {
+          enableMoneyAccountTransactions: {
+            perpsDeposit: true,
+            perpsWithdraw: true,
+            predictDeposit: true,
+            predictWithdraw: true,
+          },
+        },
+      };
+
+    expect(
+      selectMetaMaskPayFlags(state).enableMoneyAccountTransactions,
+    ).toEqual({
+      perpsDeposit: true,
+      perpsWithdraw: true,
+      predictDeposit: true,
+      predictWithdraw: true,
+    });
+  });
+
+  describe('defaultPaySelectedSection', () => {
+    it('returns default (undefined) when remote flag is absent', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+
+      expect(selectMetaMaskPayFlags(state).defaultPaySelectedSection).toEqual(
+        PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT,
+      );
+    });
+
+    it('returns per-type object when remote flag is set', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+        {
+          confirmations_pay_extended: {
+            defaultPaySelectedSection: {
+              perpsWithdraw: 'money-account',
+              predictWithdraw: 'money-account',
+            },
+          },
+        };
+
+      expect(selectMetaMaskPayFlags(state).defaultPaySelectedSection).toEqual({
+        perpsWithdraw: 'money-account',
+        predictWithdraw: 'money-account',
+      });
+    });
+  });
+
+  describe('selectDepositLimits', () => {
+    it('returns default empty map when remote flag is absent', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+
+      expect(selectDepositLimits(state as unknown as RootState)).toEqual(
+        PAY_DEPOSIT_LIMITS_DEFAULT,
+      );
+    });
+
+    it('returns all deposit limits from flag value', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+        {
+          confirmations_pay_extended: {
+            depositLimit: {
+              moneyAccountDeposit: 100000,
+            },
+          },
+        };
+
+      expect(selectDepositLimits(state as unknown as RootState)).toEqual({
+        moneyAccountDeposit: 100000,
+      });
+    });
+
+    it('returns multiple deposit type limits', () => {
+      const state = cloneDeep(mockedEmptyFlagsState);
+      state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+        {
+          confirmations_pay_extended: {
+            depositLimit: {
+              moneyAccountDeposit: 100000,
+              perpsDeposit: 25000,
+            },
+          },
+        };
+
+      expect(selectDepositLimits(state as unknown as RootState)).toEqual({
+        moneyAccountDeposit: 100000,
+        perpsDeposit: 25000,
+      });
+    });
+  });
+});
+
+describe('selectRelayFixedSpread', () => {
+  let consoleWarnSpy: jest.SpyInstance;
+
+  const ETH_USDC = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+  const ETH_MUSD = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+  const samplePayload = {
+    chains: { eth: '0x1' },
+    tokens: { eth_usdc: ETH_USDC, musd: ETH_MUSD },
+    routes: [['eth', 'eth_usdc', 'eth', 'musd']],
+  };
+
+  const expectedRoute = {
+    sourceChain: '0x1',
+    sourceToken: ETH_USDC,
+    targetChain: '0x1',
+    targetToken: ETH_MUSD,
+  };
+
+  beforeEach(() => {
+    consoleWarnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    consoleWarnSpy.mockRestore();
+  });
+
+  it('returns parsed routes when remote object is valid', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_relay_fixed_spread: samplePayload,
+      };
+
+    expect(selectRelayFixedSpread(state).routes).toEqual([expectedRoute]);
+  });
+
+  it('parses remote value provided as a JSON string', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_relay_fixed_spread: JSON.stringify(samplePayload),
+      };
+
+    expect(selectRelayFixedSpread(state).routes).toEqual([expectedRoute]);
+  });
+
+  it('warns and returns empty when remote is structurally invalid', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_relay_fixed_spread: { routes: 'not-an-array' },
+      };
+
+    expect(selectRelayFixedSpread(state)).toEqual({ routes: [] });
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('produced invalid structure'),
+    );
+  });
+
+  it('returns empty routes when remote flag is absent', () => {
+    expect(selectRelayFixedSpread(mockedEmptyFlagsState)).toEqual({
+      routes: [],
+    });
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('selectPrefilledAmountConfig', () => {
+  it('returns default (enabled: false) when no flags are set', () => {
+    expect(
+      selectPrefilledAmountConfig(
+        mockedEmptyFlagsState as unknown as RootState,
+      ),
+    ).toEqual(PAY_PREFILLED_AMOUNT_DEFAULT.default);
+  });
+
+  it('returns override config when transaction type has an override', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: {
+          prefilledAmount: {
+            default: { enabled: false },
+            overrides: {
+              moneyAccountDeposit: { enabled: true },
+            },
+          },
+        },
+      };
+
+    expect(
+      selectPrefilledAmountConfig(
+        state as unknown as RootState,
+        'moneyAccountDeposit',
+      ),
+    ).toEqual({ enabled: true });
+  });
+
+  it('falls back to default when transaction type has no override', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: {
+          prefilledAmount: {
+            default: { enabled: true },
+            overrides: {},
+          },
+        },
+      };
+
+    expect(
+      selectPrefilledAmountConfig(state as unknown as RootState, 'unknownType'),
+    ).toEqual({ enabled: true });
+  });
+
+  it('returns default when no transaction type is provided', () => {
+    const state = cloneDeep(mockedEmptyFlagsState);
+    state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
+      {
+        confirmations_pay_extended: {
+          prefilledAmount: {
+            default: { enabled: true },
+            overrides: {
+              moneyAccountDeposit: { enabled: false },
+            },
+          },
+        },
+      };
+
+    expect(selectPrefilledAmountConfig(state as unknown as RootState)).toEqual({
+      enabled: true,
+    });
   });
 });

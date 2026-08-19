@@ -42,6 +42,8 @@ export interface HighlightedItem {
   position: HighlightedItemPosition;
   /** Either an IconName string or a remote icon URI. */
   icon: string;
+  /** Payment method type identifier used to render a PaymentMethodIcon. Takes precedence over `icon` when set. */
+  paymentType?: string;
   /** Primary label shown for the highlighted row. */
   name: string;
   /** Secondary label shown under the primary name. */
@@ -51,9 +53,9 @@ export interface HighlightedItem {
   /** Optional action buttons shown on the right side of the row. */
   actions?: HighlightedActionButton[];
   /** Right-side fiat value shown when no action buttons are rendered. */
-  fiat: string;
+  fiat?: string;
   /** Right-side fiat subtitle shown below the fiat value. */
-  fiat_description: string;
+  fiat_description?: string;
   /** Selected state used to apply pressed/selected background styling. */
   isSelected?: boolean;
   /** Loading state that shows a spinner and hides action buttons. */

@@ -1,13 +1,17 @@
-import React, { useCallback, useContext, useLayoutEffect } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { FlashList } from '@shopify/flash-list';
 
 import { useStyles } from '../../../hooks/useStyles';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import { selectInternalAccountListSpreadByScopesByGroupId } from '../../../../selectors/multichainAccounts/accounts';
-import { IconName } from '@metamask/design-system-react-native';
+import {
+  selectInternalAccountListSpreadByScopesByGroupId,
+  selectInternalAccountsByGroupId,
+} from '../../../../selectors/multichainAccounts/accounts';
+import { IconName, toast } from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
@@ -22,9 +26,12 @@ import styleSheet from './styles';
 import type { AddressListProps, AddressItem } from './types';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import getHeaderCompactStandardNavbarOptions from '../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
-import { ToastContext } from '../../../../component-library/components/Toast';
 import { strings } from '../../../../../locales/i18n';
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
+import {
+  getAddressListViewedAccountType,
+  trackAddressListViewed,
+} from '../../../../util/analytics/addressListViewedTracking';
 
 export const createAddressListNavigationDetails =
   createNavigationDetails<AddressListProps>(
@@ -37,18 +44,52 @@ export const createAddressListNavigationDetails =
  * @returns {JSX.Element} The rendered component.
  */
 export const AddressList = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
-  const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const { groupId, title, onLoad } = useParams<AddressListProps>();
+  const { groupId, title, source, onLoad } = useParams<AddressListProps>();
+
+  const hasCompletedLoadTraceRef = useRef(false);
+
+  const completeLoadTrace = useCallback(() => {
+    if (hasCompletedLoadTraceRef.current) {
+      return;
+    }
+
+    hasCompletedLoadTraceRef.current = true;
+    onLoad?.();
+  }, [onLoad]);
+
+  useFocusEffect(useCallback(() => completeLoadTrace, [completeLoadTrace]));
+
+  useEffect(() => completeLoadTrace, [completeLoadTrace]);
 
   const selectInternalAccountsSpreadByScopes = useSelector(
     selectInternalAccountListSpreadByScopesByGroupId,
   );
   const internalAccountsSpreadByScopes =
     selectInternalAccountsSpreadByScopes(groupId);
+
+  const selectInternalAccountsByGroup = useSelector(
+    selectInternalAccountsByGroupId,
+  );
+  const internalAccounts = selectInternalAccountsByGroup(groupId);
+
+  const hasTrackedViewRef = useRef(false);
+
+  useEffect(() => {
+    if (hasTrackedViewRef.current || !source) {
+      return;
+    }
+
+    hasTrackedViewRef.current = true;
+
+    trackAddressListViewed(trackEvent, createEventBuilder, {
+      source,
+      account_type: getAddressListViewedAccountType(internalAccounts),
+    });
+  }, [source, internalAccounts, trackEvent, createEventBuilder]);
 
   const renderAddressItem = useCallback(
     ({ item }: { item: AddressItem }) => {
@@ -70,9 +111,13 @@ export const AddressList = () => {
           networkName={item.networkName}
           address={item.account.address}
           copyParams={{
-            toastMessage: strings('multichain_accounts.address_list.copied'),
-            callback: copyAddressToClipboard,
-            toastRef,
+            callback: async () => {
+              await copyAddressToClipboard();
+              toast({
+                title: strings('notifications.address_copied_to_clipboard'),
+                hasNoTimeout: false,
+              });
+            },
           }}
           icons={[
             {
@@ -88,6 +133,8 @@ export const AddressList = () => {
                       networkName: item.networkName,
                       chainId: item.scope,
                       groupId,
+                      location: 'address-list',
+                      account: item.account,
                     },
                   },
                 );
@@ -98,7 +145,7 @@ export const AddressList = () => {
         />
       );
     },
-    [navigation, groupId, toastRef, trackEvent, createEventBuilder],
+    [navigation, groupId, trackEvent, createEventBuilder],
   );
 
   useLayoutEffect(() => {
@@ -121,7 +168,7 @@ export const AddressList = () => {
         data={internalAccountsSpreadByScopes}
         keyExtractor={(item) => item.scope}
         renderItem={renderAddressItem}
-        onLoad={onLoad}
+        onLoad={completeLoadTrace}
       />
     </View>
   );

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { Animated, Modal, View } from 'react-native';
+import { Animated, LayoutChangeEvent, Modal, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -8,24 +8,23 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-} from '@metamask/design-system-react-native';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import SensitiveText, {
+  FontWeight,
+  KeyValueRow,
+  KeyValueRowVariant,
+  SectionDivider,
+  SensitiveText,
   SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { usePerpsLiveAccount } from '../../hooks/stream';
-import {
-  formatPerpsFiat,
-  PRICE_RANGES_MINIMAL_VIEW,
-} from '../../utils/formatUtils';
+import { formatPerpsBalance } from '../../utils/formatUtils';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
 import { BigNumber } from 'bignumber.js';
 import {
@@ -35,13 +34,17 @@ import {
 import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 import { usePerpsTransactionState } from '../../hooks/usePerpsTransactionState';
 import { convertPerpsAmountToUSD } from '../../utils/amountConversion';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import PerpsEmptyBalance from '../PerpsEmptyBalance';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
 import { selectWithdrawalRequestsBySelectedAccount } from '../../../../../selectors/perps';
+
 interface PerpsMarketBalanceActionsProps {
   showActionButtons?: boolean;
+  hideBalanceSection?: boolean;
+  onTitleSectionLayout?: (event: LayoutChangeEvent) => void;
+  children?: React.ReactNode;
 }
 
 const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
@@ -49,7 +52,7 @@ const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
 
   return (
     <Box
-      twClassName="mx-4 mt-4 mb-4 px-4 py-6 rounded-xl"
+      twClassName="mx-4 mb-4 px-4 py-6 rounded-xl"
       style={tw.style('bg-background-section')}
       testID={`${PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}_skeleton`}
     >
@@ -66,6 +69,9 @@ const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
 
 const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   showActionButtons = true,
+  hideBalanceSection = false,
+  onTitleSectionLayout,
+  children,
 }) => {
   const tw = useTailwind();
   const { isDepositInProgress } = usePerpsDepositProgress();
@@ -87,7 +93,17 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   });
 
   const totalBalance = perpsAccount?.totalBalance || '0';
-  const isBalanceEmpty = BigNumber(totalBalance).isZero();
+  const spendableBalance = perpsAccount?.spendableBalance || '0';
+  // "Empty" gates on totalBalance — venue equity. Accounts with all collateral
+  // tied up in open positions have spendableBalance = 0 but totalBalance > 0;
+  // they are funded users who should see the normal balance + Withdraw/Add Funds
+  // surface, not the $0 empty state.
+  //
+  // During loading, totalBalance may carry a sentinel string
+  // (PERPS_CONSTANTS.FallbackDataDisplay = '--'). Treat non-finite parses
+  // as empty so skeleton / empty-state renders until real data lands.
+  const totalBn = BigNumber(totalBalance);
+  const isBalanceEmpty = !totalBn.isFinite() || totalBn.isZero();
 
   // Use hook for eligibility checks and action handlers
   // Determine button location based on whether balance is empty (empty state) or not (home)
@@ -124,18 +140,6 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   const isOnlyWithdrawalInProgress = useMemo(
     () => !isDepositInProgress && hasActiveWithdrawals,
     [isDepositInProgress, hasActiveWithdrawals],
-  );
-
-  const shouldShowDollarAmount = useMemo(
-    () =>
-      (isOnlyDepositInProgress && transactionAmountWei) ||
-      (isOnlyWithdrawalInProgress && withdrawalAmount),
-    [
-      isOnlyDepositInProgress,
-      isOnlyWithdrawalInProgress,
-      transactionAmountWei,
-      withdrawalAmount,
-    ],
   );
 
   // Use the reusable hooks for balance animation
@@ -182,103 +186,77 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
     [stopBalanceAnimation],
   );
 
-  const availableBalance = perpsAccount?.availableBalance || '0';
-
-  // Show skeleton while loading initial account data
-  if (isInitialLoading) {
+  // Show skeleton while loading initial account data (balance lives here unless hidden)
+  if (isInitialLoading && !hideBalanceSection) {
     return <PerpsMarketBalanceActionsSkeleton />;
   }
 
-  // Don't render if no balance data is available yet
-  if (!perpsAccount) {
+  // Allow transaction progress UI before account data arrives.
+  // When balance lives in TitleHub (hideBalanceSection), still render
+  // children (title + interruption banner) even if account is null.
+  if (
+    !perpsAccount &&
+    !isAnyTransactionInProgress &&
+    !(hideBalanceSection && children)
+  ) {
     return null;
   }
+
+  const transactionAmountDisplay =
+    isOnlyDepositInProgress && transactionAmountWei
+      ? convertPerpsAmountToUSD(transactionAmountWei)
+      : isOnlyWithdrawalInProgress && withdrawalAmount
+        ? convertPerpsAmountToUSD(withdrawalAmount)
+        : null;
 
   return (
     <>
       <Box
         testID={PerpsMarketBalanceActionsSelectorsIDs.CONTAINER}
-        twClassName={isBalanceEmpty ? 'mt-4 mb-4 rounded-xl' : 'mb-4'}
+        twClassName={isBalanceEmpty ? 'mb-4 rounded-xl' : undefined}
       >
-        <PerpsProgressBar
-          progressAmount={INITIAL_AMOUNT_UI_PROGRESS}
-          height={4}
-          onTransactionAmountChange={setTransactionAmountWei}
-        />
-        {/* Single Progress Section */}
-        {isAnyTransactionInProgress && (
-          <Box twClassName="p-4">
-            <Box twClassName="w-full flex-row justify-between">
-              <Text
-                variant={TextVariant.BodySMMedium}
-                color={TextColor.Default}
-              >
-                {statusText}
-              </Text>
-              {/* Only show dollar value when there's a single transaction in progress */}
-              {shouldShowDollarAmount && (
-                <SensitiveText
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Default}
-                  isHidden={privacyMode}
-                  length={SensitiveTextLength.Short}
-                >
-                  {isOnlyDepositInProgress && transactionAmountWei
-                    ? convertPerpsAmountToUSD(transactionAmountWei)
-                    : isOnlyWithdrawalInProgress && withdrawalAmount
-                      ? convertPerpsAmountToUSD(withdrawalAmount)
-                      : null}
-                </SensitiveText>
-              )}
-            </Box>
-          </Box>
-        )}
-        {isAnyTransactionInProgress && (
-          <Box twClassName="w-full border-b border-muted"></Box>
-        )}
-        {/* Balance Section */}
-        {isBalanceEmpty ? (
-          <PerpsEmptyBalance onAddFunds={handleAddFunds} />
-        ) : (
-          <Box twClassName="px-4 pt-4 pb-4">
-            <Animated.View style={[getBalanceAnimatedStyle]}>
-              <SensitiveText
-                variant={TextVariant.DisplayMD}
-                color={TextColor.Default}
-                testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Medium}
-              >
-                {formatPerpsFiat(totalBalance)}
-              </SensitiveText>
-            </Animated.View>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              style={tw.style('mt-1')}
-              testID={
-                PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
-              }
-            >
-              <SensitiveText
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Short}
-              >
-                {formatPerpsFiat(availableBalance, {
-                  ranges: PRICE_RANGES_MINIMAL_VIEW,
-                  stripTrailingZeros: false,
-                })}
-              </SensitiveText>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {' '}
-                {strings('perps.available')}
-              </Text>
-            </Box>
-            {/* Action Buttons */}
-            {showActionButtons && (
+        <Box
+          onLayout={onTitleSectionLayout}
+          testID={PerpsMarketBalanceActionsSelectorsIDs.TITLE_SECTION}
+        >
+          <PerpsProgressBar
+            progressAmount={INITIAL_AMOUNT_UI_PROGRESS}
+            height={4}
+            onTransactionAmountChange={setTransactionAmountWei}
+          />
+          {isAnyTransactionInProgress && (
+            <>
+              <KeyValueRow
+                variant={KeyValueRowVariant.Summary}
+                keyLabel={statusText}
+                twClassName="mt-3 h-6"
+                value={
+                  transactionAmountDisplay ? (
+                    <SensitiveText
+                      variant={TextVariant.BodySm}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.TextDefault}
+                      isHidden={privacyMode}
+                      length={SensitiveTextLength.Short}
+                    >
+                      {transactionAmountDisplay}
+                    </SensitiveText>
+                  ) : undefined
+                }
+              />
+              <SectionDivider marginVertical={3} />
+            </>
+          )}
+          {children}
+        </Box>
+        {/* Balance Section — defer until account data lands when balance is in TitleHub */}
+        {!isInitialLoading &&
+          (isBalanceEmpty ? (
+            <PerpsEmptyBalance onAddFunds={handleAddFunds} />
+          ) : hideBalanceSection ? (
+            showActionButtons && (
               <Box
-                twClassName="gap-3 mt-4"
+                twClassName="gap-3 px-4 pt-1"
                 flexDirection={BoxFlexDirection.Row}
               >
                 <Box twClassName="flex-1">
@@ -308,9 +286,76 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                   </Button>
                 </Box>
               </Box>
-            )}
-          </Box>
-        )}
+            )
+          ) : (
+            <Box twClassName="px-4 pt-2 pb-4">
+              <Animated.View style={[getBalanceAnimatedStyle]}>
+                <SensitiveText
+                  variant={TextVariant.DisplayLg}
+                  color={TextColor.TextDefault}
+                  testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Medium}
+                >
+                  {formatPerpsBalance(totalBalance)}
+                </SensitiveText>
+              </Animated.View>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                style={tw.style('mt-1')}
+                testID={
+                  PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
+                }
+              >
+                <SensitiveText
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Short}
+                >
+                  {formatPerpsBalance(spendableBalance)}
+                </SensitiveText>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {' '}
+                  {strings('perps.available')}
+                </Text>
+              </Box>
+              {/* Action Buttons */}
+              {showActionButtons && (
+                <Box
+                  twClassName="gap-3 mt-4"
+                  flexDirection={BoxFlexDirection.Row}
+                  accessible={false}
+                >
+                  <Button
+                    variant={ButtonVariant.Secondary}
+                    size={ButtonSize.Lg}
+                    onPress={handleWithdraw}
+                    twClassName="flex-1"
+                    testID={
+                      PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON
+                    }
+                  >
+                    {strings('perps.withdraw')}
+                  </Button>
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSize.Lg}
+                    onPress={handleAddFunds}
+                    twClassName="flex-1"
+                    testID={
+                      PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON
+                    }
+                  >
+                    {strings('perps.add_funds')}
+                  </Button>
+                </Box>
+              )}
+            </Box>
+          ))}
       </Box>
       {/* Eligibility Modal */}
       {isEligibilityModalVisible && (

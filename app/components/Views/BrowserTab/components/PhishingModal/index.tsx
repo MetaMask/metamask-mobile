@@ -19,7 +19,7 @@ interface PhishingModalProps {
   showPhishingModal: boolean;
   setShowPhishingModal: (show: boolean) => void;
   setBlockedUrl: (url: string | undefined) => void;
-  urlBarRef: React.RefObject<BrowserUrlBarRef>;
+  urlBarRef: React.RefObject<BrowserUrlBarRef | null>;
   addToWhitelist: (hostname: string) => void;
   activeUrl: string;
   goToUrl: (url: string) => void;
@@ -109,6 +109,9 @@ const PhishingModal = ({
    */
   const goBackToSafety = () => {
     urlBarRef.current?.setNativeProps({ text: HOMEPAGE_URL });
+    // Leave edit mode immediately so the unfocused URL display text is
+    // exposed to Appium before the delayed homepage navigation runs.
+    urlBarRef.current?.dismissEditing();
     setTimeout(() => {
       goToUrl(HOMEPAGE_URL);
       setShowPhishingModal(false);

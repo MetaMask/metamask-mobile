@@ -26,6 +26,7 @@ jest.mock('../../../../../locales/i18n', () => ({
     const translations: Record<string, string> = {
       'perps.order.validation.existing_position': `Existing position for ${values?.asset}`,
       'perps.order.validation.insufficient_balance': `Insufficient balance: need ${values?.required}, have ${values?.available}`,
+      'perps.order.validation.minimum_amount': `Minimum order size is $${values?.amount}`,
       'perps.order.validation.high_leverage_warning': 'High leverage warning',
       'perps.order.validation.limit_price_required': 'Limit price required',
       'perps.order.validation.error': 'Validation error',
@@ -70,11 +71,40 @@ describe('usePerpsOrderValidation', () => {
     orderForm: defaultOrderForm,
     positionSize: '0.002',
     assetPrice: 50000,
-    availableBalance: 1000,
+    spendableBalance: 1000,
     marginRequired: '10.00',
   };
 
   describe('protocol validation', () => {
+    it('clears existing errors when position size changes to zero', async () => {
+      // Arrange
+      mockValidateOrder.mockResolvedValue({
+        isValid: false,
+        error: 'Minimum order size is $10.00',
+      });
+      const { result, rerender } = renderHook(
+        (params) => usePerpsOrderValidation(params),
+        { initialProps: defaultParams },
+      );
+      await act(async () => {
+        await Promise.resolve();
+      });
+      await fastWaitFor(() => {
+        expect(result.current.errors).toContain('Minimum order size is $10.00');
+      });
+
+      // Act
+      rerender({
+        ...defaultParams,
+        positionSize: '0',
+      });
+
+      // Assert
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+      expect(result.current.errors).toEqual([]);
+      expect(result.current.isValid).toBe(false);
+    });
+
     it('should pass when protocol validation passes', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
@@ -160,7 +190,7 @@ describe('usePerpsOrderValidation', () => {
       const { result } = renderHook(() =>
         usePerpsOrderValidation({
           ...defaultParams,
-          availableBalance: 5,
+          spendableBalance: 5,
           marginRequired: '10.00',
         }),
       );
@@ -316,6 +346,113 @@ describe('usePerpsOrderValidation', () => {
     });
   });
 
+  describe('immediate first validation and debounced subsequent validation', () => {
+    it('runs first validation immediately without debounce', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation(defaultParams),
+      );
+
+      // First validation runs immediately (no timer advance needed)
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+      expect(result.current.isValid).toBe(true);
+    });
+
+    it('debounces subsequent validations after the first immediate one', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result, rerender } = renderHook(
+        (props) => usePerpsOrderValidation(props),
+        { initialProps: defaultParams },
+      );
+
+      // First validation runs immediately
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+
+      // Change positionSize and assetPrice to trigger the effect's dependency array
+      rerender({
+        ...defaultParams,
+        positionSize: '0.004',
+        assetPrice: 51000,
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // Validation should not fire yet (debouncing)
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+
+      // Advance timers to fire the debounced callback
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      // Now the debounced validation should have fired
+      expect(mockValidateOrder).toHaveBeenCalledTimes(2);
+    });
+
+    it('cleans up debounce timer on unmount', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result, rerender, unmount } = renderHook(
+        (props) => usePerpsOrderValidation(props),
+        { initialProps: defaultParams },
+      );
+
+      // First immediate validation
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      // Change deps to trigger debounced path
+      rerender({
+        ...defaultParams,
+        positionSize: '0.005',
+        assetPrice: 52000,
+      });
+
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // Unmount before debounce fires - should clean up without error
+      unmount();
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      // Validation should only have been called once (the initial immediate call)
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('multiple errors', () => {
     it('should combine multiple validation errors', async () => {
       mockValidateOrder.mockResolvedValue({
@@ -326,7 +463,7 @@ describe('usePerpsOrderValidation', () => {
       const { result } = renderHook(() =>
         usePerpsOrderValidation({
           ...defaultParams,
-          availableBalance: 5,
+          spendableBalance: 5,
           marginRequired: '10.00',
         }),
       );
@@ -346,6 +483,64 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.errors).toContain(
         'Insufficient balance: need 10.00, have 5',
       );
+    });
+  });
+
+  describe('reduce-only full close', () => {
+    it('passes reduceOnly and isFullClose through to protocol validation', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          orderForm: { ...defaultOrderForm, amount: '5' },
+          originalUsdAmount: '5',
+          reduceOnly: true,
+          isFullClose: true,
+          marginRequired: '0',
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      await fastWaitFor(() => {
+        expect(mockValidateOrder).toHaveBeenCalled();
+      });
+
+      expect(mockValidateOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          reduceOnly: true,
+          isFullClose: true,
+        }),
+      );
+    });
+
+    it('skips the UI minimum-amount error for a full reduce-only close', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          orderForm: { ...defaultOrderForm, amount: '5' },
+          originalUsdAmount: '5',
+          reduceOnly: true,
+          isFullClose: true,
+          marginRequired: '0',
+        }),
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.isValid).toBe(true);
+      expect(result.current.errors).not.toContain('Minimum order size is $10');
     });
   });
 });

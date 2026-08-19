@@ -7,9 +7,9 @@ import {
   getAppStateForConfirmation,
   upgradeAccountConfirmation,
 } from '../../../../util/test/confirm-data-helpers';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as AlertContextFunctions from '../../../Views/confirmations/context/alert-system-context/alert-system-context';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as BatchApprovalUtils from '../../../Views/confirmations/hooks/7702/useBatchApproveBalanceChanges';
 import { AlertKeys } from '../../../Views/confirmations/constants/alerts';
 import { RowAlertKey } from '../../../Views/confirmations/components/UI/info-row/alert-row/constants';

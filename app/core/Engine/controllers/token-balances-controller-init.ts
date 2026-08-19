@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   TokenBalancesController,
   type TokenBalancesControllerMessenger,
@@ -7,6 +7,8 @@ import { TokenBalancesControllerInitMessenger } from '../messengers/token-balanc
 import { selectAssetsAccountApiBalancesEnabled } from '../../../selectors/featureFlagController/assetsAccountApiBalances';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectCompletedOnboarding } from '../../../selectors/onboarding';
+import { selectIsControllerDeprecated } from '../../../selectors/featureFlagController/assetsUnifyState';
+import { store } from '../../../store';
 
 /**
  * Initialize the token balances controller.
@@ -15,7 +17,7 @@ import { selectCompletedOnboarding } from '../../../selectors/onboarding';
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const tokenBalancesControllerInit: ControllerInitFunction<
+export const tokenBalancesControllerInit: MessengerClientInitFunction<
   TokenBalancesController,
   TokenBalancesControllerMessenger,
   TokenBalancesControllerInitMessenger
@@ -34,6 +36,8 @@ export const tokenBalancesControllerInit: ControllerInitFunction<
       selectAssetsAccountApiBalancesEnabled(getState()) as `0x${string}`[],
     platform: 'mobile',
     isOnboarded: () => selectCompletedOnboarding(getState()),
+    isDeprecated: () =>
+      selectIsControllerDeprecated('TokenBalancesController')(store.getState()),
   });
 
   return {

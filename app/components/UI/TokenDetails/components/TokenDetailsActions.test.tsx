@@ -1,10 +1,12 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import {
   TokenDetailsActions,
   TokenDetailsActionsProps,
 } from './TokenDetailsActions';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
+import { TokenDetailsAction } from '../constants/constants';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
@@ -13,19 +15,21 @@ const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
+  const actualReact = jest.requireActual('react');
   return {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
       addListener: jest.fn(() => jest.fn()),
     }),
+    // Defer via useEffect to match real useFocusEffect timing.
     useFocusEffect: jest.fn((callback) => {
-      callback();
+      actualReact.useEffect(callback, []);
     }),
   };
 });
 
-jest.mock('../../Ramp/Deposit/hooks/useDepositEnabled', () => ({
+jest.mock('../../Ramp/hooks/useDepositEnabled', () => ({
   __esModule: true,
   default: () => ({ isDepositEnabled: true }),
 }));
@@ -90,7 +94,7 @@ describe('TokenDetailsActions', () => {
       );
 
       const { Skeleton } = jest.requireActual(
-        '../../../../component-library/components/Skeleton',
+        '../../../../component-library/components-temp/Skeleton',
       );
       const skeletons = UNSAFE_queryAllByType(Skeleton);
       expect(skeletons).toHaveLength(4);
@@ -270,6 +274,55 @@ describe('TokenDetailsActions', () => {
           queryByTestId,
         });
       });
+    });
+  });
+
+  describe('onActionTapped tracking', () => {
+    it('fires onActionTapped with send when Send is pressed', () => {
+      const mockOnActionTapped = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <TokenDetailsActions
+          {...defaultProps}
+          hasBalance
+          onActionTapped={mockOnActionTapped}
+        />,
+        { state: mockInitialState },
+      );
+
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON));
+      expect(mockOnActionTapped).toHaveBeenCalledWith(TokenDetailsAction.Send);
+    });
+
+    it('fires onActionTapped with receive when Receive is pressed', () => {
+      const mockOnActionTapped = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <TokenDetailsActions
+          {...defaultProps}
+          onActionTapped={mockOnActionTapped}
+        />,
+        { state: mockInitialState },
+      );
+
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON));
+      expect(mockOnActionTapped).toHaveBeenCalledWith(
+        TokenDetailsAction.Receive,
+      );
+    });
+
+    it('fires onActionTapped with more_opened when More is pressed', () => {
+      const mockOnActionTapped = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <TokenDetailsActions
+          {...defaultProps}
+          onActionTapped={mockOnActionTapped}
+        />,
+        { state: mockInitialState },
+      );
+
+      fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.MORE_BUTTON));
+      expect(mockOnActionTapped).toHaveBeenCalledWith(
+        TokenDetailsAction.MoreOpened,
+      );
     });
   });
 });

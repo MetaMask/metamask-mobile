@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 import { Platform, StyleSheet, TextStyle } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 import { getFontFamily } from '../../../component-library/components/Texts/Text';

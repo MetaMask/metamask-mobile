@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   setSourceToken,
   setDestToken,
@@ -22,6 +23,10 @@ import { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { PopularList } from '../../../../util/networks/customNetworks';
+import {
+  clearSuppressedNetworkAddedToast,
+  suppressNextNetworkAddedToast,
+} from '../../../../util/networks/networkToastSuppression';
 
 /**
  * Hook to manage token selection logic for Bridge token selector
@@ -30,7 +35,7 @@ import { PopularList } from '../../../../util/networks/customNetworks';
  */
 export const useTokenSelection = (type: TokenSelectorType) => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const { isStockToken, isTokenTradingOpen } = useRWAToken();
@@ -69,6 +74,7 @@ export const useTokenSelection = (type: TokenSelectorType) => {
           try {
             const hexChainId = toHex(popularNetwork.chainId) as Hex;
             const { blockExplorerUrl } = popularNetwork.rpcPrefs;
+            suppressNextNetworkAddedToast(popularNetwork.chainId);
             await Engine.context.NetworkController.addNetwork({
               chainId: hexChainId,
               blockExplorerUrls: blockExplorerUrl ? [blockExplorerUrl] : [],
@@ -86,6 +92,7 @@ export const useTokenSelection = (type: TokenSelectorType) => {
               ],
             });
           } catch {
+            clearSuppressedNetworkAddedToast(popularNetwork.chainId);
             if (isSourcePicker) {
               // Source requires a configured network to sign transactions.
               // Abort selection if the network couldn't be added.

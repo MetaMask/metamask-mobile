@@ -1,12 +1,15 @@
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import {
   getTrendingTokens,
-  SortTrendingBy,
+  TrendingTokensQueryParams,
 } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
-import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
+import { useTrendingChainIds } from '../useTrendingChainIds/useTrendingChainIds';
 import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { filterLowQualityTokens } from '../../utils/filterTrendingTokens';
 
 /**
  * Baseline thresholds for multi-chain requests
@@ -64,6 +67,10 @@ export const TRENDING_NETWORK_THRESHOLDS: Record<
     minLiquidity: 100000,
     minVolume24h: 300000,
   },
+  [NetworkToCaipChainId.MONAD]: {
+    minLiquidity: 100000, // Minimum filter
+    minVolume24h: 25000, // Minimum filter
+  },
 
   // Tier 3: Growing networks
   [NetworkToCaipChainId.SEI]: {
@@ -80,8 +87,17 @@ export const TRENDING_NETWORK_THRESHOLDS: Record<
     minLiquidity: 100000, // Minimum filter
     minVolume24h: 25000, // Minimum filter
   },
+  [NetworkToCaipChainId.ROBINHOOD]: {
+    minLiquidity: 100000, // Minimum filter
+    minVolume24h: 25000, // Minimum filter
+  },
 
   'tron:728126428': {
+    minLiquidity: 100000, // Minimum filter
+    minVolume24h: 25000, // Minimum filter
+  },
+
+  [NetworkToCaipChainId.STELLAR]: {
     minLiquidity: 100000, // Minimum filter
     minVolume24h: 25000, // Minimum filter
   },
@@ -140,46 +156,53 @@ interface FetchOptions {
  * Hook for handling trending tokens request
  * @returns {Object} An object containing the trending tokens results, loading state, error, and a function to trigger fetch
  */
-export const useTrendingRequest = (options: {
-  chainIds?: CaipChainId[];
-  sortBy?: SortTrendingBy;
-  minLiquidity?: number;
-  minVolume24hUsd?: number;
-  maxVolume24hUsd?: number;
-  minMarketCap?: number;
-  maxMarketCap?: number;
-}) => {
+export const useTrendingRequest = (
+  options: {
+    chainIds?: CaipChainId[];
+    /**
+     * When true, removes tokens that lack a meaningful symbol/name or are
+     * flagged as risky (Warning/Spam/Malicious) by the Token API security scan.
+     * Defaults to false. Set to true on surfaces that should hide low-quality tokens.
+     */
+    filterLowQuality?: boolean;
+  } & TrendingTokensQueryParams,
+) => {
   const {
     chainIds: providedChainIds = [],
-    sortBy = 'h24_trending',
+    sort = 'h24_trending',
     minLiquidity: providedMinLiquidity,
     minVolume24hUsd: providedMinVolume24hUsd,
     maxVolume24hUsd,
     minMarketCap = 0,
     maxMarketCap,
+    filterLowQuality = false,
   } = options;
 
+  // Get user's selected currency from Redux store (default to 'usd' if not set)
+  const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
+
   // Use provided chainIds or default to trending networks
-  const chainIds = useMemo((): CaipChainId[] => {
-    if (providedChainIds.length > 0) {
-      return providedChainIds;
-    }
-    return TRENDING_NETWORKS_LIST.map((network) => network.caipChainId);
-  }, [providedChainIds]);
+  const chainIds = useTrendingChainIds(providedChainIds);
 
   // Calculate thresholds based on selected chains
-  const minLiquidity = useMemo(
-    () => providedMinLiquidity ?? getMinLiquidityForChains(chainIds),
+  const minLiquidity: number = useMemo(
+    () =>
+      (providedMinLiquidity as number | undefined) ??
+      getMinLiquidityForChains(chainIds),
     [providedMinLiquidity, chainIds],
   );
 
-  const minVolume24hUsd = useMemo(
-    () => providedMinVolume24hUsd ?? getMinVolume24hForChains(chainIds),
+  const minVolume24hUsd: number = useMemo(
+    () =>
+      (providedMinVolume24hUsd as number | undefined) ??
+      getMinVolume24hForChains(chainIds),
     [providedMinVolume24hUsd, chainIds],
   );
 
   // Track the current request ID to prevent stale results from overwriting current ones
   const requestIdRef = useRef(0);
+
+  const initialLoadCompleteRef = useRef(false);
 
   // Stabilize the chainIds array reference to prevent unnecessary re-fetching
   const stableChainIds = useStableArray(chainIds);
@@ -215,13 +238,15 @@ export const useTrendingRequest = (options: {
       try {
         const resultsToStore = await getTrendingTokens({
           chainIds: stableChainIds,
-          sortBy,
+          sort,
           minLiquidity,
           minVolume24hUsd,
           maxVolume24hUsd,
           minMarketCap,
           maxMarketCap,
           excludeLabels: ['stable_coin', 'blue_chip'],
+          includeTokenSecurityData: true,
+          vsCurrency: currentCurrency.toLowerCase(),
         });
         // Only update state if this is still the current request
         if (currentRequestId === requestIdRef.current) {
@@ -243,12 +268,13 @@ export const useTrendingRequest = (options: {
     },
     [
       stableChainIds,
-      sortBy,
+      sort,
       minLiquidity,
       minVolume24hUsd,
       maxVolume24hUsd,
       minMarketCap,
       maxMarketCap,
+      currentCurrency,
     ],
   );
 
@@ -258,7 +284,6 @@ export const useTrendingRequest = (options: {
   }, [fetchTrendingTokens]);
 
   // Track if initial load has completed successfully
-  const initialLoadCompleteRef = useRef(false);
   useEffect(() => {
     if (!isLoading && !initialLoadCompleteRef.current) {
       if (results.length > 0 || !error) {
@@ -287,8 +312,13 @@ export const useTrendingRequest = (options: {
     };
   }, [isLoading, results.length, error, fetchTrendingTokens]);
 
+  const filteredResults = useMemo(
+    () => (filterLowQuality ? filterLowQualityTokens(results) : results),
+    [filterLowQuality, results],
+  );
+
   return {
-    results,
+    results: filteredResults,
     isLoading,
     error,
     fetch: fetchTrendingTokens,

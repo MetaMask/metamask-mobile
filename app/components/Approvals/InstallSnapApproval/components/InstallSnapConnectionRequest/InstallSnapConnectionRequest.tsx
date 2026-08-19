@@ -1,13 +1,10 @@
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { InstallSnapFlowProps } from '../../InstallSnapApproval.types';
 import styleSheet from '../../InstallSnapApproval.styles';
 import { strings } from '../../../../../../locales/i18n';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import TagUrl from '../../../../../component-library/components/Tags/TagUrl';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../../../util/browser';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
@@ -27,6 +24,7 @@ import {
 } from './InstallSnapConnectionRequest.constants';
 import { useFavicon } from '../../../../hooks/useFavicon';
 import { SnapAvatar } from '../../../../Snaps/SnapAvatar/SnapAvatar';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const InstallSnapConnectionRequest = ({
   approvalRequest,
@@ -87,7 +85,7 @@ const InstallSnapConnectionRequest = ({
           style={styles.snapAvatar}
         />
         <SheetHeader title={strings('install_snap.title')} />
-        <Text style={styles.description} variant={TextVariant.BodyMD}>
+        <Text style={styles.description} variant={TextVariant.BodyMd}>
           {strings('install_snap.description', {
             origin,
             snap: snapName,

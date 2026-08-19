@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Linking, InteractionManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import useScreenshotDeterrent from '../../hooks/useScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 
 const ScreenshotDeterrentWithoutNavigation = ({
   enabled,
@@ -36,9 +37,9 @@ const ScreenshotDeterrentWithNavigation = ({
   enabled: boolean;
   isSRP: boolean;
 }) => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [alertPresent, setAlertPresent] = useState<boolean>(false);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const openSRPGuide = useCallback(() => {
     setAlertPresent(false);

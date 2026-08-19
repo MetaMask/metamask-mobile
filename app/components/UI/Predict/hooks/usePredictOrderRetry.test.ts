@@ -58,6 +58,8 @@ function createParamsObj(overrides?: Record<string, unknown>) {
     } as PlaceOrderParams['analyticsProperties'],
     isOrderNotFilled: false,
     resetOrderNotFilled: jest.fn(),
+    isSheetMode: false as boolean | undefined,
+    attempt: undefined as PlaceOrderParams['attempt'],
     ...overrides,
   };
 }
@@ -131,6 +133,77 @@ describe('usePredictOrderRetry', () => {
       );
       expect(promptedCalls).toHaveLength(1);
     });
+
+    it('does not track retry status for a Predict buy', () => {
+      const params = createDefaultParams({
+        isOrderNotFilled: false,
+        analyticsProperties: {
+          marketId: 'market-123',
+          transactionType: 'mm_predict_buy',
+        },
+      });
+      const { rerender } = renderHook(() => usePredictOrderRetry(params));
+
+      params.isOrderNotFilled = true;
+      rerender();
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('opens the retry sheet ref when isOrderNotFilled becomes true and isSheetMode is false', () => {
+      const params = createDefaultParams({ isOrderNotFilled: false });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+      const onOpen = jest.fn();
+      // simulate ref attached by the rendered sheet
+      (
+        result.current.retrySheetRef as unknown as {
+          current: { onOpenBottomSheet: jest.Mock };
+        }
+      ).current = { onOpenBottomSheet: onOpen };
+
+      params.isOrderNotFilled = true;
+      rerender();
+
+      expect(onOpen).toHaveBeenCalledTimes(1);
+    });
+
+    it('skips opening the retry sheet ref when isSheetMode is true', () => {
+      const params = createDefaultParams({
+        isOrderNotFilled: false,
+        isSheetMode: true,
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+      const onOpen = jest.fn();
+      (
+        result.current.retrySheetRef as unknown as {
+          current: { onOpenBottomSheet: jest.Mock };
+        }
+      ).current = { onOpenBottomSheet: onOpen };
+
+      params.isOrderNotFilled = true;
+      rerender();
+
+      expect(onOpen).not.toHaveBeenCalled();
+    });
+
+    it('still tracks RETRY_PROMPTED in sheet mode', () => {
+      const params = createDefaultParams({
+        isOrderNotFilled: false,
+        isSheetMode: true,
+      });
+      const { rerender } = renderHook(() => usePredictOrderRetry(params));
+
+      params.isOrderNotFilled = true;
+      rerender();
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'retry_prompted' }),
+      );
+    });
   });
 
   describe('handleRetryWithBestPrice', () => {
@@ -149,6 +222,24 @@ describe('usePredictOrderRetry', () => {
         expect.objectContaining({
           preview: expect.objectContaining({ slippage: 0.99 }),
         }),
+      );
+    });
+
+    it('passes the same attempt to a retry', async () => {
+      const attempt = {
+        attemptId: 'attempt-1',
+        amountUsd: 8,
+        paymentMethod: 'predict_balance' as const,
+      };
+      const params = createDefaultParams({ attempt });
+      const { result } = renderHook(() => usePredictOrderRetry(params));
+
+      await act(async () => {
+        await result.current.handleRetryWithBestPrice();
+      });
+
+      expect(params.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ attempt }),
       );
     });
 
@@ -270,6 +361,50 @@ describe('usePredictOrderRetry', () => {
         await result.current.handleRetryWithBestPrice();
       });
 
+      expect(result.current.retrySheetVariant).toBe('failed');
+    });
+
+    it('opens the retry sheet on retry failure when isSheetMode is false', async () => {
+      const mockPlaceOrder = jest
+        .fn()
+        .mockRejectedValue(new Error('unexpected error'));
+      const params = createDefaultParams({ placeOrder: mockPlaceOrder });
+      const { result } = renderHook(() => usePredictOrderRetry(params));
+      const onOpen = jest.fn();
+      (
+        result.current.retrySheetRef as unknown as {
+          current: { onOpenBottomSheet: jest.Mock };
+        }
+      ).current = { onOpenBottomSheet: onOpen };
+
+      await act(async () => {
+        await result.current.handleRetryWithBestPrice();
+      });
+
+      expect(onOpen).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not open the retry sheet on retry failure when isSheetMode is true', async () => {
+      const mockPlaceOrder = jest
+        .fn()
+        .mockRejectedValue(new Error('unexpected error'));
+      const params = createDefaultParams({
+        placeOrder: mockPlaceOrder,
+        isSheetMode: true,
+      });
+      const { result } = renderHook(() => usePredictOrderRetry(params));
+      const onOpen = jest.fn();
+      (
+        result.current.retrySheetRef as unknown as {
+          current: { onOpenBottomSheet: jest.Mock };
+        }
+      ).current = { onOpenBottomSheet: onOpen };
+
+      await act(async () => {
+        await result.current.handleRetryWithBestPrice();
+      });
+
+      expect(onOpen).not.toHaveBeenCalled();
       expect(result.current.retrySheetVariant).toBe('failed');
     });
 

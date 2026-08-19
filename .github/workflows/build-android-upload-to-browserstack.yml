@@ -1,6 +1,17 @@
-# This workflow creates two non E2E Android Builds and uploads to BrowserStack
-# Build 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet) using build_android_main_rc
-# Build 2: Without these environment variables (fresh wallet) using build_android_main_rc
+# This workflow creates two Android Builds and uploads to BrowserStack using GitHub Actions.
+# Build 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet) — e2e-bs-with-srp
+# Build 2: With E2E_MOCK_OAUTH (seedless onboarding) — e2e-bs-without-srp
+#
+# Fingerprint reuse (same procedure as build-android-e2e.yml):
+#   1. Look up prior android-apk-main-e2e-bs-* (or variant) artifacts by @expo/fingerprint.
+#   2. Download + validate both APKs before committing to reuse (continue-on-error).
+#      On download/validation failure → found=false and fall back to fresh dual Gradle builds.
+#      On success → stage as fingerprint-reuse-android-apk-* (collision-safe), set found=true,
+#      then best-effort publish android-apk-* for future lookup (only after reuse is committed,
+#      so a partial publish cannot break Gradle fallback).
+#   3. On validated hit + main_branch_only (test-only) → re-upload APKs as-is (app JS unchanged).
+#   4. On validated hit + app changes → skip Gradle, @expo/repack-app both profiles with
+#      current JS, then upload (fingerprint ignores JS-only changes).
 
 name: Build Android Dual Versions and Upload to BrowserStack
 
@@ -18,31 +29,59 @@ on:
       branch_name:
         required: false
         type: string
-        description: 'Branch name to use for builds (defaults to github.ref_name)'
+        description: 'Branch label used for BrowserStack build names'
+      source_ref:
+        required: false
+        type: string
+        description: 'Exact branch, tag, or commit to use for native app builds'
       build_variant:
         required: false
         type: string
-        description: 'Build variant for Bitrise (rc = release, exp = experimental)'
-        default: 'rc'
+        description: 'Build variant (e2e = e2e environment, exp = experimental)'
+        default: 'exp'
+      source_fingerprint:
+        required: false
+        type: string
+        description: >-
+          @expo/fingerprint hash from native-build-fingerprint. When set, try to
+          reuse prior BrowserStack performance APKs (repack JS unless test-only).
+          This is the reuse path for branches with app changes.
+        default: ''
+      main_branch_only:
+        required: false
+        type: boolean
+        description: >-
+          When true (test-only PRs), search mainly on main and skip JS repack
+          (app JS unchanged). When false, fingerprint hit still reuses native
+          APKs but repacks the JS bundle like E2E.
+        default: false
+      reuse_latest_main_builds:
+        required: false
+        type: boolean
+        description: >-
+          When true, use the newest matching APK artifacts from a main-branch
+          run without requiring a fingerprint, then upload them to BrowserStack
+          as-is. This mode is intended for test-only changes.
+        default: false
     outputs:
       with-srp-browserstack-url:
         description: 'BrowserStack URL for with-SRP version'
-        value: ${{ jobs.download-and-upload-to-browserstack.outputs.with-srp-browserstack-url }}
+        value: ${{ jobs.upload-to-browserstack.outputs.with-srp-browserstack-url }}
       without-srp-browserstack-url:
         description: 'BrowserStack URL for without-SRP version'
-        value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-browserstack-url }}
+        value: ${{ jobs.upload-to-browserstack.outputs.without-srp-browserstack-url }}
       with-srp-app-id:
         description: 'BrowserStack App ID for with-SRP version'
-        value: ${{ jobs.download-and-upload-to-browserstack.outputs.with-srp-app-id }}
+        value: ${{ jobs.upload-to-browserstack.outputs.with-srp-app-id }}
       without-srp-app-id:
         description: 'BrowserStack App ID for without-SRP version'
-        value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-app-id }}
+        value: ${{ jobs.upload-to-browserstack.outputs.without-srp-app-id }}
       with-srp-version:
         description: 'App version for with-SRP build'
-        value: ${{ jobs.download-and-upload-to-browserstack.outputs.with-srp-version }}
+        value: ${{ jobs.upload-to-browserstack.outputs.with-srp-version }}
       without-srp-version:
         description: 'App version for without-SRP build'
-        value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-version }}
+        value: ${{ jobs.upload-to-browserstack.outputs.without-srp-version }}
   workflow_dispatch:
     inputs:
       description:
@@ -51,15 +90,10 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
-
-env:
-  BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-  BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
-  BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
-  BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
-  BITRISE_API_TOKEN: ${{ secrets.BITRISE_API_TOKEN }}
+  actions: read
+  statuses: read
 
 jobs:
   check-builds-needed:
@@ -67,12 +101,14 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       builds-needed: ${{ steps.check-builds.outputs.builds-needed }}
+      with-srp-build-name: ${{ steps.names.outputs.with-srp-build-name }}
+      without-srp-build-name: ${{ steps.names.outputs.without-srp-build-name }}
+      github-environment: ${{ steps.names.outputs.github-environment }}
 
     steps:
       - name: Check if builds are needed
         id: check-builds
         run: |
-          # Check if any BS URLs are provided via workflow inputs
           if [ -n "${{ inputs.browserstack_app_url_android_onboarding }}" ] || [ -n "${{ inputs.browserstack_app_url_android_imported_wallet }}" ]; then
             echo "builds-needed=false" >> "$GITHUB_OUTPUT"
             echo "Skipping Android builds - BS URLs provided via workflow inputs"
@@ -81,274 +117,369 @@ jobs:
             echo "Android builds needed - no BS URLs provided"
           fi
 
-  trigger-android-with-srp-build:
-    name: Trigger Android with-SRP Build on Bitrise
+      - name: Resolve build artifact names
+        id: names
+        run: |
+          if [ "${{ inputs.build_variant }}" = "exp" ]; then
+            {
+              echo "with-srp-build-name=main-exp-with-srp"
+              echo "without-srp-build-name=main-exp-without-srp"
+              echo "github-environment=build-exp"
+            } >> "$GITHUB_OUTPUT"
+          elif [ "${{ inputs.build_variant }}" = "rc" ]; then
+            {
+              echo "with-srp-build-name=main-rc-with-srp"
+              echo "without-srp-build-name=main-rc-without-srp"
+              echo "github-environment=build-rc"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "with-srp-build-name=main-e2e-bs-with-srp"
+              echo "without-srp-build-name=main-e2e-bs-without-srp"
+              echo "github-environment=build-e2e"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+  resolve-fingerprint-reuse:
+    name: Resolve fingerprint-reusable BrowserStack APKs
     runs-on: ubuntu-latest
     needs: [check-builds-needed]
-    env:
-      METAMASK_WORKFLOW: ${{ inputs.build_variant == 'exp' && 'build_android_main_exp' || 'build_android_main_rc' }}
+    if: >-
+      needs.check-builds-needed.outputs.builds-needed == 'true' &&
+      (inputs.source_fingerprint || inputs.reuse_latest_main_builds)
     outputs:
-      build-id: ${{ steps.trigger-build.outputs.build-id }}
-      build-slug: ${{ steps.trigger-build.outputs.build-slug }}
-    
+      found: ${{ steps.finalize.outputs.found }}
+      run-id: ${{ steps.finalize.outputs.run-id }}
+      source-sha: ${{ steps.finalize.outputs.source-sha }}
+      source-branch: ${{ steps.finalize.outputs.source-branch }}
     steps:
-      
-      - name: Trigger Android with-SRP Build on Bitrise
-        id: trigger-build
-        if: needs.check-builds-needed.outputs.builds-needed == 'true'
-        run: |
-          echo "Triggering Android with-SRP build on Bitrise..."
-          echo "Workflow: $METAMASK_WORKFLOW"
-          echo "BITRISE_APP_ID: $BITRISE_APP_ID"
-          echo "Current branch: ${{ inputs.branch_name || github.ref_name }}"
-          
-          # Validate required environment variables
-          if [[ -z "$BITRISE_APP_ID" ]]; then
-            echo "Error: BITRISE_APP_ID is not set"
-            exit 1
-          fi
-          if [[ -z "$BITRISE_BUILD_TRIGGER_TOKEN" ]]; then
-            echo "Error: BITRISE_BUILD_TRIGGER_TOKEN is not set"
-            exit 1
-          fi
-          if [[ -z "$BITRISE_API_TOKEN" ]]; then
-            echo "Error: BITRISE_API_TOKEN is not set"
-            exit 1
-          fi
-          
-          # Set environment variables for with-SRP build
-          ENV_VARS='[
-            {
-              "mapped_to": "ADDITIONAL_SRP_1",
-              "value": "'"${{ secrets.IN_BUILD_SRP }}"'",
-              "is_expand": true
-            },
-            {
-              "mapped_to": "PREDEFINED_PASSWORD", 
-              "value": "'"${{ secrets.E2E_PASSWORD }}"'",
-              "is_expand": true
-            },
-            {
-              "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
-              "value": "true",
-              "is_expand": true
-            }
-          ]'
-          CUSTOM_ID="MetaMask-Android-With-SRP-${{ github.run_id }}"
-          
-          # Trigger Android workflow
-          BUILD_RESPONSE=$(curl -s -X POST \
-            "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "build_params": {
-                "branch": "${{ inputs.branch_name || github.ref_name }}",
-                "workflow_id": "${{ env.METAMASK_WORKFLOW }}",
-                "commit_message": "Triggered by Android Dual Versions workflow - Build with Predefined-SRP",
-                "environments": '"$ENV_VARS"',
-                "custom_id": "'"$CUSTOM_ID"'"
-              },
-              "hook_info": {
-                "type": "bitrise",
-                "build_trigger_token": "'"$BITRISE_BUILD_TRIGGER_TOKEN"'"
-              },
-              "triggered_by": "GitHub Actions Android Dual Versions - Build with Predefined-SRP"
-            }')
-          
-          echo "Build response: $BUILD_RESPONSE"
-          BUILD_SLUG=$(echo "$BUILD_RESPONSE" | jq -r '.build_slug')
-          echo "Build slug: $BUILD_SLUG"
-          
-          if [[ -z "$BUILD_SLUG" || "$BUILD_SLUG" == "null" ]]; then
-            echo "Error: Failed to get build slug"
-            echo "Full response: $BUILD_RESPONSE"
-            exit 1
-          fi
-          
-          # Wait for the workflow to complete
-          echo "Waiting for $METAMASK_WORKFLOW to complete..."
-          TIMEOUT=1800  # 30 minutes
-          ELAPSED=0
-          
-          while [ $ELAPSED -lt $TIMEOUT ]; do
-            BUILD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$BUILD_SLUG")
-            
-            BUILD_STATUS=$(echo "$BUILD_RESPONSE" | jq -r '.data.status')
-            echo "Build status: $BUILD_STATUS (elapsed: ${ELAPSED}s)"
-            
-            # Check for successful completion (status 1 or success/succeeded)
-            if [ "$BUILD_STATUS" = "1" ] || [ "$BUILD_STATUS" = "success" ] || [ "$BUILD_STATUS" = "succeeded" ]; then
-              echo "Build completed successfully"
-              break
-            elif [ "$BUILD_STATUS" = "0" ] || [ "$BUILD_STATUS" = "in_progress" ] || [ "$BUILD_STATUS" = "running" ]; then
-              echo "Build is in progress..."
-            elif [ "$BUILD_STATUS" = "2" ] || [ "$BUILD_STATUS" = "failed" ] || [ "$BUILD_STATUS" = "aborted" ]; then
-              echo "Build failed with status: $BUILD_STATUS"
-              exit 1
-            else
-              echo "Unknown build status: $BUILD_STATUS"
-            fi
-            
-            sleep 30
-            ELAPSED=$((ELAPSED + 30))
-          done
-          
-          if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
-            echo "Timeout waiting for build to complete"
-            echo "Final build status: $BUILD_STATUS"
-            echo "Build slug: $BUILD_SLUG"
-            exit 1
-          fi
-          
-          # Get the build ID from the completed build
-          BUILD_ID=$(echo "$BUILD_RESPONSE" | jq -r '.data.slug')
-          
-          if [[ -z "$BUILD_ID" || "$BUILD_ID" == "null" ]]; then
-            echo "Error: Failed to get build ID"
-            exit 1
-          fi
-          
-          echo "Build ID: $BUILD_ID"
-          echo "Build Slug: $BUILD_SLUG"
-          
-          # Set outputs
-          {
-            echo "build-id=$BUILD_ID"
-            echo "build-slug=$BUILD_SLUG"
-          } >> "$GITHUB_OUTPUT"
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            .github/actions/find-reusable-build
+          sparse-checkout-cone-mode: false
 
-  trigger-android-without-srp-build:
-    name: Trigger Android without-SRP Build on Bitrise
-    runs-on: ubuntu-latest
-    needs: [check-builds-needed]
-    env:
-      METAMASK_WORKFLOW: ${{ inputs.build_variant == 'exp' && 'build_android_main_exp' || 'build_android_main_rc' }}
-    outputs:
-      build-id: ${{ steps.trigger-build.outputs.build-id }}
-      build-slug: ${{ steps.trigger-build.outputs.build-slug }}
-    
-    steps:
-      - name: Trigger Android without-SRP Build on Bitrise
-        id: trigger-build
-        if: needs.check-builds-needed.outputs.builds-needed == 'true'
-        run: |
-          echo "Triggering Android without-SRP build on Bitrise..."
-          echo "Workflow: $METAMASK_WORKFLOW"
-          echo "BITRISE_APP_ID: $BITRISE_APP_ID"
-          echo "Current branch: ${{ inputs.branch_name || github.ref_name }}"
-          
-          # Validate required environment variables
-          if [[ -z "$BITRISE_APP_ID" ]]; then
-            echo "Error: BITRISE_APP_ID is not set"
-            exit 1
-          fi
-          if [[ -z "$BITRISE_BUILD_TRIGGER_TOKEN" ]]; then
-            echo "Error: BITRISE_BUILD_TRIGGER_TOKEN is not set"
-            exit 1
-          fi
-          if [[ -z "$BITRISE_API_TOKEN" ]]; then
-            echo "Error: BITRISE_API_TOKEN is not set"
-            exit 1
-          fi
-          
-          # Set environment variables for without-SRP build
-          ENV_VARS='[
-            {
-              "mapped_to": "DISABLE_NOTIFICATION_PROMPT",
-              "value": "true", 
-              "is_expand": true
-            }
-          ]'
-          CUSTOM_ID="MetaMask-Android-Without-SRP-${{ github.run_id }}"
-          
-          # Trigger Android workflow
-          BUILD_RESPONSE=$(curl -s -X POST \
-            "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "build_params": {
-                "branch": "${{ inputs.branch_name || github.ref_name }}",
-                "workflow_id": "${{ env.METAMASK_WORKFLOW }}",
-                "commit_message": "Triggered by Android Dual Versions workflow - Build without Predefined-SRP",
-                "environments": '"$ENV_VARS"',
-                "custom_id": "'"$CUSTOM_ID"'"
-              },
-              "hook_info": {
-                "type": "bitrise",
-                "build_trigger_token": "'"$BITRISE_BUILD_TRIGGER_TOKEN"'"
-              },
-              "triggered_by": "GitHub Actions Android Dual Versions - Build without Predefined-SRP"
-            }')
-          
-          echo "Build response: $BUILD_RESPONSE"
-          BUILD_SLUG=$(echo "$BUILD_RESPONSE" | jq -r '.build_slug')
-          echo "Build slug: $BUILD_SLUG"
-          
-          if [[ -z "$BUILD_SLUG" || "$BUILD_SLUG" == "null" ]]; then
-            echo "Error: Failed to get build slug"
-            echo "Full response: $BUILD_RESPONSE"
-            exit 1
-          fi
-          
-          # Wait for the workflow to complete
-          echo "Waiting for $METAMASK_WORKFLOW to complete..."
-          TIMEOUT=1800  # 30 minutes
-          ELAPSED=0
-          
-          while [ $ELAPSED -lt $TIMEOUT ]; do
-            BUILD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$BUILD_SLUG")
-            
-            BUILD_STATUS=$(echo "$BUILD_RESPONSE" | jq -r '.data.status')
-            echo "Build status: $BUILD_STATUS (elapsed: ${ELAPSED}s)"
-            
-            # Check for successful completion (status 1 or success/succeeded)
-            if [ "$BUILD_STATUS" = "1" ] || [ "$BUILD_STATUS" = "success" ] || [ "$BUILD_STATUS" = "succeeded" ]; then
-              echo "Build completed successfully"
-              break
-            elif [ "$BUILD_STATUS" = "0" ] || [ "$BUILD_STATUS" = "in_progress" ] || [ "$BUILD_STATUS" = "running" ]; then
-              echo "Build is in progress..."
-            elif [ "$BUILD_STATUS" = "2" ] || [ "$BUILD_STATUS" = "failed" ] || [ "$BUILD_STATUS" = "aborted" ]; then
-              echo "Build failed with status: $BUILD_STATUS"
-              exit 1
-            else
-              echo "Unknown build status: $BUILD_STATUS"
-            fi
-            
-            sleep 30
-            ELAPSED=$((ELAPSED + 30))
-          done
-          
-          if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
-            echo "Timeout waiting for build to complete"
-            echo "Final build status: $BUILD_STATUS"
-            echo "Build slug: $BUILD_SLUG"
-            exit 1
-          fi
-          
-          # Get the build ID from the completed build
-          BUILD_ID=$(echo "$BUILD_RESPONSE" | jq -r '.data.slug')
-          
-          if [[ -z "$BUILD_ID" || "$BUILD_ID" == "null" ]]; then
-            echo "Error: Failed to get build ID"
-            exit 1
-          fi
-          
-          echo "Build ID: $BUILD_ID"
-          echo "Build Slug: $BUILD_SLUG"
-          
-          # Set outputs
-          {
-            echo "build-id=$BUILD_ID"
-            echo "build-slug=$BUILD_SLUG"
-          } >> "$GITHUB_OUTPUT"
+      - name: Find reusable performance APKs on ci.yml
+        id: find-ci
+        uses: ./.github/actions/find-reusable-build
+        with:
+          fingerprint: ${{ inputs.source_fingerprint }}
+          artifact-names: ${{ format('["android-apk-{0}","android-apk-{1}"]', needs.check-builds-needed.outputs.with-srp-build-name, needs.check-builds-needed.outputs.without-srp-build-name) }}
+          github-token: ${{ github.token }}
+          workflow-file: ci.yml
+          main-branch-only: ${{ inputs.main_branch_only }}
+          max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
+          latest-main-only: ${{ inputs.reuse_latest_main_builds }}
 
-  download-and-upload-to-browserstack:
-    name: Download APKs and Upload to BrowserStack
-    runs-on: ubuntu-latest
-    needs: [check-builds-needed, trigger-android-with-srp-build, trigger-android-without-srp-build]
-    if: (needs.trigger-android-with-srp-build.result == 'success' || needs.trigger-android-with-srp-build.result == 'partial_success') && (needs.trigger-android-without-srp-build.result == 'success' || needs.trigger-android-without-srp-build.result == 'partial_success')
+      - name: Find reusable performance APKs on run-performance-e2e.yml
+        id: find-perf
+        if: ${{ steps.find-ci.outputs.found != 'true' }}
+        uses: ./.github/actions/find-reusable-build
+        with:
+          fingerprint: ${{ inputs.source_fingerprint }}
+          artifact-names: ${{ format('["android-apk-{0}","android-apk-{1}"]', needs.check-builds-needed.outputs.with-srp-build-name, needs.check-builds-needed.outputs.without-srp-build-name) }}
+          github-token: ${{ github.token }}
+          workflow-file: run-performance-e2e.yml
+          main-branch-only: ${{ inputs.main_branch_only }}
+          max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
+          latest-main-only: ${{ inputs.reuse_latest_main_builds }}
+
+      - name: Find reusable performance APKs on run-performance-e2e-manual.yml
+        id: find-manual
+        if: ${{ steps.find-ci.outputs.found != 'true' && steps.find-perf.outputs.found != 'true' }}
+        uses: ./.github/actions/find-reusable-build
+        with:
+          fingerprint: ${{ inputs.source_fingerprint }}
+          artifact-names: ${{ format('["android-apk-{0}","android-apk-{1}"]', needs.check-builds-needed.outputs.with-srp-build-name, needs.check-builds-needed.outputs.without-srp-build-name) }}
+          github-token: ${{ github.token }}
+          workflow-file: run-performance-e2e-manual.yml
+          main-branch-only: ${{ inputs.main_branch_only }}
+          max-candidates-per-branch: ${{ inputs.main_branch_only && '30' || '10' }}
+          latest-main-only: ${{ inputs.reuse_latest_main_builds }}
+
+      # Select a candidate run only. found=true is deferred until both APK downloads
+      # succeed (mirrors build-android-e2e.yml gate: never skip native build on lookup alone).
+      - name: Select fingerprint reuse candidate
+        id: candidate
+        run: |
+          if [ "${{ steps.find-ci.outputs.found }}" = "true" ]; then
+            {
+              echo "found=true"
+              echo "run-id=${{ steps.find-ci.outputs.run-id }}"
+              echo "source-sha=${{ steps.find-ci.outputs.source-sha }}"
+              echo "source-branch=${{ steps.find-ci.outputs.source-branch }}"
+              echo "source-workflow=ci.yml"
+            } >> "$GITHUB_OUTPUT"
+            echo "Candidate: ci.yml run ${{ steps.find-ci.outputs.run-id }}"
+          elif [ "${{ steps.find-perf.outputs.found }}" = "true" ]; then
+            {
+              echo "found=true"
+              echo "run-id=${{ steps.find-perf.outputs.run-id }}"
+              echo "source-sha=${{ steps.find-perf.outputs.source-sha }}"
+              echo "source-branch=${{ steps.find-perf.outputs.source-branch }}"
+              echo "source-workflow=run-performance-e2e.yml"
+            } >> "$GITHUB_OUTPUT"
+            echo "Candidate: run-performance-e2e.yml run ${{ steps.find-perf.outputs.run-id }}"
+          elif [ "${{ steps.find-manual.outputs.found }}" = "true" ]; then
+            {
+              echo "found=true"
+              echo "run-id=${{ steps.find-manual.outputs.run-id }}"
+              echo "source-sha=${{ steps.find-manual.outputs.source-sha }}"
+              echo "source-branch=${{ steps.find-manual.outputs.source-branch }}"
+              echo "source-workflow=run-performance-e2e-manual.yml"
+            } >> "$GITHUB_OUTPUT"
+            echo "Candidate: run-performance-e2e-manual.yml run ${{ steps.find-manual.outputs.run-id }}"
+          else
+            {
+              echo "found=false"
+              echo "run-id="
+              echo "source-sha="
+              echo "source-branch="
+              echo "source-workflow="
+            } >> "$GITHUB_OUTPUT"
+            echo "No fingerprint-matching BrowserStack performance APK candidate found."
+          fi
+
+      - name: Download candidate with-SRP APK
+        id: download-with-srp
+        if: steps.candidate.outputs.found == 'true'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          path: artifacts/with-srp
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.candidate.outputs.run-id }}
+
+      - name: Download candidate without-SRP APK
+        id: download-without-srp
+        if: steps.candidate.outputs.found == 'true'
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          path: artifacts/without-srp
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.candidate.outputs.run-id }}
+
+      - name: Validate downloaded candidate APKs
+        id: validate-downloads
+        env:
+          CANDIDATE_FOUND: ${{ steps.candidate.outputs.found }}
+          CANDIDATE_RUN_ID: ${{ steps.candidate.outputs.run-id }}
+          CANDIDATE_SOURCE_WORKFLOW: ${{ steps.candidate.outputs.source-workflow }}
+          DOWNLOAD_WITH_SRP: ${{ steps.download-with-srp.outcome }}
+          DOWNLOAD_WITHOUT_SRP: ${{ steps.download-without-srp.outcome }}
+        run: |
+          set -euo pipefail
+
+          if [ "$CANDIDATE_FOUND" != "true" ]; then
+            echo "valid=false" >> "$GITHUB_OUTPUT"
+            echo "No fingerprint-matching BrowserStack performance APKs found; will build fresh."
+            exit 0
+          fi
+
+          with_srp_apk="$(find artifacts/with-srp -name '*.apk' -type f 2>/dev/null | head -1 || true)"
+          without_srp_apk="$(find artifacts/without-srp -name '*.apk' -type f 2>/dev/null | head -1 || true)"
+
+          if [ "$DOWNLOAD_WITH_SRP" = "success" ] \
+            && [ "$DOWNLOAD_WITHOUT_SRP" = "success" ] \
+            && [ -n "$with_srp_apk" ] \
+            && [ -n "$without_srp_apk" ]; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+            echo "Validated downloaded performance APKs from $CANDIDATE_SOURCE_WORKFLOW run $CANDIDATE_RUN_ID"
+            echo "  with-SRP: $with_srp_apk ($(du -h "$with_srp_apk" | cut -f1))"
+            echo "  without-SRP: $without_srp_apk ($(du -h "$without_srp_apk" | cut -f1))"
+          else
+            echo "valid=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Reusable run $CANDIDATE_RUN_ID was found but artifact download/validation failed (with-srp=$DOWNLOAD_WITH_SRP, without-srp=$DOWNLOAD_WITHOUT_SRP); falling back to fresh dual Gradle builds."
+          fi
+
+      # Re-stage on this run so upload does not re-download from the prior run
+      # (artifacts can expire between lookup and the later upload job).
+      #
+      # Two artifact name families:
+      #   1) fingerprint-reuse-android-apk-* — collision-safe staging used to decide
+      #      reuse. If staging fails we fall back to Gradle; these names never clash
+      #      with build.yml's android-apk-*.
+      #   2) android-apk-* — published only AFTER found=true is committed, so a
+      #      partial publish can never collide with a fresh-build fallback. Needed
+      #      so reuse-only runs remain find-reusable-build sources (~10-run window).
+      - name: Re-stage with-SRP APK on current run
+        id: restage-with-srp
+        if: steps.validate-downloads.outputs.valid == 'true'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          path: artifacts/with-srp
+          retention-days: 1
+          if-no-files-found: error
+          # Artifacts persist across run attempts; without overwrite a full re-run
+          # after a hit would fail staging and cascade into android-apk-* conflicts.
+          overwrite: true
+
+      - name: Re-stage without-SRP APK on current run
+        id: restage-without-srp
+        if: steps.validate-downloads.outputs.valid == 'true'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          path: artifacts/without-srp
+          retention-days: 1
+          if-no-files-found: error
+          overwrite: true
+
+      # Commit reuse only from collision-safe staging. Never require android-apk-*
+      # publish here — a partial android-apk-* upload before found=false would
+      # break the Gradle fallback via upload-artifact v4 name conflicts.
+      - name: Finalize fingerprint reuse decision
+        id: finalize
+        env:
+          DOWNLOADS_VALID: ${{ steps.validate-downloads.outputs.valid }}
+          RESTAGE_WITH_SRP: ${{ steps.restage-with-srp.outcome }}
+          RESTAGE_WITHOUT_SRP: ${{ steps.restage-without-srp.outcome }}
+          CANDIDATE_RUN_ID: ${{ steps.candidate.outputs.run-id }}
+          CANDIDATE_SOURCE_SHA: ${{ steps.candidate.outputs.source-sha }}
+          CANDIDATE_SOURCE_BRANCH: ${{ steps.candidate.outputs.source-branch }}
+        run: |
+          set -euo pipefail
+
+          if [ "$DOWNLOADS_VALID" = "true" ] \
+            && [ "$RESTAGE_WITH_SRP" = "success" ] \
+            && [ "$RESTAGE_WITHOUT_SRP" = "success" ]; then
+            {
+              echo "found=true"
+              echo "run-id=$CANDIDATE_RUN_ID"
+              echo "source-sha=$CANDIDATE_SOURCE_SHA"
+              echo "source-branch=$CANDIDATE_SOURCE_BRANCH"
+            } >> "$GITHUB_OUTPUT"
+            echo "Fingerprint reuse committed: staging artifacts are on this run (Gradle skipped)."
+          else
+            {
+              echo "found=false"
+              echo "run-id="
+              echo "source-sha="
+              echo "source-branch="
+            } >> "$GITHUB_OUTPUT"
+            if [ "$DOWNLOADS_VALID" = "true" ]; then
+              echo "::warning::Candidate APKs downloaded but staging failed (with-srp=$RESTAGE_WITH_SRP, without-srp=$RESTAGE_WITHOUT_SRP); falling back to fresh dual Gradle builds."
+            fi
+          fi
+
+      # Best-effort lookup-chain publish. Runs only after reuse is committed
+      # (builds already skipped), so partial failure cannot collide with Gradle.
+      - name: Publish with-SRP APK for future fingerprint lookup
+        id: publish-lookup-with-srp
+        if: steps.finalize.outputs.found == 'true'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          path: artifacts/with-srp
+          if-no-files-found: error
+          overwrite: true
+
+      - name: Publish without-SRP APK for future fingerprint lookup
+        id: publish-lookup-without-srp
+        if: steps.finalize.outputs.found == 'true'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          path: artifacts/without-srp
+          if-no-files-found: error
+          overwrite: true
+
+      - name: Warn if lookup-chain publish was incomplete
+        if: steps.finalize.outputs.found == 'true'
+        env:
+          PUBLISH_LOOKUP_WITH_SRP: ${{ steps.publish-lookup-with-srp.outcome }}
+          PUBLISH_LOOKUP_WITHOUT_SRP: ${{ steps.publish-lookup-without-srp.outcome }}
+        run: |
+          if [ "$PUBLISH_LOOKUP_WITH_SRP" != "success" ] || [ "$PUBLISH_LOOKUP_WITHOUT_SRP" != "success" ]; then
+            echo "::warning::Reuse will proceed for this run, but android-apk-* lookup publish was incomplete (with-srp=$PUBLISH_LOOKUP_WITH_SRP, without-srp=$PUBLISH_LOOKUP_WITHOUT_SRP). This run may not be a future fingerprint source."
+          else
+            echo "Lookup-chain artifacts published (android-apk-*)."
+          fi
+
+  build-with-srp:
+    name: Performance Build Android (with-SRP)
+    needs: [check-builds-needed, resolve-fingerprint-reuse]
+    if: >-
+      always() &&
+      !cancelled() &&
+      needs.check-builds-needed.outputs.builds-needed == 'true' &&
+      (
+        needs.resolve-fingerprint-reuse.result == 'skipped' ||
+        needs.resolve-fingerprint-reuse.outputs.found != 'true'
+      )
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: ${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+      platform: android
+      source_branch: ${{ inputs.source_ref || inputs.branch_name || github.ref_name }}
+    secrets: inherit
+
+  build-without-srp:
+    name: Performance Build Android (without-SRP)
+    needs: [check-builds-needed, resolve-fingerprint-reuse]
+    if: >-
+      always() &&
+      !cancelled() &&
+      needs.check-builds-needed.outputs.builds-needed == 'true' &&
+      (
+        needs.resolve-fingerprint-reuse.result == 'skipped' ||
+        needs.resolve-fingerprint-reuse.outputs.found != 'true'
+      )
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: ${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+      platform: android
+      source_branch: ${{ inputs.source_ref || inputs.branch_name || github.ref_name }}
+    secrets: inherit
+
+  upload-to-browserstack:
+    name: Upload APKs to BrowserStack
+    # Repack needs Android SDK/apksigner (Cirrus). Light as-is/fresh upload can stay on ubuntu.
+    runs-on: >-
+      ${{
+        needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+        inputs.main_branch_only != true &&
+        fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
+        fromJSON('["ubuntu-latest"]')
+      }}
+    # Only the JS-repack path needs build-e2e/rc/exp secrets (ADDITIONAL_SRP_1, etc.).
+    # Fresh/as-is upload only needs repo-level BrowserStack credentials.
+    environment: >-
+      ${{
+        needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+        inputs.main_branch_only != true &&
+        needs.check-builds-needed.outputs.github-environment ||
+        ''
+      }}
+    needs:
+      [
+        check-builds-needed,
+        resolve-fingerprint-reuse,
+        build-with-srp,
+        build-without-srp,
+      ]
+    if: >-
+      always() &&
+      !cancelled() &&
+      needs.check-builds-needed.outputs.builds-needed == 'true' &&
+      (
+        needs.resolve-fingerprint-reuse.outputs.found == 'true' ||
+        (
+          needs.build-with-srp.result == 'success' &&
+          needs.build-without-srp.result == 'success'
+        )
+      )
     outputs:
       with-srp-browserstack-url: ${{ steps.browserstack-upload.outputs.with-srp-browserstack-url }}
       without-srp-browserstack-url: ${{ steps.browserstack-upload.outputs.without-srp-browserstack-url }}
@@ -356,293 +487,318 @@ jobs:
       without-srp-app-id: ${{ steps.browserstack-upload.outputs.without-srp-app-id }}
       with-srp-version: ${{ steps.browserstack-upload.outputs.with-srp-version }}
       without-srp-version: ${{ steps.browserstack-upload.outputs.without-srp-version }}
-    
+
     steps:
-      - name: Checkout code
-        if: needs.check-builds-needed.outputs.builds-needed == 'true'
-        uses: actions/checkout@v4
-            
-      - name: Download and Upload APKs to BrowserStack
-        if: needs.check-builds-needed.outputs.builds-needed == 'true'
+      - name: Checkout (repack path)
+        if: >-
+          needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+          inputs.main_branch_only != true
+        uses: actions/checkout@v6
+
+      - name: Setup E2E environment for APK repack
+        if: >-
+          needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+          inputs.main_branch_only != true
+        uses: ./.github/actions/setup-e2e-env
+        with:
+          platform: android
+          setup-simulator: 'false'
+          configure-keystores: 'true'
+          install-foundry: 'false'
+          runner_provider: current
+
+      - name: Setup project dependencies (lightweight, repack path)
+        if: >-
+          needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+          inputs.main_branch_only != true
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn setup:github-ci --no-build-ios --no-build-android
+
+      - name: Download reused with-SRP APK
+        if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          path: artifacts/with-srp
+
+      - name: Download reused without-SRP APK
+        if: needs.resolve-fingerprint-reuse.outputs.found == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: fingerprint-reuse-android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          path: artifacts/without-srp
+
+      - name: Download fresh with-SRP APK
+        if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk-${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          path: artifacts/with-srp
+
+      - name: Download fresh without-SRP APK
+        if: needs.resolve-fingerprint-reuse.outputs.found != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk-${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          path: artifacts/without-srp
+
+      - name: Repack reused APKs with current JS (E2E-style)
+        if: >-
+          needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
+          inputs.main_branch_only != true
+        env:
+          WITH_SRP_BUILD_NAME: ${{ needs.check-builds-needed.outputs.with-srp-build-name }}
+          WITHOUT_SRP_BUILD_NAME: ${{ needs.check-builds-needed.outputs.without-srp-build-name }}
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+          CI: 'true'
+          GITHUB_CI: 'true'
+          PLATFORM: android
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          METRO_MAX_WORKERS: '6'
+        run: |
+          set -euo pipefail
+
+          # Apply builds.yml env + secrets into THIS shell so metro (child of yarn
+          # build:repack) inherits them. set-secrets-from-config only writes GITHUB_ENV
+          # for later steps, which is too late for a same-step metro invoke.
+          #
+          # Secret values are emitted single-quoted (with embedded quotes escaped) so
+          # bash never expands $, backticks, or $() inside them during eval.
+          cat > /tmp/export-profile-secrets.js <<'EXPORT_SECRETS_JS'
+          // Script lives in /tmp, so plain require() would resolve from /tmp and
+          // miss the repo's node_modules. Anchor resolution to the workspace cwd.
+          const { createRequire } = require('module');
+          const requireFromCwd = createRequire(process.cwd() + '/');
+          const yaml = requireFromCwd('js-yaml');
+          const fs = require('fs');
+          const buildName = process.argv[2];
+          const build = yaml.load(fs.readFileSync('builds.yml', 'utf8')).builds[buildName];
+          const mapping = (build && build.secrets) || {};
+          const all = JSON.parse(process.env.ALL_SECRETS || '{}');
+          const shellQuote = (s) => "'" + String(s).replace(/'/g, "'\\''") + "'";
+          for (const [envVar, secretName] of Object.entries(mapping)) {
+            if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(envVar)) {
+              console.error('Skipping invalid env var name: ' + envVar);
+              continue;
+            }
+            const value = all[secretName];
+            if (value != null && value !== '') {
+              process.stdout.write('export ' + envVar + '=' + shellQuote(value) + '\n');
+            } else {
+              console.error('Warning: secret ' + secretName + ' missing for ' + envVar);
+            }
+          }
+          EXPORT_SECRETS_JS
+
+          export_build_env() {
+            local build_name="$1"
+            eval "$(node scripts/apply-build-config.js "$build_name" --export)"
+            eval "$(node /tmp/export-profile-secrets.js "$build_name")"
+          }
+
+          # Expo export:embed forces resetCache=false when CI=true (see
+          # @expo/cli exportEmbedAsync). Dual with/without-SRP packs therefore
+          # share /tmp/metro-cache and the second pack can reuse babel-inlined
+          # PREDEFINED_PASSWORD / ADDITIONAL_SRP_* from the first. Wipe explicitly.
+          clear_metro_transform_cache() {
+            local label="$1"
+            rm -rf /tmp/metro-cache
+            echo "Cleared /tmp/metro-cache before $label repack (CI disables Metro resetCache)"
+          }
+
+          unset_srp_bake_ins() {
+            unset PREDEFINED_PASSWORD || true
+            local i
+            for i in $(seq 1 20); do
+              unset "ADDITIONAL_SRP_$i" || true
+            done
+          }
+
+          repack_profile() {
+            local build_name="$1"
+            local src_dir="$2"
+            local out_dir="$3"
+            local label="$4"
+
+            local src_apk
+            src_apk="$(find "$src_dir" -name '*.apk' -type f | head -1)"
+            if [ -z "$src_apk" ]; then
+              echo "❌ No APK found in $src_dir for $label"
+              exit 1
+            fi
+
+            echo "=== Repacking $label from $src_apk using builds.yml profile $build_name ==="
+            mkdir -p "$out_dir" android/app/build/outputs/apk/prod/release "android/app/build/repack-working-$label" sourcemaps/android
+
+            export_build_env "$build_name"
+
+            # Isolate Metro transform cache keys between with-SRP and without-SRP.
+            export METRO_TRANSFORM_PROFILE="$label"
+
+            # Boolean-only diagnostics — never print secret values.
+            if [ -n "${PREDEFINED_PASSWORD:-}" ] || [ -n "${ADDITIONAL_SRP_1:-}" ]; then
+              echo "Transform bake-ins present=yes (profile=$label)"
+            else
+              echo "Transform bake-ins present=no (profile=$label)"
+            fi
+
+            export REPACK_SOURCE_APK="$src_apk"
+            export REPACK_OUTPUT_APK="android/app/build/outputs/apk/prod/release/app-prod-release-repack-$label.apk"
+            export REPACK_FINAL_APK="$out_dir/app-prod-release.apk"
+            export REPACK_WORKING_DIR="android/app/build/repack-working-$label"
+            export REPACK_SOURCEMAP_PATH="sourcemaps/android/index.android.bundle.$label.map"
+
+            clear_metro_transform_cache "$label"
+            yarn build:repack:android
+            echo "✅ Repacked $label → $REPACK_FINAL_APK ($(du -h "$REPACK_FINAL_APK" | cut -f1))"
+          }
+
+          # with-SRP first (ADDITIONAL_SRP_1 + PREDEFINED_PASSWORD inlined into JS via metro)
+          repack_profile "$WITH_SRP_BUILD_NAME" artifacts/with-srp artifacts/with-srp-repacked with-srp
+
+          # without-SRP: drop with-SRP bake-ins so they are not left in process.env,
+          # then wipe Metro cache so CI cannot reuse the with-SRP transforms.
+          unset_srp_bake_ins
+          repack_profile "$WITHOUT_SRP_BUILD_NAME" artifacts/without-srp artifacts/without-srp-repacked without-srp
+
+          # Replace staged dirs so the upload step always reads artifacts/{with,without}-srp
+          rm -rf artifacts/with-srp artifacts/without-srp
+          mv artifacts/with-srp-repacked artifacts/with-srp
+          mv artifacts/without-srp-repacked artifacts/without-srp
+
+      - name: Upload APKs to BrowserStack
         id: browserstack-upload
         env:
-          BITRISE_APP_ID: ${{ env.BITRISE_APP_ID }}
-          BITRISE_API_TOKEN: ${{ env.BITRISE_API_TOKEN }}
-          BROWSERSTACK_USERNAME: ${{ env.BROWSERSTACK_USERNAME }}
-          BROWSERSTACK_ACCESS_KEY: ${{ env.BROWSERSTACK_ACCESS_KEY }}
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          FINGERPRINT_REUSED: ${{ needs.resolve-fingerprint-reuse.outputs.found }}
+          REUSED_SOURCE_SHA: ${{ needs.resolve-fingerprint-reuse.outputs.source-sha }}
+          MAIN_BRANCH_ONLY: ${{ inputs.main_branch_only }}
+          FRESH_WITH_SRP_VERSION: ${{ needs.build-with-srp.outputs.semantic_version }}
+          FRESH_WITHOUT_SRP_VERSION: ${{ needs.build-without-srp.outputs.semantic_version }}
         run: |
-          set +e  # Don't exit on error - continue to try both APKs
-          echo "Downloading APKs from Bitrise and uploading to BrowserStack..."
-          
-          # Initialize variables to avoid undefined references
-          WITH_SRP_APP_URL=""
-          WITHOUT_SRP_APP_URL=""
-          WITH_SRP_ERROR=""
-          WITHOUT_SRP_ERROR=""
-          
-          # Initialize upload status outputs
+          set +e  # Don't exit on error — attempt both uploads independently
+          echo "Uploading APKs to BrowserStack..."
+
+          BRANCH_NAME="${{ inputs.branch_name || github.ref_name }}"
+          BRANCH_SLUG="$(printf '%s' "$BRANCH_NAME" | sed 's/[^A-Za-z0-9._-]/_/g' | cut -c1-40)"
+          WITH_SRP_CUSTOM_ID="MetaMask-Android-With-SRP-${BRANCH_SLUG}"
+          WITHOUT_SRP_CUSTOM_ID="MetaMask-Android-Without-SRP-${BRANCH_SLUG}"
+          echo "BrowserStack custom_id branch slug: $BRANCH_SLUG"
+          echo "With-SRP custom_id: $WITH_SRP_CUSTOM_ID"
+          echo "Without-SRP custom_id: $WITHOUT_SRP_CUSTOM_ID"
+
+          if [ "$FINGERPRINT_REUSED" = "true" ]; then
+            if [ "$MAIN_BRANCH_ONLY" = "true" ]; then
+              WITH_SRP_VERSION="fingerprint-reuse-as-is-${REUSED_SOURCE_SHA:0:7}"
+              WITHOUT_SRP_VERSION="fingerprint-reuse-as-is-${REUSED_SOURCE_SHA:0:7}"
+              echo "APK source: fingerprint reuse as-is (test-only, sha=${REUSED_SOURCE_SHA})"
+            else
+              WITH_SRP_VERSION="fingerprint-reuse-repack-${REUSED_SOURCE_SHA:0:7}"
+              WITHOUT_SRP_VERSION="fingerprint-reuse-repack-${REUSED_SOURCE_SHA:0:7}"
+              echo "APK source: fingerprint reuse + JS repack (sha=${REUSED_SOURCE_SHA})"
+            fi
+          else
+            WITH_SRP_VERSION="${FRESH_WITH_SRP_VERSION}"
+            WITHOUT_SRP_VERSION="${FRESH_WITHOUT_SRP_VERSION}"
+            echo "APK source: fresh dual build"
+          fi
+
           {
             echo "with-srp-apk-uploaded=false"
             echo "without-srp-apk-uploaded=false"
           } >> "$GITHUB_OUTPUT"
-          
-          # Determine APK name pattern based on build variant (rc or exp)
-          BUILD_VARIANT="${{ inputs.build_variant || 'rc' }}"
-          echo "Build variant: $BUILD_VARIANT"
-          
-          # Get build IDs from job outputs
-          WITH_SRP_BUILD_ID="${{ needs.trigger-android-with-srp-build.outputs.build-id }}"
-          WITHOUT_SRP_BUILD_ID="${{ needs.trigger-android-without-srp-build.outputs.build-id }}"
-          
-          echo "With-SRP build ID: $WITH_SRP_BUILD_ID"
-          echo "Without-SRP build ID: $WITHOUT_SRP_BUILD_ID"
-          
-          # Download with-SRP APK
-          if [ -n "$WITH_SRP_BUILD_ID" ]; then
-            echo "Downloading with-SRP APK..."
-            echo "Build ID: $WITH_SRP_BUILD_ID"
-            echo "App ID: $BITRISE_APP_ID"
-            
-            WITH_SRP_ARTIFACTS=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -H "Authorization: $BITRISE_API_TOKEN" \
-              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITH_SRP_BUILD_ID/artifacts")
-            
-            # Extract HTTP status code
-            HTTP_STATUS=$(echo "$WITH_SRP_ARTIFACTS" | grep "HTTP_STATUS:" | cut -d: -f2)
-            WITH_SRP_ARTIFACTS=$(echo "$WITH_SRP_ARTIFACTS" | sed '/HTTP_STATUS:/d')
-            
-            echo "HTTP Status: $HTTP_STATUS"
-            
-            # Validate JSON response
-            if ! echo "$WITH_SRP_ARTIFACTS" | jq empty 2>/dev/null; then
-              echo "❌ With-SRP: Invalid JSON response from Bitrise API (HTTP $HTTP_STATUS)"
-              echo "Response (first 500 chars): ${WITH_SRP_ARTIFACTS:0:500}"
-              WITH_SRP_ERROR="Invalid JSON response from Bitrise API"
-            fi
-            
-            if [ -z "$WITH_SRP_ERROR" ]; then
-              # Debug: Show all artifact titles for troubleshooting
-              echo "All artifact titles:"
-              echo "$WITH_SRP_ARTIFACTS" | jq -r '.data[]?.title // empty' 2>/dev/null || echo "Could not extract titles"
-              
-              # Find the APK artifact - matches metamask-main-<variant>-[number].apk
-              WITH_SRP_APK_ARTIFACT=$(echo "$WITH_SRP_ARTIFACTS" | jq --arg variant "$BUILD_VARIANT" '.data[] | 
-                select((.artifact_type == "android-apk") or (.artifact_type | not)) | 
-                select(.title | endswith(".apk")) | 
-                select(.title | test("metamask-main-" + $variant + "-[0-9]+\\.apk"))')
-              
-              echo "Looking for APK matching: metamask-main-${BUILD_VARIANT}-[0-9]+.apk"
-              
-              if [[ -n "$WITH_SRP_APK_ARTIFACT" && "$WITH_SRP_APK_ARTIFACT" != "null" && "$WITH_SRP_APK_ARTIFACT" != "" ]]; then
-                WITH_SRP_APK_SLUG=$(echo "$WITH_SRP_APK_ARTIFACT" | jq -r '.slug')
-                
-                if [[ -z "$WITH_SRP_APK_SLUG" || "$WITH_SRP_APK_SLUG" == "null" ]]; then
-                  WITH_SRP_ERROR="Failed to extract APK slug from artifact"
-                  echo "❌ With-SRP: $WITH_SRP_ERROR"
-                fi
-              else
-                WITH_SRP_ERROR="APK artifact not found (looking for metamask-main-${BUILD_VARIANT}-*.apk)"
-                echo "❌ With-SRP: $WITH_SRP_ERROR"
-              fi
-            fi
-            
-            if [ -z "$WITH_SRP_ERROR" ]; then
-              WITH_SRP_DOWNLOAD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-                "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITH_SRP_BUILD_ID/artifacts/$WITH_SRP_APK_SLUG")
-              
-              if ! echo "$WITH_SRP_DOWNLOAD_RESPONSE" | jq empty 2>/dev/null; then
-                WITH_SRP_ERROR="Invalid JSON response from Bitrise API for download URL"
-                echo "❌ With-SRP: $WITH_SRP_ERROR"
-              else
-                WITH_SRP_DOWNLOAD_URL=$(echo "$WITH_SRP_DOWNLOAD_RESPONSE" | jq -r '.data.expiring_download_url // empty')
-                
-                if [[ -n "$WITH_SRP_DOWNLOAD_URL" && "$WITH_SRP_DOWNLOAD_URL" != "null" ]]; then
-                  echo "Downloading with-SRP APK..."
-                  DOWNLOAD_SUCCESS=false
-                  if command -v wget >/dev/null 2>&1; then
-                    if wget -O "metamask-android-with-srp.apk" "$WITH_SRP_DOWNLOAD_URL" 2>&1; then
-                      DOWNLOAD_SUCCESS=true
-                    else
-                      echo "wget failed, trying curl..."
-                      if curl -L -f -o "metamask-android-with-srp.apk" "$WITH_SRP_DOWNLOAD_URL" 2>&1; then
-                        DOWNLOAD_SUCCESS=true
-                      fi
-                    fi
-                  else
-                    echo "Using curl to download APK..."
-                    if curl -L -f -o "metamask-android-with-srp.apk" "$WITH_SRP_DOWNLOAD_URL" 2>&1; then
-                      DOWNLOAD_SUCCESS=true
-                    fi
-                  fi
-                  
-                  if [[ "$DOWNLOAD_SUCCESS" != "true" ]] || [[ ! -f "metamask-android-with-srp.apk" ]]; then
-                    WITH_SRP_ERROR="Failed to download with-SRP APK"
-                    echo "❌ With-SRP: $WITH_SRP_ERROR"
-                  else
-                    echo "APK downloaded successfully. File size: $(du -h metamask-android-with-srp.apk | cut -f1)"
-                    
-                    # Upload to BrowserStack
-                    echo "Uploading with-SRP APK to BrowserStack..."
-                    WITH_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
-                      -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
-                      -F "file=@metamask-android-with-srp.apk" \
-                      -F "custom_id=MetaMask-Android-With-SRP-${{ github.run_id }}")
-                    
-                    WITH_SRP_APP_URL=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_url')
-                    WITH_SRP_APP_ID=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_id')
-                    
-                    echo "With-SRP APK uploaded successfully"
-                    echo "  App URL: $WITH_SRP_APP_URL"
-                    echo "  App ID: $WITH_SRP_APP_ID"
-                    
-                    {
-                      echo "with-srp-browserstack-url=$WITH_SRP_APP_URL"
-                      echo "with-srp-app-id=$WITH_SRP_APP_ID"
-                      echo "with-srp-version=Bitrise-Build"
-                      echo "with-srp-apk-uploaded=true"
-                    } >> "$GITHUB_OUTPUT"
-                  fi
-                else
-                  WITH_SRP_ERROR="Failed to get with-SRP APK download URL"
-                  echo "❌ With-SRP: $WITH_SRP_ERROR"
-                fi
-              fi
+
+          WITH_SRP_APP_URL=""
+          WITHOUT_SRP_APP_URL=""
+          WITH_SRP_ERROR=""
+          WITHOUT_SRP_ERROR=""
+
+          WITH_SRP_APK=$(find artifacts/with-srp -name "*.apk" | head -1)
+          WITHOUT_SRP_APK=$(find artifacts/without-srp -name "*.apk" | head -1)
+
+          if [ -n "$WITH_SRP_APK" ]; then
+            echo "Uploading with-SRP APK: $WITH_SRP_APK"
+            echo "File size: $(du -h "$WITH_SRP_APK" | cut -f1)"
+
+            WITH_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+              -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+              -F "file=@$WITH_SRP_APK" \
+              -F "custom_id=$WITH_SRP_CUSTOM_ID")
+
+            WITH_SRP_APP_URL=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_url // empty')
+            WITH_SRP_APP_ID=$(echo "$WITH_SRP_RESPONSE" | jq -r '.app_id // empty')
+
+            if [ -n "$WITH_SRP_APP_URL" ]; then
+              echo "✅ With-SRP APK uploaded"
+              echo "  App URL: $WITH_SRP_APP_URL"
+              echo "  App ID:  $WITH_SRP_APP_ID"
+              {
+                echo "with-srp-browserstack-url=$WITH_SRP_APP_URL"
+                echo "with-srp-app-id=$WITH_SRP_APP_ID"
+                echo "with-srp-version=$WITH_SRP_VERSION"
+                echo "with-srp-apk-uploaded=true"
+              } >> "$GITHUB_OUTPUT"
+            else
+              WITH_SRP_ERROR="BrowserStack upload failed"
+              echo "❌ With-SRP: $WITH_SRP_ERROR"
+              echo "Response: $WITH_SRP_RESPONSE"
             fi
           else
-            WITH_SRP_ERROR="Build ID not available"
+            WITH_SRP_ERROR="APK not found in artifacts/with-srp"
             echo "❌ With-SRP: $WITH_SRP_ERROR"
           fi
-          
-          # Download without-SRP APK
-          if [ -n "$WITHOUT_SRP_BUILD_ID" ]; then
-            echo "Downloading without-SRP APK..."
-            echo "Build ID: $WITHOUT_SRP_BUILD_ID"
-            echo "App ID: $BITRISE_APP_ID"
-            
-            WITHOUT_SRP_ARTIFACTS=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -H "Authorization: $BITRISE_API_TOKEN" \
-              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITHOUT_SRP_BUILD_ID/artifacts")
-            
-            # Extract HTTP status code
-            HTTP_STATUS=$(echo "$WITHOUT_SRP_ARTIFACTS" | grep "HTTP_STATUS:" | cut -d: -f2)
-            WITHOUT_SRP_ARTIFACTS=$(echo "$WITHOUT_SRP_ARTIFACTS" | sed '/HTTP_STATUS:/d')
-            
-            echo "HTTP Status: $HTTP_STATUS"
-            
-            # Validate JSON response
-            if ! echo "$WITHOUT_SRP_ARTIFACTS" | jq empty 2>/dev/null; then
-              echo "❌ Without-SRP: Invalid JSON response from Bitrise API (HTTP $HTTP_STATUS)"
-              echo "Response (first 500 chars): ${WITHOUT_SRP_ARTIFACTS:0:500}"
-              WITHOUT_SRP_ERROR="Invalid JSON response from Bitrise API"
-            fi
-            
-            if [ -z "$WITHOUT_SRP_ERROR" ]; then
-              # Debug: Show all artifact titles for troubleshooting
-              echo "All artifact titles:"
-              echo "$WITHOUT_SRP_ARTIFACTS" | jq -r '.data[]?.title // empty' 2>/dev/null || echo "Could not extract titles"
-              
-              # Find the APK artifact - matches metamask-main-<variant>-[number].apk
-              WITHOUT_SRP_APK_ARTIFACT=$(echo "$WITHOUT_SRP_ARTIFACTS" | jq --arg variant "$BUILD_VARIANT" '.data[] | 
-                select((.artifact_type == "android-apk") or (.artifact_type | not)) | 
-                select(.title | endswith(".apk")) | 
-                select(.title | test("metamask-main-" + $variant + "-[0-9]+\\.apk"))')
-              
-              echo "Looking for APK matching: metamask-main-${BUILD_VARIANT}-[0-9]+.apk"
-              
-              if [[ -n "$WITHOUT_SRP_APK_ARTIFACT" && "$WITHOUT_SRP_APK_ARTIFACT" != "null" && "$WITHOUT_SRP_APK_ARTIFACT" != "" ]]; then
-                WITHOUT_SRP_APK_SLUG=$(echo "$WITHOUT_SRP_APK_ARTIFACT" | jq -r '.slug')
-                
-                if [[ -z "$WITHOUT_SRP_APK_SLUG" || "$WITHOUT_SRP_APK_SLUG" == "null" ]]; then
-                  WITHOUT_SRP_ERROR="Failed to extract APK slug from artifact"
-                  echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
-                fi
-              else
-                WITHOUT_SRP_ERROR="APK artifact not found (looking for metamask-main-${BUILD_VARIANT}-*.apk)"
-                echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
-              fi
-            fi
-            
-            if [ -z "$WITHOUT_SRP_ERROR" ]; then
-              WITHOUT_SRP_DOWNLOAD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
-                "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITHOUT_SRP_BUILD_ID/artifacts/$WITHOUT_SRP_APK_SLUG")
-              
-              if ! echo "$WITHOUT_SRP_DOWNLOAD_RESPONSE" | jq empty 2>/dev/null; then
-                WITHOUT_SRP_ERROR="Invalid JSON response from Bitrise API for download URL"
-                echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
-              else
-                WITHOUT_SRP_DOWNLOAD_URL=$(echo "$WITHOUT_SRP_DOWNLOAD_RESPONSE" | jq -r '.data.expiring_download_url // empty')
-                
-                if [[ -n "$WITHOUT_SRP_DOWNLOAD_URL" && "$WITHOUT_SRP_DOWNLOAD_URL" != "null" ]]; then
-                  echo "Downloading without-SRP APK..."
-                  DOWNLOAD_SUCCESS=false
-                  if command -v wget >/dev/null 2>&1; then
-                    if wget -O "metamask-android-without-srp.apk" "$WITHOUT_SRP_DOWNLOAD_URL" 2>&1; then
-                      DOWNLOAD_SUCCESS=true
-                    else
-                      echo "wget failed, trying curl..."
-                      if curl -L -f -o "metamask-android-without-srp.apk" "$WITHOUT_SRP_DOWNLOAD_URL" 2>&1; then
-                        DOWNLOAD_SUCCESS=true
-                      fi
-                    fi
-                  else
-                    echo "Using curl to download APK..."
-                    if curl -L -f -o "metamask-android-without-srp.apk" "$WITHOUT_SRP_DOWNLOAD_URL" 2>&1; then
-                      DOWNLOAD_SUCCESS=true
-                    fi
-                  fi
-                  
-                  if [[ "$DOWNLOAD_SUCCESS" != "true" ]] || [[ ! -f "metamask-android-without-srp.apk" ]]; then
-                    WITHOUT_SRP_ERROR="Failed to download without-SRP APK"
-                    echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
-                  else
-                    echo "APK downloaded successfully. File size: $(du -h metamask-android-without-srp.apk | cut -f1)"
-                    
-                    # Upload to BrowserStack
-                    echo "Uploading without-SRP APK to BrowserStack..."
-                    WITHOUT_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
-                      -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
-                      -F "file=@metamask-android-without-srp.apk" \
-                      -F "custom_id=MetaMask-Android-Without-SRP-${{ github.run_id }}")
-                    
-                    WITHOUT_SRP_APP_URL=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_url')
-                    WITHOUT_SRP_APP_ID=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_id')
-                    
-                    echo "Without-SRP APK uploaded successfully"
-                    echo "App URL: $WITHOUT_SRP_APP_URL"
-                    echo "App ID: $WITHOUT_SRP_APP_ID"
-                    
-                    {
-                      echo "without-srp-browserstack-url=$WITHOUT_SRP_APP_URL"
-                      echo "without-srp-app-id=$WITHOUT_SRP_APP_ID"
-                      echo "without-srp-version=Bitrise-Build"
-                      echo "without-srp-apk-uploaded=true"
-                    } >> "$GITHUB_OUTPUT"
-                  fi
-                else
-                  WITHOUT_SRP_ERROR="Failed to get without-SRP APK download URL"
-                  echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
-                fi
-              fi
+
+          if [ -n "$WITHOUT_SRP_APK" ]; then
+            echo "Uploading without-SRP APK: $WITHOUT_SRP_APK"
+            echo "File size: $(du -h "$WITHOUT_SRP_APK" | cut -f1)"
+
+            WITHOUT_SRP_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+              -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+              -F "file=@$WITHOUT_SRP_APK" \
+              -F "custom_id=$WITHOUT_SRP_CUSTOM_ID")
+
+            WITHOUT_SRP_APP_URL=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_url // empty')
+            WITHOUT_SRP_APP_ID=$(echo "$WITHOUT_SRP_RESPONSE" | jq -r '.app_id // empty')
+
+            if [ -n "$WITHOUT_SRP_APP_URL" ]; then
+              echo "✅ Without-SRP APK uploaded"
+              echo "  App URL: $WITHOUT_SRP_APP_URL"
+              echo "  App ID:  $WITHOUT_SRP_APP_ID"
+              {
+                echo "without-srp-browserstack-url=$WITHOUT_SRP_APP_URL"
+                echo "without-srp-app-id=$WITHOUT_SRP_APP_ID"
+                echo "without-srp-version=$WITHOUT_SRP_VERSION"
+                echo "without-srp-apk-uploaded=true"
+              } >> "$GITHUB_OUTPUT"
+            else
+              WITHOUT_SRP_ERROR="BrowserStack upload failed"
+              echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
+              echo "Response: $WITHOUT_SRP_RESPONSE"
             fi
           else
-            WITHOUT_SRP_ERROR="Build ID not available"
+            WITHOUT_SRP_ERROR="APK not found in artifacts/without-srp"
             echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
           fi
-          
-          # Summary
+
           echo ""
           echo "=== BrowserStack Upload Summary ==="
-          if [[ -n "$WITH_SRP_APP_URL" ]]; then
-            echo "✅ With-SRP URL: $WITH_SRP_APP_URL"
+          if [ -n "$WITH_SRP_APP_URL" ]; then
+            echo "✅ With-SRP URL:    $WITH_SRP_APP_URL"
           else
-            echo "❌ With-SRP: FAILED - ${WITH_SRP_ERROR:-unknown error}"
+            echo "❌ With-SRP: FAILED — ${WITH_SRP_ERROR:-unknown error}"
           fi
-          if [[ -n "$WITHOUT_SRP_APP_URL" ]]; then
+          if [ -n "$WITHOUT_SRP_APP_URL" ]; then
             echo "✅ Without-SRP URL: $WITHOUT_SRP_APP_URL"
           else
-            echo "❌ Without-SRP: FAILED - ${WITHOUT_SRP_ERROR:-unknown error}"
+            echo "❌ Without-SRP: FAILED — ${WITHOUT_SRP_ERROR:-unknown error}"
           fi
-          
-          # Fail the step only if BOTH uploads failed
-          if [[ -z "$WITH_SRP_APP_URL" && -z "$WITHOUT_SRP_APP_URL" ]]; then
+
+          if [ -z "$WITH_SRP_APP_URL" ] && [ -z "$WITHOUT_SRP_APP_URL" ]; then
             echo ""
             echo "❌ Both APK uploads failed. Failing step."
             exit 1

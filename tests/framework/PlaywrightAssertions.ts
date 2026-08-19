@@ -1,0 +1,519 @@
+import Utilities, { BASE_DEFAULTS, sleep } from './Utilities.ts';
+import { AssertionOptions } from './types.ts';
+import type { PlaywrightElement } from './PlaywrightAdapter.ts';
+import PlaywrightMatchers from './PlaywrightMatchers.ts';
+import PlaywrightGestures from './PlaywrightGestures.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
+import {
+  addOverhead,
+  addOverheadSleep,
+  isOverheadTrackingActive,
+  nextMeasuringPollIntervalMs,
+  recordFailedPollCommand,
+  recordOverheadProbe,
+  recordSuccessPollCommand,
+  withImplicitWait,
+} from './PlaywrightUtilities.ts';
+import { createPlaywrightLogger } from './playwrightLogger.ts';
+
+const logger = createPlaywrightLogger('PlaywrightAssertions');
+
+export interface VisibilityWithSettleOptions extends AssertionOptions {
+  settleMs?: number;
+}
+
+export interface TextDisplayedOptions extends AssertionOptions {
+  /** When set, asserts text on this element instead of searching the screen. */
+  within?: PlaywrightElement | Promise<PlaywrightElement>;
+}
+
+/**
+ * Assertion helpers that integrate with TimerHelper's automatic overhead
+ * tracking so performance measurements reflect real app latency.
+ *
+ * ## How overhead compensation works
+ *
+ * While `TimerHelper.measure()` is active we subtract:
+ * - the post-detect probe (`isExisting` after visible) — pure Appium RTT
+ * - failed/success poll command time, each capped at that probe RTT
+ *
+ * Poll sleeps and uncapped portions of poll commands (e.g. implicit wait)
+ * stay in app time so cold start is not under-reported, and timers cannot
+ * collapse to 0ms after a real wait.
+ */
+export default class PlaywrightAssertions {
+  private static getTimeout(options: AssertionOptions): number {
+    return options.timeout ?? BASE_DEFAULTS.timeout;
+  }
+
+  /**
+   * Polls for element existence using a single WebDriver command per attempt
+   * (`isExisting`). This avoids the multiple internal HTTP round-trips that
+   * WebdriverIO's `waitForDisplayed` performs on each iteration.
+   *
+   * Implicit wait is set once for the whole poll (not per attempt) so cloud
+   * Appium providers do not pay 2× `setTimeout` RTT every probe — that
+   * overhead was inflating performance timers.
+   *
+   * While measuring, the poll interval adapts to the last command duration
+   * (never faster than cloud RTT, never slower than a normal wait).
+   */
+  private static readonly FINAL_WAIT_RESERVE_MS = 2_000;
+  /** Fast implicit wait for poll probes — avoids 3.5s find penalty per attempt. */
+  private static readonly POLL_IMPLICIT_WAIT_MS = 300;
+  private static readonly POLL_INTERVAL_MS = 300;
+
+  private static async pollSleep(ms: number): Promise<void> {
+    if (ms <= 0) {
+      return;
+    }
+    if (isOverheadTrackingActive()) {
+      addOverheadSleep(ms);
+    }
+    await sleep(ms);
+  }
+
+  private static async pollUntilVisible(
+    el: PlaywrightElement,
+    timeout: number,
+  ): Promise<void> {
+    const tracking = isOverheadTrackingActive();
+    let interval = tracking
+      ? nextMeasuringPollIntervalMs(0)
+      : this.POLL_INTERVAL_MS;
+    const start = Date.now();
+
+    const found = await withImplicitWait(
+      this.POLL_IMPLICIT_WAIT_MS,
+      async () => {
+        while (Date.now() - start < timeout - this.FINAL_WAIT_RESERVE_MS) {
+          const remaining = timeout - (Date.now() - start);
+          if (remaining <= 0) {
+            break;
+          }
+          const t0 = Date.now();
+          let lastCommandMs = 0;
+          try {
+            const exists = await el.unwrap().isExisting();
+            if (exists) {
+              const displayed = await el.isVisible();
+              if (displayed) {
+                if (tracking) {
+                  recordSuccessPollCommand(Date.now() - t0);
+                  await this.probeOverhead(el);
+                }
+                return true;
+              }
+            }
+            lastCommandMs = Date.now() - t0;
+            if (tracking) {
+              recordFailedPollCommand(lastCommandMs);
+            }
+          } catch {
+            lastCommandMs = Date.now() - t0;
+            if (tracking) {
+              recordFailedPollCommand(lastCommandMs);
+            }
+          }
+          if (tracking) {
+            interval = nextMeasuringPollIntervalMs(lastCommandMs);
+          }
+          await this.pollSleep(Math.min(interval, remaining));
+        }
+        return false;
+      },
+    );
+
+    if (found) {
+      return;
+    }
+
+    const remainingTimeout = timeout - (Date.now() - start);
+    await el.waitForDisplayed({
+      timeout: Math.max(interval, remainingTimeout),
+    });
+    // waitForDisplayed includes app-load time — do not record it as success infra.
+    if (isOverheadTrackingActive()) {
+      await this.probeOverhead(el);
+    }
+  }
+
+  /**
+   * Measures pure Appium/network overhead by running `isExisting()` on an
+   * element that is already visible. Used as RTT calibration and infra cost.
+   */
+  private static async probeOverhead(el: PlaywrightElement): Promise<void> {
+    const t0 = Date.now();
+    await el.unwrap().isExisting();
+    recordOverheadProbe(Date.now() - t0);
+  }
+
+  /**
+   * Asserts that a target element eventually becomes visible.
+   *
+   * When called inside a `TimerHelper.measure()` block, Appium infra overhead
+   * (resolution, poll commands, sleeps, probe) is tracked and subtracted.
+   */
+  static async expectElementToBeVisible(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const t0 = Date.now();
+    const el = await targetElement;
+    if (isOverheadTrackingActive()) {
+      addOverhead(Date.now() - t0);
+    }
+    logger.debug('Waiting for element to be visible');
+    await this.pollUntilVisible(el, this.getTimeout(options));
+  }
+
+  /**
+   * Asserts that a target element eventually exists in the hierarchy.
+   * Prefer this over {@link expectElementToBeVisible} for BottomSheet /
+   * confirmation children that report isDisplayed=false while on screen.
+   */
+  static async expectElementToExist(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const el = await targetElement;
+    const timeout = this.getTimeout(options);
+    const description = options.description ?? 'element';
+    const start = Date.now();
+
+    const found = await withImplicitWait(
+      this.POLL_IMPLICIT_WAIT_MS,
+      async () => {
+        while (Date.now() - start < timeout) {
+          try {
+            if (await el.unwrap().isExisting()) {
+              return true;
+            }
+          } catch {
+            // element not ready yet
+          }
+          const remaining = timeout - (Date.now() - start);
+          if (remaining <= 0) {
+            break;
+          }
+          await sleep(Math.min(this.POLL_INTERVAL_MS, remaining));
+        }
+        return false;
+      },
+    );
+
+    if (!found) {
+      throw new Error(
+        `Element "${description}" not in hierarchy after ${timeout}ms`,
+      );
+    }
+  }
+
+  /**
+   * Waits until an element stays enabled (and on Android, native attrs are not false).
+   * Prefer waitForInteractive on waitAndTap for tap flows.
+   */
+  static async expectElementToBeInteractive(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const el = await targetElement;
+    await PlaywrightGestures.waitUntilInteractive(
+      el,
+      this.getTimeout(options),
+      {
+        requiredStableReads: 3,
+      },
+    );
+  }
+
+  static async expectElementToBeVisibleWithSettle(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    options: VisibilityWithSettleOptions = {},
+  ): Promise<void> {
+    const { settleMs = 0, ...assertionOptions } = options;
+
+    await this.expectElementToBeVisible(targetElement, assertionOptions);
+
+    if (settleMs > 0) {
+      await sleep(settleMs);
+    }
+  }
+
+  /**
+   * Asserts that multiple elements become visible.
+   *
+   * Checks run sequentially because a WebDriver session serialises all
+   * commands — `Promise.all` would not actually parallelise anything and
+   * instead causes timeout and overhead-tracking issues.
+   *
+   * Sequential execution lets each element keep its full timeout and
+   * reuses the per-element overhead tracking that already works for
+   * single-element assertions.
+   */
+  static async expectAllElementsToBeVisible(
+    elements: (PlaywrightElement | Promise<PlaywrightElement>)[],
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    for (const el of elements) {
+      await this.expectElementToBeVisible(el, options);
+    }
+  }
+
+  /**
+   * Polls until an element's text content matches the expected value.
+   *
+   * Overhead tracking mirrors {@link pollUntilVisible}: failed/success poll
+   * commands, sleeps, and a post-match probe for RTT calibration.
+   */
+  static async expectElementText(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    expected: string,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const t0Resolve = Date.now();
+    const el = await targetElement;
+    if (isOverheadTrackingActive()) {
+      addOverhead(Date.now() - t0Resolve);
+    }
+
+    const timeout = this.getTimeout(options);
+    const tracking = isOverheadTrackingActive();
+    let interval = tracking
+      ? nextMeasuringPollIntervalMs(0)
+      : this.POLL_INTERVAL_MS;
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+      const remaining = timeout - (Date.now() - start);
+      if (remaining <= 0) {
+        break;
+      }
+      const t0 = Date.now();
+      let lastCommandMs = 0;
+      try {
+        const text = await el.textContent();
+        if (text === expected) {
+          if (tracking) {
+            recordSuccessPollCommand(Date.now() - t0);
+            await this.probeOverhead(el);
+          }
+          return;
+        }
+        lastCommandMs = Date.now() - t0;
+        if (tracking) {
+          recordFailedPollCommand(lastCommandMs);
+        }
+      } catch {
+        lastCommandMs = Date.now() - t0;
+        if (tracking) {
+          recordFailedPollCommand(lastCommandMs);
+        }
+      }
+      if (tracking) {
+        interval = nextMeasuringPollIntervalMs(lastCommandMs);
+      }
+      await this.pollSleep(Math.min(interval, remaining));
+    }
+    throw new Error(`Expected element text "${expected}" within ${timeout}ms`);
+  }
+
+  /**
+   * Polls until an element's text content is not the forbidden value.
+   */
+  static async expectElementNotToHaveText(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    forbidden: string,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const el = await targetElement;
+    const timeout = this.getTimeout(options);
+    const description =
+      options.description ?? `element text is not "${forbidden}"`;
+
+    return Utilities.executeWithRetry(
+      async () => {
+        const text = await el.textContent();
+        if (text === forbidden) {
+          throw new Error(`Element still has forbidden text "${forbidden}"`);
+        }
+      },
+      {
+        timeout,
+        description: `Assert ${description}`,
+      },
+    );
+  }
+
+  static async expectElementToNotBeVisible(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    try {
+      const el = await targetElement;
+      try {
+        if (!(await el.unwrap().isExisting())) {
+          return;
+        }
+      } catch {
+        // Fall through to waitForDisplayed when existence cannot be determined.
+      }
+      await el.waitForDisplayed({
+        reverse: true,
+        timeout: this.getTimeout(options),
+      });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('No elements found for XPath') ||
+          error.message.includes('An element could not be located') ||
+          error.message.includes('no such element'))
+      ) {
+        return;
+      }
+      if (
+        error instanceof TypeError &&
+        error.message.includes('waitForDisplayed')
+      ) {
+        return;
+      }
+      throw error;
+    }
+  }
+
+  static async expectTextDisplayed(
+    text: string,
+    options: TextDisplayedOptions = {},
+  ): Promise<void> {
+    const { within, ...assertionOptions } = options;
+    if (within) {
+      await this.expectElementText(within, text, assertionOptions);
+      return;
+    }
+    const timeout = this.getTimeout(assertionOptions);
+    return Utilities.executeWithRetry(
+      async () => {
+        const el = await PlaywrightMatchers.getElementByText(text);
+        await el.waitForDisplayed({ timeout: 100 });
+      },
+      {
+        timeout,
+        description: `Assert text "${text}" is displayed`,
+      },
+    );
+  }
+
+  static async expectElementToHaveLabel(
+    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    expectedLabel: string,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const timeout = this.getTimeout(options);
+    const interval = 300;
+    const start = Date.now();
+    const el = await targetElement;
+
+    const normalize = (value: string): string =>
+      value
+        .replace(/[\s,]+/g, ' ')
+        .trim()
+        .toLowerCase();
+
+    const matchesLabel = (actual: string): boolean => {
+      const normalizedActual = normalize(actual);
+      const normalizedExpected = normalize(expectedLabel);
+      if (normalizedActual.includes(normalizedExpected)) {
+        return true;
+      }
+
+      return expectedLabel
+        .split(',')
+        .map((part) => normalize(part))
+        .every((part) => part.length > 0 && normalizedActual.includes(part));
+    };
+
+    while (Date.now() - start < timeout) {
+      const label = await this.getElementAccessibilityLabel(el);
+      if (matchesLabel(label)) {
+        return;
+      }
+      await sleep(interval);
+    }
+
+    const lastLabel = await this.getElementAccessibilityLabel(el);
+    throw new Error(
+      `Expected label "${expectedLabel}" but got "${lastLabel}" within ${timeout}ms`,
+    );
+  }
+
+  private static async getElementAccessibilityLabel(
+    el: PlaywrightElement,
+  ): Promise<string> {
+    const raw = el.unwrap();
+    const isAndroid = await PlatformDetector.isAndroid();
+    const accessibilityText = isAndroid
+      ? ((await raw.getAttribute('content-desc')) ?? '')
+      : ((await raw.getAttribute('label')) ??
+        (await raw.getAttribute('name')) ??
+        '');
+    let text = '';
+    try {
+      text = await raw.getText();
+    } catch {
+      text = '';
+    }
+    return [accessibilityText, text].filter(Boolean).join(', ');
+  }
+
+  static async expectTextNotDisplayed(
+    text: string,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    try {
+      const el = await PlaywrightMatchers.getElementByText(text);
+      await el.waitForDisplayed({
+        reverse: true,
+        timeout: this.getTimeout(options),
+      });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message.includes('No elements found for XPath') ||
+          error.message.includes('No elements found') ||
+          error.message.includes('returned only 0 elements') ||
+          error.message.includes('Index out of bounds'))
+      ) {
+        return;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Waits for a condition to be met within a given timeout period.
+   * @param condition - The condition to wait for.
+   * @param options - The options for the assertion.
+   * @param options.maxRetries - The maximum number of retries.
+   * @param options.interval - The interval between retries.
+   * @param options.description - The description of the assertion.
+   * @param options.elemDescription - The description of the element.
+   * @param options.timeout - The timeout for the assertion.
+   */
+  static async expectConditionWithRetry(
+    condition: () => Promise<void>,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const { maxRetries = 5, interval = 1000 } = options;
+    let lastError: unknown;
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        await condition();
+        return;
+      } catch (error) {
+        lastError = error;
+        logger.debug(`Condition not met on attempt ${i + 1}/${maxRetries}`);
+        await new Promise((resolve) => setTimeout(resolve, interval));
+      }
+    }
+    throw lastError;
+  }
+}

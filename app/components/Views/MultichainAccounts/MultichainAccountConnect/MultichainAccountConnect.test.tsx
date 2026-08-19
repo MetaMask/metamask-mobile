@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import {
   Caip25EndowmentPermissionName,
   Caip25CaveatType,
@@ -13,9 +13,10 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import { RootState } from '../../../../reducers';
 import Engine from '../../../../core/Engine';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
-import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { AccountListBottomSheetSelectorsIDs } from '../../AccountSelector/AccountListBottomSheet.testIds';
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../AccountConnect/ConnectAccountBottomSheet.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import {
   createMockAccountsControllerState,
   createMockUuidFromAddress,
@@ -26,16 +27,17 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { RpcEndpointType, NetworkStatus } from '@metamask/network-controller';
 import { WC2VerifyValidation } from '../../../../actions/sdk/state';
-import { AccountConnectMaliciousWarningSelectorsIDs } from '../../AccountConnect/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning.testIds';
+import { AccountConnectMaliciousWarningSelectorsIDs } from '../../MultichainAccounts/shared/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning.testIds';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn().mockReturnValue({
-  addProperties: jest.fn().mockReturnValue({
-    build: jest.fn(),
-  }),
-});
+const mockAddProperties = jest.fn().mockReturnValue({ build: jest.fn() });
+const mockCreateEventBuilder = jest
+  .fn()
+  .mockReturnValue({ addProperties: mockAddProperties });
 const mockGetNextAvailableAccountName = jest.fn().mockReturnValue('Account 3');
 
 // Generate consistent UUIDs for testing
@@ -56,12 +58,13 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
+jest.mocked(useAnalytics).mockReturnValue(
+  createMockUseAnalyticsHook({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
-}));
+);
 
 jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
   __esModule: true,
@@ -70,21 +73,6 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
     <>{children}</>
   ),
 }));
-
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    SafeAreaView: View,
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
 
 const mockRejectPermissionsRequest = jest.fn();
 const mockAcceptPermissionsRequest = jest.fn().mockResolvedValue(undefined);
@@ -178,7 +166,12 @@ jest.mock('../../../hooks/useFavicon/useFavicon', () =>
   jest.fn(() => 'favicon-url'),
 );
 
-jest.mock('../../../hooks/useOriginSource', () => jest.fn(() => 'test-source'));
+jest.mock('../../../hooks/useOriginSource', () =>
+  jest.fn(() => ({
+    source: 'in-app browser',
+    requestSource: 'In-App-Browser',
+  })),
+);
 
 jest.mock('../../../hooks/useSDKV2Connection/useSDKV2Connection', () => ({
   useSDKV2Connection: jest.fn(() => undefined),
@@ -408,6 +401,7 @@ const createMockState = (): DeepPartial<RootState> => ({
         MOCK_ADDRESS_1,
       ),
       AccountTreeController: {
+        selectedAccountGroup: MOCK_ACCOUNT_GROUP_1_ID,
         accountTree: {
           wallets: {
             [MOCK_WALLET_ID]: {
@@ -427,7 +421,6 @@ const createMockState = (): DeepPartial<RootState> => ({
               },
             },
           },
-          selectedAccountGroup: MOCK_ACCOUNT_GROUP_1_ID,
         },
       },
       NetworkController: {
@@ -502,6 +495,12 @@ mockIsUUID.mockReturnValue(false);
 describe('MultichainAccountConnect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   it('renders correctly with base request when there is no existing CAIP endowment', () => {
@@ -629,6 +628,12 @@ describe('MultichainAccountConnect', () => {
       sendTerminate: true,
     });
     expect(mockCreateEventBuilder).toHaveBeenCalled();
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'in-app browser',
+        request_source: 'In-App-Browser',
+      }),
+    );
   });
 
   it('handles confirm button press correctly', async () => {
@@ -684,6 +689,15 @@ describe('MultichainAccountConnect', () => {
         }),
       );
     });
+
+    await waitFor(() => {
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'in-app browser',
+          request_source: 'In-App-Browser',
+        }),
+      );
+    });
   });
 
   describe('Phishing detection', () => {
@@ -732,6 +746,12 @@ describe('MultichainAccountConnect', () => {
       mockUseSDKV2Connection.mockReset();
       mockUseSDKV2Connection.mockReturnValue(undefined);
       jest.clearAllMocks();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
     });
 
     it('handles MMSDK remote connection origin correctly', () => {
@@ -793,7 +813,7 @@ describe('MultichainAccountConnect', () => {
         ...createMockState(),
         sdk: {
           v2Connections: {},
-          wc2Metadata: { id: 'mock-wc2-id' },
+          wc2Metadata: { id: mockChannelId },
         },
       };
 
@@ -1396,6 +1416,12 @@ describe('MultichainAccountConnect', () => {
   describe('Phishing modal navigation functions coverage', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
     });
 
     it('creates phishing navigation callback functions', () => {
@@ -1483,6 +1509,12 @@ describe('MultichainAccountConnect', () => {
   describe('handleNetworksSelected function and network tab functionality', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
     });
 
     it('navigates to network selector screen when editing networks', async () => {
@@ -1826,11 +1858,97 @@ describe('MultichainAccountConnect', () => {
 
       expect(ethereumSelected).toBeTruthy();
     });
+
+    it('attaches accounts for namespaces added via the network editor (regression WPN-1704)', async () => {
+      // Simulates the WalletConnect eip155+tron repro: the permission request
+      // arrives with only a non-EVM chain scope, the user manually checks an
+      // EVM network on the edit-networks screen, and the granted permission
+      // must contain accounts for the newly added eip155 scope. Before the
+      // fix, selectedCaipAccountIds was not recomputed on network selection,
+      // so the eip155 scope was persisted with an empty accounts array.
+      const mockAcceptPermissions = jest.fn().mockResolvedValue(undefined);
+      Engine.context.PermissionController.acceptPermissionsRequest =
+        mockAcceptPermissions;
+      // No pre-existing permission for the origin.
+      (
+        Engine.context.PermissionController.getCaveat as jest.Mock
+      ).mockImplementation(() => {
+        throw new PermissionDoesNotExistError(
+          'Permission does not exist',
+          Caip25EndowmentPermissionName,
+        );
+      });
+
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'https://example.com',
+                },
+                permissions: createMockCaip25Permission({
+                  // Non-EVM chain scope only, as produced by the WC session
+                  // proposal handler when only an adapter namespace seeded
+                  // the caveat value.
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                    accounts: [],
+                  },
+                }),
+              },
+              permissionRequestId: 'test-network-editor-accounts-sync',
+            },
+          }}
+        />,
+        { state: createMockState() },
+      );
+
+      // Open the edit networks screen.
+      fireEvent.press(
+        getByTestId(
+          ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
+        ),
+      );
+
+      // Ethereum Mainnet is not pre-selected: only the requested non-EVM
+      // chain is.
+      const ethereumRow = await findByTestId('Ethereum Mainnet-not-selected');
+      fireEvent.press(within(ethereumRow).getByText('Ethereum Mainnet'));
+
+      // Confirm the network selection.
+      fireEvent.press(
+        await findByTestId('multiconnect-connect-network-button'),
+      );
+
+      // Approve the connection.
+      fireEvent.press(await findByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      await waitFor(() => {
+        expect(mockAcceptPermissions).toHaveBeenCalledTimes(1);
+      });
+
+      const caveatValue =
+        mockAcceptPermissions.mock.calls[0][0].permissions[
+          Caip25EndowmentPermissionName
+        ].caveats[0].value;
+
+      // The manually added eip155 scope must have accounts attached.
+      expect(caveatValue.optionalScopes['eip155:1']).toEqual({
+        accounts: [`eip155:1:${MOCK_ADDRESS_1}`],
+      });
+    });
   });
 
   describe('handleAccountGroupsSelected function tests', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
     });
 
     it('verifies handleAccountGroupsSelected updates component state after account selection', async () => {
@@ -2156,7 +2274,7 @@ describe('MultichainAccountConnect', () => {
         ...state,
         sdk: {
           wc2Metadata: {
-            id: 'mock-wc2-id',
+            id: 'wc-channel-id',
             url: 'https://malicious-dapp.com',
             name: 'Malicious Dapp',
             icon: '',
@@ -2190,6 +2308,12 @@ describe('MultichainAccountConnect', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
       mockGetConnection.mockReturnValue(undefined);
       mockIsUUID.mockReturnValue(false);
     });
@@ -2329,6 +2453,172 @@ describe('MultichainAccountConnect', () => {
       expect(
         queryByTestId(AccountConnectMaliciousWarningSelectorsIDs.CONTAINER),
       ).toBeNull();
+    });
+  });
+
+  describe('referrer in CONNECT_REQUEST_COMPLETED', () => {
+    const { useSDKV2Connection: mockUseSDKV2Connection } = jest.requireMock(
+      '../../../hooks/useSDKV2Connection/useSDKV2Connection',
+    );
+
+    beforeEach(() => {
+      mockGetConnection.mockReset();
+      mockGetConnection.mockReturnValue(undefined);
+      mockIsUUID.mockReset();
+      mockIsUUID.mockReturnValue(false);
+      mockUseSDKV2Connection.mockReset();
+      mockUseSDKV2Connection.mockReturnValue(undefined);
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+      Engine.context.PermissionController.acceptPermissionsRequest = jest
+        .fn()
+        .mockResolvedValue(undefined);
+    });
+
+    const renderForReferrer = (
+      origin: string,
+      stateOverrides: Partial<ReturnType<typeof createMockState>> = {},
+    ) =>
+      renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin,
+                  isEip1193Request: true,
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': { accounts: [] },
+                }),
+              },
+              permissionRequestId: 'test-referrer',
+            },
+          }}
+        />,
+        { state: { ...createMockState(), ...stateOverrides } },
+      );
+
+    it('uses the self-reported dapp url for SDKv2 (MMConnect) connections', async () => {
+      const channelId = '550e8400-e29b-41d4-a716-446655440000';
+      const dappUrl = 'https://mmconnect-dapp.com';
+      mockIsUUID.mockReturnValue(true);
+      mockUseSDKV2Connection.mockReturnValue({
+        isV2: true,
+        originatorInfo: { url: dappUrl, anonId: 'anon-1' },
+      });
+
+      const { getByTestId } = renderForReferrer(channelId);
+
+      fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ referrer: dappUrl }),
+        );
+      });
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ referrer: channelId }),
+      );
+    });
+
+    it('uses empty string referrer for SDKv2 connections without a self-reported dapp url', async () => {
+      const channelId = '550e8400-e29b-41d4-a716-446655440099';
+      mockIsUUID.mockReturnValue(true);
+      mockUseSDKV2Connection.mockReturnValue({
+        isV2: true,
+        originatorInfo: { anonId: 'anon-2' },
+      });
+
+      const { getByTestId } = renderForReferrer(channelId);
+
+      fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ referrer: '' }),
+        );
+      });
+      expect(mockAddProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining({ referrer: channelId }),
+      );
+    });
+
+    it('uses the self-reported dapp url for SDKv1 (legacy SDK) connections', async () => {
+      const channelId = '660e8400-e29b-41d4-a716-446655440111';
+      const dappUrl = 'https://sdkv1-dapp.com';
+      mockIsUUID.mockReturnValue(true);
+      mockGetConnection.mockReturnValue({
+        originatorInfo: { url: dappUrl },
+      });
+
+      const { getByTestId } = renderForReferrer(channelId);
+
+      fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ referrer: dappUrl }),
+        );
+      });
+    });
+
+    it('uses the wc2 url for WalletConnect connections', async () => {
+      const channelId = 'walletconnect-origin.com';
+      const wcUrl = 'https://wc-dapp.com';
+
+      const { getByTestId } = renderForReferrer(channelId, {
+        sdk: {
+          v2Connections: {},
+          wc2Metadata: { id: channelId, url: wcUrl },
+        },
+      });
+
+      fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ referrer: wcUrl }),
+        );
+      });
+    });
+
+    it('ignores stale wc2 metadata for in-app browser origins', async () => {
+      const origin = 'https://app.uniswap.org';
+
+      const { getByTestId } = renderForReferrer(origin, {
+        sdk: {
+          v2Connections: {},
+          wc2Metadata: {
+            id: 'stale-pairing-topic',
+            url: 'https://chikn.farm',
+          },
+        },
+      });
+
+      fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ referrer: origin }),
+        );
+      });
+    });
+
+    it('falls back to the hostname for non-SDK / non-WC connections', async () => {
+      const origin = 'https://example.com';
+
+      const { getByTestId } = renderForReferrer(origin);
+
+      fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({ referrer: origin }),
+        );
+      });
     });
   });
 });

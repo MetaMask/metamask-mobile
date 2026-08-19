@@ -35,39 +35,45 @@ const LINEA_MOCK_RESPONSES: Record<string, unknown> = {
 };
 
 /**
- * Generate ABI-encoded response for spendersAllowancesForTokens
- * Returns Result[][] where Result is (bool success, bytes data)
- * Each token has 2 spenders (global and US), each returning allowance of 0
+ * Generate ABI-encoded response for spendersAllowancesForTokens.
+ * Returns Result[][] where Result is (bool success, bytes data).
+ * Each token has 2 spenders (global and US).
+ *
+ * @param tokenAllowances - Per-token allowances (0=USDC,1=USDT,2=WETH,3=EURe,4=GBPe,5=aUSDC). Used for spender[0] (global); spender[1] (us) is always 0.
  */
-const generateSpendersAllowancesResponse = (numTokens: number): string => {
-  // ABI encode uint256(0) for allowance data
-  const zeroAllowanceData = ethers.utils.defaultAbiCoder.encode(
-    ['uint256'],
-    [0],
-  );
+const generateSpendersAllowancesResponse = (
+  tokenAllowances: (number | string)[],
+): string => {
+  const zeroData = ethers.utils.defaultAbiCoder.encode(['uint256'], [0]);
 
-  // Create Result tuples: (true, encodedZeroAllowance) for each spender
-  // 2 spenders per token: [global, us]
-  const resultTuple = [true, zeroAllowanceData];
+  const innerArrays = tokenAllowances.map((allowance) => {
+    const allowanceData = ethers.utils.defaultAbiCoder.encode(
+      ['uint256'],
+      [allowance],
+    );
+    return [
+      [true, allowanceData], // spender 0 (global)
+      [true, zeroData], // spender 1 (us)
+    ] as [boolean, string][];
+  });
 
-  // Create inner arrays (one per token, each with 2 Result tuples)
-  const innerArrays: [boolean, string][][] = [];
-  for (let i = 0; i < numTokens; i++) {
-    innerArrays.push([resultTuple, resultTuple] as [boolean, string][]);
-  }
-
-  // ABI encode the outer array of Result[][]
-  // Result is tuple(bool, bytes)
-  const encoded = ethers.utils.defaultAbiCoder.encode(
+  return ethers.utils.defaultAbiCoder.encode(
     ['tuple(bool,bytes)[][]'],
     [innerArrays],
   );
-
-  return encoded;
 };
 
-// Pre-compute the response for 6 tokens (matching clientConfig mock)
-const SPENDERS_ALLOWANCES_RESPONSE = generateSpendersAllowancesResponse(6);
+// USDC (index 0): allowance 200000000000 > ARBITRARY_ALLOWANCE (100000000000) → Active
+// All other tokens: 0 → Inactive
+// With USDC as the only Active token, BaanxProvider sets it as primaryAsset.
+const SPENDERS_ALLOWANCES_RESPONSE = generateSpendersAllowancesResponse([
+  200000000000, // USDC — Active
+  0, // USDT — Inactive
+  0, // WETH — Inactive
+  0, // EURe — Inactive
+  0, // GBPe — Inactive
+  0, // aUSDC — Inactive
+]);
 
 const clientConfig = {
   urlEndpoint:
@@ -251,6 +257,13 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
     .asPriority(1000)
     .thenCallback(createRpcCallback());
 
+  // Public Linea RPC fallback used by BaanxProvider.getOnChainAssets
+  // (LINEA_PUBLIC_RPC_URL) when Infura is unavailable.
+  await mockServer
+    .forPost('https://rpc.linea.build')
+    .asPriority(1000)
+    .thenCallback(createRpcCallback());
+
   // Mock Linea Tenderly RPC through the mobile proxy
   await mockServer
     .forPost('/proxy')
@@ -267,6 +280,16 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
       return url.includes('linea-mainnet.infura.io');
+    })
+    .asPriority(1000)
+    .thenCallback(createRpcCallback());
+
+  // Public Linea RPC through the mobile proxy
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      const url = getDecodedProxiedURL(request.url);
+      return url.includes('rpc.linea.build');
     })
     .asPriority(1000)
     .thenCallback(createRpcCallback());
@@ -321,4 +344,98 @@ export const testSpecificMock: TestSpecificMock = async (mockServer) => {
       '<html><head><title>Card</title></head><body>Card Dashboard</body></html>',
     responseCode: 200,
   });
+
+  // Token API single-token metadata on Linea (chainId 59144). When Card Home
+  // opens, ensureCardFundingTokensImported adds each configured funding token
+  // via TokensController.addToken, which fetches metadata from
+  // token.api.cx.metamask.io/token/59144?address=...&includeRwaData=true.
+  // Mock all such lookups so they don't hit live services and fail the
+  // unmocked-request guard during cleanup. The response echoes the requested
+  // address, mapping known card tokens to their symbol/decimals/name.
+  const LINEA_TOKEN_METADATA: Record<
+    string,
+    { symbol: string; decimals: number; name: string }
+  > = {
+    '0x176211869ca2b568f2a7d4ee941e073a821ee1ff': {
+      symbol: 'USDC',
+      decimals: 6,
+      name: 'USD Coin',
+    },
+    '0xa219439258ca9da29e9cc4ce5596924745e12b93': {
+      symbol: 'USDT',
+      decimals: 6,
+      name: 'Tether USD',
+    },
+    '0xe5d7c2a44ffddf6b295a15c148167daaaf5cf34f': {
+      symbol: 'WETH',
+      decimals: 18,
+      name: 'Wrapped Ether',
+    },
+    '0x3ff47c5bf409c86533fe1f4907524d304062428d': {
+      symbol: 'EURe',
+      decimals: 18,
+      name: 'EURe',
+    },
+    '0x3bce82cf1a2bc357f956dd494713fe11dc54780f': {
+      symbol: 'GBPe',
+      decimals: 18,
+      name: 'GBPe',
+    },
+    '0x374d7860c4f2f604de0191298dd393703cce84f3': {
+      symbol: 'aUSDC',
+      decimals: 6,
+      name: 'Aave USDC',
+    },
+  };
+
+  const buildLineaTokenResponse = (address: string) => {
+    const meta = LINEA_TOKEN_METADATA[address] ?? {
+      symbol: 'UNKNOWN',
+      decimals: 18,
+      name: 'Unknown Token',
+    };
+    return {
+      address,
+      symbol: meta.symbol,
+      decimals: meta.decimals,
+      name: meta.name,
+    };
+  };
+
+  const lineaTokenApiRegex =
+    /^https:\/\/token\.api\.cx\.metamask\.io\/token\/59144\?.*address=/i;
+
+  // Direct GET requests to the Token API
+  await mockServer
+    .forGet(lineaTokenApiRegex)
+    .asPriority(1000)
+    .thenCallback((request) => {
+      const address = (
+        new URL(request.url).searchParams.get('address') ?? ''
+      ).toLowerCase();
+      return {
+        statusCode: 200,
+        json: buildLineaTokenResponse(address),
+      };
+    });
+
+  // Proxied GET requests to the Token API
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) =>
+      getDecodedProxiedURL(request.url).includes(
+        'token.api.cx.metamask.io/token/59144',
+      ),
+    )
+    .asPriority(1000)
+    .thenCallback((request) => {
+      const proxiedUrl = getDecodedProxiedURL(request.url);
+      const address = (
+        new URL(proxiedUrl).searchParams.get('address') ?? ''
+      ).toLowerCase();
+      return {
+        statusCode: 200,
+        json: buildLineaTokenResponse(address),
+      };
+    });
 };

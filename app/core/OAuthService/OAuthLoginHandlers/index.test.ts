@@ -1,8 +1,29 @@
-import { Platform } from 'react-native';
-import { AuthConnection, HandleFlowParams } from '../OAuthInterface';
-import { createLoginHandler } from './index';
+import { AppState, Platform } from 'react-native';
+import {
+  AuthConnection,
+  HandleFlowParams,
+  LoginHandlerCodeResult,
+} from '../OAuthInterface';
+import { createLoginHandler, type CreateLoginHandlerOptions } from './index';
 import { OAuthError, OAuthErrorType } from '../error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
+
+/**
+ * Most suite cases expect Telegram login to be allowed; the factory no longer reads Redux,
+ * so tests opt in explicitly (mirrors UI passing `useSelector` state).
+ */
+function createLoginHandlerWithTelegramEnabledForTests(
+  os: Platform['OS'],
+  provider: AuthConnection,
+  fallback = false,
+  options?: CreateLoginHandlerOptions,
+) {
+  return createLoginHandler(os, provider, fallback, {
+    ...(provider === AuthConnection.Telegram
+      ? { telegramLoginEnabled: true, ...options }
+      : options),
+  });
+}
 
 const mockExpoAuthSessionPromptAsync = jest.fn().mockResolvedValue({
   type: 'success',
@@ -10,16 +31,64 @@ const mockExpoAuthSessionPromptAsync = jest.fn().mockResolvedValue({
     code: 'googleCode',
   },
 });
+const mockOpenAuthSessionAsync = jest.fn().mockResolvedValue({
+  type: 'success',
+  url: 'https://link.metamask.io/oauth-redirect?code=telegramCode&state=telegram-state',
+});
+const mockDeviceIsIos = jest.fn();
+const mockComparePlatformVersionTo = jest.fn();
+const mockGetIosGoogleConfig = jest.fn();
 
 jest.mock('./constants', () => ({
+  AuthConnectionConfig: {
+    android: {
+      google: {},
+      apple: {},
+      telegram: { clientId: 'mock-telegram-client-id' },
+    },
+    ios: {
+      google: {},
+      apple: {},
+      telegram: { clientId: 'mock-telegram-client-id' },
+    },
+  },
+  SupportedPlatforms: {
+    Android: 'android',
+    IOS: 'ios',
+  },
   AuthServerUrl: 'https://auth.example.com',
-  AppRedirectUri: 'https://app.example.com',
-  IosGID: 'mock-ios-google-client-id',
-  IosGoogleRedirectUri: 'mock-ios-google-redirect-uri',
-  AndroidGoogleWebGID: 'mock-android-google-client-id',
+  w3aAuthServerUrl: 'https://auth.example.com',
+  AppRedirectUri: 'https://link.metamask.io/oauth-redirect',
+  GoogleWebGID: 'mock-android-google-client-id',
+  GoogleRedirectUri: 'https://link.metamask.io/oauth-redirect',
   AppleWebClientId: 'mock-android-apple-client-id',
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
+  getIosGoogleConfig: (...args: unknown[]) => mockGetIosGoogleConfig(...args),
+  profileSyncEnv: 'dev',
 }));
+
+/** JWT-shaped string (payload decodes to JSON) for Telegram verify `token` field */
+const MOCK_TELEGRAM_VERIFY_JWT = 'x.eyJpZHBfc3ViIjoidGVsZWdyYW0tdGVzdCJ9.y';
+
+/** Each mock must return a fresh `Response` — body streams are consumed by `response.json()` */
+function createMintAuthSuccessResponse(): Response {
+  return new Response(
+    JSON.stringify({
+      access_token: 'access-token',
+      metadata_access_token: 'metadata-access-token',
+      refresh_token: 'refresh-token',
+      revoke_token: 'revoke-token',
+      id_token: 'id-token',
+      indexes: [1, 2, 3],
+      endpoints: {
+        'https://example.com': 'https://endpoint.example.com',
+      },
+    }),
+    {
+      status: 200,
+    },
+  );
+}
 
 jest.mock('expo-auth-session', () => ({
   AuthRequest: () => ({
@@ -30,6 +99,18 @@ jest.mock('expo-auth-session', () => ({
   }),
   CodeChallengeMethod: jest.fn(),
   ResponseType: jest.fn(),
+  Prompt: {
+    SelectAccount: 'select_account',
+    Login: 'login',
+    Consent: 'consent',
+    None: 'none',
+  },
+}));
+
+jest.mock('expo-web-browser', () => ({
+  __esModule: true,
+  openAuthSessionAsync: (...args: unknown[]) =>
+    mockOpenAuthSessionAsync(...args),
 }));
 
 const mockSignInAsync = jest.fn().mockResolvedValue({
@@ -62,15 +143,48 @@ jest.mock('@metamask/react-native-acm', () => ({
   signInWithGoogle: () => mockSignInWithGoogle(),
 }));
 
+jest.mock('../../../util/device', () => ({
+  __esModule: true,
+  default: {
+    isIos: (...args: unknown[]) => mockDeviceIsIos(...args),
+    comparePlatformVersionTo: (...args: unknown[]) =>
+      mockComparePlatformVersionTo(...args),
+  },
+}));
+
+const mockedOAuthConstants = jest.requireMock('./constants') as {
+  GoogleWebGID: string;
+};
+
 describe('OAuth login handlers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      value: 'active',
+    });
+    mockDeviceIsIos.mockReturnValue(false);
+    mockComparePlatformVersionTo.mockReturnValue(0);
+    mockGetIosGoogleConfig.mockReturnValue({
+      clientId: 'mock-android-google-client-id',
+      redirectUri: 'https://link.metamask.io/oauth-redirect',
+    });
   });
 
   for (const os of ['ios', 'android']) {
     for (const provider of Object.values(AuthConnection)) {
       it(`creates the correct login handler for ${os} and ${provider}`, async () => {
-        const handler = createLoginHandler(os as Platform['OS'], provider);
+        if (provider === AuthConnection.Telegram) {
+          mockOpenAuthSessionAsync.mockResolvedValueOnce({
+            type: 'success',
+            url: 'https://link.metamask.io/oauth-redirect?code=telegramCode&state=telegram-state',
+          });
+        }
+
+        const handler = createLoginHandlerWithTelegramEnabledForTests(
+          os as Platform['OS'],
+          provider,
+        );
         const result = await handler.login();
 
         expect(result?.authConnection).toBe(provider);
@@ -85,6 +199,12 @@ describe('OAuth login handlers', () => {
                 break;
               case AuthConnection.Google:
                 expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
+                expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
+                expect(mockSignInAsync).toHaveBeenCalledTimes(0);
+                break;
+              case AuthConnection.Telegram:
+                expect(mockOpenAuthSessionAsync).toHaveBeenCalledTimes(1);
+                expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(0);
                 expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
                 expect(mockSignInAsync).toHaveBeenCalledTimes(0);
                 break;
@@ -103,6 +223,12 @@ describe('OAuth login handlers', () => {
                 expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
                 expect(mockSignInAsync).toHaveBeenCalledTimes(0);
                 break;
+              case AuthConnection.Telegram:
+                expect(mockOpenAuthSessionAsync).toHaveBeenCalledTimes(1);
+                expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(0);
+                expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
+                expect(mockSignInAsync).toHaveBeenCalledTimes(0);
+                break;
             }
             break;
           }
@@ -110,7 +236,10 @@ describe('OAuth login handlers', () => {
       });
 
       it(`has correct scope and authServerPath for ${os} ${provider} handler`, async () => {
-        const handler = createLoginHandler(os as Platform['OS'], provider);
+        const handler = createLoginHandlerWithTelegramEnabledForTests(
+          os as Platform['OS'],
+          provider,
+        );
 
         switch (os) {
           case 'ios': {
@@ -122,6 +251,10 @@ describe('OAuth login handlers', () => {
               case AuthConnection.Google:
                 expect(handler.scope).toEqual(['email', 'profile', 'openid']);
                 expect(handler.authServerPath).toBe('api/v1/oauth/token');
+                break;
+              case AuthConnection.Telegram:
+                expect(handler.scope).toEqual(['openid']);
+                expect(handler.authServerPath).toBe('api/v1/oauth/mint');
                 break;
             }
             break;
@@ -139,35 +272,59 @@ describe('OAuth login handlers', () => {
                 expect(handler.scope).toEqual(['email', 'profile', 'openid']);
                 expect(handler.authServerPath).toBe('api/v1/oauth/id_token');
                 break;
+              case AuthConnection.Telegram:
+                expect(handler.scope).toEqual(['openid']);
+                expect(handler.authServerPath).toBe('api/v1/oauth/mint');
+                break;
             }
             break;
           }
         }
 
-        jest.spyOn(global, 'fetch').mockResolvedValueOnce(
-          new Response(
-            JSON.stringify({
-              access_token: 'access-token',
-              metadata_access_token: 'metadata-access-token',
-              refresh_token: 'refresh-token',
-              revoke_token: 'revoke-token',
-              id_token: 'id-token',
-              indexes: [1, 2, 3],
-              endpoints: {
-                'https://example.com': 'https://endpoint.example.com',
-              },
-            }),
-            {
-              status: 200,
+        const telegramVerifyResponse = new Response(
+          JSON.stringify({
+            token: MOCK_TELEGRAM_VERIFY_JWT,
+            expires_in: 3600,
+            profile: {
+              id: 'profile-id',
+              identifier_id: 'identifier-id',
+              identifier_type: 'TELEGRAM',
             },
-          ),
+          }),
+          { status: 200 },
         );
+
+        const hydraSuccessResponse = new Response(
+          JSON.stringify({
+            access_token: 'hydra-access-token',
+            expires_in: 3600,
+            scope: 'openid',
+            token_type: 'Bearer',
+          }),
+          { status: 200 },
+        );
+
+        const fetchSpy = jest.spyOn(global, 'fetch');
+
+        if (provider === AuthConnection.Telegram) {
+          fetchSpy
+            .mockResolvedValueOnce(telegramVerifyResponse)
+            .mockResolvedValueOnce(hydraSuccessResponse)
+            .mockResolvedValueOnce(createMintAuthSuccessResponse());
+        } else {
+          fetchSpy
+            .mockResolvedValueOnce(createMintAuthSuccessResponse())
+            .mockResolvedValueOnce(createMintAuthSuccessResponse());
+        }
 
         const mockAuthTokenParams: HandleFlowParams = {
           idToken: 'id-token',
           code: 'code',
+          state: 'telegram-state',
           authConnection: provider,
           clientId: 'mock-client-id',
+          redirectUri: 'https://app.example.com',
+          codeVerifier: 'mock-code-verifier',
           web3AuthNetwork: Web3AuthNetwork.Mainnet,
         };
 
@@ -292,6 +449,12 @@ describe('OAuth login handlers', () => {
     describe('iOS Google handler', () => {
       beforeEach(() => {
         jest.clearAllMocks();
+        mockDeviceIsIos.mockReturnValue(true);
+        mockComparePlatformVersionTo.mockReturnValue(0);
+        mockGetIosGoogleConfig.mockReturnValue({
+          clientId: 'mock-ios-google-client-id',
+          redirectUri: 'mock-ios-google-redirect-uri',
+        });
       });
 
       it('throw UserCancelled error when user cancels', async () => {
@@ -353,6 +516,57 @@ describe('OAuth login handlers', () => {
         const handler = createLoginHandler('ios', AuthConnection.Google);
 
         await expect(handler.login()).rejects.toThrow('Network error');
+      });
+
+      it('uses the legacy iOS Google config returned by the shared config helper', async () => {
+        mockGetIosGoogleConfig.mockReturnValue({
+          clientId: 'mock-ios-google-client-id',
+          redirectUri: 'mock-ios-google-redirect-uri',
+        });
+        mockExpoAuthSessionPromptAsync.mockResolvedValue({
+          type: 'success',
+          params: {
+            code: 'test-auth-code',
+          },
+        });
+
+        const handler = createLoginHandler('ios', AuthConnection.Google);
+        const result = await handler.login();
+
+        expect(result?.authConnection).toBe(AuthConnection.Google);
+        expect((result as LoginHandlerCodeResult)?.code).toBe('test-auth-code');
+        expect((result as LoginHandlerCodeResult)?.clientId).toBe(
+          'mock-ios-google-client-id',
+        );
+        expect((result as LoginHandlerCodeResult)?.redirectUri).toBe(
+          'mock-ios-google-redirect-uri',
+        );
+        expect(mockGetIosGoogleConfig).toHaveBeenCalledTimes(1);
+        expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
+      });
+
+      it('uses the web Google config returned by the shared config helper', async () => {
+        mockGetIosGoogleConfig.mockReturnValue({
+          clientId: 'mock-android-google-client-id',
+          redirectUri: 'https://link.metamask.io/oauth-redirect',
+        });
+        mockExpoAuthSessionPromptAsync.mockResolvedValue({
+          type: 'success',
+          params: {
+            code: 'test-auth-code',
+          },
+        });
+
+        const handler = createLoginHandler('ios', AuthConnection.Google);
+
+        await expect(handler.login()).resolves.toMatchObject({
+          authConnection: AuthConnection.Google,
+          code: 'test-auth-code',
+          clientId: 'mock-android-google-client-id',
+          redirectUri: 'https://link.metamask.io/oauth-redirect',
+        });
+        expect(mockGetIosGoogleConfig).toHaveBeenCalledTimes(1);
+        expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -487,7 +701,7 @@ describe('OAuth login handlers', () => {
           expect(error).toBeInstanceOf(OAuthError);
           expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
           expect((error as OAuthError).message).toContain(
-            'Unknown error - Error: Network error',
+            'Unknown error - Network error',
           );
         }
       });
@@ -509,8 +723,7 @@ describe('OAuth login handlers', () => {
         }
       });
 
-      // no credentials
-      it('throw GoogleLoginNoCredential when no credentials are found', async () => {
+      it('treats "no credential" as UserCancelled', async () => {
         const message = 'e1 error Mo.m: No credential available';
         mockSignInWithGoogle.mockRejectedValue(new Error(message));
 
@@ -519,30 +732,8 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(
-            OAuthErrorType.GoogleLoginNoCredential,
-          );
-          expect((error as OAuthError).message).toContain(
-            `Google login has no credential - handleGoogleLogin: Google login has no credential`,
-          );
+          expect((error as OAuthError).code).toBe(OAuthErrorType.UserCancelled);
         }
-      });
-
-      // retry successfy when there is only once no credentials
-      it('verify successful login after a retry when no credentials are found on the first attempt', async () => {
-        const message = 'e1 error Mo.m: No credential available';
-        mockSignInWithGoogle.mockClear();
-        mockSignInWithGoogle.mockResolvedValue({
-          type: 'google-signin',
-          idToken: 'googleIdToken',
-        });
-        mockSignInWithGoogle.mockRejectedValueOnce(new Error(message));
-
-        const handler = createLoginHandler('android', AuthConnection.Google);
-        await handler.login();
-
-        expect(mockSignInWithGoogle).toHaveBeenCalledTimes(2);
-        expect(mockSignInAsync).toHaveBeenCalledTimes(0);
       });
 
       it('throw GoogleLoginNoMatchingCredential when no matching credential is found', async () => {
@@ -562,24 +753,6 @@ describe('OAuth login handlers', () => {
             `Google login has no matching credential - handleGoogleLogin: Google login has no matching credential`,
           );
         }
-      });
-
-      // retry successfy when there is only once no credentials
-      it('verify successful login after a retry when no matching credential is found on the first attempt', async () => {
-        const message =
-          'During begin signin, failure response from one tap. 16: [28433] Cannot find matching credential error';
-        mockSignInWithGoogle.mockClear();
-        mockSignInWithGoogle.mockResolvedValue({
-          type: 'google-signin',
-          idToken: 'googleIdToken',
-        });
-        mockSignInWithGoogle.mockRejectedValueOnce(new Error(message));
-
-        const handler = createLoginHandler('android', AuthConnection.Google);
-        await handler.login();
-
-        expect(mockSignInWithGoogle).toHaveBeenCalledTimes(2);
-        expect(mockSignInAsync).toHaveBeenCalledTimes(0);
       });
 
       it('re-throw existing OAuthError instances', async () => {
@@ -635,23 +808,65 @@ describe('OAuth login handlers', () => {
           );
         }
       });
+    });
+  });
 
-      it('verify successful login after a retry when one tap failure occurs on the first attempt', async () => {
-        const message =
-          'During begin signin, failure response from one tap. 16: [28434] Unknown error';
-        mockSignInWithGoogle.mockClear();
-        mockSignInWithGoogle.mockResolvedValue({
-          type: 'google-signin',
-          idToken: 'googleIdToken',
-        });
-        mockSignInWithGoogle.mockRejectedValueOnce(new Error(message));
+  describe('Seedless Telegram login feature flag', () => {
+    it('throws OAuthError when Telegram is disabled', () => {
+      expect(() => createLoginHandler('ios', AuthConnection.Telegram)).toThrow(
+        OAuthError,
+      );
+      expect(() => createLoginHandler('ios', AuthConnection.Telegram)).toThrow(
+        'Telegram login is not available',
+      );
+    });
 
-        const handler = createLoginHandler('android', AuthConnection.Google);
-        await handler.login();
+    it('throws OAuthError when Telegram flag option is explicitly false', () => {
+      expect(() =>
+        createLoginHandler('ios', AuthConnection.Telegram, false, {
+          telegramLoginEnabled: false,
+        }),
+      ).toThrow(OAuthError);
+    });
 
-        expect(mockSignInWithGoogle).toHaveBeenCalledTimes(2);
-        expect(mockSignInAsync).toHaveBeenCalledTimes(0);
-      });
+    it('constructs Telegram handler when telegramLoginEnabled is true', () => {
+      const handler = createLoginHandler(
+        'ios',
+        AuthConnection.Telegram,
+        false,
+        {
+          telegramLoginEnabled: true,
+        },
+      );
+      expect(handler.authConnection).toBe(AuthConnection.Telegram);
+    });
+  });
+
+  describe('factory validation', () => {
+    it('throws when required environment variables are missing', () => {
+      const originalGoogleWebGID = mockedOAuthConstants.GoogleWebGID;
+
+      try {
+        mockedOAuthConstants.GoogleWebGID = '';
+
+        expect(() => createLoginHandler('ios', AuthConnection.Google)).toThrow(
+          'Missing environment variables',
+        );
+      } finally {
+        mockedOAuthConstants.GoogleWebGID = originalGoogleWebGID;
+      }
+    });
+
+    it('throws OAuthError for invalid iOS providers', () => {
+      expect(() =>
+        createLoginHandler('ios', 'invalid' as AuthConnection),
+      ).toThrow(OAuthError);
+    });
+
+    it('throws OAuthError for invalid Android providers', () => {
+      expect(() =>
+        createLoginHandler('android', 'invalid' as AuthConnection),
+      ).toThrow(OAuthError);
     });
   });
 });

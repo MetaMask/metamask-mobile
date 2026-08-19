@@ -9,14 +9,15 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import AppConstants from '../../../../../core/AppConstants';
 import createStyles from './FiatOnTestnetsFriction.styles';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Text from '../../../../Base/Text';
 import { useDispatch } from 'react-redux';
 import { setShowFiatOnTestnets } from '../../../../../../app/actions/settings';
@@ -25,7 +26,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 const FiatOnTestnetsFriction = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -66,28 +67,30 @@ const FiatOnTestnetsFriction = () => {
         <View style={styles.buttonsContainer}>
           <Button
             testID={FiatOnTestnetsBottomSheetSelectorsIDs.CANCEL_BUTTON}
-            variant={ButtonVariants.Secondary}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Secondary}
+            isFullWidth
             size={ButtonSize.Lg}
             style={styles.button}
             accessibilityRole={'button'}
             accessible
-            label={strings('navigation.cancel')}
             onPress={() => sheetRef.current?.onCloseBottomSheet()}
-          />
+          >
+            {strings('navigation.cancel')}
+          </Button>
           <Button
             testID={FiatOnTestnetsBottomSheetSelectorsIDs.CONTINUE_BUTTON}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Primary}
+            isFullWidth
             size={ButtonSize.Lg}
             style={styles.button}
             accessibilityRole={'button'}
-            label={strings('app_settings.show_fiat_on_testnets_modal_button')}
             onPress={() => {
               dispatch(setShowFiatOnTestnets(true));
               sheetRef.current?.onCloseBottomSheet();
             }}
-          />
+          >
+            {strings('app_settings.show_fiat_on_testnets_modal_button')}
+          </Button>
         </View>
       </View>
     </BottomSheet>

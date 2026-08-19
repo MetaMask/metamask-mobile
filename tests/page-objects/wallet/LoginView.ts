@@ -1,66 +1,46 @@
 import { LoginViewSelectors } from '../../../app/components/Views/Login/LoginView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-  asPlaywrightElement,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
-import { OnboardingSelectorText } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
+import Assertions from '../../framework/Assertions';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class LoginView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(LoginViewSelectors.CONTAINER);
   }
 
   get passwordInput(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(LoginViewSelectors.PASSWORD_INPUT),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(LoginViewSelectors.PASSWORD_INPUT, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            LoginViewSelectors.PASSWORD_INPUT,
-          ),
-      },
-    });
+    // Android: match the inner EditText via content-desc (UiAutomator).
+    // iOS: testID resolves via Matchers.getElementByID.
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByAndroidUIAutomator(
+        `.description("${LoginViewSelectors.PASSWORD_INPUT}")`,
+      );
+    }
+    return Matchers.getElementByID(LoginViewSelectors.PASSWORD_INPUT);
   }
 
-  get forgotPasswordButton(): DetoxElement {
+  get forgotPasswordButton(): EncapsulatedElementType {
     return Matchers.getElementByID(LoginViewSelectors.RESET_WALLET);
   }
 
-  get rememberMeSwitch(): DetoxElement {
+  get rememberMeSwitch(): EncapsulatedElementType {
     return Matchers.getElementByID(LoginViewSelectors.REMEMBER_ME_SWITCH);
   }
 
   get loginButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(LoginViewSelectors.LOGIN_BUTTON_ID),
-      appium: () =>
-        PlaywrightMatchers.getElementByText(
-          OnboardingSelectorText.UNLOCK_BUTTON,
-        ),
-    });
+    return Matchers.getElementByID(LoginViewSelectors.LOGIN_BUTTON_ID);
   }
 
   get title(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(LoginViewSelectors.TITLE_ID),
-      appium: () =>
-        PlaywrightMatchers.getElementById(LoginViewSelectors.LOGIN_BUTTON_ID),
-    });
+    return Matchers.getElementByID(LoginViewSelectors.TITLE_ID);
   }
 
   async enterPassword(password: string): Promise<void> {
-    await UnifiedGestures.typeText(this.passwordInput, password, {
-      description: 'Password Input',
+    await Gestures.typeText(this.passwordInput, password, {
+      elemDescription: 'Password Input',
+      hideKeyboard: false,
     });
   }
 
@@ -77,17 +57,19 @@ class LoginView {
   }
 
   async tapLoginButton(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.loginButton, {
-      description: 'Login Button',
+    await Gestures.waitAndTap(this.loginButton, {
+      elemDescription: 'Login Button',
+      checkForDisplayed: true,
+      checkEnabled: true,
+      waitForInteractive: true,
+      timeout: 10_000,
     });
   }
 
   async waitForScreenToDisplay(): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const element = await asPlaywrightElement(this.title);
-        await element.waitForDisplayed({ timeout: 15000 });
-      },
+    await Assertions.expectElementToBeVisible(this.title, {
+      timeout: 15000,
+      description: 'Login title should be visible',
     });
   }
 }

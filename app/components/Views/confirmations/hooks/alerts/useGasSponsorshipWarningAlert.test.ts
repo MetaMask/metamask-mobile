@@ -8,14 +8,23 @@ import type { Hex } from '@metamask/utils';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useGasSponsorshipWarningAlert } from './useGasSponsorshipWarningAlert';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { AlertKeys } from '../../constants/alerts';
+import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { NETWORKS_CHAIN_ID } from '../../../../../constants/network';
+import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
+import { useConfirmActions } from '../useConfirmActions';
+import { useIsGasSponsored } from '../gas/useIsGasSponsored';
 
+jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
+  useRampNavigation: jest.fn(),
+}));
+jest.mock('../useConfirmActions', () => ({
+  useConfirmActions: jest.fn(),
+}));
 jest.mock('../transactions/useTransactionMetadataRequest');
-jest.mock('../gas/useIsGaslessSupported');
+jest.mock('../gas/useIsGasSponsored');
 
 const MONAD_CHAIN_ID = NETWORKS_CHAIN_ID.MONAD as Hex;
 const MAINNET_CHAIN_ID = '0x1' as Hex;
@@ -52,15 +61,22 @@ describe('useGasSponsorshipWarningAlert', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
-  const mockUseIsGaslessSupported = jest.mocked(useIsGaslessSupported);
+  const mockUseRampNavigation = jest.mocked(useRampNavigation);
+  const mockUseConfirmActions = jest.mocked(useConfirmActions);
+  const mockUseIsGasSponsored = jest.mocked(useIsGasSponsored);
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseIsGaslessSupported.mockReturnValue({
-      isSupported: true,
-      isSmartTransaction: false,
-      pending: false,
+    mockUseConfirmActions.mockReturnValue({
+      onReject: jest.fn(),
+      onConfirm: jest.fn(),
     });
+    mockUseRampNavigation.mockReturnValue({
+      goToBuy: jest.fn(),
+      goToAggregator: jest.fn(),
+      goToSell: jest.fn(),
+    });
+    mockUseIsGasSponsored.mockReturnValue(true);
   });
 
   describe('returns warning alert', () => {
@@ -80,11 +96,11 @@ describe('useGasSponsorshipWarningAlert', () => {
 
       expect(result.current).toHaveLength(1);
       expect(result.current[0]).toMatchObject({
-        isBlocking: false,
+        isBlocking: true,
         key: AlertKeys.GasSponsorshipReserveBalance,
         field: RowAlertKey.EstimatedFee,
-        severity: Severity.Warning,
-        title: 'Gas sponsorship unavailable',
+        severity: Severity.Danger,
+        title: 'Reserve balance is required',
       });
     });
 
@@ -115,7 +131,6 @@ describe('useGasSponsorshipWarningAlert', () => {
       const { result } = renderHookWithProvider(() =>
         useGasSponsorshipWarningAlert(),
       );
-
       expect(result.current).toHaveLength(1);
     });
   });
@@ -127,7 +142,6 @@ describe('useGasSponsorshipWarningAlert', () => {
       const { result } = renderHookWithProvider(() =>
         useGasSponsorshipWarningAlert(),
       );
-
       expect(result.current).toEqual([]);
     });
 
@@ -141,7 +155,6 @@ describe('useGasSponsorshipWarningAlert', () => {
       const { result } = renderHookWithProvider(() =>
         useGasSponsorshipWarningAlert(),
       );
-
       expect(result.current).toEqual([]);
     });
 
@@ -202,31 +215,11 @@ describe('useGasSponsorshipWarningAlert', () => {
       const { result } = renderHookWithProvider(() =>
         useGasSponsorshipWarningAlert(),
       );
-
       expect(result.current).toEqual([]);
     });
 
-    it('when isGasFeeSponsored is true', () => {
-      const transactionMeta = createMockTransactionMeta({
-        chainId: MONAD_CHAIN_ID,
-        isGasFeeSponsored: true,
-        simulationData: createMockSimulationData(['reserve balance violation']),
-      });
-      mockUseTransactionMetadataRequest.mockReturnValue(transactionMeta);
-
-      const { result } = renderHookWithProvider(() =>
-        useGasSponsorshipWarningAlert(),
-      );
-
-      expect(result.current).toEqual([]);
-    });
-
-    it('when gasless is not supported on the network', () => {
-      mockUseIsGaslessSupported.mockReturnValue({
-        isSupported: false,
-        isSmartTransaction: false,
-        pending: false,
-      });
+    it('when gas sponsorship is not supported for this transaction', () => {
+      mockUseIsGasSponsored.mockReturnValue(false);
       const transactionMeta = createMockTransactionMeta({
         chainId: MONAD_CHAIN_ID,
         isGasFeeSponsored: false,
@@ -237,7 +230,6 @@ describe('useGasSponsorshipWarningAlert', () => {
       const { result } = renderHookWithProvider(() =>
         useGasSponsorshipWarningAlert(),
       );
-
       expect(result.current).toEqual([]);
     });
 
@@ -245,6 +237,43 @@ describe('useGasSponsorshipWarningAlert', () => {
       const transactionMeta = createMockTransactionMeta({
         chainId: undefined as unknown as Hex,
         simulationData: createMockSimulationData(['reserve balance violation']),
+      });
+      mockUseTransactionMetadataRequest.mockReturnValue(transactionMeta);
+
+      const { result } = renderHookWithProvider(() =>
+        useGasSponsorshipWarningAlert(),
+      );
+      expect(result.current).toEqual([]);
+    });
+
+    it.each(MM_PAY_TRANSACTION_TYPES)(
+      'when transaction type is MM Pay type %s',
+      (transactionType: TransactionType) => {
+        const transactionMeta = createMockTransactionMeta({
+          type: transactionType,
+          chainId: MONAD_CHAIN_ID,
+          isGasFeeSponsored: false,
+          simulationData: createMockSimulationData([
+            'reserve balance violation',
+          ]),
+        });
+        mockUseTransactionMetadataRequest.mockReturnValue(transactionMeta);
+
+        const { result } = renderHookWithProvider(() =>
+          useGasSponsorshipWarningAlert(),
+        );
+
+        expect(result.current).toEqual([]);
+      },
+    );
+
+    it('when nested transaction type is an MM Pay type', () => {
+      const transactionMeta = createMockTransactionMeta({
+        type: TransactionType.contractInteraction,
+        chainId: MONAD_CHAIN_ID,
+        isGasFeeSponsored: false,
+        simulationData: createMockSimulationData(['reserve balance violation']),
+        nestedTransactions: [{ type: TransactionType.perpsDeposit }],
       });
       mockUseTransactionMetadataRequest.mockReturnValue(transactionMeta);
 
@@ -270,7 +299,6 @@ describe('useGasSponsorshipWarningAlert', () => {
       const { result } = renderHookWithProvider(() =>
         useGasSponsorshipWarningAlert(),
       );
-
       expect(result.current).toHaveLength(1);
     });
 
@@ -289,7 +317,6 @@ describe('useGasSponsorshipWarningAlert', () => {
       const { result } = renderHookWithProvider(() =>
         useGasSponsorshipWarningAlert(),
       );
-
       expect(result.current).toHaveLength(1);
     });
   });

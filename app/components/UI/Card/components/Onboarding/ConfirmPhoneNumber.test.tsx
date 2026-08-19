@@ -6,6 +6,15 @@ import { useNavigation } from '@react-navigation/native';
 import ConfirmPhoneNumber from './ConfirmPhoneNumber';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { CardActions, CardScreens } from '../../util/metrics';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+}));
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -97,6 +106,36 @@ jest.mock('@metamask/design-system-react-native', () => {
       ),
     TextVariant: {
       BodyLg: 'BodyLg',
+    },
+    Button: ({
+      children,
+      testID,
+      onPress,
+      isDisabled,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      onPress?: () => void;
+      isDisabled?: boolean;
+      [key: string]: unknown;
+    }) => {
+      const { TouchableOpacity } = jest.requireActual('react-native');
+      return React.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: isDisabled, ...props },
+        React.createElement(Text, {}, children),
+      );
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
   };
 });
@@ -193,7 +232,10 @@ jest.mock('../../../../../component-library/components/Form/TextField', () => {
 });
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(),
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 // Mock i18n strings
@@ -309,19 +351,6 @@ describe('ConfirmPhoneNumber Component', () => {
       phoneNumber: '1234567890',
     });
 
-    // Set up useAnalytics mock
-    const { useAnalytics } = jest.requireMock(
-      '../../../../hooks/useAnalytics/useAnalytics',
-    );
-    useAnalytics.mockReturnValue({
-      trackEvent: jest.fn(),
-      createEventBuilder: jest.fn(() => ({
-        addProperties: jest.fn(() => ({
-          build: jest.fn(() => ({})),
-        })),
-      })),
-    });
-
     // Set up default mock returns for hooks
     const mockVerifyPhoneVerification = jest.fn().mockResolvedValue({
       user: { id: 'user-123', name: 'Test User' },
@@ -351,6 +380,51 @@ describe('ConfirmPhoneNumber Component', () => {
       jest.runOnlyPendingTimers();
     });
     jest.useRealTimers();
+  });
+
+  describe('Analytics', () => {
+    it('tracks CARD_VIEWED with CONFIRM_PHONE_NUMBER screen on mount', () => {
+      render(
+        <Provider store={store}>
+          <ConfirmPhoneNumber />
+        </Provider>,
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        screen: CardScreens.CONFIRM_PHONE_NUMBER,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks CARD_BUTTON_CLICKED with CONFIRM_PHONE_NUMBER_BUTTON when code is submitted', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmPhoneNumber />
+        </Provider>,
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+
+      const codeFieldInput = getByTestId('confirm-phone-number-code-field');
+      await act(async () => {
+        fireEvent.changeText(codeFieldInput, '123456');
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        action: CardActions.CONFIRM_PHONE_NUMBER_BUTTON,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
   });
 
   describe('Component Rendering', () => {
@@ -443,7 +517,7 @@ describe('ConfirmPhoneNumber Component', () => {
   describe('Continue Button', () => {
     it('should render continue button', () => {
       const store = createTestStore();
-      const { getByTestId } = render(
+      const { getByTestId, getByText } = render(
         <Provider store={store}>
           <ConfirmPhoneNumber />
         </Provider>,
@@ -451,7 +525,7 @@ describe('ConfirmPhoneNumber Component', () => {
 
       const button = getByTestId('confirm-phone-number-continue-button');
       expect(button).toBeTruthy();
-      expect(getByTestId('button-label')).toHaveTextContent('Continue');
+      expect(getByText('Continue')).toBeTruthy();
     });
 
     it('should be disabled when confirmation code is empty', () => {
@@ -463,7 +537,7 @@ describe('ConfirmPhoneNumber Component', () => {
       );
 
       const button = getByTestId('confirm-phone-number-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('should be disabled when confirmation code is incomplete', () => {
@@ -478,7 +552,7 @@ describe('ConfirmPhoneNumber Component', () => {
       fireEvent.changeText(codeFieldInput, '123');
 
       const button = getByTestId('confirm-phone-number-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('should be enabled when confirmation code is complete', () => {
@@ -493,7 +567,7 @@ describe('ConfirmPhoneNumber Component', () => {
       fireEvent.changeText(codeFieldInput, '123456');
 
       const button = getByTestId('confirm-phone-number-continue-button');
-      expect(button.props.disabled).toBe(false);
+      expect(button).not.toBeDisabled();
     });
 
     it('navigates to VERIFY_IDENTITY when continue button is pressed', async () => {
@@ -694,10 +768,12 @@ describe('ConfirmPhoneNumber Component', () => {
         </Provider>,
       );
 
-      expect(queryByTestId('confirm-phone-number-code-field-error')).toBeNull();
+      expect(
+        queryByTestId('confirm-phone-number-code-field-error'),
+      ).not.toBeOnTheScreen();
       expect(
         queryByTestId('confirm-phone-number-phone-number-error'),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('shows verification error when verifyIsError is true', () => {
@@ -833,7 +909,7 @@ describe('ConfirmPhoneNumber Component', () => {
       const continueButton = getByTestId(
         'confirm-phone-number-continue-button',
       );
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('has continue button disabled when code is incomplete', () => {
@@ -850,7 +926,7 @@ describe('ConfirmPhoneNumber Component', () => {
       );
 
       fireEvent.changeText(codeField, '12345');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('enables continue button when code is complete and valid', () => {
@@ -867,7 +943,7 @@ describe('ConfirmPhoneNumber Component', () => {
       );
 
       fireEvent.changeText(codeField, '123456');
-      expect(continueButton.props.disabled).toBe(false);
+      expect(continueButton).not.toBeDisabled();
     });
 
     it('disables continue button when verification is loading', () => {
@@ -892,7 +968,7 @@ describe('ConfirmPhoneNumber Component', () => {
       );
 
       fireEvent.changeText(codeField, '123456');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('disables continue button when verification has error', () => {
@@ -917,7 +993,7 @@ describe('ConfirmPhoneNumber Component', () => {
       );
 
       fireEvent.changeText(codeField, '123456');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
 
     it('disables continue button when required Redux state is missing', () => {
@@ -940,7 +1016,7 @@ describe('ConfirmPhoneNumber Component', () => {
       );
 
       fireEvent.changeText(codeField, '123456');
-      expect(continueButton.props.disabled).toBe(true);
+      expect(continueButton).toBeDisabled();
     });
   });
 

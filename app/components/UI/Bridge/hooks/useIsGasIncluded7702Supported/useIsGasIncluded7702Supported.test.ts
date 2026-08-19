@@ -7,8 +7,18 @@ import configureStore from '../../../../../util/test/configureStore';
 
 // Mock dependencies
 jest.mock('../../../../../util/transactions/transaction-relay');
+jest.mock('../useIsHardwareWalletForBridge', () => ({
+  useIsHardwareWalletForBridge: jest.fn().mockReturnValue(false),
+}));
 
 const mockIsRelaySupported = jest.mocked(isRelaySupported);
+const { useIsHardwareWalletForBridge } = jest.requireMock(
+  '../useIsHardwareWalletForBridge',
+);
+const mockUseIsHardwareWalletForBridge =
+  useIsHardwareWalletForBridge as jest.MockedFunction<
+    typeof useIsHardwareWalletForBridge
+  >;
 
 describe('useIsGasIncluded7702Supported', () => {
   const MAINNET_CHAIN_ID = '0x1' as Hex;
@@ -28,6 +38,7 @@ describe('useIsGasIncluded7702Supported', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsRelaySupported.mockResolvedValue(false);
+    mockUseIsHardwareWalletForBridge.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -144,6 +155,32 @@ describe('useIsGasIncluded7702Supported', () => {
       await waitFor(() => {
         expect(store.getState().bridge.isGasIncluded7702Supported).toBe(true);
       });
+    });
+  });
+
+  describe('when source wallet is a hardware account', () => {
+    it('updates isGasIncluded7702Supported to false even when relay is supported', async () => {
+      mockIsRelaySupported.mockResolvedValue(true);
+      mockUseIsHardwareWalletForBridge.mockReturnValue(true);
+
+      const { store } = renderHookWithProvider(
+        () => useIsGasIncluded7702Supported(MAINNET_CHAIN_ID),
+        { state: {} },
+      );
+
+      await expectGasIncluded7702State(store, false);
+    });
+
+    it('updates isGasIncluded7702Supported to false for hardware wallet regardless of chain', async () => {
+      mockIsRelaySupported.mockResolvedValue(true);
+      mockUseIsHardwareWalletForBridge.mockReturnValue(true);
+
+      const { store } = renderHookWithProvider(
+        () => useIsGasIncluded7702Supported('eip155:59144'), // Linea
+        { state: {} },
+      );
+
+      await expectGasIncluded7702State(store, false);
     });
   });
 

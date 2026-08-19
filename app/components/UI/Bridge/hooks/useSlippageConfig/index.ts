@@ -4,11 +4,16 @@ import { CaipChainId, Hex } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { BridgeSlippageConfig } from '../../types';
 import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { selectIsRwaSwap } from '../../../../../core/redux/slices/bridge';
 
 interface UseSlippageConfigOptions {
   sourceChainId?: CaipChainId | Hex;
   destChainId?: CaipChainId | Hex;
 }
+
+/** Aligns with Solana→Solana presets in `AppConstants.BRIDGE.SLIPPAGE_CONFIG` */
+const SLIPPAGE_OPTIONS_WITH_AUTO = ['auto', '0.5', '2'] as const;
 
 type SlippageConfig = BridgeSlippageConfig['__default__'];
 type PartialSlippageConfig = Partial<SlippageConfig>;
@@ -60,17 +65,28 @@ const mergeConfigs = (
  *   sourceChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
  *   destChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'
  * })
+ *
+ * When {@link selectIsRwaSwap} is true, default option list includes Auto (same UX as Solana same-chain).
  */
 export const useSlippageConfig = ({
   sourceChainId,
   destChainId,
 }: UseSlippageConfigOptions): SlippageConfig => {
+  const isRwaSwap = useSelector(selectIsRwaSwap);
   const defaultConfig = AppConstants.BRIDGE.SLIPPAGE_CONFIG.__default__;
 
   return useMemo(() => {
-    // No source chain = use defaults
+    const mergeRwaAutoOptions = (config: SlippageConfig): SlippageConfig =>
+      isRwaSwap
+        ? mergeConfigs(config, [
+            {
+              default_slippage_options: [...SLIPPAGE_OPTIONS_WITH_AUTO],
+            },
+          ])
+        : config;
+
     if (!sourceChainId) {
-      return defaultConfig;
+      return mergeRwaAutoOptions(defaultConfig);
     }
 
     try {
@@ -91,11 +107,10 @@ export const useSlippageConfig = ({
         destConfig = getOr({}, [sourceCaip, destCaip], slippageConfig);
       }
 
-      // Merge in priority order: default < wildcard < destination
-      return mergeConfigs(defaultConfig, [wildcardConfig, destConfig]);
+      const merged = mergeConfigs(defaultConfig, [wildcardConfig, destConfig]);
+      return mergeRwaAutoOptions(merged);
     } catch {
-      // Invalid chain ID format - return defaults
-      return defaultConfig;
+      return mergeRwaAutoOptions(defaultConfig);
     }
-  }, [defaultConfig, sourceChainId, destChainId]);
+  }, [defaultConfig, sourceChainId, destChainId, isRwaSwap]);
 };

@@ -39,6 +39,25 @@ jest.mock('../../../../core/Multichain/utils', () => ({
   isNonEvmChainId: (...args: unknown[]) => mockIsNonEvmChainId(...args),
 }));
 
+jest.mock(
+  '../../../../selectors/featureFlagController/assetsUnifyState',
+  () => ({
+    selectIsAssetsUnifyStateEnabled: jest.fn(() => false),
+  }),
+);
+
+jest.mock('../../TokenDetails/components/useAssetVisibility', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    assetId: undefined,
+    isCustomAsset: false,
+    isInAssetsBalance: false,
+    isHidden: false,
+    handleHideToken: jest.fn(),
+    handleAddCustomAsset: jest.fn(),
+  })),
+}));
+
 const makeToken = (overrides: Partial<TokenI> = {}): TokenI => ({
   address: '0xtoken1',
   name: 'Test Token',
@@ -62,7 +81,7 @@ describe('useRemoveToken', () => {
     const { result } = renderHook(() => useRemoveToken());
 
     expect(result.current.removeTokenState.isVisible).toBe(false);
-    expect(result.current.showScamWarningModal).toBe(false);
+    expect(result.current.showScamWarningModal).toBeNull();
   });
 
   it('sets removeTokenState visible when showRemoveMenu is called', () => {
@@ -162,21 +181,21 @@ describe('useRemoveToken', () => {
     expect(result.current.removeTokenState.isVisible).toBe(false);
   });
 
-  it('toggles showScamWarningModal via setShowScamWarningModal', () => {
+  it('sets and clears showScamWarningModal via setShowScamWarningModal', () => {
     const { result } = renderHook(() => useRemoveToken());
 
-    expect(result.current.showScamWarningModal).toBe(false);
+    expect(result.current.showScamWarningModal).toBeNull();
 
     act(() => {
-      result.current.setShowScamWarningModal(true);
+      result.current.setShowScamWarningModal('0x1');
     });
 
-    expect(result.current.showScamWarningModal).toBe(true);
+    expect(result.current.showScamWarningModal).toBe('0x1');
 
     act(() => {
-      result.current.setShowScamWarningModal(false);
+      result.current.setShowScamWarningModal(null);
     });
 
-    expect(result.current.showScamWarningModal).toBe(false);
+    expect(result.current.showScamWarningModal).toBeNull();
   });
 });

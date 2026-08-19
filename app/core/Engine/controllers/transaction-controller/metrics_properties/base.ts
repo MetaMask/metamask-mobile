@@ -2,6 +2,7 @@ import { merge } from 'lodash';
 import {
   TransactionType,
   type TransactionMeta,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 
 import type {
@@ -15,7 +16,6 @@ import {
   isValidHexAddress,
 } from '../../../../../util/address';
 import { getMethodData } from '../../../../../util/transactions';
-import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
 
 export async function getBaseMetricsProperties({
   transactionMeta,
@@ -62,12 +62,36 @@ export function getTransactionTypeValue(
     return 'predict_deposit';
   }
 
+  if (
+    hasTransactionType(transactionMeta, [
+      TransactionType.predictDepositAndOrder,
+    ])
+  ) {
+    return 'predict_deposit_and_order';
+  }
+
   if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
     return 'predict_withdraw';
   }
 
+  if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
+    return 'perps_withdraw';
+  }
+
   if (hasTransactionType(transactionMeta, [TransactionType.predictClaim])) {
     return 'predict_claim';
+  }
+
+  if (
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
+  ) {
+    return 'money_account_deposit';
+  }
+
+  if (
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
+  ) {
+    return 'money_account_withdraw';
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.musdConversion])) {
@@ -76,6 +100,26 @@ export function getTransactionTypeValue(
 
   if (hasTransactionType(transactionMeta, [TransactionType.musdClaim])) {
     return 'musd_claim';
+  }
+
+  if (transactionMeta?.type === TransactionType.batch) {
+    if (
+      hasTransactionType(transactionMeta, [TransactionType.perpsRelayDeposit])
+    ) {
+      return 'perps_deposit_batch';
+    }
+
+    if (
+      hasTransactionType(transactionMeta, [TransactionType.predictRelayDeposit])
+    ) {
+      return 'predict_deposit_batch';
+    }
+
+    if (
+      hasTransactionType(transactionMeta, [TransactionType.musdRelayDeposit])
+    ) {
+      return 'musd_conversion_batch';
+    }
   }
 
   switch (transactionType) {
@@ -91,6 +135,8 @@ export function getTransactionTypeValue(
       return 'perps_deposit';
     case TransactionType.perpsDepositAndOrder:
       return 'perps_deposit_and_order';
+    case TransactionType.musdRelayDeposit:
+      return 'musd_relay_deposit';
     case TransactionType.perpsRelayDeposit:
       return 'perps_relay_deposit';
     case TransactionType.predictRelayDeposit:

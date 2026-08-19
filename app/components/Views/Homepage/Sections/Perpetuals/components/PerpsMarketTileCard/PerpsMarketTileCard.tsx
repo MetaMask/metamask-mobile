@@ -1,6 +1,9 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, TouchableOpacity, View } from 'react-native';
 import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
   Text,
   TextColor,
   TextVariant,
@@ -24,6 +27,7 @@ const SPARKLINE_HEIGHT = 80;
 const SPARKLINE_STROKE_WIDTH = 2;
 const TOKEN_LOGO_SIZE = 40;
 const SHIMMER_PULSE_DURATION = 900;
+const SPARKLINE_MARGIN = 16;
 
 /**
  * PerpsMarketTileCard — compact card for horizontal carousels.
@@ -52,7 +56,7 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
     ? theme.colors.success.default
     : theme.colors.error.default;
 
-  const sparklineWidth = cardWidth;
+  const sparklineWidth = cardWidth - SPARKLINE_MARGIN * 2;
   const hasSparkline = sparklineData && sparklineData.length >= 2;
   const isSparklineLoading = sparklineData !== undefined && !hasSparkline;
 
@@ -100,28 +104,38 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
       testID={testID}
     >
       <View style={styles.content}>
-        <View style={styles.topRow}>
-          <View style={styles.symbolSection}>
-            <View style={styles.symbolRow}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Start}
+          gap={2}
+        >
+          <Box twClassName="flex-1 min-w-0">
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+              numberOfLines={1}
+            >
+              {getPerpsDisplaySymbol(market.symbol)}
+            </Text>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+            >
               <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
+                variant={TextVariant.BodySm}
+                color={
+                  isPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault
+                }
+                numberOfLines={1}
+                twClassName="shrink"
               >
-                {getPerpsDisplaySymbol(market.symbol)}
+                {changePercent}
               </Text>
               <PerpsLeverage maxLeverage={market.maxLeverage} />
-            </View>
-
-            <Text
-              variant={TextVariant.BodySm}
-              color={
-                isPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault
-              }
-            >
-              {changePercent}
-            </Text>
-          </View>
+            </Box>
+          </Box>
 
           <View style={styles.tokenLogoWrapper}>
             <PerpsTokenLogo
@@ -142,7 +156,7 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
               </View>
             )}
           </View>
-        </View>
+        </Box>
       </View>
 
       <View style={styles.sparklineContainer}>

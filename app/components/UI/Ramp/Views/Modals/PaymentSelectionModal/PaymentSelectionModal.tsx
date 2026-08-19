@@ -4,19 +4,19 @@ import type { PaymentMethod } from '@metamask/ramps-controller';
 import { useWindowDimensions, View, ScrollView } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
-import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
+  BottomSheet,
   Box,
   BoxAlignItems,
   BoxJustifyContent,
+  HeaderStandard,
+  Text,
+  TextColor,
+  TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './PaymentSelectionModal.styles';
@@ -28,9 +28,14 @@ import {
 import PaymentMethodListItem from './PaymentMethodListItem';
 import PaymentMethodListSkeleton from './PaymentMethodListSkeleton';
 import PaymentSelectionAlert from './PaymentSelectionAlert';
+import { PAYMENT_SELECTION_MODAL_TEST_IDS } from './PaymentSelectionModal.testIds';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
+import { useFormatters } from '../../../../../hooks/useFormatters';
+import { getProviderLimitMessage } from '../../../utils/getProviderLimitMessage';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
+import { getRampCallbackBaseUrl } from '../../../utils/getRampCallbackBaseUrl';
+import { isCustomAction } from '../../../types';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
@@ -54,7 +59,7 @@ function PaymentSelectionModal() {
   const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { amount: routeAmount, onPaymentMethodSelect } =
     useParams<PaymentSelectionModalParams>();
 
@@ -91,9 +96,9 @@ function PaymentSelectionModal() {
             amount,
             walletAddress,
             assetId,
+            redirectUrl: getRampCallbackBaseUrl(),
             providers: selectedProvider ? [selectedProvider.id] : undefined,
             paymentMethods: paymentMethodIds,
-            forceRefresh: true,
           }
         : null,
     [
@@ -119,7 +124,15 @@ function PaymentSelectionModal() {
         })
         .build(),
     );
-    navigation.navigate(Routes.RAMP.MODALS.PROVIDER_SELECTION, { amount });
+    // Close the payment sheet before opening provider selection. Stacking two
+    // modal screens leaves the amount input on BuildQuote invisible behind the
+    // nested overlays (TRAM-3750).
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.RAMP.MODALS.ID, {
+        screen: Routes.RAMP.MODALS.PROVIDER_SELECTION,
+        params: { amount },
+      });
+    });
   }, [
     navigation,
     amount,
@@ -156,17 +169,37 @@ function PaymentSelectionModal() {
 
   const currency = userRegion?.country?.currency ?? 'USD';
   const tokenSymbol = selectedToken?.symbol ?? '';
+  const { formatCurrency } = useFormatters();
 
   const renderPaymentMethod = useCallback(
     ({ item: paymentMethod }: { item: PaymentMethod }) => {
       const matchedQuote =
         quotes?.success?.find(
-          (quote) => quote.quote?.paymentMethod === paymentMethod.id,
+          (quote) =>
+            quote.quote?.paymentMethod === paymentMethod.id &&
+            !isCustomAction(quote),
         ) ?? null;
+      const hasSuccessQuoteForMethod = (quotes?.success ?? []).some(
+        (q) => q.quote?.paymentMethod === paymentMethod.id,
+      );
       const hasQuoteError =
-        !matchedQuote &&
-        (quotes?.error?.length ?? 0) > 0 &&
-        (quotes?.success?.length ?? 0) === 0;
+        !quotesLoading && quotes !== null && !hasSuccessQuoteForMethod;
+      const providerErrorMessage = selectedProvider
+        ? quotes?.error?.find(
+            (e) => e.provider === selectedProvider.id && e.error,
+          )?.error
+        : undefined;
+      const quoteErrorMessage = hasQuoteError
+        ? (getProviderLimitMessage({
+            provider: selectedProvider,
+            fiatCurrency: currency,
+            paymentMethodId: paymentMethod.id,
+            amount,
+            currency,
+            formatCurrency,
+            backendError: providerErrorMessage,
+          }) ?? strings('fiat_on_ramp.quote_unavailable'))
+        : undefined;
 
       return (
         <PaymentMethodListItem
@@ -177,6 +210,7 @@ function PaymentSelectionModal() {
           quote={matchedQuote}
           quoteLoading={quotesLoading}
           quoteError={hasQuoteError}
+          quoteErrorMessage={quoteErrorMessage}
           currency={currency}
           tokenSymbol={tokenSymbol}
         />
@@ -185,11 +219,13 @@ function PaymentSelectionModal() {
     [
       handlePaymentMethodPress,
       selectedPaymentMethod,
+      selectedProvider,
       amount,
       quotes,
       quotesLoading,
       currency,
       tokenSymbol,
+      formatCurrency,
     ],
   );
 
@@ -241,18 +277,16 @@ function PaymentSelectionModal() {
   };
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <View style={styles.containerOuter}>
         <View style={styles.paymentPanelContent}>
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="px-4 py-3"
-          >
-            <Text variant={TextVariant.HeadingMD}>
-              {strings('fiat_on_ramp.pay_with')}
-            </Text>
-          </Box>
+          <HeaderStandard
+            title={strings('fiat_on_ramp.pay_with')}
+            onClose={() => sheetRef.current?.onCloseBottomSheet()}
+            closeButtonProps={{
+              testID: PAYMENT_SELECTION_MODAL_TEST_IDS.HEADER_CLOSE_BUTTON,
+            }}
+          />
           {renderListContent()}
         </View>
         {selectedProvider ? (
@@ -261,21 +295,22 @@ function PaymentSelectionModal() {
             justifyContent={BoxJustifyContent.Center}
             style={styles.footer}
           >
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
               {strings('fiat_on_ramp.buying_via', {
                 providerName: selectedProvider.name,
               })}{' '}
               <Text
-                variant={TextVariant.BodySM}
+                variant={TextVariant.BodySm}
                 color={
-                  paymentMethodsLoading || paymentMethodsError
-                    ? TextColor.Alternative
-                    : TextColor.Primary
+                  paymentMethodsError
+                    ? TextColor.TextAlternative
+                    : TextColor.PrimaryDefault
                 }
                 onPress={
-                  paymentMethodsLoading || paymentMethodsError
-                    ? undefined
-                    : handleChangeProviderPress
+                  paymentMethodsError ? undefined : handleChangeProviderPress
                 }
               >
                 {strings('fiat_on_ramp.change_provider')}

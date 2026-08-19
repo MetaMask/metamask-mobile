@@ -1,5 +1,11 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { View } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { RefreshControl, ScrollViewProps, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
@@ -7,6 +13,7 @@ import {
   selectDeFiPositionsByAddress,
   selectDefiPositionsByEnabledNetworks,
 } from '../../../selectors/defiPositionsController';
+import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
 import styleSheet from './DeFiPositionsList.styles';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import {
@@ -29,18 +36,23 @@ import Icon, {
 import { useStyles } from '../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { DefiEmptyState } from '../DefiEmptyState';
-import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import Engine from '../../../core/Engine';
+import { useTheme } from '../../../util/theme';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import DeFiPositionsListV2 from '../Assets/DeFiPositions/components/DeFiPositionsListV2';
 
 export interface DeFiPositionsListProps {
   tabLabel: string;
   isFullView?: boolean;
+  analyticsSource?: string;
 }
 
-const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
+const DeFiPositionsListV1: React.FC<DeFiPositionsListProps> = ({
   isFullView = false,
+  analyticsSource,
 }) => {
   const { styles } = useStyles(styleSheet, undefined);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -51,9 +63,9 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
     selectDefiPositionsByEnabledNetworks,
   );
   const privacyMode = useSelector(selectPrivacyMode);
-  const isHomepageRedesignV1Enabled = useSelector(
-    selectHomepageRedesignV1Enabled,
-  );
+  const { colors } = useTheme();
+  const tw = useTailwind();
+  const [refreshing, setRefreshing] = useState(false);
 
   const formattedDeFiPositions = useMemo(() => {
     if (!defiPositions) {
@@ -91,6 +103,47 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
     return sortAssets(defiPositionsList, defiSortConfig);
   }, [defiPositions, tokenSortConfig, defiPositionsByEnabledNetworks]);
 
+  const handleDeFiRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Engine.context.DeFiPositionsController._executePoll();
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
+  const scrollViewProps = useMemo((): ScrollViewProps => {
+    const base: ScrollViewProps = {
+      testID: WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
+    };
+    if (!isFullView) {
+      return base;
+    }
+    const listLength = Array.isArray(formattedDeFiPositions)
+      ? formattedDeFiPositions.length
+      : 0;
+    return {
+      ...base,
+      refreshControl: (
+        <RefreshControl
+          colors={[colors.primary.default]}
+          tintColor={colors.icon.default}
+          refreshing={refreshing}
+          onRefresh={handleDeFiRefresh}
+        />
+      ),
+      ...(listLength === 0 ? { contentContainerStyle: tw`flex-grow` } : {}),
+    };
+  }, [
+    isFullView,
+    formattedDeFiPositions,
+    refreshing,
+    handleDeFiRefresh,
+    colors.primary.default,
+    colors.icon.default,
+    tw,
+  ]);
+
   useEffect(() => {
     if (
       !isFullView ||
@@ -106,10 +159,17 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
           location: 'homepage',
           is_empty: formattedDeFiPositions.length === 0,
           screen_type: 'defi',
+          ...(analyticsSource ? { source: analyticsSource } : {}),
         })
         .build(),
     );
-  }, [isFullView, formattedDeFiPositions, trackEvent, createEventBuilder]);
+  }, [
+    isFullView,
+    formattedDeFiPositions,
+    analyticsSource,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   if (!formattedDeFiPositions) {
     if (formattedDeFiPositions === undefined) {
@@ -157,27 +217,45 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
     </View>
   );
 
+  const listBody =
+    formattedDeFiPositions.length > 0 ? (
+      content
+    ) : (
+      <DefiEmptyState twClassName="mx-auto mt-4" />
+    );
+
   return (
     <View
-      style={
-        isFullView || !isHomepageRedesignV1Enabled ? styles.wrapper : undefined
-      }
+      style={isFullView ? styles.wrapper : undefined}
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
     >
       <DeFiPositionsControlBar />
-      {formattedDeFiPositions.length > 0 ? (
-        <ConditionalScrollView
-          isScrollEnabled={isFullView || !isHomepageRedesignV1Enabled}
-          scrollViewProps={{
-            testID: WalletViewSelectorsIDs.DEFI_POSITIONS_SCROLL_VIEW,
-          }}
-        >
-          {content}
-        </ConditionalScrollView>
-      ) : (
-        <DefiEmptyState twClassName="mx-auto mt-4" />
-      )}
+      <ConditionalScrollView
+        isScrollEnabled={isFullView}
+        scrollViewProps={isFullView ? scrollViewProps : undefined}
+      >
+        {listBody}
+      </ConditionalScrollView>
     </View>
+  );
+};
+
+/**
+ * DeFiPositionsList - homepage / full-view list of DeFi positions.
+ *
+ * Feature-flag switch: renders the V2 implementation when the V2 flag is on,
+ * otherwise the (unchanged) V1 implementation.
+ */
+const DeFiPositionsList: React.FC<DeFiPositionsListProps> = (props) => {
+  const isV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
+
+  return isV2Enabled ? (
+    <DeFiPositionsListV2
+      isFullView={props.isFullView ?? false}
+      analyticsSource={props.analyticsSource}
+    />
+  ) : (
+    <DeFiPositionsListV1 {...props} />
   );
 };
 

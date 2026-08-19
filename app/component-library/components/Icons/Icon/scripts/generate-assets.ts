@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* eslint-disable import/no-commonjs, import/no-nodejs-modules, import/no-nodejs-modules, no-console */
+/* eslint-disable import-x/no-commonjs, import-x/no-nodejs-modules, import-x/no-nodejs-modules, no-console */
 import fs from 'fs';
 import path from 'path';
 
@@ -41,7 +41,7 @@ const main = async () => {
 
   fs.appendFileSync(
     assetsModulePath,
-    `/* eslint-disable import/prefer-default-export */`,
+    `/* eslint-disable import-x/prefer-default-export */`,
   );
 
   fs.appendFileSync(

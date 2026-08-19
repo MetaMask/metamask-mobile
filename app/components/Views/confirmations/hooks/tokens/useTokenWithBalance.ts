@@ -14,17 +14,23 @@ import { selectTickerByChainId } from '../../../../../selectors/networkControlle
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 
 export function useTokenWithBalance(tokenAddress: Hex, chainId: Hex) {
+  const transactionMeta = useTransactionMetadataRequest();
+  const fromAddress = transactionMeta?.txParams?.from as Hex | undefined;
+
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
 
   const internalAccounts = useSelector(
     selectSelectedAccountGroupInternalAccounts,
   );
 
-  const selectedEvmAddress =
+  const globalEvmAddress =
     (internalAccounts.find((a) => a.type === 'eip155:eoa')?.address as Hex) ??
     selectedAddress;
+
+  const selectedEvmAddress = fromAddress ?? globalEvmAddress;
 
   const fiatFormatter = useFiatFormatter();
   const nativeTokenAddress = getNativeTokenAddress(chainId);

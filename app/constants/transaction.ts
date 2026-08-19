@@ -25,8 +25,9 @@ export const PREFIX_HEX_STRING = '0x';
 export const INTERNAL_ORIGINS = [
   process.env.MM_FOX_CODE,
   TransactionTypes.MMM,
+  TransactionTypes.MMM_CARD,
   ORIGIN_METAMASK,
-];
+].filter(Boolean);
 
 export enum EIP5792ErrorCode {
   UnsupportedNonOptionalCapability = 5700,

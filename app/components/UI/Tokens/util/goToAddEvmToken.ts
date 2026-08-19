@@ -1,16 +1,13 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import {
   AnalyticsEventBuilder,
   type AnalyticsTrackingEvent,
 } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 interface GoToAddEvmTokenProps {
-  navigation: NavigationProp<ParamListBase>;
-  trackEvent: (
-    event: AnalyticsTrackingEvent,
-    saveDataRecording?: boolean,
-  ) => void;
+  navigation: AppNavigationProp;
+  trackEvent: (event: AnalyticsTrackingEvent) => void;
   createEventBuilder: typeof AnalyticsEventBuilder.createEventBuilder;
   getDecimalChainId: (chainId: string) => number;
   currentChainId: string;

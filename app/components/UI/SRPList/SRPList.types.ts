@@ -1,7 +1,7 @@
-import { StyleProp, ViewStyle } from 'react-native';
+import type { ViewStyle } from 'react-native';
 
 export interface SRPListProps {
   onKeyringSelect: (id: string) => void;
-  containerStyle?: StyleProp<ViewStyle>;
+  containerStyle?: ViewStyle;
   showArrowName?: string;
 }

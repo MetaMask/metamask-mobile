@@ -2,11 +2,14 @@ import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PerpsTPSLView from './PerpsTPSLView';
 import { PERPS_EVENT_VALUE, type Position } from '@metamask/perps-controller';
+import { PerpsTPSLViewSelectorsIDs } from '../../Perps.testIds';
 
-// Mock dependencies
-jest.mock('react-native-reanimated', () =>
-  jest.requireActual('react-native-reanimated/mock'),
-);
+// react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
+
+jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
+  ...jest.requireActual('../../utils/perpsAnalyticsAttribution'),
+  getPerpsUtmAttributionProperties: jest.fn(() => ({})),
+}));
 
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: 'View',
@@ -24,33 +27,6 @@ jest.mock('react-native-gesture-handler', () => ({
 }));
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
-
-jest.mock('react-native-safe-area-context', () => {
-  const { View } = jest.requireActual('react-native');
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    SafeAreaView: jest
-      .fn()
-      .mockImplementation(({ children, ...props }) => (
-        <View {...props}>{children}</View>
-      )),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
-
-const mockUseTheme = jest.fn();
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: mockUseTheme,
-}));
-const { mockTheme: baseMockTheme } = jest.requireActual(
-  '../../../../../util/theme',
-);
 
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(() => ({})),
@@ -120,15 +96,6 @@ jest.mock('@react-navigation/native', () => ({
   useIsFocused: () => true,
 }));
 
-jest.mock('./PerpsTPSLView.styles', () => ({
-  createStyles: () => ({
-    container: {},
-    section: {},
-    inputRow: {},
-    keypadContainer: {},
-  }),
-}));
-
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
@@ -193,9 +160,12 @@ describe('PerpsTPSLView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTheme.mockReturnValue(baseMockTheme);
     mockUsePerpsTPSLForm.mockReturnValue(defaultMockReturn);
     mockRouteParams = { ...defaultRouteParams };
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   // ==================== Test Helpers ====================
@@ -209,16 +179,16 @@ describe('PerpsTPSLView', () => {
   };
 
   const getTakeProfitPriceInput = () =>
-    screen.getAllByPlaceholderText('perps.tpsl.trigger_price_placeholder')[0];
+    screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT);
 
   const getTakeProfitPercentageInput = () =>
-    screen.getByPlaceholderText('perps.tpsl.profit_roe_placeholder');
+    screen.getByTestId(PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PERCENTAGE_INPUT);
 
   const getStopLossPriceInput = () =>
-    screen.getAllByPlaceholderText('perps.tpsl.trigger_price_placeholder')[1];
+    screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT);
 
   const getStopLossPercentageInput = () =>
-    screen.getByPlaceholderText('perps.tpsl.loss_roe_placeholder');
+    screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_PERCENTAGE_INPUT);
 
   // ==================== User Interactions ====================
 
@@ -236,7 +206,7 @@ describe('PerpsTPSLView', () => {
       ],
     ])(
       'calls %s handler when user types',
-      (_description, getInput, handlerName) => {
+      async (_description, getInput, handlerName) => {
         const mockHandler = jest.fn();
         renderView({
           handlers: {
@@ -245,13 +215,15 @@ describe('PerpsTPSLView', () => {
           },
         });
 
-        fireEvent.changeText(getInput(), '123.45');
+        await act(async () => {
+          fireEvent.changeText(getInput(), '123.45');
+        });
 
         expect(mockHandler).toHaveBeenCalledWith('123.45');
       },
     );
 
-    it('calls take profit clear handler when Clear button pressed', () => {
+    it('calls take profit clear handler when Clear button pressed', async () => {
       const mockHandler = jest.fn();
       renderView({
         formState: {
@@ -264,13 +236,17 @@ describe('PerpsTPSLView', () => {
         },
       });
 
-      const clearButtons = screen.getAllByText('perps.tpsl.clear');
-      fireEvent.press(clearButtons[0]);
+      const clearButton = screen.getByTestId(
+        PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_CLEAR_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(clearButton);
+      });
 
       expect(mockHandler).toHaveBeenCalled();
     });
 
-    it('dismisses keyboard before clearing take profit when input is focused', () => {
+    it('dismisses keyboard before clearing take profit when input is focused', async () => {
       const mockHandler = jest.fn();
       renderView({
         formState: {
@@ -285,16 +261,22 @@ describe('PerpsTPSLView', () => {
 
       // Focus the input first to set internal focusedInput state
       const takeProfitInput = getTakeProfitPriceInput();
-      fireEvent(takeProfitInput, 'focus');
+      await act(async () => {
+        fireEvent(takeProfitInput, 'focus');
+      });
 
       // Now press clear
-      const clearButtons = screen.getAllByText('perps.tpsl.clear');
-      fireEvent.press(clearButtons[0]);
+      const clearButton = screen.getByTestId(
+        PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_CLEAR_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(clearButton);
+      });
 
       expect(mockHandler).toHaveBeenCalled();
     });
 
-    it('dismisses keyboard before clearing stop loss when input is focused', () => {
+    it('dismisses keyboard before clearing stop loss when input is focused', async () => {
       const mockHandler = jest.fn();
       renderView({
         formState: {
@@ -309,11 +291,17 @@ describe('PerpsTPSLView', () => {
 
       // Focus the input first to set internal focusedInput state
       const stopLossInput = getStopLossPriceInput();
-      fireEvent(stopLossInput, 'focus');
+      await act(async () => {
+        fireEvent(stopLossInput, 'focus');
+      });
 
       // Now press clear
-      const clearButtons = screen.getAllByText('perps.tpsl.clear');
-      fireEvent.press(clearButtons[0]);
+      const clearButton = screen.getByTestId(
+        PerpsTPSLViewSelectorsIDs.STOP_LOSS_CLEAR_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(clearButton);
+      });
 
       expect(mockHandler).toHaveBeenCalled();
     });
@@ -327,7 +315,14 @@ describe('PerpsTPSLView', () => {
         },
       });
 
-      expect(screen.queryByText('perps.tpsl.clear')).toBeNull();
+      expect(
+        screen.queryByTestId(
+          PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_CLEAR_BUTTON,
+        ),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_CLEAR_BUTTON),
+      ).toBeNull();
     });
 
     it.each([
@@ -353,7 +348,7 @@ describe('PerpsTPSLView', () => {
       ],
     ])(
       'prevents %s input exceeding 9 digits',
-      (_description, getInput, handlerName) => {
+      async (_description, getInput, handlerName) => {
         const mockHandler = jest.fn();
         renderView({
           handlers: {
@@ -362,7 +357,9 @@ describe('PerpsTPSLView', () => {
           },
         });
 
-        fireEvent.changeText(getInput(), '1234567890');
+        await act(async () => {
+          fireEvent.changeText(getInput(), '1234567890');
+        });
 
         expect(mockHandler).not.toHaveBeenCalled();
       },
@@ -395,7 +392,7 @@ describe('PerpsTPSLView', () => {
       ],
     ])(
       'handles focus and blur events for %s input',
-      (_description, getInput, focusHandler, blurHandler) => {
+      async (_description, getInput, focusHandler, blurHandler) => {
         const mockFocusHandler = jest.fn();
         const mockBlurHandler = jest.fn();
         renderView({
@@ -406,13 +403,85 @@ describe('PerpsTPSLView', () => {
           },
         });
 
-        fireEvent(getInput(), 'focus');
-        fireEvent(getInput(), 'blur');
+        await act(async () => {
+          fireEvent(getInput(), 'focus');
+        });
+        await act(async () => {
+          fireEvent(getInput(), 'blur');
+        });
 
         expect(mockFocusHandler).toHaveBeenCalled();
         expect(mockBlurHandler).toHaveBeenCalled();
       },
     );
+
+    it.each([
+      [
+        'take profit',
+        () => getTakeProfitPriceInput(),
+        () => getTakeProfitPercentageInput(),
+        'handleTakeProfitPriceBlur',
+        'handleTakeProfitPercentageFocus',
+      ],
+      [
+        'stop loss',
+        () => getStopLossPriceInput(),
+        () => getStopLossPercentageInput(),
+        'handleStopLossPriceBlur',
+        'handleStopLossPercentageFocus',
+      ],
+    ])(
+      // Regression: when the user moves focus from the price field to the %
+      // field, the price blur must be delivered regardless of the order in
+      // which focus/blur events arrive, so that hook focus state stays accurate.
+      'delivers %s price blur when focus moves from price to percentage field',
+      async (_description, getPriceInput, getPctInput, priceBlurHandler) => {
+        const mockPriceBlur = jest.fn();
+        renderView({
+          handlers: {
+            ...defaultMockReturn.handlers,
+            [priceBlurHandler]: mockPriceBlur,
+          },
+        });
+
+        await act(async () => {
+          fireEvent(getPriceInput(), 'focus');
+        });
+        await act(async () => {
+          fireEvent(getPctInput(), 'focus');
+        });
+        await act(async () => {
+          fireEvent(getPriceInput(), 'blur');
+        });
+
+        expect(mockPriceBlur).toHaveBeenCalled();
+      },
+    );
+
+    it.each([
+      ['take profit price', () => getTakeProfitPriceInput()],
+      ['take profit percentage', () => getTakeProfitPercentageInput()],
+      ['stop loss price', () => getStopLossPriceInput()],
+      ['stop loss percentage', () => getStopLossPercentageInput()],
+    ])(
+      'renders %s input with showSoftInputOnFocus={false}',
+      (_description, getInput) => {
+        renderView();
+        expect(getInput().props.showSoftInputOnFocus).toBe(false);
+      },
+    );
+
+    it('keeps the custom keypad available after focusing an input', async () => {
+      renderView();
+
+      await act(async () => {
+        fireEvent(getTakeProfitPriceInput(), 'focus');
+      });
+
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
+      ).toBeOnTheScreen();
+    });
   });
 
   // ==================== Display Hook Data ====================
@@ -464,11 +533,15 @@ describe('PerpsTPSLView', () => {
   // ==================== Navigation and Actions ====================
 
   describe('Navigation and Actions', () => {
-    it('navigates back when back button pressed', () => {
+    it('navigates back when back button pressed', async () => {
       renderView();
 
-      const backButton = screen.getByTestId('back-button');
-      fireEvent.press(backButton);
+      const backButton = screen.getByTestId(
+        PerpsTPSLViewSelectorsIDs.BACK_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(backButton);
+      });
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
@@ -482,43 +555,66 @@ describe('PerpsTPSLView', () => {
           takeProfitPrice: '$3,150.00',
           stopLossPrice: '$2,850.00',
         },
+        validation: {
+          ...defaultMockReturn.validation,
+          hasChanges: true,
+        },
       });
 
-      const setButton = screen.getByText('perps.tpsl.set');
+      const setButton = screen.getByTestId(
+        PerpsTPSLViewSelectorsIDs.SET_BUTTON,
+      );
       await act(async () => {
         fireEvent.press(setButton);
       });
 
-      expect(mockOnConfirm).toHaveBeenCalledWith('3150.00', '2850.00', {
-        direction: 'long',
-        source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
-        positionSize: 0,
-        takeProfitPercentage: undefined,
-        stopLossPercentage: undefined,
-        isEditingExistingPosition: false,
-        entryPrice: 3000,
-      });
+      expect(mockOnConfirm).toHaveBeenCalledWith(
+        undefined,
+        '3150.00',
+        '2850.00',
+        expect.objectContaining({
+          direction: 'long',
+          source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
+          positionSize: 0,
+          takeProfitPercentage: undefined,
+          stopLossPercentage: undefined,
+          isEditingExistingPosition: false,
+          entryPrice: 3000,
+        }),
+      );
     });
 
     it('calls onConfirm with undefined when values are empty', async () => {
       const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
       mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
-      renderView();
+      renderView({
+        validation: {
+          ...defaultMockReturn.validation,
+          hasChanges: true,
+        },
+      });
 
-      const setButton = screen.getByText('perps.tpsl.set');
+      const setButton = screen.getByTestId(
+        PerpsTPSLViewSelectorsIDs.SET_BUTTON,
+      );
       await act(async () => {
         fireEvent.press(setButton);
       });
 
-      expect(mockOnConfirm).toHaveBeenCalledWith(undefined, undefined, {
-        direction: 'long',
-        source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
-        positionSize: 0,
-        takeProfitPercentage: undefined,
-        stopLossPercentage: undefined,
-        isEditingExistingPosition: false,
-        entryPrice: 3000,
-      });
+      expect(mockOnConfirm).toHaveBeenCalledWith(
+        undefined,
+        undefined,
+        undefined,
+        expect.objectContaining({
+          direction: 'long',
+          source: PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
+          positionSize: 0,
+          takeProfitPercentage: undefined,
+          stopLossPercentage: undefined,
+          isEditingExistingPosition: false,
+          entryPrice: 3000,
+        }),
+      );
     });
 
     it('dismisses keypad before confirming when input is focused', async () => {
@@ -535,13 +631,23 @@ describe('PerpsTPSLView', () => {
         },
       });
 
-      fireEvent(getTakeProfitPriceInput(), 'focus');
+      await act(async () => {
+        fireEvent(getTakeProfitPriceInput(), 'focus');
+      });
 
-      const doneButton = screen.getByText('perps.tpsl.done');
-      fireEvent.press(doneButton);
+      const doneButton = screen.getByTestId(
+        PerpsTPSLViewSelectorsIDs.DONE_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(doneButton);
+      });
 
-      const setButton = screen.getByText('perps.tpsl.set');
-      fireEvent.press(setButton);
+      const setButton = screen.getByTestId(
+        PerpsTPSLViewSelectorsIDs.SET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(setButton);
+      });
 
       expect(mockOnConfirm).toHaveBeenCalled();
     });
@@ -553,8 +659,12 @@ describe('PerpsTPSLView', () => {
     it('shows action buttons when keypad is not active', () => {
       renderView();
 
-      expect(screen.getByText('perps.tpsl.cancel')).toBeOnTheScreen();
-      expect(screen.getByText('perps.tpsl.set')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.CANCEL_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -597,7 +707,9 @@ describe('PerpsTPSLView', () => {
       mockRouteParams = { ...defaultRouteParams, direction: 'short' };
       renderView();
 
-      expect(screen.getByTestId('back-button')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.BACK_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 });

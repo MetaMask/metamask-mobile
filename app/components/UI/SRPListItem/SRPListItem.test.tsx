@@ -17,7 +17,7 @@ import {
 import SRPListItem from './SRPListItem';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
@@ -73,6 +73,7 @@ const mockAccountGroup1 = {
     name: 'Account 1',
     pinned: false,
     hidden: false,
+    lastSelected: 0,
     entropy: { groupIndex: 0 },
   },
 };
@@ -85,6 +86,7 @@ const mockAccountGroup2 = {
     name: 'Account 2',
     pinned: false,
     hidden: false,
+    lastSelected: 0,
     entropy: { groupIndex: 1 },
   },
 };
@@ -106,8 +108,8 @@ const mockAccountTreeControllerState: DeepPartial<AccountTreeControllerState> =
           },
         },
       },
-      selectedAccountGroup: mockAccountGroupId1,
     },
+    selectedAccountGroup: mockAccountGroupId1,
   };
 
 const initialState = {
@@ -137,7 +139,7 @@ describe('SRPList', () => {
     );
     (useAnalytics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
     });
   });
 
@@ -217,7 +219,7 @@ describe('SRPList', () => {
     fireEvent.press(toggle);
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.SECRET_RECOVERY_PHRASE_PICKER_CLICKED,
       )
         .addProperties({

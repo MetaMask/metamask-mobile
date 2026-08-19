@@ -16,7 +16,7 @@ export const MODEL_PRICING: Record<
 > = {
   'gpt-5.2-chat-latest': { inputPerM: 1.75, outputPerM: 14.0 },
   'claude-sonnet-4-6': { inputPerM: 3.0, outputPerM: 15.0 },
-  'gemini-2.0-flash': { inputPerM: 0.1, outputPerM: 0.4 },
+  'gemini-2.5-flash': { inputPerM: 0.1, outputPerM: 0.4 },
 };
 
 /**
@@ -28,8 +28,9 @@ export const LLM_CONFIG = {
   /**
    * Provider priority order for automatic fallback
    * The first available provider in this list will be used
+   * Order: Claude → OpenAI → Gemini (matching Extension team)
    */
-  providerPriority: ['openai', 'anthropic', 'google'] as ProviderType[],
+  providerPriority: ['anthropic', 'openai', 'google'] as ProviderType[],
 
   /**
    * Per-provider configuration
@@ -44,7 +45,7 @@ export const LLM_CONFIG = {
       envKey: 'E2E_OPENAI_API_KEY',
     } as ProviderConfig,
     google: {
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash',
       envKey: 'E2E_GEMINI_API_KEY',
     } as ProviderConfig,
   },
@@ -139,12 +140,7 @@ export const APP_CONFIG = {
    */
   critical: {
     /** Exact file names that are critical (checked with file.includes(file)) */
-    files: [
-      'package.json',
-      'metro.config.js',
-      'babel.config.js',
-      '.detoxrc.js',
-    ],
+    files: ['package.json', 'metro.config.js', 'babel.config.js'],
 
     /** Keywords that indicate critical files (checked with file.includes(keyword)) */
     keywords: ['Controller', 'Engine'],

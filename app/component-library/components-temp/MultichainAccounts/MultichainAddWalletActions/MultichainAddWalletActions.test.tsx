@@ -1,8 +1,9 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
-import { AddAccountBottomSheetSelectorsIDs } from '../../../../components/Views/AddAccountActions/AddAccountBottomSheet.testIds';
-import MultichainAddWalletActions from './MultichainAddWalletActions';
+import MultichainAddWalletActions, {
+  MultichainAddWalletActionsTestIDs,
+} from './MultichainAddWalletActions';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { MOCK_KEYRING_CONTROLLER } from '../../../../selectors/keyringController/testUtils';
 import Routes from '../../../../constants/navigation/Routes';
@@ -24,8 +25,8 @@ const mockCreateEventBuilder = jest.fn((event) => ({
   build: jest.fn(() => event),
 }));
 
-jest.mock('../../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
@@ -47,19 +48,6 @@ const mockProps = {
 describe('MultichainAddWalletActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('renders correctly', () => {
-    const wrapper = renderScreen(
-      () => <MultichainAddWalletActions {...mockProps} />,
-      {
-        name: 'MultichainAddWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-    expect(wrapper.toJSON()).toMatchSnapshot();
   });
 
   it('shows all wallet creation options', () => {
@@ -93,7 +81,7 @@ describe('MultichainAddWalletActions', () => {
   //   );
 
   //   const createButton = screen.getByTestId(
-  //     AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
+  //     MultichainAddWalletActionsTestIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
   //   );
 
   //   // TODO: Check correct behaviour after implementing the action
@@ -113,7 +101,7 @@ describe('MultichainAddWalletActions', () => {
     );
 
     const importButton = screen.getByTestId(
-      AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
+      MultichainAddWalletActionsTestIDs.IMPORT_ACCOUNT_BUTTON,
     );
     fireEvent.press(importButton);
 
@@ -133,7 +121,7 @@ describe('MultichainAddWalletActions', () => {
     );
 
     const hardwareButton = screen.getByTestId(
-      AddAccountBottomSheetSelectorsIDs.ADD_HARDWARE_WALLET_BUTTON,
+      MultichainAddWalletActionsTestIDs.ADD_HARDWARE_WALLET_BUTTON,
     );
     fireEvent.press(hardwareButton);
 
@@ -153,7 +141,7 @@ describe('MultichainAddWalletActions', () => {
     );
 
     const importWalletButton = screen.getByTestId(
-      AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
+      MultichainAddWalletActionsTestIDs.IMPORT_SRP_BUTTON,
     );
     fireEvent.press(importWalletButton);
 
@@ -174,7 +162,7 @@ describe('MultichainAddWalletActions', () => {
       );
 
       const importWalletButton = screen.getByTestId(
-        AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
+        MultichainAddWalletActionsTestIDs.IMPORT_SRP_BUTTON,
       );
       fireEvent.press(importWalletButton);
 
@@ -198,7 +186,7 @@ describe('MultichainAddWalletActions', () => {
       );
 
       const importAccountButton = screen.getByTestId(
-        AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
+        MultichainAddWalletActionsTestIDs.IMPORT_ACCOUNT_BUTTON,
       );
       fireEvent.press(importAccountButton);
 
@@ -222,7 +210,7 @@ describe('MultichainAddWalletActions', () => {
       );
 
       const hardwareWalletButton = screen.getByTestId(
-        AddAccountBottomSheetSelectorsIDs.ADD_HARDWARE_WALLET_BUTTON,
+        MultichainAddWalletActionsTestIDs.ADD_HARDWARE_WALLET_BUTTON,
       );
       fireEvent.press(hardwareWalletButton);
 

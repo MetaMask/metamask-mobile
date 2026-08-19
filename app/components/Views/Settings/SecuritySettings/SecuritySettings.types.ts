@@ -5,13 +5,14 @@ export interface GatewayWithAvailability {
   available: boolean;
 }
 
-export interface HeadingProps {
-  first?: boolean;
-  children: React.ReactNode;
-}
+/**
+ * Sections of the Security & Privacy settings screen that can be scrolled to
+ * via navigation params (e.g. from the /privacy deeplink).
+ */
+export type SecuritySettingsScrollSection = 'metametrics' | 'data-collection';
 
 export interface SecuritySettingsParams {
-  scrollToDetectNFTs?: boolean;
+  scrollToSection?: SecuritySettingsScrollSection;
 }
 
 export interface EtherscanNetworksType {

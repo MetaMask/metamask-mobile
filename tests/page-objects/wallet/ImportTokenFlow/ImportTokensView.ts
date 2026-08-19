@@ -5,52 +5,52 @@ import {
   ImportTokenViewSelectorsText,
 } from '../../../../app/components/Views/AddAsset/ImportAssetView.testIds';
 import { CellComponentSelectorsIDs } from '../../../../app/component-library/components/Cells/Cell/CellComponent.testIds';
-import { logger } from '../../../framework';
+import { logger, EncapsulatedElementType } from '../../../framework';
 
 class ImportTokensView {
-  get searchTokenResult(): DetoxElement {
+  get searchTokenResult(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
     );
   }
 
-  get nextButton(): DetoxElement {
+  get nextButton(): EncapsulatedElementType {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.NEXT_BUTTON);
   }
 
-  get networkInput(): DetoxElement {
+  get networkInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON,
     );
   }
 
-  get symbolInput(): DetoxElement {
+  get symbolInput(): EncapsulatedElementType {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.SYMBOL_INPUT);
   }
 
-  get tokenSymbolText(): DetoxElement {
+  get tokenSymbolText(): EncapsulatedElementType {
     return Matchers.getElementByText(ImportTokenViewSelectorsText.TOKEN_SYMBOL);
   }
 
-  get addressInput(): DetoxElement {
+  get addressInput(): EncapsulatedElementType {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.ADDRESS_INPUT);
   }
 
-  get decimalInput(): DetoxElement {
+  get decimalInput(): EncapsulatedElementType {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.DECIMAL_INPUT);
   }
 
-  get customTokenTab(): DetoxElement {
+  get customTokenTab(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ImportTokenViewSelectorsText.CUSTOM_TOKEN_TAB,
     );
   }
 
-  get searchTokenBar(): DetoxElement {
+  get searchTokenBar(): EncapsulatedElementType {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.SEARCH_BAR);
   }
 
-  get networkList(): DetoxElement {
+  get networkList(): EncapsulatedElementType {
     return Matchers.getElementByID(CellComponentSelectorsIDs.SELECT, 0);
   }
 

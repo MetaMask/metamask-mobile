@@ -1,36 +1,30 @@
 import { AccountGroupId } from '@metamask/account-api';
 import type { Theme } from '@metamask/design-tokens';
 import React, {
-  forwardRef,
   useCallback,
   useContext,
   useEffect,
-  useImperativeHandle,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import type { TabRefreshHandle, WalletTokensTabViewHandle } from './types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import type { SectionRefreshHandle } from '../Homepage/types';
 import { useBalanceRefresh, useHomepageEntryPoint } from './hooks';
 
 import {
   ActivityIndicator,
   DeviceEventEmitter,
   Linking,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
   RefreshControl,
   ScrollView,
   StyleSheet as RNStyleSheet,
+  unstable_batchedUpdates,
   View,
 } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import {
-  TabsList,
-  TabsListRef,
-} from '../../../component-library/components-temp/Tabs';
 import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import { isPastPrivacyPolicyDate } from '../../../reducers/legalNotices';
 import { shouldShowNewPrivacyToastSelector } from '../../../selectors/legalNotices';
@@ -39,13 +33,18 @@ import {
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
 } from '../../../actions/legalNotices';
 import StorageWrapper from '../../../store/storage-wrapper';
+import { HOMEPAGE_APP_SESSION_ID } from '../../../util/analytics/homepageSessionId';
 import { baseStyles } from '../../../styles/common';
+import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
+import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
+import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
+import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
+import WalletHeader from './components/WalletHeader/WalletHeader';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
-  PERPS_GTM_MODAL_SHOWN,
-  PREDICT_GTM_MODAL_SHOWN,
-} from '../../../constants/storage';
-import { getWalletNavbarOptions } from '../../UI/Navbar';
-import Tokens from '../../UI/Tokens';
+  Text as CustomText,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 import {
   NavigationProp,
@@ -56,109 +55,102 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
-import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import CustomText, {
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
-import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
 import {
   ToastContext,
   ToastVariants,
+  ButtonIconVariant,
 } from '../../../component-library/components/Toast';
+import ConditionalScrollView from '../../../component-library/components-temp/ConditionalScrollView';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { ActivityScreenEntryPoint } from '../../../core/Analytics/events/activity';
 import {
   trackActionButtonClick,
   ActionButtonType,
   ActionLocation,
   ActionPosition,
 } from '../../../util/analytics/actionButtonTracking';
-import Engine from '../../../core/Engine';
 import { RootState } from '../../../reducers';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
-import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import {
   selectChainId,
-  selectEvmNetworkConfigurationsByChainId,
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
-  selectNetworkClientId,
-  selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import {
-  selectNetworkImageSource,
-  selectNetworkName,
-} from '../../../selectors/networkInfos';
-import {
-  getMetamaskNotificationsReadCount,
   getMetamaskNotificationsUnreadCount,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
-import {
-  selectAllDetectedTokensFlat,
-  selectDetectedTokens,
-} from '../../../selectors/tokensController';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
-import {
-  getDecimalChainId,
-  getIsNetworkOnboarded,
-  isTestNet,
-} from '../../../util/networks';
+import { selectShouldShowWalletHomeOnboardingSteps } from '../../../selectors/onboarding';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import { useTheme } from '../../../util/theme';
-import { colorWithOpacity } from '../../../util/colors';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../hooks/useAccountName';
-import usePrevious from '../../hooks/usePrevious';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 
-import { Token } from '@metamask/assets-controllers';
-import { Hex } from '@metamask/utils';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import {
-  selectHomepageRedesignV1Enabled,
-  selectHomepageSectionsV1Enabled,
-} from '../../../selectors/featureFlagController/homepage';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import Homepage from '../Homepage';
-import { SectionRefreshHandle } from '../Homepage/types';
+import {
+  HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY,
+  HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_EXPOSURE_OPTIONS,
+  HOMEPAGE_ACTION_BUTTONS_GRID_VARIANTS,
+  HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+  HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS,
+  HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS,
+  getHomepageBalanceBreakdownTransactionActiveAbTests,
+  HOMEPAGE_DISCOVERY_PILLS_AB_KEY,
+  HOMEPAGE_DISCOVERY_PILLS_AB_TEST_EXPOSURE_OPTIONS,
+  HOMEPAGE_DISCOVERY_PILLS_VARIANTS,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+} from '../Homepage/abTestConfig';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { HomepageDiscoveryPills } from '../Homepage/components/HomepageDiscoveryPills';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { HomepageActionButtonsGrid } from '../Homepage/components/HomepageActionButtonsGrid';
+import { useABTest } from '../../../hooks';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { HomepageScrollContext } from '../Homepage/context/HomepageScrollContext';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { trackExploreSearchOpened } from '../TrendingView/search/analytics';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
-import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import Logger from '../../../util/Logger';
-import { useNftDetection } from '../../hooks/useNftDetection';
-import { Carousel } from '../../UI/Carousel';
-import { TokenI } from '../../UI/Tokens/types';
-import NetworkConnectionBanner from '../../UI/NetworkConnectionBanner';
+import BrazeBanner from '../../UI/BrazeBanner';
+import ComponentErrorBoundary from '../../UI/ComponentErrorBoundary';
+import { BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID } from '../../../core/Braze/constants';
+import { NetworkConnectionBannerContent } from '../../UI/NetworkConnectionBanner';
+import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
 
-import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
-import { selectHDKeyrings } from '../../../selectors/keyringController';
-import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
-import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AssetDetailsActions from '../AssetDetails/AssetDetailsActions';
 import AppConstants from '../../../core/AppConstants';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
-import { setIsConnectionRemoved } from '../../../actions/user';
+import { suppressWalletHomeOnboardingSteps } from '../../../actions/onboarding';
+import { useWalletHomeOnboardingChecklistTradePress } from '../../UI/WalletHomeOnboardingSteps/useWalletHomeOnboardingChecklistTradePress';
 import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
+import { setIsConnectionRemoved } from '../../../actions/user';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import {
@@ -166,25 +158,21 @@ import {
   selectPerpsGtmOnboardingModalEnabledFlag,
 } from '../../UI/Perps';
 import { PerpsAlwaysOnProvider } from '../../UI/Perps/providers/PerpsAlwaysOnProvider';
-import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
-import {
-  selectPredictEnabledFlag,
-  selectPredictGtmOnboardingModalEnabledFlag,
-} from '../../UI/Predict/selectors/featureFlags';
-import PredictTabView from '../../UI/Predict/views/PredictTabView';
+import { useGetPerpsHomeNavigationTarget } from '../../UI/Perps/utils/perpsModeSwitch';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { InitSendLocation } from '../confirmations/constants/send';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
-import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
-import { SolScope } from '@metamask/keyring-api';
-import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
+import { Carousel } from '../../UI/Carousel';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
-import NftGrid from '../../UI/NftGrid/NftGrid';
+import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
+import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
-import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
-import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -194,8 +182,15 @@ const createStyles = ({ colors }: Theme) =>
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
-      gap: 16,
       flexDirection: 'column',
+    },
+    portfolioHeaderCluster: {
+      flexDirection: 'column',
+      gap: 16,
+      paddingBottom: 12,
+    },
+    treatmentBannerContainer: {
+      paddingBottom: 16,
     },
     tabContainer: {
       flex: 1,
@@ -214,12 +209,13 @@ const createStyles = ({ colors }: Theme) =>
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
     },
-    bottomFadeOverlay: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      bottom: 0,
-      height: 40,
+    headerActionButtonsContainer: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    headerAccountPickerStyle: {
+      marginRight: 16,
+      backgroundColor: 'transparent',
     },
   });
 
@@ -229,16 +225,6 @@ interface WalletProps {
   shouldShowNewPrivacyToast: boolean;
   currentRouteName: string;
   storePrivacyPolicyClickedOrClosed: () => void;
-}
-
-interface WalletTokensTabViewProps {
-  navigation: WalletProps['navigation'];
-  onChangeTab: (changeTabProperties: {
-    i: number;
-    ref: React.ReactNode;
-  }) => void;
-  defiEnabled: boolean;
-  collectiblesEnabled: boolean;
 }
 
 interface WalletRouteParams {
@@ -313,277 +299,6 @@ export const useHomeDeepLinkEffects = (opts: {
   );
 };
 
-const WalletTokensTabView = forwardRef<
-  WalletTokensTabViewHandle,
-  WalletTokensTabViewProps
->((props, ref) => {
-  const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
-  const isHomepageRedesignV1Enabled = useSelector(
-    selectHomepageRedesignV1Enabled,
-  );
-  // With BIP-44 multichain accounts, perps is enabled for both EVM and non-EVM networks
-  const isPerpsEnabled = isPerpsFlagEnabled;
-  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
-  const isPredictEnabled = useMemo(
-    () => isPredictFlagEnabled,
-    [isPredictFlagEnabled],
-  );
-
-  const { navigation, onChangeTab, defiEnabled, collectiblesEnabled } = props;
-
-  const tabsListRef = useRef<TabsListRef>(null);
-  const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
-
-  const enabledNetworksIsSolana = useMemo(() => {
-    if (allEnabledNetworks.length === 1) {
-      return allEnabledNetworks.some(
-        (network) => network.chainId === SolScope.Mainnet,
-      );
-    }
-    return false;
-  }, [allEnabledNetworks]);
-
-  const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
-
-  // Track current tab index for Perps visibility
-  const [currentTabIndex, setCurrentTabIndex] = useState(0);
-
-  // Refs for tab components that have refresh functionality
-  const tokensRef = useRef<TabRefreshHandle>(null);
-  const predictRef = useRef<TabRefreshHandle>(null);
-  const nftsRef = useRef<TabRefreshHandle>(null);
-
-  const tokensTabProps = useMemo(
-    () => ({
-      key: 'tokens-tab',
-      tabLabel: strings('wallet.tokens'),
-      navigation,
-    }),
-    [navigation],
-  );
-
-  const perpsTabProps = useMemo(
-    () => ({
-      key: 'perps-tab',
-      tabLabel: strings('wallet.perps'),
-      navigation,
-    }),
-    [navigation],
-  );
-
-  const predictTabProps = useMemo(
-    () => ({
-      key: 'predict-tab',
-      tabLabel: strings('wallet.predict'),
-      navigation,
-    }),
-    [navigation],
-  );
-
-  const defiPositionsTabProps = useMemo(
-    () => ({
-      key: 'defi-tab',
-      tabLabel: strings('wallet.defi'),
-      navigation,
-    }),
-    [navigation],
-  );
-
-  const nftsTabProps = useMemo(
-    () => ({
-      key: 'nfts-tab',
-      tabLabel: strings('wallet.collectibles'),
-      navigation,
-    }),
-    [navigation],
-  );
-
-  // Handle tab changes and track current index
-  const handleTabChange = useCallback(
-    (changeTabProperties: { i: number; ref: React.ReactNode }) => {
-      setCurrentTabIndex(changeTabProperties.i);
-      onChangeTab(changeTabProperties);
-    },
-    [onChangeTab],
-  );
-
-  // Build ordered list of tab refs based on which tabs are enabled
-  // Returns null for tabs without refresh (Perps uses WebSocket, DeFi uses selectors)
-  const getTabRefByIndex = useCallback(
-    (index: number): React.RefObject<TabRefreshHandle> | null => {
-      // Build array matching tab order: [tokens, perps?, predict?, defi?, nfts?]
-      // Use null for tabs without refresh functionality
-      const tabRefs: (React.RefObject<TabRefreshHandle> | null)[] = [tokensRef];
-
-      if (isPerpsEnabled) {
-        tabRefs.push(null); // Perps uses WebSocket streaming, no refresh needed
-      }
-      if (isPredictEnabled) {
-        tabRefs.push(predictRef);
-      }
-      if (!enabledNetworksIsSolana) {
-        if (defiEnabled) {
-          tabRefs.push(null); // DeFi uses Redux selectors, no refresh needed
-        }
-        if (collectiblesEnabled) {
-          tabRefs.push(nftsRef);
-        }
-      }
-
-      return tabRefs[index] || null;
-    },
-    [
-      isPerpsEnabled,
-      isPredictEnabled,
-      defiEnabled,
-      collectiblesEnabled,
-      enabledNetworksIsSolana,
-    ],
-  );
-
-  // Expose refresh method to parent
-  useImperativeHandle(ref, () => ({
-    refresh: async (onBalanceRefresh: () => Promise<void>) => {
-      const activeTabRef = getTabRefByIndex(currentTabIndex);
-
-      // Always refresh balance + tab-specific content if available
-      const promises = [
-        onBalanceRefresh(),
-        activeTabRef?.current?.refresh(),
-      ].filter(Boolean);
-
-      await Promise.all(promises);
-    },
-  }));
-
-  // Calculate Predict tab visibility
-  let predictTabIndex = -1;
-  if (isPerpsEnabled && isPredictEnabled) {
-    predictTabIndex = 2;
-  } else if (isPredictEnabled) {
-    predictTabIndex = 1;
-  }
-  const isPredictTabVisible = currentTabIndex === predictTabIndex;
-
-  // Background preload perps market data when feature is enabled
-  useEffect(() => {
-    const controller = Engine.context.PerpsController;
-    if (isPerpsEnabled) {
-      controller.startMarketDataPreload();
-    } else {
-      controller.stopMarketDataPreload();
-    }
-    return () => controller.stopMarketDataPreload();
-  }, [isPerpsEnabled]);
-
-  // Handle deep link effects
-  useHomeDeepLinkEffects({
-    navigation,
-    isPerpsEnabled,
-    onPerpsTabSelected: () => {
-      tabsListRef.current?.goToTabIndex(1);
-    },
-    onNetworkSelectorSelected: () => {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.NETWORK_SELECTOR,
-      });
-    },
-  });
-
-  // Build tabs array dynamically based on enabled features
-  const tabsToRender = useMemo(() => {
-    const tabs = [
-      <Tokens ref={tokensRef} {...tokensTabProps} key={tokensTabProps.key} />,
-    ];
-
-    if (isPerpsEnabled) {
-      tabs.push(<PerpsTabView {...perpsTabProps} key={perpsTabProps.key} />);
-    }
-
-    if (isPredictEnabled) {
-      tabs.push(
-        <PredictTabView
-          ref={predictRef}
-          {...predictTabProps}
-          key={predictTabProps.key}
-          isVisible={isPredictTabVisible}
-        />,
-      );
-    }
-
-    if (enabledNetworksIsSolana) {
-      return tabs;
-    }
-
-    if (defiEnabled) {
-      tabs.push(
-        <DeFiPositionsList
-          {...defiPositionsTabProps}
-          key={defiPositionsTabProps.key}
-        />,
-      );
-    }
-
-    if (collectiblesEnabled) {
-      tabs.push(
-        <NftGrid ref={nftsRef} {...nftsTabProps} key={nftsTabProps.key} />,
-      );
-    }
-
-    return tabs;
-  }, [
-    tokensTabProps,
-    isPerpsEnabled,
-    perpsTabProps,
-    isPredictEnabled,
-    predictTabProps,
-    isPredictTabVisible,
-    defiEnabled,
-    defiPositionsTabProps,
-    collectiblesEnabled,
-    nftsTabProps,
-    enabledNetworksIsSolana,
-  ]);
-
-  // Create a key that changes when tab structure changes to force re-render
-  const tabsKey = useMemo(() => {
-    const enabledFeatures = [
-      isPerpsEnabled ? 'perps' : '',
-      isPredictEnabled ? 'predict' : '',
-      defiEnabled ? 'defi' : '',
-      collectiblesEnabled ? 'nfts' : '',
-      enabledNetworksIsSolana ? 'solana' : '',
-    ]
-      .filter(Boolean)
-      .join('-');
-    return `tabs-${enabledFeatures}`;
-  }, [
-    isPerpsEnabled,
-    isPredictEnabled,
-    defiEnabled,
-    collectiblesEnabled,
-    enabledNetworksIsSolana,
-  ]);
-
-  return (
-    <View style={styles.tabContainer}>
-      <TabsList
-        key={tabsKey}
-        ref={tabsListRef}
-        onChangeTab={handleTabChange}
-        tabsListContentTwClassName={
-          isHomepageRedesignV1Enabled ? '!flex-initial' : ''
-        }
-      >
-        {tabsToRender}
-      </TabsList>
-    </View>
-  );
-});
-
-WalletTokensTabView.displayName = 'WalletTokensTabView';
-
 /**
  * Main view for the wallet
  */
@@ -593,13 +308,24 @@ const Wallet = ({
   shouldShowNewPrivacyToast,
   storePrivacyPolicyClickedOrClosed,
 }: WalletProps) => {
-  const { navigate } = useNavigation();
-  const walletRef = useRef(null);
-  const walletTokensTabViewRef = useRef<WalletTokensTabViewHandle>(null);
+  const appNavigation = useNavigation<AppNavigationProp>();
+  const { navigate } = appNavigation;
   const scrollViewRef = useRef<ScrollView>(null);
   const isMountedRef = useRef(true);
   const refreshInProgressRef = useRef(false);
+  const shouldShowWalletHomeOnboardingSteps = useSelector(
+    selectShouldShowWalletHomeOnboardingSteps,
+  );
+
+  const inWalletHomePostOnboardingFlow = shouldShowWalletHomeOnboardingSteps;
+
+  const showWalletHomeMainActions = !inWalletHomePostOnboardingFlow;
+
   const [refreshing, setRefreshing] = useState(false);
+  /** Pauses checklist Rive while Wallet finishes the coordinated post-onboarding handoff. */
+  const [postOnboardingExitAnimating, setPostOnboardingExitAnimating] =
+    useState(false);
+  const walletHomePostOnboardingExitInProgressRef = useRef(false);
   const { refreshBalance } = useBalanceRefresh();
   const theme = useTheme();
 
@@ -618,6 +344,8 @@ const Wallet = ({
   const scrollSubscribersRef = useRef<Set<() => void>>(new Set());
   // Tracks which sections have been viewed this visit (reset on each focus).
   const viewedSectionsRef = useRef<Set<string>>(new Set());
+  // Max section index reached this visit (reset on each focus).
+  const maxDepthThisVisitRef = useRef<number>(-1);
   // ─────────────────────────────────────────────────────────────────────────
 
   const isPerpsFlagEnabled = useSelector(selectPerpsEnabledFlag);
@@ -625,22 +353,13 @@ const Wallet = ({
     selectPerpsGtmOnboardingModalEnabledFlag,
   );
 
-  const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
-  const isPredictGTMModalEnabled = useSelector(
-    selectPredictGtmOnboardingModalEnabledFlag,
-  );
-
   const { toastRef } = useContext(ToastContext);
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
   const dispatch = useDispatch();
   const { navigateToSendPage } = useSendNavigation();
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const evmNetworkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
   const { popularEvmNetworks: evmChainIds } = useNetworkEnablement();
 
   /**
@@ -653,24 +372,18 @@ const Wallet = ({
    */
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
+  const showMoneyBalanceCard =
+    isMoneyAccountVisible && !inWalletHomePostOnboardingFlow;
+
   /**
    * Provider configuration for the current selected network
    */
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
 
-  const { enabledNetworks: allEnabledNetworks } = useCurrentNetworkInfo();
-
   const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
-
-  const enabledNetworksHasTestNet = useMemo(() => {
-    if (allEnabledNetworks.length === 1) {
-      return allEnabledNetworks.some((network) => isTestNet(network.chainId));
-    }
-    return false;
-  }, [allEnabledNetworks]);
-
-  const prevChainId = usePrevious(chainId);
 
   // Setup for AssetDetailsActions
   const { goToSwaps } = useSwapBridgeNavigation({
@@ -678,7 +391,17 @@ const Wallet = ({
     sourcePage: 'MainView',
   });
 
-  // Hook for handling non-EVM asset sending
+  const onTradePrimaryPress =
+    useWalletHomeOnboardingChecklistTradePress(goToSwaps);
+  const handleWalletHomeOnboardingNotificationsPrimary = useCallback(() => {
+    navigation.navigate(Routes.SETTINGS_VIEW, {
+      screen: Routes.SETTINGS.NOTIFICATIONS,
+    });
+  }, [navigation]);
+
+  // Hook for handling non-EVM asset sending. `useSendNonEvmAsset` stabilizes
+  // `asset` internally, so `sendNonEvmAsset`'s identity stays stable across
+  // `Wallet` re-renders without needing to memoize this object here.
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const { sendNonEvmAsset } = useSendNonEvmAsset({
     asset: {
@@ -691,6 +414,53 @@ const Wallet = ({
   const displayBuyButton = true;
   const displaySwapsButton = AppConstants.SWAPS.ACTIVE;
 
+  /**
+   * After the last-step checklist fade: complete the flow and show actions. Homepage uses
+   * `WALLET_HOME_MAIN_BELOW_CLUSTER_LAYOUT` on the main column below the cluster.
+   */
+  const runWalletHomePostOnboardingComplete = useCallback(async () => {
+    if (walletHomePostOnboardingExitInProgressRef.current) {
+      return;
+    }
+    walletHomePostOnboardingExitInProgressRef.current = true;
+    setPostOnboardingExitAnimating(true);
+
+    try {
+      unstable_batchedUpdates(() => {
+        dispatch(suppressWalletHomeOnboardingSteps('flow_completed'));
+      });
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+      });
+    } catch (error) {
+      setPostOnboardingExitAnimating(false);
+      walletHomePostOnboardingExitInProgressRef.current = false;
+      throw error;
+    }
+    setPostOnboardingExitAnimating(false);
+    walletHomePostOnboardingExitInProgressRef.current = false;
+  }, [dispatch]);
+
+  /** Navigation-only receive for AB treatment buttons (they own ACTION_BUTTON_CLICKED). */
+  const onReceiveWithoutTracking = useCallback(() => {
+    if (selectedAccountGroupId) {
+      navigateWithDetails(
+        appNavigation,
+        createAddressListNavigationDetails({
+          groupId: selectedAccountGroupId as AccountGroupId,
+          title: `${strings(
+            'multichain_accounts.address_list.receiving_address',
+          )}`,
+          source: AddressListViewedSource.RECEIVE_BUTTON,
+        }),
+      );
+    } else {
+      Logger.error(
+        new Error('Wallet::onReceive - Missing selectedAccountGroupId'),
+      );
+    }
+  }, [appNavigation, selectedAccountGroupId]);
+
   const onReceive = useCallback(() => {
     trackActionButtonClick(trackEvent, createEventBuilder, {
       action_name: ActionButtonType.RECEIVE,
@@ -699,21 +469,8 @@ const Wallet = ({
       location: ActionLocation.HOME,
     });
 
-    if (selectedAccountGroupId) {
-      navigate(
-        ...createAddressListNavigationDetails({
-          groupId: selectedAccountGroupId as AccountGroupId,
-          title: `${strings(
-            'multichain_accounts.address_list.receiving_address',
-          )}`,
-        }),
-      );
-    } else {
-      Logger.error(
-        new Error('Wallet::onReceive - Missing selectedAccountGroupId'),
-      );
-    }
-  }, [trackEvent, createEventBuilder, navigate, selectedAccountGroupId]);
+    onReceiveWithoutTracking();
+  }, [trackEvent, createEventBuilder, onReceiveWithoutTracking]);
 
   const onSend = useCallback(async () => {
     try {
@@ -748,6 +505,30 @@ const Wallet = ({
     ///: END:ONLY_INCLUDE_IF
   ]);
 
+  /** Navigation-only send for AB treatment buttons (they own ACTION_BUTTON_CLICKED). */
+  const onSendWithoutTracking = useCallback(async () => {
+    try {
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      const wasHandledAsNonEvm = await sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
+      if (wasHandledAsNonEvm) {
+        return;
+      }
+      ///: END:ONLY_INCLUDE_IF
+
+      navigateToSendPage({ location: InitSendLocation.HomePage });
+    } catch (error) {
+      console.error('Error initiating send flow:', error);
+      navigateToSendPage({ location: InitSendLocation.HomePage });
+    }
+  }, [
+    navigateToSendPage,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    sendNonEvmAsset,
+    ///: END:ONLY_INCLUDE_IF
+  ]);
+
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
   );
@@ -758,27 +539,9 @@ const Wallet = ({
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
 
-  const assetsDefiPositionsEnabled = useSelector(
-    selectAssetsDefiPositionsEnabled,
-  );
-
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const { isNetworkEnabledForDefi } = useCurrentNetworkInfo();
-
-  const collectiblesEnabled = useMemo(() => {
-    if (allEnabledNetworks.length === 1) {
-      return isEvmSelected;
-    }
-    return true;
-  }, [isEvmSelected, allEnabledNetworks]);
-
   const { isEnabled: getParticipationInMetaMetrics } = useAnalytics();
 
   const isParticipatingInMetaMetrics = getParticipationInMetaMetrics();
-
-  const currentToast = toastRef?.current;
-
-  const hdKeyrings = useSelector(selectHDKeyrings);
 
   const accountName = useAccountName();
   const accountGroupName = useAccountGroupName();
@@ -854,32 +617,6 @@ const Wallet = ({
     }
   }, [isPerpsFlagEnabled, isPerpsGTMModalEnabled, checkAndNavigateToPerpsGTM]);
 
-  const checkAndNavigateToPredictGTM = useCallback(async () => {
-    const hasSeenModal = await StorageWrapper.getItem(PREDICT_GTM_MODAL_SHOWN);
-
-    if (hasSeenModal !== 'true') {
-      navigate(Routes.PREDICT.MODALS.ROOT, {
-        screen: Routes.PREDICT.MODALS.GTM_MODAL,
-      });
-    }
-  }, [navigate]);
-
-  useEffect(() => {
-    if (isPredictFlagEnabled && isPredictGTMModalEnabled) {
-      checkAndNavigateToPredictGTM();
-    }
-  }, [
-    isPredictFlagEnabled,
-    isPredictGTMModalEnabled,
-    checkAndNavigateToPredictGTM,
-  ]);
-
-  useEffect(() => {
-    addTraitsToUser({
-      [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
-    });
-  }, [addTraitsToUser, hdKeyrings.length]);
-
   const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
 
   useEffect(() => {
@@ -906,28 +643,29 @@ const Wallet = ({
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
 
+    const toast = toastRef?.current;
     storePrivacyPolicyShownDate();
-    currentToast?.showToast({
+    toast?.showToast({
       variant: ToastVariants.Plain,
       labelOptions: [
         {
           label: strings(`privacy_policy.toast_message`),
-          isBold: false,
+          isBold: true,
         },
       ],
       closeButtonOptions: {
-        label: strings(`privacy_policy.toast_action_button`),
-        variant: ButtonVariants.Primary,
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
         onPress: () => {
           storePrivacyPolicyClickedOrClosed();
-          currentToast?.closeToast();
+          toast?.closeToast();
         },
       },
       linkButtonOptions: {
         label: strings(`privacy_policy.toast_read_more`),
         onPress: () => {
           storePrivacyPolicyClickedOrClosed();
-          currentToast?.closeToast();
+          toast?.closeToast();
           Linking.openURL(CONSENSYS_PRIVACY_POLICY);
         },
       },
@@ -937,49 +675,18 @@ const Wallet = ({
     storePrivacyPolicyShownDate,
     shouldShowNewPrivacyToast,
     storePrivacyPolicyClickedOrClosed,
-    currentToast,
+    toastRef,
   ]);
-
-  /**
-   * Network onboarding state
-   */
-  const networkOnboardingState = useSelector(
-    (state: RootState) => state.networkOnboarded.networkOnboardedState,
-  );
 
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
 
-  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
-
   const unreadNotificationCount = useSelector(
     getMetamaskNotificationsUnreadCount,
   );
 
-  const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const selectedNetworkName = useSelector(selectNetworkName);
-
-  const networkName =
-    networkConfigurations?.[chainId]?.name ?? selectedNetworkName;
-
-  const networkImageSource = useSelector(selectNetworkImageSource);
-
-  const isAllNetworks = useSelector(selectIsAllNetworks);
-  const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
-  const isPopularNetworks = useSelector(selectIsPopularNetwork);
-  const detectedTokens = useSelector(selectDetectedTokens) as TokenI[];
-  const isCarouselBannersEnabled = useSelector(selectCarouselBannersFlag);
-
-  const allDetectedTokens = useSelector(
-    selectAllDetectedTokensFlat,
-  ) as TokenI[];
-  const currentDetectedTokens =
-    isAllNetworks && isPopularNetworks ? allDetectedTokens : detectedTokens;
-  const selectedNetworkClientId = useSelector(selectNetworkClientId);
-
-  const isAccountMenuEnabled = useAccountMenuEnabled();
-  const { detectNfts } = useNftDetection();
+  const homeGrowthBanner = useHomeGrowthBanner();
 
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
@@ -1002,22 +709,6 @@ const Wallet = ({
   usePna25BottomSheet();
 
   /**
-   * Callback to trigger when pressing the navigation title.
-   */
-  const onTitlePress = useCallback(() => {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.NETWORK_SELECTOR,
-    });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
-        .addProperties({
-          chain_id: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-  }, [navigate, chainId, trackEvent, createEventBuilder]);
-
-  /**
    * Check to see if notifications are enabled
    */
   useEffect(() => {
@@ -1027,277 +718,121 @@ const Wallet = ({
     checkIfNotificationsAreEnabled();
   });
 
-  /**
-   * Check to see if we need to show What's New modal
-   */
-  useEffect(() => {
-    // TODO: [SOLANA] Revisit this before shipping, we need to check if this logic supports non evm networks
-    const networkOnboarded = getIsNetworkOnboarded(
-      chainId,
-      networkOnboardingState,
+  const { variant: discoveryPillsVariant } = useABTest(
+    HOMEPAGE_DISCOVERY_PILLS_AB_KEY,
+    HOMEPAGE_DISCOVERY_PILLS_VARIANTS,
+    HOMEPAGE_DISCOVERY_PILLS_AB_TEST_EXPOSURE_OPTIONS,
+  );
+
+  const { variant: actionButtonsGridVariant } = useABTest(
+    HOMEPAGE_ACTION_BUTTONS_GRID_AB_KEY,
+    HOMEPAGE_ACTION_BUTTONS_GRID_VARIANTS,
+    HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_EXPOSURE_OPTIONS,
+  );
+
+  const {
+    variant: balanceBreakdownVariant,
+    variantName: balanceBreakdownVariantName,
+    isActive: isBalanceBreakdownExperimentActive,
+  } = useABTest(
+    HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
+    HOMEPAGE_BALANCE_BREAKDOWN_VARIANTS,
+    HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_EXPOSURE_OPTIONS,
+  );
+
+  const balanceBreakdownLayout = isBalanceBreakdownExperimentActive
+    ? balanceBreakdownVariant.layout
+    : null;
+  const balanceBreakdownTransactionActiveAbTests =
+    getHomepageBalanceBreakdownTransactionActiveAbTests(
+      isBalanceBreakdownExperimentActive && balanceBreakdownLayout !== null,
+      balanceBreakdownVariantName,
     );
 
-    if (!networkOnboarded && prevChainId !== chainId) {
-      // Do not check since it will conflict with the onboarding and/or network onboarding
-      return;
-    }
-  }, [
-    navigation,
-    chainId,
-    // TODO: Is this providerConfig.rpcUrl needed in this useEffect dependencies?
-    providerConfig.rpcUrl,
-    networkOnboardingState,
-    prevChainId,
-    // TODO: Is this accountBalanceByChainId?.balance needed in this useEffect dependencies?
-    accountBalanceByChainId?.balance,
-  ]);
+  const discoveryPillsIconStyle = discoveryPillsVariant.iconStyle;
+  const showDiscoveryPills =
+    discoveryPillsVariant.showPills &&
+    showWalletHomeMainActions &&
+    discoveryPillsIconStyle !== null;
 
-  const shouldDisplayCardButton = useSelector(selectDisplayCardButton);
-  const isHomepageRedesignV1Enabled = useSelector(
-    selectHomepageRedesignV1Enabled,
-  );
-  const isHomepageSectionsV1Enabled = useSelector(
-    selectHomepageSectionsV1Enabled,
-  );
+  const isPerpsEnabled = isPerpsFlagEnabled;
+
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+
+  const handlePerpsTabDeepLink = useCallback(() => {
+    const { screen, params } = getPerpsHomeNavigationTarget({
+      source: 'deeplink',
+    });
+    navigation.navigate(Routes.PERPS.ROOT, { screen, params });
+  }, [navigation, getPerpsHomeNavigationTarget]);
+
+  const handleNetworkSelectorDeepLink = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+    });
+  }, [navigation]);
+
+  useHomeDeepLinkEffects({
+    navigation,
+    isPerpsEnabled,
+    onPerpsTabSelected: handlePerpsTabDeepLink,
+    onNetworkSelectorSelected: handleNetworkSelectorDeepLink,
+  });
 
   const isFocused = useIsFocused();
 
   const homepageRef = useRef<SectionRefreshHandle>(null);
 
-  // Enable parent scroll when homepage redesign or sections feature flags are enabled
-  const shouldEnableParentScroll =
-    isHomepageRedesignV1Enabled || isHomepageSectionsV1Enabled;
-
-  const [bottomFadeOpacity, setBottomFadeOpacity] = useState(0);
-
-  const scrollContentHeight = useRef(0);
-  const scrollLayoutHeight = useRef(0);
-  const scrollOffsetY = useRef(0);
-
-  const computeFadeOpacity = useCallback(
-    (contentH: number, layoutH: number, offsetY: number) => {
-      const scrollableHeight = contentH - layoutH;
-      if (scrollableHeight <= 0) {
-        setBottomFadeOpacity(0);
-        return;
-      }
-      const distanceFromEnd = scrollableHeight - offsetY;
-      const fadeThreshold = 100;
-      setBottomFadeOpacity(
-        Math.min(1, Math.max(0, distanceFromEnd / fadeThreshold)),
-      );
-    },
-    [],
-  );
-
   // Notifies scroll subscribers directly (no React state update = no re-renders).
   const handleHomepageScroll = useCallback(() => {
-    if (!isHomepageSectionsV1Enabled) return;
     const now = Date.now();
     if (now - lastScrollTickTimeRef.current >= 100) {
       lastScrollTickTimeRef.current = now;
       scrollSubscribersRef.current.forEach((cb) => cb());
     }
-  }, [isHomepageSectionsV1Enabled]);
+  }, []);
 
-  const handleVerticalScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const { contentOffset, contentSize, layoutMeasurement } =
-        event.nativeEvent;
-      scrollContentHeight.current = contentSize.height;
-      scrollLayoutHeight.current = layoutMeasurement.height;
-      scrollOffsetY.current = contentOffset.y;
-      computeFadeOpacity(
-        contentSize.height,
-        layoutMeasurement.height,
-        contentOffset.y,
-      );
-      handleHomepageScroll();
-    },
-    [computeFadeOpacity, handleHomepageScroll],
+  const touchAreaSlop = useMemo(
+    () => ({ top: 12, bottom: 12, left: 12, right: 12 }),
+    [],
   );
 
-  const handleScrollContentSizeChange = useCallback(
-    (_w: number, h: number) => {
-      scrollContentHeight.current = h;
-      computeFadeOpacity(h, scrollLayoutHeight.current, scrollOffsetY.current);
-    },
-    [computeFadeOpacity],
-  );
-
-  const handleScrollLayout = useCallback(
-    (event: { nativeEvent: { layout: { height: number } } }) => {
-      scrollLayoutHeight.current = event.nativeEvent.layout.height;
-      computeFadeOpacity(
-        scrollContentHeight.current,
-        event.nativeEvent.layout.height,
-        scrollOffsetY.current,
-      );
-    },
-    [computeFadeOpacity],
-  );
-
-  useEffect(() => {
-    if (!selectedInternalAccount) return;
-    navigation.setOptions(
-      getWalletNavbarOptions(
-        walletRef,
-        selectedInternalAccount,
-        displayName,
-        networkName,
-        networkImageSource,
-        onTitlePress,
-        navigation,
-        colors,
-        isNotificationEnabled,
-        isBackupAndSyncEnabled,
-        unreadNotificationCount,
-        readNotificationCount,
-        shouldDisplayCardButton,
-        isAccountMenuEnabled,
-      ),
+  const handleHamburgerPress = useCallback(() => {
+    trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
+      )
+        .addProperties({ action: 'Navigation Drawer', name: 'Settings' })
+        .build(),
     );
-  }, [
-    selectedInternalAccount,
-    displayName,
-    networkName,
-    networkImageSource,
-    onTitlePress,
-    navigation,
-    colors,
-    isNotificationEnabled,
-    isBackupAndSyncEnabled,
-    unreadNotificationCount,
-    readNotificationCount,
-    shouldDisplayCardButton,
-    isAccountMenuEnabled,
-  ]);
+    navigation.navigate(Routes.SETTINGS_VIEW);
+  }, [navigation, trackEvent]);
 
-  const getTokenAddedAnalyticsParams = useCallback(
-    ({ address, symbol }: { address: string; symbol: string }) => {
-      try {
-        return {
-          token_address: address,
-          token_symbol: symbol,
-          chain_id: getDecimalChainId(chainId),
-          source: 'Add token dropdown',
-        };
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          'SearchTokenAutocomplete.getTokenAddedAnalyticsParams',
-        );
-        return undefined;
-      }
-    },
-    [chainId],
-  );
+  const handleCardPress = useCallback(() => {
+    trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.CARD_HOME_CLICKED,
+      ).build(),
+    );
+    navigation.navigate(Routes.CARD.ROOT);
+  }, [navigation, trackEvent]);
 
-  useEffect(() => {
-    const importAllDetectedTokens = async () => {
-      // If autodetect tokens toggle is OFF, return
-      if (!isTokenDetectionEnabled) {
-        return;
-      }
-      const { TokensController } = Engine.context;
-      if (
-        Array.isArray(currentDetectedTokens) &&
-        currentDetectedTokens.length > 0
-      ) {
-        // Group tokens by their `chainId` using a plain object
-        const tokensByChainId: Record<Hex, Token[]> = {};
+  const handleActivityPress = useCallback(() => {
+    trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.ACTIVITY_CLICKED,
+      ).build(),
+    );
+    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.TRANSACTIONS_VIEW,
+      params: { entryPoint: ActivityScreenEntryPoint.WalletHomeHeader },
+    });
+  }, [navigation, trackEvent]);
 
-        for (const token of currentDetectedTokens) {
-          // TODO: [SOLANA] Check if this logic supports non evm networks before shipping Solana
-          const tokenChainId: Hex =
-            (token as TokenI & { chainId: Hex }).chainId ?? chainId;
-
-          if (!tokensByChainId[tokenChainId]) {
-            tokensByChainId[tokenChainId] = [];
-          }
-
-          tokensByChainId[tokenChainId].push(token);
-        }
-
-        // Process grouped tokens in parallel
-        const importPromises = Object.entries(tokensByChainId).map(
-          async ([networkId, allTokens]) => {
-            const chainConfig = evmNetworkConfigurations[networkId as Hex];
-            const { defaultRpcEndpointIndex } = chainConfig;
-            const { networkClientId: networkInstanceId } =
-              chainConfig.rpcEndpoints[defaultRpcEndpointIndex];
-
-            await TokensController.addTokens(allTokens, networkInstanceId);
-          },
-        );
-
-        await Promise.all(importPromises);
-
-        currentDetectedTokens.forEach(
-          ({ address, symbol }: { address: string; symbol: string }) => {
-            const analyticsParams = getTokenAddedAnalyticsParams({
-              address,
-              symbol,
-            });
-
-            if (analyticsParams) {
-              trackEvent(
-                createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
-                  .addProperties({
-                    token_address: address,
-                    token_symbol: symbol,
-                    chain_id: getDecimalChainId(chainId),
-                    source: 'detected',
-                  })
-                  .build(),
-              );
-            }
-          },
-        );
-      }
-    };
-    if (isEvmSelected) {
-      importAllDetectedTokens();
-    }
-  }, [
-    isEvmSelected,
-    isTokenDetectionEnabled,
-    evmNetworkConfigurations,
-    chainId,
-    currentDetectedTokens,
-    selectedNetworkClientId,
-    getTokenAddedAnalyticsParams,
-    trackEvent,
-    createEventBuilder,
-  ]);
-
-  const onChangeTab = useCallback(
-    (obj: { i: number; ref: React.ReactNode }) => {
-      const tabLabel =
-        React.isValidElement(obj.ref) && obj.ref.props
-          ? (obj.ref.props as { tabLabel?: string })?.tabLabel
-          : '';
-      if (tabLabel === strings('wallet.tokens')) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.WALLET_TOKENS)
-            .addProperties({ action: 'Wallet View', name: 'Tokens' })
-            .build(),
-        );
-      } else if (tabLabel === strings('wallet.defi')) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.DEFI_TAB_SELECTED).build(),
-        );
-      } else if (tabLabel === strings('wallet.collectibles')) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES)
-            .addProperties({ action: 'Wallet View', name: 'Collectibles' })
-            .build(),
-        );
-        detectNfts();
-      }
-    },
-    [trackEvent, createEventBuilder, detectNfts],
-  );
+  const handleSearchPress = useCallback(() => {
+    trackExploreSearchOpened('home');
+    navigation.navigate(Routes.EXPLORE_SEARCH);
+  }, [navigation]);
 
   const turnOnBasicFunctionality = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -1305,18 +840,12 @@ const Wallet = ({
     });
   }, [navigation]);
 
-  const defiEnabled =
-    isNetworkEnabledForDefi &&
-    !enabledNetworksHasTestNet &&
-    basicFunctionalityEnabled &&
-    assetsDefiPositionsEnabled;
-
   const scrollViewContentStyle = useMemo(
     () => [
       styles.wrapper,
-      shouldEnableParentScroll && { flex: undefined, flexGrow: 0 },
+      { flex: undefined, flexGrow: 0, overflow: 'visible' as const },
     ],
-    [styles.wrapper, shouldEnableParentScroll],
+    [styles.wrapper],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -1329,43 +858,59 @@ const Wallet = ({
     setRefreshing(true);
 
     try {
-      if (isHomepageSectionsV1Enabled) {
-        // Homepage sections mode - refresh homepage and balance
-        await Promise.all([refreshBalance(), homepageRef.current?.refresh()]);
-      } else {
-        // Legacy tab mode
-        await walletTokensTabViewRef.current?.refresh(refreshBalance);
-      }
+      await Promise.all([refreshBalance(), homepageRef.current?.refresh()]);
     } catch (error) {
       Logger.error(error as Error, 'Error refreshing wallet');
-    } finally {
-      refreshInProgressRef.current = false;
-
-      // Only update state if component is still mounted
-      if (isMountedRef.current) {
-        setRefreshing(false);
-      }
     }
-  }, [refreshBalance, isHomepageSectionsV1Enabled]);
+
+    refreshInProgressRef.current = false;
+
+    // Only update state if component is still mounted
+    if (isMountedRef.current) {
+      setRefreshing(false);
+    }
+  }, [refreshBalance]);
 
   const subscribeToScroll = useCallback((cb: () => void) => {
     scrollSubscribersRef.current.add(cb);
     return () => scrollSubscribersRef.current.delete(cb);
   }, []);
 
-  // Reset viewed sections on each new visit so session summary starts fresh.
-  useEffect(() => {
-    viewedSectionsRef.current.clear();
-  }, [visitId]);
+  // Reset viewed sections and visit depth synchronously on focus, before the
+  // new visitId propagates to child effects that re-add sections. A useEffect
+  // on [visitId] runs after children's effects (React runs children before
+  // parents), so sections would add themselves then the parent would clear
+  // them — causing total_sections_viewed to always be 0 on the second+ visit.
+  useFocusEffect(
+    useCallback(() => {
+      viewedSectionsRef.current.clear();
+      maxDepthThisVisitRef.current = -1;
+    }, []),
+  );
 
-  const notifySectionViewed = useCallback((sectionName: string) => {
-    viewedSectionsRef.current.add(sectionName);
-  }, []);
+  const notifySectionViewed = useCallback(
+    (
+      sectionName: HomeSectionName,
+      sectionIndex: number,
+      recordDepth: boolean,
+    ) => {
+      viewedSectionsRef.current.add(sectionName);
+      // Only update depth for sections that required the user to scroll to them.
+      // Non-rendered sections (sectionRef === null) pass recordDepth=false so they
+      // are counted in total_sections_viewed without inflating depth metrics.
+      if (recordDepth && sectionIndex > maxDepthThisVisitRef.current) {
+        maxDepthThisVisitRef.current = sectionIndex;
+      }
+    },
+    [],
+  );
 
   const getViewedSectionCount = useCallback(
     () => viewedSectionsRef.current.size,
     [],
   );
+
+  const getVisitMaxDepth = useCallback(() => maxDepthThisVisitRef.current, []);
 
   const homepageScrollContextValue = useMemo(
     () => ({
@@ -1376,6 +921,8 @@ const Wallet = ({
       visitId,
       notifySectionViewed,
       getViewedSectionCount,
+      getVisitMaxDepth,
+      appSessionId: HOMEPAGE_APP_SESSION_ID,
     }),
     [
       subscribeToScroll,
@@ -1385,67 +932,155 @@ const Wallet = ({
       visitId,
       notifySectionViewed,
       getViewedSectionCount,
+      getVisitMaxDepth,
     ],
   );
 
-  const content = (
-    <>
-      <View style={styles.banner}>
-        {!basicFunctionalityEnabled ? (
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            title={strings('wallet.banner.title')}
-            description={
-              <CustomText
-                color={TextColor.Info}
-                onPress={turnOnBasicFunctionality}
-              >
-                {strings('wallet.banner.link')}
-              </CustomText>
-            }
-          />
-        ) : null}
-        <NetworkConnectionBanner />
+  const handleBannerError = useCallback(() => {
+    // Log the error but don't block the UI
+    Logger.error(new Error('Banner rendering error in wallet home'));
+  }, []);
+
+  const homeGrowthBannerContent =
+    homeGrowthBanner === 'braze' ? (
+      <ComponentErrorBoundary
+        componentLabel="BrazeBanner"
+        onError={handleBannerError}
+      >
+        <BrazeBanner placementId={BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID} />
+      </ComponentErrorBoundary>
+    ) : homeGrowthBanner === 'carousel' ? (
+      <View accessible={false}>
+        <Carousel style={styles.carousel} />
       </View>
-      <>
-        <AccountGroupBalance />
+    ) : null;
 
-        <AssetDetailsActions
-          displayBuyButton={displayBuyButton}
-          displaySwapsButton={displaySwapsButton}
-          goToSwaps={goToSwaps}
-          onReceive={onReceive}
-          onSend={onSend}
-          buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
-          swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
-          sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
-          receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+  const networkConnectionBanner = useNetworkConnectionBanner();
+  const isNetworkConnectionBannerVisible =
+    (networkConnectionBanner.status === 'degraded' ||
+      networkConnectionBanner.status === 'unavailable') &&
+    Boolean(networkConnectionBanner.network);
+  const hasBannerContent =
+    !basicFunctionalityEnabled || isNetworkConnectionBannerVisible;
+  const bannerContent = hasBannerContent ? (
+    <View
+      style={styles.banner}
+      testID={WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTENT}
+    >
+      {!basicFunctionalityEnabled ? (
+        <BannerAlert
+          severity={BannerAlertSeverity.Error}
+          title={strings('wallet.banner.title')}
+          description={
+            <CustomText
+              color={TextColor.InfoDefault}
+              onPress={turnOnBasicFunctionality}
+            >
+              {strings('wallet.banner.link')}
+            </CustomText>
+          }
         />
+      ) : null}
+      <NetworkConnectionBannerContent {...networkConnectionBanner} />
+    </View>
+  ) : null;
 
-        {isCarouselBannersEnabled && <Carousel style={styles.carousel} />}
-
-        {isHomepageSectionsV1Enabled ? (
-          <>
-            {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
-            <HomepageScrollContext.Provider value={homepageScrollContextValue}>
-              <Homepage ref={homepageRef} />
-            </HomepageScrollContext.Provider>
-          </>
-        ) : (
-          <>
-            {isFocused && <AssetPollingProvider />}
-            <WalletTokensTabView
-              ref={walletTokensTabViewRef}
-              navigation={navigation}
-              onChangeTab={onChangeTab}
-              defiEnabled={defiEnabled}
-              collectiblesEnabled={collectiblesEnabled}
-            />
-          </>
-        )}
-      </>
-    </>
+  /**
+   * Same wiring as legacy `content` cluster — homepage v1 header paths must hide main actions and pass checklist callbacks.
+   * Memoized so `AccountGroupBalance` (wrapped in React.memo) doesn't re-render on every
+   * `Wallet` render — a fresh object here would defeat that memoization on every unrelated
+   * state change (e.g. the balance/price update bursts that occur right after unlock).
+   */
+  const walletHomeAccountGroupBalanceProps = useMemo(
+    () => ({
+      onCoordinatedFlowExit: runWalletHomePostOnboardingComplete,
+      suspendRiveForCurtain: postOnboardingExitAnimating,
+      onTradePrimaryPress,
+      onNotificationsPrimaryPress:
+        handleWalletHomeOnboardingNotificationsPrimary,
+    }),
+    [
+      runWalletHomePostOnboardingComplete,
+      postOnboardingExitAnimating,
+      onTradePrimaryPress,
+      handleWalletHomeOnboardingNotificationsPrimary,
+    ],
   );
+
+  const walletHomeMainAssetDetailsActions = showWalletHomeMainActions ? (
+    actionButtonsGridVariant.layout === 'eightCircular' ? (
+      <HomepageActionButtonsGrid
+        onSend={onSendWithoutTracking}
+        onReceive={onReceiveWithoutTracking}
+        rowOrder={actionButtonsGridVariant.rowOrder}
+      />
+    ) : (
+      <AssetDetailsActions
+        displayBuyButton={displayBuyButton}
+        displaySwapsButton={displaySwapsButton}
+        goToSwaps={goToSwaps}
+        onReceive={onReceive}
+        onSend={onSend}
+        buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+        swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
+        sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
+        receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
+        containerTestID={WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER}
+      />
+    )
+  ) : null;
+
+  const homepageDiscoveryPills = showDiscoveryPills ? (
+    <HomepageDiscoveryPills iconStyle={discoveryPillsIconStyle} />
+  ) : null;
+
+  // Hide growth banners when money account is enabled but user is geo-blocked.
+  const growthBanner =
+    !isMoneyAccountEnabled || isMoneyAccountVisible
+      ? homeGrowthBannerContent
+      : null;
+
+  const hasContentBeforeBalanceBreakdown = Boolean(
+    walletHomeMainAssetDetailsActions || growthBanner || homepageDiscoveryPills,
+  );
+  const contentBeforeBalanceBreakdown = hasContentBeforeBalanceBreakdown ? (
+    <>
+      {walletHomeMainAssetDetailsActions}
+      {growthBanner}
+      {homepageDiscoveryPills}
+    </>
+  ) : null;
+
+  const portfolioHeader = balanceBreakdownLayout ? (
+    hasBannerContent ? (
+      <View
+        style={styles.treatmentBannerContainer}
+        testID={WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTAINER}
+      >
+        {bannerContent}
+      </View>
+    ) : null
+  ) : (
+    <View style={styles.portfolioHeaderCluster}>
+      {bannerContent}
+      <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
+      {walletHomeMainAssetDetailsActions}
+      {growthBanner}
+      {homepageDiscoveryPills}
+      {showMoneyBalanceCard && <MoneyBalanceCard />}
+    </View>
+  );
+
+  const balanceBreakdownSectionProps = balanceBreakdownLayout
+    ? {
+        accountGroupBalanceProps: walletHomeAccountGroupBalanceProps,
+        hideRows: inWalletHomePostOnboardingFlow,
+        layout: balanceBreakdownLayout,
+        transactionActiveAbTests: balanceBreakdownTransactionActiveAbTests,
+        children: contentBeforeBalanceBreakdown,
+      }
+    : undefined;
+
   const renderLoader = useCallback(
     () => (
       <View style={styles.loader}>
@@ -1458,70 +1093,81 @@ const Wallet = ({
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <PerpsAlwaysOnProvider>
-        <View style={baseStyles.flexGrow}>
+        <SafeAreaView
+          style={[
+            baseStyles.flexGrow,
+            { backgroundColor: colors.background.default },
+          ]}
+          edges={{ top: 'additive' }}
+          testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
+        >
           {selectedInternalAccount ? (
-            <View
-              ref={containerViewRef}
-              style={styles.wrapper}
-              testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-              onLayout={(e) => {
-                setViewportHeight(e.nativeEvent.layout.height);
-                // measureInWindow gives the absolute screen Y of the container
-                // top, which is needed to form correct visible bounds when
-                // sections call measureInWindow on themselves.
-                containerViewRef.current?.measureInWindow((_x, y) => {
-                  setContainerScreenY(y);
-                });
-              }}
-            >
-              <ConditionalScrollView
-                ref={scrollViewRef}
-                isScrollEnabled={shouldEnableParentScroll}
-                scrollViewProps={{
-                  contentContainerStyle: scrollViewContentStyle,
-                  showsVerticalScrollIndicator: false,
-                  onScroll: isHomepageSectionsV1Enabled
-                    ? handleVerticalScroll
-                    : undefined,
-                  onContentSizeChange: isHomepageSectionsV1Enabled
-                    ? handleScrollContentSizeChange
-                    : undefined,
-                  onLayout: isHomepageSectionsV1Enabled
-                    ? handleScrollLayout
-                    : undefined,
-                  scrollEventThrottle: 16,
-                  refreshControl: shouldEnableParentScroll ? (
-                    <RefreshControl
-                      colors={[colors.primary.default]}
-                      tintColor={colors.icon.default}
-                      refreshing={refreshing}
-                      onRefresh={handleRefresh}
-                    />
-                  ) : undefined,
+            <>
+              <WalletHeader
+                displayName={displayName}
+                navigation={navigation}
+                isMoneyAccountVisible={isMoneyAccountVisible}
+                isNotificationEnabled={isNotificationEnabled}
+                unreadNotificationCount={unreadNotificationCount}
+                handleSearchPress={handleSearchPress}
+                handleActivityPress={handleActivityPress}
+                handleCardPress={handleCardPress}
+                handleHamburgerPress={handleHamburgerPress}
+                touchAreaSlop={touchAreaSlop}
+                headerActionButtonsContainerStyle={
+                  styles.headerActionButtonsContainer
+                }
+                headerAccountPickerStyle={styles.headerAccountPickerStyle}
+              />
+              <View
+                ref={containerViewRef}
+                style={styles.wrapper}
+                testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+                onLayout={(e) => {
+                  setViewportHeight(e.nativeEvent.layout.height);
+                  containerViewRef.current?.measureInWindow((_x, y) => {
+                    setContainerScreenY(y);
+                  });
                 }}
               >
-                {content}
-              </ConditionalScrollView>
-              {isHomepageSectionsV1Enabled && bottomFadeOpacity > 0 && (
-                <LinearGradient
-                  pointerEvents="none"
-                  colors={[
-                    colorWithOpacity(colors.background.default, 0),
-                    colors.background.default,
-                  ]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 0, y: 1 }}
-                  style={[
-                    styles.bottomFadeOverlay,
-                    { opacity: bottomFadeOpacity },
-                  ]}
-                />
-              )}
-            </View>
+                {isFocused && <AssetPollingProvider chainIds={evmChainIds} />}
+                <HomepageScrollContext.Provider
+                  value={homepageScrollContextValue}
+                >
+                  <ConditionalScrollView
+                    ref={scrollViewRef}
+                    isScrollEnabled
+                    scrollViewProps={{
+                      testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
+                      contentContainerStyle: scrollViewContentStyle,
+                      showsVerticalScrollIndicator: false,
+                      onScroll: handleHomepageScroll,
+                      scrollEventThrottle: 16,
+                      refreshControl: (
+                        <RefreshControl
+                          colors={[colors.primary.default]}
+                          tintColor={colors.icon.default}
+                          refreshing={refreshing}
+                          onRefresh={handleRefresh}
+                        />
+                      ),
+                    }}
+                  >
+                    {portfolioHeader}
+                    <Homepage
+                      ref={homepageRef}
+                      balanceBreakdownSectionProps={
+                        balanceBreakdownSectionProps
+                      }
+                    />
+                  </ConditionalScrollView>
+                </HomepageScrollContext.Provider>
+              </View>
+            </>
           ) : (
             renderLoader()
           )}
-        </View>
+        </SafeAreaView>
       </PerpsAlwaysOnProvider>
     </ErrorBoundary>
   );

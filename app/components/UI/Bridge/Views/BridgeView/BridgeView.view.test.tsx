@@ -5,25 +5,50 @@ import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
 import { Text } from 'react-native';
-import { renderScreenWithRoutes } from '../../../../../../tests/component-view/render';
+import {
+  renderComponentViewScreen,
+  renderScreenWithRoutes,
+} from '../../../../../../tests/component-view/render';
 import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../../tests/component-view/presets/bridge';
 import BridgeView from './index';
-import { describeForPlatforms } from '../../../../../util/test/platform';
+import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { CommonSelectorsIDs } from '../../../../../util/Common.testIds';
-import { setSlippage } from '../../../../../core/redux/slices/bridge';
+import {
+  setDestToken,
+  setSlippage,
+  setSourceAmount,
+  setSourceToken,
+} from '../../../../../core/redux/slices/bridge';
+import { BridgeViewMode, type BridgeToken } from '../../types';
 import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/BridgeTokenSelector';
 import Engine from '../../../../../core/Engine';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
-import { RequestStatus } from '@metamask/bridge-controller';
+import {
+  FeatureId,
+  RequestStatus,
+  QuoteStreamCompleteReason,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
 import {
   DEFAULT_BRIDGE,
   ETH_SOURCE,
   USDC_DEST,
+  USDT_DEST,
 } from '../../_mocks_/bridgeViewTestConstants';
+import { BridgeTrendingTokensSectionTestIds } from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
+import { TrendingTokensBottomSheetTestIds } from '../../../Trending/components/TrendingTokensBottomSheet/TrendingTokensBottomSheet.testIds';
+import { SWAP_DISCOVERY_FEED_REVAMP_AB_KEY } from '../../components/SwapDiscoveryFeed/abTestConfig';
+import { getTrendingTokenRowItemTestId } from '../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem.testIds';
+import {
+  setupTrendingApiFetchMock,
+  clearTrendingApiMocks,
+  mockTrendingTokensData,
+} from '../../../../../../tests/component-view/api-mocking/trending';
+import { merge } from 'lodash';
 
 const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
   const { bridge: bridgeOverrides, ...rest } = overrides ?? {};
@@ -69,6 +94,332 @@ describeForPlatforms('BridgeView', () => {
     expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
   });
 
+  describe('tabs', () => {
+    it('shows the market tab with its label by default, then switches to the limit tab and hides slippage settings on press', async () => {
+      const { getByTestId, queryByTestId } = renderBridgeView();
+
+      expect(getByTestId(BridgeViewSelectorsIDs.TABS_BAR)).toBeOnTheScreen();
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(`${BridgeViewSelectorsIDs.MARKET_TAB}-label`),
+      ).toHaveTextContent(strings('bridge.tabs.market'));
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.SLIPPAGE_SETTINGS_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('labels the limit and recurring tabs, then switches to the recurring tab and replaces the market content', async () => {
+      const { getByTestId, queryByTestId } = renderBridgeView();
+
+      expect(
+        getByTestId(`${BridgeViewSelectorsIDs.LIMIT_TAB}-label`),
+      ).toHaveTextContent(strings('bridge.tabs.limit'));
+      expect(
+        getByTestId(`${BridgeViewSelectorsIDs.RECURRING_TAB}-label`),
+      ).toHaveTextContent(strings('bridge.tabs.recurring'));
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.RECURRING_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('restores the market content when returning to the market tab', async () => {
+      const { getByTestId, queryByTestId } = renderBridgeView();
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('re-anchors the destination to the source token default pair when returning to the market tab', async () => {
+      // The user picks a Robinhood-chain pair on the Limit tab and goes back to
+      // Market, which anchors its source token from the route params. The
+      // destination has to follow that source instead of being left behind on
+      // the Robinhood chain, which would turn a swap into a cross-chain bridge.
+      const robinhoodChainId = '0x1237';
+      const robinhoodEth: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: robinhoodChainId,
+        decimals: 18,
+        symbol: 'ETH',
+        name: 'Ether',
+      };
+      const robinhoodUsde: BridgeToken = {
+        address: '0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34',
+        chainId: robinhoodChainId,
+        decimals: 18,
+        symbol: 'USDe',
+        name: 'Ethena USDe',
+      };
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          bridge: { ...DEFAULT_BRIDGE },
+        } as unknown as DeepPartial<RootState>)
+        .build();
+
+      const { getByTestId, store } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+        {
+          sourcePage: 'test',
+          bridgeViewMode: BridgeViewMode.Unified,
+          sourceToken: ETH_SOURCE,
+        },
+      );
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      act(() => {
+        store.dispatch(setSourceToken(robinhoodEth));
+        store.dispatch(setDestToken(robinhoodUsde));
+      });
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+
+      await waitFor(() => {
+        expect(store.getState().bridge.sourceToken?.chainId).toBe('0x1');
+      });
+      await waitFor(() => {
+        expect(store.getState().bridge.destToken).toEqual(
+          expect.objectContaining({ symbol: 'mUSD', chainId: '0x1' }),
+        );
+      });
+      expect(store.getState().bridge.isDestTokenManuallySet).toBe(false);
+    });
+
+    it('re-anchors the destination to the source token chain when returning to the market tab without a route source token', async () => {
+      // Same as above, but Market has no source token on its route params, so it
+      // keeps the source the Limit tab left in Redux. The destination has to
+      // follow that source's chain rather than the bip44 default pair, whose
+      // dest asset always sits on Ethereum.
+      const bscUsdt: BridgeToken = {
+        address: '0x55d398326f99059ff775485246999027b3197955',
+        chainId: '0x38',
+        decimals: 18,
+        symbol: 'USDT',
+        name: 'Tether USD',
+      };
+      const bscNative: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x38',
+        decimals: 18,
+        symbol: 'BNB',
+        name: 'BNB',
+      };
+      const state = initialStateBridge({ deterministicFiat: true })
+        .withOverrides({
+          bridge: { ...DEFAULT_BRIDGE },
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  // The bip44 default pair is what a source token left on
+                  // another chain could wrongly get paired with.
+                  bridgeConfigV2: {
+                    minimumVersion: '0.0.0',
+                    maxRefreshCount: 5,
+                    refreshRate: 30000,
+                    support: true,
+                    chains: {
+                      'eip155:1': { isActiveSrc: true, isActiveDest: true },
+                      'eip155:56': { isActiveSrc: true, isActiveDest: true },
+                    },
+                    bip44DefaultPairs: {
+                      eip155: {
+                        other: {},
+                        standard: {
+                          'eip155:1/slip44:60':
+                            'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState>)
+        .build();
+
+      const { getByTestId, store } = renderComponentViewScreen(
+        BridgeView as unknown as React.ComponentType,
+        { name: Routes.BRIDGE.BRIDGE_VIEW },
+        { state },
+        {
+          sourcePage: 'test',
+          bridgeViewMode: BridgeViewMode.Unified,
+        },
+      );
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      act(() => {
+        store.dispatch(setSourceToken(bscNative));
+        store.dispatch(setDestToken(bscUsdt));
+      });
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+        ).toBeOnTheScreen();
+      });
+      await waitFor(() => {
+        expect(store.getState().bridge.destToken).toEqual(
+          expect.objectContaining({ symbol: 'USDT', chainId: '0x38' }),
+        );
+      });
+      expect(store.getState().bridge.sourceToken?.chainId).toBe('0x38');
+    });
+
+    it('clears the amount inputs and stops controller polling after switching away from the market tab, keeping the selected tokens', async () => {
+      const { getByTestId, store } = defaultBridgeWithTokens();
+
+      expect(store.getState().bridge.sourceToken).toBeTruthy();
+      expect(store.getState().bridge.sourceAmount).toBe('1');
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      await waitFor(() => {
+        expect(store.getState().bridge.sourceAmount).toBeUndefined();
+      });
+      // The selected tokens are preserved so Market shows the same pair on return.
+      expect(store.getState().bridge.sourceToken).toBeTruthy();
+      expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
+    });
+
+    describe('feature flags', () => {
+      it('hides the tabs bar and keeps the market view functional when both Limit and Recurring flags are disabled', async () => {
+        const { getByTestId, queryByTestId, store } = renderBridgeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    swapsLimitOrder: { enabled: false },
+                    swapsRecurringBuy: { enabled: false },
+                  },
+                },
+              },
+            },
+          } as unknown as DeepPartial<RootState>,
+        });
+
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.TABS_BAR),
+        ).not.toBeOnTheScreen();
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.LIMIT_TAB),
+        ).not.toBeOnTheScreen();
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB),
+        ).not.toBeOnTheScreen();
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+        ).toBeOnTheScreen();
+
+        act(() => {
+          store.dispatch(setSourceAmount('1'));
+        });
+
+        await waitFor(() => {
+          expect(store.getState().bridge.sourceAmount).toBe('1');
+        });
+      });
+
+      it('shows only the enabled tab when a single WIP flag is enabled and lets the user switch to it', async () => {
+        const { getByTestId, queryByTestId } = renderBridgeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    swapsLimitOrder: { enabled: true },
+                    swapsRecurringBuy: { enabled: false },
+                  },
+                },
+              },
+            },
+          } as unknown as DeepPartial<RootState>,
+        });
+
+        expect(getByTestId(BridgeViewSelectorsIDs.TABS_BAR)).toBeOnTheScreen();
+        expect(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB)).toBeOnTheScreen();
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.RECURRING_TAB),
+        ).not.toBeOnTheScreen();
+
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+
+        await waitFor(() => {
+          expect(
+            getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+          ).toBeOnTheScreen();
+        });
+      });
+    });
+  });
+
   it('types 9.5 with keypad and displays $19,000.00 fiat value', async () => {
     const {
       getByTestId,
@@ -108,6 +459,299 @@ describeForPlatforms('BridgeView', () => {
 
     expect(await findByDisplayValue('9.5')).toBeOnTheScreen();
     expect(await findByText('$19,000.00')).toBeOnTheScreen();
+  });
+
+  it('tracks source input denomination toggle', () => {
+    jest.clearAllMocks();
+    const { getByTestId } = defaultBridgeWithTokens({
+      bridge: {
+        sourceAmount: '1',
+        sourceToken: ETH_SOURCE,
+        destToken: USDC_DEST,
+      },
+    } as unknown as Record<string, unknown>);
+
+    fireEvent.press(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE),
+    );
+
+    expect(
+      Engine.context.BridgeController.setInputPrimaryDenomination,
+    ).toHaveBeenCalledWith('fiat_value');
+    expect(
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
+    ).toHaveBeenCalledWith(
+      UnifiedSwapBridgeEventName.FiatCryptoToggleClicked,
+      expect.objectContaining({
+        previous_primary_denomination: 'token_amount',
+        new_primary_denomination: 'fiat_value',
+        token_symbol_source: ETH_SOURCE.symbol,
+        token_symbol_destination: USDC_DEST.symbol,
+        chain_id_source: 'eip155:1',
+        chain_id_destination: 'eip155:1',
+        token_address_source: 'eip155:1/slip44:60',
+        token_address_destination:
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        token_security_type_destination: null,
+        swap_type: 'single_chain',
+        feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+      }),
+    );
+  });
+
+  it('mirrors source fiat mode on the destination amount display', async () => {
+    const state = initialStateBridge({ deterministicFiat: true })
+      .withBridgeRecommendedQuoteEvmSimple()
+      .withOverrides({
+        bridge: {
+          ...DEFAULT_BRIDGE,
+          sourceAmount: '1',
+          selectedDestChainId: '0x1',
+        },
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              inputPrimaryDenomination: 'fiat_value',
+            },
+            TokenRatesController: {
+              marketData: {
+                '0x1': {
+                  [USDC_DEST.address]: {
+                    tokenAddress: USDC_DEST.address,
+                    currency: 'ETH',
+                    price: 0.0005,
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as unknown as DeepPartial<RootState>)
+      .build();
+    const bridgeControllerState = (
+      (state as unknown as DeepPartial<RootState>).engine?.backgroundState as
+        | Record<string, unknown>
+        | undefined
+    )?.BridgeController as
+      | {
+          recommendedQuote: Record<string, unknown>;
+          quotes: Record<string, unknown>[];
+        }
+      | undefined;
+    const recommendedQuote = bridgeControllerState?.recommendedQuote;
+    const quoteWithTrade = merge({}, recommendedQuote, {
+      quote: {
+        aggregator: 'test-bridge',
+        protocols: ['test-bridge'],
+        steps: [],
+      },
+      trade: {
+        value: '0xde0b6b3a7640000',
+        gasLimit: 0,
+        effectiveGas: 0,
+      },
+    });
+
+    if (bridgeControllerState) {
+      bridgeControllerState.recommendedQuote = quoteWithTrade;
+      bridgeControllerState.quotes = [quoteWithTrade];
+    }
+
+    const { getByTestId, getByText } = renderComponentViewScreen(
+      BridgeView as unknown as React.ComponentType,
+      { name: Routes.BRIDGE.BRIDGE_VIEW },
+      { state },
+    );
+
+    await waitFor(() => {
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_INPUT).props.value,
+      ).toBe('$1.00');
+    });
+    expect(getByText('1 USDC')).toBeOnTheScreen();
+  });
+
+  it('resets source cursor to the end when input is focused again', async () => {
+    const { getByTestId, getByText, findByDisplayValue } =
+      defaultBridgeWithTokens({
+        bridge: {
+          sourceAmount: '1234',
+          sourceToken: ETH_SOURCE,
+          destToken: undefined,
+        },
+      } as unknown as Record<string, unknown>);
+    const sourceInput = getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT);
+
+    fireEvent(sourceInput, 'selectionChange', {
+      nativeEvent: { selection: { start: 1, end: 1 } },
+    });
+    fireEvent(sourceInput, 'blur');
+    fireEvent(sourceInput, 'focus');
+
+    expect(sourceInput.props.selection).toEqual({ start: 5, end: 5 });
+
+    await waitFor(() => {
+      expect(
+        getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+    fireEvent.press(getByText('9'));
+
+    expect(await findByDisplayValue('12,349')).toBeOnTheScreen();
+  });
+
+  it('shows zero secondary value when source amount is empty', async () => {
+    const { findByText } = defaultBridgeWithTokens({
+      bridge: {
+        sourceAmount: undefined,
+        sourceToken: ETH_SOURCE,
+        destToken: undefined,
+      },
+      engine: {
+        backgroundState: {
+          BridgeController: {
+            inputPrimaryDenomination: 'fiat_value',
+          },
+        },
+      },
+    } as unknown as Record<string, unknown>);
+
+    expect(await findByText('0 ETH')).toBeOnTheScreen();
+  });
+
+  it('floors the fiat-mode secondary token amount to the shared Bridge precision', async () => {
+    const { findByText, queryByText } = defaultBridgeWithTokens({
+      bridge: {
+        sourceAmount: '0.054266763023182519',
+        sourceToken: ETH_SOURCE,
+        destToken: undefined,
+      },
+      engine: {
+        backgroundState: {
+          BridgeController: {
+            inputPrimaryDenomination: 'fiat_value',
+          },
+        },
+      },
+    } as unknown as Record<string, unknown>);
+
+    expect(await findByText('0.05426 ETH')).toBeOnTheScreen();
+    expect(queryByText('0.05427 ETH')).toBeNull();
+    expect(queryByText('0.054266763023182519 ETH')).toBeNull();
+  });
+
+  it('keeps quote requests based on token amount after fiat input', async () => {
+    const updateQuoteSpy = jest.spyOn(
+      Engine.context.BridgeController,
+      'updateBridgeQuoteRequestParams',
+    );
+    const { getByTestId, getByText, findByDisplayValue, findByText, store } =
+      defaultBridgeWithTokens({
+        bridge: {
+          sourceAmount: '0',
+          sourceToken: ETH_SOURCE,
+          destToken: USDC_DEST,
+          selectedDestChainId: '0x1',
+        },
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [],
+              recommendedQuote: null,
+              quotesLastFetched: 0,
+              quotesLoadingStatus: null,
+              quoteFetchError: null,
+              inputPrimaryDenomination: 'fiat_value',
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>);
+
+    updateQuoteSpy.mockClear();
+    fireEvent(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT),
+      'pressIn',
+    );
+
+    await waitFor(() => {
+      expect(
+        getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    fireEvent.press(getByText('5'));
+    fireEvent.press(getByText('0'));
+
+    expect(await findByDisplayValue('50')).toBeOnTheScreen();
+    expect(await findByText('0.025 ETH')).toBeOnTheScreen();
+
+    await waitFor(() => {
+      expect(store.getState().bridge.sourceAmount).toBe('0.025');
+    });
+    await waitFor(
+      () => {
+        expect(updateQuoteSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            srcTokenAmount: '25000000000000000',
+          }),
+          expect.anything(),
+          expect.anything(),
+          expect.anything(),
+        );
+      },
+      { timeout: 1000 },
+    );
+
+    updateQuoteSpy.mockRestore();
+  });
+
+  it('uses token input without resetting persisted fiat mode when price data is unavailable', async () => {
+    jest.clearAllMocks();
+    const sourceTokenWithoutPrice = {
+      ...ETH_SOURCE,
+      address: '0x1234567890123456789012345678901234567890',
+      symbol: 'NOPE',
+    };
+    const { getByTestId, queryByTestId, queryByText, findByDisplayValue } =
+      renderBridgeView({
+        overrides: {
+          bridge: {
+            ...DEFAULT_BRIDGE,
+            sourceAmount: '1',
+            sourceToken: sourceTokenWithoutPrice,
+            destToken: undefined,
+          },
+          engine: {
+            backgroundState: {
+              BridgeController: {
+                inputPrimaryDenomination: 'fiat_value',
+              },
+              CurrencyRateController: {
+                currentCurrency: 'USD',
+                currencyRates: {},
+                conversionRate: 0,
+              },
+              TokenRatesController: {
+                marketData: {},
+              },
+            },
+          },
+        } as unknown as DeepPartial<RootState>,
+      });
+
+    fireEvent(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT),
+      'pressIn',
+    );
+
+    expect(
+      queryByTestId(BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE),
+    ).toBeNull();
+    expect(queryByText('$0.00')).toBeNull();
+    expect(
+      Engine.context.BridgeController.setInputPrimaryDenomination,
+    ).not.toHaveBeenCalledWith('token_amount');
+    expect(await findByDisplayValue('1')).toBeOnTheScreen();
   });
 
   it('renders enabled confirm button with tokens, amount and recommended quote', () => {
@@ -197,8 +841,42 @@ describeForPlatforms('BridgeView', () => {
     expect(await findByText('dest')).toBeOnTheScreen();
   });
 
+  describe('Gasless swap', () => {
+    it('shows error banner when gasless swap quote fetch fails', async () => {
+      const now = Date.now();
+
+      const { findByText } = defaultBridgeWithTokens({
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [],
+              recommendedQuote: null,
+              quotesLastFetched: now,
+              quotesLoadingStatus: RequestStatus.FETCHED,
+              quoteStreamComplete: {
+                hasQuotes: false,
+                quoteCount: 0,
+                reason: QuoteStreamCompleteReason.RETRY,
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                gasFeesSponsoredNetwork: { '0x1': true },
+              },
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>);
+
+      expect(
+        await findByText(strings('bridge.quote_stream_complete_retry')),
+      ).toBeOnTheScreen();
+    });
+  });
+
   describe('Swap team regression (bug matrix team-swaps-and-bridge)', () => {
     /** Issues covered: #24744, #24865, #24802, #25256 */
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#24744" style references are GitHub issue IDs (e.g. "#2342"), not color literals
     it('displays gas included label and enables confirm when quote has gas included (#24744)', async () => {
       const now = Date.now();
       const quoteWithGasIncluded = {
@@ -238,6 +916,7 @@ describeForPlatforms('BridgeView', () => {
     });
 
     // Regression for #25256: two USDT tokens on Linea must both appear in search results.
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#25256" style references are GitHub issue IDs (e.g. "#2342"), not color literals
     it('shows two USDT when search API returns two USDT on Linea (#25256)', async () => {
       jest
         .spyOn(Engine.context.AuthenticationController, 'getBearerToken')
@@ -407,6 +1086,7 @@ describeForPlatforms('BridgeView', () => {
       fetchSpy.mockRestore();
     }, 25000);
 
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#24865" style references are GitHub issue IDs (e.g. "#2342"), not color literals
     it('shows native token in source area when source is native token from token details (#24865)', () => {
       const bnbChainId = '0x38';
       const nativeBnbAddress = '0x0000000000000000000000000000000000000000';
@@ -434,6 +1114,7 @@ describeForPlatforms('BridgeView', () => {
       expect(within(sourceArea).getByText('BNB')).toBeOnTheScreen();
     });
 
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#24802" style references are GitHub issue IDs (e.g. "#2342"), not color literals
     it('renders USDC to BNB swap setup without crash and hides confirm when no quote (#24802)', () => {
       const bnbChainIdHex = '0x38';
 
@@ -464,6 +1145,118 @@ describeForPlatforms('BridgeView', () => {
         getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
       ).toBeOnTheScreen();
       expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
+    });
+  });
+
+  // Migrated from tests/smoke/swap/swap-deeplink-smoke.spec.ts
+  describe('Deeplink navigation', () => {
+    // E2E: 'navigate to bridge view with full parameters (USDC to USDT)'
+    it('renders USDC source and USDT destination when opened with full deeplink params', async () => {
+      const { findByTestId, getByTestId } = defaultBridgeWithTokens({
+        bridge: {
+          sourceToken: USDC_DEST,
+          destToken: USDT_DEST,
+          sourceAmount: '1',
+        },
+      } as unknown as Record<string, unknown>);
+
+      const sourceArea = await findByTestId(
+        BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA,
+      );
+      const destArea = getByTestId(
+        BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA,
+      );
+
+      expect(within(sourceArea).getByText('USDC')).toBeOnTheScreen();
+      expect(within(destArea).getByText('USDT')).toBeOnTheScreen();
+    });
+
+    // E2E: 'navigate to bridge view with no parameters' + 'handle invalid deep link parameters gracefully'
+    // Both cases (no params and invalid params) are discarded by the deeplink handler before
+    // navigation, leaving the bridge Redux slice with no tokens set. At the component level
+    // the rendering is identical, so a single test covers both E2E scenarios.
+    it('renders source token area with no confirm button when no valid deeplink params are provided', async () => {
+      const { findByTestId, queryByTestId } = renderBridgeView({
+        overrides: {
+          bridge: { sourceToken: undefined, destToken: undefined },
+        } as unknown as DeepPartial<RootState>,
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
+    });
+  });
+
+  // Migrated from tests/smoke/swap/swap-trending-tokens.spec.ts
+  // E2E: 'zero-state trending supports filters then row navigation'
+  describe('Trending tokens zero state', () => {
+    beforeEach(() => {
+      setupTrendingApiFetchMock(mockTrendingTokensData);
+    });
+
+    afterEach(() => {
+      clearTrendingApiMocks();
+    });
+
+    it('shows trending section with filters, opens price filter bottom sheet, and hides when amount is entered', async () => {
+      const { findByTestId, getByTestId, queryByTestId, store } =
+        renderBridgeView({
+          overrides: {
+            bridge: { sourceToken: ETH_SOURCE },
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    [SWAP_DISCOVERY_FEED_REVAMP_AB_KEY]: 'control',
+                  },
+                  cacheTimestamp: 0,
+                },
+              },
+            },
+          } as unknown as DeepPartial<RootState>,
+        });
+
+      await findByTestId(BridgeTrendingTokensSectionTestIds.SECTION);
+      expect(
+        getByTestId(BridgeTrendingTokensSectionTestIds.PRICE_FILTER),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(BridgeTrendingTokensSectionTestIds.NETWORK_FILTER),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(BridgeTrendingTokensSectionTestIds.TIME_FILTER),
+      ).toBeOnTheScreen();
+
+      await waitFor(
+        () => {
+          expect(
+            getByTestId(
+              getTrendingTokenRowItemTestId(
+                'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+              ),
+            ),
+          ).toBeOnTheScreen();
+        },
+        { timeout: 5000 },
+      );
+
+      fireEvent.press(
+        getByTestId(BridgeTrendingTokensSectionTestIds.PRICE_FILTER),
+      );
+      expect(
+        await findByTestId(TrendingTokensBottomSheetTestIds.PRICE_CHANGE),
+      ).toBeOnTheScreen();
+
+      act(() => {
+        store.dispatch(setSourceAmount('1'));
+      });
+      await waitFor(() => {
+        expect(
+          queryByTestId(BridgeTrendingTokensSectionTestIds.SECTION),
+        ).not.toBeOnTheScreen();
+      });
     });
   });
 });

@@ -42,6 +42,7 @@ const createStyles = (params: { theme: Theme }) => {
     },
     tabBar: {
       borderColor: borderMuted,
+      backgroundColor: theme.colors.background.elevated1,
     },
     // edit network menu
     editNetworkMenu: {

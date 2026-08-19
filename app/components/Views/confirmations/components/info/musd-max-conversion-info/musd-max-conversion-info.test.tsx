@@ -9,9 +9,11 @@ import {
 import { AssetType } from '../../../types/token';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
-import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
+import { useIsTransactionPayAmountStale } from '../../../hooks/pay/useIsTransactionPayAmountStale';
+import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useAlerts } from '../../../context/alert-system-context';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { Severity } from '../../../types/alerts';
 
 const mockToken: AssetType = {
   address: '0x123',
@@ -50,10 +52,17 @@ jest.mock('../../../hooks/transactions/useTransactionMetadataRequest', () => ({
 
 jest.mock('../../../hooks/pay/useTransactionPayData', () => ({
   useIsTransactionPayLoading: jest.fn(),
+  useTransactionPayIsMaxAmount: jest.fn(() => false),
+  useTransactionPayIsPostQuote: jest.fn(() => false),
+  useTransactionPayRequiredTokens: jest.fn(() => []),
 }));
 
-jest.mock('../../../hooks/transactions/useTransactionConfirm', () => ({
-  useTransactionConfirm: jest.fn(),
+jest.mock('../../../hooks/pay/useIsTransactionPayAmountStale', () => ({
+  useIsTransactionPayAmountStale: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useConfirmActions', () => ({
+  useConfirmActions: jest.fn(),
 }));
 
 jest.mock('../../../context/alert-system-context', () => ({
@@ -92,7 +101,10 @@ const mockUseTransactionMetadataRequest = jest.mocked(
   useTransactionMetadataRequest,
 );
 const mockUseIsTransactionPayLoading = jest.mocked(useIsTransactionPayLoading);
-const mockUseTransactionConfirm = jest.mocked(useTransactionConfirm);
+const mockUseIsTransactionPayAmountStale = jest.mocked(
+  useIsTransactionPayAmountStale,
+);
+const mockUseConfirmActions = jest.mocked(useConfirmActions);
 const mockUseAlerts = jest.mocked(useAlerts);
 const mockUseFiatFormatter = jest.mocked(useFiatFormatter);
 
@@ -102,7 +114,11 @@ function setupMocksForSuccessPath() {
     chainId: '0x1',
   } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
   mockUseIsTransactionPayLoading.mockReturnValue(false);
-  mockUseTransactionConfirm.mockReturnValue({ onConfirm: jest.fn() });
+  mockUseIsTransactionPayAmountStale.mockReturnValue(false);
+  mockUseConfirmActions.mockReturnValue({
+    onConfirm: jest.fn(),
+    onReject: jest.fn(),
+  });
   mockUseAlerts.mockReturnValue({
     alerts: [],
   } as unknown as ReturnType<typeof useAlerts>);
@@ -194,7 +210,10 @@ describe('MusdMaxConversionInfo', () => {
   describe('confirm button', () => {
     it('calls onConfirm when confirm button is pressed', () => {
       const mockOnConfirm = jest.fn();
-      mockUseTransactionConfirm.mockReturnValue({ onConfirm: mockOnConfirm });
+      mockUseConfirmActions.mockReturnValue({
+        onConfirm: mockOnConfirm,
+        onReject: jest.fn(),
+      });
 
       renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
 
@@ -214,7 +233,7 @@ describe('MusdMaxConversionInfo', () => {
       const confirmButton = screen.getByTestId(
         MusdMaxConversionInfoTestIds.CONFIRM_BUTTON,
       );
-      expect(confirmButton.props.disabled).toBe(true);
+      expect(confirmButton).toBeDisabled();
     });
 
     it('disables confirm button when quotes are loading', () => {
@@ -225,7 +244,18 @@ describe('MusdMaxConversionInfo', () => {
       const confirmButton = screen.getByTestId(
         MusdMaxConversionInfoTestIds.CONFIRM_BUTTON,
       );
-      expect(confirmButton.props.disabled).toBe(true);
+      expect(confirmButton).toBeDisabled();
+    });
+
+    it('disables confirm button when pay amount is stale', () => {
+      mockUseIsTransactionPayAmountStale.mockReturnValue(true);
+
+      renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
+
+      const confirmButton = screen.getByTestId(
+        MusdMaxConversionInfoTestIds.CONFIRM_BUTTON,
+      );
+      expect(confirmButton).toBeDisabled();
     });
 
     it('disables confirm button when alerts contain isBlocking entry', () => {
@@ -246,7 +276,7 @@ describe('MusdMaxConversionInfo', () => {
       const confirmButton = screen.getByTestId(
         MusdMaxConversionInfoTestIds.CONFIRM_BUTTON,
       );
-      expect(confirmButton.props.disabled).toBe(true);
+      expect(confirmButton).toBeDisabled();
     });
 
     it('enables confirm button when not loading and no blocking alerts', () => {
@@ -255,7 +285,46 @@ describe('MusdMaxConversionInfo', () => {
       const confirmButton = screen.getByTestId(
         MusdMaxConversionInfoTestIds.CONFIRM_BUTTON,
       );
-      expect(confirmButton.props.disabled).toBe(false);
+      expect(confirmButton).toBeEnabled();
+    });
+
+    it('disables confirm button when hardware account alert is blocking', () => {
+      mockUseAlerts.mockReturnValue({
+        alerts: [
+          {
+            key: 'MMPayHardwareAccount',
+            message: 'Hardware wallet not supported',
+            title: 'Not Supported',
+            severity: Severity.Danger,
+            isBlocking: true,
+          },
+        ],
+      } as unknown as ReturnType<typeof useAlerts>);
+
+      renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
+
+      const confirmButton = screen.getByTestId(
+        MusdMaxConversionInfoTestIds.CONFIRM_BUTTON,
+      );
+      expect(confirmButton).toBeDisabled();
+    });
+
+    it('shows hardware account alert title as button label', () => {
+      mockUseAlerts.mockReturnValue({
+        alerts: [
+          {
+            key: 'MMPayHardwareAccount',
+            message: 'Hardware wallet not supported',
+            title: 'Not Supported',
+            severity: Severity.Danger,
+            isBlocking: true,
+          },
+        ],
+      } as unknown as ReturnType<typeof useAlerts>);
+
+      renderWithProvider(<MusdMaxConversionInfo />, { state: {} });
+
+      expect(screen.getByText('Not Supported')).toBeOnTheScreen();
     });
   });
 });

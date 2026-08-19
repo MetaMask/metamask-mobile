@@ -1,6 +1,7 @@
 import enContent from '../../../../../locales/languages/en.json';
 
 export const PrivateKeyListIds = {
+  GO_BACK: 'private-key-list-go-back',
   PASSWORD_TITLE: 'password-title',
   BANNER: 'banner',
   PASSWORD_INPUT: 'password-input',

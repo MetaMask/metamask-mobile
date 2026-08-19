@@ -1,3 +1,34 @@
+import { strings } from '../../../../../locales/i18n';
+
+const CIRCUIT_BREAKER_OPEN_ERROR_KEY = 'CIRCUIT_BREAKER_OPEN';
+const CIRCUIT_BREAKER_OPEN_MESSAGE_KEY = 'fiat_on_ramp.circuit_breaker_open';
+
+function getErrorKey(error: unknown): string | null {
+  if (typeof error !== 'object' || error === null || !('errorKey' in error)) {
+    return null;
+  }
+
+  const errorKey = (error as { errorKey?: unknown }).errorKey;
+  return typeof errorKey === 'string' && errorKey.trim() ? errorKey : null;
+}
+
+function getRawMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  if (typeof error === 'object' && error !== null && 'error' in error) {
+    const resourceError = (error as { error?: unknown }).error;
+    return typeof resourceError === 'string' ? resourceError : '';
+  }
+
+  return '';
+}
+
 /**
  * Extracts a user-friendly error message from API errors.
  *
@@ -11,12 +42,11 @@
  * @returns A user-facing error message string
  */
 export function parseUserFacingError(error: unknown, fallback: string): string {
-  const rawMessage =
-    error instanceof Error
-      ? error.message
-      : typeof error === 'string'
-        ? error
-        : '';
+  if (getErrorKey(error) === CIRCUIT_BREAKER_OPEN_ERROR_KEY) {
+    return strings(CIRCUIT_BREAKER_OPEN_MESSAGE_KEY);
+  }
+
+  const rawMessage = getRawMessage(error);
 
   if (!rawMessage) {
     return fallback;

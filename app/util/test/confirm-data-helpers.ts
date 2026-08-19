@@ -110,6 +110,7 @@ export const siweSignSignatureRequest = {
   ...personalSignSignatureRequest,
   messageParams: {
     ...personalSignSignatureRequest.messageParams,
+    from: '0x8eeee1781fd885ff5ddef7789486676961873d12',
     data: '0x6d6574616d61736b2e6769746875622e696f2077616e747320796f7520746f207369676e20696e207769746820796f757220457468657265756d206163636f756e743a0a3078386565656531373831666438383566663564646566373738393438363637363936313837336431320a0a492061636365707420746865204d6574614d61736b205465726d73206f6620536572766963653a2068747470733a2f2f636f6d6d756e6974792e6d6574616d61736b2e696f2f746f730a0a5552493a2068747470733a2f2f6d6574616d61736b2e6769746875622e696f0a56657273696f6e3a20310a436861696e2049443a20310a4e6f6e63653a2033323839313735370a4973737565642041743a20323032312d30392d33305431363a32353a32342e3030305a',
     siwe: {
       isSIWEMessage: true,
@@ -478,7 +479,7 @@ export const securityAlertResponse = {
     from: '0x8eeee1781fd885ff5ddef7789486676961873d12',
     meta: {
       analytics: {
-        request_platform: undefined,
+        remote_request_platform: undefined,
         request_source: 'In-App-Browser',
       },
       channelId: undefined,
@@ -684,6 +685,7 @@ const stakingConfirmationBaseState = {
   },
   settings: {
     showFiatOnTestnets: true,
+    basicFunctionalityEnabled: true,
   },
 };
 
@@ -732,50 +734,58 @@ export const stakingClaimConfirmationState = merge(
 export enum SignTypedDataMockType {
   BATCH = 'BATCH',
   DAI = 'DAI',
+  // Permit2 PermitBatch max-allowance grant with a malicious `value: "0"`
+  // sibling injected at the message root. The field is not part of the
+  // PermitBatch schema, so it is stripped from the signed digest but could be
+  // read by rendering hooks to spoof a "Remove permission" / "Revoke" UI.
+  // See HackerOne #3714813.
+  BATCH_INJECTED_VALUE = 'BATCH_INJECTED_VALUE',
 }
 
+const permitBatchData = {
+  types: {
+    EIP712Domain: mockTypeDefEIP712Domain,
+    PermitBatch: [
+      { name: 'details', type: 'PermitDetails[]' },
+      { name: 'spender', type: 'address' },
+      { name: 'sigDeadline', type: 'uint256' },
+    ],
+    PermitDetails: [
+      { name: 'token', type: 'address' },
+      { name: 'amount', type: 'uint160' },
+      { name: 'expiration', type: 'uint48' },
+      { name: 'nonce', type: 'uint48' },
+    ],
+  },
+  domain: {
+    name: 'Permit2',
+    chainId: '1',
+    version: '1',
+    verifyingContract: '0x000000000022d473030f116ddee9f6b43ac78ba3',
+  },
+  primaryType: 'PermitBatch',
+  message: {
+    details: [
+      {
+        token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        amount: '1461501637330902918203684832716283019655932542975',
+        expiration: '1722887542',
+        nonce: '5',
+      },
+      {
+        token: '0xb0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        amount: '250',
+        expiration: '1722887642',
+        nonce: '6',
+      },
+    ],
+    spender: '0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad',
+    sigDeadline: '1720297342',
+  },
+};
+
 const SIGN_TYPE_DATA: Record<SignTypedDataMockType, string> = {
-  [SignTypedDataMockType.BATCH]: JSON.stringify({
-    types: {
-      EIP712Domain: mockTypeDefEIP712Domain,
-      PermitBatch: [
-        { name: 'details', type: 'PermitDetails[]' },
-        { name: 'spender', type: 'address' },
-        { name: 'sigDeadline', type: 'uint256' },
-      ],
-      PermitDetails: [
-        { name: 'token', type: 'address' },
-        { name: 'amount', type: 'uint160' },
-        { name: 'expiration', type: 'uint48' },
-        { name: 'nonce', type: 'uint48' },
-      ],
-    },
-    domain: {
-      name: 'Permit2',
-      chainId: '1',
-      version: '1',
-      verifyingContract: '0x000000000022d473030f116ddee9f6b43ac78ba3',
-    },
-    primaryType: 'PermitBatch',
-    message: {
-      details: [
-        {
-          token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          amount: '1461501637330902918203684832716283019655932542975',
-          expiration: '1722887542',
-          nonce: '5',
-        },
-        {
-          token: '0xb0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          amount: '250',
-          expiration: '1722887642',
-          nonce: '6',
-        },
-      ],
-      spender: '0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad',
-      sigDeadline: '1720297342',
-    },
-  }),
+  [SignTypedDataMockType.BATCH]: JSON.stringify(permitBatchData),
   [SignTypedDataMockType.DAI]: JSON.stringify({
     domain: {
       name: 'Dai Stablecoin',
@@ -800,6 +810,16 @@ const SIGN_TYPE_DATA: Record<SignTypedDataMockType, string> = {
       nonce: 0,
       expiry: 0,
       allowed: false,
+    },
+  }),
+  // Reuses the canonical PermitBatch payload with a malicious `value: "0"`
+  // sibling injected at the message root — not declared in PermitBatch, so it
+  // is stripped from the signed digest but present in the raw payload.
+  [SignTypedDataMockType.BATCH_INJECTED_VALUE]: JSON.stringify({
+    ...permitBatchData,
+    message: {
+      ...permitBatchData.message,
+      value: '0',
     },
   }),
 };

@@ -7,12 +7,28 @@ import {
   selectAllowedChainRanking,
   selectTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
+import { useABTest } from '../../../../../hooks';
+import { useChainValueOrder } from '../../hooks/useChainValueOrder';
 
 const mockOnCloseBottomSheet = jest.fn();
+let mockRouteParams: { enabledChainIds?: CaipChainId[] } = {};
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   useDispatch: jest.fn(),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useRoute: () => ({ params: mockRouteParams }),
+}));
+
+jest.mock('../../../../../hooks', () => ({
+  useABTest: jest.fn(),
+}));
+
+jest.mock('../../hooks/useChainValueOrder', () => ({
+  useChainValueOrder: jest.fn(),
 }));
 
 jest.mock('../../../../../util/networks', () => ({
@@ -108,20 +124,32 @@ jest.mock('../../../../../component-library/components/Cells/Cell', () => {
 describe('NetworkListModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = {};
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
-
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectAllowedChainRanking) {
-        return mockChainRanking;
-      }
-      if (selector === selectTokenSelectorNetworkFilter) {
-        return undefined;
-      }
-      return undefined;
+    jest.mocked(useABTest).mockReturnValue({
+      variant: { orderByValue: false },
+      variantName: 'control',
+      isActive: true,
     });
+    jest.mocked(useChainValueOrder).mockReturnValue(mockChainRanking);
+    jest.mocked(selectAllowedChainRanking).mockReturnValue(mockChainRanking);
+    jest.mocked(selectTokenSelectorNetworkFilter).mockReturnValue(undefined);
+    // NetworkListModal calls useSelector(selectTokenSelectorNetworkFilter)
+    // directly, and wraps selectAllowedChainRanking in an inline lambda (to
+    // forward the optional enabledChainIds route param) — invoke whatever
+    // selector is passed so both routes resolve through the mocks above.
+    mockUseSelector.mockImplementation(
+      (selector: (state: unknown) => unknown) => selector({}),
+    );
   });
 
   describe('rendering', () => {
+    it('does not calculate holdings order for control', () => {
+      render(<NetworkListModal />);
+
+      expect(useChainValueOrder).not.toHaveBeenCalled();
+    });
+
     it('renders the header with "Select network"', () => {
       const { getByText } = render(<NetworkListModal />);
       expect(getByText('Select network')).toBeTruthy();
@@ -138,6 +166,54 @@ describe('NetworkListModal', () => {
       expect(getByText('Ethereum')).toBeTruthy();
       expect(getByText('Polygon')).toBeTruthy();
       expect(getByText('Optimism')).toBeTruthy();
+    });
+
+    it('renders every network in holdings order for treatment', () => {
+      const treatmentRanking = [
+        mockChainRanking[2],
+        mockChainRanking[1],
+        mockChainRanking[0],
+      ];
+      jest.mocked(useABTest).mockReturnValue({
+        variant: { orderByValue: true },
+        variantName: 'treatment',
+        isActive: true,
+      });
+      jest.mocked(useChainValueOrder).mockReturnValue(treatmentRanking);
+
+      const { getAllByTestId } = render(<NetworkListModal />);
+
+      expect(
+        getAllByTestId(/^network-option-/).map(({ props }) => props.testID),
+      ).toEqual([
+        'network-option-all',
+        'network-option-eip155:10',
+        'network-option-eip155:137',
+        'network-option-eip155:1',
+      ]);
+    });
+  });
+
+  describe('enabledChainIds route param', () => {
+    it('forwards enabledChainIds from route params to selectAllowedChainRanking', () => {
+      const enabledChainIds: CaipChainId[] = ['eip155:1', 'eip155:56'];
+      mockRouteParams = { enabledChainIds };
+
+      render(<NetworkListModal />);
+
+      expect(selectAllowedChainRanking).toHaveBeenCalledWith(
+        expect.anything(),
+        enabledChainIds,
+      );
+    });
+
+    it('calls selectAllowedChainRanking with undefined when no route params are provided', () => {
+      render(<NetworkListModal />);
+
+      expect(selectAllowedChainRanking).toHaveBeenCalledWith(
+        expect.anything(),
+        undefined,
+      );
     });
   });
 

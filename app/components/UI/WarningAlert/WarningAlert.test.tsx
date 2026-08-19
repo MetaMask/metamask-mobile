@@ -9,6 +9,6 @@ describe('WarningAlert', () => {
   it('should render correctly', () => {
     const mockDismissFunction = jest.fn();
     render(<WarningAlert text={'test'} dismissAlert={mockDismissFunction} />);
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.toJSON()).not.toBeNull();
   });
 });

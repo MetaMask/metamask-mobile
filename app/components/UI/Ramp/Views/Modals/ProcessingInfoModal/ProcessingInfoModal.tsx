@@ -1,19 +1,18 @@
 import React, { useCallback, useRef } from 'react';
+import { StyleSheet } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Text, {
-  TextVariant,
+import {
+  BottomSheet,
+  Box,
+  Button,
+  ButtonBaseSize,
+  ButtonVariant,
+  HeaderStandard,
+  Text,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { Box } from '@metamask/design-system-react-native';
+  TextVariant,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
@@ -21,8 +20,10 @@ import {
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { PROCESSING_INFO_MODAL_TEST_IDS } from './ProcessingInfoModal.testIds';
 
 export interface ProcessingInfoModalParams {
   providerName: string;
@@ -35,10 +36,16 @@ export const createProcessingInfoModalNavigationDetails =
     Routes.RAMP.MODALS.PROCESSING_INFO,
   );
 
+const styles = StyleSheet.create({
+  centeredText: {
+    textAlign: 'center',
+  },
+});
+
 function ProcessingInfoModal() {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { providerName, providerSupportUrl, statusDescription } =
     useParams<ProcessingInfoModalParams>();
 
@@ -70,8 +77,8 @@ function ProcessingInfoModal() {
       await InAppBrowser.open(providerSupportUrl);
     } else {
       // Navigate without closing the sheet first. If we called handleClose() here,
-      // shouldNavigateBack would fire goBack() after the close animation and pop the
-      // Webview screen off the stack instead of the modal.
+      // goBack would run after the close animation and pop the Webview screen off the
+      // stack instead of the modal.
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',
         params: {
@@ -90,20 +97,21 @@ function ProcessingInfoModal() {
   ]);
 
   return (
-    <BottomSheet
-      ref={sheetRef}
-      shouldNavigateBack
-      isInteractable={false}
-      testID="processing-info-modal"
-    >
-      <BottomSheetHeader
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
+      <HeaderStandard
         onClose={handleClose}
-        closeButtonProps={{ testID: 'processing-info-modal-close-button' }}
+        closeButtonProps={{
+          testID: PROCESSING_INFO_MODAL_TEST_IDS.CLOSE_BUTTON,
+        }}
       />
 
       {statusDescription && (
         <Box twClassName="px-6 pb-4">
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            style={styles.centeredText}
+          >
             {statusDescription}
           </Text>
         </Box>
@@ -111,14 +119,15 @@ function ProcessingInfoModal() {
 
       <Box twClassName="px-6 pb-6">
         <Button
-          size={ButtonSize.Lg}
+          size={ButtonBaseSize.Lg}
           onPress={handleGoToSupport}
-          label={strings('ramps_order_details.go_to_provider_support', {
+          variant={ButtonVariant.Secondary}
+          isFullWidth
+        >
+          {strings('ramps_order_details.go_to_provider_support', {
             provider: providerName,
           })}
-          variant={ButtonVariants.Secondary}
-          width={ButtonWidthTypes.Full}
-        />
+        </Button>
       </Box>
     </BottomSheet>
   );

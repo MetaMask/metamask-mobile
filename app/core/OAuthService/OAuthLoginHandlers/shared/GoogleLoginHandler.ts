@@ -7,6 +7,7 @@ import {
 import {
   AuthRequest,
   CodeChallengeMethod,
+  Prompt,
   ResponseType,
 } from 'expo-auth-session';
 import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
@@ -84,11 +85,13 @@ export abstract class BaseGoogleLoginHandler extends BaseLoginHandler {
       codeChallengeMethod: CodeChallengeMethod.S256,
       usePKCE: true,
       state,
+      prompt: [Prompt.SelectAccount],
     });
 
-    const result = await authRequest.promptAsync({
-      authorizationEndpoint: this.OAUTH_SERVER_URL,
-    });
+    const result = await authRequest.promptAsync(
+      { authorizationEndpoint: this.OAUTH_SERVER_URL },
+      { preferUniversalLinks: true },
+    );
 
     if (result.type === 'success') {
       return {

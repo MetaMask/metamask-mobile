@@ -4,7 +4,7 @@ import { useTheme } from '../../../util/theme';
 import { getHost } from '../../../util/browser';
 import WebsiteIcon from '../WebsiteIcon';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import { deleteFavoriteTestId } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/UrlAutocomplete.testIds';
+import { deleteFavoriteTestId } from './UrlAutocomplete.testIds';
 import {
   Box,
   Icon,
@@ -31,16 +31,17 @@ import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { addCurrencySymbol } from '../../../util/number';
 import PercentageChange from '../../../component-library/components-temp/Price/PercentageChange';
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import TrendingTokenLogo from '../Trending/components/TrendingTokenLogo';
 import PerpsTokenLogo from '../Perps/components/PerpsTokenLogo';
 import AppConstants from '../../../core/AppConstants';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 interface ResultProps {
   result: AutocompleteSearchResult;
   onPress: () => void;
+  onPressIn?: () => void;
   onSwapPress: (result: TokenSearchResult) => void;
-  navigation?: NavigationProp<ParamListBase>;
+  navigation?: AppNavigationProp;
 }
 
 /**
@@ -72,7 +73,7 @@ const PredictionsIcon: React.FC<{
 });
 
 export const Result: React.FC<ResultProps> = memo(
-  ({ result, onPress, onSwapPress }) => {
+  ({ result, onPress, onPressIn, onSwapPress }) => {
     const theme = useTheme();
     const styles = stylesheet({ theme });
 
@@ -183,7 +184,11 @@ export const Result: React.FC<ResultProps> = memo(
     };
 
     return (
-      <TouchableOpacity style={styles.item} onPress={onPress}>
+      <TouchableOpacity
+        style={styles.item}
+        onPress={onPress}
+        onPressIn={onPressIn}
+      >
         <View style={styles.itemWrapper}>
           {renderIcon()}
           <View style={styles.textContent}>

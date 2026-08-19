@@ -1,12 +1,11 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 
 // Third party dependencies.
-import { ImageSourcePropType, Platform } from 'react-native';
+import { ImageSourcePropType } from 'react-native';
 
 // External dependencies.
 import { AvatarSize } from '../../Avatar.types';
 import { BrowserViewSelectorsIDs } from '../../../../../../components/Views/BrowserTab/BrowserView.testIds';
-import generateTestId from '../../../../../../../wdio/utils/generateTestId';
 
 // Internal dependencies.
 import { AvatarNetworkProps } from './AvatarNetwork.types';
@@ -16,10 +15,7 @@ export const DEFAULT_AVATARNETWORK_SIZE = AvatarSize.Md;
 export const DEFAULT_AVATARNETWORK_ERROR_TEXT = '?';
 
 // Test IDs
-export const AVATARNETWORK_IMAGE_TESTID = generateTestId(
-  Platform,
-  BrowserViewSelectorsIDs.AVATAR_IMAGE,
-).testID;
+export const AVATARNETWORK_IMAGE_TESTID = BrowserViewSelectorsIDs.AVATAR_IMAGE;
 
 // Sample consts
 const SAMPLE_AVATARNETWORK_IMAGESOURCE_REMOTE: ImageSourcePropType = {

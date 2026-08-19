@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
@@ -12,9 +13,9 @@ import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import NotificationManager from '../../../../core/NotificationManager';
-import { selectTokenList } from '../../../../selectors/tokenListController';
 import { getDecimalChainId } from '../../../../util/networks';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { trackBlockExplorerLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Logger from '../../../../util/Logger';
 import { Hex, isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
@@ -23,6 +24,13 @@ import { TokenI } from '../../Tokens/types';
 import { RootState } from '../../../../reducers';
 import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { isMusdToken } from '../../../UI/Earn/constants/musd';
+import { selectIsAssetsUnifyStateEnabled } from '../../../../selectors/featureFlagController/assetsUnifyState';
+import useAssetVisibility from './useAssetVisibility';
+import { TokenDetailsAction } from '../constants/constants';
+import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+import { removeNonEvmToken } from '../../Tokens/util/removeNonEvmToken';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { useAssetActivation } from '../hooks/useAssetActivation';
 
 export interface MoreTokenActionsMenuParams {
   hasPerpsMarket: boolean;
@@ -32,6 +40,7 @@ export interface MoreTokenActionsMenuParams {
   asset: TokenI;
   onBuy: () => void;
   onReceive?: () => void;
+  onActionTapped?: (action: TokenDetailsAction) => void;
 }
 
 type MoreTokenActionsMenuRouteProp = RouteProp<
@@ -53,7 +62,7 @@ interface ActionConfig {
 const MoreTokenActionsMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const route = useRoute<MoreTokenActionsMenuRouteProp>();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const {
     hasPerpsMarket,
@@ -63,11 +72,26 @@ const MoreTokenActionsMenu = () => {
     asset,
     onBuy,
     onReceive,
+    onActionTapped,
   } = route.params;
 
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const tokenList = useSelector(selectTokenList);
   const explorer = useBlockExplorer(asset.chainId);
+
+  const isAssetsUnifyStateEnabled = useSelector(
+    selectIsAssetsUnifyStateEnabled,
+  );
+  const selectInternalAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
+  const { handleHideToken } = useAssetVisibility(asset);
+
+  const { deactivateAsset, canDeactivate, isDeactivating } = useAssetActivation(
+    {
+      assetId: asset.address,
+      assetSymbol: asset.symbol,
+    },
+  );
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -114,33 +138,54 @@ const MoreTokenActionsMenu = () => {
     }
 
     if (url) {
+      trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+        location: 'token_details_menu',
+        text: strings('asset_details.options.view_on_block'),
+        url,
+      });
+      onActionTapped?.(TokenDetailsAction.ViewOnExplorer);
       goToBrowserUrl(url, explorer.getBlockExplorerName(asset.chainId));
     }
   }, [
+    createEventBuilder,
     isNativeCurrency,
     explorer,
     asset.chainId,
     asset.address,
     goToBrowserUrl,
+    onActionTapped,
+    trackEvent,
   ]);
 
   const handleRemoveToken = useCallback(() => {
+    onActionTapped?.(TokenDetailsAction.RemoveToken);
     closeBottomSheetAndNavigate(() => {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: 'AssetHideConfirmation',
         params: {
-          onConfirm: () => {
+          onConfirm: async () => {
             navigation.navigate('WalletView');
             try {
-              const { TokensController, NetworkController } = Engine.context;
-              const networkClientId =
-                NetworkController.findNetworkClientIdByChainId(
-                  asset.chainId as Hex,
-                );
-              TokensController.ignoreTokens([asset.address], networkClientId);
+              if (asset.chainId && isNonEvmChainId(asset.chainId)) {
+                await removeNonEvmToken({
+                  tokenAddress: asset.address,
+                  tokenChainId: asset.chainId,
+                  selectInternalAccountByScope,
+                });
+              } else {
+                const { TokensController, NetworkController } = Engine.context;
+                const networkClientId =
+                  NetworkController.findNetworkClientIdByChainId(
+                    asset.chainId as Hex,
+                  );
+                TokensController.ignoreTokens([asset.address], networkClientId);
+              }
 
-              const tokenSymbol =
-                tokenList[asset.address?.toLowerCase()]?.symbol || null;
+              if (isAssetsUnifyStateEnabled) {
+                handleHideToken();
+              }
+
+              const tokenSymbol = asset.symbol || null;
 
               NotificationManager.showSimpleNotification({
                 status: 'simple_notification',
@@ -174,10 +219,34 @@ const MoreTokenActionsMenu = () => {
     navigation,
     asset.chainId,
     asset.address,
-    tokenList,
+    asset.symbol,
+    isAssetsUnifyStateEnabled,
+    handleHideToken,
+    selectInternalAccountByScope,
     trackEvent,
     createEventBuilder,
+    onActionTapped,
   ]);
+
+  const handleDeactivateTrustline = useCallback(() => {
+    closeBottomSheetAndNavigate(async () => {
+      const { success, errorMessage } = await deactivateAsset();
+
+      if (errorMessage) {
+        NotificationManager.showSimpleNotification({
+          status: 'error',
+          duration: 5000,
+          title: strings('transactions.activity_trustline_deactivation_failed'),
+          description: errorMessage,
+        });
+        return;
+      }
+
+      if (success) {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      }
+    });
+  }, [closeBottomSheetAndNavigate, deactivateAsset, navigation]);
 
   const tokenIsInAccount = !!useSelector((state: RootState) =>
     selectAsset(state, {
@@ -239,6 +308,18 @@ const MoreTokenActionsMenu = () => {
       });
     }
 
+    if (canDeactivate) {
+      actions.push({
+        type: 'stellar-deactivate-trustline',
+        label: strings('asset_details.options.deactivate_asset'),
+        iconName: IconName.Trash,
+        testID: 'more-actions-deactivate-asset',
+        isVisible: true,
+        isDisabled: isDeactivating,
+        onPress: handleDeactivateTrustline,
+      });
+    }
+
     return actions;
   }, [
     asset.address,
@@ -255,6 +336,9 @@ const MoreTokenActionsMenu = () => {
     handleBuy,
     handleViewOnBlockExplorer,
     handleRemoveToken,
+    handleDeactivateTrustline,
+    canDeactivate,
+    isDeactivating,
   ]);
 
   return (

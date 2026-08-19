@@ -1,32 +1,38 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useContext,
+} from 'react';
 import {
   Alert,
-  View,
-  SafeAreaView,
   BackHandler,
   TouchableOpacity,
-  TextInput,
   Platform,
   Image,
+  TextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  Text,
-  TextVariant as DSTextVariant,
-  TextColor as DSTextColor,
-  FontWeight,
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+  TextField,
+  Button,
+  ButtonSize,
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
+import { ThemeContext } from '../../../util/theme';
+import { TextVariant as DSTextVariant } from '../../../component-library/components/Texts/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
   KeyboardController,
   AndroidSoftInputModes,
 } from 'react-native-keyboard-controller';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import {
@@ -38,8 +44,9 @@ import { Dispatch } from 'redux';
 import { DeviceAuthenticationButton } from '../../UI/DeviceAuthenticationButton';
 import Logger from '../../../util/Logger';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
-
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
 import { getVaultFromBackup } from '../../../core/BackupVault';
@@ -55,12 +62,10 @@ import {
   TraceOperation,
   endTrace,
 } from '../../../util/trace';
-import TextField from '../../../component-library/components/Form/TextField';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../component-library/components/Form/HelpText';
 import {
-  DENY_PIN_ERROR_ANDROID,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
   VAULT_ERROR,
   PASSCODE_NOT_SET_ERROR,
@@ -68,29 +73,37 @@ import {
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
 } from './constants';
-import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import {
   RouteProp,
   StackActions,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { useStyles } from '../../../component-library/hooks/useStyles';
-import stylesheet from './styles';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import ReduxService from '../../../core/redux';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
-import { isE2E } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import useAuthentication from '../../../core/Authentication/hooks/useAuthentication';
 import { SeedlessOnboardingControllerError } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import useAuthCapabilities from '../../../core/Authentication/hooks/useAuthCapabilities';
+import {
+  isAndroidKeychainBiometricLockout,
+  isBiometricUnlockCancelledByUser,
+} from '../../../core/Authentication/utils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-
-// In android, having {} will cause the styles to update state
-// using a constant will prevent this
-const EmptyRecordConstant = {};
+import {
+  getLoginInteractionEndData,
+  getLoginPerformanceTags,
+  markLoginInteractionCompleted,
+} from './loginPerformanceTags';
+import {
+  cancelHomepageReadyTrace,
+  startHomepageReadyTrace,
+  type HomepageReadyTraceToken,
+} from '../../../core/Performance/HomepageReady';
 
 interface LoginRouteParams {
   locked: boolean;
@@ -104,7 +117,7 @@ interface LoginProps {
  * View where returning users can authenticate
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
-  const fieldRef = useRef<TextInput>(null);
+  const fieldRef = useRef<TextInput | null>(null);
 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -113,12 +126,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     undefined | 'Start' | 'Loader'
   >(undefined);
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
-  const {
-    styles,
-    theme: { themeAppearance },
-  } = useStyles(stylesheet, EmptyRecordConstant);
+  const tw = useTailwind();
+  const { colors, themeAppearance } = useContext(ThemeContext);
 
   const {
     unlockWallet,
@@ -127,30 +138,35 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     checkIsSeedlessPasswordOutdated,
   } = useAuthentication();
   const { capabilities } = useAuthCapabilities();
-
-  const handleBackPress = () => {
-    lockApp({ reset: false });
-    return false;
-  };
+  const isLocked = Boolean(route.params?.locked);
+  const loginPerformanceTags = useRef(getLoginPerformanceTags(isLocked));
 
   useEffect(() => {
     trace({
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
+      tags: loginPerformanceTags.current,
     });
     trackOnboarding(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, saveOnboardingEvent);
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
-
     setStartFoxAnimation('Start');
-
-    return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [saveOnboardingEvent]);
 
   useEffect(() => {
-    if (Platform.OS === 'android' && !isE2E) {
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        lockApp({ reset: false });
+        return false;
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [lockApp]);
+
+  useEffect(() => {
+    if (Platform.OS === 'android' && !hasTestOverrides) {
       KeyboardController.setInputMode(
         AndroidSoftInputModes.SOFT_INPUT_ADJUST_PAN,
       );
@@ -171,6 +187,17 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       oauth_login: false,
     });
 
+    const failVaultCorruptionRecovery = (e: unknown) => {
+      trackVaultCorruption((e as Error).message, {
+        error_type: 'vault_corruption_handling_failed',
+        context: 'vault_corruption_recovery_failed',
+        oauth_login: false,
+      });
+      Logger.error(e as Error);
+      setLoading(false);
+      setError(strings('login.invalid_password'));
+    };
+
     // No need to check password requirements here, it will be checked in onLogin
     try {
       setLoading(true);
@@ -189,22 +216,18 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           setError(null);
           return;
         }
-        throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} Invalid Password`);
-      } else if (backupResult.error) {
-        throw new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`);
+        failVaultCorruptionRecovery(
+          new Error(`${LOGIN_VAULT_CORRUPTION_TAG} Invalid Password`),
+        );
+        return;
+      }
+      if (backupResult.error) {
+        failVaultCorruptionRecovery(
+          new Error(`${LOGIN_VAULT_CORRUPTION_TAG} ${backupResult.error}`),
+        );
       }
     } catch (e: unknown) {
-      // Track vault corruption handling failure
-      trackVaultCorruption((e as Error).message, {
-        error_type: 'vault_corruption_handling_failed',
-        context: 'vault_corruption_recovery_failed',
-        oauth_login: false,
-      });
-
-      Logger.error(e as Error);
-      setLoading(false);
-
-      setError(strings('login.invalid_password'));
+      failVaultCorruptionRecovery(e);
     }
   }, [password, navigation]);
 
@@ -230,13 +253,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       }
 
       const isBiometricCancellation =
-        containsErrorMessage(loginError, DENY_PIN_ERROR_ANDROID) ||
-        containsErrorMessage(
-          loginError,
-          UNLOCK_WALLET_ERROR_MESSAGES.IOS_USER_CANCELLED_BIOMETRICS,
-        );
+        isBiometricUnlockCancelledByUser(loginError);
 
       if (isBiometricCancellation) {
+        setLoading(false);
+        return;
+      }
+
+      if (isAndroidKeychainBiometricLockout(loginError)) {
+        setError(strings('login.biometric_too_many_attempts'));
         setLoading(false);
         return;
       }
@@ -288,17 +313,30 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
-    endTrace({ name: TraceName.LoginUserInteraction });
+    const homepageReadyTraceToken: HomepageReadyTraceToken | null =
+      startHomepageReadyTrace({
+        source: 'unlock',
+        appStartType: loginPerformanceTags.current.app_start_type,
+      });
+    endTrace({
+      name: TraceName.LoginUserInteraction,
+      data: getLoginInteractionEndData(),
+    });
+    markLoginInteractionCompleted();
 
     try {
       await trace(
         {
           name: TraceName.AuthenticateUser,
           op: TraceOperation.Login,
+          tags: loginPerformanceTags.current,
         },
         async () => {
           const isSeedlessPasswordOutdated =
-            await checkIsSeedlessPasswordOutdated(false);
+            await checkIsSeedlessPasswordOutdated({
+              skipCache: false,
+              captureSentryError: true,
+            });
           await unlockWallet({ password });
           if (isSeedlessPasswordOutdated) {
             const authData = await getAuthType();
@@ -322,10 +360,13 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
     } catch (loginErr) {
+      cancelHomepageReadyTrace({
+        reason: 'unlock_failed',
+        traceToken: homepageReadyTraceToken,
+      });
       await handleLoginError(loginErr as Error);
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   }, [
     password,
     loading,
@@ -344,21 +385,36 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
+    const homepageReadyTraceToken: HomepageReadyTraceToken | null =
+      startHomepageReadyTrace({
+        source: 'unlock',
+        appStartType: loginPerformanceTags.current.app_start_type,
+      });
+    endTrace({
+      name: TraceName.LoginUserInteraction,
+      data: getLoginInteractionEndData(),
+    });
+    markLoginInteractionCompleted();
+
     try {
       await trace(
         {
           name: TraceName.LoginBiometricAuthentication,
           op: TraceOperation.Login,
+          tags: loginPerformanceTags.current,
         },
         async () => {
           await unlockWallet();
         },
       );
-    } catch (error) {
-      await handleLoginError(error as Error);
-    } finally {
-      setLoading(false);
+    } catch (loginerror) {
+      cancelHomepageReadyTrace({
+        reason: 'unlock_failed',
+        traceToken: homepageReadyTraceToken,
+      });
+      await handleLoginError(loginerror as Error);
     }
+    setLoading(false);
   }, [unlockWallet, loading, handleLoginError]);
 
   const toggleWarningModal = () => {
@@ -393,33 +449,44 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   return (
     <ErrorBoundary navigation={navigation} view="Login">
-      <SafeAreaView style={styles.mainWrapper}>
+      <SafeAreaView style={tw.style('flex-1')}>
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
-          style={styles.wrapper}
-          contentContainerStyle={styles.scrollContentContainer}
+          style={tw.style('flex-1')}
+          contentContainerStyle={tw.style('flex-1')}
           extraScrollHeight={Platform.OS === 'android' ? 50 : 0}
           enableOnAndroid
           enableResetScrollToCoords={false}
         >
-          <View testID={LoginViewSelectors.CONTAINER} style={styles.container}>
+          <Box
+            testID={LoginViewSelectors.CONTAINER}
+            flexDirection={BoxFlexDirection.Column}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Start}
+            paddingHorizontal={6}
+            twClassName="flex-1 w-full pt-20"
+          >
             <Image
               source={METAMASK_NAME}
-              style={styles.metamaskName}
+              style={[
+                tw.style('w-40 h-20 self-center mt-[60px] mb-[60px]'),
+                { tintColor: colors.icon.default },
+              ]}
               resizeMode="contain"
               resizeMethod={'auto'}
             />
-            <View style={styles.field}>
+            <Box
+              flexDirection={BoxFlexDirection.Column}
+              justifyContent={BoxJustifyContent.Start}
+              gap={2}
+              marginBottom={2}
+              twClassName="w-full mt-[80px]"
+            >
               <TextField
                 placeholder={strings('login.password_placeholder')}
-                testID={LoginViewSelectors.PASSWORD_INPUT}
-                returnKeyType={'done'}
-                autoCapitalize="none"
-                secureTextEntry
-                ref={fieldRef}
+                inputRef={fieldRef}
                 onChangeText={handlePasswordChange}
                 value={password}
-                onSubmitEditing={unlockWithPassword}
                 endAccessory={
                   capabilities ? (
                     <DeviceAuthenticationButton
@@ -430,61 +497,73 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                     />
                   ) : null
                 }
-                keyboardAppearance={themeAppearance}
                 isError={!!error}
                 isDisabled={loading}
+                inputProps={{
+                  testID: LoginViewSelectors.PASSWORD_INPUT,
+                  accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
+                  returnKeyType: 'done',
+                  autoCapitalize: 'none',
+                  secureTextEntry: true,
+                  onSubmitEditing: unlockWithPassword,
+                  keyboardAppearance: themeAppearance,
+                }}
               />
-            </View>
+            </Box>
 
-            <View style={styles.helperTextContainer}>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Start}
+              justifyContent={BoxJustifyContent.Start}
+              twClassName="self-start"
+            >
               {!!error && (
                 <HelpText
                   severity={HelpTextSeverity.Error}
-                  variant={TextVariant.BodyMD}
+                  variant={DSTextVariant.BodyMD}
                   testID={LoginViewSelectors.PASSWORD_ERROR}
                 >
                   {error}
                 </HelpText>
               )}
-            </View>
+            </Box>
 
-            <View style={styles.ctaWrapper} pointerEvents="box-none">
+            <Box
+              flexDirection={BoxFlexDirection.Column}
+              alignItems={BoxAlignItems.Center}
+              twClassName="w-full"
+              pointerEvents="box-none"
+            >
               <Button
-                variant={ButtonVariants.Primary}
-                width={ButtonWidthTypes.Full}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 onPress={unlockWithPassword}
-                label={strings('login.unlock_button')}
                 isDisabled={password.length === 0 || loading}
                 testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                loading={loading}
-                style={styles.unlockButton}
-              />
-
+                isLoading={loading}
+                twClassName="mt-1"
+                isFullWidth
+              >
+                {strings('login.unlock_button')}
+              </Button>
               <Button
-                style={styles.goBack}
-                variant={ButtonVariants.Link}
-                onPress={toggleWarningModal}
-                testID={LoginViewSelectors.RESET_WALLET}
-                label={
-                  <Text
-                    variant={DSTextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    color={DSTextColor.TextAlternative}
-                  >
-                    {strings('login.forgot_password')}
-                  </Text>
-                }
-                isDisabled={loading}
+                variant={ButtonVariant.Tertiary}
                 size={ButtonSize.Lg}
-              />
-            </View>
-          </View>
+                onPress={toggleWarningModal}
+                isDisabled={loading}
+                testID={LoginViewSelectors.RESET_WALLET}
+                isFullWidth
+                twClassName="mt-4"
+              >
+                {strings('login.forgot_password')}
+              </Button>
+            </Box>
+          </Box>
         </KeyboardAwareScrollView>
         <FadeOutOverlay />
-        {!isE2E && (
+        {!hasTestOverrides && (
           <TouchableOpacity
-            style={styles.foxAnimationWrapper}
+            style={tw.style('absolute bottom-0 left-0 right-0 h-[200px]')}
             delayLongPress={10 * 1000} // 10 seconds
             onLongPress={handleDownloadStateLogs}
             activeOpacity={1}

@@ -2,9 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsLiveFills } from './stream';
 import { PERPS_CONSTANTS, type OrderFill } from '@metamask/perps-controller';
+import { mergeOrderFills } from '../utils/transactionTransforms';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
+import { usePerpsConnection } from './usePerpsConnection';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
 interface UsePerpsMarketFillsParams {
@@ -19,6 +21,8 @@ interface UsePerpsMarketFillsParams {
   throttleMs?: number;
 }
 
+type RestHistoryStatus = 'pending' | 'loading' | 'ready' | 'error';
+
 interface UsePerpsMarketFillsReturn {
   /**
    * Array of fills for the specified market, sorted by timestamp descending
@@ -28,6 +32,8 @@ interface UsePerpsMarketFillsReturn {
    * True while waiting for initial WebSocket data
    */
   isInitialLoading: boolean;
+  /** Current state of the historical REST backfill. */
+  restHistoryStatus: RestHistoryStatus;
   /**
    * Refresh function to manually refetch REST data
    */
@@ -65,6 +71,8 @@ export const usePerpsMarketFills = ({
   const addressRef = useRef(selectedAddress);
   addressRef.current = selectedAddress;
 
+  const { isConnected, isInitialized, isConnecting } = usePerpsConnection();
+
   // WebSocket fills for real-time updates
   const { fills: liveFills, isInitialLoading } = usePerpsLiveFills({
     throttleMs,
@@ -72,35 +80,77 @@ export const usePerpsMarketFills = ({
 
   // REST API fills state for complete history
   const [restFills, setRestFills] = useState<OrderFill[]>([]);
+  const [restHistoryStatus, setRestHistoryStatus] =
+    useState<RestHistoryStatus>('pending');
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Account switches and refresh can overlap in-flight REST fetches. Track the
+  // latest request so only the current one may write state — same pattern as
+  // usePerpsMarketData and usePerpsMarketForAsset.
+  const isMountedRef = useRef(true);
+  const requestIdRef = useRef(0);
+
   // Fetch historical fills via REST API (limited to last 3 months for performance)
-  const fetchRestFills = useCallback(async () => {
+  const fetchRestFills = useCallback(async (isRefresh = false) => {
+    const requestId = ++requestIdRef.current;
+    const isCurrentRequest = () =>
+      requestIdRef.current === requestId && isMountedRef.current;
+
     const controller = Engine.context.PerpsController;
     if (!controller) {
+      if (!isCurrentRequest()) {
+        return;
+      }
+      setRestHistoryStatus('error');
       return;
     }
 
+    if (!isRefresh) {
+      if (!isCurrentRequest()) {
+        return;
+      }
+      setRestHistoryStatus('loading');
+    }
+
     try {
-      const provider = controller?.getActiveProvider();
-      if (!provider) {
+      if (!controller.getActiveProviderOrNull()) {
+        if (!isCurrentRequest()) {
+          return;
+        }
+        setRestHistoryStatus('pending');
         return;
       }
 
-      // Use time-filtered API to limit data fetched for active traders
+      // Use time-filtered API to limit data fetched for active traders.
+      // Route through the controller so the MarketDataService request-coalesce
+      // layer absorbs rapid market-switch bursts. Explicit refresh bypasses
+      // the cache so pull-to-refresh hits the network.
       const startTime = Date.now() - PERPS_CONSTANTS.FillsLookbackMs;
 
-      const fills = await provider.getOrderFills({
-        aggregateByTime: false,
-        startTime,
-      });
+      const fills = await controller.getOrderFills(
+        {
+          aggregateByTime: false,
+          startTime,
+        },
+        { forceRefresh: isRefresh },
+      );
+      if (!isCurrentRequest()) {
+        return;
+      }
       setRestFills(fills);
+      setRestHistoryStatus('ready');
     } catch (err) {
+      if (!isCurrentRequest()) {
+        return;
+      }
+      const error = ensureError(err, 'usePerpsMarketFills.fetchFills');
+      setRestHistoryStatus('error');
+
       // Get the current account for debugging context
       const accountAddress = addressRef.current ?? 'unknown';
 
       // Log error to Sentry but don't fail - WebSocket fills still work
-      Logger.error(ensureError(err, 'usePerpsMarketFills.fetchFills'), {
+      Logger.error(error, {
         tags: {
           feature: PERPS_CONSTANTS.FeatureName,
         },
@@ -113,58 +163,61 @@ export const usePerpsMarketFills = ({
     }
   }, []);
 
-  // Fetch historical fills on mount and when account changes (background, non-blocking)
-  // This ensures we have complete fill history, not just WebSocket snapshot
-  // Clear stale fills and refetch when account changes to prevent data leakage
   useEffect(() => {
-    // Clear stale REST fills from previous account before fetching new ones
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  // Fetch historical fills on mount, when account changes, and when the Perps
+  // connection becomes ready (background, non-blocking).
+  // Clear stale fills and refetch when account changes to prevent data leakage.
+  useEffect(() => {
+    if (!isConnected || !isInitialized || isConnecting) {
+      // Invalidate any request from the previous connection context before
+      // clearing its data.
+      requestIdRef.current += 1;
+      setRestFills([]);
+      setRestHistoryStatus('pending');
+      return;
+    }
+
     setRestFills([]);
     fetchRestFills();
-  }, [fetchRestFills, selectedAddress]);
+  }, [
+    fetchRestFills,
+    selectedAddress,
+    isConnected,
+    isInitialized,
+    isConnecting,
+  ]);
 
   // Refresh function for manual refetch
   const refresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      await fetchRestFills();
+      await fetchRestFills(true);
     } finally {
       setIsRefreshing(false);
     }
   }, [fetchRestFills]);
 
   // Merge REST + WebSocket fills with deduplication, filtered by symbol
-  // Live fills take precedence over REST fills (more up-to-date)
-  const fills = useMemo(() => {
-    // Use Map for efficient deduplication
-    const fillsMap = new Map<string, OrderFill>();
-
-    // Add REST fills first
-    for (const fill of restFills) {
-      // Only add fills for the requested symbol
-      if (fill.symbol === symbol) {
-        const key = `${fill.orderId}-${fill.timestamp}`;
-        fillsMap.set(key, fill);
-      }
-    }
-
-    // Add live fills (overwrites duplicates from REST - live data is fresher)
-    for (const fill of liveFills) {
-      // Only add fills for the requested symbol
-      if (fill.symbol === symbol) {
-        const key = `${fill.orderId}-${fill.timestamp}`;
-        fillsMap.set(key, fill);
-      }
-    }
-
-    // Convert back to array and sort by timestamp descending (newest first)
-    return Array.from(fillsMap.values()).sort(
-      (a, b) => b.timestamp - a.timestamp,
-    );
-  }, [restFills, liveFills, symbol]);
+  const fills = useMemo(
+    () =>
+      mergeOrderFills(
+        restFills.filter((f) => f.symbol === symbol),
+        liveFills.filter((f) => f.symbol === symbol),
+      ),
+    [restFills, liveFills, symbol],
+  );
 
   return {
     fills,
     isInitialLoading,
+    restHistoryStatus,
     refresh,
     isRefreshing,
   };

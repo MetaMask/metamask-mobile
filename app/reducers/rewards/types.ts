@@ -1,4 +1,4 @@
-export type RewardsTab = 'overview' | 'snapshots' | 'activity';
+export type RewardsTab = 'overview' | 'campaigns' | 'activity';
 
 /**
  * Rewards onboarding step enumeration

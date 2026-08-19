@@ -1,0 +1,59 @@
+/**
+ * Shared nock helpers for component view tests that mock external HTTP APIs.
+ * Use these so all API-mocking features share the same teardown behavior and
+ * tests can combine multiple feature mocks without leaks.
+ *
+ * Usage:
+ * - In your feature's setup (e.g. setupXxxApiMock): call nock.cleanAll() and
+ * nock.disableNetConnect() before defining interceptors, then nock('<origin>').get(...).reply(...).persist().
+ * - In afterEach: call teardownNock() (or your feature's clearXxxMocks() which
+ * should call it) so disableNetConnect does not leak to later suites in the
+ * same Jest worker.
+ *
+ * @see tests/component-view/api-mocking/ (e.g. trending.ts) and references/navigation-mocking.md
+ */
+
+// eslint-disable-next-line import-x/no-extraneous-dependencies
+import nock from 'nock';
+
+/**
+ * Clears all nock interceptors. Call in afterEach of any test file that uses
+ * API mocks so the next test or suite does not see previous interceptors.
+ * Feature-specific clear helpers (e.g. clearTrendingApiMocks) should call this
+ * and any feature-specific cleanup (e.g. jest.clearAllMocks).
+ */
+export function clearAllNockMocks(): void {
+  nock.cleanAll();
+}
+
+/**
+ * Restores nock to a clean state: removes all interceptors, re-enables net
+ * connect, and cycles restore/activate so @mswjs/interceptors (nock v14) does
+ * not leave half-open TLS sockets that break later suites (e.g. ChoosePassword
+ * `read EINVAL` after Ramp Quotes).
+ */
+export function teardownNock(): void {
+  nock.cleanAll();
+  nock.enableNetConnect();
+  if (nock.isActive()) {
+    nock.restore();
+  }
+  nock.activate();
+}
+
+/**
+ * Disables real network connections for the current test run. Call at the
+ * start of your feature's setup (e.g. in setupXxxApiMock) so unmocked requests
+ * fail fast instead of hitting the network.
+ */
+export function disableNetConnect(): void {
+  if (!nock.isActive()) {
+    nock.activate();
+  }
+  nock.disableNetConnect();
+  // In nock v14, each enableNetConnect(string) call overwrites the previous
+  // allowlist matcher (single assignment). Both patterns must be combined into
+  // one regex so neither is lost. Include bs-local.com for BrowserStack Local
+  // agents that may poll during local / CI component-view runs.
+  nock.enableNetConnect(/127\.0\.0\.1|localhost|bs-local\.com/);
+}

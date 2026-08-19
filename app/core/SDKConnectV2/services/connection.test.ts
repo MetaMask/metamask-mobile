@@ -23,7 +23,9 @@ jest.mock('@metamask/mobile-wallet-protocol-core', () => ({
   WebSocketTransport: {
     create: jest.fn(),
   },
-  SessionStore: jest.fn(),
+  SessionStore: Object.assign(jest.fn(), {
+    create: jest.fn(),
+  }),
 }));
 jest.mock('../store/kv-store');
 jest.mock('../adapters/rpc-bridge-adapter');
@@ -31,7 +33,7 @@ jest.mock('../../Engine', () => ({
   context: {
     ApprovalController: {
       getTotalApprovalCount: jest.fn(),
-      clear: jest.fn().mockResolvedValue(undefined),
+      clearRequests: jest.fn().mockResolvedValue(undefined),
     },
   },
 }));
@@ -47,6 +49,9 @@ const MockedWalletClient = WalletClient as jest.MockedClass<
 const MockedWebSocketTransport = WebSocketTransport as jest.Mocked<
   typeof WebSocketTransport
 >;
+const MockedSessionStore = SessionStore as jest.Mocked<typeof SessionStore> & {
+  create: jest.Mock;
+};
 const MockedRPCBridgeAdapter = RPCBridgeAdapter as jest.MockedClass<
   typeof RPCBridgeAdapter
 >;
@@ -139,6 +144,7 @@ describe('Connection', () => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (MockedWebSocketTransport.create as jest.Mock).mockResolvedValue({} as any);
+    MockedSessionStore.create.mockResolvedValue({} as SessionStore);
   });
 
   describe('create', () => {
@@ -155,7 +161,7 @@ describe('Connection', () => {
         kvstore: expect.any(KVStore),
         useSharedConnection: true,
       });
-      expect(SessionStore).toHaveBeenCalledWith(expect.any(KVStore));
+      expect(SessionStore.create).toHaveBeenCalledWith(expect.any(KVStore));
       expect(WalletClient).toHaveBeenCalledWith({
         transport: expect.anything(),
         sessionstore: expect.anything(),
@@ -269,10 +275,12 @@ describe('Connection', () => {
         await onClientMessageCallback(walletCreateSessionPayload);
 
         expect(NavigationService.navigation?.goBack).toHaveBeenCalledTimes(1);
-        expect(Engine.context.ApprovalController.clear).toHaveBeenCalledTimes(
-          1,
-        );
-        expect(Engine.context.ApprovalController.clear).toHaveBeenCalledWith(
+        expect(
+          Engine.context.ApprovalController.clearRequests,
+        ).toHaveBeenCalledTimes(1);
+        expect(
+          Engine.context.ApprovalController.clearRequests,
+        ).toHaveBeenCalledWith(
           providerErrors.userRejectedRequest({
             data: {
               cause: 'rejectAllApprovals',
@@ -308,7 +316,9 @@ describe('Connection', () => {
         await onClientMessageCallback(walletCreateSessionPayload);
 
         expect(NavigationService.navigation?.goBack).not.toHaveBeenCalled();
-        expect(Engine.context.ApprovalController.clear).not.toHaveBeenCalled();
+        expect(
+          Engine.context.ApprovalController.clearRequests,
+        ).not.toHaveBeenCalled();
         expect(mockBridgeInstance.send).toHaveBeenCalledWith(
           walletCreateSessionPayload,
         );
@@ -732,6 +742,138 @@ describe('Connection', () => {
       expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
         successResponsePayload,
       );
+    });
+  });
+
+  describe('silent read-only methods', () => {
+    it.each([['eth_accounts'], ['eth_chainId']])(
+      'suppresses the return-to-app toast for a successful %s response but still relays it to the dapp',
+      async (method) => {
+        await Connection.create(
+          mockConnectionInfo,
+          mockKeyManager,
+          RELAY_URL,
+          mockHostApp,
+        );
+
+        const requestPayload = {
+          name: 'metamask-provider',
+          data: { id: 42, method, params: [] },
+        };
+        await onClientMessageCallback(requestPayload);
+
+        const responsePayload = {
+          name: 'metamask-provider',
+          data: { id: 42, jsonrpc: '2.0', result: ['0xabc'] },
+        };
+        onBridgeResponseCallback(responsePayload);
+
+        expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
+        expect(mockHostApp.showMethodError).not.toHaveBeenCalled();
+        expect(mockHostApp.showInternalError).not.toHaveBeenCalled();
+        expect(
+          mockHostApp.showConfirmationRejectionError,
+        ).not.toHaveBeenCalled();
+
+        expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
+        expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
+          responsePayload,
+        );
+      },
+    );
+
+    it.each([['eth_accounts'], ['eth_chainId']])(
+      'suppresses error toasts for a failed %s response but still relays it to the dapp',
+      async (method) => {
+        await Connection.create(
+          mockConnectionInfo,
+          mockKeyManager,
+          RELAY_URL,
+          mockHostApp,
+        );
+
+        const requestPayload = {
+          name: 'metamask-provider',
+          data: { id: 7, method, params: [] },
+        };
+        await onClientMessageCallback(requestPayload);
+
+        const errorResponsePayload = {
+          name: 'metamask-provider',
+          data: {
+            id: 7,
+            jsonrpc: '2.0',
+            error: { code: -32603, message: 'Internal error' },
+          },
+        };
+        onBridgeResponseCallback(errorResponsePayload);
+
+        expect(mockHostApp.showReturnToApp).not.toHaveBeenCalled();
+        expect(mockHostApp.showMethodError).not.toHaveBeenCalled();
+        expect(mockHostApp.showInternalError).not.toHaveBeenCalled();
+        expect(
+          mockHostApp.showConfirmationRejectionError,
+        ).not.toHaveBeenCalled();
+
+        expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(1);
+        expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
+          errorResponsePayload,
+        );
+      },
+    );
+
+    it('still shows the return-to-app toast for non-silent methods', async () => {
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      const requestPayload = {
+        name: 'metamask-provider',
+        data: { id: 9, method: 'personal_sign', params: [] },
+      };
+      await onClientMessageCallback(requestPayload);
+
+      const responsePayload = {
+        name: 'metamask-provider',
+        data: { id: 9, jsonrpc: '2.0', result: '0xsignature' },
+      };
+      onBridgeResponseCallback(responsePayload);
+
+      expect(mockHostApp.showReturnToApp).toHaveBeenCalledTimes(1);
+      expect(mockHostApp.showReturnToApp).toHaveBeenCalledWith(
+        mockConnectionInfo,
+      );
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
+        responsePayload,
+      );
+    });
+
+    it('only suppresses toasts once per tracked id (subsequent responses with the same id are treated normally)', async () => {
+      await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      const requestPayload = {
+        name: 'metamask-provider',
+        data: { id: 1, method: 'eth_accounts', params: [] },
+      };
+      await onClientMessageCallback(requestPayload);
+
+      const responsePayload = {
+        name: 'metamask-provider',
+        data: { id: 1, jsonrpc: '2.0', result: ['0xabc'] },
+      };
+      onBridgeResponseCallback(responsePayload);
+      onBridgeResponseCallback(responsePayload);
+
+      expect(mockHostApp.showReturnToApp).toHaveBeenCalledTimes(1);
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledTimes(2);
     });
   });
 });

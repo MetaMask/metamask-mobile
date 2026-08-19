@@ -139,6 +139,13 @@ describe('NonHardwareAdapter', () => {
     });
   });
 
+  describe('ensurePermissions', () => {
+    it('returns true', async () => {
+      const result = await adapter.ensurePermissions();
+      expect(result).toBe(true);
+    });
+  });
+
   describe('isTransportAvailable', () => {
     it('returns true', async () => {
       const result = await adapter.isTransportAvailable();
@@ -175,6 +182,12 @@ describe('NonHardwareAdapter', () => {
   describe('getRequiredAppName', () => {
     it('returns undefined', () => {
       expect(adapter.getRequiredAppName()).toBeUndefined();
+    });
+  });
+
+  describe('destroy', () => {
+    it('is a no-op', () => {
+      expect(() => adapter.destroy()).not.toThrow();
     });
   });
 });

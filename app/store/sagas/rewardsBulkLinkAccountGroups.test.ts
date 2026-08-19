@@ -138,6 +138,7 @@ describe('rewardsBulkLinkAccountGroups', () => {
       name: 'Group 1',
       pinned: false,
       hidden: false,
+      lastSelected: 0,
     },
   };
 
@@ -149,6 +150,7 @@ describe('rewardsBulkLinkAccountGroups', () => {
       name: 'Group 2',
       pinned: false,
       hidden: false,
+      lastSelected: 0,
     },
   };
 

@@ -8,12 +8,17 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import {
+  PREDICT_DETAILS_HEADER_SKELETON,
+  PREDICT_DETAILS_HEADER_SKELETON_TEST_IDS,
+} from './PredictDetailsHeaderSkeleton.testIds';
 
 interface PredictDetailsHeaderSkeletonProps {
   testID?: string;
@@ -21,9 +26,9 @@ interface PredictDetailsHeaderSkeletonProps {
 
 const PredictDetailsHeaderSkeleton: React.FC<
   PredictDetailsHeaderSkeletonProps
-> = ({ testID = 'predict-details-header-skeleton' }) => {
+> = ({ testID = PREDICT_DETAILS_HEADER_SKELETON }) => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
 
   return (
@@ -36,7 +41,7 @@ const PredictDetailsHeaderSkeleton: React.FC<
     >
       <Pressable
         onPress={() => navigation.goBack()}
-        testID={`${testID}-back-button`}
+        testID={`${testID}${PREDICT_DETAILS_HEADER_SKELETON_TEST_IDS.BACK_BUTTON}`}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
         <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
@@ -47,7 +52,7 @@ const PredictDetailsHeaderSkeleton: React.FC<
           width="60%"
           height={20}
           style={tw.style('rounded-md self-center')}
-          testID={`${testID}-title`}
+          testID={`${testID}${PREDICT_DETAILS_HEADER_SKELETON_TEST_IDS.TITLE}`}
         />
       </Box>
 
@@ -55,7 +60,7 @@ const PredictDetailsHeaderSkeleton: React.FC<
         width={24}
         height={24}
         style={tw.style('rounded-md')}
-        testID={`${testID}-share`}
+        testID={`${testID}${PREDICT_DETAILS_HEADER_SKELETON_TEST_IDS.SHARE}`}
       />
     </Box>
   );

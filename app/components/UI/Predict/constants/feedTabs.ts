@@ -21,9 +21,15 @@ export const PREDICT_HOT_TAB: PredictTabConfig = {
   labelKey: 'predict.category.hot',
 };
 
+export const PREDICT_WIMBLEDON_TAB: PredictTabConfig = {
+  key: 'wimbledon',
+  labelKey: 'predict.category.wimbledon',
+};
+
 export const PREDICT_ALL_TABS: readonly PredictTabConfig[] = [
   ...PREDICT_BASE_TABS,
   PREDICT_HOT_TAB,
+  PREDICT_WIMBLEDON_TAB,
 ];
 
 const PREDICT_TAB_KEYS = PREDICT_ALL_TABS.map((tab) => tab.key);

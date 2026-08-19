@@ -12,24 +12,19 @@ type AllowedEvents = MessengerEvents<ProfileMetricsServiceMessenger>;
 
 /**
  * Create a messenger restricted to the allowed actions and events of the
- * accounts controller.
+ * profile metrics service.
  *
- * @param messenger - The base messenger used to create the restricted
+ * @param rootMessenger - The base messenger used to create the restricted
  * messenger.
  */
 export function getProfileMetricsServiceMessenger(
-  messenger: RootMessenger,
+  rootMessenger: RootMessenger<AllowedActions, AllowedEvents>,
 ): ProfileMetricsServiceMessenger {
-  const serviceMessenger = new Messenger<
-    'ProfileMetricsService',
-    AllowedActions,
-    AllowedEvents,
-    typeof messenger
-  >({
+  const serviceMessenger: ProfileMetricsServiceMessenger = new Messenger({
     namespace: 'ProfileMetricsService',
-    parent: messenger,
+    parent: rootMessenger,
   });
-  messenger.delegate({
+  rootMessenger.delegate({
     messenger: serviceMessenger,
     actions: ['AuthenticationController:getBearerToken'],
   });

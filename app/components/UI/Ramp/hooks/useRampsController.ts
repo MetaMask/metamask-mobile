@@ -30,6 +30,7 @@ export interface UseRampsControllerResult {
   // Selected provider
   selectedProvider: UseRampsProvidersResult['selectedProvider'];
   setSelectedProvider: UseRampsProvidersResult['setSelectedProvider'];
+  setSelectedProviderForAsset: UseRampsProvidersResult['setSelectedProviderForAsset'];
 
   // Providers
   providers: UseRampsProvidersResult['providers'];
@@ -53,16 +54,19 @@ export interface UseRampsControllerResult {
   selectedPaymentMethod: UseRampsPaymentMethodsResult['selectedPaymentMethod'];
   setSelectedPaymentMethod: UseRampsPaymentMethodsResult['setSelectedPaymentMethod'];
   paymentMethodsLoading: UseRampsPaymentMethodsResult['isLoading'];
+  paymentMethodsFetching: UseRampsPaymentMethodsResult['isFetching'];
+  paymentMethodsStatus: UseRampsPaymentMethodsResult['status'];
   paymentMethodsError: UseRampsPaymentMethodsResult['error'];
 
   // Quotes
   getQuotes: UseRampsQuotesResult['getQuotes'];
-  getWidgetUrl: UseRampsQuotesResult['getWidgetUrl'];
+  getBuyWidgetData: UseRampsQuotesResult['getBuyWidgetData'];
 
   // Orders
   orders: UseRampsOrdersResult['orders'];
   getOrderById: UseRampsOrdersResult['getOrderById'];
   addOrder: UseRampsOrdersResult['addOrder'];
+  addPrecreatedOrder: UseRampsOrdersResult['addPrecreatedOrder'];
   removeOrder: UseRampsOrdersResult['removeOrder'];
   refreshOrder: UseRampsOrdersResult['refreshOrder'];
   getOrderFromCallback: UseRampsOrdersResult['getOrderFromCallback'];
@@ -109,7 +113,7 @@ export interface UseRampsControllerResult {
  *
  *   // Quotes
  *   getQuotes,
- *   getWidgetUrl,
+ *   getBuyWidgetData,
  *
  * } = useRampsController();
  * ```
@@ -121,6 +125,7 @@ export function useRampsController(): UseRampsControllerResult {
     providers,
     selectedProvider,
     setSelectedProvider,
+    setSelectedProviderForAsset,
     isLoading: providersLoading,
     error: providersError,
   } = useRampsProviders();
@@ -144,15 +149,18 @@ export function useRampsController(): UseRampsControllerResult {
     selectedPaymentMethod,
     setSelectedPaymentMethod,
     isLoading: paymentMethodsLoading,
+    isFetching: paymentMethodsFetching,
+    status: paymentMethodsStatus,
     error: paymentMethodsError,
   } = useRampsPaymentMethods();
 
-  const { getQuotes, getWidgetUrl } = useRampsQuotes();
+  const { getQuotes, getBuyWidgetData } = useRampsQuotes();
 
   const {
     orders,
     getOrderById,
     addOrder,
+    addPrecreatedOrder,
     removeOrder,
     refreshOrder,
     getOrderFromCallback,
@@ -164,6 +172,7 @@ export function useRampsController(): UseRampsControllerResult {
 
     selectedProvider,
     setSelectedProvider,
+    setSelectedProviderForAsset,
 
     providers,
     providersLoading,
@@ -183,14 +192,17 @@ export function useRampsController(): UseRampsControllerResult {
     selectedPaymentMethod,
     setSelectedPaymentMethod,
     paymentMethodsLoading,
+    paymentMethodsFetching,
+    paymentMethodsStatus,
     paymentMethodsError,
 
     getQuotes,
-    getWidgetUrl,
+    getBuyWidgetData,
 
     orders,
     getOrderById,
     addOrder,
+    addPrecreatedOrder,
     removeOrder,
     refreshOrder,
     getOrderFromCallback,

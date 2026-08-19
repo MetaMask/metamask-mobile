@@ -8,17 +8,24 @@ import React, {
 import { View, ScrollViewProps } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+import {
+  Text,
+  TextColor,
+  TextFieldSearch,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 import { useStyles } from '../../../hooks';
-import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
-import TextFieldSearch from '../../../components/Form/TextFieldSearch';
 import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import AccountListHeader from './AccountListHeader';
 import AccountListCell from './AccountListCell';
-import AccountListFooter from './AccountListFooter';
+import AccountListFooter, {
+  abandonCreateMultichainAccountTrace,
+} from './AccountListFooter';
 
 import {
   MultichainAccountSelectorListProps,
@@ -39,6 +46,24 @@ import {
   areAddressesEqual,
   isAddressCompatibleWithChainId,
 } from '../../../../util/address';
+
+const keyExtractor = (
+  item: FlattenedMultichainAccountListItem,
+  index: number,
+) => {
+  switch (item.type) {
+    case 'header':
+      return `header-${item.data.walletName}`;
+    case 'cell':
+      return `account-${item.data.id}`;
+    case 'external':
+      return `external-${item.data.address}`;
+    case 'footer':
+      return `footer-${item.data.walletName}`;
+    default:
+      return `item-${index}`;
+  }
+};
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
@@ -75,6 +100,20 @@ const MultichainAccountSelectorList = ({
   const selectedIdSet = useMemo(
     () => new Set(selectedAccountGroups.map((g) => g.id)),
     [selectedAccountGroups],
+  );
+
+  // Abandon in-flight CreateMultichainAccount spans when the hosting screen
+  // loses focus. Kept here (not in AccountListFooter) because the footer is a
+  // FlashList cell with removeClippedSubviews and can unmount while creation
+  // continues. Clears span ownership so a stale footer finally cannot end a
+  // newer create's pending span.
+  useFocusEffect(
+    useCallback(
+      () => () => {
+        abandonCreateMultichainAccountTrace();
+      },
+      [],
+    ),
   );
 
   const avatarAccountType = useSelector(selectAvatarAccountType);
@@ -179,11 +218,15 @@ const MultichainAccountSelectorList = ({
       return items;
     }
 
+    const showWalletHeaders = walletSections.length > 1;
+
     filteredWalletSections.forEach((section) => {
-      items.push({
-        type: 'header',
-        data: { title: section.title, walletName: section.walletName },
-      });
+      if (showWalletHeaders) {
+        items.push({
+          type: 'header',
+          data: { title: section.title, walletName: section.walletName },
+        });
+      }
 
       section.data.forEach((accountGroup) => {
         items.push({
@@ -205,6 +248,7 @@ const MultichainAccountSelectorList = ({
     isExternalAddressValid,
     shouldShowExternalAccount,
     trimmedSearchText,
+    walletSections.length,
   ]);
 
   // Track if we've done the initial scroll to selected item
@@ -369,24 +413,6 @@ const MultichainAccountSelectorList = ({
       ],
     );
 
-  const keyExtractor = useCallback(
-    (item: FlattenedMultichainAccountListItem, index: number) => {
-      switch (item.type) {
-        case 'header':
-          return `header-${item.data.walletName}`;
-        case 'cell':
-          return `account-${item.data.id}`;
-        case 'external':
-          return `external-${item.data.address}`;
-        case 'footer':
-          return `footer-${item.data.walletName}`;
-        default:
-          return `item-${index}`;
-      }
-    },
-    [],
-  );
-
   const getItemType = useCallback(
     (item: FlattenedMultichainAccountListItem) => item.type,
     [],
@@ -408,14 +434,16 @@ const MultichainAccountSelectorList = ({
           onChangeText={setSearchText}
           onPressClearButton={() => setSearchText('')}
           placeholder={strings('accounts.search_your_accounts')}
-          testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID}
+          inputProps={{
+            testID: MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
+          }}
           autoFocus={false}
           isError={shouldShowInvalidAddressError}
         />
         {shouldShowInvalidAddressError ? (
           <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Error}
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
             style={styles.searchErrorText}
             testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID}
           >
@@ -430,8 +458,8 @@ const MultichainAccountSelectorList = ({
             testID={MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID}
           >
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Muted}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextMuted}
               style={styles.emptyStateText}
             >
               {emptyStateText}

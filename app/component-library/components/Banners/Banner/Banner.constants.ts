@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 // External dependencies.
 import { DEFAULT_BANNERALERT_SEVERITY } from './variants/BannerAlert/BannerAlert.constants';
 import { ButtonVariants } from '../../Buttons/Button';

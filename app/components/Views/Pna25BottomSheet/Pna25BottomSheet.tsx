@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   Box,
   Icon,
@@ -24,6 +25,7 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
 import { storePna25Acknowledged } from '../../../actions/legalNotices';
+import Engine from '../../../core/Engine';
 
 export enum Pna25BottomSheetAction {
   VIEWED = 'viewed',
@@ -35,15 +37,29 @@ export enum Pna25BottomSheetAction {
 
 const Pna25BottomSheet = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const hasSkippedDelay = useRef(false);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleAction = useCallback(
     (action: Pna25BottomSheetAction) => {
       if (action !== Pna25BottomSheetAction.VIEWED) {
         dispatch(storePna25Acknowledged());
+      }
+
+      const shouldSkipDelay = [
+        Pna25BottomSheetAction.ACCEPT_AND_CLOSE,
+        Pna25BottomSheetAction.CLOSED,
+        Pna25BottomSheetAction.LEAVE,
+      ].includes(action);
+
+      if (shouldSkipDelay && !hasSkippedDelay.current) {
+        hasSkippedDelay.current = true;
+        Engine.controllerMessenger.call(
+          'ProfileMetricsController:skipInitialDelay',
+        );
       }
 
       // Don't emit events for the default close action to avoid double tracking

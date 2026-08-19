@@ -19,6 +19,7 @@ import {
   selectAccountGroupsByAddress,
   selectIconSeedAddressByAccountGroupId,
   selectIconSeedAddressesByAccountGroupIds,
+  selectAllAccountGroupIconSeedAddresses,
 } from './accounts';
 import {
   AccountWalletType,
@@ -184,12 +185,16 @@ const createMockState = (
 const createStateWithNetworkConfigurations = (
   accountTreeState: Record<string, unknown>,
   accountsState: Record<string, unknown>,
-): RootState =>
-  ({
+): RootState => {
+  const { selectedAccountGroup, ...accountTreeBody } = accountTreeState;
+  return {
     engine: {
       backgroundState: {
         AccountTreeController: {
-          accountTree: accountTreeState,
+          accountTree: accountTreeBody,
+          ...(selectedAccountGroup !== undefined
+            ? { selectedAccountGroup }
+            : {}),
         },
         AccountsController: {
           internalAccounts: accountsState,
@@ -233,7 +238,8 @@ const createStateWithNetworkConfigurations = (
         },
       },
     },
-  }) as unknown as RootState;
+  } as unknown as RootState;
+};
 
 // Ensure all states created with createStateWithNetworkConfigurations have KeyringController
 const createStateWithNetworkConfigurationsAndKeyring = (
@@ -524,9 +530,9 @@ describe('accounts selectors', () => {
     it('returns undefined when selectedAccountGroup is undefined', () => {
       const mockState = createMockState({
         accountTree: {
-          selectedAccountGroup: undefined,
           wallets: {},
         },
+        selectedAccountGroup: undefined,
       });
 
       const selector = selectSelectedInternalAccountByScope(mockState);
@@ -537,9 +543,9 @@ describe('accounts selectors', () => {
     it('returns undefined when wallet does not exist', () => {
       const mockState = createMockState({
         accountTree: {
-          selectedAccountGroup: ACCOUNT_GROUP_ID_1,
           wallets: {},
         },
+        selectedAccountGroup: ACCOUNT_GROUP_ID_1,
       });
 
       const selector = selectSelectedInternalAccountByScope(mockState);
@@ -550,7 +556,6 @@ describe('accounts selectors', () => {
     it('returns undefined when selected account group does not exist', () => {
       const mockState = createMockState({
         accountTree: {
-          selectedAccountGroup: ACCOUNT_GROUP_ID_1,
           wallets: {
             [WALLET_ID_1]: {
               id: WALLET_ID_1,
@@ -559,6 +564,7 @@ describe('accounts selectors', () => {
             },
           },
         },
+        selectedAccountGroup: ACCOUNT_GROUP_ID_1,
       });
 
       const selector = selectSelectedInternalAccountByScope(mockState);
@@ -570,7 +576,6 @@ describe('accounts selectors', () => {
       const mockState = createMockState(
         {
           accountTree: {
-            selectedAccountGroup: ACCOUNT_GROUP_ID_2,
             wallets: {
               [WALLET_ID_2]: {
                 id: WALLET_ID_2,
@@ -583,6 +588,7 @@ describe('accounts selectors', () => {
               },
             },
           },
+          selectedAccountGroup: ACCOUNT_GROUP_ID_2,
         },
         { [ACCOUNT_ID_2]: mockSolanaAccount },
       );
@@ -596,7 +602,6 @@ describe('accounts selectors', () => {
       const mockState = createMockState(
         {
           accountTree: {
-            selectedAccountGroup: ACCOUNT_GROUP_ID_1,
             wallets: {
               [WALLET_ID_1]: {
                 id: WALLET_ID_1,
@@ -609,6 +614,7 @@ describe('accounts selectors', () => {
               },
             },
           },
+          selectedAccountGroup: ACCOUNT_GROUP_ID_1,
         },
         { [ACCOUNT_ID_1]: mockEvmAccount },
       );
@@ -622,7 +628,6 @@ describe('accounts selectors', () => {
       const mockState = createMockState(
         {
           accountTree: {
-            selectedAccountGroup: ACCOUNT_GROUP_ID_1,
             wallets: {
               [WALLET_ID_1]: {
                 id: WALLET_ID_1,
@@ -635,6 +640,7 @@ describe('accounts selectors', () => {
               },
             },
           },
+          selectedAccountGroup: ACCOUNT_GROUP_ID_1,
         },
         { [ACCOUNT_ID_1]: mockEvmAccount },
       );
@@ -648,7 +654,6 @@ describe('accounts selectors', () => {
       const mockState = createMockState(
         {
           accountTree: {
-            selectedAccountGroup: ACCOUNT_GROUP_ID_2,
             wallets: {
               [WALLET_ID_2]: {
                 id: WALLET_ID_2,
@@ -661,6 +666,7 @@ describe('accounts selectors', () => {
               },
             },
           },
+          selectedAccountGroup: ACCOUNT_GROUP_ID_2,
         },
         { [ACCOUNT_ID_2]: mockSolanaAccount },
       );
@@ -674,7 +680,6 @@ describe('accounts selectors', () => {
       const mockState = createMockState(
         {
           accountTree: {
-            selectedAccountGroup: ACCOUNT_GROUP_ID_1,
             wallets: {
               [WALLET_ID_1]: {
                 id: WALLET_ID_1,
@@ -687,6 +692,7 @@ describe('accounts selectors', () => {
               },
             },
           },
+          selectedAccountGroup: ACCOUNT_GROUP_ID_1,
         },
         { [ACCOUNT_ID_1]: mockEvmAccount },
       );
@@ -699,7 +705,6 @@ describe('accounts selectors', () => {
     it('handles empty accounts array in selected group', () => {
       const mockState = createMockState({
         accountTree: {
-          selectedAccountGroup: ACCOUNT_GROUP_ID_1,
           wallets: {
             [WALLET_ID_1]: {
               id: WALLET_ID_1,
@@ -712,6 +717,7 @@ describe('accounts selectors', () => {
             },
           },
         },
+        selectedAccountGroup: ACCOUNT_GROUP_ID_1,
       });
 
       const selector = selectSelectedInternalAccountByScope(mockState);
@@ -1169,7 +1175,6 @@ describe('accounts selectors', () => {
         const mockState = createMockState(
           {
             accountTree: {
-              selectedAccountGroup: ENTROPY_GROUP_ID,
               wallets: {
                 [ENTROPY_WALLET_ID]: {
                   id: ENTROPY_WALLET_ID,
@@ -1185,6 +1190,7 @@ describe('accounts selectors', () => {
                 },
               },
             },
+            selectedAccountGroup: ENTROPY_GROUP_ID,
           },
           {
             [ENTROPY_EVM_ACCOUNT_ID]: mockEntropyEvmAccount,
@@ -1541,6 +1547,16 @@ describe('accounts selectors', () => {
       expect(result[0].id).toBe(ACCOUNT_GROUP_ID_1);
       expect(result[1].id).toBe(ACCOUNT_GROUP_ID_3);
     });
+
+    it('returns a stable reference when called twice with equal-but-new addresses arrays', () => {
+      const firstResult = selectAccountGroupsByAddress(mockState, [
+        mockEvmAccount.address,
+      ]);
+      const secondResult = selectAccountGroupsByAddress(mockState, [
+        mockEvmAccount.address,
+      ]);
+      expect(secondResult).toBe(firstResult);
+    });
   });
 
   describe('selectIconSeedAddressByAccountGroupId', () => {
@@ -1726,6 +1742,167 @@ describe('accounts selectors', () => {
       const selector = selectIconSeedAddressByAccountGroupId(unresolvedGroupId);
       const result = selector(state);
       expect(result).toBe('');
+    });
+  });
+
+  describe('selectAllAccountGroupIconSeedAddresses', () => {
+    it('prefers the EVM address for a group with an EVM account', () => {
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              [ENTROPY_WALLET_ID]: {
+                id: ENTROPY_WALLET_ID,
+                type: AccountWalletType.Entropy,
+                groups: {
+                  [ENTROPY_GROUP_ID]: {
+                    type: AccountGroupType.MultichainAccount as AccountGroupType.MultichainAccount,
+                    accounts: [
+                      ENTROPY_SOLANA_ACCOUNT_ID,
+                      ENTROPY_EVM_ACCOUNT_ID,
+                    ] as [AccountId, ...AccountId[]],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          [ENTROPY_EVM_ACCOUNT_ID]: mockEntropyEvmAccount,
+          [ENTROPY_SOLANA_ACCOUNT_ID]: mockEntropySolanaAccount,
+        },
+      );
+
+      const result = selectAllAccountGroupIconSeedAddresses(state);
+
+      expect(result).toEqual({
+        [ENTROPY_GROUP_ID]: mockEntropyEvmAccount.address,
+      });
+    });
+
+    it('falls back to the first internal account when a group has no EVM account', () => {
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              [ENTROPY_WALLET_ID]: {
+                id: ENTROPY_WALLET_ID,
+                groups: {
+                  [ENTROPY_GROUP_ID]: {
+                    accounts: [ENTROPY_SOLANA_ACCOUNT_ID],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          [ENTROPY_SOLANA_ACCOUNT_ID]: mockEntropySolanaAccount,
+        },
+      );
+
+      const result = selectAllAccountGroupIconSeedAddresses(state);
+
+      expect(result[ENTROPY_GROUP_ID]).toBe(mockEntropySolanaAccount.address);
+    });
+
+    it('builds the map across every wallet and group in a single pass', () => {
+      const groupAId = 'entropy:walletA/0';
+      const groupBId = 'keyring:walletB/0';
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              'entropy:walletA': {
+                id: 'entropy:walletA',
+                groups: {
+                  [groupAId]: { accounts: [ENTROPY_EVM_ACCOUNT_ID] },
+                },
+              },
+              'keyring:walletB': {
+                id: 'keyring:walletB',
+                groups: {
+                  [groupBId]: { accounts: [ENTROPY_SOLANA_ACCOUNT_ID] },
+                },
+              },
+            },
+          },
+        },
+        {
+          [ENTROPY_EVM_ACCOUNT_ID]: mockEntropyEvmAccount,
+          [ENTROPY_SOLANA_ACCOUNT_ID]: mockEntropySolanaAccount,
+        },
+      );
+
+      const result = selectAllAccountGroupIconSeedAddresses(state);
+
+      expect(result).toEqual({
+        [groupAId]: mockEntropyEvmAccount.address,
+        [groupBId]: mockEntropySolanaAccount.address,
+      });
+    });
+
+    it('maps a group with no accounts to an empty string', () => {
+      const emptyGroupId = 'entropy:empty/0';
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              'entropy:empty': {
+                id: 'entropy:empty',
+                groups: {
+                  [emptyGroupId]: { accounts: [] },
+                },
+              },
+            },
+          },
+        },
+        {},
+      );
+
+      const result = selectAllAccountGroupIconSeedAddresses(state);
+
+      expect(result[emptyGroupId]).toBe('');
+    });
+
+    it('maps a group whose account ids do not resolve to an empty string', () => {
+      const unresolvedGroupId = 'entropy:unresolved/0';
+      const state = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              'entropy:unresolved': {
+                id: 'entropy:unresolved',
+                groups: {
+                  [unresolvedGroupId]: {
+                    accounts: ['ghost1', 'ghost2'] as [
+                      AccountId,
+                      ...AccountId[],
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {},
+      );
+
+      const result = selectAllAccountGroupIconSeedAddresses(state);
+
+      expect(result[unresolvedGroupId]).toBe('');
+    });
+
+    it('returns an empty map when there are no wallets', () => {
+      const state = createMockState({ accountTree: { wallets: {} } }, {});
+
+      expect(selectAllAccountGroupIconSeedAddresses(state)).toEqual({});
+    });
+
+    it('returns an empty map when the account tree is missing', () => {
+      const state = createMockState({}, {});
+
+      expect(selectAllAccountGroupIconSeedAddresses(state)).toEqual({});
     });
   });
 

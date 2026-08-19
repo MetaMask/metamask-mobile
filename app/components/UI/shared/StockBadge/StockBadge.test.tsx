@@ -1,22 +1,9 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import StockBadge from './StockBadge';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { BridgeToken } from '../../Bridge/types';
-
-// Mock dependencies
-const mockStyles = {
-  stockBadge: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    gap: 4,
-  },
-};
 
 const tokenWithRwaData: BridgeToken = {
   address: '0x123',
@@ -28,10 +15,6 @@ const tokenWithRwaData: BridgeToken = {
     market: { nextOpen: '2024-01-01', nextClose: '2024-01-02' },
   },
 };
-
-jest.mock('../../../../component-library/hooks', () => ({
-  useStyles: jest.fn(() => ({ styles: mockStyles })),
-}));
 
 jest.mock('../../Bridge/hooks/useRWAToken');
 

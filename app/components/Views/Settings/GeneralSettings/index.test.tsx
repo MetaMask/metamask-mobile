@@ -1,161 +1,65 @@
-import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import GeneralSettings, {
+import {
   updateUserTraitsWithCurrentCurrency,
   updateUserTraitsWithCurrencyType,
-} from './';
-import configureMockStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
-import { AppThemeKey } from '../../../../util/theme/models';
-import { backgroundState } from '../../../../util/test/initial-root-state';
+} from '.';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { analytics } from '../../../../util/analytics/analytics';
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {},
+}));
 
 jest.mock('../../../../core/Analytics');
 
-const mockWithAnalyticsCreateEventBuilder = jest.fn(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn(),
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: {
+    identify: jest.fn(),
+    trackEvent: jest.fn(),
+  },
 }));
 
-jest.mock(
-  '../../../../components/hooks/useAnalytics/withAnalyticsAwareness',
-  () => ({
-    withAnalyticsAwareness:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (Component: React.ComponentType<any>) =>
-        (props: Record<string, unknown>) => (
-          <Component
-            {...props}
-            analytics={{
-              isEnabled: jest.fn().mockReturnValue(true),
-              enable: jest.fn(),
-              addTraitsToUser: jest.fn(),
-              createEventBuilder: mockWithAnalyticsCreateEventBuilder,
-              trackEvent: jest.fn(),
-            }}
-          />
-        ),
-  }),
-);
-jest.mock(
-  '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount',
-  () => ({
-    __esModule: true,
-    default: () => null,
-    AvatarAccountType: {
-      JazzIcon: 'JazzIcon',
-      Blockies: 'Blockies',
-      Maskicon: 'Maskicon',
-    },
-  }),
-);
-
-const mockStore = configureMockStore();
-const initialState = {
-  privacy: { approvedHosts: [] },
-  browser: { history: [] },
-  settings: {
-    lockTime: 1000,
-    searchEngine: 'Google',
-    avatarAccountType: AvatarAccountType.Maskicon,
-  },
-  engine: {
-    backgroundState,
-  },
-  user: { appTheme: AppThemeKey.light },
-};
-const store = mockStore(initialState);
-
-const mockNavigation = {
-  goBack: jest.fn(),
-  navigate: jest.fn(),
-};
-
-const renderComponent = () =>
-  render(
-    <Provider store={store}>
-      <ThemeContext.Provider value={mockTheme}>
-        <GeneralSettings navigation={mockNavigation} />
-      </ThemeContext.Provider>
-    </Provider>,
-  );
-
-describe('GeneralSettings', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should render correctly', () => {
-    const { toJSON } = renderComponent();
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders header with correct title', () => {
-    const { getByText } = renderComponent();
-    expect(getByText('General')).toBeTruthy();
-  });
-
-  it('calls navigation.goBack when back button is pressed', () => {
-    const { getByTestId } = renderComponent();
-    const backButton = getByTestId('button-icon');
-    fireEvent.press(backButton);
-
-    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
-  });
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn().mockReturnValue({ name: 'CURRENCY_CHANGED' });
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  addProperties: mockAddProperties,
+  build: mockBuild,
 });
 
-const mockUpdateAddProperties = jest.fn().mockReturnThis();
-const mockUpdateBuild = jest.fn().mockReturnValue({ name: 'CURRENCY_CHANGED' });
-const mockUpdateCreateEventBuilder = jest.fn().mockReturnValue({
-  addProperties: mockUpdateAddProperties,
-  build: mockUpdateBuild,
-});
-
-const mockAnalytics = {
-  addTraitsToUser: jest.fn(),
-  trackEvent: jest.fn(),
-  createEventBuilder: mockUpdateCreateEventBuilder,
-};
+jest.mock('../../../../util/analytics/AnalyticsEventBuilder', () => ({
+  AnalyticsEventBuilder: {
+    createEventBuilder: (...args: unknown[]) => mockCreateEventBuilder(...args),
+  },
+}));
 
 describe('updateUserTraitsWithCurrentCurrency', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('adds selected currency trait', () => {
-    const mockCurrency = 'USD';
+  it('adds the selected currency trait', () => {
+    const currency = 'USD';
 
-    updateUserTraitsWithCurrentCurrency(mockCurrency, mockAnalytics);
+    updateUserTraitsWithCurrentCurrency(currency);
 
-    expect(mockAnalytics.addTraitsToUser).toHaveBeenCalledWith({
-      [UserProfileProperty.CURRENT_CURRENCY]: mockCurrency,
+    expect(analytics.identify).toHaveBeenCalledWith({
+      [UserProfileProperty.CURRENT_CURRENCY]: currency,
     });
   });
 
-  it('tracks currency changed event', () => {
-    const mockCurrency = 'USD';
+  it('tracks the currency changed event', () => {
+    const currency = 'USD';
 
-    updateUserTraitsWithCurrentCurrency(mockCurrency, mockAnalytics);
+    updateUserTraitsWithCurrentCurrency(currency);
 
-    expect(mockUpdateCreateEventBuilder).toHaveBeenCalledWith(
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.CURRENCY_CHANGED,
     );
-    expect(mockUpdateAddProperties).toHaveBeenCalledWith({
-      [UserProfileProperty.CURRENT_CURRENCY]: mockCurrency,
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      [UserProfileProperty.CURRENT_CURRENCY]: currency,
       location: 'app_settings',
     });
-    expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(mockUpdateBuild());
-  });
-
-  it('does not throw errors when a valid currency is passed', () => {
-    const mockCurrency = 'USD';
-
-    expect(() => {
-      updateUserTraitsWithCurrentCurrency(mockCurrency, mockAnalytics);
-    }).not.toThrow();
+    expect(analytics.trackEvent).toHaveBeenCalledWith(mockBuild());
   });
 });
 
@@ -167,18 +71,10 @@ describe('updateUserTraitsWithCurrencyType', () => {
   it('adds the primary currency preference', () => {
     const primaryCurrency = 'fiat';
 
-    updateUserTraitsWithCurrencyType(primaryCurrency, mockAnalytics);
+    updateUserTraitsWithCurrencyType(primaryCurrency);
 
-    expect(mockAnalytics.addTraitsToUser).toHaveBeenCalledWith({
+    expect(analytics.identify).toHaveBeenCalledWith({
       [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency,
     });
-  });
-
-  it('does not throw errors if analytics object is properly passed', () => {
-    const primaryCurrency = 'fiat';
-
-    expect(() => {
-      updateUserTraitsWithCurrencyType(primaryCurrency, mockAnalytics);
-    }).not.toThrow();
   });
 });

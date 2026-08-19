@@ -9,39 +9,86 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useDeepMemo } from '../useDeepMemo';
 import { Hex, Json, isCaipChainId, isHexString } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
-import { hasTransactionType } from '../../utils/transaction';
 import {
+  useIsTransactionPayQuoteLoading,
+  useTransactionPayQuoteError,
   useTransactionPayQuotes,
+  useTransactionPayQuotesRaw,
   useTransactionPayRequiredTokens,
-  useTransactionPayTotals,
 } from './useTransactionPayData';
-import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
-import { BigNumber } from 'bignumber.js';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useAccountTokens } from '../send/useAccountTokens';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { usePaySectionSourceMetrics } from './usePaySectionSourceMetrics';
+import { usePaySectionRecipientMetrics } from './usePaySectionRecipientMetrics';
+import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPaySelectedFiatPaymentMethod';
+import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
+import { normalizeMetaMaskPayPaymentMethod } from '../../utils/transaction-pay-metrics';
+import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 
+/**
+ * Dispatches UI-only mm_pay_* properties to confirmationMetrics.
+ *
+ * Core mm_pay_* properties (token, chain, use_case, fees, strategy, etc.)
+ * are derived from controller state in getMetaMaskPayProperties and do not
+ * depend on the confirmation screen lifecycle.
+ *
+ * This hook only provides properties that require live UI context:
+ * token presented, quote status, available token list size, etc.
+ */
 export function useTransactionPayMetrics() {
   const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataRequest();
   const { payToken } = useTransactionPayToken();
-  const requiredTokens = useTransactionPayRequiredTokens();
   const highestBalanceChainId = useHighestBalanceCaipChainId();
-  const automaticPayToken = useRef<BridgeToken>();
+  const automaticPayToken = useRef<BridgeToken | undefined>(undefined);
   const hasLoadedQuoteRef = useRef(false);
+  const quoteErrorsRef = useRef<Json[]>([]);
+  const wasQuoteLoadingRef = useRef(false);
   const quotes = useTransactionPayQuotes();
-  const totals = useTransactionPayTotals();
-  const { availableTokens: tokens } = useTransactionPayAvailableTokens();
+  const rawQuotes = useTransactionPayQuotesRaw();
+  const isQuoteLoading = useIsTransactionPayQuoteLoading();
+  const quoteError = useTransactionPayQuoteError();
+  const { availableTokens: tokens, hasTokens } =
+    useTransactionPayAvailableTokens();
+
+  const presentedPaymentMethodRef = useRef<string | null>(null);
+  const fiatPaymentActions = useFiatPaymentHighlightedActions();
+  const selectedFiatMethod = useTransactionPaySelectedFiatPaymentMethod();
 
   const transactionId = transactionMeta?.id ?? '';
   const storedMetrics = useSelector((state: RootState) =>
     selectConfirmationMetricsById(state, transactionId),
   );
 
+  const accountOverride = useTransactionAccountOverride();
+
+  const hasPayToken = !!payToken;
+  const source = usePaySectionSourceMetrics(hasPayToken);
+  const recipient = usePaySectionRecipientMetrics(source.selected, hasPayToken);
+
+  const isQuoteRequested =
+    (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;
+
+  const quoteRequestedAtMs = useRef<number>(0);
+  useEffect(() => {
+    if (isQuoteRequested && quoteRequestedAtMs.current === 0) {
+      quoteRequestedAtMs.current = Date.now();
+    }
+  }, [isQuoteRequested]);
+
   const hasQuotes = (quotes?.length ?? 0) > 0;
+
+  // Includes no-op (TransactionPayStrategy.None) quotes, which the filtered
+  // `quotes` list drops. A completed same-token / no-conversion route stores
+  // only a no-op quote, so it must count as a successful cycle here — not a
+  // quote error. Mirrors useNoPayTokenQuotesAlert, which uses raw quotes too.
+  const hasRawQuotes = (rawQuotes?.length ?? 0) > 0;
 
   if (hasQuotes && !hasLoadedQuoteRef.current) {
     hasLoadedQuoteRef.current = true;
@@ -51,99 +98,205 @@ export function useTransactionPayMetrics() {
     () => tokens.filter((t) => !t.disabled),
     [tokens],
   );
-  const { chainId, type } = transactionMeta ?? {};
-  const primaryRequiredToken = requiredTokens.find((t) => !t.skipIfBalance);
+
+  const availablePaymentMethods = useMemo(() => {
+    const methods = new Set<string>();
+
+    if (availableTokens.length > 0) {
+      methods.add('crypto');
+    }
+
+    for (const action of fiatPaymentActions) {
+      const method = normalizeMetaMaskPayPaymentMethod(action.paymentType);
+
+      if (method) {
+        methods.add(method);
+      }
+    }
+
+    return [...methods];
+  }, [availableTokens, fiatPaymentActions]);
+
+  const currentPaymentMethodSelection =
+    normalizeMetaMaskPayPaymentMethod(selectedFiatMethod?.paymentType) ??
+    (payToken ? 'crypto' : null);
+
+  if (
+    currentPaymentMethodSelection &&
+    presentedPaymentMethodRef.current === null
+  ) {
+    presentedPaymentMethodRef.current = currentPaymentMethodSelection;
+  }
+
+  const primaryRequiredToken = useTransactionPayRequiredTokens().find(
+    (t) => !t.skipIfBalance,
+  );
   const sendingValue = Number(primaryRequiredToken?.amountHuman ?? '0');
+
+  // Detect a failed quote-loading cycle: isLoading transitioned true -> false
+  // AND ended with no quotes. One entry appended per failed cycle, oldest-first.
+  // Ignore cycles where the amount is zero (nothing to quote for).
+  if (
+    wasQuoteLoadingRef.current &&
+    !isQuoteLoading &&
+    !hasRawQuotes &&
+    sendingValue > 0
+  ) {
+    const inputType = storedMetrics?.properties?.mm_pay_amount_input_type as
+      | string
+      | undefined;
+    quoteErrorsRef.current = [
+      ...quoteErrorsRef.current,
+      {
+        pay_token: {
+          symbol: payToken?.symbol ?? null,
+          chainId: payToken?.chainId ?? null,
+          address: payToken?.address ?? null,
+        },
+        amount: sendingValue,
+        amount_input_type: inputType ?? null,
+        error_message: quoteError?.message ?? 'unknown',
+        error_reason: quoteError?.reason ?? null,
+        error_detail: quoteError?.detail?.join(' | ') ?? null,
+      },
+    ];
+  }
+  wasQuoteLoadingRef.current = isQuoteLoading;
 
   if (!automaticPayToken.current && payToken) {
     automaticPayToken.current = payToken;
   }
 
+  const needsAccountSelect = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
+  ]);
+  const isInfoLoaded =
+    hasPayToken && (!needsAccountSelect || Boolean(accountOverride));
+
+  const confirmationOpenedAtMs = useRef<number | undefined>(undefined);
+
+  const didDispatchTimeToOpen = useRef(false);
+  useEffect(() => {
+    if (
+      didDispatchTimeToOpen.current ||
+      typeof transactionMeta?.time !== 'number' ||
+      transactionMeta.time <= 0
+    )
+      return;
+    confirmationOpenedAtMs.current = Date.now();
+    didDispatchTimeToOpen.current = true;
+    dispatch(
+      updateConfirmationMetric({
+        id: transactionId,
+        params: {
+          properties: {
+            confirmation_time_to_open_ms: Math.round(
+              confirmationOpenedAtMs.current - transactionMeta.time,
+            ),
+          },
+        },
+      }),
+    );
+  }, [transactionMeta?.time, dispatch, transactionId]);
+
+  const didDispatchTimeToLoadInfo = useRef(false);
+  useEffect(() => {
+    if (
+      didDispatchTimeToLoadInfo.current ||
+      !isInfoLoaded ||
+      confirmationOpenedAtMs.current === undefined
+    )
+      return;
+    didDispatchTimeToLoadInfo.current = true;
+    dispatch(
+      updateConfirmationMetric({
+        id: transactionId,
+        params: {
+          properties: {
+            confirmation_time_to_load_info_ms: Math.round(
+              Date.now() - confirmationOpenedAtMs.current,
+            ),
+          },
+        },
+      }),
+    );
+  }, [isInfoLoaded, transactionMeta?.time, dispatch, transactionId]);
+
+  const didDispatchTimeToLoadQuote = useRef(false);
+  useEffect(() => {
+    if (
+      didDispatchTimeToLoadQuote.current ||
+      !hasQuotes ||
+      quoteRequestedAtMs.current === 0
+    )
+      return;
+    didDispatchTimeToLoadQuote.current = true;
+    dispatch(
+      updateConfirmationMetric({
+        id: transactionId,
+        params: {
+          properties: {
+            mm_pay_time_to_load_quote_ms: Math.round(
+              Date.now() - quoteRequestedAtMs.current,
+            ),
+          },
+        },
+      }),
+    );
+  }, [hasQuotes, dispatch, transactionId]);
+
   const properties: Json = {};
   const sensitiveProperties: Json = {};
 
   if (payToken) {
-    properties.mm_pay = true;
-    properties.mm_pay_token_selected = payToken.symbol;
-    properties.mm_pay_chain_selected = payToken.chainId;
-    properties.mm_pay_transaction_step_total = (quotes?.length ?? 0) + 1;
-
-    properties.mm_pay_transaction_step =
-      properties.mm_pay_transaction_step_total;
-
     properties.mm_pay_token_presented =
       automaticPayToken.current?.symbol ?? null;
 
     properties.mm_pay_chain_presented =
       automaticPayToken.current?.chainId ?? null;
 
-    properties.mm_pay_payment_token_list_size = availableTokens.length;
-
     properties.mm_pay_quote_requested =
       (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;
     properties.mm_pay_quote_loaded = hasLoadedQuoteRef.current;
     properties.mm_pay_chain_highest_balance_caip =
       highestBalanceChainId ?? null;
+
+    properties.mm_pay_account_type_source_presented = source.presented;
+    properties.mm_pay_account_type_source_selected = source.selected;
+    properties.mm_pay_source_mm_account_switch_count = source.switchCount;
+
+    properties.mm_pay_account_type_recipient_presented = recipient.presented;
+    properties.mm_pay_account_type_recipient_selected = recipient.selected;
+    properties.mm_pay_recipient_mm_account_switch_count = recipient.switchCount;
+
+    properties.mm_pay_entry_point = getEntryPoint(transactionMeta) ?? null;
   }
 
-  if (payToken && type === TransactionType.perpsDeposit) {
-    properties.mm_pay_use_case = 'perps_deposit';
-    properties.simulation_sending_assets_total_value = sendingValue;
+  properties.mm_pay_payment_method_available = availablePaymentMethods;
+  properties.mm_pay_payment_token_list_size = availableTokens.length;
+
+  if (presentedPaymentMethodRef.current) {
+    properties.mm_pay_payment_method_presented =
+      presentedPaymentMethodRef.current;
+  }
+
+  if (quoteErrorsRef.current.length > 0) {
+    properties.mm_pay_quote_errors = quoteErrorsRef.current;
   }
 
   if (
     payToken &&
-    hasTransactionType(transactionMeta, [TransactionType.predictDeposit])
+    (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit]) ||
+      hasTransactionType(transactionMeta, [TransactionType.predictDeposit]) ||
+      hasTransactionType(transactionMeta, [
+        TransactionType.predictDepositAndOrder,
+      ]) ||
+      hasTransactionType(transactionMeta, [
+        TransactionType.moneyAccountDeposit,
+      ]))
   ) {
-    properties.mm_pay_use_case = 'predict_deposit';
     properties.simulation_sending_assets_total_value = sendingValue;
-  }
-
-  if (
-    payToken &&
-    hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
-  ) {
-    properties.mm_pay_use_case = 'predict_withdraw';
-  }
-
-  if (payToken) {
-    const sendingAmountUsd = Number(primaryRequiredToken?.amountUsd ?? '0');
-    properties.mm_pay_sending_value_usd = sendingAmountUsd;
-
-    properties.mm_pay_receiving_value_usd = totals
-      ? Number(totals.targetAmount.usd)
-      : null;
-  }
-
-  const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
-
-  const nonGasQuote = quotes?.find(
-    (q) => q.request?.targetTokenAddress !== nativeTokenAddress,
-  );
-
-  if (nonGasQuote) {
-    properties.mm_pay_dust_usd = nonGasQuote.dust.usd;
-  }
-
-  const strategy = quotes?.[0]?.strategy;
-
-  if (strategy === TransactionPayStrategy.Bridge) {
-    properties.mm_pay_strategy = 'mm_swaps_bridge';
-  }
-
-  if (strategy === TransactionPayStrategy.Relay) {
-    properties.mm_pay_strategy = 'relay';
-  }
-
-  if (totals) {
-    properties.mm_pay_network_fee_usd = new BigNumber(
-      totals.fees.sourceNetwork.estimate.usd,
-    )
-      .plus(totals.fees.targetNetwork.usd)
-      .toString(10);
-
-    properties.mm_pay_provider_fee_usd = totals.fees.provider.usd;
-    properties.mm_pay_metamask_fee_usd = Number(totals.fees.metaMask.usd);
   }
 
   const params = useDeepMemo(
@@ -196,4 +349,46 @@ function useHighestBalanceCaipChainId(): string | undefined {
 
     return highestChainId;
   }, [tokens]);
+}
+
+type MmPayEntryPoint =
+  | 'money_account'
+  | 'perps'
+  | 'predict'
+  | 'money_hub'
+  | 'activity';
+
+const ENTRY_POINT_MAP: [TransactionType[], MmPayEntryPoint][] = [
+  [
+    [
+      TransactionType.perpsDeposit,
+      TransactionType.perpsDepositAndOrder,
+      TransactionType.perpsWithdraw,
+    ],
+    'perps',
+  ],
+  [
+    [
+      TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
+      TransactionType.predictWithdraw,
+    ],
+    'predict',
+  ],
+  [
+    [TransactionType.moneyAccountDeposit, TransactionType.moneyAccountWithdraw],
+    'money_account',
+  ],
+  [[TransactionType.musdConversion], 'money_hub'],
+];
+
+function getEntryPoint(
+  transactionMeta: Parameters<typeof hasTransactionType>[0],
+): MmPayEntryPoint | undefined {
+  for (const [types, entryPoint] of ENTRY_POINT_MAP) {
+    if (hasTransactionType(transactionMeta, types)) {
+      return entryPoint;
+    }
+  }
+  return undefined;
 }

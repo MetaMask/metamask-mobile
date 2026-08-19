@@ -204,6 +204,58 @@ describe('useTransactionPayToken', () => {
       );
     });
 
+    it('updates transaction with selectedGasFeeToken for predictDepositAndOrder when pay token matches required token', async () => {
+      const { result } = runHook({
+        payToken: PAY_TOKEN_MOCK,
+        type: TransactionType.predictDepositAndOrder,
+        requiredTokens: [REQUIRED_TOKEN_MOCK],
+      });
+
+      result.current.setPayToken({
+        address: PAY_TOKEN_MOCK.address,
+        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
+      });
+
+      await flushPromises();
+
+      expect(updateTransactionMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          selectedGasFeeToken: PAY_TOKEN_MOCK.address,
+          isGasFeeTokenIgnoredIfBalance: true,
+        }),
+        TRANSACTION_ID_MOCK,
+      );
+    });
+
+    it('resets selectedGasFeeToken for predictDepositAndOrder when pay token does not match required token', async () => {
+      const differentToken = {
+        address: '0xDifferentTokenAddress1234567890123456789012',
+        chainId: ChainId.mainnet,
+        skipIfBalance: false,
+      } as unknown as TransactionPayRequiredToken;
+
+      const { result } = runHook({
+        payToken: PAY_TOKEN_MOCK,
+        type: TransactionType.predictDepositAndOrder,
+        requiredTokens: [differentToken],
+      });
+
+      result.current.setPayToken({
+        address: PAY_TOKEN_MOCK.address,
+        chainId: PAY_TOKEN_MOCK.chainId as ChainId,
+      });
+
+      await flushPromises();
+
+      expect(updateTransactionMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          selectedGasFeeToken: undefined,
+          isGasFeeTokenIgnoredIfBalance: undefined,
+        }),
+        TRANSACTION_ID_MOCK,
+      );
+    });
+
     it('does not update transaction for non-predictDeposit transaction types', async () => {
       const { result } = runHook({
         payToken: PAY_TOKEN_MOCK,

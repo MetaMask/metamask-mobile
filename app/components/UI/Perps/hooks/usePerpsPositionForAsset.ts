@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import type { AccountState, Position } from '@metamask/perps-controller';
+import type { Position } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetwork } from './usePerpsNetwork';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 
 /**
@@ -13,23 +13,20 @@ import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 export interface UsePerpsPositionForAssetResult {
   /** Position data if user has an open position for this asset */
   position: Position | null;
-  /** Whether the user has any funds in perps (balance > 0) */
+  /** Whether the user has any open perps positions */
   hasFundsInPerps: boolean;
-  /** Account state for perps (balance, margin, etc.) */
-  accountState: AccountState | null;
   /** Whether the hook is still loading */
   isLoading: boolean;
   /** Error message if position lookup failed */
   error: string | null;
 }
 
-// Module-level cache for position/account checks
+// Module-level cache for position checks
 // Persists across component mounts/unmounts for efficient re-use
 const positionCache = new Map<
   string,
   {
     position: Position | null;
-    accountState: AccountState | null;
     hasFundsInPerps: boolean;
     timestamp: number;
   }
@@ -67,31 +64,28 @@ export const _clearPositionCache = (): void => {
  * Key Features:
  * - Module-level caching to avoid repeated API calls
  * - Uses standalone mode - works without full perps initialization (no wallet/WebSocket)
- * - Queries positions and account state in parallel for efficiency
+ * - Only calls getPositions (not getAccountState) to minimise Hyperliquid API calls
  * - 30s cache TTL (shorter than market cache due to position volatility)
  *
  * @param symbol - Token symbol (e.g., 'ETH', 'BTC')
- * @returns Object with position, hasFundsInPerps, accountState, isLoading, error
+ * @returns Object with position, hasFundsInPerps, isLoading, error
  *
  * @example
  * ```tsx
- * const { position, hasFundsInPerps, isLoading } = usePerpsPositionForAsset('ETH');
+ * const { position, isLoading } = usePerpsPositionForAsset('ETH');
  *
  * if (position) {
- *   return <PerpsPositionCard position={position} onPress={handleNavigate} />;
- * } else if (hasFundsInPerps) {
- *   return <PerpsDiscoveryBanner ... />;
+ *   return <PerpsPositionCard position={position} />;
  * }
  * ```
  */
 export const usePerpsPositionForAsset = (
   symbol: string | undefined | null,
 ): UsePerpsPositionForAssetResult => {
-  const { getPositions, getAccountState } = usePerpsTrading();
+  const { getPositions } = usePerpsTrading();
   const perpsNetwork = usePerpsNetwork();
-  const userAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
+  const evmAccount = useSelector(selectSelectedAccountGroupEvmInternalAccount);
+  const userAddress = evmAccount?.address;
 
   // Track if component is still mounted
   const isMountedRef = useRef(true);
@@ -110,7 +104,6 @@ export const usePerpsPositionForAsset = (
 
   const [state, setState] = useState<{
     position: Position | null;
-    accountState: AccountState | null;
     hasFundsInPerps: boolean;
     isLoading: boolean;
     error: string | null;
@@ -119,7 +112,6 @@ export const usePerpsPositionForAsset = (
     if (!cacheKey) {
       return {
         position: null,
-        accountState: null,
         hasFundsInPerps: false,
         isLoading: false,
         error: null,
@@ -130,7 +122,6 @@ export const usePerpsPositionForAsset = (
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       return {
         position: cached.position,
-        accountState: cached.accountState,
         hasFundsInPerps: cached.hasFundsInPerps,
         isLoading: false,
         error: null,
@@ -139,7 +130,6 @@ export const usePerpsPositionForAsset = (
 
     return {
       position: null,
-      accountState: null,
       hasFundsInPerps: false,
       isLoading: true,
       error: null,
@@ -160,7 +150,6 @@ export const usePerpsPositionForAsset = (
       if (isMountedRef.current) {
         setState({
           position: cached.position,
-          accountState: cached.accountState,
           hasFundsInPerps: cached.hasFundsInPerps,
           isLoading: false,
           error: null,
@@ -170,18 +159,10 @@ export const usePerpsPositionForAsset = (
     }
 
     try {
-      // Fetch positions and account state in parallel using standalone mode
-      // standalone: true bypasses full initialization (no wallet/WebSocket needed)
-      const [positions, accountState] = await Promise.all([
-        getPositions({
-          standalone: true,
-          userAddress,
-        }),
-        getAccountState({
-          standalone: true,
-          userAddress,
-        }),
-      ]);
+      const positions = await getPositions({
+        standalone: true,
+        userAddress,
+      });
 
       // Verify this response matches current request (prevents stale updates)
       if (requestIdRef.current !== currentRequestId || !isMountedRef.current) {
@@ -193,14 +174,11 @@ export const usePerpsPositionForAsset = (
         (pos) => pos.symbol.toUpperCase() === lookupSymbol,
       );
 
-      // Check if user has any funds in perps (total balance > 0)
-      const totalBalance = parseFloat(accountState?.totalBalance || '0');
-      const hasFundsInPerps = totalBalance > 0;
+      const hasFundsInPerps = positions.length > 0;
 
       // Cache the result
       positionCache.set(cacheKey, {
         position: matchedPosition || null,
-        accountState,
         hasFundsInPerps,
         timestamp: Date.now(),
       });
@@ -210,7 +188,6 @@ export const usePerpsPositionForAsset = (
 
       setState({
         position: matchedPosition || null,
-        accountState,
         hasFundsInPerps,
         isLoading: false,
         error: null,
@@ -227,14 +204,13 @@ export const usePerpsPositionForAsset = (
       // Silent failure: return empty state (discovery banner will show)
       setState({
         position: null,
-        accountState: null,
         hasFundsInPerps: false,
         isLoading: false,
         error:
           err instanceof Error ? err.message : 'Failed to check perps position',
       });
     }
-  }, [lookupSymbol, cacheKey, userAddress, getPositions, getAccountState]);
+  }, [lookupSymbol, cacheKey, userAddress, getPositions]);
 
   // Track mount state - only set once on mount, cleared on unmount
   useEffect(() => {
@@ -250,7 +226,6 @@ export const usePerpsPositionForAsset = (
     if (!cacheKey || !userAddress) {
       setState({
         position: null,
-        accountState: null,
         hasFundsInPerps: false,
         isLoading: false,
         error: null,
@@ -263,7 +238,6 @@ export const usePerpsPositionForAsset = (
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
       setState({
         position: cached.position,
-        accountState: cached.accountState,
         hasFundsInPerps: cached.hasFundsInPerps,
         isLoading: false,
         error: null,
@@ -321,7 +295,6 @@ export const usePerpsPositionForAsset = (
   return {
     position: state.position,
     hasFundsInPerps: state.hasFundsInPerps,
-    accountState: state.accountState,
     isLoading: state.isLoading,
     error: state.error,
   };

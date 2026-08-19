@@ -3,7 +3,7 @@ import {
   type AnalyticsUserTraits,
   analyticsControllerSelectors,
 } from '@metamask/analytics-controller';
-import { whenEngineReady } from '../../core/Analytics/whenEngineReady';
+import { whenEngineReady } from './whenEngineReady';
 import { getAnalyticsId as getAnalyticsIdFromStorage } from './analyticsId';
 import { store } from '../../store';
 import {
@@ -13,6 +13,12 @@ import {
 import type { AnalyticsTrackingEvent } from './AnalyticsEventBuilder';
 import { createAnalyticsQueueManager } from './queue';
 import Logger from '../Logger';
+import {
+  enrichWithABTests,
+  getRemoteFeatureFlagsFromState,
+  getFeatureFlagThresholdGroupsFromState,
+} from './enrichWithABTests';
+import { enrichWithPerpsMode } from './enrichWithPerpsMode';
 
 /**
  * Analytics helper interface
@@ -50,7 +56,25 @@ const queueManager = createAnalyticsQueueManager({
  * @param event - AnalyticsTrackingEvent to track
  */
 const trackEvent = (event: AnalyticsTrackingEvent): void => {
-  queueManager.queueOperation('trackEvent', event).catch((error) => {
+  let enrichedEvent: AnalyticsTrackingEvent;
+
+  try {
+    const state = store.getState();
+    enrichedEvent = enrichWithABTests(
+      enrichWithPerpsMode(event),
+      getRemoteFeatureFlagsFromState(state),
+      getFeatureFlagThresholdGroupsFromState(state),
+    );
+  } catch {
+    // Best-effort enrichment — never block emission if mode/AB lookup fails.
+    try {
+      enrichedEvent = enrichWithPerpsMode(event);
+    } catch {
+      enrichedEvent = event;
+    }
+  }
+
+  queueManager.queueOperation('trackEvent', enrichedEvent).catch((error) => {
     Logger.log('Analytics: Unhandled error in trackEvent', error);
   });
 };

@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import styleSheet from './LendingLearnMoreModal.styles';
 import { useStyles } from '../../../hooks/useStyles';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import Text, {
   TextColor,
   TextVariant,
@@ -288,7 +288,7 @@ export const LendingLearnMoreModal = () => {
 
   return (
     <BottomSheet ref={sheetRef} isInteractable={false}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('earn.how_it_works')}
         onClose={handleClose}
       />

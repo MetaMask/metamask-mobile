@@ -1,4 +1,5 @@
 import {
+  equalsIgnoreCase,
   escapeSpecialUnicode,
   isArrayType,
   isSolidityType,
@@ -20,6 +21,29 @@ describe('string utils', () => {
         'test \u202D test \u202E test \u202D test',
       );
       expect(result).toEqual('test \\u202D test \\u202E test \\u202D test');
+    });
+  });
+
+  describe('equalsIgnoreCase', () => {
+    it('returns true for identical strings', () => {
+      expect(equalsIgnoreCase('hello', 'hello')).toBe(true);
+    });
+
+    it('returns true for strings differing only in case', () => {
+      expect(equalsIgnoreCase('Hello', 'hELLo')).toBe(true);
+      expect(equalsIgnoreCase('0xABC123', '0xabc123')).toBe(true);
+    });
+
+    it('returns false for different strings', () => {
+      expect(equalsIgnoreCase('hello', 'world')).toBe(false);
+    });
+
+    it('returns false when either value is nullish or empty', () => {
+      expect(equalsIgnoreCase(undefined, 'hello')).toBe(false);
+      expect(equalsIgnoreCase('hello', undefined)).toBe(false);
+      expect(equalsIgnoreCase(null, null)).toBe(false);
+      expect(equalsIgnoreCase('', 'hello')).toBe(false);
+      expect(equalsIgnoreCase('', '')).toBe(false);
     });
   });
 

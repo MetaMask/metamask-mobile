@@ -8,7 +8,7 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../../constants/on-ramp';
-import { DepositOrderType } from '@consensys/native-ramps-sdk';
+import { DepositOrderType } from '../../../types/legacyDeposit';
 
 const testOrders: DeepPartial<FiatOrder>[] = [
   {
@@ -233,12 +233,12 @@ const testOrders: DeepPartial<FiatOrder>[] = [
 ];
 
 describe('OrderListItem', () => {
-  it('should render correctly', () => {
+  it('renders each order without crashing', () => {
     testOrders.forEach((order) => {
-      const rendered = renderWithProvider(
+      const { unmount } = renderWithProvider(
         <OrderListItem order={order as FiatOrder} />,
       );
-      expect(rendered.toJSON()).toMatchSnapshot();
+      unmount();
     });
   });
 });

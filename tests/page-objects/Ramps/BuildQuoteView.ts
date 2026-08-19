@@ -3,92 +3,98 @@ import Gestures from '../../framework/Gestures';
 import Utilities from '../../framework/Utilities';
 
 import { BuildQuoteSelectors } from '../../../app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
+import { BUILD_QUOTE_TEST_IDS } from '../../../app/components/UI/Ramp/Views/BuildQuote/BuildQuote.testIds';
 import { AddressSelectorSelectors } from '../../../app/components/Views/AddressSelector/AddressSelector.testIds';
+import { EncapsulatedElementType } from '../../framework';
 
 class BuildQuoteView {
-  get amountToBuyLabel(): DetoxElement {
+  get amountToBuyLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(BuildQuoteSelectors.AMOUNT_TO_BUY_LABEL);
   }
 
-  get amountToSellLabel(): DetoxElement {
+  get amountToSellLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(BuildQuoteSelectors.AMOUNT_TO_SELL_LABEL);
   }
 
-  get getQuotesButton(): DetoxElement {
+  get getQuotesButton(): EncapsulatedElementType {
     return Matchers.getElementByText(BuildQuoteSelectors.GET_QUOTES_BUTTON);
   }
 
-  get cancelButton(): DetoxElement {
+  get cancelButton(): EncapsulatedElementType {
     return Matchers.getElementByText(BuildQuoteSelectors.CANCEL_BUTTON_TEXT);
   }
 
-  get selectRegionDropdown(): DetoxElement {
+  get selectRegionDropdown(): EncapsulatedElementType {
     return Matchers.getElementByText(BuildQuoteSelectors.SELECT_REGION);
   }
 
-  get selectPaymentMethodDropdown(): DetoxElement {
+  get selectPaymentMethodDropdown(): EncapsulatedElementType {
     return Matchers.getElementByText(BuildQuoteSelectors.SELECT_PAYMENT_METHOD);
   }
 
-  get selectCurrencyDropdown(): DetoxElement {
+  get selectCurrencyDropdown(): EncapsulatedElementType {
     return Matchers.getElementByID(BuildQuoteSelectors.SELECT_CURRENCY);
   }
 
-  get amountInput(): DetoxElement {
+  get amountInput(): EncapsulatedElementType {
     return Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT);
   }
 
-  get regionDropdown(): DetoxElement {
+  get regionDropdown(): EncapsulatedElementType {
     return Matchers.getElementByID(BuildQuoteSelectors.REGION_DROPDOWN);
   }
 
-  get accountPicker(): DetoxElement {
+  get accountPicker(): EncapsulatedElementType {
     return Matchers.getElementByID(BuildQuoteSelectors.ACCOUNT_PICKER);
   }
 
-  get minLimitErrorMessage(): DetoxElement {
+  get minLimitErrorMessage(): EncapsulatedElementType {
     return Matchers.getElementByID(BuildQuoteSelectors.MIN_LIMIT_ERROR);
   }
 
-  get maxLimitErrorMessage(): DetoxElement {
+  get maxLimitErrorMessage(): EncapsulatedElementType {
     return Matchers.getElementByID(BuildQuoteSelectors.MAX_LIMIT_ERROR);
   }
 
-  get insufficientBalanceErrorMessage(): DetoxElement {
+  get insufficientBalanceErrorMessage(): EncapsulatedElementType {
     return Matchers.getElementByID(
       BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR,
     );
   }
 
-  get keypadDeleteButton(): DetoxElement {
+  get keypadDeleteButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON);
   }
 
-  get doneButton(): DetoxElement {
+  get doneButton(): EncapsulatedElementType {
     return Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON);
   }
 
-  get continueButton(): DetoxElement {
+  get continueButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BuildQuoteSelectors.CONTINUE_BUTTON);
   }
 
-  get quickAmount25(): DetoxElement {
+  get backButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(BUILD_QUOTE_TEST_IDS.BACK_BUTTON);
+  }
+
+  get quickAmount25(): EncapsulatedElementType {
     return Matchers.getElementByLabel('25%');
   }
 
-  get quickAmount50(): DetoxElement {
+  get quickAmount50(): EncapsulatedElementType {
     return Matchers.getElementByLabel('50%');
   }
 
-  get quickAmount75(): DetoxElement {
+  get quickAmount75(): EncapsulatedElementType {
     return Matchers.getElementByLabel('75%');
   }
 
-  get quickAmountMax(): DetoxElement {
+  get quickAmountMax(): EncapsulatedElementType {
     return Matchers.getElementByLabel('MAX');
   }
 
-  get accountPickerDropdown(): DetoxElement {
+  get accountPickerDropdown(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AddressSelectorSelectors.ACCOUNT_PICKER_DROPDOWN,
     );
@@ -112,6 +118,12 @@ class BuildQuoteView {
     await Gestures.waitAndTap(this.continueButton, {
       timeout: 2500,
       elemDescription: 'Continue Button in Build Quote View',
+    });
+  }
+
+  async tapBackButton(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Back Button in Build Quote View',
     });
   }
 
@@ -188,7 +200,10 @@ class BuildQuoteView {
   async tapPaymentMethodDropdown(
     paymentMethod: string | RegExp,
   ): Promise<void> {
-    const paymentMethodOption = Matchers.getElementByText(paymentMethod);
+    const paymentMethodOption =
+      typeof paymentMethod === 'string'
+        ? Matchers.getElementByText(paymentMethod)
+        : Matchers.getElementByText(paymentMethod as RegExp);
     await Gestures.waitAndTap(paymentMethodOption, {
       elemDescription: `Payment Method Dropdown (${paymentMethod}) in Build Quote View`,
     });
@@ -198,7 +213,9 @@ class BuildQuoteView {
     regex: string | RegExp,
   ): Promise<string | undefined> {
     try {
-      const elem = await Matchers.getElementByText(regex);
+      const elem = await (typeof regex === 'string'
+        ? Matchers.getElementByText(regex)
+        : Matchers.getElementByText(regex as RegExp));
       const attributes = await (
         elem as unknown as IndexableNativeElement
       ).getAttributes();

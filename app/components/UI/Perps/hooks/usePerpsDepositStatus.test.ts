@@ -16,16 +16,21 @@ import {
 } from '@metamask/transaction-controller';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { NotificationFeedbackType } from 'expo-haptics';
+import { NotificationMoment } from '../../../../util/haptics';
 import {
   USDC_ARBITRUM_MAINNET_ADDRESS,
   ARBITRUM_MAINNET_CHAIN_ID_HEX,
 } from '@metamask/perps-controller';
 import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
+import { isPerpsPredictMoneyDeposit } from '../../Money/utils/moneyTransactionGuards';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+}));
+
+jest.mock('../../Money/utils/moneyTransactionGuards', () => ({
+  isPerpsPredictMoneyDeposit: jest.fn(() => false),
 }));
 
 jest.mock('./stream/usePerpsLiveAccount');
@@ -66,6 +71,10 @@ const mockSelectTransactionBridgeQuotesById =
   selectTransactionBridgeQuotesById as jest.MockedFunction<
     typeof selectTransactionBridgeQuotesById
   >;
+const mockIsPerpsPredictMoneyDeposit =
+  isPerpsPredictMoneyDeposit as jest.MockedFunction<
+    typeof isPerpsPredictMoneyDeposit
+  >;
 
 describe('usePerpsDepositStatus', () => {
   let mockSubscribe: jest.Mock;
@@ -96,10 +105,13 @@ describe('usePerpsDepositStatus', () => {
     // Mock selectTransactionBridgeQuotesById
     mockSelectTransactionBridgeQuotesById.mockReturnValue([]);
 
+    mockIsPerpsPredictMoneyDeposit.mockReturnValue(false);
+
     // Default mock for usePerpsLiveAccount
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
-        availableBalance: '1000.00',
+        spendableBalance: '1000.00',
+        withdrawableBalance: '1000.00',
         totalBalance: '10000.00',
         marginUsed: '9000.00',
         unrealizedPnl: '100.00',
@@ -120,7 +132,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Deposit successful', isBold: true },
               { label: 'Your deposit has been processed' },
             ],
-            hapticsType: NotificationFeedbackType.Success,
+            hapticsType: NotificationMoment.Success,
           })),
           error: {
             variant: ToastVariants.Icon,
@@ -130,7 +142,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Deposit failed', isBold: true },
               { label: 'Your deposit could not be processed' },
             ],
-            hapticsType: NotificationFeedbackType.Error,
+            hapticsType: NotificationMoment.Error,
           } as PerpsToastOptions,
           inProgress: jest.fn(() => ({
             variant: ToastVariants.Icon,
@@ -140,7 +152,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Deposit in progress', isBold: true },
               { label: 'Processing your deposit...' },
             ],
-            hapticsType: NotificationFeedbackType.Success,
+            hapticsType: NotificationMoment.Success,
           })),
           takingLonger: {
             variant: ToastVariants.Icon,
@@ -150,7 +162,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Deposit taking longer', isBold: true },
               { label: 'Your deposit is still processing' },
             ],
-            hapticsType: NotificationFeedbackType.Warning,
+            hapticsType: NotificationMoment.Warning,
           } as PerpsToastOptions,
           tradeCanceled: {
             variant: ToastVariants.Icon,
@@ -160,7 +172,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Trade canceled', isBold: true },
               { label: 'Funds returned to account' },
             ],
-            hapticsType: NotificationFeedbackType.Warning,
+            hapticsType: NotificationMoment.Warning,
           } as PerpsToastOptions,
         },
         oneClickTrade: {
@@ -175,7 +187,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Withdrawal in progress', isBold: true },
               { label: 'Processing your withdrawal...' },
             ],
-            hapticsType: NotificationFeedbackType.Success,
+            hapticsType: NotificationMoment.Success,
           } as PerpsToastOptions,
           withdrawalSuccess: jest.fn(() => ({
             variant: ToastVariants.Icon,
@@ -185,7 +197,7 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Withdrawal successful', isBold: true },
               { label: 'Your withdrawal has been processed' },
             ],
-            hapticsType: NotificationFeedbackType.Success,
+            hapticsType: NotificationMoment.Success,
           })),
           withdrawalFailed: jest.fn(() => ({
             variant: ToastVariants.Icon,
@@ -195,7 +207,17 @@ describe('usePerpsDepositStatus', () => {
               { label: 'Withdrawal failed', isBold: true },
               { label: 'Your withdrawal could not be processed' },
             ],
-            hapticsType: NotificationFeedbackType.Error,
+            hapticsType: NotificationMoment.Error,
+          })),
+          withdrawalStartFailed: jest.fn(() => ({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Warning,
+            hasNoTimeout: false,
+            labelOptions: [
+              { label: 'Something went wrong', isBold: true },
+              { label: 'Your withdrawal was not started' },
+            ],
+            hapticsType: NotificationMoment.Error,
           })),
         },
       },
@@ -210,6 +232,8 @@ describe('usePerpsDepositStatus', () => {
       dataFetching: {} as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       contentSharing: {} as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      watchlist: {} as any,
     };
 
     mockUsePerpsToasts.mockReturnValue({
@@ -309,11 +333,65 @@ describe('usePerpsDepositStatus', () => {
           { label: 'Deposit in progress', isBold: true },
           { label: 'Processing your deposit...' },
         ],
-        hapticsType: NotificationFeedbackType.Success,
+        hapticsType: NotificationMoment.Success,
       });
       expect(
         mockPerpsToastOptions.accountManagement.deposit.inProgress,
       ).toHaveBeenCalledWith(60, 'test-tx-id');
+    });
+
+    it('should not show any toast when perpsDeposit is funded from the Money account', () => {
+      mockShowToast.mockClear();
+      mockIsPerpsPredictMoneyDeposit.mockReturnValue(true);
+      renderHook(() => usePerpsDepositStatus());
+      const transactionMeta: TransactionMeta = {
+        id: 'test-tx-id',
+        type: TransactionType.perpsDeposit,
+        status: TransactionStatus.approved,
+      } as TransactionMeta;
+
+      act(() => {
+        transactionHandler({ transactionMeta });
+      });
+
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(
+        mockPerpsToastOptions.accountManagement.deposit.inProgress,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('should not set expecting state when perpsDeposit is funded from the Money account', () => {
+      mockShowToast.mockClear();
+      mockIsPerpsPredictMoneyDeposit.mockReturnValue(true);
+      const { rerender } = renderHook(() => usePerpsDepositStatus());
+
+      act(() => {
+        transactionHandler({
+          transactionMeta: {
+            id: 'test-tx-id',
+            type: TransactionType.perpsDeposit,
+            status: TransactionStatus.approved,
+          } as TransactionMeta,
+        });
+      });
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '1500.00',
+          withdrawableBalance: '1500.00',
+          marginUsed: '9000.00',
+          unrealizedPnl: '100.00',
+          returnOnEquity: '0.15',
+          totalBalance: '10600.00',
+        },
+        isInitialLoading: false,
+      });
+
+      rerender({});
+
+      expect(
+        mockPerpsToastOptions.accountManagement.deposit.success,
+      ).not.toHaveBeenCalled();
     });
 
     it('should not show in-progress toast when perpsDeposit transaction is submitted', () => {
@@ -466,7 +544,8 @@ describe('usePerpsDepositStatus', () => {
       // Update balance to simulate deposit completion
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '1500.00', // Increased from 1000.00
+          spendableBalance: '1500.00', // Increased from 1000.00
+          withdrawableBalance: '1500.00', // Increased from 1000.00
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
@@ -485,11 +564,11 @@ describe('usePerpsDepositStatus', () => {
           { label: 'Deposit successful', isBold: true },
           { label: 'Your deposit has been processed' },
         ],
-        hapticsType: NotificationFeedbackType.Success,
+        hapticsType: NotificationMoment.Success,
       });
       expect(
         mockPerpsToastOptions.accountManagement.deposit.success,
-      ).toHaveBeenCalledWith('1500.00'); // Current balance
+      ).toHaveBeenCalledWith('1500.00');
     });
 
     it('should not show success toast when balance decreases', () => {
@@ -515,7 +594,8 @@ describe('usePerpsDepositStatus', () => {
       // Update balance to simulate decrease
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '500.00', // Decreased from 1000.00
+          spendableBalance: '500.00', // Decreased from 1000.00
+          withdrawableBalance: '500.00', // Decreased from 1000.00
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
@@ -535,7 +615,8 @@ describe('usePerpsDepositStatus', () => {
       // Update balance without setting up waiting for funds
       mockUsePerpsLiveAccount.mockReturnValue({
         account: {
-          availableBalance: '1500.00',
+          spendableBalance: '1500.00',
+          withdrawableBalance: '1500.00',
           marginUsed: '9000.00',
           unrealizedPnl: '100.00',
           returnOnEquity: '0.15',
@@ -547,6 +628,44 @@ describe('usePerpsDepositStatus', () => {
       rerender({});
 
       expect(mockShowToast).not.toHaveBeenCalledWith({ success: true });
+    });
+
+    it('should not show success toast when only totalBalance increases from unrealized pnl', () => {
+      const { rerender } = renderHook(() => usePerpsDepositStatus());
+
+      act(() => {
+        const transactionHandler = mockSubscribe.mock.calls.find(
+          (call) =>
+            call[0] === 'TransactionController:transactionStatusUpdated',
+        )?.[1];
+        if (transactionHandler) {
+          transactionHandler({
+            transactionMeta: {
+              id: 'test-tx-id',
+              type: TransactionType.perpsDeposit,
+              status: TransactionStatus.approved,
+            } as TransactionMeta,
+          });
+        }
+      });
+
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '1000.00',
+          withdrawableBalance: '1000.00',
+          marginUsed: '9000.00',
+          unrealizedPnl: '600.00',
+          returnOnEquity: '0.15',
+          totalBalance: '10600.00',
+        },
+        isInitialLoading: false,
+      });
+
+      rerender({});
+
+      expect(
+        mockPerpsToastOptions.accountManagement.deposit.success,
+      ).not.toHaveBeenCalled();
     });
   });
 
@@ -589,7 +708,7 @@ describe('usePerpsDepositStatus', () => {
           { label: 'Deposit failed', isBold: true },
           { label: 'Your deposit could not be processed' },
         ],
-        hapticsType: NotificationFeedbackType.Error,
+        hapticsType: NotificationMoment.Error,
       });
     });
 

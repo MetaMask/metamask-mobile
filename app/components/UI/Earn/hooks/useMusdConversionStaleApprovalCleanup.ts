@@ -14,7 +14,7 @@ import { selectUnapprovedMusdConversions } from '../selectors/musdConversionStat
  * most likely caused by a transient external link (e.g. "terms apply") and
  * the pending approval should not be rejected.
  */
-const ACTIVE_CONFIRMATION_FLOW_ROUTES = new Set([
+const ACTIVE_CONFIRMATION_FLOW_ROUTES = new Set<string>([
   Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
   Routes.SHEET.TOOLTIP_MODAL,
 ]);

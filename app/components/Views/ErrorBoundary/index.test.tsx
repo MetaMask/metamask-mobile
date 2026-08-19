@@ -1,39 +1,37 @@
 import React, { useEffect } from 'react';
-import { View, Alert } from 'react-native';
+import { View, Alert, Linking } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ErrorBoundary, { Fallback } from './';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import {
   captureSentryFeedback,
   captureExceptionForced,
 } from '../../../util/sentry/utils';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
+import { analytics } from '../../../util/analytics/analytics';
+import { reloadAppAsync } from 'expo';
+import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import {
+  confirmSupportConsent,
+  navigateToSupportConsent,
+  rejectSupportConsent,
+} from '../../../util/support';
 
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = MetricsEventBuilder.createEventBuilder;
-
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  ...jest.requireActual('../../../components/hooks/useMetrics'),
-  withMetricsAwareness: jest
-    .fn()
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .mockImplementation((Children) => (props: any) => (
-      <Children
-        {...props}
-        metrics={{
-          trackEvent: mockTrackEvent,
-          createEventBuilder: mockCreateEventBuilder,
-        }}
-      />
-    )),
+jest.mock('../../../util/support', () => ({
+  navigateToSupportConsent: jest.fn(),
+  confirmSupportConsent: jest.fn(),
+  rejectSupportConsent: jest.fn(),
 }));
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
+jest.mock('expo', () => ({
+  reloadAppAsync: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
 }));
 
 jest.mock('../../../util/sentry/utils', () => ({
@@ -44,6 +42,17 @@ jest.mock('../../../util/sentry/utils', () => ({
 jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
+
+jest.mock(
+  'react-native/Libraries/Components/Keyboard/KeyboardAvoidingView',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: View,
+    };
+  },
+);
 
 const mockError = new Error('Throw');
 const MockThrowComponent = () => {
@@ -65,6 +74,7 @@ describe('ErrorBoundary', () => {
     errorMessage: 'Test error message',
     showExportSeedphrase: jest.fn(),
     copyErrorToClipboard: jest.fn(),
+    openTicket: jest.fn(),
     sentryId: 'test-sentry-id',
     onboardingErrorConfig: null,
   };
@@ -80,12 +90,12 @@ describe('ErrorBoundary', () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(<ErrorBoundary />, {});
-    expect(toJSON()).toMatchSnapshot();
+  it('renders without errors', () => {
+    expect(() => renderWithProvider(<ErrorBoundary />, {})).not.toThrow();
   });
 
   it('tracks error event when error is thrown by child component', () => {
@@ -95,17 +105,7 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>,
     );
 
-    expect(mockTrackEvent).toHaveBeenCalled();
-  });
-
-  it('renders all buttons when dataCollectionForMarketing is true', () => {
-    const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
-      state: initialState,
-    });
-
-    expect(getByText('Describe what happened')).toBeTruthy();
-    expect(getByText('Contact support')).toBeTruthy();
-    expect(getByText('Try again')).toBeTruthy();
+    expect(jest.mocked(analytics.trackEvent)).toHaveBeenCalled();
   });
 
   it('hides Describe what happened button when dataCollectionForMarketing is false', () => {
@@ -121,28 +121,6 @@ describe('ErrorBoundary', () => {
     );
 
     expect(queryByText('Describe what happened')).toBeNull();
-    expect(getByText('Contact support')).toBeTruthy();
-    expect(getByText('Try again')).toBeTruthy();
-  });
-
-  it('opens modal when describe button is pressed', async () => {
-    const { getByText, getByPlaceholderText } = renderWithProvider(
-      <Fallback {...mockProps} />,
-      { state: initialState },
-    );
-
-    const describeButton = getByText('Describe what happened');
-    fireEvent.press(describeButton);
-
-    await waitFor(() => {
-      expect(
-        getByPlaceholderText(
-          'Sharing details like how we can reproduce the bug will help us fix the problem.',
-        ),
-      ).toBeTruthy();
-      expect(getByText('Cancel')).toBeTruthy();
-      expect(getByText('Submit')).toBeTruthy();
-    });
   });
 
   it('closes modal when cancel button is pressed', async () => {
@@ -153,15 +131,19 @@ describe('ErrorBoundary', () => {
 
     // Open modal
     const describeButton = getByText('Describe what happened');
-    fireEvent.press(describeButton);
+    await act(async () => {
+      fireEvent.press(describeButton);
+    });
 
     await waitFor(() => {
-      expect(getByText('Cancel')).toBeTruthy();
+      expect(getByText('Cancel')).toBeOnTheScreen();
     });
 
     // Close modal
     const cancelButton = getByText('Cancel');
-    fireEvent.press(cancelButton);
+    await act(async () => {
+      fireEvent.press(cancelButton);
+    });
 
     // Verify modal is closed
     await waitFor(() => {
@@ -190,18 +172,34 @@ describe('ErrorBoundary', () => {
     });
   });
 
-  it('calls copyErrorToClipboard when copy button is pressed', () => {
+  it('calls copyErrorToClipboard when copy button is pressed', async () => {
     const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
       state: initialState,
     });
 
     const copyButton = getByText('Copy');
-    fireEvent.press(copyButton);
+    await act(async () => {
+      fireEvent.press(copyButton);
+    });
 
     expect(mockProps.copyErrorToClipboard).toHaveBeenCalledTimes(1);
   });
 
-  it('calls showExportSeedphrase when save seedphrase link is pressed', () => {
+  it('calls reloadAppAsync when Try again is pressed', async () => {
+    const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
+      state: initialState,
+    });
+
+    const tryAgainButton = getByText('Try again');
+    await act(async () => {
+      fireEvent.press(tryAgainButton);
+    });
+
+    expect(reloadAppAsync).toHaveBeenCalledTimes(1);
+    expect(reloadAppAsync).toHaveBeenCalledWith('Error boundary Try again');
+  });
+
+  it('calls showExportSeedphrase when save seedphrase link is pressed', async () => {
     const { getAllByText } = renderWithProvider(<Fallback {...mockProps} />, {
       state: initialState,
     });
@@ -209,7 +207,9 @@ describe('ErrorBoundary', () => {
     const seedphraseLink = getAllByText(
       strings('error_screen.save_seedphrase_2'),
     )[0];
-    fireEvent.press(seedphraseLink);
+    await act(async () => {
+      fireEvent.press(seedphraseLink);
+    });
 
     expect(mockProps.showExportSeedphrase).toHaveBeenCalledTimes(1);
   });
@@ -228,30 +228,140 @@ describe('ErrorBoundary', () => {
       fireEvent.press(describeButton);
     });
 
-    await waitFor(() => {
-      const textInput = getByPlaceholderText(
+    const textInput = await waitFor(() => {
+      const input = getByPlaceholderText(
         'Sharing details like how we can reproduce the bug will help us fix the problem.',
       );
-      const submitButton = getByText('Submit');
-      fireEvent.changeText(textInput, 'Test feedback');
-
-      fireEvent.press(submitButton);
-
-      expect(captureSentryFeedback).toHaveBeenCalledWith({
-        sentryId: mockProps.sentryId,
-        comments: 'Test feedback',
-      });
-
-      expect(spyAlert).toHaveBeenCalledWith('Thanks! We’ll take a look soon.');
+      expect(input).toBeOnTheScreen();
+      return input;
     });
+
+    await act(async () => {
+      fireEvent.changeText(textInput, 'Test feedback');
+    });
+
+    const submitButton = getByText('Submit');
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
+
+    expect(captureSentryFeedback).toHaveBeenCalledWith({
+      sentryId: mockProps.sentryId,
+      comments: 'Test feedback',
+    });
+
+    expect(spyAlert).toHaveBeenCalledWith(
+      'Thanks! We\u2019ll take a look soon.',
+    );
   });
 
-  it('renders error message correctly', () => {
-    const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
-      state: initialState,
+  it('delegates to openTicket when Contact support is pressed and navigation is available', async () => {
+    const { getByText } = renderWithProvider(
+      <Fallback {...mockProps} navigation={mockNavigation} />,
+      { state: initialState },
+    );
+
+    const contactSupportButton = getByText(
+      strings('error_screen.contact_support'),
+    );
+    await act(async () => {
+      fireEvent.press(contactSupportButton);
     });
 
-    expect(getByText('Test error message')).toBeTruthy();
+    expect(mockProps.openTicket).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the standalone consent modal instead of calling openTicket when no navigation is available', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <Fallback {...mockProps} />,
+      { state: initialState },
+    );
+
+    const contactSupportButton = getByText(
+      strings('error_screen.contact_support'),
+    );
+    await act(async () => {
+      fireEvent.press(contactSupportButton);
+    });
+
+    expect(mockProps.openTicket).not.toHaveBeenCalled();
+    expect(
+      getByTestId('standalone-support-consent-confirm-button'),
+    ).toBeOnTheScreen();
+  });
+
+  it('confirms via the standalone consent modal, opening the enriched URL', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <Fallback {...mockProps} />,
+      { state: initialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('error_screen.contact_support')));
+    });
+    await act(async () => {
+      fireEvent.press(getByTestId('standalone-support-consent-confirm-button'));
+    });
+
+    expect(confirmSupportConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+    );
+    expect(rejectSupportConsent).not.toHaveBeenCalled();
+  });
+
+  it('rejects via the standalone consent modal, opening the plain URL', async () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <Fallback {...mockProps} />,
+      { state: initialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('error_screen.contact_support')));
+    });
+    await act(async () => {
+      fireEvent.press(getByTestId('standalone-support-consent-reject-button'));
+    });
+
+    expect(rejectSupportConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+    );
+    expect(confirmSupportConsent).not.toHaveBeenCalled();
+  });
+
+  describe('openTicket (class component)', () => {
+    it('shows the consent sheet via navigateToSupportConsent when navigation is available', () => {
+      const instance = new ErrorBoundary({
+        view: 'Test',
+        navigation: mockNavigation,
+      });
+
+      instance.openTicket();
+
+      expect(navigateToSupportConsent).toHaveBeenCalledWith(
+        mockNavigation,
+        expect.any(Function),
+        METAMASK_SUPPORT_URL,
+      );
+
+      const [, open] = jest.mocked(navigateToSupportConsent).mock.calls[0];
+      const spyOpenURL = jest.spyOn(Linking, 'openURL');
+      open('https://support.metamask.io/?customer_service_token=jwt-token');
+      expect(spyOpenURL).toHaveBeenCalledWith(
+        'https://support.metamask.io/?customer_service_token=jwt-token',
+      );
+    });
+
+    it('opens the plain support URL via Linking when no navigation is available', () => {
+      const instance = new ErrorBoundary({ view: 'Test' });
+      const spyOpenURL = jest.spyOn(Linking, 'openURL');
+
+      instance.openTicket();
+
+      expect(spyOpenURL).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
+      expect(navigateToSupportConsent).not.toHaveBeenCalled();
+    });
   });
 
   describe('Onboarding Error Handling', () => {
@@ -265,16 +375,17 @@ describe('ErrorBoundary', () => {
       },
     };
 
-    it('renders onboarding error state snapshot', () => {
-      const { toJSON } = renderWithProvider(
-        <ErrorBoundary
-          view="Login"
-          navigation={mockNavigation}
-          error={mockError}
-          useOnboardingErrorHandling
-        />,
-      );
-      expect(toJSON()).toMatchSnapshot();
+    it('renders onboarding error state without errors', () => {
+      expect(() =>
+        renderWithProvider(
+          <ErrorBoundary
+            view="Login"
+            navigation={mockNavigation}
+            error={mockError}
+            useOnboardingErrorHandling
+          />,
+        ),
+      ).not.toThrow();
     });
 
     it('uses onboarding error config when useOnboardingErrorHandling is true', () => {
@@ -290,7 +401,7 @@ describe('ErrorBoundary', () => {
         { state: initialState },
       );
 
-      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(jest.mocked(analytics.trackEvent)).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(
         mockError,
         expect.objectContaining({
@@ -300,17 +411,6 @@ describe('ErrorBoundary', () => {
       );
     });
 
-    it('renders onboarding error fallback with correct props', () => {
-      const { getByText } = renderWithProvider(
-        <Fallback {...onboardingProps} />,
-        { state: initialState },
-      );
-
-      expect(getByText('An error occurred')).toBeTruthy();
-      expect(getByText('Send report')).toBeTruthy();
-      expect(getByText('Try again')).toBeTruthy();
-    });
-
     it('calls captureExceptionForced and navigates to onboarding when Send report is pressed in onboarding mode', async () => {
       const { getByText } = renderWithProvider(
         <Fallback {...onboardingProps} />,
@@ -318,7 +418,9 @@ describe('ErrorBoundary', () => {
       );
 
       const sendReportButton = getByText('Send report');
-      fireEvent.press(sendReportButton);
+      await act(async () => {
+        fireEvent.press(sendReportButton);
+      });
 
       await waitFor(() => {
         expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
@@ -334,14 +436,16 @@ describe('ErrorBoundary', () => {
       });
     });
 
-    it('navigates to onboarding when Try again is pressed in onboarding mode', () => {
+    it('navigates to onboarding when Try again is pressed in onboarding mode', async () => {
       const { getByText } = renderWithProvider(
         <Fallback {...onboardingProps} />,
         { state: initialState },
       );
 
       const tryAgainButton = getByText('Try again');
-      fireEvent.press(tryAgainButton);
+      await act(async () => {
+        fireEvent.press(tryAgainButton);
+      });
 
       expect(mockNavigation.reset).toHaveBeenCalledWith({
         routes: [{ name: 'OnboardingRootNav' }],

@@ -23,7 +23,6 @@ import {
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
-import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 
 jest.mock('../utils/getInternalAccountsFromWallet');
 jest.mock('../hooks/useWalletBalances');
@@ -117,20 +116,6 @@ jest.mock(
   }),
 );
 
-// Mock the dependencies of WalletAddAccountActions instead of the component itself
-jest.mock('../../../../../actions/multiSrp', () => ({
-  addNewHdAccount: jest.fn(),
-}));
-
-jest.mock('../../../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
-  MultichainWalletSnapFactory: {
-    createClient: jest.fn(),
-  },
-  WalletClientType: {
-    Solana: 'solana',
-  },
-}));
-
 const mockGetInternalAccountsFromWallet =
   getInternalAccountsFromWallet as jest.Mock;
 const mockUseWalletBalances = useWalletBalances as jest.Mock;
@@ -184,7 +169,7 @@ const mockWallet = createMockWallet('1', 'Test Wallet', [
 
 const mockInitialState: Partial<RootState> = {
   settings: {
-    avatarAccountType: AvatarAccountType.Maskicon,
+    avatarAccountType: 'Maskicon',
   },
   engine: {
     backgroundState: {

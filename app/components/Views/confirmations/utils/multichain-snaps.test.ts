@@ -1,6 +1,6 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as SnapUtils from '../../../../core/Snaps/utils';
 import {
   sendMultichainTransactionForReview,

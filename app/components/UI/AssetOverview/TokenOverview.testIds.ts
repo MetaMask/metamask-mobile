@@ -3,6 +3,7 @@ import enContent from '../../../../locales/languages/en.json';
 export const TokenOverviewSelectorsIDs = {
   CONTAINER: 'token-asset-overview',
   TOKEN_PRICE: 'token-price',
+  PRICE_ALERT_BUTTON: 'token-price-alert-button',
   SEND_BUTTON: 'token-send-button',
   RECEIVE_BUTTON: 'token-receive-button',
   BUY_BUTTON: 'token-buy-button',
@@ -16,10 +17,15 @@ export const TokenOverviewSelectorsIDs = {
   LONG_BUTTON: 'token-long-button',
   SHORT_BUTTON: 'token-short-button',
   MORE_BUTTON: 'token-more-button',
+  QUICK_BUY_BUTTON: 'token-quick-buy-button',
+  TODAYS_CHANGE: 'token-todays-change',
+  PRICE_CHART_DOT_END: 'price-chart-end-dot',
+  PRICE_CHART_CONTAINER: 'advanced-chart-touch-container',
 };
 
 export const TokenOverviewSelectorsText = {
   STAKED_BALANCE: enContent.stake.staked_balance,
+  TODAYS_CHANGE_SUFFIX: '%) Today',
   NO_CHART_DATA: enContent.asset_overview.no_chart_data.title,
   '1d': enContent.asset_overview.chart_time_period_navigation['1d'],
   '1w': enContent.asset_overview.chart_time_period_navigation['1w'],

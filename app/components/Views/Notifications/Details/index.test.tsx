@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import configureMockStore from 'redux-mock-store';
 import {
   type INotification,
@@ -16,7 +17,7 @@ import MOCK_NOTIFICATIONS, {
   createMockNotificationEthReceived,
   createMockNotificationEthSent,
 } from '../../../../components/UI/Notification/__mocks__/mock_notifications';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as UseNotificationsModule from '../../../../util/notifications/hooks/useNotifications';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 
@@ -39,22 +40,10 @@ jest.mock('../../../../actions/alert', () => ({
 }));
 
 jest.mock('@react-navigation/native');
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
-
 describe('NotificationsDetails', () => {
   const mockStore = configureMockStore();
   const store = mockStore(mockInitialState);
+  const queryClient = new QueryClient();
 
   let navigation: NavigationProp<ParamListBase>;
 
@@ -69,13 +58,19 @@ describe('NotificationsDetails', () => {
       .mockReturnValue({ markNotificationAsRead: jest.fn(), loading: false });
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   const renderDetailsPage = (notification: INotification) =>
     render(
       <Provider store={store}>
-        <NotificationsDetails
-          navigation={navigation}
-          route={{ params: { notification } }}
-        />
+        <QueryClientProvider client={queryClient}>
+          <NotificationsDetails
+            navigation={navigation}
+            route={{ params: { notification } }}
+          />
+        </QueryClientProvider>
       </Provider>,
     );
 

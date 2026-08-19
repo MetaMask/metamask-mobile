@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
-import { MarkAsReadNotificationsParam } from '@metamask/notification-services-controller/notification-services';
+import type { MarkAsReadNotificationsParam } from '@metamask/notification-services-controller/notification-services';
 import {
   assertIsFeatureEnabled,
   disableNotifications as disableNotificationsHelper,
   enableNotifications as enableNotificationsHelper,
   fetchNotifications,
   markNotificationsAsRead as markNotificationsAsReadHelper,
-  resetNotifications as resetNotificationsHelper,
 } from '../../../actions/notification/helpers';
 import {
   getNotificationsList,
   selectIsFetchingMetamaskNotifications,
+  selectIsFeatureAnnouncementsEnabled,
   selectIsMetamaskNotificationsEnabled,
   selectIsUpdatingMetamaskNotifications,
 } from '../../../selectors/notifications';
@@ -22,6 +22,17 @@ import {
   setUserHasTurnedOffNotificationsOnce,
   updateNotificationSubscriptionExpiration,
 } from '../constants/notification-storage-keys';
+import type { RootState } from '../../../reducers';
+
+const selectHasMarketingConsent = (state: RootState) =>
+  Boolean(state.security.dataCollectionForMarketing);
+
+interface UseEnableNotificationsProps {
+  nudgeEnablePush?: boolean;
+  throwOnError?: boolean;
+}
+
+const DEFAULT_ENABLE_NOTIFICATIONS_PROPS: UseEnableNotificationsProps = {};
 
 /**
  * Custom hook to fetch and update the list of notifications.
@@ -100,21 +111,48 @@ export function useContiguousLoading(
  * - `loading`: A boolean indicating if the enabling process is ongoing.
  * - `error`: A string or null value representing any error that occurred during the process.
  */
-export function useEnableNotifications(props = { nudgeEnablePush: true }) {
+export function useEnableNotifications(props?: UseEnableNotificationsProps) {
+  const { nudgeEnablePush = true, throwOnError = false } =
+    props ?? DEFAULT_ENABLE_NOTIFICATIONS_PROPS;
   const { togglePushNotification, loading: pushLoading } =
-    usePushNotificationsToggle(props);
-  const data = useSelector(selectIsMetamaskNotificationsEnabled);
+    usePushNotificationsToggle({ nudgeEnablePush });
+  const isMetamaskNotificationsEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
   const loading = useSelector(selectIsUpdatingMetamaskNotifications);
   const [error, setError] = useState<unknown>(null);
+  const hasMarketingConsent = useSelector(selectHasMarketingConsent);
+  const isFeatureAnnouncementsEnabled = useSelector(
+    selectIsFeatureAnnouncementsEnabled,
+  );
+  const productAnnouncementEnabled =
+    isFeatureAnnouncementsEnabled || !isMetamaskNotificationsEnabled;
   const enableNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
     setError(null);
-    await enableNotificationsHelper().catch((e) => setError(e));
+    try {
+      await enableNotificationsHelper({
+        hasMarketingConsent,
+        productAnnouncementEnabled,
+        registerPushNotifications: nudgeEnablePush,
+      });
+    } catch (enableError) {
+      setError(enableError);
+      if (throwOnError) {
+        throw enableError;
+      }
+    }
     await togglePushNotification(true).catch(() => {
       /* Do Nothing */
     });
     await updateNotificationSubscriptionExpiration();
-  }, [togglePushNotification]);
+  }, [
+    nudgeEnablePush,
+    throwOnError,
+    hasMarketingConsent,
+    productAnnouncementEnabled,
+    togglePushNotification,
+  ]);
 
   const contiguousLoading = useContiguousLoading(loading, pushLoading);
 
@@ -124,7 +162,7 @@ export function useEnableNotifications(props = { nudgeEnablePush: true }) {
     isEnablingPushNotifications: pushLoading,
     loading: loading || pushLoading || contiguousLoading,
     error,
-    data,
+    data: isMetamaskNotificationsEnabled,
   };
 }
 
@@ -184,27 +222,5 @@ export function useMarkNotificationAsRead() {
   return {
     markNotificationAsRead,
     loading,
-  };
-}
-
-/**
- * Custom hook to delete notifications storage key.
- * It manages loading and error states internally.
- *
- * @returns An object containing the `deleteNotificationsStorageKey` function, loading state, and error state.
- */
-export function useResetNotifications() {
-  const loading = useSelector(selectIsUpdatingMetamaskNotifications);
-  const [error, setError] = useState<unknown>(null);
-  const resetNotifications = useCallback(async () => {
-    assertIsFeatureEnabled();
-    setError(null);
-    await resetNotificationsHelper().catch((e) => setError(e));
-  }, []);
-
-  return {
-    resetNotifications,
-    loading,
-    error,
   };
 }

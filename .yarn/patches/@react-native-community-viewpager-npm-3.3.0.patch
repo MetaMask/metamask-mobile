@@ -1,0 +1,9 @@
+diff --git a/ios/ReactNativePageView.h b/ios/ReactNativePageView.h
+index 0000000000000000000000000000000000000000..0000000000000000000000000000000000000001 100644
+--- a/ios/ReactNativePageView.h
++++ b/ios/ReactNativePageView.h
+@@ -1,3 +1,4 @@
+ #import <React/RCTShadowView.h>
++#import <React/RCTEventDispatcher.h>
+ #import <React/UIView+React.h>
+ #import <UIKit/UIKit.h>

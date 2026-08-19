@@ -1,18 +1,45 @@
 import { useNavigation } from '@react-navigation/native';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
+import Logger from '../../../../../util/Logger';
 import PerpsWithdrawView from './PerpsWithdrawView';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 
 // Mock component-library Button to avoid IconSize import issues during tests
+jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
+  ...jest.requireActual('../../utils/perpsAnalyticsAttribution'),
+  getPerpsUtmAttributionProperties: jest.fn(() => ({})),
+}));
+
 jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
   __esModule: true,
-  default: 'Button',
+  default: ({
+    label,
+    onPress,
+    testID,
+  }: {
+    label?: string;
+    onPress?: () => void;
+    testID?: string;
+  }) => {
+    const ReactModule = jest.requireActual('react');
+    const RNModule = jest.requireActual('react-native');
+    return ReactModule.createElement(
+      RNModule.TouchableOpacity,
+      { onPress, testID },
+      ReactModule.createElement(RNModule.Text, null, label),
+    );
+  },
   ButtonSize: { Lg: 'Lg', Md: 'Md' },
   ButtonVariants: { Primary: 'Primary', Secondary: 'Secondary' },
   ButtonWidthTypes: { Full: 'Full', Auto: 'Auto' },
@@ -22,7 +49,8 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => ({
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
-      availableBalance: '1000.00',
+      spendableBalance: '1000.00',
+      withdrawableBalance: '1000.00',
       marginUsed: '0.00',
       unrealizedPnl: '0.00',
       returnOnEquity: '0.00',
@@ -65,7 +93,8 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 // Mock hooks
 jest.mock('../../hooks', () => ({
   usePerpsAccount: jest.fn(() => ({
-    availableBalance: '$1000.00',
+    spendableBalance: '$1000.00',
+    withdrawableBalance: '$1000.00',
   })),
   usePerpsWithdrawQuote: jest.fn(() => ({
     formattedQuoteData: {
@@ -133,7 +162,7 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
 
 // Mock design system components - needed because real module requires tailwind setup
 jest.mock('@metamask/design-system-react-native', () => {
-  const { TouchableOpacity, Text: RNText } = jest.requireActual('react-native');
+  const { TouchableOpacity } = jest.requireActual('react-native');
   const React = jest.requireActual('react');
   return {
     ...jest.requireActual('@metamask/design-system-react-native'),
@@ -146,33 +175,8 @@ jest.mock('@metamask/design-system-react-native', () => {
       testID?: string;
       onPress?: () => void;
     }) => React.createElement(TouchableOpacity, { testID, onPress }),
-    Text: ({
-      children,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-    }) => React.createElement(RNText, { testID }, children),
   };
 });
-
-// Mock Text component
-jest.mock('../../../../../component-library/components/Texts/Text', () => ({
-  __esModule: true,
-  default: 'Text',
-  TextColor: {
-    Alternative: 'Alternative',
-    Error: 'Error',
-  },
-  TextVariant: {
-    HeadingMD: 'HeadingMD',
-    BodyMD: 'BodyMD',
-    BodyMDMedium: 'BodyMDMedium',
-    BodyLGMedium: 'BodyLGMedium',
-    BodySM: 'BodySM',
-    DisplayMD: 'DisplayMD',
-  },
-}));
 
 // Mock Avatar types
 jest.mock(
@@ -196,6 +200,13 @@ jest.mock('../../../../../core/Engine', () => ({
         },
       ]),
     },
+  },
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
   },
 }));
 
@@ -248,6 +259,19 @@ describe('PerpsWithdrawView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
+    const mockUsePerpsLiveAccount =
+      jest.requireMock('../../hooks/stream').usePerpsLiveAccount;
+    mockUsePerpsLiveAccount.mockReturnValue({
+      account: {
+        spendableBalance: '1000.00',
+        withdrawableBalance: '1000.00',
+        marginUsed: '0.00',
+        unrealizedPnl: '0.00',
+        returnOnEquity: '0.00',
+        totalBalance: '1000.00',
+      },
+      isInitialLoading: false,
+    });
   });
 
   describe('Component Rendering', () => {
@@ -262,6 +286,34 @@ describe('PerpsWithdrawView', () => {
         screen.getByText(
           strings('perps.withdrawal.available_balance', {
             amount: '$1,000',
+          }),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('uses withdrawableBalance for the displayed Unified Account balance', () => {
+      const mockUsePerpsLiveAccount =
+        jest.requireMock('../../hooks/stream').usePerpsLiveAccount;
+      // Diverge spendable from withdrawable so the assertion proves the view
+      // reads `withdrawableBalance` specifically (not `spendableBalance`).
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: {
+          spendableBalance: '0.00',
+          withdrawableBalance: '2500.00',
+          marginUsed: '0.00',
+          unrealizedPnl: '0.00',
+          returnOnEquity: '0.00',
+          totalBalance: '2500.00',
+        },
+        isInitialLoading: false,
+      });
+
+      renderWithProviders(<PerpsWithdrawView />);
+
+      expect(
+        screen.getByText(
+          strings('perps.withdrawal.available_balance', {
+            amount: '$2,500',
           }),
         ),
       ).toBeOnTheScreen();
@@ -333,6 +385,58 @@ describe('PerpsWithdrawView', () => {
         jest.requireMock('../../hooks').useWithdrawValidation;
 
       expect(mockUseWithdrawValidation).toBeDefined();
+    });
+
+    it('logs withdraw execution errors with perps context', async () => {
+      const mockHooks = jest.requireMock('../../hooks');
+      mockHooks.useWithdrawValidation.mockReturnValue({
+        hasAmount: true,
+        isBelowMinimum: false,
+        hasInsufficientBalance: false,
+        getMinimumAmount: jest.fn(() => '10.00'),
+      });
+
+      Engine.context.PerpsController.withdraw = jest
+        .fn()
+        .mockRejectedValue(new Error('withdraw failed'));
+
+      renderWithProviders(<PerpsWithdrawView />);
+
+      fireEvent.press(screen.getByText('10%'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(PerpsWithdrawViewSelectorsIDs.CONTINUE_BUTTON),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        screen.getByTestId(PerpsWithdrawViewSelectorsIDs.CONTINUE_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: 'withdraw failed',
+          }),
+          expect.objectContaining({
+            tags: expect.objectContaining({
+              feature: expect.any(String),
+              component: 'PerpsWithdrawView',
+              action: 'financial_withdrawal',
+            }),
+            context: {
+              name: 'PerpsWithdrawView',
+              data: expect.objectContaining({
+                amount: '100.000000',
+                destination: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+                chainId: '0xa4b1',
+                isTestnet: false,
+              }),
+            },
+          }),
+        );
+      });
     });
   });
 });

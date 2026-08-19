@@ -33,6 +33,7 @@ import {
   PermissionSpecificationConstraint,
   SubjectPermissions,
   ValidPermission,
+  createPermissionMiddleware,
 } from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import { backgroundState } from '../../util/test/initial-root-state';
@@ -85,7 +86,7 @@ jest.mock('../Engine', () => ({
   },
   context: {
     ApprovalController: {
-      has: jest.fn(),
+      hasRequest: jest.fn(),
     },
     SelectedNetworkController: {
       getNetworkClientIdForDomain: jest.fn(),
@@ -274,7 +275,6 @@ async function callMiddleware({
  * method should return.
  * @param options.permittedAccounts - Permitted accounts, keyed by hostname.
  * @param options.providerConfig - The provider configuration for the current selected network.
- * @param options.selectedAddress - The current selected address.
  */
 function setupGlobalState({
   activeTab,
@@ -283,7 +283,6 @@ function setupGlobalState({
   selectedNetworkClientId,
   networksMetadata,
   networkConfigurationsByChainId,
-  selectedAddress,
 }: {
   activeTab?: number;
   addTransactionResult?: Promise<string>;
@@ -292,7 +291,6 @@ function setupGlobalState({
   networksMetadata?: Record<string, object>;
   networkConfigurationsByChainId?: Record<string, object>;
   providerConfig?: ProviderConfig;
-  selectedAddress?: string;
 }) {
   // TODO: Remove any cast once PermissionController type is fixed. Currently, the state shows never.
   jest
@@ -314,7 +312,7 @@ function setupGlobalState({
             networkConfigurationsByChainId:
               networkConfigurationsByChainId || {},
           },
-          PreferencesController: selectedAddress ? { selectedAddress } : {},
+          PreferencesController: {},
         },
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -332,18 +330,16 @@ function setupGlobalState({
       (hostname) => permittedAccounts[hostname] || [],
     );
   }
-  if (selectedAddress) {
-    MockEngine.context.PreferencesController.state.selectedAddress =
-      selectedAddress;
-  }
 }
 
 const addressMock: Hex = '0x0000000000000000000000000000000000000001';
 const dataMock =
   '0x0000000000000000000000000000000000000000000000000000000000000000';
 const dataJsonMock = JSON.stringify({
-  test: 'data',
+  types: { EIP712Domain: [] },
+  primaryType: 'Test',
   domain: { chainId: '0x1' },
+  message: { test: 'data' },
 });
 const hostMock = 'example.metamask.io';
 const signatureMock = '0x1234567890';
@@ -369,7 +365,6 @@ function setupSignature() {
         ],
       },
     },
-    selectedAddress: addressMock,
     permittedAccounts: { [hostMock]: [addressMock] },
   });
 
@@ -435,7 +430,8 @@ describe('getRpcMethodMiddleware', () => {
         ...baseEoaAccount,
       },
     ]);
-    const permissionController = new PermissionController({
+
+    const _permissionController = new PermissionController({
       messenger: new Messenger<
         'PermissionController',
         never,
@@ -456,11 +452,13 @@ describe('getRpcMethodMiddleware', () => {
       },
       unrestrictedMethods,
     });
-    const permissionMiddleware =
-      permissionController.createPermissionMiddleware({
+
+    engine.push(
+      createPermissionMiddleware({
         origin: hostMock,
-      });
-    engine.push(permissionMiddleware);
+        messenger: rootMessenger,
+      }),
+    );
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
     engine.push(middleware);
 
@@ -489,10 +487,8 @@ describe('getRpcMethodMiddleware', () => {
       describe('browser', () => {
         it('returns permitted accounts for connected site', async () => {
           const mockAddress1 = '0x0000000000000000000000000000000000000001';
-          const mockAddress2 = '0x0000000000000000000000000000000000000002';
           setupGlobalState({
             permittedAccounts: { 'example.metamask.io': [mockAddress1] },
-            selectedAddress: mockAddress2,
             selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
@@ -514,10 +510,8 @@ describe('getRpcMethodMiddleware', () => {
         });
 
         it('returns an empty array for an unconnected site', async () => {
-          const mockAddress = '0x0000000000000000000000000000000000000001';
           setupGlobalState({
             permittedAccounts: {},
-            selectedAddress: mockAddress,
             selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
@@ -540,10 +534,8 @@ describe('getRpcMethodMiddleware', () => {
       describe('WalletConnect', () => {
         it('returns the selected account', async () => {
           const mockAddress1 = '0x0000000000000000000000000000000000000001';
-          const mockAddress2 = '0x0000000000000000000000000000000000000001';
           setupGlobalState({
             permittedAccounts: { 'example.metamask.io': [mockAddress1] },
-            selectedAddress: mockAddress2,
             selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
@@ -560,7 +552,7 @@ describe('getRpcMethodMiddleware', () => {
 
           expect((response as JsonRpcFailure).error).toBeUndefined();
           expect((response as JsonRpcSuccess<string>).result).toStrictEqual([
-            mockAddress2,
+            mockAddress1,
           ]);
         });
       });
@@ -568,10 +560,8 @@ describe('getRpcMethodMiddleware', () => {
       describe('SDK', () => {
         it('returns permitted account for connected host', async () => {
           const mockAddress1 = '0x0000000000000000000000000000000000000001';
-          const mockAddress2 = '0x0000000000000000000000000000000000000002';
           setupGlobalState({
             permittedAccounts: { 'example.metamask.io': [mockAddress1] },
-            selectedAddress: mockAddress2,
             selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
@@ -593,10 +583,8 @@ describe('getRpcMethodMiddleware', () => {
         });
 
         it('returns an empty array for an unconnected channel', async () => {
-          const mockAddress2 = '0x0000000000000000000000000000000000000001';
           setupGlobalState({
             permittedAccounts: {},
-            selectedAddress: mockAddress2,
             selectedNetworkClientId: 'testNetworkClientId',
           });
           const middleware = getRpcMethodMiddleware({
@@ -1188,7 +1176,6 @@ describe('getRpcMethodMiddleware', () => {
               ],
             },
           },
-          selectedAddress: mockAddress,
         });
         const middleware = getRpcMethodMiddleware({
           ...getMinimalWalletConnectOptions(),
@@ -1209,8 +1196,6 @@ describe('getRpcMethodMiddleware', () => {
 
       it('returns a JSON-RPC error if the referenced account is not currently selected', async () => {
         const mockAddress = '0x0000000000000000000000000000000000000001';
-        const differentMockAddress =
-          '0x0000000000000000000000000000000000000002';
         const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
         setupGlobalState({
           addTransactionResult: Promise.resolve('fake-hash'),
@@ -1235,7 +1220,6 @@ describe('getRpcMethodMiddleware', () => {
               nativeCurrency: 'ETH',
             },
           },
-          selectedAddress: differentMockAddress,
         });
         const middleware = getRpcMethodMiddleware({
           ...getMinimalWalletConnectOptions(),
@@ -1290,7 +1274,6 @@ describe('getRpcMethodMiddleware', () => {
               ],
             },
           },
-          selectedAddress: mockAddress,
         });
         const middleware = getRpcMethodMiddleware({
           ...getMinimalSDKOptions(),
@@ -1312,8 +1295,6 @@ describe('getRpcMethodMiddleware', () => {
 
       it('returns a JSON-RPC error if the referenced account is not currently selected', async () => {
         const mockAddress = '0x0000000000000000000000000000000000000001';
-        const differentMockAddress =
-          '0x0000000000000000000000000000000000000002';
         const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
         setupGlobalState({
           addTransactionResult: Promise.resolve('fake-hash'),
@@ -1337,7 +1318,6 @@ describe('getRpcMethodMiddleware', () => {
               nativeCurrency: 'ETH',
             },
           },
-          selectedAddress: differentMockAddress,
         });
         const middleware = getRpcMethodMiddleware({
           ...getMinimalSDKOptions(),
@@ -1365,11 +1345,11 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('skips account validation if the account is missing from the transaction parameters', async () => {
-      // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = { chainId: '0x1' };
+      const mockAddress = '0x0000000000000000000000000000000000000001';
+      const mockTransactionParameters = { chainId: '0x1', from: mockAddress };
       setupGlobalState({
         addTransactionResult: Promise.resolve('fake-hash'),
-        // Set minimal network controller state to support validation
+        permittedAccounts: { 'example.metamask.io': [mockAddress] },
         selectedNetworkClientId: 'mainnet',
         networksMetadata: {},
         networkConfigurationsByChainId: {
@@ -1432,10 +1412,9 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('returns a JSON-RPC error if an error is thrown when adding this transaction', async () => {
-      // Omit `from` and `chainId` here to skip validation for simplicity
-      // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = {} as (TransactionParams &
-        JsonRpcParams)[];
+      const mockTransactionParameters = {
+        from: '0x0000000000000000000000000000000000000001',
+      } as unknown as (TransactionParams & JsonRpcParams)[];
       // Transaction fails before returning a result
       mockAddTransaction.mockImplementation(async () => {
         throw new Error('Failed to add transaction');
@@ -1466,15 +1445,16 @@ describe('getRpcMethodMiddleware', () => {
     });
 
     it('returns a JSON-RPC error if an error is thrown after approval', async () => {
-      // Omit `from` and `chainId` here to skip validation for simplicity
-      // Downcast needed here because `from` is required by this type
-      const mockTransactionParameters = {} as (TransactionParams &
-        JsonRpcParams)[];
+      const mockTransactionParameters = {
+        from: '0x0000000000000000000000000000000000000001',
+      } as unknown as (TransactionParams & JsonRpcParams)[];
+      const rejectResult = Promise.reject(
+        new Error('Failed to process transaction'),
+      );
+      rejectResult.catch(() => undefined);
       setupGlobalState({
-        addTransactionResult: Promise.reject(
-          new Error('Failed to process transaction'),
-        ),
-        selectedNetworkClientId: 'mainnet', // Added to fix the linting error
+        addTransactionResult: rejectResult,
+        selectedNetworkClientId: 'mainnet',
       });
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -1726,6 +1706,336 @@ describe('getRpcMethodMiddleware', () => {
       expect(spy).toBeCalledTimes(1);
     });
   });
+
+  describe('PPOM origin sanitization for signature requests', () => {
+    async function sendPersonalSignRequest(
+      middlewareOptions: Partial<Parameters<typeof getRpcMethodMiddleware>[0]>,
+    ) {
+      setupSignature();
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: hostMock,
+        ...middlewareOptions,
+      });
+
+      // `origin` is normally stamped on the request by the bridge's origin
+      // middleware; simulate it explicitly here.
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'personal_sign',
+        params: [dataMock, addressMock],
+        origin: 'https://self-reported.example',
+      };
+
+      MockEngine.context.SignatureController.newUnsignedPersonalMessage.mockResolvedValue(
+        signatureMock,
+      );
+
+      return await callMiddleware({
+        middleware,
+        request: request as unknown as JsonRpcRequest<JsonRpcParams>,
+      });
+    }
+
+    // Security invariant: for remote transports the request origin is
+    // self-reported by the dapp and unverifiable, so it must never reach the
+    // security scan, where Blockaid treats the URL as a core heuristic that
+    // can flip a verdict between malicious and benign.
+    it.each([
+      ['WalletConnect', { isWalletConnect: true }],
+      ['SDK v1', { analytics: { isRemoteConn: true } }],
+      [
+        'MetaMask Connect (MWP)',
+        { analytics: { isRemoteConn: true, transport: 'mwp' } },
+      ],
+    ])(
+      'drops the self-reported origin from PPOM validation for %s requests',
+      async (_label, middlewareOptions) => {
+        const spy = jest.spyOn(PPOMUtil, 'validateRequest');
+
+        await sendPersonalSignRequest(middlewareOptions);
+
+        expect(spy).toBeCalledTimes(1);
+        expect(spy.mock.calls[0][0].origin).toBeUndefined();
+      },
+    );
+
+    it('keeps the origin on PPOM validation for in-app browser requests', async () => {
+      const spy = jest.spyOn(PPOMUtil, 'validateRequest');
+
+      await sendPersonalSignRequest({});
+
+      expect(spy).toBeCalledTimes(1);
+      expect(spy.mock.calls[0][0].origin).toBe('https://self-reported.example');
+    });
+  });
+
+  describe('PPOM origin sanitization for transaction requests', () => {
+    const mockAddress = '0x0000000000000000000000000000000000000001';
+    const mockTransactionParameters = { from: mockAddress, chainId: '0x1' };
+    const mockChannelId = '70a863a4-a756-4660-8c72-dc367d02f625';
+
+    async function sendTransactionRequest(
+      middlewareOptions: Partial<Parameters<typeof getRpcMethodMiddleware>[0]>,
+      permittedOrigin: string,
+    ) {
+      setupGlobalState({
+        addTransactionResult: Promise.resolve('fake-hash'),
+        permittedAccounts: { [permittedOrigin]: [mockAddress] },
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
+        networkConfigurationsByChainId: {
+          '0x1': {
+            blockExplorerUrls: ['https://etherscan.com'],
+            chainId: '0x1',
+            defaultRpcEndpointIndex: 0,
+            name: 'Ethereum Mainnet',
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                type: 'Custom',
+                url: 'https://mainnet.infura.io/v3',
+              },
+            ],
+          },
+        },
+      });
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+        ...middlewareOptions,
+      });
+
+      // `origin` is normally stamped on the request by the bridge's origin
+      // middleware; simulate it explicitly here. ppom-util's own sanitization
+      // cannot recognize this value as unverifiable (no transport prefix, not
+      // a UUID), which is exactly the case the middleware-level drop covers:
+      // SDK v1 channel ids arrive via deeplink params unvalidated, so a
+      // malicious sender can make the request origin look like a domain.
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'eth_sendTransaction',
+        params: [mockTransactionParameters],
+        origin: 'https://self-reported.example',
+      };
+
+      return await callMiddleware({
+        middleware,
+        request: request as unknown as JsonRpcRequest<JsonRpcParams>,
+      });
+    }
+
+    // Security invariant: for remote transports the request origin is
+    // self-reported by the dapp (or attacker-chosen, for SDK v1 channel ids)
+    // and unverifiable, so it must never reach the security scan, where
+    // Blockaid treats the URL as a core heuristic that can flip a verdict
+    // between malicious and benign.
+    it.each([
+      ['WalletConnect', { isWalletConnect: true }, 'example.metamask.io'],
+      [
+        'SDK v1',
+        {
+          isMMSDK: true,
+          channelId: mockChannelId,
+          analytics: { isRemoteConn: true },
+        },
+        mockChannelId,
+      ],
+      [
+        'MetaMask Connect (MWP)',
+        {
+          isMMSDK: true,
+          channelId: mockChannelId,
+          analytics: { isRemoteConn: true, transport: 'mwp' },
+        },
+        mockChannelId,
+      ],
+    ])(
+      'drops the self-reported origin from PPOM validation for %s transactions',
+      async (_label, middlewareOptions, permittedOrigin) => {
+        const spy = jest.spyOn(PPOMUtil, 'validateRequest');
+
+        const response = await sendTransactionRequest(
+          middlewareOptions,
+          permittedOrigin,
+        );
+
+        expect((response as JsonRpcFailure).error).toBeUndefined();
+        expect(spy).toBeCalledTimes(1);
+        expect(spy.mock.calls[0][0].origin).toBeUndefined();
+      },
+    );
+
+    it('keeps the origin on PPOM validation for in-app browser transactions', async () => {
+      const spy = jest.spyOn(PPOMUtil, 'validateRequest');
+
+      const response = await sendTransactionRequest({}, 'example.metamask.io');
+
+      expect((response as JsonRpcFailure).error).toBeUndefined();
+      expect(spy).toBeCalledTimes(1);
+      expect(spy.mock.calls[0][0].origin).toBe('https://self-reported.example');
+    });
+  });
+
+  describe.each([
+    ['eth_signTypedData_v3', 'V3'],
+    ['eth_signTypedData_v4', 'V4'],
+  ])(
+    '%s canonicalizes duplicate JSON keys to prevent display/signing divergence',
+    (methodName, version) => {
+      // Raw JSON with duplicate "value" keys — cannot be built with JSON.stringify.
+      // A malicious dapp sends a small value first, a nested object to break the
+      // regex boundary, then a large duplicate value that JSON.parse keeps.
+      const maliciousData = [
+        '{',
+        '"types":{"EIP712Domain":[],"Permit":[{"name":"value","type":"uint256"}]},',
+        '"primaryType":"Permit",',
+        '"domain":{"chainId":"0x1"},',
+        '"message":{',
+        '"value":"1000000000000000",',
+        '"details":{"token":"0x0000000000000000000000000000000000000001"},',
+        '"value":"999999999999999999999999"',
+        '}',
+        '}',
+      ].join('');
+
+      const canonicalData = JSON.stringify(JSON.parse(maliciousData));
+
+      async function sendMaliciousRequest() {
+        MockEngine.context.SignatureController.newUnsignedTypedMessage.mockReset();
+        MockEngine.context.SignatureController.newUnsignedTypedMessage.mockResolvedValue(
+          signatureMock,
+        );
+
+        const { middleware } = setupSignature();
+
+        const request = {
+          jsonrpc,
+          id: 1,
+          method: methodName,
+          params: [addressMock, maliciousData],
+        };
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (await callMiddleware({ middleware, request })) as any;
+      }
+
+      it('strips duplicate keys so SignatureController receives canonical data', async () => {
+        await sendMaliciousRequest();
+
+        const receivedData = (
+          Engine.context.SignatureController
+            .newUnsignedTypedMessage as jest.Mock
+        ).mock.calls[0][0].data;
+
+        expect(receivedData).toBe(canonicalData);
+        expect(receivedData).not.toBe(maliciousData);
+      });
+
+      it('resolves duplicate message.value to the last occurrence', async () => {
+        await sendMaliciousRequest();
+
+        const receivedData = (
+          Engine.context.SignatureController
+            .newUnsignedTypedMessage as jest.Mock
+        ).mock.calls[0][0].data;
+
+        const parsed = JSON.parse(receivedData);
+        expect(parsed.message.value).toBe('999999999999999999999999');
+      });
+
+      it('produces data that re-parses identically (no hidden duplicates)', async () => {
+        await sendMaliciousRequest();
+
+        const receivedData = (
+          Engine.context.SignatureController
+            .newUnsignedTypedMessage as jest.Mock
+        ).mock.calls[0][0].data;
+
+        expect(JSON.stringify(JSON.parse(receivedData))).toBe(receivedData);
+      });
+    },
+  );
+
+  describe.each([
+    ['eth_signTypedData_v3', 'V3'],
+    ['eth_signTypedData_v4', 'V4'],
+  ])('%s rejects payloads with extraneous top-level keys', (methodName) => {
+    const dataWithExtraKeys = JSON.stringify({
+      types: {
+        EIP712Domain: [],
+        Permit: [{ name: 'value', type: 'uint256' }],
+      },
+      primaryType: 'Permit',
+      domain: { chainId: '0x1' },
+      message: { value: '100' },
+      intent: { extraGrant: '0xattacker' },
+      audit_note: 'Reviewed by security team',
+    });
+
+    async function sendExtraneousKeysRequest() {
+      MockEngine.context.SignatureController.newUnsignedTypedMessage.mockReset();
+      MockEngine.context.SignatureController.newUnsignedTypedMessage.mockResolvedValue(
+        signatureMock,
+      );
+
+      const { middleware } = setupSignature();
+
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: methodName,
+        params: [addressMock, dataWithExtraKeys],
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (await callMiddleware({ middleware, request })) as any;
+    }
+
+    it('returns an invalid input error', async () => {
+      const response = await sendExtraneousKeysRequest();
+
+      expect(response.error).toBeDefined();
+      expect(response.error.code).toBe(-32000);
+    });
+
+    it('does not call SignatureController', async () => {
+      await sendExtraneousKeysRequest();
+
+      expect(
+        Engine.context.SignatureController.newUnsignedTypedMessage,
+      ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe.each([
+    ['eth_signTypedData_v3', 'V3'],
+    ['eth_signTypedData_v4', 'V4'],
+  ])('%s allows payloads with only standard EIP-712 keys', (methodName) => {
+    it('passes valid data through to SignatureController', async () => {
+      MockEngine.context.SignatureController.newUnsignedTypedMessage.mockReset();
+      MockEngine.context.SignatureController.newUnsignedTypedMessage.mockResolvedValue(
+        signatureMock,
+      );
+
+      const { middleware } = setupSignature();
+
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: methodName,
+        params: [addressMock, dataJsonMock],
+      };
+
+      const response = await callMiddleware({ middleware, request });
+
+      expect(response).not.toHaveProperty('error');
+      expect(response).toHaveProperty('result', signatureMock);
+    });
+  });
 });
 
 describe('checkActiveAccountAndChainId', () => {
@@ -1939,10 +2249,12 @@ describe('getRpcMethodMiddlewareHooks', () => {
   });
 
   describe('hasApprovalRequestsForOrigin', () => {
-    it('should call ApprovalController.has with correct origin', () => {
+    it('should call ApprovalController.hasRequest with correct origin', () => {
       hooks.hasApprovalRequestsForOrigin();
 
-      expect(MockEngine.context.ApprovalController.has).toHaveBeenCalledWith({
+      expect(
+        MockEngine.context.ApprovalController.hasRequest,
+      ).toHaveBeenCalledWith({
         origin: testOrigin,
       });
     });

@@ -1,0 +1,668 @@
+import type { CaipChainId, Json } from '@metamask/utils';
+import {
+  CardStatus,
+  CardType,
+  CardWalletExternalPriorityResponse,
+  DelegationSettingsResponse,
+} from '../../../../components/UI/Card/types';
+
+export { CardStatus, CardType };
+
+// -- Provider Errors --
+
+export enum CardProviderErrorCode {
+  InvalidCredentials = 'invalid_credentials',
+  AccountDisabled = 'account_disabled',
+  InvalidOtp = 'invalid_otp',
+  Conflict = 'conflict',
+  Forbidden = 'forbidden',
+  NotFound = 'not_found',
+  NoCard = 'no_card',
+  ServerError = 'server_error',
+  Timeout = 'timeout',
+  Network = 'network',
+  MoneyAccountLinkedToDifferentCard = 'money_account_linked_to_different_card',
+  Unknown = 'unknown',
+}
+
+export class CardProviderError extends Error {
+  readonly code: CardProviderErrorCode;
+  readonly statusCode?: number;
+  readonly errorCode?: string;
+
+  constructor(
+    code: CardProviderErrorCode,
+    message: string,
+    statusCode?: number,
+    errorCode?: string,
+  ) {
+    super(message);
+    this.name = 'CardProviderError';
+    this.code = code;
+    this.statusCode = statusCode;
+    this.errorCode = errorCode;
+  }
+}
+
+export function isCardAuthTokenError(error: unknown): boolean {
+  const statusCode = (error as { statusCode?: unknown }).statusCode;
+  return error instanceof Error && statusCode === 401;
+}
+
+export class CardLinkageInProgressError extends Error {
+  constructor(
+    message = 'A Money Account to Card linkage is already in progress',
+  ) {
+    super(message);
+    this.name = 'CardLinkageInProgressError';
+  }
+}
+
+// -- Provider Identity --
+
+export const CardProviderIds = {
+  Baanx: 'baanx',
+  Immersve: 'immersve',
+} as const;
+
+export type CardProviderId =
+  (typeof CardProviderIds)[keyof typeof CardProviderIds];
+
+export type CardAuthMethod = 'email_password' | 'siwe';
+
+// -- Auth Tokens --
+
+export interface CardAuthTokens {
+  accessToken: string;
+  refreshToken?: string;
+  accessTokenExpiresAt: number;
+  refreshTokenExpiresAt?: number;
+  location: string;
+  /** Stable user identifier issued by the active card provider. */
+  providerUserId?: string;
+  cardholderAccountId?: string;
+  accountAddress?: string;
+  keyringId?: string;
+}
+
+export type AuthTokenValidity = 'valid' | 'needs_refresh' | 'expired';
+
+export interface CardAuthResult {
+  done: boolean;
+  tokenSet?: CardAuthTokens;
+  nextStep?: CardAuthStep;
+  onboardingRequired?: {
+    sessionId: string;
+    phase: string;
+  };
+}
+
+// -- Auth Flow --
+
+export type CardAuthStep =
+  | { type: 'email_password' }
+  | { type: 'otp'; destination: string }
+  | { type: 'siwe'; message: string }
+  | { type: 'complete' };
+
+export interface CardAuthSession {
+  id: string;
+  currentStep: CardAuthStep;
+  _metadata: Record<string, unknown>;
+}
+
+export type CardCredentials =
+  | {
+      type: 'email_password';
+      email: string;
+      password: string;
+      otpCode?: string;
+    }
+  | { type: 'siwe'; signature: string };
+
+// -- Capabilities --
+
+export type CardOnboardingCapability =
+  | { type: 'steps'; steps: string[]; kycProvider: string | null }
+  | { type: 'webview'; url: string }
+  | { type: 'none' };
+
+export interface CardProviderCapabilities {
+  authMethod: CardAuthMethod;
+  supportsOTP: boolean;
+  supportsFundingApproval: boolean;
+  supportsFundingLimits: boolean;
+  fundingChains: CaipChainId[];
+  supportsFreeze: boolean;
+  supportsPushProvisioning: boolean;
+  onboarding: CardOnboardingCapability;
+  supportsPinView: boolean;
+  supportsPinSet: boolean;
+  supportsCashback: boolean;
+  supportsCredit: boolean;
+  supportsSensitiveDetailsView: boolean;
+  supportsTravel: boolean;
+  supportsTransactionHistory: boolean;
+  supportsMoneyAccountLinking: boolean;
+}
+
+// -- Funding Asset (provider-agnostic) --
+
+export enum FundingAssetStatus {
+  Active = 'active',
+  Limited = 'limited',
+  Inactive = 'inactive',
+}
+
+export interface CardFundingAsset {
+  symbol: string;
+  name: string;
+  address: string;
+  walletAddress: string;
+  decimals: number;
+  chainId: CaipChainId;
+  spendableBalance: string;
+  spendingCap: string;
+  originalSpendingCap?: string;
+  priority: number;
+  status: FundingAssetStatus;
+  stagingTokenAddress?: string;
+  externalId?: number;
+  delegationContract?: string;
+  assumeUsdParity?: boolean;
+}
+
+// -- Card Details --
+
+export interface CardDetails {
+  id: string;
+  status: CardStatus;
+  type: CardType;
+  lastFour: string;
+  holderName?: string;
+  isFreezable?: boolean;
+  /** ISO region code from Immersve LIST/detail (e.g. "GB"). */
+  regionCode?: string;
+  /** False when the card is issued without a PIN, e.g. Baanx virtual cards outside the US. */
+  hasPin?: boolean;
+}
+
+export interface CardSecureViewParams {
+  customCss?: Record<string, string>;
+}
+
+export interface CardSecureView {
+  url: string;
+  token: string;
+}
+
+export interface CardSensitiveDetails {
+  pan: string;
+  cvv2: string;
+  expiry: string;
+  embossedName: string;
+}
+
+// -- Account --
+
+export interface CardShippingAddress {
+  line1: string;
+  line2?: string;
+  city: string;
+  state?: string;
+  postalCode: string;
+  country: string;
+}
+
+export interface CardAccountStatus {
+  verificationStatus: string | null;
+  provisioningEligible: boolean;
+  holderName: string | null;
+  shippingAddress: CardShippingAddress | null;
+  countryOfResidence: string | null;
+  usState: string | null;
+}
+
+// -- Alerts & Actions --
+
+export type CardAlertType =
+  | 'kyc_pending'
+  | 'card_provisioning'
+  | 'close_to_spending_limit'
+  | 'limited_allowance';
+
+export interface CardAlertAction {
+  type: 'navigate';
+  route: string;
+  params?: Record<string, Json>;
+}
+
+export interface CardAlert {
+  type: CardAlertType;
+  dismissable: boolean;
+  action?: CardAlertAction;
+}
+
+export type CardAction =
+  | { type: 'add_funds'; enabled: boolean }
+  | { type: 'enable_card' };
+
+// -- Card Home Data --
+
+export interface CardHomeData {
+  primaryFundingAsset: CardFundingAsset | null;
+  fundingAssets: CardFundingAsset[];
+  availableFundingAssets: CardFundingAsset[];
+  card: CardDetails | null;
+  account: CardAccountStatus | null;
+  alerts: CardAlert[];
+  actions: CardAction[];
+  delegationSettings: DelegationSettingsResponse | null;
+  externalWalletPriority?: CardWalletExternalPriorityResponse[];
+}
+
+export function emptyCardHomeData(): CardHomeData {
+  return {
+    primaryFundingAsset: null,
+    fundingAssets: [],
+    availableFundingAssets: [],
+    card: null,
+    account: null,
+    alerts: [],
+    actions: [],
+    delegationSettings: null,
+  };
+}
+
+// -- Funding --
+
+export interface FundingApprovalParams {
+  address: string;
+  amount: string;
+  currency: string;
+  network: string;
+  txHash: string;
+  sigHash: string;
+  sigMessage: string;
+  token: string;
+}
+
+/** Response from initiating a delegation session (GET `/v1/delegation/token`). */
+export interface DelegationChallengeResponse {
+  delegationToken: string;
+  nonce: string;
+  expiresAt: string;
+}
+
+// -- Cashback --
+
+export interface CashbackWalletResponse {
+  id: string;
+  balance: string;
+  currency: string;
+  isWithdrawable: boolean;
+  type: string;
+}
+
+export interface CashbackWithdrawEstimationResponse {
+  wei: string;
+  eth: string;
+  price: string;
+  network: string;
+}
+
+export interface CashbackWithdrawParams {
+  amount: string;
+}
+
+export interface CashbackWithdrawResponse {
+  txHash: string;
+}
+
+// -- Credit --
+
+export interface CreditWalletResponse {
+  id: string;
+  balance: string;
+  currency: string;
+  isWithdrawable: boolean;
+  type: string;
+}
+
+export type CreditWithdrawEstimationResponse =
+  CashbackWithdrawEstimationResponse;
+
+export type CreditWithdrawParams = CashbackWithdrawParams;
+
+export type CreditWithdrawResponse = CashbackWithdrawResponse;
+
+// -- Push Provisioning --
+
+export interface GoogleWalletProvisioningResponse {
+  opaquePaymentCard: string;
+}
+
+export interface ApplePayProvisioningParams {
+  leafCertificate: string;
+  intermediateCertificate: string;
+  nonce: string;
+  nonceSignature: string;
+}
+
+export interface ApplePayProvisioningResponse {
+  encryptedPassData: string;
+  activationData: string;
+  ephemeralPublicKey: string;
+}
+
+// -- Onboarding --
+
+export interface OnboardingStep {
+  type: string;
+  data: Record<string, unknown>;
+  country: string;
+  sessionId?: string;
+}
+
+export interface OnboardingStepResult {
+  success: boolean;
+  data?: Record<string, unknown>;
+  error?: string;
+}
+
+export interface RegistrationSettings {
+  countries: string[];
+  data: Record<string, unknown>;
+}
+
+export interface RegistrationStatus {
+  status: string;
+  verificationState?: string;
+  data?: Record<string, unknown>;
+}
+
+export interface CardContactDetails {
+  email?: string;
+  phone?: string;
+}
+
+export interface CardFundingSourceResult {
+  id: string;
+  network?: string;
+  balance?: string;
+  balanceCurrency?: string;
+  fundingChannelId?: string;
+}
+
+export type CardPrerequisiteStage = 'funding' | 'kyc' | 'aml';
+export type CardPrerequisiteStatus =
+  | 'action-required'
+  | 'pending'
+  | 'ok'
+  | 'blocked'
+  | 'kyc_check_failed';
+
+export type CardKycCtaHint =
+  | 'KYC_NOT_STARTED'
+  | 'KYC_NOT_COMPLETED'
+  | 'KYC_INFORMATION_NEEDED'
+  | 'KYC_EXPIRING';
+
+export interface CardSmartContractWriteParams {
+  abi: unknown[];
+  contractAddress: string;
+  method: string;
+  params: Record<string, string>;
+}
+
+export interface CardSpendingPrerequisite {
+  stage: CardPrerequisiteStage;
+  status: CardPrerequisiteStatus;
+  actionType?: string;
+  type?: string;
+  ctaHint?: CardKycCtaHint;
+  params?: Record<string, unknown>;
+}
+
+export interface CardSpendingPrerequisitesResult {
+  prerequisites: CardSpendingPrerequisite[];
+}
+
+export interface CardSpendingPrerequisitesParams {
+  kycRegion?: string;
+  kycRedirectUrl?: string;
+}
+
+export interface CardCreateResult {
+  cardId: string;
+}
+
+// -- Transactions --
+
+export enum CardTransactionStatus {
+  Pending = 'pending',
+  Completed = 'completed',
+  Failed = 'failed',
+  Reversed = 'reversed',
+}
+
+export enum CardTransactionType {
+  Purchase = 'purchase',
+  Refund = 'refund',
+  Withdrawal = 'withdrawal',
+  Deposit = 'deposit',
+  Transfer = 'transfer',
+  Adjustment = 'adjustment',
+}
+
+export enum CardMerchantCategory {
+  Subscriptions = 'subscriptions',
+  Food = 'food',
+  Travel = 'travel',
+  Entertainment = 'entertainment',
+  Health = 'health',
+  Atm = 'atm',
+  Utilities = 'utilities',
+  Misc = 'misc',
+}
+
+export interface CardTransactionAmount {
+  /** Decimal string, e.g. "0.79". */
+  value: string;
+  /** ISO currency code, e.g. "EUR". */
+  currency: string;
+}
+
+export interface CardTransactionMerchant {
+  name: string;
+  city?: string;
+  countryCode?: string;
+  id?: string;
+  mcc?: string;
+  category?: CardMerchantCategory;
+}
+
+/**
+ * A crypto wallet debit that funded (settled) a card transaction. `txHash`
+ * is the on-chain settlement hash, present for successful transactions —
+ * consumers can use it to match/enrich Accounts API rows.
+ */
+export interface CardTransactionFundingSource {
+  txHash?: string;
+  /** Wallet address that funded the transaction. */
+  address?: string;
+  network?: string;
+  chainId?: CaipChainId;
+  amount?: string;
+  currency?: string;
+  fees?: string;
+  swapFee?: string;
+}
+
+export interface CardTransaction {
+  id: string;
+  providerId: CardProviderId;
+  /** Epoch ms. */
+  timestamp: number;
+  status: CardTransactionStatus;
+  type: CardTransactionType;
+  isDebit: boolean;
+  /** Amount charged to the card, in the card's currency. */
+  billingAmount: CardTransactionAmount;
+  /** Merchant-side amount when it differs from the billing currency. */
+  originalAmount?: CardTransactionAmount;
+  feeAmount?: CardTransactionAmount;
+  conversionRate?: string;
+  merchant?: CardTransactionMerchant;
+  /** Raw provider description (e.g. unparsed merchant name + location). */
+  description?: string;
+  /** Provider-side transaction reference. */
+  reference?: string;
+  cardLastFour?: string;
+  declineReason?: { code?: string; message?: string };
+  fundingSources: CardTransactionFundingSource[];
+}
+
+/** Opaque pagination cursor; only meaningful to the provider that issued it. */
+export type CardTransactionCursor = string;
+
+export interface CardTransactionListParams {
+  limit?: number;
+  cursor?: CardTransactionCursor;
+  /** Case-insensitive merchant-name search (server-side). */
+  searchQuery?: string;
+  /** Epoch ms. Must be paired with `toDate`. */
+  fromDate?: number;
+  /** Epoch ms. Must be paired with `fromDate`. */
+  toDate?: number;
+}
+
+export interface CardTransactionPage {
+  items: CardTransaction[];
+  /** Absent when there are no further pages. */
+  nextCursor?: CardTransactionCursor;
+}
+
+// -- Provider Interface --
+
+export interface ICardProvider {
+  readonly id: CardProviderId;
+  readonly capabilities: CardProviderCapabilities;
+
+  initiateAuth(
+    country: string,
+    options?: { address?: string },
+  ): Promise<CardAuthSession>;
+  submitCredentials(
+    session: CardAuthSession,
+    credentials: CardCredentials,
+  ): Promise<CardAuthResult>;
+  executeStepAction?(session: CardAuthSession): Promise<void>;
+  refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens>;
+  validateTokens(tokens: CardAuthTokens): AuthTokenValidity;
+  logout(tokens: CardAuthTokens): Promise<void>;
+  getCardHomeData(
+    address: string,
+    tokens: CardAuthTokens,
+  ): Promise<CardHomeData>;
+
+  getCardDetails(tokens: CardAuthTokens): Promise<CardDetails>;
+  freezeCard(cardId: string, tokens: CardAuthTokens): Promise<void>;
+  unfreezeCard(cardId: string, tokens: CardAuthTokens): Promise<void>;
+  getCardDetailsView?(
+    tokens: CardAuthTokens,
+    params: CardSecureViewParams,
+  ): Promise<CardSecureView>;
+  getCardPinView?(
+    tokens: CardAuthTokens,
+    params: CardSecureViewParams,
+  ): Promise<CardSecureView>;
+  setCardPin?(
+    cardId: string,
+    newPin: string,
+    tokens: CardAuthTokens,
+  ): Promise<void>;
+  getCardSensitiveDetails?(
+    tokens: CardAuthTokens,
+  ): Promise<CardSensitiveDetails>;
+
+  updateAssetPriority?(
+    asset: CardFundingAsset,
+    allAssets: CardFundingAsset[],
+    tokens: CardAuthTokens,
+  ): Promise<void>;
+  fetchDelegationChallenge?(
+    params: { network: string; address: string; faucet?: boolean },
+    tokens: CardAuthTokens,
+  ): Promise<DelegationChallengeResponse>;
+  generateCardDelegationSignatureMessage?(params: {
+    network: string;
+    address: string;
+    nonce: string;
+    caipChainId?: string;
+  }): string;
+  approveFunding?(
+    params: FundingApprovalParams,
+    tokens: CardAuthTokens,
+  ): Promise<void>;
+
+  getCashbackWallet?(tokens: CardAuthTokens): Promise<CashbackWalletResponse>;
+  getCashbackWithdrawEstimation?(
+    tokens: CardAuthTokens,
+  ): Promise<CashbackWithdrawEstimationResponse>;
+  withdrawCashback?(
+    params: CashbackWithdrawParams,
+    tokens: CardAuthTokens,
+  ): Promise<CashbackWithdrawResponse>;
+
+  getCreditWallet?(tokens: CardAuthTokens): Promise<CreditWalletResponse>;
+  getCreditWithdrawEstimation?(
+    tokens: CardAuthTokens,
+  ): Promise<CreditWithdrawEstimationResponse>;
+  withdrawCredit?(
+    params: CreditWithdrawParams,
+    tokens: CardAuthTokens,
+  ): Promise<CreditWithdrawResponse>;
+
+  createGoogleWalletProvisioningRequest?(
+    tokens: CardAuthTokens,
+  ): Promise<GoogleWalletProvisioningResponse>;
+  createApplePayProvisioningRequest?(
+    params: ApplePayProvisioningParams,
+    tokens: CardAuthTokens,
+  ): Promise<ApplePayProvisioningResponse>;
+
+  getRegistrationSettings?(country: string): Promise<RegistrationSettings>;
+  getRegistrationStatus?(
+    sessionId: string,
+    country: string,
+  ): Promise<RegistrationStatus>;
+  submitOnboardingStep?(step: OnboardingStep): Promise<OnboardingStepResult>;
+
+  createFundingSource?(
+    tokens: CardAuthTokens,
+  ): Promise<CardFundingSourceResult>;
+  getFundingSources?(
+    tokens: CardAuthTokens,
+  ): Promise<CardFundingSourceResult[]>;
+  patchContactDetails?(
+    details: CardContactDetails,
+    tokens: CardAuthTokens,
+  ): Promise<void>;
+  getSpendingPrerequisites?(
+    fundingSourceId: string,
+    params: CardSpendingPrerequisitesParams,
+    tokens: CardAuthTokens,
+  ): Promise<CardSpendingPrerequisitesResult>;
+  createCard?(
+    fundingSourceId: string,
+    tokens: CardAuthTokens,
+  ): Promise<CardCreateResult>;
+
+  listTransactions?(
+    params: CardTransactionListParams,
+    tokens: CardAuthTokens,
+  ): Promise<CardTransactionPage>;
+
+  getOnChainAssets?(address: string): Promise<CardHomeData>;
+}

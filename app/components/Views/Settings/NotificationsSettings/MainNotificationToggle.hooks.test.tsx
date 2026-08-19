@@ -1,19 +1,16 @@
+import { act, waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useMainNotificationToggle } from './MainNotificationToggle.hooks';
 import Routes from '../../../../constants/navigation/Routes';
 import { useNotificationsToggle } from '../../../../util/notifications/hooks/useSwitchNotifications';
-import { useMetrics } from '../../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 
 // Mock dependencies
 jest.mock('@react-navigation/native');
 jest.mock('../../../../util/notifications/hooks/useSwitchNotifications');
-jest.mock('../../../hooks/useMetrics');
 
 const mockUseNavigation = jest.mocked(useNavigation);
 const mockUseNotificationsToggle = jest.mocked(useNotificationsToggle);
-const mockUseMetrics = jest.mocked(useMetrics);
 
 describe('useMainNotificationToggle', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -37,7 +34,6 @@ describe('useMainNotificationToggle', () => {
   const arrangeMocks = () => {
     const navigate = jest.fn();
     const switchNotifications = jest.fn();
-    const trackEvent = jest.fn();
 
     mockUseNavigation.mockReturnValue({
       navigate,
@@ -50,15 +46,9 @@ describe('useMainNotificationToggle', () => {
       switchNotifications,
     });
 
-    mockUseMetrics.mockReturnValue({
-      trackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
-    } as never);
-
     return {
       navigate,
       switchNotifications,
-      trackEvent,
       ...arrangeState(),
     };
   };
@@ -84,15 +74,19 @@ describe('useMainNotificationToggle', () => {
     jest.clearAllMocks();
   });
 
-  it('toggles notifications from false to true', () => {
+  it('uses the explicit next value when toggling from enabled to disabled', async () => {
     const { mocks, result } = arrangeTest();
 
-    result.current.onToggle();
+    act(() => {
+      result.current.onToggle(false);
+    });
 
-    expect(mocks.switchNotifications).toHaveBeenCalledWith(false);
+    await waitFor(() => {
+      expect(mocks.switchNotifications).toHaveBeenCalledWith(false);
+    });
   });
 
-  it('toggles from false to true', () => {
+  it('uses the explicit next value when toggling from disabled to enabled', async () => {
     const { mocks, result } = arrangeTest((m) => {
       mockUseNotificationsToggle.mockReturnValue({
         data: false,
@@ -102,9 +96,43 @@ describe('useMainNotificationToggle', () => {
       });
     });
 
-    result.current.onToggle();
+    act(() => {
+      result.current.onToggle(true);
+    });
 
-    expect(mocks.switchNotifications).toHaveBeenCalledWith(true);
+    await waitFor(() => {
+      expect(mocks.switchNotifications).toHaveBeenCalledWith(true);
+    });
+  });
+
+  it('serializes rapid toggle writes and preserves latest intent', async () => {
+    let resolveFirstToggle: () => void = () => undefined;
+    const firstTogglePromise = new Promise<void>((resolve) => {
+      resolveFirstToggle = resolve;
+    });
+    const { mocks, result } = arrangeTest((m) => {
+      m.switchNotifications
+        .mockReturnValueOnce(firstTogglePromise)
+        .mockResolvedValueOnce(undefined);
+    });
+
+    act(() => {
+      result.current.onToggle(false);
+      result.current.onToggle(true);
+    });
+
+    await waitFor(() => {
+      expect(mocks.switchNotifications).toHaveBeenCalledTimes(1);
+      expect(mocks.switchNotifications).toHaveBeenNthCalledWith(1, false);
+    });
+
+    await act(async () => {
+      resolveFirstToggle();
+      await firstTogglePromise;
+    });
+
+    expect(mocks.switchNotifications).toHaveBeenCalledTimes(2);
+    expect(mocks.switchNotifications).toHaveBeenNthCalledWith(2, true);
   });
 
   it('navigate to basic functionality screen when basicFunctionalityEnabled is false', () => {
@@ -112,7 +140,9 @@ describe('useMainNotificationToggle', () => {
       m.mockState.settings.basicFunctionalityEnabled = false;
     });
 
-    result.current.onToggle();
+    act(() => {
+      result.current.onToggle(false);
+    });
 
     expect(mocks.navigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
@@ -121,6 +151,5 @@ describe('useMainNotificationToggle', () => {
       },
     });
     expect(mocks.switchNotifications).not.toHaveBeenCalled();
-    expect(mocks.trackEvent).not.toHaveBeenCalled();
   });
 });

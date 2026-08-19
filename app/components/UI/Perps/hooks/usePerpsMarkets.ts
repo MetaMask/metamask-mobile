@@ -56,6 +56,11 @@ export interface UsePerpsMarketsOptions {
    * @default __DEV__ (true in development, false in production)
    */
   showZeroVolume?: boolean;
+  /**
+   * Show markets with zero or invalid open interest
+   * @default showZeroVolume
+   */
+  showZeroOpenInterest?: boolean;
 }
 
 // Re-export parseVolume for backward compatibility
@@ -73,19 +78,34 @@ export const usePerpsMarkets = (
     pollingInterval = 60000, // 1 minute default
     skipInitialFetch = false,
     showZeroVolume = __DEV__, // Show zero-volume markets in development mode
+    showZeroOpenInterest = showZeroVolume,
   } = options;
 
   const streamManager = usePerpsStream();
+  const initialChannelMarkets = streamManager.marketData.getSnapshot();
   const [markets, setMarkets] = useState<PerpsMarketDataWithVolumeNumber[]>(
     () => {
-      const cached = getPreloadedData<PerpsMarketData[]>('cachedMarketData');
-      if (!cached) return [];
-      return filterAndSortMarkets({ marketData: cached, showZeroVolume });
+      const cached =
+        initialChannelMarkets ??
+        getPreloadedData<PerpsMarketData[]>('cachedMarketData');
+      if (!cached) {
+        return [];
+      }
+      const sorted = filterAndSortMarkets({
+        marketData: cached,
+        showZeroVolume,
+        showZeroOpenInterest,
+      });
+      return sorted;
     },
   );
   const [isLoading, setIsLoading] = useState(() => {
-    if (skipInitialFetch) return false;
-    return !hasPreloadedData('cachedMarketData');
+    if (initialChannelMarkets !== null && initialChannelMarkets !== undefined) {
+      return false;
+    }
+    const hit = hasPreloadedData('cachedMarketData');
+    const loading = skipInitialFetch ? false : !hit;
+    return loading;
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,8 +113,12 @@ export const usePerpsMarkets = (
   // Helper function to filter and sort markets by volume
   const sortMarketsByVolume = useCallback(
     (marketData: PerpsMarketData[]) =>
-      filterAndSortMarkets({ marketData, showZeroVolume }),
-    [showZeroVolume],
+      filterAndSortMarkets({
+        marketData,
+        showZeroVolume,
+        showZeroOpenInterest,
+      }),
+    [showZeroVolume, showZeroOpenInterest],
   );
 
   // Manual refresh function

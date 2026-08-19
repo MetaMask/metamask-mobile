@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -19,11 +20,12 @@ import Icon, {
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
+import { PREDICT_NEW_BUTTON_TEST_IDS } from './PredictNewButton.testIds';
 
 interface PredictNewButtonProps {}
 
 const PredictNewButton: React.FC<PredictNewButtonProps> = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
 
   const handlePress = () => {
@@ -37,7 +39,7 @@ const PredictNewButton: React.FC<PredictNewButtonProps> = () => {
 
   return (
     <Pressable
-      testID="predict-new-button"
+      testID={PREDICT_NEW_BUTTON_TEST_IDS.BUTTON}
       style={({ pressed }) =>
         tw.style('mb-4 py-4 rounded-xl flex-row', pressed)
       }

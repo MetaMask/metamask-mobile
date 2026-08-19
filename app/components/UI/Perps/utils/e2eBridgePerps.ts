@@ -3,11 +3,11 @@
  *
  * This bridge allows production code to conditionally use E2E mocks
  * without direct dependencies on E2E files. The bridge automatically
- * configures itself when the isE2E flag is detected.
+ * configures itself when the hasTestOverrides flag is detected.
  */
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { isE2E } from '../../../../util/test/utils';
+import { hasTestOverrides } from '../../../../util/test/utils';
 import { Linking } from 'react-native';
 
 // Global bridge for E2E mock injection
@@ -57,7 +57,7 @@ function stripE2EPerpsScheme(url: string): string {
  * !! TODO: E2E perps deeplink handler can be later removed if HTTP polling is stable !!
  */
 function registerE2EPerpsDeepLinkHandler(): void {
-  if (hasRegisteredDeepLinkHandler || !isE2E) {
+  if (hasRegisteredDeepLinkHandler || !hasTestOverrides) {
     return;
   }
 
@@ -155,10 +155,10 @@ function registerE2EPerpsDeepLinkHandler(): void {
 }
 
 /**
- * Auto-configure E2E bridge when isE2E is true
+ * Auto-configure E2E bridge when hasTestOverrides is true
  */
 function autoConfigureE2EBridge(): void {
-  if (!isE2E || e2eBridgePerps.mockStreamManager) {
+  if (!hasTestOverrides || e2eBridgePerps.mockStreamManager) {
     return; // Already configured or not in E2E mode
   }
 
@@ -195,7 +195,7 @@ function autoConfigureE2EBridge(): void {
 
     DevLogger.log('E2E Bridge auto-configured successfully');
     DevLogger.log('Mock state:', {
-      accountBalance: mockService.getMockAccountState().availableBalance,
+      accountBalance: mockService.getMockAccountState().spendableBalance,
       positionsCount: mockService.getMockPositions().length,
       marketsCount: mockService.getMockMarkets().length,
     });
@@ -220,7 +220,7 @@ function autoConfigureE2EBridge(): void {
  * Set E2E bridge from external test setup (legacy support)
  */
 export function setE2EBridge(bridge: E2EBridgePerpsStreaming): void {
-  if (isE2E) {
+  if (hasTestOverrides) {
     e2eBridgePerps = bridge;
     DevLogger.log('E2E Bridge manually configured:', Object.keys(bridge));
   }
@@ -230,7 +230,7 @@ export function setE2EBridge(bridge: E2EBridgePerpsStreaming): void {
  * Get mock stream manager if available
  */
 export function getE2EMockStreamManager(): unknown {
-  if (isE2E) {
+  if (hasTestOverrides) {
     autoConfigureE2EBridge();
     DevLogger.log(
       'E2E Bridge: Returning mock stream manager:',
@@ -245,8 +245,8 @@ export function getE2EMockStreamManager(): unknown {
  * Apply controller mocks if available
  */
 export function applyE2EControllerMocks(controller: unknown): void {
-  // Use unified isE2E flag so CI/local runs with either IS_TEST=true or METAMASK_ENVIRONMENT='e2e'
-  if (isE2E) {
+  // Use unified hasTestOverrides flag so CI/local runs with either HAS_TEST_OVERRIDES=true
+  if (hasTestOverrides) {
     DevLogger.log('[E2E Bridge] Applying E2E PerpsController mocks');
     autoConfigureE2EBridge();
     if (e2eBridgePerps.applyControllerMocks) {

@@ -17,6 +17,12 @@ import {
   BANNERTIP_TEST_ID,
 } from './BannerTip.constants';
 
+/**
+ * @deprecated This component is unused and will be removed.
+ * Please use `BannerBase` from `@metamask/design-system-react-native` instead.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BannerBase/README.md}
+ * @since @metamask/design-system-react-native@0.11.0
+ */
 const BannerTip: React.FC<BannerTipProps> = ({
   style,
   logoType = DEFAULT_BANNERTIP_LOGOTYPE,

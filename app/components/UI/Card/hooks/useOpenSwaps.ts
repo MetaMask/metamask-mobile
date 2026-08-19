@@ -8,7 +8,7 @@ import {
 } from '../../Bridge/hooks/useSwapBridgeNavigation';
 import Routes from '../../../../constants/navigation/Routes';
 import { BridgeToken } from '../../Bridge/types';
-import { CardTokenAllowance } from '../types';
+import { CardFundingToken } from '../types';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { getHighestFiatToken } from '../util/getHighestFiatToken';
 import {
@@ -18,6 +18,8 @@ import {
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
+import { withCardProvider } from '../util/metrics';
+import { selectCardActiveProviderId } from '../../../../selectors/cardController';
 
 export interface OpenSwapsParams {
   beforeNavigate?: (navigate: () => void) => void;
@@ -26,7 +28,7 @@ export interface OpenSwapsParams {
 export interface UseOpenSwapsOptions {
   location?: SwapBridgeNavigationLocation;
   sourcePage?: string;
-  priorityToken?: CardTokenAllowance | null;
+  priorityToken?: CardFundingToken | null;
 }
 
 export const useOpenSwaps = ({
@@ -40,6 +42,7 @@ export const useOpenSwaps = ({
     chainIds,
   });
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
 
   const sourceToken = useMemo(() => {
     if (priorityToken) {
@@ -80,10 +83,12 @@ export const useOpenSwaps = ({
         goToSwaps(sourceToken, destToken);
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_SWAPS_CLICKED)
-            .addProperties({
-              source_token: sourceToken?.symbol,
-              destination_token: destToken.symbol,
-            })
+            .addProperties(
+              withCardProvider(activeProviderId, {
+                source_token: sourceToken?.symbol,
+                destination_token: destToken.symbol,
+              }),
+            )
             .build(),
         );
       };
@@ -99,6 +104,7 @@ export const useOpenSwaps = ({
       goToSwaps,
       trackEvent,
       createEventBuilder,
+      activeProviderId,
       sourceToken,
       priorityToken,
     ],

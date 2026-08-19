@@ -17,8 +17,13 @@ export class CronjobControllerStorageManager {
    *
    * @returns The initial CronjobController state.
    */
-  getInitialState() {
-    return selectCronjobControllerStorage(ReduxService.store.getState());
+  getInitialState(): CronjobControllerState | undefined {
+    // The slice stores this opaquely to avoid a recursive-`Json` deep-type
+    // explosion (TS2589) inside `WritableDraft`. The cast restores the
+    // public contract; runtime shape is unchanged.
+    return selectCronjobControllerStorage(ReduxService.store.getState()) as
+      | CronjobControllerState
+      | undefined;
   }
 
   /**

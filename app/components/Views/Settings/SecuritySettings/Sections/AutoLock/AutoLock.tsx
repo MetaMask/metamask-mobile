@@ -5,33 +5,35 @@ import AUTO_LOCK_OPTIONS, { AUTO_LOCK_SECTION } from './constants';
 import { setLockTime } from '../../../../../../actions/settings';
 import { useStyles } from '../../../../../../component-library/hooks';
 import SelectComponent from '../../../../../UI/SelectComponent';
-import Text, {
-  TextVariant,
+import {
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './styles';
+import { selectLockTime } from '../../../../../../selectors/settings';
 
 const AutoLock = () => {
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const lockTime = useSelector((state: any) => state.settings.lockTime);
+  const lockTime = useSelector(selectLockTime);
 
-  const selectLockTime = (time: string): void => {
+  const handleSelectLockTime = (time: string): void => {
     dispatch(setLockTime(parseInt(time, 10)));
   };
 
   return (
     <View style={styles.setting} testID={AUTO_LOCK_SECTION}>
-      <Text variant={TextVariant.BodyLGMedium}>
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
         {strings('app_settings.auto_lock')}
       </Text>
       <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         style={styles.desc}
       >
         {strings('app_settings.auto_lock_desc')}
@@ -39,7 +41,7 @@ const AutoLock = () => {
       <View style={styles.picker}>
         <SelectComponent
           selectedValue={lockTime.toString()}
-          onValueChange={selectLockTime}
+          onValueChange={handleSelectLockTime}
           label={strings('app_settings.auto_lock')}
           options={AUTO_LOCK_OPTIONS}
         />

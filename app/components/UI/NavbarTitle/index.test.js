@@ -1,7 +1,4 @@
 import React from 'react';
-import { shallow } from 'enzyme';
-import { Provider } from 'react-redux';
-import configureMockStore from 'redux-mock-store';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -10,9 +7,6 @@ import {
   chainableBuilder,
 } from '../../../util/analytics/AnalyticsEventBuilder';
 import NavbarTitle from './';
-
-const mockStore = configureMockStore();
-const store = mockStore({});
 
 const mockAnalyticsTrackEvent = jest.fn();
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -35,9 +29,6 @@ jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => {
     removeSensitiveProperties: jest.fn(function () {
       return this;
     }),
-    setSaveDataRecording: jest.fn(function () {
-      return this;
-    }),
     build: jest.fn(() => ({ builtEvent: true })),
   };
   const createEventBuilder = jest.fn(() => chainableBuilder);
@@ -56,27 +47,15 @@ jest.mock('../../../core/Analytics', () => ({
 }));
 
 const mockNavigate = jest.fn();
-jest.mock('@react-navigation/compat', () => ({
-  withNavigation: (Component) => {
-    const WithNav = (props) => (
-      <Component {...props} navigation={{ navigate: mockNavigate }} />
-    );
-    WithNav.displayName = `withNavigation(${Component.displayName || Component.name || 'Component'})`;
-    return WithNav;
-  },
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
 }));
 
 describe('NavbarTitle', () => {
-  it('should render correctly', () => {
-    const title = 'Test';
-    const wrapper = shallow(
-      <Provider store={store}>
-        <NavbarTitle title={title} />
-      </Provider>,
-    );
-    expect(wrapper).toMatchSnapshot();
-  });
-
   it('tracks NETWORK_SELECTOR_PRESSED when pressed and network is not disabled', () => {
     jest.clearAllMocks();
 

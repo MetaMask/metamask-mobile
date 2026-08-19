@@ -1,11 +1,14 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import Button, {
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -16,35 +19,39 @@ import { CardError } from '../../types';
 import {
   resetOnboardingState,
   selectContactVerificationId,
-  selectSelectedCountry,
   setContactVerificationId,
   setOnboardingId,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import useRegions from '../../hooks/useRegions';
 
 const CODE_LENGTH = 6;
 
 const ConfirmEmail = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const [confirmCode, setConfirmCode] = useState('');
   const [resendCooldown, setResendCooldown] = useState(60);
-  const selectedCountry = useSelector(selectSelectedCountry);
+  const { getRegionByCode } = useRegions();
   const contactVerificationId = useSelector(selectContactVerificationId);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
 
-  const { email, password } = useParams<{
+  const { email, password, countryKey } = useParams<{
     email: string;
     password: string;
+    countryKey: string;
   }>();
+
+  const selectedCountry = getRegionByCode(countryKey);
 
   const {
     sendEmailVerification,
@@ -75,9 +82,11 @@ const ConfirmEmail = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.CONFIRM_EMAIL,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.CONFIRM_EMAIL,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -87,9 +96,11 @@ const ConfirmEmail = () => {
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.CONFIRM_EMAIL_RESEND_BUTTON,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.CONFIRM_EMAIL_RESEND_BUTTON,
+          }),
+        )
         .build(),
     );
     try {
@@ -122,9 +133,11 @@ const ConfirmEmail = () => {
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.CONFIRM_EMAIL_BUTTON,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.CONFIRM_EMAIL_BUTTON,
+            }),
+          )
           .build(),
       );
       const { onboardingId, hasAccount } = await verifyEmailVerification({
@@ -139,7 +152,9 @@ const ConfirmEmail = () => {
 
       if (onboardingId) {
         dispatch(setOnboardingId(onboardingId));
-        navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
+        navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER, {
+          countryKey,
+        });
       } else if (hasAccount) {
         const navigateToAuthentication = () => {
           navigation.reset({
@@ -183,6 +198,7 @@ const ConfirmEmail = () => {
   }, [
     confirmCode,
     contactVerificationId,
+    countryKey,
     dispatch,
     email,
     navigation,
@@ -204,16 +220,27 @@ const ConfirmEmail = () => {
     }
   }, [resendCooldown]);
 
-  // Auto-submit when all digits are entered
   useEffect(() => {
     if (
       confirmCode.length === CODE_LENGTH &&
-      latestValueSubmitted !== confirmCode
+      latestValueSubmitted !== confirmCode &&
+      selectedCountry &&
+      email &&
+      password &&
+      contactVerificationId
     ) {
       setLatestValueSubmitted(confirmCode);
       handleContinue();
     }
-  }, [confirmCode, handleContinue, latestValueSubmitted]);
+  }, [
+    confirmCode,
+    contactVerificationId,
+    email,
+    handleContinue,
+    latestValueSubmitted,
+    password,
+    selectedCountry,
+  ]);
 
   const isDisabled =
     verifyLoading ||
@@ -303,15 +330,16 @@ const ConfirmEmail = () => {
   const renderActions = () => (
     <Box twClassName="flex flex-col items-center justify-center gap-2">
       <Button
-        variant={ButtonVariants.Primary}
-        label={strings('card.card_onboarding.continue_button')}
+        variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={handleContinue}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         isDisabled={isDisabled}
-        loading={verifyLoading}
+        isLoading={verifyLoading}
         testID="confirm-email-continue-button"
-      />
+      >
+        {strings('card.card_onboarding.continue_button')}
+      </Button>
       <Text
         variant={TextVariant.BodySm}
         testID="confirm-email-legal-terms"
@@ -331,6 +359,7 @@ const ConfirmEmail = () => {
       formFields={renderFormFields()}
       actions={renderActions()}
       stickyActions
+      headerMode="back"
     />
   );
 };

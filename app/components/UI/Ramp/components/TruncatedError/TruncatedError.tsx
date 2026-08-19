@@ -7,15 +7,18 @@ import {
   type TextLayoutEventData,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Text, {
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
+import {
+  Text,
+  type TextProps,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
+  Icon,
   IconName,
   IconSize,
   IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import { createErrorDetailsModalNavDetails } from '../../Views/Modals/ErrorDetailsModal/ErrorDetailsModal';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -53,7 +56,7 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
   showChangeProvider,
   amount,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [isTruncated, setIsTruncated] = useState(false);
   const [hasMeasured, setHasMeasured] = useState(false);
 
@@ -74,8 +77,9 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
   );
 
   const handleInfoPress = useCallback(() => {
-    navigation.navigate(
-      ...createErrorDetailsModalNavDetails({
+    navigateWithDetails(
+      navigation,
+      createErrorDetailsModalNavDetails({
         errorMessage: errorDetails ?? error,
         providerName,
         providerSupportUrl,
@@ -96,11 +100,11 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
   return (
     <View style={styles.container}>
       <Text
-        variant={TextVariant.BodySM}
-        color={TextColor.Error}
+        variant={TextVariant.BodySm}
+        color={TextColor.ErrorDefault}
         numberOfLines={maxLines}
         ellipsizeMode="tail"
-        onTextLayout={handleTextLayout}
+        onTextLayout={handleTextLayout as TextProps['onTextLayout']}
         style={[styles.text, !hasMeasured && styles.measuring]}
       >
         {hasMeasured && isTruncated
@@ -113,7 +117,11 @@ const TruncatedError: React.FC<TruncatedErrorProps> = ({
         accessibilityRole="button"
         accessibilityLabel="View error details"
       >
-        <Icon name={IconName.Info} size={IconSize.Sm} color={IconColor.Error} />
+        <Icon
+          name={IconName.Info}
+          size={IconSize.Sm}
+          color={IconColor.ErrorDefault}
+        />
       </TouchableOpacity>
     </View>
   );

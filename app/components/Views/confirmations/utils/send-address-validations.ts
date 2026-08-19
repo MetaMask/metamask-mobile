@@ -2,17 +2,15 @@ import { Hex } from '@metamask/utils';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 
 import { strings } from '../../../../../locales/i18n';
-import Engine from '../../../../core/Engine';
-import { toChecksumAddress } from '../../../../util/address';
 import {
   collectConfusables,
   getConfusablesExplanations,
   hasZeroWidthPoints,
 } from '../../../../util/confusables';
-import { memoizedGetTokenStandardAndDetails } from './token';
 import {
   isBtcMainnetAddress,
   isTronAddress,
+  isStellarAddress,
 } from '../../../../core/Multichain/utils';
 import { LOWER_CASED_BURN_ADDRESSES } from '../../../../constants/address';
 
@@ -51,29 +49,6 @@ export const validateHexAddress = async (
     };
   }
 
-  const checksummedAddress = toChecksumAddress(toAddress);
-  if (chainId) {
-    const { NetworkController } = Engine.context;
-
-    try {
-      const networkClientId = NetworkController.findNetworkClientIdByChainId(
-        chainId as Hex,
-      );
-      const token = await memoizedGetTokenStandardAndDetails({
-        tokenAddress: checksummedAddress,
-        tokenId: undefined,
-        userAddress: undefined,
-        networkClientId,
-      });
-      if (token?.standard) {
-        return {
-          error: strings('send.token_contract_warning'),
-        };
-      }
-    } catch {
-      // Not a token address
-    }
-  }
   return {};
 };
 
@@ -135,6 +110,20 @@ export const validateTronAddress = (
   warning?: string;
 } => {
   if (!isTronAddress(toAddress)) {
+    return {
+      error: strings('send.invalid_address'),
+    };
+  }
+  return {};
+};
+
+export const validateStellarAddress = (
+  toAddress: string,
+): {
+  error?: string;
+  warning?: string;
+} => {
+  if (!isStellarAddress(toAddress)) {
     return {
       error: strings('send.invalid_address'),
     };

@@ -1,10 +1,17 @@
 import React from 'react';
-import { render, userEvent, fireEvent } from '@testing-library/react-native';
+import {
+  render,
+  userEvent,
+  fireEvent,
+  act,
+} from '@testing-library/react-native';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
+import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TrendingTokensFullView, {
   TrendingTokensData,
   TrendingTokensDataProps,
+  TrendingTokensFullViewParams,
 } from './TrendingTokensFullView';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { useTrendingSearch } from '../../hooks/useTrendingSearch/useTrendingSearch';
@@ -13,6 +20,7 @@ import {
   PriceChangeOption,
 } from '../../components/TrendingTokensBottomSheet';
 import { TrendingFilterContext } from '../../components/TrendingTokensList/TrendingTokensList';
+import { mockTheme } from '../../../../../util/theme';
 
 import { useTrendingRequest } from '../../hooks/useTrendingRequest/useTrendingRequest';
 import type TrendingTokensList from '../../components/TrendingTokensList';
@@ -33,12 +41,17 @@ const initialMetrics: Metrics = {
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockUseRoute = jest.fn<
+  { params: TrendingTokensFullViewParams | undefined },
+  []
+>(() => ({ params: undefined }));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
+  useRoute: () => mockUseRoute(),
   createNavigatorFactory: () => ({}),
 }));
 
@@ -91,6 +104,10 @@ const arrangeMocks = () => {
       data: options.data ?? [],
       isLoading: options.isLoading ?? false,
       refetch: mockRefetch,
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
     });
   };
 
@@ -128,14 +145,6 @@ describe('TrendingTokensData', () => {
     networkFilter: 'all',
     isSearchResult: false,
   };
-
-  const mockTheme = {
-    colors: {
-      primary: { default: '#037DD6' },
-      icon: { default: '#6A737D' },
-    },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } as any;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -241,16 +250,30 @@ describe('TrendingTokensFullView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseRoute.mockReturnValue({ params: undefined });
     const mocks = arrangeMocks();
-    mocks.setTrendingRequestMock({ results: [] });
-    mocks.setTrendingSearchMock({ data: [] });
+    mocks.setTrendingRequestMock({ results: [createMockToken()] });
+    mocks.setTrendingSearchMock({ data: [createMockToken()] });
   });
 
   it('renders header with title and buttons', () => {
     const { getByText, getByTestId } = renderTrendingFullView();
 
-    expect(getByText('Trending tokens')).toBeOnTheScreen();
+    expect(getByText('Trending')).toBeOnTheScreen();
     expect(getByTestId('trending-tokens-header-back-button')).toBeOnTheScreen();
+  });
+
+  it('shows Crypto movers title when opened from the Now tab entry point', () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        entryPoint: 'crypto_movers',
+        quickBuySource: 'explore_now',
+      },
+    });
+
+    const { getByText } = renderTrendingFullView();
+
+    expect(getByText(strings('trending.crypto_movers'))).toBeOnTheScreen();
   });
 
   it('navigates back when back button is pressed', async () => {
@@ -286,14 +309,17 @@ describe('TrendingTokensFullView', () => {
     const mocks = arrangeMocks();
     mocks.setTrendingSearchMock({ data: [] });
 
-    const { getByText, getByTestId } = renderTrendingFullView();
+    const { getByText, getByPlaceholderText, getByTestId } =
+      renderTrendingFullView();
 
     // Open search
     const searchToggle = getByTestId('trending-tokens-header-search-toggle');
     await userEvent.press(searchToggle);
 
     // Type search query
-    const searchInput = getByTestId('trending-tokens-header-search-bar');
+    const searchInput = getByPlaceholderText(
+      strings('trending.search_placeholder'),
+    );
     await userEvent.type(searchInput, 'nonexistenttoken');
 
     expect(getByTestId('empty-search-result-state')).toBeOnTheScreen();
@@ -324,6 +350,38 @@ describe('TrendingTokensFullView', () => {
       sortBy: undefined,
       chainIds: null,
       searchQuery: undefined,
+      filterLowQuality: true,
+    });
+  });
+
+  it('applies initial time option from route params', () => {
+    mockUseRoute.mockReturnValue({
+      params: { initialTimeOption: TimeOption.OneHour },
+    });
+
+    const { getByTestId } = renderTrendingFullView();
+
+    expect(getByTestId('24h-button')).toHaveTextContent('1h');
+    expect(mockUseTrendingSearch).toHaveBeenCalledWith({
+      sortBy: 'h1_trending',
+      chainIds: null,
+      searchQuery: undefined,
+      filterLowQuality: true,
+    });
+  });
+
+  it('applies initial network filter from route params', () => {
+    mockUseRoute.mockReturnValue({
+      params: { initialNetwork: ['eip155:4663'] },
+    });
+
+    renderTrendingFullView();
+
+    expect(mockUseTrendingSearch).toHaveBeenCalledWith({
+      sortBy: undefined,
+      chainIds: ['eip155:4663'],
+      searchQuery: undefined,
+      filterLowQuality: true,
     });
   });
 
@@ -362,6 +420,7 @@ describe('TrendingTokensFullView', () => {
           sortBy: 'h6_trending',
           chainIds: null,
           searchQuery: undefined,
+          filterLowQuality: true,
         });
       },
     },
@@ -380,6 +439,7 @@ describe('TrendingTokensFullView', () => {
           sortBy: undefined,
           chainIds: ['eip155:1'],
           searchQuery: undefined,
+          filterLowQuality: true,
         });
       },
     },
@@ -434,13 +494,16 @@ describe('TrendingTokensFullView', () => {
       const mocks = arrangeMocks();
       mocks.setTrendingSearchMock({ data: mockTokens });
 
-      const { getByTestId, getByText } = renderTrendingFullView();
+      const { getByPlaceholderText, getByTestId, getByText } =
+        renderTrendingFullView();
 
       // Open search and type a query
       const searchToggle = getByTestId('trending-tokens-header-search-toggle');
       fireEvent.press(searchToggle);
 
-      const searchInput = getByTestId('trending-tokens-header-search-bar');
+      const searchInput = getByPlaceholderText(
+        strings('trending.search_placeholder'),
+      );
       fireEvent.changeText(searchInput, 'eth');
 
       // Tokens should be displayed in original order (relevance), not sorted
@@ -548,7 +611,8 @@ describe('TrendingTokensFullView', () => {
       const mocks = arrangeMocks();
       mocks.setTrendingSearchMock({ data: mockTokens });
 
-      const { getByTestId, getByText } = renderTrendingFullView();
+      const { getByPlaceholderText, getByTestId, getByText } =
+        renderTrendingFullView();
 
       // First select a price change option
       const priceChangeButton = getByTestId('price-change-button');
@@ -561,7 +625,9 @@ describe('TrendingTokensFullView', () => {
       const searchToggle = getByTestId('trending-tokens-header-search-toggle');
       await userEvent.press(searchToggle);
 
-      const searchInput = getByTestId('trending-tokens-header-search-bar');
+      const searchInput = getByPlaceholderText(
+        strings('trending.search_placeholder'),
+      );
       fireEvent.changeText(searchInput, 'eth');
 
       // Even with volume sort selected, search results should maintain relevance order
@@ -585,7 +651,7 @@ describe('TrendingTokensFullView', () => {
       const mocks = arrangeMocks();
       mocks.setTrendingSearchMock({ data: mockTokens });
 
-      const { getByTestId, getByText, queryByTestId } =
+      const { getByPlaceholderText, getByTestId, getByText, queryByTestId } =
         renderTrendingFullView();
 
       // Open search
@@ -593,7 +659,9 @@ describe('TrendingTokensFullView', () => {
       await userEvent.press(searchToggle);
 
       // Type search query
-      const searchInput = getByTestId('trending-tokens-header-search-bar');
+      const searchInput = getByPlaceholderText(
+        strings('trending.search_placeholder'),
+      );
       fireEvent.changeText(searchInput, 'token');
 
       // Verify search is active

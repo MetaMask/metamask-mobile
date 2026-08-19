@@ -190,6 +190,7 @@ export const getMockEarnControllerState = ({
 }: Partial<GetMockEarnControllerStateOptions> = {}) => ({
   pooled_staking: getMockEarnControllerPooledStakingState(pooledStaking),
   lending: getMockEarnControllerLendingState(lending),
+  tron_staking: null,
   lastUpdated: 0,
 });
 

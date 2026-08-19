@@ -20,6 +20,7 @@ import AvatarAccount, {
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { useLinkAccountGroup } from '../../hooks/useLinkAccountGroup';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RewardSettingsAccountGroupListFlatListItem } from './types';
 import { useSelector } from 'react-redux';
@@ -60,7 +61,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
   });
 
   const { linkAccountGroup, isLoading } = useLinkAccountGroup();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isBulkLinkRunning = useSelector(selectBulkLinkIsRunning);
 
   // Inline handlers for each account group
@@ -179,22 +180,22 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="gap-4"
+          twClassName="gap-2"
           testID={`rewards-account-group-actions-${accountGroup.id}`}
         >
           {/* Menu button to show account addresses */}
           <ButtonIcon
             iconName={IconNameDS.Details}
-            size={ButtonIconSize.Lg}
+            size={ButtonIconSize.Md}
             onPress={handleShowAddresses}
             isDisabled={isLoading}
             testID={`rewards-account-addresses-${accountGroup.id}`}
-            twClassName="bg-subsection rounded-xl"
+            twClassName="rounded-xl"
           />
 
           {isLoading ? (
             <Box
-              twClassName="bg-subsection rounded-xl h-10 w-10 items-center justify-center"
+              twClassName="rounded-xl h-10 w-10 items-center justify-center"
               testID={`rewards-account-group-link-button-loading-${accountGroup.id}`}
             >
               <ActivityIndicator
@@ -205,13 +206,13 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
           ) : (
             <ButtonIcon
               iconName={linkButtonIconName}
-              size={ButtonIconSize.Lg}
+              size={ButtonIconSize.Md}
               isDisabled={
                 accountGroup.optedOutAccounts.length === 0 || isBulkLinkRunning
               }
               onPress={handleLinkAccountGroup}
               testID={`rewards-account-group-link-button-${accountGroup.id}`}
-              twClassName="bg-subsection rounded-xl"
+              twClassName="rounded-xl"
             />
           )}
         </Box>

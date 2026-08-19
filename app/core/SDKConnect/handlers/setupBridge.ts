@@ -3,11 +3,13 @@ import BackgroundBridge from '../../BackgroundBridge/BackgroundBridge';
 import getRpcMethodMiddleware, {
   RPCMethodsMiddleParameters,
 } from '../../RPCMethods/RPCMethodMiddleware';
+import { TransportType } from '../../../components/hooks/useAnalytics/useAnalytics.types';
 
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import Logger from '../../../util/Logger';
 import { Connection } from '../Connection';
+import { RemoteTransport, stampOriginProvenance } from '../../OriginProvenance';
 import DevLogger from '../utils/DevLogger';
 import handleSendMessage from './handleSendMessage';
 import { ImageSourcePropType } from 'react-native';
@@ -35,13 +37,6 @@ export const setupBridge = ({
     return connection.backgroundBridge;
   }
 
-  if (
-    (originatorInfo.url && originatorInfo.url === ORIGIN_METAMASK) ||
-    (originatorInfo.title && originatorInfo.title === ORIGIN_METAMASK)
-  ) {
-    throw new Error('Connections from metamask origin are not allowed');
-  }
-
   // WARNING: originatorInfo.url is self-reported by the dapp and unverified.
   // It is shown in the confirmation/approval UI to indicate the claimed source
   // of the request. It should NOT be treated as equivalent to a verified
@@ -49,6 +44,28 @@ export const setupBridge = ({
   const selfReportedUrl = originatorInfo.url;
   const selfReportedTitle = originatorInfo.title;
   const selfReportedIcon = originatorInfo.icon;
+
+  // Prevent external connections from using internal origins
+  // This is an external connection (SDK), so block any internal origin
+  if (
+    INTERNAL_ORIGINS.includes(selfReportedUrl) ||
+    INTERNAL_ORIGINS.includes(selfReportedTitle)
+  ) {
+    throw new Error('Connections from metamask origin are not allowed');
+  }
+
+  // Stamp the connection's provenance at the entry point: the SDK channelId
+  // is the unspoofable connection identity; originatorInfo is self-reported
+  // by the dapp and display-only.
+  stampOriginProvenance({
+    connectionId: connection.channelId,
+    transport: RemoteTransport.SDKv1,
+    selfReported: {
+      url: selfReportedUrl,
+      name: selfReportedTitle,
+      icon: selfReportedIcon,
+    },
+  });
 
   const backgroundBridge = new BackgroundBridge({
     webview: null,
@@ -68,23 +85,12 @@ export const setupBridge = ({
       });
     },
     getApprovedHosts: () => connection.getApprovedHosts('backgroundBridge'),
-    remoteConnHost: connection.host,
     getRpcMethodMiddleware: ({
       getProviderState,
     }: RPCMethodsMiddleParameters) => {
       DevLogger.log(
         `getRpcMethodMiddleware origin=${connection.origin} selfReportedUrl=${selfReportedUrl} `,
       );
-      // Prevent external connections from using internal origins
-      // This is an external connection (SDK), so block any internal origin
-      if (
-        INTERNAL_ORIGINS.includes(selfReportedUrl) ||
-        INTERNAL_ORIGINS.includes(selfReportedTitle)
-      ) {
-        throw rpcErrors.invalidParams({
-          message: 'External transactions cannot use internal origins',
-        });
-      }
       return getRpcMethodMiddleware({
         hostname: connection.origin,
         channelId: connection.channelId,
@@ -104,8 +110,10 @@ export const setupBridge = ({
         isWalletConnect: false,
         analytics: {
           isRemoteConn: true,
+          transport: TransportType.SOCKET_RELAY,
           platform:
             originatorInfo?.platform ?? AppConstants.MM_SDK.UNKNOWN_PARAM,
+          remote_session_id: originatorInfo?.anonId ?? '',
         },
       });
     },

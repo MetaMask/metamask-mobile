@@ -1,7 +1,10 @@
-import { NavigationContainerRef } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 import { renderHook } from '@testing-library/react-hooks';
 import useNotificationHandler from './index';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as UseNotifications from './useStartupNotificationsEffect';
 
 describe('useNotificationHandler', () => {
@@ -13,7 +16,7 @@ describe('useNotificationHandler', () => {
     const mockNavigate = jest.fn();
     const mockNavigation = {
       navigate: mockNavigate,
-    } as unknown as NavigationContainerRef;
+    } as unknown as NavigationContainerRef<ParamListBase>;
 
     const mockUseListNotificationsEffect = jest
       .spyOn(UseNotifications, 'useStartupNotificationsEffect')

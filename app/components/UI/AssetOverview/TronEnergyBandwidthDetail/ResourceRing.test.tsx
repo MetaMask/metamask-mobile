@@ -10,15 +10,14 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   },
 }));
 
-const mockTheme = {
-  colors: {
-    border: { muted: '#CCCCCC' },
-    primary: { default: '#0066CC' },
-  },
-};
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => mockTheme,
-}));
+jest.mock('../../../../util/theme', () => {
+  // Use the real mockTheme to avoid circular mock issues
+  const actual = jest.requireActual('../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: () => actual.mockTheme,
+  };
+});
 
 describe('ResourceRing', () => {
   it('renders the ring icon', () => {

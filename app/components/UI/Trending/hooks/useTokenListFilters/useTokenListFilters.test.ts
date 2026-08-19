@@ -7,6 +7,7 @@ import {
   TimeOption,
 } from '../../components/TrendingTokensBottomSheet';
 import type { CaipChainId } from '@metamask/utils';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -281,6 +282,50 @@ describe('useTokenListFilters', () => {
       );
 
       expect(result.current.priceChangeButtonText).toBe('Market cap');
+    });
+  });
+
+  describe('priceChangeSortDirectionIcon', () => {
+    it('returns Arrow2Down for descending sort direction', () => {
+      const { result } = renderFilters();
+
+      expect(result.current.priceChangeSortDirectionIcon).toBe(
+        IconName.Arrow2Down,
+      );
+    });
+
+    it('returns Arrow2Up for ascending sort direction', () => {
+      const { result } = renderFilters();
+
+      act(() =>
+        result.current.handlePriceChangeSelect(
+          PriceChangeOption.Volume,
+          SortDirection.Ascending,
+        ),
+      );
+
+      expect(result.current.priceChangeSortDirectionIcon).toBe(
+        IconName.Arrow2Up,
+      );
+    });
+
+    it('updates when sort direction changes', () => {
+      const { result } = renderFilters();
+
+      expect(result.current.priceChangeSortDirectionIcon).toBe(
+        IconName.Arrow2Down,
+      );
+
+      act(() =>
+        result.current.handlePriceChangeSelect(
+          PriceChangeOption.PriceChange,
+          SortDirection.Ascending,
+        ),
+      );
+
+      expect(result.current.priceChangeSortDirectionIcon).toBe(
+        IconName.Arrow2Up,
+      );
     });
   });
 

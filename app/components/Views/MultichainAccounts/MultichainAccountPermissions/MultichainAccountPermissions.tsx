@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getPermissions } from '../../../../selectors/snaps/permissionController';
 import { RootState } from '../../../../reducers';
-import { getRequestedCaip25CaveatValue } from '../../AccountConnect/utils';
+import { getRequestedCaip25CaveatValue } from '../../MultichainAccounts/shared/utils';
 import { useAccountGroupsForPermissions } from '../../../hooks/useAccountGroupsForPermissions/useAccountGroupsForPermissions';
 import {
   getAllScopesFromCaip25CaveatValue,
@@ -13,12 +13,14 @@ import {
   setNonSCACaipAccountIdsInCaip25CaveatValue,
 } from '@metamask/chain-agnostic-permission';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { View } from 'react-native';
 import { useTheme } from '../../../../util/theme';
 import Routes from '../../../../constants/navigation/Routes';
 import MultichainPermissionsSummary from '../MultichainPermissionsSummary/MultichainPermissionsSummary';
 import MultichainAccountConnectMultiSelector from '../MultichainAccountConnect/MultichainAccountConnectMultiSelector/MultichainAccountConnectMultiSelector';
 import { strings } from '../../../../../locales/i18n';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import NetworkConnectMultiSelector from '../../NetworkConnect/NetworkConnectMultiSelector/NetworkConnectMultiSelector';
 import {
   CaipChainId,
@@ -38,7 +40,7 @@ import {
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
-import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
+import { NetworkAvatarProps } from '../../MultichainAccounts/shared/AccountConnect.types';
 import Engine from '../../../../core/Engine';
 import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../../component-library/components/Toast';
@@ -64,7 +66,7 @@ export enum MultichainAccountPermissionsScreens {
 export const MultichainAccountPermissions = (
   props: MultichainAccountPermissionsProps,
 ) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
   const { hostInfo } = props.route.params;
   const [screen, setScreen] = useState<MultichainAccountPermissionsScreens>(

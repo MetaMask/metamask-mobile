@@ -1,145 +1,74 @@
 import React, { useMemo } from 'react';
 import {
-  createStackNavigator,
-  StackNavigationOptions,
-} from '@react-navigation/stack';
+  createNativeStackNavigator,
+  NativeStackNavigationOptions,
+} from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import CardHome from '../Views/CardHome/CardHome';
 import CardWelcome from '../Views/CardWelcome/CardWelcome';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { StyleSheet, View } from 'react-native';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
 import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
 import ChooseYourCard from '../Views/ChooseYourCard/ChooseYourCard';
 import ReviewOrder from '../Views/ReviewOrder/ReviewOrder';
 import OnboardingNavigator from './OnboardingNavigator';
 import {
-  selectIsAuthenticatedCard,
+  selectIsCardAuthenticated,
   selectIsCardholder,
-} from '../../../../core/redux/slices/card';
+} from '../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
 import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
 import PasswordBottomSheet from '../components/PasswordBottomSheet';
-import { colors } from '../../../../styles/common';
 import RegionSelectorModal from '../components/Onboarding/RegionSelectorModal';
 import ConfirmModal from '../components/Onboarding/ConfirmModal';
 import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal';
 import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
 import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
+import SetCardPin, { ConfirmCardPin } from '../Views/SetCardPin';
+import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
+import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal';
+import ImmersveKYCModal from '../components/ImmersveKYCModal/ImmersveKYCModal';
+import ForgotPasswordModal from '../components/ForgotPasswordModal/ForgotPasswordModal';
+import MoneyUnlinkCardSheet from '../components/MoneyUnlinkCardSheet';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
+import CreditRedeem from '../Views/CreditRedeem/CreditRedeem';
+import CreditBalanceTooltipSheet from '../components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet';
+import CreditRefundTooltipSheet from '../components/CreditRefundTooltipSheet/CreditRefundTooltipSheet';
 import {
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
-} from '@metamask/design-system-react-native';
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../../constants/navigation/clearStackNavigatorOptions';
+import type {
+  CardModalsNavigationParamList,
+  CardRootParamList,
+  CardScreensStackParamList,
+} from '../types/navigation';
 
-const Stack = createStackNavigator();
-const ModalsStack = createStackNavigator();
+const ScreensStack = createNativeStackNavigator<CardScreensStackParamList>();
+const RootStack = createNativeStackNavigator<CardRootParamList>();
+const ModalsStack = createNativeStackNavigator<CardModalsNavigationParamList>();
 
-const clearStackNavigatorOptions = {
+// All Card main screens render their own header via HeaderStandard, so hide
+// the navigator chrome by default.
+const mainScreenOptions: NativeStackNavigationOptions = { headerShown: false };
+
+// SpendingLimit's onboarding flow renders a close (X) header and must not be
+// swipe-dismissable; all other flows keep the default gesture behavior.
+const spendingLimitScreenOptions = ({
+  route,
+}: {
+  route: {
+    params?: CardScreensStackParamList['CardSpendingLimit'];
+  };
+}): NativeStackNavigationOptions => ({
   headerShown: false,
-  cardStyle: { backgroundColor: colors.transparent },
-  animationEnabled: false,
-};
-
-export const headerStyle = StyleSheet.create({
-  icon: { marginHorizontal: 16 },
-  title: { alignSelf: 'center' },
+  gestureEnabled: route.params?.flow !== 'onboarding',
 });
-
-// Default navigation has only back button on the left
-export const cardDefaultNavigationOptions = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}): StackNavigationOptions => ({
-  headerLeft: () => (
-    <ButtonIcon
-      style={headerStyle.icon}
-      size={ButtonIconSize.Md}
-      iconName={IconName.ArrowLeft}
-      onPress={() => navigation.goBack()}
-    />
-  ),
-  headerTitle: () => <View />,
-  headerRight: () => <View />,
-});
-
-export const cardSpendingLimitNavigationOptions = ({
-  navigation,
-  route,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-  route: { params?: { flow?: 'manage' | 'enable' | 'onboarding' } };
-}): StackNavigationOptions => {
-  const flow = route.params?.flow || 'manage';
-  const isOnboardingFlow = flow === 'onboarding';
-
-  return {
-    headerLeft: () =>
-      isOnboardingFlow ? (
-        <View />
-      ) : (
-        <ButtonIcon
-          style={headerStyle.icon}
-          size={ButtonIconSize.Md}
-          iconName={IconName.ArrowLeft}
-          onPress={() => navigation.goBack()}
-        />
-      ),
-    headerTitle: () => <View />,
-    headerRight: () =>
-      isOnboardingFlow ? (
-        <ButtonIcon
-          style={headerStyle.icon}
-          size={ButtonIconSize.Md}
-          iconName={IconName.Close}
-          onPress={() =>
-            navigation.reset({
-              index: 0,
-              routes: [{ name: Routes.CARD.HOME }],
-            })
-          }
-        />
-      ) : (
-        <View />
-      ),
-    gestureEnabled: !isOnboardingFlow,
-  };
-};
-
-export const cardChooseYourCardNavigationOptions = ({
-  navigation,
-  route,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-  route: { params?: { flow?: 'onboarding' | 'upgrade' } };
-}): StackNavigationOptions => {
-  const flow = route.params?.flow || 'onboarding';
-  const isUpgradeFlow = flow === 'upgrade';
-
-  return {
-    headerLeft: () =>
-      isUpgradeFlow ? (
-        <ButtonIcon
-          style={headerStyle.icon}
-          size={ButtonIconSize.Md}
-          iconName={IconName.ArrowLeft}
-          onPress={() => navigation.goBack()}
-        />
-      ) : (
-        <View />
-      ),
-    headerTitle: () => <View />,
-    headerRight: () => <View />,
-  };
-};
 
 const MainRoutes = () => {
-  const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const isCardholder = useSelector(selectIsCardholder);
 
   const initialRouteName = useMemo(
@@ -149,60 +78,57 @@ const MainRoutes = () => {
   );
 
   return (
-    <Stack.Navigator initialRouteName={initialRouteName} headerMode="screen">
-      <Stack.Screen
-        name={Routes.CARD.HOME}
-        component={CardHome}
-        options={cardDefaultNavigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.CARD.WELCOME}
-        component={CardWelcome}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
+    <ScreensStack.Navigator
+      initialRouteName={initialRouteName}
+      screenOptions={mainScreenOptions}
+    >
+      <ScreensStack.Screen name={Routes.CARD.HOME} component={CardHome} />
+      <ScreensStack.Screen name={Routes.CARD.WELCOME} component={CardWelcome} />
+      <ScreensStack.Screen
         name={Routes.CARD.CHOOSE_YOUR_CARD}
         component={ChooseYourCard}
-        options={cardChooseYourCardNavigationOptions}
       />
-      <Stack.Screen
+      <ScreensStack.Screen
         name={Routes.CARD.REVIEW_ORDER}
         component={ReviewOrder}
-        options={cardDefaultNavigationOptions}
       />
-      <Stack.Screen
+      <ScreensStack.Screen
         name={Routes.CARD.ORDER_COMPLETED}
         component={OrderCompleted}
-        options={cardDefaultNavigationOptions}
       />
-      <Stack.Screen
-        name={Routes.CARD.CASHBACK}
-        component={Cashback}
-        options={cardDefaultNavigationOptions}
+      <ScreensStack.Screen name={Routes.CARD.CASHBACK} component={Cashback} />
+      <ScreensStack.Screen
+        name={Routes.CARD.CREDIT_REDEEM}
+        component={CreditRedeem}
       />
-      <Stack.Screen
+      <ScreensStack.Screen name={Routes.CARD.SET_PIN} component={SetCardPin} />
+      <ScreensStack.Screen
+        name={Routes.CARD.CONFIRM_PIN}
+        component={ConfirmCardPin}
+      />
+      <ScreensStack.Screen
         name={Routes.CARD.AUTHENTICATION}
         component={CardAuthentication}
-        options={cardDefaultNavigationOptions}
       />
-      <Stack.Screen
+      <ScreensStack.Screen
         name={Routes.CARD.SPENDING_LIMIT}
         component={SpendingLimit}
-        options={cardSpendingLimitNavigationOptions}
+        options={spendingLimitScreenOptions}
       />
-      <Stack.Screen
+      <ScreensStack.Screen
         name={Routes.CARD.ONBOARDING.ROOT}
         component={OnboardingNavigator}
-        options={{ headerShown: false }}
       />
-    </Stack.Navigator>
+    </ScreensStack.Navigator>
   );
 };
 
 const CardModalsRoutes = () => (
   <ModalsStack.Navigator
-    mode="modal"
-    screenOptions={clearStackNavigatorOptions}
+    screenOptions={{
+      ...clearNativeStackNavigatorOptions,
+      ...transparentModalScreenOptions,
+    }}
   >
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.ADD_FUNDS}
@@ -236,21 +162,52 @@ const CardModalsRoutes = () => (
       name={Routes.CARD.MODALS.VIEW_PIN}
       component={ViewPinBottomSheet}
     />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.SPENDING_LIMIT_OPTIONS}
+      component={SpendingLimitOptionsSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.WAITLIST_FORM}
+      component={WaitlistFormModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.IMMERSVE_KYC}
+      component={ImmersveKYCModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.FORGOT_PASSWORD}
+      component={ForgotPasswordModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.CREDIT_BALANCE_TOOLTIP}
+      component={CreditBalanceTooltipSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.CREDIT_REFUND_TOOLTIP}
+      component={CreditRefundTooltipSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.UNLINK_MONEY_ACCOUNT}
+      component={MoneyUnlinkCardSheet}
+    />
   </ModalsStack.Navigator>
 );
 
 const CardRoutes = () => (
-  <Stack.Navigator initialRouteName={Routes.CARD.HOME} headerMode="none">
-    <Stack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
-    <Stack.Screen
+  <RootStack.Navigator
+    initialRouteName={Routes.CARD.HOME}
+    screenOptions={{ headerShown: false }}
+  >
+    <RootStack.Screen name={Routes.CARD.HOME} component={MainRoutes} />
+    <RootStack.Screen
       name={Routes.CARD.MODALS.ID}
       component={CardModalsRoutes}
       options={{
-        ...clearStackNavigatorOptions,
-        detachPreviousScreen: false,
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
       }}
     />
-  </Stack.Navigator>
+  </RootStack.Navigator>
 );
 
 export default withCardSDK(CardRoutes);

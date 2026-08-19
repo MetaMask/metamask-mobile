@@ -1,5 +1,5 @@
 import SecureKeychain from './SecureKeychain';
-import * as Keychain from 'react-native-keychain'; // eslint-disable-line import/no-namespace
+import * as Keychain from 'react-native-keychain'; // eslint-disable-line import-x/no-namespace
 import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
 import QuickCrypto from 'react-native-quick-crypto';
@@ -190,6 +190,19 @@ describe('SecureKeychain - Secure Item Methods', () => {
   });
 
   describe('getSecureItem', () => {
+    it('toggles isAuthenticating on the frozen singleton instance', async () => {
+      const instance = SecureKeychain.getInstance();
+      const scopeOptions = { service: 'test-service' };
+
+      (Keychain.getGenericPassword as jest.Mock).mockResolvedValue(false);
+
+      expect(instance.isAuthenticating).toBe(false);
+
+      await SecureKeychain.getSecureItem(scopeOptions);
+
+      expect(instance.isAuthenticating).toBe(false);
+    });
+
     it('retrieves and decrypts item successfully', async () => {
       const key = 'test-key';
       const originalValue = 'plain-text-value';

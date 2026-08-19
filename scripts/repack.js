@@ -3,6 +3,24 @@
  * App Repack Script using @expo/repack-app
  */
 
+// Force production NODE_ENV / BABEL_ENV BEFORE requiring anything that may
+// touch process.env. @expo/repack-app calls a helper at the start of every
+// repack that does `process.env.NODE_ENV = process.env.NODE_ENV || 'development'`
+// and `process.env.BABEL_ENV = process.env.BABEL_ENV || NODE_ENV`. That env
+// is then inherited by the spawned `npx expo export:embed --dev false` child,
+// where `setNodeEnv('production')` is a no-op because both are already set.
+// Babel's React JSX transform reads BABEL_ENV/NODE_ENV (not metro's --dev
+// flag) to choose between `jsx` (production) and `jsxDEV` (development), so
+// without this guard the rebundled JS contains `jsxDEV(...)` calls while
+// metro emits `__DEV__ = false`. The dev-only React runtime then references
+// helpers that are tree-shaken when `__DEV__` is false, crashing the app at
+// the first render with `TypeError: undefined is not a function` inside
+// AppContainer. The native build path is immune because RN's community CLI
+// hard-assigns NODE_ENV from --dev. Pre-setting here makes both paths
+// produce equivalent production bundles.
+process.env.NODE_ENV = 'production';
+process.env.BABEL_ENV = 'production';
+
 const fs = require('fs');
 const path = require('path');
 
@@ -46,19 +64,33 @@ function getKeystoreConfig() {
 
 /**
  * Repack Android APK
- * Currently supports 'flask' and 'main' build types
+ * Currently supports 'flask' and 'main' build types.
+ *
+ * Optional path overrides (used by performance BrowserStack fingerprint reuse):
+ *   REPACK_SOURCE_APK, REPACK_OUTPUT_APK, REPACK_WORKING_DIR, REPACK_SOURCEMAP_PATH
  */
 async function repackAndroid() {
   const startTime = Date.now();
-  const sourceApk = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
-  const repackedApk = 'android/app/build/outputs/apk/prod/release/app-prod-release-repack.apk';
-  const finalApk = 'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
-  const sourcemapPath = 'sourcemaps/android/index.android.bundle.map';
-  const workingDir = 'android/app/build/repack-working-main';
+  const sourceApk =
+    process.env.REPACK_SOURCE_APK ||
+    'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
+  const repackedApk =
+    process.env.REPACK_OUTPUT_APK ||
+    'android/app/build/outputs/apk/prod/release/app-prod-release-repack.apk';
+  const finalApk =
+    process.env.REPACK_FINAL_APK ||
+    'android/app/build/outputs/apk/prod/release/app-prod-release.apk';
+  const sourcemapPath =
+    process.env.REPACK_SOURCEMAP_PATH ||
+    'sourcemaps/android/index.android.bundle.map';
+  const workingDir =
+    process.env.REPACK_WORKING_DIR || 'android/app/build/repack-working-main';
 
   try {
     logger.info('🚀 Starting Android E2E APK repack process...');
     logger.info(`Source APK: ${sourceApk}`);
+    logger.info(`Output APK: ${finalApk}`);
+    logger.info(`Working dir: ${workingDir}`);
 
     // Verify source APK exists
     if (!fs.existsSync(sourceApk)) {
@@ -171,9 +203,13 @@ async function repackIos() {
     logger.info('🚀 Starting iOS E2E App repack process...');
     logger.info(`Source App: ${sourceApp}`);
 
-    // Verify source app exists
+    // Verify source app exists and has a bundle executable
     if (!fs.existsSync(sourceApp)) {
       throw new Error(`App not found: ${sourceApp}`);
+    }
+    const sourceInfoPlist = path.join(sourceApp, 'Info.plist');
+    if (!fs.existsSync(sourceInfoPlist)) {
+      throw new Error(`Source app is missing Info.plist: ${sourceApp}`);
     }
 
     // Generate Expo.plist if it doesn't exist (fallback for builds that don't auto-generate it)
@@ -201,10 +237,28 @@ async function repackIos() {
       env: process.env,
     });
 
-    // Verify and move repacked app
+    // Verify repacked app exists and contains a bundle executable
     if (!fs.existsSync(repackedApp)) {
       throw new Error(`Repacked app not found: ${repackedApp}`);
     }
+    // Verify the bundle executable is present.
+    // Info.plist is in binary format after repack, so we derive the executable name
+    // from the source app directory name (e.g. MetaMask.app -> MetaMask).
+    const sourceAppName = path.basename(sourceApp, '.app');
+    const executablePath = path.join(repackedApp, sourceAppName);
+    if (!fs.existsSync(executablePath)) {
+      throw new Error(
+        `Repacked app is missing its bundle executable at "${executablePath}". ` +
+        `@expo/repack-app may have dropped the binary (possible symlink handling issue). ` +
+        `Aborting to prevent uploading a broken artifact — add the \`force-builds\` ` +
+        `label (or a \`[force-builds]\` token in the commit message) to the PR to ` +
+        `bypass cross-run artifact reuse and force a full native rebuild.`
+      );
+    }
+    logger.success(`Bundle executable verified: ${sourceAppName}`);
+    // Restore execute permissions (may have been lost if the binary came from a cached artifact)
+    fs.chmodSync(executablePath, 0o755);
+    logger.success(`Execute permissions set on: ${sourceAppName}`);
 
     // Remove old app and move repacked app to final location
     fs.rmSync(finalApp, { recursive: true, force: true });

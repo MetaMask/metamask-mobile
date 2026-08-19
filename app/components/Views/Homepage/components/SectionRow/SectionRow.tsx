@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ComponentProps } from 'react';
 import { Box } from '@metamask/design-system-react-native';
 
 interface SectionRowProps {
@@ -10,6 +10,10 @@ interface SectionRowProps {
    * Test ID for the component
    */
   testID?: string;
+  /**
+   * Optional gap between children (uses Box spacing tokens, e.g. gap={3} = 12px).
+   */
+  gap?: ComponentProps<typeof Box>['gap'];
 }
 
 /**
@@ -17,8 +21,8 @@ interface SectionRowProps {
  *
  * Use this wrapper for content that needs standard section padding.
  */
-const SectionRow = ({ children, testID }: SectionRowProps) => (
-  <Box paddingHorizontal={4} testID={testID}>
+const SectionRow = ({ children, testID, gap }: SectionRowProps) => (
+  <Box paddingHorizontal={4} testID={testID} gap={gap}>
     {children}
   </Box>
 );

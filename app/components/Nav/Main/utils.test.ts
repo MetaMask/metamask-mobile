@@ -1,7 +1,16 @@
 import { ImageSourcePropType } from 'react-native';
-import { handleShowNetworkActiveToast } from './utils';
+import {
+  handleShowNetworkActiveToast,
+  shouldShowNetworkListToast,
+} from './utils';
 import { ToastVariants } from '../../../component-library/components/Toast';
 import { strings } from '../../../../locales/i18n';
+import {
+  clearSuppressedNetworkAddedToast,
+  consumeSuppressedNetworkAddedToast,
+  resetSuppressedNetworkAddedToasts,
+  suppressNextNetworkAddedToast,
+} from '../../../util/networks/networkToastSuppression';
 
 describe('handleShowNetworkActiveToast', () => {
   const mockToastRef = {
@@ -16,6 +25,7 @@ describe('handleShowNetworkActiveToast', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetSuppressedNetworkAddedToasts();
   });
 
   it('shows toast when not on bridge route', () => {
@@ -132,5 +142,41 @@ describe('handleShowNetworkActiveToast', () => {
     // Assert
     const calledWith = mockToastRef.current.showToast.mock.calls[0][0];
     expect(calledWith.networkImageSource).toBe(customNetworkImage);
+  });
+});
+
+describe('shouldShowNetworkListToast', () => {
+  beforeEach(() => {
+    resetSuppressedNetworkAddedToasts();
+  });
+
+  it('suppresses an added-network toast only once', () => {
+    suppressNextNetworkAddedToast('0xa');
+
+    expect(
+      shouldShowNetworkListToast({
+        newNetworkChainId: '0xa',
+        hasDeletedNetwork: false,
+      }),
+    ).toBe(false);
+
+    expect(
+      shouldShowNetworkListToast({
+        newNetworkChainId: '0xa',
+        hasDeletedNetwork: false,
+      }),
+    ).toBe(true);
+  });
+
+  it('clears suppressed added-network toasts explicitly', () => {
+    suppressNextNetworkAddedToast('0xa');
+
+    clearSuppressedNetworkAddedToast('0xa');
+
+    expect(consumeSuppressedNetworkAddedToast('0xa')).toBe(false);
+  });
+
+  it('returns false when consuming without a chain id', () => {
+    expect(consumeSuppressedNetworkAddedToast()).toBe(false);
   });
 });

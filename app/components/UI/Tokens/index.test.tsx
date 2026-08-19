@@ -12,31 +12,33 @@ import { clone } from 'lodash';
 import { fireEvent, waitFor, userEvent } from '@testing-library/react-native';
 import Tokens from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import initialRootState from '../../../util/test/initial-root-state';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import { TokenList } from './TokenList/TokenList';
 import { ScrollView } from 'react-native-gesture-handler';
 import { TokenI } from './types';
-// eslint-disable-next-line import/no-namespace
+import { MUSD_TOKEN_ADDRESS } from '../Earn/constants/musd';
+// eslint-disable-next-line import-x/no-namespace
 import * as MusdConversionAssetListCtaModule from '../Earn/components/Musd/MusdConversionAssetListCta';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as TokenListControlBarModule from './TokenListControlBar/TokenListControlBar';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as AssetsListSelectorsModule from '../../../selectors/assets/assets-list';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as RefreshTokensModule from './util/refreshTokens';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as RemoveEvmTokenModule from './util/removeEvmToken';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as RemoveNonEvmTokenModule from './util/removeNonEvmToken';
+const mockUseMusdConversionEligibility = jest.fn(() => ({
+  isEligible: true,
+  isLoading: false,
+  geolocation: 'US',
+  blockedCountries: [],
+}));
 jest.mock('../Earn/hooks/useMusdConversionEligibility', () => ({
-  useMusdConversionEligibility: () => ({
-    isEligible: true,
-    isLoading: false,
-    geolocation: 'US',
-    blockedCountries: [],
-  }),
+  useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
 }));
 
 // Mocking versioning for some selectors
@@ -70,6 +72,10 @@ jest.mock('./TokenList/TokenList', () => ({
   TokenList: jest.fn().mockImplementation(() => null),
 }));
 
+jest.mock('./TokenListControlBar/TokenListControlBar', () => ({
+  TokenListControlBar: jest.fn().mockImplementation(() => null),
+}));
+
 /**
  * For these unit tests, we do not need to test all the actual components, and can mock them.
  * If we do need to test the actual components in this test, we can use `mockReset` to get back the original component
@@ -82,15 +88,26 @@ const arrangeMockComponents = () => {
 
   const mockTokenListControlBar = jest
     .spyOn(TokenListControlBarModule, 'TokenListControlBar')
-    .mockImplementation(({ goToAddToken }) => (
-      <View testID="token-list-control-bar">
-        <Button
-          testID="MOCK_TEST_ADD_TOKEN_BUTTON"
-          title="Add Token"
-          onPress={goToAddToken}
-        />
-      </View>
-    ));
+    .mockImplementation(
+      ({
+        goToAddToken,
+        showAddToken = true,
+      }: {
+        goToAddToken: () => void;
+        showAddToken?: boolean;
+      }) => (
+        <View testID="token-list-control-bar">
+          {showAddToken && (
+            <Button
+              testID="MOCK_TEST_ADD_TOKEN_BUTTON"
+              title="Add Token"
+              onPress={goToAddToken}
+            />
+          )}
+          <Button testID="MOCK_NETWORK_FILTER" title="Network" />
+        </View>
+      ),
+    );
 
   const mockTokensList = jest
     .mocked(TokenList)
@@ -163,12 +180,25 @@ const arrangeMockInteractionManager = () => {
 const arrangeMockState = () => clone(initialRootState);
 const initialState = arrangeMockState();
 
-const Stack = createStackNavigator();
-const renderComponent = (state = initialState, isFullView: boolean = false) =>
+const Stack = createNativeStackNavigator();
+const renderComponent = (
+  state = initialState,
+  isFullView: boolean = false,
+  showOnlyMusd: boolean = false,
+  hasMusdBalanceOnAnyChain?: boolean,
+  analyticsSource?: string,
+) =>
   renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name="Tokens" options={{}}>
-        {() => <Tokens isFullView={isFullView} />}
+        {() => (
+          <Tokens
+            isFullView={isFullView}
+            showOnlyMusd={showOnlyMusd}
+            hasMusdBalanceOnAnyChain={hasMusdBalanceOnAnyChain}
+            analyticsSource={analyticsSource}
+          />
+        )}
       </Stack.Screen>
     </Stack.Navigator>,
     { state },
@@ -185,6 +215,8 @@ describe('Tokens', () => {
     mockNavigate.mockClear();
     mockPush.mockClear();
     jest.clearAllMocks();
+    jest.restoreAllMocks();
+    jest.mocked(TokenList).mockReset();
   });
 
   it('displays container', async () => {
@@ -294,7 +326,6 @@ describe('Tokens', () => {
             addSensitiveProperties: jest.fn().mockReturnThis(),
             removeProperties: jest.fn().mockReturnThis(),
             removeSensitiveProperties: jest.fn().mockReturnThis(),
-            setSaveDataRecording: jest.fn().mockReturnThis(),
             build: jest.fn(),
           }),
         }),
@@ -312,6 +343,25 @@ describe('Tokens', () => {
             location: 'homepage',
             is_empty: false,
             screen_type: 'tokens',
+          }),
+        );
+      });
+    });
+
+    it('attributes Position Screen Viewed to the homepage balance breakdown', async () => {
+      renderComponent(
+        initialState,
+        true,
+        false,
+        undefined,
+        'homescreen_balance_breakdown',
+      );
+
+      await waitFor(() => {
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            screen_type: 'tokens',
+            source: 'homescreen_balance_breakdown',
           }),
         );
       });
@@ -345,6 +395,210 @@ describe('Tokens', () => {
             screen_type: 'tokens',
             location: 'homepage',
           }),
+        );
+      });
+    });
+
+    it('tracks screen_type cash when showOnlyMusd and isFullView', async () => {
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      renderComponent(initialState, true, true);
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalled();
+        expect(mockAddProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            screen_type: 'cash',
+            location: 'homepage',
+            is_empty: true,
+          }),
+        );
+      });
+    });
+  });
+
+  describe('showOnlyMusd (Cash view)', () => {
+    it('does not render TokenListControlBar when showOnlyMusd', async () => {
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      const { queryByTestId } = renderComponent(initialState, true, true);
+
+      await waitFor(() => {
+        expect(queryByTestId('tokens-empty-state')).toBeOnTheScreen();
+      });
+
+      expect(queryByTestId('token-list-control-bar')).toBeNull();
+      expect(
+        TokenListControlBarModule.TokenListControlBar,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('does not render add token button when showOnlyMusd', async () => {
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      const { queryByTestId } = renderComponent(initialState, true, true);
+
+      await waitFor(() => {
+        expect(queryByTestId('tokens-empty-state')).toBeOnTheScreen();
+      });
+
+      expect(queryByTestId('MOCK_TEST_ADD_TOKEN_BUTTON')).toBeNull();
+    });
+
+    it('shows empty state when showOnlyMusd and no mUSD tokens', async () => {
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      const { getByTestId } = renderComponent(initialState, true, true);
+
+      await waitFor(() => {
+        expect(getByTestId('tokens-empty-state')).toBeOnTheScreen();
+      });
+    });
+
+    it('shows network-aware empty state when showOnlyMusd, empty list, and hasMusdBalanceOnAnyChain', async () => {
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([]);
+
+      const { getByText } = renderComponent(
+        initialState,
+        true,
+        true,
+        true, // hasMusdBalanceOnAnyChain
+      );
+
+      await waitFor(() => {
+        expect(
+          getByText(
+            'No mUSD on this network. Switch network to see your mUSD.',
+          ),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('includes mUSD in main token list when Cash section is disabled', async () => {
+      mockUseMusdConversionEligibility.mockReturnValueOnce({
+        isEligible: false,
+        isLoading: false,
+        geolocation: 'US',
+        blockedCountries: [],
+      });
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([
+        { address: '0xToken1', chainId: '0x1', isStaked: false },
+        { address: '0xToken2', chainId: '0x2', isStaked: false },
+        {
+          address: MUSD_TOKEN_ADDRESS,
+          chainId: '0x1',
+          isStaked: false,
+        },
+      ]);
+
+      renderComponent(initialState, true, false);
+
+      await waitFor(() => {
+        expect(TokenList).toHaveBeenCalledWith(
+          expect.objectContaining({
+            tokenKeys: expect.arrayContaining([
+              expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
+            ]),
+          }),
+          undefined,
+        );
+      });
+    });
+
+    it('includes mUSD when conversion flow is enabled but Money Hub is disabled', async () => {
+      const stateWithMusdEnabled = clone(initialRootState);
+      (
+        stateWithMusdEnabled as Record<string, unknown> &
+          typeof initialRootState
+      ).engine.backgroundState.RemoteFeatureFlagController = {
+        ...stateWithMusdEnabled.engine.backgroundState
+          .RemoteFeatureFlagController,
+        remoteFeatureFlags: {
+          earnMusdConversionFlowEnabled: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      };
+
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([
+        { address: '0xToken1', chainId: '0x1', isStaked: false },
+        {
+          address: MUSD_TOKEN_ADDRESS,
+          chainId: '0x1',
+          isStaked: false,
+        },
+      ]);
+
+      renderComponent(stateWithMusdEnabled, false, false);
+
+      await waitFor(() => {
+        expect(TokenList).toHaveBeenCalledWith(
+          expect.objectContaining({
+            tokenKeys: expect.arrayContaining([
+              expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
+            ]),
+          }),
+          undefined,
+        );
+      });
+    });
+
+    it('excludes mUSD from token list when conversion flow and Money Hub are enabled', async () => {
+      const stateWithBothEnabled = clone(initialRootState);
+      (
+        stateWithBothEnabled as Record<string, unknown> &
+          typeof initialRootState
+      ).engine.backgroundState.RemoteFeatureFlagController = {
+        ...stateWithBothEnabled.engine.backgroundState
+          .RemoteFeatureFlagController,
+        remoteFeatureFlags: {
+          earnMusdConversionFlowEnabled: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+          earnMoneyHubEnabled: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      };
+
+      const { mockSelectSortedAssetsBySelectedAccountGroup } =
+        arrangeMockSelectors();
+      mockSelectSortedAssetsBySelectedAccountGroup.mockReturnValue([
+        { address: '0xToken1', chainId: '0x1', isStaked: false },
+        {
+          address: MUSD_TOKEN_ADDRESS,
+          chainId: '0x1',
+          isStaked: false,
+        },
+      ]);
+
+      renderComponent(stateWithBothEnabled, false, false);
+
+      await waitFor(() => {
+        expect(TokenList).toHaveBeenCalledWith(
+          expect.objectContaining({
+            tokenKeys: expect.not.arrayContaining([
+              expect.objectContaining({ address: MUSD_TOKEN_ADDRESS }),
+            ]),
+          }),
+          undefined,
         );
       });
     });

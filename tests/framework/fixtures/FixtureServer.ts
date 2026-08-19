@@ -2,9 +2,11 @@ import { getLocalHost } from './FixtureUtils.ts';
 import Koa, { Context } from 'koa';
 import { isObject, mapValues } from 'lodash';
 import FixtureBuilder from './FixtureBuilder.ts';
+import type { Fixture } from './types.ts';
 import { createLogger } from '../logger.ts';
 import { Resource, ServerStatus } from '../types.ts';
 import PortManager, { ResourceType } from '../PortManager.ts';
+import { resolveE2EWaitTimeoutMs } from '../Constants.ts';
 
 const logger = createLogger({
   name: 'FixtureServer',
@@ -19,11 +21,20 @@ const fixtureSubstitutionCommands = {
   currentDateInMilliseconds: 'currentDateInMilliseconds',
 };
 
+const DEFAULT_STATE_REQUEST_TIMEOUT_MS = resolveE2EWaitTimeoutMs(60_000);
+
 /**
  * Interface for contract registry objects
  */
 interface ContractRegistry {
   getContractAddress(contractName: string): string | unknown;
+}
+
+interface StateRequestWaiter {
+  requestCountAtStart: number;
+  timeout?: ReturnType<typeof setTimeout>;
+  resolve: () => void;
+  reject: (error: Error) => void;
 }
 
 /**
@@ -88,6 +99,8 @@ class FixtureServer implements Resource {
   private _app: Koa;
   private _stateMap: Map<string, object>;
   private _server: ReturnType<Koa['listen']> | null;
+  private _stateRequestCount: number;
+  private _stateRequestWaiters: Set<StateRequestWaiter>;
   _serverPort: number;
   _serverStatus: ServerStatus = ServerStatus.STOPPED;
 
@@ -96,6 +109,8 @@ class FixtureServer implements Resource {
     this._stateMap = new Map([[DEFAULT_STATE_KEY, Object.create(null)]]);
     this._serverPort = 0; // will be set with setServerPort()
     this._server = null;
+    this._stateRequestCount = 0;
+    this._stateRequestWaiters = new Set();
     this._serverStatus = ServerStatus.STOPPED;
     this._app.use(async (ctx: Context) => {
       // Middleware to handle requests
@@ -108,6 +123,10 @@ class FixtureServer implements Resource {
       // Check if it's a request for the current state
       if (this._isStateRequest(ctx)) {
         ctx.body = this._stateMap.get(CURRENT_STATE_KEY);
+        ctx.res.once('finish', () => {
+          this._stateRequestCount += 1;
+          this._resolveStateRequestWaiters();
+        });
       }
     });
   }
@@ -227,6 +246,11 @@ class FixtureServer implements Resource {
         }
         this._server = null;
         this._serverStatus = ServerStatus.STOPPED;
+        this._rejectStateRequestWaiters(
+          new Error(
+            'Fixture server stopped before the app requested fixture state from /state.json.',
+          ),
+        );
         // Release the port after server is stopped
         PortManager.getInstance().releasePort(ResourceType.FIXTURE_SERVER);
         resolve(undefined);
@@ -238,7 +262,7 @@ class FixtureServer implements Resource {
   }
   // Load JSON state into the server
   loadJsonState(
-    rawState: FixtureBuilder,
+    rawState: Fixture | FixtureBuilder,
     contractRegistry: ContractRegistry | null,
   ) {
     logger.debug('Loading JSON state...');
@@ -246,6 +270,71 @@ class FixtureServer implements Resource {
     this._stateMap.set(CURRENT_STATE_KEY, state);
     logger.debug('JSON state loaded');
   }
+
+  /**
+   * Waits until the app requests `/state.json` after this method is called.
+   * This is used as an app-side boot signal for Appium: the native app has loaded
+   * JS, executed E2E bootstrap code, and fetched the fixture state.
+   *
+   * @param timeoutMs - The maximum time to wait for the next state request.
+   * @returns A promise that resolves when the next state request is completed.
+   */
+  waitForNextStateRequest(
+    timeoutMs = DEFAULT_STATE_REQUEST_TIMEOUT_MS,
+  ): Promise<void> {
+    const requestCountAtStart = this._stateRequestCount;
+
+    return new Promise((resolve, reject) => {
+      const waiter: StateRequestWaiter = {
+        requestCountAtStart,
+        resolve,
+        reject,
+      };
+      waiter.timeout = setTimeout(() => {
+        this._stateRequestWaiters.delete(waiter);
+        waiter.reject(
+          new Error(
+            `Timed out waiting ${timeoutMs}ms for the app to request fixture state from /state.json.`,
+          ),
+        );
+      }, timeoutMs);
+
+      this._stateRequestWaiters.add(waiter);
+      this._resolveStateRequestWaiters();
+    });
+  }
+
+  /**
+   * Resolves all pending waiters whose expected `/state.json` request has happened.
+   */
+  private _resolveStateRequestWaiters(): void {
+    for (const waiter of this._stateRequestWaiters) {
+      if (this._stateRequestCount <= waiter.requestCountAtStart) {
+        continue;
+      }
+      if (waiter.timeout) {
+        clearTimeout(waiter.timeout);
+      }
+      this._stateRequestWaiters.delete(waiter);
+      waiter.resolve();
+    }
+  }
+
+  /**
+   * Rejects all pending `/state.json` waiters.
+   *
+   * @param error - The error used to reject each waiter.
+   */
+  private _rejectStateRequestWaiters(error: Error): void {
+    for (const waiter of this._stateRequestWaiters) {
+      if (waiter.timeout) {
+        clearTimeout(waiter.timeout);
+      }
+      this._stateRequestWaiters.delete(waiter);
+      waiter.reject(error);
+    }
+  }
+
   // Check if the request is for the current state
   private _isStateRequest(ctx: Context) {
     return ctx.method === 'GET' && ctx.path === '/state.json';

@@ -7,20 +7,23 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { captureRef } from 'react-native-view-shot';
 import Share from 'react-native-share';
 import { useSelector } from 'react-redux';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
+import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  IconName as DSIconName,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import {
   IconName,
   IconColor,
@@ -63,7 +66,6 @@ import {
   getPerpsHeroCardViewSelector,
 } from '../../Perps.testIds';
 import { useReferralDetails } from '../../../Rewards/hooks/useReferralDetails';
-import { useSeasonStatus } from '../../../Rewards/hooks/useSeasonStatus';
 import { ensureError } from '../../../../../util/errorUtils';
 
 // To add a new card, add the image to the array.
@@ -76,7 +78,7 @@ const CARD_IMAGES: { image: ImageSourcePropType; id: number; name: string }[] =
   ];
 
 const PerpsHeroCardView: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const viewShotRefs = useRef<(View | null)[]>(
     Array.from({ length: CARD_IMAGES.length }, () => null),
@@ -95,9 +97,6 @@ const PerpsHeroCardView: React.FC = () => {
   const isReferralEnabled = useSelector(
     selectPerpsRewardsReferralCodeEnabledFlag,
   );
-
-  // Fetch season status to populate seasonId (required by useReferralDetails)
-  useSeasonStatus({ onlyForExplicitFetch: false });
 
   // Fetch referral details to ensure code is available for display
   useReferralDetails();
@@ -231,13 +230,12 @@ const PerpsHeroCardView: React.FC = () => {
 
           {/* Asset Info Row */}
           <View style={styles.heroCardAssetRow}>
-            <PerpsTokenLogo
-              symbol={data.asset}
-              size={14.5}
-              style={styles.assetIcon}
-            />
+            <View style={styles.assetIcon}>
+              <PerpsTokenLogo symbol={data.asset} size={14.5} />
+            </View>
             <Text
-              variant={TextVariant.BodySMMedium}
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               style={styles.assetName}
               testID={getPerpsHeroCardViewSelector.assetSymbol(index)}
             >
@@ -248,7 +246,8 @@ const PerpsHeroCardView: React.FC = () => {
               testID={getPerpsHeroCardViewSelector.directionBadge(index)}
             >
               <Text
-                variant={TextVariant.BodyXSMedium}
+                variant={TextVariant.BodyXs}
+                fontWeight={FontWeight.Medium}
                 style={styles.directionBadgeText}
                 testID={getPerpsHeroCardViewSelector.directionBadgeText(index)}
               >
@@ -266,7 +265,7 @@ const PerpsHeroCardView: React.FC = () => {
           >
             {/* P&L Percentage */}
             <Text
-              variant={TextVariant.DisplayLG}
+              variant={TextVariant.DisplayLg}
               style={data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative}
               testID={getPerpsHeroCardViewSelector.pnlText(index)}
             >
@@ -280,7 +279,8 @@ const PerpsHeroCardView: React.FC = () => {
                 <View style={styles.priceLabelContainer}>
                   <Text
                     style={styles.priceLabel}
-                    variant={TextVariant.BodySMMedium}
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
                   >
                     {/* Intentionally not using i18n string */}
                     Entry
@@ -288,7 +288,8 @@ const PerpsHeroCardView: React.FC = () => {
                 </View>
                 <Text
                   style={styles.priceValue}
-                  variant={TextVariant.BodySMMedium}
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
                 >
                   {formatPerpsFiat(data.entryPrice, {
                     ranges: PRICE_RANGES_UNIVERSAL,
@@ -301,7 +302,8 @@ const PerpsHeroCardView: React.FC = () => {
                 <View style={styles.priceLabelContainer}>
                   <Text
                     style={styles.priceLabel}
-                    variant={TextVariant.BodySMMedium}
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
                   >
                     {/* Intentionally not using i18n  */}
                     Mark
@@ -310,7 +312,8 @@ const PerpsHeroCardView: React.FC = () => {
 
                 <Text
                   style={styles.priceValue}
-                  variant={TextVariant.BodySMMedium}
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
                 >
                   {data.markPrice}
                 </Text>
@@ -331,7 +334,7 @@ const PerpsHeroCardView: React.FC = () => {
                 />
               </View>
               <Text
-                variant={TextVariant.BodyXS}
+                variant={TextVariant.BodyXs}
                 style={styles.referralCodeText}
               >
                 {strings('perps.pnl_hero_card.referral_code_text')}
@@ -459,8 +462,8 @@ const PerpsHeroCardView: React.FC = () => {
       <View style={styles.header} testID={PerpsHeroCardViewSelectorsIDs.HEADER}>
         <View style={styles.closeButton} />
         <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
+          variant={TextVariant.HeadingMd}
+          color={TextColor.TextDefault}
           style={styles.headerTitle}
           testID={PerpsHeroCardViewSelectorsIDs.HEADER_TITLE}
         >
@@ -519,16 +522,17 @@ const PerpsHeroCardView: React.FC = () => {
       {/* Footer Button */}
       <View style={styles.footerButtonContainer}>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('perps.pnl_hero_card.share_button')}
-          startIconName={isSharing ? undefined : IconName.Share}
+          isFullWidth
+          startIconName={isSharing ? undefined : DSIconName.Share}
           onPress={handleShare}
-          loading={isSharing}
+          isLoading={isSharing}
           isDisabled={isSharing}
           testID={PerpsHeroCardViewSelectorsIDs.SHARE_BUTTON}
-        />
+        >
+          {strings('perps.pnl_hero_card.share_button')}
+        </Button>
       </View>
     </SafeAreaView>
   );

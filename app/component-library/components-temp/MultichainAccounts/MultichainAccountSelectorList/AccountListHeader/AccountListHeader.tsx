@@ -1,11 +1,13 @@
 import React, { memo } from 'react';
 import { View } from 'react-native';
-
-import { useStyles } from '../../../../hooks';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../components/Texts/Text';
+} from '@metamask/design-system-react-native';
+
+import { useStyles } from '../../../../hooks';
 import createStyles from '../MultichainAccountSelectorList.styles';
 import { AccountListHeaderProps } from './AccountListHeader.types';
 
@@ -16,8 +18,9 @@ const AccountListHeader = memo(
     return (
       <View style={[styles.sectionHeader, containerStyle]}>
         <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          fontWeight={FontWeight.Medium}
           style={styles.sectionHeaderText}
         >
           {title}

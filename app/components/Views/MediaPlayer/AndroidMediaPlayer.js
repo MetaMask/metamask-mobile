@@ -11,7 +11,6 @@ import {
   PanResponder,
   StyleSheet,
   Animated,
-  SafeAreaView,
   Easing,
   Image,
   View,
@@ -19,6 +18,7 @@ import {
   TouchableNativeFeedback,
   TouchableHighlight,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import AntIcon from 'react-native-vector-icons/AntDesign';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
@@ -155,11 +155,11 @@ const createStyles = (theme) =>
   });
 
 export default function VideoPlayer({
-  controlsAnimationTiming,
-  controlsToggleTiming,
+  controlsAnimationTiming = 500,
+  controlsToggleTiming = 5000,
   source,
-  displayTopControls,
-  displayBottomControls,
+  displayTopControls = true,
+  displayBottomControls = true,
   onClose,
   onError,
   textTracks,
@@ -643,12 +643,4 @@ VideoPlayer.propTypes = {
   selectedTextTrack: PropTypes.object,
   textTracks: PropTypes.arrayOf(PropTypes.object),
   style: ViewPropTypes.style,
-};
-
-VideoPlayer.defaultProps = {
-  doubleTapTime: 100,
-  controlsAnimationTiming: 500,
-  controlsToggleTiming: 5000,
-  displayTopControls: true,
-  displayBottomControls: true,
 };

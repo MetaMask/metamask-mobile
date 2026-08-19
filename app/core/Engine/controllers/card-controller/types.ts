@@ -4,24 +4,76 @@ import type {
 } from '@metamask/base-controller';
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
+import type {
+  AccountTreeControllerGetStateAction,
+  AccountTreeControllerStateChangeEvent,
+} from '@metamask/account-tree-controller';
+import type { AccountsControllerGetStateAction } from '@metamask/accounts-controller';
+import type {
+  KeyringControllerUnlockEvent,
+  KeyringControllerSignPersonalMessageAction,
+} from '@metamask/keyring-controller';
+import type {
+  RemoteFeatureFlagControllerGetStateAction,
+  RemoteFeatureFlagControllerStateChangeEvent,
+} from '@metamask/remote-feature-flag-controller';
+import type {
+  NetworkControllerFindNetworkClientIdByChainIdAction,
+  NetworkControllerGetNetworkClientByIdAction,
+} from '@metamask/network-controller';
+import type {
+  TransactionControllerAddTransactionAction,
+  TransactionControllerAddTransactionBatchAction,
+  TransactionControllerGetStateAction,
+  TransactionControllerTransactionConfirmedEvent,
+  TransactionControllerTransactionFailedEvent,
+} from '@metamask/transaction-controller';
+import { CardProviderIds, type CardProviderId } from './provider-types';
 
 export const CARD_CONTROLLER_NAME = 'CardController';
+
+/** The provider ID used when no other provider has been selected. */
+export const DEFAULT_CARD_PROVIDER_ID = CardProviderIds.Baanx;
+
+export const MONEY_ACCOUNT_LAUNCH_MS = Date.UTC(2026, 4, 1);
+
+export type CardHomeDataStatus = 'idle' | 'loading' | 'error' | 'success';
+export type CardUnauthenticatedReason = 'onboarding_token_revoked';
+
+export interface FetchCardHomeDataOptions {
+  force?: boolean;
+}
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardControllerState = {
   /** ISO 3166-1 alpha-2 country code selected by the user. */
   selectedCountry: string | null;
   /** Active provider ID, derived from selectedCountry. */
-  activeProviderId: string | null;
+  activeProviderId: CardProviderId | null;
   /** Whether the user is authenticated with the active provider. */
   isAuthenticated: boolean;
+  /** Stable user identifier issued by the active card provider. */
+  providerUserId: string | null;
+  /** Last reason the active provider session became unauthenticated. */
+  lastUnauthenticatedReason: CardUnauthenticatedReason | null;
   /** CAIP-10 account IDs that are card holders. */
   cardholderAccounts: string[];
   /**
    * Per-provider persistent data keyed by provider ID.
    * Values are JSON-serializable objects (e.g. `{ location: 'us' }`).
    */
-  providerData: Record<string, Record<string, Json>>;
+  providerData: Partial<Record<CardProviderId, Record<string, Json>>>;
+  /**
+   * Cached card home data fetched from the active provider.
+   * Not persisted to disk — re-fetched after each session validation.
+   * Typed as Record<string, Json> to satisfy StateConstraint; cast to
+   * CardHomeData when accessed in the controller.
+   */
+  cardHomeData: Record<string, Json> | null;
+  /** Fetch status for cardHomeData. Not persisted. */
+  cardHomeDataStatus: CardHomeDataStatus;
+  /** True while `linkMoneyAccountCard` is in flight. Not persisted. */
+  moneyAccountCardLinkInProgress: boolean;
 };
 
 export type CardControllerActions = ControllerGetStateAction<
@@ -34,8 +86,26 @@ export type CardControllerEvents = ControllerStateChangeEvent<
   CardControllerState
 >;
 
+type CardControllerAllowedActions =
+  | AccountsControllerGetStateAction
+  | AccountTreeControllerGetStateAction
+  | RemoteFeatureFlagControllerGetStateAction
+  | KeyringControllerSignPersonalMessageAction
+  | NetworkControllerFindNetworkClientIdByChainIdAction
+  | NetworkControllerGetNetworkClientByIdAction
+  | TransactionControllerAddTransactionAction
+  | TransactionControllerAddTransactionBatchAction
+  | TransactionControllerGetStateAction;
+
+type CardControllerAllowedEvents =
+  | AccountTreeControllerStateChangeEvent
+  | RemoteFeatureFlagControllerStateChangeEvent
+  | KeyringControllerUnlockEvent
+  | TransactionControllerTransactionConfirmedEvent
+  | TransactionControllerTransactionFailedEvent;
+
 export type CardControllerMessenger = Messenger<
   typeof CARD_CONTROLLER_NAME,
-  CardControllerActions,
-  CardControllerEvents
+  CardControllerActions | CardControllerAllowedActions,
+  CardControllerEvents | CardControllerAllowedEvents
 >;

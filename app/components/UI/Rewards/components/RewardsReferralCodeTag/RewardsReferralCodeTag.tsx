@@ -3,7 +3,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import FoxRewardIcon from '../../../../../images/rewards/metamask-rewards-points.svg';
+import VipIcon from '../../../../../images/rewards/vip.svg';
 import styleSheet from './RewardsReferralCodeTag.styles';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import {
@@ -49,7 +49,7 @@ const RewardsReferralCodeTag: React.FC<RewardsReferralCodeTagProps> = ({
 
   return (
     <TouchableOpacity style={styles.container} onPress={handleCopyToClipboard}>
-      <FoxRewardIcon name="fox-reward-icon" width={12} height={12} />
+      <VipIcon name="VipIcon" width={12} height={12} />
       <Text style={styles.referralCode} variant={TextVariant.BodySMMedium}>
         {referralCode}
       </Text>

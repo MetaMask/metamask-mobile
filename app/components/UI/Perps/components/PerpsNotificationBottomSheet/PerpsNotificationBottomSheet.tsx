@@ -3,15 +3,14 @@ import { View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import Text, {
+import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { strings } from '../../../../../../locales/i18n';
@@ -64,28 +63,29 @@ const PerpsNotificationBottomSheet: React.FC<
     >
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text variant={TextVariant.HeadingMD} style={styles.title}>
+          <Text variant={TextVariant.HeadingMd} style={styles.title}>
             {strings('perps.tooltips.notifications.title')}
           </Text>
         </View>
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
           style={styles.description}
         >
           {strings('perps.tooltips.notifications.description')}
         </Text>
 
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('perps.tooltips.notifications.turn_on_button')}
+          isFullWidth
           onPress={handleTurnOnNotifications}
           testID={`${testID}-turn-on-button`}
           style={styles.turnOnButton}
-          loading={loading}
-        />
+          isLoading={loading}
+        >
+          {strings('perps.tooltips.notifications.turn_on_button')}
+        </Button>
       </View>
     </BottomSheet>
   );

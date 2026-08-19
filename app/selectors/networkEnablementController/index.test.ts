@@ -2,6 +2,7 @@ import {
   selectNetworkEnablementControllerState,
   selectEnabledNetworksByNamespace,
   selectEVMEnabledNetworks,
+  selectEvmEnabledCaipNetworks,
   selectNonEVMEnabledNetworks,
 } from './index';
 import { RootState } from '../../reducers';
@@ -240,6 +241,14 @@ describe('NetworkEnablementController Selectors', () => {
       const result = selectEVMEnabledNetworks(stateWithMixedEVM);
 
       expect(result).toEqual(['0x1', '0xe708']);
+    });
+  });
+
+  describe('selectEvmEnabledCaipNetworks', () => {
+    it('returns only enabled EVM networks as CAIP chain IDs', () => {
+      const result = selectEvmEnabledCaipNetworks(mockState);
+
+      expect(result).toEqual(['eip155:1', 'eip155:8453']);
     });
   });
 

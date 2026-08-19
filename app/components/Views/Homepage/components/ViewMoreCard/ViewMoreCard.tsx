@@ -1,18 +1,16 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { Pressable } from 'react-native';
 import {
-  Box,
   Text,
   Icon,
   IconName,
   IconSize,
   IconColor,
-  BoxAlignItems,
-  BoxJustifyContent,
   TextVariant,
   TextColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 
 interface ViewMoreCardProps {
@@ -20,7 +18,6 @@ interface ViewMoreCardProps {
   /** Tailwind classes for the card dimensions, e.g. "w-[180px] h-[140px]" */
   twClassName: string;
   textVariant?: TextVariant;
-  activeOpacity?: number;
   testID?: string;
 }
 
@@ -32,19 +29,19 @@ const ViewMoreCard: React.FC<ViewMoreCardProps> = ({
   onPress,
   twClassName,
   textVariant = TextVariant.BodyMd,
-  activeOpacity,
   testID,
-}) => (
-  <TouchableOpacity
-    onPress={onPress}
-    activeOpacity={activeOpacity}
-    testID={testID}
-  >
-    <Box
-      twClassName={`rounded-xl bg-background-muted ${twClassName}`}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Center}
-      gap={2}
+}) => {
+  const tw = useTailwind();
+  return (
+    <Pressable
+      onPress={onPress}
+      testID={testID}
+      style={({ pressed }) =>
+        tw.style(
+          `rounded-xl items-center justify-center gap-2 ${twClassName}`,
+          pressed ? 'bg-muted-pressed' : 'bg-muted',
+        )
+      }
     >
       <Icon
         name={IconName.ArrowRight}
@@ -58,8 +55,8 @@ const ViewMoreCard: React.FC<ViewMoreCardProps> = ({
       >
         {strings('homepage.sections.view_more')}
       </Text>
-    </Box>
-  </TouchableOpacity>
-);
+    </Pressable>
+  );
+};
 
 export default ViewMoreCard;

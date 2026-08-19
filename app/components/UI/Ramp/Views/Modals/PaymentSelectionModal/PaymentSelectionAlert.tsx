@@ -1,9 +1,7 @@
 import React from 'react';
 import BannerAlert from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 interface PaymentSelectionAlertProps {
   message: string;
@@ -15,7 +13,7 @@ const PaymentSelectionAlert: React.FC<PaymentSelectionAlertProps> = ({
   severity = BannerAlertSeverity.Error,
 }) => (
   <BannerAlert
-    description={<Text variant={TextVariant.BodySM}>{message}</Text>}
+    description={<Text variant={TextVariant.BodySm}>{message}</Text>}
     severity={severity}
   />
 );

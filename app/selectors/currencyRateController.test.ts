@@ -1,7 +1,7 @@
 import {
+  makeSelectConversionRateByChainId,
+  makeSelectUSDConversionRateByChainId,
   selectConversionRate,
-  selectCurrentCurrency,
-  selectCurrencyRates,
   selectConversionRateByChainId,
   selectCurrencyRateForChainId,
   selectUSDConversionRateByChainId,
@@ -9,7 +9,7 @@ import {
 import { isTestNet } from '../../app/util/networks';
 import { CurrencyRateState } from '@metamask/assets-controllers';
 import type { RootState } from '../reducers';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as NetworkControllerSelectors from './networkController';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 
@@ -20,8 +20,16 @@ jest.mock('../../app/util/networks', () => ({
 describe('CurrencyRateController Selectors', () => {
   const mockCurrencyRateState = {
     currencyRates: {
-      ETH: { conversionRate: 3000, usdConversionRate: 3000 },
-      BTC: { conversionRate: 60000, usdConversionRate: 60000 },
+      ETH: {
+        conversionRate: 3000,
+        usdConversionRate: 3000,
+        conversionDate: Date.now(),
+      },
+      BTC: {
+        conversionRate: 60000,
+        usdConversionRate: 60000,
+        conversionDate: Date.now(),
+      },
     },
     currentCurrency: 'USD',
   };
@@ -38,7 +46,7 @@ describe('CurrencyRateController Selectors', () => {
       (isTestNet as jest.Mock).mockReturnValue(true);
 
       const result = selectConversionRate.resultFunc(
-        mockCurrencyRateState as unknown as CurrencyRateState,
+        mockCurrencyRateState.currencyRates,
         mockChainId as `0x${string}`,
         mockTicker,
         false,
@@ -50,7 +58,7 @@ describe('CurrencyRateController Selectors', () => {
       (isTestNet as jest.Mock).mockReturnValue(false);
 
       const result = selectConversionRate.resultFunc(
-        mockCurrencyRateState as unknown as CurrencyRateState,
+        mockCurrencyRateState.currencyRates,
         mockChainId as `0x${string}`,
         mockTicker,
         true,
@@ -62,7 +70,7 @@ describe('CurrencyRateController Selectors', () => {
       (isTestNet as jest.Mock).mockReturnValue(false);
 
       const result = selectConversionRate.resultFunc(
-        mockCurrencyRateState as unknown as CurrencyRateState,
+        mockCurrencyRateState.currencyRates,
         mockChainId as `0x${string}`,
         '',
         true,
@@ -105,38 +113,6 @@ describe('CurrencyRateController Selectors', () => {
       );
 
       expect(result).toBe(3000);
-    });
-  });
-
-  describe('selectCurrentCurrency', () => {
-    it('returns the current currency from the state', () => {
-      const result = selectCurrentCurrency.resultFunc(
-        mockCurrencyRateState as unknown as CurrencyRateState,
-      );
-      expect(result).toBe('USD');
-    });
-
-    it('returns undefined if current currency is not set', () => {
-      const result = selectCurrentCurrency.resultFunc(
-        {} as unknown as CurrencyRateState,
-      );
-      expect(result).toBeUndefined();
-    });
-  });
-
-  describe('selectCurrencyRates', () => {
-    it('returns all conversion rates from the state', () => {
-      const result = selectCurrencyRates.resultFunc(
-        mockCurrencyRateState as unknown as CurrencyRateState,
-      );
-      expect(result).toStrictEqual(mockCurrencyRateState.currencyRates);
-    });
-
-    it('returns undefined if conversion rates are not set', () => {
-      const result = selectCurrencyRates.resultFunc(
-        {} as unknown as CurrencyRateState,
-      );
-      expect(result).toBeUndefined();
     });
   });
 
@@ -313,6 +289,63 @@ describe('CurrencyRateController Selectors', () => {
         chainId,
       );
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('conversion rate selector factories', () => {
+    const chainId = '0x1';
+
+    beforeEach(() => {
+      (isTestNet as jest.Mock).mockReturnValue(false);
+      jest
+        .spyOn(
+          NetworkControllerSelectors,
+          'selectNetworkConfigurationByChainId',
+        )
+        .mockReturnValue({
+          nativeCurrency: 'ETH',
+        } as MultichainNetworkConfiguration);
+    });
+
+    const createMockState = (): RootState =>
+      ({
+        engine: {
+          backgroundState: {
+            CurrencyRateController: {
+              currencyRates: mockCurrencyRateState.currencyRates,
+            },
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                [chainId]: {
+                  nativeCurrency: 'ETH',
+                },
+              },
+            },
+          },
+        },
+        settings: {
+          showFiatOnTestnets: true,
+        },
+      }) as unknown as RootState;
+
+    it('returns the conversion rate for the chain ID bound to the factory', () => {
+      const state = createMockState();
+      const selectConversionRateForChain =
+        makeSelectConversionRateByChainId(chainId);
+
+      const result = selectConversionRateForChain(state);
+
+      expect(result).toBe(3000);
+    });
+
+    it('returns the USD conversion rate for the chain ID bound to the factory', () => {
+      const state = createMockState();
+      const selectUSDConversionRateForChain =
+        makeSelectUSDConversionRateByChainId(chainId);
+
+      const result = selectUSDConversionRateForChain(state);
+
+      expect(result).toBe(3000);
     });
   });
 });

@@ -198,13 +198,11 @@ describe('useUserRegistrationStatus', () => {
     it('refetchInterval returns false when state is VERIFIED', () => {
       renderHook(() => useUserRegistrationStatus());
 
-      const refetchIntervalFn = mockQueryConfig.refetchInterval as (query: {
-        state: { data: { verificationState: string } | undefined };
-      }) => number | false;
+      const refetchIntervalFn = mockQueryConfig.refetchInterval as (
+        data: { verificationState: string } | undefined,
+      ) => number | false;
 
-      const result = refetchIntervalFn({
-        state: { data: { verificationState: 'VERIFIED' } },
-      });
+      const result = refetchIntervalFn({ verificationState: 'VERIFIED' });
 
       expect(result).toBe(false);
     });
@@ -212,13 +210,11 @@ describe('useUserRegistrationStatus', () => {
     it('refetchInterval returns false when state is REJECTED', () => {
       renderHook(() => useUserRegistrationStatus());
 
-      const refetchIntervalFn = mockQueryConfig.refetchInterval as (query: {
-        state: { data: { verificationState: string } | undefined };
-      }) => number | false;
+      const refetchIntervalFn = mockQueryConfig.refetchInterval as (
+        data: { verificationState: string } | undefined,
+      ) => number | false;
 
-      const result = refetchIntervalFn({
-        state: { data: { verificationState: 'REJECTED' } },
-      });
+      const result = refetchIntervalFn({ verificationState: 'REJECTED' });
 
       expect(result).toBe(false);
     });
@@ -226,13 +222,11 @@ describe('useUserRegistrationStatus', () => {
     it('refetchInterval returns 5000 when data is undefined', () => {
       renderHook(() => useUserRegistrationStatus());
 
-      const refetchIntervalFn = mockQueryConfig.refetchInterval as (query: {
-        state: { data: undefined };
-      }) => number | false;
+      const refetchIntervalFn = mockQueryConfig.refetchInterval as (
+        data: undefined,
+      ) => number | false;
 
-      const result = refetchIntervalFn({
-        state: { data: undefined },
-      });
+      const result = refetchIntervalFn(undefined);
 
       expect(result).toBe(5000);
     });
@@ -289,57 +283,43 @@ describe('useUserRegistrationStatus', () => {
     it('refetchInterval stops polling when state is VERIFIED', () => {
       renderHook(() => useUserRegistrationStatus());
 
-      const refetchIntervalFn = mockQueryConfig.refetchInterval as (query: {
-        state: { data: { verificationState: string } | undefined };
-      }) => number | false;
+      const refetchIntervalFn = mockQueryConfig.refetchInterval as (
+        data: { verificationState: string } | undefined,
+      ) => number | false;
 
-      expect(
-        refetchIntervalFn({
-          state: { data: { verificationState: 'VERIFIED' } },
-        }),
-      ).toBe(false);
+      expect(refetchIntervalFn({ verificationState: 'VERIFIED' })).toBe(false);
     });
 
     it('refetchInterval stops polling when state is UNVERIFIED', () => {
       renderHook(() => useUserRegistrationStatus());
 
-      const refetchIntervalFn = mockQueryConfig.refetchInterval as (query: {
-        state: { data: { verificationState: string } | undefined };
-      }) => number | false;
+      const refetchIntervalFn = mockQueryConfig.refetchInterval as (
+        data: { verificationState: string } | undefined,
+      ) => number | false;
 
-      expect(
-        refetchIntervalFn({
-          state: { data: { verificationState: 'UNVERIFIED' } },
-        }),
-      ).toBe(false);
+      expect(refetchIntervalFn({ verificationState: 'UNVERIFIED' })).toBe(
+        false,
+      );
     });
 
     it('refetchInterval stops polling when state is REJECTED', () => {
       renderHook(() => useUserRegistrationStatus());
 
-      const refetchIntervalFn = mockQueryConfig.refetchInterval as (query: {
-        state: { data: { verificationState: string } | undefined };
-      }) => number | false;
+      const refetchIntervalFn = mockQueryConfig.refetchInterval as (
+        data: { verificationState: string } | undefined,
+      ) => number | false;
 
-      expect(
-        refetchIntervalFn({
-          state: { data: { verificationState: 'REJECTED' } },
-        }),
-      ).toBe(false);
+      expect(refetchIntervalFn({ verificationState: 'REJECTED' })).toBe(false);
     });
 
     it('refetchInterval continues polling when state is PENDING', () => {
       renderHook(() => useUserRegistrationStatus());
 
-      const refetchIntervalFn = mockQueryConfig.refetchInterval as (query: {
-        state: { data: { verificationState: string } | undefined };
-      }) => number | false;
+      const refetchIntervalFn = mockQueryConfig.refetchInterval as (
+        data: { verificationState: string } | undefined,
+      ) => number | false;
 
-      expect(
-        refetchIntervalFn({
-          state: { data: { verificationState: 'PENDING' } },
-        }),
-      ).toBe(5000);
+      expect(refetchIntervalFn({ verificationState: 'PENDING' })).toBe(5000);
     });
   });
 

@@ -6,7 +6,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   Text,
-  FontWeight,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -59,11 +58,7 @@ const MarketInsightsTrendItem: React.FC<MarketInsightsTrendItemProps> = ({
       testID={testID}
       accessibilityRole={onPress ? 'button' : undefined}
     >
-      <Text
-        variant={TextVariant.HeadingSm}
-        fontWeight={FontWeight.Medium}
-        twClassName="mb-2"
-      >
+      <Text variant={TextVariant.HeadingSm} twClassName="mb-2">
         {trend.title}
       </Text>
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>

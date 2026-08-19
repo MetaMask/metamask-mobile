@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text, View } from 'react-native';
 import { userEvent } from '@testing-library/react-native';
 
 import { ConfirmationFooterSelectorIDs } from '../../ConfirmationView.testIds';
@@ -6,9 +7,9 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../util/test/confirm-data-helpers';
 import { Footer } from '../../components/footer';
 import QRInfo from '../../components/qr-info';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Camera from './useCamera';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as QRHardwareAwareness from './useQRHardwareAwareness';
 import {
   QRHardwareContextProvider,
@@ -35,9 +36,78 @@ jest.mock('../../../../../core/Engine', () => ({
   },
   rejectPendingApproval: jest.fn(),
   getQrKeyringScanner: jest.fn(() => mockQrScanner),
+  context: {
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+    },
+  },
+}));
+
+// Mock HardwareWallet hooks used by useConfirmActions
+jest.mock('../../../../../core/HardwareWallet', () => ({
+  useHardwareWallet: jest.fn(() => ({
+    ensureDeviceReady: jest.fn().mockResolvedValue(true),
+    showAwaitingConfirmation: jest.fn(),
+    hideAwaitingConfirmation: jest.fn(),
+    showHardwareWalletError: jest.fn(),
+  })),
+  isUserCancellation: jest.fn().mockReturnValue(false),
+}));
+
+jest.mock('../../../../../core/HardwareWallet/contexts', () => ({
+  useHardwareWallet: jest.fn(() => ({
+    ensureDeviceReady: jest.fn().mockResolvedValue(true),
+    showAwaitingConfirmation: jest.fn(),
+    hideAwaitingConfirmation: jest.fn(),
+    showHardwareWalletError: jest.fn(),
+    setQrScanRetryHandler: jest.fn(),
+  })),
+}));
+
+jest.mock(
+  '../../../../../core/HardwareWallet/hooks/useQrScanErrorForwarding',
+  () => ({
+    useQrScanErrorForwarding: jest.fn(() => ({
+      onQRHardwareScanError: jest.fn(),
+      handleScannerModalHide: jest.fn(),
+    })),
+  }),
+);
+
+const MockView = View;
+const MockText = Text;
+
+jest.mock('../../../../UI/QRHardware/AnimatedQRScanner', () => ({
+  __esModule: true,
+  default: ({ visible }: { visible: boolean }) =>
+    visible ? (
+      <MockView>
+        <MockText>
+          Scan your hardware wallet to confirm the transaction
+        </MockText>
+      </MockView>
+    ) : null,
+}));
+
+jest.mock('../../../../UI/QRHardware/AnimatedQRCode', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 
 jest.mock('../../hooks/gas/useGasFeeToken');
+
+jest.mock('../../hooks/useIsConfirmationFromLedgerAccount', () => ({
+  useIsConfirmationFromLedgerAccount: jest.fn(() => false),
+}));
+
+jest.mock(
+  '../../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount',
+  () => ({
+    useIsConfirmationFromQrAccount: jest.fn(() => false),
+  }),
+);
 
 jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
   useFullScreenConfirmation: jest.fn(() => ({
@@ -102,8 +172,8 @@ describe('QRHardwareContext', () => {
       },
     );
     expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
-    ).toBe(false);
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
+    ).not.toBeDisabled();
   });
 
   it('does not invoke rejectPendingScan when request is cancelled id QR signing is not in progress', async () => {
@@ -159,7 +229,7 @@ describe('QRHardwareContext', () => {
     expect(getByText('Scan with your hardware wallet')).toBeTruthy();
   });
 
-  it('passes correct value of scannerVisible to child components', async () => {
+  it('renders Confirm button when QR signing is in progress', async () => {
     createCameraSpy({ cameraError: undefined, hasCameraPermission: true });
     createQRHardwareAwarenessSpy({
       isSigningQRObject: true,
@@ -176,10 +246,7 @@ describe('QRHardwareContext', () => {
         state: personalSignatureConfirmationState,
       },
     );
-    await userEvent.press(getByText('Get signature'));
-    expect(
-      getByText('Scan your hardware wallet to confirm the transaction'),
-    ).toBeTruthy();
+    expect(getByText('Confirm')).toBeTruthy();
   });
 });
 

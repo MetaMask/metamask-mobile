@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -8,17 +9,18 @@ import {
   Text,
   TextVariant,
   FontWeight,
-} from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
-import Button, {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
+import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
+import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { ReviewOrderSelectors } from './ReviewOrder.testIds';
 import DaimoPayService from '../../services/DaimoPayService';
 import Logger from '../../../../../util/Logger';
@@ -42,9 +44,10 @@ interface OrderItem {
 }
 
 const ReviewOrder = () => {
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();
+  const headerHandlers = useCardHeaderHandlers('back');
   const { shippingAddress: routeShippingAddress, fromUpgrade } =
     useParams<ReviewOrderParams>();
 
@@ -62,10 +65,12 @@ const ReviewOrder = () => {
   const handleRenewsPress = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.REVIEW_ORDER_RENEWS_PRESSED,
-          screen: CardScreens.REVIEW_ORDER,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.REVIEW_ORDER_RENEWS_PRESSED,
+            screen: CardScreens.REVIEW_ORDER,
+          }),
+        )
         .build(),
     );
 
@@ -111,9 +116,11 @@ const ReviewOrder = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.REVIEW_ORDER,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.REVIEW_ORDER,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -121,9 +128,11 @@ const ReviewOrder = () => {
   const handlePay = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.REVIEW_ORDER_PAY,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.REVIEW_ORDER_PAY,
+          }),
+        )
         .build(),
     );
 
@@ -220,6 +229,11 @@ const ReviewOrder = () => {
       edges={['bottom']}
       testID={ReviewOrderSelectors.CONTAINER}
     >
+      <HeaderStandard
+        includesTopInset
+        twClassName="bg-background-default"
+        {...headerHandlers}
+      />
       <Box twClassName="flex-1 px-4">
         <Box twClassName="py-4">
           <Text
@@ -295,14 +309,15 @@ const ReviewOrder = () => {
             </Text>
           )}
           <Button
-            variant={ButtonVariants.Primary}
-            label={strings('card.review_order.pay')}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             onPress={handlePay}
-            width={ButtonWidthTypes.Full}
-            loading={isCreatingPayment}
+            isFullWidth
+            isLoading={isCreatingPayment}
             testID={ReviewOrderSelectors.PAY_BUTTON}
-          />
+          >
+            {strings('card.review_order.pay')}
+          </Button>
         </Box>
       </Box>
     </SafeAreaView>

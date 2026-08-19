@@ -1,5 +1,8 @@
 import { ApprovalType } from '@metamask/controller-utils';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import React from 'react';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
@@ -21,12 +24,15 @@ import QRInfo from '../qr-info';
 import ContractDeployment from '../info/contract-deployment';
 import { PerpsDepositInfo } from '../info/perps-deposit-info';
 import { PredictDepositInfo } from '../info/predict-deposit-info';
-import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
+import { PerpsWithdrawInfo } from '../info/perps-withdraw-info';
 import { MusdClaimInfo } from '../info/musd-claim-info';
 import { MusdConversionInfoRoot } from '../info/musd-conversion-info-root';
+import { MoneyAccountDepositInfo } from '../info/money-account-deposit-info';
+import { MoneyAccountWithdrawInfo } from '../info/money-account-withdraw-info';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
+import { useTransactionPayAutoFiatSubmission } from '../../hooks/pay/useTransactionPayAutoFiatSubmission';
 import PerpsOrderView from '../../../../UI/Perps/Views/PerpsOrderView';
 
 interface ConfirmationInfoComponentRequest {
@@ -84,10 +90,11 @@ interface InfoProps {
 const Info = ({ route }: InfoProps) => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
-  const { isSigningQRObject } = useQRHardwareContext();
+  const { isSigningQRObject, signingConfirmed } = useQRHardwareContext();
   const { isDowngrade, isUpgradeOnly } = use7702TransactionType();
   // Refresh STX liveness for the transaction's network
   useRefreshSmartTransactionsLiveness(transactionMetadata?.chainId);
+  useTransactionPayAutoFiatSubmission();
 
   if (!approvalRequest?.type) {
     return null;
@@ -97,7 +104,7 @@ const Info = ({ route }: InfoProps) => {
     return <SwitchAccountType />;
   }
 
-  if (isSigningQRObject) {
+  if (isSigningQRObject && signingConfirmed) {
     return <QRInfo />;
   }
 
@@ -124,6 +131,24 @@ const Info = ({ route }: InfoProps) => {
 
   if (
     transactionMetadata &&
+    hasTransactionType(transactionMetadata, [
+      TransactionType.moneyAccountDeposit,
+    ])
+  ) {
+    return <MoneyAccountDepositInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [
+      TransactionType.moneyAccountWithdraw,
+    ])
+  ) {
+    return <MoneyAccountWithdrawInfo />;
+  }
+
+  if (
+    transactionMetadata &&
     hasTransactionType(transactionMetadata, [TransactionType.predictClaim])
   ) {
     return <PredictClaimInfo />;
@@ -134,6 +159,13 @@ const Info = ({ route }: InfoProps) => {
     hasTransactionType(transactionMetadata, [TransactionType.predictWithdraw])
   ) {
     return <PredictWithdrawInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.perpsWithdraw])
+  ) {
+    return <PerpsWithdrawInfo />;
   }
 
   const { requestData } = approvalRequest ?? {

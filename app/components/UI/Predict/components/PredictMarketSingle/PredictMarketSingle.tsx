@@ -7,9 +7,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -23,16 +25,15 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   PredictMarket as PredictMarketType,
   PredictOutcomeToken,
+  type PredictMarketBuyButtonPress,
 } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint } from '../../contexts';
-import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { usePredictPreviewSheet } from '../../contexts';
+import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 interface SemiCircleYesPercentageProps {
   percentage: number;
@@ -128,28 +129,33 @@ interface PredictMarketSingleProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   isCarousel?: boolean;
+  cardPressDisabled?: boolean;
+  /** Called synchronously before the card's navigation press fires. */
+  onCardPress?: () => void;
+  /** Called when the user taps a buy button (before betslip opens). */
+  onBuyButtonPress?: PredictMarketBuyButtonPress;
+  predictFeedTab?: string;
+  predictScreen?: string;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   market,
   testID,
+  cardPressDisabled,
   entryPoint: propEntryPoint,
   isCarousel = false,
+  onCardPress,
+  onBuyButtonPress,
+  predictFeedTab,
+  predictScreen,
+  transactionActiveAbTests,
 }) => {
-  const contextEntryPoint = usePredictEntryPoint();
-  const baseEntryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
-
-  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
-    .isFromTrending
-    ? PredictEventValues.ENTRY_POINT.TRENDING
-    : baseEntryPoint;
+  const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
 
   const outcome = market.outcomes[0];
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { openBuySheet } = usePredictPreviewSheet();
   const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
 
@@ -184,16 +190,24 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const yesPercentage = getYesPercentage();
 
   const handleBuy = (token: PredictOutcomeToken) => {
+    const handledExternally =
+      onBuyButtonPress?.({ market, outcome, outcomeToken: token }) === true;
+    if (handledExternally) {
+      return;
+    }
+
     executeGuardedAction(
       () => {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
-            market,
-            outcome,
-            outcomeToken: token,
-            entryPoint: resolvedEntryPoint,
-          },
+        openBuySheet({
+          market,
+          outcome,
+          outcomeToken: token,
+          entryPoint: resolvedEntryPoint,
+          ...(predictFeedTab && { predictFeedTab }),
+          ...(predictScreen && { predictScreen }),
+          ...(transactionActiveAbTests?.length && {
+            transactionActiveAbTests,
+          }),
         });
       },
       {
@@ -206,13 +220,23 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
     <TouchableOpacity
       testID={testID}
       onPress={() => {
+        if (cardPressDisabled) {
+          return;
+        }
+
+        onCardPress?.();
         navigation.navigate(Routes.PREDICT.ROOT, {
           screen: Routes.PREDICT.MARKET_DETAILS,
           params: {
             marketId: market.id,
             entryPoint: resolvedEntryPoint,
+            ...(predictFeedTab && { predictFeedTab }),
+            ...(predictScreen && { predictScreen }),
             title: market.title,
             image: getImageUrl(),
+            ...(transactionActiveAbTests?.length && {
+              transactionActiveAbTests,
+            }),
           },
         });
       }}
@@ -229,7 +253,8 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
                 <Image
                   source={{ uri: getImageUrl() }}
                   style={tw.style('w-full h-full')}
-                  resizeMode="cover"
+                  contentFit="cover"
+                  recyclingKey={getImageUrl()}
                 />
               ) : (
                 <Box twClassName="w-full h-full bg-muted" />
@@ -255,7 +280,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text
-                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodySm}
+                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd}
                 style={tw.style('font-medium')}
                 color={TextColor.SuccessDefault}
               >
@@ -271,7 +296,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text
-                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodySm}
+                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd}
                 style={tw.style('font-medium')}
                 color={TextColor.ErrorDefault}
               >

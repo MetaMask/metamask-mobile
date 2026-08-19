@@ -92,10 +92,10 @@ describe('PasswordBottomSheet', () => {
     jest.resetAllMocks();
   });
 
-  it('renders correctly and matches snapshot', () => {
-    const { toJSON } = setupComponent();
+  it('renders correctly', () => {
+    const { getByText } = setupComponent();
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Enter password')).toBeOnTheScreen();
   });
 
   it('displays title and default description text', () => {
@@ -123,7 +123,7 @@ describe('PasswordBottomSheet', () => {
     ).toBeTruthy();
     expect(
       queryByText('Enter your wallet password to view card details.'),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('displays password input field', () => {
@@ -215,7 +215,9 @@ describe('PasswordBottomSheet', () => {
     fireEvent.changeText(passwordInput, 'a');
 
     await waitFor(() => {
-      expect(queryByTestId(CardHomeSelectors.PASSWORD_ERROR)).toBeNull();
+      expect(
+        queryByTestId(CardHomeSelectors.PASSWORD_ERROR),
+      ).not.toBeOnTheScreen();
     });
   });
 

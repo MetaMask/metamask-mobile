@@ -5,7 +5,7 @@ import type {
   DepositRegion,
   DepositCryptoCurrency,
   DepositPaymentMethod,
-} from '@consensys/native-ramps-sdk';
+} from '../../components/UI/Ramp/types/legacyDeposit';
 import type { RampsOrder } from '@metamask/ramps-controller';
 import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../selectors/networkController';
@@ -25,7 +25,6 @@ import type { RootState } from '../';
 import { getDecimalChainId } from '../../util/networks';
 
 export type { FiatOrder } from './types';
-export { UnifiedRampRoutingType } from './types';
 
 /** Action Creators */
 
@@ -136,16 +135,9 @@ export const removeFiatSellTxHash = (orderId: string) => ({
   payload: orderId,
 });
 
-export const setDetectedGeolocation = (geolocation: string | undefined) => ({
-  type: ACTIONS.FIAT_SET_DETECTED_GEOLOCATION,
-  payload: geolocation,
-});
-
-export const setRampRoutingDecision = (
-  routingDecision: FiatOrdersState['rampRoutingDecision'],
-) => ({
-  type: ACTIONS.FIAT_SET_RAMP_ROUTING_DECISION,
-  payload: routingDecision,
+export const setHasAgreedTransakNativePolicy = (hasAgreed: boolean) => ({
+  type: ACTIONS.FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY,
+  payload: hasAgreed,
 });
 
 /**
@@ -227,6 +219,9 @@ export const fiatOrdersGetStartedDeposit: (
   state: RootState,
 ) => FiatOrdersState['getStartedDeposit'] = (state: RootState) =>
   state.fiatOrders.getStartedDeposit;
+
+export const selectHasAgreedTransakNativePolicy = (state: RootState): boolean =>
+  state.fiatOrders.hasAgreedTransakNativePolicy === true;
 
 export const getOrdersProviders = createSelector(ordersSelector, (orders) => {
   const providers = orders
@@ -325,13 +320,11 @@ export const networkShortNameSelector = createSelector(
 
 export const getDetectedGeolocation: (
   state: RootState,
-) => string | undefined = (state: RootState) =>
-  state.fiatOrders.detectedGeolocation;
-
-export const getRampRoutingDecision: (
-  state: RootState,
-) => FiatOrdersState['rampRoutingDecision'] = (state: RootState) =>
-  state.fiatOrders.rampRoutingDecision;
+) => string | undefined = (state: RootState) => {
+  const location =
+    state.engine?.backgroundState?.GeolocationController?.location;
+  return location === 'UNKNOWN' || !location ? undefined : location;
+};
 
 export const initialState: FiatOrdersState = {
   orders: [],
@@ -345,10 +338,9 @@ export const initialState: FiatOrdersState = {
   getStartedAgg: false,
   getStartedSell: false,
   getStartedDeposit: false,
+  hasAgreedTransakNativePolicy: false,
   authenticationUrls: [],
   activationKeys: [],
-  detectedGeolocation: undefined,
-  rampRoutingDecision: null,
 };
 
 const findOrderIndex = (
@@ -637,16 +629,10 @@ const fiatOrderReducer: (
         ],
       };
     }
-    case ACTIONS.FIAT_SET_DETECTED_GEOLOCATION: {
+    case ACTIONS.FIAT_SET_HAS_AGREED_TRANSAK_NATIVE_POLICY: {
       return {
         ...state,
-        detectedGeolocation: action.payload,
-      };
-    }
-    case ACTIONS.FIAT_SET_RAMP_ROUTING_DECISION: {
-      return {
-        ...state,
-        rampRoutingDecision: action.payload,
+        hasAgreedTransakNativePolicy: action.payload,
       };
     }
 

@@ -5,7 +5,7 @@ import {
   PressableProps,
   useWindowDimensions,
 } from 'react-native';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import Icon, { IconColor, IconName, IconSize } from '../../Icons/Icon';
 import { useTheme } from '../../../../util/theme';
 import Animated, {
@@ -15,11 +15,10 @@ import Animated, {
 import Text, { TextColor, TextVariant } from '../../Texts/Text';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  MetaMetricsEvents,
-  useMetrics,
-} from '../../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../selectors/networkController';
 import { getDecimalChainId } from '../../../../util/networks';
@@ -35,11 +34,11 @@ function TradeTabBarItem({ label, ...props }: TradeTabBarItemProps) {
   const [isActive, setIsActive] = useState(false);
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind(); // Gets theme from ThemeProvider context
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [buttonLayout, setButtonLayout] = useState<LayoutRectangle>();
   const fontScale = useWindowDimensions().fontScale;
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const chainId = useSelector(selectChainId);
 
@@ -57,7 +56,7 @@ function TradeTabBarItem({ label, ...props }: TradeTabBarItemProps) {
   }));
 
   const handleOnPress = useCallback(() => {
-    impactAsync(ImpactFeedbackStyle.Medium);
+    playImpact(ImpactMoment.TabChange);
     setIsActive((active) => !active);
 
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

@@ -1,10 +1,12 @@
 
 import injectInpageProvider from './provider';
 import injectSolanaWalletStandard from './solanaWalletStandard';
+import injectBitcoinWalletStandard from './bitcoinWalletStandard';
 
 if (shouldInject()) {
   injectInpageProvider();
   injectSolanaWalletStandard();
+  injectBitcoinWalletStandard();
   start();
 }
 

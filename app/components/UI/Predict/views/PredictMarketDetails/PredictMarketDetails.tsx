@@ -1,9 +1,4 @@
-import {
-  NavigationProp,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { InteractionManager, RefreshControl, ScrollView } from 'react-native';
 import {
@@ -14,6 +9,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { estimateLineCount } from '../../utils/format';
@@ -33,12 +29,24 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import PredictDetailsChart from '../../components/PredictDetailsChart/PredictDetailsChart';
 
 import { usePredictMarket } from '../../hooks/usePredictMarket';
-import { PredictMarketStatus, PredictOutcomeToken } from '../../types';
+import {
+  OPEN_PREDICT_OUTCOME_STATUS,
+  PredictMarketStatus,
+  PredictOutcomeToken,
+} from '../../types';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { useCurrentPredictMarketFromSeries } from '../../hooks/useCurrentPredictMarketFromSeries';
 import PredictDetailsContentSkeleton from '../../components/PredictDetailsContentSkeleton';
 import PredictGameDetailsContent from '../../components/PredictGameDetailsContent';
+import PredictCryptoUpDownDetails from '../../components/PredictCryptoUpDownDetails';
+import { isCryptoUpDown } from '../../utils/cryptoUpDown';
+import {
+  selectPredictUpDownEnabledFlag,
+  selectPredictFeeCollectionFlag,
+  selectNonRegTimeSportsMarketTypes,
+} from '../../selectors/featureFlags';
 import PredictMarketDetailsStatus from './components/PredictMarketDetailsStatus';
 import PredictMarketDetailsHeader from './components/PredictMarketDetailsHeader';
 import PredictMarketDetailsTabBar from './components/PredictMarketDetailsTabBar';
@@ -48,17 +56,18 @@ import { useChartData } from './hooks/useChartData';
 import { useOutcomeResolution } from './hooks/useOutcomeResolution';
 import { useOpenOutcomes } from './hooks/useOpenOutcomes';
 import { useSelector } from 'react-redux';
-import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
+import { usePredictPreviewSheet } from '../../contexts';
+import PredictOffline from '../../components/PredictOffline';
 
 // Use theme tokens instead of hex values for multi-series charts
 
 interface PredictMarketDetailsProps {}
 
 const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { openBuySheet, isBuySheetOpen } = usePredictPreviewSheet();
   const { colors } = useTheme();
-  const { claim } = usePredictClaim();
+  const { claim, isClaimPending } = usePredictClaim();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictMarketDetails'>>();
   const tw = useTailwind();
@@ -68,40 +77,86 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
 
-  const { marketId, entryPoint, title, image } = route.params || {};
-  const resolvedMarketId = marketId;
+  const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
+  const nonRegTimeSportsMarketTypes = useSelector(
+    selectNonRegTimeSportsMarketTypes,
+  );
+  const {
+    marketId,
+    series,
+    seriesId,
+    seriesRecurrence,
+    entryPoint,
+    predictFeedTab,
+    predictScreen,
+    title,
+    image,
+    transactionActiveAbTests,
+  } = route.params || {};
+  const shouldResolveMarketFromSeries =
+    !marketId && Boolean(series?.id ?? seriesId);
+  const {
+    market: currentSeriesMarket,
+    marketId: currentSeriesMarketId,
+    isLoading: isCurrentSeriesMarketLoading,
+    isFetching: isCurrentSeriesMarketFetching,
+    error: currentSeriesMarketError,
+    refetch: refetchCurrentSeriesMarket,
+  } = useCurrentPredictMarketFromSeries({
+    series,
+    seriesId,
+    seriesRecurrence,
+    enabled: shouldResolveMarketFromSeries,
+  });
+  const resolvedMarketId = marketId ?? currentSeriesMarketId;
 
   const { executeGuardedAction } = usePredictActionGuard({
     navigation,
   });
 
   const {
-    market,
+    data: marketData,
+    isLoading: isMarketLoading,
     isFetching: isMarketFetching,
+    error: marketError,
     refetch: refetchMarket,
   } = usePredictMarket({
-    id: resolvedMarketId,
+    id: resolvedMarketId ?? '',
     enabled: Boolean(resolvedMarketId),
   });
+  const market = marketData ?? currentSeriesMarket ?? null;
+  const isResolvingMarketFromSeries =
+    shouldResolveMarketFromSeries &&
+    !resolvedMarketId &&
+    isCurrentSeriesMarketLoading;
+  const isResolvedMarketLoading =
+    isMarketLoading || isResolvingMarketFromSeries;
+  const isResolvedMarketFetching =
+    isMarketFetching || isCurrentSeriesMarketFetching;
 
   // Track screen load performance (market details + chart)
   usePredictMeasurement({
     traceName: TraceName.PredictMarketDetailsView,
-    conditions: [!isMarketFetching, !!market, !isRefreshing],
+    conditions: [!isResolvedMarketFetching, !!market, !isRefreshing],
     debugContext: {
       marketId: market?.id,
       hasMarket: !!market,
-      loadingStates: { isMarketFetching, isRefreshing },
+      loadingStates: {
+        isMarketFetching: isResolvedMarketFetching,
+        isRefreshing,
+      },
     },
   });
 
+  const isMarketUnresolved = !isResolvedMarketLoading && !resolvedMarketId;
+
   // calculate sticky header indices based on content structure
   const stickyHeaderIndices = useMemo(() => {
-    if (isMarketFetching && !market) {
+    if (isResolvedMarketLoading || isMarketUnresolved) {
       return [];
     }
     return [1];
-  }, [isMarketFetching, market]);
+  }, [isResolvedMarketLoading, isMarketUnresolved]);
 
   const titleLineCount = useMemo(
     () => estimateLineCount(title ?? market?.title),
@@ -115,8 +170,10 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     refetch: refetchActivePositions,
   } = usePredictPositions({
     marketId: resolvedMarketId,
+    childMarketIds: market?.childMarketIds,
     claimable: false,
-    enabled: !isMarketFetching && Boolean(resolvedMarketId),
+    enabled: !isResolvedMarketLoading && Boolean(resolvedMarketId),
+    livePriceUpdates: true,
   });
 
   // "claimable" positions
@@ -126,8 +183,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     refetch: refetchClaimablePositions,
   } = usePredictPositions({
     marketId: resolvedMarketId,
+    childMarketIds: market?.childMarketIds,
     claimable: true,
-    enabled: !isMarketFetching && Boolean(resolvedMarketId),
+    enabled: !isResolvedMarketLoading && Boolean(resolvedMarketId),
   });
 
   const feeCollectionConfig = useSelector(selectPredictFeeCollectionFlag);
@@ -139,10 +197,14 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   // Tabs become ready when both market and positions queries have resolved
   const tabsReady = useMemo(
     () =>
-      !isMarketFetching &&
+      !isResolvedMarketLoading &&
       !isActivePositionsLoading &&
       !isClaimablePositionsLoading,
-    [isMarketFetching, isActivePositionsLoading, isClaimablePositionsLoading],
+    [
+      isResolvedMarketLoading,
+      isActivePositionsLoading,
+      isClaimablePositionsLoading,
+    ],
   );
 
   const {
@@ -168,47 +230,94 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     timeframes,
   } = useChartData({ market, hasAnyOutcomeToken });
 
-  const { closedOutcomes, openOutcomes, yesPercentage } = useOpenOutcomes({
+  // The game branch (PredictGameDetailsContent) does not consume openOutcomes /
+  // yesPercentage and runs its own live price subscriptions internally. Keeping
+  // this hook live for game markets only adds a redundant high-frequency price
+  // subscription that re-renders this whole screen on every tick.
+  const shouldRefreshOpenOutcomePrices =
+    market?.status === PredictMarketStatus.OPEN &&
+    !isBuySheetOpen &&
+    !market?.game;
+
+  const { closedOutcomes, openOutcomes } = useOpenOutcomes({
     market,
-    isMarketFetching,
+    enabled: shouldRefreshOpenOutcomePrices,
   });
 
-  const handleBackPress = () => {
+  const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
       // If we can't go back, navigate to the main predict screen
       navigation.navigate(Routes.PREDICT.ROOT);
     }
-  };
+  }, [navigation]);
 
-  const handleBuyPress = (token: PredictOutcomeToken) => {
-    executeGuardedAction(
-      () => {
-        // Use open outcomes with updated prices if available
-        const firstOpenOutcome = openOutcomes[0];
-        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, {
-          market,
-          outcome: firstOpenOutcome ?? market?.outcomes?.[0],
-          outcomeToken: token,
-          entryPoint:
-            entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        });
-      },
-      {
-        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
-      },
-    );
-  };
+  const handleBuyPress = useCallback(
+    (token: PredictOutcomeToken, selectedMarket: typeof market = market) => {
+      if (!selectedMarket) {
+        return;
+      }
+      executeGuardedAction(
+        () => {
+          const selectedOpenOutcomes =
+            selectedMarket.id === market?.id
+              ? openOutcomes
+              : selectedMarket.outcomes.filter(
+                  (outcome) => outcome.status === OPEN_PREDICT_OUTCOME_STATUS,
+                );
+          const matchingOutcome =
+            selectedMarket.outcomes.find((o) =>
+              o.tokens.some((marketToken) => marketToken.id === token.id),
+            ) ??
+            selectedOpenOutcomes[0] ??
+            selectedMarket.outcomes?.[0];
+          openBuySheet({
+            market: selectedMarket,
+            outcome: matchingOutcome,
+            outcomeToken: token,
+            entryPoint:
+              entryPoint ||
+              PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+            ...(predictFeedTab && { predictFeedTab }),
+            ...(predictScreen && { predictScreen }),
+            ...(transactionActiveAbTests?.length && {
+              transactionActiveAbTests,
+            }),
+          });
+        },
+        {
+          attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
+        },
+      );
+    },
+    [
+      executeGuardedAction,
+      openOutcomes,
+      market,
+      openBuySheet,
+      entryPoint,
+      predictFeedTab,
+      predictScreen,
+      transactionActiveAbTests,
+    ],
+  );
 
-  const handleClaimPress = async () => {
+  const handleClaimPress = useCallback(async () => {
     await executeGuardedAction(
       async () => {
-        await claim();
+        // Claims are aggregate (all claimable positions), so market_id/title are
+        // intentionally omitted here; the controller derives them when exactly
+        // one market is claimed.
+        await claim({
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          ...(predictScreen && { predictScreen }),
+          ...(predictFeedTab && { predictFeedTab }),
+        });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );
-  };
+  }, [executeGuardedAction, claim, predictScreen, predictFeedTab]);
 
   const handleTabPress = (tabIndex: number) => {
     if (!tabsReady) return;
@@ -219,6 +328,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     await Promise.allSettled([
+      ...(shouldResolveMarketFromSeries ? [refetchCurrentSeriesMarket()] : []),
       refetchMarket(),
       refetchPriceHistory(),
       refetchActivePositions(),
@@ -227,15 +337,17 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     setIsRefreshing(false);
   }, [
     refetchActivePositions,
+    refetchCurrentSeriesMarket,
     refetchMarket,
     refetchPriceHistory,
     refetchClaimablePositions,
+    shouldResolveMarketFromSeries,
   ]);
 
   const handlePolymarketResolution = useCallback(() => {
     InteractionManager.runAfterInteractions(() => {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
         params: {
           url: 'https://docs.polymarket.com/polymarket-learn/markets/how-are-markets-resolved',
           title: strings('predict.market_details.resolution_details'),
@@ -256,6 +368,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         marketCategory: market.category,
         marketTags: market.tags,
         entryPoint: entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        ...(predictFeedTab && { predictFeedTab }),
+        ...(predictScreen && { predictScreen }),
         marketDetailsViewed: tabKey,
         marketSlug: market.slug,
         gameId: market.game?.id,
@@ -264,9 +378,16 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         gameStatus: market.game?.status,
         gamePeriod: market.game?.period,
         gameClock: market.game?.elapsed,
+        activeAbTests: transactionActiveAbTests,
       });
     },
-    [market, entryPoint],
+    [
+      market,
+      entryPoint,
+      predictFeedTab,
+      predictScreen,
+      transactionActiveAbTests,
+    ],
   );
   const tabs = useMemo(() => {
     const result: { label: string; key: TabKey }[] = [];
@@ -335,6 +456,47 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const hasPositivePnl = claimablePositions.some(
     (position) => position.percentPnl > 0,
   );
+
+  const isMarketUnavailable = isMarketUnresolved;
+  const resolvedMarketError = marketError ?? currentSeriesMarketError;
+
+  if (resolvedMarketError && !market) {
+    return (
+      <SafeAreaView
+        style={tw.style('flex-1 bg-default')}
+        edges={['left', 'right', 'bottom']}
+        testID={PredictMarketDetailsSelectorsIDs.SCREEN}
+      >
+        <PredictMarketDetailsHeader
+          isLoading={false}
+          market={null}
+          title={title}
+          image={image}
+          titleLineCount={titleLineCount}
+          insetsTop={insets.top}
+          onBackPress={handleBackPress}
+        />
+        <PredictOffline onRetry={handleRefresh} />
+      </SafeAreaView>
+    );
+  }
+
+  if (upDownEnabled && market && isCryptoUpDown(market)) {
+    return (
+      <PredictCryptoUpDownDetails
+        market={market}
+        onBack={handleBackPress}
+        onRefresh={handleRefresh}
+        refreshing={isRefreshing}
+        onBetPress={handleBuyPress}
+        onClaimPress={handleClaimPress}
+        isClaimablePositionsLoading={isClaimablePositionsLoading}
+        hasPositivePnl={hasPositivePnl}
+        isMarketLoading={isResolvedMarketLoading}
+        isClaimPending={isClaimPending}
+      />
+    );
+  }
   if (market?.game) {
     return (
       <PredictGameDetailsContent
@@ -349,6 +511,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           0,
         )}
         isLoading={isClaimablePositionsLoading}
+        isClaimPending={isClaimPending}
+        nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
       />
     );
   }
@@ -359,17 +523,15 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
       edges={['left', 'right', 'bottom']}
       testID={PredictMarketDetailsSelectorsIDs.SCREEN}
     >
-      <Box twClassName="px-3 gap-4">
-        <PredictMarketDetailsHeader
-          isLoading={isMarketFetching && !market}
-          market={market}
-          title={title}
-          image={image}
-          titleLineCount={titleLineCount}
-          insetsTop={insets.top}
-          onBackPress={handleBackPress}
-        />
-      </Box>
+      <PredictMarketDetailsHeader
+        isLoading={isResolvedMarketLoading}
+        market={market}
+        title={title}
+        image={image}
+        titleLineCount={titleLineCount}
+        insetsTop={insets.top}
+        onBackPress={handleBackPress}
+      />
 
       <ScrollView
         testID={PredictMarketDetailsSelectorsIDs.SCROLLABLE_TAB_VIEW}
@@ -408,9 +570,22 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         </Box>
 
         {/* Show content skeleton while initial market data is fetching */}
-        {isMarketFetching && !market ? (
+        {isResolvedMarketLoading ? (
           <Box twClassName="px-3">
             <PredictDetailsContentSkeleton />
+          </Box>
+        ) : isMarketUnavailable ? (
+          <Box
+            testID={PredictMarketDetailsSelectorsIDs.MARKET_UNAVAILABLE}
+            twClassName="px-3 py-8 items-center justify-center gap-2"
+          >
+            <Text
+              variant={TextVariant.HeadingMd}
+              color={TextColor.TextDefault}
+              twClassName="font-medium"
+            >
+              {strings('predict.market_details.market_unavailable')}
+            </Text>
           </Box>
         ) : (
           /* Sticky tab bar */
@@ -422,7 +597,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         )}
 
         {/* Tab content - only show when market is loaded */}
-        {!isMarketFetching && market && (
+        {!isResolvedMarketLoading && !isMarketUnavailable && market && (
           <PredictMarketDetailsTabContent
             activeTab={activeTab}
             tabsReady={tabsReady}
@@ -449,27 +624,26 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         )}
       </ScrollView>
 
-      <Box twClassName="px-3 bg-default border-t border-muted">
+      {!isMarketUnavailable && (
         <PredictMarketDetailsActions
           isClaimablePositionsLoading={isClaimablePositionsLoading}
           hasPositivePnl={hasPositivePnl}
           marketStatus={market?.status as PredictMarketStatus | undefined}
           singleOutcomeMarket={singleOutcomeMarket}
-          isMarketFetching={isMarketFetching}
+          isMarketLoading={isResolvedMarketLoading}
           market={market}
           openOutcomes={openOutcomes}
-          yesPercentage={yesPercentage}
           onClaimPress={handleClaimPress}
           onBuyPress={handleBuyPress}
+          isClaimPending={isClaimPending}
         />
-      </Box>
+      )}
       {isFeeExemption && (
         <Box
-          style={tw`absolute inset-x-0 bottom-4 pb-3`}
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          twClassName="gap-1"
+          twClassName="gap-1 absolute inset-x-0 bottom-4 pb-3"
         >
           <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
             {strings('predict.market_details.fee_exemption')}

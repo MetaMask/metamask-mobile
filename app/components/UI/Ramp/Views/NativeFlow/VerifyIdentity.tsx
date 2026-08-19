@@ -1,82 +1,97 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Image, Linking, ScrollView } from 'react-native';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from '../../Deposit/Views/VerifyIdentity/VerifyIdentity.styles';
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../hooks/useStyles';
+import styleSheet from './VerifyIdentity.styles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
-import { getDepositNavbarOptions } from '../../../Navbar';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
-import VerifyIdentityImage from '../../Deposit/assets/verifyIdentityIllustration.png';
-import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+import VerifyIdentityImage from '../../assets/verifyIdentityIllustration.png';
+import PoweredByTransak from '../../components/PoweredByTransak';
 import {
   TRANSAK_TERMS_URL_US,
   TRANSAK_TERMS_URL_WORLD,
   CONSENSYS_PRIVACY_POLICY_URL,
   TRANSAK_URL,
-} from '../../Deposit/constants/constants';
+} from '../../constants/transak';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../util/navigation/navUtils';
+import { useDispatch } from 'react-redux';
 import { createV2EnterEmailNavDetails } from './EnterEmail';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { VerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
+import { setHasAgreedTransakNativePolicy } from '../../../../../reducers/fiatOrders';
 
 export interface V2VerifyIdentityParams {
   amount?: string;
   currency?: string;
   assetId?: string;
+  /**
+   * When present, the screen is part of a headless buy flow and should
+   * forward this id down the auth loop so post-OTP routing can land
+   * back on `Routes.RAMP.HEADLESS_HOST` instead of BuildQuote.
+   */
+  headlessSessionId?: string;
 }
 
 export const createV2VerifyIdentityNavDetails =
   createNavigationDetails<V2VerifyIdentityParams>(Routes.RAMP.VERIFY_IDENTITY);
 
 const V2VerifyIdentity = () => {
-  const navigation = useNavigation();
-  const { styles, theme } = useStyles(styleSheet, {});
+  const dispatch = useDispatch();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { userRegion } = useRampsUserRegion();
-  const { amount, currency, assetId } = useParams<V2VerifyIdentityParams>();
+  const { amount, currency, assetId, headlessSessionId } =
+    useParams<V2VerifyIdentityParams>();
 
   const regionIsoCode = userRegion?.country?.isoCode || '';
 
-  const navigateToEnterEmail = useCallback(() => {
-    navigation.navigate(
-      ...createV2EnterEmailNavDetails({ amount, currency, assetId }),
-    );
-  }, [navigation, amount, currency, assetId]);
+  // Headless deposit (TRAM-3623): flip every emit on this screen to
+  // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when a headless
+  // session drives the flow. All emits here default to 'UNIFIED_BUY_2'.
+  const { headlessRampProps } = useHeadlessRampProps(headlessSessionId);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.verify_identity.navbar_title') },
-        theme,
-        () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-              .addProperties({
-                location: 'Verify Identity',
-                ramp_type: 'UNIFIED_BUY_2',
-              })
-              .build(),
-          );
-        },
-      ),
+  const navigateToEnterEmail = useCallback(() => {
+    navigateWithDetails(
+      navigation,
+      createV2EnterEmailNavDetails({
+        amount,
+        currency,
+        assetId,
+        headlessSessionId,
+      }),
     );
-  }, [navigation, theme, trackEvent, createEventBuilder]);
+  }, [navigation, amount, currency, assetId, headlessSessionId]);
+
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+        .addProperties({
+          location: 'Verify Identity',
+          ...headlessRampProps,
+        })
+        .build(),
+    );
+  }, [navigation, trackEvent, createEventBuilder, headlessRampProps]);
 
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
@@ -86,23 +101,30 @@ const V2VerifyIdentity = () => {
       createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
         .addProperties({
           location: 'Verify Identity',
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, headlessRampProps]);
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_TERMS_CONSENT_CLICKED)
         .addProperties({
           location: 'Verify Identity',
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
+    dispatch(setHasAgreedTransakNativePolicy(true));
     navigateToEnterEmail();
-  }, [navigateToEnterEmail, trackEvent, createEventBuilder]);
+  }, [
+    dispatch,
+    navigateToEnterEmail,
+    trackEvent,
+    createEventBuilder,
+    headlessRampProps,
+  ]);
 
   const handleTransakLink = useCallback(() => {
     let urlDomain: string = TRANSAK_URL;
@@ -117,12 +139,12 @@ const V2VerifyIdentity = () => {
           location: 'Verify Identity',
           external_link_description: 'Transak',
           url_domain: urlDomain,
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
     Linking.openURL(TRANSAK_URL);
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, headlessRampProps]);
 
   const handlePrivacyPolicyLink = useCallback(() => {
     let urlDomain: string = CONSENSYS_PRIVACY_POLICY_URL;
@@ -137,12 +159,12 @@ const V2VerifyIdentity = () => {
           location: 'Verify Identity',
           external_link_description: 'Privacy Policy',
           url_domain: urlDomain,
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
     Linking.openURL(CONSENSYS_PRIVACY_POLICY_URL);
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, headlessRampProps]);
 
   const handleTransakTermsLink = useCallback(() => {
     const termsUrl =
@@ -159,16 +181,22 @@ const V2VerifyIdentity = () => {
           location: 'Verify Identity',
           external_link_description: 'Transak Terms',
           url_domain: urlDomain,
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
     Linking.openURL(termsUrl);
-  }, [regionIsoCode, trackEvent, createEventBuilder]);
+  }, [regionIsoCode, trackEvent, createEventBuilder, headlessRampProps]);
 
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderStandard
+          title={strings('deposit.verify_identity.navbar_title')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <ScreenLayout.Content grow>
             <Image
@@ -176,24 +204,32 @@ const V2VerifyIdentity = () => {
               resizeMode={'contain'}
               style={styles.image}
             />
-            <Text variant={TextVariant.HeadingLG} style={styles.title}>
+            <Text variant={TextVariant.HeadingLg} style={styles.title}>
               {strings('deposit.verify_identity.title')}
             </Text>
 
-            <Text style={styles.description}>
+            <Text variant={TextVariant.BodyMd} style={styles.description}>
               {strings('deposit.verify_identity.description_1')}
             </Text>
 
-            <Text style={styles.description}>
-              <Text style={styles.linkText} onPress={handleTransakLink}>
+            <Text variant={TextVariant.BodyMd} style={styles.description}>
+              <Text
+                variant={TextVariant.BodyMd}
+                style={styles.linkText}
+                onPress={handleTransakLink}
+              >
                 {strings('deposit.verify_identity.description_2_transak')}
               </Text>
               {strings('deposit.verify_identity.description_2_rest')}
             </Text>
 
-            <Text style={styles.descriptionCompact}>
+            <Text
+              variant={TextVariant.BodyMd}
+              style={styles.descriptionCompact}
+            >
               {strings('deposit.verify_identity.description_3_part1')}
               <Text
+                variant={TextVariant.BodyMd}
                 style={styles.linkText}
                 onPress={handlePrivacyPolicyLink}
                 testID={VerifyIdentitySelectorsIDs.PRIVACY_POLICY_LINK_1}
@@ -210,14 +246,14 @@ const V2VerifyIdentity = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content style={styles.footerContent}>
           <Text
-            variant={TextVariant.BodyXS}
-            color={TextColor.Muted}
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextMuted}
             style={styles.agreementText}
           >
             {strings('deposit.verify_identity.agreement_text_part1')}
             <Text
-              variant={TextVariant.BodyXS}
-              color={TextColor.Muted}
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextMuted}
               style={styles.linkText}
               onPress={handleTransakTermsLink}
             >
@@ -225,8 +261,8 @@ const V2VerifyIdentity = () => {
             </Text>
             {strings('deposit.verify_identity.agreement_text_and')}
             <Text
-              variant={TextVariant.BodyXS}
-              color={TextColor.Muted}
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextMuted}
               style={styles.linkText}
               onPress={handlePrivacyPolicyLink}
               testID={VerifyIdentitySelectorsIDs.PRIVACY_POLICY_LINK_2}
@@ -239,10 +275,11 @@ const V2VerifyIdentity = () => {
             testID={VerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
             size={ButtonSize.Lg}
             onPress={handleSubmit}
-            label={strings('deposit.verify_identity.button')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-          />
+            variant={ButtonVariant.Primary}
+            isFullWidth
+          >
+            {strings('deposit.verify_identity.button')}
+          </Button>
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

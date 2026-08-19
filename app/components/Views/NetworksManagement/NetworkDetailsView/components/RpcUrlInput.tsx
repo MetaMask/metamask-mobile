@@ -4,8 +4,8 @@ import URLParse from 'url-parse';
 import { isWebUri } from 'valid-url';
 import { strings } from '../../../../../../locales/i18n';
 import { isPrivateConnection } from '../../../../../util/networks';
-import Text from '../../../../../component-library/components/Texts/Text';
 import { NetworkDetailsViewSelectorsIDs } from '../NetworkDetailsView.testIds';
+import { Text } from '@metamask/design-system-react-native';
 
 export interface RpcUrlInputProps extends TextInputProps {
   checkIfNetworkExists: (rpcUrl: string) => Promise<{ chainId: string }[]>;
@@ -91,7 +91,12 @@ const RpcUrlInput = forwardRef<TextInput, RpcUrlInputProps>((props, ref) => {
 
   return (
     <>
-      <TextInput ref={ref} {...inputProps} onChangeText={handleRpcUrlChange} />
+      <TextInput
+        ref={ref}
+        {...inputProps}
+        underlineColorAndroid="transparent"
+        onChangeText={handleRpcUrlChange}
+      />
       {warningRpcUrl && (
         <View testID={NetworkDetailsViewSelectorsIDs.RPC_WARNING_BANNER}>
           <Text style={warningStyle}>{warningRpcUrl}</Text>

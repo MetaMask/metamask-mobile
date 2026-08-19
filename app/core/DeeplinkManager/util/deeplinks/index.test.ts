@@ -1,4 +1,10 @@
-import { isInternalDeepLink, isMetaMaskUniversalLink } from './index';
+import {
+  isInternalDeepLink,
+  isMetaMaskSDKDeeplinkAction,
+  isMetaMaskUniversalLink,
+  isSDKServiceDeeplink,
+} from './index';
+import { ACTIONS } from '../../../../constants/deeplinks';
 
 describe('deeplinks utils', () => {
   describe('isMetaMaskUniversalLink', () => {
@@ -14,6 +20,11 @@ describe('deeplinks utils', () => {
       );
       expect(
         isMetaMaskUniversalLink('https://metamask.test-app.link/home'),
+      ).toBe(true);
+      expect(
+        isMetaMaskUniversalLink(
+          'https://metamask-alternate.test-app.link/swap',
+        ),
       ).toBe(true);
       expect(
         isMetaMaskUniversalLink('https://link-test.metamask.io/send'),
@@ -80,6 +91,9 @@ describe('deeplinks utils', () => {
       expect(isInternalDeepLink('https://metamask.test-app.link/home')).toBe(
         true,
       );
+      expect(
+        isInternalDeepLink('https://metamask-alternate.test-app.link/dapp/x'),
+      ).toBe(true);
     });
 
     it('does not identify external URLs as internal', () => {
@@ -116,6 +130,52 @@ describe('deeplinks utils', () => {
       expect(isInternalDeepLink('https://google.com?metamask=true')).toBe(
         false,
       );
+    });
+  });
+
+  describe('isMetaMaskSDKDeeplinkAction', () => {
+    it.each([ACTIONS.ANDROID_SDK, ACTIONS.CONNECT, ACTIONS.MMSDK])(
+      'returns true for %s',
+      (action) => {
+        expect(isMetaMaskSDKDeeplinkAction(action)).toBe(true);
+      },
+    );
+
+    it.each([ACTIONS.WC, ACTIONS.BUY, ACTIONS.SWAP])(
+      'returns false for %s',
+      (action) => {
+        expect(isMetaMaskSDKDeeplinkAction(action)).toBe(false);
+      },
+    );
+  });
+
+  describe('isSDKServiceDeeplink', () => {
+    it.each([
+      'wc://session-topic',
+      'metamask://wc?uri=wc%3Asession-topic',
+      'metamask://connect?channelId=test-channel-id',
+      'metamask://mmsdk?message=test-message',
+      'metamask://bind?channelId=test-channel-id',
+      'https://link.metamask.io/wc?uri=wc%3Asession-topic',
+      'https://link.metamask.io/connect?channelId=test-channel-id',
+      'https://link.metamask.io/mmsdk?message=test-message',
+      'https://link.metamask.io/bind?channelId=test-channel-id',
+    ])('returns true for %s', (deeplink) => {
+      expect(isSDKServiceDeeplink(deeplink)).toBe(true);
+    });
+
+    it.each([
+      'metamask://buy',
+      'https://link.metamask.io/buy',
+      'https://link.metamask.io/swap',
+      'https://example.com/wc?uri=wc%3Asession-topic',
+      'ethereum:0x0000000000000000000000000000000000000000',
+      '',
+      null,
+      undefined,
+      'not-a-valid-url',
+    ])('returns false for %s', (deeplink) => {
+      expect(isSDKServiceDeeplink(deeplink)).toBe(false);
     });
   });
 });

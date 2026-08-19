@@ -5,9 +5,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, Alert, TextInput, Switch, View } from 'react-native';
+import { ScrollView, Alert, TextInput, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -20,9 +21,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { useTheme } from '../../../util/theme';
 import {
   FeatureFlagInfo,
@@ -31,7 +32,10 @@ import {
 } from '../../../util/feature-flags';
 import { useFeatureFlagOverride } from '../../../contexts/FeatureFlagOverrideContext';
 import { useFeatureFlagStats } from '../../../hooks/useFeatureFlagStats';
-import { selectRawRemoteFeatureFlags } from '../../../selectors/featureFlagController';
+import {
+  selectRawRemoteFeatureFlags,
+  selectFeatureFlagThresholdGroups,
+} from '../../../selectors/featureFlagController';
 import { useSelector } from 'react-redux';
 import SelectOptionSheet from '../../UI/SelectOptionSheet';
 interface FeatureFlagRowProps {
@@ -50,6 +54,7 @@ interface AbTestType {
 
 const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
   const rawRemoteFeatureFlags = useSelector(selectRawRemoteFeatureFlags);
+  const thresholdGroups = useSelector(selectFeatureFlagThresholdGroups);
   const tw = useTailwind();
   const theme = useTheme();
   const [localValue, setLocalValue] = useState(flag.value);
@@ -59,6 +64,13 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
   // Track whether a reset is in progress to prevent onEndEditing from
   // reinstating the override with stale closure values
   const isResettingRef = useRef(false);
+  const [jsonText, setJsonText] = useState(() =>
+    flag.type === FeatureFlagType.FeatureFlagObject ||
+    flag.type === FeatureFlagType.FeatureFlagArray
+      ? JSON.stringify(flag.value, null, 2)
+      : '',
+  );
+  const [jsonError, setJsonError] = useState<string | null>(null);
 
   useEffect(() => {
     // Sync localValue with flag.value when the flag is not overridden
@@ -67,8 +79,15 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
     // while preventing race conditions during user input.
     if (!flag.isOverridden && !isEditingRef.current) {
       setLocalValue(flag.value);
+      if (
+        flag.type === FeatureFlagType.FeatureFlagObject ||
+        flag.type === FeatureFlagType.FeatureFlagArray
+      ) {
+        setJsonText(JSON.stringify(flag.value, null, 2));
+        setJsonError(null);
+      }
     }
-  }, [flag.value, flag.isOverridden]);
+  }, [flag.value, flag.isOverridden, flag.type]);
   const minimumVersion = (localValue as MinimumVersionFlagValue)
     ?.minimumVersion;
   const isVersionSupported = useMemo(
@@ -81,6 +100,13 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
     // with stale closure values when the input loses focus due to button press
     isResettingRef.current = true;
     setLocalValue(flag.originalValue);
+    if (
+      flag.type === FeatureFlagType.FeatureFlagObject ||
+      flag.type === FeatureFlagType.FeatureFlagArray
+    ) {
+      setJsonText(JSON.stringify(flag.originalValue, null, 2));
+      setJsonError(null);
+    }
     onToggle(flag.key, null); // null indicates removal of override
   };
 
@@ -177,14 +203,16 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
           onToggle(flag.key, selectedOption);
         };
 
-        // Safely extract name from localValue if it has AbTestType shape
+        // Prefer the name from an override value (`{ name, value }`); otherwise
+        // fall back to the selected threshold group, since the resolved value
+        // no longer carries the group name.
         const selectedName =
           localValue &&
           typeof localValue === 'object' &&
           'name' in localValue &&
           typeof (localValue as AbTestType).name === 'string'
             ? (localValue as AbTestType).name
-            : undefined;
+            : thresholdGroups?.[flag.key];
 
         return (
           <Box
@@ -254,35 +282,61 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
         );
 
       case FeatureFlagType.FeatureFlagObject:
-        return (
-          <View>
-            {Object.keys((localValue as object) || {}).map(
-              (itemKey: string) => (
-                <Text key={itemKey}>
-                  {itemKey}:{' '}
-                  {JSON.stringify(
-                    (localValue as object)[itemKey as keyof object],
-                  )}
-                </Text>
-              ),
-            )}
-          </View>
-        );
       case FeatureFlagType.FeatureFlagArray:
         return (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Sm}
-            onPress={() => {
-              Alert.alert(
-                `${flag.key} (${flag.type})`,
-                JSON.stringify(localValue, null, 2),
-                [{ text: 'Cancel', style: 'cancel' }],
-              );
-            }}
-          >
-            View/Edit
-          </Button>
+          <Box twClassName="flex-1 mt-2">
+            <TextInput
+              value={jsonText}
+              multiline
+              onFocus={() => {
+                isEditingRef.current = true;
+                isResettingRef.current = false;
+              }}
+              onChangeText={(text) => {
+                setJsonText(text);
+                setJsonError(null);
+              }}
+              onEndEditing={() => {
+                isEditingRef.current = false;
+                if (isResettingRef.current) {
+                  isResettingRef.current = false;
+                  return;
+                }
+                try {
+                  const parsed = JSON.parse(jsonText);
+                  setLocalValue(parsed);
+                  setJsonError(null);
+                  onToggle(flag.key, parsed);
+                } catch {
+                  setJsonError('Invalid JSON');
+                }
+              }}
+              onBlur={() => {
+                isEditingRef.current = false;
+              }}
+              style={[
+                tw.style('border rounded p-2 text-sm font-mono min-h-[80px]'),
+                {
+                  borderColor: jsonError
+                    ? theme.colors.error.default
+                    : theme.colors.border.default,
+                  color: theme.colors.text.default,
+                  backgroundColor: theme.colors.background.default,
+                },
+              ]}
+              placeholder={`Enter JSON ${flag.type}`}
+              placeholderTextColor={theme.colors.text.muted}
+            />
+            {jsonError && (
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.ErrorDefault}
+                twClassName="mt-1"
+              >
+                {jsonError}
+              </Text>
+            )}
+          </Box>
         );
 
       default:
@@ -315,10 +369,13 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
               Original: {JSON.stringify(flag.originalValue)}
             </Text>
           )}
-          {flag.type === 'object' && renderValueEditor()}
+          {(flag.type === 'object' || flag.type === 'array') &&
+            renderValueEditor()}
         </Box>
         <Box twClassName="ml-4 items-end">
-          {flag.type !== 'object' && renderValueEditor()}
+          {flag.type !== 'object' &&
+            flag.type !== 'array' &&
+            renderValueEditor()}
           {flag.isOverridden && (
             <Box twClassName="ml-2 px-2 py-1 my-2 bg-warning-muted rounded">
               <Text
@@ -351,7 +408,7 @@ const FeatureFlagRow: React.FC<FeatureFlagRowProps> = ({ flag, onToggle }) => {
 };
 
 const FeatureFlagOverride: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const tw = useTailwind();
 
@@ -450,7 +507,7 @@ const FeatureFlagOverride: React.FC = () => {
       testID="feature-flag-override-screen"
       edges={['top', 'left', 'right']}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title="Feature Flag Override"
         onBack={handleGoBack}
         includesTopInset={false}

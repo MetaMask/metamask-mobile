@@ -1,7 +1,9 @@
 // Third party dependencies
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { fireEvent, waitFor, screen } from '@testing-library/react-native';
+import { FlatList } from 'react-native';
+import type { FlashListProps } from '@shopify/flash-list';
 
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -14,6 +16,32 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NetworkListModalSelectorsIDs } from './NetworkListModal.testIds';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { mockNetworkState } from '../../../util/test/network';
+
+jest.mock('@shopify/flash-list', () => {
+  const ReactMock = jest.requireActual<typeof import('react')>('react');
+  const { FlatList: MockFlashList } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+
+  return {
+    FlashList: ReactMock.forwardRef(
+      (
+        {
+          renderScrollComponent: _renderScrollComponent,
+          ...props
+        }: FlashListProps<unknown>,
+        ref: React.ForwardedRef<FlatList<unknown>>,
+      ) => {
+        const mockProps = {
+          ...props,
+          initialNumToRender: props.data?.length,
+          ref,
+        } as unknown as React.ComponentPropsWithRef<typeof MockFlashList>;
+
+        return ReactMock.createElement(MockFlashList, mockProps);
+      },
+    ),
+  };
+});
 
 jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   removeItemFromChainIdList: jest.fn().mockReturnValue({
@@ -45,20 +73,17 @@ jest.mock('../../../core/Analytics', () => ({
   },
 }));
 
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as selectedNetworkControllerFcts from '../../../selectors/selectedNetworkController';
 
 const mockEngine = Engine;
-
-const setShowTestNetworksSpy = jest.spyOn(
-  Engine.context.PreferencesController,
-  'setShowTestNetworks',
-);
 
 // Mock the entire module
 jest.mock('../../../util/networks/isNetworkUiRedesignEnabled', () => ({
   isNetworkUiRedesignEnabled: jest.fn(),
 }));
+
+jest.mock('./RpcSelectionModal/RpcSelectionModal', () => () => null);
 
 jest.mock('../../../util/transaction-controller', () => ({
   updateIncomingTransactions: jest.fn(),
@@ -91,6 +116,7 @@ jest.mock('../../../core/Engine', () => ({
       setActiveNetwork: jest.fn(),
       setProviderType: jest.fn(),
       updateNetwork: jest.fn(),
+      removeNetwork: jest.fn(),
       getNetworkClientById: jest.fn().mockReturnValue({ chainId: '0x1' }),
       findNetworkClientIdByChainId: jest
         .fn()
@@ -308,7 +334,7 @@ const initialState = {
   },
 };
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const createMockRoute = () => ({
   params: {},
@@ -329,16 +355,89 @@ const renderComponent = (state: any = {}) =>
   );
 
 describe('Network Selector', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(Engine.context.PreferencesController, 'setShowTestNetworks');
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('renders heterogeneous network sections through a virtualized list', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { UNSAFE_getByType } = renderComponent(initialState);
+
+    const list = UNSAFE_getByType(FlatList);
+    const itemTypes = list.props.data.map(
+      (item: { type: string }) => item.type,
+    );
+
+    expect(itemTypes).toEqual(
+      expect.arrayContaining([
+        'enabledNetworksHeader',
+        'mainnet',
+        'lineaMainnet',
+        'rpcNetwork',
+        'popularNetworksHeader',
+        'additionalNetworks',
+        'testNetworksSwitch',
+      ]),
+    );
+    expect(list.props.getItemType(list.props.data[0])).toBe(
+      'enabledNetworksHeader',
+    );
+    expect(list.props.maintainVisibleContentPosition).toEqual({
+      disabled: true,
+    });
+  });
+
+  it('omits non-matching network rows from virtualized search data', () => {
+    (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+    const { getByPlaceholderText, UNSAFE_getByType } =
+      renderComponent(initialState);
+
+    fireEvent.changeText(getByPlaceholderText('Search'), 'Polygon');
+
+    const list = UNSAFE_getByType(FlatList);
+    const listItems = list.props.data as {
+      type: string;
+      networkConfiguration?: { name: string };
+    }[];
+    const rpcNetworkItems = listItems.filter(
+      (item) => item.type === 'rpcNetwork',
+    );
+
+    expect(listItems).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'mainnet' }),
+        expect.objectContaining({ type: 'lineaMainnet' }),
+      ]),
+    );
+    expect(rpcNetworkItems).toEqual([
+      expect.objectContaining({
+        networkConfiguration: expect.objectContaining({
+          name: 'Polygon Mainnet',
+        }),
+      }),
+    ]);
+  });
+
   it('renders correctly', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
+    renderComponent(initialState);
+    expect(
+      screen.getByTestId(NetworkListModalSelectorsIDs.TEST_NET_TOGGLE),
+    ).toBeOnTheScreen();
   });
 
   it('renders correctly when network UI redesign is enabled', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
-    const { toJSON } = renderComponent(initialState);
-    expect(toJSON()).toMatchSnapshot();
+    renderComponent(initialState);
+    expect(
+      screen.getByTestId(NetworkListModalSelectorsIDs.TEST_NET_TOGGLE),
+    ).toBeOnTheScreen();
   });
 
   it('renders correctly when network UI redesign is enabled and calls setNetworkClientIdForDomain', async () => {
@@ -361,7 +460,7 @@ describe('Network Selector', () => {
       expect(
         mockEngine.context.SelectedNetworkController
           .setNetworkClientIdForDomain,
-      ).toBeCalled();
+      ).toHaveBeenCalled();
     });
   });
 
@@ -373,7 +472,7 @@ describe('Network Selector', () => {
     expect(popularNetworksTitle).toBeTruthy();
   });
 
-  it('changes network when another network cell is pressed', async () => {
+  it('changes network when another network cell is pressed', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByText } = renderComponent(initialState);
     const polygonCell = getByText('Polygon Mainnet');
@@ -382,7 +481,7 @@ describe('Network Selector', () => {
 
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalled();
+    ).toHaveBeenCalled();
   });
 
   it('toggles the test networks switch correctly', () => {
@@ -394,7 +493,9 @@ describe('Network Selector', () => {
 
     fireEvent(testNetworksSwitch, 'onValueChange', true);
 
-    expect(setShowTestNetworksSpy).toBeCalled();
+    expect(
+      Engine.context.PreferencesController.setShowTestNetworks,
+    ).toHaveBeenCalled();
   });
 
   it('toggle test network is disabled and is on when a testnet is selected', () => {
@@ -455,17 +556,17 @@ describe('Network Selector', () => {
     );
 
     expect(testNetworksSwitch.props.value).toBeTruthy();
-    expect(testNetworksSwitch.props.disabled).toBeTruthy();
+    expect(testNetworksSwitch).toHaveProp('disabled', true);
   });
 
-  it('changes to non infura network when another network cell is pressed', async () => {
+  it('changes to non infura network when another network cell is pressed', () => {
     const { getByText } = renderComponent(initialState);
     const gnosisCell = getByText('Gnosis Chain');
 
     fireEvent.press(gnosisCell);
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalled();
+    ).toHaveBeenCalled();
   });
 
   it('changes to test network when another network cell is pressed', async () => {
@@ -538,7 +639,7 @@ describe('Network Selector', () => {
 
     expect(
       mockEngine.context.MultichainNetworkController.setActiveNetwork,
-    ).toBeCalled();
+    ).toHaveBeenCalled();
   });
 
   it('renders correctly with no network configurations', async () => {
@@ -589,10 +690,15 @@ describe('Network Selector', () => {
 
     fireEvent.press(polygonCell);
 
-    await waitFor(() => {
-      const rpcOption = getByText('polygon-mainnet.infura.io/v3');
-      fireEvent.press(rpcOption);
+    const rpcOption = await waitFor(() => {
+      const option = getByText('polygon-mainnet.infura.io/v3');
+
+      expect(option).toBeOnTheScreen();
+
+      return option;
     });
+
+    fireEvent.press(rpcOption);
   });
 
   it('filters networks correctly when searching', () => {
@@ -606,7 +712,7 @@ describe('Network Selector', () => {
 
     // Polygon should appear, but others should not
     expect(queryByText('Polygon Mainnet')).toBeTruthy();
-    expect(queryByText('Avalanche Mainnet C-Chain')).toBeNull();
+    expect(queryByText('Avalanche Mainnet C-Chain')).not.toBeOnTheScreen();
 
     // Clear search and check if all networks appear
     fireEvent.changeText(searchInput, '');
@@ -646,11 +752,15 @@ describe('Network Selector', () => {
 
     // Toggle the switch on
     fireEvent(testNetworksSwitch, 'onValueChange', true);
-    expect(setShowTestNetworksSpy).toBeCalledWith(true);
+    expect(
+      Engine.context.PreferencesController.setShowTestNetworks,
+    ).toHaveBeenCalledWith(true);
 
     // Toggle the switch off
     fireEvent(testNetworksSwitch, 'onValueChange', false);
-    expect(setShowTestNetworksSpy).toBeCalledWith(false);
+    expect(
+      Engine.context.PreferencesController.setShowTestNetworks,
+    ).toHaveBeenCalledWith(false);
   });
 
   describe('renderLineaMainnet', () => {
@@ -672,6 +782,15 @@ describe('Network Selector', () => {
 
       expect(getByText('BNB Chain')).toBeTruthy();
       expect(getAllByText('No network fee').length).toBe(1);
+    });
+
+    it('renders network name Text with numberOfLines=1 in non-send flow', () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+
+      const { getByText } = renderComponent(initialState);
+
+      const nameText = getByText('Avalanche Mainnet C-Chain');
+      expect(nameText.props.numberOfLines).toBe(1);
     });
 
     it('renders "No network fee" as tertiary text in send flow', () => {
@@ -720,10 +839,74 @@ describe('Network Selector', () => {
     });
   });
 
+  describe('renderRpcNetworks - delete guard for non-removable networks', () => {
+    const MENU_BUTTON_TEST_ID = 'button-menu-select-test-id';
+    const MONAD_MAINNET_CHAIN_ID = '0x8f';
+
+    const stateWithOnlyMonadMainnet = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {
+              mainnet: { status: 'available', EIPS: { '1559': true } },
+            },
+            networkConfigurationsByChainId: {
+              '0x1':
+                initialState.engine.backgroundState.NetworkController
+                  .networkConfigurationsByChainId['0x1'],
+              [MONAD_MAINNET_CHAIN_ID]: {
+                blockExplorerUrls: ['https://monadscan.com'],
+                chainId: MONAD_MAINNET_CHAIN_ID,
+                defaultRpcEndpointIndex: 0,
+                name: 'Monad Mainnet',
+                nativeCurrency: 'MON',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'monad-mainnet',
+                    type: 'infura' as const,
+                    url: 'https://monad-mainnet.infura.io/v3/test',
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    it('does not show delete option when 3-dot menu is opened for Monad mainnet', async () => {
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
+      const { getAllByTestId, queryByTestId } = renderComponent(
+        stateWithOnlyMonadMainnet,
+      );
+
+      const menuButtons = getAllByTestId(MENU_BUTTON_TEST_ID);
+      fireEvent.press(menuButtons[2]);
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(NetworkListModalSelectorsIDs.DELETE_NETWORK),
+        ).toBeNull();
+      });
+    });
+  });
+
   describe('network switching with connected dapp', () => {
     beforeEach(() => {
-      // Reset the mock before each test
-      jest.clearAllMocks();
+      // Reset only the specific mocks being asserted, not all mocks
+      // (jest.clearAllMocks() would clear Engine mock implementations too)
+      (
+        mockEngine.context.SelectedNetworkController
+          .setNetworkClientIdForDomain as jest.Mock
+      ).mockClear();
+      (
+        mockEngine.context.MultichainNetworkController
+          .setActiveNetwork as jest.Mock
+      ).mockClear();
+      (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => true);
     });
 
     it('should not call setNetworkClientIdForDomain when dapp is not connected', async () => {

@@ -1,8 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import React from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import Button, {
+  ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
@@ -19,7 +21,7 @@ interface EarningsHistoryButtonProps {
 }
 
 const EarningsHistoryButton = ({ asset }: EarningsHistoryButtonProps) => {
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
 
   const { outputToken } = useSelector((state: RootState) =>
     earnSelectors.selectEarnTokenPair(state, asset),
@@ -37,6 +39,7 @@ const EarningsHistoryButton = ({ asset }: EarningsHistoryButtonProps) => {
         testID={WalletViewSelectorsIDs.EARN_EARNINGS_HISTORY_BUTTON}
         width={ButtonWidthTypes.Full}
         variant={ButtonVariants.Secondary}
+        size={ButtonSize.Md}
         label={
           outputToken?.experience?.type === EARN_EXPERIENCES.STABLECOIN_LENDING
             ? strings('earn.view_earnings_history.lending')

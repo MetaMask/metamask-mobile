@@ -1,22 +1,20 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import {
-  Text,
+  BottomSheet,
+  Button,
+  ButtonBaseSize,
   ButtonIcon,
-  TextVariant,
+  ButtonVariant,
+  Checkbox,
   IconName,
+  Text,
   TextColor,
+  TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import Button, {
-  ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
-} from '../../../../component-library/components/Buttons/Button';
-import Checkbox from '../../../../component-library/components/Checkbox';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useNavigation, useTheme } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './LearnMoreBottomSheet.styles';
@@ -24,9 +22,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
 import { useDispatch, useSelector } from 'react-redux';
 import { setMultichainAccountsIntroModalSeen } from '../../../../actions/user';
+import { LEARN_MORE_BOTTOM_SHEET_TEST_IDS } from './LearnMoreBottomSheet.testIds';
 
 interface LearnMoreBottomSheetProps {
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
@@ -35,7 +34,7 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
   const { styles } = useStyles(styleSheet, { theme: useTheme() });
   const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
 
   const isBasicFunctionalityEnabled = useSelector(
@@ -49,10 +48,6 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
-
-  const handleCheckboxToggle = useCallback(() => {
-    setIsCheckboxChecked(!isCheckboxChecked);
-  }, [isCheckboxChecked]);
 
   const handleConfirm = useCallback(() => {
     if (isCheckboxChecked) {
@@ -68,25 +63,29 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
   }, [isCheckboxChecked, navigation, isBasicFunctionalityEnabled, dispatch]);
 
   return (
-    <BottomSheet ref={sheetRef} onClose={onClose}>
+    <BottomSheet
+      ref={sheetRef}
+      onClose={onClose}
+      testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.BOTTOM_SHEET}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           <ButtonIcon
             onPress={handleBack}
             iconName={IconName.ArrowLeft}
-            testID="learn-more-back-button"
+            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.BACK_BUTTON}
           />
           <Text
             variant={TextVariant.HeadingMd}
             style={styles.title}
-            testID="learn-more-title"
+            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.TITLE}
           >
             {strings('multichain_accounts.learn_more.title')}
           </Text>
           <ButtonIcon
             onPress={handleClose}
             iconName={IconName.Close}
-            testID="learn-more-close-button"
+            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CLOSE_BUTTON}
           />
         </View>
 
@@ -95,29 +94,30 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
             style={styles.description}
-            testID="learn-more-description"
+            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.DESCRIPTION}
           >
             {strings('multichain_accounts.learn_more.description')}
           </Text>
 
           <Checkbox
-            isChecked={isCheckboxChecked}
-            onPress={handleCheckboxToggle}
+            isSelected={isCheckboxChecked}
+            onChange={setIsCheckboxChecked}
             label={strings('multichain_accounts.learn_more.checkbox_label')}
-            testID="learn-more-checkbox"
+            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CHECKBOX}
           />
         </View>
 
         <View style={styles.footer}>
           <Button
-            variant={ButtonVariants.Primary}
-            label={strings('multichain_accounts.learn_more.confirm_button')}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Primary}
+            size={ButtonBaseSize.Lg}
+            isFullWidth
             onPress={handleConfirm}
             isDisabled={!isCheckboxChecked}
-            testID="learn-more-confirm-button"
-          />
+            testID={LEARN_MORE_BOTTOM_SHEET_TEST_IDS.CONFIRM_BUTTON}
+          >
+            {strings('multichain_accounts.learn_more.confirm_button')}
+          </Button>
         </View>
       </View>
     </BottomSheet>

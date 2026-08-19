@@ -36,7 +36,7 @@ import { GasFeeModal } from '../../../modals/gas-fee-modal';
 import AlertRow from '../../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
-import { Skeleton } from '../../../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../../../component-library/components-temp/Skeleton';
 import styleSheet from './gas-fee-details-row.styles';
 import { IconColor } from '../../../../../../../component-library/components/Icons/Icon/Icon.types';
 import { selectNetworkConfigurationByChainId } from '../../../../../../../selectors/networkController';
@@ -45,24 +45,28 @@ import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import TagColored, {
   TagColor,
 } from '../../../../../../../component-library/components-temp/TagColored';
+import { shouldApplyGasFeeSponsorship } from '../../../../utils/transaction';
 
-const PaidByMetaMask = () => (
-  <TagColored
-    color={TagColor.Success}
-    labelProps={{
-      variant: TextVariant.BodySM,
-      style: {
-        textTransform: 'none',
-        textAlign: 'center',
-        bottom: 1,
-        fontWeight: 'normal',
-      },
-      testID: 'paid-by-metamask',
-    }}
-  >
-    {strings('transactions.paid_by_metamask')}
-  </TagColored>
-);
+const PaidByMetaMask = () => {
+  const { styles } = useStyles(styleSheet, {});
+  return (
+    <TagColored
+      color={TagColor.Success}
+      style={styles.paidByMetaMask}
+      labelProps={{
+        variant: TextVariant.BodySM,
+        style: {
+          textTransform: 'none',
+          textAlign: 'center',
+          fontWeight: 'normal',
+        },
+        testID: 'paid-by-metamask',
+      }}
+    >
+      {strings('transactions.paid_by_metamask')}
+    </TagColored>
+  );
+};
 
 const SkeletonEstimationInfo = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -262,20 +266,19 @@ const GasFeesDetailsRow = ({
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
   const gasFeeToken = useSelectedGasFeeToken();
   const metamaskFeeFiat = gasFeeToken?.metamaskFeeFiat;
-  const {
-    userFeeLevel: isUserFeeLevelExists,
-    isGasFeeSponsored: doesSentinelAllowSponsorship,
-  } = transactionMetadata ?? {};
+  const { userFeeLevel: isUserFeeLevelExists } = transactionMetadata ?? {};
 
   const hideFiatForTestnet = useHideFiatForTestnet(
     transactionMetadata?.chainId,
   );
   const { trackTooltipClickedEvent } = useConfirmationMetricEvents();
 
-  // This prevents the gas fee row from showing as sponsored if stx is disabled
-  // by the user and 7702 is not supported in the chain.
+  // Gasless support (including HW check) is centralized in useIsGaslessSupported.
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
-  const isGasFeeSponsored = isGaslessSupported && doesSentinelAllowSponsorship;
+  const isGasFeeSponsored = shouldApplyGasFeeSponsorship({
+    transactionMeta: transactionMetadata,
+    isGaslessSupported,
+  });
 
   const handleNetworkFeeTooltipClickedEvent = () => {
     trackTooltipClickedEvent({
@@ -325,7 +328,7 @@ const GasFeesDetailsRow = ({
           alertField={RowAlertKey.EstimatedFee}
           label={strings('transactions.network_fee')}
           tooltip={confirmGasFeeTokenTooltip}
-          tooltipColor={IconColor.Alternative}
+          tooltipColor={IconColor.Muted}
           onTooltipPress={handleNetworkFeeTooltipClickedEvent}
         >
           <View style={styles.valueContainer}>
@@ -364,14 +367,17 @@ const GasFeesDetailsRow = ({
             </View>
           )}
         </AlertRow>
-        {isUserFeeLevelExists && !hideSpeed && (
-          <AlertRow
-            alertField={RowAlertKey.PendingTransaction}
-            label={strings('transactions.gas_modal.speed')}
-          >
-            <GasSpeed />
-          </AlertRow>
-        )}
+        {isUserFeeLevelExists &&
+          !hideSpeed &&
+          !gasFeeToken &&
+          !isSimulationLoading && (
+            <AlertRow
+              alertField={RowAlertKey.PendingTransaction}
+              label={strings('transactions.gas_modal.speed')}
+            >
+              <GasSpeed />
+            </AlertRow>
+          )}
       </Container>
       {gasModalVisible && (
         <GasFeeModal setGasModalVisible={setGasModalVisible} />

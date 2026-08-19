@@ -1,16 +1,19 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { notificationAsync, NotificationFeedbackType } from 'expo-haptics';
+import { playNotification, NotificationMoment } from '../../../../util/haptics';
 import usePerpsToasts, { PerpsToastOptions } from './usePerpsToasts';
 import {
   ButtonIconVariant,
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import {
+  IconColor,
+  IconName,
+} from '../../../../component-library/components/Icons/Icon';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
-
+import { mockTheme } from '../../../../util/theme';
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useContext: jest.fn(),
@@ -20,38 +23,60 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('expo-haptics', () => ({
-  notificationAsync: jest.fn(),
-  NotificationFeedbackType: {
-    Success: 'success',
-    Warning: 'warning',
-    Error: 'error',
-  },
-}));
+jest.mock('../../../../util/haptics');
 
 jest.mock('../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  const { mockTheme: actualMockTheme } = jest.requireActual(
+    '../../../../util/theme',
+  );
   return {
-    useAppThemeFromContext: jest.fn(() => mockTheme),
+    mockTheme: actualMockTheme,
+    useAppThemeFromContext: jest.fn(() => actualMockTheme),
   };
 });
 
 jest.mock('@metamask/design-system-react-native', () => ({
   IconSize: {
+    Lg: 'lg',
     Xl: 'xl',
   },
   IconColor: {
+    IconDefault: 'icon-default',
     PrimaryDefault: 'primary-default',
   },
   Text: 'Text',
   TextVariant: {
     BodyMd: 'BodyMd',
+    BodySm: 'BodySm',
     BodySMMedium: 'BodySMMedium',
   },
   TextColor: {
     TextDefault: 'TextDefault',
   },
   Spinner: 'Spinner',
+  FontWeight: {
+    Medium: 'medium',
+  },
+}));
+
+let mockTransactionsRedesignEnabled = false;
+let mockDepositMeta: { chainId: string } | undefined;
+
+jest.mock(
+  '../../../../selectors/featureFlagController/activityRedesign',
+  () => ({
+    selectIsTransactionsRedesignEnabled: jest.fn(
+      () => mockTransactionsRedesignEnabled,
+    ),
+  }),
+);
+
+jest.mock('../../../../selectors/transactionController', () => ({
+  selectTransactionMetadataById: jest.fn(() => mockDepositMeta),
+}));
+
+jest.mock('../../../../store', () => ({
+  store: { getState: jest.fn(() => ({})) },
 }));
 
 jest.mock('../utils/translatePerpsError', () => ({
@@ -77,6 +102,8 @@ describe('usePerpsToasts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    mockTransactionsRedesignEnabled = false;
+    mockDepositMeta = undefined;
     mockShowToast = jest.fn();
     mockCloseToast = jest.fn();
     mockNavigate = jest.fn();
@@ -101,8 +128,8 @@ describe('usePerpsToasts', () => {
       const { result } = renderHook(() => usePerpsToasts());
       const testConfig = {
         variant: ToastVariants.Icon,
-        iconName: IconName.CheckBold,
-        hapticsType: NotificationFeedbackType.Success,
+        iconName: IconName.Confirmation,
+        hapticsType: NotificationMoment.Success,
         labelOptions: [{ label: 'Test', isBold: true }],
         hasNoTimeout: false,
       } as unknown as PerpsToastOptions;
@@ -113,13 +140,37 @@ describe('usePerpsToasts', () => {
 
       expect(mockShowToast).toHaveBeenCalledWith({
         variant: ToastVariants.Icon,
-        iconName: IconName.CheckBold,
+        iconName: IconName.Confirmation,
         labelOptions: [{ label: 'Test', isBold: true }],
         hasNoTimeout: false,
       });
-      expect(notificationAsync).toHaveBeenCalledWith(
-        NotificationFeedbackType.Success,
+      expect(playNotification).toHaveBeenCalledWith(NotificationMoment.Success);
+    });
+
+    it('passes retryable withdrawal start failed toast options to toastRef', () => {
+      const onRetry = jest.fn();
+      const { result } = renderHook(() => usePerpsToasts());
+      const config =
+        result.current.PerpsToastOptions.accountManagement.withdrawal.withdrawalStartFailed(
+          onRetry,
+        );
+
+      act(() => {
+        result.current.showToast(config);
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Error,
+          iconColor: IconColor.Error,
+          linkButtonOptions: {
+            label: 'Try again',
+            onPress: onRetry,
+          },
+        }),
       );
+      expect(playNotification).toHaveBeenCalledWith(NotificationMoment.Error);
     });
   });
 
@@ -134,8 +185,8 @@ describe('usePerpsToasts', () => {
 
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
-          iconName: IconName.CheckBold,
-          hapticsType: NotificationFeedbackType.Success,
+          iconName: IconName.Confirmation,
+          hapticsType: NotificationMoment.Success,
           hasNoTimeout: false,
         });
         expect(config.labelOptions).toEqual([
@@ -156,7 +207,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Loading,
-          hapticsType: NotificationFeedbackType.Warning,
+          hapticsType: NotificationMoment.Warning,
         });
         expect(config.startAccessory).toBeTruthy();
         expect(config.closeButtonOptions).toMatchObject({
@@ -164,6 +215,48 @@ describe('usePerpsToasts', () => {
           variant: ButtonVariants.Link,
         });
         expect(typeof config.closeButtonOptions?.onPress).toBe('function');
+      });
+
+      it('tracks to the redesigned details screen when the redesign is enabled', () => {
+        mockTransactionsRedesignEnabled = true;
+        mockDepositMeta = { chainId: '0xa4b1' };
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.accountManagement.deposit.inProgress(
+            60,
+            mockTransactionId,
+          );
+
+        act(() => {
+          config.closeButtonOptions?.onPress?.();
+        });
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.ACTIVITY_DETAILS, {
+          chainId: 'eip155:42161',
+          txIdentifier: mockTransactionId,
+        });
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.TRANSACTION_DETAILS,
+          expect.anything(),
+        );
+      });
+
+      it('tracks to the legacy details screen when the redesign is disabled', () => {
+        mockDepositMeta = { chainId: '0xa4b1' };
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.accountManagement.deposit.inProgress(
+            60,
+            mockTransactionId,
+          );
+
+        act(() => {
+          config.closeButtonOptions?.onPress?.();
+        });
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
+          transactionId: mockTransactionId,
+        });
       });
 
       it('returns in progress configuration without processing time', () => {
@@ -188,7 +281,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Warning,
-          hapticsType: NotificationFeedbackType.Error,
+          hapticsType: NotificationMoment.Error,
         });
       });
     });
@@ -207,7 +300,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Loading,
-          hapticsType: NotificationFeedbackType.Warning,
+          hapticsType: NotificationMoment.Warning,
         });
       });
 
@@ -252,6 +345,29 @@ describe('usePerpsToasts', () => {
           isBold: false,
         });
       });
+
+      it('returns withdrawal start failed configuration with retry action', () => {
+        const onRetry = jest.fn();
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.accountManagement.withdrawal.withdrawalStartFailed(
+            onRetry,
+          );
+
+        expect(config.labelOptions).toEqual([
+          { label: 'Something went wrong', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Your withdrawal wasn’t started.', isBold: false },
+        ]);
+        expect(config.linkButtonOptions).toMatchObject({
+          label: 'Try again',
+          onPress: onRetry,
+        });
+        expect(config).toMatchObject({
+          iconName: IconName.Error,
+          iconColor: IconColor.Error,
+        });
+      });
     });
 
     describe('orderManagement.market', () => {
@@ -273,7 +389,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Loading,
-          hapticsType: NotificationFeedbackType.Warning,
+          hapticsType: NotificationMoment.Warning,
         });
       });
 
@@ -287,7 +403,7 @@ describe('usePerpsToasts', () => {
           );
 
         expect(config).toMatchObject({
-          iconName: IconName.CheckBold,
+          iconName: IconName.Confirmation,
         });
         expect(config.labelOptions).toContainEqual({
           label: 'Order filled',
@@ -373,7 +489,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Loading,
-          hapticsType: NotificationFeedbackType.Warning,
+          hapticsType: NotificationMoment.Warning,
         });
       });
 
@@ -387,7 +503,7 @@ describe('usePerpsToasts', () => {
           );
 
         expect(config).toMatchObject({
-          iconName: IconName.CheckBold,
+          iconName: IconName.Confirmation,
         });
         expect(config.labelOptions).toContainEqual({
           label: 'Order placed',
@@ -472,7 +588,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Loading,
-          hapticsType: NotificationFeedbackType.Warning,
+          hapticsType: NotificationMoment.Warning,
         });
 
         act(() => {
@@ -500,7 +616,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Loading,
-          hapticsType: NotificationFeedbackType.Warning,
+          hapticsType: NotificationMoment.Warning,
         });
       });
 
@@ -522,7 +638,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Loading,
-          hapticsType: NotificationFeedbackType.Warning,
+          hapticsType: NotificationMoment.Warning,
         });
       });
 
@@ -544,8 +660,8 @@ describe('usePerpsToasts', () => {
         ]);
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
-          iconName: IconName.CheckBold,
-          hapticsType: NotificationFeedbackType.Success,
+          iconName: IconName.Confirmation,
+          hapticsType: NotificationMoment.Success,
         });
       });
 
@@ -566,8 +682,8 @@ describe('usePerpsToasts', () => {
         });
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
-          iconName: IconName.CheckBold,
-          hapticsType: NotificationFeedbackType.Success,
+          iconName: IconName.Confirmation,
+          hapticsType: NotificationMoment.Success,
         });
       });
 
@@ -590,8 +706,8 @@ describe('usePerpsToasts', () => {
         });
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
-          iconName: IconName.CheckBold,
-          hapticsType: NotificationFeedbackType.Success,
+          iconName: IconName.Confirmation,
+          hapticsType: NotificationMoment.Success,
         });
       });
 
@@ -609,7 +725,82 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Warning,
-          hapticsType: NotificationFeedbackType.Error,
+          hapticsType: NotificationMoment.Error,
+        });
+      });
+
+      it('returns cancel all success configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancelAllSuccess(
+            3,
+          );
+
+        expect(config.labelOptions).toEqual([
+          { label: 'Orders canceled', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Successfully canceled 3 order(s)', isBold: false },
+        ]);
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Confirmation,
+          hapticsType: NotificationMoment.Success,
+        });
+      });
+
+      it('returns cancel all partial success configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancelAllPartialSuccess(
+            2,
+            5,
+          );
+
+        expect(config.labelOptions).toEqual([
+          { label: 'Orders canceled', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Canceled 2 of 5 orders', isBold: false },
+        ]);
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Confirmation,
+          hapticsType: NotificationMoment.Success,
+        });
+      });
+
+      it('returns cancel all failed configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancelAllFailed(
+            'Network error',
+          );
+
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to cancel orders', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Network error', isBold: false },
+        ]);
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationMoment.Error,
+        });
+      });
+
+      it('returns cancel all failed configuration with default error message', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.shared.cancelAllFailed();
+
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to cancel orders', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Unknown error', isBold: false },
+        ]);
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationMoment.Error,
         });
       });
 
@@ -681,7 +872,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Loading,
-          hapticsType: NotificationFeedbackType.Warning,
+          hapticsType: NotificationMoment.Warning,
         });
       });
 
@@ -701,8 +892,8 @@ describe('usePerpsToasts', () => {
 
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
-          iconName: IconName.CheckBold,
-          hapticsType: NotificationFeedbackType.Success,
+          iconName: IconName.Confirmation,
+          hapticsType: NotificationMoment.Success,
         });
         expect(config.labelOptions).toHaveLength(3);
         expect(config.labelOptions?.[0]).toMatchObject({
@@ -728,7 +919,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Warning,
-          hapticsType: NotificationFeedbackType.Error,
+          hapticsType: NotificationMoment.Error,
         });
         expect(config.labelOptions).toEqual([
           { label: 'Failed to close position', isBold: true },
@@ -749,7 +940,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Loading,
-          hapticsType: NotificationFeedbackType.Warning,
+          hapticsType: NotificationMoment.Warning,
         });
         expect(config.labelOptions).toEqual([
           { label: 'Partially closing position', isBold: true },
@@ -775,8 +966,8 @@ describe('usePerpsToasts', () => {
 
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
-          iconName: IconName.CheckBold,
-          hapticsType: NotificationFeedbackType.Success,
+          iconName: IconName.Confirmation,
+          hapticsType: NotificationMoment.Success,
         });
         expect(config.labelOptions).toHaveLength(3);
         expect(config.labelOptions?.[0]).toMatchObject({
@@ -802,13 +993,40 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Warning,
-          hapticsType: NotificationFeedbackType.Error,
+          hapticsType: NotificationMoment.Error,
         });
         expect(config.labelOptions).toEqual([
           { label: 'Failed to partially close position', isBold: true },
           { label: '\n', isBold: false },
           { label: 'Your position is still active', isBold: false },
         ]);
+      });
+
+      it('returns limit close full position submitted configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.closePosition.limitClose.full.fullPositionCloseSubmitted(
+            'long',
+            '1.0',
+            'ETH',
+          );
+
+        // Terminal toast (no follow-up), so it uses the success/green-tick
+        // style rather than an in-progress spinner that never resolves.
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Confirmation,
+          hapticsType: NotificationMoment.Success,
+        });
+        expect(config.startAccessory).toBeUndefined();
+        expect(config.labelOptions).toContainEqual({
+          label: 'Placed order to close position',
+          isBold: true,
+        });
+        expect(config.labelOptions).toContainEqual({
+          label: 'long 1 ETH',
+          isBold: false,
+        });
       });
 
       it('returns limit close partial position submitted configuration', () => {
@@ -822,8 +1040,8 @@ describe('usePerpsToasts', () => {
 
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
-          iconName: IconName.CheckBold,
-          hapticsType: NotificationFeedbackType.Success,
+          iconName: IconName.Confirmation,
+          hapticsType: NotificationMoment.Success,
         });
         expect(config.labelOptions).toContainEqual({
           label: 'Partial close submitted',
@@ -833,6 +1051,42 @@ describe('usePerpsToasts', () => {
           label: 'long 1 ETH',
           isBold: false,
         });
+      });
+
+      it('returns limit close full position failed configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.closePosition
+            .limitClose.full.fullPositionCloseFailed;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationMoment.Error,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to place close order', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Your position is still active', isBold: false },
+        ]);
+      });
+
+      it('returns limit close partial position failed configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.closePosition
+            .limitClose.partial.partialPositionCloseFailed;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationMoment.Error,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to place partial close order', isBold: true },
+          { label: '\n', isBold: false },
+          { label: 'Your position is still active', isBold: false },
+        ]);
       });
     });
 
@@ -847,8 +1101,8 @@ describe('usePerpsToasts', () => {
 
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
-          iconName: IconName.CheckBold,
-          hapticsType: NotificationFeedbackType.Success,
+          iconName: IconName.Confirmation,
+          hapticsType: NotificationMoment.Success,
           hasNoTimeout: false,
         });
         expect(config.labelOptions).toHaveLength(1);
@@ -867,8 +1121,8 @@ describe('usePerpsToasts', () => {
 
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
-          iconName: IconName.CheckBold,
-          hapticsType: NotificationFeedbackType.Success,
+          iconName: IconName.Confirmation,
+          hapticsType: NotificationMoment.Success,
           hasNoTimeout: false,
         });
         expect(config.labelOptions).toHaveLength(1);
@@ -888,7 +1142,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Warning,
-          hapticsType: NotificationFeedbackType.Error,
+          hapticsType: NotificationMoment.Error,
           hasNoTimeout: false,
         });
         expect(config.labelOptions).toHaveLength(3);
@@ -909,7 +1163,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Warning,
-          hapticsType: NotificationFeedbackType.Error,
+          hapticsType: NotificationMoment.Error,
           hasNoTimeout: false,
         });
         expect(config.labelOptions).toHaveLength(3);
@@ -932,8 +1186,8 @@ describe('usePerpsToasts', () => {
 
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
-          iconName: IconName.CheckBold,
-          hapticsType: NotificationFeedbackType.Success,
+          iconName: IconName.Confirmation,
+          hapticsType: NotificationMoment.Success,
           hasNoTimeout: false,
         });
         expect(config.labelOptions).toEqual([
@@ -952,7 +1206,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Warning,
-          hapticsType: NotificationFeedbackType.Error,
+          hapticsType: NotificationMoment.Error,
           hasNoTimeout: false,
         });
         expect(config.labelOptions).toEqual([
@@ -970,7 +1224,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Warning,
-          hapticsType: NotificationFeedbackType.Error,
+          hapticsType: NotificationMoment.Error,
           hasNoTimeout: false,
         });
         expect(config.labelOptions).toEqual([
@@ -994,7 +1248,7 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Warning,
-          hapticsType: NotificationFeedbackType.Error,
+          hapticsType: NotificationMoment.Error,
           hasNoTimeout: false,
         });
         expect(config.labelOptions).toEqual([
@@ -1063,8 +1317,8 @@ describe('usePerpsToasts', () => {
 
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
-          iconName: IconName.CheckBold,
-          hapticsType: NotificationFeedbackType.Success,
+          iconName: IconName.Confirmation,
+          hapticsType: NotificationMoment.Success,
           hasNoTimeout: false,
         });
         expect(config.labelOptions).toEqual([
@@ -1082,12 +1336,89 @@ describe('usePerpsToasts', () => {
         expect(config).toMatchObject({
           variant: ToastVariants.Icon,
           iconName: IconName.Warning,
-          hapticsType: NotificationFeedbackType.Error,
+          hapticsType: NotificationMoment.Error,
           hasNoTimeout: false,
         });
         expect(config.labelOptions).toEqual([
           { label: 'Failed to export image', isBold: true },
         ]);
+      });
+    });
+
+    describe('watchlist', () => {
+      it('returns added configuration for the given symbol', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config = result.current.PerpsToastOptions.watchlist.added('BTC');
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Confirmation,
+          hapticsType: NotificationMoment.Success,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Added BTC to watchlist', isBold: true },
+        ]);
+      });
+
+      it('returns removed configuration for the given symbol', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config =
+          result.current.PerpsToastOptions.watchlist.removed('ETH');
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Info,
+          hapticsType: NotificationMoment.Warning,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Removed ETH from watchlist', isBold: true },
+        ]);
+      });
+
+      it('strips the dex prefix from HIP-3 market symbols', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        expect(
+          result.current.PerpsToastOptions.watchlist.added('somedex:BTC')
+            .labelOptions,
+        ).toEqual([{ label: 'Added BTC to watchlist', isBold: true }]);
+        expect(
+          result.current.PerpsToastOptions.watchlist.removed('somedex:ETH')
+            .labelOptions,
+        ).toEqual([{ label: 'Removed ETH from watchlist', isBold: true }]);
+      });
+
+      it('returns add error configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config = result.current.PerpsToastOptions.watchlist.addError;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationMoment.Error,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to add market to watchlist', isBold: true },
+        ]);
+      });
+
+      it('returns limit reached configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config = result.current.PerpsToastOptions.watchlist.limitReached;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Info,
+        });
+        expect(config.labelOptions?.[0].label).toContain(
+          'Watchlist limit reached',
+        );
       });
     });
   });
@@ -1106,7 +1437,7 @@ describe('usePerpsToasts', () => {
       // Check that the configs use the correct variants and icons
       expect(successConfig).toMatchObject({
         variant: ToastVariants.Icon,
-        iconName: IconName.CheckBold,
+        iconName: IconName.Confirmation,
       });
       expect(errorConfig).toMatchObject({
         variant: ToastVariants.Icon,
@@ -1131,16 +1462,14 @@ describe('usePerpsToasts', () => {
       const errorToast =
         result.current.PerpsToastOptions.accountManagement.deposit.error;
 
-      expect(successToast.hapticsType).toBe(NotificationFeedbackType.Success);
-      expect(inProgressToast.hapticsType).toBe(
-        NotificationFeedbackType.Warning,
-      );
+      expect(successToast.hapticsType).toBe(NotificationMoment.Success);
+      expect(inProgressToast.hapticsType).toBe(NotificationMoment.Warning);
       expect(inProgressToast.startAccessory).toBeTruthy();
       expect(inProgressToast.closeButtonOptions).toMatchObject({
         label: 'Track',
         variant: ButtonVariants.Link,
       });
-      expect(errorToast.hapticsType).toBe(NotificationFeedbackType.Error);
+      expect(errorToast.hapticsType).toBe(NotificationMoment.Error);
     });
   });
 });

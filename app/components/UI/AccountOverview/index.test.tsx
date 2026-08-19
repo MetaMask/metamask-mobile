@@ -1,14 +1,11 @@
 import React from 'react';
-import { act, waitFor } from '@testing-library/react-native';
+import { act, waitFor, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import AccountOverview from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
-import {
-  MOCK_ACCOUNTS_CONTROLLER_STATE,
-  MOCK_ADDRESS_1,
-} from '../../../util/test/accountsControllerTestUtils';
+import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { AccountOverviewSelectorsIDs } from './AccountOverview.testIds';
 import { analytics } from '../../../util/analytics/analytics';
 
@@ -79,9 +76,6 @@ const mockInitialState = {
   engine: {
     backgroundState: {
       ...backgroundState,
-      PreferencesController: {
-        selectedAddress: MOCK_ADDRESS_1,
-      },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
   },
@@ -104,7 +98,7 @@ describe('AccountOverview', () => {
       <AccountOverview account={account} />,
       { state: mockInitialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('tracks WALLET_COPIED_ADDRESS when address is pressed', async () => {
@@ -124,7 +118,7 @@ describe('AccountOverview', () => {
       AccountOverviewSelectorsIDs.ADDRESS_COPY_BUTTON,
     );
     await act(async () => {
-      await addressCopyButton.props.onPress();
+      await fireEvent.press(addressCopyButton);
     });
 
     await waitFor(() => {

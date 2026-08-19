@@ -1,13 +1,14 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { ErrorBoundarySelectorsText } from '../../selectors/ErrorBoundary/ErrorBoundaryView.selectors';
+import { EncapsulatedElementType } from '../../framework';
 
 class ErrorBoundaryView {
-  get title(): DetoxElement {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByText(ErrorBoundarySelectorsText.TITLE);
   }
 
-  get srpLinkText(): DetoxElement {
+  get srpLinkText(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ErrorBoundarySelectorsText.SAVE_YOUR_SRP_TEXT,
     );

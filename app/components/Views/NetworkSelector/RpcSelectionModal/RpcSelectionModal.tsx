@@ -28,6 +28,7 @@ import { selectIsAllNetworks } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine/Engine';
 import Logger from '../../../../util/Logger';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   NetworkType,
@@ -43,7 +44,7 @@ interface RpcSelectionModalProps {
     networkName: string;
   };
   closeRpcModal: () => void;
-  rpcMenuSheetRef: React.RefObject<BottomSheetRef>;
+  rpcMenuSheetRef: React.RefObject<BottomSheetRef | null>;
   networkConfigurations: Record<string, NetworkConfiguration>;
   styles: StyleSheet.NamedStyles<{
     baseHeader: unknown;
@@ -69,7 +70,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
   const { selectNetwork } = useNetworkSelection({
     networks,
   });
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
 
   const onRpcSelect = useCallback(
     async (clientId: string, chainId: `0x${string}`) => {
@@ -100,9 +101,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
       // Redirect to wallet page
       navigate(Routes.WALLET.HOME, {
         screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
+        params: { screen: Routes.WALLET_VIEW },
       });
     },
     [networkConfigurations, navigate],
@@ -158,7 +157,6 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
       onClose={closeRpcModal}
       shouldNavigateBack={false}
     >
-      {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
       <BottomSheetHeader style={styles.baseHeader}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('app_settings.select_rpc_url')}{' '}
@@ -173,21 +171,13 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
             size: AvatarSize.Sm,
             style: { marginRight: 0 },
           }}
-          // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
-          // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
           style={styles.cellBorder}
         >
-          <Text
-            // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
-            // See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382
-            style={styles.alternativeText}
-            variant={TextVariant.BodyMD}
-          >
+          <Text style={styles.alternativeText} variant={TextVariant.BodyMD}>
             {showMultiRpcSelectModal.networkName}
           </Text>
         </Cell>
       </BottomSheetHeader>
-      {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
       <View style={styles.rpcMenu}>
         {rpcEndpoints.map(
           ({
@@ -212,9 +202,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
                 handleRpcSelect(networkClientId, chainId as `0x${string}`)
               }
             >
-              {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
               <View style={styles.rpcText}>
-                {/* @ts-expect-error - React Native style type mismatch due to outdated @types/react-native See: https://github.com/MetaMask/metamask-mobile/pull/18956#discussion_r2316407382 */}
                 <Text style={styles.textCentred}>
                   {hideKeyFromUrl(hideProtocolFromUrl(url))}
                 </Text>

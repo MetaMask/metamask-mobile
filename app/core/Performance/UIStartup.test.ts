@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as traceObj from '../../util/trace';
 
 jest.mock('../../util/trace', () => ({

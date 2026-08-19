@@ -1,17 +1,20 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
-import Assertions from '../../framework/Assertions';
+import {
+  Assertions,
+  Gestures,
+  Matchers,
+  type EncapsulatedElementType,
+} from '../../framework';
 import { OnboardingSelectorIDs } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
 import { AccountStatusSelectorIDs } from '../../../app/components/Views/AccountStatus/AccountStatus.testIds';
 
 class SocialLoginView {
-  get iosNewUserTitle(): DetoxElement {
+  get iosNewUserTitle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_TITLE,
     );
   }
 
-  get iosNewUserButton(): DetoxElement {
+  get iosNewUserButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_BUTTON,
     );
@@ -19,6 +22,7 @@ class SocialLoginView {
 
   async isIosNewUserScreenVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.iosNewUserTitle, {
+      timeout: 30000,
       description: 'iOS New User Social Login screen should be visible',
     });
   }
@@ -29,13 +33,13 @@ class SocialLoginView {
     });
   }
 
-  get iosExistingUserTitle(): DetoxElement {
+  get iosExistingUserTitle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_TITLE,
     );
   }
 
-  get iosExistingUserButton(): DetoxElement {
+  get iosExistingUserButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON,
     );
@@ -43,6 +47,7 @@ class SocialLoginView {
 
   async isIosExistingUserScreenVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.iosExistingUserTitle, {
+      timeout: 30000,
       description: 'iOS Existing User Social Login screen should be visible',
     });
   }
@@ -53,25 +58,25 @@ class SocialLoginView {
     });
   }
 
-  get accountFoundContainer(): DetoxElement {
+  get accountFoundContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_FOUND_CONTAINER,
     );
   }
 
-  get accountFoundTitle(): DetoxElement {
+  get accountFoundTitle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_FOUND_TITLE,
     );
   }
 
-  get accountFoundLoginButton(): DetoxElement {
+  get accountFoundLoginButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON,
     );
   }
 
-  get accountFoundDifferentMethodButton(): DetoxElement {
+  get accountFoundDifferentMethodButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_FOUND_DIFFERENT_METHOD_BUTTON,
     );
@@ -79,6 +84,7 @@ class SocialLoginView {
 
   async isAccountFoundScreenVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.accountFoundContainer, {
+      timeout: 30000,
       description: 'Account Already Exists screen should be visible',
     });
   }
@@ -89,19 +95,23 @@ class SocialLoginView {
     });
   }
 
-  get accountNotFoundContainer(): DetoxElement {
+  async tapAccountFoundLoginButton(): Promise<void> {
+    await this.tapLoginButton();
+  }
+
+  get accountNotFoundContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CONTAINER,
     );
   }
 
-  get accountNotFoundTitle(): DetoxElement {
+  get accountNotFoundTitle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_TITLE,
     );
   }
 
-  get accountNotFoundCreateButton(): DetoxElement {
+  get accountNotFoundCreateButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CREATE_BUTTON,
     );
@@ -109,6 +119,7 @@ class SocialLoginView {
 
   async isAccountNotFoundScreenVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.accountNotFoundContainer, {
+      timeout: 30000,
       description: 'Account Not Found screen should be visible',
     });
   }
@@ -117,6 +128,31 @@ class SocialLoginView {
     await Gestures.waitAndTap(this.accountNotFoundCreateButton, {
       elemDescription: 'Create New Wallet button on Account Not Found screen',
     });
+  }
+
+  get updateModalContinueButton(): EncapsulatedElementType {
+    return Matchers.getElementByID('Continue');
+  }
+
+  /**
+   * Dismiss the "iOS Update Required" modal if present by tapping "Continue".
+   * Silently does nothing if the modal is not showing.
+   */
+  async dismissUpdateModalIfPresent(): Promise<void> {
+    try {
+      await Assertions.expectElementToBeVisible(
+        this.updateModalContinueButton,
+        {
+          timeout: 3000,
+          description: 'iOS update modal',
+        },
+      );
+      await Gestures.waitAndTap(this.updateModalContinueButton, {
+        elemDescription: 'Continue button on iOS update modal',
+      });
+    } catch {
+      // Modal not present
+    }
   }
 }
 

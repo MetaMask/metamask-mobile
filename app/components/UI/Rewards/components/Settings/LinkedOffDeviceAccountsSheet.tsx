@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { FlatList } from 'react-native-gesture-handler';
 import {
   Box,
@@ -9,6 +10,7 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   ButtonIcon,
+  HeaderStandard,
   IconName,
   IconSize,
   FontWeight,
@@ -27,7 +29,9 @@ import {
 } from '../../../../../util/networks';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import type { OffDeviceAccount } from '../../hooks/useLinkedOffDeviceAccounts';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
+import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
+import { getBetaSupportUrl } from '../../utils';
 
 const styles = StyleSheet.create({
   list: {
@@ -62,23 +66,28 @@ interface LinkedOffDeviceAccountsSheetProps {
 const LinkedOffDeviceAccountsSheet: React.FC<
   LinkedOffDeviceAccountsSheetProps
 > = ({ accounts, onClose }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { openSupportWithConsent } = useSupportConsent();
 
   const handleContactSupport = useCallback(() => {
-    let supportUrl = 'https://support.metamask.io';
+    const betaSupportUrl = getBetaSupportUrl();
 
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    supportUrl = 'https://intercom.help/internal-beta-testing/en/';
-    ///: END:ONLY_INCLUDE_IF
+    const openWebview = (url: string) =>
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url,
+          title: strings('app_settings.contact_support'),
+        },
+      });
 
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: supportUrl,
-        title: strings('app_settings.contact_support'),
-      },
-    });
-  }, [navigation]);
+    if (betaSupportUrl) {
+      openWebview(betaSupportUrl);
+      return;
+    }
+
+    openSupportWithConsent(openWebview, METAMASK_SUPPORT_URL);
+  }, [navigation, openSupportWithConsent]);
 
   const handleCopy = useCallback(async (address: string) => {
     try {
@@ -144,7 +153,8 @@ const LinkedOffDeviceAccountsSheet: React.FC<
 
   return (
     <BottomSheet shouldNavigateBack={false} onClose={onClose}>
-      <HeaderCompactStandard
+      <HeaderStandard
+        testID="header-compact-standard"
         title={strings('rewards.settings.off_device_accounts_sheet_title')}
         onClose={onClose}
       />

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { Dimensions, ActivityIndicator, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -8,7 +8,11 @@ import Animated, {
   useAnimatedStyle,
   type SharedValue,
 } from 'react-native-reanimated';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import {
+  playImpact,
+  ImpactMoment,
+  type HapticImpactMoment,
+} from '../../../util/haptics';
 import { useTheme } from '../../../util/theme';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -89,13 +93,16 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
   const screenWidth = Dimensions.get('window').width;
 
   // Gesture state - using shared values to avoid re-renders and stale reads in worklets
-  const pullDistanceRef = useRef<number>(0);
+  // Shared values (not refs) because they are read/written inside gesture
+  // worklets on the UI thread. Using refs here both risks cross-thread reads
+  // and trips the React Compiler ("passing a ref to a function during render").
+  const pullDistance = useSharedValue<number>(0);
   const pullProgress = useSharedValue(0);
   const isPulling = useSharedValue(false);
   const pullHapticTriggered = useSharedValue(false);
   const initialTouchY = useSharedValue(0);
   const initialTouchX = useSharedValue(0);
-  const swipeStartTime = useRef<number>(0);
+  const swipeStartTime = useSharedValue<number>(0);
   const swipeProgress = useSharedValue(0);
   const swipeDirection = useSharedValue<'back' | 'forward' | null>(null);
   const gestureType = useSharedValue<
@@ -124,11 +131,8 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
     [isTabActive, isUrlBarFocused, firstUrlLoaded],
   );
 
-  /**
-   * Trigger haptic feedback
-   */
-  const triggerHapticFeedback = useCallback((style: ImpactFeedbackStyle) => {
-    impactAsync(style);
+  const triggerHapticFeedback = useCallback((moment: HapticImpactMoment) => {
+    playImpact(moment);
   }, []);
 
   // Note: resetSwipeAnimation and resetPullAnimation are inlined directly in worklets
@@ -149,7 +153,7 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
             })
             .build(),
         );
-        triggerHapticFeedback(ImpactFeedbackStyle.Medium);
+        triggerHapticFeedback(ImpactMoment.PageNavigation);
       } else if (direction === 'forward' && forwardEnabled) {
         onGoForward();
         trackEvent(
@@ -160,7 +164,7 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
             })
             .build(),
         );
-        triggerHapticFeedback(ImpactFeedbackStyle.Medium);
+        triggerHapticFeedback(ImpactMoment.PageNavigation);
       }
     },
     [
@@ -177,19 +181,22 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
   /**
    * Handle pull-to-refresh completion
    */
-  const handleRefresh = useCallback(() => {
-    if (isRefreshing.value) return;
+  // Plain function (React Compiler memoizes it). A manual useCallback here
+  // could not be preserved by the compiler once it reads the `pullDistance`
+  // shared value via .get().
+  const handleRefresh = () => {
+    if (isRefreshing.get()) return;
 
-    isRefreshing.value = true;
+    isRefreshing.set(true);
     onReload();
-    impactAsync(ImpactFeedbackStyle.Medium);
+    playImpact(ImpactMoment.PullToRefresh);
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BROWSER_PULL_REFRESH)
-        .addProperties({ pull_distance: pullDistanceRef.current })
+        .addProperties({ pull_distance: pullDistance.get() })
         .build(),
     );
-  }, [isRefreshing, onReload, trackEvent, createEventBuilder]);
+  };
 
   /**
    * Native gesture for WebView - represents WebView's internal scrolling
@@ -205,201 +212,179 @@ export const GestureWebViewWrapper: React.FC<GestureWebViewWrapperProps> = ({
    * 2. Activate ONLY for edge swipes or pull-to-refresh zones
    * 3. Fail for other touches, letting WebView handle them
    */
-  const fullyUnifiedGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .manualActivation(true)
-        .onTouchesDown((event, stateManager) => {
-          'worklet';
-          if (!areGesturesEnabled) {
-            stateManager.fail();
-            return;
-          }
+  // Not wrapped in useMemo: the React Compiler memoizes this gesture, and a
+  // manual useMemo could not be preserved (its worklets capture shared values
+  // the compiler tracks). The compiler derives the same dependencies the manual
+  // array listed.
+  const fullyUnifiedGesture = Gesture.Pan()
+    .manualActivation(true)
+    .onTouchesDown((event, stateManager) => {
+      'worklet';
+      if (!areGesturesEnabled) {
+        stateManager.fail();
+        return;
+      }
 
-          const touch = event.allTouches[0];
-          if (!touch) {
-            stateManager.fail();
-            return;
-          }
+      const touch = event.allTouches[0];
+      if (!touch) {
+        stateManager.fail();
+        return;
+      }
 
-          const { x, y } = touch;
-          const rightEdgeStart = screenWidth - EDGE_THRESHOLD;
+      const { x, y } = touch;
+      const rightEdgeStart = screenWidth - EDGE_THRESHOLD;
 
-          // Check if touch is in a gesture zone
-          // Use shared values for navigation state to avoid stale reads in worklets
-          const isLeftEdge = x < EDGE_THRESHOLD && backEnabledShared.value;
-          const isRightEdge = x > rightEdgeStart && forwardEnabledShared.value;
-          const currentlyAtTop = scrollY.value <= SCROLL_TOP_THRESHOLD;
-          const isInPullZone = y < PULL_ACTIVATION_ZONE;
-          const canPullToRefresh =
-            currentlyAtTop && !isRefreshing.value && isInPullZone;
+      // Check if touch is in a gesture zone
+      // Use shared values for navigation state to avoid stale reads in worklets
+      const isLeftEdge = x < EDGE_THRESHOLD && backEnabledShared.value;
+      const isRightEdge = x > rightEdgeStart && forwardEnabledShared.value;
+      const currentlyAtTop = scrollY.value <= SCROLL_TOP_THRESHOLD;
+      const isInPullZone = y < PULL_ACTIVATION_ZONE;
+      const canPullToRefresh =
+        currentlyAtTop && !isRefreshing.value && isInPullZone;
 
-          if (isLeftEdge) {
-            gestureType.value = 'back';
-            swipeDirection.value = 'back';
-            swipeProgress.value = 0;
-            swipeStartTime.current = Date.now();
-            stateManager.activate();
-            runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
-          } else if (isRightEdge) {
-            gestureType.value = 'forward';
-            swipeDirection.value = 'forward';
-            swipeProgress.value = 0;
-            swipeStartTime.current = Date.now();
-            stateManager.activate();
-            runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
-          } else if (canPullToRefresh) {
-            gestureType.value = 'pending_refresh';
-            initialTouchY.value = y;
-            initialTouchX.value = x;
-          } else {
-            stateManager.fail();
-          }
-        })
-        .onTouchesMove((event, stateManager) => {
-          'worklet';
-          if (gestureType.value !== 'pending_refresh') return;
+      if (isLeftEdge) {
+        gestureType.value = 'back';
+        swipeDirection.value = 'back';
+        swipeProgress.value = 0;
+        swipeStartTime.value = Date.now();
+        stateManager.activate();
+        runOnJS(triggerHapticFeedback)(ImpactMoment.EdgeGestureEngage);
+      } else if (isRightEdge) {
+        gestureType.value = 'forward';
+        swipeDirection.value = 'forward';
+        swipeProgress.value = 0;
+        swipeStartTime.value = Date.now();
+        stateManager.activate();
+        runOnJS(triggerHapticFeedback)(ImpactMoment.EdgeGestureEngage);
+      } else if (canPullToRefresh) {
+        gestureType.value = 'pending_refresh';
+        initialTouchY.value = y;
+        initialTouchX.value = x;
+      } else {
+        stateManager.fail();
+      }
+    })
+    .onTouchesMove((event, stateManager) => {
+      'worklet';
+      if (gestureType.value !== 'pending_refresh') return;
 
-          const touch = event.allTouches[0];
-          if (!touch) {
-            gestureType.value = null;
-            stateManager.fail();
-            return;
-          }
+      const touch = event.allTouches[0];
+      if (!touch) {
+        gestureType.value = null;
+        stateManager.fail();
+        return;
+      }
 
-          const deltaY = touch.y - initialTouchY.value;
-          const deltaX = Math.abs(touch.x - initialTouchX.value);
+      const deltaY = touch.y - initialTouchY.value;
+      const deltaX = Math.abs(touch.x - initialTouchX.value);
 
-          if (deltaY > PULL_MOVE_ACTIVATION && deltaY > deltaX) {
-            gestureType.value = 'refresh';
-            isPulling.value = true;
-            pullProgress.value = 0;
-            pullHapticTriggered.value = false;
-            stateManager.activate();
-          } else if (
-            deltaX > PULL_MOVE_ACTIVATION ||
-            deltaY < -PULL_MOVE_ACTIVATION
-          ) {
-            gestureType.value = null;
-            stateManager.fail();
-          }
-        })
-        .onTouchesUp((_event, stateManager) => {
-          'worklet';
-          if (gestureType.value === 'pending_refresh') {
-            gestureType.value = null;
-            stateManager.fail();
-          }
-        })
-        .onUpdate((event) => {
-          'worklet';
-          const currentGestureType = gestureType.value;
-          if (!currentGestureType || currentGestureType === 'pending_refresh')
-            return;
+      if (deltaY > PULL_MOVE_ACTIVATION && deltaY > deltaX) {
+        gestureType.value = 'refresh';
+        isPulling.value = true;
+        pullProgress.value = 0;
+        pullHapticTriggered.value = false;
+        stateManager.activate();
+      } else if (
+        deltaX > PULL_MOVE_ACTIVATION ||
+        deltaY < -PULL_MOVE_ACTIVATION
+      ) {
+        gestureType.value = null;
+        stateManager.fail();
+      }
+    })
+    .onTouchesUp((_event, stateManager) => {
+      'worklet';
+      if (gestureType.value === 'pending_refresh') {
+        gestureType.value = null;
+        stateManager.fail();
+      }
+    })
+    .onUpdate((event) => {
+      'worklet';
+      const currentGestureType = gestureType.value;
+      if (!currentGestureType || currentGestureType === 'pending_refresh')
+        return;
 
-          const swipeDistance = screenWidth * SWIPE_THRESHOLD;
+      const swipeDistance = screenWidth * SWIPE_THRESHOLD;
 
-          if (currentGestureType === 'back' && event.translationX > 0) {
-            swipeProgress.value = Math.min(
-              event.translationX / swipeDistance,
-              1,
-            );
-          } else if (
-            currentGestureType === 'forward' &&
-            event.translationX < 0
-          ) {
-            swipeProgress.value = Math.min(
-              Math.abs(event.translationX) / swipeDistance,
-              1,
-            );
-          } else if (currentGestureType === 'refresh') {
-            if (event.translationY < 0) {
-              // Cancel refresh - upward movement, reset directly on UI thread
-              gestureType.value = null;
-              isPulling.value = false;
-              pullProgress.value = withTiming(0, { duration: 200 });
-              pullHapticTriggered.value = false;
-              return;
-            }
-
-            if (!pullHapticTriggered.value && event.translationY > 10) {
-              pullHapticTriggered.value = true;
-              runOnJS(triggerHapticFeedback)(ImpactFeedbackStyle.Light);
-            }
-
-            pullProgress.value = Math.min(
-              event.translationY / PULL_THRESHOLD,
-              1.5,
-            );
-          }
-        })
-        .onEnd((event) => {
-          'worklet';
-          const currentGestureType = gestureType.value;
-          if (!currentGestureType || currentGestureType === 'pending_refresh') {
-            swipeProgress.value = withTiming(0, { duration: 200 });
-            swipeDirection.value = null;
-            pullProgress.value = withTiming(0, { duration: 200 });
-            isPulling.value = false;
-            return;
-          }
-
-          const swipeDistance = screenWidth * SWIPE_THRESHOLD;
-          const duration = Date.now() - swipeStartTime.current;
-
-          if (currentGestureType === 'back') {
-            if (event.translationX >= swipeDistance) {
-              runOnJS(handleSwipeNavigation)(
-                'back',
-                event.translationX,
-                duration,
-              );
-            }
-            swipeProgress.value = withTiming(0, { duration: 200 });
-            swipeDirection.value = null;
-          } else if (currentGestureType === 'forward') {
-            if (event.translationX <= -swipeDistance) {
-              runOnJS(handleSwipeNavigation)(
-                'forward',
-                Math.abs(event.translationX),
-                duration,
-              );
-            }
-            swipeProgress.value = withTiming(0, { duration: 200 });
-            swipeDirection.value = null;
-          } else if (currentGestureType === 'refresh') {
-            if (event.translationY >= PULL_THRESHOLD) {
-              pullDistanceRef.current = event.translationY;
-              runOnJS(handleRefresh)();
-            }
-            pullProgress.value = withTiming(0, { duration: 200 });
-            isPulling.value = false;
-          }
-
-          gestureType.value = null;
-        })
-        .onFinalize(() => {
-          'worklet';
-          // Reset all gesture state directly on UI thread
+      if (currentGestureType === 'back' && event.translationX > 0) {
+        swipeProgress.value = Math.min(event.translationX / swipeDistance, 1);
+      } else if (currentGestureType === 'forward' && event.translationX < 0) {
+        swipeProgress.value = Math.min(
+          Math.abs(event.translationX) / swipeDistance,
+          1,
+        );
+      } else if (currentGestureType === 'refresh') {
+        if (event.translationY < 0) {
+          // Cancel refresh - upward movement, reset directly on UI thread
           gestureType.value = null;
           isPulling.value = false;
-          pullHapticTriggered.value = false;
-          // Reset animations
-          swipeProgress.value = withTiming(0, { duration: 200 });
-          swipeDirection.value = null;
           pullProgress.value = withTiming(0, { duration: 200 });
-        }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      areGesturesEnabled,
-      screenWidth,
-      triggerHapticFeedback,
-      handleSwipeNavigation,
-      handleRefresh,
-      // Note: backEnabledShared and forwardEnabledShared are stable refs
-      // Their values are synced via useEffect, so they don't need to be deps
-    ],
-  );
+          pullHapticTriggered.value = false;
+          return;
+        }
+
+        if (!pullHapticTriggered.value && event.translationY > 10) {
+          pullHapticTriggered.value = true;
+          runOnJS(triggerHapticFeedback)(ImpactMoment.PullToRefreshEngage);
+        }
+
+        pullProgress.value = Math.min(event.translationY / PULL_THRESHOLD, 1.5);
+      }
+    })
+    .onEnd((event) => {
+      'worklet';
+      const currentGestureType = gestureType.value;
+      if (!currentGestureType || currentGestureType === 'pending_refresh') {
+        swipeProgress.value = withTiming(0, { duration: 200 });
+        swipeDirection.value = null;
+        pullProgress.value = withTiming(0, { duration: 200 });
+        isPulling.value = false;
+        return;
+      }
+
+      const swipeDistance = screenWidth * SWIPE_THRESHOLD;
+      const duration = Date.now() - swipeStartTime.value;
+
+      if (currentGestureType === 'back') {
+        if (event.translationX >= swipeDistance) {
+          runOnJS(handleSwipeNavigation)('back', event.translationX, duration);
+        }
+        swipeProgress.value = withTiming(0, { duration: 200 });
+        swipeDirection.value = null;
+      } else if (currentGestureType === 'forward') {
+        if (event.translationX <= -swipeDistance) {
+          runOnJS(handleSwipeNavigation)(
+            'forward',
+            Math.abs(event.translationX),
+            duration,
+          );
+        }
+        swipeProgress.value = withTiming(0, { duration: 200 });
+        swipeDirection.value = null;
+      } else if (currentGestureType === 'refresh') {
+        if (event.translationY >= PULL_THRESHOLD) {
+          pullDistance.set(event.translationY);
+          runOnJS(handleRefresh)();
+        }
+        pullProgress.value = withTiming(0, { duration: 200 });
+        isPulling.value = false;
+      }
+
+      gestureType.value = null;
+    })
+    .onFinalize(() => {
+      'worklet';
+      // Reset all gesture state directly on UI thread
+      gestureType.value = null;
+      isPulling.value = false;
+      pullHapticTriggered.value = false;
+      // Reset animations
+      swipeProgress.value = withTiming(0, { duration: 200 });
+      swipeDirection.value = null;
+      pullProgress.value = withTiming(0, { duration: 200 });
+    });
 
   /**
    * Combined gesture - Simultaneous allows both our Pan and the WebView's Native

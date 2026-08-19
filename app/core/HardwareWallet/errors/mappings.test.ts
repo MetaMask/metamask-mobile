@@ -26,6 +26,7 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
       ErrorCode.DeviceNotReady,
       ErrorCode.DeviceMissingCapability,
       ErrorCode.DeviceStateBlindSignNotSupported,
+      ErrorCode.DeviceStateOnlyV4Supported,
       ErrorCode.DeviceUnresponsive,
       ErrorCode.ConnectionClosed,
       ErrorCode.ConnectionTimeout,
@@ -38,6 +39,7 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
       ErrorCode.BluetoothDisabled,
       ErrorCode.BluetoothScanFailed,
       ErrorCode.BluetoothConnectionFailed,
+      ErrorCode.PermissionCameraDenied,
       ErrorCode.MobileNotSupported,
       ErrorCode.Unknown,
     ];
@@ -137,6 +139,12 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
       expect(title).toBe('hardware_wallet.error.blind_signing_disabled');
     });
 
+    it('returns localized title for DeviceStateOnlyV4Supported', () => {
+      const ext = MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceStateOnlyV4Supported];
+      const title = ext?.getLocalizedTitle();
+      expect(title).toBe('hardware_wallet.error.unsupported_signature');
+    });
+
     it('returns localized title for DeviceUnresponsive', () => {
       const ext = MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceUnresponsive];
       const title = ext?.getLocalizedTitle();
@@ -212,6 +220,13 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
       expect(title).toBe('hardware_wallet.error.connection_closed');
     });
 
+    it('returns localized title for PermissionCameraDenied', () => {
+      const ext = MOBILE_ERROR_EXTENSIONS[ErrorCode.PermissionCameraDenied];
+      const title = ext?.getLocalizedTitle();
+
+      expect(title).toBe('hardware_wallet.error.camera_permission_denied');
+    });
+
     it('returns localized title for MobileNotSupported', () => {
       const ext = MOBILE_ERROR_EXTENSIONS[ErrorCode.MobileNotSupported];
       const title = ext?.getLocalizedTitle();
@@ -274,6 +289,13 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
         MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceStateBlindSignNotSupported];
       const message = ext?.getLocalizedMessage();
       expect(message).toBe('hardware_wallet.errors.blind_signing');
+    });
+
+    it('returns localized message for DeviceStateOnlyV4Supported', () => {
+      const ext = MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceStateOnlyV4Supported];
+      const message = ext?.getLocalizedMessage(HardwareWalletType.Ledger);
+      expect(message).toContain('hardware_wallet.errors.only_v4_supported');
+      expect(message).toContain('device:');
     });
 
     it('returns localized message for DeviceUnresponsive', () => {
@@ -353,6 +375,13 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
       );
     });
 
+    it('returns localized message for PermissionCameraDenied', () => {
+      const ext = MOBILE_ERROR_EXTENSIONS[ErrorCode.PermissionCameraDenied];
+      const message = ext?.getLocalizedMessage();
+
+      expect(message).toBe('hardware_wallet.errors.camera_permission_denied');
+    });
+
     it('returns localized message for MobileNotSupported', () => {
       const ext = MOBILE_ERROR_EXTENSIONS[ErrorCode.MobileNotSupported];
       const message = ext?.getLocalizedMessage();
@@ -381,6 +410,10 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
       ).toBe(RecoveryAction.ACKNOWLEDGE);
       expect(
         MOBILE_ERROR_EXTENSIONS[ErrorCode.MobileNotSupported]?.recoveryAction,
+      ).toBe(RecoveryAction.ACKNOWLEDGE);
+      expect(
+        MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceStateOnlyV4Supported]
+          ?.recoveryAction,
       ).toBe(RecoveryAction.ACKNOWLEDGE);
     });
 
@@ -440,6 +473,12 @@ describe('ERROR_NAME_MAPPINGS', () => {
     );
   });
 
+  it('maps LedgerOperationAbortedError to DeviceUnresponsive', () => {
+    expect(ERROR_NAME_MAPPINGS.LedgerOperationAbortedError).toBe(
+      ErrorCode.DeviceUnresponsive,
+    );
+  });
+
   it('maps TransportOpenUserCancelled to UserCancelled', () => {
     expect(ERROR_NAME_MAPPINGS.TransportOpenUserCancelled).toBe(
       ErrorCode.UserCancelled,
@@ -483,6 +522,26 @@ describe('ERROR_NAME_MAPPINGS', () => {
   it('maps DeviceSocketNoBulkStatus to BluetoothConnectionFailed', () => {
     expect(ERROR_NAME_MAPPINGS.DeviceSocketNoBulkStatus).toBe(
       ErrorCode.BluetoothConnectionFailed,
+    );
+  });
+
+  it('maps QRScanError to DeviceNotFound', () => {
+    expect(ERROR_NAME_MAPPINGS.QRScanError).toBe(ErrorCode.DeviceNotFound);
+  });
+
+  it('maps QRTimeoutError to ConnectionTimeout', () => {
+    expect(ERROR_NAME_MAPPINGS.QRTimeoutError).toBe(
+      ErrorCode.ConnectionTimeout,
+    );
+  });
+
+  it('maps QRCodeInvalid to DeviceNotReady', () => {
+    expect(ERROR_NAME_MAPPINGS.QRCodeInvalid).toBe(ErrorCode.DeviceNotReady);
+  });
+
+  it('maps CameraPermissionDenied to PermissionCameraDenied', () => {
+    expect(ERROR_NAME_MAPPINGS.CameraPermissionDenied).toBe(
+      ErrorCode.PermissionCameraDenied,
     );
   });
 });

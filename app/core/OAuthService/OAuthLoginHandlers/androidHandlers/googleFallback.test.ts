@@ -12,6 +12,9 @@ jest.mock('expo-auth-session', () => ({
   CodeChallengeMethod: {
     S256: 'S256',
   },
+  Prompt: {
+    SelectAccount: 'select_account',
+  },
 }));
 
 const mockPromptAsync = jest.fn();

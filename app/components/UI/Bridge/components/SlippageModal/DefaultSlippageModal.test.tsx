@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
-import { DefaultSlippageModal } from './DefaultSlippageModal';
+import { act, render, fireEvent } from '@testing-library/react-native';
+import { SwapDefaultSlippageModal as DefaultSlippageModal } from './SwapDefaultSlippageModal';
 import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock BottomSheet
@@ -17,27 +17,6 @@ jest.mock(
         (props: { children: unknown }, _ref: unknown) => (
           <View testID="bottom-sheet">{props.children as React.ReactNode}</View>
         ),
-      ),
-    };
-  },
-);
-
-// Mock HeaderCompactStandard
-jest.mock(
-  '../../../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ReactNative = jest.requireActual('react-native');
-    const { View, Text, TouchableOpacity } = ReactNative;
-
-    return {
-      __esModule: true,
-      default: (props: { title: string; onClose: () => void }) => (
-        <View testID="header-center">
-          <Text>{props.title}</Text>
-          <TouchableOpacity onPress={props.onClose} accessibilityLabel="Close">
-            <Text>Close</Text>
-          </TouchableOpacity>
-        </View>
       ),
     };
   },
@@ -74,10 +53,6 @@ jest.mock('../../hooks/useSlippageConfig', () => ({
   useSlippageConfig: jest.fn(),
 }));
 
-jest.mock('../../hooks/useModalCloseOnQuoteExpiry', () => ({
-  useModalCloseOnQuoteExpiry: jest.fn(),
-}));
-
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
@@ -103,23 +78,11 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-// Mock i18n
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const translations: Record<string, string> = {
-      'bridge.slippage': 'Slippage',
-      'bridge.default_slippage_description': 'Set your slippage tolerance',
-      'bridge.submit': 'Submit',
-    };
-    return translations[key] || key;
-  }),
-}));
-
 import { useGetSlippageOptions } from '../../hooks/useGetSlippageOptions';
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { AUTO_SLIPPAGE_VALUE } from './constants';
-import { useModalCloseOnQuoteExpiry } from '../../hooks/useModalCloseOnQuoteExpiry';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockUseGetSlippageOptions = useGetSlippageOptions as jest.MockedFunction<
   typeof useGetSlippageOptions
@@ -128,10 +91,6 @@ const mockUseSlippageConfig = useSlippageConfig as jest.MockedFunction<
   typeof useSlippageConfig
 >;
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
-const mockUseModalCloseOnQuoteExpiry =
-  useModalCloseOnQuoteExpiry as jest.MockedFunction<
-    typeof useModalCloseOnQuoteExpiry
-  >;
 
 describe('DefaultSlippageModal', () => {
   const mockSlippageConfig = {
@@ -182,6 +141,22 @@ describe('DefaultSlippageModal', () => {
       );
     });
 
+    it('keeps slippage undefined for EVM options without auto', () => {
+      mockSelector.mockReturnValue(undefined);
+      mockUseSlippageConfig.mockReturnValue({
+        ...mockSlippageConfig,
+        default_slippage_options: ['0.5', '2', '3'],
+      });
+
+      render(<DefaultSlippageModal />);
+
+      expect(mockUseGetSlippageOptions).toHaveBeenCalledWith(
+        expect.objectContaining({
+          slippage: undefined,
+        }),
+      );
+    });
+
     it('uses redux slippage value when defined', () => {
       mockSelector.mockReturnValue('2');
 
@@ -224,12 +199,12 @@ describe('DefaultSlippageModal', () => {
     it('closes bottom sheet when close is called', () => {
       const { getByLabelText } = render(<DefaultSlippageModal />);
 
-      const closeButton = getByLabelText('Close');
+      const closeButton = getByLabelText(strings('bridge.close'));
       fireEvent.press(closeButton);
 
       // Bottom sheet close is handled internally by ref
       // We verify the component renders without errors
-      expect(closeButton).toBeTruthy();
+      expect(closeButton).toBeOnTheScreen();
     });
   });
 
@@ -246,7 +221,7 @@ describe('DefaultSlippageModal', () => {
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.CUSTOM_SLIPPAGE_MODAL,
+        screen: Routes.BRIDGE.MODALS.SWAP_CUSTOM_SLIPPAGE_MODAL,
         params: {
           sourceChainId: '0x1',
           destChainId: undefined,
@@ -281,7 +256,9 @@ describe('DefaultSlippageModal', () => {
 
       // Call the handler with a value - it should return a function
       const pressHandler = handleDefaultOptionPress('2');
-      pressHandler();
+      act(() => {
+        pressHandler();
+      });
 
       // Re-render and verify hook was called with new value
       rerender(<DefaultSlippageModal />);
@@ -296,6 +273,33 @@ describe('DefaultSlippageModal', () => {
   });
 
   describe('handleSubmit', () => {
+    it('disables submit when EVM slippage is undefined', () => {
+      mockSelector.mockReturnValue(undefined);
+      mockUseSlippageConfig.mockReturnValue({
+        ...mockSlippageConfig,
+        default_slippage_options: ['0.5', '2', '3'],
+      });
+      const { getByRole } = render(<DefaultSlippageModal />);
+
+      const submitButton = getByRole('button', { name: 'Submit' });
+
+      expect(submitButton.props.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('does not dispatch when EVM slippage is undefined', () => {
+      mockSelector.mockReturnValue(undefined);
+      mockUseSlippageConfig.mockReturnValue({
+        ...mockSlippageConfig,
+        default_slippage_options: ['0.5', '2', '3'],
+      });
+      const { getByRole } = render(<DefaultSlippageModal />);
+      const submitButton = getByRole('button', { name: 'Submit' });
+
+      fireEvent.press(submitButton);
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
     it('dispatches undefined when auto is selected', () => {
       mockSelector.mockReturnValue(undefined);
 
@@ -336,7 +340,9 @@ describe('DefaultSlippageModal', () => {
       const call = mockUseGetSlippageOptions.mock.calls[0][0];
       const handleDefaultOptionPress = call.onDefaultOptionPress;
       const pressHandler = handleDefaultOptionPress('3');
-      pressHandler();
+      act(() => {
+        pressHandler();
+      });
 
       // Re-render to apply state change
       rerender(<DefaultSlippageModal />);
@@ -396,25 +402,29 @@ describe('DefaultSlippageModal', () => {
     it('renders header with correct title', () => {
       const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(getByText('Slippage')).toBeTruthy();
+      expect(getByText('Slippage')).toBeOnTheScreen();
     });
 
     it('renders description text', () => {
       const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(getByText('Set your slippage tolerance')).toBeTruthy();
+      expect(
+        getByText(
+          "Your transaction won't go through if the price changes more than the slippage percent.",
+        ),
+      ).toBeOnTheScreen();
     });
 
     it('renders DefaultSlippageButtonGroup with options', () => {
       const { getByTestId } = render(<DefaultSlippageModal />);
 
-      expect(getByTestId('default-slippage-button-group')).toBeTruthy();
+      expect(getByTestId('default-slippage-button-group')).toBeOnTheScreen();
     });
 
     it('renders submit button', () => {
       const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(getByText('Submit')).toBeTruthy();
+      expect(getByText('Submit')).toBeOnTheScreen();
     });
 
     it('passes correct props to useGetSlippageOptions', () => {
@@ -432,46 +442,31 @@ describe('DefaultSlippageModal', () => {
 
   describe('snapshot tests', () => {
     it('matches snapshot for complete modal', () => {
-      const { toJSON } = render(<DefaultSlippageModal />);
+      const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Slippage')).toBeOnTheScreen();
     });
 
     it('matches snapshot with auto selected', () => {
       mockSelector.mockReturnValue(undefined);
 
-      const { toJSON } = render(<DefaultSlippageModal />);
+      const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Submit')).toBeOnTheScreen();
     });
 
     it('matches snapshot with numeric slippage selected', () => {
       mockSelector.mockReturnValue('2');
 
-      const { toJSON } = render(<DefaultSlippageModal />);
+      const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Submit')).toBeOnTheScreen();
     });
 
-    it('matches snapshot for header', () => {
-      const { getByText, toJSON } = render(<DefaultSlippageModal />);
+    it('renders header text', () => {
+      const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(getByText('Slippage')).toBeTruthy();
-      expect(toJSON()).toMatchSnapshot('header style');
-    });
-
-    it('matches snapshot for description', () => {
-      const { getByText, toJSON } = render(<DefaultSlippageModal />);
-
-      expect(getByText('Set your slippage tolerance')).toBeTruthy();
-      expect(toJSON()).toMatchSnapshot('description style');
-    });
-
-    it('matches snapshot for submit button', () => {
-      const { getByText, toJSON } = render(<DefaultSlippageModal />);
-
-      expect(getByText('Submit')).toBeTruthy();
-      expect(toJSON()).toMatchSnapshot('submit button style');
+      expect(getByText('Slippage')).toBeOnTheScreen();
     });
   });
 
@@ -542,9 +537,9 @@ describe('DefaultSlippageModal', () => {
     it('handles empty slippage options', () => {
       mockUseGetSlippageOptions.mockReturnValue([]);
 
-      const { toJSON } = render(<DefaultSlippageModal />);
+      const { getByText } = render(<DefaultSlippageModal />);
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByText('Submit')).toBeOnTheScreen();
     });
 
     it('handles zero slippage value', () => {
@@ -641,20 +636,6 @@ describe('DefaultSlippageModal', () => {
       const call = mockUseGetSlippageOptions.mock.calls[0][0];
       expect(call.onCustomOptionPress).toBeDefined();
       expect(typeof call.onCustomOptionPress).toBe('function');
-    });
-  });
-
-  describe('useModalCloseOnQuoteExpiry', () => {
-    it('calls useModalCloseOnQuoteExpiry on render', () => {
-      render(<DefaultSlippageModal />);
-
-      expect(mockUseModalCloseOnQuoteExpiry).toHaveBeenCalled();
-    });
-
-    it('calls useModalCloseOnQuoteExpiry exactly once per render', () => {
-      render(<DefaultSlippageModal />);
-
-      expect(mockUseModalCloseOnQuoteExpiry).toHaveBeenCalledTimes(1);
     });
   });
 

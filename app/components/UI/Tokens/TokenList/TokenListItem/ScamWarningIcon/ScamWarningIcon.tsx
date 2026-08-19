@@ -13,7 +13,7 @@ import {
 
 interface ScamWarningIconProps {
   asset: TokenI & { chainId: string };
-  setShowScamWarningModal: (arg: boolean) => void;
+  setShowScamWarningModal: (chainId: string | null) => void;
 }
 
 export const ScamWarningIcon = ({
@@ -23,16 +23,18 @@ export const ScamWarningIcon = ({
   const { type } = useSelector(selectProviderConfig);
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
     asset.chainId,
-    asset.ticker,
+    asset.ticker ?? asset.symbol,
     type,
   );
-  // Only show warning if explicitly false (not null/loading)
-  if (isOriginalNativeTokenSymbol === false && asset.isETH) {
+  if (
+    isOriginalNativeTokenSymbol === false &&
+    (asset.isNative || asset.isETH)
+  ) {
     return (
       <ButtonIcon
         iconName={IconName.Danger}
         onPressIn={() => {
-          setShowScamWarningModal(true);
+          setShowScamWarningModal(asset.chainId);
         }}
         iconColor={IconColor.Error}
         size={ButtonIconSizes.Lg}

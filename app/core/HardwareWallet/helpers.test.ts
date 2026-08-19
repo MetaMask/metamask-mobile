@@ -1,6 +1,8 @@
 import {
   getHardwareWalletTypeName,
   getHardwareWalletTypeForAddress,
+  getConnectionTipsForWalletType,
+  getDeviceIdForAddress,
 } from './helpers';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
@@ -22,10 +24,18 @@ jest.mock('../../util/address', () => ({
 }));
 
 jest.mock('../../constants/keyringTypes', () => ({
+  __esModule: true,
   default: {
     ledger: 'Ledger Hardware',
     qr: 'QR Hardware Wallet Device',
+    oneKey: 'OneKey Hardware',
   },
+}));
+
+const mockGetDeviceId = jest.fn();
+
+jest.mock('../Ledger/Ledger', () => ({
+  getDeviceId: () => mockGetDeviceId(),
 }));
 
 describe('HardwareWallet helpers', () => {
@@ -83,20 +93,38 @@ describe('HardwareWallet helpers', () => {
       // Reset mock and set up fresh implementation
       mockIsHardwareAccount.mockReset();
       // First call with ledger keyring types returns false
-      // Second call with qr keyring types returns true
+      // Second call with qr/oneKey keyring types returns true
       mockIsHardwareAccount
         .mockReturnValueOnce(false) // isHardwareAccount(address, [ledger])
-        .mockReturnValueOnce(true); // isHardwareAccount(address, [qr])
+        .mockReturnValueOnce(true); // isHardwareAccount(address, [qr, oneKey])
 
       const result = getHardwareWalletTypeForAddress(testAddress);
       expect(result).toBe(HardwareWalletType.Qr);
+      expect(mockIsHardwareAccount).toHaveBeenNthCalledWith(2, testAddress, [
+        'QR Hardware Wallet Device',
+        'OneKey Hardware',
+      ]);
+    });
+
+    it('returns QR for OneKey hardware account', () => {
+      mockIsHardwareAccount.mockReset();
+      mockIsHardwareAccount
+        .mockReturnValueOnce(false) // isHardwareAccount(address, [ledger])
+        .mockReturnValueOnce(true); // isHardwareAccount(address, [qr, oneKey])
+
+      const result = getHardwareWalletTypeForAddress(testAddress);
+      expect(result).toBe(HardwareWalletType.Qr);
+      expect(mockIsHardwareAccount).toHaveBeenNthCalledWith(2, testAddress, [
+        'QR Hardware Wallet Device',
+        'OneKey Hardware',
+      ]);
     });
 
     it('returns undefined for non-hardware account', () => {
       mockIsHardwareAccount.mockReset();
       mockIsHardwareAccount
         .mockReturnValueOnce(false) // isHardwareAccount(address, [ledger])
-        .mockReturnValueOnce(false); // isHardwareAccount(address, [qr])
+        .mockReturnValueOnce(false); // isHardwareAccount(address, [qr, oneKey])
 
       const result = getHardwareWalletTypeForAddress(testAddress);
       expect(result).toBeUndefined();
@@ -108,6 +136,88 @@ describe('HardwareWallet helpers', () => {
 
       const result = getHardwareWalletTypeForAddress(testAddress);
       expect(result).toBe(HardwareWalletType.Ledger);
+    });
+  });
+
+  describe('getConnectionTipsForWalletType', () => {
+    it('returns Ledger-specific tips for Ledger wallet type', () => {
+      const tips = getConnectionTipsForWalletType(HardwareWalletType.Ledger);
+
+      expect(tips).toEqual([
+        'hardware_wallet.connecting.tip_unlock',
+        'hardware_wallet.connecting.tip_open_app',
+        'hardware_wallet.connecting.tip_enable_bluetooth',
+      ]);
+    });
+
+    it('returns QR-specific tips for QR wallet type', () => {
+      const tips = getConnectionTipsForWalletType(HardwareWalletType.Qr);
+
+      expect(tips).toEqual([
+        'hardware_wallet.connecting.qr_tip_scan',
+        'hardware_wallet.connecting.qr_tip_align',
+        'hardware_wallet.connecting.qr_tip_lighting',
+      ]);
+    });
+
+    it('returns empty array for null wallet type', () => {
+      const tips = getConnectionTipsForWalletType(null);
+
+      expect(tips).toEqual([]);
+    });
+  });
+
+  describe('getDeviceIdForAddress', () => {
+    const testAddress = '0x1234567890abcdef1234567890abcdef12345678';
+
+    it('returns the Ledger device id for Ledger accounts', async () => {
+      mockIsHardwareAccount.mockReset();
+      mockIsHardwareAccount
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(false);
+      mockGetDeviceId.mockResolvedValue('ledger-device-id');
+
+      await expect(getDeviceIdForAddress(testAddress)).resolves.toBe(
+        'ledger-device-id',
+      );
+      expect(mockGetDeviceId).toHaveBeenCalledTimes(1);
+    });
+
+    it('falls back to undefined when Ledger device id lookup times out', async () => {
+      jest.useFakeTimers();
+      mockIsHardwareAccount.mockReset();
+      mockIsHardwareAccount
+        .mockReturnValueOnce(true)
+        .mockReturnValueOnce(false);
+      mockGetDeviceId.mockReturnValueOnce(
+        // eslint-disable-next-line no-empty-function
+        new Promise(() => {}),
+      );
+
+      const resultPromise = getDeviceIdForAddress(testAddress);
+      await jest.advanceTimersByTimeAsync(6000);
+      await expect(resultPromise).resolves.toBeUndefined();
+      jest.useRealTimers();
+    });
+
+    it('returns undefined for QR accounts', async () => {
+      mockIsHardwareAccount.mockReset();
+      mockIsHardwareAccount
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(true);
+
+      await expect(getDeviceIdForAddress(testAddress)).resolves.toBeUndefined();
+      expect(mockGetDeviceId).not.toHaveBeenCalled();
+    });
+
+    it('returns undefined for non-hardware accounts', async () => {
+      mockIsHardwareAccount.mockReset();
+      mockIsHardwareAccount
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(false);
+
+      await expect(getDeviceIdForAddress(testAddress)).resolves.toBeUndefined();
+      expect(mockGetDeviceId).not.toHaveBeenCalled();
     });
   });
 });

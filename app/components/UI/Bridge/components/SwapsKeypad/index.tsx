@@ -6,13 +6,13 @@ import React, {
   useState,
   PropsWithChildren,
 } from 'react';
+import {
+  BottomSheetDialog,
+  type BottomSheetDialogRef,
+  Box,
+} from '@metamask/design-system-react-native';
 import Keypad, { KeypadChangeData } from '../../../../Base/Keypad';
-import { Box } from '../../../Box/Box';
-import { createSwapsKeypadStyles } from './styles';
 import { SwapsKeypadRef } from './types';
-import { useTheme } from '../../../../../util/theme';
-import BottomSheetDialog from '../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog';
-import { BottomSheetDialogRef } from '../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog';
 
 interface SwapsKeypadProps {
   value: string;
@@ -25,8 +25,6 @@ export const SwapsKeypad = forwardRef<
   SwapsKeypadRef,
   PropsWithChildren<SwapsKeypadProps>
 >(({ value, currency, decimals, onChange, children }, ref) => {
-  const theme = useTheme();
-  const styles = createSwapsKeypadStyles(theme);
   const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
   const isOpenRef = useRef(false);
   const [isRendered, setIsRendered] = useState(false);
@@ -57,9 +55,8 @@ export const SwapsKeypad = forwardRef<
 
   return (
     <BottomSheetDialog
-      style={styles.keypadDialog}
       ref={bottomSheetRef}
-      isInteractable
+      isInteractable={false}
       onClose={handleClose}
       onStartShouldSetResponder={() =>
         // Prevents the native gesture system from bubbling up
@@ -70,7 +67,7 @@ export const SwapsKeypad = forwardRef<
         true
       }
     >
-      <Box style={styles.keypadContainer}>
+      <Box twClassName="content-end px-4 gap-4 pt-4">
         {children}
         <Keypad
           value={value}

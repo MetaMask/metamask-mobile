@@ -7,7 +7,10 @@ import {
   PERPS_MIN_BALANCE_THRESHOLD,
   PROVIDER_CONFIG,
 } from '../constants/perpsConfig';
-import { selectPerpsPayWithAnyTokenAllowlistAssets } from '../selectors/featureFlags';
+import {
+  selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag,
+  selectPerpsPayWithAnyTokenAllowlistAssets,
+} from '../selectors/featureFlags';
 import {
   selectPerpsAccountState,
   selectPerpsProvider,
@@ -21,6 +24,9 @@ import { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
  * Otherwise returns null (caller should default to "Perps balance").
  */
 export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPaymentToken | null {
+  const featureEnabled = useSelector(
+    selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag,
+  );
   const perpsAccount = useSelector(selectPerpsAccountState);
   const allowlistAssets = useSelector(
     selectPerpsPayWithAnyTokenAllowlistAssets,
@@ -30,11 +36,14 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
   const paymentTokens = usePerpsPaymentTokens();
 
   return useMemo(() => {
-    const availableBalance = Number.parseFloat(
-      perpsAccount?.availableBalance?.toString() ?? '0',
+    if (!featureEnabled) {
+      return null;
+    }
+    const spendableBalance = Number.parseFloat(
+      perpsAccount?.spendableBalance?.toString() ?? '0',
     );
 
-    if (availableBalance > PERPS_MIN_BALANCE_THRESHOLD) {
+    if (spendableBalance > PERPS_MIN_BALANCE_THRESHOLD) {
       return null;
     }
     if (!allowlistAssets?.length) {
@@ -82,7 +91,8 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
       description: top.symbol,
     };
   }, [
-    perpsAccount?.availableBalance,
+    featureEnabled,
+    perpsAccount?.spendableBalance,
     allowlistAssets,
     activeProvider,
     currentNetwork,

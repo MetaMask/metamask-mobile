@@ -1,7 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { KnownCaipNamespace } from '@metamask/utils';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import {
   useNetworksByCustomNamespace,
   NetworkType,
@@ -15,6 +14,7 @@ import {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TrxScope,
   ///: END:ONLY_INCLUDE_IF
+  XlmScope,
 } from '@metamask/keyring-api';
 import { EVM_SCOPE } from '../../UI/Earn/constants/networks';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
@@ -36,6 +36,7 @@ interface UseNetworksToUseReturn {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   tronNetworks: ProcessedNetwork[];
   ///: END:ONLY_INCLUDE_IF
+  stellarNetworks: ProcessedNetwork[];
   selectedEvmAccount: InternalAccount | null;
   selectedSolanaAccount: InternalAccount | null;
   ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
@@ -44,7 +45,7 @@ interface UseNetworksToUseReturn {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   selectedTronAccount: InternalAccount | null;
   ///: END:ONLY_INCLUDE_IF
-  isMultichainAccountsState2Enabled: boolean;
+  selectedStellarAccount: InternalAccount | null;
   areAllNetworksSelectedCombined: boolean;
   areAllEvmNetworksSelected: boolean;
   areAllSolanaNetworksSelected: boolean;
@@ -54,6 +55,7 @@ interface UseNetworksToUseReturn {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   areAllTronNetworksSelected: boolean;
   ///: END:ONLY_INCLUDE_IF
+  areAllStellarNetworksSelected: boolean;
 }
 
 /**
@@ -69,10 +71,6 @@ export const useNetworksToUse = ({
   networkType,
   areAllNetworksSelected,
 }: UseNetworksToUseProps): UseNetworksToUseReturn => {
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
-
   const selectedEvmAccount =
     useSelector(selectSelectedInternalAccountByScope)(EVM_SCOPE) || null;
 
@@ -88,6 +86,9 @@ export const useNetworksToUse = ({
   const selectedTronAccount =
     useSelector(selectSelectedInternalAccountByScope)(TrxScope.Mainnet) || null;
   ///: END:ONLY_INCLUDE_IF
+
+  const selectedStellarAccount =
+    useSelector(selectSelectedInternalAccountByScope)(XlmScope.Pubnet) || null;
 
   const {
     networks: evmNetworks = [],
@@ -125,6 +126,14 @@ export const useNetworksToUse = ({
   });
   ///: END:ONLY_INCLUDE_IF
 
+  const {
+    networks: stellarNetworks = [],
+    areAllNetworksSelected: areAllStellarNetworksSelected = false,
+  } = useNetworksByCustomNamespace({
+    networkType,
+    namespace: KnownCaipNamespace.Stellar,
+  });
+
   // Helper functions to make network selection logic more readable
   const hasSelectedAccounts = useMemo(
     () => ({
@@ -136,6 +145,7 @@ export const useNetworksToUse = ({
       ///: BEGIN:ONLY_INCLUDE_IF(tron)
       tron: !!selectedTronAccount,
       ///: END:ONLY_INCLUDE_IF
+      stellar: !!selectedStellarAccount,
     }),
     [
       selectedEvmAccount,
@@ -146,6 +156,7 @@ export const useNetworksToUse = ({
       ///: BEGIN:ONLY_INCLUDE_IF(tron)
       selectedTronAccount,
       ///: END:ONLY_INCLUDE_IF
+      selectedStellarAccount,
     ],
   );
 
@@ -158,11 +169,6 @@ export const useNetworksToUse = ({
   );
 
   const networksToUse = useMemo(() => {
-    // When multichain is disabled, return original networks
-    if (!isMultichainAccountsState2Enabled) {
-      return networks;
-    }
-
     const anySelectedAccount = [
       hasSelectedAccounts.evm,
       hasSelectedAccounts.solana,
@@ -172,6 +178,7 @@ export const useNetworksToUse = ({
       ///: BEGIN:ONLY_INCLUDE_IF(tron)
       hasSelectedAccounts.tron,
       ///: END:ONLY_INCLUDE_IF
+      hasSelectedAccounts.stellar,
     ].some(Boolean);
 
     if (anySelectedAccount) {
@@ -184,13 +191,13 @@ export const useNetworksToUse = ({
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         hasSelectedAccounts.tron ? tronNetworks : [],
         ///: END:ONLY_INCLUDE_IF
+        hasSelectedAccounts.stellar ? stellarNetworks : [],
       ]);
     }
 
     // Case: No accounts selected - fallback to default networks
     return networks;
   }, [
-    isMultichainAccountsState2Enabled,
     hasSelectedAccounts.evm,
     hasSelectedAccounts.solana,
     ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
@@ -199,6 +206,7 @@ export const useNetworksToUse = ({
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     hasSelectedAccounts.tron,
     ///: END:ONLY_INCLUDE_IF
+    hasSelectedAccounts.stellar,
     networks,
     combineAvailableNetworks,
     evmNetworks,
@@ -209,14 +217,10 @@ export const useNetworksToUse = ({
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     tronNetworks,
     ///: END:ONLY_INCLUDE_IF
+    stellarNetworks,
   ]);
 
   const areAllNetworksSelectedCombined = useMemo(() => {
-    // When multichain is disabled, return original areAllNetworksSelected
-    if (!isMultichainAccountsState2Enabled) {
-      return areAllNetworksSelected || false;
-    }
-
     // Collect selection flags for each selected account type
     const accountSelectionFlags = [];
 
@@ -240,13 +244,16 @@ export const useNetworksToUse = ({
     }
     ///: END:ONLY_INCLUDE_IF
 
+    if (hasSelectedAccounts.stellar) {
+      accountSelectionFlags.push(areAllStellarNetworksSelected);
+    }
+
     // If any accounts are selected, all their networks must be selected
     // If no accounts are selected, fallback to original areAllNetworksSelected
     return accountSelectionFlags.length > 0
       ? accountSelectionFlags.every(Boolean)
       : areAllNetworksSelected || false;
   }, [
-    isMultichainAccountsState2Enabled,
     areAllNetworksSelected,
     hasSelectedAccounts,
     areAllEvmNetworksSelected,
@@ -257,6 +264,7 @@ export const useNetworksToUse = ({
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     areAllTronNetworksSelected,
     ///: END:ONLY_INCLUDE_IF
+    areAllStellarNetworksSelected,
   ]);
 
   return {
@@ -269,6 +277,7 @@ export const useNetworksToUse = ({
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     tronNetworks,
     ///: END:ONLY_INCLUDE_IF
+    stellarNetworks,
     selectedEvmAccount,
     selectedSolanaAccount,
     ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
@@ -277,7 +286,7 @@ export const useNetworksToUse = ({
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     selectedTronAccount,
     ///: END:ONLY_INCLUDE_IF
-    isMultichainAccountsState2Enabled,
+    selectedStellarAccount,
     areAllNetworksSelectedCombined,
     areAllEvmNetworksSelected,
     areAllSolanaNetworksSelected,
@@ -287,5 +296,6 @@ export const useNetworksToUse = ({
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     areAllTronNetworksSelected,
     ///: END:ONLY_INCLUDE_IF
+    areAllStellarNetworksSelected,
   };
 };

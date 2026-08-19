@@ -7,12 +7,12 @@ import { handleFetch } from '@metamask/controller-utils';
 import { fetch as expoFetch } from 'expo/fetch';
 
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import {
   getBridgeControllerMessenger,
   BridgeControllerInitMessenger,
 } from '../../messengers/bridge-controller-messenger';
-import { ControllerInitRequest } from '../../types';
+import { MessengerClientInitRequest } from '../../types';
 import {
   bridgeControllerInit,
   handleBridgeFetch,
@@ -23,6 +23,10 @@ import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { buildAndTrackEvent } from '../../utils/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
+import {
+  ASSETS_UNIFY_STATE_FLAG,
+  ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+} from '../../../../selectors/featureFlagController/assetsUnifyState';
 
 jest.mock('@metamask/bridge-controller');
 jest.mock('../../utils/analytics');
@@ -59,7 +63,7 @@ function buildTransactionControllerMock(
 function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<
-  ControllerInitRequest<
+  MessengerClientInitRequest<
     BridgeControllerMessenger,
     BridgeControllerInitMessenger
   >
@@ -72,14 +76,14 @@ function buildInitRequestMock(
   } as unknown as BridgeControllerInitMessenger;
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseControllerMessenger),
+    ...buildMessengerClientInitRequestMock(baseControllerMessenger),
     controllerMessenger: getBridgeControllerMessenger(baseControllerMessenger),
     initMessenger: mockInitMessenger,
     ...initRequestProperties,
   };
 
-  if (!initRequestProperties.getController) {
-    requestMock.getController = jest
+  if (!initRequestProperties.getMessengerClient) {
+    requestMock.getMessengerClient = jest
       .fn()
       .mockReturnValue(buildTransactionControllerMock());
   }
@@ -101,7 +105,6 @@ describe('BridgeController Init', () => {
         name: 'mock-event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },
@@ -126,7 +129,7 @@ describe('BridgeController Init', () => {
   it('throws error if TransactionController is not found', () => {
     // Arrange
     const requestMock = buildInitRequestMock({
-      getController: jest.fn().mockImplementation(() => {
+      getMessengerClient: jest.fn().mockImplementation(() => {
         throw new Error('TransactionController not found');
       }),
     });
@@ -215,7 +218,9 @@ describe('BridgeController Init', () => {
         getLayer1GasFee: jest.fn().mockResolvedValue('0x200'),
       });
       const requestMock = buildInitRequestMock({
-        getController: jest.fn().mockReturnValue(mockTransactionController),
+        getMessengerClient: jest
+          .fn()
+          .mockReturnValue(mockTransactionController),
       });
 
       // Act
@@ -258,6 +263,87 @@ describe('BridgeController Init', () => {
       );
     });
 
+    describe('getUseAssetsControllerForRates', () => {
+      function buildInitRequestWithCallMock(callImpl: () => unknown) {
+        return buildInitRequestMock({
+          initMessenger: {
+            call: jest.fn().mockImplementation(callImpl),
+          } as unknown as BridgeControllerInitMessenger,
+        });
+      }
+
+      it('returns true when the assets unify state feature flag is enabled', () => {
+        // Arrange
+        const requestMock = buildInitRequestWithCallMock(() => ({
+          remoteFeatureFlags: {
+            [ASSETS_UNIFY_STATE_FLAG]: {
+              enabled: true,
+              featureVersion: ASSETS_UNIFY_STATE_FEATURE_VERSION_1,
+            },
+          },
+        }));
+
+        // Act
+        bridgeControllerInit(requestMock);
+
+        // Assert
+        const { getUseAssetsControllerForRates } =
+          bridgeControllerClassMock.mock.calls[0][0];
+        expect(getUseAssetsControllerForRates).toBeDefined();
+        expect(getUseAssetsControllerForRates?.()).toBe(true);
+      });
+
+      it('returns false when the assets unify state feature flag is disabled', () => {
+        // Arrange
+        const requestMock = buildInitRequestWithCallMock(() => ({
+          remoteFeatureFlags: {
+            [ASSETS_UNIFY_STATE_FLAG]: { enabled: false, featureVersion: null },
+          },
+        }));
+
+        // Act
+        bridgeControllerInit(requestMock);
+
+        // Assert
+        const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
+        expect(constructorOptions.getUseAssetsControllerForRates?.()).toBe(
+          false,
+        );
+      });
+
+      it('returns true when the feature flag is absent while hardcoded on for development', () => {
+        // Arrange
+        const requestMock = buildInitRequestWithCallMock(() => ({
+          remoteFeatureFlags: {},
+        }));
+
+        // Act
+        bridgeControllerInit(requestMock);
+
+        // Assert
+        const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
+        expect(constructorOptions.getUseAssetsControllerForRates?.()).toBe(
+          false,
+        );
+      });
+
+      it('returns false when initMessenger.call throws', () => {
+        // Arrange
+        const requestMock = buildInitRequestWithCallMock(() => {
+          throw new Error('Controller not ready');
+        });
+
+        // Act
+        bridgeControllerInit(requestMock);
+
+        // Assert
+        const constructorOptions = bridgeControllerClassMock.mock.calls[0][0];
+        expect(constructorOptions.getUseAssetsControllerForRates?.()).toBe(
+          false,
+        );
+      });
+    });
+
     it('handles trackMetaMetricsFn with no properties', () => {
       // Arrange
       const requestMock = buildInitRequestMock();
@@ -287,14 +373,16 @@ describe('BridgeController Init', () => {
       // Arrange
       const mockTransactionController = buildTransactionControllerMock();
       const requestMock = buildInitRequestMock({
-        getController: jest.fn().mockReturnValue(mockTransactionController),
+        getMessengerClient: jest
+          .fn()
+          .mockReturnValue(mockTransactionController),
       });
 
       // Act
       bridgeControllerInit(requestMock);
 
       // Assert
-      expect(requestMock.getController).toHaveBeenCalledWith(
+      expect(requestMock.getMessengerClient).toHaveBeenCalledWith(
         'TransactionController',
       );
     });
@@ -320,6 +408,30 @@ describe('BridgeController Init', () => {
     ])('should use handleFetch if the url is %s', (url, options) => {
       handleBridgeFetch(url, options);
       expect(handleFetch).toHaveBeenCalledWith(url.toString(), options);
+    });
+
+    it('should use fetch if the url includes obtainGaslessBatch', async () => {
+      const url = new URL('http://localhost:3000/obtainGaslessBatch');
+      const options = {
+        body: JSON.stringify({ quotes: [] }),
+        headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+      };
+      const response = {
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+      } as unknown as Response;
+      const fetchMock = jest
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValue(response);
+
+      await expect(handleBridgeFetch(url, options)).resolves.toBe(response);
+
+      expect(fetchMock).toHaveBeenCalledWith(url.toString(), options);
+      expect(handleFetch).not.toHaveBeenCalled();
+
+      fetchMock.mockRestore();
     });
   });
 });

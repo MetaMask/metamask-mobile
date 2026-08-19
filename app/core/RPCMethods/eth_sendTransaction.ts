@@ -10,6 +10,7 @@ import {
   WalletDevice,
 } from '@metamask/transaction-controller';
 import { rpcErrors } from '@metamask/rpc-errors';
+import { validateTransactionParams } from '@metamask/eth-json-rpc-middleware';
 import ppomUtil, { PPOMRequest } from '../../lib/ppom/ppom-util';
 import { updateConfirmationMetric } from '../redux/slices/confirmationMetrics';
 import { store } from '../../store';
@@ -46,7 +47,6 @@ function isObject(value: unknown): value is RuntimeObject {
  * name, regardless of whether it is enumerable or not.
  */
 const hasProperty = <
-  // eslint-disable-next-line @typescript-eslint/ban-types
   ObjectToCheck extends Object,
   Property extends PropertyKey,
 >(
@@ -104,6 +104,7 @@ async function eth_sendTransaction({
       message: `Invalid parameters: expected the first parameter to be an object`,
     });
   }
+  validateTransactionParams(transactionParameters);
   // TODO: Normalize chainId to Hex string
   const nChainId =
     typeof req.params[0].chainId === 'number'

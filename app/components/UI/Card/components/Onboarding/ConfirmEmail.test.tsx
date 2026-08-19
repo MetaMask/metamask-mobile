@@ -6,6 +6,16 @@ import { useNavigation } from '@react-navigation/native';
 import ConfirmEmail from './ConfirmEmail';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import useRegions from '../../hooks/useRegions';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { CardActions, CardScreens } from '../../util/metrics';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+}));
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -95,8 +105,46 @@ jest.mock('@metamask/design-system-react-native', () => {
         },
         children,
       ),
+    Button: ({
+      children,
+      testID,
+      onPress,
+      label,
+      isDisabled,
+      disabled,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      onPress?: () => void;
+      label?: string;
+      isDisabled?: boolean;
+      disabled?: boolean;
+      [key: string]: unknown;
+    }) => {
+      const { TouchableOpacity } = jest.requireActual('react-native');
+      return React.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: disabled || isDisabled, ...props },
+        React.createElement(
+          Text,
+          { testID: 'button-label' },
+          children || label,
+        ),
+      );
+    },
     TextVariant: {
       BodyLg: 'BodyLg',
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
   };
 });
@@ -273,7 +321,10 @@ jest.mock('../../../../../component-library/hooks', () => {
 });
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(),
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 jest.mock('../../../../../component-library/components/Toast', () => {
@@ -340,6 +391,11 @@ jest.mock('../../hooks/useEmailVerificationVerify', () => ({
 jest.mock('../../hooks/useEmailVerificationSend', () => ({
   __esModule: true,
   default: () => mockUseEmailVerificationSend(),
+}));
+
+jest.mock('../../hooks/useRegions', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 // Mock SDK
@@ -410,19 +466,14 @@ describe('ConfirmEmail Component', () => {
     mockUseParams.mockReturnValue({
       email: 'test@example.com',
       password: 'testPassword123',
+      countryKey: 'US',
     });
 
-    // Set up useAnalytics mock
-    const { useAnalytics } = jest.requireMock(
-      '../../../../hooks/useAnalytics/useAnalytics',
-    );
-    useAnalytics.mockReturnValue({
-      trackEvent: jest.fn(),
-      createEventBuilder: jest.fn(() => ({
-        addProperties: jest.fn(() => ({
-          build: jest.fn(() => ({})),
-        })),
-      })),
+    (useRegions as jest.Mock).mockReturnValue({
+      getRegionByCode: (code: string) =>
+        code === 'US'
+          ? { key: 'US', name: 'United States', emoji: '🇺🇸' }
+          : null,
     });
 
     // Set up default mock returns for hooks
@@ -455,6 +506,54 @@ describe('ConfirmEmail Component', () => {
       jest.runOnlyPendingTimers();
     });
     jest.useRealTimers();
+  });
+
+  describe('Analytics', () => {
+    it('tracks CARD_VIEWED with CONFIRM_EMAIL screen on mount', () => {
+      render(
+        <Provider store={store}>
+          <ConfirmEmail />
+        </Provider>,
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        screen: CardScreens.CONFIRM_EMAIL,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks CARD_BUTTON_CLICKED with CONFIRM_EMAIL_BUTTON when code is submitted', async () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <ConfirmEmail />
+        </Provider>,
+      );
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+
+      const codeFieldInput = getByTestId('confirm-email-code-field');
+      await act(async () => {
+        const onChangeTextHandler = codeFieldInput.props.onChangeText;
+        if (onChangeTextHandler) {
+          onChangeTextHandler('123456');
+        }
+      });
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        action: CardActions.CONFIRM_EMAIL_BUTTON,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
   });
 
   describe('Component Rendering', () => {
@@ -567,7 +666,7 @@ describe('ConfirmEmail Component', () => {
       );
 
       const button = getByTestId('confirm-email-continue-button');
-      expect(button.props.disabled).toBe(true);
+      expect(button).toBeDisabled();
     });
 
     it('should remain enabled when confirmation code is incomplete', () => {
@@ -582,7 +681,7 @@ describe('ConfirmEmail Component', () => {
       fireEvent.changeText(codeFieldInput, '123');
 
       const button = getByTestId('confirm-email-continue-button');
-      expect(button.props.disabled).toBe(false);
+      expect(button).not.toBeDisabled();
     });
 
     it('should be enabled when confirmation code is complete', () => {
@@ -597,7 +696,7 @@ describe('ConfirmEmail Component', () => {
       fireEvent.changeText(codeFieldInput, '123456');
 
       const button = getByTestId('confirm-email-continue-button');
-      expect(button.props.disabled).toBe(false);
+      expect(button).not.toBeDisabled();
     });
 
     it('should navigate to CONFIRM_PHONE_NUMBER when continue button is pressed', async () => {
@@ -623,6 +722,7 @@ describe('ConfirmEmail Component', () => {
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
           Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+          { countryKey: 'US' },
         );
       });
     });
@@ -669,6 +769,7 @@ describe('ConfirmEmail Component', () => {
       // Navigation should be called after verification
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+        { countryKey: 'US' },
       );
     }, 10000);
 
@@ -735,6 +836,10 @@ describe('ConfirmEmail Component', () => {
 
       // Navigation should be called again on duplicate input
       expect(mockNavigate).toHaveBeenCalledTimes(2);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+        { countryKey: 'US' },
+      );
     }, 20000);
   });
 
@@ -742,6 +847,8 @@ describe('ConfirmEmail Component', () => {
     it('should display email from params in description', () => {
       mockUseParams.mockReturnValue({
         email: 'user@test.com',
+        password: 'testPassword123',
+        countryKey: 'US',
       });
 
       const store = createTestStore();
@@ -1203,6 +1310,7 @@ describe('ConfirmEmail Component', () => {
       );
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.CARD.ONBOARDING.SET_PHONE_NUMBER,
+        { countryKey: 'US' },
       );
     });
   });

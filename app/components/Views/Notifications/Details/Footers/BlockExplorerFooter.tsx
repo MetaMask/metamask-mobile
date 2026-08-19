@@ -3,17 +3,19 @@ import React, { useMemo } from 'react';
 import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  IconName as DesignSystemIconName,
+} from '@metamask/design-system-react-native';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { getNetworkDetailsFromNotifPayload } from '../../../../../util/notifications';
 import { ModalFooterBlockExplorer } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import useStyles from '../useStyles';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import onChainAnalyticProperties from '../../../../../util/notifications/methods/notification-analytics';
+import { notificationAnalyticsProperties } from '../../../../../util/notifications/methods/notification-analytics';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 import {
   INotification,
   isOnChainRawNotification,
@@ -55,13 +57,16 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
   const txHashUrl = `${url}/tx/${props.txHash}`;
 
   const onPress = () => {
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+      location: 'notification_detail',
+      text: strings('asset_details.options.view_on_block'),
+      url: txHashUrl,
+    });
     Linking.openURL(txHashUrl);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
         .addProperties({
-          notification_id: notification.id,
-          notification_type: notification.type,
-          ...onChainAnalyticProperties(notification),
+          ...notificationAnalyticsProperties(notification),
           clicked_item: 'block_explorer',
         })
         .build(),
@@ -70,11 +75,12 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
 
   return (
     <Button
-      variant={ButtonVariants.Primary}
-      label={strings('asset_details.options.view_on_block')}
+      variant={ButtonVariant.Primary}
       style={styles.ctaBtn}
-      endIconName={IconName.Arrow2UpRight}
+      endIconName={DesignSystemIconName.Arrow2UpRight}
       onPress={onPress}
-    />
+    >
+      {strings('asset_details.options.view_on_block')}
+    </Button>
   );
 }

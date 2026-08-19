@@ -13,7 +13,7 @@ import {
   POLYGON_MAINNET_CAIP_CHAIN_ID,
 } from '../providers/polymarket/constants';
 
-/* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-require-imports, import-x/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 

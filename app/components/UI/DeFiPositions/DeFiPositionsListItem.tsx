@@ -8,6 +8,7 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { Hex } from '@metamask/utils';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import {
@@ -25,6 +26,7 @@ import { useStyles } from '../../hooks/useStyles';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { getTokenAvatarUrl } from './get-token-avatar-url';
+import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 
 interface DeFiPositionsListItemProps {
   chainId: Hex;
@@ -42,7 +44,7 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
   const { styles } = useStyles(styleSheet, undefined);
 
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const networkIconAvatar = useMemo(
     () => NetworkBadgeSource(chainId),
@@ -111,6 +113,9 @@ const DeFiPositionsListItem: React.FC<DeFiPositionsListItemProps> = ({
 
   return (
     <TouchableOpacity
+      testID={WalletViewSelectorsIDs.DEFI_POSITION_LIST_ITEM(
+        protocolAggregate.protocolDetails.name,
+      )}
       onPress={() => {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.DEFI_PROTOCOL_DETAILS_OPENED)

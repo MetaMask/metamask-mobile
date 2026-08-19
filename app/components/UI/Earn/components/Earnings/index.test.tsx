@@ -1,5 +1,5 @@
 import React, { act } from 'react';
-import Earnings from '.';
+import Earnings, { EARNINGS_TEST_IDS } from '.';
 import { strings } from '../../../../../../locales/i18n';
 import { mockNetworkState } from '../../../../../util/test/network';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -12,6 +12,8 @@ import { earnSelectors } from '../../../../../selectors/earnController';
 import { EarnTokenDetails } from '../../types/lending.types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { fireEvent } from '@testing-library/react-native';
+import { View } from 'react-native';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 
 const mockNavigate = jest.fn();
 
@@ -55,6 +57,11 @@ jest.mock('../../../../../selectors/earnController', () => ({
     }),
     selectEarnOutputToken: jest.fn(),
   },
+}));
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: jest.fn(),
 }));
 
 // Mock the feature flags selector
@@ -107,7 +114,7 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-const render = (state = STATE_MOCK) =>
+const render = (state = STATE_MOCK, lendingAction?: React.ReactNode) =>
   renderWithProvider(
     <Earnings
       asset={{
@@ -123,6 +130,7 @@ const render = (state = STATE_MOCK) =>
         logo: '',
         isETH: true,
       }}
+      lendingAction={lendingAction}
     />,
     {
       state,
@@ -132,24 +140,68 @@ const render = (state = STATE_MOCK) =>
 describe('Earnings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (
+      selectPrivacyMode as jest.MockedFunction<typeof selectPrivacyMode>
+    ).mockReturnValue(false);
   });
 
-  it('should render correctly', () => {
-    const { toJSON, getByText, queryByText } = render();
+  it('renders pooled-staking earnings', () => {
+    const { getByText, queryByText } = render();
 
-    expect(getByText(strings('stake.your_earnings'))).toBeDefined();
-    expect(getByText(strings('stake.annual_rate'))).toBeDefined();
-    expect(getByText(strings('stake.lifetime_rewards'))).toBeDefined();
-    expect(getByText(strings('stake.estimated_annual_earnings'))).toBeDefined();
+    expect(getByText(strings('stake.your_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.annual_rate'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.lifetime_rewards'))).toBeOnTheScreen();
+    expect(
+      getByText(strings('stake.estimated_annual_earnings')),
+    ).toBeOnTheScreen();
     expect(
       getByText(strings('earn.view_earnings_history.staking')),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       queryByText(
         strings('earn.service_interruption_banner.maintenance_message'),
       ),
-    ).toBeNull();
-    expect(toJSON()).toMatchSnapshot();
+    ).not.toBeOnTheScreen();
+  });
+
+  it('displays pooled-staking earnings values when privacy mode is disabled', () => {
+    const { getByTestId } = render();
+
+    expect(
+      getByTestId(EARNINGS_TEST_IDS.LIFETIME_EARNINGS_FIAT),
+    ).toHaveTextContent('$5000');
+    expect(
+      getByTestId(EARNINGS_TEST_IDS.LIFETIME_EARNINGS_TOKEN),
+    ).toHaveTextContent('2.5 ETH');
+    expect(
+      getByTestId(EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_FIAT),
+    ).toHaveTextContent('$5000');
+    expect(
+      getByTestId(EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_TOKEN),
+    ).toHaveTextContent('2.5 ETH');
+  });
+
+  it('masks pooled-staking earnings values in privacy mode', () => {
+    (
+      selectPrivacyMode as jest.MockedFunction<typeof selectPrivacyMode>
+    ).mockReturnValue(true);
+
+    const { getByTestId, queryByText } = render();
+
+    expect(
+      getByTestId(EARNINGS_TEST_IDS.LIFETIME_EARNINGS_FIAT),
+    ).toHaveTextContent(/•/);
+    expect(
+      getByTestId(EARNINGS_TEST_IDS.LIFETIME_EARNINGS_TOKEN),
+    ).toHaveTextContent(/•/);
+    expect(
+      getByTestId(EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_FIAT),
+    ).toHaveTextContent(/•/);
+    expect(
+      getByTestId(EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_TOKEN),
+    ).toHaveTextContent(/•/);
+    expect(queryByText('$5000')).not.toBeOnTheScreen();
+    expect(queryByText('2.5 ETH')).not.toBeOnTheScreen();
   });
 
   it('displays pooled-staking maintenance banner when feature flag is enabled', () => {
@@ -159,14 +211,13 @@ describe('Earnings', () => {
       >
     ).mockReturnValue(true);
 
-    const { toJSON, getByText } = render();
+    const { getByText } = render();
 
-    expect(toJSON()).toMatchSnapshot();
     expect(
       getByText(
         strings('earn.service_interruption_banner.maintenance_message'),
       ),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('displays lending maintenance banner when feature flag is enabled', () => {
@@ -176,17 +227,16 @@ describe('Earnings', () => {
       >
     ).mockReturnValue(true);
 
-    const { toJSON, getByText } = render();
+    const { getByText } = render();
 
-    expect(toJSON()).toMatchSnapshot();
     expect(
       getByText(
         strings('earn.service_interruption_banner.maintenance_message'),
       ),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
-  it('should not display earnings history button when earn experience is STABLECOIN_LENDING', () => {
+  it('renders lending title and action without earnings history', () => {
     (
       earnSelectors.selectEarnTokenPair as jest.MockedFunction<
         typeof earnSelectors.selectEarnTokenPair
@@ -200,18 +250,51 @@ describe('Earnings', () => {
       } as unknown as EarnTokenDetails,
     });
 
-    const { getByText, queryByText } = render();
+    const { getByTestId, getByText, queryByText } = render(
+      STATE_MOCK,
+      <View testID="lending-action" />,
+    );
 
-    expect(getByText(strings('stake.your_earnings'))).toBeDefined();
+    expect(getByText(strings('earn.lending_earnings'))).toBeOnTheScreen();
+    expect(getByTestId('lending-action')).toBeOnTheScreen();
     expect(
       queryByText(strings('earn.view_earnings_history.lending')),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
     expect(
       queryByText(strings('earn.view_earnings_history.staking')),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
-  it('should navigate to lending learn more modal when earn experience is STABLECOIN_LENDING', async () => {
+  it('masks lending estimated annual earnings in privacy mode', () => {
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValue({
+      earnToken: undefined,
+      outputToken: {
+        experience: {
+          type: 'STABLECOIN_LENDING' as EARN_EXPERIENCES,
+        },
+      } as EarnTokenDetails,
+    });
+    (
+      selectPrivacyMode as jest.MockedFunction<typeof selectPrivacyMode>
+    ).mockReturnValue(true);
+
+    const { getByTestId, queryByText } = render();
+
+    expect(
+      getByTestId(EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_FIAT),
+    ).toHaveTextContent(/•/);
+    expect(
+      getByTestId(EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_TOKEN),
+    ).toHaveTextContent(/•/);
+    expect(queryByText('$5000')).not.toBeOnTheScreen();
+    expect(queryByText('2.5 ETH')).not.toBeOnTheScreen();
+  });
+
+  it('navigates to lending learn more modal when earn experience is STABLECOIN_LENDING', () => {
     const mockOutputToken = {
       chainId: '0x1',
       symbol: 'aWETH',
@@ -240,11 +323,9 @@ describe('Earnings', () => {
 
     const { getByText, getByTestId } = render();
 
-    await act(async () => {
-      fireEvent.press(getByTestId('annual-rate-tooltip'));
-    });
+    fireEvent.press(getByTestId('annual-rate-tooltip'));
 
-    expect(getByText(strings('stake.your_earnings'))).toBeDefined();
+    expect(getByText(strings('earn.lending_earnings'))).toBeOnTheScreen();
     expect(mockNavigate).toHaveBeenCalledWith('EarnModals', {
       screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
       params: {
@@ -253,7 +334,7 @@ describe('Earnings', () => {
     });
   });
 
-  it('should navigate to pooled staking learn more modal when earn experience is POOLED_STAKING', async () => {
+  it('navigates to pooled staking learn more modal when earn experience is POOLED_STAKING', async () => {
     const mockOutputToken = {
       chainId: '0x1',
       symbol: 'aETH',
@@ -282,11 +363,9 @@ describe('Earnings', () => {
 
     const { getByText, getByTestId } = render();
 
-    await act(async () => {
-      fireEvent.press(getByTestId('annual-rate-tooltip'));
-    });
+    fireEvent.press(getByTestId('annual-rate-tooltip'));
 
-    expect(getByText(strings('stake.your_earnings'))).toBeDefined();
+    expect(getByText(strings('stake.your_earnings'))).toBeOnTheScreen();
     expect(mockNavigate).toHaveBeenCalledWith('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
       params: {

@@ -13,6 +13,7 @@ import {
   createDeepLinkUsedEventBuilder,
   detectAppInstallation,
 } from './deepLinkAnalytics';
+import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import { DeeplinkUrlParams } from '../../types/deepLink.types';
 import {
   DeepLinkRoute,
@@ -43,6 +44,10 @@ jest.mock('./deepLinkAnalytics', () => {
 });
 
 describe('deepLinkAnalytics', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('determineAppInstallationStatus', () => {
     it('detects deferred deep link when user installs app via Branch link', () => {
       const params = {
@@ -169,18 +174,6 @@ describe('deepLinkAnalytics', () => {
       expect(result.screen).toBe('markets');
       expect(result.tab).toBe('positions');
       expect(result.slippage).toBeUndefined();
-    });
-
-    it('extracts deposit-specific properties', () => {
-      const result = extractSensitiveProperties(
-        DeepLinkRoute.DEPOSIT,
-        mockUrlParams,
-      );
-
-      expect(result.provider).toBe('ramp');
-      expect(result.payment_method).toBe('card');
-      expect(result.fiat_currency).toBe('USD');
-      expect(result.fiat_quantity).toBe('100');
     });
 
     it('extracts transaction-specific properties', () => {
@@ -411,6 +404,11 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(DeepLinkRoute.SWAP);
     });
 
+    it('maps batch sell action to BATCH_SELL route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.BATCH_SELL);
+      expect(result).toBe(DeepLinkRoute.BATCH_SELL);
+    });
+
     it.each([
       [ACTIONS.PERPS, DeepLinkRoute.PERPS],
       [ACTIONS.PERPS_MARKETS, DeepLinkRoute.PERPS],
@@ -424,12 +422,6 @@ describe('deepLinkAnalytics', () => {
       },
     );
 
-    it('maps deposit action to DEPOSIT route', () => {
-      const depositAction = ACTIONS.DEPOSIT;
-      const result = mapSupportedActionToRoute(depositAction);
-      expect(result).toBe(DeepLinkRoute.DEPOSIT);
-    });
-
     it('maps send action to TRANSACTION route', () => {
       const sendAction = ACTIONS.SEND;
       const result = mapSupportedActionToRoute(sendAction);
@@ -439,6 +431,7 @@ describe('deepLinkAnalytics', () => {
     it.each([
       [ACTIONS.BUY, DeepLinkRoute.BUY],
       [ACTIONS.BUY_CRYPTO, DeepLinkRoute.BUY],
+      [ACTIONS.ON_RAMP, DeepLinkRoute.BUY],
     ] as const)('maps buy action %s to BUY route', (action, expectedRoute) => {
       // Arrange & Act
       const result = mapSupportedActionToRoute(action);
@@ -473,6 +466,9 @@ describe('deepLinkAnalytics', () => {
       [ACTIONS.DAPP, DeepLinkRoute.DAPP],
       [ACTIONS.WC, DeepLinkRoute.WC],
       [ACTIONS.CREATE_ACCOUNT, DeepLinkRoute.CREATE_ACCOUNT],
+      [ACTIONS.WHATS_HAPPENING, DeepLinkRoute.WHATS_HAPPENING],
+      [ACTIONS.TOP_TRADERS, DeepLinkRoute.TOP_TRADERS],
+      [ACTIONS.SOCIAL_TRADER_POSITION, DeepLinkRoute.SOCIAL_TRADER_POSITION],
     ] as const)(
       'maps action %s to its corresponding route',
       (action, expectedRoute) => {
@@ -481,6 +477,31 @@ describe('deepLinkAnalytics', () => {
         expect(result).toBe(expectedRoute);
       },
     );
+
+    it('maps CONNECT action to SDK_CONNECT route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.CONNECT);
+      expect(result).toBe(DeepLinkRoute.SDK_CONNECT);
+    });
+
+    it('maps MMSDK action to SDK_MMSDK route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.MMSDK);
+      expect(result).toBe(DeepLinkRoute.SDK_MMSDK);
+    });
+
+    it('maps ANDROID_SDK action to SDK_CONNECT route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.ANDROID_SDK);
+      expect(result).toBe(DeepLinkRoute.SDK_CONNECT);
+    });
+
+    it('maps MONEY action to MONEY route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.MONEY);
+      expect(result).toBe(DeepLinkRoute.MONEY);
+    });
+
+    it('maps PRIVACY action to PRIVACY route', () => {
+      const result = mapSupportedActionToRoute(ACTIONS.PRIVACY);
+      expect(result).toBe(DeepLinkRoute.PRIVACY);
+    });
   });
 
   describe('extractRouteFromUrl', () => {
@@ -490,6 +511,11 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(DeepLinkRoute.SWAP);
     });
 
+    it('extracts batch sell route from URL', () => {
+      const result = extractRouteFromUrl('https://link.metamask.io/batch-sell');
+      expect(result).toBe(DeepLinkRoute.BATCH_SELL);
+    });
+
     it('extract perps route', () => {
       const result = extractRouteFromUrl(
         'https://link.metamask.io/perps?screen=markets',
@@ -497,11 +523,11 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(DeepLinkRoute.PERPS);
     });
 
-    it('extract deposit route', () => {
+    it('maps deprecated deposit path to invalid route', () => {
       const result = extractRouteFromUrl(
         'https://link.metamask.io/deposit?provider=ramp',
       );
-      expect(result).toBe(DeepLinkRoute.DEPOSIT);
+      expect(result).toBe(DeepLinkRoute.INVALID);
     });
 
     it('extract transaction route', () => {
@@ -537,6 +563,27 @@ describe('deepLinkAnalytics', () => {
       expect(result).toBe(DeepLinkRoute.SHIELD);
     });
 
+    it('extract social trader position route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/social-trader-position?positionId=position-1',
+      );
+      expect(result).toBe(DeepLinkRoute.SOCIAL_TRADER_POSITION);
+    });
+
+    it('extract whats happening route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/whats-happening',
+      );
+      expect(result).toBe(DeepLinkRoute.WHATS_HAPPENING);
+    });
+
+    it('extract social leaderboard route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/top-traders?ignored=true',
+      );
+      expect(result).toBe(DeepLinkRoute.TOP_TRADERS);
+    });
+
     it('extract home route for empty path', () => {
       const result = extractRouteFromUrl('https://link.metamask.io/');
       expect(result).toBe(DeepLinkRoute.HOME);
@@ -545,6 +592,18 @@ describe('deepLinkAnalytics', () => {
     it('extract home route for home path', () => {
       const result = extractRouteFromUrl('https://link.metamask.io/home');
       expect(result).toBe(DeepLinkRoute.HOME);
+    });
+
+    it('extract money route', () => {
+      const result = extractRouteFromUrl('https://link.metamask.io/money');
+      expect(result).toBe(DeepLinkRoute.MONEY);
+    });
+
+    it('extract privacy route', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/privacy?setting=metametrics',
+      );
+      expect(result).toBe(DeepLinkRoute.PRIVACY);
     });
 
     it('return INVALID for unknown routes', () => {
@@ -570,6 +629,24 @@ describe('deepLinkAnalytics', () => {
       jest.clearAllMocks();
       const deepLinkAnalytics = jest.requireMock('./deepLinkAnalytics');
       mockDetectAppInstallation = deepLinkAnalytics.detectAppInstallation;
+    });
+
+    it('uses canonical Deep Link Used event name', async () => {
+      mockDetectAppInstallation.mockResolvedValue(true);
+
+      const context: DeepLinkAnalyticsContext = {
+        url: 'https://link.metamask.io/swap',
+        route: DeepLinkRoute.SWAP,
+        urlParams: {},
+        signatureStatus: SignatureStatus.MISSING,
+        interstitialShown: false,
+        interstitialDisabled: false,
+      };
+
+      const { name } = (await createDeepLinkUsedEventBuilder(context)).build();
+
+      expect(name).toBe(MetaMetricsEvents.DEEP_LINK_USED.category);
+      expect(name).not.toBe('Deep link Used');
     });
 
     it('creates event with correct properties for swap route', async () => {

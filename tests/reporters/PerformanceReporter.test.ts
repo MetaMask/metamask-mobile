@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 jest.mock('fs', () => ({
   existsSync: jest.fn(() => true),
   mkdirSync: jest.fn(),
@@ -217,6 +217,46 @@ describe('PerformanceReporter', () => {
       // Failure is tracked — verified via onEnd generating failed-tests report
     });
 
+    it('marks interrupted tests with metrics as failed', () => {
+      const result = makeResult({
+        status: 'interrupted',
+        duration: 7 * 60 * 1000,
+        attachments: [makeMetricsAttachment()],
+      });
+
+      reporter.onTestEnd(makeTest() as never, result as never);
+
+      interface ReporterInternals {
+        metrics: { testFailed?: boolean; failureReason?: string }[];
+      }
+      const { metrics } = reporter as unknown as ReporterInternals;
+
+      expect(metrics[0]?.testFailed).toBe(true);
+      expect(metrics[0]?.failureReason).toBe('interrupted');
+    });
+
+    it('marks tests with empty performance metrics as failed', () => {
+      const result = makeResult({
+        status: 'passed',
+        attachments: [
+          makeMetricsAttachment({
+            steps: [],
+            total: 0,
+          }),
+        ],
+      });
+
+      reporter.onTestEnd(makeTest() as never, result as never);
+
+      interface ReporterInternals {
+        metrics: { testFailed?: boolean; failureReason?: string }[];
+      }
+      const { metrics } = reporter as unknown as ReporterInternals;
+
+      expect(metrics[0]?.testFailed).toBe(true);
+      expect(metrics[0]?.failureReason).toBe('no_performance_metrics');
+    });
+
     it('creates basic entry for failed tests without metrics', () => {
       const result = makeResult({
         status: 'failed',
@@ -225,6 +265,70 @@ describe('PerformanceReporter', () => {
       reporter.onTestEnd(makeTest() as never, result as never);
 
       // Basic entry created — verified by onEnd still having metrics
+    });
+
+    it('retry pass clears only the matching project, not same title in another project', () => {
+      const sharedTitle = 'Shared Title Flow';
+      const device = { name: 'Pixel 6', osVersion: '12' };
+      const androidCase = makeTest({
+        title: sharedTitle,
+        parent: {
+          project: { name: 'project-android', use: { device } },
+        },
+      });
+      const iosCase = makeTest({
+        title: sharedTitle,
+        parent: {
+          project: { name: 'project-ios', use: { device } },
+        },
+      });
+      const failAttachments = [makeMetricsAttachment()];
+      const passAttachments = [makeMetricsAttachment()];
+
+      reporter.onTestEnd(
+        androidCase as never,
+        makeResult({ status: 'failed', attachments: failAttachments }) as never,
+      );
+      reporter.onTestEnd(
+        iosCase as never,
+        makeResult({ status: 'failed', attachments: failAttachments }) as never,
+      );
+      reporter.onTestEnd(
+        androidCase as never,
+        makeResult({ status: 'passed', attachments: passAttachments }) as never,
+      );
+
+      interface ReporterInternals {
+        metrics: {
+          testName: string;
+          projectName?: string;
+          testFailed?: boolean;
+        }[];
+        failedTestsByTeam: Record<
+          string,
+          { tests: { testName: string; projectName: string }[] }
+        >;
+      }
+      const { metrics, failedTestsByTeam } =
+        reporter as unknown as ReporterInternals;
+
+      const androidMetric = metrics.find(
+        (m) =>
+          m.testName === sharedTitle && m.projectName === 'project-android',
+      );
+      const iosMetric = metrics.find(
+        (m) => m.testName === sharedTitle && m.projectName === 'project-ios',
+      );
+      expect(androidMetric?.testFailed).toBe(false);
+      expect(iosMetric?.testFailed).toBe(true);
+
+      const teamTests = failedTestsByTeam['@performance-team']?.tests ?? [];
+      expect(teamTests.filter((t) => t.testName === sharedTitle)).toHaveLength(
+        1,
+      );
+      expect(
+        teamTests.find((t) => t.testName === sharedTitle)?.projectName,
+      ).toBe('project-ios');
     });
   });
 
@@ -258,6 +362,46 @@ describe('PerformanceReporter', () => {
         ],
       });
       reporter.onTestEnd(makeTest() as never, result as never);
+
+      await reporter.onEnd();
+
+      expect(BrowserStackEnricher).toHaveBeenCalled();
+    });
+
+    it('enriches sessions when project name ends with browserstack', async () => {
+      const result = makeResult({
+        attachments: [
+          makeSessionAttachment({
+            projectName: 'browserstack-android',
+          }),
+          makeMetricsAttachment(),
+        ],
+      });
+      reporter.onTestEnd(
+        makeTest({
+          parent: { project: { name: 'browserstack-android' } },
+        }) as never,
+        result as never,
+      );
+
+      await reporter.onEnd();
+
+      expect(BrowserStackEnricher).toHaveBeenCalled();
+    });
+
+    it('enriches sessions for onboarding BrowserStack projects', async () => {
+      const result = makeResult({
+        attachments: [
+          makeSessionAttachment({ projectName: 'android-onboarding' }),
+          makeMetricsAttachment(),
+        ],
+      });
+      reporter.onTestEnd(
+        makeTest({
+          parent: { project: { name: 'android-onboarding' } },
+        }) as never,
+        result as never,
+      );
 
       await reporter.onEnd();
 
@@ -307,7 +451,7 @@ describe('PerformanceReporter', () => {
       await reporter.onEnd();
 
       // BrowserStackEnricher should still be constructed but enrichSession should not be called
-      // because the project name doesn't include "browserstack-"
+      // because the project name doesn't include "browserstack"
       const enricherInstance = (BrowserStackEnricher as unknown as jest.Mock)
         .mock.results[0];
       if (enricherInstance) {

@@ -1,36 +1,45 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import { Box, Text, TextColor } from '@metamask/design-system-react-native';
-import { PriceImpactModalType } from './constants';
+import {
+  BannerAlert,
+  BannerAlertSeverity,
+  Box,
+  Text,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 interface PriceImpactDescriptionProps {
-  type: PriceImpactModalType;
-  priceImpact?: string;
+  content: string;
+  formattedPriceImpact?: string;
+  formattedPriceImpactFiat?: string;
+  isDanger: boolean;
 }
 
 export function PriceImpactDescription({
-  type,
-  priceImpact,
+  content,
+  formattedPriceImpact,
+  formattedPriceImpactFiat,
+  isDanger,
 }: PriceImpactDescriptionProps) {
-  const isWarning = Boolean(priceImpact);
-
-  const body = useMemo(() => {
-    if (type === PriceImpactModalType.Execution) {
-      return strings('bridge.price_impact_execution_description', {
-        priceImpact: priceImpact ?? '0',
-      });
-    }
-    if (isWarning) {
-      return strings('bridge.price_impact_warning_description', {
-        priceImpact: priceImpact ?? '0',
-      });
-    }
-    return strings('bridge.price_impact_info_description');
-  }, [type, priceImpact, isWarning]);
-
   return (
-    <Box paddingHorizontal={4} paddingVertical={2}>
-      <Text color={TextColor.TextAlternative}>{body}</Text>
+    <Box paddingHorizontal={4} paddingVertical={2} gap={4}>
+      <Box>
+        <Text color={TextColor.TextAlternative}>
+          {strings(content, {
+            priceImpact: formattedPriceImpact ?? '0',
+          })}
+        </Text>
+      </Box>
+      {formattedPriceImpactFiat && isDanger && (
+        <Box>
+          <BannerAlert
+            severity={BannerAlertSeverity.Danger}
+            description={strings('bridge.price_impact_fiat_alert', {
+              priceImpactFiat: formattedPriceImpactFiat,
+            })}
+          />
+        </Box>
+      )}
     </Box>
   );
 }

@@ -1,5 +1,5 @@
 import React, { ReactNode, useCallback, useMemo, useRef } from 'react';
-import { PanResponder } from 'react-native';
+import { PanResponder, Platform } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Text,
@@ -18,6 +18,7 @@ import ProgressIndicator from './ProgressIndicator';
 import { strings } from '../../../../../../locales/i18n';
 import { useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { setOnboardingActiveStep } from '../../../../../reducers/rewards';
 import Routes from '../../../../../constants/navigation/Routes';
 import { OnboardingStep } from '../../../../../reducers/rewards/types';
@@ -41,7 +42,9 @@ interface OnboardingStepProps {
 
   // Button props
   nextButtonText?: string;
-  nextButtonAlternative?: () => ReactNode;
+  renderAboveCTA?: () => ReactNode;
+  renderBelowCTA?: () => ReactNode;
+  renderLegalDisclaimer?: () => ReactNode;
 
   // Render props for customizable content
   renderStepImage?: () => ReactNode;
@@ -61,14 +64,16 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
   onNextLoadingText,
   onNextDisabled,
   nextButtonText,
-  nextButtonAlternative,
+  renderAboveCTA,
+  renderBelowCTA,
+  renderLegalDisclaimer,
   renderStepImage,
   renderStepInfo,
   disableSwipe = false,
 }) => {
   const tw = useTailwind();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isLargeDevice = useMemo(() => Device.isLargeDevice(), []);
 
   const onClose = useCallback(() => {
@@ -104,6 +109,9 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
   return (
     <KeyboardAwareScrollView
       keyboardShouldPersistTaps="handled"
+      enableOnAndroid
+      enableAutomaticScroll
+      extraScrollHeight={Platform.OS === 'android' ? 120 : 20}
       testID="onboarding-step-container"
       contentContainerStyle={tw.style(
         `min-h-full px-4 ${isLargeDevice ? 'py-8' : 'py-2'}`,
@@ -128,53 +136,50 @@ const OnboardingStepComponent: React.FC<OnboardingStepProps> = ({
           />
         )}
       </Box>
-      <Box twClassName="flex-col flex-1 justify-between items-center">
-        {/* Only render image container if renderStepImage is provided */}
+      <Box twClassName="flex-col flex-1 items-center justify-between mt-16">
         <Box
           justifyContent={BoxJustifyContent.Center}
           alignItems={BoxAlignItems.Center}
           flexDirection={BoxFlexDirection.Column}
-          twClassName="flex-1"
         >
           {renderStepImage?.()}
+          {renderStepInfo()}
         </Box>
 
-        <Box twClassName="gap-4 w-full flex justify-between">
-          <Box twClassName="flex-col flex-grow justify-end">
-            {renderStepInfo()}
-          </Box>
+        <Box twClassName="w-full flex-col gap-4 items-center">
+          {renderAboveCTA?.()}
 
-          <Box twClassName="w-full flex-col gap-2">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            onPress={onNext}
+            twClassName="w-full"
+            isLoading={onNextLoading}
+            loadingText={onNextLoadingText}
+            isDisabled={onNextDisabled || onNextLoading}
+            testID={REWARDS_VIEW_SELECTORS.NEXT_BUTTON}
+          >
+            {nextButtonText || strings('rewards.onboarding.step_confirm')}
+          </Button>
+
+          {renderBelowCTA?.()}
+
+          {onSkip && (
             <Button
-              variant={ButtonVariant.Primary}
+              variant={ButtonVariant.Tertiary}
               size={ButtonSize.Lg}
-              onPress={onNext}
-              twClassName="w-full"
-              isLoading={onNextLoading}
-              loadingText={onNextLoadingText}
-              isDisabled={onNextDisabled || onNextLoading}
-              testID={REWARDS_VIEW_SELECTORS.NEXT_BUTTON}
+              onPress={onSkip}
+              twClassName="w-full bg-gray-500 border-gray-500"
+              testID={REWARDS_VIEW_SELECTORS.SKIP_BUTTON}
             >
-              {nextButtonText || strings('rewards.onboarding.step_confirm')}
+              <Text twClassName="text-text-default">
+                {strings('rewards.onboarding.step_skip')}
+              </Text>
             </Button>
-
-            {onSkip && (
-              <Button
-                variant={ButtonVariant.Tertiary}
-                size={ButtonSize.Lg}
-                onPress={onSkip}
-                twClassName="w-full bg-gray-500 border-gray-500"
-                testID={REWARDS_VIEW_SELECTORS.SKIP_BUTTON}
-              >
-                <Text twClassName="text-text-default">
-                  {strings('rewards.onboarding.step_skip')}
-                </Text>
-              </Button>
-            )}
-
-            {nextButtonAlternative?.()}
-          </Box>
+          )}
         </Box>
+
+        <Box twClassName="w-full">{renderLegalDisclaimer?.()}</Box>
       </Box>
     </KeyboardAwareScrollView>
   );

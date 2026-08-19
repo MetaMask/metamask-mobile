@@ -1,7 +1,7 @@
 import '../../../../../../../tests/component-view/mocks';
 import { renderComponentViewScreen } from '../../../../../../../tests/component-view/render';
 import { initialStateWallet } from '../../../../../../../tests/component-view/presets/wallet';
-import { describeForPlatforms } from '../../../../../../util/test/platform';
+import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
 import React from 'react';
 import { View } from 'react-native';
 import MusdConversionAssetListCta from './index';
@@ -10,8 +10,6 @@ import { initialState as initialFiatOrdersState } from '../../../../../../reduce
 
 const fiatOrdersNoFetch = {
   ...initialFiatOrdersState,
-  detectedGeolocation: undefined,
-  rampRoutingDecision: null,
 };
 
 // Version-gated flags require { enabled, minimumVersion } so validatedVersionGatedFeatureFlag returns a boolean instead of undefined (env fallback).

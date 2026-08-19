@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { captureException } from '@sentry/react-native';
 import { setCandidateSubscriptionId } from '../../../../actions/rewards';
 import { selectCandidateSubscriptionId } from '../../../../reducers/rewards/selectors';
 import Engine from '../../../../core/Engine';
@@ -20,6 +21,12 @@ export const useCandidateSubscriptionId = () => {
       );
       dispatch(setCandidateSubscriptionId(candidateId));
     } catch (error) {
+      captureException(error as Error, {
+        tags: {
+          feature: 'rewards',
+          context: 'candidateSubscriptionId.fetch_failed',
+        },
+      });
       dispatch(setCandidateSubscriptionId('error'));
     }
   }, [dispatch]);

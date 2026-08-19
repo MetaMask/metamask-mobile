@@ -1,15 +1,16 @@
 import React from 'react';
 import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useAssetFromTheme } from '../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   TabEmptyState,
   type TabEmptyStateProps,
-} from '../../../component-library/components-temp/TabEmptyState';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
-import AppConstants from '../../../core/AppConstants';
 import Routes from '../../../constants/navigation/Routes';
+import { EXPLORE_TAB_INDEX } from '../../Views/TrendingView/TrendingView';
 
 import emptyStateDefiLight from '../../../images/empty-state-defi-light.png';
 import emptyStateDefiDark from '../../../images/empty-state-defi-dark.png';
@@ -18,16 +19,14 @@ export interface DefiEmptyStateProps extends TabEmptyStateProps {}
 
 export const DefiEmptyState: React.FC<DefiEmptyStateProps> = (props) => {
   const defiImage = useAssetFromTheme(emptyStateDefiLight, emptyStateDefiDark);
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
 
   const handleExploreDefi = () => {
-    // Navigate to explore tokens page in the in-app browser
-    navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
+    navigate(Routes.TRENDING_VIEW, {
+      screen: Routes.TRENDING_FEED,
       params: {
-        newTabUrl: AppConstants.EXPLORE_TOKENS.URL,
-        timestamp: Date.now(),
+        initialTab: EXPLORE_TAB_INDEX.SITES,
       },
     });
   };

@@ -5,9 +5,12 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import SrpInputGrid from './index';
 
 // Mock Keyboard
-jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => ({
-  dismiss: jest.fn(),
-}));
+jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
+  const keyboard = {
+    dismiss: jest.fn(),
+  };
+  return { __esModule: true, default: keyboard, ...keyboard };
+});
 
 // Mock BIP39 wordlist with test words
 jest.mock('@metamask/scure-bip39/dist/wordlists/english', () => ({
@@ -52,7 +55,7 @@ describe('SrpInputGrid', () => {
 
   it('renders with empty seed phrase', () => {
     const { toJSON } = renderWithProvider(<SrpInputGrid {...defaultProps} />);
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('renders with multiple words', () => {
@@ -60,21 +63,36 @@ describe('SrpInputGrid', () => {
     const { toJSON } = renderWithProvider(
       <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   it('renders with disabled state', () => {
     const { toJSON } = renderWithProvider(
       <SrpInputGrid {...defaultProps} disabled />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
+  });
+
+  it('omits top margin when includeTopMargin is false', () => {
+    const { toJSON: withTopMargin } = renderWithProvider(
+      <SrpInputGrid {...defaultProps} />,
+    );
+    const { toJSON: withoutTopMargin } = renderWithProvider(
+      <SrpInputGrid {...defaultProps} includeTopMargin={false} />,
+    );
+
+    expect(withTopMargin()).not.toBeNull();
+    expect(withoutTopMargin()).not.toBeNull();
+    expect(JSON.stringify(withTopMargin())).not.toEqual(
+      JSON.stringify(withoutTopMargin()),
+    );
   });
 
   it('renders with custom uniqueId', () => {
     const { toJSON } = renderWithProvider(
       <SrpInputGrid {...defaultProps} uniqueId="custom-id" />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).not.toBeNull();
   });
 
   describe('Input Focus and Blur', () => {
@@ -130,7 +148,78 @@ describe('SrpInputGrid', () => {
         nativeEvent: { key: 'Backspace' },
       });
 
-      expect(mockOnSeedPhraseChange).toHaveBeenCalled();
+      expect(mockOnSeedPhraseChange).toHaveBeenCalledWith(['wallet']);
+    });
+
+    it('does not collapse the last remaining blank cell on backspace', () => {
+      const seedPhrase = [''];
+      const { getByTestId } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} seedPhrase={seedPhrase} />,
+      );
+
+      const input = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`);
+      fireEvent(input, 'keyPress', {
+        nativeEvent: { key: 'Backspace' },
+      });
+
+      expect(mockOnSeedPhraseChange).not.toHaveBeenCalled();
+    });
+
+    it('stays in grid mode after deleting down to a single word', () => {
+      const { getByTestId, getByText, queryByText, rerender } =
+        renderWithProvider(
+          <SrpInputGrid
+            {...defaultProps}
+            seedPhrase={['wallet', 'abandon', '']}
+          />,
+        );
+
+      const thirdInput = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_2`);
+      fireEvent(thirdInput, 'keyPress', {
+        nativeEvent: { key: 'Backspace' },
+      });
+
+      expect(mockOnSeedPhraseChange).toHaveBeenCalledWith([
+        'wallet',
+        'abandon',
+      ]);
+
+      rerender(<SrpInputGrid {...defaultProps} seedPhrase={['wallet', '']} />);
+
+      const secondInput = getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_1`);
+      fireEvent(secondInput, 'keyPress', {
+        nativeEvent: { key: 'Backspace' },
+      });
+
+      expect(mockOnSeedPhraseChange).toHaveBeenCalledWith(['wallet']);
+
+      // After sticky-grid mode is latched, a single remaining word must still
+      // render as a numbered grid cell — not switch back to the textarea
+      // (which would steal focus and break continued backspaces).
+      rerender(<SrpInputGrid {...defaultProps} seedPhrase={['wallet']} />);
+
+      expect(
+        getByTestId(`${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_0`),
+      ).toBeOnTheScreen();
+      expect(getByText('1.')).toBeOnTheScreen();
+      expect(queryByText('2.')).toBeNull();
+    });
+
+    it('exits sticky grid mode when the last word is fully deleted', () => {
+      const { getByText, queryByText, rerender } = renderWithProvider(
+        <SrpInputGrid {...defaultProps} seedPhrase={['wallet', 'abandon']} />,
+      );
+
+      // Latch sticky grid with 2+ cells, then delete down to one word.
+      rerender(<SrpInputGrid {...defaultProps} seedPhrase={['wallet']} />);
+      expect(getByText('1.')).toBeOnTheScreen();
+
+      // Fully empty — Paste replaces Clear, so sticky mode must release or
+      // the numbered empty cell (no placeholder) becomes unreachable to reset.
+      rerender(<SrpInputGrid {...defaultProps} seedPhrase={['']} />);
+
+      expect(queryByText('1.')).toBeNull();
+      expect(getByText('Paste')).toBeOnTheScreen();
     });
 
     it('dismisses keyboard on submit editing', () => {

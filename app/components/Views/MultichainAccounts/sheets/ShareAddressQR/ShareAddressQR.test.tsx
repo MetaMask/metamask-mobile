@@ -104,21 +104,6 @@ const mockNavigate = jest.fn();
 let mockAccount = internalAccount1;
 let mockNetworkName = 'Ethereum Mainnet';
 
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-    SafeAreaConsumer: ({
-      children,
-    }: {
-      children: (insets: typeof inset) => React.ReactNode;
-    }) => children(inset),
-    useSafeAreaInsets: () => inset,
-    useSafeAreaFrame: () => frame,
-  };
-});
-
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
@@ -133,8 +118,26 @@ jest.mock('@react-navigation/native', () => ({
       accountName: mockAccount?.metadata?.name || 'Test Account',
       chainId: '0x1',
       groupId: 'test-group-id',
+      location: 'address-list',
+      account: mockAccount,
     },
   }),
+}));
+
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(() => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: jest.requireActual(
+      '../../../../../util/analytics/AnalyticsEventBuilder',
+    ).AnalyticsEventBuilder.createEventBuilder,
+  })),
+}));
+
+jest.mock('../../../../../util/analytics/qrCodeViewedTracking', () => ({
+  ...jest.requireActual('../../../../../util/analytics/qrCodeViewedTracking'),
+  getQrCodeViewedAccountType: jest.fn().mockReturnValue('MetaMask'),
 }));
 
 jest.mock('../../../../../util/address', () => ({
@@ -165,6 +168,9 @@ jest.mock('../../../../hooks/useBlockExplorer', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue({
     toBlockExplorer: jest.fn(),
+    getBlockExplorerUrl: jest
+      .fn()
+      .mockReturnValue('https://etherscan.io/address/0x123'),
     getBlockExplorerName: jest.fn().mockReturnValue('Etherscan (Multichain)'),
   }),
 }));
@@ -187,6 +193,16 @@ jest.mock('../../../../../core/Engine', () => {
     context: {
       NetworkController: {
         getNetworkConfigurationsByCaipChainId: jest.fn(),
+      },
+      KeyringController: {
+        state: {
+          keyrings: [
+            {
+              type: 'HD Key Tree',
+              accounts: [mockAccountEngine.address],
+            },
+          ],
+        },
       },
       AccountsController: {
         internalAccounts: {
@@ -252,8 +268,24 @@ describe('ShareAddressQR', () => {
     jest.clearAllMocks();
     mockGoBack.mockClear();
     mockNavigate.mockClear();
+    mockTrackEvent.mockClear();
     mockAccount = internalAccount1;
     mockNetworkName = 'Ethereum Mainnet';
+  });
+
+  it('tracks QR Code Viewed on render', () => {
+    render();
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'QR Code Viewed',
+        properties: expect.objectContaining({
+          location: 'address-list',
+          chain_id_caip: 'eip155:1',
+          account_type: 'MetaMask',
+        }),
+      }),
+    );
   });
 
   it('displays title and QR code with account information', () => {
@@ -347,6 +379,9 @@ describe('ShareAddressQR', () => {
   it('navigates to block explorer when View on Etherscan button is pressed', () => {
     // Arrange
     const mockToBlockExplorer = jest.fn();
+    const mockGetBlockExplorerUrl = jest
+      .fn()
+      .mockReturnValue('https://etherscan.io/address/0x123');
     const mockGetBlockExplorerName = jest
       .fn()
       .mockReturnValue('Etherscan (Multichain)');
@@ -355,6 +390,7 @@ describe('ShareAddressQR', () => {
     ).default;
     useBlockExplorer.mockReturnValue({
       toBlockExplorer: mockToBlockExplorer,
+      getBlockExplorerUrl: mockGetBlockExplorerUrl,
       getBlockExplorerName: mockGetBlockExplorerName,
     });
 
@@ -365,6 +401,15 @@ describe('ShareAddressQR', () => {
     fireEvent.press(explorerButton);
 
     // Assert
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'External Link Clicked',
+        properties: expect.objectContaining({
+          location: 'share_address_qr',
+          url_domain: 'etherscan.io',
+        }),
+      }),
+    );
     expect(mockToBlockExplorer).toHaveBeenCalledTimes(1);
   });
 

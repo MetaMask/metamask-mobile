@@ -6,14 +6,21 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import Button, {
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  navigateWithDetails,
+  resetWithRoutes,
+} from '../../../../../util/navigation/navUtils';
+import {
+  Box,
+  Label,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -25,23 +32,22 @@ import {
   resetOnboardingState,
   selectConsentSetId,
   selectOnboardingId,
-  selectSelectedCountry,
   setConsentSetId,
-  setIsAuthenticatedCard,
-  setSelectedCountry,
-  setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
-import { CardError } from '../../types';
+import { CardError, type Region } from '../../types';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import useRegions from '../../hooks/useRegions';
 import { storeCardBaanxToken } from '../../util/cardTokenVault';
+import Engine from '../../../../../core/Engine';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import { extractTokenExpiration } from '../../util/extractTokenExpiration';
 import { useCardSDK } from '../../sdk';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import Logger from '../../../../../util/Logger';
 import { Linking } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -49,12 +55,14 @@ import Checkbox from '../../../../../component-library/components/Checkbox';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
-  Region,
   setOnValueChange,
 } from './RegionSelectorModal';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
+import { COINME_TERMS_URL, CRB_PRIVACY_POLICY_URL } from '../../constants';
+import { getCardUsDisclosureUrls } from '../../util/registrationSettings';
 
 const VERIFICATION_POLLING_INTERVAL_MS = 3000;
+const VERIFICATION_POLLING_TIMEOUT_MS = 6000;
 
 export const AddressFields = ({
   addressLine1,
@@ -67,6 +75,7 @@ export const AddressFields = ({
   handleStateChange,
   zipCode,
   handleZipCodeChange,
+  selectedCountry,
 }: {
   addressLine1: string;
   handleAddressLine1Change: (text: string) => void;
@@ -78,10 +87,10 @@ export const AddressFields = ({
   handleStateChange: (text: string) => void;
   zipCode: string;
   handleZipCodeChange: (text: string) => void;
+  selectedCountry: Region | null;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { data: registrationSettings } = useRegistrationSettings();
-  const selectedCountry = useSelector(selectSelectedCountry);
 
   const regions: Region[] = useMemo(() => {
     if (!registrationSettings?.usStates) {
@@ -102,8 +111,9 @@ export const AddressFields = ({
     setOnValueChange((region) => {
       handleStateChange(region.key);
     });
-    navigation.navigate(
-      ...createRegionSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createRegionSelectorModalNavigationDetails({
         regions,
       }),
     );
@@ -216,16 +226,16 @@ export const AddressFields = ({
 };
 
 const PhysicalAddress = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const dispatch = useDispatch();
   const { user, setUser, sdk } = useCardSDK();
   const onboardingId = useSelector(selectOnboardingId);
-  const initialSelectedCountry = useSelector(selectSelectedCountry);
   const existingConsentSetId = useSelector(selectConsentSetId);
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
   );
+  const { userCountry: selectedCountry } = useRegions();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
@@ -239,32 +249,25 @@ const PhysicalAddress = () => {
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null,
   );
+  const pollingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMountedRef = useRef(true);
   const { data: registrationSettings } = useRegistrationSettings();
 
-  // Cleanup polling interval on unmount
+  // Cleanup polling timers on unmount
   useEffect(
     () => () => {
+      isMountedRef.current = false;
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
       }
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current);
+        pollingTimeoutRef.current = null;
+      }
     },
     [],
   );
-
-  const regions: Region[] = useMemo(() => {
-    if (!registrationSettings?.countries) {
-      return [];
-    }
-    return [...registrationSettings.countries]
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((country) => ({
-        key: country.iso3166alpha2,
-        name: country.name,
-        emoji: countryCodeToFlag(country.iso3166alpha2),
-        areaCode: country.callingCode,
-      }));
-  }, [registrationSettings]);
 
   // If user data is available, set the state values
   useEffect(() => {
@@ -274,42 +277,18 @@ const PhysicalAddress = () => {
       setCity(user.city || '');
       setState(user.usState || '');
       setZipCode(user.zip || '');
-      const country = regions.find(
-        (region) => region.key === user.countryOfResidence,
-      );
-      if (country) {
-        dispatch(setSelectedCountry(country));
-      }
     }
-  }, [dispatch, regions, user]);
+  }, [user]);
 
-  const selectedCountry = useMemo(
-    () =>
-      initialSelectedCountry ||
-      regions.find((region) => region.key === user?.countryOfResidence),
-    [initialSelectedCountry, regions, user?.countryOfResidence],
+  const {
+    eSignConsentDisclosureUSUrl,
+    crbTermsUrl,
+    crbAccountOpeningUrl,
+    crbNoticeOfPrivacyUrl,
+  } = useMemo(
+    () => getCardUsDisclosureUrls(registrationSettings),
+    [registrationSettings],
   );
-
-  useEffect(() => {
-    if (!initialSelectedCountry && selectedCountry) {
-      dispatch(setSelectedCountry(selectedCountry));
-    }
-  }, [selectedCountry, dispatch, initialSelectedCountry]);
-
-  const eSignConsentDisclosureUSUrl = useMemo(
-    () => registrationSettings?.links?.us?.eSignConsentDisclosure || '',
-    [registrationSettings?.links?.us?.eSignConsentDisclosure],
-  );
-
-  const coinmeTermsUrl = 'https://coinme.com/legal/';
-
-  const crbTermsUrl =
-    'https://baanx-public.s3-eu-west-1.amazonaws.com/Ledger/public-files/BaanxUS_CLCard_TOS.undefined-fddb292f91ce3.pdf';
-  const crbAccountOpeningUrl =
-    'https://secure.baanx.co.uk/BAANX_US_ACCOUNT_OPENING_AGREEMENTS_AND_DISCLOSURES_08152025.pdf';
-  const crbPrivacyNoticeUrl =
-    'https://secure.baanx.co.uk/Baanx_(CL)_U.S._Privacy_Notice_06.2025.pdf';
-  const crbPrivacyPolicyUrl = 'https://www.crossriver.com/legal/privacy-notice';
 
   const {
     registerAddress,
@@ -336,10 +315,10 @@ const PhysicalAddress = () => {
   }, [eSignConsentDisclosureUSUrl]);
 
   const openCoinmeTerms = useCallback(() => {
-    if (coinmeTermsUrl) {
-      Linking.openURL(coinmeTermsUrl);
+    if (COINME_TERMS_URL) {
+      Linking.openURL(COINME_TERMS_URL);
     }
-  }, [coinmeTermsUrl]);
+  }, []);
 
   const openCrbTerms = useCallback(() => {
     if (crbTermsUrl) {
@@ -354,55 +333,60 @@ const PhysicalAddress = () => {
   }, [crbAccountOpeningUrl]);
 
   const openCrbPrivacyNotice = useCallback(() => {
-    if (crbPrivacyNoticeUrl) {
-      Linking.openURL(crbPrivacyNoticeUrl);
+    if (crbNoticeOfPrivacyUrl) {
+      Linking.openURL(crbNoticeOfPrivacyUrl);
     }
-  }, [crbPrivacyNoticeUrl]);
+  }, [crbNoticeOfPrivacyUrl]);
 
   const openCrbPrivacyPolicy = useCallback(() => {
-    if (crbPrivacyPolicyUrl) {
-      Linking.openURL(crbPrivacyPolicyUrl);
+    if (CRB_PRIVACY_POLICY_URL) {
+      Linking.openURL(CRB_PRIVACY_POLICY_URL);
     }
-  }, [crbPrivacyPolicyUrl]);
+  }, []);
 
   const handleAddressLine1Change = useCallback(
     (text: string) => {
       resetRegisterAddress();
+      resetConsent();
       setAddressLine1(text);
     },
-    [resetRegisterAddress],
+    [resetRegisterAddress, resetConsent],
   );
 
   const handleAddressLine2Change = useCallback(
     (text: string) => {
       resetRegisterAddress();
+      resetConsent();
       setAddressLine2(text);
     },
-    [resetRegisterAddress],
+    [resetRegisterAddress, resetConsent],
   );
 
   const handleCityChange = useCallback(
     (text: string) => {
       resetRegisterAddress();
+      resetConsent();
       setCity(text);
     },
-    [resetRegisterAddress],
+    [resetRegisterAddress, resetConsent],
   );
 
   const handleStateChange = useCallback(
     (text: string) => {
       resetRegisterAddress();
+      resetConsent();
       setState(text);
     },
-    [resetRegisterAddress],
+    [resetRegisterAddress, resetConsent],
   );
 
   const handleZipCodeChange = useCallback(
     (text: string) => {
       resetRegisterAddress();
+      resetConsent();
       setZipCode(text);
     },
-    [resetRegisterAddress],
+    [resetRegisterAddress, resetConsent],
   );
 
   const handleElectronicConsentToggle = useCallback(() => {
@@ -476,9 +460,11 @@ const PhysicalAddress = () => {
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.RESIDENTIAL_ADDRESS_BUTTON,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.RESIDENTIAL_ADDRESS_BUTTON,
+            }),
+          )
           .build(),
       );
 
@@ -538,9 +524,9 @@ const PhysicalAddress = () => {
         });
 
         if (storeResult.success) {
-          // Update Redux state to reflect authentication
-          dispatch(setIsAuthenticatedCard(true));
-          dispatch(setUserCardLocation(location));
+          await Engine.context.CardController.syncSessionAfterExternalAuth().catch(
+            () => undefined,
+          );
         }
 
         // Step 10: Link consent to user (only if needed)
@@ -565,9 +551,16 @@ const PhysicalAddress = () => {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
           }
+          if (pollingTimeoutRef.current) {
+            clearTimeout(pollingTimeoutRef.current);
+            pollingTimeoutRef.current = null;
+          }
+          if (!isMountedRef.current) {
+            return;
+          }
           setIsPollingVerification(false);
           dispatch(resetOnboardingState());
-          navigation.reset({
+          resetWithRoutes(navigation, {
             index: 0,
             routes: [route],
           });
@@ -633,13 +626,11 @@ const PhysicalAddress = () => {
             pollVerificationState();
           }, VERIFICATION_POLLING_INTERVAL_MS);
 
-          // Set a timeout to stop polling after a reasonable time and redirect to Card Home
-          // This prevents infinite polling if the status never changes
-          setTimeout(() => {
+          pollingTimeoutRef.current = setTimeout(() => {
             if (pollingIntervalRef.current) {
               stopPollingAndNavigate({ name: Routes.CARD.HOME });
             }
-          }, VERIFICATION_POLLING_INTERVAL_MS * 2); // Poll 2 times max (6 seconds total)
+          }, VERIFICATION_POLLING_TIMEOUT_MS);
         }
 
         return;
@@ -662,9 +653,11 @@ const PhysicalAddress = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.RESIDENTIAL_ADDRESS,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.RESIDENTIAL_ADDRESS,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -682,6 +675,7 @@ const PhysicalAddress = () => {
         handleStateChange={handleStateChange}
         zipCode={zipCode}
         handleZipCodeChange={handleZipCodeChange}
+        selectedCountry={selectedCountry}
       />
       {/* Electronic Consent (US only) */}
       {selectedCountry?.key === 'US' && (
@@ -831,15 +825,16 @@ const PhysicalAddress = () => {
         </Text>
       ) : null}
       <Button
-        variant={ButtonVariants.Primary}
-        label={strings('card.card_onboarding.continue_button')}
+        variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={handleContinue}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         isDisabled={isDisabled}
-        loading={registerLoading || isPollingVerification}
+        isLoading={registerLoading || isPollingVerification}
         testID="physical-address-continue-button"
-      />
+      >
+        {strings('card.card_onboarding.continue_button')}
+      </Button>
     </Box>
   );
 
@@ -849,6 +844,7 @@ const PhysicalAddress = () => {
       description={strings('card.card_onboarding.physical_address.description')}
       formFields={renderFormFields()}
       actions={renderActions()}
+      headerMode="close-with-confirmation"
     />
   );
 };

@@ -1,14 +1,13 @@
 import { createSelector } from 'reselect';
-import { KnownCaipNamespace } from '@metamask/utils';
 import { selectChainId } from '../../selectors/networkController';
 import {
   selectAllNftContracts,
   selectAllNfts,
+  selectMultichainCollectiblesByEnabledNetworks,
 } from '../../selectors/nftController';
 import { selectSelectedInternalAccountAddress } from '../../selectors/accountsController';
 import { compareTokenIds } from '../../util/tokens';
 import { createDeepEqualSelector } from '../../selectors/util';
-import { selectEnabledNetworksByNamespace } from '../../selectors/networkEnablementController';
 
 const favoritesSelector = (state) => state.collectibles.favorites;
 
@@ -33,46 +32,18 @@ export const collectiblesSelector = createDeepEqualSelector(
   (address, chainId, allNfts) => allNfts[address]?.[chainId] || [],
 );
 
+/**
+ * Multichain collectibles filtered by chain IDs. When addressesOverride is passed (e.g. all
+ * addresses in the selected account group), aggregates NFTs from those addresses so that when
+ * Solana is selected we still include NFTs keyed by EVM address. When preferredChainIds is
+ * passed (e.g. from listPopularNetworks()), uses that list; otherwise falls back to
+ * selectEnabledNetworksByNamespace.
+ * @param {object} state - Redux state
+ * @param {string[]} [preferredChainIds] - Optional chain IDs (CAIP-2 or Hex) to filter by; when omitted, uses enabled networks
+ * @param {string[]} [addressesOverride] - Optional list of addresses to aggregate NFTs from; when omitted, uses selected account address only
+ */
 export const multichainCollectiblesByEnabledNetworksSelector =
-  createDeepEqualSelector(
-    selectSelectedInternalAccountAddress,
-    selectAllNfts,
-    selectEnabledNetworksByNamespace,
-    (address, allNfts, enabledNetworks) => {
-      const addressNfts = allNfts[address];
-
-      if (!addressNfts || Object.keys(addressNfts).length === 0) {
-        return {};
-      }
-
-      const enabledNetworksForEip155 =
-        enabledNetworks?.[KnownCaipNamespace.Eip155] || {};
-
-      if (
-        !enabledNetworksForEip155 ||
-        Object.keys(enabledNetworksForEip155).length === 0
-      ) {
-        return {};
-      }
-
-      const enabledChainIds = Object.keys(enabledNetworksForEip155).filter(
-        (chainId) => enabledNetworksForEip155[chainId],
-      );
-
-      if (enabledChainIds.length === 0) {
-        return {};
-      }
-
-      const enabledChainIdsSet = new Set(enabledChainIds);
-
-      return Object.keys(addressNfts)
-        .filter((chainId) => enabledChainIdsSet.has(chainId))
-        .reduce((acc, chainId) => {
-          acc[chainId] = addressNfts[chainId];
-          return acc;
-        }, {});
-    },
-  );
+  selectMultichainCollectiblesByEnabledNetworks;
 
 export const favoritesCollectiblesSelector = createSelector(
   selectSelectedInternalAccountAddress,

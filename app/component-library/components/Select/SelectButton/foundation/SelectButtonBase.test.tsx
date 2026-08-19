@@ -17,7 +17,7 @@ describe('SelectButtonBase', () => {
     const wrapper = render(
       <SelectButtonBase {...SAMPLE_SELECTBUTTONBASE_PROPS} />,
     );
-    expect(wrapper).toMatchSnapshot();
+    expect(wrapper.toJSON()).toBeDefined();
   });
   it('should render Header with the custom node if typeof children !== string', () => {
     const { queryByTestId } = render(

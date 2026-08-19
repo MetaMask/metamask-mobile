@@ -4,7 +4,7 @@ import {
   renderHookWithProvider,
   type DeepPartial,
 } from '../../../../util/test/renderWithProvider';
-import type { AccountState, Position } from '@metamask/perps-controller';
+import type { Position } from '@metamask/perps-controller';
 import {
   usePerpsPositionForAsset,
   _clearPositionCache,
@@ -49,28 +49,24 @@ const mockPosition: Position = {
   stopLossCount: 1,
 };
 
-const mockAccountState: AccountState = {
-  availableBalance: '10000',
-  marginUsed: '800',
-  unrealizedPnl: '100',
-  returnOnEquity: '0.03',
-  totalBalance: '10500',
-};
-
 const mockUserAddress = '0x1234567890123456789012345678901234567890';
+const mockNonEvmAddress = 'bc1qn7ag0000000000000000000000000000000000';
 
 const createMockState = (
-  overrides?: Partial<{ isTestnet: boolean }>,
+  overrides?: Partial<{
+    isTestnet: boolean;
+    selectedAccountId: string;
+    selectedGroupAccountIds: string[];
+  }>,
 ): DeepPartial<RootState> => ({
   engine: {
     backgroundState: {
       PerpsController: {
-        isTestnet: false,
-        ...overrides,
+        isTestnet: overrides?.isTestnet ?? false,
       },
       AccountsController: {
         internalAccounts: {
-          selectedAccount: 'account-1',
+          selectedAccount: overrides?.selectedAccountId ?? 'account-1',
           accounts: {
             'account-1': {
               id: 'account-1',
@@ -86,6 +82,53 @@ const createMockState = (
               methods: [],
               options: {},
             },
+            'account-btc': {
+              id: 'account-btc',
+              type: 'bip122:p2wpkh',
+              address: mockNonEvmAddress,
+              metadata: {
+                name: 'Bitcoin Account',
+                keyring: { type: 'Snap Keyring' },
+                importTime: 1234567890,
+                lastSelected: 1234567891,
+              },
+              scopes: ['bip122:000000000019d6689c085ae165831e93'],
+              methods: [],
+              options: {},
+            },
+          },
+        },
+      },
+      KeyringController: {
+        keyrings: [
+          {
+            accounts: [mockUserAddress],
+            type: 'HD Key Tree',
+          },
+        ],
+      },
+      AccountTreeController: {
+        selectedAccountGroup: 'entropy:wallet-1/0',
+        accountTree: {
+          wallets: {
+            'entropy:wallet-1': {
+              id: 'entropy:wallet-1',
+              metadata: {
+                name: 'Wallet 1',
+              },
+              groups: {
+                'entropy:wallet-1/0': {
+                  id: 'entropy:wallet-1/0',
+                  metadata: {
+                    name: 'Account 1',
+                  },
+                  accounts: overrides?.selectedGroupAccountIds ?? [
+                    'account-1',
+                    'account-btc',
+                  ],
+                },
+              },
+            },
           },
         },
       },
@@ -95,7 +138,6 @@ const createMockState = (
 
 describe('usePerpsPositionForAsset', () => {
   let mockGetPositions: jest.Mock;
-  let mockGetAccountState: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -103,13 +145,13 @@ describe('usePerpsPositionForAsset', () => {
     PerpsCacheInvalidator._clearAllSubscribers();
 
     mockGetPositions = jest.fn().mockResolvedValue([mockPosition]);
-    mockGetAccountState = jest.fn().mockResolvedValue(mockAccountState);
 
     mockUsePerpsTrading.mockReturnValue({
       getPositions: mockGetPositions,
-      getAccountState: mockGetAccountState,
+      getAccountState: jest.fn(),
       placeOrder: jest.fn(),
       cancelOrder: jest.fn(),
+      editOrder: jest.fn(),
       closePosition: jest.fn(),
       getMarkets: jest.fn(),
       subscribeToPrices: jest.fn(),
@@ -160,7 +202,6 @@ describe('usePerpsPositionForAsset', () => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.position).toBeNull();
       expect(result.current.hasFundsInPerps).toBe(false);
-      expect(result.current.accountState).toBeNull();
       expect(result.current.error).toBeNull();
     });
 
@@ -189,7 +230,6 @@ describe('usePerpsPositionForAsset', () => {
 
       expect(result.current.position).toEqual(mockPosition);
       expect(result.current.hasFundsInPerps).toBe(true);
-      expect(result.current.accountState).toEqual(mockAccountState);
       expect(result.current.error).toBeNull();
     });
 
@@ -204,11 +244,44 @@ describe('usePerpsPositionForAsset', () => {
           userAddress: mockUserAddress,
         });
       });
+    });
 
-      expect(mockGetAccountState).toHaveBeenCalledWith({
-        standalone: true,
-        userAddress: mockUserAddress,
+    it('uses the selected account group EVM address when the selected account is non-EVM', async () => {
+      renderHookWithProvider(() => usePerpsPositionForAsset('ETH'), {
+        state: createMockState({ selectedAccountId: 'account-btc' }),
       });
+
+      await waitFor(() => {
+        expect(mockGetPositions).toHaveBeenCalledWith({
+          standalone: true,
+          userAddress: mockUserAddress,
+        });
+      });
+
+      expect(mockGetPositions).not.toHaveBeenCalledWith(
+        expect.objectContaining({ userAddress: mockNonEvmAddress }),
+      );
+    });
+
+    it('returns empty state when the selected account group has no EVM account', async () => {
+      const { result } = renderHookWithProvider(
+        () => usePerpsPositionForAsset('ETH'),
+        {
+          state: createMockState({
+            selectedAccountId: 'account-btc',
+            selectedGroupAccountIds: ['account-btc'],
+          }),
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.position).toBeNull();
+      expect(result.current.hasFundsInPerps).toBe(false);
+      expect(result.current.error).toBeNull();
+      expect(mockGetPositions).not.toHaveBeenCalled();
     });
 
     it('handles case-insensitive symbol matching', async () => {
@@ -236,14 +309,10 @@ describe('usePerpsPositionForAsset', () => {
 
       expect(result.current.position).toBeNull();
       expect(result.current.hasFundsInPerps).toBe(true);
-      expect(result.current.accountState).toEqual(mockAccountState);
     });
 
-    it('returns hasFundsInPerps false when balance is zero', async () => {
-      mockGetAccountState.mockResolvedValue({
-        ...mockAccountState,
-        totalBalance: '0',
-      });
+    it('returns hasFundsInPerps false when positions array is empty', async () => {
+      mockGetPositions.mockResolvedValue([]);
 
       const { result } = renderHookWithProvider(
         () => usePerpsPositionForAsset('ETH'),
@@ -356,7 +425,7 @@ describe('usePerpsPositionForAsset', () => {
       });
 
       expect(result.current.position).toBeNull();
-      expect(result.current.hasFundsInPerps).toBe(true);
+      expect(result.current.hasFundsInPerps).toBe(false);
     });
   });
 
@@ -531,16 +600,16 @@ describe('usePerpsPositionForAsset', () => {
       });
 
       // First fetch
-      expect(mockGetAccountState).toHaveBeenCalledTimes(1);
+      expect(mockGetPositions).toHaveBeenCalledTimes(1);
 
-      // Invalidate accountState cache
+      // Invalidate accountState cache (still subscribed to keep reactivity for trade events)
       await act(async () => {
         PerpsCacheInvalidator.invalidate('accountState');
       });
 
-      // Should have re-fetched
+      // Should have re-fetched positions
       await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalledTimes(2);
+        expect(mockGetPositions).toHaveBeenCalledTimes(2);
       });
     });
 
@@ -559,10 +628,6 @@ describe('usePerpsPositionForAsset', () => {
 
       // Simulate position being closed - update mock to return empty positions
       mockGetPositions.mockResolvedValue([]);
-      mockGetAccountState.mockResolvedValue({
-        ...mockAccountState,
-        totalBalance: '0',
-      });
 
       // Invalidate cache (simulates what TradingService does after closePosition)
       await act(async () => {

@@ -88,12 +88,14 @@ const createStyles = (colors) =>
     },
   });
 
+const DEFAULT_INCREMENT = new BigNumber(1);
+
 const RangeInput = ({
   leftLabelComponent,
   rightLabelComponent,
   value,
   unit,
-  increment,
+  increment = DEFAULT_INCREMENT,
   onChangeValue,
   inputInsideLabel,
   error,
@@ -229,10 +231,6 @@ const RangeInput = ({
       )}
     </View>
   );
-};
-
-RangeInput.defaultProps = {
-  increment: new BigNumber(1),
 };
 
 RangeInput.propTypes = {

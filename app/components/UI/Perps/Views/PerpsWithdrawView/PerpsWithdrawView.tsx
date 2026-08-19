@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
-import { captureException } from '@sentry/react-native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, {
   useCallback,
   useEffect,
@@ -15,27 +16,34 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  HeaderStandard,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
-import Icon, {
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
+  PERPS_CONSTANTS,
   USDC_DECIMALS,
   USDC_SYMBOL,
   USDC_TOKEN_ICON_URL,
@@ -52,7 +60,11 @@ import { TraceName } from '../../../../../util/trace';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { useWithdrawValidation } from '../../hooks/useWithdrawValidation';
-import { formatPerpsFiat, parseCurrencyString } from '../../utils/formatUtils';
+import {
+  formatPerpsFiat,
+  parseCurrencyString,
+  truncateToTwoDecimals,
+} from '../../utils/formatUtils';
 
 import type { Hex } from '@metamask/utils';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
@@ -62,15 +74,6 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { BadgePosition } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon/Icon.types';
 import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 
@@ -80,7 +83,7 @@ const MAX_INPUT_LENGTH = 20;
 const PerpsWithdrawView: React.FC = () => {
   const tw = useTailwind();
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   // State
   const [withdrawAmount, setWithdrawAmount] = useState<string>(''); // Start with empty string for keypad
@@ -102,19 +105,20 @@ const PerpsWithdrawView: React.FC = () => {
   // Get withdrawal tokens from hook
   const { destToken } = useWithdrawTokens();
 
-  // Parse available balance from perps account state
-  const availableBalance = useMemo(() => {
-    if (!account?.availableBalance) return 0;
-    // Use parseCurrencyString to properly parse formatted currency
-    return parseCurrencyString(account.availableBalance);
-  }, [account?.availableBalance]);
+  // Truncate to 2 decimals so the user can withdraw exactly what they see.
+  const withdrawableBalance = useMemo(() => {
+    if (!account?.withdrawableBalance) return 0;
+    return truncateToTwoDecimals(
+      parseCurrencyString(account.withdrawableBalance),
+    );
+  }, [account?.withdrawableBalance]);
 
   const formattedBalance = useMemo(
-    () => formatPerpsFiat(availableBalance),
-    [availableBalance],
+    () => formatPerpsFiat(withdrawableBalance),
+    [withdrawableBalance],
   );
 
-  const hasPositiveBalance = availableBalance > 0;
+  const hasPositiveBalance = withdrawableBalance > 0;
 
   // Get withdrawal validation
   const {
@@ -149,9 +153,9 @@ const PerpsWithdrawView: React.FC = () => {
   usePerpsMeasurement({
     traceName: TraceName.PerpsWithdrawView,
     conditions: [
-      !!account?.availableBalance,
+      !!account?.withdrawableBalance,
       !!destToken,
-      availableBalance !== undefined,
+      withdrawableBalance !== undefined,
     ],
   });
 
@@ -161,6 +165,7 @@ const PerpsWithdrawView: React.FC = () => {
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.WITHDRAWAL,
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.WITHDRAW_BUTTON,
     },
   });
 
@@ -209,7 +214,7 @@ const PerpsWithdrawView: React.FC = () => {
     (percentage: number) => {
       if (!hasPositiveBalance) return;
 
-      const amount = availableBalance * percentage;
+      const amount = withdrawableBalance * percentage;
       // Format to 2 or 6 decimal places for USDC
       let formattedAmount = '0';
       if (amount < 0.01) {
@@ -229,10 +234,10 @@ const PerpsWithdrawView: React.FC = () => {
       DevLogger.log(
         `Percentage selected: ${
           percentage * 100
-        }%, Amount: ${formattedAmount}, Available Perps Balance: ${availableBalance}`,
+        }%, Amount: ${formattedAmount}, Withdrawable Balance: ${withdrawableBalance}`,
       );
     },
-    [availableBalance, hasPositiveBalance],
+    [withdrawableBalance, hasPositiveBalance],
   );
 
   const handleMaxPress = useCallback(() => {
@@ -286,26 +291,30 @@ const PerpsWithdrawView: React.FC = () => {
       }
       // Success/error toast will be shown by usePerpsWithdrawStatus hook
     } catch (error) {
-      // Capture exception with withdrawal context
-      captureException(
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          tags: {
-            component: 'PerpsWithdrawView',
-            action: 'financial_withdrawal',
-            operation: 'financial_operations',
-          },
-          extra: {
-            withdrawalContext: {
-              amount: withdrawAmountDetailed,
-              assetId,
-              destination: destToken.address,
-              chainId: destToken.chainId,
-              isTestnet,
-            },
+      Logger.error(ensureError(error, 'PerpsWithdrawView.handleWithdraw'), {
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'PerpsWithdrawView',
+          action: 'financial_withdrawal',
+          operation: 'financial_operations',
+        },
+        context: {
+          name: 'PerpsWithdrawView',
+          data: {
+            amount: withdrawAmountDetailed,
+            assetId,
+            destination: destToken.address,
+            chainId: destToken.chainId,
+            isTestnet,
+            rawError:
+              error instanceof Error
+                ? undefined
+                : error === undefined
+                  ? 'undefined'
+                  : String(error),
           },
         },
-      );
+      });
 
       DevLogger.log('Error preparing withdrawal:', error);
     } finally {
@@ -361,7 +370,7 @@ const PerpsWithdrawView: React.FC = () => {
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
       <Box twClassName="flex-1 bg-default">
         {/* Header */}
-        <HeaderCompactStandard
+        <HeaderStandard
           title={strings('perps.withdrawal.title')}
           onBack={handleBack}
           backButtonProps={{
@@ -378,7 +387,7 @@ const PerpsWithdrawView: React.FC = () => {
               marginBottom={2}
             >
               <Text
-                variant={TextVariant.DisplayMD}
+                variant={TextVariant.DisplayMd}
                 style={tw.style(
                   'text-[54px] leading-[70px] font-medium mb-2 text-default',
                   withdrawAmount === '0' && 'text-alternative',
@@ -396,7 +405,11 @@ const PerpsWithdrawView: React.FC = () => {
                 ]}
               />
             </Box>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              testID={PerpsWithdrawViewSelectorsIDs.AVAILABLE_BALANCE_TEXT}
+            >
               {strings('perps.withdrawal.available_balance', {
                 amount: formattedBalance,
               })}
@@ -416,7 +429,10 @@ const PerpsWithdrawView: React.FC = () => {
             alignItems={BoxAlignItems.Center}
             twClassName="gap-2"
           >
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+            >
               {strings('perps.withdrawal.receive')}
             </Text>
             <Pressable
@@ -428,7 +444,7 @@ const PerpsWithdrawView: React.FC = () => {
               <Icon
                 name={IconName.Info}
                 size={IconSize.Md}
-                color={IconColor.Alternative}
+                color={IconColor.IconAlternative}
               />
             </Pressable>
           </Box>
@@ -453,7 +469,7 @@ const PerpsWithdrawView: React.FC = () => {
                 size={AvatarSize.Sm}
               />
             </BadgeWrapper>
-            <Text variant={TextVariant.BodyMD}>{USDC_SYMBOL}</Text>
+            <Text variant={TextVariant.BodyMd}>{USDC_SYMBOL}</Text>
           </Box>
         </Box>
 
@@ -468,8 +484,8 @@ const PerpsWithdrawView: React.FC = () => {
                   twClassName="gap-2"
                 >
                   <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
                   >
                     {strings('perps.withdrawal.provider_fee')}
                   </Text>
@@ -480,18 +496,22 @@ const PerpsWithdrawView: React.FC = () => {
                     <Icon
                       name={IconName.Info}
                       size={IconSize.Md}
-                      color={IconColor.Alternative}
+                      color={IconColor.IconAlternative}
                     />
                   </Pressable>
                 </Box>
               ),
             }}
             value={{
-              label: {
-                text: formattedQuoteData?.networkFee || '$1.00',
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                  testID={PerpsWithdrawViewSelectorsIDs.FEE_VALUE}
+                >
+                  {formattedQuoteData?.networkFee || '$1.00'}
+                </Text>
+              ),
             }}
           />
         </Box>
@@ -507,8 +527,8 @@ const PerpsWithdrawView: React.FC = () => {
                   twClassName="gap-2"
                 >
                   <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
                   >
                     {strings('perps.withdrawal.estimated_time')}
                   </Text>
@@ -516,11 +536,15 @@ const PerpsWithdrawView: React.FC = () => {
               ),
             }}
             value={{
-              label: {
-                text: formattedQuoteData?.estimatedTime,
-                variant: TextVariant.BodyMD,
-                color: TextColor.Alternative,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                  testID={PerpsWithdrawViewSelectorsIDs.TIME_VALUE}
+                >
+                  {formattedQuoteData?.estimatedTime}
+                </Text>
+              ),
             }}
           />
         </Box>
@@ -529,16 +553,21 @@ const PerpsWithdrawView: React.FC = () => {
         <Box twClassName="px-5 py-2">
           <KeyValueRow
             field={{
-              label: {
-                text: strings('perps.withdrawal.you_will_receive'),
-                variant: TextVariant.BodyMD,
-              },
+              label: (
+                <Text variant={TextVariant.BodyMd}>
+                  {strings('perps.withdrawal.you_will_receive')}
+                </Text>
+              ),
             }}
             value={{
-              label: {
-                text: formatReceiveAmount,
-                variant: TextVariant.BodyMD,
-              },
+              label: (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  testID={PerpsWithdrawViewSelectorsIDs.RECEIVE_VALUE}
+                >
+                  {formatReceiveAmount}
+                </Text>
+              ),
             }}
           />
         </Box>
@@ -551,8 +580,8 @@ const PerpsWithdrawView: React.FC = () => {
           {/* Error Message - Always present, visibility controlled */}
           <Box twClassName="mb-4">
             <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Error}
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
               style={tw.style(
                 'text-center',
                 // Control visibility - opacity 0 when no error
@@ -585,7 +614,8 @@ const PerpsWithdrawView: React.FC = () => {
                   disabled={!hasPositiveBalance}
                 >
                   <Text
-                    variant={TextVariant.BodyMDMedium}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
                     style={tw.style(!hasPositiveBalance && 'text-disabled')}
                   >
                     10%
@@ -602,7 +632,8 @@ const PerpsWithdrawView: React.FC = () => {
                   disabled={!hasPositiveBalance}
                 >
                   <Text
-                    variant={TextVariant.BodyMDMedium}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
                     style={tw.style(!hasPositiveBalance && 'text-disabled')}
                   >
                     25%
@@ -619,7 +650,8 @@ const PerpsWithdrawView: React.FC = () => {
                   disabled={!hasPositiveBalance}
                 >
                   <Text
-                    variant={TextVariant.BodyMDMedium}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
                     style={tw.style(!hasPositiveBalance && 'text-disabled')}
                   >
                     50%
@@ -636,7 +668,8 @@ const PerpsWithdrawView: React.FC = () => {
                   disabled={!hasPositiveBalance}
                 >
                   <Text
-                    variant={TextVariant.BodyMDMedium}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
                     style={tw.style(!hasPositiveBalance && 'text-disabled')}
                   >
                     Max
@@ -645,15 +678,16 @@ const PerpsWithdrawView: React.FC = () => {
               </Box>
             ) : (
               <Button
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
-                label={strings('perps.withdrawal.withdraw')}
                 onPress={handleContinue}
-                loading={isSubmittingTx}
-                disabled={!hasValidInputs || isSubmittingTx}
+                isLoading={isSubmittingTx}
+                isDisabled={!hasValidInputs || isSubmittingTx}
                 testID={PerpsWithdrawViewSelectorsIDs.CONTINUE_BUTTON}
-                width={ButtonWidthTypes.Full}
-              />
+                isFullWidth
+              >
+                {strings('perps.withdrawal.withdraw')}
+              </Button>
             )}
           </Box>
 

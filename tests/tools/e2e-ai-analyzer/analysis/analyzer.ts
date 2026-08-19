@@ -33,6 +33,16 @@ import {
   outputAnalysis as outputSelectTagsAnalysis,
   checkHardRules as checkSelectTagsHardRules,
 } from '../modes/select-tags/handlers';
+import {
+  buildSystemPrompt as buildTestPlanSystemPrompt,
+  buildTaskPrompt as buildTestPlanTaskPrompt,
+} from '../modes/generate-test-plan/prompt';
+import {
+  processAnalysis as processTestPlanAnalysis,
+  createConservativeResult as createTestPlanConservativeResult,
+  createEmptyResult as createTestPlanEmptyResult,
+  outputAnalysis as outputTestPlanAnalysis,
+} from '../modes/generate-test-plan/handlers';
 
 /**
  * Mode Registry — see ModeConfig in types/index.ts for the full interface.
@@ -55,6 +65,16 @@ export const MODES: {
     createEmptyResult: createSelectTagsEmptyResult,
     outputAnalysis: outputSelectTagsAnalysis,
     checkHardRules: checkSelectTagsHardRules,
+  },
+  'generate-test-plan': {
+    description: 'Generate exploratory test plan for release testing',
+    finalizeToolName: 'finalize_test_plan_generation',
+    systemPromptBuilder: buildTestPlanSystemPrompt,
+    taskPromptBuilder: buildTestPlanTaskPrompt,
+    processAnalysis: processTestPlanAnalysis,
+    createConservativeResult: createTestPlanConservativeResult,
+    createEmptyResult: createTestPlanEmptyResult,
+    outputAnalysis: outputTestPlanAnalysis,
   },
 };
 
@@ -93,12 +113,13 @@ export async function analyzeWithAgent<M extends ModeKey>(
   mode: M,
   context: AnalysisContext,
   availableSkills: SkillMetadata[],
+  options: { skipHardRules?: boolean } = {},
 ): Promise<ModeAnalysisResult<M>> {
   // Get mode configuration
   const modeConfig = MODES[mode];
 
   // Check mode-specific hard rules before AI analysis
-  if (modeConfig.checkHardRules) {
+  if (!options.skipHardRules && modeConfig.checkHardRules) {
     const hardRuleResult = modeConfig.checkHardRules(allChangedFiles, context);
     if (hardRuleResult) {
       return hardRuleResult as ModeAnalysisResult<M>;
@@ -112,6 +133,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
   const taskPrompt = modeConfig.taskPromptBuilder(
     allChangedFiles,
     criticalFiles,
+    context,
   );
 
   const tools = getToolDefinitions();
@@ -229,7 +251,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
               return analysis as ModeAnalysisResult<M>;
             }
 
-            console.log('⚠️ Failed to parse finalize_tag_selection');
+            console.log(`⚠️ Failed to parse ${modeConfig.finalizeToolName}`);
             printTokenReport();
             return modeConfig.createConservativeResult() as ModeAnalysisResult<M>;
           }
@@ -245,8 +267,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
       // Update conversation history
       conversationHistory.push({
         role: 'user',
-        content:
-          typeof currentMessage === 'string' ? currentMessage : currentMessage,
+        content: currentMessage,
       });
       conversationHistory.push({
         role: 'assistant',

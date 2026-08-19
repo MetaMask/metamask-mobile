@@ -1,10 +1,10 @@
 import { createProjectLogger } from '@metamask/utils';
 
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import {
   JsonMap,
   IMetaMetricsEvent,
-} from '../../../Analytics/MetaMetrics.types';
+} from '../../../../util/analytics/analytics.types';
 import { TRANSACTION_EVENTS } from '../../../Analytics/events/confirmations';
 import type {
   TransactionEventHandlerRequest,
@@ -37,7 +37,7 @@ export function generateEvent({
   properties?: JsonMap;
   sensitiveProperties?: JsonMap;
 }) {
-  return MetricsEventBuilder.createEventBuilder(metametricsEvent)
+  return AnalyticsEventBuilder.createEventBuilder(metametricsEvent)
     .addProperties(properties ?? {})
     .addSensitiveProperties(sensitiveProperties ?? {})
     .build();

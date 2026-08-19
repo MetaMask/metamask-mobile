@@ -14,4 +14,5 @@ export const ChoosePasswordSelectorsIDs = {
   PASSWORD_STRENGTH_ID: 'password-strength',
   NEW_PASSWORD_SHOW_ICON_ID: 'new-password-show-hide-id',
   CONFIRM_PASSWORD_SHOW_ICON_ID: 'confirm-password-show-hide-id',
+  BACK_BUTTON_ID: 'create-password-back-button',
 };

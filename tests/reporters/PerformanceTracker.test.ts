@@ -172,13 +172,14 @@ describe('PerformanceTracker', () => {
       expect(result.steps).toHaveLength(0);
     });
 
-    it('skips timers with zero duration', async () => {
+    it('includes timers with zero duration', async () => {
       tracker.addTimer(
         makeTimer({ id: 'zero-dur', duration: 0, durationInSeconds: 0 }),
       );
       const testInfo = makeTestInfo();
       const result = await tracker.attachToTest(testInfo);
-      expect(result.steps).toHaveLength(0);
+      expect(result.steps).toHaveLength(1);
+      expect(result.steps[0].duration).toBe(0);
     });
 
     it('handles attach failure by rethrowing', async () => {

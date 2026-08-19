@@ -1,12 +1,15 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { Platform, TextInputProps } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import Button, {
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -24,7 +27,8 @@ import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import { useCardSDK } from '../../sdk';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 const CODE_LENGTH = 6;
 const autoComplete = Platform.select<TextInputProps['autoComplete']>({
@@ -33,7 +37,7 @@ const autoComplete = Platform.select<TextInputProps['autoComplete']>({
 });
 
 const ConfirmPhoneNumber = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { setUser } = useCardSDK();
   const [resendCooldown, setResendCooldown] = useState(60);
@@ -80,9 +84,11 @@ const ConfirmPhoneNumber = () => {
     try {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.CONFIRM_PHONE_NUMBER_BUTTON,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.CONFIRM_PHONE_NUMBER_BUTTON,
+            }),
+          )
           .build(),
       );
       const { user } = await verifyPhoneVerification({
@@ -159,9 +165,11 @@ const ConfirmPhoneNumber = () => {
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.CONFIRM_PHONE_NUMBER_RESEND_BUTTON,
-          })
+          .addProperties(
+            withCardProvider(CardProviderIds.Baanx, {
+              action: CardActions.CONFIRM_PHONE_NUMBER_RESEND_BUTTON,
+            }),
+          )
           .build(),
       );
       await sendPhoneVerification({
@@ -190,9 +198,11 @@ const ConfirmPhoneNumber = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.CONFIRM_PHONE_NUMBER,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.CONFIRM_PHONE_NUMBER,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -308,15 +318,16 @@ const ConfirmPhoneNumber = () => {
 
   const renderActions = () => (
     <Button
-      variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.continue_button')}
+      variant={ButtonVariant.Primary}
       size={ButtonSize.Lg}
       onPress={handleContinue}
-      width={ButtonWidthTypes.Full}
+      isFullWidth
       isDisabled={isDisabled}
-      loading={verifyLoading}
+      isLoading={verifyLoading}
       testID="confirm-phone-number-continue-button"
-    />
+    >
+      {strings('card.card_onboarding.continue_button')}
+    </Button>
   );
 
   return (
@@ -329,6 +340,7 @@ const ConfirmPhoneNumber = () => {
       formFields={renderFormFields()}
       actions={renderActions()}
       stickyActions
+      headerMode="close-with-confirmation"
     />
   );
 };

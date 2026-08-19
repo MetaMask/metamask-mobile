@@ -2,6 +2,7 @@
 
 // Third party dependencies.
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, {
   forwardRef,
   useCallback,
@@ -31,6 +32,13 @@ import BottomSheetDialog, {
   BottomSheetDialogRef,
 } from './foundation/BottomSheetDialog';
 
+/**
+ * @deprecated Please update your code to use `BottomSheet` from `@metamask/design-system-react-native`.
+ * The API may have changed — compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BottomSheet/README.md}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#bottomsheet-component Migration docs}
+ * @since @metamask/design-system-react-native@0.11.0
+ */
 const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
   (
     {
@@ -46,7 +54,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     },
     ref,
   ) => {
-    const postCallback = useRef<BottomSheetPostCallback>();
+    const postCallback = useRef<BottomSheetPostCallback | undefined>(undefined);
     const bottomSheetDialogRef = useRef<BottomSheetDialogRef>(null);
     const didNavigateBackRef = useRef(false);
     const closeRequestedRef = useRef(false);
@@ -56,7 +64,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       screenBottomPadding,
     });
     const { y: frameY } = useSafeAreaFrame();
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
 
     const onOpenCB = useCallback(() => {
       // Reset when the sheet is opened again.
@@ -73,33 +81,50 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
     const onCloseCB = useCallback(() => {
       if (shouldNavigateBack && !didNavigateBackRef.current) {
         didNavigateBackRef.current = true;
-        navigation.goBack();
+        if (navigation.isFocused()) {
+          navigation.goBack();
+        } else {
+          Logger.log(
+            '[BottomSheet] navigation.goBack skipped (screen not focused)',
+          );
+        }
       } else if (shouldNavigateBack && didNavigateBackRef.current) {
         Logger.log('[BottomSheet] navigation.goBack skipped (duplicate close)');
       }
-      const callback = postCallback.current;
-      const hasCallback = !!callback;
+      const callbackBeforeOnClose = postCallback.current;
+      const hasCallbackBeforeOnClose = !!callbackBeforeOnClose;
 
-      onClose?.(hasCallback);
+      onClose?.(hasCallbackBeforeOnClose);
 
-      if (!didRunPostCallbackRef.current && hasCallback) {
+      // Overlay / hardware-back call `onCloseDialog` directly (no prior
+      // `onCloseBottomSheet`), so `postCallback` may only be set inside `onClose`
+      // (e.g. Perps handleClose → onCloseBottomSheet). Re-read after `onClose`.
+      const finalCallback =
+        postCallback.current ?? callbackBeforeOnClose ?? undefined;
+      if (!didRunPostCallbackRef.current && finalCallback) {
         didRunPostCallbackRef.current = true;
         postCallback.current = undefined;
-        callback?.();
+        finalCallback();
       }
     }, [navigation, onClose, shouldNavigateBack]);
 
     // Dismiss the sheet when Android back button is pressed.
     useEffect(() => {
       const hardwareBackPress = () => {
+        if (!navigation.isFocused()) {
+          return false;
+        }
         isInteractable && bottomSheetDialogRef.current?.onCloseDialog();
         return true;
       };
-      BackHandler.addEventListener('hardwareBackPress', hardwareBackPress);
+      const backHandlerSubscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        hardwareBackPress,
+      );
       return () => {
-        BackHandler.removeEventListener('hardwareBackPress', hardwareBackPress);
+        backHandlerSubscription.remove();
       };
-    }, [onCloseCB, isInteractable]);
+    }, [onCloseCB, isInteractable, navigation]);
 
     useImperativeHandle(ref, () => ({
       onCloseBottomSheet: (callback) => {

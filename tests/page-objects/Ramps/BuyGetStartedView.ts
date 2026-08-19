@@ -1,9 +1,10 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { GetStartedSelectors } from '../../selectors/Ramps/GetStarted.selectors';
+import { EncapsulatedElementType } from '../../framework';
 
 class BuyGetStartedView {
-  get getStartedButton(): DetoxElement {
+  get getStartedButton(): EncapsulatedElementType {
     return Matchers.getElementByText(GetStartedSelectors.GET_STARTED);
   }
 

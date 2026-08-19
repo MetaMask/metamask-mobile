@@ -10,14 +10,31 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'NftDetectionController',
   'RewardsDataService',
   'StorageService',
+  'SubscriptionService',
+  'ShieldApiService',
+  'ClaimsService',
   'TokenDetectionController',
   'WebSocketService',
   'BackendWebSocketService',
   'AccountActivityService',
+  'OHLCVService',
   'MultichainAccountService',
+  'SnapAccountService',
+  'GeolocationApiService',
   'ProfileMetricsService',
+  'ProofOfOwnershipService',
   'RampsService',
   'TransakService',
+  'ComplianceService',
+  'QrSyncProvisioningService',
+  'SocialService',
+  'AuthenticatedUserStorageService',
+  'MoneyAccountBalanceService',
+  'MoneyAccountApiDataService',
+  'ConfigRegistryApiService',
+  'ChompApiService',
+  'SentinelApiService',
+  'PredictNextController',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -29,9 +46,11 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AppMetadataController:stateChange',
   'AssetsController:stateChange',
   'ConnectivityController:stateChange',
+  'ConfigRegistryController:stateChanged',
   'ApprovalController:stateChange',
   'CurrencyRateController:stateChange',
   'GasFeeController:stateChange',
+  'GeolocationController:stateChange',
   'KeyringController:stateChange',
   'LoggingController:stateChange',
   'NetworkController:stateChange',
@@ -44,18 +63,19 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'SelectedNetworkController:stateChange',
   'SignatureController:stateChange',
   'SmartTransactionsController:stateChange',
-  'SwapsController:stateChange',
+  'SubscriptionController:stateChange',
+  'ShieldController:stateChange',
+  'ClaimsController:stateChange',
   'TokenBalancesController:stateChange',
-  'TokenListController:stateChange',
   'TokenRatesController:stateChange',
   'TokensController:stateChange',
   'TokenSearchDiscoveryDataController:stateChange',
   'TransactionController:stateChange',
   'TransactionPayController:stateChange',
   'MultichainNetworkController:stateChange',
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   'SnapController:stateChange',
-  'SnapsRegistry:stateChange',
+  'SnapRegistryController:stateChange',
   'SubjectMetadataController:stateChange',
   'AuthenticationController:stateChange',
   'UserStorageController:stateChange',
@@ -74,35 +94,27 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'BridgeController:stateChange',
   'BridgeStatusController:stateChange',
   'EarnController:stateChange',
+  'MoneyAccountController:stateChange',
+  'MoneyAccountUpgradeController:stateChanged',
   'PerpsController:stateChange',
   'RewardsController:stateChange',
   'DeFiPositionsController:stateChange',
+  'DeFiPositionsControllerV2:stateChanged',
   'SeedlessOnboardingController:stateChange',
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   'SamplePetnamesController:stateChange',
   ///: END:ONLY_INCLUDE_IF
+  'NetworkConnectionBannerController:stateChanged',
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
   'CardController:stateChange',
+  'ClientController:stateChange',
   'DelegationController:stateChange',
   'ProfileMetricsController:stateChange',
+  'ComplianceController:stateChange',
+  'SocialController:stateChange',
+  'QrSyncController:stateChange',
 ] as const;
-
-export const swapsSupportedChainIds = [
-  NETWORK_CHAIN_ID.MAINNET,
-  NETWORK_CHAIN_ID.BSC,
-  NETWORK_CHAIN_ID.POLYGON,
-  NETWORK_CHAIN_ID.AVALANCHE,
-  NETWORK_CHAIN_ID.ARBITRUM,
-  NETWORK_CHAIN_ID.OPTIMISM,
-  NETWORK_CHAIN_ID.ZKSYNC_ERA,
-  NETWORK_CHAIN_ID.LINEA_MAINNET,
-  NETWORK_CHAIN_ID.BASE,
-  NETWORK_CHAIN_ID.SEI,
-  NETWORK_CHAIN_ID.MONAD,
-  NETWORK_CHAIN_ID.HYPE,
-  NETWORK_CHAIN_ID.MEGAETH_MAINNET,
-];
 
 export const MAINNET_DISPLAY_NAME = 'Ethereum';
 export const LINEA_MAINNET_DISPLAY_NAME = 'Linea';
@@ -113,24 +125,31 @@ export const BNB_DISPLAY_NAME = 'BNB Chain';
 export const OPTIMISM_DISPLAY_NAME = 'OP';
 export const ZK_SYNC_ERA_DISPLAY_NAME = 'zkSync Era';
 export const BASE_DISPLAY_NAME = 'Base';
+export const SOLANA_DISPLAY_NAME = 'Solana';
 export const SEI_DISPLAY_NAME = 'Sei';
 export const MONAD_DISPLAY_NAME = 'Monad';
 export const HYPEREVM_DISPLAY_NAME = 'HyperEVM';
 export const MEGAETH_DISPLAY_NAME = 'MegaETH';
 
+// `NETWORK_CHAIN_ID` is sourced from `customNetworks`, which several test
+// suites mock to a partial object. Guard against an undefined value so that
+// importing this module (e.g. from UI utils consuming `NETWORK_TO_NAME_MAP`)
+// never throws while the map is built at module-eval time.
+const CHAIN_ID = NETWORK_CHAIN_ID ?? ({} as typeof NETWORK_CHAIN_ID);
+
 export const NETWORK_TO_NAME_MAP = {
-  [NETWORK_CHAIN_ID.MAINNET]: MAINNET_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.LINEA_MAINNET]: LINEA_MAINNET_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.POLYGON]: POLYGON_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.AVALANCHE]: AVALANCHE_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.ARBITRUM]: ARBITRUM_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.BSC]: BNB_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.OPTIMISM]: OPTIMISM_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.ZKSYNC_ERA]: ZK_SYNC_ERA_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.BASE]: BASE_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.SEI]: SEI_DISPLAY_NAME,
+  [CHAIN_ID.MAINNET]: MAINNET_DISPLAY_NAME,
+  [CHAIN_ID.LINEA_MAINNET]: LINEA_MAINNET_DISPLAY_NAME,
+  [CHAIN_ID.POLYGON]: POLYGON_DISPLAY_NAME,
+  [CHAIN_ID.AVALANCHE]: AVALANCHE_DISPLAY_NAME,
+  [CHAIN_ID.ARBITRUM]: ARBITRUM_DISPLAY_NAME,
+  [CHAIN_ID.BSC]: BNB_DISPLAY_NAME,
+  [CHAIN_ID.OPTIMISM]: OPTIMISM_DISPLAY_NAME,
+  [CHAIN_ID.ZKSYNC_ERA]: ZK_SYNC_ERA_DISPLAY_NAME,
+  [CHAIN_ID.BASE]: BASE_DISPLAY_NAME,
+  [CHAIN_ID.SEI]: SEI_DISPLAY_NAME,
   // TODO: Update to use CHAIN_IDS.MONAD when it is added to the transaction controller
-  [NETWORK_CHAIN_ID.MONAD]: MONAD_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.HYPE]: HYPEREVM_DISPLAY_NAME,
-  [NETWORK_CHAIN_ID.MEGAETH_MAINNET]: MEGAETH_DISPLAY_NAME,
+  [CHAIN_ID.MONAD]: MONAD_DISPLAY_NAME,
+  [CHAIN_ID.HYPE]: HYPEREVM_DISPLAY_NAME,
+  [CHAIN_ID.MEGAETH_MAINNET]: MEGAETH_DISPLAY_NAME,
 } as const;

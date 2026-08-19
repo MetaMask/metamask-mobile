@@ -5,19 +5,34 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import TokensSection from './Sections/Tokens';
-import PerpsSection from './Sections/Perpetuals';
+import HomepagePerpsHomeSlot from './Sections/Perpetuals/HomepagePerpsHomeSlot';
 import PredictionsSection from './Sections/Predictions';
+import TopTradersSection from './Sections/TopTraders';
 import DeFiSection from './Sections/DeFi';
 import NFTsSection from './Sections/NFTs';
+import WatchlistSection from './Sections/Watchlist';
+import MoreSection from './Sections/More';
 import { SectionRefreshHandle } from './types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
-import { selectAssetsDefiPositionsEnabled } from '../../../selectors/featureFlagController/assetsDefiPositions';
+import { selectDeFiPositionsSectionEnabled } from '../../../selectors/deFiPositionsSectionEnabled';
+import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
+import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
+import { selectTokenWatchlistEnabled } from '../../UI/Assets/selectors/featureFlags';
 import { HomeSectionNames, HomeSectionName } from './hooks/useHomeViewedEvent';
 import useHomeSessionSummary from './hooks/useHomeSessionSummary';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
+import BalanceBreakdownSection, {
+  type BalanceBreakdownSectionProps,
+} from './Sections/BalanceBreakdown';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -25,84 +40,165 @@ import useHomeSessionSummary from './hooks/useHomeSessionSummary';
  * This component orchestrates all homepage sections and coordinates
  * their refresh functionality via refs.
  */
-const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
-  const tokensSectionRef = useRef<SectionRefreshHandle>(null);
-  const perpsSectionRef = useRef<SectionRefreshHandle>(null);
-  const predictionsSectionRef = useRef<SectionRefreshHandle>(null);
-  const defiSectionRef = useRef<SectionRefreshHandle>(null);
-  const nftsSectionRef = useRef<SectionRefreshHandle>(null);
+export interface HomepageProps {
+  balanceBreakdownSectionProps?: BalanceBreakdownSectionProps;
+}
 
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  const isDeFiEnabled = useSelector(selectAssetsDefiPositionsEnabled);
+const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
+  ({ balanceBreakdownSectionProps }, ref) => {
+    const tokensSectionRef = useRef<SectionRefreshHandle>(null);
+    const perpsSectionRef = useRef<SectionRefreshHandle>(null);
+    const predictionsSectionRef = useRef<SectionRefreshHandle>(null);
+    const topTradersSectionRef = useRef<SectionRefreshHandle>(null);
+    const defiSectionRef = useRef<SectionRefreshHandle>(null);
+    const nftsSectionRef = useRef<SectionRefreshHandle>(null);
+    const watchlistSectionRef = useRef<SectionRefreshHandle>(null);
 
-  /**
-   * Compute the ordered list of enabled sections. Tokens and NFTs are always
-   * present; Perps, Predictions, and DeFi are feature-flagged.
-   */
-  const enabledSections = useMemo(
-    () =>
+    const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+    const isDeFiV1Enabled = useSelector(selectDeFiPositionsSectionEnabled);
+    const isDeFiV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
+    const isDeFiEnabled = isDeFiV1Enabled || isDeFiV2Enabled;
+    const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
+    const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
+
+    const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
+      useNetworkEnablement();
+    const popularNetworksKey = popularNetworks.join(',');
+    const areAllPopularNetworksEnabled = useMemo(() => {
+      if (popularNetworksKey === '') {
+        return true;
+      }
+      return popularNetworksKey
+        .split(',')
+        .every((chainId) =>
+          isNetworkEnabled(chainId as Parameters<typeof isNetworkEnabled>[0]),
+        );
+    }, [isNetworkEnabled, popularNetworksKey]);
+
+    // useFocusEffect (not useEffect) so we run every time the user focuses this screen
+    // (e.g. switches to Wallet tab or returns from a section). With useEffect we would
+    // only run on first mount, so "all popular networks" would not be re-applied when
+    // they come back to the homepage.
+    useFocusEffect(
+      useCallback(() => {
+        if (!areAllPopularNetworksEnabled) {
+          enableAllPopularNetworks();
+        }
+      }, [areAllPopularNetworksEnabled, enableAllPopularNetworks]),
+    );
+
+    /**
+     * Compute the ordered list of enabled sections. Tokens are always present;
+     * NFTs, Perps, Predictions, and DeFi are conditional.
+     */
+    const enabledSections = useMemo(
+      () =>
+        [
+          { name: HomeSectionNames.TOKENS, enabled: true },
+          { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
+          { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
+          { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
+          {
+            name: HomeSectionNames.TOP_TRADERS,
+            enabled: isTopTradersEnabled,
+          },
+          { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
+          { name: HomeSectionNames.NFTS, enabled: true },
+        ].filter((section) => section.enabled),
       [
-        { name: HomeSectionNames.TOKENS, enabled: true },
-        { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
-        { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
-        { name: HomeSectionNames.DEFI, enabled: isDeFiEnabled },
-        { name: HomeSectionNames.NFTS, enabled: true },
-      ].filter((s) => s.enabled),
-    [isPerpsEnabled, isPredictEnabled, isDeFiEnabled],
-  );
+        isPerpsEnabled,
+        isPredictEnabled,
+        isDeFiEnabled,
+        isTopTradersEnabled,
+        isWatchlistEnabled,
+      ],
+    );
 
-  const totalSectionsLoaded = enabledSections.length;
+    const totalSectionsLoaded = enabledSections.length;
 
-  useHomeSessionSummary({ totalSectionsLoaded });
+    useHomeSessionSummary({ totalSectionsLoaded });
 
-  const getSectionIndex = useCallback(
-    (name: HomeSectionName) =>
-      enabledSections.findIndex((s) => s.name === name),
-    [enabledSections],
-  );
+    const getSectionIndex = useCallback(
+      (name: HomeSectionName) =>
+        enabledSections.findIndex((s) => s.name === name),
+      [enabledSections],
+    );
 
-  const refresh = useCallback(async () => {
-    await Promise.allSettled([
-      tokensSectionRef.current?.refresh(),
-      perpsSectionRef.current?.refresh(),
-      predictionsSectionRef.current?.refresh(),
-      defiSectionRef.current?.refresh(),
-      nftsSectionRef.current?.refresh(),
-    ]);
-  }, []);
+    const refresh = useCallback(async () => {
+      await Promise.allSettled([
+        tokensSectionRef.current?.refresh(),
+        perpsSectionRef.current?.refresh(),
+        predictionsSectionRef.current?.refresh(),
+        watchlistSectionRef.current?.refresh(),
+        topTradersSectionRef.current?.refresh(),
+        defiSectionRef.current?.refresh(),
+        nftsSectionRef.current?.refresh(),
+      ]);
+    }, []);
 
-  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+    useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
-  return (
-    <Box gap={12} marginBottom={8} testID="homepage-container">
-      <TokensSection
-        ref={tokensSectionRef}
-        sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
-        totalSectionsLoaded={totalSectionsLoaded}
-      />
-      <PerpsSection
-        ref={perpsSectionRef}
-        sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-        totalSectionsLoaded={totalSectionsLoaded}
-      />
-      <PredictionsSection
-        ref={predictionsSectionRef}
-        sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
-        totalSectionsLoaded={totalSectionsLoaded}
-      />
-      <DeFiSection
-        ref={defiSectionRef}
-        sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
-        totalSectionsLoaded={totalSectionsLoaded}
-      />
-      <NFTsSection
-        ref={nftsSectionRef}
-        sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
-        totalSectionsLoaded={totalSectionsLoaded}
-      />
-    </Box>
-  );
-});
+    return (
+      <PerpsConnectionProvider isEnabled={isPerpsEnabled} suppressErrorView>
+        <PerpsStreamProvider>
+          <Box
+            marginBottom={8}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_CONTAINER}
+            accessible={false}
+          >
+            {balanceBreakdownSectionProps ? (
+              <BalanceBreakdownSection {...balanceBreakdownSectionProps} />
+            ) : null}
+            <TokensSection
+              ref={tokensSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.TOKENS)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+            {isPerpsEnabled && (
+              <HomepagePerpsHomeSlot
+                ref={perpsSectionRef}
+                sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
+                totalSectionsLoaded={totalSectionsLoaded}
+              />
+            )}
+            <PredictionsSection
+              ref={predictionsSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.PREDICT)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+            {isWatchlistEnabled && (
+              <WatchlistSection
+                ref={watchlistSectionRef}
+                sectionIndex={getSectionIndex(HomeSectionNames.WATCHLIST)}
+                totalSectionsLoaded={totalSectionsLoaded}
+              />
+            )}
+            {isTopTradersEnabled && (
+              <TopTradersSection
+                ref={topTradersSectionRef}
+                sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
+                totalSectionsLoaded={totalSectionsLoaded}
+              />
+            )}
+            {isDeFiEnabled && (
+              <DeFiSection
+                ref={defiSectionRef}
+                sectionIndex={getSectionIndex(HomeSectionNames.DEFI)}
+                totalSectionsLoaded={totalSectionsLoaded}
+              />
+            )}
+            <NFTsSection
+              ref={nftsSectionRef}
+              sectionIndex={getSectionIndex(HomeSectionNames.NFTS)}
+              totalSectionsLoaded={totalSectionsLoaded}
+            />
+            <MoreSection />
+          </Box>
+        </PerpsStreamProvider>
+      </PerpsConnectionProvider>
+    );
+  },
+);
 
 export default Homepage;

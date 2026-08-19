@@ -7,7 +7,7 @@ import Logger from '../../../../util/Logger';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 import {
   POLYGON_MAINNET_CAIP_CHAIN_ID,
-  POLYGON_USDC_CAIP_ASSET_ID,
+  POLYGON_PUSD_CAIP_ASSET_ID,
 } from '../providers/polymarket/constants';
 
 jest.mock('react-redux', () => ({
@@ -47,8 +47,8 @@ jest.mock('../constants/errors', () => ({
 
 jest.mock('../providers/polymarket/constants', () => ({
   POLYGON_MAINNET_CAIP_CHAIN_ID: 'eip155:137',
-  POLYGON_USDC_CAIP_ASSET_ID:
-    'eip155:137/erc20:0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+  POLYGON_PUSD_CAIP_ASSET_ID:
+    'eip155:137/erc20:0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB',
   COLLATERAL_TOKEN_DECIMALS: 6,
 }));
 
@@ -185,7 +185,7 @@ describe('usePredictRewards', () => {
           activityContext: {
             predictContext: {
               feeAsset: {
-                id: POLYGON_USDC_CAIP_ASSET_ID,
+                id: POLYGON_PUSD_CAIP_ASSET_ID,
                 amount: expect.any(String),
               },
             },

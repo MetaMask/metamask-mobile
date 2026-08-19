@@ -2,13 +2,16 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { FlatList, TouchableHighlight } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 
 import { createOrderDetailsNavDetails } from '../OrderDetails/OrderDetails';
 import { createRampsOrderDetailsNavDetails } from '../../../Views/OrderDetails';
-import { createDepositOrderDetailsNavDetails } from '../../../Deposit/Views/DepositOrderDetails/DepositOrderDetails';
+import { createDepositOrderDetailsNavDetails } from '../../../Views/OrderDetails/DepositOrderDetails/DepositOrderDetails';
 import { useRampNavigation } from '../../../hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../constants/rampsBuyCufTags';
 import createStyles from './OrdersList.styles';
 import { TabEmptyState } from '../../../../../../component-library/components-temp/TabEmptyState';
 
@@ -19,10 +22,10 @@ import {
 import { getOrders } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
-import ButtonFilter from '../../../../../../component-library/components-temp/ButtonFilter';
 import {
   Box,
-  ButtonSize as ButtonBaseSize,
+  ButtonFilter,
+  ButtonBaseSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRampsOrders } from '../../../hooks/useRampsOrders';
@@ -31,7 +34,10 @@ import {
   type DisplayOrder,
 } from '../../../utils/displayOrder';
 import { toDateFormat } from '../../../../../../util/date';
-import { addCurrencySymbol, renderFiat } from '../../../../../../util/number';
+import {
+  addCurrencySymbol,
+  renderFiat,
+} from '../../../../../../util/number/bigint';
 import Text, {
   TextColor,
   TextVariant,
@@ -177,11 +183,11 @@ function DisplayOrderListItem({
 function OrdersList() {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const allLegacyOrders = useSelector(getOrders);
   const { orders: v2Orders } = useRampsOrders();
   const [currentFilter, setCurrentFilter] = useState<filterType>('ALL');
-  const { goToDeposit } = useRampNavigation();
+  const { goToBuy } = useRampNavigation();
   const tw = useTailwind();
 
   const displayOrders = useMemo(
@@ -209,8 +215,9 @@ function OrdersList() {
 
   const handleNavigateToAggregatorTxDetails = useCallback(
     (orderId: string) => {
-      navigation.navigate(
-        ...createOrderDetailsNavDetails({
+      navigateWithDetails(
+        navigation,
+        createOrderDetailsNavDetails({
           orderId,
         }),
       );
@@ -220,8 +227,9 @@ function OrdersList() {
 
   const handleNavigateToRampsTxDetails = useCallback(
     (orderId: string) => {
-      navigation.navigate(
-        ...createRampsOrderDetailsNavDetails({
+      navigateWithDetails(
+        navigation,
+        createRampsOrderDetailsNavDetails({
           orderId,
         }),
       );
@@ -237,10 +245,11 @@ function OrdersList() {
         order?.state === FIAT_ORDER_STATES.CREATED &&
         order?.provider === FIAT_ORDER_PROVIDERS.DEPOSIT
       ) {
-        goToDeposit();
+        goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ORDERS_LIST });
       } else if (order?.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
-        navigation.navigate(
-          ...createDepositOrderDetailsNavDetails({
+        navigateWithDetails(
+          navigation,
+          createDepositOrderDetailsNavDetails({
             orderId,
           }),
         );
@@ -248,12 +257,7 @@ function OrdersList() {
         handleNavigateToAggregatorTxDetails(orderId);
       }
     },
-    [
-      allLegacyOrders,
-      goToDeposit,
-      handleNavigateToAggregatorTxDetails,
-      navigation,
-    ],
+    [allLegacyOrders, goToBuy, handleNavigateToAggregatorTxDetails, navigation],
   );
 
   const handleItemPress = useCallback(
@@ -309,9 +313,10 @@ function OrdersList() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('flex-row gap-3')}
+            contentContainerStyle={tw.style('flex-row gap-2')}
           >
             <ButtonFilter
+              twClassName="min-w-0"
               onPress={() => setCurrentFilter('ALL')}
               isActive={currentFilter === 'ALL'}
               size={ButtonBaseSize.Md}
@@ -320,6 +325,7 @@ function OrdersList() {
               {strings('fiat_on_ramp_aggregator.All')}
             </ButtonFilter>
             <ButtonFilter
+              twClassName="min-w-0"
               onPress={() => setCurrentFilter('PURCHASE')}
               isActive={currentFilter === 'PURCHASE'}
               size={ButtonBaseSize.Md}
@@ -328,6 +334,7 @@ function OrdersList() {
               {strings('fiat_on_ramp_aggregator.Purchased')}
             </ButtonFilter>
             <ButtonFilter
+              twClassName="min-w-0"
               onPress={() => setCurrentFilter('SELL')}
               isActive={currentFilter === 'SELL'}
               size={ButtonBaseSize.Md}

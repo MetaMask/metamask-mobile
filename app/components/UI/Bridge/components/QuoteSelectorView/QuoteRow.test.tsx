@@ -1,17 +1,21 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { QuoteRow, QuoteRowProps } from './QuoteRow';
+import { QuoteRow, QuoteRowProps, QuoteRowView } from './QuoteRow';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      success: { default: '#28A745' },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const actualTheme = jest.requireActual('../../../../../util/theme');
+  return {
+    ...actualTheme,
+    useTheme: jest.fn(() => ({
+      colors: {
+        success: { default: actualTheme.mockTheme.colors.success.default },
+      },
+    })),
+  };
+});
 
 const mockDestToken: BridgeToken = {
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -70,6 +74,12 @@ describe('QuoteRow', () => {
       } catch {
         return null;
       }
+    });
+  });
+
+  describe('memoization', () => {
+    it('memoizes QuoteRowView', () => {
+      expect(QuoteRowView).toHaveProperty('$$typeof', Symbol.for('react.memo'));
     });
   });
 

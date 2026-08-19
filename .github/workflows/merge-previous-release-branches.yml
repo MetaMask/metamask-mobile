@@ -36,9 +36,20 @@ jobs:
     needs: validate-branch
     if: needs.validate-branch.outputs.is-valid == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            pull_requests: write
+            contents: write
+            members: read
       - name: Merge previous releases
         uses: metamask/github-tools/.github/actions/merge-previous-releases@v1.2.0
         with:
           new-release-branch: ${{ github.event.ref }}
-          github-token: ${{ secrets.METAMASK_MOBILE_BRANCH_SYNC_TOKEN }}
+          github-token: ${{ steps.get-token.outputs.token }}

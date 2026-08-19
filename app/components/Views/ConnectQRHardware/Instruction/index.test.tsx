@@ -15,7 +15,7 @@ import {
   NGRAVE_BUY,
   NGRAVE_LEARN_MORE,
 } from '../../../../constants/urls';
-import { QR_CONTINUE_BUTTON } from '../../../../../wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
+import { ConnectQRHardwareSelectorsIDs } from '../ConnectQRHardware.testIds';
 import { AppThemeKey } from '../../../../util/theme/models';
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -27,20 +27,12 @@ const mockAddProperties = jest.fn();
 const mockBuild = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 
-jest.mock('../../../../components/hooks/useMetrics', () => {
-  const actualMetrics = jest.requireActual('../../../../core/Analytics');
-  const actualHooks = jest.requireActual(
-    '../../../../components/hooks/useMetrics',
-  );
-  return {
-    ...actualHooks,
-    useMetrics: () => ({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    }),
-    MetaMetricsEvents: actualMetrics.MetaMetricsEvents,
-  };
-});
+jest.mock('../../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 const mockNavigate = jest.fn();
 const mockOnConnect = jest.fn();
@@ -157,6 +149,22 @@ describe('ConnectQRInstruction', () => {
     expect(getByText('connect_qr_hardware.button_continue')).toBeTruthy();
   });
 
+  it('hides vendor marketing content when requested', () => {
+    const { queryByText } = renderWithProvider(
+      <ConnectQRInstruction
+        navigation={mockNavigation}
+        onConnect={mockOnConnect}
+        renderAlert={mockRenderAlert}
+        hideMarketingContent
+      />,
+      { state: initialState },
+    );
+
+    expect(queryByText('connect_qr_hardware.description2')).toBeNull();
+    expect(queryByText('connect_qr_hardware.keystone')).toBeNull();
+    expect(queryByText('connect_qr_hardware.ngravezero')).toBeNull();
+  });
+
   it('calls onConnect when continue button is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <ConnectQRInstruction
@@ -167,7 +175,9 @@ describe('ConnectQRInstruction', () => {
       { state: initialState },
     );
 
-    const continueButton = getByTestId(QR_CONTINUE_BUTTON);
+    const continueButton = getByTestId(
+      ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON,
+    );
     fireEvent.press(continueButton);
 
     expect(mockOnConnect).toHaveBeenCalledTimes(1);
@@ -334,8 +344,8 @@ describe('ConnectQRInstruction', () => {
     });
   });
 
-  describe('useMetrics integration', () => {
-    it('uses the useMetrics hook correctly', () => {
+  describe('useAnalytics integration', () => {
+    it('uses useAnalytics hook', () => {
       renderWithProvider(
         <ConnectQRInstruction
           navigation={mockNavigation}
@@ -349,7 +359,7 @@ describe('ConnectQRInstruction', () => {
       expect(mockTrackEvent).toBeDefined();
     });
 
-    it('creates event builder with correct event type for marketing events', () => {
+    it('creates event builder with event type for marketing events', () => {
       const { getByText } = renderWithProvider(
         <ConnectQRInstruction
           navigation={mockNavigation}

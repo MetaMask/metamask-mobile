@@ -4,6 +4,7 @@ import PerpsMarketTypeSection from './PerpsMarketTypeSection';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 
 // Type helper for UNSAFE_getByType with mocked string components
 const asComponentType = (name: string) => name as unknown as ComponentType;
@@ -129,6 +130,7 @@ describe('PerpsMarketTypeSection', () => {
         title="Crypto"
         markets={mockMarkets}
         marketType="crypto"
+        source="perps_home"
       />,
       { state: initialState },
     );
@@ -142,6 +144,37 @@ describe('PerpsMarketTypeSection', () => {
       screen: Routes.PERPS.MARKET_LIST,
       params: {
         defaultMarketTypeFilter: 'crypto',
+        source: 'perps_home',
+      },
+    });
+  });
+
+  it('carries transactionActiveAbTests when header opens market list', () => {
+    const transactionActiveAbTests = [
+      createActiveABTestAssignment(
+        'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+        'treatment',
+      ),
+    ];
+    const { getByText } = renderWithProvider(
+      <PerpsMarketTypeSection
+        title="Crypto"
+        markets={mockMarkets}
+        marketType="crypto"
+        source="perps_home"
+        transactionActiveAbTests={transactionActiveAbTests}
+      />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByText('Crypto'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_LIST,
+      params: {
+        defaultMarketTypeFilter: 'crypto',
+        source: 'perps_home',
+        transactionActiveAbTests,
       },
     });
   });
@@ -153,6 +186,7 @@ describe('PerpsMarketTypeSection', () => {
         title="Crypto"
         markets={mockMarkets}
         marketType="crypto"
+        source="perps_home"
       />,
       { state: initialState },
     );
@@ -164,7 +198,38 @@ describe('PerpsMarketTypeSection', () => {
     // Assert
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.MARKET_DETAILS,
-      params: { market: mockMarkets[0] },
+      params: { market: mockMarkets[0], source: 'perps_home' },
+    });
+  });
+
+  it('carries transactionActiveAbTests when a market opens market details', () => {
+    const transactionActiveAbTests = [
+      createActiveABTestAssignment(
+        'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
+        'treatment',
+      ),
+    ];
+    const { UNSAFE_getByType } = renderWithProvider(
+      <PerpsMarketTypeSection
+        title="Crypto"
+        markets={mockMarkets}
+        marketType="crypto"
+        source="perps_home"
+        transactionActiveAbTests={transactionActiveAbTests}
+      />,
+      { state: initialState },
+    );
+    const marketList = UNSAFE_getByType(asComponentType('PerpsMarketList'));
+
+    marketList.props.onMarketPress(mockMarkets[0]);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.MARKET_DETAILS,
+      params: {
+        market: mockMarkets[0],
+        source: 'perps_home',
+        transactionActiveAbTests,
+      },
     });
   });
 

@@ -33,9 +33,14 @@ export function useUpdateTokenAmount() {
   } = (transactionMeta && getTokenTransferData(transactionMeta)) ?? {};
 
   const { decimals } =
-    useSelector((state: RootState) =>
-      selectSingleTokenByAddressAndChainId(state, to as Hex, chainId as Hex),
-    ) ?? {};
+    useSelector((state: RootState) => {
+      if (!to) return { decimals: undefined };
+      return selectSingleTokenByAddressAndChainId(
+        state,
+        to as Hex,
+        chainId as Hex,
+      );
+    }) ?? {};
 
   const amountRaw = useMemo(() => {
     const transactionData = parseStandardTokenTransactionData(data);
@@ -75,18 +80,18 @@ export function useUpdateTokenAmount() {
       setPreviousAmountRaw(amountRaw);
 
       if (nestedCallIndex !== undefined) {
-        updateAtomicBatchData({
+        return updateAtomicBatchData({
           transactionId,
           transactionIndex: nestedCallIndex,
           transactionData: newData,
         }).catch((error) => {
+          setPreviousAmountRaw(undefined);
           Logger.error(
             error,
             'Failed to update token amount in nested transaction',
           );
+          throw error;
         });
-
-        return;
       }
 
       updateEditableParams(transactionId as string, {

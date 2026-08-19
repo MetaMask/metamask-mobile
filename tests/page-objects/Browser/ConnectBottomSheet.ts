@@ -1,48 +1,48 @@
 import {
   ConnectAccountBottomSheetSelectorsIDs,
   ConnectAccountBottomSheetSelectorsText,
-} from '../../../app/components/Views/AccountConnect/ConnectAccountBottomSheet.testIds';
+} from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Utilities from '../../framework/Utilities';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 
 class ConnectBottomSheet {
-  get container(): DetoxElement {
+  get container() {
     return Matchers.getElementByID(
       ConnectAccountBottomSheetSelectorsIDs.CONTAINER,
     );
   }
-  get connectButton(): DetoxElement {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(CommonSelectorsIDs.CONNECT_BUTTON)
-      : Matchers.getElementByID(CommonSelectorsIDs.CONNECT_BUTTON);
+
+  get connectButton() {
+    return Matchers.getElementByID(CommonSelectorsIDs.CONNECT_BUTTON);
   }
 
-  get connectAccountsButton(): DetoxElement {
+  get connectAccountsButton() {
     return Matchers.getElementByText(
       ConnectAccountBottomSheetSelectorsText.CONNECT_ACCOUNTS,
     );
   }
 
-  get importButton(): DetoxElement {
+  get importButton() {
     return Matchers.getElementByText(
       ConnectAccountBottomSheetSelectorsText.IMPORT_ACCOUNT,
     );
   }
 
-  get selectAllButton(): DetoxElement {
+  get selectAllButton() {
     return Matchers.getElementByText(
       ConnectAccountBottomSheetSelectorsText.SELECT_ALL,
     );
   }
 
-  get selectMultiButton(): DetoxElement {
+  get selectMultiButton() {
     return Matchers.getElementByID(
       ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
     );
   }
 
-  get cancelButton(): DetoxElement {
+  get cancelButton() {
     return Matchers.getElementByID(
       ConnectAccountBottomSheetSelectorsIDs.CANCEL_BUTTON,
     );
@@ -57,7 +57,10 @@ class ConnectBottomSheet {
   async tapConnectButton(): Promise<void> {
     await Gestures.waitAndTap(this.connectButton, {
       elemDescription: 'Tap on the connect button',
+      waitForInteractive: true,
+      timeout: 15_000,
     });
+    await Utilities.waitForElementToDisappear(this.connectButton, 15_000);
   }
 
   async tapConnectMultipleAccountsButton(): Promise<void> {

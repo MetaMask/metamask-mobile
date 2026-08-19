@@ -1,6 +1,6 @@
-# Appwright Performance Tests
+# Performance Tests
 
-This directory contains performance tests for MetaMask Mobile using [Appwright](https://github.com/empirical-run/appwright), a mobile testing framework that combines Appium+Playwright.
+This directory contains Playwright-based performance tests for MetaMask Mobile, measuring real user flows on real devices and BrowserStack cloud infrastructure.
 
 ## Overview
 
@@ -12,6 +12,7 @@ The performance framework lives under the `tests/` directory alongside the rest 
 
 - [Test Structure](#test-structure)
 - [Configuration](#configuration)
+- [CI Triggers](#ci-triggers)
 - [Running Tests](#running-tests)
 - [Test Categories](#test-categories)
 - [Performance Tracking System](#performance-tracking-system)
@@ -28,14 +29,15 @@ The performance framework lives under the `tests/` directory alongside the rest 
 
 ```
 tests/
-├── appwright.config.ts              # Main Appwright configuration file
+├── playwright.config.ts              # Main configuration file
 ├── tags.performance.js              # Performance test tags for filtering
 ├── teams-config.js                  # Team/Slack mapping for notifications
 ├── framework/
 │   ├── fixtures/
-│   │   └── performance/             # Performance test fixtures
-│   │       ├── index.ts             # Barrel exports (test, expect)
-│   │       └── performance-fixture.ts # Custom test fixture with performance tracking
+│   │   ├── FixtureBuilder.ts
+│   │   └── playwright/              # Playwright test.extend (performance tests)
+│   │       ├── index.ts             # import `test` from fixtures/playwright
+│   │       └── *.fixture.ts         # currentDeviceDetails, deviceProvider, driver, performanceTracker
 │   ├── quality-gates/
 │   │   ├── types.ts                 # Shared type definitions for quality gates
 │   │   ├── QualityGateError.ts      # Custom error class for threshold failures
@@ -44,11 +46,18 @@ tests/
 │   │   └── helpers.ts               # File-based failure tracking across workers
 │   ├── TimerStore.ts               # Low-level timer management
 │   ├── TimerHelper.ts              # Timer helper with thresholds support
+│   ├── PlaywrightContextHelpers.ts  # Native ↔ web context switching (dapp tests)
 │   └── utils/
-│       ├── Flows.js                 # Shared user flows
 │       ├── TestConstants.js         # Test constants and credentials
-│       ├── MobileBrowser.js         # Mobile browser helpers
 │       └── Utils.js                 # General utilities
+├── flows/
+│   └── wallet.flow.ts               # Shared user flows (login, onboarding, modals)
+├── page-objects/                    # Static page object classes
+│   ├── wallet/                      # Wallet screens
+│   ├── Onboarding/                  # Onboarding screens
+│   ├── Predict/                     # Predict market screens
+│   ├── MMConnect/                   # Dapp connection screens
+│   └── ...
 ├── reporters/
 │   ├── custom-reporter.js           # Custom reporter for HTML/CSV/JSON output
 │   ├── PerformanceTracker.js        # Performance metrics collector
@@ -56,41 +65,37 @@ tests/
 │   └── reports/                     # Generated per-test reports
 ├── performance/
 │   ├── device-matrix.json           # Device configurations for parallel testing
+│   ├── feature-flag-helper.ts       # Production feature flag fetching
 │   ├── login/                       # Tests for logged-in user flows
 │   │   ├── launch-times/            # Cold/warm start measurements
 │   │   └── predict/                 # Predict market features
-│   ├── onboarding/                  # Tests for new user onboarding
-│   │   └── launch-times/            # Onboarding launch metrics
-│   └── mm-connect/                  # MetaMask Connect integration tests
+│   └── onboarding/                  # Tests for new user onboarding
+│       └── launch-times/            # Onboarding launch metrics
 ├── aggregated-reports/              # Combined reports from CI runs
 └── test-reports/                    # Playwright HTML reports
 ```
 
 ## Configuration
 
-The test suite is configured in `tests/appwright.config.ts`, which defines multiple projects for different testing environments.
+The test suite is configured in `tests/playwright.config.ts`, which defines multiple projects for different testing environments.
 
 ### Available Projects
 
-| Project Name                      | Platform | Environment     | Test Scope                 |
-| --------------------------------- | -------- | --------------- | -------------------------- |
-| `android`                         | Android  | Local Emulator  | All performance tests      |
-| `ios`                             | iOS      | Local Simulator | All performance tests      |
-| `browserstack-android`            | Android  | BrowserStack    | Login tests only           |
-| `browserstack-ios`                | iOS      | BrowserStack    | Login tests only           |
-| `android-onboarding`              | Android  | BrowserStack    | Onboarding tests only      |
-| `ios-onboarding`                  | iOS      | BrowserStack    | Onboarding tests only      |
-| `mm-connect-android-local`        | Android  | Local Emulator  | connection-multichain only |
-| `mm-connect-android-browserstack` | Android  | BrowserStack    | connection-multichain only |
-| `mm-connect-ios-local`            | iOS      | Local Simulator | MM Connect tests           |
-| `mm-connect-ios-browserstack`     | iOS      | BrowserStack    | MM Connect tests           |
+| Project Name           | Platform | Environment     | Test Scope            |
+| ---------------------- | -------- | --------------- | --------------------- |
+| `android`              | Android  | Local Emulator  | All performance tests |
+| `ios`                  | iOS      | Local Simulator | All performance tests |
+| `browserstack-android` | Android  | BrowserStack    | Login tests only      |
+| `browserstack-ios`     | iOS      | BrowserStack    | Login tests only      |
+| `android-onboarding`   | Android  | BrowserStack    | Onboarding tests only |
+| `ios-onboarding`       | iOS      | BrowserStack    | Onboarding tests only |
 
 ### Configuration Details
 
 - **Timeout**: 7 minutes per test (to accommodate performance metrics collection)
 - **Expect Timeout**: 30 seconds for element interactions
 - **Reporters**: HTML report, custom performance reporter, and list reporter
-- **Report Location**: `./test-reports/appwright-report`
+- **Report Location**: `./test-reports/playwright-report`
 
 ### Device Matrix
 
@@ -100,8 +105,8 @@ The `tests/performance/device-matrix.json` file defines device configurations fo
 {
   "android_devices": [
     {
-      "name": "Samsung Galaxy S23 Ultra",
-      "os_version": "13.0",
+      "name": "Samsung Galaxy S25 Ultra",
+      "os_version": "15.0",
       "category": "high"
     },
     { "name": "Google Pixel 8 Pro", "os_version": "14.0", "category": "low" }
@@ -118,73 +123,58 @@ The `tests/performance/device-matrix.json` file defines device configurations fo
 }
 ```
 
+## CI Triggers
+
+Performance E2E never runs on push. Coverage comes from PR selection on `main` plus a fixed schedule, with manual dispatch for everything else (release branches, ad-hoc `exp`/`rc` runs, etc.).
+
+| Event                                 | Behavior                                                                                                                                                                          |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Push to `main`, `stable`, `release/*` | No performance tests.                                                                                                                                                             |
+| PR targeting `main`                   | Smart E2E Selection decides which performance tags to run (or none). The `run-performance-tests` label forces the full Android low-profile suite regardless of the AI's decision. |
+| PR targeting `release/*` or `stable`  | No automatic performance run — CI ignores AI performance selection for these base branches. The `run-performance-tests` label still forces a full run.                            |
+| Scheduled (Mon–Sat)                   | `e2e` builds from `main` every 6 hours starting at 00:00 UTC. Experimental builds are manual-only.                                                                                |
+| Manual dispatch                       | Run against any selected branch or tag with any build variant (`e2e`, `exp`, or `rc`).                                                                                            |
+
+Workflow layout:
+
+- [`run-performance-e2e.yml`](../../.github/workflows/run-performance-e2e.yml) — reusable execution engine (`workflow_call` only). Builds the apps, runs the Playwright suite on BrowserStack, aggregates results, and posts the PR comment/Slack notification. Never triggered directly.
+- [`run-performance-e2e-manual.yml`](../../.github/workflows/run-performance-e2e-manual.yml) — the only workflow with `schedule`/`workflow_dispatch` triggers. Wraps `run-performance-e2e.yml` for both the scheduled cadence and manual runs.
+- `ci.yml` (`run-performance-tests-pr` job) — calls `run-performance-e2e.yml` for PRs targeting `main`, wired to Smart E2E Selection's `ai_performance_test_tags` output and the `run-performance-tests` label.
+
+For PRs, `run-performance-e2e.yml` builds against the exact PR merge commit (`source_ref: github.sha`), the same ref used by the standard Detox E2E builds, so performance results reflect the same code. `branch_name` (`github.head_ref`) is only used for human-readable build names/reports.
+
+`build_variant` (`e2e`, `exp`, or `rc`) selects which native app profile CI builds and uploads to BrowserStack. It is distinct from `E2E_PERFORMANCE_BUILD_VARIANT` (see [Test Configuration](#test-configuration) below), which selects the remote feature-flag environment (`rc | exp | test`) used inside the test run itself.
+
 ## Running Tests
 
 ### Using Package Scripts
 
 ```bash
 # Local Device/Simulator Tests
-yarn run-appwright:android          # Run on local Android emulator
-yarn run-appwright:ios              # Run on local iOS simulator
+yarn run-playwright:android          # Run on local Android emulator
+yarn run-playwright:ios              # Run on local iOS simulator
 
 # BrowserStack Tests
-yarn run-appwright:android-bs       # Run login tests on BrowserStack Android
-yarn run-appwright:ios-bs           # Run login tests on BrowserStack iOS
-yarn run-appwright:android-onboarding-bs  # Run onboarding tests on BrowserStack Android
-yarn run-appwright:ios-onboarding-bs      # Run onboarding tests on BrowserStack iOS
+yarn run-playwright:android-bs       # Run login tests on BrowserStack Android
+yarn run-playwright:ios-bs           # Run login tests on BrowserStack iOS
+yarn run-playwright:android-onboarding-bs  # Run onboarding tests on BrowserStack Android
+yarn run-playwright:ios-onboarding-bs      # Run onboarding tests on BrowserStack iOS
 
-# MM Connect (Multichain API + local Browser Playground dapp)
-yarn run-appwright:mm-connect-android-local    # Local Android emulator (dapp on 10.0.2.2:8090)
-yarn run-appwright:mm-connect-android-bs      # BrowserStack Android (no tunnel; use remote dapp if any)
-yarn run-appwright:mm-connect-android-bs-local # BrowserStack Android + Local tunnel (see below)
 ```
 
-#### MM Connect on BrowserStack (local dapp)
+> MetaMask Connect browser/RN playground E2E coverage now lives under [`tests/smoke-appium/mm-connect/`](../smoke-appium/mm-connect/) (`SmokeMMConnect` Appium smoke CI).
 
-The `connection-multichain` test starts a **local dapp server** (Browser Playground) on port **8090**. To run it on BrowserStack, the cloud device must reach that server via **BrowserStack Local** (tunnel).
-
-1. **Start the BrowserStack Local binary** (in a separate terminal):
-   - Download from [BrowserStack Local](https://www.browserstack.com/docs/local-testing/binary-params) if needed.
-   - Run **without** `--local-identifier` (so the test uses your single tunnel):
-     ```bash
-     ./BrowserStackLocal --key $BROWSERSTACK_ACCESS_KEY
-     ```
-     (Optionally add `--verbose --force-local`. If you run multiple tunnels, start with `--local-identifier <id>` and set `BROWSERSTACK_LOCAL_IDENTIFIER=<id>` when running the test.)
-   - Keep it running until you see: `[SUCCESS] You can now access your local server(s) in our remote browser`. Wait 5–10 seconds, then run the test.
-
-2. **Run the test** with Local enabled:
-
-   ```bash
-   yarn run-appwright:mm-connect-android-bs-local
-   ```
-
-   Set `BROWSERSTACK_LOCAL=true` in `.e2e.env` so the appwright patch sends `local: true` in capabilities (and `localIdentifier` only if you set `BROWSERSTACK_LOCAL_IDENTIFIER`). The test uses **`http://bs-local.com:8090`** for the dapp.
-
-3. Ensure `.e2e.env` has `BROWSERSTACK_USERNAME` and `BROWSERSTACK_ACCESS_KEY`. The mm-connect BrowserStack project uses `BROWSERSTACK_ANDROID_APP_URL` (or the default `bs://...` in config) for the app; override via env for a custom build.
-
-**Local Android (emulator):** When you run `yarn run-appwright:mm-connect-android-local`, Chrome is launched with a single tab: the test clears Chrome data, starts Chrome, and dismisses first-run modals (sign-in, ad privacy, notifications) with short timeouts so the flow reaches the dapp before the app auto-locks. After the connection is confirmed in MetaMask, the test switches back to the browser with `switchToMobileBrowser` (no reload), so the dapp page state is preserved.
-
-**If you see `BROWSERSTACK_LOCAL_CONNECTION_FAILED`:**
-
-- **Start the binary before the test** and wait until it prints: `[SUCCESS] You can now access your local server(s) in our remote browser`. Then wait 5–10 seconds before running the test.
-- **Single tunnel:** start the binary without `--local-identifier` and run the test as-is; the test does not send `localIdentifier` unless you set `BROWSERSTACK_LOCAL_IDENTIFIER`. If you use multiple tunnels, start the binary with `--local-identifier <id>` and set `BROWSERSTACK_LOCAL_IDENTIFIER=<id>` when running the test so they match.
-- **Use the same credentials:** the key passed to `./BrowserStackLocal --key <key>` must be the same as `BROWSERSTACK_ACCESS_KEY` in `.e2e.env` (and the binary must be using the same BrowserStack account as `BROWSERSTACK_USERNAME`).
-- **One tunnel per account:** don’t run multiple Local binaries for the same account unless you use different `localIdentifier` values and pass them in capabilities.
-- **Tunnel timeouts** (`TIMEOUT_CONNECTING` to port 45691 in the Local terminal): the cloud device cannot reach your Local binary. Allow incoming connections for ports **45690** and **45691** in your firewall, or try a different network (e.g. avoid strict NAT). See [BrowserStack Local troubleshooting](https://www.browserstack.com/docs/app-automate/appium/troubleshooting/local-issues) for more.
-
-**CI:** BrowserStack Local is enabled for all performance build types (not only mm-connect); the tunnel is started and `local: true` plus `localIdentifier` are sent in capabilities so every run can use the tunnel (e.g. for future test dapps). The workflow starts the tunnel with `--force-local --verbose` only (no `--include-hosts`). Using `--include-hosts localhost 127.0.0.1` can prevent requests to `bs-local.com:8090` from being forwarded to the runner’s localhost; the device then cannot load the dapp. The workflow waits 15s for mm-connect (10s for other build types) after starting the tunnel before running tests.
-
-### Using Appwright CLI Directly
+### Using CLI Directly
 
 ```bash
 # Run specific project
-npx appwright test --project browserstack-android --config tests/appwright.config.ts
+npx playwright test --project browserstack-android --config tests/playwright.config.ts
 
 # Run a single test file
-npx appwright test tests/performance/login/asset-balances.spec.js --project android --config tests/appwright.config.ts
+npx playwright test tests/performance/login/asset-balances.spec.ts --project android --config tests/playwright.config.ts
 
 # Run all tests in a category
-npx appwright test tests/performance/login/*.spec.js --project android --config tests/appwright.config.ts
+npx playwright test tests/performance/login/*.spec.ts --project android --config tests/playwright.config.ts
 ```
 
 ### Running Tests by Tag
@@ -193,24 +183,39 @@ Tests are tagged by area for selective execution. Use the `--grep` option to fil
 
 ```bash
 # Run all login performance tests
-npx appwright test --grep "@PerformanceLogin" --project android --config tests/appwright.config.ts
+npx playwright test --grep "@PerformanceLogin" --project android --config tests/playwright.config.ts
 
 # Run all onboarding performance tests
-npx appwright test --grep "@PerformanceOnboarding" --project android --config tests/appwright.config.ts
+npx playwright test --grep "@PerformanceOnboarding" --project android --config tests/playwright.config.ts
 
 # Run all swap-related performance tests
-npx appwright test --grep "@PerformanceSwaps" --project android --config tests/appwright.config.ts
+npx playwright test --grep "@PerformanceSwaps" --project android --config tests/playwright.config.ts
 
 # Run multiple tags (OR logic)
-npx appwright test --grep "@PerformanceLogin|@PerformanceOnboarding" --project android --config tests/appwright.config.ts
+npx playwright test --grep "@PerformanceLogin|@PerformanceOnboarding" --project android --config tests/playwright.config.ts
 
 # Run tests with specific tag combination
-npx appwright test --grep "@PerformanceLogin.*@PerformanceLaunch" --project android --config tests/appwright.config.ts
+npx playwright test --grep "@PerformanceLogin.*@PerformanceLaunch" --project android --config tests/playwright.config.ts
 ```
 
 ## Test Tags
 
-Tests are tagged with area-specific, tool-agnostic tags defined in `tests/tags.performance.js`. These tags allow for selective test execution based on which areas of the app are affected by code changes.
+Tags are defined in `tests/tags.performance.js` and embedded in `test.describe()` names. They are runner-agnostic — any runner with `--grep` support can filter by them.
+
+### Test Type Tags
+
+These tags control which Playwright config picks up a test:
+
+| Tag            | Description                                                            | Config that filters for it                                                                 |
+| -------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `@Performance` | Test measures performance (uses `TimerHelper`, quality gates enforced) | `playwright.config.ts` (`grep: /@Performance/`)                                            |
+| `@System`      | Test verifies functionality (no quality gates or metrics)              | `playwright.system.config.ts` / `playwright.system-emulator.config.ts` (`grep: /@System/`) |
+
+Most existing tests are tagged with **both** `@Performance @System` — they measure perf and also serve as system smoke tests. A test can use just one tag if it should only run in one suite.
+
+### Area Tags
+
+These tags categorize tests by feature area and can be used with `--grep` for ad-hoc filtering:
 
 | Tag                        | Description                                                   |
 | -------------------------- | ------------------------------------------------------------- |
@@ -223,15 +228,42 @@ Tests are tagged with area-specific, tool-agnostic tags defined in `tests/tags.p
 | `@PerformanceAssetLoading` | Asset and balance loading performance                         |
 | `@PerformancePredict`      | Predict market performance (market list, details, deposits)   |
 | `@PerformancePreps`        | Perpetuals trading performance (positions, add funds, orders) |
+| `@PerformanceRewards`      | Rewards tab time-to-content (onboarding or dashboard shell)   |
 
-Tags are imported into test files from `tests/tags.performance.js`:
+### Tagging Convention
 
-```javascript
-import { PerformanceLogin, PerformanceSwaps } from '../../tags.performance.js';
+Import type tags and area tags from `tests/tags.performance.js`:
 
-test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
-  test('Swap flow performance', async ({ device, performanceTracker }) => {
-    // test implementation
+```typescript
+import {
+  Performance,
+  System,
+  PerformanceLogin,
+  PerformanceSwaps,
+} from '../../tags.performance.js';
+
+// Both perf and system test (most common):
+perfTest.describe(
+  `${Performance} ${System} ${PerformanceLogin} ${PerformanceSwaps}`,
+  () => {
+    perfTest(
+      'Swap flow performance',
+      async (
+        { currentDeviceDetails, driver, performanceTracker },
+        testInfo,
+      ) => {
+        // test implementation with TimerHelper and thresholds
+      },
+    );
+  },
+);
+
+// System-only test (functional verification, no perf measurement):
+test.describe(`${System} ${PerformanceLogin}`, () => {
+  test('Verify wallet loads after login', async ({ driver }) => {
+    // No TimerHelper — pure functional check
+    await loginToAppPlaywright();
+    await WalletView.waitForAccountName('Account 1');
   });
 });
 ```
@@ -242,47 +274,39 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
 
 Tests for users with existing wallets:
 
-- `asset-balances.spec.js` - Asset balance loading times
-- `asset-view.spec.js` - Individual asset view performance
-- `eth-swap-flow.spec.js` - ETH swap transaction flow
-- `cross-chain-swap-flow.spec.js` - Cross-chain swap performance
-- `import-multiple-srps.spec.js` - Multiple SRP import performance
-- `perps-add-funds.spec.js` - Perpetuals fund addition
-- `perps-position-management.spec.js` - Position management flows
+- `asset-balances.spec.ts` - Asset balance loading times
+- `asset-view.spec.ts` - Individual asset view performance
+- `rewards-tab-time-to-content.spec.ts` - Rewards tab time-to-content (onboarding or dashboard)
+- `eth-swap-flow.spec.ts` - ETH swap transaction flow
+- `cross-chain-swap-flow.spec.ts` - Cross-chain swap performance
+- `import-multiple-srps.spec.ts` - Multiple SRP import performance
+- `perps-add-funds.spec.ts` - Perpetuals fund addition
+- `perps-position-management.spec.ts` - Position management flows
 - `launch-times/` - Cold/warm start measurements
 
 ### Onboarding Tests (`tests/performance/onboarding/`)
 
 Tests for new users:
 
-- `import-wallet.spec.js` - Wallet import via SRP
-- `imported-wallet-account-creation.spec.js` - Account creation after import
-- `new-wallet-account-creation.spec.js` - New wallet creation flow
+- `import-wallet.spec.ts` - Wallet import via SRP
+- `imported-wallet-account-creation.spec.ts` - Account creation after import
+- `new-wallet-account-creation.spec.ts` - New wallet creation flow
+- `seedless-apple-onboarding.spec.ts` - Apple social sign-in onboarding
+- `seedless-google-onboarding.spec.ts` - Google social sign-in onboarding
+- `seedless-telegram-onboarding.spec.ts` - Telegram social sign-in onboarding (requires `MM_TELEGRAM_LOGIN_ENABLED=true` on without-srp e2e builds)
 - `launch-times/` - Onboarding launch metrics
 
 ### Predict Tests (`tests/performance/login/predict/`)
 
 Tests for prediction market features:
 
-- `predict-available-balance.spec.js`
-- `predict-deposit.spec.js`
-- `predict-market-details.spec.js`
+- `predict-available-balance.spec.ts`
+- `predict-deposit.spec.ts`
+- `predict-market-details.spec.ts`
 
-### MM Connect Tests (`tests/performance/mm-connect/`)
+### MetaMask Connect
 
-Integration tests for MetaMask Connect:
-
-- `connection-evm.spec.js` - EVM connection performance
-- `connection-multichain.spec.js` - Multichain connection performance
-- `connection-wagmi.spec.js` - Wagmi integration performance
-- `multichain-rn-connect.spec.js` - Multichain + Solana via the React Native Playground APK
-- `legacy-evm-rn-connect.spec.js` - Legacy EVM connection via the React Native Playground APK
-
-> The RN playground tests require a separate APK built from the
-> [`playground/react-native-playground`](https://github.com/MetaMask/connect-monorepo/tree/main/playground/react-native-playground)
-> directory of the [connect-monorepo](https://github.com/MetaMask/connect-monorepo).
-> The APK must be installed on the emulator before running.
-> See [`tests/performance/mm-connect/README.md`](mm-connect/README.md) for full setup instructions.
+MMConnect E2E specs were migrated to Appium smoke: [`tests/smoke-appium/mm-connect/`](../smoke-appium/mm-connect/).
 
 ## Performance Tracking System
 
@@ -291,8 +315,8 @@ Integration tests for MetaMask Connect:
 The performance tracking system consists of three main components:
 
 1. **TimerHelper** (`tests/framework/TimerHelper.ts`) - Creates and manages individual timers with platform-specific thresholds
-2. **PerformanceTracker** (`tests/reporters/PerformanceTracker.js`) - Collects all timers and generates metrics
-3. **Quality Gates** (`tests/framework/quality-gates/`) - TypeScript module for threshold validation and reporting:
+2. **PerformanceTracker** (`tests/reporters/PerformanceTracker.ts`) - Collects all timers and generates metrics
+3. **Quality Gates** (`tests/framework/quality-gates/`) - Threshold validation and reporting:
    - `QualityGatesValidator` - Validates metrics against defined thresholds
    - `QualityGatesReportFormatter` - Formats results as console, HTML, and CSV reports
    - `QualityGateError` - Custom error class for threshold failures
@@ -306,33 +330,33 @@ The performance tracking system consists of three main components:
 - Automatic 10% margin on thresholds
 - Multiple measurement patterns
 
-```javascript
+```typescript
 import TimerHelper from '../../framework/TimerHelper';
 
-// Timer without threshold (informational only)
-const timer = new TimerHelper('Description of measurement');
-timer.start();
-await someAction();
-timer.stop();
-
-// Timer with platform-specific thresholds
-const timerWithThreshold = new TimerHelper(
-  'Time for screen to load',
+// Timer with platform-specific thresholds (preferred)
+const timer = new TimerHelper(
+  'Time since the user taps Send until confirmation screen appears',
   { ios: 1500, android: 2000 }, // Thresholds in milliseconds
-  device, // Device instance for platform detection
+  currentDeviceDetails.platform, // 'ios' | 'android'
 );
 
-// Manual start/stop pattern
-timerWithThreshold.start();
-await Screen.tapButton();
-await Screen.waitForElement();
-timerWithThreshold.stop();
-
-// Using measure() for cleaner code
-await timerWithThreshold.measure(async () => {
-  await Screen.tapButton();
-  await Screen.waitForElement();
+// Using measure() — action BEFORE measure, assertion INSIDE measure
+await SomeScreen.tapButton(); // action (not timed)
+await timer.measure(async () => {
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(NextScreen.container),
+  );
 });
+
+// Manual start/stop for cross-context flows (dapp tests)
+await PlaywrightContextHelpers.switchToWebViewContext(DAPP_URL);
+await DappScreen.tapConnect(); // action
+timer.start(); // start AFTER the action
+await PlaywrightContextHelpers.switchToNativeContext();
+await DappConnectionModal.tapConfirm();
+await PlaywrightContextHelpers.switchToWebViewContext(DAPP_URL);
+await DappScreen.assertConnected(); // assertion
+timer.stop(); // stop AFTER assertion
 ```
 
 ### Timer Methods
@@ -343,7 +367,7 @@ await timerWithThreshold.measure(async () => {
 | `stop()`                 | Stops the timer                         |
 | `getDuration()`          | Returns duration in milliseconds        |
 | `getDurationInSeconds()` | Returns duration in seconds             |
-| `measure(action)`        | Measures async function execution time  |
+| `measure(action)`        | Wraps an async assertion (timed)        |
 | `hasThreshold()`         | Checks if timer has a threshold defined |
 | `changeName(newName)`    | Renames the timer                       |
 
@@ -352,30 +376,38 @@ await timerWithThreshold.measure(async () => {
 The `PerformanceTracker` is provided as a fixture and handles:
 
 - Collecting timers from the test
-- Attaching metrics to test results
+- Automatically attaching metrics to test results on teardown
 - Storing session data for video retrieval
 - BrowserStack video URL resolution
 
-```javascript
-import { test } from '../../framework/fixtures/performance';
+```typescript
+import { test as perfTest } from '../../framework/fixtures/playwright';
 
-test('My test', async ({ device, performanceTracker }, testInfo) => {
-  const timer = new TimerHelper(
-    'My measurement',
-    { ios: 1000, android: 1200 },
-    device,
-  );
+perfTest(
+  'My test',
+  async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+    const timer = new TimerHelper(
+      'My measurement',
+      { ios: 1000, android: 1200 },
+      currentDeviceDetails.platform,
+    );
 
-  await timer.measure(async () => {
-    await SomeScreen.doSomething();
-  });
+    await SomeScreen.tapButton(); // action
+    await timer.measure(async () => {
+      await PlaywrightAssertions.expectElementToBeVisible(
+        asPlaywrightElement(NextScreen.container),
+      );
+    });
 
-  // Add timer to tracker (metrics are auto-attached after test)
-  performanceTracker.addTimer(timer);
+    // Add timer to tracker — metrics are auto-attached after the test by the fixture
+    performanceTracker.addTimer(timer);
 
-  // Or add multiple timers at once
-  performanceTracker.addTimers(timer1, timer2, timer3);
-});
+    // Or add multiple timers at once
+    performanceTracker.addTimers(timer1, timer2, timer3);
+
+    // DO NOT call performanceTracker.attachToTest() — the fixture handles this automatically
+  },
+);
 ```
 
 ## Quality Gates & Thresholds
@@ -386,7 +418,7 @@ test('My test', async ({ device, performanceTracker }, testInfo) => {
 2. **Effective Threshold**: Base + 10% margin (automatic)
 3. **Validation**: Test fails if any timer exceeds its effective threshold
 
-```javascript
+```typescript
 // If you set threshold: { ios: 1000, android: 1500 }
 // Effective thresholds will be: iOS = 1100ms, Android = 1650ms
 ```
@@ -405,8 +437,8 @@ The quality gates module is organized into focused TypeScript files by responsib
 
 The validator runs automatically after each test (via the fixture) if any timer has thresholds defined:
 
-```javascript
-// This happens automatically in the fixture:
+```typescript
+// This happens automatically in the fixture teardown:
 if (hasThresholds) {
   QualityGatesValidator.assertThresholds(
     testInfo.title,
@@ -446,83 +478,81 @@ Quality Gates FAILED for "My Test":
 
 ## Page Object Model
 
-Tests use Page Objects from `wdio/screen-objects/`:
+Tests use static page object classes from `tests/page-objects/`. No device assignment is needed — just import and call:
 
-```javascript
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
+```typescript
+import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import WalletView from '../../page-objects/wallet/WalletView';
+import LoginView from '../../page-objects/wallet/LoginView';
 
-test('My test', async ({ device }) => {
-  // IMPORTANT: Always assign device to page objects
-  LoginScreen.device = device;
-  WalletMainScreen.device = device;
+perfTest(
+  'My test',
+  async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+    // No device assignment needed — page objects use the global driver
+    await WalletView.tapOnToken('USDC');
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(WalletView.accountIcon),
+    );
+  },
+);
+```
 
-  await LoginScreen.typePassword('password');
-  await LoginScreen.tapUnlockButton();
-  await WalletMainScreen.isMainWalletViewVisible();
-});
+Dapp tests use page objects under `tests/page-objects/MMConnect/`:
+
+```typescript
+import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp';
+import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal';
+import SignModal from '../../page-objects/MMConnect/SignModal';
 ```
 
 ## Shared Flows
 
-Common user flows are in `tests/framework/utils/Flows.js`:
+Common user flows are in `tests/flows/wallet.flow.ts`.
 
-### `login(device, options)`
+### `loginToAppPlaywright(options?)`
 
-Standard login flow with optional modal dismissal:
+Standard login flow:
 
-```javascript
-import { login } from '../../framework/utils/Flows.js';
+```typescript
+import { loginToAppPlaywright } from '../../flows/wallet.flow';
 
 // Simple login
-await login(device);
+await loginToAppPlaywright();
 
-// Login with modals dismissal
-await login(device, { dismissModals: true });
-
-// Login for onboarding scenario (different password)
-await login(device, { scenarioType: 'onboarding' });
+// Login for a different wallet scenario
+await loginToAppPlaywright({ scenarioType: 'login' });
 ```
 
-### `onboardingFlowImportSRP(device, srp)`
+### `onboardingFlowImportSRPPlaywright(srp)`
 
 Complete onboarding flow for importing a wallet:
 
-```javascript
-import { onboardingFlowImportSRP } from '../../framework/utils/Flows.js';
+```typescript
+import { onboardingFlowImportSRPPlaywright } from '../../flows/wallet.flow';
 
-await onboardingFlowImportSRP(device, process.env.TEST_SRP);
+await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_1);
 ```
 
-### `importSRPFlow(device, srp, dismissModals)`
+### `selectAccountByDevice(deviceName)`
 
-Import additional SRP for logged-in user. Returns array of timers:
+Select the account mapped to the current device for parallel testing:
 
-```javascript
-import { importSRPFlow } from '../../framework/utils/Flows.js';
+```typescript
+import { selectAccountByDevice } from '../../flows/wallet.flow';
 
-const timers = await importSRPFlow(device, process.env.TEST_SRP_2);
-performanceTracker.addTimers(...timers);
+await selectAccountByDevice(currentDeviceDetails.deviceName);
 ```
 
-### `dissmissAllModals(device)`
+### Context switching for dapp tests
 
-Dismiss common modals (Multichain, Predictions, etc.):
+```typescript
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 
-```javascript
-import { dissmissAllModals } from '../../framework/utils/Flows.js';
+// Switch to native MetaMask context
+await PlaywrightContextHelpers.switchToNativeContext();
 
-await dissmissAllModals(device);
-```
-
-### `selectAccountDevice(device, testInfo)`
-
-Select account based on device for parallel testing:
-
-```javascript
-import { selectAccountDevice } from '../../framework/utils/Flows.js';
-
-await selectAccountDevice(device, testInfo);
+// Switch to a specific web/dapp context
+await PlaywrightContextHelpers.switchToWebViewContext(DAPP_URL);
 ```
 
 ## Environment Variables
@@ -537,8 +567,8 @@ BROWSERSTACK_USERNAME=your_username
 BROWSERSTACK_ACCESS_KEY=your_access_key
 
 # Device Configuration (optional, defaults provided in config)
-BROWSERSTACK_DEVICE="Samsung Galaxy S23 Ultra"
-BROWSERSTACK_OS_VERSION="13.0"
+BROWSERSTACK_DEVICE="Samsung Galaxy S25 Ultra"
+BROWSERSTACK_OS_VERSION="15.0"
 
 # App URLs (required for BrowserStack tests)
 BROWSERSTACK_ANDROID_APP_URL=bs://your-android-app-id
@@ -556,6 +586,7 @@ BROWSERSTACK_IOS_CLEAN_APP_URL=bs://your-clean-ios-app-id
 TEST_SRP_1="your test recovery phrase 1"
 TEST_SRP_2="your test recovery phrase 2"
 TEST_SRP_3="your test recovery phrase 3"
+TEST_SRP_4='your test recovery phrase 4" // user for Perps
 BROWSERSTACK_USERNAME='YOUR_BS_USERNAME'
 BROWSERSTACK_ACCESS_KEY='YOUR_BS_ACCESS_KEY'
 E2E_PASSWORD='WALLET_PASSWORD' // 1Password
@@ -563,11 +594,29 @@ E2E_PASSWORD='WALLET_PASSWORD' // 1Password
 # Test Passwords (can be found in 1Password)
 TEST_PASSWORD_LOGIN="your test password"
 TEST_PASSWORD_ONBOARDING="your onboarding password"
+
+# Feature flags for performance tests (client-config API: rc | exp | test; not e2e)
+E2E_PERFORMANCE_BUILD_VARIANT=rc
+
+# CI note: PR (main) and scheduled performance runs use build_variant=e2e
+# (GitHub environment build-e2e). Manual dispatch also supports build_variant=exp
+# or rc. E2E_PERFORMANCE_BUILD_VARIANT=rc is set separately in
+# performance-test-runner for the flags API. See "CI Triggers".
+#
+# Android BrowserStack dual builds (main-e2e-bs-*) follow the same fingerprint
+# procedure as Detox E2E (build-android-e2e.yml), via find-reusable-build in
+# build-android-upload-to-browserstack.yml:
+#   - miss → fresh dual Gradle builds
+#   - hit + test-only (main_branch_only/reuse_main_builds) → re-upload APKs as-is
+#   - hit + app changes → skip Gradle, @expo/repack-app both profiles with current JS,
+#     then upload (fingerprint ignores JS-only changes, so repack avoids stale JS)
+# Separate from Appium smoke main-e2e APKs and from reuse_main_builds BrowserStack
+# custom_id resolution on main (test-only fast path that skips the dual-build job).
 ```
 
 ### Sentry Performance Instrumentation (Optional)
 
-If you want each Appwright performance scenario to upload timer data to Sentry,
+If you want each performance scenario to upload timer data to Sentry,
 set the following variables in `.e2e.env`:
 
 ```bash
@@ -587,6 +636,26 @@ What gets sent per scenario:
 - Each test timer as a numeric measurement (duration in milliseconds)
 - Scenario metadata (test name, project, tags, team, retry, worker)
 - Timer details (thresholds and pass/fail validation) in `extra.timer_steps`
+- RC track-only tags when running release builds: `ci_build_variant`,
+  `release_version`, `github_ref`, `github_run_id`, `tracking_mode=observe`
+
+### RC performance tracking (observe-only)
+
+RC performance E2E is available through manual dispatch of
+`run-performance-e2e-manual.yml` against a `release/*` branch with
+`build_variant=rc`. This path is **track-only** (does not block the release):
+
+- Uploads scenario + profiling metrics to the **test** Sentry project by default
+  (`sentry_target: test`)
+- Tags events with `ci_build_variant:rc` and `release_version` (from
+  `release/X.Y.Z`) so RC runs are filterable in Discover
+- Slack summary is labeled `RC <version> (track-only)`
+
+Filter example in Sentry:
+
+```text
+ci_build_variant:rc release_version:7.58.0
+```
 
 ## Reports and Metrics
 
@@ -594,11 +663,12 @@ What gets sent per scenario:
 
 After each test, the custom reporter generates:
 
-| File Type | Location                                                       | Content                   |
-| --------- | -------------------------------------------------------------- | ------------------------- |
-| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html` | Visual report with charts |
-| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`  | Spreadsheet-friendly data |
-| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`   | Raw metrics data          |
+| File Type | Location                                                                      | Content                                             |
+| --------- | ----------------------------------------------------------------------------- | --------------------------------------------------- |
+| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html`                | Visual report with charts                           |
+| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`                 | Spreadsheet-friendly data                           |
+| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`                  | Raw metrics data                                    |
+| Profiling | `reporters/reports/app-profiling/app-profiling-{scenario}-{device}-{os}.json` | Per-scenario BrowserStack app profiling + API calls |
 
 ### HTML Report Contents
 
@@ -610,7 +680,7 @@ After each test, the custom reporter generates:
 
 ### Playwright HTML Report
 
-Standard Playwright report at `test-reports/appwright-report/index.html`:
+Standard Playwright report at `test-reports/playwright-report/index.html`:
 
 - Test results and status
 - Screenshots and videos
@@ -624,7 +694,7 @@ For CI/CD pipelines, the aggregation script combines results from multiple test 
 ### Running Aggregation
 
 ```bash
-node scripts/aggregate-performance-reports.mjs
+node tests/scripts/aggregate-performance-reports.mjs
 ```
 
 ### Generated Files
@@ -635,6 +705,32 @@ node scripts/aggregate-performance-reports.mjs
 | `tests/aggregated-reports/aggregated-performance-report.json` | Same as above (alias)                       |
 | `tests/aggregated-reports/summary.json`                       | Statistics and metadata                     |
 | `tests/aggregated-reports/performance-report.html`            | **Visual HTML dashboard**                   |
+| `tests/aggregated-reports/app-profiling/*.json`               | Per-scenario app profiling + API call files |
+
+### App profiling check (automatic on PR failures)
+
+When a PR performance run has failed scenarios, the results comment includes
+an inline **App profiling check** under each failed scenario that has a prior
+usable baseline on `main` (short summary + collapsed metric table). Scenarios
+without a prior baseline are omitted from that block.
+
+Header uses ⚠️ when there are failed tests.
+
+Manual re-run remains available via:
+
+```text
+@metamaskbot app-profiling-check --test "Cold Start Login" --platform Android --device "Google Pixel 8 Pro+14.0" --run <RUN_ID>
+```
+
+Or compare all failed scenarios from that run:
+
+```text
+@metamaskbot app-profiling-check --all --run <RUN_ID>
+```
+
+This uses `.github/workflows/app-profiling-check.yml` (bot command /
+`workflow_dispatch`). The automatic PR path embeds profiling into the
+performance results comment from `run-performance-e2e.yml`.
 
 ### HTML Dashboard Features
 
@@ -651,31 +747,43 @@ The aggregated HTML report (`performance-report.html`) includes:
 
 ### Writing Performance Tests
 
-1. **Use the performance-test fixture**:
+1. **Import `test` from the framework fixture**:
 
-   ```javascript
-   import { test } from '../../framework/fixtures/performance';
+   ```typescript
+   import { test as perfTest } from '../../framework/fixtures/playwright';
    ```
 
-2. **Start timers AFTER the triggering action**:
+2. **Use `currentDeviceDetails.platform` as the `TimerHelper` third argument**:
 
-   ```javascript
-   // ✅ Good - timer starts right after click
-   await Button.tap();
-   timer.start();
-   await Screen.isVisible();
-   timer.stop();
-
-   // ❌ Bad - timer includes element lookup time
-   timer.start();
-   await Button.tap();
-   await Screen.isVisible();
-   timer.stop();
+   ```typescript
+   const timer = new TimerHelper(
+     'Time since user taps Send until confirmation screen appears',
+     { ios: 1500, android: 2000 },
+     currentDeviceDetails.platform, // ✅ correct
+   );
    ```
 
-3. **Use descriptive timer names**:
+3. **Action BEFORE `measure()`, assertion INSIDE `measure()`**:
 
-   ```javascript
+   ```typescript
+   // ✅ Good — action outside, assertion inside
+   await WalletView.tapButton();
+   await timer.measure(async () => {
+     await PlaywrightAssertions.expectElementToBeVisible(
+       asPlaywrightElement(NextScreen.container),
+     );
+   });
+
+   // ❌ Bad — action inside measure pollutes the timing
+   await timer.measure(async () => {
+     await WalletView.tapButton();
+     await PlaywrightAssertions.expectElementToBeVisible(...);
+   });
+   ```
+
+4. **Use descriptive timer names**:
+
+   ```typescript
    // ✅ Good
    'Time since user taps Send button until confirmation screen appears';
 
@@ -683,54 +791,56 @@ The aggregated HTML report (`performance-report.html`) includes:
    'send time';
    ```
 
-4. **Set realistic thresholds per platform**:
+5. **Set realistic thresholds per platform**:
 
-   ```javascript
+   ```typescript
    // iOS is typically faster for UI animations
    { ios: 1500, android: 2000 }
    ```
 
-5. **Always dismiss modals**:
-   ```javascript
-   await login(device, { dismissModals: true });
-   // or
-   await dissmissAllModals(device);
-   ```
+6. **Do not call `attachToTest` manually** — the fixture teardown handles it automatically.
 
 ### Test Structure Example
 
-```javascript
-import { test } from '../../framework/fixtures/performance';
+```typescript
+import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
-import { login, dissmissAllModals } from '../../framework/utils/Flows.js';
+import { loginToAppPlaywright } from '../../flows/wallet.flow';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import WalletView from '../../page-objects/wallet/WalletView';
+import TokenOverview from '../../page-objects/wallet/TokenOverview';
+import {
+  PerformanceLogin,
+  PerformanceAssetLoading,
+} from '../../tags.performance.js';
 
-test('My Performance Test', async ({
-  device,
-  performanceTracker,
-}, testInfo) => {
-  // 1. Setup page objects
-  WalletMainScreen.device = device;
+perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
+  perfTest(
+    'Asset View performance',
+    { tag: '@assets-dev-team' },
+    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+      // 1. Login
+      await loginToAppPlaywright();
 
-  // 2. Login and setup
-  await login(device);
-  await dissmissAllModals(device);
+      // 2. Create timer with thresholds
+      const timer = new TimerHelper(
+        'Time since the user taps the token until the overview screen is visible',
+        { ios: 600, android: 600 },
+        currentDeviceDetails.platform,
+      );
 
-  // 3. Create timer with thresholds
-  const timer = new TimerHelper(
-    'Time for action to complete',
-    { ios: 1500, android: 2000 },
-    device,
+      // 3. Measure the action
+      await WalletView.tapOnToken('USDC'); // action (not timed)
+      await timer.measure(async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(TokenOverview.container),
+        );
+      });
+
+      // 4. Add timer to tracker (metrics auto-attach after test)
+      performanceTracker.addTimer(timer);
+    },
   );
-
-  // 4. Measure the action
-  await WalletMainScreen.tapSomeButton();
-  await timer.measure(async () => {
-    await WalletMainScreen.waitForResult();
-  });
-
-  // 5. Add timer to tracker (metrics auto-attach after test)
-  performanceTracker.addTimer(timer);
 });
 ```
 
@@ -740,25 +850,20 @@ test('My Performance Test', async ({
 
 **Tests timing out**
 
-- Increase timeout in `tests/appwright.config.ts`
+- Increase timeout in `tests/playwright.config.ts`
 - Check device/emulator resources
 - Verify network connectivity for BrowserStack
 
-**Page objects not found**
+**Element not found**
 
-- Ensure device is assigned: `ScreenObject.device = device`
-- Verify selectors are up to date
+- Verify the page object selector is up to date in `tests/page-objects/`
+- Ensure the correct view is imported from `tests/page-objects/`
 
 **BrowserStack connection issues**
 
 - Verify credentials in `.e2e.env`
 - Check app URLs are valid
 - Ensure account has available sessions
-
-**BrowserStack Local testing shows "Off" for mm-connect**
-
-- Use `yarn run-appwright:mm-connect-android-bs-local` with `BROWSERSTACK_LOCAL=true` in `.e2e.env`. Ensure the patch is applied (`yarn install`).
-- Start the BrowserStack Local binary before the test and wait for the success message.
 
 **Quality gates failing unexpectedly**
 
@@ -776,25 +881,30 @@ test('My Performance Test', async ({
 
 1. **Enable verbose logging**:
 
-   ```javascript
+   ```typescript
    console.log(`Timer duration: ${timer.getDuration()}ms`);
    console.log(`Threshold: ${timer.threshold}ms`);
    console.log(`Has threshold: ${timer.hasThreshold()}`);
    ```
 
 2. **Check timer values after completion**:
-   ```javascript
+
+   ```typescript
    timer.stop();
    console.log(`Duration: ${timer.getDuration()}ms`);
    console.log(`Duration in seconds: ${timer.getDurationInSeconds()}s`);
    ```
 
+3. **Enable Webdrverio Logs**:
+   Set `WDIO_LOG_LEVEL=debug` to your run command.
+   Example: WDIO_LOG_LEVEL=debug yarn playwright test --project browserstack-android
+
 ## Additional Resources
 
-- [Appwright Documentation](https://appwright.dev/)
 - [MetaMask Mobile E2E Documentation](../../docs/readme/e2e-testing.md)
-- [WDIO Page Objects](../../wdio/screen-objects/)
-- [Performance Test Fixtures](../framework/fixtures/)
+- [Performance Test Fixtures](../framework/fixtures/playwright/)
+- [Page Objects](../page-objects/)
+- [Flow Utilities](../flows/wallet.flow.ts)
 
 ## Contributing
 
@@ -812,6 +922,5 @@ When adding new performance tests:
 For issues or questions:
 
 - Check existing test examples in `tests/performance/`
-- Review page objects in `wdio/screen-objects/`
-- Consult the [Appwright documentation](https://github.com/empirical-run/appwright)
+- Review page objects in `tests/page-objects/`
 - Reach out to the QA team

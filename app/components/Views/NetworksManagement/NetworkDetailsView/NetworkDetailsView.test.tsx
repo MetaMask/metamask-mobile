@@ -1,6 +1,7 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
+import { IconColor } from '../../../../component-library/components/Icons/Icon';
 import { NetworkDetailsViewSelectorsIDs } from './NetworkDetailsView.testIds';
 import NetworkDetailsView from './NetworkDetailsView';
 
@@ -139,11 +140,13 @@ const createMockFormHook = (overrides: Record<string, unknown> = {}) => ({
   onBlockExplorerSelect: jest.fn(),
   onBlockExplorerUrlDelete: jest.fn(),
   setValidationCallback: jest.fn(),
+  commitBaselineFromFormState: jest.fn(),
   onNameFocused: jest.fn(),
   onNameBlur: jest.fn(),
   onSymbolFocused: jest.fn(),
   onSymbolBlur: jest.fn(),
   onRpcUrlFocused: jest.fn(),
+  onRpcUrlBlur: jest.fn(),
   onChainIdFocused: jest.fn(),
   onChainIdBlur: jest.fn(),
   jumpToRpcURL: jest.fn(),
@@ -172,7 +175,9 @@ const createMockValidation = () => ({
   validateSymbol: jest.fn(),
   validateName: jest.fn(),
   validateRpcAndChainId: jest.fn(),
+  validateNewRpcEndpointForSheet: jest.fn().mockResolvedValue({ ok: true }),
   disabledByChainId: jest.fn(() => false),
+  disabledByName: jest.fn(() => false),
   disabledBySymbol: jest.fn(() => false),
   checkIfChainIdExists: jest.fn(() => false),
   checkIfNetworkExists: jest.fn().mockResolvedValue([]),
@@ -184,7 +189,7 @@ const createMockValidation = () => ({
 });
 
 const createMockOperations = () => ({
-  saveNetwork: jest.fn(),
+  saveNetwork: jest.fn().mockResolvedValue(true),
   removeNetwork: jest.fn(),
   goToNetworkEdit: jest.fn(),
 });
@@ -349,7 +354,7 @@ describe('NetworkDetailsView', () => {
       const chainInput = getByTestId(
         NetworkDetailsViewSelectorsIDs.CHAIN_INPUT,
       );
-      expect(chainInput.props.editable).toBe(false);
+      expect(chainInput).toHaveProp('editable', false);
     });
 
     it('shows RPC warning banner when warningRpcUrl is set', () => {
@@ -448,7 +453,21 @@ describe('NetworkDetailsView', () => {
     const saveButton = getByTestId(
       NetworkDetailsViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
     );
-    expect(saveButton.props.disabled).toBe(true);
+    expect(saveButton).toBeDisabled();
+  });
+
+  it('disables save button when validation disables network name', () => {
+    mockValidation.mockReturnValue({
+      ...createMockValidation(),
+      disabledByName: jest.fn(() => true),
+    });
+
+    const { getByTestId } = render(<NetworkDetailsView />);
+
+    const saveButton = getByTestId(
+      NetworkDetailsViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
+    );
+    expect(saveButton).toBeDisabled();
   });
 
   it('shows warning modal when showWarningModal is true', () => {
@@ -690,6 +709,19 @@ describe('NetworkDetailsView', () => {
       expect(val.validateName).toHaveBeenCalled();
     });
 
+    it('triggers RPC focus cleanup on RPC URL blur', () => {
+      const formReturn = createMockFormHook();
+      mockFormHook.mockReturnValue(formReturn);
+
+      const { getByTestId } = render(<NetworkDetailsView />);
+
+      fireEvent(
+        getByTestId(NetworkDetailsViewSelectorsIDs.RPC_URL_INPUT),
+        'blur',
+      );
+      expect(formReturn.onRpcUrlBlur).toHaveBeenCalled();
+    });
+
     it('triggers handleValidateSymbol on symbol field blur', () => {
       const val = createMockValidation();
       mockValidation.mockReturnValue(val);
@@ -746,6 +778,25 @@ describe('NetworkDetailsView', () => {
       expect(
         getByText(strings('app_settings.network_delete')),
       ).toBeOnTheScreen();
+      expect(
+        getByText(
+          `${strings('app_settings.delete')} TestNet ${strings(
+            'app_settings.network',
+          )}`,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders header trash icon using default icon color', () => {
+      mockFormHook.mockReturnValue(editForm());
+
+      const { getByTestId } = render(<NetworkDetailsView />);
+
+      const trashIcon = getByTestId(
+        NetworkDetailsViewSelectorsIDs.CONTAINER,
+      ).findAllByProps({ name: 'Trash' })[0];
+
+      expect(trashIcon.props.color).toBe(IconColor.Default);
     });
 
     it('calls operations.removeNetwork on confirm delete', () => {
@@ -828,7 +879,9 @@ describe('NetworkDetailsView', () => {
       });
     });
 
-    it('calls onRpcItemAdd when add RPC button is pressed in modal', () => {
+    it('calls onRpcItemAdd when add RPC button is pressed in modal', async () => {
+      const val = createMockValidation();
+      mockValidation.mockReturnValue(val);
       const form = editFormWithRpcModal2();
       mockFormHook.mockReturnValue(form);
 
@@ -837,11 +890,18 @@ describe('NetworkDetailsView', () => {
       const addButtons = getAllByTestId(
         NetworkDetailsViewSelectorsIDs.ADD_RPC_BUTTON,
       );
-      fireEvent.press(addButtons[0]);
-      expect(form.onRpcItemAdd).toHaveBeenCalledWith(
-        'https://new-rpc.example.com',
-        'New RPC',
-      );
+      await act(async () => {
+        fireEvent.press(addButtons[0]);
+      });
+      await waitFor(() => {
+        expect(val.validateNewRpcEndpointForSheet).toHaveBeenCalled();
+      });
+      await waitFor(() => {
+        expect(form.onRpcItemAdd).toHaveBeenCalledWith(
+          'https://new-rpc.example.com',
+          'New RPC',
+        );
+      });
     });
   });
 
@@ -877,7 +937,7 @@ describe('NetworkDetailsView', () => {
       });
     });
 
-    it('calls onBlockExplorerItemAdd when add button is pressed in modal', () => {
+    it('calls onBlockExplorerItemAdd when add button is pressed in modal', async () => {
       const form = editFormWithBlockExplorerModal2();
       mockFormHook.mockReturnValue(form);
 
@@ -886,10 +946,14 @@ describe('NetworkDetailsView', () => {
       const addButtons = getAllByTestId(
         NetworkDetailsViewSelectorsIDs.ADD_BLOCK_EXPLORER,
       );
-      fireEvent.press(addButtons[0]);
-      expect(form.onBlockExplorerItemAdd).toHaveBeenCalledWith(
-        'https://new-scan.example.com',
-      );
+      await act(async () => {
+        fireEvent.press(addButtons[0]);
+      });
+      await waitFor(() => {
+        expect(form.onBlockExplorerItemAdd).toHaveBeenCalledWith(
+          'https://new-scan.example.com',
+        );
+      });
     });
   });
 });

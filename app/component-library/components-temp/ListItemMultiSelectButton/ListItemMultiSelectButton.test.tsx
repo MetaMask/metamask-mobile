@@ -5,57 +5,74 @@ import { View } from 'react-native';
 
 // Internal dependencies.
 import ListItemMultiSelectButton from './ListItemMultiSelectButton';
-import { IconName } from '../../../component-library/components/Icons/Icon'; // Adjust the import path as necessary
-import { BUTTON_TEST_ID } from './ListItemMultiSelectButton.constants';
+import { IconName } from '../../../component-library/components/Icons/Icon';
+import {
+  BUTTON_TEST_ID,
+  ROW_TEST_ID,
+} from './ListItemMultiSelectButton.constants';
 
 describe('ListItemMultiSelectButton', () => {
-  it('should render correctly with default props', () => {
-    const wrapper = render(
+  it('renders with default props', () => {
+    const { getByTestId } = render(
       <ListItemMultiSelectButton>
         <View />
       </ListItemMultiSelectButton>,
     );
-    expect(wrapper).toMatchSnapshot();
+
+    expect(getByTestId(ROW_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('should call onPress when the button is pressed', () => {
+  it('exposes accessibilityRole="button" on the row', () => {
+    const { getByTestId } = render(
+      <ListItemMultiSelectButton>
+        <View />
+      </ListItemMultiSelectButton>,
+    );
+
+    expect(getByTestId(ROW_TEST_ID).props.accessibilityRole).toBe('button');
+  });
+
+  it('calls onPress when the button is pressed', () => {
     const mockOnPress = jest.fn();
-    const { getByRole } = render(
+
+    const { getByTestId } = render(
       <ListItemMultiSelectButton
         onPress={mockOnPress}
-        buttonProps={{
-          onButtonClick: mockOnPress,
-        }}
+        buttonProps={{ onButtonClick: mockOnPress }}
       >
         <View />
       </ListItemMultiSelectButton>,
     );
-    fireEvent.press(getByRole('button'));
+
+    fireEvent.press(getByTestId(ROW_TEST_ID));
+
     expect(mockOnPress).toHaveBeenCalled();
   });
 
-  it('should render the button icon with the correct name', () => {
+  it('renders the button icon when buttonIcon is provided', () => {
     const { getByTestId } = render(
       <ListItemMultiSelectButton buttonIcon={IconName.Check}>
         <View />
       </ListItemMultiSelectButton>,
     );
-    expect(getByTestId(BUTTON_TEST_ID)).not.toBeNull();
+
+    expect(getByTestId(BUTTON_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('should call onButtonClick when the button icon is pressed', () => {
+  it('calls onButtonClick when the button icon is pressed', () => {
     const mockOnButtonClick = jest.fn();
+
     const { getByTestId } = render(
       <ListItemMultiSelectButton
         buttonIcon={IconName.Check}
-        buttonProps={{
-          onButtonClick: mockOnButtonClick,
-        }}
+        buttonProps={{ onButtonClick: mockOnButtonClick }}
       >
         <View />
       </ListItemMultiSelectButton>,
     );
+
     fireEvent.press(getByTestId(BUTTON_TEST_ID));
+
     expect(mockOnButtonClick).toHaveBeenCalled();
   });
 });

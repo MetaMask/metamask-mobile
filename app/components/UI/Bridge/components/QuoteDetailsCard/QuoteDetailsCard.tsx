@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity, Platform, UIManager, Pressable } from 'react-native';
+import { TouchableOpacity, Platform, UIManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import createStyles from './QuoteDetailsCard.styles';
 import { IconName as IconNameLegacy } from '../../../../../component-library/components/Icons/Icon';
-import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import {
   Box,
   BoxFlexDirection,
@@ -20,12 +20,13 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useSelector } from 'react-redux';
 import {
   selectSourceAmount,
   selectDestToken,
   selectSourceToken,
+  selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { formatMinimumReceived } from '../../utils/currencyUtils';
@@ -44,7 +45,6 @@ import { useShouldRenderGasSponsoredBanner } from '../../hooks/useShouldRenderGa
 import { isGaslessQuote } from '../../utils/isGaslessQuote';
 import { QuoteDetailsCardProps } from './QuoteDetailsCard.types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { getPriceImpactViewData } from '../../utils/getPriceImpactViewData';
 import {
   TextVariant as TextVariantLegacy,
   TextColor as TextColorLegacy,
@@ -52,6 +52,10 @@ import {
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { formatPriceImpact } from '../../utils/formatPriceImpact';
+import KeyValueRowLabel from '../../../../../component-library/components-temp/KeyValueRow/KeyValueLabel/KeyValueLabel';
+import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
+import AppConstants from '../../../../../core/AppConstants';
+import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
 
 if (
   Platform.OS === 'android' &&
@@ -64,16 +68,17 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   hasInsufficientBalance,
   location,
 }) => {
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const tw = useTailwind();
   const theme = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const styles = createStyles(theme);
 
   const {
     formattedQuoteData,
     activeQuote,
     isLoading: isQuoteLoading,
-  } = useBridgeQuoteData();
+  } = useBridgeQuoteDataContext();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
@@ -89,6 +94,12 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
     isQuoteLoading,
   });
 
+  const priceImpactIsSafe =
+    !activeQuote?.quote.priceData?.priceImpact ||
+    parsePriceImpact(activeQuote.quote.priceData.priceImpact?.amount) <=
+      (bridgeFeatureFlags?.priceImpactThreshold?.warning ??
+        AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD);
+
   const nativeTokenName = useMemo(() => {
     const chainId = sourceToken?.chainId;
     if (!chainId) return undefined;
@@ -103,7 +114,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
 
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.DEFAULT_SLIPPAGE_MODAL,
+      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
       params: {
         sourceChainId: sourceToken?.chainId,
         destChainId: destToken?.chainId,
@@ -116,6 +127,10 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   };
 
   const handlePriceImpactPress = () => {
+    if (priceImpactIsSafe) {
+      return;
+    }
+
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
       params: {
@@ -129,13 +144,14 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   const isGasless = isGaslessQuote(activeQuote?.quote);
 
   const formattedMinToTokenAmount = formatMinimumReceived(
-    activeQuote?.minToTokenAmount?.amount || '0',
+    activeQuote?.quote.dest?.minAmountNormalized || '0',
   );
 
-  const priceImactViewData = useMemo(
-    () => getPriceImpactViewData(formattedQuoteData?.priceImpact),
-    [formattedQuoteData?.priceImpact],
+  const priceImpactViewData = usePriceImpactViewData(
+    activeQuote?.quote.priceData?.priceImpact?.amount,
   );
+  const shouldShowPriceImpactRow =
+    activeQuote?.quote.priceData?.priceImpact?.amount != null;
 
   // Early return for invalid states
   if (
@@ -155,39 +171,55 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           alignItems={BoxAlignItems.Center}
           gap={1}
         >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {strings('bridge.rate')}
-          </Text>
-          <QuoteCountdownTimer />
-          <TouchableOpacity onPress={handleRatePress} testID="rate-info-button">
-            <Icon
-              name={IconName.Info}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          </TouchableOpacity>
-          <Box twClassName="flex-1 min-w-0">
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-              style={tw`text-right`}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {formattedQuoteData?.rate}
-            </Text>
-          </Box>
-          <Pressable
-            style={tw`shrink-0`}
+          <KeyValueRowLabel
+            label={
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('bridge.rate')}
+                </Text>
+                <QuoteCountdownTimer />
+              </Box>
+            }
+            tooltip={{
+              title: strings('bridge.quote_info_title'),
+              content: strings('bridge.quote_info_content'),
+              iconName: IconNameLegacy.Info,
+            }}
+          />
+          <TouchableOpacity
+            style={tw`flex-1 items-end`}
             onPress={handleRatePress}
             testID="rate-arrow-button"
+            activeOpacity={0.6}
           >
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          </Pressable>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                style={tw`text-right`}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {formattedQuoteData?.rate}
+              </Text>
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
+              />
+            </Box>
+          </TouchableOpacity>
         </Box>
         {shouldShowGasSponsored ? (
           <KeyValueRow
@@ -201,7 +233,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                 content: strings('bridge.network_fee_info_content_sponsored', {
                   nativeToken: nativeTokenName,
                 }),
-                size: TooltipSizes.Sm,
                 iconName: IconNameLegacy.Info,
               },
             }}
@@ -267,7 +298,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               tooltip: {
                 title: strings('bridge.network_fee_info_title'),
                 content: strings('bridge.network_fee_info_content'),
-                size: TooltipSizes.Sm,
                 iconName: IconNameLegacy.Info,
               },
             }}
@@ -291,7 +321,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             tooltip: {
               title: strings('bridge.slippage_info_title'),
               content: strings('bridge.slippage_info_description'),
-              size: TooltipSizes.Sm,
               iconName: IconNameLegacy.Info,
             },
           }}
@@ -319,7 +348,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           }}
         />
 
-        {activeQuote?.minToTokenAmount && (
+        {activeQuote?.quote.dest?.minAmountNormalized && (
           <KeyValueRow
             field={{
               label: {
@@ -330,7 +359,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               tooltip: {
                 title: strings('bridge.minimum_received_tooltip_title'),
                 content: strings('bridge.minimum_received_tooltip_content'),
-                size: TooltipSizes.Sm,
                 iconName: IconNameLegacy.Info,
               },
             }}
@@ -344,43 +372,52 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           />
         )}
 
-        <KeyValueRow
-          field={{
-            label: (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={1}
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {toSentenceCase(strings('bridge.price_impact'))}
-                </Text>
+        {shouldShowPriceImpactRow && (
+          <KeyValueRow
+            field={{
+              label: {
+                text: toSentenceCase(strings('bridge.price_impact')),
+                variant: TextVariantLegacy.BodyMD,
+                color: TextColorLegacy.Alternative,
+              },
+              tooltip: {
+                title: strings('bridge.price_impact_info_title'),
+                content: strings('bridge.price_impact_info_description'),
+                iconName: IconNameLegacy.Info,
+              },
+            }}
+            value={{
+              label: (
                 <TouchableOpacity
                   testID="price-impact-info-button"
                   onPress={handlePriceImpactPress}
-                  activeOpacity={0.6}
+                  activeOpacity={priceImpactIsSafe ? 1 : 0.6}
                 >
-                  <Icon
-                    name={IconName.Info}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    gap={1}
+                  >
+                    {priceImpactViewData.icon && (
+                      <Icon
+                        name={priceImpactViewData.icon.name}
+                        size={IconSize.Sm}
+                        color={priceImpactViewData.icon.color}
+                        twClassName="mt-[2px]"
+                      />
+                    )}
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={priceImpactViewData.textColor}
+                    >
+                      {formatPriceImpact(formattedQuoteData.priceImpact)}
+                    </Text>
+                  </Box>
                 </TouchableOpacity>
-              </Box>
-            ),
-          }}
-          value={{
-            icon: priceImactViewData.icon,
-            label: {
-              text: formatPriceImpact(formattedQuoteData.priceImpact),
-              variant: TextVariantLegacy.BodyMD,
-              color: priceImactViewData.textColor,
-            },
-          }}
-        />
+              ),
+            }}
+          />
+        )}
 
         <QuoteDetailsRecipientKeyValueRow />
 
@@ -398,7 +435,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                   content: `${strings(
                     'bridge.points_tooltip_content_1',
                   )}\n\n${strings('bridge.points_tooltip_content_2')}`,
-                  size: TooltipSizes.Sm,
                   iconName: IconNameLegacy.Info,
                 },
               }}
@@ -435,7 +471,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                   tooltip: {
                     title: strings('bridge.points_error'),
                     content: strings('bridge.points_error_content'),
-                    size: TooltipSizes.Sm,
                     iconName: IconNameLegacy.Info,
                   },
                 }),

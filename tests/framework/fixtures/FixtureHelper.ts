@@ -1,5 +1,5 @@
 /* eslint-disable no-unsafe-finally */
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import FixtureServer from './FixtureServer';
 import {
   AnvilManager,
@@ -16,8 +16,11 @@ import {
   cleanupAllAndroidPortForwarding,
 } from './FixtureUtils';
 import Utilities from '../Utilities';
-import { dismissDevScreens } from '../../flows/general.flow';
-import TestHelpers from '../../helpers';
+import {
+  dismissAndroidSystemOverlaysPlaywright,
+  dismissDeveloperMenuPlaywright,
+  dismissDevelopmentServerPickerPlaywright,
+} from '../../flows/general.flow';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
@@ -41,16 +44,37 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  shouldHandleMetroDevLauncherLocally,
 } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
-import { mockNotificationServices } from '../../smoke/notifications/utils/mocks';
+import { mockNotificationServices } from '../../smoke-appium/notifications/utils/mocks';
+import { softReloadAppForFixtures } from '../services/appium/softReloadApp';
+import {
+  runAnalyticsExpectations,
+  shouldRunAnalyticsExpectations,
+} from '../../helpers/analytics/runAnalyticsExpectations';
 import PortManager, { ResourceType } from '../PortManager';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
+import type { Fixture } from './types';
 import CommandQueueServer from './CommandQueueServer';
 import DappServer from '../DappServer';
 import { PlatformDetector } from '../PlatformLocator';
+import LocalWebSocketServer from '../../websocket/server';
+import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants';
+import {
+  setupAccountActivityMocks,
+  resetAccountActivityMockState,
+} from '../../websocket/account-activity-mocks';
+import { FrameworkDetector } from '../FrameworkDetector';
+import { DeviceCommandHandler } from '../services/device-commands';
+import {
+  getPhaseTimer,
+  recordPhase,
+  startPhase,
+  stopPhase,
+} from '../telemetry/PhaseTimer.ts';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -100,6 +124,17 @@ async function handleDapps(
               dapp.dappPath ||
               TestDapps[DappVariants.SOLANA_TEST_DAPP].dappPath,
             dappVariant: DappVariants.SOLANA_TEST_DAPP,
+          }),
+        );
+        break;
+      case DappVariants.BITCOIN_TEST_DAPP:
+        dappServer.push(
+          new DappServer({
+            dappCounter: i,
+            rootDirectory:
+              dapp.dappPath ||
+              TestDapps[DappVariants.BITCOIN_TEST_DAPP].dappPath,
+            dappVariant: DappVariants.BITCOIN_TEST_DAPP,
           }),
         );
         break;
@@ -292,9 +327,7 @@ async function handleDappCleanup(
  * @param state - The fixture state to update
  * @returns The updated fixture state
  */
-function updateRpcUrlsWithAllocatedPorts(
-  state: FixtureBuilder['fixture'],
-): FixtureBuilder {
+function updateRpcUrlsWithAllocatedPorts(state: Fixture): Fixture {
   const portManager = PortManager.getInstance();
 
   const actualAnvilPort = portManager.getPort(ResourceType.ANVIL);
@@ -305,7 +338,7 @@ function updateRpcUrlsWithAllocatedPorts(
       ?.networkConfigurationsByChainId;
   if (networkConfigs) {
     for (const chainId of Object.keys(networkConfigs)) {
-      const config = networkConfigs[chainId];
+      const config = networkConfigs[chainId as `0x${string}`];
       if (config.rpcEndpoints) {
         for (const endpoint of config.rpcEndpoints) {
           if (endpoint.url) {
@@ -331,24 +364,16 @@ function updateRpcUrlsWithAllocatedPorts(
 }
 
 /**
- * Updates dapp URLs in PermissionController with actual allocated ports by index.
- * Replaces all occurrences of dapp URLs (by index) with their actual allocated ports.
+ * Updates dapp URLs in fixture with actual allocated ports by index.
+ * Replaces all occurrences of fallback dapp ports (8085, 8086, …) with the
+ * dynamically allocated ports. This affects browser tabs, PermissionController
+ * subjects, and any other fixture field that references a dapp URL.
  */
-function updateDappUrlsWithAllocatedPorts(
-  state: FixtureBuilder['fixture'],
-): FixtureBuilder {
+function updateDappUrlsWithAllocatedPorts(state: Fixture): Fixture {
   const portManager = PortManager.getInstance();
-  const permissionController =
-    state.state?.engine?.backgroundState?.PermissionController;
 
-  if (!permissionController?.subjects) {
-    return state;
-  }
+  let fixtureJson = JSON.stringify(state);
 
-  // Serialize subjects to JSON string for easy replacement
-  let subjectsJson = JSON.stringify(permissionController.subjects);
-
-  // Update each dapp URL by index
   let index = 0;
   while (true) {
     const actualPort = portManager.getMultiInstancePort(
@@ -361,15 +386,15 @@ function updateDappUrlsWithAllocatedPorts(
     const oldUrl = `localhost:${fallbackPort}`;
     const newUrl = `localhost:${actualPort}`;
 
-    // Replace all occurrences
-    subjectsJson = subjectsJson.split(oldUrl).join(newUrl);
-
+    fixtureJson = fixtureJson.split(oldUrl).join(newUrl);
     index++;
   }
 
-  // Parse back and update
-  permissionController.subjects = JSON.parse(subjectsJson);
-  return state;
+  if (index === 0) {
+    return state;
+  }
+
+  return JSON.parse(fixtureJson);
 }
 
 /**
@@ -377,9 +402,7 @@ function updateDappUrlsWithAllocatedPorts(
  * Replaces all occurrences of localhost:8000 with the actual mock server port.
  * This affects browser tabs and RPC endpoints that proxy through mock server.
  */
-function updateMockServerUrlsInFixture(
-  state: FixtureBuilder['fixture'],
-): FixtureBuilder {
+function updateMockServerUrlsInFixture(state: Fixture): Fixture {
   const portManager = PortManager.getInstance();
   const actualPort = portManager.getPort(ResourceType.MOCK_SERVER);
 
@@ -405,11 +428,13 @@ function updateMockServerUrlsInFixture(
  */
 export const loadFixture = async (
   fixtureServer: FixtureServer,
-  { fixture }: { fixture: FixtureBuilder },
+  { fixture }: { fixture: FixtureBuilder | Fixture },
 ) => {
-  // If no fixture is provided, the `onboarding` option is set to `true` by default, which means
-  // the app will be loaded without any fixtures and will start and go through the onboarding process.
-  let state = fixture || new FixtureBuilder({ onboarding: true }).build();
+  // Normalize FixtureBuilder → Fixture; fall back to onboarding fixture if nothing provided.
+  let state: Fixture =
+    fixture instanceof FixtureBuilder
+      ? fixture.build()
+      : (fixture ?? new FixtureBuilder({ onboarding: true }).build());
 
   // Update RPC URLs with actual allocated ports from PortManager
   state = updateRpcUrlsWithAllocatedPorts(state);
@@ -464,9 +489,8 @@ export const createMockAPIServer = async (
   // Additional Global Mocks
   await mockNotificationServices(mockServer);
 
-  // Feature Flags
-  // testSpecificMock can override this if needed
-  await setupRemoteFeatureFlagsMock(mockServer);
+  // Feature Flags — use lower priority so testSpecificMock overrides take precedence
+  await setupRemoteFeatureFlagsMock(mockServer, {}, 998);
 
   const endpoints = await mockServer.getMockedEndpoints();
   logger.debug(`Mocked endpoints: ${endpoints.length}`);
@@ -504,19 +528,23 @@ export async function withFixtures(
     ],
     testSpecificMock,
     launchArgs,
-    languageAndLocale,
-    permissions = {},
+    languageAndLocale: _languageAndLocale,
+    permissions: _permissions = {},
     endTestfn,
-    skipReactNativeReload = false,
+    skipReactNativeReload: _skipReactNativeReload = false,
     useCommandQueueServer = false,
+    analyticsExpectations,
+    currentDeviceDetails,
+    disableSynchronization: _disableSynchronization = false,
   } = options;
+  const deviceCommands =
+    currentDeviceDetails && !currentDeviceDetails.isBrowserstack
+      ? new DeviceCommandHandler({ currentDeviceDetails, logger })
+      : undefined;
 
   // Clean up any stale port forwarding from previous failed tests
   // This ensures we start with a clean slate on Android
   await cleanupAllAndroidPortForwarding();
-
-  // Prepare android devices for testing to avoid having this in all tests
-  await TestHelpers.reverseServerPort();
 
   // ========== RESOURCE STARTUP ORDER (IMPORTANT!) ==========
   // Resources must be started in this specific order to ensure ports are allocated
@@ -542,9 +570,16 @@ export async function withFixtures(
   let mockServerPort;
   const fixtureServer = new FixtureServer();
   const commandQueueServer = new CommandQueueServer();
+  const accountActivityWsServer = new LocalWebSocketServer(
+    'accountActivity',
+    ResourceType.ACCOUNT_ACTIVITY_WS,
+  );
   let testError: Error | null = null;
+  let didAttemptPlaywrightDevelopmentServerPickerDismissal = false;
 
   try {
+    startPhase('servers_start');
+
     // Step 1: Start local nodes (Anvil/Ganache)
     if (!disableLocalNodes) {
       localNodes = await handleLocalNodes(localNodeOptions);
@@ -576,8 +611,15 @@ export async function withFixtures(
     const mockServerResult = await createMockAPIServer(testSpecificMock);
     mockServerInstance = mockServerResult.mockServerInstance;
     mockServerPort = mockServerResult.mockServerPort;
+
+    // Step 4.5: Start WebSocket mock servers
+    await startResourceWithRetry(
+      ResourceType.ACCOUNT_ACTIVITY_WS,
+      accountActivityWsServer,
+    );
+    await setupAccountActivityMocks(accountActivityWsServer);
     // Resolve fixture after local nodes are started so dynamic ports are known
-    let resolvedFixture: FixtureBuilder;
+    let resolvedFixture: FixtureBuilder | Fixture;
     if (typeof fixtureOption === 'function') {
       resolvedFixture = await fixtureOption({ localNodes });
     } else {
@@ -597,6 +639,10 @@ export async function withFixtures(
         commandQueueServer,
       );
     }
+
+    // End servers_start before soft-reload / device launch phases.
+    stopPhase();
+
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
 
@@ -604,43 +650,72 @@ export async function withFixtures(
       // On Android, LaunchArguments library integration is unreliable on CI
       // We must pass fallback ports so the app uses them and adb reverse can map them
       // to the actual allocated ports
-      const isAndroid = device.getPlatform() === 'android';
+      const isAndroid = await PlatformDetector.isAndroid();
 
-      await TestHelpers.launchApp({
-        delete: true,
-        launchArgs: {
-          fixtureServerPort: isAndroid
-            ? `${FALLBACK_FIXTURE_SERVER_PORT}`
-            : `${getFixturesServerPort()}`,
-          commandQueueServerPort: isAndroid
-            ? `${FALLBACK_COMMAND_QUEUE_SERVER_PORT}`
-            : `${commandQueueServer.getServerPort()}`,
-          detoxURLBlacklistRegex: Utilities.BlacklistURLs,
-          mockServerPort: isAndroid
-            ? `${FALLBACK_MOCKSERVER_PORT}`
-            : `${mockServerPort}`,
-          ...(launchArgs || {}),
-        },
-        languageAndLocale,
-        permissions,
+      if (!currentDeviceDetails) {
+        throw new Error('currentDeviceDetails is not available');
+      }
+      const testArgs = {
+        fixtureServerPort: isAndroid
+          ? `${FALLBACK_FIXTURE_SERVER_PORT}`
+          : `${getFixturesServerPort()}`,
+        commandQueueServerPort: isAndroid
+          ? `${FALLBACK_COMMAND_QUEUE_SERVER_PORT}`
+          : `${commandQueueServer.getServerPort()}`,
+        detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+        mockServerPort: isAndroid
+          ? `${FALLBACK_MOCKSERVER_PORT}`
+          : `${mockServerPort}`,
+        [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
+          ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
+          : `${accountActivityWsServer.getServerPort()}`,
+        ...(launchArgs || {}),
+      };
+
+      const softReloadResult = await softReloadAppForFixtures({
+        currentDeviceDetails,
+        deviceCommands,
+        launchArgs: testArgs,
+        fixtureServer,
       });
+      recordPhase('app_clear', softReloadResult.clearAppDataMs);
+      recordPhase('context_reset', softReloadResult.contextResetMs);
+      recordPhase('app_launch', softReloadResult.launchAppMs);
+      recordPhase('fixture_bootstrap', softReloadResult.fixtureBootstrapMs);
+      if (softReloadResult.attemptedMetroDevLauncherDismissal) {
+        didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
+      }
     }
 
-    // Dismiss dev screens if running locally (not in CI)
-    if (process.env.CI !== 'true') {
-      await dismissDevScreens();
+    // Dismiss dev menu after bootstrap (Appium debug only — release/CI skip Metro paths).
+    if (
+      process.env.CI !== 'true' &&
+      FrameworkDetector.isAppium() &&
+      shouldHandleMetroDevLauncherLocally()
+    ) {
+      if (!didAttemptPlaywrightDevelopmentServerPickerDismissal) {
+        await dismissDevelopmentServerPickerPlaywright();
+      }
+      await dismissDeveloperMenuPlaywright();
     }
 
+    startPhase('test_body');
     await testSuite({
       contractRegistry,
       mockServer: mockServerInstance.server,
       localNodes,
       commandQueueServer,
+      deviceCommands,
     });
+    stopPhase();
   } catch (error) {
     testError = error as Error;
     logger.error('Error in withFixtures:', error);
   } finally {
+    // Prefer teardown phase even if test_body / login left a phase open.
+    if (getPhaseTimer()) {
+      startPhase('teardown');
+    }
     const cleanupErrors: Error[] = [];
 
     if (endTestfn) {
@@ -658,7 +733,25 @@ export async function withFixtures(
       }
     }
 
-    // Enter drain mode AFTER endTestfn so analytics events are still captured,
+    if (
+      mockServerInstance &&
+      shouldRunAnalyticsExpectations(analyticsExpectations)
+    ) {
+      logger.debug('Running analytics expectations');
+      try {
+        await runAnalyticsExpectations(
+          mockServerInstance.server,
+          analyticsExpectations,
+        );
+        logger.debug('Analytics expectations completed');
+      } catch (analyticsError) {
+        logger.error('Error in analyticsExpectations:', analyticsError);
+        cleanupErrors.push(analyticsError as Error);
+        logger.error('Analytics expectations failed');
+      }
+    }
+
+    // Enter drain mode AFTER endTestfn / analyticsExpectations so analytics events are still captured,
     // but BEFORE stopping backends — prevents forwarding to dead Anvil/Ganache.
     if (mockServerInstance) {
       mockServerInstance.startDraining();
@@ -683,24 +776,8 @@ export async function withFixtures(
       }
     }
 
-    // skipReactNativeReload needs to happen before killing the mock server to avoid race conditions
-    if (!skipReactNativeReload) {
-      try {
-        // Disable synchronization to prevent race conditions with pending timers
-        await device.disableSynchronization();
-        await device.reloadReactNative();
-        await device.enableSynchronization();
-      } catch (cleanupError) {
-        logger.warn('React Native reload failed (non-critical):', cleanupError);
-        // Ensure synchronization is re-enabled even on failure
-        try {
-          await device.enableSynchronization();
-        } catch {
-          // Ignore - best effort
-        }
-        // Don't add to cleanupErrors as this is a non-critical cleanup operation
-      }
-    }
+    // skipReactNativeReload was Detox-only (device.reloadReactNative); Appium
+    // uses softReloadAppForFixtures / fixture bootstrap instead (MMQA-2230).
 
     if (mockServerInstance) {
       try {
@@ -710,6 +787,15 @@ export async function withFixtures(
         logger.error('Error during live request validation:', cleanupError);
         cleanupErrors.push(cleanupError as Error);
       }
+    }
+
+    // Clean up WebSocket servers
+    try {
+      resetAccountActivityMockState();
+      await accountActivityWsServer.stop();
+    } catch (cleanupError) {
+      logger.error('Error during WebSocket cleanup:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
     }
 
     // Clean up the mock server
@@ -749,12 +835,17 @@ export async function withFixtures(
 
     // Remove the abort filter AFTER all cleanup is complete so late async
     // "Aborted" rejections from destroyed sockets are still caught.
+    // removeAbortFilter() is async — it holds the filter active for an extra
+    // 500ms before restoring Jest's handlers to cover abort events that fire
+    // after all cleanup has completed (observed up to ~200ms on loaded CI).
     if (mockServerInstance) {
       logger.info('Removing abort filter after full cleanup');
-      mockServerInstance.removeAbortFilter();
+      await mockServerInstance.removeAbortFilter();
     }
 
     // Handle error reporting: prioritize test error over cleanup errors
+    stopPhase();
+
     if (testError && cleanupErrors.length > 0) {
       // Both test and cleanup failed - report both but throw the test error
       const cleanupErrorMessages = cleanupErrors

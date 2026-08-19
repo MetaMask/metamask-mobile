@@ -1,4 +1,5 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useMemo, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -27,15 +28,15 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import UsdcIcon from './usdc.svg';
 import { PredictActivityDetailsSelectorsIDs } from '../../Predict.testIds';
 interface PredictActivityDetailProps {}
 
 const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictActivityDetail'>>();
   const { activity } = route.params || {};
@@ -150,12 +151,28 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       'amount' in entry && typeof entry.amount === 'number'
         ? entry.amount
         : activity.amountUsd;
+    const hasPrice =
+      'price' in entry &&
+      typeof entry.price === 'number' &&
+      Number.isFinite(entry.price);
+    const entrySize =
+      'size' in entry &&
+      typeof entry.size === 'number' &&
+      Number.isFinite(entry.size) &&
+      entry.size > 0
+        ? entry.size
+        : undefined;
+    const priceForTrade =
+      hasPrice && entry.price !== 0 ? entry.price : undefined;
+    const tradeAmount =
+      priceForTrade !== undefined && entrySize !== undefined
+        ? entrySize * priceForTrade
+        : entryAmount;
 
-    const predictedAmount = formatCurrencyValue(entryAmount, {
+    const predictedAmount = formatCurrencyValue(tradeAmount, {
       showSign: isSell,
     });
 
-    const hasPrice = 'price' in entry && typeof entry.price === 'number';
     const pricePerShare = hasPrice
       ? formatPrice(entry.price, {
           minimumDecimals: entry.price >= 1 ? 2 : 4,
@@ -164,9 +181,27 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       : undefined;
 
     const sharesCount =
-      hasPrice && entry.price !== 0 ? entryAmount / entry.price : undefined;
+      entrySize ??
+      (priceForTrade !== undefined ? entryAmount / priceForTrade : undefined);
     const formattedShares =
       sharesCount !== undefined ? formatPositionSize(sharesCount) : undefined;
+    const bundledFee =
+      priceForTrade !== undefined && entrySize !== undefined
+        ? isSell
+          ? tradeAmount - entryAmount
+          : entryAmount - tradeAmount
+        : undefined;
+    if (bundledFee !== undefined && bundledFee < 0) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[PredictActivityDetail] negative bundledFee, suppressing row:',
+        bundledFee,
+      );
+    }
+    const formattedBundledFee =
+      bundledFee !== undefined && bundledFee > 0
+        ? formatCurrencyValue(bundledFee)
+        : undefined;
 
     const priceImpact =
       activity.priceImpactPercentage !== undefined
@@ -210,6 +245,14 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
         transactionRows.push({
           label: strings('predict.transactions.predicted_amount'),
           value: predictedAmount,
+          isMonetary: true,
+        });
+      }
+
+      if (formattedBundledFee) {
+        transactionRows.push({
+          label: strings('predict.fee_summary.fees'),
+          value: formattedBundledFee,
           isMonetary: true,
         });
       }
@@ -278,9 +321,13 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="py-3"
+      twClassName="py-3 gap-2"
     >
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+      <Text
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={tw.style('flex-1')}
+      >
         {label}
       </Text>
       {isMonetary ? (
@@ -353,9 +400,9 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
           </React.Fragment>
         ))}
         {activity?.type === PredictActivityType.BUY ||
-          activity?.type === PredictActivityType.SELL}{' '}
-        (
-        <Box twClassName="w-full border-t border-muted mt-3" />)
+        activity?.type === PredictActivityType.SELL ? (
+          <Box twClassName="w-full border-t border-muted mt-3" />
+        ) : null}
       </Box>
     );
   };
@@ -409,7 +456,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       testID={PredictActivityDetailsSelectorsIDs.CONTAINER}
     >
       <Box twClassName="flex-1">
-        <HeaderCompactStandard
+        <HeaderStandard
           title={
             activityDetails?.headerTitle ??
             strings('predict.transactions.activity_details')

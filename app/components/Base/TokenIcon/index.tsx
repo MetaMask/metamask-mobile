@@ -6,7 +6,9 @@ import React, {
 } from 'react';
 import PropTypes from 'prop-types';
 import {
+  Image,
   ImageSourcePropType,
+  ImageStyle,
   StyleSheet,
   TextStyle,
   View,
@@ -14,11 +16,11 @@ import {
 } from 'react-native';
 
 import RemoteImage from '../RemoteImage';
-import Text from '../../../../app/component-library/components/Texts/Text/Text.tsx';
 import { useTheme } from '../../../util/theme';
 import imageIcons from '../../../images/image-icons';
 import ethLogo from '../../../images/eth-logo-new.png';
 import { ThemeColors } from '@metamask/design-tokens';
+import { Text } from '@metamask/design-system-react-native';
 
 const REGULAR_SIZE = 24;
 const REGULAR_RADIUS = 12;
@@ -78,6 +80,7 @@ interface EmptyIconProps {
   big?: boolean;
   biggest?: boolean;
   style?: ViewStyle;
+  testID?: string;
 }
 
 const EmptyIcon = ({
@@ -166,20 +169,36 @@ function TokenIcon({
   const source = getSource();
 
   if (source && !showFallback) {
+    const iconStyle = [
+      styles.icon,
+      medium && styles.iconMedium,
+      big && styles.iconBig,
+      biggest && styles.iconBiggest,
+      style,
+    ];
+    // Use standard RN Image for local bundled assets (BTC, ETH, SOL, etc.)
+    // expo-image (via RemoteImage) interferes with iOS accessibility tree,
+    // preventing the parent TouchableOpacity from being detected by XCUITest.
+    // Only use RemoteImage for remote URL sources (when `icon` prop is a URL).
+    const isRemoteUrl = typeof source === 'object' && 'uri' in source;
+    if (isRemoteUrl) {
+      return (
+        <RemoteImage
+          key={icon || `symbol-${symbol}`}
+          testID={testID}
+          source={getSource()}
+          onError={() => setShowFallback(true)}
+          style={iconStyle}
+        />
+      );
+    }
     return (
-      <RemoteImage
+      <Image
         key={icon || `symbol-${symbol}`}
         testID={testID}
-        fadeIn
-        source={getSource()}
+        source={getSource() as ImageSourcePropType}
         onError={() => setShowFallback(true)}
-        style={[
-          styles.icon,
-          medium && styles.iconMedium,
-          big && styles.iconBig,
-          biggest && styles.iconBiggest,
-          style,
-        ]}
+        style={iconStyle as ImageStyle[]}
       />
     );
   }

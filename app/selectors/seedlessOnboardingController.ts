@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { SeedlessOnboardingControllerState } from '@metamask/seedless-onboarding-controller';
+import { AuthConnection } from '../core/OAuthService/OAuthInterface';
 
 const selectSeedlessOnboardingControllerState = (state: RootState) =>
   state.engine?.backgroundState.SeedlessOnboardingController;
@@ -20,7 +21,9 @@ export const selectSeedlessOnboardingUserEmail = createSelector(
 export const selectSeedlessOnboardingAuthConnection = createSelector(
   selectSeedlessOnboardingControllerState,
   (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
-    seedlessOnboardingControllerState?.authConnection,
+    seedlessOnboardingControllerState?.authConnection as
+      | AuthConnection
+      | undefined,
 );
 
 export const selectSeedlessOnboardingLoginFlow = createSelector(

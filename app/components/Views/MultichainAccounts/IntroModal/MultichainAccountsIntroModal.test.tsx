@@ -24,19 +24,17 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    goBack: mockGoBack,
-  }),
-  useTheme: () => ({
-    colors: {
-      background: { default: '#FFFFFF' },
-      text: { default: '#000000' },
-    },
-  }),
-}));
+jest.mock('@react-navigation/native', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    ...jest.requireActual('@react-navigation/native'),
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+    }),
+    useTheme: () => mockTheme,
+  };
+});
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),

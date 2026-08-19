@@ -4,27 +4,26 @@ import {
 } from '../../../app/components/UI/NetworkInfo/NetworkEducationModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class NetworkEducationModal {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(NetworkEducationModalSelectorsIDs.CONTAINER);
   }
 
-  get closeButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(NetworkEducationModalSelectorsIDs.CLOSE_BUTTON)
-      : Matchers.getElementByLabel(
-          NetworkEducationModalSelectorsIDs.CLOSE_BUTTON,
-        );
+  get closeButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      NetworkEducationModalSelectorsIDs.CLOSE_BUTTON,
+    );
   }
 
-  get addToken(): DetoxElement {
+  get addToken(): EncapsulatedElementType {
     return Matchers.getElementByText(
       NetworkEducationModalSelectorsText.ADD_TOKEN,
     );
   }
 
-  get networkName(): DetoxElement {
+  get networkName(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkEducationModalSelectorsIDs.NETWORK_NAME,
     );
@@ -37,7 +36,9 @@ class NetworkEducationModal {
   }
 
   async tapNetworkName(): Promise<void> {
-    await Gestures.waitAndTap(this.networkName);
+    await Gestures.waitAndTap(this.networkName, {
+      elemDescription: 'Network name',
+    });
   }
 }
 

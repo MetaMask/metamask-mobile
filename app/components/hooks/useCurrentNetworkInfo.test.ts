@@ -34,7 +34,6 @@ describe('useCurrentNetworkInfo', () => {
           },
         };
       }
-      // Second call: selectMultichainAccountsState2Enabled
       return false;
     });
   });

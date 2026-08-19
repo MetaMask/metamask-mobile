@@ -32,7 +32,7 @@ import {
   useApproveTransactionData,
 } from '../../hooks/useApproveTransactionData';
 import {
-  isPermitDaiRevoke,
+  isPermitRevoke,
   isRecognizedPermit,
   isSIWESignatureRequest,
   parseAndNormalizeSignTypedDataFromSignatureRequest,
@@ -112,6 +112,7 @@ const getTitleAndSubTitle = (
           parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
         const { allowed, tokenId, value } = parsedData.message ?? {};
         const { verifyingContract } = parsedData.domain ?? {};
+        const { types, primaryType } = parsedData;
 
         const isERC721Permit = tokenId !== undefined;
         if (isERC721Permit) {
@@ -121,12 +122,13 @@ const getTitleAndSubTitle = (
           };
         }
 
-        const isDaiRevoke = isPermitDaiRevoke(
+        const isRevoke = isPermitRevoke(
           verifyingContract,
           allowed,
           value,
+          types,
+          primaryType,
         );
-        const isRevoke = isDaiRevoke || value === '0';
 
         if (isRevoke) {
           return {
@@ -155,9 +157,7 @@ const getTitleAndSubTitle = (
         };
       }
       if (TRANSFER_TRANSACTION_TYPES.includes(transactionType)) {
-        return {
-          title: strings('confirm.title.transfer'),
-        };
+        return {};
       }
       if (APPROVE_TRANSACTION_TYPES.includes(transactionType)) {
         const { title, subTitle } = getApproveTitle(approveTransactionData);
@@ -229,6 +229,14 @@ const Title = () => {
     return null;
   }
 
+  // Avoid rendering a fallback title while transaction metadata is still loading
+  if (
+    approvalRequest?.type === ApprovalType.Transaction &&
+    !transactionMetadata
+  ) {
+    return null;
+  }
+
   const { title, subTitle } = getTitleAndSubTitle(
     approvalRequest,
     signatureRequest,
@@ -239,6 +247,10 @@ const Title = () => {
     approveTransactionData,
     networkName,
   );
+
+  if (!title) {
+    return null;
+  }
 
   return (
     <View style={styles.titleContainer}>

@@ -5,7 +5,7 @@ import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 
-const createStyles = (colors) =>
+const createStyles = (theme) =>
   StyleSheet.create({
     viewWrapper: {
       flexDirection: 'column',
@@ -15,14 +15,16 @@ const createStyles = (colors) =>
     },
     viewContainer: {
       width: '100%',
-      backgroundColor: colors.background.default,
+      backgroundColor: theme.colors.background.elevated1,
       borderRadius: 10,
+      borderWidth: 1,
+      borderColor: theme.colors.border.alternative,
     },
     actionHorizontalContainer: {
       flexDirection: 'row',
       padding: 16,
       borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
+      borderTopColor: theme.colors.border.muted,
     },
     actionVerticalContainer: {
       flexDirection: 'column',
@@ -47,27 +49,27 @@ const createStyles = (colors) =>
  * only on ActionModal component
  */
 export default function ActionContent({
-  cancelTestID,
-  confirmTestID,
-  cancelText,
+  cancelTestID = '',
+  confirmTestID = '',
+  cancelText = strings('action_view.cancel'),
   children,
-  confirmText,
-  confirmDisabled,
-  cancelButtonMode,
-  cancelButtonDisabled,
-  confirmButtonMode,
-  displayCancelButton,
-  displayConfirmButton,
+  confirmText = strings('action_view.confirm'),
+  confirmDisabled = false,
+  cancelButtonMode = 'neutral',
+  cancelButtonDisabled = false,
+  confirmButtonMode = 'warning',
+  displayCancelButton = true,
+  displayConfirmButton = true,
   onCancelPress,
   onConfirmPress,
-  viewWrapperStyle,
-  viewContainerStyle,
+  viewWrapperStyle = null,
+  viewContainerStyle = null,
   actionContainerStyle,
-  childrenContainerStyle,
+  childrenContainerStyle = null,
   verticalButtons,
 }) {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const theme = useTheme();
+  const styles = createStyles(theme);
 
   return (
     <View style={[styles.viewWrapper, viewWrapperStyle]}>
@@ -116,22 +118,6 @@ export default function ActionContent({
     </View>
   );
 }
-
-ActionContent.defaultProps = {
-  cancelButtonMode: 'neutral',
-  cancelButtonDisabled: false,
-  confirmButtonMode: 'warning',
-  confirmTestID: '',
-  cancelTestID: '',
-  cancelText: strings('action_view.cancel'),
-  confirmText: strings('action_view.confirm'),
-  confirmDisabled: false,
-  displayCancelButton: true,
-  displayConfirmButton: true,
-  viewWrapperStyle: null,
-  viewContainerStyle: null,
-  childrenContainerStyle: null,
-};
 
 ActionContent.propTypes = {
   cancelButtonDisabled: PropTypes.bool,

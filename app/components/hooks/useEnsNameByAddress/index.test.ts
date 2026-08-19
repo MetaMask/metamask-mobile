@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import useEnsNameByAddress from '.';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { mockNetworkState } from '../../../util/test/network';
@@ -48,14 +48,15 @@ describe('useEnsNameByAddress', () => {
   });
 
   it('returns ENS name for account address', async () => {
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useEnsNameByAddress(MOCK_ACCOUNT_ADDRESS),
     );
-    await waitForNextUpdate();
-    expect(result.current.ensName).toStrictEqual(MOCK_ENS_CACHED_NAME);
+    await waitFor(() => {
+      expect(result.current.ensName).toStrictEqual(MOCK_ENS_CACHED_NAME);
+    });
   });
 
-  it('returns empty string for account address without ENS address', async () => {
+  it('returns empty string for account address without ENS address', () => {
     const { result } = renderHook(() => useEnsNameByAddress('0x321'));
     expect(result.current.ensName).toStrictEqual('');
   });

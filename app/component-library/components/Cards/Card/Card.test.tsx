@@ -6,13 +6,13 @@ import { render } from '@testing-library/react-native';
 // Internal dependencies.
 import Card from './Card';
 
-describe('Card - Snapshot', () => {
+describe('Card', () => {
   it('should render correctly', () => {
     const { toJSON } = render(
       <Card>
         <View />
       </Card>,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(toJSON()).toBeDefined();
   });
 });

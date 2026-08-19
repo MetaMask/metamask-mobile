@@ -5,8 +5,16 @@ import Routes from '../../../../../constants/navigation/Routes';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
+import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 
 const mockOnCloseBottomSheet = jest.fn();
+const mockOpenSupportWithConsent = jest.fn();
+
+jest.mock('../../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn().mockResolvedValue(undefined),
@@ -15,11 +23,12 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   canOpenURL: jest.fn().mockResolvedValue(true),
 }));
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    return ReactActual.forwardRef(
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
       (
         {
           children,
@@ -33,9 +42,9 @@ jest.mock(
         }));
         return <>{children}</>;
       },
-    );
-  },
-);
+    ),
+  };
+});
 
 function render(component: React.ComponentType) {
   return renderScreen(
@@ -55,17 +64,37 @@ describe('EligibilityFailedModal', () => {
   });
 
   it('renders modal with title and description', () => {
-    const { toJSON } = render(EligibilityFailedModal);
+    const { getByText } = render(EligibilityFailedModal);
 
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText('Eligibility check failed')).toBeOnTheScreen();
+    expect(getByText('Contact support')).toBeOnTheScreen();
+    expect(getByText('Got it')).toBeOnTheScreen();
   });
-  it('navigates to contact support when the contact support button is pressed', () => {
+  it('opens the support consent modal when the contact support button is pressed', () => {
     const { getByText } = render(EligibilityFailedModal);
     const contactSupportButton = getByText('Contact support');
 
     fireEvent.press(contactSupportButton);
 
-    expect(Linking.openURL).toHaveBeenCalledWith('https://support.metamask.io');
+    expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+    );
+  });
+
+  // Covers only the call-site opener glue: invoking the opener passed to
+  // openSupportWithConsent opens the URL. Modal internals are covered by core.
+  it('opens the support URL when the provided opener is invoked', () => {
+    const { getByText } = render(EligibilityFailedModal);
+    const contactSupportButton = getByText('Contact support');
+
+    fireEvent.press(contactSupportButton);
+    const opener = mockOpenSupportWithConsent.mock.calls[0][0] as (
+      url: string,
+    ) => void;
+    opener(METAMASK_SUPPORT_URL);
+
+    expect(Linking.openURL).toHaveBeenCalledWith(METAMASK_SUPPORT_URL);
   });
 
   it('closes the modal when the close button is pressed', () => {

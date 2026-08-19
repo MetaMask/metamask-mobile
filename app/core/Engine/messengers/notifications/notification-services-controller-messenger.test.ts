@@ -1,14 +1,28 @@
-import { RootExtendedMessenger } from '../../types';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
+import type { NotificationServicesControllerMessenger } from '@metamask/notification-services-controller/notification-services';
 import { getNotificationServicesControllerMessenger } from './notification-services-controller-messenger';
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  MessengerActions<NotificationServicesControllerMessenger>,
+  MessengerEvents<NotificationServicesControllerMessenger>
+>;
 
 describe('getNotificationServicesControllerMessenger', () => {
   const arrangeMocks = () => {
-    const baseMessenger: RootExtendedMessenger =
-      new ExtendedMessenger<MockAnyNamespace>({
-        namespace: MOCK_ANY_NAMESPACE,
-      });
+    const baseMessenger: RootMessenger = new Messenger<
+      MockAnyNamespace,
+      never,
+      never
+    >({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
     const mockDelegate = jest.spyOn(baseMessenger, 'delegate');
     return { baseMessenger, mockDelegate };
   };
@@ -28,9 +42,14 @@ describe('getNotificationServicesControllerMessenger', () => {
         'AuthenticationController:isSignedIn',
         'AuthenticationController:performSignIn',
         // Push Actions
+        'NotificationServicesPushController:addPushNotificationLinks',
         'NotificationServicesPushController:enablePushNotifications',
         'NotificationServicesPushController:disablePushNotifications',
+        'NotificationServicesPushController:deletePushNotificationLinks',
         'NotificationServicesPushController:subscribeToPushNotifications',
+        // Authenticated user storage (notification preferences, etc.)
+        'AuthenticatedUserStorageService:getNotificationPreferences',
+        'AuthenticatedUserStorageService:putNotificationPreferences',
       ],
       events: [
         // Keyring Events

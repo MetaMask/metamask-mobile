@@ -1,32 +1,25 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { strings } from '../../../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import createStyles from './PerpsQuoteExpiredModal.styles';
 import { DEPOSIT_CONFIG } from '@metamask/perps-controller';
 
 const PerpsQuoteExpiredModal = () => {
-  const navigation = useNavigation();
-  const sheetRef = useRef<BottomSheetRef>(null);
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(createStyles, {});
   const refreshRate = DEPOSIT_CONFIG.RefreshRate / 1000; // Convert to seconds
-
-  const handleClose = () => {
-    navigation.goBack();
-  };
 
   const handleGetNewQuote = () => {
     // The quote will be automatically refreshed when we navigate back
@@ -34,31 +27,26 @@ const PerpsQuoteExpiredModal = () => {
     navigation.goBack();
   };
 
-  const footerButtonProps = [
-    {
-      label: strings('perps.deposit.quote_expired_modal.get_new_quote'),
-      variant: ButtonVariants.Primary,
-      size: ButtonSize.Lg,
-      onPress: handleGetNewQuote,
-    },
-  ];
-
   return (
-    <BottomSheet ref={sheetRef}>
-      <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingMD}>
+    <BottomSheet goBack={navigation.goBack}>
+      <BottomSheetHeader onClose={navigation.goBack}>
+        <Text variant={TextVariant.HeadingMd}>
           {strings('perps.deposit.quote_expired_modal.title')}
         </Text>
       </BottomSheetHeader>
       <View style={styles.container}>
-        <Text variant={TextVariant.BodyMD}>
+        <Text variant={TextVariant.BodyMd}>
           {strings('perps.deposit.quote_expired_modal.description', {
             refreshRate,
           })}
         </Text>
       </View>
       <BottomSheetFooter
-        buttonPropsArray={footerButtonProps}
+        primaryButtonProps={{
+          children: strings('perps.deposit.quote_expired_modal.get_new_quote'),
+          onPress: handleGetNewQuote,
+          size: ButtonSize.Lg,
+        }}
         style={styles.footer}
       />
     </BottomSheet>

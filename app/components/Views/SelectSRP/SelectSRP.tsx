@@ -1,21 +1,29 @@
 import React from 'react';
 import SRPList from '../../UI/SRPList';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Routes from '../../../constants/navigation/Routes';
-import { StyleProp, ViewStyle } from 'react-native';
+import type { ViewStyle } from 'react-native';
 
 const SelectSRP = ({
   containerStyle,
   showArrowName,
+  onKeyringSelect: onKeyringSelectProp,
 }: {
-  containerStyle?: StyleProp<ViewStyle>;
+  containerStyle?: ViewStyle;
   showArrowName?: string;
+  onKeyringSelect?: (keyringId: string) => void;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const onKeyringSelect = (keyringId: string) => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+    if (onKeyringSelectProp) {
+      onKeyringSelectProp(keyringId);
+      return;
+    }
+
+    navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
+      shouldUpdateNav: true,
       keyringId,
     });
   };

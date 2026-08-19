@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../util/theme/models';
 
-export const DEFAULT_CHART_HEIGHT = 400;
+export const DEFAULT_CHART_HEIGHT = 900;
 
 const styleSheet = (params: { theme: Theme; vars: { height: number } }) =>
   StyleSheet.create({
@@ -9,24 +9,29 @@ const styleSheet = (params: { theme: Theme; vars: { height: number } }) =>
       width: '100%',
       height: params.vars.height,
       backgroundColor: params.theme.colors.background.default,
+      overflow: 'visible',
     },
     webview: {
       flex: 1,
       backgroundColor: params.theme.colors.background.default,
+      overflow: 'visible',
     },
-    loadingContainer: {
+    /** Wraps WebView + loading skeleton; matches Perps TradingViewChart chart surface. */
+    chartSurface: {
+      flex: 1,
+      width: '100%',
+      overflow: 'hidden',
+      position: 'relative',
+      backgroundColor: params.theme.colors.background.default,
+    },
+    skeletonOverlay: {
       position: 'absolute',
       top: 0,
       left: 0,
       right: 0,
       bottom: 0,
-      justifyContent: 'center',
-      alignItems: 'center',
+      zIndex: 10,
       backgroundColor: params.theme.colors.background.default,
-    },
-    loadingText: {
-      marginTop: 12,
-      color: params.theme.colors.text.muted,
     },
     errorContainer: {
       flex: 1,

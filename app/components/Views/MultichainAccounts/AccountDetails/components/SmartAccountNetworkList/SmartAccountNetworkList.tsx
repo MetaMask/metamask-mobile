@@ -1,13 +1,17 @@
 import React, { useMemo, useEffect } from 'react';
 import { BackHandler } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { Box } from '@metamask/design-system-react-native';
+import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useEIP7702Networks } from '../../../../confirmations/hooks/7702/useEIP7702Networks';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AccountNetworkRow from '../../../../confirmations/components/modals/switch-account-type-modal/account-network-row';
 import { Hex } from '@metamask/utils';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './SmartAccountNetworkList.styles';
-import { Skeleton } from '../../../../../../component-library/components/Skeleton';
+import { SMART_ACCOUNT_NETWORK_LIST_TEST_IDS } from './SmartAccountNetworkList.testIds';
 
 interface SmartAccountNetworkListProps {
   address: string;
@@ -15,7 +19,7 @@ interface SmartAccountNetworkListProps {
 
 const SmartAccountNetworkList = ({ address }: SmartAccountNetworkListProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { network7702List, pending } = useEIP7702Networks(address);
 
   useEffect(() => {
@@ -54,7 +58,7 @@ const SmartAccountNetworkList = ({ address }: SmartAccountNetworkListProps) => {
   }
 
   return (
-    <Box testID="network-flat-list">
+    <Box testID={SMART_ACCOUNT_NETWORK_LIST_TEST_IDS.NETWORK_FLAT_LIST}>
       {network7702List.map((network) => (
         <AccountNetworkRow
           key={network.chainId}

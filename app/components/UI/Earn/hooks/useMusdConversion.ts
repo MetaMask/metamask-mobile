@@ -3,12 +3,13 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { isEqual } from 'lodash';
+import { createSelector } from 'reselect';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { EVM_SCOPE } from '../constants/networks';
@@ -22,9 +23,9 @@ import { selectTransactionsByIds } from '../../../../selectors/transactionContro
 import { AssetType } from '../../../Views/confirmations/types/token';
 import { toHex } from '@metamask/controller-utils';
 import EngineService from '../../../../core/EngineService';
-import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../types/musd.types';
-import { selectMusdQuickConvertEnabledFlag } from '../selectors/featureFlags';
+import { MusdNavigationTarget } from '../types/musd.types';
 import { providerErrors } from '@metamask/rpc-errors';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 
 type MusdInitiationResult = { transactionId: string } | void;
 
@@ -123,10 +124,32 @@ export interface MusdConversionConfig {
    */
   skipEducationCheck?: boolean;
   /**
-   * Optional navigation mode override for this initiation.
+   * When the education screen is shown for a first-time user, and this config has
+   * `returnTo`, the education screen's primary button routes to `returnTo` instead of
+   * continuing the conversion. Use this for navigation-only entry points (e.g.,
+   * pressing a section header that gates on education).
    */
-  navigationOverride?: MUSD_CONVERSION_NAVIGATION_OVERRIDE;
+  returnTo?: MusdNavigationTarget;
 }
+
+/**
+ * Memoized projection of the pending approvals map to just its IDs.
+ *
+ * This hook only needs the set of pending approval IDs, not the full
+ * approvals map, so we derive them with a `createSelector` projection
+ * rather than subscribing to `selectPendingApprovals` with a deep-equality
+ * comparator. Reselect returns the same array reference as long as the
+ * underlying approvals map is unchanged, so `useSelector` can rely on its
+ * default reference equality check.
+ *
+ * Scoped to this hook (rather than added to `approvalController.ts`) to
+ * keep the change local, since the mUSD conversion feature is flagged off
+ * and the approval controller selectors are owned by another team.
+ */
+export const selectPendingApprovalIds = createSelector(
+  selectPendingApprovals,
+  (pendingApprovals) => Object.keys(pendingApprovals ?? {}),
+);
 
 /**
  * Hook for initiating mUSD conversion flows using MetaMask Pay.
@@ -161,14 +184,9 @@ export interface MusdConversionConfig {
  */
 export const useMusdConversion = () => {
   const [error, setError] = useState<string | null>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
-  const pendingApprovals = useSelector(selectPendingApprovals, isEqual);
-
-  const pendingApprovalIds = useMemo(
-    () => Object.keys(pendingApprovals ?? {}),
-    [pendingApprovals],
-  );
+  const pendingApprovalIds = useSelector(selectPendingApprovalIds);
 
   const pendingTransactionMetas = useSelector((state: RootState) =>
     selectTransactionsByIds(state, pendingApprovalIds),
@@ -180,10 +198,6 @@ export const useMusdConversion = () => {
   const selectedAddress = selectedAccount?.address;
   const hasSeenConversionEducationScreen = useSelector(
     selectMusdConversionEducationSeen,
-  );
-
-  const isMusdQuickConvertEnabledFlag = useSelector(
-    selectMusdQuickConvertEnabledFlag,
   );
 
   /**
@@ -280,12 +294,6 @@ export const useMusdConversion = () => {
           } = Engine.context;
 
           try {
-            Logger.log('[mUSD Max Conversion] Setting payment token:', {
-              transactionId,
-              tokenAddress,
-              chainId: tokenChainId,
-            });
-
             // Must be called BEFORE updatePaymentToken.
             TransactionPayController.setTransactionConfig(
               transactionId,
@@ -314,7 +322,7 @@ export const useMusdConversion = () => {
               'Error creating max conversion transaction',
             );
             try {
-              ApprovalController.reject(
+              ApprovalController.rejectRequest(
                 transactionId,
                 providerErrors.userRejectedRequest({
                   message:
@@ -373,16 +381,6 @@ export const useMusdConversion = () => {
     [navigation, pendingTransactionMetas, selectedAddress],
   );
 
-  const navigateToQuickConvertScreen = useCallback(
-    (config: MusdConversionConfig) => {
-      const { navigationStack = Routes.EARN.ROOT } = config;
-      navigation.navigate(navigationStack, {
-        screen: Routes.EARN.MUSD.QUICK_CONVERT,
-      });
-    },
-    [navigation],
-  );
-
   /**
    * Navigates to the custom amount conversion screen.
    */
@@ -400,13 +398,16 @@ export const useMusdConversion = () => {
         },
       });
 
-      navigation.navigate(navigationStack, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-        params: {
-          loader: ConfirmationLoader.CustomAmount,
-          preferredPaymentToken,
+      navigateWithDetails(navigation, [
+        navigationStack,
+        {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+          params: {
+            loader: ConfirmationLoader.CustomAmount,
+            preferredPaymentToken,
+          },
         },
-      });
+      ]);
     },
     [navigation],
   );
@@ -424,12 +425,16 @@ export const useMusdConversion = () => {
       const { preferredPaymentToken, navigationStack = Routes.EARN.ROOT } =
         config;
 
-      navigation.navigate(navigationStack, {
-        screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
-        params: {
-          preferredPaymentToken,
+      navigateWithDetails(navigation, [
+        navigationStack,
+        {
+          screen: Routes.EARN.MUSD.CONVERSION_EDUCATION,
+          params: {
+            preferredPaymentToken,
+            returnTo: config.returnTo,
+          },
         },
-      });
+      ]);
 
       return true;
     },
@@ -450,10 +455,7 @@ export const useMusdConversion = () => {
         return;
       }
 
-      const {
-        preferredPaymentToken,
-        navigationOverride = MUSD_CONVERSION_NAVIGATION_OVERRIDE.CUSTOM,
-      } = config;
+      const { preferredPaymentToken } = config;
 
       try {
         setError(null);
@@ -464,15 +466,6 @@ export const useMusdConversion = () => {
 
         if (!selectedAddress) {
           throw new Error('No account selected');
-        }
-
-        if (
-          navigationOverride ===
-            MUSD_CONVERSION_NAVIGATION_OVERRIDE.QUICK_CONVERT &&
-          isMusdQuickConvertEnabledFlag
-        ) {
-          navigateToQuickConvertScreen(config);
-          return;
         }
 
         const existingPendingMusdConversion = findExistingPendingMusdConversion(
@@ -571,9 +564,7 @@ export const useMusdConversion = () => {
     },
     [
       handleEducationRedirectIfNeeded,
-      isMusdQuickConvertEnabledFlag,
       navigateToCustomConversionScreen,
-      navigateToQuickConvertScreen,
       navigation,
       pendingTransactionMetas,
       selectedAddress,

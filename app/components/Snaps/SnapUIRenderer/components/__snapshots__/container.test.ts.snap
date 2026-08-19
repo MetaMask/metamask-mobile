@@ -12,7 +12,7 @@ exports[`container add footer button when useFooter is true and onCancel is prov
           "isSnapAction": false,
           "onCancel": [MockFunction],
           "testID": "default-snap-footer-button",
-          "variant": "Secondary",
+          "variant": "secondary",
         },
       },
       "element": "Box",

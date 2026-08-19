@@ -94,9 +94,23 @@ export function setDeepLinkModalDisabled(deepLinkModalDisabled) {
   };
 }
 
+export function setHapticsEnabled(hapticsEnabled) {
+  return {
+    type: 'SET_HAPTICS_ENABLED',
+    hapticsEnabled,
+  };
+}
+
 export function setPerpsChartPreferredCandlePeriod(preferredCandlePeriod) {
   return {
     type: 'SET_PERPS_CHART_PREFERRED_CANDLE_PERIOD',
     preferredCandlePeriod,
+  };
+}
+
+export function setShowAccountOnLeaderboard(showAccountOnLeaderboard) {
+  return {
+    type: 'SET_SHOW_ACCOUNT_ON_LEADERBOARD',
+    showAccountOnLeaderboard,
   };
 }

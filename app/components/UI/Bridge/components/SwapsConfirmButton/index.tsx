@@ -1,22 +1,28 @@
 import React, { useMemo, useEffect, useRef } from 'react';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonBaseSize,
+  ButtonVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 import { useSelector } from 'react-redux';
 import {
+  selectBridgeFeatureFlags,
   selectIsSolanaSourced,
   selectIsSubmittingTx,
+  selectIsSlippageUserOverride,
+  selectSlippage,
   selectSourceAmount,
   selectSourceToken,
+  selectDestToken,
 } from '../../../../../core/redux/slices/bridge';
+import { isNegativeSecurityType } from '../../utils/tokenSecurityUtils';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
@@ -28,29 +34,61 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { useNavigation } from '@react-navigation/native';
-import AppConstants from '../../../../../core/AppConstants';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  exceedsPriceImpactErrorThreshold,
+  parsePriceImpact,
+} from '../../utils/getPriceImpactViewData';
+import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
+import type { TokenWarningModalParams } from '../TokenWarningModal';
+import { TokenWarningModalMode } from '../TokenWarningModal/constants';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
+import { useIsNetworkFeeUnavailable } from '../../hooks/useIsNetworkFeeUnavailable';
+import { useABTest } from '../../../../../hooks';
+import {
+  SWAPS_CTA_BUTTON_COLOR_AB_KEY,
+  SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
+  SWAPS_CTA_BUTTON_COLOR_VARIANTS,
+} from './abTestConfig';
+import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
+
+const SUCCESS_TEXT_PROPS = { color: TextColor.SuccessInverse } as const;
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
   /** Optional testID override (e.g. when rendered inside keypad to avoid duplicate IDs in E2E) */
   testID?: string;
   location: MetaMetricsSwapsEventSource;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
 export const SwapsConfirmButton = ({
   latestSourceBalance,
   testID,
   location,
+  transactionActiveAbTests,
 }: Props) => {
-  const navigation = useNavigation();
-  const handleConfirm = useBridgeConfirm({
-    latestSourceBalance,
-    location,
-  });
+  const { variant: ctaButtonColorVariant } = useABTest(
+    SWAPS_CTA_BUTTON_COLOR_AB_KEY,
+    SWAPS_CTA_BUTTON_COLOR_VARIANTS,
+    SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
+  );
+  const { themeAppearance } = useTheme();
+  const treatmentBackground =
+    themeAppearance === AppThemeKey.light
+      ? `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`
+      : 'bg-success-default';
+  const navigation = useNavigation<AppNavigationProp>();
 
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const destToken = useSelector(selectDestToken);
   const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
+  const slippage = useSelector(selectSlippage);
+  const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const selectedAddress = useSelector(
@@ -70,23 +108,34 @@ export const SwapsConfirmButton = ({
   const {
     activeQuote,
     isLoading,
-    isExpired,
+    needsNewQuote,
     blockaidError,
     quoteFetchError,
     isNoQuotesAvailable,
-    formattedQuoteData,
-  } = useBridgeQuoteData({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+    isActiveQuoteForCurrentTokenPair,
+  } = useBridgeQuoteDataContext();
+
+  const insufficientNativeReserveError = useInsufficientNativeReserveError({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+    walletAddress,
+    activeQuote,
   });
 
-  const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
+  const hasInsufficientNativeReserveError = Boolean(
+    insufficientNativeReserveError,
+  );
 
-  // The quote expired and no fetch is in progress — offer to get a new one.
-  // Also treat the edge-case where a fetch IS running but there is no active
-  // quote to fall back on — the user would otherwise be stuck on a spinner
-  // with no way to retry ("escape hatch").
-  const needsNewQuote =
-    isExpired && !isSubmittingTx && (!isLoading || !activeQuote);
+  const handleConfirm = useBridgeConfirm({
+    activeQuote,
+    location,
+    transactionActiveAbTests,
+  });
+
+  const isNetworkFeeUnavailable = useIsNetworkFeeUnavailable(activeQuote);
+  const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
+  const hasInsufficientGas = !isNetworkFeeUnavailable && !hasSufficientGas;
 
   // Check both the display amount and the atomic amount are non-zero.
   // An amount like 0.000000001 BTC (8 decimals) is non-zero as a number but
@@ -116,6 +165,7 @@ export const SwapsConfirmButton = ({
   // The ref only updates when loading finishes (quote arrived / error)
   // so it stays stale during the debounce window after the user edits.
   const settledAmountRef = useRef(sourceAmount);
+  const settledSlippageRef = useRef(slippage);
   const wasLoadingRef = useRef(isLoading);
 
   const hasError = !!blockaidError || !!quoteFetchError || isNoQuotesAvailable;
@@ -124,11 +174,16 @@ export const SwapsConfirmButton = ({
     const loadingJustFinished = wasLoadingRef.current && !isLoading;
     if (loadingJustFinished || hasError || needsNewQuote) {
       settledAmountRef.current = sourceAmount;
+      settledSlippageRef.current = slippage;
     }
     wasLoadingRef.current = isLoading;
-  }, [isLoading, sourceAmount, hasError, needsNewQuote]);
+  }, [isLoading, sourceAmount, slippage, hasError, needsNewQuote]);
 
   const isSourceAmountChanged = sourceAmount !== settledAmountRef.current;
+  const isActiveQuoteSlippageMismatch =
+    slippage !== undefined &&
+    activeQuote != null &&
+    Number(slippage) !== Number(activeQuote.quote.slippage);
 
   // True when user has entered a valid amount but the quote fetch hasn't
   // started yet (e.g. during the debounce window after typing).
@@ -138,31 +193,65 @@ export const SwapsConfirmButton = ({
   // True when the sourceAmount changed from what the current quote was
   // fetched for (stale quote during debounce window).
   const isPendingQuoteRefresh = isSourceAmountChanged && hasNonZeroSourceAmount;
+  const isPendingSlippageRefresh =
+    Boolean(isSlippageUserOverride) &&
+    (slippage !== settledSlippageRef.current || isActiveQuoteSlippageMismatch);
 
   const isSubmitDisabled =
     !hasNonZeroSourceAmount ||
     isAwaitingQuote ||
+    (activeQuote && !isActiveQuoteForCurrentTokenPair) ||
     isPendingQuoteRefresh ||
+    isPendingSlippageRefresh ||
     (isLoading && !activeQuote) ||
     hasInsufficientBalance ||
+    hasInsufficientNativeReserveError ||
+    isNetworkFeeUnavailable ||
     isSubmittingTx ||
     (isHardwareAddress && isSolanaSourced) ||
     hasError ||
-    !hasSufficientGas ||
+    hasInsufficientGas ||
     !walletAddress;
 
   const handleContinue = async () => {
-    const priceImpact = !formattedQuoteData?.priceImpact
-      ? // Default to zero to bypass swap friction.
-        // This callback is always called when active quote exists,
-        // thus this check is not expected to be used, but we introduce
-        // it regardless as a defensive mechanism.
-        0
-      : Number.parseFloat(formattedQuoteData.priceImpact.replace('%', ''));
+    const securityData = destToken?.securityData;
+    if (isNegativeSecurityType(securityData?.type)) {
+      const params: TokenWarningModalParams = {
+        warningType: securityData.type,
+        features: securityData.metadata?.features ?? [],
+        mode: TokenWarningModalMode.Execution,
+        location,
+      };
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params,
+      });
+      return;
+    }
+
+    if (hasMissingPriceData(activeQuote)) {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MISSING_PRICE_MODAL,
+        params: {
+          location,
+        },
+      });
+      return;
+    }
+
+    // Default to zero to bypass swap friction.
+    // This callback is always called when active quote exists,
+    // thus this check is not expected to be used, but we introduce
+    // it regardless as a defensive mechanism.
+    const priceImpact = parsePriceImpact(
+      activeQuote?.quote.priceData?.priceImpact?.amount,
+    );
 
     if (
-      Number.isFinite(priceImpact) &&
-      priceImpact >= AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD
+      exceedsPriceImpactErrorThreshold(
+        priceImpact,
+        bridgeFeatureFlags?.priceImpactThreshold?.error,
+      )
     ) {
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
@@ -182,13 +271,17 @@ export const SwapsConfirmButton = ({
     if (Engine.context.BridgeController?.resetState) {
       Engine.context.BridgeController.resetState();
     }
-    updateQuoteParams();
+    updateQuoteParams({ isRefresh: true });
   };
 
   const buttonIsInLoadingState =
     !needsNewQuote &&
     !hasError &&
-    (isLoading || isSubmittingTx || isAwaitingQuote || isPendingQuoteRefresh) &&
+    (isLoading ||
+      isSubmittingTx ||
+      isAwaitingQuote ||
+      isPendingQuoteRefresh ||
+      isPendingSlippageRefresh) &&
     isSubmitDisabled;
 
   const label = useMemo(() => {
@@ -200,8 +293,13 @@ export const SwapsConfirmButton = ({
       return strings('bridge.confirm_swap');
     }
 
-    if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
-    if (!hasSufficientGas) return strings('bridge.insufficient_gas');
+    if (
+      hasInsufficientBalance ||
+      hasInsufficientNativeReserveError ||
+      isNetworkFeeUnavailable
+    )
+      return strings('bridge.insufficient_funds');
+    if (hasInsufficientGas) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
     return strings('bridge.confirm_swap');
@@ -210,21 +308,30 @@ export const SwapsConfirmButton = ({
     isLoading,
     sourceAmount,
     hasInsufficientBalance,
-    hasSufficientGas,
+    hasInsufficientNativeReserveError,
+    isNetworkFeeUnavailable,
+    hasInsufficientGas,
     isSubmittingTx,
     needsNewQuote,
   ]);
 
   return (
     <Button
-      variant={ButtonVariants.Primary}
-      size={ButtonSize.Lg}
-      loading={buttonIsInLoadingState}
-      label={label}
+      variant={ButtonVariant.Primary}
+      twClassName={
+        ctaButtonColorVariant.hasSuccessColor ? treatmentBackground : undefined
+      }
+      textProps={
+        ctaButtonColorVariant.hasSuccessColor ? SUCCESS_TEXT_PROPS : undefined
+      }
+      size={ButtonBaseSize.Lg}
+      isLoading={buttonIsInLoadingState}
       onPress={needsNewQuote ? handleGetNewQuote : handleContinue}
-      width={ButtonWidthTypes.Full}
+      isFullWidth
       testID={testID ?? BridgeViewSelectorsIDs.CONFIRM_BUTTON}
       isDisabled={needsNewQuote ? false : isSubmitDisabled}
-    />
+    >
+      {label}
+    </Button>
   );
 };

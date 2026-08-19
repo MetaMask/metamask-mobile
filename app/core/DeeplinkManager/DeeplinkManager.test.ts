@@ -1,8 +1,19 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { waitFor } from '@testing-library/react-native';
-import FCMService from '../../util/notifications/services/FCMService';
+import {
+  EventType,
+  type Notification as NotifeeNotification,
+} from '@notifee/react-native';
+import FCMService, {
+  toPushTapResult,
+} from '../../util/notifications/services/FCMService';
+import NotificationsService from '../../util/notifications/services/NotificationService';
 import NavigationService from '../NavigationService';
-import SharedDeeplinkManager, { DeeplinkManager } from './DeeplinkManager';
+import SharedDeeplinkManager, {
+  DeeplinkManager,
+  rewriteBranchUri,
+} from './DeeplinkManager';
+import type { BranchParams } from './types/deepLinkAnalytics.types';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import switchNetwork from '../../util/networks/switchNetwork';
 import parseDeeplink from './utils/parseDeeplink';
@@ -11,6 +22,11 @@ import { store } from '../../store';
 import { RootState } from '../../reducers';
 import branch from 'react-native-branch';
 import AppConstants from '../AppConstants';
+import {
+  getBrazeInitialPush,
+  subscribeToBrazePushOpens,
+} from '../Braze/BrazeDeeplinks';
+import { AppStateEventProcessor } from '../AppStateEventListener';
 
 jest.mock('./handlers/legacy/handleApproveUrl');
 jest.mock('./handlers/legacy/handleEthereumUrl');
@@ -25,6 +41,12 @@ jest.mock('./handlers/legacy/handleRewardsUrl');
 jest.mock('./handlers/legacy/handleDeeplink');
 jest.mock('./handlers/legacy/handleFastOnboarding');
 jest.mock('../../util/notifications/services/FCMService');
+jest.mock('../../util/notifications/services/NotificationService');
+jest.mock('../Braze/BrazeDeeplinks');
+jest.mock('../AppStateEventListener', () => ({
+  AppOpenedPushProvider: { Braze: 'braze', Wallet: 'wallet' },
+  AppStateEventProcessor: { markOpenedFromPush: jest.fn() },
+}));
 jest.mock('../../store', () => ({
   store: {
     getState: jest.fn(),
@@ -114,6 +136,24 @@ describe('DeeplinkManager', () => {
       onHandled,
     });
   });
+
+  it('preserves a rejected deeplink resolution result', async () => {
+    const url = 'https://link.metamask.io/rewards';
+    const origin = 'testOrigin';
+
+    (
+      parseDeeplink as jest.MockedFunction<typeof parseDeeplink>
+    ).mockResolvedValueOnce(false);
+
+    await expect(deeplinkManager.resolve(url, { origin })).resolves.toBe(false);
+
+    expect(parseDeeplink).toHaveBeenCalledWith({
+      deeplinkManager,
+      url,
+      origin,
+      mode: 'resolve',
+    });
+  });
 });
 
 describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
@@ -125,11 +165,38 @@ describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
       FCMService.onClickPushNotificationWhenAppSuspended,
     );
     const mockHandleDeeplink = jest.mocked(handleDeeplink);
+    const mockToPushTapResult = jest.mocked(toPushTapResult);
+    const mockOnForegroundEvent = jest.mocked(
+      NotificationsService.onForegroundEvent,
+    );
+    const mockHandleNotificationEvent = jest.mocked(
+      NotificationsService.handleNotificationEvent,
+    );
+    const mockGetBrazeInitialPush = jest.mocked(getBrazeInitialPush);
+    const mockSubscribeToBrazePushOpens = jest.mocked(
+      subscribeToBrazePushOpens,
+    );
+
+    mockOnClickPushNotificationWhenAppClosed.mockResolvedValue({
+      opened: false,
+      deeplink: null,
+    });
+    mockOnClickPushNotificationWhenAppSuspended.mockImplementation(() => null);
+
+    // Mock Braze to prevent errors during DeeplinkManager.start()
+    mockGetBrazeInitialPush.mockResolvedValue({
+      opened: false,
+      deeplink: null,
+    });
+    mockSubscribeToBrazePushOpens.mockReturnValue(null);
 
     return {
       mockOnClickPushNotificationWhenAppClosed,
       mockOnClickPushNotificationWhenAppSuspended,
       mockHandleDeeplink,
+      mockToPushTapResult,
+      mockOnForegroundEvent,
+      mockHandleNotificationEvent,
     };
   };
 
@@ -140,9 +207,10 @@ describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
   describe('Push Notification - App Closed', () => {
     const arrangeAct = async (deeplink: string | null) => {
       const mocks = arrangeMocks();
-      mocks.mockOnClickPushNotificationWhenAppClosed.mockResolvedValue(
+      mocks.mockOnClickPushNotificationWhenAppClosed.mockResolvedValue({
+        opened: deeplink !== null,
         deeplink,
-      );
+      });
 
       DeeplinkManager.start();
 
@@ -178,7 +246,7 @@ describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
   });
 
   describe('Push Notification - App Suspended', () => {
-    const arrangeAct = (deeplink?: string) => {
+    const arrangeAct = (deeplink: string | null) => {
       const mocks = arrangeMocks();
 
       DeeplinkManager.start();
@@ -188,7 +256,7 @@ describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
         mocks.mockOnClickPushNotificationWhenAppSuspended.mock.calls[0][0];
 
       // Simulate the callback being called
-      suspendedCallback(deeplink);
+      suspendedCallback({ opened: true, deeplink });
 
       return mocks;
     };
@@ -208,13 +276,337 @@ describe('DeeplinkManager.start() - FCM Push Notification Integration', () => {
     });
 
     it('does not handle deeplink when no deeplink provided from suspended app', () => {
-      const mocks = arrangeAct(undefined);
+      const mocks = arrangeAct(null);
 
       expect(
         mocks.mockOnClickPushNotificationWhenAppSuspended,
       ).toHaveBeenCalledWith(expect.any(Function));
       expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
     });
+  });
+
+  describe('Notifee Push Notification', () => {
+    const triggerNotifeePress = async (
+      mocks: ReturnType<typeof arrangeMocks>,
+      notification: NotifeeNotification,
+    ) => {
+      DeeplinkManager.start();
+      const foregroundEventHandler =
+        mocks.mockOnForegroundEvent.mock.calls[0][0];
+      await foregroundEventHandler({
+        type: EventType.PRESS,
+        detail: { notification },
+      });
+      const notificationCallback =
+        mocks.mockHandleNotificationEvent.mock.calls[0][0].callback;
+      notificationCallback?.(notification);
+    };
+
+    it('routes a Notifee press through wallet push attribution', async () => {
+      const deeplink = 'https://link.metamask.io/rewards';
+      const notification = {
+        data: {
+          dataStr: JSON.stringify({
+            deeplink,
+            notification_type: 'platform',
+            notification_subtype: 'take_profit_executed',
+          }),
+        },
+      } as NotifeeNotification;
+      const tapResult = {
+        opened: true,
+        deeplink,
+        notificationType: 'platform',
+        notificationSubtype: 'take_profit_executed',
+      };
+      const mocks = arrangeMocks();
+      mocks.mockToPushTapResult.mockReturnValue(tapResult);
+
+      await triggerNotifeePress(mocks, notification);
+
+      expect(mocks.mockToPushTapResult).toHaveBeenCalledWith(
+        notification.data,
+        true,
+      );
+      expect(AppStateEventProcessor.markOpenedFromPush).toHaveBeenCalledWith({
+        provider: 'wallet',
+        notificationType: 'platform',
+        notificationSubtype: 'take_profit_executed',
+      });
+      expect(mocks.mockHandleDeeplink).toHaveBeenCalledWith({
+        uri: deeplink,
+        source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+      });
+    });
+
+    it('ignores a Notifee press without wallet push fields', async () => {
+      const notification = {
+        data: {
+          dataStr: JSON.stringify({ action: 'tx' }),
+        },
+      } as NotifeeNotification;
+      const mocks = arrangeMocks();
+      mocks.mockToPushTapResult.mockReturnValue({
+        opened: true,
+        deeplink: null,
+      });
+
+      await triggerNotifeePress(mocks, notification);
+
+      expect(AppStateEventProcessor.markOpenedFromPush).not.toHaveBeenCalled();
+      expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe('DeeplinkManager.start() - Braze Push Notification Integration', () => {
+  const arrangeMocks = () => {
+    const mockGetBrazeInitialPush = jest.mocked(getBrazeInitialPush);
+    const mockSubscribeToBrazePushOpens = jest.mocked(
+      subscribeToBrazePushOpens,
+    );
+    const mockHandleDeeplink = jest.mocked(handleDeeplink);
+    const mockOnClickPushNotificationWhenAppClosed = jest.mocked(
+      FCMService.onClickPushNotificationWhenAppClosed,
+    );
+    const mockOnClickPushNotificationWhenAppSuspended = jest.mocked(
+      FCMService.onClickPushNotificationWhenAppSuspended,
+    );
+
+    // Mock FCM to prevent errors during DeeplinkManager.start()
+    mockOnClickPushNotificationWhenAppClosed.mockResolvedValue({
+      opened: false,
+      deeplink: null,
+    });
+    mockOnClickPushNotificationWhenAppSuspended.mockImplementation(() => null);
+
+    return {
+      mockGetBrazeInitialPush,
+      mockSubscribeToBrazePushOpens,
+      mockHandleDeeplink,
+    };
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('Braze Push Notification - App Cold Start', () => {
+    const arrangeAct = async (deeplink: string | null) => {
+      const mocks = arrangeMocks();
+      mocks.mockGetBrazeInitialPush.mockResolvedValue({
+        opened: deeplink !== null,
+        deeplink,
+      });
+
+      DeeplinkManager.start();
+
+      return mocks;
+    };
+
+    it('handles deeplink when Braze push notification clicked from cold start', async () => {
+      const testDeeplink = 'metamask://trending';
+
+      const mocks = await arrangeAct(testDeeplink);
+
+      await waitFor(() => {
+        expect(mocks.mockGetBrazeInitialPush).toHaveBeenCalled();
+        expect(mocks.mockHandleDeeplink).toHaveBeenCalledWith({
+          uri: testDeeplink,
+          source: AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+        });
+      });
+    });
+
+    it('does not handle deeplink when no Braze deeplink returned from cold start', async () => {
+      const mocks = await arrangeAct(null);
+
+      await waitFor(() => {
+        expect(mocks.mockGetBrazeInitialPush).toHaveBeenCalled();
+        expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('Braze Push Notification - App Warm/Suspended', () => {
+    const arrangeAct = (deeplink?: string) => {
+      const mocks = arrangeMocks();
+
+      DeeplinkManager.start();
+
+      // Get the callback that was passed to subscribeToBrazePushOpens
+      const suspendedCallback =
+        mocks.mockSubscribeToBrazePushOpens.mock.calls[0][0];
+
+      // Simulate the callback being called
+      if (deeplink) {
+        suspendedCallback(deeplink);
+      }
+
+      return mocks;
+    };
+
+    it('handles deeplink when Braze push notification clicked from warm/suspended app', () => {
+      const testDeeplink = 'metamask://trending';
+
+      const mocks = arrangeAct(testDeeplink);
+
+      expect(mocks.mockSubscribeToBrazePushOpens).toHaveBeenCalledWith(
+        expect.any(Function),
+      );
+      expect(mocks.mockHandleDeeplink).toHaveBeenCalledWith({
+        uri: testDeeplink,
+        source: AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+      });
+    });
+
+    it('subscribes to Braze push deeplinks even when no immediate deeplink is provided', () => {
+      const mocks = arrangeAct(undefined);
+
+      expect(mocks.mockSubscribeToBrazePushOpens).toHaveBeenCalledWith(
+        expect.any(Function),
+      );
+      expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
+    });
+  });
+});
+
+// Push origin used to ride on the deeplink, so a notification without a CTA
+// link — common for on-chain activity notifications — was indistinguishable
+// from a direct open. Every tap is now reported regardless of the payload.
+describe('DeeplinkManager.start() - push taps without a deeplink', () => {
+  const mockMarkOpenedFromPush = jest.mocked(
+    AppStateEventProcessor.markOpenedFromPush,
+  );
+
+  const arrangeMocks = () => {
+    const mockOnClickPushNotificationWhenAppClosed = jest.mocked(
+      FCMService.onClickPushNotificationWhenAppClosed,
+    );
+    const mockOnClickPushNotificationWhenAppSuspended = jest.mocked(
+      FCMService.onClickPushNotificationWhenAppSuspended,
+    );
+    const mockGetBrazeInitialPush = jest.mocked(getBrazeInitialPush);
+    const mockSubscribeToBrazePushOpens = jest.mocked(
+      subscribeToBrazePushOpens,
+    );
+    const mockHandleDeeplink = jest.mocked(handleDeeplink);
+
+    mockOnClickPushNotificationWhenAppClosed.mockResolvedValue({
+      opened: false,
+      deeplink: null,
+    });
+    mockOnClickPushNotificationWhenAppSuspended.mockImplementation(() => null);
+    mockGetBrazeInitialPush.mockResolvedValue({
+      opened: false,
+      deeplink: null,
+    });
+    mockSubscribeToBrazePushOpens.mockReturnValue(null);
+
+    return {
+      mockOnClickPushNotificationWhenAppClosed,
+      mockOnClickPushNotificationWhenAppSuspended,
+      mockGetBrazeInitialPush,
+      mockSubscribeToBrazePushOpens,
+      mockHandleDeeplink,
+    };
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('reports an FCM cold-start tap that carries no deeplink', async () => {
+    const mocks = arrangeMocks();
+    mocks.mockOnClickPushNotificationWhenAppClosed.mockResolvedValue({
+      opened: true,
+      deeplink: null,
+    });
+
+    DeeplinkManager.start();
+
+    await waitFor(() => {
+      expect(mockMarkOpenedFromPush).toHaveBeenCalled();
+    });
+    expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
+  });
+
+  it('ignores a warm callback that reports no open', () => {
+    const mocks = arrangeMocks();
+
+    DeeplinkManager.start();
+    const suspendedCallback =
+      mocks.mockOnClickPushNotificationWhenAppSuspended.mock.calls[0][0];
+    suspendedCallback({ opened: false, deeplink: null });
+
+    expect(mockMarkOpenedFromPush).not.toHaveBeenCalled();
+  });
+
+  it('reports an FCM warm tap that carries no deeplink', () => {
+    const mocks = arrangeMocks();
+
+    DeeplinkManager.start();
+    const suspendedCallback =
+      mocks.mockOnClickPushNotificationWhenAppSuspended.mock.calls[0][0];
+    suspendedCallback({ opened: true, deeplink: null });
+
+    expect(mockMarkOpenedFromPush).toHaveBeenCalled();
+    expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
+  });
+
+  it('reports a Braze cold-start tap that carries no deeplink', async () => {
+    const mocks = arrangeMocks();
+    mocks.mockGetBrazeInitialPush.mockResolvedValue({
+      opened: true,
+      deeplink: null,
+    });
+
+    DeeplinkManager.start();
+
+    await waitFor(() => {
+      expect(mockMarkOpenedFromPush).toHaveBeenCalled();
+    });
+    expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
+  });
+
+  it('reports a Braze warm tap that carries no deeplink', () => {
+    const mocks = arrangeMocks();
+
+    DeeplinkManager.start();
+    const brazeCallback = mocks.mockSubscribeToBrazePushOpens.mock.calls[0][0];
+    brazeCallback(null);
+
+    expect(mockMarkOpenedFromPush).toHaveBeenCalled();
+    expect(mocks.mockHandleDeeplink).not.toHaveBeenCalled();
+  });
+
+  it('still navigates and reports when the tap does carry a deeplink', async () => {
+    const mocks = arrangeMocks();
+    mocks.mockOnClickPushNotificationWhenAppClosed.mockResolvedValue({
+      opened: true,
+      deeplink: 'metamask://home',
+    });
+
+    DeeplinkManager.start();
+
+    await waitFor(() => {
+      expect(mocks.mockHandleDeeplink).toHaveBeenCalledWith({
+        uri: 'metamask://home',
+        source: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+      });
+    });
+    expect(mockMarkOpenedFromPush).toHaveBeenCalled();
+  });
+
+  it('does not report an open when no notification launched the app', async () => {
+    const mocks = arrangeMocks();
+
+    DeeplinkManager.start();
+
+    await waitFor(() => {
+      expect(mocks.mockOnClickPushNotificationWhenAppClosed).toHaveBeenCalled();
+    });
+    expect(mockMarkOpenedFromPush).not.toHaveBeenCalled();
   });
 });
 
@@ -282,6 +674,34 @@ describe('SharedDeeplinkManager', () => {
   });
 });
 
+describe('rewriteBranchUri', () => {
+  it('rewrites host and path to link.metamask.io and preserves query when +clicked_branch_link and $deeplink_path are set', () => {
+    const uri =
+      'https://metamask-alternate.app.link/1WkF6GmE40b?amount=100&from=0x';
+    const params: BranchParams = {
+      '+clicked_branch_link': true,
+      $deeplink_path: 'swap',
+    };
+    expect(rewriteBranchUri(uri, params)).toBe(
+      'https://link.metamask.io/swap?amount=100&from=0x',
+    );
+  });
+
+  it('returns uri unchanged when +clicked_branch_link is false', () => {
+    const uri = 'https://metamask.app.link/swap';
+    expect(
+      rewriteBranchUri(uri, { '+clicked_branch_link': false } as BranchParams),
+    ).toBe(uri);
+  });
+
+  it('returns uri unchanged when $deeplink_path is missing', () => {
+    const uri = 'https://metamask.app.link/swap';
+    expect(
+      rewriteBranchUri(uri, { '+clicked_branch_link': true } as BranchParams),
+    ).toBe(uri);
+  });
+});
+
 describe('DeeplinkManager.start Branch deeplink handling', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -304,6 +724,31 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
   });
 
+  it('rewrites cold start Branch link using $deeplink_path from getLatestReferringParams', async () => {
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+clicked_branch_link': true,
+      $deeplink_path: 'swap',
+      '~referring_link':
+        'https://metamask-alternate.app.link/1WkF6GmE40b?amount=500',
+    });
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({
+      uri: 'https://link.metamask.io/swap?amount=500',
+    });
+  });
+
+  it('falls back to +non_branch_link on cold start when +clicked_branch_link is false', async () => {
+    const mockDeeplink = 'https://link.metamask.io/home';
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+clicked_branch_link': false,
+      '+non_branch_link': mockDeeplink,
+    });
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockDeeplink });
+  });
+
   it('subscribes to Branch deeplink events', async () => {
     DeeplinkManager.start();
     expect(branch.subscribe).toHaveBeenCalled();
@@ -317,5 +762,69 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     callback({ uri: mockUri });
     await new Promise((resolve) => setImmediate(resolve));
     expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+  });
+
+  it('rewrites Branch short link to link.metamask.io when +clicked_branch_link and $deeplink_path are present', async () => {
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+
+    callback({
+      uri: 'https://metamask-alternate.app.link/1WkF6GmE40b?amount=1000000&from=eip155%3A1%2Ferc20%3A0xabc',
+      params: {
+        '+clicked_branch_link': true,
+        $deeplink_path: 'swap',
+      },
+    });
+
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({
+      uri: 'https://link.metamask.io/swap?amount=1000000&from=eip155%3A1%2Ferc20%3A0xabc',
+    });
+  });
+
+  it('passes URI through unchanged when +clicked_branch_link is false', async () => {
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+    const mockUri = 'https://metamask.app.link/swap?amount=100';
+
+    callback({
+      uri: mockUri,
+      params: { '+clicked_branch_link': false },
+    });
+
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+  });
+
+  it('passes URI through unchanged when $deeplink_path is missing', async () => {
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+    const mockUri = 'https://metamask.app.link/swap?amount=100';
+
+    callback({
+      uri: mockUri,
+      params: { '+clicked_branch_link': true },
+    });
+
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: mockUri });
+  });
+
+  it('strips leading slash from $deeplink_path when rewriting', async () => {
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+
+    callback({
+      uri: 'https://metamask-alternate.app.link/ABC123',
+      params: {
+        '+clicked_branch_link': true,
+        $deeplink_path: '/swap/token',
+      },
+    });
+
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(handleDeeplink).toHaveBeenCalledWith({
+      uri: 'https://link.metamask.io/swap/token',
+    });
   });
 });

@@ -1,5 +1,5 @@
 import { BackendWebSocketService } from '@metamask/core-backend';
-import { ControllerInitFunction } from '../../types';
+import { MessengerClientInitFunction } from '../../types';
 import {
   BackendWebSocketServiceMessenger,
   BackendWebSocketServiceInitMessenger,
@@ -23,7 +23,7 @@ import Logger from '../../../../util/Logger';
  * @param request.initMessenger - The messenger for accessing other controllers.
  * @returns The initialized service.
  */
-export const backendWebSocketServiceInit: ControllerInitFunction<
+export const backendWebSocketServiceInit: MessengerClientInitFunction<
   BackendWebSocketService,
   BackendWebSocketServiceMessenger,
   BackendWebSocketServiceInitMessenger
@@ -48,13 +48,19 @@ export const backendWebSocketServiceInit: ControllerInitFunction<
         const { backendWebSocketConnection } =
           remoteFeatureFlagState?.remoteFeatureFlags || {};
 
-        const result =
-          backendWebSocketConnection &&
+        // The flag can be a bare boolean or a legacy `{ value }` wrapper.
+        // Treat both shapes as enabled when the resolved value is truthy.
+        if (
           typeof backendWebSocketConnection === 'object' &&
-          'value' in backendWebSocketConnection &&
-          Boolean(backendWebSocketConnection.value);
+          backendWebSocketConnection !== null &&
+          'value' in backendWebSocketConnection
+        ) {
+          return Boolean(backendWebSocketConnection.value);
+        }
 
-        return Boolean(result);
+        return typeof backendWebSocketConnection === 'boolean'
+          ? backendWebSocketConnection
+          : false;
       } catch (error) {
         // If feature flag check fails, default to NOT connecting for safer startup
         Logger.log(

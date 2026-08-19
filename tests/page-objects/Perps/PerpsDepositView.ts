@@ -1,31 +1,55 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import { EncapsulatedElementType, PlatformDetector } from '../../framework';
+
+const TIMEOUT = {
+  KEYPAD_DIGIT: 10000,
+} as const;
 
 class PerpsDepositView {
   // Custom deposit keypad container
-  get keypad(): DetoxElement {
+  get keypad(): EncapsulatedElementType {
     return Matchers.getElementByID('deposit-keyboard');
   }
 
+  /** Amount input - wdio PerpsDepositScreen uses 'custom-amount-input' for isAmountInputVisible */
+  get amountInput(): EncapsulatedElementType {
+    return Matchers.getElementByID('custom-amount-input');
+  }
+
+  /** Add funds button - wdio uses getElementByText('Add funds') for isAddFundsVisible */
+  get addFundsButton(): EncapsulatedElementType {
+    return Matchers.getElementByText('Add funds');
+  }
+
+  /** Total text - wdio uses getElementByText('Total') for isTotalVisible */
+  get totalText(): EncapsulatedElementType {
+    return Matchers.getElementByText('Total');
+  }
+
   // Continue button (toolbar text)
-  get continueButtonByText(): DetoxElement {
+  get continueButtonByText(): EncapsulatedElementType {
     return Matchers.getElementByText('Continue');
   }
 
   // Add funds (confirm) button on review screen. Uses testID for reliability:
   // the confirmation screen shows at most one "Add funds" (ConfirmButton);
   // index 1 was failing when no second "Add funds" existed in the hierarchy.
-  get confirmButton(): DetoxElement {
+  get confirmButton(): EncapsulatedElementType {
     return Matchers.getElementByID('confirm-button');
   }
 
-  // Pay with row (open selector)
-  get payWithRow(): DetoxElement {
-    return Matchers.getElementByText('Pay with');
+  get infoRow(): EncapsulatedElementType {
+    return Matchers.getElementByID('info-row');
   }
 
-  get usdcOption(): DetoxElement {
+  // Pay with row (open selector)
+  get payWithRow(): EncapsulatedElementType {
+    return Matchers.getElementByID('pay-with');
+  }
+
+  get usdcOption(): EncapsulatedElementType {
     return Matchers.getElementByText('USDC');
   }
 
@@ -58,13 +82,21 @@ class PerpsDepositView {
   }
 
   async typeUSD(amount: string): Promise<void> {
-    // Types digits using the on-screen keypad (buttons 0-9 and '.')
-    for (const ch of amount) {
-      const key = Matchers.getElementByText(ch) as DetoxElement;
-      await Gestures.waitAndTap(key, {
-        elemDescription: `Keypad ${ch}`,
-        checkEnabled: false,
-        checkVisibility: false,
+    const isAndroid = PlatformDetector.isAndroid();
+    for (const digit of amount) {
+      const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
+      const digitEl = isAndroid
+        ? Matchers.getElementByText(digit)
+        : Matchers.getElementByNativeXPath(`//*[contains(@name,'${keyName}')]`);
+      await Assertions.expectElementToBeVisible(digitEl, {
+        timeout: TIMEOUT.KEYPAD_DIGIT,
+        description: `Keypad digit ${digit} should be visible`,
+      });
+      await Gestures.waitAndTap(digitEl, {
+        checkForDisplayed: true,
+        checkEnabled: true,
+        delay: 1000,
+        elemDescription: `Keypad ${digit}`,
       });
     }
   }
@@ -74,6 +106,8 @@ class PerpsDepositView {
       elemDescription: 'Continue (by text) deposit confirmation',
       checkEnabled: false,
       checkVisibility: false,
+      checkForDisplayed: true,
+      delay: 1000,
     });
   }
 

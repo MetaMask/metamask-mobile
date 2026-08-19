@@ -1,4 +1,4 @@
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+///: BEGIN:ONLY_INCLUDE_IF(snaps)
 // TODO: Figure out which permissions should be disabled at this point
 export const ExcludedSnapPermissions = Object.freeze({
   eth_accounts:

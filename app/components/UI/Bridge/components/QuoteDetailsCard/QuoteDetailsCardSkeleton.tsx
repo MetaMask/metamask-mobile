@@ -5,7 +5,7 @@ import {
   BoxJustifyContent,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 
 const ROWS: readonly (readonly [string, string])[] = [
@@ -23,6 +23,7 @@ const QuoteDetailsCardSkeleton = () => (
     {ROWS.map(([left, right], i) => (
       <Box
         key={i}
+        testID="quote-details-card-loading-row"
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.Between}
         alignItems={BoxAlignItems.Center}

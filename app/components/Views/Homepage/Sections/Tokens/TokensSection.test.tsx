@@ -1,8 +1,11 @@
 import React from 'react';
+import { useMoneyTokenListCta } from '../../../../UI/Money/hooks/useMoneyTokenListCta';
+import { SCREEN_NAMES } from '../../../../UI/Money/constants/moneyEvents';
 import { screen, fireEvent, waitFor, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TokensSection from './TokensSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 
 const mockNavigate = jest.fn();
 const mockGoToBuy = jest.fn();
@@ -46,10 +49,9 @@ jest.mock(
 );
 
 jest.mock('../../../../../selectors/assets/assets-list', () => ({
-  selectSortedAssetsBySelectedAccountGroupForChainIds: (
-    state: unknown,
-    chainIds: string[],
-  ) => mockSortedTokenKeys(state, chainIds),
+  makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance:
+    (chainIds: string[]) => (state: unknown) =>
+      mockSortedTokenKeys(state, chainIds),
 }));
 
 jest.mock('../../../../../selectors/assets/balances', () => ({
@@ -78,9 +80,34 @@ jest.mock('../../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(() => mockNetworkConfigurations),
 }));
 
-const mockRefreshTokens = jest.fn().mockResolvedValue(undefined);
-jest.mock('../../../../UI/Tokens/util/refreshTokens', () => ({
-  refreshTokens: (...args: unknown[]) => mockRefreshTokens(...args),
+jest.mock('../../../../UI/Earn/selectors/featureFlags', () => ({
+  selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
+}));
+
+jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
+  selectMoneyHubEnabledFlag: jest.fn(() => false),
+}));
+
+const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
+jest.mock('../../../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
+  useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
+}));
+
+const mockRefresh = jest.fn().mockResolvedValue(undefined);
+jest.mock('../../../../UI/Tokens/hooks/useRefreshTokens', () => ({
+  useRefreshTokens: () => ({ refresh: mockRefresh }),
+}));
+
+const mockTokenListItemCta = {
+  label: 'Get 4% APY',
+  color: 'success-default',
+  shouldShow: jest.fn(),
+  onPress: jest.fn(),
+};
+jest.mock('../../../../UI/Money/hooks/useMoneyTokenListCta', () => ({
+  useMoneyTokenListCta: jest.fn(() => ({
+    tokenListItemCta: mockTokenListItemCta,
+  })),
 }));
 
 // Mock ErrorState to avoid design system import chain and enable testID queries
@@ -112,13 +139,19 @@ jest.mock('./components/PopularTokensSkeleton', () => {
   };
 });
 
-// Mock TokenListItem and TokenListItemV2 to avoid complex import chains
+// Mock TokenListItem to avoid complex import chains
 const MockTokenListItem = ({
   assetKey,
   showRemoveMenu,
+  tokenListItemCta,
+  tokenPositionInList,
+  tokensInList,
 }: {
   assetKey: { address: string; chainId?: string };
   showRemoveMenu?: (token: unknown) => void;
+  tokenListItemCta?: { label: string };
+  tokenPositionInList?: number;
+  tokensInList?: number;
 }) => {
   const ReactActual = jest.requireActual('react');
   const { Text, TouchableOpacity } = jest.requireActual('react-native');
@@ -126,6 +159,7 @@ const MockTokenListItem = ({
     TouchableOpacity,
     {
       testID: `token-item-${assetKey.address}`,
+      onPress: () => jest.fn(),
       onLongPress: () =>
         showRemoveMenu?.({
           address: assetKey.address,
@@ -140,6 +174,18 @@ const MockTokenListItem = ({
         }),
     },
     ReactActual.createElement(Text, null, `Token ${assetKey.address}`),
+    tokenListItemCta
+      ? ReactActual.createElement(
+          Text,
+          { testID: `token-cta-${assetKey.address}` },
+          tokenListItemCta.label,
+        )
+      : null,
+    ReactActual.createElement(
+      Text,
+      { testID: `token-context-${assetKey.address}` },
+      `${tokenPositionInList}/${tokensInList}`,
+    ),
   );
 };
 
@@ -149,56 +195,10 @@ jest.mock(
     TokenListItem: (props: {
       assetKey: { address: string; chainId?: string };
       showRemoveMenu?: (token: unknown) => void;
+      tokenListItemCta?: { label: string };
+      tokenPositionInList?: number;
+      tokensInList?: number;
     }) => MockTokenListItem(props),
-  }),
-);
-
-const MockTokenListItemV2 = ({
-  assetKey,
-  showRemoveMenu,
-}: {
-  assetKey: { address: string; chainId?: string };
-  showRemoveMenu?: (token: unknown) => void;
-}) => {
-  const ReactActual = jest.requireActual('react');
-  const { Text, TouchableOpacity } = jest.requireActual('react-native');
-  return ReactActual.createElement(
-    TouchableOpacity,
-    {
-      testID: `token-item-v2-${assetKey.address}`,
-      onLongPress: () =>
-        showRemoveMenu?.({
-          address: assetKey.address,
-          chainId: assetKey.chainId,
-          name: `Token ${assetKey.address}`,
-          symbol: 'TKN',
-          decimals: 18,
-          image: '',
-          balance: '0',
-          logo: undefined,
-          isETH: false,
-        }),
-    },
-    ReactActual.createElement(Text, null, `TokenV2 ${assetKey.address}`),
-  );
-};
-
-jest.mock(
-  '../../../../UI/Tokens/TokenList/TokenListItemV2/TokenListItemV2',
-  () => ({
-    TokenListItemV2: (props: {
-      assetKey: { address: string; chainId?: string };
-      showRemoveMenu?: (token: unknown) => void;
-    }) => MockTokenListItemV2(props),
-  }),
-);
-
-const mockSelectTokenListLayoutV2Enabled = jest.fn().mockReturnValue(false);
-
-jest.mock(
-  '../../../../../selectors/featureFlagController/tokenListLayout',
-  () => ({
-    selectTokenListLayoutV2Enabled: () => mockSelectTokenListLayoutV2Enabled(),
   }),
 );
 
@@ -243,7 +243,10 @@ jest.mock('./components/PopularTokenRow', () => {
               jest
                 .requireMock('../../../../UI/Ramp/hooks/useRampNavigation')
                 .useRampNavigation()
-                .goToBuy({ assetId: token.assetId }),
+                .goToBuy(
+                  { assetId: token.assetId },
+                  { buyFlowOrigin: 'homeTokenList' },
+                ),
           },
           ReactActual.createElement(Text, null, 'Buy'),
         ),
@@ -295,6 +298,20 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+const mockUseHomeViewedEvent = jest.fn(() => ({ onLayout: jest.fn() }));
+jest.mock('../../hooks/useHomeViewedEvent', () => ({
+  __esModule: true,
+  default: (...args: unknown[]) =>
+    Reflect.apply(mockUseHomeViewedEvent, undefined, args),
+  HomeSectionNames: {
+    TOKENS: 'tokens',
+    PERPS: 'perps',
+    DEFI: 'defi',
+    PREDICT: 'predict',
+    NFTS: 'nfts',
+  },
+}));
+
 // Mock token removal utilities
 jest.mock('../../../../UI/Tokens/util', () => ({
   removeEvmToken: jest.fn().mockResolvedValue(undefined),
@@ -303,6 +320,18 @@ jest.mock('../../../../UI/Tokens/util', () => ({
 
 jest.mock('../../../../../core/Multichain/utils', () => ({
   isNonEvmChainId: jest.fn().mockReturnValue(false),
+}));
+
+jest.mock('../../../../UI/TokenDetails/components/useAssetVisibility', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    assetId: undefined,
+    isCustomAsset: false,
+    isInAssetsBalance: false,
+    isHidden: false,
+    handleHideToken: jest.fn(),
+    handleAddCustomAsset: jest.fn(),
+  })),
 }));
 
 const mockPopularTokens = [
@@ -327,14 +356,13 @@ const mockPopularTokens = [
 describe('TokensSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRefreshTokens.mockResolvedValue(undefined);
+    mockRefresh.mockResolvedValue(undefined);
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([]);
     mockPopularNetworks = ['eip155:1', '0xa'];
     // Default null: balance selectors not yet initialized (cold start).
     // Prevents the heuristic from firing in tests that don't set up balance data.
     mockAccountGroupBalance.mockReturnValue(null);
-    mockSelectTokenListLayoutV2Enabled.mockReturnValue(false);
     mockUsePopularTokens.mockReturnValue({
       tokens: mockPopularTokens,
       isInitialLoading: false,
@@ -342,6 +370,14 @@ describe('TokensSection', () => {
       error: null,
       refetch: jest.fn(),
     });
+    // Cash section disabled by default so TokensSection shows all tokens (including mUSD) unless a test opts in.
+    jest
+      .requireMock('../../../../UI/Earn/selectors/featureFlags')
+      .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
+    jest
+      .requireMock('../../../../UI/Money/selectors/featureFlags')
+      .selectMoneyHubEnabledFlag.mockReturnValue(false);
+    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
   });
 
   it('renders section title for account with balance', () => {
@@ -395,12 +431,15 @@ describe('TokensSection', () => {
     const buyButtons = screen.getAllByText('Buy');
     fireEvent.press(buyButtons[0]);
 
-    expect(mockGoToBuy).toHaveBeenCalledWith({
-      assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
-    });
+    expect(mockGoToBuy).toHaveBeenCalledWith(
+      {
+        assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      },
+      { buyFlowOrigin: 'homeTokenList' },
+    );
   });
 
-  it('uses popular network list for token list (selectSortedAssetsBySelectedAccountGroupForChainIds)', () => {
+  it('uses popular network list for token list (selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance)', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     const popularChainIds = ['eip155:1', '0xa'];
     mockPopularNetworks = popularChainIds;
@@ -431,6 +470,41 @@ describe('TokensSection', () => {
     expect(screen.getByTestId('token-item-0xtoken2')).toBeOnTheScreen();
   });
 
+  it('forwards Money CTA to account token rows', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([
+      { chainId: '0x1', address: '0xtoken1', isStaked: false },
+      { chainId: '0x1', address: '0xtoken2', isStaked: false },
+    ]);
+
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(screen.getByTestId('token-cta-0xtoken1')).toHaveTextContent(
+      'Get 4% APY',
+    );
+    expect(screen.getByTestId('token-context-0xtoken1')).toHaveTextContent(
+      '1/2',
+    );
+    expect(screen.getByTestId('token-context-0xtoken2')).toHaveTextContent(
+      '2/2',
+    );
+  });
+
+  it('initializes Money CTA analytics for Wallet home', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([
+      { chainId: '0x1', address: '0xtoken1', isStaked: false },
+    ]);
+
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(useMoneyTokenListCta).toHaveBeenCalledWith(SCREEN_NAMES.WALLET_HOME);
+  });
+
   it('limits displayed tokens to MAX_TOKENS_DISPLAYED (5)', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([
@@ -453,6 +527,29 @@ describe('TokensSection', () => {
     expect(screen.queryByTestId('token-item-0xtoken7')).toBeNull();
   });
 
+  it('filters out mUSD from displayed tokens when Cash section is enabled', () => {
+    const MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+    jest
+      .requireMock('../../../../UI/Earn/selectors/featureFlags')
+      .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
+    jest
+      .requireMock('../../../../UI/Money/selectors/featureFlags')
+      .selectMoneyHubEnabledFlag.mockReturnValue(true);
+    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockSortedTokenKeys.mockReturnValue([
+      { chainId: '0x1', address: MUSD_ADDRESS, isStaked: false },
+      { chainId: '0x1', address: '0xtoken1', isStaked: false },
+    ]);
+
+    renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(screen.queryByTestId(`token-item-${MUSD_ADDRESS}`)).toBeNull();
+    expect(screen.getByTestId('token-item-0xtoken1')).toBeOnTheScreen();
+  });
+
   it('navigates to tokens full view on title press', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
 
@@ -460,7 +557,7 @@ describe('TokensSection', () => {
       <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    fireEvent.press(screen.getByLabelText('Tokens'));
+    fireEvent.press(screen.getByTestId(homepageSectionTitleTestId('tokens')));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
   });
@@ -505,12 +602,12 @@ describe('TokensSection', () => {
     expect(screen.getByText('MetaMask USD')).toBeOnTheScreen();
   });
 
-  it('renders ErrorState when refreshTokens throws for non-zero balance account', async () => {
+  it('renders ErrorState when refresh hook throws for non-zero balance account', async () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([
       { chainId: '0x1', address: '0xtoken1', isStaked: false },
     ]);
-    mockRefreshTokens.mockRejectedValue(new Error('Network error'));
+    mockRefresh.mockRejectedValue(new Error('Network error'));
 
     const ref = React.createRef<{ refresh: () => Promise<void> }>();
     renderWithProvider(
@@ -532,7 +629,7 @@ describe('TokensSection', () => {
     mockSortedTokenKeys.mockReturnValue([
       { chainId: '0x1', address: '0xtoken1', isStaked: false },
     ]);
-    mockRefreshTokens.mockRejectedValueOnce(new Error('Network error'));
+    mockRefresh.mockRejectedValueOnce(new Error('Network error'));
 
     const ref = React.createRef<{ refresh: () => Promise<void> }>();
     renderWithProvider(
@@ -603,7 +700,7 @@ describe('TokensSection', () => {
       fireEvent.press(screen.getByTestId('error-state-retry-button'));
     });
 
-    expect(mockRefreshTokens).toHaveBeenCalledTimes(1);
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
   it('does not show RemoveTokenBottomSheet by default', () => {
@@ -697,7 +794,7 @@ describe('TokensSection', () => {
     });
   });
 
-  it('calls refreshTokens for non-zero balance pull-to-refresh', async () => {
+  it('invokes the refresh hook for non-zero balance pull-to-refresh', async () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([
       { chainId: '0x1', address: '0xtoken1', isStaked: false },
@@ -712,11 +809,6 @@ describe('TokensSection', () => {
       await ref.current?.refresh();
     });
 
-    expect(mockRefreshTokens).toHaveBeenCalledTimes(1);
-    expect(mockRefreshTokens).toHaveBeenCalledWith(
-      expect.objectContaining({
-        isSolanaSelected: false,
-      }),
-    );
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 });

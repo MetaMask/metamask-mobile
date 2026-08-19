@@ -1,7 +1,16 @@
 import EventEmitter2 from 'eventemitter2';
-import type { MarkAsReadNotificationsParam } from '@metamask/notification-services-controller/notification-services';
+import type {
+  MarkAsReadNotificationsParam,
+  NotificationServicesControllerEnableNotificationsOptions,
+} from '@metamask/notification-services-controller/notification-services';
 import Engine from '../../../core/Engine';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+
+const CLIENT_TYPE = 'mobile' as const;
+const GET_NOTIFICATION_PREFERENCES_ACTION =
+  'AuthenticatedUserStorageService:getNotificationPreferences' as const;
+const PUT_NOTIFICATION_PREFERENCES_ACTION =
+  'AuthenticatedUserStorageService:putNotificationPreferences' as const;
 
 const previewTokenEventEmitter = new EventEmitter2();
 const PREVIEW_TOKEN_UPDATE_EVENT = 'previewTokenUpdate';
@@ -38,9 +47,51 @@ export const assertIsFeatureEnabled = () => {
  * - This is used during onboarding and for the notifications settings toggle
  * - Enables wallet notifications, feature announcements, and push notifications
  */
-export const enableNotifications = async () => {
+export const enableNotifications = async (
+  options?: NotificationServicesControllerEnableNotificationsOptions,
+) => {
   assertIsFeatureEnabled();
-  await Engine.context.NotificationServicesController.enableMetamaskNotifications();
+  await Engine.context.NotificationServicesController.enableMetamaskNotifications(
+    options,
+  );
+};
+
+/**
+ * Checks whether the authenticated user storage already has notification preferences.
+ * A missing AUS row is returned as `null` by the service.
+ */
+export const hasNotificationPreferences = async () => {
+  assertIsFeatureEnabled();
+  const preferences = await Engine.controllerMessenger.call(
+    GET_NOTIFICATION_PREFERENCES_ACTION,
+  );
+  return preferences != null;
+};
+
+export const setMarketingNotificationPreferencesEnabled = async (
+  isEnabled: boolean,
+) => {
+  assertIsFeatureEnabled();
+  const preferences = await Engine.controllerMessenger.call(
+    GET_NOTIFICATION_PREFERENCES_ACTION,
+  );
+
+  if (!preferences) {
+    return;
+  }
+
+  await Engine.controllerMessenger.call(
+    PUT_NOTIFICATION_PREFERENCES_ACTION,
+    {
+      ...preferences,
+      marketing: {
+        ...preferences.marketing,
+        inAppNotificationsEnabled: isEnabled,
+        pushNotificationsEnabled: isEnabled,
+      },
+    },
+    CLIENT_TYPE,
+  );
 };
 
 /**
@@ -146,16 +197,4 @@ export const markNotificationsAsRead = async (
   await Engine.context.NotificationServicesController.markMetamaskNotificationsAsRead(
     notifications,
   );
-};
-
-/**
- * Developer options/User toggle to reset notifications
- * (in case their UserStorage or notifications become corrupt)
- * @throws if there is an error resetting notifications
- */
-export const resetNotifications = async () => {
-  assertIsFeatureEnabled();
-  await Engine.context.NotificationServicesController.createOnChainTriggers({
-    resetNotifications: true,
-  });
 };

@@ -4,31 +4,40 @@ import { SwapsKeypad } from './index';
 import { Keys } from '../../../../Base/Keypad';
 import { SwapsKeypadRef } from './types';
 
-// Mock BottomSheetDialog to render children directly without animations.
+// Captures props passed to BottomSheetDialog so tests can assert configuration.
+const mockBottomSheetDialogProps = jest.fn();
+
+// Mock MMDS BottomSheetDialog to render children directly without animations.
 // Exposes onCloseDialog via ref so close() can be tested.
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet/foundation/BottomSheetDialog/BottomSheetDialog',
-  () => {
-    const MockReact = jest.requireActual('react');
-    return {
-      __esModule: true,
-      default: MockReact.forwardRef(
-        (
-          {
-            children,
-            onClose,
-          }: { children: React.ReactNode; onClose?: () => void },
-          dialogRef: React.Ref<{ onCloseDialog: () => void }>,
-        ) => {
-          MockReact.useImperativeHandle(dialogRef, () => ({
-            onCloseDialog: () => onClose?.(),
-          }));
-          return children;
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const MockReact = jest.requireActual('react');
+
+  return {
+    ...actual,
+    BottomSheetDialog: MockReact.forwardRef(
+      (
+        {
+          children,
+          onClose,
+          ...rest
+        }: {
+          children: React.ReactNode;
+          onClose?: () => void;
+          isInteractable?: boolean;
+          [key: string]: unknown;
         },
-      ),
-    };
-  },
-);
+        dialogRef: React.Ref<{ onCloseDialog: () => void }>,
+      ) => {
+        mockBottomSheetDialogProps({ onClose, ...rest });
+        MockReact.useImperativeHandle(dialogRef, () => ({
+          onCloseDialog: () => onClose?.(),
+        }));
+        return children;
+      },
+    ),
+  };
+});
 
 /**
  * Helper to render SwapsKeypad and open it via the ref.
@@ -53,6 +62,7 @@ describe('SwapsKeypad', () => {
 
   afterEach(() => {
     jest.resetAllMocks();
+    mockBottomSheetDialogProps.mockReset();
   });
 
   describe('rendering', () => {
@@ -386,6 +396,21 @@ describe('SwapsKeypad', () => {
       });
       expect(getByText('1')).toBeTruthy();
       expect(ref.current?.isOpen()).toBe(true);
+    });
+  });
+
+  describe('bottom sheet configuration', () => {
+    it('renders BottomSheetDialog with isInteractable=false to prevent PanGestureHandler double-firing keypad buttons', () => {
+      renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+      });
+
+      expect(mockBottomSheetDialogProps).toHaveBeenCalledWith(
+        expect.objectContaining({ isInteractable: false }),
+      );
     });
   });
 });

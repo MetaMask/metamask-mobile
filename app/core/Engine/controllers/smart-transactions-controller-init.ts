@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   getSmartTransactionMetricsProperties,
   SmartTransactionsController,
@@ -10,8 +10,10 @@ import {
 } from '@metamask/smart-transactions-controller';
 import type { SmartTransactionsControllerInitMessenger } from '../messengers/smart-transactions-controller-messenger';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import type { AnalyticsTrackingEvent as PackageAnalyticsTrackingEvent } from '@metamask/analytics-controller';
 import { trace } from '../../../util/trace';
 import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTransactions';
+import { setSentinelApiAuth } from '../../../util/transactions/sentinel-api';
 
 /**
  * Initialize the smart transactions controller.
@@ -20,7 +22,7 @@ import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTra
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @returns The initialized controller.
  */
-export const smartTransactionsControllerInit: ControllerInitFunction<
+export const smartTransactionsControllerInit: MessengerClientInitFunction<
   SmartTransactionsController,
   SmartTransactionsControllerMessenger,
   SmartTransactionsControllerInitMessenger
@@ -39,12 +41,34 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
         .addSensitiveProperties(params.sensitiveProperties)
         .build();
 
-      initMessenger.call('AnalyticsController:trackEvent', event);
+      // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
+      initMessenger.call(
+        'AnalyticsController:trackEvent',
+        event as unknown as PackageAnalyticsTrackingEvent,
+      );
     } catch (error) {
       // Analytics tracking failures should not break smart transactions
       // Error is logged but not thrown
     }
   };
+
+  /**
+   * Bearer token for Transaction API (and Sentinel) authentication. Only present when
+   * the user is signed in (AuthenticationController has a valid session). If getBearerToken
+   * returns undefined, no Authorization header is sent on smart transaction API calls.
+   */
+  const getBearerToken = async (): Promise<string | undefined> => {
+    try {
+      return await Promise.resolve(
+        controllerMessenger.call('AuthenticationController:getBearerToken'),
+      );
+    } catch {
+      return undefined;
+    }
+  };
+
+  // Use same bearer token for Sentinel API (networks, relay) as for Transaction API
+  setSentinelApiAuth(getBearerToken);
 
   const controller = new SmartTransactionsController({
     messenger: controllerMessenger,

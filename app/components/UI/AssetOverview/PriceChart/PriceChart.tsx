@@ -7,43 +7,65 @@ import {
   PanResponder,
   View,
 } from 'react-native';
-import {
-  Circle,
-  Defs,
-  G,
-  LinearGradient,
-  Path,
-  Rect,
-  Stop,
-  Line as SvgLine,
-} from 'react-native-svg';
+import { Circle, G, Path, Line as SvgLine } from 'react-native-svg';
 import { AreaChart } from 'react-native-svg-charts';
 
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { strings } from '../../../../../locales/i18n';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import Title from '../../../Base/Title';
-import styleSheet, { CHART_HEIGHT } from './PriceChart.styles';
-import { placeholderData } from './utils';
+import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  CHART_DATA_THRESHOLD,
+  TOKEN_OVERVIEW_CHART_HEIGHT,
+} from '../Price/tokenOverviewChart.constants';
+import styleSheet from './PriceChart.styles';
 import PriceChartContext from './PriceChart.context';
+import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
+import { Box } from '@metamask/design-system-react-native';
 
 interface LineProps {
   line: string;
-  chartHasData: boolean;
+  lineStrokeActive: boolean;
 }
 
 interface TooltipProps {
-  x: (index: number) => number;
+  x: (value: number) => number;
   y: (value: number) => number;
   ticks: number[];
+  width?: number;
+  height?: number;
+}
+
+/** Design: 16×16 logical px circle (TradingView-style last-point marker). */
+const END_DOT_DIAMETER = 16;
+
+/**
+ * Binary-search for the data point whose timestamp is closest to `target`.
+ * Assumes `sortedPrices` is sorted ascending by timestamp.
+ */
+export function findNearestIndex(
+  sortedPrices: TokenPrice[],
+  target: number,
+): number {
+  if (sortedPrices.length === 0) return -1;
+  let lo = 0;
+  let hi = sortedPrices.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (Number(sortedPrices[mid][0]) < target) {
+      lo = mid + 1;
+    } else {
+      hi = mid;
+    }
+  }
+  if (lo > 0) {
+    const diffLo = Math.abs(Number(sortedPrices[lo][0]) - target);
+    const diffPrev = Math.abs(Number(sortedPrices[lo - 1][0]) - target);
+    if (diffPrev < diffLo) return lo - 1;
+  }
+  return lo;
 }
 
 interface PriceChartProps {
@@ -51,6 +73,23 @@ interface PriceChartProps {
   priceDiff: number;
   isLoading: boolean;
   onChartIndexChange: (index: number) => void;
+  /** Match token overview AdvancedChart height. */
+  chartHeight?: number;
+  /** Override line color (A/B test). */
+  chartColorOverride?: string;
+  /**
+   * When true, the historical-prices API returned data covering less than
+   * 50% of the requested time period. The chart shows a "no data" overlay
+   * instead of rendering a misleading partial chart.
+   */
+  hasInsufficientCoverage?: boolean;
+  /**
+   * Duration of the selected time range in milliseconds (e.g. 86 400 000
+   * for "1D"). When provided the chart uses a time-based x-axis so partial
+   * data is rendered at the correct position within the full window.  When
+   * omitted (e.g. "ALL") the chart falls back to index-based x-axis.
+   */
+  timePeriodMs?: number;
 }
 
 const PriceChart = ({
@@ -58,29 +97,57 @@ const PriceChart = ({
   priceDiff,
   isLoading,
   onChartIndexChange,
+  chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
+  chartColorOverride,
+  hasInsufficientCoverage = false,
+  timePeriodMs,
 }: PriceChartProps) => {
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const emptyDisplayTrackedRef = useRef(false);
   const { setIsChartBeingTouched } = useContext(PriceChartContext);
 
   const [positionX, setPositionX] = useState(-1); // The currently selected X coordinate position
-  const { styles, theme } = useStyles(styleSheet, {});
+  /** Laid-out width of the chart row — used for touch mapping and skeleton (not screen width). */
+  const [chartRowWidth, setChartRowWidth] = useState(0);
+  const { styles, theme } = useStyles(styleSheet, { chartHeight });
+  const { themeAppearance } = useTheme();
+  const chartColor =
+    chartColorOverride ??
+    (themeAppearance === AppThemeKey.light
+      ? LIGHT_MODE_SUCCESS_GREEN
+      : theme.colors.success.default);
 
   useEffect(() => {
     setPositionX(-1);
   }, [prices]);
-
-  const chartColor =
-    priceDiff > 0
-      ? theme.colors.primary.default
-      : priceDiff < 0
-        ? theme.colors.primary.default
-        : theme.colors.text.alternative;
 
   const apx = (size = 0) => {
     const width = Dimensions.get('window').width;
     return (width / 750) * size;
   };
 
-  const priceList = prices.map((_: TokenPrice) => _[1]);
+  // Memoize so scrub/gesture re-renders (positionX) do not re-map the series
+  // or invalidate the downstream stablecoin y-axis useMemo via a new array identity.
+  const priceList = useMemo(
+    () => prices.map((p: TokenPrice) => p[1]),
+    [prices],
+  );
+
+  const endDotRadius = END_DOT_DIAMETER / 2;
+  const endDotInsetRight = endDotRadius + 8;
+
+  const isTimeBased = timePeriodMs != null && timePeriodMs > 0;
+
+  // Stable x-domain for the time-based axis. Recalculated when the data or
+  // time-period changes so the "now" anchor matches the fetch moment.
+  const { chartXMin, chartXMax } = useMemo(() => {
+    if (!isTimeBased) {
+      return { chartXMin: undefined, chartXMax: undefined };
+    }
+    const now = Date.now();
+    return { chartXMin: now - timePeriodMs, chartXMax: now };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTimeBased, timePeriodMs, prices]);
 
   // Detect if this is a stablecoin and calculate appropriate Y-axis range
   const { isStablecoin, yMin, yMax } = useMemo(() => {
@@ -124,30 +191,62 @@ const PriceChart = ({
     };
   }, [priceList]);
 
+  const chartHasData =
+    priceList.length >= CHART_DATA_THRESHOLD && !hasInsufficientCoverage;
+  const hasInsufficientData =
+    (priceList.length > 0 && priceList.length < CHART_DATA_THRESHOLD) ||
+    hasInsufficientCoverage;
+
+  useEffect(() => {
+    if (chartHasData || isLoading) {
+      emptyDisplayTrackedRef.current = false;
+      return;
+    }
+    if (emptyDisplayTrackedRef.current) {
+      return;
+    }
+    emptyDisplayTrackedRef.current = true;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CHART_EMPTY_DISPLAYED).build(),
+    );
+  }, [chartHasData, isLoading, trackEvent, createEventBuilder]);
+
   const onActiveIndexChange = (index: number) => {
     setPositionX(index);
     onChartIndexChange(index);
   };
 
-  const updatePosition = (x: number) => {
-    if (x === -1) {
+  const updatePosition = (pixelX: number) => {
+    if (pixelX === -1) {
       onActiveIndexChange(-1);
       return;
     }
-    const chartWidth = Dimensions.get('window').width;
-    const xDistance = chartWidth / priceList.length;
-    if (x <= 0) {
-      x = 0;
+    const chartWidth =
+      chartRowWidth > 0 ? chartRowWidth : Dimensions.get('window').width;
+
+    if (isTimeBased && chartXMin != null && chartXMax != null) {
+      const rangeMax = chartWidth - endDotInsetRight;
+      const clamped = Math.max(0, Math.min(pixelX, rangeMax));
+      const fraction = rangeMax > 0 ? clamped / rangeMax : 0;
+      const targetTs = chartXMin + fraction * (chartXMax - chartXMin);
+      const idx = findNearestIndex(prices, targetTs);
+      onActiveIndexChange(idx);
+    } else {
+      const xDistance = chartWidth / priceList.length;
+      const clamped = Math.max(0, Math.min(pixelX, chartWidth));
+      let value = Number((clamped / xDistance).toFixed(0));
+      if (value >= priceList.length - 1) {
+        value = priceList.length - 1;
+      }
+      onActiveIndexChange(value);
     }
-    if (x >= chartWidth) {
-      x = chartWidth;
-    }
-    let value = Number((x / xDistance).toFixed(0));
-    if (value >= priceList.length - 1) {
-      value = priceList.length - 1;
-    }
-    onActiveIndexChange(value);
   };
+
+  // Refs so the PanResponder closure always calls the latest functions.
+  const updatePositionRef = useRef(updatePosition);
+  updatePositionRef.current = updatePosition;
+  const setIsChartBeingTouchedRef = useRef(setIsChartBeingTouched);
+  setIsChartBeingTouchedRef.current = setIsChartBeingTouched;
 
   const prevTouch = useRef({ x: 0, y: 0 });
   const panResponder = useRef(
@@ -158,22 +257,22 @@ const PriceChart = ({
       onMoveShouldSetPanResponderCapture: () => true,
       onPanResponderTerminationRequest: () => true,
       onPanResponderGrant: (evt: GestureResponderEvent) => {
-        // save current touch for the next move
         prevTouch.current = {
           x: evt.nativeEvent.locationX,
           y: evt.nativeEvent.locationY,
         };
-        updatePosition(evt.nativeEvent.locationX);
+        updatePositionRef.current(evt.nativeEvent.locationX);
       },
       onPanResponderMove: (evt: GestureResponderEvent) => {
         const deltaX = evt.nativeEvent.locationX - prevTouch.current.x;
         const deltaY = evt.nativeEvent.locationY - prevTouch.current.y;
         const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
 
-        setIsChartBeingTouched(isHorizontalSwipe);
-        updatePosition(isHorizontalSwipe ? evt.nativeEvent.locationX : -1);
+        setIsChartBeingTouchedRef.current(isHorizontalSwipe);
+        updatePositionRef.current(
+          isHorizontalSwipe ? evt.nativeEvent.locationX : -1,
+        );
 
-        // save current touch for the next move
         prevTouch.current = {
           x: evt.nativeEvent.locationX,
           y: evt.nativeEvent.locationY,
@@ -181,133 +280,41 @@ const PriceChart = ({
       },
 
       onPanResponderRelease: () => {
-        setIsChartBeingTouched(false);
-        updatePosition(-1);
+        setIsChartBeingTouchedRef.current(false);
+        updatePositionRef.current(-1);
       },
     }),
   );
 
   const Line = (props: Partial<LineProps>) => {
-    const { line, chartHasData } = props as LineProps;
+    const { line, lineStrokeActive } = props as LineProps;
     return (
       <Path
         key="line"
         d={line}
-        stroke={chartHasData ? chartColor : theme.colors.text.alternative}
+        stroke={lineStrokeActive ? chartColor : theme.colors.text.alternative}
         strokeWidth={apx(4)}
         fill="none"
-        opacity={chartHasData ? 1 : 0.85}
+        opacity={lineStrokeActive ? 1 : 0.85}
       />
     );
   };
 
-  const DataGradient = () => (
-    <Defs key="dataGradient">
-      <LinearGradient
-        id="dataGradient"
-        x1="0"
-        y1="0%"
-        x2="0%"
-        y2={`${CHART_HEIGHT}px`}
-      >
-        <Stop offset="0%" stopColor={chartColor} stopOpacity={0.25} />
-        <Stop offset="90%" stopColor={chartColor} stopOpacity={0} />
-      </LinearGradient>
-    </Defs>
-  );
-
-  const NoDataGradient = () => {
-    // gradient with transparent center and grey edges
-    const gradient = (
-      <Defs key="gradient">
-        <LinearGradient id="gradient" x1="0" y1="1" x2="0" y2="0">
-          <Stop
-            offset="0"
-            stopColor={theme.colors.background.default}
-            stopOpacity="1"
-          />
-          <Stop
-            offset="0.5"
-            stopColor={theme.colors.background.default}
-            stopOpacity="0.5"
-          />
-          <Stop
-            offset="1"
-            stopColor={theme.colors.background.default}
-            stopOpacity="1"
-          />
-        </LinearGradient>
-      </Defs>
-    );
-
-    return (
-      <G key="no-data-gradient">
-        {gradient}
-        <Rect
-          x="0"
-          y="0"
-          width={Dimensions.get('screen').width}
-          height={CHART_HEIGHT}
-          fill="url(#gradient)"
-        />
-      </G>
-    );
-  };
-
-  const NoDataOverlay = () => {
-    const hasInsufficientData = priceList.length > 0 && priceList.length <= 1;
-
-    if (hasInsufficientData) {
-      // Show simplified message for 1 data point
-      return (
-        <View
-          style={styles.noDataOverlay}
-          testID="price-chart-insufficient-data"
-        >
-          <Text
-            variant={TextVariant.BodyLGMedium}
-            style={styles.noDataOverlayText}
-          >
-            {strings('asset_overview.no_chart_data.insufficient_data')}
-          </Text>
-        </View>
-      );
-    }
-
-    // Show full overlay for no data
-    return (
-      <View style={styles.noDataOverlay} testID="price-chart-no-data">
-        <Text>
-          <Icon
-            name={IconName.Warning}
-            color={IconColor.Muted}
-            size={IconSize.Xl}
-            testID="price-chart-no-data-icon"
-          />
-        </Text>
-        <Title style={styles.noDataOverlayTitle}>
-          {strings('asset_overview.no_chart_data.title')}
-        </Title>
-        <Text
-          variant={TextVariant.BodyLGMedium}
-          style={styles.noDataOverlayText}
-        >
-          {strings('asset_overview.no_chart_data.description')}
-        </Text>
-      </View>
-    );
-  };
-
-  const Tooltip = ({ x, y }: Partial<TooltipProps>) => {
+  const Tooltip = ({ x, y, height: svgHeight }: Partial<TooltipProps>) => {
     if (positionX < 0) {
       return null;
     }
+    const lineHeight =
+      typeof svgHeight === 'number' && svgHeight > 0 ? svgHeight : chartHeight;
+    const xPos = isTimeBased
+      ? x?.(Number(prices[positionX]?.[0]))
+      : x?.(positionX);
     return (
-      <G x={x?.(positionX)} key="tooltip">
+      <G x={xPos} key="tooltip">
         <G>
           <SvgLine
             y1={1}
-            y2={CHART_HEIGHT}
+            y2={lineHeight}
             stroke={styles.tooltipLine.color}
             strokeWidth={1}
           />
@@ -323,6 +330,37 @@ const PriceChart = ({
     );
   };
 
+  /** Last-point marker — TradingView-style line end dot. Requires right contentInset or SVG clips half the circle. */
+  const EndDot = ({ x, y }: Partial<TooltipProps>) => {
+    if (!chartHasData || x === undefined || y === undefined) {
+      return null;
+    }
+    const lastIdx = priceList.length - 1;
+    const lastY = priceList[lastIdx];
+    const cx = isTimeBased ? x(Number(prices[lastIdx]?.[0])) : x(lastIdx);
+    const cy = y(lastY);
+    if (
+      typeof cx !== 'number' ||
+      typeof cy !== 'number' ||
+      Number.isNaN(cx) ||
+      Number.isNaN(cy)
+    ) {
+      return null;
+    }
+    return (
+      <Circle
+        key="end-dot"
+        testID="price-chart-end-dot"
+        cx={cx}
+        cy={cy}
+        r={endDotRadius}
+        fill={chartColor}
+        stroke={theme.colors.background.default}
+        strokeWidth={Math.max(1.5, apx(2))}
+      />
+    );
+  };
+
   /**
    * Loading overlay component.
    * Note: We render this conditionally in the return statement rather than early-returning
@@ -330,47 +368,82 @@ const PriceChart = ({
    * @see https://github.com/MetaMask/metamask-mobile/issues/20854
    */
   const LoadingOverlay = () => (
-    <View style={styles.noDataOverlay} testID="price-chart-loading">
+    <Box twClassName="justify-center items-center" testID="price-chart-loading">
       <SkeletonPlaceholder
         backgroundColor={theme.colors.background.section}
         highlightColor={theme.colors.background.subsection}
       >
         <SkeletonPlaceholder.Item
-          width={Dimensions.get('screen').width - 32}
-          height={CHART_HEIGHT}
+          width={
+            chartRowWidth > 0
+              ? chartRowWidth
+              : Dimensions.get('window').width - 32
+          }
+          height={chartHeight}
           borderRadius={6}
         ></SkeletonPlaceholder.Item>
       </SkeletonPlaceholder>
-    </View>
+    </Box>
   );
 
-  const chartHasData = priceList.length > 1;
-
   return (
-    <View style={styles.chart}>
+    <View
+      style={styles.chart}
+      onLayout={(e) => {
+        const w = e.nativeEvent.layout.width;
+        if (w > 0) {
+          setChartRowWidth(w);
+        }
+      }}
+    >
       <View
-        style={styles.chartArea}
+        style={styles.chartAreaWrapper}
         testID={chartHasData ? 'price-chart-area' : undefined}
-        {...panResponder.current.panHandlers}
+        {...(chartHasData ? panResponder.current.panHandlers : {})}
       >
-        {isLoading ? <LoadingOverlay /> : !chartHasData && <NoDataOverlay />}
-        {/* Chart is always rendered to avoid Android rendering bug; visible elements are conditionally hidden during loading. See: https://github.com/MetaMask/metamask-mobile/issues/20854 */}
-        <AreaChart
-          style={styles.chartArea}
-          data={chartHasData ? priceList : placeholderData}
-          contentInset={{ top: apx(40), bottom: apx(40) }}
-          svg={
-            chartHasData && !isLoading
-              ? { fill: `url(#dataGradient)` }
-              : undefined
-          }
-          yMin={isStablecoin && chartHasData ? yMin : undefined}
-          yMax={isStablecoin && chartHasData ? yMax : undefined}
-        >
-          {!isLoading && <Line chartHasData={chartHasData} />}
-          {chartHasData ? <Tooltip /> : <NoDataGradient />}
-          {chartHasData && <DataGradient />}
-        </AreaChart>
+        {chartHasData ? (
+          <AreaChart
+            style={styles.chartArea}
+            data={prices}
+            yAccessor={({ item }: { item: TokenPrice; index: number }) =>
+              item[1]
+            }
+            xAccessor={
+              isTimeBased
+                ? ({ item }: { item: TokenPrice; index: number }) =>
+                    Number(item[0])
+                : ({ index }: { item: TokenPrice; index: number }) => index
+            }
+            contentInset={{
+              top: apx(40),
+              bottom: apx(40),
+              right: endDotInsetRight,
+            }}
+            svg={!isLoading ? { fill: 'none' } : undefined}
+            yMin={isStablecoin ? yMin : undefined}
+            yMax={isStablecoin ? yMax : undefined}
+            xMin={isTimeBased ? chartXMin : undefined}
+            xMax={isTimeBased ? chartXMax : undefined}
+          >
+            {!isLoading && <Line lineStrokeActive />}
+            {!isLoading && <Tooltip />}
+            {!isLoading && <EndDot />}
+          </AreaChart>
+        ) : null}
+        {isLoading && (
+          <View style={styles.loadingOverlayContainer}>
+            <LoadingOverlay />
+          </View>
+        )}
+        {!isLoading && !chartHasData && (
+          <View style={styles.noDataOverlayContainer} pointerEvents="box-none">
+            <NoDataOverlay
+              chartHeight={chartHeight}
+              chartPlaceholderFill={theme.colors.border.muted}
+              hasInsufficientData={hasInsufficientData}
+            />
+          </View>
+        )}
       </View>
     </View>
   );

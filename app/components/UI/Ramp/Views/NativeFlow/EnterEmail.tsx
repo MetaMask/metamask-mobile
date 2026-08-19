@@ -1,47 +1,55 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { TextInput, View } from 'react-native';
-import Text, {
+import {
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
-import styleSheet from '../../Deposit/Views/EnterEmail/EnterEmail.styles';
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../hooks/useStyles';
+import styleSheet from './EnterEmail.styles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import { getDepositNavbarOptions } from '../../../Navbar';
 import { createV2OtpCodeNavDetails } from './OtpCode';
-import { validateEmail } from '../../Deposit/utils';
-import DepositProgressBar from '../../Deposit/components/DepositProgressBar/DepositProgressBar';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
+import { validateEmail } from '../../utils/depositUtils';
+import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
+import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useTransakController } from '../../hooks/useTransakController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { EnterEmailSelectorsIDs } from './EnterEmail.testIds';
 
 export interface V2EnterEmailParams {
   amount?: string;
   currency?: string;
   assetId?: string;
+  /**
+   * When present, the screen is part of a headless buy flow and should
+   * forward this id to OtpCode, so post-OTP routing can land back on
+   * `Routes.RAMP.HEADLESS_HOST` instead of BuildQuote.
+   */
+  headlessSessionId?: string;
 }
 
 export const createV2EnterEmailNavDetails =
   createNavigationDetails<V2EnterEmailParams>(Routes.RAMP.ENTER_EMAIL);
 
 const V2EnterEmail = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<V2EnterEmailParams>();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -52,25 +60,25 @@ const V2EnterEmail = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { sendUserOtp } = useTransakController();
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.enter_email.navbar_title') },
-        theme,
-        () => {
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
-              .addProperties({
-                location: 'Enter Email',
-                ramp_type: 'UNIFIED_BUY_2',
-              })
-              .build(),
-          );
-        },
-      ),
+  // Headless deposit (TRAM-3623): when this screen is part of a headless buy
+  // flow, every analytics emit is tagged `ramp_type: 'HEADLESS'` (overriding
+  // the UB2/DEPOSIT literals) plus the seeded `ramp_surface`, sourced from the
+  // per-screen `headlessSessionId` so non-headless UB2 traffic is unaffected.
+  const headlessSessionId = params?.headlessSessionId;
+  const { headlessRampProps, headlessDepositRampProps } =
+    useHeadlessRampProps(headlessSessionId);
+
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.RAMPS_BACK_BUTTON_CLICKED)
+        .addProperties({
+          location: 'Enter Email',
+          ...headlessRampProps,
+        })
+        .build(),
     );
-  }, [navigation, theme, trackEvent, createEventBuilder]);
+  }, [navigation, trackEvent, createEventBuilder, headlessRampProps]);
 
   const hasTrackedScreenViewRef = useRef(false);
   useEffect(() => {
@@ -80,11 +88,11 @@ const V2EnterEmail = () => {
       createEventBuilder(MetaMetricsEvents.RAMPS_SCREEN_VIEWED)
         .addProperties({
           location: 'Enter Email',
-          ramp_type: 'UNIFIED_BUY_2',
+          ...headlessRampProps,
         })
         .build(),
     );
-  }, [trackEvent, createEventBuilder]);
+  }, [trackEvent, createEventBuilder, headlessRampProps]);
 
   const emailInputRef = useRef<TextInput>(null);
 
@@ -112,17 +120,19 @@ const V2EnterEmail = () => {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.RAMPS_EMAIL_SUBMITTED)
             .addProperties({
-              ramp_type: 'DEPOSIT',
+              ...headlessDepositRampProps,
             })
             .build(),
         );
-        navigation.navigate(
-          ...createV2OtpCodeNavDetails({
+        navigateWithDetails(
+          navigation,
+          createV2OtpCodeNavDetails({
             email,
             stateToken: otpResponse.stateToken,
             amount: params?.amount,
             currency: params?.currency,
             assetId: params?.assetId,
+            headlessSessionId: params?.headlessSessionId,
           }),
         );
       } else {
@@ -134,18 +144,32 @@ const V2EnterEmail = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [email, navigation, sendUserOtp, trackEvent, createEventBuilder, params]);
+  }, [
+    email,
+    navigation,
+    sendUserOtp,
+    trackEvent,
+    createEventBuilder,
+    params,
+    headlessDepositRampProps,
+  ]);
 
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderStandard
+          title={strings('deposit.enter_email.navbar_title')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={0} />
           <View style={styles.contentContainer}>
-            <Text variant={TextVariant.HeadingLG} style={styles.title}>
+            <Text variant={TextVariant.HeadingLg} style={styles.title}>
               {strings('deposit.enter_email.title')}
             </Text>
-            <Text style={styles.description}>
+            <Text variant={TextVariant.BodyMd} style={styles.description}>
               {strings('deposit.enter_email.description')}
             </Text>
 
@@ -165,12 +189,16 @@ const V2EnterEmail = () => {
             />
 
             {validationError && (
-              <Text style={styles.error}>
+              <Text variant={TextVariant.BodySm} style={styles.error}>
                 {strings('deposit.enter_email.validation_error')}
               </Text>
             )}
 
-            {error && <Text style={styles.error}>{error}</Text>}
+            {error && (
+              <Text variant={TextVariant.BodySm} style={styles.error}>
+                {error}
+              </Text>
+            )}
           </View>
         </ScreenLayout.Content>
       </ScreenLayout.Body>
@@ -181,12 +209,13 @@ const V2EnterEmail = () => {
             testID={EnterEmailSelectorsIDs.SEND_EMAIL_BUTTON}
             size={ButtonSize.Lg}
             onPress={handleSubmit}
-            label={strings('deposit.enter_email.submit_button')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-            loading={isLoading}
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            isLoading={isLoading}
             isDisabled={isLoading}
-          />
+          >
+            {strings('deposit.enter_email.submit_button')}
+          </Button>
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

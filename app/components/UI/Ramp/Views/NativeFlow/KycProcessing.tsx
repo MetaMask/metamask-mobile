@@ -1,49 +1,65 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import styleSheet from '../../Deposit/Views/KycProcessing/KycProcessing.styles';
-import { useNavigation } from '@react-navigation/native';
-import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
-import { useParams } from '../../../../../util/navigation/navUtils';
-import { useStyles } from '../../../../../component-library/hooks';
+import styleSheet from './KycProcessing.styles';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import DepositProgressBar from '../../components/DepositProgressBar';
+import { useStyles } from '../../../../hooks/useStyles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
+import {
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
+  Icon,
   IconName,
   IconSize,
   IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
-import Button, {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import { KycStatus } from '../../Deposit/constants';
+  ButtonVariant,
+  FontWeight,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import { KycStatus } from '../../constants';
 import Logger from '../../../../../util/Logger';
 import useAnalytics from '../../hooks/useAnalytics';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
-import type {
-  TransakBuyQuote,
-  TransakUserDetails,
-} from '@metamask/ramps-controller';
+import type { TransakUserDetails } from '@metamask/ramps-controller';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
+import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import { KYC_PROCESSING_TEST_IDS } from './KycProcessing.testIds';
 
-interface V2KycProcessingParams {
-  quote: TransakBuyQuote;
+export interface V2KycProcessingParams {
+  /**
+   * Threaded from `useTransakRouting` resets when the KYC step is part of a
+   * headless buy flow (TRAM-3623). Used to flip the KYC analytics to
+   * `ramp_type: 'HEADLESS'` + the seeded `ramp_surface`.
+   */
+  headlessSessionId?: string;
 }
 
 const V2KycProcessing = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { quote } = useParams<V2KycProcessingParams>();
   const trackEvent = useAnalytics();
+  const { headlessSessionId } = useParams<V2KycProcessingParams>();
 
-  const { getAdditionalRequirements, getUserDetails } = useTransakController();
+  // Headless deposit (TRAM-3623): flip the KYC outcome events to
+  // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when in a headless
+  // flow; keep 'DEPOSIT' otherwise.
+  const { headlessDepositRampProps } = useHeadlessRampProps(headlessSessionId);
+
+  const {
+    getAdditionalRequirements,
+    getUserDetails,
+    buyQuote: quote,
+  } = useTransakController();
+  const { userRegion } = useRampsUserRegion();
+  const regionIsoCode = userRegion?.regionCode || '';
   const { routeAfterAuthentication } = useTransakRouting({
     screenLocation: 'V2 KycProcessing Screen',
   });
@@ -56,34 +72,39 @@ const V2KycProcessing = () => {
     null,
   );
   const [userDetailsError, setUserDetailsError] = useState<string | null>(null);
+  const [isContinueLoading, setIsContinueLoading] = useState(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.kyc_processing.navbar_title') },
-        theme,
-      ),
-    );
-  }, [navigation, theme]);
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
-  useEffect(() => {
-    const fetchKycForms = async () => {
-      try {
-        const result = await getAdditionalRequirements(quote.quoteId);
-        setKycForms(result);
-      } catch (err) {
-        setKycFormsError(
-          parseUserFacingError(
-            err,
-            strings('deposit.kyc_processing.error_description'),
-          ),
-        );
-      }
-    };
-    fetchKycForms();
-  }, [getAdditionalRequirements, quote.quoteId]);
+  const quoteId = quote?.quoteId;
+
+  // Fetch KYC forms when the screen gains focus.
+  // When behind the Checkout webview (via navigateToKycWebviewCallback), this
+  // fires once the webview is dismissed. When navigated to directly (e.g.
+  // SUBMITTED status), it fires immediately on mount.
+  useFocusEffect(
+    useCallback(() => {
+      if (!quoteId) return;
+      setKycFormsError(null);
+      const fetchKycForms = async () => {
+        try {
+          const result = await getAdditionalRequirements(quoteId);
+          setKycForms(result);
+        } catch (err) {
+          setKycFormsError(
+            parseUserFacingError(
+              err,
+              strings('deposit.kyc_processing.error_description'),
+            ),
+          );
+        }
+      };
+      fetchKycForms();
+    }, [getAdditionalRequirements, quoteId]),
+  );
 
   const fetchUserDetailsCallback = useCallback(async () => {
     try {
@@ -136,6 +157,8 @@ const V2KycProcessing = () => {
   }, [kycStatus, stopPolling]);
 
   const handleContinue = useCallback(async () => {
+    if (!quote) return;
+    setIsContinueLoading(true);
     try {
       await routeAfterAuthentication(quote);
     } catch (routeError) {
@@ -143,6 +166,8 @@ const V2KycProcessing = () => {
         message: 'V2KycProcessing::handleContinue error',
         quote,
       });
+    } finally {
+      setIsContinueLoading(false);
     }
   }, [routeAfterAuthentication, quote]);
 
@@ -152,33 +177,49 @@ const V2KycProcessing = () => {
   useEffect(() => {
     if (kycStatus === KycStatus.REJECTED) {
       trackEvent('RAMPS_KYC_APPLICATION_FAILED', {
-        ramp_type: 'DEPOSIT',
+        ...headlessDepositRampProps,
         kyc_type: userDetails?.kyc?.type || '',
+        region: regionIsoCode,
+        error_message:
+          error || strings('deposit.kyc_processing.error_description'),
       });
     } else if (kycStatus === KycStatus.APPROVED) {
       trackEvent('RAMPS_KYC_APPLICATION_APPROVED', {
-        ramp_type: 'DEPOSIT',
+        ...headlessDepositRampProps,
         kyc_type: userDetails?.kyc?.type || '',
       });
     }
-  }, [kycStatus, trackEvent, userDetails?.kyc?.type]);
+  }, [
+    kycStatus,
+    trackEvent,
+    userDetails?.kyc?.type,
+    headlessDepositRampProps,
+    regionIsoCode,
+    error,
+  ]);
 
   if (error || kycStatus === KycStatus.REJECTED || hasPendingForms) {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
+          <HeaderStandard
+            title={strings('deposit.kyc_processing.navbar_title')}
+            onBack={handleHeaderBack}
+            backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+            includesTopInset
+          />
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
             <View style={styles.container}>
               <Icon
                 name={IconName.CircleX}
                 size={IconSize.Xl}
-                color={IconColor.Error}
+                color={IconColor.ErrorDefault}
               />
-              <Text variant={TextVariant.BodyMD} style={styles.heading}>
+              <Text variant={TextVariant.BodyMd} style={styles.heading}>
                 {strings('deposit.kyc_processing.error_heading')}
               </Text>
-              <Text variant={TextVariant.BodyMD} style={styles.description}>
+              <Text variant={TextVariant.BodyMd} style={styles.description}>
                 {error || strings('deposit.kyc_processing.error_description')}
               </Text>
             </View>
@@ -189,10 +230,12 @@ const V2KycProcessing = () => {
             <Button
               size={ButtonSize.Lg}
               onPress={handleContinue}
-              label={strings('deposit.kyc_processing.error_button')}
-              variant={ButtonVariants.Primary}
-              width={ButtonWidthTypes.Full}
-            />
+              variant={ButtonVariant.Primary}
+              isFullWidth
+              isLoading={isContinueLoading}
+            >
+              {strings('deposit.kyc_processing.error_button')}
+            </Button>
             <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
@@ -204,6 +247,12 @@ const V2KycProcessing = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
+          <HeaderStandard
+            title={strings('deposit.kyc_processing.navbar_title')}
+            onBack={handleHeaderBack}
+            backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+            includesTopInset
+          />
           <ScreenLayout.Content grow>
             <DepositProgressBar steps={4} currentStep={3} />
             <View style={styles.container}>
@@ -211,13 +260,17 @@ const V2KycProcessing = () => {
                 <Icon
                   name={IconName.CheckBold}
                   size={IconSize.Xl}
-                  color={IconColor.Success}
+                  color={IconColor.SuccessDefault}
                 />
               </View>
-              <Text variant={TextVariant.BodyMDBold} style={styles.heading}>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Bold}
+                style={styles.heading}
+              >
                 {strings('deposit.kyc_processing.success_heading')}
               </Text>
-              <Text variant={TextVariant.BodyMD} style={styles.description}>
+              <Text variant={TextVariant.BodyMd} style={styles.description}>
                 {strings('deposit.kyc_processing.success_description')}
               </Text>
             </View>
@@ -228,10 +281,12 @@ const V2KycProcessing = () => {
             <Button
               size={ButtonSize.Lg}
               onPress={handleContinue}
-              label={strings('deposit.kyc_processing.success_button')}
-              variant={ButtonVariants.Primary}
-              width={ButtonWidthTypes.Full}
-            />
+              variant={ButtonVariant.Primary}
+              isFullWidth
+              isLoading={isContinueLoading}
+            >
+              {strings('deposit.kyc_processing.success_button')}
+            </Button>
             <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
@@ -242,18 +297,28 @@ const V2KycProcessing = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderStandard
+          title={strings('deposit.kyc_processing.navbar_title')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={3} />
           <View style={styles.container}>
             <ActivityIndicator
               size="large"
               color={theme.colors.primary.default}
-              testID="activity-indicator"
+              testID={KYC_PROCESSING_TEST_IDS.ACTIVITY_INDICATOR}
             />
-            <Text variant={TextVariant.BodyMDBold} style={styles.heading}>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+              style={styles.heading}
+            >
               {strings('deposit.kyc_processing.heading')}
             </Text>
-            <Text variant={TextVariant.BodyMD} style={styles.description}>
+            <Text variant={TextVariant.BodyMd} style={styles.description}>
               {strings('deposit.kyc_processing.description')}
             </Text>
           </View>

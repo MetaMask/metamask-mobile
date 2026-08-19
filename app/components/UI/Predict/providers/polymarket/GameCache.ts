@@ -66,7 +66,7 @@ export class GameCache {
       ...market,
       game: {
         ...market.game,
-        score: parseScore(cachedUpdate.score),
+        score: parseScore(cachedUpdate.score, market.game.league),
         elapsed: cachedUpdate.elapsed || null,
         period: cachedUpdate.period || null,
         status: cachedUpdate.status,

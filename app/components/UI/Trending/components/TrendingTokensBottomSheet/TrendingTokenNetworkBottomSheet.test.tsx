@@ -510,4 +510,37 @@ describe('TrendingTokenNetworkBottomSheet', () => {
 
     expect(queryByTestId('bottom-sheet')).toBeOnTheScreen();
   });
+
+  it('hides the "All networks" option when hideAllNetworks is true', () => {
+    const { queryByText } = renderWithProvider(
+      <TrendingTokenNetworkBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        networks={mockNetworks}
+        selectedNetwork={['eip155:1' as CaipChainId]}
+        hideAllNetworks
+      />,
+      { state: mockState },
+      false,
+    );
+
+    expect(queryByText('All networks')).toBeNull();
+  });
+
+  it('still renders network options when hideAllNetworks is true', () => {
+    const { getByText } = renderWithProvider(
+      <TrendingTokenNetworkBottomSheet
+        isVisible
+        onClose={mockOnClose}
+        networks={mockNetworks}
+        selectedNetwork={['eip155:1' as CaipChainId]}
+        hideAllNetworks
+      />,
+      { state: mockState },
+      false,
+    );
+
+    expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
+    expect(getByText('Polygon')).toBeOnTheScreen();
+  });
 });

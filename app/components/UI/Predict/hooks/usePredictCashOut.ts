@@ -1,0 +1,85 @@
+import { useContext, useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
+import Logger from '../../../../util/Logger';
+import { useTheme } from '../../../../util/theme';
+import { strings } from '../../../../../locales/i18n';
+import { PredictEventValues } from '../constants/eventNames';
+import { usePredictActionGuard } from './usePredictActionGuard';
+import { usePredictPreviewSheet } from '../contexts';
+import type { PredictMarket, PredictPosition } from '../types';
+
+interface UsePredictCashOutOptions {
+  market: PredictMarket;
+  callerName: string;
+}
+
+export const usePredictCashOut = ({
+  market,
+  callerName,
+}: UsePredictCashOutOptions) => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const { executeGuardedAction } = usePredictActionGuard({ navigation });
+  const { openSellSheet } = usePredictPreviewSheet();
+  const { toastRef } = useContext(ToastContext);
+  const { colors } = useTheme();
+
+  const onCashOut = useCallback(
+    (position: PredictPosition) => {
+      executeGuardedAction(
+        () => {
+          try {
+            const outcome = market?.outcomes.find(
+              (o) => o.id === position.outcomeId,
+            );
+            if (!outcome) {
+              throw new Error(
+                `Outcome not found for position ${position.id} (outcomeId: ${position.outcomeId})`,
+              );
+            }
+            openSellSheet({
+              market,
+              position,
+              outcome,
+              entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+            });
+          } catch (error) {
+            Logger.error(error as Error, {
+              component: callerName,
+              positionId: position.id,
+              outcomeId: position.outcomeId,
+            });
+            toastRef?.current?.showToast({
+              variant: ToastVariants.Icon,
+              iconName: IconName.Danger,
+              iconColor: colors.error.default,
+              labelOptions: [
+                {
+                  label: strings('predict.order.cashout_failed'),
+                  isBold: true,
+                },
+              ],
+              hasNoTimeout: false,
+            });
+          }
+        },
+        { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CASHOUT },
+      );
+    },
+    [
+      executeGuardedAction,
+      market,
+      openSellSheet,
+      toastRef,
+      callerName,
+      colors.error.default,
+    ],
+  );
+
+  return { onCashOut };
+};

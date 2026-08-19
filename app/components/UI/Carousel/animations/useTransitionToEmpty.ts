@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { Animated } from 'react-native';
+import { runOnJS, type SharedValue, withTiming } from 'react-native-reanimated';
 import { ANIMATION_TIMINGS } from './animationTimings';
 
 export interface TransitionToEmptyParams {
@@ -18,9 +19,51 @@ export interface TransitionToEmptyParams {
 export interface TransitionToEmptyAnimations {
   carouselOpacity: Animated.Value;
   emptyCardOpacity: Animated.Value;
-  carouselHeight: Animated.Value;
+  carouselHeight: SharedValue<number>;
   carouselScaleY: Animated.Value;
 }
+
+const animateCarouselHeight = (carouselHeight: SharedValue<number>) =>
+  new Promise<void>((resolve) => {
+    carouselHeight.value = withTiming(
+      0,
+      { duration: ANIMATION_TIMINGS.EMPTY_STATE_HEIGHT_DURATION },
+      () => {
+        runOnJS(resolve)();
+      },
+    );
+  });
+
+const animateCarouselVisuals = (animations: TransitionToEmptyAnimations) =>
+  new Promise<void>((resolve) => {
+    Animated.parallel([
+      // Content fade out (starts immediately)
+      Animated.timing(animations.emptyCardOpacity, {
+        toValue: 0,
+        duration: ANIMATION_TIMINGS.EMPTY_STATE_FADE_DURATION,
+        useNativeDriver: true,
+      }),
+
+      // Visual fold (starts after delay, bottom-to-top)
+      Animated.sequence([
+        Animated.delay(ANIMATION_TIMINGS.EMPTY_STATE_FOLD_DELAY),
+        Animated.timing(animations.carouselScaleY, {
+          toValue: 0,
+          duration: ANIMATION_TIMINGS.EMPTY_STATE_FOLD_DURATION,
+          useNativeDriver: true,
+        }),
+      ]),
+
+      // Overall carousel fade
+      Animated.timing(animations.carouselOpacity, {
+        toValue: 0,
+        duration: ANIMATION_TIMINGS.EMPTY_STATE_HEIGHT_DURATION,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      resolve();
+    });
+  });
 
 export const useTransitionToEmpty = (
   animations?: TransitionToEmptyAnimations,
@@ -37,39 +80,11 @@ export const useTransitionToEmpty = (
           return;
         }
 
-        // Perform actual fold-up animation with staggered timing
-        Animated.parallel([
-          // Content fade out (starts immediately)
-          Animated.timing(animations.emptyCardOpacity, {
-            toValue: 0,
-            duration: ANIMATION_TIMINGS.EMPTY_STATE_FADE_DURATION,
-            useNativeDriver: true,
-          }),
-
-          // Height collapse (starts immediately, longest duration for content shifting)
-          Animated.timing(animations.carouselHeight, {
-            toValue: 0,
-            duration: ANIMATION_TIMINGS.EMPTY_STATE_HEIGHT_DURATION,
-            useNativeDriver: false, // Height needs layout thread
-          }),
-
-          // Visual fold (starts after delay, bottom-to-top)
-          Animated.sequence([
-            Animated.delay(ANIMATION_TIMINGS.EMPTY_STATE_FOLD_DELAY),
-            Animated.timing(animations.carouselScaleY, {
-              toValue: 0,
-              duration: ANIMATION_TIMINGS.EMPTY_STATE_FOLD_DURATION,
-              useNativeDriver: true,
-            }),
-          ]),
-
-          // Overall carousel fade
-          Animated.timing(animations.carouselOpacity, {
-            toValue: 0,
-            duration: ANIMATION_TIMINGS.EMPTY_STATE_HEIGHT_DURATION,
-            useNativeDriver: true,
-          }),
-        ]).start(() => {
+        // Height runs on the UI thread via Reanimated; opacity/scaleY stay native-driver.
+        Promise.all([
+          animateCarouselHeight(animations.carouselHeight),
+          animateCarouselVisuals(animations),
+        ]).then(() => {
           onEmptyStateComplete();
           resolve();
         });

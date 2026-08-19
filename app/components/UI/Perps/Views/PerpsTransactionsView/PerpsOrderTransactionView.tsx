@@ -1,25 +1,29 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import React, { useLayoutEffect } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 
 import { useSelector } from 'react-redux';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+  HeaderStandard,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
-import { usePerpsBlockExplorerUrl, usePerpsOrderFees } from '../../hooks';
+import {
+  usePerpsBlockExplorerUrl,
+  usePerpsRecordedOrderFees,
+} from '../../hooks';
 import { PerpsOrderTransactionRouteProp } from '../../types/transactionHistory';
 import {
   formatPerpsFiat,
@@ -27,10 +31,15 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsOrderTransactionView.styles';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
 
-const PerpsOrderTransactionView: React.FC = () => {
+const PerpsOrderTransactionViewContent: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route = useRoute<PerpsOrderTransactionRouteProp>();
   const selectedInternalAccount = useSelector(
     selectSelectedInternalAccountByScope,
@@ -40,10 +49,15 @@ const PerpsOrderTransactionView: React.FC = () => {
   const transaction = route.params?.transaction;
 
   // Call hooks before conditional return
-  const { totalFee, protocolFee, metamaskFee } = usePerpsOrderFees({
-    orderType: transaction?.order?.type ?? 'market',
-    amount: transaction?.order?.size ?? '0',
-  });
+  const {
+    totalFee,
+    isLoading: isFeeLoading,
+    hasError: hasFeeError,
+  } = usePerpsRecordedOrderFees(
+    transaction?.order?.orderId,
+    transaction?.asset ?? '',
+    transaction?.timestamp,
+  );
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -54,10 +68,7 @@ const PerpsOrderTransactionView: React.FC = () => {
   if (!transaction) {
     return (
       <ScreenView>
-        <HeaderCompactStandard
-          includesTopInset
-          onBack={() => navigation.goBack()}
-        />
+        <HeaderStandard includesTopInset onBack={() => navigation.goBack()} />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
@@ -73,6 +84,11 @@ const PerpsOrderTransactionView: React.FC = () => {
     if (!explorerUrl) {
       return;
     }
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+      location: 'perps_transaction_details',
+      text: strings('perps.transactions.view_on_explorer'),
+      url: explorerUrl,
+    });
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -104,30 +120,25 @@ const PerpsOrderTransactionView: React.FC = () => {
     },
   ];
 
-  const isFilled = transaction.order?.text === 'Filled';
-
-  // Fee breakdown - use PRICE_RANGES_UNIVERSAL to show exact values instead of "< $0.01"
+  // Use universal ranges to show the exact recorded fee instead of "< $0.01".
   const formatFee = (fee: number) =>
     formatPerpsFiat(fee, { ranges: PRICE_RANGES_UNIVERSAL });
 
+  const feeValue =
+    isFeeLoading || hasFeeError || totalFee === undefined
+      ? '—'
+      : formatFee(totalFee);
+
   const feeRows = [
     {
-      label: strings('perps.transactions.order.metamask_fee'),
-      value: formatFee(isFilled ? metamaskFee : 0),
-    },
-    {
-      label: strings('perps.transactions.order.hyperliquid_fee'),
-      value: formatFee(isFilled ? protocolFee : 0),
-    },
-    {
       label: strings('perps.transactions.order.total_fee'),
-      value: formatFee(isFilled ? totalFee : 0),
+      value: feeValue,
     },
   ];
 
   return (
     <ScreenView>
-      <HeaderCompactStandard
+      <HeaderStandard
         includesTopInset
         title={transaction.title}
         onBack={() => navigation.goBack()}
@@ -153,12 +164,15 @@ const PerpsOrderTransactionView: React.FC = () => {
                 ]}
               >
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
                 >
                   {detail.label}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextDefault}
+                >
                   {detail.value}
                 </Text>
               </View>
@@ -167,7 +181,7 @@ const PerpsOrderTransactionView: React.FC = () => {
             {/* Separator between sections */}
             <View style={styles.sectionSeparator} />
 
-            {/* Fee breakdown */}
+            {/* Recorded execution fee */}
             {feeRows.map((detail, index) => (
               <View
                 key={`fee-${index}`}
@@ -177,12 +191,15 @@ const PerpsOrderTransactionView: React.FC = () => {
                 ]}
               >
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
                 >
                   {detail.label}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextDefault}
+                >
                   {detail.value}
                 </Text>
               </View>
@@ -192,17 +209,26 @@ const PerpsOrderTransactionView: React.FC = () => {
           {/* Block explorer button */}
           <Button
             testID={PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON}
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('perps.transactions.view_on_explorer')}
+            isFullWidth
             onPress={handleViewOnBlockExplorer}
             style={styles.blockExplorerButton}
-          />
+          >
+            {strings('perps.transactions.view_on_explorer')}
+          </Button>
         </View>
       </ScrollView>
     </ScreenView>
   );
 };
+
+const PerpsOrderTransactionView: React.FC = () => (
+  <PerpsConnectionProvider suppressErrorView>
+    <PerpsStreamProvider>
+      <PerpsOrderTransactionViewContent />
+    </PerpsStreamProvider>
+  </PerpsConnectionProvider>
+);
 
 export default PerpsOrderTransactionView;

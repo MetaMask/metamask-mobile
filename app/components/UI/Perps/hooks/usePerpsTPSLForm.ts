@@ -6,6 +6,7 @@ import { regex } from '../../../../util/regex';
 import {
   DECIMAL_PRECISION_CONFIG,
   calculatePositionSize,
+  type OrderType,
   type Position,
 } from '@metamask/perps-controller';
 import { formatPerpsFiat, PRICE_RANGES_UNIVERSAL } from '../utils/formatUtils';
@@ -40,7 +41,7 @@ interface UsePerpsTPSLFormParams {
   entryPrice?: number;
   isVisible?: boolean;
   liquidationPrice?: string;
-  orderType?: 'market' | 'limit';
+  orderType?: OrderType;
   amount?: string; // For new orders - USD amount to calculate position size
   szDecimals?: number; // For new orders - asset decimal precision
 }
@@ -335,7 +336,10 @@ export function usePerpsTPSLForm(
         return;
 
       if (
-        hasExceededSignificantFigures(sanitized) &&
+        hasExceededSignificantFigures(
+          sanitized,
+          DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+        ) &&
         sanitized.length >= takeProfitPrice.length
       )
         return;
@@ -345,12 +349,13 @@ export function usePerpsTPSLForm(
       // Set price as source of truth when user is actively typing
       setTpSourceOfTruth('price');
 
-      // Update RoE percentage based on price only if percentage field is not focused
-      // and we have valid base prices for calculation
+      // Update RoE percentage based on price whenever the user types a trigger
+      // price. The price field is the active source of truth here, so we do not
+      // gate on tpPercentInputFocused — a stale true value must not silently
+      // block the auto-fill (mirrors the same reasoning in handleTakeProfitPercentageChange).
       if (
         sanitized &&
         leverage &&
-        !tpPercentInputFocused &&
         ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
       ) {
         const roePercent = calculateRoEForPrice(sanitized, true, !!position, {
@@ -373,7 +378,6 @@ export function usePerpsTPSLForm(
       actualDirection,
       leverage,
       entryPrice,
-      tpPercentInputFocused,
       takeProfitPrice,
       position,
     ],
@@ -393,12 +397,14 @@ export function usePerpsTPSLForm(
       // Set percentage as source of truth when user is actively typing
       setTpSourceOfTruth('percentage');
 
-      // Update price based on RoE percentage only if price field is not focused
+      // Always compute the trigger price when the user is typing a percentage.
+      // The percentage field is the active source of truth here, so we do not
+      // gate on tpPriceInputFocused — a stale true value (e.g. due to iOS
+      // focus/blur ordering) must not silently block the auto-fill.
       if (
         finalValue &&
         !Number.isNaN(Number.parseFloat(finalValue.replace(' ', ''))) &&
-        leverage &&
-        !tpPriceInputFocused
+        leverage
       ) {
         const roeValue = Number.parseFloat(finalValue.replace(' ', ''));
         const price = calculatePriceForRoE(roeValue, true, {
@@ -407,8 +413,11 @@ export function usePerpsTPSLForm(
           leverage,
           entryPrice,
         });
-        // Round to 5 significant figures to match input validation
-        const roundedPrice = roundToSignificantFigures(price.toString());
+        // Round to MaxPriceDecimals significant figures to match input validation
+        const roundedPrice = roundToSignificantFigures(
+          price.toString(),
+          DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+        );
         setTakeProfitPrice(roundedPrice);
         setSelectedTpPercentage(roeValue);
       } else if (!finalValue) {
@@ -417,14 +426,7 @@ export function usePerpsTPSLForm(
       }
       setTpUsingPercentage(true); // User is using RoE percentage-based calculation
     },
-    [
-      currentPrice,
-      actualDirection,
-      leverage,
-      entryPrice,
-      tpPriceInputFocused,
-      takeProfitPercentage,
-    ],
+    [currentPrice, actualDirection, leverage, entryPrice, takeProfitPercentage],
   );
 
   const handleStopLossPriceChange = useCallback(
@@ -442,7 +444,10 @@ export function usePerpsTPSLForm(
         return;
 
       if (
-        hasExceededSignificantFigures(sanitized) &&
+        hasExceededSignificantFigures(
+          sanitized,
+          DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+        ) &&
         sanitized.length >= stopLossPrice.length
       )
         return;
@@ -452,12 +457,13 @@ export function usePerpsTPSLForm(
       // Set price as source of truth when user is actively typing
       setSlSourceOfTruth('price');
 
-      // Update RoE percentage based on price only if percentage field is not focused
-      // and we have valid base prices for calculation
+      // Update RoE percentage based on price whenever the user types a trigger
+      // price. The price field is the active source of truth here, so we do not
+      // gate on slPercentInputFocused — a stale true value must not silently
+      // block the auto-fill (mirrors the same reasoning in handleStopLossPercentageChange).
       if (
         sanitized &&
         leverage &&
-        !slPercentInputFocused &&
         ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
       ) {
         const roePercent = calculateRoEForPrice(sanitized, false, !!position, {
@@ -481,7 +487,6 @@ export function usePerpsTPSLForm(
       actualDirection,
       leverage,
       entryPrice,
-      slPercentInputFocused,
       stopLossPrice,
       position,
     ],
@@ -501,12 +506,14 @@ export function usePerpsTPSLForm(
       // Set percentage as source of truth when user is actively typing
       setSlSourceOfTruth('percentage');
 
-      // Update price based on RoE percentage only if price field is not focused
+      // Always compute the trigger price when the user is typing a percentage.
+      // The percentage field is the active source of truth here, so we do not
+      // gate on slPriceInputFocused — a stale true value (e.g. due to iOS
+      // focus/blur ordering) must not silently block the auto-fill.
       if (
         finalValue &&
         !Number.isNaN(Number.parseFloat(finalValue.replace(' ', ''))) &&
-        leverage &&
-        !slPriceInputFocused
+        leverage
       ) {
         const roeValue = Number.parseFloat(finalValue.replace(' ', ''));
         const price = calculatePriceForRoE(roeValue, false, {
@@ -515,8 +522,11 @@ export function usePerpsTPSLForm(
           leverage,
           entryPrice,
         });
-        // Round to 5 significant figures to match input validation
-        const roundedPrice = roundToSignificantFigures(price.toString());
+        // Round to MaxPriceDecimals significant figures to match input validation
+        const roundedPrice = roundToSignificantFigures(
+          price.toString(),
+          DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+        );
         setStopLossPrice(roundedPrice);
         setSelectedSlPercentage(roeValue); // Store absolute value for button comparison
       } else if (!finalValue) {
@@ -525,14 +535,7 @@ export function usePerpsTPSLForm(
       }
       setSlUsingPercentage(true); // User is using RoE percentage-based calculation
     },
-    [
-      currentPrice,
-      actualDirection,
-      leverage,
-      entryPrice,
-      slPriceInputFocused,
-      stopLossPercentage,
-    ],
+    [currentPrice, actualDirection, leverage, entryPrice, stopLossPercentage],
   );
 
   // Focus/blur event handlers to manage source of truth and prevent input interference
@@ -576,9 +579,10 @@ export function usePerpsTPSLForm(
             entryPrice,
           });
           if (zeroRoePrice && zeroRoePrice !== takeProfitPrice) {
-            // Round to 5 significant figures to match input validation
+            // Round to MaxPriceDecimals significant figures to match input validation
             const roundedPrice = roundToSignificantFigures(
               zeroRoePrice.toString(),
+              DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
             );
             setTakeProfitPrice(roundedPrice);
           }
@@ -615,8 +619,11 @@ export function usePerpsTPSLForm(
         leverage,
         entryPrice,
       });
-      // Round to 5 significant figures to match input validation
-      const roundedPrice = roundToSignificantFigures(price.toString());
+      // Round to MaxPriceDecimals significant figures to match input validation
+      const roundedPrice = roundToSignificantFigures(
+        price.toString(),
+        DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+      );
       setTakeProfitPrice(roundedPrice);
     }
   }, [
@@ -667,9 +674,10 @@ export function usePerpsTPSLForm(
             entryPrice,
           });
           if (zeroRoePrice && zeroRoePrice !== stopLossPrice) {
-            // Round to 5 significant figures to match input validation
+            // Round to MaxPriceDecimals significant figures to match input validation
             const roundedPrice = roundToSignificantFigures(
               zeroRoePrice.toString(),
+              DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
             );
             setStopLossPrice(roundedPrice);
           }
@@ -706,8 +714,11 @@ export function usePerpsTPSLForm(
         leverage,
         entryPrice,
       });
-      // Round to 5 significant figures to match input validation
-      const roundedPrice = roundToSignificantFigures(price.toString());
+      // Round to MaxPriceDecimals significant figures to match input validation
+      const roundedPrice = roundToSignificantFigures(
+        price.toString(),
+        DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+      );
       setStopLossPrice(roundedPrice);
     }
   }, [stopLossPercentage, leverage, currentPrice, actualDirection, entryPrice]);
@@ -740,8 +751,11 @@ export function usePerpsTPSLForm(
 
       // Only set values if we got a valid price
       if (price && price !== '' && Number.parseFloat(price) > 0) {
-        // Round to 5 significant figures to match input validation
-        const roundedPrice = roundToSignificantFigures(price.toString());
+        // Round to MaxPriceDecimals significant figures to match input validation
+        const roundedPrice = roundToSignificantFigures(
+          price.toString(),
+          DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+        );
         const formattedPriceString = formatPerpsFiat(roundedPrice, {
           ranges: PRICE_RANGES_UNIVERSAL,
         });
@@ -794,8 +808,11 @@ export function usePerpsTPSLForm(
 
       // Only set values if we got a valid price
       if (price && price !== '' && Number.parseFloat(price) > 0) {
-        // Round to 5 significant figures to match input validation
-        const roundedPrice = roundToSignificantFigures(price.toString());
+        // Round to MaxPriceDecimals significant figures to match input validation
+        const roundedPrice = roundToSignificantFigures(
+          price.toString(),
+          DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+        );
         const formattedPriceString = formatPerpsFiat(roundedPrice, {
           ranges: PRICE_RANGES_UNIVERSAL,
         });

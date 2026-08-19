@@ -13,10 +13,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import BN4 from 'bnjs4';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   AvatarToken,
   AvatarTokenSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 
 import { useRampSDK } from '../../sdk';
@@ -51,11 +52,12 @@ import BadgeWrapper, {
 import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 
 import { NATIVE_ADDRESS } from '../../../../../../constants/on-ramp';
-import { getDepositNavbarOptions } from '../../../../Navbar';
+import { NavbarSelectorsIDs } from '../../../../Navbar/Navbar.testIds';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
@@ -82,7 +84,7 @@ import styleSheet from './BuildQuote.styles';
 import {
   toTokenMinimalUnit,
   fromTokenMinimalUnitString,
-} from '../../../../../../util/number';
+} from '../../../../../../util/number/bigint';
 import useGasPriceEstimation from '../../hooks/useGasPriceEstimation';
 import useIntentAmount from '../../hooks/useIntentAmount';
 import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
@@ -96,6 +98,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import { BuildQuoteSelectors } from './BuildQuote.testIds';
 
 import { isNonEvmAddress } from '../../../../../../core/Multichain/utils';
@@ -118,9 +121,10 @@ export const createBuildQuoteNavDetails =
   createNavigationDetails<BuildQuoteParams>(Routes.RAMP.BUILD_QUOTE);
 
 const BuildQuote = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<BuildQuoteParams>();
   const { showBack } = params;
+  const shouldShowBack = showBack !== false;
 
   // Memoize the intent object to prevent unnecessary re-renders
   const intent = useMemo(() => {
@@ -134,7 +138,7 @@ const BuildQuote = () => {
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');
   const [amountNumber, setAmountNumber] = useState(0);
-  const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<BN4>();
+  const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<bigint>();
   const [error, setError] = useState<string | null>(null);
   const [isKeyboardFreshlyOpened, setIsKeyboardFreshlyOpened] = useState(false);
   const [intentHandled, setIntentHandled] = useState(false);
@@ -234,10 +238,50 @@ const BuildQuote = () => {
     currentFiatCurrency,
   );
 
-  useEffect(() => {
+  const resetAmountInput = useCallback(() => {
     setAmount('0');
     setAmountNumber(0);
-  }, [selectedRegion]);
+    setAmountBNMinimalUnit(undefined);
+    setAmountFocused(false);
+    setIsKeyboardFreshlyOpened(false);
+  }, []);
+
+  useEffect(() => {
+    resetAmountInput();
+  }, [resetAmountInput, selectedRegion]);
+
+  const selectedAssetKey = useMemo(() => {
+    const id = selectedAsset?.id;
+    const chainId = selectedAsset?.network?.chainId;
+    const address = selectedAsset?.address;
+
+    if (!id && !chainId && !address) {
+      return undefined;
+    }
+
+    return `${id ?? ''}:${chainId ?? ''}:${address ?? ''}`;
+  }, [
+    selectedAsset?.id,
+    selectedAsset?.network?.chainId,
+    selectedAsset?.address,
+  ]);
+
+  const previousSelectedAssetKey = useRef<string | undefined>(selectedAssetKey);
+
+  useEffect(() => {
+    if (
+      isSell &&
+      selectedAssetKey &&
+      previousSelectedAssetKey.current &&
+      previousSelectedAssetKey.current !== selectedAssetKey
+    ) {
+      resetAmountInput();
+    }
+
+    if (selectedAssetKey) {
+      previousSelectedAssetKey.current = selectedAssetKey;
+    }
+  }, [isSell, resetAmountInput, selectedAssetKey]);
 
   const shouldShowUnsupportedModal = useMemo(
     () =>
@@ -254,8 +298,9 @@ const BuildQuote = () => {
       if (shouldShowUnsupportedModal && selectedRegion) {
         // Use requestAnimationFrame to ensure navigation happens after render
         requestAnimationFrame(() => {
-          navigation.navigate(
-            ...createUnsupportedRegionModalNavigationDetails({
+          navigateWithDetails(
+            navigation,
+            createUnsupportedRegionModalNavigationDetails({
               regions: regions ?? [],
               region: selectedRegion,
             }),
@@ -336,16 +381,17 @@ const BuildQuote = () => {
         },
   );
 
-  let maxSellAmount = null;
+  let maxSellAmount: bigint | null = null;
   if (selectedAsset && selectedAsset.address === NATIVE_ADDRESS) {
+    // Use nullish checks — bigint 0n is falsy, unlike BN instances.
     maxSellAmount =
-      balanceBN && gasPriceEstimation
-        ? balanceBN?.sub(gasPriceEstimation.estimatedGasFee)
+      balanceBN != null && gasPriceEstimation
+        ? balanceBN - gasPriceEstimation.estimatedGasFee
         : null;
   } else if (
     selectedAsset &&
     selectedAsset.address !== NATIVE_ADDRESS &&
-    balanceBN
+    balanceBN != null
   ) {
     maxSellAmount = balanceBN;
   }
@@ -366,20 +412,24 @@ const BuildQuote = () => {
   );
 
   const amountIsOverGas = useMemo(() => {
-    if (isBuy || !maxSellAmount) {
+    // maxSellAmount of 0n is a real ceiling (e.g. native balance equals gas);
+    // only skip when it was never computed.
+    if (isBuy || maxSellAmount === null) {
       return false;
     }
-    return Boolean(amountBNMinimalUnit?.gt(maxSellAmount));
+    return Boolean(
+      amountBNMinimalUnit !== undefined && amountBNMinimalUnit > maxSellAmount,
+    );
   }, [amountBNMinimalUnit, isBuy, maxSellAmount]);
 
   const hasInsufficientBalance = useMemo(() => {
-    if (!amountBNMinimalUnit || amountBNMinimalUnit.isZero()) {
+    if (amountBNMinimalUnit === undefined || amountBNMinimalUnit === 0n) {
       return false;
     }
-    if (!balanceBN) {
+    if (balanceBN == null) {
       return true;
     }
-    return balanceBN.lt(amountBNMinimalUnit);
+    return balanceBN < amountBNMinimalUnit;
   }, [balanceBN, amountBNMinimalUnit]);
 
   const hasInsufficientNativeBalanceForGas = useMemo(() => {
@@ -387,11 +437,13 @@ const BuildQuote = () => {
       return false;
     }
 
-    if (!nativeTokenBalanceBN || !gasPriceEstimation) {
+    // 0n native balance must still be compared against gas — do not use
+    // truthiness (BN objects were always truthy; 0n is not).
+    if (nativeTokenBalanceBN == null || !gasPriceEstimation) {
       return false;
     }
 
-    return nativeTokenBalanceBN.lt(gasPriceEstimation.estimatedGasFee);
+    return nativeTokenBalanceBN < gasPriceEstimation.estimatedGasFee;
   }, [gasPriceEstimation, isBuy, nativeTokenBalanceBN, selectedAsset]);
 
   const displayBalance = useMemo(() => {
@@ -440,33 +492,14 @@ const BuildQuote = () => {
   }, [screenLocation, isBuy, selectedAsset?.network?.chainId, trackEvent]);
 
   const handleConfigurationPress = useCallback(() => {
-    navigation.navigate(...createBuySettingsModalNavigationDetails());
+    navigateWithDetails(navigation, createBuySettingsModalNavigationDetails());
   }, [navigation]);
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        {
-          title: isBuy
-            ? strings('fiat_on_ramp_aggregator.amount_to_buy')
-            : strings('fiat_on_ramp_aggregator.amount_to_sell'),
-          showBack: showBack ?? false,
-          showConfiguration: isBuy,
-          onConfigurationPress: handleConfigurationPress,
-        },
-        theme,
-        handleCancelPress,
-      ),
-    );
-  }, [
-    navigation,
-    theme,
-    handleCancelPress,
-    showBack,
-    isBuy,
-    handleConfigurationPress,
-  ]);
+  const handleBackPress = useCallback(() => {
+    handleCancelPress();
+    // @ts-expect-error navigation prop mismatch
+    navigation.pop();
+  }, [handleCancelPress, navigation]);
 
   /**
    * * Keypad style, handlers and effects
@@ -533,7 +566,7 @@ const BuildQuote = () => {
 
       if (isSell) {
         setAmountBNMinimalUnit(
-          toTokenMinimalUnit(newValue, selectedAsset?.decimals ?? 0) as BN4,
+          toTokenMinimalUnit(newValue, selectedAsset?.decimals ?? 0),
         );
       }
 
@@ -549,11 +582,12 @@ const BuildQuote = () => {
         setAmountNumber(value);
       } else {
         const percentage = value * 100;
-        const amountPercentage = balanceBN
-          ?.mul(new BN4(percentage))
-          .div(new BN4(100));
+        const amountPercentage =
+          balanceBN !== null && balanceBN !== undefined
+            ? (balanceBN * BigInt(percentage)) / 100n
+            : undefined;
 
-        if (!amountPercentage) {
+        if (amountPercentage === undefined) {
           return;
         }
 
@@ -561,7 +595,8 @@ const BuildQuote = () => {
 
         if (
           selectedAsset?.address === NATIVE_ADDRESS &&
-          maxSellAmount?.lt(amountPercentage)
+          maxSellAmount !== null &&
+          maxSellAmount < amountPercentage
         ) {
           amountToSet = maxSellAmount;
         }
@@ -596,8 +631,9 @@ const BuildQuote = () => {
   const handleChangeRegion = useCallback(() => {
     setAmountFocused(false);
     if (regions && regions.length > 0) {
-      navigation.navigate(
-        ...createRegionSelectorModalNavigationDetails({
+      navigateWithDetails(
+        navigation,
+        createRegionSelectorModalNavigationDetails({
           regions,
         }),
       );
@@ -610,8 +646,9 @@ const BuildQuote = () => {
 
   const handleAssetSelectorPress = useCallback(() => {
     setAmountFocused(false);
-    navigation.navigate(
-      ...createTokenSelectModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createTokenSelectModalNavigationDetails({
         tokens: cryptoCurrencies ?? [],
       }),
     );
@@ -623,8 +660,9 @@ const BuildQuote = () => {
 
   const handleFiatSelectorPress = useCallback(() => {
     setAmountFocused(false);
-    navigation.navigate(
-      ...createFiatSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createFiatSelectorModalNavigationDetails({
         currencies: fiatCurrencies ?? [],
       }),
     );
@@ -636,8 +674,9 @@ const BuildQuote = () => {
 
   const handleShowPaymentMethodsModal = useCallback(() => {
     setAmountFocused(false);
-    navigation.navigate(
-      ...createPaymentMethodSelectorModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createPaymentMethodSelectorModalNavigationDetails({
         paymentMethods,
         location: screenLocation,
       }),
@@ -649,15 +688,17 @@ const BuildQuote = () => {
    */
   const handleGetQuotePress = useCallback(() => {
     if (!selectedAddress) {
-      navigation.navigate(
-        ...createIncompatibleAccountTokenModalNavigationDetails(),
+      navigateWithDetails(
+        navigation,
+        createIncompatibleAccountTokenModalNavigationDetails(),
       );
       return;
     }
 
     if (selectedAsset && currentFiatCurrency) {
-      navigation.navigate(
-        ...createQuotesNavDetails({
+      navigateWithDetails(
+        navigation,
+        createQuotesNavDetails({
           amount: isBuy ? amountNumber : amount,
           asset: selectedAsset,
           fiatCurrency: currentFiatCurrency,
@@ -865,9 +906,10 @@ const BuildQuote = () => {
         label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
       })) ?? [];
   } else if (
-    balanceBN &&
-    !balanceBN.isZero() &&
-    maxSellAmount?.gt(new BN4(0))
+    balanceBN != null &&
+    balanceBN !== 0n &&
+    maxSellAmount !== null &&
+    maxSellAmount > 0n
   ) {
     quickAmounts = [
       { value: 0.25, label: '25%' },
@@ -884,6 +926,31 @@ const BuildQuote = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderStandard
+          title={
+            isBuy
+              ? strings('fiat_on_ramp_aggregator.amount_to_buy')
+              : strings('fiat_on_ramp_aggregator.amount_to_sell')
+          }
+          onBack={shouldShowBack ? handleBackPress : undefined}
+          backButtonProps={
+            shouldShowBack
+              ? { testID: 'deposit-back-navbar-button' }
+              : undefined
+          }
+          endButtonIconProps={
+            isBuy
+              ? [
+                  {
+                    iconName: IconName.Setting,
+                    onPress: handleConfigurationPress,
+                    testID: NavbarSelectorsIDs.DEPOSIT_CONFIGURATION_BUTTON,
+                  },
+                ]
+              : undefined
+          }
+          includesTopInset
+        />
         <Pressable
           onPress={handleKeypadDone}
           style={styles.viewContainer}
@@ -995,6 +1062,7 @@ const BuildQuote = () => {
                 amountNumber > 0 && (!amountIsValid || amountIsOverGas)
               }
               currencyCode={isBuy ? currentFiatCurrency?.symbol : undefined}
+              tokenSymbol={isSell ? selectedAsset?.symbol : undefined}
               onPress={onAmountInputPress}
               loading={
                 isFetchingRegions ||

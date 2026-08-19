@@ -17,8 +17,10 @@ import { RootState } from '../../../../../reducers';
  * Returns a token filter for withdraw transactions, following the same pattern
  * as `usePerpsBalanceTokenFilter` and `useMusdConversionTokens`.
  *
- * Uses `includeAllTokens` to pull from the full token catalog so that
- * allowlisted tokens appear even when the user has zero balance.
+ * Wallet tokens matching the allowlist are returned via `tokenFilter` delegation
+ * to `useSendTokens`. For allowlisted tokens the user does not hold, metadata
+ * is fetched from the tokens API (via `enrichTokenRequests` in `useAccountTokens`)
+ * so they still appear as zero-balance options.
  */
 export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
   const transactionMeta = useTransactionMetadataRequest();
@@ -27,60 +29,72 @@ export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
   const config = useSelector((state: RootState) =>
     selectPayQuoteConfig(state, transactionType),
   );
-  const allTokens = useSendTokens({
-    includeNoBalance: true,
-    includeAllTokens: true,
-  });
-
   const allowlist = config.tokens;
+  const shouldEnrich = isWithdraw && Boolean(allowlist);
 
-  const filtered = useMemo(() => {
+  const tokenFilter = useMemo(() => {
     if (!allowlist) {
       return undefined;
     }
-    return allTokens.filter((token) => isAllowlisted(token, allowlist));
-  }, [allTokens, allowlist]);
+    const lookup = buildAllowlistLookup(allowlist);
+    return (chainId: string, address: string) =>
+      lookup.get(chainId.toLowerCase())?.has(address.toLowerCase()) ?? false;
+  }, [allowlist]);
+
+  const enrichTokenRequests = useMemo(() => {
+    if (!shouldEnrich || !allowlist) return [];
+    return Object.entries(allowlist).flatMap(([chainId, addresses]) =>
+      addresses
+        .filter((addr) => !isNativeAddress(addr.toLowerCase()))
+        .map((addr) => ({
+          chainId: chainId as Hex,
+          address: addr,
+        })),
+    );
+  }, [shouldEnrich, allowlist]);
+
+  const walletTokens = useSendTokens({
+    includeNoBalance: shouldEnrich,
+    tokenFilter,
+    enrichTokenRequests,
+  });
 
   return useCallback(
     (tokens: AssetType[]): AssetType[] => {
-      if (!isWithdraw || !filtered) {
+      if (!isWithdraw || !shouldEnrich) {
         return tokens;
       }
-      return filtered;
+      return walletTokens;
     },
-    [isWithdraw, filtered],
+    [isWithdraw, shouldEnrich, walletTokens],
   );
 }
 
-function isAllowlisted(
-  token: AssetType,
+/**
+ * Pre-computes a Map<chainId, Set<address>> from the allowlist for O(1) lookups.
+ * Expands zero-address entries to also include the chain-specific native address.
+ */
+function buildAllowlistLookup(
   allowlist: Record<Hex, Hex[]>,
-): boolean {
-  const chainId = token.chainId?.toLowerCase() as Hex | undefined;
-  if (!chainId) {
-    return false;
+): Map<string, Set<string>> {
+  const lookup = new Map<string, Set<string>>();
+
+  for (const [chainId, addresses] of Object.entries(allowlist)) {
+    const lowerChainId = chainId.toLowerCase();
+    const addressSet = new Set<string>();
+
+    for (const addr of addresses) {
+      const lowerAddr = addr.toLowerCase();
+      addressSet.add(lowerAddr);
+
+      if (isNativeAddress(lowerAddr)) {
+        const nativeAddr = getNativeTokenAddress(lowerChainId as Hex);
+        addressSet.add(nativeAddr.toLowerCase());
+      }
+    }
+
+    lookup.set(lowerChainId, addressSet);
   }
 
-  const allowlistKey = Object.keys(allowlist).find(
-    (key) => key.toLowerCase() === chainId,
-  ) as Hex | undefined;
-  const addresses = allowlistKey ? allowlist[allowlistKey] : undefined;
-  if (!addresses) {
-    return false;
-  }
-
-  const tokenAddr = token.address?.toLowerCase();
-  return addresses.some((allowed) => {
-    const allowedLower = allowed.toLowerCase();
-    if (tokenAddr === allowedLower) {
-      return true;
-    }
-    // Allowlist may use 0x000…000 for native tokens while the token list
-    // uses the chain-specific native address (e.g. 0x…1010 on Polygon).
-    if (isNativeAddress(allowedLower)) {
-      const nativeAddr = getNativeTokenAddress(chainId);
-      return tokenAddr === nativeAddr.toLowerCase();
-    }
-    return false;
-  });
+  return lookup;
 }

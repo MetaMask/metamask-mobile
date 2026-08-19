@@ -6,7 +6,6 @@ import { SnapInterfaceContextProvider } from '../SnapInterfaceContext';
 import { mapToTemplate } from './utils';
 import TemplateRenderer from '../../UI/TemplateRenderer';
 import { ActivityIndicator, View, ViewStyle } from 'react-native';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { Container } from '@metamask/snaps-sdk/jsx';
 import { strings } from '../../../../locales/i18n';
 import styles from './SnapUIRenderer.styles';
@@ -71,7 +70,9 @@ const SnapUIRendererComponent = ({
   );
 
   if (isLoading || !content) {
-    return <ActivityIndicator size="large" color={Colors.primary} />;
+    return (
+      <ActivityIndicator size="large" color={theme.colors.primary.default} />
+    );
   }
 
   const { state: initialState } = interfaceState;

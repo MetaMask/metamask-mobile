@@ -1,10 +1,11 @@
 import React from 'react';
-import StakingEarnings from '.';
+import StakingEarnings, { STAKING_EARNINGS_TEST_IDS } from '.';
 import { strings } from '../../../../../../locales/i18n';
 import { mockNetworkState } from '../../../../../util/test/network';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 
 const mockNavigate = jest.fn();
 
@@ -57,6 +58,11 @@ jest.mock('../../../Earn/selectors/featureFlags', () => ({
   selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
     .fn()
     .mockReturnValue(false),
+}));
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: jest.fn(),
 }));
 
 jest.mock('../../../Earn/hooks/useEarnings', () => ({
@@ -120,22 +126,70 @@ const render = (state = STATE_MOCK) =>
   );
 
 describe('Staking Earnings', () => {
-  it('should render correctly', () => {
-    const { toJSON, getByText, queryByText } = render();
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (
+      selectPrivacyMode as jest.MockedFunction<typeof selectPrivacyMode>
+    ).mockReturnValue(false);
+  });
 
-    expect(getByText(strings('stake.your_earnings'))).toBeDefined();
-    expect(getByText(strings('stake.annual_rate'))).toBeDefined();
-    expect(getByText(strings('stake.lifetime_rewards'))).toBeDefined();
-    expect(getByText(strings('stake.estimated_annual_earnings'))).toBeDefined();
+  it('renders pooled-staking earnings', () => {
+    const { getByText, queryByText } = render();
+
+    expect(getByText(strings('stake.your_earnings'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.annual_rate'))).toBeOnTheScreen();
+    expect(getByText(strings('stake.lifetime_rewards'))).toBeOnTheScreen();
+    expect(
+      getByText(strings('stake.estimated_annual_earnings')),
+    ).toBeOnTheScreen();
     expect(
       getByText(strings('earn.view_earnings_history.staking')),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
     expect(
       queryByText(
         strings('earn.service_interruption_banner.maintenance_message'),
       ),
     ).toBeNull();
-    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('displays pooled-staking earnings values when privacy mode is disabled', () => {
+    const { getByTestId } = render();
+
+    expect(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.LIFETIME_EARNINGS_FIAT),
+    ).toHaveTextContent('$5000');
+    expect(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.LIFETIME_EARNINGS_TOKEN),
+    ).toHaveTextContent('2.5 ETH');
+    expect(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_FIAT),
+    ).toHaveTextContent('$5000');
+    expect(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_TOKEN),
+    ).toHaveTextContent('2.5 ETH');
+  });
+
+  it('masks pooled-staking earnings values in privacy mode', () => {
+    (
+      selectPrivacyMode as jest.MockedFunction<typeof selectPrivacyMode>
+    ).mockReturnValue(true);
+
+    const { getByTestId, queryByText } = render();
+
+    expect(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.LIFETIME_EARNINGS_FIAT),
+    ).toHaveTextContent(/•/);
+    expect(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.LIFETIME_EARNINGS_TOKEN),
+    ).toHaveTextContent(/•/);
+    expect(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_FIAT),
+    ).toHaveTextContent(/•/);
+    expect(
+      getByTestId(STAKING_EARNINGS_TEST_IDS.ESTIMATED_ANNUAL_EARNINGS_TOKEN),
+    ).toHaveTextContent(/•/);
+    expect(queryByText('$5000')).not.toBeOnTheScreen();
+    expect(queryByText('2.5 ETH')).not.toBeOnTheScreen();
   });
 
   it('displays pooled-staking maintenance banner when feature flag is enabled', () => {
@@ -145,13 +199,12 @@ describe('Staking Earnings', () => {
       >
     ).mockReturnValue(true);
 
-    const { toJSON, getByText } = render();
+    const { getByText } = render();
 
-    expect(toJSON()).toMatchSnapshot();
     expect(
       getByText(
         strings('earn.service_interruption_banner.maintenance_message'),
       ),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 });

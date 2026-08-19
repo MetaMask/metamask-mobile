@@ -2,6 +2,8 @@ import {
   ActivitiesViewSelectorsIDs,
   ActivitiesViewSelectorsText,
 } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+import { ActivityScreenSelectorsIDs } from '../../../app/components/Views/ActivityScreen/ActivityScreen.testIds';
+import { activityListRowItemTestId } from '../../../app/components/Views/ActivityList/ActivityList.testIds';
 import {
   getOrderRowFiatAmountTestId,
   getOrderRowCryptoAmountTestId,
@@ -11,69 +13,243 @@ import {
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class ActivitiesView {
-  get title(): DetoxElement {
+  get typeFilterChip(): EncapsulatedElementType {
+    return Matchers.getElementByID(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP);
+  }
+
+  typeFilterOption(option: string): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      `${ActivityScreenSelectorsIDs.TYPE_FILTER_OPTION_PREFIX}${option}`,
+    );
+  }
+
+  get perpsFilterChip(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.PERPS_FILTER_CHIP,
+    );
+  }
+
+  get perpsFilterSheet(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.PERPS_FILTER_SHEET,
+    );
+  }
+
+  get typeFilterSheet(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET,
+    );
+  }
+
+  perpsFilterOption(option: string): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      `${ActivityScreenSelectorsIDs.PERPS_FILTER_OPTION_PREFIX}${option}`,
+    );
+  }
+
+  async tapTypeFilterChip(): Promise<void> {
+    await Gestures.waitAndTap(this.typeFilterChip, {
+      elemDescription: 'Activity Type Filter Chip',
+    });
+  }
+
+  async tapTypeFilterOption(option: string): Promise<void> {
+    await Gestures.waitAndTap(this.typeFilterOption(option), {
+      elemDescription: `Activity Type Filter Option: ${option}`,
+      checkForDisplayed: false,
+      delay: 2000,
+      timeout: 8000,
+    });
+  }
+
+  async tapPerpsFilterChip(): Promise<void> {
+    await Gestures.waitAndTap(this.perpsFilterChip, {
+      elemDescription: 'Activity Perps Filter Chip',
+    });
+  }
+
+  async tapPerpsFilterOption(option: string): Promise<void> {
+    await Gestures.waitAndTap(this.perpsFilterOption(option), {
+      elemDescription: `Activity Perps Filter Option: ${option}`,
+      checkForDisplayed: false,
+      delay: 2000,
+      timeout: 8000,
+    });
+  }
+
+  async selectPerpsFilterOptionSafe(option: string): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        const label = option === 'deposit' ? 'Deposits' : option;
+        let sheetOpen = true;
+        try {
+          await Assertions.expectElementToBeVisible(
+            Matchers.getElementByText(label),
+            {
+              timeout: 1500,
+              description: 'Check if perps filter sheet is open',
+            },
+          );
+        } catch {
+          sheetOpen = false;
+        }
+
+        if (!sheetOpen) {
+          await Gestures.waitAndTap(this.perpsFilterChip, {
+            elemDescription: 'Activity Perps Filter Chip',
+            timeout: 3000,
+          });
+        }
+
+        await Gestures.waitAndTap(this.perpsFilterOption(option), {
+          elemDescription: `Activity Perps Filter Option: ${option}`,
+          checkForDisplayed: false,
+          delay: 2000,
+          timeout: 8000,
+        });
+
+        await Assertions.expectElementToNotBeVisible(this.perpsFilterSheet, {
+          timeout: 4000,
+          description: 'Wait for perps filter sheet to close after selection',
+        });
+      },
+      {
+        timeout: 30000,
+        description: 'Selecting perps filter option with retry',
+      },
+    );
+  }
+
+  async verifyActivityItemLabelAndAmount(
+    label: string,
+    amount: string,
+  ): Promise<void> {
+    await Assertions.expectTextDisplayed(label, { timeout: 15000 });
+    await Assertions.expectTextDisplayed(amount, { timeout: 10000 });
+  }
+
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
-  get predictionsTab(): DetoxElement {
-    return Matchers.getElementByLabel(
+
+  get networkFilterChip(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP,
+    );
+  }
+
+  get redesignedScreen(): EncapsulatedElementType {
+    return Matchers.getElementByID(ActivityScreenSelectorsIDs.SAFE_AREA_VIEW);
+  }
+
+  /**
+   * Selects redesigned Activity network filter by CAIP (needs tmcuActivityRedesignEnabled).
+   */
+  async filterByNetwork(caipChainId: string): Promise<void> {
+    await Assertions.expectElementToExist(this.redesignedScreen, {
+      description: 'Redesigned Activity screen',
+      timeout: 15_000,
+    });
+    await Assertions.expectElementToExist(this.networkFilterChip, {
+      description: 'Activity network filter chip (All networks)',
+      timeout: 15_000,
+    });
+    await Gestures.waitAndTap(this.networkFilterChip, {
+      elemDescription: 'Activity network filter chip',
+      checkForDisplayed: false,
+      timeout: 15_000,
+    });
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(`network-select-${caipChainId}`),
+      {
+        elemDescription: `Activity network filter option ${caipChainId}`,
+        checkForDisplayed: false,
+        timeout: 15_000,
+      },
+    );
+  }
+
+  get predictionsTab(): EncapsulatedElementType {
+    return Matchers.getElementByText(
       ActivitiesViewSelectorsText.PREDICTIONS_TAB,
     );
   }
-  get transferTab(): DetoxElement {
+
+  get transferTab(): EncapsulatedElementType {
     return Matchers.getElementByID(ActivitiesViewSelectorsIDs.TRANSFER_TAB);
   }
 
-  get tabsBar(): DetoxElement {
+  get tabsBar(): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${ActivitiesViewSelectorsIDs.TABS_CONTAINER}-bar`,
     );
   }
 
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER);
   }
 
-  get confirmedLabel(): DetoxElement {
+  get confirmedLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.CONFIRM_TEXT);
   }
 
-  get stakeDepositedLabel(): DetoxElement {
+  get stakeDepositedLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT);
   }
 
-  get stakeMoreDepositedLabel(): DetoxElement {
+  get stakeMoreDepositedLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.STAKE_DEPOSIT,
       0,
     );
   }
 
-  get unstakeLabel(): DetoxElement {
+  get unstakeLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.UNSTAKE);
   }
 
-  get stackingClaimLabel(): DetoxElement {
+  get stackingClaimLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKING_CLAIM);
   }
 
-  get approveActivity(): DetoxElement {
+  get approveActivity(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
-  get predictDeposit(): DetoxElement {
+  get lendingDepositActivity(): EncapsulatedElementType {
+    return Matchers.getElementByText(
+      ActivitiesViewSelectorsText.LENDING_DEPOSIT,
+    );
+  }
+
+  get lendingWithdrawalActivity(): EncapsulatedElementType {
+    return Matchers.getElementByText(
+      ActivitiesViewSelectorsText.LENDING_WITHDRAWAL,
+    );
+  }
+
+  get predictDeposit(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.PREDICT_DEPOSIT,
     );
   }
 
-  transactionStatus(row: number): DetoxElement {
+  get predictWithdraw(): EncapsulatedElementType {
+    return Matchers.getElementByText(
+      ActivitiesViewSelectorsText.PREDICT_WITHDRAW,
+    );
+  }
+
+  transactionStatus(row: number): EncapsulatedElementType {
     return Matchers.getElementByID(`transaction-status-${row}`);
   }
 
-  transactionItem(row: number): DetoxElement {
-    return Matchers.getElementByID(`transaction-item-${row}`);
+  transactionItem(row: number): EncapsulatedElementType {
+    return Matchers.getElementByID(activityListRowItemTestId(row));
   }
 
   generateSwapActivityLabel(
@@ -95,17 +271,17 @@ class ActivitiesView {
   swapActivityTitle(
     sourceToken: string,
     destinationToken: string,
-  ): DetoxElement {
+  ): EncapsulatedElementType {
     return Matchers.getElementByText(
       this.generateSwapActivityLabel(sourceToken, destinationToken),
     );
   }
 
-  swapApprovalActivityTitle(): DetoxElement {
+  swapApprovalActivityTitle(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
-  bridgeActivityTitle(destNetwork: string): DetoxElement {
+  bridgeActivityTitle(destNetwork: string): EncapsulatedElementType {
     return Matchers.getElementByText(
       this.generateBridgeActivityLabel(destNetwork),
     );
@@ -130,20 +306,57 @@ class ActivitiesView {
     });
   }
 
+  /**
+   * Taps an activity row via its visible text label.
+   * Note: The ~transaction-item-0 wrapper testID can be flaky under XCUITest
+   * (accessibility flattening swallows it into StaticText children), so tapping by label text is safer.
+   */
+  async tapOnActivityItemByLabel(label: string): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(Matchers.getElementByText(label), {
+          elemDescription: `Tap Activity Item By Label: ${label}`,
+          timeout: 10000,
+        });
+      },
+      {
+        timeout: 30000,
+        description: `Tapping activity item by label ${label} with retry`,
+      },
+    );
+  }
+
   async tapOnTransactionItem(row: number): Promise<void> {
     await Gestures.waitAndTap(this.transactionItem(row));
   }
 
   async tapOnPredictionsTab(): Promise<void> {
-    // Swipe left on the tabs bar to reveal the Predictions tab (it may be off-screen)
-    await Gestures.swipe(this.tabsBar, 'left', {
-      percentage: 0.5,
-      speed: 'slow',
-      elemDescription: 'Activity View Tabs Bar',
-    });
-    await Gestures.waitAndTap(this.predictionsTab, {
-      elemDescription: 'Predictions Tab in Activity View',
-    });
+    await Utilities.executeWithRetry(
+      async () => {
+        for (let attempt = 0; attempt < 4; attempt += 1) {
+          try {
+            await Assertions.expectElementToBeVisible(this.predictionsTab, {
+              timeout: 1000,
+            });
+            break;
+          } catch {
+            await Gestures.swipe(this.tabsBar, 'left', {
+              percentage: 0.5,
+              speed: 'slow',
+              elemDescription: `Swipe activity tabs to reveal Predictions (attempt ${attempt + 1})`,
+            });
+          }
+        }
+        await Gestures.waitAndTap(this.predictionsTab, {
+          elemDescription: 'Predictions Tab in Activity View',
+          timeout: 10_000,
+        });
+      },
+      {
+        timeout: 30_000,
+        description: 'Tap Predictions tab in Activity View',
+      },
+    );
   }
 
   async tapOnTransfersTab(): Promise<void> {
@@ -162,7 +375,7 @@ class ActivitiesView {
   rampsOrderCryptoAmount(
     orderType: RampsOrderTypeSlug,
     rowIndex: number,
-  ): DetoxElement {
+  ): EncapsulatedElementType {
     return Matchers.getElementByID(
       getOrderRowCryptoAmountTestId(orderType, rowIndex),
     );
@@ -171,7 +384,7 @@ class ActivitiesView {
   rampsOrderFiatAmount(
     orderType: RampsOrderTypeSlug,
     rowIndex: number,
-  ): DetoxElement {
+  ): EncapsulatedElementType {
     return Matchers.getElementByID(
       getOrderRowFiatAmountTestId(orderType, rowIndex),
     );
@@ -225,6 +438,33 @@ class ActivitiesView {
       ActivitiesViewSelectorsText.MUSD_CONVERSION,
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
       rowIndex,
+    );
+  }
+
+  /**
+   * Wait for a transaction to show "Confirmed" status in the activity list.
+   * For real on-chain transactions, polls with a longer timeout.
+   * @param timeoutMs - Maximum time to wait for confirmation (default: 120s)
+   */
+  async waitForTransactionConfirmed(
+    rowIndex = 0,
+    timeoutMs = 120_000,
+  ): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await Assertions.expectElementToHaveText(
+          this.transactionStatus(rowIndex),
+          ActivitiesViewSelectorsText.CONFIRM_TEXT,
+          {
+            timeout: 3_000,
+            description: `Transaction row ${rowIndex} should be confirmed`,
+          },
+        );
+      },
+      {
+        timeout: timeoutMs,
+        description: `Transaction row ${rowIndex} should be confirmed`,
+      },
     );
   }
 }

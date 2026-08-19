@@ -1,29 +1,13 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
+import { usePredictMarketData } from '../../../../../UI/Predict/hooks/usePredictMarketData';
 import { usePredictMarketsForHomepage } from './usePredictMarketsForHomepage';
 import type { PredictMarket } from '../../../../../UI/Predict/types';
 
-const mockRefetch = jest.fn().mockResolvedValue(undefined);
-let mockUsePredictMarketDataReturn: {
-  marketData: PredictMarket[];
-  isFetching: boolean;
-  isFetchingMore: boolean;
-  error: string | null;
-  hasMore: boolean;
-  refetch: jest.Mock;
-  fetchMore: jest.Mock;
-} = {
-  marketData: [],
-  isFetching: false,
-  isFetchingMore: false,
-  error: null,
-  hasMore: false,
-  refetch: mockRefetch,
-  fetchMore: jest.fn(),
-};
-
 jest.mock('../../../../../UI/Predict/hooks/usePredictMarketData', () => ({
-  usePredictMarketData: () => mockUsePredictMarketDataReturn,
+  usePredictMarketData: jest.fn(),
 }));
+
+const mockUsePredictMarketData = usePredictMarketData as jest.Mock;
 
 const createMockMarket = (id: string): PredictMarket =>
   ({
@@ -40,9 +24,11 @@ const createMockMarket = (id: string): PredictMarket =>
   }) as unknown as PredictMarket;
 
 describe('usePredictMarketsForHomepage', () => {
+  const mockRefetch = jest.fn().mockResolvedValue(undefined);
+
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUsePredictMarketDataReturn = {
+    mockUsePredictMarketData.mockReturnValue({
       marketData: [
         createMockMarket('1'),
         createMockMarket('2'),
@@ -54,19 +40,44 @@ describe('usePredictMarketsForHomepage', () => {
       hasMore: false,
       refetch: mockRefetch,
       fetchMore: jest.fn(),
-    };
+    });
   });
 
-  it('returns markets from usePredictMarketData', () => {
+  it('fetches trending markets with the requested page size', async () => {
     const { result } = renderHook(() => usePredictMarketsForHomepage(5));
 
-    expect(result.current.markets).toHaveLength(3);
+    expect(mockUsePredictMarketData).toHaveBeenCalledWith({
+      category: 'trending',
+      pageSize: 5,
+      enabled: true,
+    });
+    await waitFor(() => {
+      expect(result.current.markets).toHaveLength(3);
+    });
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
   });
 
+  it('forwards enabled: false to usePredictMarketData', () => {
+    renderHook(() => usePredictMarketsForHomepage(5, { enabled: false }));
+
+    expect(mockUsePredictMarketData).toHaveBeenCalledWith({
+      category: 'trending',
+      pageSize: 5,
+      enabled: false,
+    });
+  });
+
   it('forwards isFetching as isLoading', () => {
-    mockUsePredictMarketDataReturn.isFetching = true;
+    mockUsePredictMarketData.mockReturnValue({
+      marketData: [],
+      isFetching: true,
+      isFetchingMore: false,
+      error: null,
+      hasMore: false,
+      refetch: mockRefetch,
+      fetchMore: jest.fn(),
+    });
 
     const { result } = renderHook(() => usePredictMarketsForHomepage(5));
 
@@ -74,7 +85,15 @@ describe('usePredictMarketsForHomepage', () => {
   });
 
   it('forwards error from usePredictMarketData', () => {
-    mockUsePredictMarketDataReturn.error = 'Network error';
+    mockUsePredictMarketData.mockReturnValue({
+      marketData: [],
+      isFetching: false,
+      isFetchingMore: false,
+      error: 'Network error',
+      hasMore: false,
+      refetch: mockRefetch,
+      fetchMore: jest.fn(),
+    });
 
     const { result } = renderHook(() => usePredictMarketsForHomepage(5));
 

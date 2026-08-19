@@ -8,12 +8,20 @@ import {
 import { useDispatch } from 'react-redux';
 import Complete from './Complete';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { CardActions, CardScreens } from '../../util/metrics';
 
 // Mock dependencies
 const mockNavigationDispatch = jest.fn();
 const mockStackReplace = jest.fn((routeName: string) => ({
   type: 'REPLACE',
   routeName,
+}));
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -40,7 +48,10 @@ jest.mock('../../../../../core/redux/slices/card', () => ({
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(),
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 jest.mock('../../util/cardTokenVault', () => ({
@@ -114,6 +125,30 @@ jest.mock('@metamask/design-system-react-native', () => {
       Regular: '400',
       Medium: '500',
       Bold: '700',
+    },
+    Button: ({
+      children,
+      testID,
+      onPress,
+      isDisabled,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) => {
+      const { TouchableOpacity } = jest.requireActual('react-native');
+      return React.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: isDisabled, ...props },
+        React.createElement(Text, {}, children),
+      );
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
   };
 });
@@ -205,8 +240,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 describe('Complete Component', () => {
   const mockDispatch = jest.fn();
-  const mockTrackEvent = jest.fn();
-  const mockCreateEventBuilder = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -225,22 +258,46 @@ describe('Complete Component', () => {
 
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
 
-    const { useAnalytics } = jest.requireMock(
-      '../../../../hooks/useAnalytics/useAnalytics',
-    );
-    mockCreateEventBuilder.mockReturnValue({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({}),
-    });
-    useAnalytics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    });
-
     const { getCardBaanxToken } = jest.requireMock('../../util/cardTokenVault');
     getCardBaanxToken.mockResolvedValue({
       success: true,
       tokenData: { accessToken: 'mock-token' },
+    });
+  });
+
+  describe('Analytics', () => {
+    it('tracks CARD_VIEWED with COMPLETE screen on mount', () => {
+      render(<Complete />);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        screen: CardScreens.COMPLETE,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('tracks CARD_BUTTON_CLICKED with COMPLETE_BUTTON when continue is pressed', async () => {
+      const { getByTestId } = render(<Complete />);
+
+      mockTrackEvent.mockClear();
+      mockCreateEventBuilder.mockClear();
+      mockAddProperties.mockClear();
+
+      fireEvent.press(getByTestId('complete-confirm-button'));
+
+      await waitFor(() => {
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.CARD_BUTTON_CLICKED,
+        );
+      });
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
+        action: CardActions.COMPLETE_BUTTON,
+      });
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 
@@ -286,15 +343,14 @@ describe('Complete Component', () => {
     });
 
     it('displays the correct button text', () => {
-      const { getByTestId } = render(<Complete />);
-      const buttonLabel = getByTestId('button-label');
-      expect(buttonLabel.props.children).toBe('Continue');
+      const { getByText } = render(<Complete />);
+      expect(getByText('Continue')).toBeTruthy();
     });
 
     it('is not disabled', () => {
       const { getByTestId } = render(<Complete />);
       const button = getByTestId('complete-confirm-button');
-      expect(button.props.disabled).toBeFalsy();
+      expect(button).not.toBeDisabled();
     });
 
     it('dispatches replace action to card home when pressed', async () => {
@@ -304,7 +360,9 @@ describe('Complete Component', () => {
       fireEvent.press(button);
 
       await waitFor(() => {
-        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME, {
+          fromCardOnboarding: true,
+        });
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ routeName: Routes.CARD.HOME }),
         );
@@ -325,7 +383,9 @@ describe('Complete Component', () => {
 
       await waitFor(() => {
         expect(mockNavigationDispatch).toHaveBeenCalledTimes(2);
-        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME, {
+          fromCardOnboarding: true,
+        });
       });
     });
 
@@ -365,7 +425,9 @@ describe('Complete Component', () => {
       fireEvent.press(button);
 
       await waitFor(() => {
-        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME, {
+          fromCardOnboarding: true,
+        });
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ routeName: Routes.CARD.HOME }),
         );
@@ -447,10 +509,9 @@ describe('Complete Component', () => {
     });
 
     it('renders translated button label', () => {
-      const { getByTestId } = render(<Complete />);
+      const { getByText } = render(<Complete />);
 
-      const buttonLabel = getByTestId('button-label');
-      expect(buttonLabel.props.children).toBe('Continue');
+      expect(getByText('Continue')).toBeTruthy();
     });
   });
 
@@ -480,10 +541,9 @@ describe('Complete Component', () => {
     });
 
     it('renders button with correct label', () => {
-      const { getByTestId } = render(<Complete />);
+      const { getByText } = render(<Complete />);
 
-      const buttonLabel = getByTestId('button-label');
-      expect(buttonLabel.props.children).toBe('Continue');
+      expect(getByText('Continue')).toBeTruthy();
     });
   });
 
@@ -500,7 +560,9 @@ describe('Complete Component', () => {
 
       // Verify navigation to final destination
       await waitFor(() => {
-        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME, {
+          fromCardOnboarding: true,
+        });
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ routeName: Routes.CARD.HOME }),
         );
@@ -512,13 +574,15 @@ describe('Complete Component', () => {
 
       // Verify the component is ready for user interaction
       const button = getByTestId('complete-confirm-button');
-      expect(button.props.disabled).toBeFalsy();
+      expect(button).not.toBeDisabled();
 
       // Verify successful completion leads to proper navigation
       fireEvent.press(button);
 
       await waitFor(() => {
-        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME, {
+          fromCardOnboarding: true,
+        });
         expect(mockNavigationDispatch).toHaveBeenCalledWith(
           expect.objectContaining({ routeName: Routes.CARD.HOME }),
         );
@@ -637,7 +701,9 @@ describe('Complete Component', () => {
 
       await waitFor(() => {
         expect(getCardBaanxToken).toHaveBeenCalled();
-        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME);
+        expect(mockStackReplace).toHaveBeenCalledWith(Routes.CARD.HOME, {
+          fromCardOnboarding: true,
+        });
       });
     });
   });

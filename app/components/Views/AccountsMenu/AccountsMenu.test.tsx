@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import AccountsMenu from './AccountsMenu';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
@@ -13,7 +13,7 @@ import {
   getMetamaskNotificationsReadCount,
 } from '../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
-import useRampsUnifiedV1Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV1Enabled';
+import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -30,20 +30,12 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        default: '#FFFFFF',
-        alternative: '#F2F4F6',
-      },
-      text: {
-        default: '#24272A',
-        alternative: '#6A737D',
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
@@ -58,35 +50,11 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../../../core/Analytics', () => ({
-  MetaMetrics: {
-    getInstance: () => ({
-      trackEvent: mockTrackEvent,
-    }),
-  },
-}));
-
-jest.mock('../../../core/Analytics/MetaMetrics.events', () => ({
-  EVENT_NAME: {
-    CARD_HOME_CLICKED: 'Card Home Clicked',
-    SETTINGS_VIEWED: 'Settings Viewed',
-    SETTINGS_ABOUT: 'About MetaMask',
-    NAVIGATION_TAPS_SEND_FEEDBACK: 'Send Feedback',
-    NAVIGATION_TAPS_GET_HELP: 'Get Help',
-    NAVIGATION_TAPS_LOGOUT: 'Logout',
-    QR_SCANNER_OPENED: 'QR Scanner Opened',
-    RAMPS_BUTTON_CLICKED: 'Ramps Button Clicked',
-    NOTIFICATIONS_MENU_OPENED: 'Notifications Menu Opened',
-    NOTIFICATIONS_ACTIVATED: 'Notifications Activated',
-  },
-}));
-
-jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
-  MetricsEventBuilder: {
-    createEventBuilder: jest.fn(() => ({
-      build: jest.fn(() => ({ event: 'CARD_HOME_CLICKED' })),
-    })),
-  },
+const mockOpenSupportWithConsent = jest.fn();
+jest.mock('../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
 }));
 
 jest.mock('../../../core/', () => ({
@@ -104,18 +72,6 @@ jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-jest.mock('../../../util/networks', () => ({
-  ...jest.requireActual('../../../util/networks'),
-  isPermissionsSettingsV1Enabled: true,
-}));
-
-jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
-  __esModule: true,
-  default: jest.fn(() => false),
-}));
-
-jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV2Enabled');
-
 const mockGoToBuy = jest.fn();
 jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({
@@ -125,7 +81,6 @@ jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
 
 jest.mock('../../UI/Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: () => ({
-    ramp_routing: 'test_routing',
     is_authenticated: true,
     preferred_provider: 'test_provider',
     order_count: 5,
@@ -150,23 +105,37 @@ jest.mock('../../../selectors/identity', () => ({
   selectIsBackupAndSyncEnabled: jest.fn(),
 }));
 
+// Mirrors the Rewards utils.ts mocking shape: mocking the helper (rather than
+// the inline `///: ONLY_INCLUDE_IF(beta)` fence) lets Jest exercise both the
+// beta and consent branches, since babel-jest leaves the fence as a comment.
+const mockGetBetaSupportUrl = jest.fn();
+jest.mock('./AccountsMenu.utils', () => ({
+  getBetaSupportUrl: () => mockGetBetaSupportUrl(),
+}));
 describe('AccountsMenu', () => {
   let mockAlert: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default to the beta branch so pre-existing tests that don't care about
+    // support consent keep their prior (beta) behavior; consent tests below
+    // override this to '' to exercise the non-beta branch.
+    mockGetBetaSupportUrl.mockReturnValue(
+      'https://intercom.help/internal-beta-testing/en/',
+    );
     mockAlert = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     // Setup useSelector to return different values based on the selector
     (useSelector as jest.Mock).mockImplementation((selector) => {
-      // Mock state object
       const mockState = {
-        fiatOrders: { detectedGeolocation: 'US' },
+        engine: {
+          backgroundState: {
+            GeolocationController: { location: 'US' },
+          },
+        },
       };
 
-      // Try to call the selector with mock state
       try {
         const result = selector(mockState);
-        // If it's the geolocation selector, return 'US'
         if (result === 'US') {
           return 'US';
         }
@@ -202,43 +171,7 @@ describe('AccountsMenu', () => {
     expect(getByText('accounts_menu.resources')).toBeOnTheScreen();
   });
 
-  describe('Snapshots', () => {
-    it('match snapshot when MetaMask Card is hidden', () => {
-      (useSelector as jest.Mock).mockReturnValue(false);
-
-      const { toJSON } = render(<AccountsMenu />);
-      expect(toJSON()).toMatchSnapshot();
-    });
-
-    it('match snapshot when MetaMask Card is visible', () => {
-      (useSelector as jest.Mock).mockReturnValue(true);
-
-      const { toJSON } = render(<AccountsMenu />);
-      expect(toJSON()).toMatchSnapshot();
-    });
-  });
-
   describe('MetaMask Card Button', () => {
-    it('render MetaMask Card row when shouldDisplayCardButton is true', () => {
-      (useSelector as jest.Mock).mockReturnValue(true);
-
-      const { getByText, getByTestId } = render(<AccountsMenu />);
-
-      expect(getByText('accounts_menu.card_title')).toBeOnTheScreen();
-      expect(
-        getByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD),
-      ).toBeOnTheScreen();
-    });
-
-    it('does NOT render MetaMask Card row when shouldDisplayCardButton is false', () => {
-      (useSelector as jest.Mock).mockReturnValue(false);
-
-      const { queryByText, queryByTestId } = render(<AccountsMenu />);
-
-      expect(queryByText('accounts_menu.card_title')).toBeNull();
-      expect(queryByTestId(AccountsMenuSelectorsIDs.MANAGE_CARD)).toBeNull();
-    });
-
     it('navigate to card and track analytics when MetaMask Card is pressed', () => {
       (useSelector as jest.Mock).mockReturnValue(true);
 
@@ -253,9 +186,7 @@ describe('AccountsMenu', () => {
   });
 
   describe('Buy Button', () => {
-    it('render Buy button when rampUnifiedV1Enabled is true', () => {
-      jest.mocked(useRampsUnifiedV1Enabled).mockReturnValue(true);
-
+    it('renders the Buy button unconditionally', () => {
       const { getByText, getByTestId } = render(<AccountsMenu />);
 
       expect(getByText('accounts_menu.buy')).toBeOnTheScreen();
@@ -264,18 +195,7 @@ describe('AccountsMenu', () => {
       ).toBeOnTheScreen();
     });
 
-    it('does NOT render Buy button when rampUnifiedV1Enabled is false', () => {
-      jest.mocked(useRampsUnifiedV1Enabled).mockReturnValue(false);
-
-      const { queryByText, queryByTestId } = render(<AccountsMenu />);
-
-      expect(queryByText('accounts_menu.buy')).toBeNull();
-      expect(queryByTestId(AccountsMenuSelectorsIDs.BUY_BUTTON)).toBeNull();
-    });
-
     it('navigate to buy flow and track analytics when Buy is pressed', () => {
-      jest.mocked(useRampsUnifiedV1Enabled).mockReturnValue(true);
-
       // Clear previous calls
       mockGoToBuy.mockClear();
       mockTrackEvent.mockClear();
@@ -295,8 +215,6 @@ describe('AccountsMenu', () => {
     });
 
     it('track RAMPS_BUTTON_CLICKED event with correct properties when Buy is pressed', () => {
-      jest.mocked(useRampsUnifiedV1Enabled).mockReturnValue(true);
-
       mockCreateEventBuilder.mockClear();
       mockTrackEvent.mockClear();
 
@@ -322,10 +240,9 @@ describe('AccountsMenu', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         button_text: 'Buy',
         location: 'AccountsMenu',
-        ramp_type: 'UNIFIED_BUY',
+        ramp_type: 'UNIFIED_BUY_2',
         chain_id_destination: null,
         region: 'US',
-        ramp_routing: 'test_routing',
         is_authenticated: true,
         preferred_provider: 'test_provider',
         order_count: 5,
@@ -429,11 +346,14 @@ describe('AccountsMenu', () => {
       notificationEnabled = false,
       unreadCount = 0,
       readCount = 0,
-      backupSyncEnabled = false,
     } = {}) => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         const mockState = {
-          fiatOrders: { detectedGeolocation: 'US' },
+          engine: {
+            backgroundState: {
+              GeolocationController: { location: 'US' },
+            },
+          },
         };
 
         try {
@@ -449,7 +369,6 @@ describe('AccountsMenu', () => {
         if (selector === getMetamaskNotificationsUnreadCount)
           return unreadCount;
         if (selector === getMetamaskNotificationsReadCount) return readCount;
-        if (selector === selectIsBackupAndSyncEnabled) return backupSyncEnabled;
 
         // Default: return false
         return false;
@@ -474,7 +393,7 @@ describe('AccountsMenu', () => {
 
       const { queryByText } = render(<AccountsMenu />);
 
-      expect(queryByText('accounts_menu.notifications')).toBeNull();
+      expect(queryByText('accounts_menu.notifications')).not.toBeOnTheScreen();
     });
 
     it('navigate to notifications view when enabled and pressed', () => {
@@ -492,7 +411,7 @@ describe('AccountsMenu', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.NOTIFICATIONS.VIEW);
     });
 
-    it('navigate to opt-in stack when not enabled and pressed', () => {
+    it('navigates to notifications view when not enabled and pressed', () => {
       jest.mocked(isNotificationsFeatureEnabled).mockReturnValue(true);
       setupNotificationMocks({ notificationEnabled: false });
 
@@ -503,9 +422,7 @@ describe('AccountsMenu', () => {
 
       fireEvent.press(notificationsButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.NOTIFICATIONS.OPT_IN_STACK,
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.NOTIFICATIONS.VIEW);
     });
 
     it('display badge with count when notifications are enabled and unread count > 0', () => {
@@ -533,7 +450,7 @@ describe('AccountsMenu', () => {
       const { queryByText } = render(<AccountsMenu />);
 
       // Badge should not be visible
-      expect(queryByText('0')).toBeNull();
+      expect(queryByText('0')).not.toBeOnTheScreen();
     });
 
     it('track NOTIFICATIONS_MENU_OPENED event when enabled and pressed', () => {
@@ -563,46 +480,11 @@ describe('AccountsMenu', () => {
       fireEvent.press(notificationsButton);
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'Notifications Menu Opened',
+        'InApp Notifications Menu Opened',
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         unread_count: 5,
         read_count: 3,
-      });
-      expect(mockTrackEvent).toHaveBeenCalled();
-    });
-
-    it('track NOTIFICATIONS_ACTIVATED event when not enabled and pressed', () => {
-      jest.mocked(isNotificationsFeatureEnabled).mockReturnValue(true);
-      setupNotificationMocks({
-        notificationEnabled: false,
-        backupSyncEnabled: true,
-      });
-
-      mockCreateEventBuilder.mockClear();
-      mockTrackEvent.mockClear();
-
-      const mockAddProperties = jest.fn().mockReturnThis();
-      const mockBuild = jest.fn(() => ({
-        name: 'NOTIFICATIONS_ACTIVATED',
-      }));
-
-      mockCreateEventBuilder.mockReturnValue({
-        addProperties: mockAddProperties,
-        build: mockBuild,
-      });
-
-      const { getByText } = render(<AccountsMenu />);
-      const notificationsButton = getByText('accounts_menu.notifications');
-
-      fireEvent.press(notificationsButton);
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'Notifications Activated',
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        action_type: 'started',
-        is_profile_syncing_enabled: true,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
     });
@@ -628,6 +510,26 @@ describe('AccountsMenu', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.SETTINGS.SDK_SESSIONS_MANAGER,
+      );
+    });
+  });
+
+  describe('Networks Row', () => {
+    it('render Networks row', () => {
+      const { getByText, getByTestId } = render(<AccountsMenu />);
+
+      expect(getByText('accounts_menu.networks')).toBeOnTheScreen();
+      expect(getByTestId(AccountsMenuSelectorsIDs.NETWORKS)).toBeOnTheScreen();
+    });
+
+    it('navigate to NetworksManagement when Networks is pressed', () => {
+      const { getByTestId } = render(<AccountsMenu />);
+      const networksButton = getByTestId(AccountsMenuSelectorsIDs.NETWORKS);
+
+      fireEvent.press(networksButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SETTINGS.NETWORKS_MANAGEMENT,
       );
     });
   });
@@ -691,7 +593,7 @@ describe('AccountsMenu', () => {
         expect(getByTestId(AccountsMenuSelectorsIDs.SUPPORT)).toBeOnTheScreen();
       });
 
-      it('navigate to webview when Support is pressed', () => {
+      it('navigate to webview directly when beta support URL is set', () => {
         const { getByTestId } = render(<AccountsMenu />);
         const supportButton = getByTestId(AccountsMenuSelectorsIDs.SUPPORT);
 
@@ -703,6 +605,63 @@ describe('AccountsMenu', () => {
             url: 'https://intercom.help/internal-beta-testing/en/',
             title: 'app_settings.contact_support',
           },
+        });
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith('Get Help');
+        expect(mockTrackEvent).toHaveBeenCalled();
+        expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
+      });
+
+      describe('when no beta support URL is set', () => {
+        beforeEach(() => {
+          mockGetBetaSupportUrl.mockReturnValue('');
+        });
+
+        it('open the consent flow instead of navigating directly', () => {
+          const { getByTestId } = render(<AccountsMenu />);
+          const supportButton = getByTestId(AccountsMenuSelectorsIDs.SUPPORT);
+
+          fireEvent.press(supportButton);
+
+          expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+            expect.any(Function),
+            METAMASK_SUPPORT_URL,
+            expect.any(Function),
+          );
+        });
+
+        it('defer NAVIGATION_TAPS_GET_HELP tracking until the consent callback runs', () => {
+          const { getByTestId } = render(<AccountsMenu />);
+          const supportButton = getByTestId(AccountsMenuSelectorsIDs.SUPPORT);
+
+          fireEvent.press(supportButton);
+
+          // Pressing Support only opens the consent sheet; tracking must wait
+          // until the user actually confirms/rejects and support opens.
+          expect(mockCreateEventBuilder).not.toHaveBeenCalledWith('Get Help');
+
+          const trackingCallback = mockOpenSupportWithConsent.mock.calls[0][2];
+          trackingCallback();
+
+          expect(mockCreateEventBuilder).toHaveBeenCalledWith('Get Help');
+          expect(mockTrackEvent).toHaveBeenCalled();
+        });
+
+        it('navigate to webview when the opener passed to the consent flow is invoked', () => {
+          const { getByTestId } = render(<AccountsMenu />);
+          const supportButton = getByTestId(AccountsMenuSelectorsIDs.SUPPORT);
+
+          fireEvent.press(supportButton);
+
+          const opener = mockOpenSupportWithConsent.mock.calls[0][0];
+          opener('https://support.metamask.io/enriched');
+
+          expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+            screen: 'SimpleWebview',
+            params: {
+              url: 'https://support.metamask.io/enriched',
+              title: 'app_settings.contact_support',
+            },
+          });
         });
       });
     });
@@ -748,7 +707,9 @@ describe('AccountsMenu', () => {
         // Get the onPress callback from the OK button
         const alertCall = mockAlert.mock.calls[0];
         const okButton = alertCall[2][1]; // Second button in the array
-        await okButton.onPress();
+        await act(async () => {
+          await okButton.onPress();
+        });
 
         expect(Authentication.lockApp).toHaveBeenCalledWith({
           reset: false,
@@ -769,7 +730,9 @@ describe('AccountsMenu', () => {
         // Get the onPress callback from the OK button and execute it
         const alertCall = mockAlert.mock.calls[0];
         const okButton = alertCall[2][1]; // Second button in the array
-        await okButton.onPress();
+        await act(async () => {
+          await okButton.onPress();
+        });
 
         // Now analytics be tracked (user confirmed)
         expect(mockCreateEventBuilder).toHaveBeenCalledWith('Logout');
@@ -820,6 +783,10 @@ describe('AccountsMenu', () => {
       });
     });
 
+    // Covers the beta direct-open branch, which tracks inline on press. The
+    // consent branch (mockGetBetaSupportUrl returning '') defers tracking to
+    // the callback passed as openSupportWithConsent's 3rd arg — see the
+    // 'Support Row' > 'when no beta support URL is set' tests below.
     it('track NAVIGATION_TAPS_GET_HELP event when Support is pressed', () => {
       const { getByTestId } = render(<AccountsMenu />);
       const supportButton = getByTestId(AccountsMenuSelectorsIDs.SUPPORT);

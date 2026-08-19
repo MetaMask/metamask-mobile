@@ -10,23 +10,20 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../../../../component-library/hooks', () => ({
-  useStyles: jest.fn(() => ({
-    styles: {
-      container: {},
-      title: {},
-      description: {},
-      balanceInfo: {},
-      buttonsContainer: {},
-      button: {},
-    },
-    theme: {
-      colors: {
-        text: {
-          alternative: '#6a737d',
-        },
+  useStyles: jest.fn(() => {
+    const { mockTheme } = jest.requireActual('../../../../../../util/theme');
+    return {
+      styles: {
+        container: {},
+        title: {},
+        description: {},
+        balanceInfo: {},
+        buttonsContainer: {},
+        button: {},
       },
-    },
-  })),
+      theme: mockTheme,
+    };
+  }),
 }));
 
 jest.mock('../../../utils/validations/approve', () => ({

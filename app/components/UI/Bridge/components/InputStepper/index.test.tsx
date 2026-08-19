@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { InputStepper } from './index';
 import { InputStepperDescriptionType } from './constants';
 import {
@@ -21,9 +22,14 @@ describe('InputStepper', () => {
     minAmount: 0,
     maxAmount: 100,
   };
+  const originalPlatform = Platform.OS;
 
   afterEach(() => {
     jest.clearAllMocks();
+    Object.defineProperty(Platform, 'OS', {
+      value: originalPlatform,
+      writable: true,
+    });
   });
 
   describe('input', () => {
@@ -42,7 +48,7 @@ describe('InputStepper', () => {
       );
 
       const postValue = getByTestId('input-stepper-post-value');
-      expect(postValue).toBeTruthy();
+      expect(postValue).toBeOnTheScreen();
     });
 
     it('does not render postValue when not provided', () => {
@@ -67,43 +73,68 @@ describe('InputStepper', () => {
     });
 
     it('renders correct style when value character length is less or equal to 10', () => {
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepper {...defaultProps} value="1234567890" />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      const input = getByTestId('input-stepper-input');
+      const fontSize = Array.isArray(input.props.style)
+        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
+            ?.fontSize
+        : input.props.style?.fontSize;
+      expect(fontSize).toBe(40);
     });
 
     it('renders correct style when value character length is less or equal to 15', () => {
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepper {...defaultProps} value="123456789012345" />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      const input = getByTestId('input-stepper-input');
+      const fontSize = Array.isArray(input.props.style)
+        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
+            ?.fontSize
+        : input.props.style?.fontSize;
+      expect(fontSize).toBe(35);
     });
 
     it('renders correct style when value character length is less or equal to 20', () => {
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepper {...defaultProps} value="12345678901234567890" />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      const input = getByTestId('input-stepper-input');
+      const fontSize = Array.isArray(input.props.style)
+        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
+            ?.fontSize
+        : input.props.style?.fontSize;
+      expect(fontSize).toBe(30);
     });
 
     it('renders correct style when value character length is less or equal to 25', () => {
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepper {...defaultProps} value="1234567890123456789012345" />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      const input = getByTestId('input-stepper-input');
+      const fontSize = Array.isArray(input.props.style)
+        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
+            ?.fontSize
+        : input.props.style?.fontSize;
+      expect(fontSize).toBe(25);
     });
 
     it('renders correct style when value character length is more than 25', () => {
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepper {...defaultProps} value="12345678901234567890123456" />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      const input = getByTestId('input-stepper-input');
+      const fontSize = Array.isArray(input.props.style)
+        ? input.props.style.find((s: { fontSize?: number }) => s?.fontSize)
+            ?.fontSize
+        : input.props.style?.fontSize;
+      expect(fontSize).toBe(20);
     });
 
     it('renders custom placeholder if provided', () => {
@@ -113,6 +144,25 @@ describe('InputStepper', () => {
 
       const input = getByTestId('input-stepper-input');
       expect(input.props.placeholder).toBe('Enter amount');
+    });
+
+    it('applies Android text alignment styles to avoid clipping', () => {
+      Object.defineProperty(Platform, 'OS', {
+        value: 'android',
+        writable: true,
+      });
+
+      const { getByTestId } = render(
+        <InputStepper {...defaultProps} value="2" postValue="%" />,
+      );
+
+      const input = getByTestId('input-stepper-input');
+      const inputStyle = StyleSheet.flatten(input.props.style);
+
+      expect(inputStyle.includeFontPadding).toBe(false);
+      expect(inputStyle.textAlignVertical).toBe('center');
+      expect(inputStyle.paddingVertical).toBe(0);
+      expect(inputStyle.paddingTop).toBe(1);
     });
   });
 
@@ -139,17 +189,22 @@ describe('InputStepper', () => {
     });
 
     it('renders correct style of minus button when enabled', () => {
-      const { toJSON } = render(<InputStepper {...defaultProps} value="50" />);
+      const { getByTestId } = render(
+        <InputStepper {...defaultProps} value="50" />,
+      );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('input-stepper-minus-button')).toBeOnTheScreen();
     });
 
     it('renders correct style of minus button when disabled', () => {
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepper {...defaultProps} value="0" minAmount={0} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByTestId('input-stepper-minus-button').props.accessibilityState
+          .disabled,
+      ).toBe(true);
     });
   });
 
@@ -176,17 +231,22 @@ describe('InputStepper', () => {
     });
 
     it('renders correct style of plus button when enabled', () => {
-      const { toJSON } = render(<InputStepper {...defaultProps} value="50" />);
+      const { getByTestId } = render(
+        <InputStepper {...defaultProps} value="50" />,
+      );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('input-stepper-plus-button')).toBeOnTheScreen();
     });
 
     it('renders correct style of plus button when disabled', () => {
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepper {...defaultProps} value="100" maxAmount={100} />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByTestId('input-stepper-plus-button').props.accessibilityState
+          .disabled,
+      ).toBe(true);
     });
   });
 
@@ -203,13 +263,12 @@ describe('InputStepper', () => {
         },
       };
 
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepper {...defaultProps} description={description} />,
       );
 
-      // Since InputStepperDescriptionRow is mocked to return null,
-      // we verify the component renders without it in the snapshot
-      expect(toJSON()).toMatchSnapshot();
+      // InputStepperDescriptionRow is mocked to return null, verify the input still renders
+      expect(getByTestId('input-stepper-input')).toBeOnTheScreen();
     });
   });
 
@@ -296,7 +355,7 @@ describe('InputStepper', () => {
 
   describe('complete component snapshot', () => {
     it('renders complete component correctly', () => {
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepper
           {...defaultProps}
           value="42.5"
@@ -305,11 +364,12 @@ describe('InputStepper', () => {
         />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('input-stepper-input')).toBeOnTheScreen();
+      expect(getByTestId('input-stepper-post-value')).toBeOnTheScreen();
     });
 
     it('renders with description', () => {
-      const { toJSON } = render(
+      const { getByTestId } = render(
         <InputStepper
           {...defaultProps}
           value="42.5"
@@ -320,7 +380,7 @@ describe('InputStepper', () => {
         />,
       );
 
-      expect(toJSON()).toMatchSnapshot();
+      expect(getByTestId('input-stepper-input')).toBeOnTheScreen();
     });
   });
 });

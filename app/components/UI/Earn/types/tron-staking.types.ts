@@ -39,6 +39,16 @@ export interface TronUnstakeResult {
   errors?: string[];
 }
 
+export interface TronClaimUnstakedTrxParams {
+  fromAccountId: string;
+  assetId: CaipAssetType;
+}
+
+export interface TronClaimUnstakedTrxResult {
+  valid: boolean;
+  errors?: string[];
+}
+
 export interface ComputeFeeParams {
   transaction: string;
   accountId: string;

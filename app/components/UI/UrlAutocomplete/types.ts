@@ -3,6 +3,7 @@
  */
 
 import type { Hex } from '@metamask/utils';
+import type { MarketType } from '@metamask/perps-controller';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type UrlAutocompleteComponentProps = {
@@ -11,6 +12,11 @@ export type UrlAutocompleteComponentProps = {
    * choosing one of the autocomplete options
    */
   onSelect: (item: AutocompleteSearchResult) => void;
+  /**
+   * Called on press-in for URL-based results (Sites/Recents/Favorites) before
+   * blur, so the browser can keep the URL bar focused until navigation starts.
+   */
+  onSelectPressIn?: () => void;
   /**
    * Callback that is triggered while
    * tapping on the background
@@ -92,7 +98,7 @@ export type PerpsSearchResult = {
   change24hPercent: string;
   volume: string;
   openInterest?: string;
-  marketType?: 'crypto' | 'equity' | 'commodity' | 'forex';
+  marketType?: MarketType;
   marketSource?: string | null;
 };
 

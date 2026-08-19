@@ -1,45 +1,64 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Keyboard, TextInput, TouchableOpacity, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
-import Text, {
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import {
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import ScreenLayout from '../../Aggregator/components/ScreenLayout';
-import { getDepositNavbarOptions } from '../../../Navbar';
-import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from '../../Deposit/Views/BasicInfo/BasicInfo.styles';
-import { useParams } from '../../../../../util/navigation/navUtils';
-import Routes from '../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../locales/i18n';
-import DepositTextField from '../../Deposit/components/DepositTextField';
-import { useForm } from '../../Deposit/hooks/useForm';
-import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
-import DepositDateField from '../../Deposit/components/DepositDateField';
-import { VALIDATION_REGEX } from '../../Deposit/constants/constants';
-import { formatNumberToTemplate } from '../../Deposit/components/DepositPhoneField/formatNumberToTemplate';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import Icon, {
-  IconColor,
+  Icon,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
-import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import PrivacySection from '../../Deposit/components/PrivacySection';
-import { timestampToTransakFormat } from '../../Deposit/utils';
+  IconColor,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
+import ScreenLayout from '../../Aggregator/components/ScreenLayout';
+import { useStyles } from '../../../../hooks/useStyles';
+import styleSheet from './BasicInfo.styles';
+import {
+  useParams,
+  navigateWithDetails,
+} from '../../../../../util/navigation/navUtils';
+import Routes from '../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../locales/i18n';
+import DepositTextField from '../../components/DepositTextField';
+import { useForm } from '../../hooks/useForm';
+import DepositProgressBar from '../../components/DepositProgressBar';
+import DepositDateField from '../../components/DepositDateField';
+import { VALIDATION_REGEX } from '../../constants/transak';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import PrivacySection from '../../components/PrivacySection';
+import { timestampToTransakFormat } from '../../utils/depositUtils';
 import useAnalytics from '../../hooks/useAnalytics';
 import Logger from '../../../../../util/Logger';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
+import { TextVariant as ComponentLibraryTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { useTransakController } from '../../hooks/useTransakController';
+import useRampsController from '../../hooks/useRampsController';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
-import type { TransakBuyQuote } from '@metamask/ramps-controller';
-import type { AddressFormData } from '../../Deposit/Views/EnterAddress/EnterAddress';
+import { useRampsCountries } from '../../hooks/useRampsCountries';
+import {
+  getTransakApiMessage,
+  isTransakPhoneRegisteredError,
+  type TransakBuyQuote,
+} from '@metamask/ramps-controller';
+import type { AddressFormData } from '../../types/transakNativeForms';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
+import { BASIC_INFO_TEST_IDS } from './BasicInfo.testIds';
+import { createV2EnterEmailNavDetails } from './EnterEmail';
+import PhoneField from './components/PhoneField';
 
 export interface BasicInfoFormData {
   firstName: string;
@@ -49,22 +68,36 @@ export interface BasicInfoFormData {
   ssn?: string;
 }
 
-interface V2BasicInfoParams {
+export interface V2BasicInfoParams {
   quote: TransakBuyQuote;
   previousFormData?: BasicInfoFormData & AddressFormData;
+  /**
+   * Forwarded from `useTransakRouting` resets when in a headless buy flow
+   * so logout / address steps keep the session id for `EnterEmail` →
+   * `OtpCode` and post-auth stack resets.
+   */
+  headlessSessionId?: string;
 }
 
-const V2BasicInfo = (): JSX.Element => {
-  const navigation = useNavigation();
-  const { styles, theme } = useStyles(styleSheet, {});
+const V2BasicInfo = (): React.JSX.Element => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const { styles } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
-  const { quote, previousFormData } = useParams<V2BasicInfoParams>();
+  const { quote, previousFormData, headlessSessionId } =
+    useParams<V2BasicInfoParams>();
   const { logoutFromProvider, patchUser, submitSsnDetails } =
     useTransakController();
+  const { selectedToken } = useRampsController();
   const { userRegion } = useRampsUserRegion();
+  const { countries } = useRampsCountries();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPhoneRegisteredError, setIsPhoneRegisteredError] = useState(false);
+
+  // Headless deposit (TRAM-3623): tag RAMPS_BASIC_INFO_ENTERED with
+  // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when this screen is
+  // part of a headless buy flow; keep 'DEPOSIT' otherwise.
+  const { headlessDepositRampProps } = useHeadlessRampProps(headlessSessionId);
 
   const firstNameInputRef = useRef<TextInput>(null);
   const lastNameInputRef = useRef<TextInput>(null);
@@ -142,20 +175,19 @@ const V2BasicInfo = (): JSX.Element => {
     [handleChange],
   );
 
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: strings('deposit.basic_info.navbar_title') },
-        theme,
-      ),
-    );
-  }, [navigation, theme]);
+  const handleHeaderBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const hasClearedSsnRef = useRef(false);
 
   useEffect(() => {
+    if (hasClearedSsnRef.current) {
+      return;
+    }
+    hasClearedSsnRef.current = true;
     handleFormDataChange('ssn')('');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleFormDataChange]);
 
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;
@@ -165,7 +197,7 @@ const V2BasicInfo = (): JSX.Element => {
 
     trackEvent('RAMPS_BASIC_INFO_ENTERED', {
       region: regionIsoCode,
-      ramp_type: 'DEPOSIT',
+      ...headlessDepositRampProps,
       kyc_type: 'SIMPLE',
     });
 
@@ -185,34 +217,26 @@ const V2BasicInfo = (): JSX.Element => {
         await submitSsnDetails(ssn, quote.quoteId);
       }
 
-      navigation.navigate(
-        Routes.RAMP.ENTER_ADDRESS as never,
-        {
-          previousFormData,
-          quote,
-        } as never,
-      );
+      navigation.navigate(Routes.RAMP.ENTER_ADDRESS, {
+        previousFormData,
+        quote,
+        ...(headlessSessionId ? { headlessSessionId } : {}),
+      });
     } catch (submissionError) {
-      const apiError = (
-        submissionError as {
-          response?: {
-            data?: { error?: { errorCode?: number; message?: string } };
-          };
-        }
-      )?.response?.data?.error;
-
-      const isPhoneError = apiError?.errorCode === 2020;
+      const isPhoneError = isTransakPhoneRegisteredError(submissionError);
       setIsPhoneRegisteredError(isPhoneError);
 
-      const errorMessageText = parseUserFacingError(
-        submissionError,
-        strings('deposit.basic_info.unexpected_error'),
-      );
+      const errorMessageText =
+        getTransakApiMessage(submissionError) ??
+        parseUserFacingError(
+          submissionError,
+          strings('deposit.basic_info.unexpected_error'),
+        );
 
       let errorMessage = errorMessageText;
       if (isPhoneError && errorMessageText) {
         const emailMatch = errorMessageText.match(/[\w*]+@[\w*]+(?:\.[\w*]+)*/);
-        const email = emailMatch ? emailMatch[0] : '';
+        const email = emailMatch?.[0] ?? '';
         if (email) {
           errorMessage = strings(
             'deposit.basic_info.phone_already_registered',
@@ -237,33 +261,49 @@ const V2BasicInfo = (): JSX.Element => {
     navigation,
     quote,
     previousFormData,
+    headlessSessionId,
     regionIsoCode,
     trackEvent,
+    headlessDepositRampProps,
   ]);
+
+  const enterEmailParamsForLogout = useMemo(
+    () => ({
+      ...(headlessSessionId ? { headlessSessionId } : {}),
+      amount: quote?.fiatAmount == null ? undefined : String(quote.fiatAmount),
+      // TransakBuyQuote uses plain strings for fiatCurrency / cryptoCurrency
+      // (not `{ symbol }` / `{ assetId }` objects).
+      currency: quote?.fiatCurrency,
+      // CAIP asset id for post-logout OTP quote fetch — prefer controller
+      // (seeded in headless buy) over quote.cryptoCurrency (a display ticker).
+      assetId: selectedToken?.assetId,
+    }),
+    [headlessSessionId, quote, selectedToken?.assetId],
+  );
 
   const handleLogout = useCallback(async () => {
     try {
       await logoutFromProvider(false);
-      navigation.navigate(Routes.RAMP.ENTER_EMAIL as never);
+      navigateWithDetails(
+        navigation,
+        createV2EnterEmailNavDetails(enterEmailParamsForLogout),
+      );
     } catch (logoutError) {
       Logger.error(
         logoutError as Error,
         'Error logging out from BasicInfo error banner',
       );
     }
-  }, [logoutFromProvider, navigation]);
+  }, [logoutFromProvider, navigation, enterEmailParamsForLogout]);
 
   const handleSsnInfoPress = useCallback(() => {
-    navigation.navigate(
-      Routes.RAMP.MODALS.ID as never,
-      {
-        screen: Routes.RAMP.MODALS.SSN_INFO,
-      } as never,
-    );
+    navigation.navigate(Routes.RAMP.MODALS.ID, {
+      screen: Routes.RAMP.MODALS.SSN_INFO,
+    });
   }, [navigation]);
 
   const focusNextField = useCallback(
-    (nextRef: React.RefObject<TextInput>) => () => {
+    (nextRef: React.RefObject<TextInput | null>) => () => {
       nextRef.current?.focus();
     },
     [],
@@ -286,42 +326,31 @@ const V2BasicInfo = (): JSX.Element => {
     [formData, handleFormDataChange],
   );
 
-  const phonePrefix = userRegion?.country?.phone?.prefix ?? '';
-  const phoneTemplate =
-    userRegion?.country?.phone?.template ?? '(XXX) XXX-XXXX';
-
-  const rawPhoneDigits = phonePrefix
-    ? formData.mobileNumber
-        .replace(/\D/g, '')
-        .replace(new RegExp(`^${phonePrefix.replace(/\D/g, '')}`), '')
-    : formData.mobileNumber.replace(/\D/g, '');
-  const formattedPhoneValue = formatNumberToTemplate(
-    rawPhoneDigits,
-    phoneTemplate,
-  );
-
-  const handlePhoneChange = useCallback(
-    (text: string) => {
-      const digits = text.replace(/\D/g, '');
-      const fullNumber = phonePrefix ? phonePrefix + digits : digits;
-      handleFieldChange(
-        'mobileNumber',
-        focusNextField(dateInputRef),
-      )(fullNumber);
+  const handlePhoneNumberChange = useCallback(
+    (mobileNumber: string) => {
+      setError(null);
+      setIsPhoneRegisteredError(false);
+      handleFormDataChange('mobileNumber')(mobileNumber);
     },
-    [phonePrefix, handleFieldChange, focusNextField, dateInputRef],
+    [handleFormDataChange],
   );
 
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
+        <HeaderStandard
+          title={strings('deposit.basic_info.navbar_title')}
+          onBack={handleHeaderBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          includesTopInset
+        />
         <KeyboardAwareScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           <ScreenLayout.Content>
             <DepositProgressBar steps={4} currentStep={2} />
-            <Text variant={TextVariant.HeadingMD} style={styles.title}>
+            <Text variant={TextVariant.HeadingMd} style={styles.title}>
               {strings('deposit.basic_info.title')}
             </Text>
             <Text style={styles.subtitle}>
@@ -338,8 +367,8 @@ const V2BasicInfo = (): JSX.Element => {
                           variant: ButtonVariants.Link,
                           label: strings('deposit.basic_info.login_with_email'),
                           onPress: handleLogout,
-                          labelTextVariant: TextVariant.BodyMD,
-                          testID: 'basic-info-logout-button',
+                          labelTextVariant: ComponentLibraryTextVariant.BodyMD,
+                          testID: BASIC_INFO_TEST_IDS.LOGOUT_BUTTON,
                         }
                       : undefined
                   }
@@ -357,7 +386,7 @@ const V2BasicInfo = (): JSX.Element => {
                 )}
                 error={errors.firstName}
                 returnKeyType="next"
-                testID="first-name-input"
+                testID={BASIC_INFO_TEST_IDS.FIRST_NAME_INPUT}
                 containerStyle={styles.nameInputContainer}
                 ref={firstNameInputRef}
                 autoComplete="given-name"
@@ -376,7 +405,7 @@ const V2BasicInfo = (): JSX.Element => {
                 )}
                 error={errors.lastName}
                 returnKeyType="next"
-                testID="last-name-input"
+                testID={BASIC_INFO_TEST_IDS.LAST_NAME_INPUT}
                 containerStyle={styles.nameInputContainer}
                 ref={lastNameInputRef}
                 autoComplete="family-name"
@@ -386,32 +415,18 @@ const V2BasicInfo = (): JSX.Element => {
               />
             </View>
 
-            <DepositTextField
+            <PhoneField
               label={strings('deposit.basic_info.phone_number')}
-              placeholder={
-                userRegion?.country?.phone?.placeholder ??
-                strings('deposit.basic_info.enter_phone_number')
-              }
-              value={formattedPhoneValue}
-              onChangeText={handlePhoneChange}
+              value={formData.mobileNumber}
+              onChangeText={handlePhoneNumberChange}
+              countries={countries}
+              fallbackCountry={userRegion?.country}
+              initialNumber={previousFormData?.mobileNumber}
               error={errors.mobileNumber}
               ref={phoneInputRef}
+              testID={BASIC_INFO_TEST_IDS.PHONE_INPUT}
+              countrySelectorTestID={BASIC_INFO_TEST_IDS.PHONE_COUNTRY_SELECTOR}
               onSubmitEditing={focusNextField(dateInputRef)}
-              keyboardType="phone-pad"
-              textContentType="telephoneNumber"
-              autoComplete="tel"
-              startAccessory={
-                userRegion?.country?.flag ? (
-                  <View style={styles.phoneFlagRow}>
-                    <Text style={styles.phoneFlagEmoji}>
-                      {userRegion.country.flag}
-                    </Text>
-                    {phonePrefix ? (
-                      <Text style={styles.phonePrefix}>{phonePrefix}</Text>
-                    ) : null}
-                  </View>
-                ) : undefined
-              }
             />
 
             <DepositDateField
@@ -441,24 +456,24 @@ const V2BasicInfo = (): JSX.Element => {
               }}
               ref={dateInputRef}
               textFieldProps={{
-                testID: 'date-of-birth-input',
+                testID: BASIC_INFO_TEST_IDS.DATE_OF_BIRTH_INPUT,
               }}
             />
             {regionIsoCode === 'US' && (
               <DepositTextField
                 label={
                   <View style={styles.ssnLabel}>
-                    <Text variant={TextVariant.BodyMD}>
+                    <Text variant={TextVariant.BodyMd}>
                       {strings('deposit.basic_info.social_security_number')}
                     </Text>
                     <TouchableOpacity
                       onPress={handleSsnInfoPress}
-                      testID="ssn-info-button"
+                      testID={BASIC_INFO_TEST_IDS.SSN_INFO_BUTTON}
                     >
                       <Icon
                         name={IconName.Info}
                         size={IconSize.Sm}
-                        color={IconColor.Alternative}
+                        color={IconColor.IconAlternative}
                       />
                     </TouchableOpacity>
                   </View>
@@ -468,7 +483,7 @@ const V2BasicInfo = (): JSX.Element => {
                 onChangeText={handleFieldChange('ssn')}
                 error={errors.ssn}
                 returnKeyType="done"
-                testID="ssn-input"
+                testID={BASIC_INFO_TEST_IDS.SSN_INPUT}
                 ref={ssnInputRef}
                 autoComplete="off"
                 textContentType="none"
@@ -489,13 +504,14 @@ const V2BasicInfo = (): JSX.Element => {
           <Button
             size={ButtonSize.Lg}
             onPress={handleOnPressContinue}
-            label={strings('deposit.basic_info.continue')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Primary}
+            isFullWidth
             isDisabled={loading || !!error}
-            loading={loading}
-            testID="continue-button"
-          />
+            isLoading={loading}
+            testID={BASIC_INFO_TEST_IDS.CONTINUE_BUTTON}
+          >
+            {strings('deposit.basic_info.continue')}
+          </Button>
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

@@ -28,12 +28,11 @@ const styleSheet = (params: {
         position: 'relative',
         opacity: isDisabled ? 0.5 : 1,
         borderRadius: 4,
-        backgroundColor: colors.background.default,
       } as ViewStyle,
       style,
     ) as ViewStyle,
     underlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       flexDirection: 'row',
       backgroundColor: colors.background.muted,
     },

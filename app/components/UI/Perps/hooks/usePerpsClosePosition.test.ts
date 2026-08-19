@@ -1,6 +1,11 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { type OrderResult, type Position } from '@metamask/perps-controller';
+import Logger from '../../../../util/Logger';
+import {
+  ORDER_SLIPPAGE_CONFIG,
+  type OrderResult,
+  type Position,
+} from '@metamask/perps-controller';
 import { usePerpsClosePosition } from './usePerpsClosePosition';
 import { usePerpsTrading } from './usePerpsTrading';
 
@@ -18,6 +23,12 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('./usePerpsTrading');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
@@ -42,9 +53,11 @@ const mockPerpsToastOptions = {
       limitClose: {
         full: {
           fullPositionCloseSubmitted: jest.fn(),
+          fullPositionCloseFailed: {},
         },
         partial: {
           partialPositionCloseSubmitted: jest.fn(),
+          partialPositionCloseFailed: {},
         },
       },
     },
@@ -184,6 +197,73 @@ describe('usePerpsClosePosition', () => {
       );
     });
 
+    it('does not forward slippage/staleness params for a partial limit close', async () => {
+      // Arrange - limit close should rest at the limit price without the
+      // market price-staleness check that throws "Price moved too much"
+      mockClosePosition.mockResolvedValue({ success: true, orderId: '456' });
+
+      const { result } = renderHook(() => usePerpsClosePosition());
+
+      // Act
+      await act(async () => {
+        await result.current.handleClosePosition({
+          position: mockPosition,
+          size: '0.05',
+          orderType: 'limit',
+          limitPrice: '51000',
+          slippage: {
+            usdAmount: '2500',
+            priceAtCalculation: 50000,
+            maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps,
+          },
+        });
+      });
+
+      // Assert - slippage params stripped, exact size + limit price sent
+      expect(mockClosePosition).toHaveBeenCalledWith(
+        expect.objectContaining({
+          size: '0.05',
+          orderType: 'limit',
+          price: '51000',
+          usdAmount: undefined,
+          priceAtCalculation: undefined,
+          maxSlippageBps: undefined,
+        }),
+      );
+    });
+
+    it('forwards slippage/staleness params for a partial market close', async () => {
+      // Arrange
+      mockClosePosition.mockResolvedValue({ success: true, orderId: '456' });
+
+      const { result } = renderHook(() => usePerpsClosePosition());
+
+      // Act
+      await act(async () => {
+        await result.current.handleClosePosition({
+          position: mockPosition,
+          size: '0.05',
+          orderType: 'market',
+          slippage: {
+            usdAmount: '2500',
+            priceAtCalculation: 50000,
+            maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
+          },
+        });
+      });
+
+      // Assert - market orders keep the slippage/staleness protection
+      expect(mockClosePosition).toHaveBeenCalledWith(
+        expect.objectContaining({
+          size: '0.05',
+          orderType: 'market',
+          usdAmount: '2500',
+          priceAtCalculation: 50000,
+          maxSlippageBps: ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
+        }),
+      );
+    });
+
     it('should handle close position failure', async () => {
       const failureResult: OrderResult = {
         success: false,
@@ -228,6 +308,28 @@ describe('usePerpsClosePosition', () => {
           result.current.handleClosePosition({ position: mockPosition }),
         ).rejects.toThrow('perps.close_position.error_unknown');
       });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'perps.close_position.error_unknown',
+        }),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'perps',
+            component: 'usePerpsClosePosition',
+            action: 'close_position',
+          }),
+          context: expect.objectContaining({
+            name: 'usePerpsClosePosition',
+            data: expect.objectContaining({
+              symbol: 'BTC',
+              orderType: 'market',
+              isFullClose: true,
+              rawError: undefined,
+            }),
+          }),
+        }),
+      );
     });
 
     it('should handle exceptions thrown by closePosition', async () => {
@@ -248,6 +350,25 @@ describe('usePerpsClosePosition', () => {
       expect(DevLogger.log).toHaveBeenCalledWith(
         'usePerpsClosePosition: Error closing position',
         error,
+      );
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'perps',
+            component: 'usePerpsClosePosition',
+            action: 'close_position',
+          }),
+          context: expect.objectContaining({
+            name: 'usePerpsClosePosition',
+            data: expect.objectContaining({
+              symbol: 'BTC',
+              requestedSize: undefined,
+              orderType: 'market',
+              isFullClose: true,
+            }),
+          }),
+        }),
       );
     });
 
@@ -742,7 +863,7 @@ describe('usePerpsClosePosition', () => {
           ).toHaveBeenCalledWith('perps.market.long', '0.05', 'BTC');
         });
 
-        it('should not show failure toast for failed limit orders', async () => {
+        it('should show failure toast for failed partial limit close', async () => {
           const failureResult: OrderResult = {
             success: false,
             error: 'limit_order_failed',
@@ -762,12 +883,159 @@ describe('usePerpsClosePosition', () => {
             ).rejects.toThrow();
           });
 
-          // Should only show submission toast, not failure toast for limit orders
-          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          // Submission toast first, then the partial-close failure toast
+          expect(mockShowToast).toHaveBeenCalledTimes(2);
           expect(
             mockPerpsToastOptions.positionManagement.closePosition.limitClose
               .partial.partialPositionCloseSubmitted,
           ).toHaveBeenCalledWith('perps.market.long', '0.05', 'BTC');
+          expect(mockShowToast).toHaveBeenNthCalledWith(
+            2,
+            mockPerpsToastOptions.positionManagement.closePosition.limitClose
+              .partial.partialPositionCloseFailed,
+          );
+        });
+
+        it('should show failure toast for failed full limit close', async () => {
+          const failureResult: OrderResult = {
+            success: false,
+            error: 'limit_order_failed',
+          };
+          mockClosePosition.mockResolvedValue(failureResult);
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                orderType: 'limit',
+                limitPrice: '51000',
+              }),
+            ).rejects.toThrow();
+          });
+
+          // Submission toast first, then the full-close failure toast
+          expect(mockShowToast).toHaveBeenCalledTimes(2);
+          expect(
+            mockPerpsToastOptions.positionManagement.closePosition.limitClose
+              .full.fullPositionCloseSubmitted,
+          ).toHaveBeenCalledWith('perps.market.long', '0.1', 'BTC');
+          expect(mockShowToast).toHaveBeenNthCalledWith(
+            2,
+            mockPerpsToastOptions.positionManagement.closePosition.limitClose
+              .full.fullPositionCloseFailed,
+          );
+        });
+      });
+
+      describe('failure toasts on a rejected promise (catch path)', () => {
+        it('shows the market full-close failure toast when the promise rejects', async () => {
+          mockClosePosition.mockRejectedValue(new Error('network error'));
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                orderType: 'market',
+              }),
+            ).rejects.toThrow();
+          });
+
+          expect(mockShowToast).toHaveBeenCalledWith(
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .full.closeFullPositionFailed,
+          );
+        });
+
+        it('shows the market partial-close failure toast when the promise rejects', async () => {
+          mockClosePosition.mockRejectedValue(new Error('network error'));
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                size: '0.05',
+                orderType: 'market',
+              }),
+            ).rejects.toThrow();
+          });
+
+          expect(mockShowToast).toHaveBeenCalledWith(
+            mockPerpsToastOptions.positionManagement.closePosition.marketClose
+              .partial.closePartialPositionFailed,
+          );
+        });
+
+        it('shows the limit full-close failure toast when the promise rejects', async () => {
+          mockClosePosition.mockRejectedValue(new Error('network error'));
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                orderType: 'limit',
+                limitPrice: '51000',
+              }),
+            ).rejects.toThrow();
+          });
+
+          expect(mockShowToast).toHaveBeenCalledWith(
+            mockPerpsToastOptions.positionManagement.closePosition.limitClose
+              .full.fullPositionCloseFailed,
+          );
+        });
+
+        it('shows the limit partial-close failure toast when the promise rejects', async () => {
+          mockClosePosition.mockRejectedValue(new Error('network error'));
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                size: '0.05',
+                orderType: 'limit',
+                limitPrice: '51000',
+              }),
+            ).rejects.toThrow();
+          });
+
+          expect(mockShowToast).toHaveBeenCalledWith(
+            mockPerpsToastOptions.positionManagement.closePosition.limitClose
+              .partial.partialPositionCloseFailed,
+          );
+        });
+
+        it('does not double-show the failure toast for a returned failure result', async () => {
+          // A { success: false } result shows the failure toast then throws; the
+          // catch must not show it a second time. Submission + one failure = 2.
+          mockClosePosition.mockResolvedValue({
+            success: false,
+            error: 'limit_order_failed',
+          });
+
+          const { result } = renderHook(() => usePerpsClosePosition());
+
+          await act(async () => {
+            await expect(
+              result.current.handleClosePosition({
+                position: mockPosition,
+                size: '0.05',
+                orderType: 'limit',
+                limitPrice: '51000',
+              }),
+            ).rejects.toThrow();
+          });
+
+          expect(mockShowToast).toHaveBeenCalledTimes(2);
         });
       });
 

@@ -1,3 +1,4 @@
+import { MetaMetricsEvents } from '../../Analytics';
 import { Connection, ConnectionProps } from '../Connection';
 import { DEFAULT_SESSION_TIMEOUT_MS } from '../SDKConnectConstants';
 import { SDKConnect } from './../SDKConnect';
@@ -14,16 +15,19 @@ jest.mock('../utils/DevLogger');
 jest.mock('../SDKConnectConstants');
 jest.mock('../handlers/checkPermissions', () => jest.fn());
 
-jest.mock('@metamask/sdk-analytics', () => ({
+jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
-    track: jest.fn(),
+    trackEvent: jest.fn(),
   },
 }));
 
 // Import the mocked checkPermissions
 import { OriginatorInfo } from '@metamask/sdk-communication-layer';
-import { analytics } from '@metamask/sdk-analytics';
-import { NavigationContainerRef } from '@react-navigation/native';
+import { analytics } from '../../../util/analytics/analytics';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 import checkPermissions from '../handlers/checkPermissions';
 
 describe('connectToChannel', () => {
@@ -102,7 +106,7 @@ describe('connectToChannel', () => {
           removeListener: jest.fn(),
           setParams: jest.fn(),
           setOptions: jest.fn(),
-        } as unknown as NavigationContainerRef,
+        } as unknown as NavigationContainerRef<ParamListBase>,
       },
       updateOriginatorInfos: mockUpdateSDKLoadingState,
       _approveHost: mockApproveHost,
@@ -130,7 +134,7 @@ describe('connectToChannel', () => {
           .fn()
           .mockReturnValue({ name: 'default-mock-conn-route' }),
         navigate: jest.fn(),
-      } as unknown as NavigationContainerRef,
+      } as unknown as NavigationContainerRef<ParamListBase>,
     } as unknown as Connection;
 
     MockedConnection = Connection as jest.MockedClass<typeof Connection>;
@@ -164,7 +168,7 @@ describe('connectToChannel', () => {
             removeListener: jest.fn(),
             setParams: jest.fn(),
             setOptions: jest.fn(),
-          } as unknown as NavigationContainerRef,
+          } as unknown as NavigationContainerRef<ParamListBase>,
         }) as unknown as Connection,
     );
   });
@@ -257,7 +261,7 @@ describe('connectToChannel', () => {
   });
 
   describe('Analytics', () => {
-    it('should track wallet_connection_request_received when anonId is present', async () => {
+    it('should track Remote Connection Request Received when anonId is present', async () => {
       originatorInfo.anonId = 'test-anon-id';
       (checkPermissions as jest.Mock).mockResolvedValue(true); // Ensure checkPermissions resolves
 
@@ -272,60 +276,20 @@ describe('connectToChannel', () => {
         initialConnection: true,
       });
 
-      expect(analytics.track).toHaveBeenCalledWith(
-        'wallet_connection_request_received',
-        { anon_id: 'test-anon-id' },
+      expect(analytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.REMOTE_CONNECTION_REQUEST_RECEIVED.category,
+          properties: expect.objectContaining({
+            transport_type: 'socket_relay',
+            remote_session_id: 'test-anon-id',
+          }),
+        }),
       );
     });
 
-    it('should track wallet_connection_user_approved when checkPermissions resolves', async () => {
-      originatorInfo.anonId = 'test-anon-id';
-      (checkPermissions as jest.Mock).mockResolvedValue(true);
-
-      await connectToChannel({
-        instance: mockInstance,
-        id,
-        trigger,
-        otherPublicKey,
-        origin,
-        validUntil,
-        originatorInfo,
-        initialConnection: true,
-      });
-
-      expect(analytics.track).toHaveBeenCalledWith(
-        'wallet_connection_user_approved',
-        { anon_id: 'test-anon-id' },
-      );
-    });
-
-    it('should track wallet_connection_user_rejected when checkPermissions rejects', async () => {
-      originatorInfo.anonId = 'test-anon-id';
-      (checkPermissions as jest.Mock).mockRejectedValue(
-        new Error('Permission denied'),
-      );
-
-      if (mockInstance.state.navigation) {
-        mockInstance.state.navigation.getCurrentRoute = jest
-          .fn()
-          .mockReturnValue({ name: 'rejection-test-route' });
-      }
-
-      await connectToChannel({
-        instance: mockInstance,
-        id,
-        trigger,
-        otherPublicKey,
-        origin,
-        validUntil,
-        originatorInfo,
-        initialConnection: true,
-      });
-
-      expect(analytics.track).toHaveBeenCalledWith(
-        'wallet_connection_user_rejected',
-        { anon_id: 'test-anon-id' },
-      );
-    });
+    // wallet_connection_user_approved / wallet_connection_user_rejected are
+    // intentionally NOT tracked here — they are already covered by the
+    // MetaMetrics CONNECT_REQUEST_COMPLETED / CONNECT_REQUEST_CANCELLED events
+    // (with source: 'sdk') fired by the permission-system UI.
   });
 });

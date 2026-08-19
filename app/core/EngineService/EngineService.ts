@@ -23,13 +23,22 @@ import ReduxService from '../redux';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { VaultBackupResult } from './types';
-import { isE2E } from '../../util/test/utils';
+import { hasTestOverrides } from '../../util/test/utils';
 import { trackVaultCorruption } from '../../util/analytics/vaultCorruptionTracking';
 import { getAnalyticsId } from '../../util/analytics/analyticsId';
 import { INIT_BG_STATE_KEY, LOG_TAG, UPDATE_BG_STATE_KEY } from './constants';
 import { StateConstraint } from '@metamask/base-controller';
 import { hasPersistedState } from './utils/persistence-utils';
 import { setExistingUser } from '../../actions/user';
+import { hydrateSocialFollowing } from '../Engine/controllers/social-controller-hydration';
+
+/**
+ * Reads the AnalyticsController's own persisted copy of the analytics identity.
+ * Used to recover the identity when MMKV has lost it — see `getAnalyticsId`.
+ */
+const getPersistedAnalyticsId = (state: unknown): unknown =>
+  (state as { AnalyticsController?: { analyticsId?: unknown } })
+    ?.AnalyticsController?.analyticsId;
 
 export class EngineService {
   private engineInitialized = false;
@@ -152,7 +161,7 @@ export class EngineService {
     });
 
     const state =
-      (isE2E
+      (hasTestOverrides
         ? reduxState?.engine?.backgroundState
         : persistedState?.backgroundState) ?? {};
 
@@ -166,7 +175,8 @@ export class EngineService {
       // `analyticsId` is not persisted in state to prevent losing it in case of corruption.
       // It is also used as a random source for other controllers like RemoteFeatureFlagController.
       // Passing it to engine ensures all controllers are initialized with the same analyticsId.
-      const analyticsId = await getAnalyticsId();
+      // The persisted controller copy is passed as a recovery source for MMKV loss.
+      const analyticsId = await getAnalyticsId(getPersistedAnalyticsId(state));
       Engine.init(analyticsId, state);
       // `Engine.init()` call mutates `typeof UntypedEngine` to `TypedEngine`
       // Pass state to detect controllers that changed during init
@@ -174,6 +184,10 @@ export class EngineService {
         Engine as unknown as TypedEngine,
         state as Record<string, unknown>,
       );
+
+      // Fire-and-forget: refresh social following state from the server.
+      // Non-blocking — persisted state covers the UI until this resolves.
+      hydrateSocialFollowing();
     } catch (error) {
       trackVaultCorruption((error as Error).message, {
         error_type: 'engine_initialization_failure',
@@ -364,7 +378,7 @@ export class EngineService {
         hasState: Object.keys(state).length > 0,
       });
 
-      const analyticsId = await getAnalyticsId();
+      const analyticsId = await getAnalyticsId(getPersistedAnalyticsId(state));
       const instance = Engine.init(analyticsId, state, newKeyringState);
       if (instance) {
         // Pass state to detect controllers that changed during init

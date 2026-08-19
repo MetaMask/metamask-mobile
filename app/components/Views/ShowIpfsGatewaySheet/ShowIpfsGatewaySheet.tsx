@@ -6,8 +6,6 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader/SheetHeader';
-import Text from '../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
 import Engine from '../../../core/Engine';
 import { strings } from '../../../../locales/i18n';
 import { useParams } from '../../../util/navigation/navUtils';
@@ -16,6 +14,12 @@ import SheetActionView from '../../../components/UI/SheetActionView';
 
 // Internal dependencies
 import createStyles from './ShowIpfsGatewaySheet.styles';
+
+import {
+  Text,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 const ShowIpfsGatewaySheet = () => {
   const styles = createStyles();
@@ -49,19 +53,18 @@ const ShowIpfsGatewaySheet = () => {
         {'\n'}
         {'\n'}
         {<Text>{strings('show_nft.show_nft_content_2')}</Text>}{' '}
-        <Text variant={TextVariant.BodyMDBold}>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
           {' '}
           {strings('show_nft.show_nft_content_3')}
         </Text>{' '}
         {strings('show_nft.show_nft_content_4')}{' '}
         {
-          <Text variant={TextVariant.BodyMDBold}>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
             {strings('show_nft.show_nft_content_5')}
           </Text>
         }{' '}
         {strings('show_nft.show_nft_content_6')}
       </Text>
-
       <SheetActionView onCancel={onCancel} onConfirm={onConfirm} />
     </BottomSheet>
   );

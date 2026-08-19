@@ -53,17 +53,28 @@ export const ConfirmationRowComponentIDs = {
 export const ConfirmationFooterSelectorIDs = {
   CANCEL_BUTTON: 'cancel-button',
   CONFIRM_BUTTON: 'confirm-button',
+  STAKING_TERMS_OF_USE_BUTTON: 'confirm-staking-footer-terms-of-use-button',
+  STAKING_RISK_DISCLOSURE_BUTTON:
+    'confirm-staking-footer-risk-disclosure-button',
+} as const;
+
+export const ConfirmationLoaderSelectorIDs = {
+  TRANSFER: 'confirm-loader-transfer',
 } as const;
 
 export const ConfirmAlertModalSelectorsIDs = {
   CONFIRM_ALERT_CHECKBOX: 'confirm-alert-checkbox',
   CONFIRM_ALERT_BUTTON: 'confirm-alert-confirm-button',
+  CONFIRM_ALERT_CANCEL_BUTTON: 'confirm-alert-cancel-button',
   CONFIRM_ALERT_MODAL: 'confirm-alert-modal',
+  REVIEW_ALERTS_BUTTON: 'confirm-alert-review-alerts-button',
 } as const;
 
 export const AlertModalSelectorsIDs = {
   ALERT_MODAL_CHECKBOX: 'alert-modal-checkbox',
   ALERT_MODAL_ACKNOWLEDGE_BUTTON: 'alert-modal-acknowledge-button',
+  ALERT_MODAL_CLOSE_BUTTON: 'alert-modal-close-button',
+  ALERT_MODAL_ACTION_BUTTON: 'alert-modal-action-button',
 } as const;
 
 export const AlertModalSelectorsText = {
@@ -94,11 +105,43 @@ export const GasFeeTokenModalSelectorsText = {
   GAS_FEE_TOKEN_AMOUNT_FIAT: 'gas-fee-token-list-item-amount-fiat',
 } as const;
 
+export const PerpsAccountPickerSelectorsIDs = {
+  ROW: 'perps-account-picker-row',
+  SHEET: 'perps-account-picker-sheet',
+  SEARCH_INPUT: 'perps-account-picker-search',
+  ACCOUNT_ITEM: 'perps-account-picker-item',
+} as const;
+
+export const PredictAccountPickerSelectorsIDs = {
+  ROW: 'predict-account-picker-row',
+  SHEET: 'predict-account-picker-sheet',
+  SEARCH_INPUT: 'predict-account-picker-search',
+  ACCOUNT_ITEM: 'predict-account-picker-item',
+} as const;
+
 export const TransactionPayComponentIDs = {
   CLOSE_MODAL_BUTTON: 'bridge-token-selector-close-button',
   KEYBOARD_CONTINUE_BUTTON: 'deposit-keyboard-done-button',
-  PAY_WITH_BALANCE: 'pay-with-balance',
+  KEYPAD: 'deposit-keyboard',
   PAY_WITH_FIAT: 'pay-with-fiat',
+  PAY_WITH_BALANCE: 'pay-with-balance',
   PAY_WITH_SYMBOL: 'pay-with-symbol',
   PAY_WITH_TOKEN_LIST: 'pay-with-token-list',
+  KEYBOARD_CONTAINER: 'custom-amount-input',
+};
+
+export const PayWithBottomSheetIDs = {
+  BOTTOM_SHEET: 'pay-with-bottom-sheet',
+  CRYPTO_SECTION: 'pay-with-section-crypto',
+  CRYPTO_PREFERRED_TOKEN_ROW: 'pay-with-crypto-section-preferred-token-row',
+  CRYPTO_SELECTED_TOKEN_ROW: 'pay-with-crypto-section-selected-token-row',
+  CRYPTO_NO_FEE_TOKEN_ROW: 'pay-with-crypto-section-no-fee-token-row',
+  CRYPTO_OTHER_ASSETS_ROW: 'pay-with-crypto-section-other-assets-row',
+  MONEY_ACCOUNT_SECTION: 'pay-with-section-money-account',
+  MONEY_ACCOUNT_ROW: 'pay-with-money-account-row',
+  PERPS_SECTION: 'pay-with-section-perps',
+  PERPS_BALANCE_ROW: 'pay-with-perps-section-balance-row',
+  PREDICT_SECTION: 'pay-with-section-predict',
+  PREDICT_BALANCE_ROW: 'pay-with-predict-section-balance-row',
+  BANK_CARD_SECTION: 'pay-with-section-bank-card',
 };

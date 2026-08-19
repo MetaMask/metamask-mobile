@@ -20,20 +20,6 @@ jest.mock('../../../util/theme', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn(() => ({
-        build: jest.fn(),
-      })),
-    })),
-  }),
-  MetaMetricsEvents: {
-    COLLECTIBLE_REMOVED: 'collectible_removed',
-  },
-}));
-
 jest.mock('../../../core/Engine', () => ({
   context: {
     NftController: {

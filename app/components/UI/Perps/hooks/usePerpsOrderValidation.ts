@@ -21,11 +21,19 @@ interface UsePerpsOrderValidationParams {
   orderForm: OrderFormState;
   positionSize: string;
   assetPrice: number;
-  availableBalance: number;
+  /** Max USD that can collateralize a new position (mirrors AccountState.spendableBalance). */
+  spendableBalance: number;
   marginRequired: string;
   existingPositionLeverage?: number;
   skipValidation?: boolean;
   originalUsdAmount?: string; // Original USD input for validation (prevents precision loss from recalculation)
+  /** When true, passes reduceOnly through to protocol validation. */
+  reduceOnly?: boolean;
+  /**
+   * When true with reduceOnly, skips the UI minimum-amount check and tells the
+   * controller to apply its full-close minimum exemption.
+   */
+  isFullClose?: boolean;
 }
 
 interface ValidationResult {
@@ -53,11 +61,13 @@ export function usePerpsOrderValidation(
     orderForm,
     positionSize,
     assetPrice,
-    availableBalance,
+    spendableBalance,
     marginRequired,
     existingPositionLeverage,
     skipValidation,
     originalUsdAmount,
+    reduceOnly,
+    isFullClose,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -76,6 +86,8 @@ export function usePerpsOrderValidation(
 
   // Use ref to track debounce timer
   const validationTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Track whether we've completed the first validation so we can skip the debounce for it
+  const hasValidatedOnceRef = useRef(false);
 
   const performValidation = useCallback(async () => {
     // Set validation state to indicate we're validating
@@ -90,11 +102,11 @@ export function usePerpsOrderValidation(
 
     // Balance validation (immediate)
     const requiredMargin = Number.parseFloat(marginRequired);
-    if (requiredMargin > availableBalance) {
+    if (requiredMargin > spendableBalance) {
       immediateErrors.push(
         strings('perps.order.validation.insufficient_balance', {
           required: marginRequired,
-          available: availableBalance.toString(),
+          available: spendableBalance.toString(),
         }),
       );
     }
@@ -108,7 +120,10 @@ export function usePerpsOrderValidation(
         ? TRADING_DEFAULTS.amount.mainnet
         : TRADING_DEFAULTS.amount.testnet;
 
-    if (usdAmount > 0 && usdAmount < minimumOrderSize) {
+    // Full reduce-only closes may be below the normal minimum notional (dust);
+    // the controller skips ORDER_SIZE_MIN when reduceOnly && isFullClose.
+    const skipMinimumAmount = Boolean(reduceOnly && isFullClose);
+    if (!skipMinimumAmount && usdAmount > 0 && usdAmount < minimumOrderSize) {
       immediateErrors.push(
         strings('perps.order.validation.minimum_amount', {
           amount: minimumOrderSize.toString(),
@@ -128,6 +143,8 @@ export function usePerpsOrderValidation(
         currentPrice: assetPrice,
         existingPositionLeverage,
         usdAmount: originalUsdAmount, // Pass USD as source of truth for validation
+        ...(reduceOnly !== undefined ? { reduceOnly } : {}),
+        ...(isFullClose !== undefined ? { isFullClose } : {}),
       };
 
       // Get protocol-specific validation
@@ -226,10 +243,12 @@ export function usePerpsOrderValidation(
     orderForm.type,
     positionSize,
     assetPrice,
-    availableBalance,
+    spendableBalance,
     marginRequired,
     existingPositionLeverage,
     originalUsdAmount,
+    reduceOnly,
+    isFullClose,
     validateOrder,
     network,
   ]);
@@ -241,7 +260,18 @@ export function usePerpsOrderValidation(
     }
 
     // Skip validation if critical data is missing
-    if (!positionSize || assetPrice === 0) {
+    const numericPositionSize = Number.parseFloat(positionSize);
+    if (!Number.isFinite(numericPositionSize) || numericPositionSize <= 0) {
+      setValidation((prev) => ({
+        ...prev,
+        errors: EMPTY_ERRORS,
+        isValidating: false,
+        isValid: false,
+      }));
+      return;
+    }
+
+    if (assetPrice === 0) {
       setValidation((prev) => ({
         ...prev,
         isValidating: false,
@@ -256,7 +286,14 @@ export function usePerpsOrderValidation(
       clearTimeout(validationTimerRef.current);
     }
 
-    // Debounce validation to avoid excessive calls
+    // Run first validation immediately to enable the place-order button ASAP;
+    // subsequent changes are debounced to avoid excessive calls during input.
+    if (!hasValidatedOnceRef.current) {
+      hasValidatedOnceRef.current = true;
+      performValidation();
+      return;
+    }
+
     validationTimerRef.current = setTimeout(() => {
       performValidation();
       validationTimerRef.current = null;

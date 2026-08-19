@@ -1,9 +1,9 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { StyleSheet, ScrollView } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Icon, {
   IconName,
   IconSize,
@@ -30,6 +30,8 @@ export interface TrendingTokenNetworkBottomSheetProps {
   selectedNetwork?: CaipChainId[] | null;
   /** Networks to display in the bottom sheet */
   networks: ProcessedNetwork[];
+  /** When true, the "All networks" option is hidden */
+  hideAllNetworks?: boolean;
 }
 
 const TrendingTokenNetworkBottomSheet: React.FC<
@@ -40,6 +42,7 @@ const TrendingTokenNetworkBottomSheet: React.FC<
   onNetworkSelect,
   selectedNetwork: initialSelectedNetwork,
   networks,
+  hideAllNetworks = false,
 }) => {
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -112,27 +115,29 @@ const TrendingTokenNetworkBottomSheet: React.FC<
       onClose={handleSheetClose}
       testID="trending-token-network-bottom-sheet"
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('trending.networks')}
         onClose={handleClose}
         closeButtonProps={{ testID: 'close-button' }}
       />
       <ScrollView style={optionStyles.optionsList}>
-        <Cell
-          variant={CellVariant.Select}
-          title={strings('trending.all_networks')}
-          isSelected={isAllNetworksSelected}
-          onPress={() => onNetworkOptionPress(NetworkOption.AllNetworks)}
-          avatarProps={{
-            variant: AvatarVariant.Icon,
-            name: IconName.Global,
-            size: AvatarSize.Sm,
-          }}
-        >
-          {isAllNetworksSelected && (
-            <Icon name={IconName.Check} size={IconSize.Md} />
-          )}
-        </Cell>
+        {!hideAllNetworks && (
+          <Cell
+            variant={CellVariant.Select}
+            title={strings('trending.all_networks')}
+            isSelected={isAllNetworksSelected}
+            onPress={() => onNetworkOptionPress(NetworkOption.AllNetworks)}
+            avatarProps={{
+              variant: AvatarVariant.Icon,
+              name: IconName.Global,
+              size: AvatarSize.Sm,
+            }}
+          >
+            {isAllNetworksSelected && (
+              <Icon name={IconName.Check} size={IconSize.Md} />
+            )}
+          </Cell>
+        )}
         {networks.map((network) => {
           const isSelected = isNetworkSelected(network);
           return (

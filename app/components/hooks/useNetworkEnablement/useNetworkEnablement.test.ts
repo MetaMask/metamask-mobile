@@ -72,7 +72,6 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../../selectors/networkController';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 const mockNetworkEnablementController = {
   enableNetwork: jest.fn(),
@@ -115,9 +114,6 @@ describe('useNetworkEnablement', () => {
       }
       if (selector === selectNetworkConfigurations) {
         return {};
-      }
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return false;
       }
       return undefined;
     });
@@ -208,7 +204,6 @@ describe('useNetworkEnablement', () => {
     it('returns false when no networks are enabled', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectNetworkConfigurations) return {};
-        if (selector === selectMultichainAccountsState2Enabled) return false;
         const selectorStr = selector?.toString() ?? '';
         if (selectorStr.includes('selectEnabledNetworksByNamespace')) {
           return {
@@ -235,7 +230,6 @@ describe('useNetworkEnablement', () => {
     it('returns false when multiple networks are enabled', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectNetworkConfigurations) return {};
-        if (selector === selectMultichainAccountsState2Enabled) return false;
         const selectorStr = selector?.toString() ?? '';
         if (selectorStr.includes('selectEnabledNetworksByNamespace')) {
           return {
@@ -263,7 +257,6 @@ describe('useNetworkEnablement', () => {
     it('returns false when enabled networks object is empty', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectNetworkConfigurations) return {};
-        if (selector === selectMultichainAccountsState2Enabled) return false;
         const selectorStr = selector?.toString() ?? '';
         if (selectorStr.includes('selectEnabledNetworksByNamespace')) {
           return {
@@ -465,6 +458,40 @@ describe('useNetworkEnablement', () => {
       expect(
         mockNetworkEnablementController.enableNetwork,
       ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('referential stability', () => {
+    it('returns a stable object and popularNetworks array across re-renders', () => {
+      // Stable selector results so only the hook's own memoization is exercised.
+      const enabledNetworks = {
+        eip155: { '0x1': true, '0x89': false },
+      };
+      const networkConfigs = { '0x1': {} };
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectEnabledNetworksByNamespace) {
+          return enabledNetworks;
+        }
+        if (selector === selectChainId) {
+          return '0x1';
+        }
+        if (selector === selectIsEvmNetworkSelected) {
+          return true;
+        }
+        if (selector === selectNetworkConfigurations) {
+          return networkConfigs;
+        }
+        return undefined;
+      });
+
+      const { result, rerender } = renderHook(() => useNetworkEnablement());
+      const first = result.current;
+      const firstPopularNetworks = result.current.popularNetworks;
+
+      rerender({});
+
+      expect(result.current).toBe(first);
+      expect(result.current.popularNetworks).toBe(firstPopularNetworks);
     });
   });
 

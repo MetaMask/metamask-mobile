@@ -1,6 +1,7 @@
 import enContent from '../../../../../locales/languages/en.json';
 
 export const AdvancedViewSelectorsIDs = {
+  BACK_BUTTON: 'advanced-settings-back-button',
   CONTAINER: 'advanced-settings',
   ETH_SIGN_SWITCH: 'eth-sign-switch',
   TOKEN_DETECTION_TOGGLE: 'token-detection-toggle',
@@ -8,6 +9,7 @@ export const AdvancedViewSelectorsIDs = {
   ADVANCED_SETTINGS_SCROLLVIEW: 'advanced-settings-scrollview',
   STX_OPT_IN_SWITCH: 'smart_transactions_opt_in_switch',
   DISMISS_SMART_ACCOUNT_UPDATE: 'dismiss_smart_account_update',
+  RESET_ACCOUNT_CONFIRM_BUTTON: 'reset-account-confirm-button',
 };
 
 export const AdvancedViewSelectorsText = {

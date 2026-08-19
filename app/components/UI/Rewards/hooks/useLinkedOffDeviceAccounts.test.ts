@@ -7,7 +7,6 @@ import {
 } from './useLinkedOffDeviceAccounts';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectMissingEnrolledAccountsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import { AuthorizationFailedError } from '../../../../core/Engine/controllers/rewards-controller/services/rewards-data-service';
 import {
@@ -28,10 +27,6 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
-}));
-
-jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
-  selectMissingEnrolledAccountsRewardsEnabledFlag: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -86,8 +81,6 @@ describe('useLinkedOffDeviceAccounts', () => {
     });
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectRewardsSubscriptionId) return 'sub-123';
-      if (selector === selectMissingEnrolledAccountsRewardsEnabledFlag)
-        return true;
       return undefined;
     });
   });
@@ -152,27 +145,6 @@ describe('useLinkedOffDeviceAccounts', () => {
     it('returns empty array when subscriptionId is null', async () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectRewardsSubscriptionId) return null;
-        if (selector === selectMissingEnrolledAccountsRewardsEnabledFlag)
-          return true;
-        return undefined;
-      });
-
-      const { result } = renderHook(() => useLinkedOffDeviceAccounts());
-
-      await act(async () => {
-        const focusCallback = mockUseFocusEffect.mock.calls[0][0];
-        await focusCallback();
-      });
-
-      expect(mockEngineCall).not.toHaveBeenCalled();
-      expect(result.current).toEqual([]);
-    });
-
-    it('returns empty array and skips fetch when feature flag is disabled', async () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectRewardsSubscriptionId) return 'sub-123';
-        if (selector === selectMissingEnrolledAccountsRewardsEnabledFlag)
-          return false;
         return undefined;
       });
 

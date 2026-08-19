@@ -2,19 +2,19 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { BrowserTab } from '../../Tokens/types';
-import { isCardUrl, isCardTravelUrl, isCardTosUrl } from '../../../../util/url';
+import { isCardTravelUrl } from '../../../../util/url';
 import AppConstants from '../../../../core/AppConstants';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { CardActions } from '../util/metrics';
+import { CardActions, withCardProvider } from '../util/metrics';
+import { selectCardActiveProviderId } from '../../../../selectors/cardController';
 import { Linking } from 'react-native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import Logger from '../../../../util/Logger';
 
 export enum CardInternalBrowserPage {
   TRAVEL = 'travel',
-  TOS = 'tos',
-  CARD = 'card',
 }
 
 const PAGE_CONFIG: Record<
@@ -25,44 +25,23 @@ const PAGE_CONFIG: Record<
     action: CardActions;
   }
 > = {
-  [CardInternalBrowserPage.CARD]: {
-    urlCheck: isCardUrl,
-    getUrl: () => AppConstants.CARD.URL,
-    action: CardActions.NAVIGATE_TO_CARD_PAGE,
-  },
   [CardInternalBrowserPage.TRAVEL]: {
     urlCheck: isCardTravelUrl,
     getUrl: () => AppConstants.CARD.TRAVEL_URL,
     action: CardActions.NAVIGATE_TO_TRAVEL_PAGE,
   },
-  [CardInternalBrowserPage.TOS]: {
-    urlCheck: isCardTosUrl,
-    getUrl: () => AppConstants.CARD.CARD_TOS_URL,
-    action: CardActions.NAVIGATE_TO_CARD_TOS_PAGE,
-  },
 };
 
 export const useNavigateToInternalBrowserPage = (
-  navigation: NavigationProp<ParamListBase>,
+  navigation: AppNavigationProp,
 ) => {
   const browserTabs = useSelector((state: RootState) => state.browser.tabs);
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const navigateToInternalBrowserPage = useCallback(
     (page: CardInternalBrowserPage) => {
       const { urlCheck, getUrl, action } = PAGE_CONFIG[page];
-
-      if (page === CardInternalBrowserPage.TOS) {
-        Linking.openURL(getUrl());
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-            .addProperties({
-              action,
-            })
-            .build(),
-        );
-        return;
-      }
 
       const existingTab = browserTabs?.find(({ url }: BrowserTab) =>
         urlCheck(url),
@@ -81,6 +60,7 @@ export const useNavigateToInternalBrowserPage = (
         ...(newTabUrl && { newTabUrl }),
         ...(existingTabId && { existingTabId, newTabUrl: undefined }),
         timestamp: Date.now(),
+        fromCard: true,
       };
 
       navigation.navigate(Routes.BROWSER.HOME, {
@@ -89,13 +69,15 @@ export const useNavigateToInternalBrowserPage = (
       });
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action,
-          })
+          .addProperties(
+            withCardProvider(activeProviderId, {
+              action,
+            }),
+          )
           .build(),
       );
     },
-    [browserTabs, navigation, trackEvent, createEventBuilder],
+    [browserTabs, navigation, trackEvent, createEventBuilder, activeProviderId],
   );
 
   return {
@@ -104,29 +86,49 @@ export const useNavigateToInternalBrowserPage = (
 };
 
 /**
- * Hook that provides navigation functions for Card-related internal browser pages.
- * Returns convenience methods for navigating to Card, Travel, and TOS pages.
+ * Hook that provides navigation functions for Card-related internal browser flows.
+ * Returns convenience methods for Travel (in-app browser) and TOS (external link).
  */
 export const useNavigateToCardPage = (
-  navigation: NavigationProp<ParamListBase>,
+  navigation: AppNavigationProp,
+  cardTermsAndConditionsUrl: string = AppConstants.CARD.CARD_TOS_URL,
 ) => {
   const { navigateToInternalBrowserPage } =
     useNavigateToInternalBrowserPage(navigation);
-
-  const navigateToCardPage = useCallback(() => {
-    navigateToInternalBrowserPage(CardInternalBrowserPage.CARD);
-  }, [navigateToInternalBrowserPage]);
+  const activeProviderId = useSelector(selectCardActiveProviderId);
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const navigateToTravelPage = useCallback(() => {
     navigateToInternalBrowserPage(CardInternalBrowserPage.TRAVEL);
   }, [navigateToInternalBrowserPage]);
 
   const navigateToCardTosPage = useCallback(() => {
-    navigateToInternalBrowserPage(CardInternalBrowserPage.TOS);
-  }, [navigateToInternalBrowserPage]);
+    Linking.openURL(cardTermsAndConditionsUrl).catch((error) => {
+      Logger.error(error as Error, {
+        tags: { feature: 'card' },
+        context: {
+          name: 'useNavigateToCardPage',
+          data: { url: cardTermsAndConditionsUrl },
+        },
+      });
+    });
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.NAVIGATE_TO_CARD_TOS_PAGE,
+          }),
+        )
+        .build(),
+    );
+  }, [
+    cardTermsAndConditionsUrl,
+    trackEvent,
+    createEventBuilder,
+    activeProviderId,
+  ]);
 
   return {
-    navigateToCardPage,
     navigateToTravelPage,
     navigateToCardTosPage,
   };

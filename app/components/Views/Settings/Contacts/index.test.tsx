@@ -4,7 +4,7 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider, {
   renderScreen,
 } from '../../../../util/test/renderWithProvider';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Contacts from './';
 import { strings } from '../../../../../locales/i18n';
 import { backgroundState } from '../../../../util/test/initial-root-state';
@@ -16,7 +16,7 @@ const initialState = {
   },
 };
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const PLACEHOLDER_SCREEN_TEST_ID = 'contacts-test-placeholder-screen';
 const GO_TO_CONTACTS_TEST_ID = 'contacts-test-go-to-contacts';
@@ -41,12 +41,12 @@ function PlaceholderScreen({
 
 describe('Contacts', () => {
   it('renders correctly', () => {
-    const { toJSON } = renderScreen(
+    const { getByText } = renderScreen(
       Contacts,
       { name: 'ContactsSettings', options: { headerShown: false } },
       { state: initialState },
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(getByText(strings('app_settings.contacts_title'))).toBeOnTheScreen();
   });
 
   it('renders inline header with Contacts title', () => {

@@ -7,8 +7,7 @@ import {
   selectNativeNetworkCurrencies,
 } from '../../../../selectors/networkController';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
-import { selectHomepageSectionsV1Enabled } from '../../../../selectors/featureFlagController/homepage';
-import { selectEVMEnabledNetworks } from '../../../../selectors/networkEnablementController';
+import { selectUseNftDetection } from '../../../../selectors/preferencesController';
 
 const REFRESH_TIMEOUT_MS = 5000;
 const REFRESH_TIMEOUT_ERROR_MESSAGE = 'Balance refresh timed out';
@@ -28,31 +27,20 @@ export const useBalanceRefresh = () => {
   const [refreshing, setRefreshing] = useState(false);
   const { popularEvmNetworks: evmChainIds } = useNetworkEnablement();
 
-  const isHomepageSectionsV1Enabled = useSelector(
-    selectHomepageSectionsV1Enabled,
-  );
-
-  const evmEnabledChainIds = useSelector(selectEVMEnabledNetworks);
+  const isNftDetectionEnabled = useSelector(selectUseNftDetection);
 
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
 
-  // Sections enabled: refresh popular EVM chains. Sections disabled: refresh enabled eip155 only.
-  const evmChainIdsForRefresh = useMemo(
-    () =>
-      isHomepageSectionsV1Enabled ? evmChainIds : (evmEnabledChainIds ?? []),
-    [isHomepageSectionsV1Enabled, evmChainIds, evmEnabledChainIds],
-  );
-
   const evmNetworkConfigurationsFiltered = useMemo(() => {
-    const allowed = new Set<string>(evmChainIdsForRefresh);
+    const allowed = new Set<string>(evmChainIds);
     return Object.fromEntries(
       Object.entries(evmNetworkConfigurations).filter(([chainId]) =>
         allowed.has(chainId),
       ),
     );
-  }, [evmNetworkConfigurations, evmChainIdsForRefresh]);
+  }, [evmNetworkConfigurations, evmChainIds]);
 
   const nativeCurrencies = useSelector(selectNativeNetworkCurrencies);
 
@@ -62,6 +50,7 @@ export const useBalanceRefresh = () => {
       CurrencyRateController,
       TokenBalancesController,
       TokenDetectionController,
+      NftDetectionController,
     } = Engine.context;
     const networkClientIds = Object.values(evmNetworkConfigurationsFiltered)
       .map(
@@ -71,17 +60,27 @@ export const useBalanceRefresh = () => {
       .filter((id): id is string => Boolean(id));
 
     try {
+      const refreshTasks: Promise<unknown>[] = [
+        AccountTrackerController.refresh(networkClientIds),
+        CurrencyRateController.updateExchangeRate(nativeCurrencies),
+        TokenDetectionController.detectTokens({
+          chainIds: evmChainIds,
+        }),
+        TokenBalancesController.updateBalances({
+          chainIds: evmChainIds,
+        }),
+      ];
+
+      if (isNftDetectionEnabled) {
+        refreshTasks.push(
+          NftDetectionController.detectNfts(evmChainIds, {
+            firstPageOnly: true,
+          }),
+        );
+      }
+
       await Promise.race([
-        Promise.allSettled([
-          AccountTrackerController.refresh(networkClientIds),
-          CurrencyRateController.updateExchangeRate(nativeCurrencies),
-          TokenDetectionController.detectTokens({
-            chainIds: evmChainIdsForRefresh,
-          }),
-          TokenBalancesController.updateBalances({
-            chainIds: evmChainIdsForRefresh,
-          }),
-        ]),
+        Promise.allSettled(refreshTasks),
         new Promise((_, reject) =>
           setTimeout(
             () => reject(new Error(REFRESH_TIMEOUT_ERROR_MESSAGE)),
@@ -99,17 +98,15 @@ export const useBalanceRefresh = () => {
     }
   }, [
     evmNetworkConfigurationsFiltered,
-    evmChainIdsForRefresh,
+    evmChainIds,
     nativeCurrencies,
+    isNftDetectionEnabled,
   ]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    try {
-      await refreshBalance();
-    } finally {
-      setRefreshing(false);
-    }
+    await refreshBalance();
+    setRefreshing(false);
   }, [refreshBalance]);
 
   return {

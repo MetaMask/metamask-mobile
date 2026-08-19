@@ -1,25 +1,21 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { PriceImpactHeader } from './PriceImpactHeader';
-import { PriceImpactModalType } from './constants';
 import { strings } from '../../../../../../locales/i18n';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { IconColor, IconName } from '@metamask/design-system-react-native';
 
 // Render the warning Icon with a testID derived from the icon name so it can
 // be queried in tests without coupling to SVG internals.
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
+// Only Icon is overridden; all other design-system exports (ButtonIcon, etc.)
+// are preserved from the real module so their existing behaviour is unchanged.
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   const { View } = jest.requireActual('react-native');
   return {
-    __esModule: true,
-    default: ({ name, testID }: { name: string; testID?: string }) => (
+    ...actual,
+    Icon: ({ name, testID }: { name: string; testID?: string }) => (
       <View testID={testID ?? `icon-${name}`} />
     ),
-    IconName: jest.requireActual(
-      '../../../../../component-library/components/Icons/Icon',
-    ).IconName,
-    IconSize: jest.requireActual(
-      '../../../../../component-library/components/Icons/Icon',
-    ).IconSize,
   };
 });
 
@@ -30,27 +26,42 @@ beforeEach(() => {
 });
 
 describe('PriceImpactHeader', () => {
-  describe('title', () => {
-    it('renders "Price impact" for the Info type', () => {
+  describe('content rendering', () => {
+    it('renders the localized string for price_impact_info_title', () => {
       const { getByText } = render(
         <PriceImpactHeader
-          type={PriceImpactModalType.Info}
+          content="bridge.price_impact_info_title"
           onClose={onClose}
         />,
       );
 
-      expect(getByText(strings('bridge.price_impact'))).toBeTruthy();
+      expect(getByText(strings('bridge.price_impact_info_title'))).toBeTruthy();
     });
 
-    it('renders "High price impact" for the Execution type', () => {
+    it('renders the localized string for price_impact_warning_title', () => {
       const { getByText } = render(
         <PriceImpactHeader
-          type={PriceImpactModalType.Execution}
+          content="bridge.price_impact_warning_title"
           onClose={onClose}
         />,
       );
 
-      expect(getByText(strings('bridge.price_impact_high'))).toBeTruthy();
+      expect(
+        getByText(strings('bridge.price_impact_warning_title')),
+      ).toBeTruthy();
+    });
+
+    it('renders the localized string for price_impact_error_title', () => {
+      const { getByText } = render(
+        <PriceImpactHeader
+          content="bridge.price_impact_error_title"
+          onClose={onClose}
+        />,
+      );
+
+      expect(
+        getByText(strings('bridge.price_impact_error_title')),
+      ).toBeTruthy();
     });
   });
 
@@ -58,7 +69,7 @@ describe('PriceImpactHeader', () => {
     it('renders the close button', () => {
       const { getByTestId } = render(
         <PriceImpactHeader
-          type={PriceImpactModalType.Info}
+          content="bridge.price_impact_info_title"
           onClose={onClose}
         />,
       );
@@ -69,7 +80,7 @@ describe('PriceImpactHeader', () => {
     it('calls onClose when the close button is pressed', () => {
       const { getByTestId } = render(
         <PriceImpactHeader
-          type={PriceImpactModalType.Info}
+          content="bridge.price_impact_info_title"
           onClose={onClose}
         />,
       );
@@ -79,13 +90,13 @@ describe('PriceImpactHeader', () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('calls onClose on the Execution type as well', () => {
+    it('calls onClose when an icon is also shown', () => {
       const { getByTestId } = render(
         <PriceImpactHeader
-          type={PriceImpactModalType.Execution}
+          content="bridge.price_impact_error_title"
           onClose={onClose}
-          warningIconName={IconName.Danger}
-          warningIconColor="red"
+          iconName={IconName.Danger}
+          iconColor={IconColor.ErrorDefault}
         />,
       );
 
@@ -96,37 +107,37 @@ describe('PriceImpactHeader', () => {
   });
 
   describe('warning icon', () => {
-    it('renders the warning icon when both warningIconName and warningIconColor are provided', () => {
+    it('renders the warning icon when both iconName and iconColor are provided', () => {
       const { getByTestId } = render(
         <PriceImpactHeader
-          type={PriceImpactModalType.Execution}
+          content="bridge.price_impact_error_title"
           onClose={onClose}
-          warningIconName={IconName.Danger}
-          warningIconColor="red"
+          iconName={IconName.Danger}
+          iconColor={IconColor.ErrorDefault}
         />,
       );
 
       expect(getByTestId(`icon-${IconName.Danger}`)).toBeTruthy();
     });
 
-    it('does not render the warning icon when warningIconName is absent', () => {
+    it('does not render the warning icon when iconName is absent', () => {
       const { queryByTestId } = render(
         <PriceImpactHeader
-          type={PriceImpactModalType.Execution}
+          content="bridge.price_impact_error_title"
           onClose={onClose}
-          warningIconColor="red"
+          iconColor={IconColor.ErrorDefault}
         />,
       );
 
       expect(queryByTestId(`icon-${IconName.Danger}`)).toBeNull();
     });
 
-    it('does not render the warning icon when warningIconColor is absent', () => {
+    it('does not render the warning icon when iconColor is absent', () => {
       const { queryByTestId } = render(
         <PriceImpactHeader
-          type={PriceImpactModalType.Info}
+          content="bridge.price_impact_info_title"
           onClose={onClose}
-          warningIconName={IconName.Warning}
+          iconName={IconName.Warning}
         />,
       );
 
@@ -136,7 +147,7 @@ describe('PriceImpactHeader', () => {
     it('does not render the warning icon when neither prop is provided', () => {
       const { queryByTestId } = render(
         <PriceImpactHeader
-          type={PriceImpactModalType.Info}
+          content="bridge.price_impact_info_title"
           onClose={onClose}
         />,
       );
@@ -145,13 +156,13 @@ describe('PriceImpactHeader', () => {
       expect(queryByTestId(`icon-${IconName.Warning}`)).toBeNull();
     });
 
-    it('renders a Warning icon for the Info type when both props are provided', () => {
+    it('renders a Warning icon when iconName and iconColor are both provided', () => {
       const { getByTestId } = render(
         <PriceImpactHeader
-          type={PriceImpactModalType.Info}
+          content="bridge.price_impact_warning_title"
           onClose={onClose}
-          warningIconName={IconName.Warning}
-          warningIconColor="orange"
+          iconName={IconName.Warning}
+          iconColor={IconColor.WarningDefault}
         />,
       );
 

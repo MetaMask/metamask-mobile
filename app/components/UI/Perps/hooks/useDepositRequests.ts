@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { usePerpsSelector } from './usePerpsSelector';
+import { useStableArray } from './useStableArray';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
@@ -37,6 +38,8 @@ interface UseDepositRequestsResult {
   refetch: () => Promise<void>;
 }
 
+const EMPTY_DEPOSIT_REQUESTS: DepositRequest[] = [];
+
 /**
  * Hook to fetch deposit requests combining:
  * 1. Pending/bridging deposits from PerpsController state (real-time)
@@ -54,33 +57,51 @@ export const useDepositRequests = (
     'eip155:1',
   )?.address;
 
-  // Get pending/bridging deposits from controller state and filter by current account
-  const pendingDeposits = usePerpsSelector((state) => {
-    const allDeposits = state?.depositRequests || [];
+  // Total count of deposits across all accounts (primitive — safe to read every
+  // dispatch without triggering re-renders, used for logging context only).
+  const totalDepositCount = usePerpsSelector(
+    (state) => state?.depositRequests?.length ?? 0,
+  );
 
-    // If no selected address, return empty array (don't show potentially wrong account's data)
+  // Get pending/bridging deposits from controller state and filter by current
+  // account. The selector returns a fresh array on every dispatch, so wrap it in
+  // useStableArray to keep a stable reference when the contents are unchanged.
+  // This prevents consumers from re-rendering on unrelated PerpsController
+  // dispatches. Logging is intentionally kept out of the selector (see effect
+  // below) so it does not run on every dispatch.
+  const pendingDeposits = useStableArray(
+    usePerpsSelector((state) => {
+      const allDeposits = state?.depositRequests ?? EMPTY_DEPOSIT_REQUESTS;
+
+      // If no selected address, return empty array (don't show potentially wrong account's data)
+      if (!selectedAddress || allDeposits.length === 0) {
+        return EMPTY_DEPOSIT_REQUESTS;
+      }
+
+      // Filter by current account, normalizing addresses for comparison
+      return allDeposits.filter(
+        (req) =>
+          req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase(),
+      );
+    }),
+  );
+
+  useEffect(() => {
     if (!selectedAddress) {
       DevLogger.log(
         'useDepositRequests: No selected address, returning empty array',
         {
-          totalCount: allDeposits.length,
+          totalCount: totalDepositCount,
         },
       );
-      return [];
+      return;
     }
-
-    // Filter by current account, normalizing addresses for comparison
-    const filtered = allDeposits.filter((req) => {
-      const match =
-        req.accountAddress?.toLowerCase() === selectedAddress.toLowerCase();
-      return match;
-    });
 
     DevLogger.log('useDepositRequests: Filtered deposits by account', {
       selectedAddress,
-      totalCount: allDeposits.length,
-      filteredCount: filtered.length,
-      deposits: filtered.map((d) => ({
+      totalCount: totalDepositCount,
+      filteredCount: pendingDeposits.length,
+      deposits: pendingDeposits.map((d) => ({
         id: d.id,
         timestamp: new Date(d.timestamp).toISOString(),
         amount: d.amount,
@@ -89,9 +110,7 @@ export const useDepositRequests = (
         accountAddress: d.accountAddress,
       })),
     });
-
-    return filtered;
-  });
+  }, [selectedAddress, totalDepositCount, pendingDeposits]);
 
   const [completedDeposits, setCompletedDeposits] = useState<DepositRequest[]>(
     [],
@@ -118,9 +137,10 @@ export const useDepositRequests = (
         throw new Error('PerpsController not available');
       }
 
-      const provider = controller.getActiveProvider();
+      const provider = controller.getActiveProviderOrNull();
       if (!provider) {
-        throw new Error('No active provider available');
+        setIsLoading(false);
+        return;
       }
 
       // Check if provider has the getUserNonFundingLedgerUpdates method

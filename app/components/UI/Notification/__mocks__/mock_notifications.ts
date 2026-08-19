@@ -1,5 +1,5 @@
 import { processNotification } from '@metamask/notification-services-controller/notification-services';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Mocks from '@metamask/notification-services-controller/notification-services/mocks';
 
 export const MOCK_ON_CHAIN_NOTIFICATIONS = [

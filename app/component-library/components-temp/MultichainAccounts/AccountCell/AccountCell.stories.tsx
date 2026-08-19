@@ -6,7 +6,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { Box } from '@metamask/design-system-react-native';
 import AccountCell from '.';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
-import { AvatarAccountType } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
+import { AvatarAccountType } from '../avatarAccountVariant';
 
 interface StoryArgs {
   accountGroup: AccountGroupObject;
@@ -19,6 +19,7 @@ const SAMPLE_ACCOUNT_GROUP = {
     name: 'Account 1',
     pinned: false,
     hidden: false,
+    lastSelected: 0,
   },
   accounts: ['account-1'],
   id: 'keyring:test-group/ethereum' as const,

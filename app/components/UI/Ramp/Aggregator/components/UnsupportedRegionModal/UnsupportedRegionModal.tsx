@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { View, TouchableOpacity, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 import Text, {
   TextVariant,
@@ -21,12 +22,14 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { Region } from '../../types';
 import { useRampSDK } from '../../sdk';
 import { createRegionSelectorModalNavigationDetails } from '../RegionSelectorModal';
+import { UNSUPPORTED_BUY_REGION_SUPPORT_URL } from '../../../../../../constants/urls';
 
 interface UnsupportedRegionModalParams {
   region: Region;
@@ -41,7 +44,7 @@ export const createUnsupportedRegionModalNavigationDetails =
 
 function UnsupportedRegionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { region, regions } = useParams<UnsupportedRegionModalParams>();
   const { isBuy } = useRampSDK();
 
@@ -49,16 +52,15 @@ function UnsupportedRegionModal() {
 
   const handleSelectDifferentRegion = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(
-        ...createRegionSelectorModalNavigationDetails({ regions }),
+      navigateWithDetails(
+        navigation,
+        createRegionSelectorModalNavigationDetails({ regions }),
       );
     });
   }, [navigation, regions]);
 
   const handleSupportLinkPress = useCallback(() => {
-    const SUPPORT_URL =
-      'https://support.metamask.io/metamask-portfolio/buy/my-country-region-isnt-supported-for-buying-crypto/';
-    Linking.openURL(SUPPORT_URL);
+    Linking.openURL(UNSUPPORTED_BUY_REGION_SUPPORT_URL);
   }, []);
 
   return (

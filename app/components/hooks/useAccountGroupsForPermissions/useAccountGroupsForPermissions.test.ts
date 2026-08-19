@@ -64,7 +64,6 @@ const createPermissionWithEvmAccounts = (
 const createMockState = (overrides = {}, accountOverrides = {}) => {
   const accountTreeController = {
     accountTree: {
-      selectedAccountGroup: MOCK_GROUP_ID_1,
       wallets: {
         [MOCK_WALLET_ID]: {
           id: MOCK_WALLET_ID,
@@ -106,6 +105,7 @@ const createMockState = (overrides = {}, accountOverrides = {}) => {
         },
       },
     },
+    selectedAccountGroup: MOCK_GROUP_ID_1,
     ...overrides,
   };
 
@@ -367,9 +367,9 @@ describe('useAccountGroupsForPermissions', () => {
     it('handles missing account groups gracefully', () => {
       const stateOverrides = {
         accountTree: {
-          selectedAccountGroup: MOCK_GROUP_ID_1,
           wallets: {},
         },
+        selectedAccountGroup: MOCK_GROUP_ID_1,
       };
 
       const existingPermission = createPermissionWithEvmAccounts([

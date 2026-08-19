@@ -1,6 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
-import { AccountBaseProps } from './AccountBase.types';
+import { render, screen } from '@testing-library/react-native';
 import AccountBase from './AccountBase';
 import {
   TEST_ACCOUNT_ADDRESS,
@@ -9,8 +8,8 @@ import {
 import { AvatarAccountType } from '../../../components/Avatars/Avatar';
 
 describe('AccountBase', () => {
-  it('should render AccountBase', () => {
-    const wrapper = shallow<AccountBaseProps>(
+  it('renders AccountBase with network badge when badgeProps.src is provided', () => {
+    render(
       <AccountBase
         accountBalance={0}
         accountNativeCurrency={''}
@@ -22,9 +21,28 @@ describe('AccountBase', () => {
         avatarAccountType={AvatarAccountType.Maskicon}
       />,
     );
-    const singleSelectComponent = wrapper.findWhere(
-      (node) => node.prop('testID') === 'account-base',
+
+    expect(screen.getByTestId('account-base')).toBeOnTheScreen();
+    expect(screen.getByTestId('account-base-network-badge')).toBeOnTheScreen();
+  });
+
+  it('renders without network badge when badgeProps.src is missing', () => {
+    render(
+      <AccountBase
+        accountBalance={0}
+        accountNativeCurrency={''}
+        accountNetwork={''}
+        accountName={''}
+        accountBalanceLabel={''}
+        accountAddress={TEST_ACCOUNT_ADDRESS}
+        badgeProps={{ name: 'Ethereum' }}
+        avatarAccountType={AvatarAccountType.Maskicon}
+      />,
     );
-    expect(singleSelectComponent.exists()).toBe(true);
+
+    expect(screen.getByTestId('account-base')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('account-base-network-badge'),
+    ).not.toBeOnTheScreen();
   });
 });

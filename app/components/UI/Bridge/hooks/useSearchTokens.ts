@@ -1,9 +1,13 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { debounce } from 'lodash';
+import { v4 as uuidv4 } from 'uuid';
 import { CaipChainId } from '@metamask/utils';
-import { PopularToken, IncludeAsset } from './usePopularTokens';
+import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import Engine from '../../../../core/Engine';
+import { getBaseSemVerVersion } from '../../../../util/version';
+import { endTrace, trace, TraceName } from '../../../../util/trace';
+import type { IncludeAsset, PopularToken } from '../types';
 
 const MIN_SEARCH_LENGTH = 3;
 
@@ -19,11 +23,11 @@ interface SearchTokensResponse {
 
 interface UseSearchTokensParams {
   chainIds: CaipChainId[];
-  includeAssets: string; // Stringified array to prevent unnecessary re-renders
+  includeAssets: IncludeAsset[];
 }
 
 interface UseSearchTokensResult {
-  searchResults: PopularToken[];
+  searchResults: (PopularToken | IncludeAsset)[];
   isSearchLoading: boolean;
   isLoadingMore: boolean;
   searchCursor: string | undefined;
@@ -99,13 +103,12 @@ export const useSearchTokens = ({
         setIsSearchLoading(true);
         currentSearchQueryRef.current = query.trim();
         setCurrentSearchQuery(query.trim());
+        setSearchResults([]);
       }
 
-      try {
-        const parsedIncludeAssets: IncludeAsset[] = isPagination
-          ? []
-          : JSON.parse(includeAssetsRef.current);
+      let traceId: string | undefined;
 
+      try {
         const requestBody: {
           chainIds: CaipChainId[];
           query: string;
@@ -120,8 +123,17 @@ export const useSearchTokens = ({
           requestBody.after = cursor;
         }
 
-        if (parsedIncludeAssets) {
-          requestBody.includeAssets = parsedIncludeAssets;
+        if (includeAssetsRef.current && !isPagination) {
+          requestBody.includeAssets = includeAssetsRef.current;
+        }
+
+        traceId = isPagination ? undefined : uuidv4();
+        if (traceId) {
+          trace({
+            name: TraceName.SwapTokenSearch,
+            id: traceId,
+            startTime: Date.now(),
+          });
         }
 
         const response = await fetch(
@@ -130,16 +142,29 @@ export const useSearchTokens = ({
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${bearerToken ?? ''}`,
+              ...getClientHeaders({
+                clientId: BridgeClientId.MOBILE,
+                clientVersion: getBaseSemVerVersion(),
+                jwt: bearerToken ?? '',
+              }),
             },
             body: JSON.stringify(requestBody),
           },
         );
-        const searchData: SearchTokensResponse = await response.json();
+        if (response.ok === false) {
+          throw new Error(
+            `Failed to search tokens with status ${response.status}`,
+          );
+        }
+
+        const searchData: Partial<SearchTokensResponse> = await response.json();
+        const searchResultData: PopularToken[] = Array.isArray(searchData.data)
+          ? searchData.data
+          : [];
 
         // Store the cursor for pagination if there's a next page
         setSearchCursor(
-          searchData.pageInfo.hasNextPage
+          searchData.pageInfo?.hasNextPage
             ? searchData.pageInfo.endCursor
             : undefined,
         );
@@ -149,19 +174,26 @@ export const useSearchTokens = ({
         if (isPagination) {
           setSearchResults((prevResults) => [
             ...prevResults,
-            ...searchData.data,
+            ...searchResultData,
           ]);
         } else {
-          setSearchResults(searchData.data);
+          setSearchResults(searchResultData);
         }
       } catch (error) {
         console.error('Error searching tokens:', error);
         // Reset search state on error only if it's not a pagination request
         if (!isPagination) {
-          setSearchResults([]);
           setSearchCursor(undefined);
         }
       } finally {
+        if (traceId) {
+          endTrace({
+            name: TraceName.SwapTokenSearch,
+            id: traceId,
+            timestamp: Date.now(),
+          });
+        }
+
         if (isPagination) {
           setIsLoadingMore(false);
         } else {
@@ -177,6 +209,7 @@ export const useSearchTokens = ({
   const debouncedSearch = useMemo(
     () =>
       debounce((query: string) => {
+        setSearchResults([]);
         const queryLength = query.trim().length;
         // Only search if query meets minimum length
         if (queryLength >= MIN_SEARCH_LENGTH) {
@@ -199,7 +232,7 @@ export const useSearchTokens = ({
   );
 
   return {
-    searchResults,
+    searchResults: searchResults.length > 0 ? searchResults : includeAssets,
     isSearchLoading,
     isLoadingMore,
     searchCursor,

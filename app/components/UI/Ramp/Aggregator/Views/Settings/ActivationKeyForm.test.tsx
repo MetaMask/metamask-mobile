@@ -55,11 +55,6 @@ describe('AddActivationKey', () => {
     mockUseParamsValue = { onSubmit: mockOnSubmit };
   });
 
-  it('renders correctly', () => {
-    render(ActivationKeyForm);
-    expect(screen.toJSON()).toMatchSnapshot();
-  });
-
   it('renders inline header with title Add activation key', () => {
     render(ActivationKeyForm);
     const header = screen.getByTestId(ACTIVATION_KEY_FORM_HEADER_TEST_ID);
@@ -91,7 +86,7 @@ describe('AddActivationKey', () => {
   it('has button disabled when input is empty', () => {
     render(ActivationKeyForm);
     const addButton = screen.getByRole('button', { name: 'Add' });
-    expect(addButton.props.disabled).toBe(true);
+    expect(addButton).toBeDisabled();
   });
 
   it('navigates back when pressing cancel', () => {

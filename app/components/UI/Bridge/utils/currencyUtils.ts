@@ -46,3 +46,27 @@ export function formatCurrency(
     return String(amount);
   }
 }
+
+export function getCurrencySymbol(currency: string): string {
+  const normalizedCurrency = (currency || 'USD').toUpperCase();
+
+  try {
+    const formattedZero = getIntlNumberFormatter(I18n.locale, {
+      style: 'currency',
+      currency: normalizedCurrency,
+      currencyDisplay: 'symbol',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(0);
+
+    const currencySymbol = formattedZero.replace(/[\d\s.,'’_-]/gu, '').trim();
+
+    if (currencySymbol && currencySymbol.toUpperCase() !== normalizedCurrency) {
+      return currencySymbol;
+    }
+  } catch (error) {
+    console.error('Error getting currency symbol:', error);
+  }
+
+  return normalizedCurrency;
+}

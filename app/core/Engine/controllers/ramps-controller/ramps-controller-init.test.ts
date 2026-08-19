@@ -1,7 +1,7 @@
 import { waitFor } from '@testing-library/react-native';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
-import { ControllerInitRequest } from '../../types';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import { MessengerClientInitRequest } from '../../types';
 import {
   RampsController,
   RampsControllerMessenger,
@@ -65,31 +65,27 @@ jest.mock('react-native-device-info', () => ({
   getVersion: () => '99.0.0',
 }));
 
-const createMockInitMessenger = (
-  overrides: {
-    active?: boolean;
-    minimumVersion?: string | null;
-  } = {},
-): RampsControllerInitMessenger => {
-  const { active = false, minimumVersion = null } = overrides;
+jest.mock('../../../../components/UI/Ramp/debug/RampsDebugBridge', () => ({
+  __esModule: true,
+  initRampsDebugBridge: jest.fn(),
+}));
 
-  return {
-    call: jest.fn().mockReturnValue({
-      remoteFeatureFlags: {
-        rampsUnifiedBuyV2: {
-          active,
-          minimumVersion,
-        },
-      },
-    }),
+const getInitRampsDebugBridgeMock = (): jest.Mock =>
+  (
+    jest.requireMock(
+      '../../../../components/UI/Ramp/debug/RampsDebugBridge',
+    ) as { initRampsDebugBridge: jest.Mock }
+  ).initRampsDebugBridge;
+
+const createMockInitMessenger = (): RampsControllerInitMessenger =>
+  ({
     subscribe: jest.fn(),
-  } as unknown as RampsControllerInitMessenger;
-};
+  }) as unknown as RampsControllerInitMessenger;
 
 describe('ramps controller init', () => {
   const rampsControllerClassMock = jest.mocked(RampsController);
   let initRequestMock: jest.Mocked<
-    ControllerInitRequest<
+    MessengerClientInitRequest<
       RampsControllerMessenger,
       RampsControllerInitMessenger
     >
@@ -103,10 +99,10 @@ describe('ramps controller init', () => {
       namespace: MOCK_ANY_NAMESPACE,
     });
     initRequestMock = {
-      ...buildControllerInitRequestMock(baseControllerMessenger),
+      ...buildMessengerClientInitRequestMock(baseControllerMessenger),
       initMessenger: createMockInitMessenger(),
     } as jest.Mocked<
-      ControllerInitRequest<
+      MessengerClientInitRequest<
         RampsControllerMessenger,
         RampsControllerInitMessenger
       >
@@ -127,7 +123,12 @@ describe('ramps controller init', () => {
   });
 
   it('uses initial state when initial state is passed in', () => {
+    const defaultState = jest
+      .requireActual('@metamask/ramps-controller')
+      .getDefaultRampsControllerState() as RampsControllerState;
+
     const initialRampsControllerState: RampsControllerState = {
+      ...defaultState,
       userRegion: createMockUserRegion('us-ca'),
       countries: {
         data: [],
@@ -178,6 +179,7 @@ describe('ramps controller init', () => {
         },
       },
       orders: [],
+      providerAutoSelected: false,
     };
 
     initRequestMock.persistedState = {
@@ -193,84 +195,99 @@ describe('ramps controller init', () => {
     expect(rampsControllerState).toStrictEqual(initialRampsControllerState);
   });
 
-  describe('when V2 feature flag is enabled', () => {
-    it('calls init at startup', async () => {
-      initRequestMock.initMessenger = createMockInitMessenger({
-        active: true,
-        minimumVersion: '1.0.0',
-      });
+  it('calls init at startup', async () => {
+    rampsControllerInit(initRequestMock);
 
-      rampsControllerInit(initRequestMock);
-
-      await waitFor(() => {
-        expect(mockInit).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    it('handles init failure gracefully', async () => {
-      initRequestMock.initMessenger = createMockInitMessenger({
-        active: true,
-        minimumVersion: '1.0.0',
-      });
-      mockInit.mockRejectedValue(new Error('Network error'));
-
-      expect(() => rampsControllerInit(initRequestMock)).not.toThrow();
-
-      await waitFor(() => {
-        expect(mockInit).toHaveBeenCalledTimes(1);
-      });
+    await waitFor(() => {
+      expect(mockInit).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('when V2 feature flag is disabled', () => {
-    it('does not call init at startup', async () => {
-      initRequestMock.initMessenger = createMockInitMessenger({
-        active: false,
-      });
+  it('handles init failure gracefully', async () => {
+    mockInit.mockRejectedValue(new Error('Network error'));
 
-      rampsControllerInit(initRequestMock);
+    expect(() => rampsControllerInit(initRequestMock)).not.toThrow();
 
-      await waitFor(() => {
-        expect(mockInit).not.toHaveBeenCalled();
-      });
-    });
-
-    it('does not call init when active is true but minimumVersion is missing', async () => {
-      initRequestMock.initMessenger = createMockInitMessenger({
-        active: true,
-        minimumVersion: null,
-      });
-
-      rampsControllerInit(initRequestMock);
-
-      await waitFor(() => {
-        expect(mockInit).not.toHaveBeenCalled();
-      });
-    });
-
-    it('does not call init when RemoteFeatureFlagController throws', async () => {
-      initRequestMock.initMessenger = {
-        call: jest.fn().mockImplementation(() => {
-          throw new Error('Controller not ready');
-        }),
-      } as unknown as RampsControllerInitMessenger;
-
-      rampsControllerInit(initRequestMock);
-
-      await waitFor(() => {
-        expect(mockInit).not.toHaveBeenCalled();
-      });
+    await waitFor(() => {
+      expect(mockInit).toHaveBeenCalledTimes(1);
     });
   });
 
-  it('always returns the controller instance regardless of flag state', () => {
-    initRequestMock.initMessenger = createMockInitMessenger({
-      active: false,
-    });
-
+  it('returns the controller instance', () => {
     const result = rampsControllerInit(initRequestMock);
 
     expect(result.controller).toBeDefined();
     expect(rampsControllerClassMock).toHaveBeenCalledTimes(1);
+  });
+
+  // TRAM-3691: confirms the analytics/notification handlers have a SINGLE
+  // trigger — RampsController:orderStatusChanged. There is no addOrder/create
+  // subscription, so an already-terminal callback order (added via addOrder,
+  // never polled) never reaches the metrics handler. This is the mobile-side
+  // half of the root cause pinned by the core RampsController TRAM-3691 tests.
+  it('subscribes order handlers ONLY to RampsController:orderStatusChanged', () => {
+    rampsControllerInit(initRequestMock);
+
+    const subscribeMock = jest.mocked(initRequestMock.initMessenger.subscribe);
+
+    expect(subscribeMock).toHaveBeenCalled();
+    const subscribedEvents = subscribeMock.mock.calls.map(([event]) => event);
+    expect(
+      subscribedEvents.every(
+        (event) => event === 'RampsController:orderStatusChanged',
+      ),
+    ).toBe(true);
+  });
+
+  describe('when __DEV__ is true', () => {
+    let previousDev: boolean;
+    let previousRampsDebugDashboard: string | undefined;
+
+    const getDevGlobal = (): { __DEV__: boolean } =>
+      globalThis as unknown as { __DEV__: boolean };
+
+    beforeEach(() => {
+      previousDev = getDevGlobal().__DEV__;
+      previousRampsDebugDashboard = process.env.RAMPS_DEBUG_DASHBOARD;
+      delete process.env.RAMPS_DEBUG_DASHBOARD;
+      getDevGlobal().__DEV__ = true;
+      getInitRampsDebugBridgeMock().mockClear();
+    });
+
+    afterEach(() => {
+      getDevGlobal().__DEV__ = previousDev;
+      if (previousRampsDebugDashboard === undefined) {
+        delete process.env.RAMPS_DEBUG_DASHBOARD;
+      } else {
+        process.env.RAMPS_DEBUG_DASHBOARD = previousRampsDebugDashboard;
+      }
+    });
+
+    it('requires RampsDebugBridge and calls initRampsDebugBridge with controller and messenger', () => {
+      process.env.RAMPS_DEBUG_DASHBOARD = 'true';
+
+      const { controller } = rampsControllerInit(initRequestMock);
+      const initRampsDebugBridge = getInitRampsDebugBridgeMock();
+
+      expect(initRampsDebugBridge).toHaveBeenCalledTimes(1);
+      expect(initRampsDebugBridge).toHaveBeenCalledWith(
+        controller,
+        initRequestMock.controllerMessenger,
+      );
+    });
+
+    it('does not load RampsDebugBridge when RAMPS_DEBUG_DASHBOARD is false', () => {
+      process.env.RAMPS_DEBUG_DASHBOARD = 'false';
+
+      rampsControllerInit(initRequestMock);
+
+      expect(getInitRampsDebugBridgeMock()).not.toHaveBeenCalled();
+    });
+
+    it('does not load RampsDebugBridge when RAMPS_DEBUG_DASHBOARD is unset', () => {
+      rampsControllerInit(initRequestMock);
+
+      expect(getInitRampsDebugBridgeMock()).not.toHaveBeenCalled();
+    });
   });
 });

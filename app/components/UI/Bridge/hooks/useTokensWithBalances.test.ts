@@ -8,6 +8,10 @@ import {
   createMockBalanceData,
 } from '../testUtils/fixtures';
 import { BalancesByAssetId } from './useBalancesByAssetId';
+import {
+  ARC_NATIVE_ASSET_ID,
+  ARC_USDC_ASSET_ID,
+} from '../../../hooks/useArcDefaultTokens';
 
 describe('useTokensWithBalances', () => {
   beforeEach(() => {
@@ -130,6 +134,12 @@ describe('useTokensWithBalances', () => {
       expect(result.current).toEqual([]);
     });
 
+    it('handles undefined token arrays', () => {
+      const { result } = renderHook(() => useTokensWithBalances(undefined, {}));
+
+      expect(result.current).toEqual([]);
+    });
+
     it('handles multiple tokens with partial balance data', () => {
       const token1AssetId =
         'eip155:1/erc20:0x1111111111111111111111111111111111111111' as CaipAssetType;
@@ -168,6 +178,18 @@ describe('useTokensWithBalances', () => {
         isSource: true,
         isDestination: false,
       });
+    });
+
+    it('preserves isVerified property from API token', () => {
+      const mockToken = createMockPopularToken({
+        isVerified: true,
+      });
+
+      const { result } = renderHook(() =>
+        useTokensWithBalances([mockToken], {}),
+      );
+
+      expect(result.current[0].isVerified).toBe(true);
     });
   });
 
@@ -217,6 +239,32 @@ describe('useTokensWithBalances', () => {
       );
 
       expect(result.current[0].accountType).toBeUndefined();
+    });
+  });
+
+  describe('Arc native token filtering', () => {
+    it('keeps other Arc tokens while filtering out the native duplicate', () => {
+      const arcNativeToken = createMockPopularToken({
+        assetId: ARC_NATIVE_ASSET_ID,
+        symbol: 'USDC',
+        name: 'USDC',
+      });
+      const arcErc20Usdc = createMockPopularToken({
+        assetId: ARC_USDC_ASSET_ID,
+        symbol: 'USDC',
+        name: 'USDC',
+      });
+
+      const { result } = renderHook(() =>
+        useTokensWithBalances([arcNativeToken, arcErc20Usdc], {}),
+      );
+
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0]).toMatchObject({
+        symbol: 'USDC',
+        chainId: '0x13b2',
+        address: '0x3600000000000000000000000000000000000000',
+      });
     });
   });
 });

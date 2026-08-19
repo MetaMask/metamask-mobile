@@ -1,27 +1,27 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  HeaderStandard,
   Box,
   Text,
   TextVariant,
   TextColor,
   FontWeight,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
+import { ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import { formatRpcUrlForDisplay } from './NetworksManagementView.utils';
 import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
 import { PopularList } from '../../../util/networks/customNetworks';
 
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import Cell, {
   CellVariant,
 } from '../../../component-library/components/Cells/Cell';
@@ -36,7 +36,7 @@ import { NetworkManagementItem } from './NetworksManagementView.types';
 import AdditionalNetworkItem from './components/AdditionalNetworkItem';
 
 const NetworksManagementView = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { addPopularNetwork } = useAddPopularNetwork();
 
@@ -97,7 +97,9 @@ const NetworksManagementView = () => {
         variant={CellVariant.SelectWithMenu}
         title={item.name}
         secondaryText={
-          item.hasMultipleRpcs && item.rpcUrl ? item.rpcUrl : undefined
+          item.hasMultipleRpcs && item.rpcUrl
+            ? formatRpcUrlForDisplay(item.rpcUrl)
+            : undefined
         }
         avatarProps={{
           variant: AvatarVariant.Network,
@@ -118,7 +120,7 @@ const NetworksManagementView = () => {
       style={tw.style('flex-1 bg-background-default')}
       testID={NetworksManagementViewSelectorsIDs.CONTAINER}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('app_settings.networks_title')}
         onBack={handleBack}
         includesTopInset
@@ -213,13 +215,14 @@ const NetworksManagementView = () => {
       {/* Sticky footer — Add network button */}
       <Box twClassName="py-1 px-4">
         <Button
-          variant={ButtonVariants.Secondary}
-          label={strings('app_settings.network_add_network')}
+          variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           onPress={handleAddCustomNetwork}
           testID={NetworksManagementViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON}
-        />
+        >
+          {strings('app_settings.network_add_network')}
+        </Button>
       </Box>
     </SafeAreaView>
   );

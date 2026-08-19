@@ -45,6 +45,7 @@ const defaultMockController: UseRampsControllerResult = {
   setUserRegion: jest.fn(),
   selectedProvider: null,
   setSelectedProvider: jest.fn(),
+  setSelectedProviderForAsset: jest.fn(),
   providers: [],
   providersLoading: false,
   providersError: null,
@@ -61,11 +62,14 @@ const defaultMockController: UseRampsControllerResult = {
   setSelectedPaymentMethod: jest.fn(),
   paymentMethodsLoading: false,
   paymentMethodsError: null,
+  paymentMethodsFetching: false,
+  paymentMethodsStatus: 'idle' as const,
   getQuotes: jest.fn(),
-  getWidgetUrl: jest.fn(),
+  getBuyWidgetData: jest.fn(),
   orders: [],
   getOrderById: jest.fn(),
   addOrder: jest.fn(),
+  addPrecreatedOrder: jest.fn(),
   removeOrder: jest.fn(),
   refreshOrder: jest.fn(),
   getOrderFromCallback: jest.fn(),
@@ -106,6 +110,21 @@ function createMockQuote(
 
 const mockOnBack = jest.fn();
 
+const moonpayProvider: Provider = {
+  id: '/providers/moonpay',
+  name: 'MoonPay',
+  environmentType: 'PRODUCTION',
+  description: 'MoonPay',
+  hqAddress: 'MP',
+  links: [],
+  logos: {
+    light: '',
+    dark: '',
+    height: 24,
+    width: 90,
+  },
+};
+
 interface RenderOptions {
   providers?: Provider[];
   selectedProvider?: Provider | null;
@@ -113,6 +132,7 @@ interface RenderOptions {
   quotesLoading?: boolean;
   quotesError?: string | null;
   showQuotes?: boolean;
+  ordersProviders?: string[];
 }
 
 function renderWithProvider(
@@ -125,6 +145,7 @@ function renderWithProvider(
     quotesLoading = false,
     quotesError = null,
     showQuotes,
+    ordersProviders,
   } = options;
 
   jest.mocked(useRampsController).mockReturnValue({
@@ -141,6 +162,7 @@ function renderWithProvider(
         onProviderSelect={jest.fn()}
         onBack={mockOnBack}
         {...(showQuotes !== undefined && { showQuotes })}
+        {...(ordersProviders !== undefined && { ordersProviders })}
       />
     ),
     {
@@ -164,12 +186,12 @@ describe('ProviderSelection', () => {
     });
   });
 
-  it('matches snapshot when no quotes are available', () => {
-    const { toJSON } = renderWithProvider();
-    expect(toJSON()).toMatchSnapshot();
+  it('renders provider list when no quotes are available', () => {
+    const { getByText } = renderWithProvider();
+    expect(getByText('Transak')).toBeOnTheScreen();
   });
 
-  it('matches snapshot when quotes are loading', () => {
+  it('renders loading state when quotes are loading', () => {
     jest.mocked(useRampsController).mockReturnValue({
       ...defaultMockController,
       userRegion: mockUserRegion,
@@ -177,10 +199,14 @@ describe('ProviderSelection', () => {
       providers: mockProviders,
       selectedProvider: mockProviders[0],
     });
-    const { toJSON } = renderWithProvider(mockProviders, mockProviders[0], {
-      quotesLoading: true,
-    });
-    expect(toJSON()).toMatchSnapshot();
+    const { queryByText } = renderWithProvider(
+      mockProviders,
+      mockProviders[0],
+      {
+        quotesLoading: true,
+      },
+    );
+    expect(queryByText('Transak')).not.toBeOnTheScreen();
   });
 
   it('renders skeleton loading state when quotes are loading', () => {
@@ -198,10 +224,10 @@ describe('ProviderSelection', () => {
         quotesLoading: true,
       },
     );
-    expect(queryByText('Transak')).toBeNull();
+    expect(queryByText('Transak')).not.toBeOnTheScreen();
   });
 
-  it('matches snapshot when quotes fail to load', async () => {
+  it('shows error message when quotes fail to load', async () => {
     jest.mocked(useRampsController).mockReturnValue({
       ...defaultMockController,
       userRegion: mockUserRegion,
@@ -209,16 +235,13 @@ describe('ProviderSelection', () => {
       providers: mockProviders,
       selectedProvider: mockProviders[0],
     });
-    const { toJSON, getByText } = renderWithProvider(
-      mockProviders,
-      mockProviders[0],
-      { quotesError: 'Failed to load quotes' },
-    );
+    const { getByText } = renderWithProvider(mockProviders, mockProviders[0], {
+      quotesError: 'Failed to load quotes',
+    });
 
     await waitFor(() => {
       expect(getByText('Failed to load quotes')).toBeOnTheScreen();
     });
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls onBack when back button is pressed', () => {
@@ -235,24 +258,48 @@ describe('ProviderSelection', () => {
       providers: mockProviders,
       selectedProvider: mockProviders[0],
     });
-    const { toJSON, getByText } = renderWithProvider(
-      mockProviders,
-      mockProviders[0],
-      {
-        showQuotes: true,
-        quotes: {
-          success: [],
-          sorted: [],
-          error: [],
-          customActions: [],
-        },
+    const { getByText } = renderWithProvider(mockProviders, mockProviders[0], {
+      showQuotes: true,
+      quotes: {
+        success: [],
+        sorted: [],
+        error: [],
+        customActions: [],
       },
-    );
+    });
 
     await waitFor(() => {
       expect(getByText('Transak')).toBeOnTheScreen();
     });
-    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('filters out custom-action quotes when displaying provider quote', async () => {
+    const transakQuote = createMockQuote('/providers/transak', 'Transak');
+    const customActionQuote = {
+      ...transakQuote,
+      quote: { ...transakQuote.quote, isCustomAction: true },
+    };
+
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
+      userRegion: mockUserRegion,
+      selectedToken: mockSelectedToken,
+      providers: mockProviders,
+      selectedProvider: mockProviders[0],
+    });
+
+    const { getByText } = renderWithProvider(mockProviders, mockProviders[0], {
+      quotes: {
+        success: [customActionQuote, transakQuote],
+        sorted: [],
+        error: [],
+        customActions: [],
+      },
+    });
+
+    await waitFor(() => {
+      expect(getByText('Transak')).toBeOnTheScreen();
+    });
   });
 
   it('filters out quotes for providers not in the providers array', async () => {
@@ -283,6 +330,317 @@ describe('ProviderSelection', () => {
     await waitFor(() => {
       expect(getByText('Transak')).toBeTruthy();
     });
-    expect(queryByText('Stripe')).toBeNull();
+    expect(queryByText('Stripe')).not.toBeOnTheScreen();
+  });
+
+  it('renders empty state when there are no providers', () => {
+    const { getByText } = renderWithProvider([], null, {
+      showQuotes: true,
+      quotes: {
+        success: [],
+        sorted: [],
+        error: [],
+        customActions: [],
+      },
+    });
+
+    expect(getByText('No providers available.')).toBeOnTheScreen();
+  });
+
+  it('renders Other options separator between quoted and non-quoted providers', async () => {
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
+      userRegion: mockUserRegion,
+      selectedToken: mockSelectedToken,
+      providers: [transakProvider, moonpayProvider],
+      selectedProvider: transakProvider,
+    });
+
+    const transakQuote = createMockQuote('/providers/transak', 'Transak');
+
+    const { getByText } = renderWithProvider(
+      [transakProvider, moonpayProvider],
+      transakProvider,
+      {
+        quotes: {
+          success: [transakQuote],
+          sorted: [{ sortBy: 'reliability', ids: ['/providers/transak'] }],
+          error: [],
+          customActions: [],
+        },
+      },
+    );
+
+    await waitFor(() => {
+      expect(getByText('Other options')).toBeOnTheScreen();
+    });
+    expect(getByText('MoonPay')).toBeOnTheScreen();
+  });
+
+  it('shows Best rate tag when quote metadata has isBestRate', async () => {
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
+      userRegion: mockUserRegion,
+      selectedToken: mockSelectedToken,
+      providers: mockProviders,
+      selectedProvider: null,
+    });
+
+    const bestRateQuote = {
+      ...createMockQuote('/providers/transak', 'Transak'),
+      metadata: { tags: { isBestRate: true } },
+    };
+
+    const { getByText } = renderWithProvider(mockProviders, null, {
+      quotes: {
+        success: [bestRateQuote],
+        sorted: [],
+        error: [],
+        customActions: [],
+      },
+    });
+
+    await waitFor(() => {
+      expect(getByText('Best rate')).toBeOnTheScreen();
+    });
+  });
+
+  it('separates providers by supportedCryptoCurrencies when quotes are not available', () => {
+    const musdAssetId = 'eip155:1/erc20:0xmusd';
+    if (!mockSelectedToken) {
+      throw new Error('Expected mockSelectedToken to be defined');
+    }
+    const supportedProvider: Provider = {
+      ...transakProvider,
+      id: '/providers/supported',
+      name: 'SupportedProvider',
+      supportedCryptoCurrencies: {
+        [musdAssetId]: true,
+      },
+    };
+    const unsupportedProvider: Provider = {
+      ...transakProvider,
+      id: '/providers/unsupported',
+      name: 'UnsupportedProvider',
+      supportedCryptoCurrencies: {
+        'eip155:1/slip44:60': true,
+      },
+    };
+
+    const allProviders = [supportedProvider, unsupportedProvider];
+
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
+      userRegion: mockUserRegion,
+      selectedToken: {
+        ...mockSelectedToken,
+        assetId: musdAssetId,
+      },
+      providers: allProviders,
+      selectedProvider: null,
+    });
+
+    const { getByText } = renderScreen(
+      () => (
+        <ProviderSelection
+          quotes={null}
+          quotesLoading={false}
+          quotesError={null}
+          showQuotes={false}
+          onProviderSelect={jest.fn()}
+          onBack={mockOnBack}
+        />
+      ),
+      { name: 'ProviderSelection' },
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(getByText('SupportedProvider')).toBeOnTheScreen();
+    expect(getByText('UnsupportedProvider')).toBeOnTheScreen();
+    expect(getByText('Other options')).toBeOnTheScreen();
+  });
+
+  it('shows Previously used tag when provider is in ordersProviders', async () => {
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
+      userRegion: mockUserRegion,
+      selectedToken: mockSelectedToken,
+      providers: mockProviders,
+      selectedProvider: null,
+    });
+
+    const { getByText } = renderWithProvider(mockProviders, null, {
+      ordersProviders: ['/providers/transak'],
+      quotes: {
+        success: [createMockQuote('/providers/transak', 'Transak')],
+        sorted: [],
+        error: [],
+        customActions: [],
+      },
+    });
+
+    await waitFor(() => {
+      expect(getByText('Previously used')).toBeOnTheScreen();
+    });
+  });
+
+  it('shows provider error subtitle and prevents selection when provider has no matched quote', async () => {
+    const onProviderSelect = jest.fn();
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
+      userRegion: mockUserRegion,
+      selectedToken: mockSelectedToken,
+      providers: [transakProvider, moonpayProvider],
+      selectedProvider: null,
+    });
+
+    const { getByText } = renderScreen(
+      () => (
+        <ProviderSelection
+          quotes={{
+            success: [createMockQuote('/providers/transak', 'Transak')],
+            sorted: [],
+            error: [
+              {
+                provider: '/providers/moonpay',
+                error: 'Minimum purchase is 25 USD',
+              },
+            ],
+            customActions: [],
+          }}
+          quotesLoading={false}
+          quotesError={null}
+          onProviderSelect={onProviderSelect}
+          onBack={mockOnBack}
+        />
+      ),
+      { name: 'ProviderSelection' },
+      { state: { engine: { backgroundState } } },
+    );
+
+    await waitFor(() => {
+      expect(getByText('Minimum purchase is 25 USD')).toBeOnTheScreen();
+    });
+
+    fireEvent.press(getByText('MoonPay'));
+    expect(onProviderSelect).not.toHaveBeenCalled();
+  });
+
+  it('hides the provider tag when the provider is unavailable', async () => {
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
+      userRegion: mockUserRegion,
+      selectedToken: mockSelectedToken,
+      providers: [transakProvider, moonpayProvider],
+      selectedProvider: null,
+    });
+
+    const { queryByText } = renderScreen(
+      () => (
+        <ProviderSelection
+          quotes={{
+            success: [createMockQuote('/providers/transak', 'Transak')],
+            sorted: [],
+            error: [
+              {
+                provider: '/providers/moonpay',
+                error: 'Minimum purchase is 10 EUR',
+              },
+            ],
+            customActions: [],
+          }}
+          quotesLoading={false}
+          quotesError={null}
+          ordersProviders={['/providers/moonpay']}
+          onProviderSelect={jest.fn()}
+          onBack={mockOnBack}
+        />
+      ),
+      { name: 'ProviderSelection' },
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(queryByText('Previously used')).toBeNull();
+    expect(queryByText('Minimum purchase is 10 EUR')).toBeOnTheScreen();
+  });
+
+  it('shows a generic message instead of a non-limit provider error', async () => {
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
+      userRegion: mockUserRegion,
+      selectedToken: mockSelectedToken,
+      providers: [transakProvider, moonpayProvider],
+      selectedProvider: null,
+    });
+
+    const { getByText, queryByText } = renderScreen(
+      () => (
+        <ProviderSelection
+          quotes={{
+            success: [createMockQuote('/providers/transak', 'Transak')],
+            sorted: [],
+            error: [
+              {
+                provider: '/providers/moonpay',
+                error: '[object Object]',
+              },
+            ],
+            customActions: [],
+          }}
+          quotesLoading={false}
+          quotesError={null}
+          onProviderSelect={jest.fn()}
+          onBack={mockOnBack}
+        />
+      ),
+      { name: 'ProviderSelection' },
+      { state: { engine: { backgroundState } } },
+    );
+
+    await waitFor(() => {
+      expect(getByText('Quote unavailable.')).toBeOnTheScreen();
+    });
+    expect(queryByText('[object Object]')).toBeNull();
+  });
+
+  it('keeps provider selectable when it has a matched quote even if an error entry exists', async () => {
+    const onProviderSelect = jest.fn();
+    jest.mocked(useRampsController).mockReturnValue({
+      ...defaultMockController,
+      userRegion: mockUserRegion,
+      selectedToken: mockSelectedToken,
+      providers: [transakProvider],
+      selectedProvider: null,
+    });
+
+    const { getByText, queryByText } = renderScreen(
+      () => (
+        <ProviderSelection
+          quotes={{
+            success: [createMockQuote('/providers/transak', 'Transak')],
+            sorted: [],
+            error: [
+              {
+                provider: '/providers/transak',
+                error: 'Stale error from a previous payment method',
+              },
+            ],
+            customActions: [],
+          }}
+          quotesLoading={false}
+          quotesError={null}
+          onProviderSelect={onProviderSelect}
+          onBack={mockOnBack}
+        />
+      ),
+      { name: 'ProviderSelection' },
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(
+      queryByText('Stale error from a previous payment method'),
+    ).toBeNull();
+    fireEvent.press(getByText('Transak'));
+    expect(onProviderSelect).toHaveBeenCalledWith(transakProvider);
   });
 });

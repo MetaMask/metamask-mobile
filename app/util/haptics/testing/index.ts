@@ -1,0 +1,1 @@
+export { createHapticsJestMock } from './createHapticsJestMock';

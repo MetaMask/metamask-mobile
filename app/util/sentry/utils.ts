@@ -1,4 +1,4 @@
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-namespace */
 import * as Sentry from '@sentry/react-native';
 import { dedupeIntegration, extraErrorDataIntegration } from '@sentry/browser';
 import { Breadcrumb, Event as SentryEvent } from '@sentry/core';
@@ -10,12 +10,16 @@ import {
 } from 'expo-updates';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import { regex } from '../regex';
-import { isE2E, isQa } from '../test/utils';
+import { hasTestOverrides, isE2EOrExpEnvironment } from '../test/utils';
 import { store } from '../../store';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
 import { TraceName, hasMetricsConsent } from '../trace';
 import { getTraceTags } from './tags';
+import {
+  groupDiskSpaceSentryReport,
+  isDiskSpaceSentryReport,
+} from './diskSpaceSentry';
 import { ReduxStore } from '../../core/redux';
 import { OTA_VERSION } from '../../constants/ota';
 
@@ -154,39 +158,11 @@ export const sentryStateMask = {
       SnapInterface: {
         [AllProperties]: false,
       },
-      SnapsRegistry: {
+      SnapRegistryController: {
         [AllProperties]: false,
       },
       SubjectMetadataController: {
         [AllProperties]: false,
-      },
-      SwapsController: {
-        swapsState: {
-          customGasPrice: true,
-          customMaxFeePerGas: true,
-          customMaxGas: true,
-          customMaxPriorityFeePerGas: true,
-          errorKey: true,
-          fetchParams: true,
-          quotesLastFetched: true,
-          quotesPollingLimitEnabled: true,
-          routeState: true,
-          saveFetchedQuotes: true,
-          selectedAggId: true,
-          swapsFeatureFlags: true,
-          swapsFeatureIsLive: true,
-          swapsQuotePrefetchingRefreshTime: true,
-          swapsQuoteRefreshTime: true,
-          swapsStxBatchStatusRefreshTime: true,
-          swapsStxGetTransactionsRefreshTime: true,
-          swapsStxMaxFeeMultiplier: true,
-          swapsUserFeeLevel: true,
-        },
-      },
-      TokenListController: {
-        tokensChainsCache: {
-          [AllProperties]: false,
-        },
       },
       TokenRatesController: {
         [AllProperties]: false,
@@ -451,6 +427,10 @@ export function maskObject(
 
 export function rewriteReport(report: SentryEvent): SentryEvent {
   try {
+    if (isDiskSpaceSentryReport(report)) {
+      groupDiskSpaceSentryReport(report);
+    }
+
     // filter out SES from error stack trace
     removeSES(report);
     // simplify certain complex error messages (e.g. Ethjs)
@@ -509,6 +489,10 @@ export function excludeEvents(event: SentryEvent | null): SentryEvent | null {
       }
     }
   }
+  if (event?.contexts?.trace?.data?.['trace.timed_out'] === true) {
+    return null;
+  }
+
   //Modify or drop event here
   if (event?.transaction === 'Route Change') {
     //Route change is dropped because is does not reflect a screen we can action on.
@@ -627,6 +611,62 @@ export function setEASUpdateContext(): void {
   }
 }
 
+/**
+ * Whether the current Sentry client is initialized with outbound reporting enabled.
+ * Used to avoid calling Sentry.init again mid-flow (which orphans in-flight transactions).
+ */
+export function isSentryEnabled(): boolean {
+  const client = Sentry.getClient();
+
+  if (!client) {
+    return false;
+  }
+
+  // The SDK defaults to enabled without adding `enabled` to its options.
+  return client.getOptions().enabled !== false;
+}
+
+/**
+ * Lazily-created reactNavigationIntegration instance.
+ *
+ * The integration is created on first call rather than at module load time.
+ * Module-level Sentry SDK calls crash E2E and test builds before the runtime
+ * is fully initialised (TypeError: undefined is not a function during
+ * loadModuleImplementation). The memoised getter ensures nothing executes at
+ * import time; the single instance is shared between setupSentry (which passes
+ * it to Sentry.init) and setNavigationRef (which calls registerNavigationContainer).
+ *
+ * enableTimeToInitialDisplay must be explicitly true — the SDK defaults to false
+ * so TTID spans would never be emitted without it.
+ *
+ * In E2E / test builds (hasTestOverrides) Sentry.init is never called, so
+ * returning a real integration would cause registerNavigationContainer to
+ * interact with an uninitialised SDK client, which can silently break the
+ * NavigationContainer bootstrap and prevent the app from reaching the login
+ * or wallet-home screen. A no-op stub is returned instead.
+ */
+let _navIntegration:
+  | ReturnType<typeof Sentry.reactNavigationIntegration>
+  | undefined;
+
+const _noOpNavIntegration = {
+  registerNavigationContainer: () => undefined,
+} as unknown as ReturnType<typeof Sentry.reactNavigationIntegration>;
+
+export function getNavIntegration(): ReturnType<
+  typeof Sentry.reactNavigationIntegration
+> {
+  if (hasTestOverrides) {
+    return _noOpNavIntegration;
+  }
+  if (!_navIntegration) {
+    _navIntegration = Sentry.reactNavigationIntegration({
+      enableTimeToInitialDisplay: true,
+    });
+  }
+  return _navIntegration;
+}
+
 // Setup sentry remote error reporting
 export async function setupSentry(
   forceEnabled: boolean = false,
@@ -634,7 +674,7 @@ export async function setupSentry(
   const dsn = process.env.MM_SENTRY_DSN;
 
   // Disable Sentry for E2E tests or when DSN is not provided
-  if (isE2E || !dsn) {
+  if (hasTestOverrides || !dsn) {
     return;
   }
 
@@ -644,7 +684,15 @@ export async function setupSentry(
     // Ensure consent cache is populated early
     const hasConsent = await hasMetricsConsent();
 
-    const integrations = [dedupeIntegration(), extraErrorDataIntegration()];
+    // reactNativeTracingIntegration is intentionally omitted here: getDefaultIntegrations()
+    // already pushes it whenever tracesSampleRate is set and enableAutoPerformanceTracing
+    // is true (both hold for this config). Adding it explicitly would be a no-op after
+    // the SDK's name-deduplication pass.
+    const integrations = [
+      dedupeIntegration(),
+      extraErrorDataIntegration(),
+      getNavIntegration(),
+    ];
     const environment = deriveSentryEnvironment(
       __DEV__,
       METAMASK_ENVIRONMENT,
@@ -655,9 +703,9 @@ export async function setupSentry(
       dsn,
       debug: isDev && process.env.SENTRY_DEBUG_DEV !== 'false',
       environment,
-      integrations,
+      integrations: integrations as Sentry.ReactNativeOptions['integrations'],
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
-      tracesSampleRate: isDev || isQa ? 1.0 : 0.03,
+      tracesSampleRate: isDev || isE2EOrExpEnvironment ? 1.0 : 0.03,
       profilesSampleRate: 1.0,
       beforeSend: (report) => {
         const rewritten = rewriteReport(report as SentryEvent);
@@ -666,6 +714,11 @@ export async function setupSentry(
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),
       beforeSendTransaction: (event) => {
         const filtered = excludeEvents(event as SentryEvent);
+        if (filtered) {
+          // Scoped to transactions only so it never appears on error events.
+          // Remove once the nav-tracing rollout has been validated in Sentry.
+          filtered.tags = { ...filtered.tags, perf_fix: 'nav-tracing-v1' };
+        }
         return filtered as typeof event;
       },
       enabled: forceEnabled || hasConsent,

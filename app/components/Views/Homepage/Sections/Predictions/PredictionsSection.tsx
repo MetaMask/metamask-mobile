@@ -1,269 +1,532 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
+  type ReactNode,
 } from 'react';
-import { ScrollView, View } from 'react-native';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
-import SectionTitle from '../../components/SectionTitle';
-import ErrorState from '../../components/ErrorState';
-import FadingScrollContainer from '../../components/FadingScrollContainer';
-import Routes from '../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../locales/i18n';
 import { SectionRefreshHandle } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
-import { strings } from '../../../../../../locales/i18n';
+import useHomeViewedEvent, {
+  HomeSectionNames,
+  type HomeSectionName,
+} from '../../hooks/useHomeViewedEvent';
+import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import HomepagePredictDiscovery from './components/HomepagePredictDiscovery';
+import HomepagePredictTrendingMarkets from './components/HomepagePredictTrendingMarkets';
+import HomepagePredictPositions from './components/HomepagePredictPositions';
 import {
   usePredictMarketsForHomepage,
   usePredictPositionsForHomepage,
+  useHomepagePredictMarketSlots,
+  usePredictHomepageDiscoveryExperiment,
 } from './hooks';
+import { MAX_MARKETS_DISPLAYED } from './predictionsSectionConstants';
+import type { PredictionsSectionProps } from './predictionsSectionTypes';
 import {
-  PredictMarketCard,
-  PredictMarketCardSkeleton,
-  PredictPositionRow,
-  PredictPositionRowSkeleton,
-} from './components';
-import ViewMoreCard from '../../components/ViewMoreCard';
-import type { PredictPosition } from '../../../../UI/Predict/types';
-import type { PredictNavigationParamList } from '../../../../UI/Predict/types/navigation';
-import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
-import { PredictClaimButton } from '../../../../UI/Predict/components/PredictActionButtons';
+  usePredictionsCommonSetup,
+  usePredictNavigationHandlers,
+  useRefreshPredictPositions,
+} from './hooks/usePredictionsSectionNavigation';
+import { usePredictionsDefaultSectionModel } from './hooks/usePredictionsDefaultSectionModel';
+import { useTreatmentDiscoveryFeedsLoading } from './hooks/useTreatmentDiscoveryFeedsLoading';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { usePredictClaim } from '../../../../UI/Predict/hooks/usePredictClaim';
-import useHomeViewedEvent, {
-  HomeSectionNames,
-} from '../../hooks/useHomeViewedEvent';
+import { useUnrealizedPnL } from '../../../../UI/Predict/hooks/useUnrealizedPnL';
+import { getPredictHomepageUnrealizedPnlRowState } from './utils/getPredictHomepageUnrealizedPnlRowState';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  PredictEventProperties,
+  PredictEventValues,
+} from '../../../../UI/Predict/constants/eventNames';
+import {
+  PredictPositionsEmptyStateVariant,
+  type PredictEmptyStateCtaName,
+} from '../../abTestConfig';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
-const MAX_MARKETS_DISPLAYED = 5;
+const usePredictEmptyStateAnalytics = ({
+  activeAbTests,
+  isAssignmentActive,
+  shouldTrackExposure,
+  variantName,
+}: {
+  activeAbTests?: TransactionActiveAbTestEntry[];
+  isAssignmentActive: boolean;
+  shouldTrackExposure: boolean;
+  variantName: string;
+}) => {
+  const { createEventBuilder, trackEvent } = useAnalytics();
+  const viewedAssignmentRef = useRef<string | null>(null);
 
-// Card dimensions for snap offsets
-const CARD_WIDTH = 240;
-const GAP = 12;
-const PADDING = 16; // px-4
+  useEffect(() => {
+    if (!isAssignmentActive || !shouldTrackExposure || !activeAbTests?.length) {
+      return;
+    }
 
-// Calculate snap offsets: first card at 0, then padding + card + (gap + card) * n
-// ViewMoreCard is excluded — its snap position would exceed max scroll on typical screens,
-// causing the scroll view to snap back and never reach it.
-const SNAP_OFFSETS = Array.from({ length: MAX_MARKETS_DISPLAYED }, (_, i) =>
-  i === 0 ? 0 : PADDING + CARD_WIDTH + (GAP + CARD_WIDTH) * (i - 1),
-);
+    const assignmentKey =
+      activeAbTests[0].key_value_pair ??
+      `${activeAbTests[0].key}=${activeAbTests[0].value}`;
 
-// Skeleton keys for loading state
-const SKELETON_KEYS = Array.from(
-  { length: MAX_MARKETS_DISPLAYED },
-  (__, i) => `skeleton-${i}`,
-);
+    if (viewedAssignmentRef.current === assignmentKey) {
+      return;
+    }
 
-interface PredictionsSectionProps {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PREDICT_EMPTY_STATE_VIEWED)
+        .addProperties({
+          [PredictEventProperties.SURFACE]: 'predict',
+          [PredictEventProperties.VARIANT]: variantName,
+          [PredictEventProperties.ACTIVE_AB_TESTS]: activeAbTests,
+        })
+        .build(),
+    );
+    viewedAssignmentRef.current = assignmentKey;
+  }, [
+    activeAbTests,
+    createEventBuilder,
+    isAssignmentActive,
+    shouldTrackExposure,
+    trackEvent,
+    variantName,
+  ]);
+
+  return useCallback(
+    (ctaName: PredictEmptyStateCtaName, categoryName?: string) => {
+      if (
+        !isAssignmentActive ||
+        variantName !== PredictPositionsEmptyStateVariant.Treatment ||
+        !activeAbTests?.length
+      ) {
+        return;
+      }
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PREDICT_EMPTY_STATE_CTA_CLICKED)
+          .addProperties({
+            [PredictEventProperties.CTA_NAME]: ctaName,
+            ...(categoryName && {
+              [PredictEventProperties.CATEGORY_NAME]: categoryName,
+            }),
+            [PredictEventProperties.ACTIVE_AB_TESTS]: activeAbTests,
+          })
+          .build(),
+      );
+    },
+    [
+      activeAbTests,
+      createEventBuilder,
+      isAssignmentActive,
+      trackEvent,
+      variantName,
+    ],
+  );
+};
+
+interface PredictionsSectionShellProps {
+  /** Whether to mount the section View at all. When false, returns `null`. */
+  enabled: boolean;
+  /**
+   * Whether the section is "ready" for the viewed-event fan-out (i.e. real
+   * content is on screen). Decoupled from `enabled` because some sections
+   * render a loading skeleton without firing analytics.
+   */
+  viewed: boolean;
+  refresh: () => Promise<void>;
+  isLoading: boolean;
+  isEmpty: boolean;
+  itemCount: number;
+  analyticsName: HomeSectionName;
   sectionIndex: number;
   totalSectionsLoaded: number;
+  children: ReactNode;
 }
 
 /**
- * PredictionsSection - Displays prediction content on the homepage
- *
- * Unified section that shows:
- * - User's positions if they have any
- * - Trending markets if they don't have positions
- *
- * Returns null if the Predict feature flag is disabled.
+ * Shared boilerplate for the prediction section variants:
+ * mounts/unmounts the section view, wires `useHomeViewedEvent` to the layout,
+ * and forwards a `refresh()` imperative handle.
  */
-const PredictionsSection = forwardRef<
+const PredictionsSectionShell = forwardRef<
   SectionRefreshHandle,
-  PredictionsSectionProps
->(({ sectionIndex, totalSectionsLoaded }, ref) => {
-  const sectionViewRef = useRef<View>(null);
-  const tw = useTailwind();
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  const title = strings('homepage.sections.predictions');
+  PredictionsSectionShellProps
+>(
+  (
+    {
+      enabled,
+      viewed,
+      refresh,
+      isLoading,
+      isEmpty,
+      itemCount,
+      analyticsName,
+      sectionIndex,
+      totalSectionsLoaded,
+      children,
+    },
+    ref,
+  ) => {
+    const sectionViewRef = useRef<View>(null);
+    const { onLayout } = useHomeViewedEvent({
+      sectionRef: viewed ? sectionViewRef : null,
+      isLoading,
+      sectionName: analyticsName,
+      sectionIndex,
+      totalSectionsLoaded,
+      isEmpty,
+      itemCount,
+    });
+    useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+    if (!enabled) {
+      return null;
+    }
+    return (
+      <View ref={sectionViewRef} onLayout={onLayout}>
+        {children}
+      </View>
+    );
+  },
+);
+
+/** Co-located so `usePredictPositionsForHomepage` resolves through `jest.mock('./hooks')` in tests. */
+const usePredictPositionsSectionData = (homepageQueriesEnabled: boolean) => {
+  const privacyMode = useSelector(selectPrivacyMode);
   const { claim } = usePredictClaim();
 
-  // Fetch both positions and markets
   const {
     positions,
     isLoading: isLoadingPositions,
     error: positionsError,
     refetch: refetchPositions,
-  } = usePredictPositionsForHomepage();
-
-  const {
-    markets,
-    isLoading: isLoadingMarkets,
-    error: marketsError,
-    refetch: refetchMarkets,
-  } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
-
+  } = usePredictPositionsForHomepage({
+    enabled: homepageQueriesEnabled,
+  });
   const { totalClaimableValue, isLoading: isLoadingClaimable } =
-    usePredictPositionsForHomepage({ claimable: true });
+    usePredictPositionsForHomepage({
+      claimable: true,
+      enabled: homepageQueriesEnabled,
+    });
 
   const handleClaim = useCallback(async () => {
-    await claim();
+    await claim({
+      entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+    });
   }, [claim]);
 
-  // Determine if user has positions
   const hasPositions = positions.length > 0;
-
-  const isLoading = isLoadingPositions || isLoadingMarkets;
-
-  const hasError =
-    !isLoadingPositions &&
-    !isLoadingMarkets &&
-    !hasPositions &&
-    markets.length === 0 &&
-    (positionsError || marketsError);
-
-  const isEmpty =
-    !isLoading && !hasPositions && markets.length === 0 && !hasError;
-
-  const itemCount = hasPositions ? positions.length : markets.length;
-
-  // Determine whether the section will actually render visible content.
-  // Pass null when the section returns null so the event fires immediately.
-  // !isLoading is required: isEmpty is false during loading (its formula starts
-  // with !isLoading), so without this guard the hook would fire with stale
-  // itemCount/isEmpty values before data arrives.
-  const willRender = isPredictEnabled && !isLoading && !isEmpty;
-
-  useHomeViewedEvent({
-    sectionRef: willRender ? sectionViewRef : null,
-    isLoading,
-    sectionName: HomeSectionNames.PREDICT,
-    sectionIndex,
-    totalSectionsLoaded,
-    // Treat error state as empty — there is no useful content to show.
-    isEmpty: isEmpty || !!hasError,
-    itemCount,
+  const {
+    data: predictUnrealizedPnL,
+    isLoading: isPredictUnrealizedPnLLoading,
+  } = useUnrealizedPnL({
+    enabled: hasPositions,
   });
 
-  const refresh = useCallback(async () => {
-    await Promise.all([refetchPositions(), refetchMarkets()]);
-  }, [refetchPositions, refetchMarkets]);
-
-  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
-
-  const handleViewAllPredictions = useCallback(() => {
-    navigation.navigate(Routes.PREDICT.ROOT, {
-      screen: Routes.PREDICT.MARKET_LIST,
-    });
-  }, [navigation]);
-
-  const handlePositionPress = useCallback(
-    (position: PredictPosition) => {
-      navigation.navigate(Routes.PREDICT.ROOT, {
-        screen: Routes.PREDICT.MARKET_DETAILS,
-        params: {
-          marketId: position.marketId,
-          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-          headerShown: false,
-        },
-      });
-    },
-    [navigation],
+  const predictHomepageUnrealizedPnl = useMemo(
+    () =>
+      getPredictHomepageUnrealizedPnlRowState({
+        hasPositions,
+        privacyMode,
+        isPnlLoading: isPredictUnrealizedPnLLoading,
+        pnl: predictUnrealizedPnL,
+      }),
+    [
+      hasPositions,
+      privacyMode,
+      isPredictUnrealizedPnLLoading,
+      predictUnrealizedPnL,
+    ],
   );
 
-  // Don't render if Predict is disabled
-  if (!isPredictEnabled) {
-    return null;
-  }
+  return {
+    privacyMode,
+    positions,
+    isLoadingPositions,
+    positionsError,
+    refetchPositions,
+    totalClaimableValue,
+    isLoadingClaimable,
+    handleClaim,
+    hasPositions,
+    predictHomepageUnrealizedPnl,
+  };
+};
 
-  if (hasError) {
+const PredictionsSectionDefault = forwardRef<
+  SectionRefreshHandle,
+  PredictionsSectionProps
+>(
+  (
+    { sectionIndex, totalSectionsLoaded }: Readonly<PredictionsSectionProps>,
+    ref,
+  ) => {
+    const {
+      isPredictEnabled,
+      queryClient,
+      title,
+      analyticsName,
+      handleViewAllPredictions,
+      handleViewAllFromPositions,
+      handlePositionPress,
+    } = usePredictionsCommonSetup();
+    const {
+      privacyMode,
+      positions,
+      isLoadingPositions,
+      positionsError,
+      refetchPositions,
+      totalClaimableValue,
+      isLoadingClaimable,
+      handleClaim,
+      hasPositions,
+      predictHomepageUnrealizedPnl,
+    } = usePredictPositionsSectionData(isPredictEnabled);
+
+    const {
+      discoveryLayout,
+      isTreatmentDiscovery,
+      predictEmptyStateActiveAbTests,
+      predictEmptyStateVariantName,
+      isPredictEmptyStateAssignmentActive,
+    } = usePredictHomepageDiscoveryExperiment();
+
+    const {
+      markets,
+      isLoading: isLoadingMarkets,
+      error: marketsError,
+      refetch: refetchMarkets,
+    } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED, {
+      enabled: isPredictEnabled && !isTreatmentDiscovery,
+    });
+
+    const homepageMarketSlots = useHomepagePredictMarketSlots({
+      enabled: isPredictEnabled && isTreatmentDiscovery,
+    });
+    const { refetch: refetchHomepageMarketSlots } = homepageMarketSlots;
+    const isLoadingMarketSlots = useTreatmentDiscoveryFeedsLoading({
+      isTreatmentDiscovery,
+      isDiscoveryFetching: homepageMarketSlots.isFetching,
+    });
+
+    const {
+      hasAnyPositions,
+      hasError,
+      isEmpty,
+      showTrendingAbove,
+      predictTimeToContentReady,
+      willRender,
+      isLoading,
+      itemCount,
+    } = usePredictionsDefaultSectionModel({
+      isPredictEnabled,
+      isLoadingPositions,
+      isLoadingClaimable,
+      isLoadingMarkets,
+      isTreatmentDiscovery,
+      isLoadingWorldCupHomepage: isLoadingMarketSlots,
+      hasPositions,
+      positionsLength: positions.length,
+      positionsError,
+      marketsError,
+      marketsLength: markets.length,
+      totalClaimableValue,
+    });
+
+    useSectionPerformance({
+      sectionId: analyticsName,
+      contentReady: predictTimeToContentReady,
+      isEmpty: isEmpty && !hasError,
+      contentStateForTrace: hasError ? 'error' : undefined,
+      isLoading,
+      enabled: isPredictEnabled,
+    });
+
+    const shouldTrackEmptyState =
+      isPredictEnabled &&
+      !hasError &&
+      !hasAnyPositions &&
+      (isTreatmentDiscovery ? willRender : !isLoading && markets.length > 0);
+
+    const trackEmptyStateTreatmentCtaClick = usePredictEmptyStateAnalytics({
+      activeAbTests: predictEmptyStateActiveAbTests,
+      isAssignmentActive: isPredictEmptyStateAssignmentActive,
+      shouldTrackExposure: shouldTrackEmptyState,
+      variantName: predictEmptyStateVariantName,
+    });
+
+    const emptyStateTransactionActiveAbTests = shouldTrackEmptyState
+      ? predictEmptyStateActiveAbTests
+      : undefined;
+    const discoveryTransactionActiveAbTests =
+      emptyStateTransactionActiveAbTests;
+
+    const refreshPositions = useRefreshPredictPositions({
+      queryClient,
+      refetchPositions,
+    });
+
+    const refresh = useCallback(async () => {
+      const tasks: Promise<unknown>[] = [refreshPositions(), refetchMarkets()];
+      if (isTreatmentDiscovery) {
+        tasks.push(refetchHomepageMarketSlots());
+      }
+      await Promise.all(tasks);
+    }, [
+      refreshPositions,
+      refetchMarkets,
+      isTreatmentDiscovery,
+      refetchHomepageMarketSlots,
+    ]);
+
+    const positionsLayout =
+      hasAnyPositions || isLoadingPositions || isLoadingClaimable;
+    const discoveryHasNothingToShow =
+      !isTreatmentDiscovery && !isLoadingMarkets && markets.length === 0;
+    const enabled =
+      isPredictEnabled &&
+      !hasError &&
+      (positionsLayout || !discoveryHasNothingToShow);
+
     return (
-      <View ref={sectionViewRef}>
-        <Box gap={3}>
-          <SectionTitle title={title} onPress={handleViewAllPredictions} />
-          <ErrorState
-            title={strings('homepage.error.unable_to_load', {
-              section: title.toLowerCase(),
-            })}
-            onRetry={refresh}
+      <PredictionsSectionShell
+        ref={ref}
+        enabled={enabled}
+        viewed={willRender}
+        refresh={refresh}
+        isLoading={isLoading}
+        isEmpty={isEmpty || !!hasError}
+        itemCount={itemCount}
+        analyticsName={analyticsName}
+        sectionIndex={sectionIndex}
+        totalSectionsLoaded={totalSectionsLoaded}
+      >
+        {positionsLayout ? (
+          <>
+            {showTrendingAbove && (
+              <Box paddingBottom={3}>
+                <HomepagePredictTrendingMarkets
+                  title={title}
+                  onViewAll={handleViewAllPredictions}
+                  headerTestIdKey="predictions"
+                  discoveryLayout={discoveryLayout}
+                  isLoadingMarkets={isLoadingMarkets}
+                  markets={markets}
+                  transactionActiveAbTests={discoveryTransactionActiveAbTests}
+                  marketSlots={homepageMarketSlots}
+                  emptyStateTransactionActiveAbTests={
+                    discoveryTransactionActiveAbTests
+                  }
+                  onEmptyStateTreatmentCtaClick={
+                    shouldTrackEmptyState
+                      ? trackEmptyStateTreatmentCtaClick
+                      : undefined
+                  }
+                />
+              </Box>
+            )}
+            <HomepagePredictPositions
+              title={title}
+              onViewAll={handleViewAllFromPositions}
+              privacyMode={privacyMode}
+              isLoadingPositions={isLoadingPositions}
+              positions={positions}
+              isLoadingClaimable={isLoadingClaimable}
+              totalClaimableValue={totalClaimableValue}
+              predictHomepageUnrealizedPnl={predictHomepageUnrealizedPnl}
+              onClaim={handleClaim}
+              onPositionPress={handlePositionPress}
+              showHeader={!showTrendingAbove}
+            />
+          </>
+        ) : (
+          <Box paddingBottom={3}>
+            <HomepagePredictTrendingMarkets
+              title={title}
+              onViewAll={handleViewAllPredictions}
+              headerTestIdKey="predictions"
+              discoveryLayout={discoveryLayout}
+              isLoadingMarkets={isLoadingMarkets}
+              markets={markets}
+              transactionActiveAbTests={discoveryTransactionActiveAbTests}
+              marketSlots={homepageMarketSlots}
+              emptyStateTransactionActiveAbTests={
+                discoveryTransactionActiveAbTests
+              }
+              onEmptyStateTreatmentCtaClick={
+                shouldTrackEmptyState
+                  ? trackEmptyStateTreatmentCtaClick
+                  : undefined
+              }
+            />
+          </Box>
+        )}
+      </PredictionsSectionShell>
+    );
+  },
+);
+
+/** Sports-only section: configured Predict homepage market slots. */
+const PredictionsSectionSportsOnly = forwardRef<
+  SectionRefreshHandle,
+  PredictionsSectionProps
+>(
+  (
+    { sectionIndex, totalSectionsLoaded }: Readonly<PredictionsSectionProps>,
+    ref,
+  ) => {
+    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+    const title = strings('homepage.sections.predictions');
+    const { handleViewAllPredictions } = usePredictNavigationHandlers();
+
+    const homepageMarketSlots = useHomepagePredictMarketSlots({
+      enabled: isPredictEnabled,
+    });
+    const { refetch: refetchHomepageMarketSlots } = homepageMarketSlots;
+
+    const refresh = useCallback(async () => {
+      await refetchHomepageMarketSlots();
+    }, [refetchHomepageMarketSlots]);
+
+    return (
+      <PredictionsSectionShell
+        ref={ref}
+        enabled={isPredictEnabled}
+        viewed={isPredictEnabled}
+        refresh={refresh}
+        isLoading={homepageMarketSlots.isFetching}
+        isEmpty={false}
+        itemCount={1}
+        analyticsName={HomeSectionNames.PREDICT}
+        sectionIndex={sectionIndex}
+        totalSectionsLoaded={totalSectionsLoaded}
+      >
+        <Box paddingBottom={3}>
+          <HomepagePredictDiscovery
+            title={title}
+            onViewAll={handleViewAllPredictions}
+            headerTestIdKey="predictions"
+            marketSlots={homepageMarketSlots}
           />
         </Box>
-      </View>
+      </PredictionsSectionShell>
     );
-  }
+  },
+);
 
-  // Render positions if user has any
-  if (hasPositions || isLoadingPositions) {
-    return (
-      <View ref={sectionViewRef}>
-        <Box gap={3}>
-          <SectionTitle title={title} onPress={handleViewAllPredictions} />
-          <Box>
-            {isLoadingPositions ? (
-              <>
-                <PredictPositionRowSkeleton />
-                <PredictPositionRowSkeleton />
-              </>
-            ) : (
-              positions.map((position) => (
-                <PredictPositionRow
-                  key={`${position.outcomeId}:${position.outcomeIndex}`}
-                  position={position}
-                  onPress={handlePositionPress}
-                />
-              ))
-            )}
-            {!isLoadingPositions &&
-              !isLoadingClaimable &&
-              totalClaimableValue > 0 && (
-                <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
-                  <PredictClaimButton
-                    amount={totalClaimableValue}
-                    onPress={handleClaim}
-                  />
-                </Box>
-              )}
-          </Box>
-        </Box>
-      </View>
-    );
+const PredictionsSection = forwardRef<
+  SectionRefreshHandle,
+  PredictionsSectionProps
+>(({ mode = 'default', ...props }, ref) => {
+  if (mode === 'sports') {
+    return <PredictionsSectionSportsOnly {...props} ref={ref} />;
   }
-
-  // Don't render if no markets and not loading (avoids showing ViewMoreCard alone)
-  if (!isLoadingMarkets && markets.length === 0) {
-    return null;
-  }
-
-  // Render trending markets if no positions
-  return (
-    <View ref={sectionViewRef}>
-      <Box gap={3}>
-        <SectionTitle title={title} onPress={handleViewAllPredictions} />
-        <FadingScrollContainer>
-          {(scrollProps) => (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={tw.style('px-4 gap-3')}
-              snapToOffsets={SNAP_OFFSETS}
-              decelerationRate="fast"
-              {...scrollProps}
-            >
-              {isLoadingMarkets ? (
-                SKELETON_KEYS.map((key) => (
-                  <PredictMarketCardSkeleton key={key} />
-                ))
-              ) : (
-                <>
-                  {markets.map((market) => (
-                    <PredictMarketCard key={market.id} market={market} />
-                  ))}
-                  <ViewMoreCard
-                    onPress={handleViewAllPredictions}
-                    twClassName="w-[180px] flex-1"
-                  />
-                </>
-              )}
-            </ScrollView>
-          )}
-        </FadingScrollContainer>
-      </Box>
-    </View>
-  );
+  return <PredictionsSectionDefault {...props} ref={ref} />;
 });
 
 export default PredictionsSection;

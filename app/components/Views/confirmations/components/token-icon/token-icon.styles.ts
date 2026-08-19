@@ -20,7 +20,7 @@ const styleSheet = (params: {
   const { variant } = params.vars;
 
   const container: ViewStyle = {
-    marginTop: 0,
+    alignSelf: 'center',
   };
 
   const tokenIcon: ViewStyle = {
@@ -29,10 +29,7 @@ const styleSheet = (params: {
     borderRadius: 99,
   };
 
-  const badge: ViewStyle = {};
-
   return StyleSheet.create({
-    badge,
     container,
     tokenIcon,
   });

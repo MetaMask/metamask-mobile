@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 // Third library dependencies.
 import React from 'react';
 

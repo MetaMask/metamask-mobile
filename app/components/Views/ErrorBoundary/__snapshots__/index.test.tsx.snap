@@ -1,5 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`ErrorBoundary Onboarding Error Handling renders onboarding error state snapshot 1`] = `null`;
-
-exports[`ErrorBoundary render matches snapshot 1`] = `null`;

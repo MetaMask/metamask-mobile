@@ -2,53 +2,55 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { AccountDetailsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails.testIds';
 import { ExportCredentialsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails/ExportCredentials.testIds';
+import { EncapsulatedElementType, getDriver } from '../../framework';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class AccountDetails {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER);
   }
 
-  get shareAddress(): DetoxElement {
+  get shareAddress(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_ADDRESS_LINK);
   }
 
-  get editAccountName(): DetoxElement {
+  get editAccountName(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_NAME_LINK);
   }
 
-  get editWalletName(): DetoxElement {
+  get editWalletName(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.WALLET_NAME_LINK);
   }
 
-  get networksLink(): DetoxElement {
+  get networksLink(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.NETWORKS_LINK);
   }
 
-  get backButton(): DetoxElement {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.BACK_BUTTON);
   }
 
-  get deleteAccountLink(): DetoxElement {
+  get deleteAccountLink(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.REMOVE_ACCOUNT_BUTTON);
   }
 
-  get accountSrpLink(): DetoxElement {
+  get accountSrpLink(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountDetailsIds.SECRET_RECOVERY_PHRASE_LINK,
     );
   }
 
-  get exportPrivateKeyButton(): DetoxElement {
+  get exportPrivateKeyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON,
     );
   }
 
-  get privateKeysLink(): DetoxElement {
+  get privateKeysLink(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.PRIVATE_KEYS_LINK);
   }
 
-  get exportSrpButton(): DetoxElement {
+  get exportSrpButton(): EncapsulatedElementType {
     return Matchers.getElementByID(ExportCredentialsIds.EXPORT_SRP_BUTTON);
   }
 
@@ -70,7 +72,29 @@ class AccountDetails {
     });
   }
 
+  /**
+   * Appium iOS: XCTest often reports `isDisplayed() === false` on native-stack
+   * screens even when page source shows `visible="true"`. Skip displayed checks
+   * and tap by testID directly (same pattern as AddressList.tapBackButton).
+   */
   async tapBackButton(): Promise<void> {
+    if (PlatformDetector.isIOS()) {
+      try {
+        await Gestures.waitAndTap(this.backButton, {
+          timeout: 10_000,
+          checkForDisplayed: false,
+          elemDescription: 'Back Button in Account Details',
+        });
+      } catch {
+        const drv = getDriver();
+        if (!drv) {
+          throw new Error('Driver is not available');
+        }
+        await drv.back();
+      }
+      return;
+    }
+
     await Gestures.waitAndTap(this.backButton, {
       elemDescription: 'Back Button in Account Details',
     });

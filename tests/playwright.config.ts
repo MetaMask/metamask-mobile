@@ -1,47 +1,173 @@
-import { Platform } from './framework/types';
+import { ProviderName, Platform } from './framework/types';
 import { defineConfig } from './framework/config';
 
-/**
- * THIS IS CURRENTLY NOT IN USE. IT'LL BE USED ONCE WE MIGRATE TO THE NEW
- * FRAMEWORK.
- */
 export default defineConfig({
-  testDir: './tests',
+  testDir: './',
   fullyParallel: false,
-  reporter: [['html', { open: 'never' }]],
+  workers: process.env.PLAYWRIGHT_WORKERS
+    ? parseInt(process.env.PLAYWRIGHT_WORKERS, 10)
+    : 3,
+  timeout: 7 * 60 * 1000, //7 minutes until we introduce fixtures
+  // Bare @Performance only — excludes @System-only specs that use area tags
+  // like @PerformanceSwaps without the @Performance type tag.
+  grep: /@Performance\b/,
+  reporter: [
+    [
+      'html',
+      { open: 'never', outputFolder: './test-reports/playwright-report' },
+    ],
+    ['./reporters/PerformanceReporter.ts'],
+    ['list'],
+  ],
   use: {
     trace: 'on-first-retry',
   },
 
   projects: [
     {
-      name: 'dummy-test-local',
-      testMatch: 'tests/dumy.spec.ts',
+      name: 'android',
+      testMatch: 'tests/performance/fixtures/test.spec.ts', // DEMO TEST USING WITHFIXTURES
       use: {
         platform: Platform.ANDROID,
         device: {
-          provider: 'emulator',
+          provider: ProviderName.EMULATOR,
           name: 'Pixel_5_Pro_API_34',
-          osVersion: '14', // 14 for local testing
-          packageName: 'io.metamask',
+          osVersion: '13', // 14 for local testing
         },
-        buildPath: 'PATH-TO-BUILD', // Path to your .apk file
-        launchableActivity: 'io.metamask.MainActivity',
+        app: {
+          packageName: 'io.metamask',
+          launchableActivity: 'io.metamask.MainActivity',
+          // buildPath: 'PATH-TO-BUILD', // Path to your .apk file
+        },
       },
     },
     {
       // Browserstack does not support appium 3 just yet.
-      name: 'dummy-test-browserstack',
-      testMatch: 'tests/dumy.spec.ts',
+      name: 'browserstack-android',
+      testMatch: '**/performance/login/**/*.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {
-          provider: 'browserstack',
-          name: 'Samsung Galaxy S23 Ultra',
-          osVersion: '13',
+          provider: ProviderName.BROWSERSTACK,
+          name: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 8 Pro',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '14.0',
         },
-        buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
-        launchableActivity: 'io.metamask.MainActivity',
+        app: {
+          packageName: 'io.metamask',
+          launchableActivity: 'io.metamask.MainActivity',
+          buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url
+        },
+      },
+    },
+    {
+      name: 'ios',
+      testMatch: 'tests/performance/fixtures/test.spec.ts', // DEMO TEST USING WITHFIXTURES
+      use: {
+        platform: Platform.IOS,
+        device: {
+          provider: ProviderName.SIMULATOR,
+          osVersion: '26.2',
+          name: 'iPhone 16 Pro',
+          udid: '',
+        },
+        app: {
+          appId: 'io.metamask.MetaMask',
+          // buildPath: 'PATH-TO-BUILD', // Path to your .app file
+        },
+      },
+    },
+    {
+      name: 'browserstack-ios',
+      testMatch: '**/performance/login/**/*.spec.ts',
+      use: {
+        platform: Platform.IOS,
+        device: {
+          provider: ProviderName.BROWSERSTACK,
+          name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
+        },
+        app: {
+          appId: 'io.metamask.MetaMask',
+          buildPath: process.env.BROWSERSTACK_IOS_APP_URL,
+        },
+      },
+    },
+
+    {
+      name: 'android-onboarding',
+      testMatch: '**/performance/onboarding/**/*.spec.ts',
+      testIgnore: '**/performance/onboarding/seedless-*.spec.ts',
+
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: ProviderName.BROWSERSTACK,
+          name: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 8 Pro',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '14.0',
+        },
+        app: {
+          packageName: 'io.metamask',
+          launchableActivity: 'io.metamask.MainActivity',
+          buildPath:
+            process.env.BROWSERSTACK_ANDROID_ONBOARDING_PERF_APP_URL ??
+            process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
+        },
+      },
+    },
+    {
+      name: 'ios-onboarding',
+      testMatch: '**/performance/onboarding/**/*.spec.ts',
+      testIgnore: '**/performance/onboarding/seedless-*.spec.ts',
+      use: {
+        platform: Platform.IOS,
+        device: {
+          provider: ProviderName.BROWSERSTACK,
+          name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
+        },
+        app: {
+          appId: 'io.metamask.MetaMask',
+          buildPath:
+            process.env.BROWSERSTACK_IOS_ONBOARDING_PERF_APP_URL ??
+            process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
+        },
+      },
+    },
+    {
+      name: 'android-onboarding-seedless',
+      testMatch: '**/performance/onboarding/seedless-*.spec.ts',
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: ProviderName.BROWSERSTACK,
+          name: process.env.BROWSERSTACK_DEVICE || 'Google Pixel 8 Pro',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '14.0',
+        },
+        app: {
+          packageName: 'io.metamask',
+          launchableActivity: 'io.metamask.MainActivity',
+          buildPath:
+            process.env.BROWSERSTACK_ANDROID_SEEDLESS_PERF_APP_URL ??
+            process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
+        },
+      },
+    },
+    {
+      name: 'ios-onboarding-seedless',
+      testMatch: '**/performance/onboarding/seedless-*.spec.ts',
+      use: {
+        platform: Platform.IOS,
+        device: {
+          provider: ProviderName.BROWSERSTACK,
+          name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
+        },
+        app: {
+          appId: 'io.metamask.MetaMask',
+          buildPath:
+            process.env.BROWSERSTACK_IOS_SEEDLESS_PERF_APP_URL ??
+            process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
+        },
       },
     },
   ],

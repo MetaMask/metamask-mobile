@@ -2,21 +2,12 @@ import { renderHook, act } from '@testing-library/react-native';
 import { useTokenLogo } from './useTokenLogo';
 
 // Mock useTheme hook
-const mockColors = {
-  background: { default: '#FFFFFF' },
-  text: { default: '#000000' },
-  icon: { default: '#000000' },
-  border: { muted: '#E5E7EB' },
-};
-
-const mockUseTheme = jest.fn().mockReturnValue({
-  colors: mockColors,
-  themeAppearance: 'light',
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: jest.fn().mockReturnValue(mockTheme),
+  };
 });
-
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => mockUseTheme(),
-}));
 
 describe('useTokenLogo', () => {
   const mockAssetsRequiringLightBg = new Set(['ETH', 'XRP']);
@@ -24,10 +15,6 @@ describe('useTokenLogo', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseTheme.mockReturnValue({
-      colors: mockColors,
-      themeAppearance: 'light',
-    });
   });
 
   describe('Initial state', () => {
@@ -111,6 +98,25 @@ describe('useTokenLogo', () => {
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.hasError).toBe(true);
+    });
+  });
+
+  describe('referential stability', () => {
+    it('returns stable styles and handlers across re-renders when bg sets are omitted', () => {
+      const { result, rerender } = renderHook(
+        ({ symbol }) => useTokenLogo({ symbol, size: 44 }),
+        { initialProps: { symbol: 'USDC' } },
+      );
+
+      const first = result.current;
+
+      rerender({ symbol: 'USDC' });
+
+      expect(result.current.containerStyle).toBe(first.containerStyle);
+      expect(result.current.imageStyle).toBe(first.imageStyle);
+      expect(result.current.handleLoadStart).toBe(first.handleLoadStart);
+      expect(result.current.handleLoadEnd).toBe(first.handleLoadEnd);
+      expect(result.current.handleError).toBe(first.handleError);
     });
   });
 

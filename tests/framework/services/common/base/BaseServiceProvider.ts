@@ -1,7 +1,7 @@
 import type { Browser } from 'webdriverio';
-import type { ServiceProvider } from '../interfaces/ServiceProvider.ts';
-import type { ProjectConfig, CommonCapabilities } from '../types.ts';
-import { createLogger, type Logger } from '../../../logger.ts';
+import type { ServiceProvider } from '../interfaces/ServiceProvider';
+import type { ProjectConfig, CommonCapabilities } from '../types';
+import { createLogger, type Logger } from '../../../logger';
 
 /**
  * Base abstract class for service providers
@@ -9,6 +9,7 @@ import { createLogger, type Logger } from '../../../logger.ts';
  */
 export abstract class BaseServiceProvider implements ServiceProvider {
   sessionId?: string;
+  sessionCreationDurationMs?: number;
   protected readonly project: ProjectConfig;
   protected readonly logger: Logger;
 
@@ -30,7 +31,42 @@ export abstract class BaseServiceProvider implements ServiceProvider {
   }
 
   /**
-   * Optional cleanup - override in subclasses if needed
+   * Deletes the WebDriver session when a browser is provided.
+   * Providers that cache a browser (e.g. EmulatorProvider) should override
+   * this so they can also clear their local reference.
+   */
+  async cleanupSession(drv?: Browser): Promise<void> {
+    if (!drv) {
+      this.sessionId = undefined;
+      this.logger.debug(
+        `Session cleanup for ${this.constructor.name}: no active session`,
+      );
+      return;
+    }
+
+    this.logger.debug(
+      `Deleting WebDriver session ${drv.sessionId ?? this.sessionId ?? 'unknown'} (${this.constructor.name})`,
+    );
+    try {
+      await drv.deleteSession();
+      this.logger.info('WebDriver session deleted');
+    } catch (error) {
+      this.logger.error('Failed to delete WebDriver session:', error);
+      throw error;
+    } finally {
+      this.sessionId = undefined;
+    }
+  }
+
+  /**
+   * Optional provider cleanup - override in subclasses if needed
+   */
+  async cleanupProvider?(): Promise<void> {
+    this.logger.debug(`Provider cleanup for ${this.constructor.name}`);
+  }
+
+  /**
+   * Legacy cleanup — prefer cleanupSession + cleanupProvider.
    */
   async cleanup?(): Promise<void> {
     this.logger.debug(`Cleanup for ${this.constructor.name}`);
@@ -43,7 +79,7 @@ export abstract class BaseServiceProvider implements ServiceProvider {
     return {
       'appium:deviceName': this.project.use.device?.name,
       'appium:autoGrantPermissions': true,
-      'appium:app': this.project.use.buildPath,
+      'appium:app': this.project.use.app?.buildPath,
       'appium:autoAcceptAlerts': true,
       'appium:fullReset': true,
       'appium:deviceOrientation': this.project.use.device?.orientation,
@@ -63,10 +99,7 @@ export abstract class BaseServiceProvider implements ServiceProvider {
    * Get build path from project config
    */
   protected getBuildPath(): string {
-    const buildPath = this.project.use.buildPath;
-    if (!buildPath) {
-      throw new Error('Build path is not configured');
-    }
+    const buildPath = this.project.use.app?.buildPath ?? '';
     return buildPath;
   }
 }

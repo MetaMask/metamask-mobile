@@ -1,5 +1,5 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React, { useCallback } from 'react';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   Image,
   TouchableHighlight,
@@ -12,22 +12,24 @@ import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import { getTransactionIcon } from '../../../util/transaction-icons';
 import { toDateFormat } from '../../../util/date';
+import { strings } from '../../../../locales/i18n';
 import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 import styles from './MultichainTransactionListItem.styles';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../reducers';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
+import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { getNetworkImageSource } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../core/Analytics/events/transactions';
+import { selectAppTheme } from '../../../selectors/user';
 
 const MultichainTransactionListItem = ({
   transaction,
@@ -38,21 +40,29 @@ const MultichainTransactionListItem = ({
 }: {
   transaction: Transaction;
   chainId: SupportedCaipChainId;
-  navigation: NavigationProp<ParamListBase>;
+  navigation: AppNavigationProp;
   index?: number;
   location?: TransactionDetailLocation;
 }) => {
   const { colors, typography } = useTheme();
   const osColorScheme = useColorScheme();
-  const appTheme = useSelector((state: RootState) => state.user.appTheme);
+  const appTheme = useSelector(selectAppTheme);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const displayData = useMultichainTransactionDisplay(transaction, chainId);
-  const { title, to, priorityFee, baseFee, isRedeposit } = displayData;
+  const {
+    title,
+    from,
+    to,
+    priorityFee,
+    baseFee,
+    isRedeposit,
+    isUnlimitedApproval,
+  } = displayData;
 
   const handlePress = useCallback(() => {
     trackEvent(
-      createEventBuilder(TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED)
+      createEventBuilder(ACTIVITY_DETAIL_EVENTS.OPENED)
         .addProperties({
           transaction_type: transaction.type?.toLowerCase() ?? 'unknown',
           transaction_status: transaction.status ?? 'unknown',
@@ -63,13 +73,10 @@ const MultichainTransactionListItem = ({
         .build(),
     );
 
-    navigation.navigate(
-      Routes.MODAL.ROOT_MODAL_FLOW as never,
-      {
-        screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
-        params: { displayData, transaction },
-      } as never,
-    );
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
+      params: { displayData, transaction },
+    });
   }, [
     navigation,
     displayData,
@@ -94,10 +101,13 @@ const MultichainTransactionListItem = ({
 
     return (
       <BadgeWrapper
+        badgePosition={{ bottom: -4, right: -4 }}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
             imageSource={networkImageSource}
+            isScaled={false}
+            size={AvatarSize.Xs}
           />
         }
       >
@@ -112,7 +122,17 @@ const MultichainTransactionListItem = ({
     }
 
     if (transaction.type === TransactionType.Unknown) {
-      return `${baseFee?.amount} ${baseFee?.unit}`;
+      return baseFee ? `${baseFee.amount} ${baseFee.unit}` : ``;
+    }
+
+    if (transaction.type === TransactionType.TokenApprove) {
+      const unit = from?.unit || to?.unit || '';
+      if (isUnlimitedApproval) {
+        const unitSuffix = unit ? ` ${unit}` : '';
+        return `${strings('confirm.unlimited')}${unitSuffix}`;
+      }
+      const amount = to?.amount || from?.amount?.replace(/^-/, '') || '';
+      return `${amount} ${unit}`.trim();
     }
 
     return `${to?.amount} ${to?.unit}`;

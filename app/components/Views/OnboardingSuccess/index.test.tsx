@@ -8,17 +8,55 @@ import OnboardingSuccess, {
 } from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
-import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import {
+  ONBOARDING_SUCCESS_FLOW,
+  AccountType,
+} from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
 import { strings } from '../../../../locales/i18n';
-import { useSelector } from 'react-redux';
+import Logger from '../../../util/Logger';
 import {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text/Text.types';
-import { ReactTestInstance } from 'react-test-renderer';
+  SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
+  setWalletHomeOnboardingStepsEligible,
+} from '../../../actions/onboarding';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
+import { analytics } from '../../../util/analytics/analytics';
+import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
+import { clearAttribution } from '../../../core/redux/slices/attribution';
+
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
+
+jest.mock('../../../selectors/onboarding', () => ({
+  ...jest.requireActual('../../../selectors/onboarding'),
+  selectOnboardingAccountType: jest.fn(),
+}));
+
+jest.mock('../../../selectors/settings', () => ({
+  ...jest.requireActual('../../../selectors/settings'),
+  selectBasicFunctionalityEnabled: jest.fn(),
+}));
+
+jest.mock('../../../selectors/attribution', () => ({
+  ...jest.requireActual('../../../selectors/attribution'),
+  selectWalletSetupCompletedAttributionAnalyticsProps: jest.fn(),
+}));
+
+jest.mock('../../../selectors/qrSyncController', () => ({
+  ...jest.requireActual('../../../selectors/qrSyncController'),
+  selectQrSyncNeedsProvisioning: jest.fn(),
+}));
+
+const mockAnalytics = analytics as jest.Mocked<typeof analytics>;
+
+const mockProvisionFromMetadata = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../../core/Engine/Engine', () => ({
   context: {
@@ -30,6 +68,10 @@ jest.mock('../../../core/Engine/Engine', () => ({
           },
         ],
       },
+    },
+    QrSyncProvisioningService: {
+      provisionFromMetadata: (...args: unknown[]) =>
+        mockProvisionFromMetadata(...args),
     },
     NetworkController: {
       addNetwork: jest.fn().mockResolvedValue(undefined),
@@ -68,6 +110,9 @@ jest.mock('../../../multichain-accounts/discovery', () => ({
 const mockNavigate = jest.fn();
 
 const mockNavigationDispatch = jest.fn();
+
+let mockRouteParams: { successFlow?: ONBOARDING_SUCCESS_FLOW } | undefined = {};
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -78,62 +123,81 @@ jest.mock('@react-navigation/native', () => {
       goBack: jest.fn(),
       reset: jest.fn(),
       dispatch: mockNavigationDispatch,
-      dangerouslyGetParent: () => ({
+      getParent: () => ({
         pop: jest.fn(),
       }),
+    }),
+    useRoute: () => ({
+      key: 'OnboardingSuccess',
+      name: 'OnboardingSuccess',
+      params: mockRouteParams,
     }),
   };
 });
 
-const createMockRoute = (
-  successFlow: ONBOARDING_SUCCESS_FLOW = ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
-) => ({
-  params: { successFlow },
-  key: 'OnboardingSuccess',
-  name: 'OnboardingSuccess' as const,
-});
-
 const mockDispatch = jest.fn();
+
+const setupSelectorMocks = () => {
+  jest.mocked(selectQrSyncNeedsProvisioning).mockReturnValue(false);
+  jest
+    .mocked(selectOnboardingAccountType)
+    .mockReturnValue(AccountType.Imported);
+  jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
+  jest
+    .mocked(selectWalletSetupCompletedAttributionAnalyticsProps)
+    .mockReturnValue({});
+};
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
   useDispatch: () => mockDispatch,
 }));
 
 describe('OnboardingSuccessComponent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockProvisionFromMetadata.mockResolvedValue(undefined);
+    setupSelectorMocks();
   });
 
-  it('renders matching snapshot when successFlow is BACKED_UP_SRP', () => {
-    const { toJSON } = renderWithProvider(
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('renders correctly when successFlow is BACKED_UP_SRP', () => {
+    const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
         successFlow={ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+    ).toBeOnTheScreen();
   });
 
-  it('renders matching snapshot when successFlow is NO_BACKED_UP_SRP', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders correctly when successFlow is NO_BACKED_UP_SRP', () => {
+    const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
         successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+    ).toBeOnTheScreen();
   });
 
-  it('renders matching snapshot when successFlow is IMPORT_FROM_SEED_PHRASE', () => {
-    const { toJSON } = renderWithProvider(
+  it('renders correctly when successFlow is IMPORT_FROM_SEED_PHRASE', () => {
+    const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
         successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('calls discoverAccounts when onDone is called', () => {
@@ -144,9 +208,153 @@ describe('OnboardingSuccessComponent', () => {
       />,
     );
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
-    button.props.onPress();
+    fireEvent.press(button);
 
+    expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Onboarding Completed',
+        properties: expect.objectContaining({
+          wallet_setup_type: 'import',
+          new_wallet: false,
+          account_type: 'imported',
+          is_basic_functionality_enabled: true,
+          implementation_type: 'native',
+          onboarding_type: 'seed_phrase',
+        }),
+      }),
+    );
     expect(mockDiscoverAccounts).toHaveBeenCalled();
+    expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setWalletHomeOnboardingStepsEligible(true, {
+        skipInitialBalanceWait: true,
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
+  });
+
+  it('includes persisted attribution on Onboarding Completed for seedless flow', () => {
+    jest
+      .mocked(selectOnboardingAccountType)
+      .mockReturnValue(AccountType.MetamaskGoogle);
+    jest
+      .mocked(selectWalletSetupCompletedAttributionAnalyticsProps)
+      .mockReturnValue({
+        utm_source: 'email',
+        utm_campaign: 'spring',
+        attribution_id: 'aid-1',
+      });
+
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING}
+      />,
+    );
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Onboarding Completed',
+        properties: expect.objectContaining({
+          wallet_setup_type: 'new',
+          new_wallet: true,
+          account_type: 'metamask',
+          implementation_type: 'native',
+          onboarding_type: 'social_login',
+          utm_source: 'email',
+          utm_campaign: 'spring',
+          attribution_id: 'aid-1',
+        }),
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
+  });
+
+  it('calls provisionFromMetadata instead of discoverAccounts for QR sync users', () => {
+    jest.mocked(selectQrSyncNeedsProvisioning).mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+      />,
+    );
+
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+    expect(mockDiscoverAccounts).not.toHaveBeenCalled();
+    expect(jest.mocked(selectQrSyncNeedsProvisioning)).toHaveBeenCalled();
+  });
+
+  it('still invokes onDone when provisionFromMetadata rejects for QR sync users', async () => {
+    jest.mocked(selectQrSyncNeedsProvisioning).mockReturnValue(true);
+    mockProvisionFromMetadata.mockRejectedValueOnce(
+      new Error('provisioning failed'),
+    );
+    const onDone = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={onDone}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+      />,
+    );
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    await waitFor(() => {
+      expect(onDone).toHaveBeenCalled();
+    });
+    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+    mockProvisionFromMetadata.mockResolvedValue(undefined);
+  });
+
+  it('logs when discoverAccounts rejects and still invokes onDone', async () => {
+    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
+      // Do nothing
+    });
+    try {
+      mockDiscoverAccounts.mockRejectedValueOnce(new Error('discovery failed'));
+      const onDone = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <OnboardingSuccessComponent
+          onDone={onDone}
+          successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+        />,
+      );
+      fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+      await waitFor(() => {
+        expect(onDone).toHaveBeenCalled();
+      });
+      await waitFor(() => {
+        expect(loggerSpy).toHaveBeenCalledWith(
+          expect.any(Error),
+          'OnboardingSuccess: discoverAccounts failed',
+        );
+      });
+    } finally {
+      loggerSpy.mockRestore();
+      mockDiscoverAccounts.mockResolvedValue(0);
+    }
+  });
+
+  it('does not mark steps eligible for SETTINGS_BACKUP flow when Done is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP}
+      />,
+    );
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
+    expect(
+      mockDispatch.mock.calls.some(
+        (call) => call[0]?.type === SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
+      ),
+    ).toBe(false);
+    expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
   });
 
   it('navigate to the default settings screen when the manage default settings button is pressed', () => {
@@ -200,21 +408,15 @@ describe('OnboardingSuccessComponent', () => {
     expect(getByTestId('onboarding-success-end-animation')).toBeOnTheScreen();
   });
 
-  it('renders footer link with Info text color', () => {
+  it('renders OnboardingSuccessEndAnimation for seedless onboarding flow', () => {
     const { getByTestId } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
-        successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
+        successFlow={ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING}
       />,
     );
 
-    const footerButton = getByTestId(
-      OnboardingSuccessSelectorIDs.MANAGE_DEFAULT_SETTINGS_BUTTON,
-    );
-    const footerText = footerButton.children[0] as ReactTestInstance;
-
-    expect(footerText.props.color).toBe(TextColor.Info);
-    expect(footerText.props.variant).toBe(TextVariant.BodyMDMedium);
+    expect(getByTestId('onboarding-success-end-animation')).toBeOnTheScreen();
   });
 
   it('hides manage default settings button for SETTINGS_BACKUP flow', () => {
@@ -250,113 +452,135 @@ describe('OnboardingSuccessComponent', () => {
 
 describe('OnboardingSuccess', () => {
   beforeEach(() => {
-    // Reset mocks before each test
-    (useSelector as jest.Mock).mockReset();
-    mockDiscoverAccounts.mockReset();
+    jest.clearAllMocks();
+    mockProvisionFromMetadata.mockResolvedValue(undefined);
+    setupSelectorMocks();
+    mockDiscoverAccounts.mockResolvedValue(0);
+    mockRouteParams = {};
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('route params successFlow is IMPORT_FROM_SEED_PHRASE', () => {
-    it('renders matching snapshot with route params backedUpSRP false and noSRP false', () => {
-      const { toJSON } = renderWithProvider(
-        <OnboardingSuccess
-          route={createMockRoute(
-            ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
-          )}
-        />,
-      );
-      expect(toJSON()).toMatchSnapshot();
+    it('renders correctly with route params backedUpSRP false and noSRP false', () => {
+      mockRouteParams = {
+        successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+      };
+      const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
+      return waitFor(() => {
+        expect(
+          getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+        ).toBeOnTheScreen();
+      });
     });
 
-    it('fails to add networks to the network controller but renders the component', async () => {
+    it('fails to add networks to the network controller but renders the component', () => {
       (
         Engine.context.NetworkController.addNetwork as jest.Mock
       ).mockRejectedValue(new Error('Failed to add network'));
-      const { toJSON } = renderWithProvider(
-        <OnboardingSuccess
-          route={createMockRoute(
-            ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
-          )}
-        />,
-      );
-      expect(toJSON()).toMatchSnapshot();
+      const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
+      return waitFor(() => {
+        expect(
+          getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+        ).toBeOnTheScreen();
+      });
     });
   });
 
   describe('route params successFlow is NO_BACKED_UP_SRP', () => {
-    it('renders matching snapshot with route params backedUpSRP true and noSRP false', () => {
-      const { toJSON } = renderWithProvider(
-        <OnboardingSuccess
-          route={createMockRoute(ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP)}
-        />,
-      );
-
-      expect(toJSON()).toMatchSnapshot();
+    it('renders correctly with route params backedUpSRP true and noSRP false', () => {
+      mockRouteParams = {
+        successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+      };
+      const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
+      return waitFor(() => {
+        expect(
+          getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('dispatches ResetNavigationToHome action when done button is pressed', async () => {
-      const { getByTestId } = renderWithProvider(
-        <OnboardingSuccess
-          route={createMockRoute(ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP)}
-        />,
+      mockRouteParams = {
+        successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+      };
+      const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
+      const button = await waitFor(() =>
+        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
       );
-      const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
       fireEvent.press(button);
       expect(mockDiscoverAccounts).toHaveBeenCalled();
 
-      expect(mockNavigationDispatch).toHaveBeenCalledWith(
-        ResetNavigationToHome,
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setWalletHomeOnboardingStepsEligible(true, {
+          skipInitialBalanceWait: true,
+        }),
       );
+      await waitFor(() => {
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          ResetNavigationToHome,
+        );
+      });
+    });
+  });
+
+  describe('first predict on us splash flow', () => {
+    it('resets to HomeNav when Done is pressed after the gate completes', async () => {
+      mockRouteParams = {
+        successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+      };
+
+      const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
+      const button = await waitFor(() =>
+        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+      );
+
+      fireEvent.press(button);
+
+      await waitFor(() => {
+        expect(mockNavigationDispatch).toHaveBeenCalledWith(
+          ResetNavigationToHome,
+        );
+      });
     });
   });
 
   describe('route params successFlow is BACKED_UP_SRP', () => {
-    it('renders matching snapshot with route params backedUpSRP false and noSRP true', () => {
-      const { toJSON } = renderWithProvider(
-        <OnboardingSuccess
-          route={createMockRoute(ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP)}
-        />,
-      );
-      expect(toJSON()).toMatchSnapshot();
+    it('renders correctly with route params backedUpSRP false and noSRP true', () => {
+      mockRouteParams = { successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP };
+      const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
+      expect(
+        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 
   describe('route params handling', () => {
-    it('uses default successFlow when route params are undefined', () => {
-      const routeWithNoParams = {
-        params: undefined,
-        key: 'OnboardingSuccess',
-        name: 'OnboardingSuccess' as const,
-      };
+    it('uses default successFlow when route is undefined', () => {
+      mockRouteParams = undefined;
+      const { getByText } = renderWithProvider(<OnboardingSuccess />);
 
-      const { toJSON } = renderWithProvider(
-        <OnboardingSuccess
-          route={
-            routeWithNoParams as unknown as ReturnType<typeof createMockRoute>
-          }
-        />,
-      );
-      // Should render with default BACKED_UP_SRP flow
-      expect(toJSON()).toMatchSnapshot();
+      expect(
+        getByText(strings('onboarding_success.wallet_ready')),
+      ).toBeOnTheScreen();
+    });
+
+    it('uses default successFlow when route params are undefined', () => {
+      mockRouteParams = undefined;
+      const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
+      expect(
+        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('uses default successFlow when successFlow param is undefined', () => {
-      const routeWithEmptyParams = {
-        params: {},
-        key: 'OnboardingSuccess',
-        name: 'OnboardingSuccess' as const,
-      };
-
-      const { toJSON } = renderWithProvider(
-        <OnboardingSuccess
-          route={
-            routeWithEmptyParams as unknown as ReturnType<
-              typeof createMockRoute
-            >
-          }
-        />,
-      );
-      // Should render with default BACKED_UP_SRP flow
-      expect(toJSON()).toMatchSnapshot();
+      mockRouteParams = {};
+      const { getByTestId } = renderWithProvider(<OnboardingSuccess />);
+      expect(
+        getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 });

@@ -12,32 +12,32 @@ import {
 } from './networkController';
 import { PopularList } from '../util/networks/customNetworks';
 import { ChainId } from '@metamask/controller-utils';
-
-const selectTokensControllerState = (state: RootState) =>
-  state?.engine?.backgroundState?.TokensController;
+import {
+  getTokensControllerAllIgnoredTokens,
+  getTokensControllerAllTokens,
+} from './assets/assets-migration';
 
 export const selectTokens = createDeepEqualSelector(
-  selectTokensControllerState,
+  getTokensControllerAllTokens,
   selectEvmChainId,
   selectSelectedInternalAccountAddress,
   (
-    tokensControllerState: TokensControllerState,
+    allTokens: TokensControllerState['allTokens'],
     chainId: Hex,
     selectedAddress: string | undefined,
-  ) =>
-    tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex] || [],
+  ) => allTokens[chainId]?.[selectedAddress as Hex] || [],
 );
 
 export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
-  selectTokensControllerState,
+  getTokensControllerAllTokens,
   selectSelectedInternalAccountAddress,
   (_state, chainId: Hex) => chainId,
   (
-    tokensControllerState: TokensControllerState,
+    allTokens: TokensControllerState['allTokens'],
     selectedAddress: string | undefined,
     chainId: Hex,
   ) =>
-    tokensControllerState?.allTokens[chainId]?.[selectedAddress as Hex]?.reduce(
+    allTokens[chainId]?.[selectedAddress as Hex]?.reduce(
       (tokensMap: { [address: string]: Token }, token: Token) => ({
         ...tokensMap,
         [token.address]: token,
@@ -46,13 +46,50 @@ export const selectTokensByChainIdAndAddress = createDeepEqualSelector(
     ) ?? {},
 );
 
-export const selectTokensByAddress = createSelector(
+/**
+ * Like {@link selectTokensByChainIdAndAddress} but uses an explicit account
+ * address (e.g. the EVM address for the account group) instead of the globally
+ * selected account. Needed when the UI shows EVM activity while a non-EVM
+ * account is still selected.
+ */
+export const selectTokensByChainIdAndWalletAddress = createDeepEqualSelector(
+  getTokensControllerAllTokens,
+  (_state: RootState, chainId: Hex, _walletAddress: Hex | string | undefined) =>
+    chainId,
+  (_state: RootState, _chainId: Hex, walletAddress: Hex | string | undefined) =>
+    walletAddress,
+  (
+    allTokens: TokensControllerState['allTokens'],
+    chainId: Hex,
+    walletAddress: Hex | string | undefined,
+  ) =>
+    !walletAddress
+      ? {}
+      : (allTokens[chainId]?.[walletAddress as Hex]?.reduce(
+          (tokensMap: { [address: string]: Token }, token: Token) => ({
+            ...tokensMap,
+            [token.address]: token,
+          }),
+          {},
+        ) ?? {}),
+);
+
+const EMPTY_TOKENS_BY_ADDRESS: Readonly<Record<string, never>> = Object.freeze(
+  {},
+);
+
+export const selectTokensByAddress = createDeepEqualSelector(
   selectTokens,
-  (tokens: Token[]) =>
-    tokens?.reduce((tokensMap: { [address: string]: Token }, token: Token) => {
+  (tokens: Token[]): { [address: string]: Token } => {
+    if (!tokens?.length) {
+      return EMPTY_TOKENS_BY_ADDRESS;
+    }
+
+    return tokens.reduce<Record<string, Token>>((tokensMap, token) => {
       tokensMap[token.address] = token;
       return tokensMap;
-    }, {}),
+    }, {});
+  },
 );
 
 export const selectTokensLength = createSelector(
@@ -61,38 +98,17 @@ export const selectTokensLength = createSelector(
 );
 
 export const selectIgnoreTokens = createSelector(
-  selectTokensControllerState,
+  getTokensControllerAllIgnoredTokens,
   selectEvmChainId,
   selectSelectedInternalAccountAddress,
   (
-    tokensControllerState: TokensControllerState,
+    allIgnoredTokens: TokensControllerState['allIgnoredTokens'],
     chainId: Hex,
     selectedAddress: string | undefined,
-  ) =>
-    tokensControllerState?.allIgnoredTokens?.[chainId]?.[
-      selectedAddress as Hex
-    ],
+  ) => allIgnoredTokens?.[chainId]?.[selectedAddress as Hex],
 );
 
-export const selectDetectedTokens = createSelector(
-  selectTokensControllerState,
-  selectEvmChainId,
-  selectSelectedInternalAccountAddress,
-  (
-    tokensControllerState: TokensControllerState,
-    chainId: Hex,
-    selectedAddress: string | undefined,
-  ) =>
-    tokensControllerState?.allDetectedTokens?.[chainId]?.[
-      selectedAddress as Hex
-    ],
-);
-
-export const selectAllTokens = createDeepEqualSelector(
-  selectTokensControllerState,
-  (tokensControllerState: TokensControllerState) =>
-    tokensControllerState?.allTokens,
-);
+export { getTokensControllerAllTokens as selectAllTokens };
 
 export const getChainIdsToPoll = createDeepEqualSelector(
   selectEvmNetworkConfigurationsByChainId,
@@ -111,76 +127,26 @@ export const getChainIdsToPoll = createDeepEqualSelector(
   },
 );
 
-export const selectAllTokensFlat = createSelector(
-  selectAllTokens,
-  (tokensByAccountByChain: {
-    [account: string]: { [chainId: string]: Token[] };
-  }): Token[] => {
-    if (Object.values(tokensByAccountByChain).length === 0) {
-      return [];
-    }
-    const tokensByAccountArray = Object.values(tokensByAccountByChain);
+const EMPTY_TOKENS: Token[] = Object.freeze([] as Token[]) as Token[];
 
-    return tokensByAccountArray.reduce<Token[]>((acc, tokensByAccount) => {
+export const selectAllTokensFlat = createDeepEqualSelector(
+  getTokensControllerAllTokens,
+  (tokensByAccountByChain: TokensControllerState['allTokens']): Token[] => {
+    const groups = Object.values(tokensByAccountByChain);
+    if (groups.length === 0) {
+      return EMPTY_TOKENS;
+    }
+
+    return groups.reduce<Token[]>((acc, tokensByAccount) => {
       const tokensArray = Object.values(tokensByAccount).flat();
       return acc.concat(...tokensArray);
     }, []);
   },
 );
 
-export const selectAllDetectedTokensForSelectedAddress = createSelector(
-  selectTokensControllerState,
-  selectSelectedInternalAccountAddress,
-  (tokensControllerState, selectedAddress) => {
-    // Updated return type to specify the structure more clearly
-    if (!selectedAddress) {
-      return {} as { [chainId: Hex]: Token[] }; // Specify return type
-    }
-
-    return Object.entries(
-      tokensControllerState?.allDetectedTokens || {},
-    ).reduce<{
-      [chainId: string]: Token[];
-    }>((acc, [chainId, chainTokens]) => {
-      const tokensForAddress = chainTokens[selectedAddress] || [];
-      if (tokensForAddress.length > 0) {
-        acc[chainId] = tokensForAddress.map((token: Token) => ({
-          ...token,
-          chainId,
-        }));
-      }
-      return acc;
-    }, {});
-  },
-);
-
-export const selectAllDetectedTokensFlat = createSelector(
-  selectAllDetectedTokensForSelectedAddress,
-  (detectedTokensByChain: { [chainId: string]: Token[] }) => {
-    if (Object.keys(detectedTokensByChain).length === 0) {
-      return [];
-    }
-
-    const flattenedTokens: (Token & { chainId: Hex })[] = [];
-
-    for (const [chainId, addressTokens] of Object.entries(
-      detectedTokensByChain,
-    )) {
-      for (const token of addressTokens) {
-        flattenedTokens.push({
-          ...token,
-          chainId: chainId as Hex,
-        });
-      }
-    }
-
-    return flattenedTokens;
-  },
-);
-
 // Full selector implementation with selected address filtering
 export const selectTransformedTokens = createSelector(
-  selectAllTokens,
+  getTokensControllerAllTokens,
   selectSelectedInternalAccountAddress,
   selectEvmChainId,
   selectIsAllNetworks,
@@ -215,7 +181,7 @@ export const selectTransformedTokens = createSelector(
 );
 
 export const selectSingleTokenByAddressAndChainId = createSelector(
-  selectAllTokens,
+  getTokensControllerAllTokens,
   (_state: RootState, tokenAddress: Hex) => tokenAddress,
   (_state: RootState, _tokenAddress: Hex, chainId: Hex) => chainId,
   (allTokens, tokenAddress, chainId) => {

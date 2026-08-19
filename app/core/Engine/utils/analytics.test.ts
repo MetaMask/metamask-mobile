@@ -1,11 +1,40 @@
 import { trackEvent, buildAndTrackEvent } from './analytics';
 import Logger from '../../../util/Logger';
 import type { ControllerMessenger } from '../types';
-import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from '../../../util/analytics/AnalyticsEventBuilder';
+import { store } from '../../../store';
+import initialRootState from '../../../util/test/initial-root-state';
 
 jest.mock('../../../util/Logger');
 jest.mock('../../../util/analytics/AnalyticsEventBuilder');
+jest.mock('../../../store', () => ({
+  store: {
+    getState: jest.fn(),
+  },
+}));
+
+type RemoteFeatureFlags =
+  typeof initialRootState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags;
+
+const createStateWithFeatureFlags = (
+  remoteFeatureFlags: RemoteFeatureFlags,
+): ReturnType<typeof store.getState> => ({
+  ...initialRootState,
+  engine: {
+    ...initialRootState.engine,
+    backgroundState: {
+      ...initialRootState.engine.backgroundState,
+      RemoteFeatureFlagController: {
+        ...initialRootState.engine.backgroundState.RemoteFeatureFlagController,
+        remoteFeatureFlags,
+        localOverrides: {},
+      },
+    },
+  },
+});
 
 describe('trackEvent', () => {
   let mockInitMessenger: ControllerMessenger;
@@ -18,6 +47,9 @@ describe('trackEvent', () => {
     mockInitMessenger = {
       call: mockCall,
     } as unknown as ControllerMessenger;
+    jest
+      .mocked(store.getState)
+      .mockReturnValue({} as ReturnType<typeof store.getState>);
   });
 
   describe('successful tracking', () => {
@@ -26,7 +58,6 @@ describe('trackEvent', () => {
         name: 'test-event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
       } as AnalyticsTrackingEvent;
 
       trackEvent(mockInitMessenger, event);
@@ -45,7 +76,6 @@ describe('trackEvent', () => {
           anotherProperty: 123,
         },
         sensitiveProperties: {},
-        saveDataRecording: false,
       } as unknown as AnalyticsTrackingEvent;
 
       trackEvent(mockInitMessenger, event);
@@ -53,6 +83,42 @@ describe('trackEvent', () => {
       expect(mockCall).toHaveBeenCalledWith(
         'AnalyticsController:trackEvent',
         event,
+      );
+    });
+
+    it('enriches allowlisted events before calling the analytics controller', () => {
+      jest.mocked(store.getState).mockReturnValue(
+        createStateWithFeatureFlags({
+          assetsASSETS3205AbtestAmbientPriceColor: 'treatment',
+        }),
+      );
+
+      const event = {
+        name: 'Token Details Opened',
+        properties: {
+          source: 'wallet',
+        },
+        sensitiveProperties: {},
+      } as unknown as AnalyticsTrackingEvent;
+
+      trackEvent(mockInitMessenger, event);
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        expect.objectContaining({
+          name: 'Token Details Opened',
+          properties: {
+            source: 'wallet',
+            active_ab_tests: [
+              {
+                key: 'assetsASSETS3205AbtestAmbientPriceColor',
+                value: 'treatment',
+                key_value_pair:
+                  'assetsASSETS3205AbtestAmbientPriceColor=treatment',
+              },
+            ],
+          },
+        }),
       );
     });
   });
@@ -68,7 +134,6 @@ describe('trackEvent', () => {
         name: 'test-event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
       } as AnalyticsTrackingEvent;
 
       expect(() => {
@@ -114,7 +179,6 @@ describe('trackEvent', () => {
           name: 'test-event',
           properties: { prop1: 'value1' },
           sensitiveProperties: {},
-          saveDataRecording: false,
           get isAnonymous(): boolean {
             return false;
           },
@@ -142,12 +206,59 @@ describe('trackEvent', () => {
         );
       });
 
+      it('inherits A/B enrichment when buildAndTrackEvent forwards a matching event', () => {
+        jest.mocked(store.getState).mockReturnValue(
+          createStateWithFeatureFlags({
+            assetsASSETS3205AbtestAmbientPriceColor: 'control',
+          }),
+        );
+
+        const mockEvent = {
+          name: 'Token Details Opened',
+          properties: { source: 'wallet' },
+          sensitiveProperties: {},
+          get isAnonymous(): boolean {
+            return false;
+          },
+          get hasProperties(): boolean {
+            return true;
+          },
+        } as AnalyticsTrackingEvent;
+
+        mockBuilder.build.mockReturnValue(mockEvent);
+
+        buildAndTrackEvent(
+          buildAndTrackEventInitMessenger,
+          'Token Details Opened',
+          {
+            source: 'wallet',
+          },
+        );
+
+        expect(buildAndTrackEventCall).toHaveBeenCalledWith(
+          'AnalyticsController:trackEvent',
+          expect.objectContaining({
+            name: 'Token Details Opened',
+            properties: {
+              source: 'wallet',
+              active_ab_tests: [
+                {
+                  key: 'assetsASSETS3205AbtestAmbientPriceColor',
+                  value: 'control',
+                  key_value_pair:
+                    'assetsASSETS3205AbtestAmbientPriceColor=control',
+                },
+              ],
+            },
+          }),
+        );
+      });
+
       it('builds and tracks event with empty properties when properties are not provided', () => {
         const mockEvent = {
           name: 'test-event',
           properties: {},
           sensitiveProperties: {},
-          saveDataRecording: false,
           get isAnonymous(): boolean {
             return false;
           },
@@ -176,7 +287,6 @@ describe('trackEvent', () => {
           name: 'test-event',
           properties: {},
           sensitiveProperties: {},
-          saveDataRecording: false,
           get isAnonymous(): boolean {
             return false;
           },
@@ -271,7 +381,6 @@ describe('trackEvent', () => {
           name: 'test-event',
           properties: {},
           sensitiveProperties: {},
-          saveDataRecording: false,
           get isAnonymous(): boolean {
             return false;
           },

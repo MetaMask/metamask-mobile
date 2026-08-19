@@ -5,6 +5,7 @@ import { useDispatch } from 'react-redux';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MusdDeveloperOptionsSection } from './MusdDeveloperOptionsSection';
 import {
+  clearMusdConversionAssetDetailCtasSeen,
   setMusdConversionEducationSeen,
   UserActionType,
 } from '../../../../actions/user';
@@ -18,28 +19,28 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../actions/user', () => ({
   setMusdConversionEducationSeen: jest.fn(),
+  clearMusdConversionAssetDetailCtasSeen: jest.fn(),
   UserActionType: {
     SET_MUSD_CONVERSION_EDUCATION_SEEN: 'SET_MUSD_CONVERSION_EDUCATION_SEEN',
+    CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN:
+      'CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN',
   },
 }));
 
-jest.mock('../../../../util/theme', () => ({
-  useTheme: jest.fn().mockReturnValue({
-    colors: {
-      background: { default: '#FFFFFF' },
-      text: { default: '#000000' },
-    },
-    themeAppearance: 'light',
-    typography: {},
-    shadows: {},
-    brandColors: {},
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 describe('MusdDeveloperOptionsSection', () => {
   const mockUseDispatch = jest.mocked(useDispatch);
   const mockSetMusdConversionEducationSeen = jest.mocked(
     setMusdConversionEducationSeen,
+  );
+  const mockClearMusdConversionAssetDetailCtasSeen = jest.mocked(
+    clearMusdConversionAssetDetailCtasSeen,
   );
 
   beforeEach(() => {
@@ -50,29 +51,104 @@ describe('MusdDeveloperOptionsSection', () => {
       type: UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN,
       payload: { seen },
     }));
+    mockClearMusdConversionAssetDetailCtasSeen.mockImplementation(() => ({
+      type: UserActionType.CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN,
+    }));
   });
 
-  it('renders the status label from redux state', () => {
-    const { getByText } = renderWithProvider(<MusdDeveloperOptionsSection />, {
-      state: { user: { musdConversionEducationSeen: true } },
+  describe('education screen reset', () => {
+    it('renders whether the education screen has been seen from Redux state', () => {
+      const { getByText } = renderWithProvider(
+        <MusdDeveloperOptionsSection />,
+        {
+          state: { user: { musdConversionEducationSeen: true } },
+        },
+      );
+
+      expect(getByText('Education screen seen: true')).toBeOnTheScreen();
     });
 
-    expect(getByText('Education screen seen: true')).toBeOnTheScreen();
+    it('dispatches reset when the reset education screen button is pressed', async () => {
+      const { getByText } = renderWithProvider(
+        <MusdDeveloperOptionsSection />,
+        {
+          state: { user: { musdConversionEducationSeen: true } },
+        },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByText('Reset education screen'));
+      });
+
+      expect(mockSetMusdConversionEducationSeen).toHaveBeenCalledWith(false);
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN,
+        payload: { seen: false },
+      });
+    });
   });
 
-  it('dispatches reset action when reset button pressed', async () => {
-    const { getByText } = renderWithProvider(<MusdDeveloperOptionsSection />, {
-      state: { user: { musdConversionEducationSeen: true } },
+  describe('asset detail CTA dismissals', () => {
+    it('renders the dismissed CTA count from Redux state', () => {
+      const { getByText } = renderWithProvider(
+        <MusdDeveloperOptionsSection />,
+        {
+          state: {
+            user: {
+              musdConversionEducationSeen: false,
+              musdConversionAssetDetailCtasSeen: {
+                '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
+                '0xe708-0xdac17f958d2ee523a2206206994597c13d831ec7': true,
+              },
+            },
+          },
+        },
+      );
+
+      expect(getByText('Asset detail CTAs dismissed: 2')).toBeOnTheScreen();
     });
 
-    await act(async () => {
-      fireEvent.press(getByText('Reset education screen'));
+    it('renders dismissed count as 0 when none are stored', () => {
+      const { getByText } = renderWithProvider(
+        <MusdDeveloperOptionsSection />,
+        {
+          state: {
+            user: {
+              musdConversionEducationSeen: false,
+              musdConversionAssetDetailCtasSeen: {},
+            },
+          },
+        },
+      );
+
+      expect(getByText('Asset detail CTAs dismissed: 0')).toBeOnTheScreen();
     });
 
-    expect(mockSetMusdConversionEducationSeen).toHaveBeenCalledWith(false);
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN,
-      payload: { seen: false },
+    it('dispatches clear when the clear asset detail CTAs seen button is pressed', async () => {
+      const { getByText } = renderWithProvider(
+        <MusdDeveloperOptionsSection />,
+        {
+          state: {
+            user: {
+              musdConversionEducationSeen: false,
+              musdConversionAssetDetailCtasSeen: {
+                '0x1-0xabc': true,
+              },
+            },
+          },
+        },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByText('Clear asset detail CTAs seen'));
+      });
+
+      expect(mockClearMusdConversionAssetDetailCtasSeen).toHaveBeenCalledTimes(
+        1,
+      );
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: UserActionType.CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN,
+      });
     });
   });
 });

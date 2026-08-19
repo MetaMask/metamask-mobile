@@ -4,16 +4,9 @@ import {
   selectIsPna25Acknowledged,
 } from '.';
 import { RootState } from '../../reducers';
-import { selectIsPna25FlagEnabled } from '../featureFlagController/legalNotices';
 import { analytics } from '../../util/analytics/analytics';
 
-jest.mock('../featureFlagController/legalNotices');
 jest.mock('../../util/analytics/analytics');
-
-const mockSelectIsPna25FlagEnabled =
-  selectIsPna25FlagEnabled as jest.MockedFunction<
-    typeof selectIsPna25FlagEnabled
-  >;
 
 describe('legalNotices selectors', () => {
   beforeEach(() => {
@@ -114,16 +107,6 @@ describe('legalNotices selectors', () => {
 
     it('returns false when onboarding is not completed', () => {
       const state = createMockState({ completedOnboarding: false });
-      mockSelectIsPna25FlagEnabled.mockReturnValue(true);
-
-      const result = selectShouldShowPna25Notice(state);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when PNA25 feature flag is disabled', () => {
-      const state = createMockState({});
-      mockSelectIsPna25FlagEnabled.mockReturnValue(false);
 
       const result = selectShouldShowPna25Notice(state);
 
@@ -132,7 +115,6 @@ describe('legalNotices selectors', () => {
 
     it('returns false when PNA25 is already acknowledged', () => {
       const state = createMockState({ isPna25Acknowledged: true });
-      mockSelectIsPna25FlagEnabled.mockReturnValue(true);
 
       const result = selectShouldShowPna25Notice(state);
 
@@ -141,7 +123,6 @@ describe('legalNotices selectors', () => {
 
     it('returns false when analytics is disabled', () => {
       const state = createMockState({});
-      mockSelectIsPna25FlagEnabled.mockReturnValue(true);
       jest.mocked(analytics.isEnabled).mockReturnValue(false);
 
       const result = selectShouldShowPna25Notice(state);
@@ -151,7 +132,6 @@ describe('legalNotices selectors', () => {
 
     it('returns true when all conditions are met', () => {
       const state = createMockState({});
-      mockSelectIsPna25FlagEnabled.mockReturnValue(true);
 
       const result = selectShouldShowPna25Notice(state);
 

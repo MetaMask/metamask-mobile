@@ -22,6 +22,7 @@ export interface DeeplinkUrlParams {
   originatorInfo?: string;
   request?: string;
   attributionId?: string;
+  attribution_id?: string;
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
@@ -63,6 +64,16 @@ export interface DeeplinkUrlParams {
 
   // Home-specific parameters
   previewToken?: string;
+
+  // Privacy-specific parameters
+  // Which privacy settings section to scroll to (e.g. 'metametrics',
+  // 'data-collection')
+  setting?: string;
+
+  // What's Happening-specific parameters
+  // Id of a market overview front-page item to render as the first, "outdated"
+  // card of the What's Happening expanded view.
+  id?: string;
 
   // Note: All properties are explicitly defined above
 }
@@ -119,10 +130,10 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.BUY_CRYPTO,
   ACTIONS.SELL,
   ACTIONS.SELL_CRYPTO,
-  ACTIONS.DEPOSIT,
   ACTIONS.HOME,
   ACTIONS.ASSET,
   ACTIONS.SWAP,
+  ACTIONS.BATCH_SELL,
   ACTIONS.SEND,
   ACTIONS.CREATE_ACCOUNT,
   ACTIONS.PERPS,
@@ -133,11 +144,26 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.ONBOARDING,
   ACTIONS.PREDICT,
   ACTIONS.TRENDING,
-  ACTIONS.ENABLE_CARD_BUTTON,
+  ACTIONS.WHATS_HAPPENING,
+  ACTIONS.TOP_TRADERS,
+  ACTIONS.SOCIAL_TRADER_POSITION,
   ACTIONS.CARD_ONBOARDING,
   ACTIONS.CARD_HOME,
   ACTIONS.SHIELD,
   ACTIONS.NFT,
+  ACTIONS.AGENTIC_CLI,
+  ACTIONS.ON_RAMP,
+  ACTIONS.PRIVACY,
+  // MetaMask SDK deeplinks (`@metamask/sdk` / sdk-communication-layer, a.k.a.
+  // "SDKv1"; the `connect`/`mmsdk`/`bind` actions). Listed here so they resolve
+  // to a SupportedAction and get a DeepLinkRoute (SDK_CONNECT / SDK_MMSDK) for
+  // analytics; the connection is still handled by handleMetaMaskDeeplink.
+  // Distinct from MetaMask Connect (a.k.a. "SDKv2" / MWP → MMC_MWP), which is
+  // intercepted earlier and tracked separately.
+  ACTIONS.CONNECT,
+  ACTIONS.MMSDK,
+  ACTIONS.ANDROID_SDK,
+  ACTIONS.MONEY,
 ] as const satisfies readonly ACTIONS[];
 
 export type SupportedAction = (typeof SUPPORTED_ACTIONS)[number];

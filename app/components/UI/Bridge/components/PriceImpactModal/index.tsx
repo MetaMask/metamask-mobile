@@ -1,9 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import { getPriceImpactViewData } from '../../utils/getPriceImpactViewData';
 import { PriceImpactModalRouterParams } from './types';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { PriceImpactHeader } from './PriceImpactHeader';
@@ -11,9 +9,21 @@ import { PriceImpactDescription } from './PriceImpactDescription';
 import { PriceImpactFooter } from './PriceImpactFooter';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
-import { useModalCloseOnQuoteExpiry } from '../../hooks/useModalCloseOnQuoteExpiry';
+import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
+import {
+  exceedsPriceImpactErrorThreshold,
+  parsePriceImpact,
+} from '../../utils/getPriceImpactViewData';
+import { selectBridgeFeatureFlags } from '../../../../../core/redux/slices/bridge';
+import { useSelector } from 'react-redux';
+import {
+  BottomSheet,
+  BottomSheetRef,
+} from '@metamask/design-system-react-native';
 
 export const PriceImpactModal = () => {
+  const { goBack } = useNavigation<AppNavigationProp>();
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const [loading, setLoading] = useState(false);
   const { type, token, location } = useParams<PriceImpactModalRouterParams>();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -23,16 +33,23 @@ export const PriceImpactModal = () => {
     chainId: token?.chainId,
   });
 
+  const { formattedQuoteData, activeQuote } = useBridgeQuoteData({
+    latestSourceAtomicBalance: tokenBalance?.atomicBalance,
+  });
   const confirmBridge = useBridgeConfirm({
-    latestSourceBalance: tokenBalance,
+    activeQuote,
     location,
   });
-
-  const { formattedQuoteData } = useBridgeQuoteData();
-
-  const priceImpactViewData = useMemo(
-    () => getPriceImpactViewData(formattedQuoteData?.priceImpact),
-    [formattedQuoteData?.priceImpact],
+  const priceImpactViewData = usePriceImpactViewData(
+    activeQuote?.quote.priceData?.priceImpact?.amount,
+  );
+  const isDangerousPriceImpact = useMemo(
+    () =>
+      exceedsPriceImpactErrorThreshold(
+        parsePriceImpact(activeQuote?.quote.priceData?.priceImpact?.amount),
+        bridgeFeatureFlags?.priceImpactThreshold?.error,
+      ),
+    [activeQuote, bridgeFeatureFlags],
   );
 
   const handleClose = useCallback(() => {
@@ -41,24 +58,26 @@ export const PriceImpactModal = () => {
 
   const handleProceed = useCallback(async () => {
     setLoading(true);
-    await confirmBridge();
+    if (sheetRef.current?.onCloseBottomSheet) {
+      sheetRef.current.onCloseBottomSheet(confirmBridge);
+    } else {
+      await confirmBridge();
+    }
   }, [confirmBridge]);
 
-  const warningIcon = priceImpactViewData.icon;
-
-  useModalCloseOnQuoteExpiry();
-
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet ref={sheetRef} goBack={goBack}>
       <PriceImpactHeader
-        type={type}
         onClose={handleClose}
-        warningIconName={warningIcon?.name}
-        warningIconColor={warningIcon?.color}
+        iconName={priceImpactViewData.icon?.name}
+        iconColor={priceImpactViewData.icon?.color}
+        content={priceImpactViewData.title}
       />
       <PriceImpactDescription
-        type={type}
-        priceImpact={warningIcon ? formattedQuoteData?.priceImpact : undefined}
+        formattedPriceImpact={formattedQuoteData?.priceImpact}
+        content={priceImpactViewData.description}
+        isDanger={isDangerousPriceImpact}
+        formattedPriceImpactFiat={formattedQuoteData?.priceImpactFiat}
       />
       <PriceImpactFooter
         type={type}

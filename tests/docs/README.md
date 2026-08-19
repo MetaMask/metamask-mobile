@@ -3,7 +3,9 @@
 > **⚠️ ESSENTIAL:** Read [E2E Testing Overview](../../docs/readme/e2e-testing.md) for complete setup guide
 
 - [E2E Framework Structure](#e2e-framework-structure)
+- [Playwright: local emulator `buildPath` and app install](PLAYWRIGHT_LOCAL_EMULATOR.md)
 - [E2E Testing Best Practices](#e2e-testing-best-practices)
+- [Playwright Node Runtime Shims](#playwright-node-runtime-shims)
 - [E2E Test Examples and Patterns](#e2e-test-examples-and-patterns)
 - [E2E Testing Anti-Patterns (AVOID THESE)](#e2e-testing-anti-patterns-avoid-these)
 - [E2E Code Review Checklist](#e2e-code-review-checklist)
@@ -11,13 +13,16 @@
 
 ## E2E Framework Structure
 
-- **Regression Testing Scenarios (`tests/regression/`)** - Regression Test files organized by feature
-- **Snoke Testing Scenarios (`tests/smoke/`)** - Smoke Test files organized by feature
+- **Appium smoke (`tests/smoke-appium/`)** — Primary E2E path for new coverage (Playwright + Appium). See [appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md)
+- **Helpers (`tests/helpers/`)** — Shared E2E helpers (swap, perps, analytics, etc.)
+- **Legacy smoke shared utils (`tests/smoke/identity/`, `tests/smoke/snaps/`)** — Still imported by Appium; no Detox specs remain
 - **TypeScript Framework (`tests/framework/`)**: Modern testing framework with type safety
 - **Page Objects (`tests/page-objects/`)**: Page Object Model implementation
 - **Selectors (`tests/selectors/`)**: Element selectors organized by feature
 - **Fixtures (`tests/framework/fixtures/`)**: Test data and state management
 - **API Mocking (`tests/api-mocking/`)**: Comprehensive API mocking system
+- **WebSocket Mocking (`tests/websocket/`)**: Local WebSocket server for mocking real-time connections ([docs](WEBSOCKET_MOCKING.md))
+- **Playwright local emulator (Appium)**: When using `EmulatorProvider`, `use.app.buildPath` vs no path controls install vs pre-installed app — [PLAYWRIGHT_LOCAL_EMULATOR.md](PLAYWRIGHT_LOCAL_EMULATOR.md)
 
 **Core E2E Framework Classes:**
 
@@ -30,8 +35,9 @@
 **Key E2E Directories:**
 
 - `tests/framework/` - TypeScript framework foundation (USE THIS)
-- `tests/smoke/` - Smoke Test files organized by feature
-- `tests/regression/` - Regression Test files organized by feature
+- `tests/smoke-appium/` - Appium smoke tests (Playwright); primary path for new specs
+- `tests/helpers/` - Shared E2E helpers (swap, perps, analytics, …)
+- `tests/smoke/identity/`, `tests/smoke/snaps/` - Shared Appium helpers (no Detox specs)
 - `tests/page-objects/` - Page Object classes following POM pattern
 - `tests/selectors/` - Element selectors (avoid direct use in tests)
 - `tests/api-mocking/` - API mocking utilities and responses
@@ -62,7 +68,7 @@ await withFixtures(
 - ✅ **ALWAYS** import from `tests/framework/index.ts` (not individual files)
 - ✅ **ALWAYS** use modern TypeScript framework methods
 - ❌ **NEVER** use legacy methods marked with `@deprecated`
-- ❌ **NEVER** use `TestHelpers.delay()` - use proper waiting instead
+- ❌ **NEVER** use fixed delays (`setTimeout` / bare `sleep`) when waiting for UI — use Assertions instead
 
 **Page Object Model (REQUIRED):**
 
@@ -70,7 +76,7 @@ await withFixtures(
 - ✅ **ALWAYS** define element selectors in page objects or selector files
 - ✅ **ALWAYS** access UI elements through page object methods
 - ❌ **NEVER** use `element(by.id())` directly in test specs
-- ❌ **NEVER** use raw Detox assertions in test specs
+- ❌ **NEVER** use raw driver assertions or Detox APIs in new specs
 
 **Test Structure Requirements:**
 
@@ -86,6 +92,17 @@ await withFixtures(
 - Use `testSpecificMock` parameter in `withFixtures` for test-specific mocks
 - Default mocks are loaded from `tests/api-mocking/mock-responses/defaults/`
 - Feature flags mocked via `setupRemoteFeatureFlagsMock` helper
+
+## Playwright Node Runtime Shims
+
+Playwright specs and `FixtureBuilder` run in Node, while the app runs in React Native/Metro. If a native-only module fails during Playwright import or fixture setup, keep the app on the native implementation and isolate the Node workaround in test infrastructure.
+
+We need this shim mechanism because some app dependencies patch CommonJS packages to call native modules such as `@metamask/native-utils`. Those calls are valid in the mobile app, but Playwright loads the same dependency graph in Node where React Native/Nitro native modules are unavailable.
+
+- Use `tests/framework/nodeNativeUtilsShim.cjs` for `@metamask/native-utils` in Playwright's Node process.
+- Register Node shims from Playwright framework entrypoints before importing code that may load native modules.
+- Do not add JS fallbacks to shared dependency patches unless the app runtime also needs them.
+- Validate with `yarn playwright test --list --project android --config tests/playwright.config.ts` before running devices.
 
 **Element State Configuration:**
 
@@ -116,7 +133,7 @@ await Gestures.tap(loadingButton, {
 - **Element State**: Configure visibility, enabled, and stability checking appropriately
 - **Debugging**: Check test output for unmocked API requests and framework warnings
 - **Performance**: Use `checkStability: false` by default, enable only for animated elements
-- Check `.cursor/rules/e2e-testing-guidelines.mdc` for comprehensive testing guidelines
+- Check [`docs/testing/e2e-testing.md`](../../docs/testing/e2e-testing.md) for comprehensive testing guidelines
 
 **Basic E2E Test Structure:**
 
@@ -241,8 +258,8 @@ export default new WalletView();
 **❌ PROHIBITED Patterns:**
 
 ```typescript
-// DON'T: Use TestHelpers.delay()
-await TestHelpers.delay(5000);
+// DON'T: Use fixed delays when waiting for UI
+await sleep(5000);
 
 // DON'T: Use deprecated methods
 await Assertions.checkIfVisible(element);
@@ -250,7 +267,7 @@ await Assertions.checkIfVisible(element);
 // DON'T: Use direct element selectors in tests
 element(by.id('send-button')).tap();
 
-// DON'T: Use raw Detox assertions
+// DON'T: Use raw driver assertions or Detox APIs in new specs
 await waitFor(element).toBeVisible();
 
 // DON'T: Missing descriptions
@@ -302,7 +319,7 @@ await Utilities.executeWithRetry(
 
 - [ ] Uses `withFixtures` pattern for test setup
 - [ ] Imports from `tests/framework/index.ts` (not individual files)
-- [ ] No usage of `TestHelpers.delay()` or `setTimeout()`
+- [ ] No fixed delays (`setTimeout` / bare `sleep`) when waiting for UI — use Assertions instead
 - [ ] No deprecated methods (check `@deprecated` tags)
 - [ ] All assertions have descriptive `description` parameters
 - [ ] All gestures have descriptive `description` parameters
@@ -313,3 +330,12 @@ await Utilities.executeWithRetry(
 - [ ] Tests work on both iOS and Android platforms
 - [ ] Test names are descriptive without 'should' prefix
 - [ ] Uses FixtureBuilder for test data setup
+
+## Existing tooling
+
+| Tool                      | Type              | Current use          | When to use                                                                                                         | Notes and Limitations                                                                                                                                                                                                              |
+| ------------------------- | ----------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Component View Tests      | White box testing | UI integration tests | - When following a full user flow is not needed <br> - When we want to test individual component and view rendering | - Does **not** require builds <br> - Low cost (faster runtime) <br> - Fast feedback loop                                                                                                                                           |
+| Appium smoke (Playwright) | Black box testing | **Current E2E**      | - New smoke / user-flow coverage <br> - PR and CI smoke (`tests/smoke-appium/`)                                     | - Uses `main-e2e` builds and Playwright fixture <br> - See [appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md) <br> - Page objects use `Gestures` / `Assertions` / `Matchers` facades                            |
+| Maestro                   | Black box testing | TBD                  | TBD                                                                                                                 | - **Still in experimentation phase (!)** <br> - Struggles with deeply nested elements <br> - YAML based spec files <br> - Allows runs with local builds <br> - Can run on real devices (cloud) but can't be used with real devices |
+| Appium (WDIO / cloud)     | Black box testing | Performance tests    | - When we want to test user flows as an end user <br> - When we want to measure and report performance stats        | - High cost <br> - Struggles with deeply nested elements <br> - Uses a cloud provider for real device testing <br> - Separate from Appium smoke / Playwright path                                                                  |

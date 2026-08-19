@@ -77,14 +77,38 @@ const render = () =>
   });
 
 describe('SelectSRP', () => {
-  it('navigates to the SRP reveal quiz', () => {
+  beforeEach(() => {
+    mockedNavigate.mockClear();
+  });
+
+  it('navigates to full-screen reveal SRP', () => {
     const { getByText } = render();
     fireEvent.press(
       getByText(`${strings('accounts.secret_recovery_phrase')} 1`),
     );
-    expect(mockedNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-      keyringId: mockKeyring1.metadata.id,
-    });
+    expect(mockedNavigate).toHaveBeenCalledWith(
+      Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+      {
+        shouldUpdateNav: true,
+        keyringId: mockKeyring1.metadata.id,
+      },
+    );
+  });
+
+  it('uses onKeyringSelect override when provided', () => {
+    const onKeyringSelect = jest.fn();
+    const { getByText } = renderWithProvider(
+      <SelectSRP onKeyringSelect={onKeyringSelect} />,
+      {
+        state: initialState,
+      },
+    );
+
+    fireEvent.press(
+      getByText(`${strings('accounts.secret_recovery_phrase')} 1`),
+    );
+
+    expect(onKeyringSelect).toHaveBeenCalledWith(mockKeyring1.metadata.id);
+    expect(mockedNavigate).not.toHaveBeenCalled();
   });
 });

@@ -1,52 +1,45 @@
 import { act, waitFor } from '@testing-library/react-native';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useBridgeConfirm } from './index';
-import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import Routes from '../../../../../constants/navigation/Routes';
-import { BigNumber } from 'ethers';
+import { isHardwareAccount } from '../../../../../util/address';
+import { HardwareWalletsSwapsStatus } from '../../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
+import { PostTradeStatus } from '../../components/PostTradeBottomSheet/PostTradeBottomSheet.types';
+import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
+import type { RootState } from '../../../../../reducers';
 
 const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
 
-const mockLatestSourceBalance = {
-  displayBalance: '2.0',
-  atomicBalance: BigNumber.from('2000000000000000000'),
-};
-
 const defaultParams = {
+  activeQuote: mockQuoteWithMetadata,
   location: MetaMetricsSwapsEventSource.MainView,
-  latestSourceBalance: mockLatestSourceBalance,
 };
 
-// Navigation
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-// useBridgeQuoteData
-jest.mock('../useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest.fn(),
-}));
-
-// selectSourceWalletAddress
 jest.mock('../../../../../selectors/bridge', () => ({
   ...jest.requireActual('../../../../../selectors/bridge'),
   selectSourceWalletAddress: jest.fn(),
 }));
 
-// useSubmitBridgeTx
+jest.mock('../../../../../util/address', () => ({
+  ...jest.requireActual('../../../../../util/address'),
+  isHardwareAccount: jest.fn(),
+}));
+
 const mockSubmitBridgeTx = jest.fn();
 jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   __esModule: true,
   default: () => ({ submitBridgeTx: mockSubmitBridgeTx }),
 }));
 
-// Engine (required by store / other transitive deps)
 jest.mock('../../../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
@@ -72,19 +65,21 @@ jest.mock('../../../../../selectors/confirmTransaction');
 
 function renderHook(
   params: Parameters<typeof useBridgeConfirm>[0] = defaultParams,
+  state = {},
 ) {
-  return renderHookWithProvider(() => useBridgeConfirm(params), { state: {} });
+  return renderHookWithProvider(() => useBridgeConfirm(params), { state });
 }
 
 describe('useBridgeConfirm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(useBridgeQuoteData).mockReturnValue({
-      ...mockUseBridgeQuoteData,
-      activeQuote: mockQuoteWithMetadata,
-    } as ReturnType<typeof useBridgeQuoteData>);
     jest.mocked(selectSourceWalletAddress).mockReturnValue(WALLET_ADDRESS);
-    mockSubmitBridgeTx.mockResolvedValue({ success: true });
+    jest.mocked(isHardwareAccount).mockReturnValue(false);
+    mockSubmitBridgeTx.mockResolvedValue({
+      id: 'tx-meta-id',
+      hash: '0xabc',
+      status: 'submitted',
+    });
   });
 
   it('returns a function', () => {
@@ -102,11 +97,30 @@ describe('useBridgeConfirm', () => {
       });
 
       expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-        quoteResponse: {
-          ...mockQuoteWithMetadata,
-          aggregator: mockQuoteWithMetadata.quote.bridgeId,
-          walletAddress: WALLET_ADDRESS,
+        quoteResponse: mockQuoteWithMetadata,
+        location: MetaMetricsSwapsEventSource.MainView,
+      });
+    });
+
+    it('forwards the quote fetched with custom slippage unchanged', async () => {
+      const customSlippageQuote = {
+        ...mockQuoteWithMetadata,
+        quote: {
+          ...mockQuoteWithMetadata.quote,
+          slippage: 3.5,
         },
+      };
+      const { result } = renderHook({
+        ...defaultParams,
+        activeQuote: customSlippageQuote,
+      });
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
+        quoteResponse: customSlippageQuote,
         location: MetaMetricsSwapsEventSource.MainView,
       });
     });
@@ -128,14 +142,23 @@ describe('useBridgeConfirm', () => {
       );
     });
 
-    it('navigates to TRANSACTIONS_VIEW after submission', async () => {
+    it('opens the post-trade bottom sheet after submission', async () => {
       const { result } = renderHook();
 
       await act(async () => {
         await result.current();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+        params: expect.objectContaining({
+          status: PostTradeStatus.InProgress,
+          transactionMetaId: 'tx-meta-id',
+          transactionHash: '0xabc',
+          sourceAmount: mockQuoteWithMetadata.quote.src?.normalizedAmount,
+          destAmount: mockQuoteWithMetadata.quote.dest?.normalizedAmount,
+        }),
+      });
     });
 
     it('resets isSubmittingTx to false after submission', async () => {
@@ -153,85 +176,183 @@ describe('useBridgeConfirm', () => {
       });
     });
 
-    it('passes latestSourceAtomicBalance to useBridgeQuoteData', () => {
-      renderHook();
+    it('clears bridge token inputs and refreshes source balance before opening the post-trade bottom sheet', async () => {
+      const { result, store } = renderHook(defaultParams, {
+        bridge: mockBridgeReducerState,
+      });
 
-      expect(jest.mocked(useBridgeQuoteData)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          latestSourceAtomicBalance: mockLatestSourceBalance.atomicBalance,
-        }),
-      );
+      mockNavigate.mockImplementationOnce(() => {
+        const bridgeState = (store.getState() as RootState).bridge;
+
+        expect(bridgeState.sourceAmount).toBeUndefined();
+        expect(bridgeState.destAmount).toBeUndefined();
+        expect(bridgeState.sourceToken).toEqual(
+          mockBridgeReducerState.sourceToken,
+        );
+        expect(bridgeState.destToken).toEqual(mockBridgeReducerState.destToken);
+        expect(bridgeState.balanceRefreshKey).toBe(1);
+      });
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(mockNavigate).toHaveBeenCalled();
     });
 
-    it('passes undefined atomicBalance when latestSourceBalance is undefined', () => {
-      renderHook({ ...defaultParams, latestSourceBalance: undefined });
+    it('keeps the slippage override after successful submission', async () => {
+      const state = {
+        bridge: {
+          ...mockBridgeReducerState,
+          slippage: '3.5',
+          isSlippageUserOverride: true,
+        },
+      };
+      const { result, store } = renderHook(defaultParams, state);
 
-      expect(jest.mocked(useBridgeQuoteData)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          latestSourceAtomicBalance: undefined,
-        }),
-      );
+      await act(async () => {
+        await result.current();
+      });
+
+      expect((store.getState() as RootState).bridge.slippage).toBe('3.5');
+      expect(
+        (store.getState() as RootState).bridge.isSlippageUserOverride,
+      ).toBe(true);
     });
   });
 
-  describe('when activeQuote is null', () => {
-    beforeEach(() => {
-      jest.mocked(useBridgeQuoteData).mockReturnValue({
-        ...mockUseBridgeQuoteData,
-        activeQuote: null,
-      } as ReturnType<typeof useBridgeQuoteData>);
+  describe('hardware wallet submissions', () => {
+    it('navigates to hardware wallets progress view without calling submitBridgeTx', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const { result } = renderHook({
+        ...defaultParams,
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          approval: { raw_data_hex: '0xabc' } as never,
+        },
+      });
+
+      await act(async () => {
+        await result.current();
+      });
+
+      const sourceAmount = mockQuoteWithMetadata.sentAmount;
+      const destAmount = mockQuoteWithMetadata.toTokenAmount;
+      if (!sourceAmount || !destAmount) {
+        throw new Error('Mock quote is missing token amounts');
+      }
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BRIDGE.ROOT,
+        expect.objectContaining({
+          screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+          params: expect.objectContaining({
+            submissionParams: expect.objectContaining({
+              postTradeModalParams: expect.objectContaining({
+                sourceAmount: sourceAmount.amount,
+                destAmount: destAmount.amount,
+              }),
+            }),
+          }),
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
-    it('does not call submitBridgeTx', async () => {
-      const { result } = renderHook();
+    it('sets Waiting status for hardware wallet submissions', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const { result, store } = renderHook();
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(
+        (
+          store.getState() as {
+            bridge: {
+              hardwareWalletsSwaps: { status: string };
+            };
+          }
+        ).bridge.hardwareWalletsSwaps.status,
+      ).toBe(HardwareWalletsSwapsStatus.Waiting);
+    });
+
+    it('starts two-step progress for hardware wallet submissions with approval', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const { result, store } = renderHook({
+        ...defaultParams,
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          approval: { raw_data_hex: '0xabc' } as never,
+        },
+      });
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(
+        (
+          store.getState() as {
+            bridge: {
+              hardwareWalletsSwaps: { totalSteps: number };
+            };
+          }
+        ).bridge.hardwareWalletsSwaps.totalSteps,
+      ).toBe(2);
+    });
+
+    it('starts one-step progress for hardware wallet submissions without approval', async () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(true);
+      const { result, store } = renderHook();
+
+      await act(async () => {
+        await result.current();
+      });
+
+      expect(
+        (
+          store.getState() as {
+            bridge: {
+              hardwareWalletsSwaps: { totalSteps: number };
+            };
+          }
+        ).bridge.hardwareWalletsSwaps.totalSteps,
+      ).toBe(1);
+    });
+  });
+
+  describe.each([
+    ['activeQuote is null', { activeQuote: null }],
+    ['walletAddress is missing', {}],
+  ])('when %s', (_label, hookParams) => {
+    beforeEach(() => {
+      if (!('activeQuote' in hookParams)) {
+        jest.mocked(selectSourceWalletAddress).mockReturnValue(undefined);
+      }
+    });
+
+    it('does not submit or open the post-trade bottom sheet', async () => {
+      const { result } = renderHook({ ...defaultParams, ...hookParams });
 
       await act(async () => {
         await result.current();
       });
 
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
-    });
-
-    it('still navigates to TRANSACTIONS_VIEW', async () => {
-      const { result } = renderHook();
-
-      await act(async () => {
-        await result.current();
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-    });
-  });
-
-  describe('when walletAddress is missing', () => {
-    beforeEach(() => {
-      jest.mocked(selectSourceWalletAddress).mockReturnValue(undefined);
-    });
-
-    it('does not call submitBridgeTx', async () => {
-      const { result } = renderHook();
-
-      await act(async () => {
-        await result.current();
-      });
-
-      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
-    });
-
-    it('still navigates to TRANSACTIONS_VIEW', async () => {
-      const { result } = renderHook();
-
-      await act(async () => {
-        await result.current();
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
   describe('when submitBridgeTx throws', () => {
     beforeEach(() => {
       mockSubmitBridgeTx.mockRejectedValue(new Error('Network error'));
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
     });
 
     it('logs the error', async () => {
@@ -250,7 +371,7 @@ describe('useBridgeConfirm', () => {
       consoleSpy.mockRestore();
     });
 
-    it('still navigates to TRANSACTIONS_VIEW after the error', async () => {
+    it('opens the post-trade bottom sheet in failed state after the error', async () => {
       jest.spyOn(console, 'error').mockImplementation();
       const { result } = renderHook();
 
@@ -258,7 +379,14 @@ describe('useBridgeConfirm', () => {
         await result.current();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+        params: expect.objectContaining({
+          status: PostTradeStatus.Failed,
+          sourceAmount: mockQuoteWithMetadata.quote.src?.normalizedAmount,
+          destAmount: mockQuoteWithMetadata.quote.dest?.normalizedAmount,
+        }),
+      });
     });
 
     it('resets isSubmittingTx to false after the error', async () => {
@@ -275,6 +403,26 @@ describe('useBridgeConfirm', () => {
             .isSubmittingTx,
         ).toBe(false);
       });
+    });
+
+    it('does not clear bridge token inputs when submission fails before broadcast', async () => {
+      jest.spyOn(console, 'error').mockImplementation();
+      const { result, store } = renderHook(defaultParams, {
+        bridge: mockBridgeReducerState,
+      });
+
+      await act(async () => {
+        await result.current();
+      });
+
+      const bridgeState = (store.getState() as RootState).bridge;
+      expect(bridgeState.sourceAmount).toBe(
+        mockBridgeReducerState.sourceAmount,
+      );
+      expect(bridgeState.sourceToken).toEqual(
+        mockBridgeReducerState.sourceToken,
+      );
+      expect(bridgeState.destToken).toEqual(mockBridgeReducerState.destToken);
     });
   });
 });

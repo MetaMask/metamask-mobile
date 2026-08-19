@@ -1,22 +1,22 @@
 import React from 'react';
 import { Hex } from '@metamask/utils';
+import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+} from '@metamask/design-system-react-native';
+import { View } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import styleSheet from './gas-fee-token-icon.styles';
 import { NATIVE_TOKEN_ADDRESS } from '../../../constants/tokens';
-import { View } from 'react-native';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
 import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { useTransactionBatchesMetadata } from '../../../hooks/transactions/useTransactionBatchesMetadata';
+import { getAssetImageUrl } from '../../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 
 export enum GasFeeTokenIconSize {
   Sm = 'sm',
@@ -52,6 +52,8 @@ export function GasFeeTokenIcon({
         <TokenIconWithNetworkBadge
           size={size}
           token={token}
+          tokenAddress={tokenAddress}
+          chainId={chainId as Hex}
           networkName={networkName}
           networkImage={networkImage}
           nativeCurrency={nativeCurrency}
@@ -78,33 +80,43 @@ export function GasFeeTokenIcon({
 function TokenIconWithNetworkBadge({
   size,
   token,
+  tokenAddress,
+  chainId,
   networkName,
   networkImage,
   nativeCurrency,
 }: {
   size: GasFeeTokenIconSize;
   token?: ReturnType<typeof useTokenWithBalance>;
+  tokenAddress: Hex;
+  chainId?: Hex;
   networkName?: string;
   networkImage?: object;
   nativeCurrency?: string;
 }) {
   const { styles } = useStyles(styleSheet, {});
+  const imageUri =
+    token?.image ||
+    (chainId ? getAssetImageUrl(tokenAddress, chainId) : undefined);
+
   return (
     <View>
       <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          <Badge
-            variant={BadgeVariant.Network}
-            name={networkName}
-            imageSource={networkImage}
-          />
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
+          networkImage ? (
+            <BadgeNetwork
+              src={networkImage}
+              name={networkName}
+              testID="gas-fee-token-network-badge"
+            />
+          ) : null
         }
         style={styles.badgeWrapper}
       >
         <AvatarToken
-          imageSource={token ? { uri: token?.image } : networkImage}
-          name={nativeCurrency}
+          imageSource={imageUri ? { uri: imageUri } : networkImage}
+          name={token?.symbol ?? nativeCurrency}
           size={size === GasFeeTokenIconSize.Md ? AvatarSize.Md : AvatarSize.Xs}
         />
       </BadgeWrapper>

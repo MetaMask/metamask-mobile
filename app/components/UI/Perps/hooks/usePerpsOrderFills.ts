@@ -83,7 +83,12 @@ export const usePerpsOrderFills = (
         DevLogger.log('Perps: Fetching order fills from controller...');
 
         const controller = Engine.context.PerpsController;
-        const fills = await controller.getOrderFills(params);
+        // Explicit refresh (pull-to-refresh, polling tick) bypasses the
+        // MarketDataService request-coalesce cache so a fresh provider call
+        // runs instead of returning a still-hot cached payload.
+        const fills = await controller.getOrderFills(params, {
+          forceRefresh: isRefresh,
+        });
 
         setOrderFills(fills || []);
 

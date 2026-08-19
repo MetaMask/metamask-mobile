@@ -1,12 +1,20 @@
 import React, { ComponentType } from 'react';
 import { Image, Linking } from 'react-native';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import SocialLoginErrorSheet from './SocialLoginErrorSheet';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import {
+  AccountType,
+  WalletCreationErrorCtaType,
+} from '../../../constants/onboarding';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { Authentication } from '../../../core';
 import AppConstants from '../../../core/AppConstants';
 import Routes from '../../../constants/navigation/Routes';
+
+const defaultAccountType = AccountType.MetamaskGoogle;
 
 // Type helper for UNSAFE_getAllByType with mocked string components
 const asComponentType = (name: string) => name as unknown as ComponentType;
@@ -41,10 +49,12 @@ jest.mock('../../../core', () => ({
   },
 }));
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
-  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
-  getInitialURL: jest.fn(() => Promise.resolve(null)),
+const mockOpenSupportWithConsent = jest.fn();
+
+jest.mock('../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
 }));
 
 const mockError = new Error('Test social login error');
@@ -57,6 +67,30 @@ describe('SocialLoginErrorSheet', () => {
       },
     },
   };
+
+  const stateWithGoogleOAuth = {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        SeedlessOnboardingController: {
+          ...backgroundState.SeedlessOnboardingController,
+          authConnection: AuthConnection.Google,
+        },
+      },
+    },
+  };
+
+  const renderSheet = (
+    props: { error?: Error; accountType?: AccountType } = {},
+    state = initialState,
+  ) =>
+    renderWithProvider(
+      <SocialLoginErrorSheet
+        error={props.error ?? mockError}
+        accountType={props.accountType ?? defaultAccountType}
+      />,
+      { state },
+    );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -74,54 +108,62 @@ describe('SocialLoginErrorSheet', () => {
 
   describe('analytics', () => {
     it('tracks screen viewed event on mount', () => {
-      renderWithProvider(<SocialLoginErrorSheet error={mockError} />, {
-        state: initialState,
-      });
+      renderSheet();
 
       expect(mockCreateEventBuilder).toHaveBeenCalled();
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('tracks event with correct flow_type property', () => {
-      renderWithProvider(<SocialLoginErrorSheet error={mockError} />, {
-        state: initialState,
-      });
+    it('tracks screen viewed event with explicit account_type prop', () => {
+      renderSheet({ accountType: AccountType.MetamaskGoogle });
 
       expect(mockAddProperties).toHaveBeenCalledWith({
-        flow_type: 'social_login',
-        error_name: 'Error',
+        account_type: AccountType.MetamaskGoogle,
+        error_type: 'Error',
+        error_message: 'Test social login error',
+      });
+    });
+
+    it('uses explicit account_type instead of seedless auth connection state', () => {
+      renderSheet(
+        { accountType: AccountType.MetamaskApple },
+        stateWithGoogleOAuth,
+      );
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        account_type: AccountType.MetamaskApple,
+        error_type: 'Error',
         error_message: 'Test social login error',
       });
     });
 
     it('tracks retry clicked event when Try again is pressed', async () => {
-      (Authentication.deleteWallet as jest.Mock).mockResolvedValue(undefined);
+      jest.mocked(Authentication.deleteWallet).mockResolvedValue(undefined);
 
-      const { getByText } = renderWithProvider(
-        <SocialLoginErrorSheet error={mockError} />,
-        { state: initialState },
-      );
+      const { getByText } = renderSheet();
 
       mockCreateEventBuilder.mockClear();
       mockAddProperties.mockClear();
       mockTrackEvent.mockClear();
 
-      fireEvent.press(getByText('Try again'));
+      await act(async () => {
+        fireEvent.press(getByText('Try again'));
+      });
 
       await waitFor(() => {
-        expect(mockCreateEventBuilder).toHaveBeenCalled();
+        expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+          MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
+        );
         expect(mockAddProperties).toHaveBeenCalledWith({
-          flow_type: 'social_login',
+          cta_type: WalletCreationErrorCtaType.Retry,
+          account_type: AccountType.MetamaskGoogle,
         });
         expect(mockTrackEvent).toHaveBeenCalled();
       });
     });
 
     it('tracks support clicked event when MetaMask Support is pressed', () => {
-      const { getByText } = renderWithProvider(
-        <SocialLoginErrorSheet error={mockError} />,
-        { state: initialState },
-      );
+      const { getByText } = renderSheet();
 
       mockCreateEventBuilder.mockClear();
       mockAddProperties.mockClear();
@@ -129,46 +171,43 @@ describe('SocialLoginErrorSheet', () => {
 
       fireEvent.press(getByText('MetaMask Support'));
 
-      expect(mockCreateEventBuilder).toHaveBeenCalled();
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
+      );
       expect(mockAddProperties).toHaveBeenCalledWith({
-        flow_type: 'social_login',
+        cta_type: WalletCreationErrorCtaType.ContactSupport,
+        account_type: AccountType.MetamaskGoogle,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 
   it('renders error title', () => {
-    const { getByText } = renderWithProvider(<SocialLoginErrorSheet />, {
-      state: initialState,
-    });
+    const { getByText } = renderSheet({}, initialState);
 
     expect(getByText('Something went wrong')).toBeOnTheScreen();
   });
 
   it('renders try again button', () => {
-    const { getByText } = renderWithProvider(<SocialLoginErrorSheet />, {
-      state: initialState,
-    });
+    const { getByText } = renderSheet({}, initialState);
 
     expect(getByText('Try again')).toBeOnTheScreen();
   });
 
   it('renders MetaMask Support link', () => {
-    const { getByText } = renderWithProvider(<SocialLoginErrorSheet />, {
-      state: initialState,
-    });
+    const { getByText } = renderSheet({}, initialState);
 
     expect(getByText('MetaMask Support')).toBeOnTheScreen();
   });
 
   it('deletes wallet and resets navigation when try again is pressed', async () => {
-    (Authentication.deleteWallet as jest.Mock).mockResolvedValue(undefined);
-    const { getByText } = renderWithProvider(<SocialLoginErrorSheet />, {
-      state: initialState,
-    });
+    jest.mocked(Authentication.deleteWallet).mockResolvedValue(undefined);
+    const { getByText } = renderSheet({}, initialState);
     const tryAgainButton = getByText('Try again');
 
-    fireEvent.press(tryAgainButton);
+    await act(async () => {
+      fireEvent.press(tryAgainButton);
+    });
 
     await waitFor(() => {
       expect(Authentication.deleteWallet).toHaveBeenCalled();
@@ -180,38 +219,43 @@ describe('SocialLoginErrorSheet', () => {
     });
   });
 
-  it('opens support URL when MetaMask Support is pressed', () => {
-    const { getByText } = renderWithProvider(<SocialLoginErrorSheet />, {
-      state: initialState,
-    });
+  it('calls openSupportWithConsent with an opener and the support base URL when MetaMask Support is pressed', () => {
+    const { getByText } = renderSheet({}, initialState);
     const supportLink = getByText('MetaMask Support');
 
     fireEvent.press(supportLink);
 
-    expect(Linking.openURL).toHaveBeenCalledWith(
+    expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+      expect.any(Function),
       AppConstants.REVIEW_PROMPT.SUPPORT,
     );
   });
 
-  it('renders fox logo image', () => {
-    const { UNSAFE_getAllByType } = renderWithProvider(
-      <SocialLoginErrorSheet />,
-      {
-        state: initialState,
-      },
+  // Covers only the call-site opener wiring: invoking the opener passed to
+  // openSupportWithConsent opens the URL via Linking. The consent modal
+  // internals are covered by the core support-consent tests.
+  it('opens the support URL via Linking when the opener callback is invoked', () => {
+    const { getByText } = renderSheet({}, initialState);
+    const supportLink = getByText('MetaMask Support');
+
+    fireEvent.press(supportLink);
+    const [open] = mockOpenSupportWithConsent.mock.calls[0];
+    open('https://support.metamask.io/');
+
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://support.metamask.io/',
     );
+  });
+
+  it('renders fox logo image', () => {
+    const { UNSAFE_getAllByType } = renderSheet({}, initialState);
 
     const images = UNSAFE_getAllByType(Image);
     expect(images.length).toBeGreaterThan(0);
   });
 
   it('renders danger icon', () => {
-    const { UNSAFE_getAllByType } = renderWithProvider(
-      <SocialLoginErrorSheet />,
-      {
-        state: initialState,
-      },
-    );
+    const { UNSAFE_getAllByType } = renderSheet({}, initialState);
 
     const icons = UNSAFE_getAllByType(asComponentType('SvgMock'));
     expect(icons.length).toBeGreaterThan(0);

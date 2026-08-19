@@ -11,10 +11,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
-}));
-
 describe('DefaultSettings', () => {
   const mockNavigation = {
     goBack: jest.fn(),
@@ -26,8 +22,10 @@ describe('DefaultSettings', () => {
   });
 
   it('should render correctly', () => {
-    const tree = render(<DefaultSettings />).toJSON();
-    expect(tree).toMatchSnapshot();
+    const { getByText } = render(<DefaultSettings />);
+    expect(
+      getByText(strings('default_settings.drawer_general_title')),
+    ).toBeOnTheScreen();
   });
 
   it('opens privacy best practices link when "Learn more" is pressed', () => {
@@ -72,5 +70,11 @@ describe('DefaultSettings', () => {
     expect(mockNavigation.navigate).toHaveBeenCalledWith(
       Routes.ONBOARDING.SECURITY_SETTINGS,
     );
+  });
+
+  it('navigates back when the header back button is pressed', () => {
+    const { getAllByTestId } = render(<DefaultSettings />);
+    fireEvent.press(getAllByTestId('button-icon')[0]);
+    expect(mockNavigation.goBack).toHaveBeenCalled();
   });
 });

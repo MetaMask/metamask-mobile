@@ -65,7 +65,20 @@ export async function backupVault(
 
   try {
     // Does a primary backup exist?
-    const existingBackup = await getInternetCredentials(VAULT_BACKUP_KEY);
+    // Wrapped in its own try/catch because Android Keystore key invalidation
+    // (e.g. biometric enrollment change, Android 16 behavioural change) causes
+    // getInternetCredentials to throw rather than return false/undefined.
+    // If the read fails we treat it as "no existing backup" so the fresh
+    // backup can still be written below.
+    let existingBackup;
+    try {
+      existingBackup = await getInternetCredentials(VAULT_BACKUP_KEY);
+    } catch (readError) {
+      Logger.log(
+        readError,
+        'backupVault: failed to read existing backup, proceeding with fresh backup',
+      );
+    }
 
     // An existing backup exists, backup it to the temp key
     if (existingBackup && existingBackup.password) {

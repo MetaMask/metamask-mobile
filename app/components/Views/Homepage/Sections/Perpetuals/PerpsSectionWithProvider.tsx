@@ -3,12 +3,16 @@ import { useSelector } from 'react-redux';
 import { PerpsConnectionProvider } from '../../../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../../../UI/Perps/providers/PerpsStreamManager';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps';
-import PerpsSection from './PerpsSection';
+import { PerpsSection } from './PerpsSection';
 import type { SectionRefreshHandle } from '../../types';
 
 export interface PerpsSectionProps {
   sectionIndex: number;
   totalSectionsLoaded: number;
+  /** Empty state content rendered when there are no positions or orders. */
+  emptyStateContent?: 'tiles' | 'pills';
+  /** Override the section title only while rendering empty state content. */
+  emptyStateTitleOverride?: string;
 }
 
 /**
@@ -19,24 +23,36 @@ export interface PerpsSectionProps {
 const PerpsSectionWithProvider = forwardRef<
   SectionRefreshHandle,
   PerpsSectionProps
->(({ sectionIndex, totalSectionsLoaded }, ref) => {
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+>(
+  (
+    {
+      sectionIndex,
+      totalSectionsLoaded,
+      emptyStateContent,
+      emptyStateTitleOverride,
+    },
+    ref,
+  ) => {
+    const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
-  if (!isPerpsEnabled) {
-    return null;
-  }
+    if (!isPerpsEnabled) {
+      return null;
+    }
 
-  return (
-    <PerpsConnectionProvider suppressErrorView>
-      <PerpsStreamProvider>
-        <PerpsSection
-          ref={ref}
-          sectionIndex={sectionIndex}
-          totalSectionsLoaded={totalSectionsLoaded}
-        />
-      </PerpsStreamProvider>
-    </PerpsConnectionProvider>
-  );
-});
+    return (
+      <PerpsConnectionProvider suppressErrorView>
+        <PerpsStreamProvider>
+          <PerpsSection
+            ref={ref}
+            sectionIndex={sectionIndex}
+            totalSectionsLoaded={totalSectionsLoaded}
+            emptyStateContent={emptyStateContent}
+            emptyStateTitleOverride={emptyStateTitleOverride}
+          />
+        </PerpsStreamProvider>
+      </PerpsConnectionProvider>
+    );
+  },
+);
 
 export default PerpsSectionWithProvider;

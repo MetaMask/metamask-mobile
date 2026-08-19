@@ -4,6 +4,7 @@ import {
   wipeBridgeStatus,
   getTokenIconUrl,
   getTokenImageSource,
+  formatTokenBalance,
 } from './index';
 import AppConstants from '../../../../core/AppConstants';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -335,6 +336,22 @@ describe('Bridge Utils', () => {
       // Should return the local icon (456), not the remote URL
       expect(result).toBe(456);
       expect(result).not.toEqual({ uri: imageUrl });
+    });
+  });
+
+  describe('formatTokenBalance', () => {
+    it.each([
+      ['zero balance', '0', '0'],
+      ['tiny balance', '0.000001', '< 0.00001'],
+      ['five decimal balance', '1.12345', '1.12345'],
+      ['long decimal balance', '1.123456789', '1.12345'],
+      ['trailing zero balance', '1.230000', '1.23'],
+    ])('formats %s', (_, balance, expected) => {
+      expect(formatTokenBalance(balance)).toBe(expected);
+    });
+
+    it('returns the original balance if parsing fails', () => {
+      expect(formatTokenBalance('not-a-number')).toBe('not-a-number');
     });
   });
 });

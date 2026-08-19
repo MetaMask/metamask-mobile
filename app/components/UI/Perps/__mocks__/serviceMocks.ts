@@ -9,6 +9,8 @@ import {
   type InitializationState,
   type PerpsControllerMessenger,
   type PerpsPlatformDependencies,
+  DEFAULT_PERPS_MODE,
+  DEFAULT_PRO_LAYOUT_PREFERENCES,
 } from '@metamask/perps-controller';
 
 /**
@@ -61,6 +63,7 @@ export const createMockInfrastructure =
         trace: jest.fn(() => undefined),
         endTrace: jest.fn(),
         setMeasurement: jest.fn(),
+        addBreadcrumb: jest.fn(),
       },
 
       // === Platform Services ===
@@ -93,6 +96,14 @@ export const createMockInfrastructure =
       rewards: {
         getPerpsDiscountForAccount: jest.fn().mockResolvedValue(0),
       },
+
+      // === Disk Cache (cold-start persistence) ===
+      diskCache: {
+        getItem: jest.fn().mockResolvedValue(null),
+        getItemSync: jest.fn().mockReturnValue(null),
+        setItem: jest.fn().mockResolvedValue(undefined),
+        removeItem: jest.fn().mockResolvedValue(undefined),
+      },
     }) as unknown as jest.Mocked<PerpsPlatformDependencies>;
 
 /**
@@ -113,6 +124,8 @@ export const createMockPerpsControllerState = (
   lastDepositResult: null,
   withdrawInProgress: false,
   lastWithdrawResult: null,
+  lastCompletedWithdrawalTimestamp: null,
+  lastCompletedWithdrawalTxHashes: [],
   withdrawalRequests: [],
   withdrawalProgress: {
     progress: 0,
@@ -133,6 +146,10 @@ export const createMockPerpsControllerState = (
     testnet: [],
     mainnet: [],
   },
+  recentlyViewedMarkets: {
+    testnet: [],
+    mainnet: [],
+  },
   tradeConfigurations: {
     testnet: {},
     mainnet: {},
@@ -147,6 +164,8 @@ export const createMockPerpsControllerState = (
   selectedPaymentToken: null,
   cachedMarketDataByProvider: {},
   cachedUserDataByProvider: {},
+  mode: DEFAULT_PERPS_MODE,
+  proLayoutPreferences: DEFAULT_PRO_LAYOUT_PREFERENCES,
   ...overrides,
 });
 

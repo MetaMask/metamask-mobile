@@ -2,7 +2,7 @@ import React from 'react';
 import TransactionElement from './';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import {
   TransactionType,
   WalletDevice,
@@ -12,7 +12,7 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../core/Analytics/events/transactions';
 
@@ -106,8 +106,8 @@ describe('TransactionElement', () => {
     jest.useRealTimers();
   });
 
-  it('renders correctly', () => {
-    const component = renderWithProvider(
+  it('renders correctly', async () => {
+    renderWithProvider(
       <Provider store={store}>
         <TransactionElement
           tx={{
@@ -126,7 +126,9 @@ describe('TransactionElement', () => {
         />
       </Provider>,
     );
-    expect(component).toMatchSnapshot();
+    await waitFor(() => {
+      expect(screen.getByText('Test Action')).toBeOnTheScreen();
+    });
   });
 
   describe('MUSD conversion navigation', () => {
@@ -166,20 +168,52 @@ describe('TransactionElement', () => {
       // Press the transaction element
       fireEvent.press(getByText('Test Action'));
 
-      // First, navigation goes to TRANSACTIONS_VIEW to ensure correct context
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-
-      // Then after timeout, navigates to TRANSACTION_DETAILS
-      jest.advanceTimersByTime(100);
-
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
         transactionId: musdConversionTx.id,
       });
     });
   });
 
+  describe('Money account navigation', () => {
+    it('navigates to TransactionDetails when transaction type is moneyAccountDeposit', async () => {
+      const moneyAccountTx = {
+        id: 'money-account-tx-456',
+        type: TransactionType.moneyAccountDeposit,
+        chainId: '0x1',
+        status: 'confirmed',
+        time: Date.now(),
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x1',
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={moneyAccountTx}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      fireEvent.press(getByText('Test Action'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
+        transactionId: moneyAccountTx.id,
+      });
+    });
+  });
+
   describe('renderTxTime - "from this device" label', () => {
-    it('renders "from this device" label with nonce when nonce exists', () => {
+    it('renders "from this device" label with nonce when nonce exists', async () => {
       const txWithNonce = {
         id: 'tx-with-nonce-123',
         chainId: '0x1',
@@ -193,7 +227,7 @@ describe('TransactionElement', () => {
         },
       };
 
-      const component = renderWithProvider(
+      renderWithProvider(
         <Provider store={store}>
           <TransactionElement
             tx={txWithNonce}
@@ -203,10 +237,12 @@ describe('TransactionElement', () => {
         </Provider>,
       );
 
-      expect(component).toMatchSnapshot();
+      await waitFor(() => {
+        expect(screen.getByText(/from this device/i)).toBeOnTheScreen();
+      });
     });
 
-    it('renders "from this device" label without nonce for EIP-7702 transactions', () => {
+    it('renders "from this device" label without nonce for EIP-7702 transactions', async () => {
       const eip7702Tx = {
         id: 'eip7702-tx-123',
         chainId: '0x1',
@@ -220,7 +256,7 @@ describe('TransactionElement', () => {
         },
       };
 
-      const component = renderWithProvider(
+      renderWithProvider(
         <Provider store={store}>
           <TransactionElement
             tx={eip7702Tx}
@@ -230,11 +266,14 @@ describe('TransactionElement', () => {
         </Provider>,
       );
 
-      // The component should render without "#NaN"
-      expect(component).toMatchSnapshot();
+      // The component should render "from this device" without "#NaN"
+      await waitFor(() => {
+        expect(screen.getByText(/from this device/i)).toBeOnTheScreen();
+        expect(screen.queryByText(/#NaN/)).not.toBeOnTheScreen();
+      });
     });
 
-    it('renders date only when deviceConfirmedOn is not MM_MOBILE', () => {
+    it('renders date only when deviceConfirmedOn is not MM_MOBILE', async () => {
       const txWithoutDevice = {
         id: 'tx-without-device-123',
         chainId: '0x1',
@@ -248,7 +287,7 @@ describe('TransactionElement', () => {
         },
       };
 
-      const component = renderWithProvider(
+      renderWithProvider(
         <Provider store={store}>
           <TransactionElement
             tx={txWithoutDevice}
@@ -258,12 +297,78 @@ describe('TransactionElement', () => {
         </Provider>,
       );
 
-      expect(component).toMatchSnapshot();
+      await waitFor(() => {
+        expect(screen.getByText('Test Action')).toBeOnTheScreen();
+      });
+      expect(screen.queryByText(/from this device/i)).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Speed up and Cancel visibility when gas paid with alternate token', () => {
+    it('does not render Speed up and Cancel when selectedGasFeeToken is set', async () => {
+      const txWithGasFeeToken = {
+        id: 'tx-gas-fee-token-1',
+        chainId: '0x1',
+        status: 'submitted',
+        time: Date.now(),
+        selectedGasFeeToken: '0x12345678901234567890123456789012345678',
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x1',
+        },
+      };
+
+      const { getByText, queryByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={txWithGasFeeToken}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      expect(queryByText('Speed up')).not.toBeOnTheScreen();
+      expect(queryByText('Cancel')).not.toBeOnTheScreen();
+    });
+
+    it('renders Speed up and Cancel when status is submitted and selectedGasFeeToken is not set', async () => {
+      const submittedTx = {
+        id: 'tx-submitted-1',
+        chainId: '0x1',
+        status: 'submitted',
+        time: Date.now(),
+        txParams: {
+          to: '0x456',
+          from: '0x123',
+          nonce: '0x1',
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement
+            tx={submittedTx}
+            navigation={{ navigate: mockNavigate }}
+          />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(getByText('Test Action')).toBeTruthy();
+      });
+
+      expect(getByText('Speed up')).toBeOnTheScreen();
+      expect(getByText('Cancel')).toBeOnTheScreen();
     });
   });
 
   describe('analytics tracking', () => {
-    it('tracks Transaction Detail List Item Clicked when pressed', async () => {
+    it('tracks Activity Details Opened when pressed', async () => {
       const tx = {
         id: 'tx-analytics-1',
         type: TransactionType.simpleSend,
@@ -290,7 +395,7 @@ describe('TransactionElement', () => {
       fireEvent.press(getByText('Test Action'));
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+        ACTIVITY_DETAIL_EVENTS.OPENED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({

@@ -1,23 +1,24 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import { BigNumber } from 'bignumber.js';
 import React, { useLayoutEffect } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import Text, {
+  ButtonVariant,
+  HeaderStandard,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import ScreenView from '../../../../Base/ScreenView';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
 import {
@@ -29,11 +30,14 @@ import {
   formatTransactionDate,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsFundingTransactionView.styles';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 
 const PerpsFundingTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const route = useRoute<PerpsFundingTransactionRouteProp>();
 
   const selectedInternalAccount = useSelector(
@@ -54,10 +58,7 @@ const PerpsFundingTransactionView: React.FC = () => {
   if (!transaction) {
     return (
       <ScreenView>
-        <HeaderCompactStandard
-          includesTopInset
-          onBack={() => navigation.goBack()}
-        />
+        <HeaderStandard includesTopInset onBack={() => navigation.goBack()} />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
@@ -73,6 +74,11 @@ const PerpsFundingTransactionView: React.FC = () => {
     if (!explorerUrl) {
       return;
     }
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+      location: 'perps_transaction_details',
+      text: strings('perps.transactions.view_on_explorer'),
+      url: explorerUrl,
+    });
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -109,7 +115,7 @@ const PerpsFundingTransactionView: React.FC = () => {
 
   return (
     <ScreenView>
-      <HeaderCompactStandard
+      <HeaderStandard
         includesTopInset
         title={transaction.title}
         onBack={() => navigation.goBack()}
@@ -129,12 +135,15 @@ const PerpsFundingTransactionView: React.FC = () => {
             {detailRows.map((detail, index) => (
               <View key={index} style={styles.detailRow}>
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
                 >
                   {detail.label}
                 </Text>
-                <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextDefault}
+                >
                   {detail.value}
                 </Text>
               </View>
@@ -144,13 +153,14 @@ const PerpsFundingTransactionView: React.FC = () => {
           {/* Block explorer button */}
           <Button
             testID={PerpsTransactionSelectorsIDs.BLOCK_EXPLORER_BUTTON}
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('perps.transactions.view_on_explorer')}
+            isFullWidth
             onPress={handleViewOnBlockExplorer}
             style={styles.blockExplorerButton}
-          />
+          >
+            {strings('perps.transactions.view_on_explorer')}
+          </Button>
         </View>
       </ScrollView>
     </ScreenView>

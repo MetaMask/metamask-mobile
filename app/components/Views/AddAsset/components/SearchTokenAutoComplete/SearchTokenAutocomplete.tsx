@@ -1,13 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import {
-  InteractionManager,
-  TextInput,
-  TouchableOpacity,
-  LayoutAnimation,
-  Platform,
-} from 'react-native';
+import { InteractionManager, LayoutAnimation, Platform } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 import Alert, { AlertType } from '../../../../Base/Alert';
@@ -20,33 +13,32 @@ import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { selectUseTokenDetection } from '../../../../../selectors/preferencesController';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import Routes from '../../../../../constants/navigation/Routes';
 import SearchTokenResults from '../SearchTokenResults/SearchTokenResults';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
-import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
   Box,
-  BoxFlexDirection,
-  BoxAlignItems,
   Text,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
+  TextFieldSearch,
 } from '@metamask/design-system-react-native';
+import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Logger from '../../../../../util/Logger';
-import { CaipAssetType, Hex } from '@metamask/utils';
+import {
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
-import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokensController';
-import { selectMultichainAssets } from '../../../../../selectors/multichain/multichain';
-import { RootState } from '../../../../../reducers';
+import {
+  getAssetPreferences,
+  getAssetsBalance,
+  getCustomAssets,
+} from '../../../../../selectors/assets/assets-controller';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
@@ -58,19 +50,94 @@ import {
   convertTrendingAssetsToImporAssets,
   ImportAsset,
 } from '../../utils/utils';
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import useAssetVisibility, {
+  type UseAssetVisibilityReturn,
+} from '../../../../UI/TokenDetails/components/useAssetVisibility';
+import { filterExcludedImportAssets } from '../../../../../enablement/assets/networks-customization';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 interface Props {
   /**
 	/* navigation object required to push new views
 	*/
-  navigation: NavigationProp<ParamListBase>;
+  navigation: AppNavigationProp;
   tabLabel: string;
 
   /**
    * The selected network chain ID
    */
   selectedChainId: SupportedCaipChainId | Hex | null;
+}
+
+/**
+ * Address key used by SearchTokenResults for already-added checks.
+ * Non-EVM import assets use the CAIP-19 id as `address`; EVM uses the
+ * contract address extracted from the CAIP asset id.
+ */
+function addressKeyFromAssetId(
+  assetId: string,
+  isNonEvm: boolean,
+): string | undefined {
+  if (isNonEvm) {
+    return assetId.toLowerCase();
+  }
+  try {
+    return parseCaipAssetType(
+      assetId as CaipAssetType,
+    ).assetReference.toLowerCase();
+  } catch {
+    return undefined;
+  }
+}
+
+function assetIdBelongsToChain(assetId: string, caipChainId: string): boolean {
+  try {
+    const { chain } = parseCaipAssetType(assetId as CaipAssetType);
+    return `${chain.namespace}:${chain.reference}` === caipChainId;
+  } catch {
+    return false;
+  }
+}
+
+/** Adds one searched asset to the account that matches the asset's chain. */
+async function addSingleToken(
+  asset: ImportAsset,
+  selectInternalAccountByScope: (
+    scope: SupportedCaipChainId,
+  ) => InternalAccount | undefined,
+  handleAddCustomAsset: UseAssetVisibilityReturn['handleAddCustomAsset'],
+): Promise<boolean> {
+  const chainId = asset.chainId;
+  const isNonEvm = isNonEvmChainId(chainId);
+  const caipChainId = formatChainIdToCaip(chainId);
+  const account = selectInternalAccountByScope(
+    caipChainId as SupportedCaipChainId,
+  );
+  if (!account?.id) {
+    return false;
+  }
+
+  const assetId = isNonEvm
+    ? (asset.address as CaipAssetType)
+    : toAssetId(asset.address, caipChainId);
+  if (!assetId) {
+    return true;
+  }
+
+  await handleAddCustomAsset(
+    assetId,
+    {
+      address: asset.address,
+      symbol: asset.symbol,
+      name: asset.name ?? '',
+      decimals: asset.decimals ?? 0,
+      chainId: isNonEvm ? asset.chainId : caipChainId,
+    },
+    account.id,
+  );
+  return true;
 }
 
 /**
@@ -94,17 +161,20 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
       option: PriceChangeOption.MarketCap,
       direction: SortDirection.Descending,
     },
+    includeStocks: true,
   });
 
-  // Convert API search results to ImportAsset format
+  // Convert API search results to ImportAsset format, hiding excluded
+  // homonym ERC-20s (e.g. Arc USDC) which duplicate the native gas token.
   const allTokens = useMemo(() => {
     if (!selectedChainId) return [];
 
-    return convertTrendingAssetsToImporAssets(apiResults);
+    return filterExcludedImportAssets(
+      convertTrendingAssetsToImporAssets(apiResults),
+      selectedChainId,
+    );
   }, [apiResults, selectedChainId]);
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedAssets, setSelectedAssets] = useState<ImportAsset[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
@@ -116,52 +186,57 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     selectSelectedInternalAccountByScope,
   );
 
-  // Get already added EVM tokens for the selected chain
-  const addedEvmTokens = useSelector((state: RootState) =>
-    selectedChainId && !isNonEvmChainId(selectedChainId)
-      ? selectTokensByChainIdAndAddress(state, selectedChainId as Hex)
-      : {},
-  );
+  const { handleAddCustomAsset } = useAssetVisibility();
 
-  // Get already added non-EVM tokens
-  const multichainAssets = useSelector(selectMultichainAssets);
+  const customAssets = useSelector(getCustomAssets);
+  const assetsBalance = useSelector(getAssetsBalance);
+  const assetPreferences = useSelector(getAssetPreferences);
 
-  // Create a Set of already added token addresses for quick lookup
+  // Create a Set of already added token addresses for quick lookup, sourced
+  // from AssetsController (custom + detected, excluding hidden).
   const alreadyAddedTokens = useMemo(() => {
     const addresses = new Set<string>();
 
     // Native tokens are always "added" since they're inherent to the chain
     addresses.add(NATIVE_SWAPS_TOKEN_ADDRESS.toLowerCase());
 
-    if (selectedChainId) {
-      if (isNonEvmChainId(selectedChainId)) {
-        // For non-EVM chains
-        const selectedNonEvmAccount = selectInternalAccountByScope(
-          selectedChainId as SupportedCaipChainId,
-        );
-        if (selectedNonEvmAccount?.id) {
-          const accountAssets =
-            multichainAssets?.[selectedNonEvmAccount.id] || [];
-          // accountAssets is an array of CAIP asset address strings
-          accountAssets.forEach((assetAddress: string) => {
-            // Extract the token address from CAIP format (e.g., "bip122:..." or "solana:...")
-            // The address is already the full identifier, just normalize it
-            addresses.add(assetAddress.toLowerCase());
-          });
-        }
-      } else {
-        // For EVM chains
-        Object.keys(addedEvmTokens).forEach((address) => {
-          addresses.add(address.toLowerCase());
-        });
-      }
+    if (!selectedChainId) {
+      return addresses;
     }
+
+    const caipChainId = formatChainIdToCaip(selectedChainId);
+    const account = selectInternalAccountByScope(
+      caipChainId as SupportedCaipChainId,
+    );
+    if (!account?.id) {
+      return addresses;
+    }
+
+    const isNonEvm = isNonEvmChainId(selectedChainId);
+    const presentAssetIds = new Set<string>([
+      ...(customAssets[account.id] ?? []),
+      ...Object.keys(assetsBalance[account.id] ?? {}),
+    ]);
+
+    presentAssetIds.forEach((assetId) => {
+      if (!assetIdBelongsToChain(assetId, caipChainId)) {
+        return;
+      }
+      if (assetPreferences[assetId]?.hidden === true) {
+        return;
+      }
+      const addressKey = addressKeyFromAssetId(assetId, isNonEvm);
+      if (addressKey) {
+        addresses.add(addressKey);
+      }
+    });
 
     return addresses;
   }, [
     selectedChainId,
-    addedEvmTokens,
-    multichainAssets,
+    customAssets,
+    assetsBalance,
+    assetPreferences,
     selectInternalAccountByScope,
   ]);
 
@@ -174,14 +249,22 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   );
 
   const getTokenAddedAnalyticsParams = useCallback(
-    ({ address, symbol }: { address: Hex; symbol: string }) => {
+    ({
+      address,
+      symbol,
+      chainId,
+    }: {
+      address: Hex;
+      symbol: string;
+      chainId: CaipChainId | Hex | null;
+    }) => {
+      const getAnalyticsChainId = () =>
+        chainId ? getDecimalChainId(chainId) : undefined;
       try {
         return {
           token_address: address,
           token_symbol: symbol,
-          chain_id: selectedChainId
-            ? getDecimalChainId(selectedChainId)
-            : undefined,
+          chain_id: getAnalyticsChainId(),
           source: 'Add token dropdown',
         };
       } catch (error) {
@@ -192,7 +275,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
         return undefined;
       }
     },
-    [selectedChainId],
+    [],
   );
 
   const handleSelectAsset = useCallback(
@@ -221,53 +304,32 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
   );
 
   const addTokens = useCallback(async () => {
-    if (!selectedChainId) {
+    if (selectedAssets.length === 0) {
       return;
     }
 
-    const addresses = selectedAssets.map((asset) => asset.address);
-    if (isNonEvmChainId(selectedChainId)) {
-      const selectedNonEvmAccount = selectInternalAccountByScope(
-        selectedChainId as SupportedCaipChainId,
+    try {
+      await Promise.all(
+        selectedAssets.map(async (asset) => {
+          await addSingleToken(
+            asset,
+            selectInternalAccountByScope,
+            handleAddCustomAsset,
+          );
+        }),
       );
-
-      if (!selectedNonEvmAccount) {
-        Logger.log('SearchTokenAutoComplete: No account ID found');
-        return;
-      }
-
-      const { MultichainAssetsController } = Engine.context;
-      await MultichainAssetsController.addAssets(
-        addresses as CaipAssetType[],
-        selectedNonEvmAccount.id,
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'SearchTokenAutoComplete: addCustomAsset failed',
       );
-    } else {
-      const networkConfig =
-        Engine.context.NetworkController.state
-          ?.networkConfigurationsByChainId?.[selectedChainId as Hex];
-
-      if (!networkConfig) {
-        return;
-      }
-
-      const networkClient =
-        networkConfig?.rpcEndpoints?.[networkConfig?.defaultRpcEndpointIndex]
-          ?.networkClientId;
-
-      if (!networkClient) {
-        return;
-      }
-
-      // TODO: Replace "any" with type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { TokensController } = Engine.context;
-      await TokensController.addTokens(selectedAssets, networkClient);
     }
 
     selectedAssets.forEach((asset) => {
       const analyticsParams = getTokenAddedAnalyticsParams({
         address: asset.address as Hex,
         symbol: asset.symbol,
+        chainId: asset.chainId,
       });
 
       if (analyticsParams) {
@@ -284,20 +346,8 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     createEventBuilder,
     selectInternalAccountByScope,
     selectedAssets,
-    selectedChainId,
+    handleAddCustomAsset,
   ]);
-
-  /**
-   * Go to wallet page
-   */
-  const goToWalletPage = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
-  }, [navigation]);
 
   const addTokenList = useCallback(async () => {
     await addTokens();
@@ -305,7 +355,6 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
     setSelectedAssets([]);
 
     InteractionManager.runAfterInteractions(() => {
-      goToWalletPage();
       NotificationManager.showSimpleNotification({
         status: `import_success`,
         duration: 5000,
@@ -318,7 +367,7 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
             : strings('wallet.token_toast.token_imported_desc_1'),
       });
     });
-  }, [addTokens, selectedAssets, goToWalletPage]);
+  }, [addTokens, selectedAssets]);
 
   const networkName = useSelector(selectNetworkName);
 
@@ -398,42 +447,24 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
 
       <Box twClassName="flex-1">
         <Box twClassName="m-4">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="bg-muted rounded-lg px-3"
-            style={tw.style('min-h-[44px]')}
-            testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}
-          >
-            <Icon
-              name={IconName.Search}
-              size={IconSize.Md}
-              color={IconColor.IconMuted}
-              style={tw.style('mr-2')}
-            />
-            <TextInput
-              style={tw.style('flex-1 text-base text-default')}
+          <Box testID={ImportTokenViewSelectorsIDs.ASSET_SEARCH_CONTAINER}>
+            <TextFieldSearch
               value={searchQuery}
+              onChangeText={setSearchQuery}
+              onPressClearButton={() => setSearchQuery('')}
+              clearButtonProps={{
+                testID: ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR,
+              }}
+              inputProps={{
+                autoCapitalize: 'none',
+                keyboardAppearance: themeAppearance,
+                testID: ImportTokenViewSelectorsIDs.SEARCH_BAR,
+              }}
               onFocus={() => setFocusState(true)}
               onBlur={() => setFocusState(false)}
+              autoFocus={false}
               placeholder={strings('token.search_tokens_placeholder')}
-              placeholderTextColor={colors.text.muted}
-              onChangeText={setSearchQuery}
-              testID={ImportTokenViewSelectorsIDs.SEARCH_BAR}
-              keyboardAppearance={themeAppearance}
             />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity
-                onPress={() => setSearchQuery('')}
-                testID={ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR}
-              >
-                <Icon
-                  name={IconName.CircleX}
-                  size={IconSize.Md}
-                  color={IconColor.IconAlternative}
-                />
-              </TouchableOpacity>
-            )}
           </Box>
         </Box>
 
@@ -442,7 +473,6 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
           searchQuery={searchQuery}
           handleSelectAsset={handleSelectAsset}
           selectedAsset={selectedAssets}
-          chainId={selectedChainId ?? ''}
           networkName={networkName}
           alreadyAddedTokens={alreadyAddedTokens}
           isLoading={isLoading}
@@ -451,14 +481,15 @@ const SearchTokenAutocomplete = ({ navigation, selectedChainId }: Props) => {
 
       <Box style={tw.style('px-4 pt-6', Platform.OS !== 'android' && 'pb-4')}>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('transaction.next')}
+          isFullWidth
           onPress={goToConfirmAddToken}
           isDisabled={selectedAssets.length < 1}
           testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
-        />
+        >
+          {strings('transaction.next')}
+        </Button>
       </Box>
     </Box>
   );

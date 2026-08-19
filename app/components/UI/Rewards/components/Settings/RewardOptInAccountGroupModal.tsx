@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { FlatList } from 'react-native-gesture-handler';
 import {
   Box,
@@ -10,11 +11,11 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { AccountGroupId } from '@metamask/account-api';
 import { selectAccountGroupById } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { useSelector } from 'react-redux';
@@ -49,7 +50,7 @@ interface FlattenedAddressItem {
 }
 
 const RewardOptInAccountGroupModal: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const { accountGroupId, addressData } = route.params as RouteParams;
   const { height: screenHeight } = useWindowDimensions();
@@ -373,7 +374,7 @@ const RewardOptInAccountGroupModal: React.FC = () => {
       onClose={handleDismiss}
     >
       {Boolean(accountGroupContext?.metadata?.name) && (
-        <HeaderCompactStandard
+        <HeaderStandard
           title={accountGroupContext?.metadata.name}
           onClose={() => sheetRef.current?.onCloseBottomSheet()}
           closeButtonProps={{ testID: 'header-close-button' }}

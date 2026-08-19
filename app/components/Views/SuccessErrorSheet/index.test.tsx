@@ -49,20 +49,13 @@ describe('SuccessErrorSheet', () => {
     jest.clearAllMocks();
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(
-      <SuccessErrorSheet route={mockRoute} />,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('renders correctly with all props', () => {
     const { getByText, getByRole } = renderWithProvider(
       <SuccessErrorSheet route={mockRoute} />,
     );
 
-    expect(getByText('Test Title')).toBeTruthy();
-    expect(getByText('Test Description')).toBeTruthy();
+    expect(getByText('Test Title')).toBeOnTheScreen();
+    expect(getByText('Test Description')).toBeOnTheScreen();
 
     const primaryButton = getByRole('button', { name: 'Primary' });
     const secondaryButton = getByRole('button', { name: 'Secondary' });
@@ -94,8 +87,8 @@ describe('SuccessErrorSheet', () => {
       <SuccessErrorSheet route={mockErrorRoute} />,
     );
 
-    expect(getByText('Test Title')).toBeTruthy();
-    expect(getByText('Test Description')).toBeTruthy();
-    expect(getByText('Custom Button')).toBeTruthy();
+    expect(getByText('Test Title')).toBeOnTheScreen();
+    expect(getByText('Test Description')).toBeOnTheScreen();
+    expect(getByText('Custom Button')).toBeOnTheScreen();
   });
 });

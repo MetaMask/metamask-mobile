@@ -1,4 +1,8 @@
 import React from 'react';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../../component-library/components/Icons/Icon';
 import SettingsModal from './SettingsModal';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
@@ -9,7 +13,7 @@ import { ToastContext } from '../../../../../../component-library/components/Toa
 import {
   getProviderToken,
   resetProviderToken,
-} from '../../../Deposit/utils/ProviderTokenVault';
+} from '../../../utils/ProviderTokenVault';
 import { PROVIDER_LINKS } from '../../../Aggregator/types';
 import type { Provider } from '@metamask/ramps-controller';
 
@@ -17,7 +21,7 @@ const MOCK_SUPPORT_URL = 'https://support.test-provider.com';
 const MOCK_TRANSAK_SUPPORT_URL = 'https://support.transak.com';
 
 const createMockProvider = (overrides?: Partial<Provider>): Provider => ({
-  id: '/providers/test-provider',
+  id: 'test-provider',
   name: 'Test Provider',
   environmentType: 'PRODUCTION',
   description: 'Test Provider Description',
@@ -32,8 +36,8 @@ const createMockProvider = (overrides?: Partial<Provider>): Provider => ({
   ...overrides,
 });
 
-const TRANSAK_PROVIDER_ID = '/providers/transak-native';
-const TRANSAK_STAGING_PROVIDER_ID = '/providers/transak-native-staging';
+const TRANSAK_PROVIDER_ID = 'transak-native';
+const TRANSAK_STAGING_PROVIDER_ID = 'transak-native-staging';
 
 const createMockTransakProvider = (
   overrides?: Partial<Provider>,
@@ -71,7 +75,7 @@ const createMockTransakStagingProvider = (
   ...overrides,
 });
 
-jest.mock('../../../Deposit/utils/ProviderTokenVault', () => ({
+jest.mock('../../../utils/ProviderTokenVault', () => ({
   getProviderToken: jest.fn(),
   resetProviderToken: jest.fn(),
 }));
@@ -120,10 +124,11 @@ const mockInAppBrowser = InAppBrowser as jest.Mocked<typeof InAppBrowser>;
 let mockSelectedProvider: Provider | null = createMockProvider();
 const mockSetSelectedProvider = jest.fn();
 
-jest.mock('../../../hooks/useRampsController', () => ({
-  useRampsController: () => ({
+jest.mock('../../../hooks/useRampsProviders', () => ({
+  useRampsProviders: () => ({
     selectedProvider: mockSelectedProvider,
     setSelectedProvider: mockSetSelectedProvider,
+    setSelectedProviderForAsset: jest.fn(),
   }),
 }));
 
@@ -173,12 +178,6 @@ describe('SettingsModal', () => {
       success: false,
       error: 'No token found',
     });
-  });
-
-  it('render matches snapshot', () => {
-    const { toJSON } = renderWithProvider(SettingsModal);
-
-    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays settings title in header', () => {
@@ -247,7 +246,7 @@ describe('SettingsModal', () => {
 
       const { queryByText } = renderWithProvider(SettingsModal);
 
-      expect(queryByText('Contact support')).toBeNull();
+      expect(queryByText('Contact support')).not.toBeOnTheScreen();
     });
   });
 
@@ -290,8 +289,8 @@ describe('SettingsModal', () => {
       expect(mockShowToast).toHaveBeenCalledWith({
         variant: 'Icon',
         labelOptions: [{ label: 'Successfully logged out' }],
-        iconName: 'CheckBold',
-        iconColor: 'Success',
+        iconName: IconName.Confirmation,
+        iconColor: IconColor.Success,
         hasNoTimeout: false,
       });
     });
@@ -315,7 +314,7 @@ describe('SettingsModal', () => {
         variant: 'Icon',
         labelOptions: [{ label: 'Error logging out' }],
         iconName: 'CircleX',
-        iconColor: 'Error',
+        iconColor: IconColor.Error,
         hasNoTimeout: false,
       });
     });
@@ -336,7 +335,7 @@ describe('SettingsModal', () => {
       const { queryByText } = renderWithProvider(SettingsModal);
 
       await waitFor(() => {
-        expect(queryByText(/Log out of/)).toBeNull();
+        expect(queryByText(/Log out of/)).not.toBeOnTheScreen();
       });
     });
   });
@@ -354,7 +353,7 @@ describe('SettingsModal', () => {
       const { queryByText } = renderWithProvider(SettingsModal);
 
       await waitFor(() => {
-        expect(queryByText('Log out of Transak')).toBeNull();
+        expect(queryByText('Log out of Transak')).not.toBeOnTheScreen();
       });
     });
   });
@@ -367,7 +366,7 @@ describe('SettingsModal', () => {
     it('hides contact support option', () => {
       const { queryByText } = renderWithProvider(SettingsModal);
 
-      expect(queryByText('Contact support')).toBeNull();
+      expect(queryByText('Contact support')).not.toBeOnTheScreen();
     });
 
     it('hides logout option even when authenticated', async () => {
@@ -383,7 +382,7 @@ describe('SettingsModal', () => {
       const { queryByText } = renderWithProvider(SettingsModal);
 
       await waitFor(() => {
-        expect(queryByText(/Log out of/)).toBeNull();
+        expect(queryByText(/Log out of/)).not.toBeOnTheScreen();
       });
     });
   });

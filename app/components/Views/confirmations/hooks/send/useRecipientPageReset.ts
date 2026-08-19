@@ -4,7 +4,7 @@ import { SOLANA_WALLET_SNAP_ID } from '../../../../../core/SnapKeyring/SolanaWal
 import useApprovalRequest, { ApprovalRequestType } from '../useApprovalRequest';
 
 export const useRecipientPageReset = (resetRecipientPage: () => void) => {
-  const request = useRef<ApprovalRequestType>();
+  const request = useRef<ApprovalRequestType | undefined>(undefined);
   const { approvalRequest } = useApprovalRequest();
 
   useEffect(() => {

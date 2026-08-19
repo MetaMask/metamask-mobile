@@ -3,10 +3,9 @@ import { useDispatch } from 'react-redux';
 import { parseUrl } from 'query-string';
 import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { Provider } from '@consensys/on-ramp-sdk';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
-import { useTheme } from '../../../../../../util/theme';
-import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useRampSDK, SDK } from '../../sdk';
 import {
   addFiatCustomIdData,
@@ -40,8 +39,12 @@ import {
 } from '../../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
+import { useTheme } from '../../../../../../util/theme';
+import { AppThemeKey } from '../../../../../../util/theme/models';
+import { getProviderWebviewColors } from '../../../utils/getProviderWebviewColors';
 import Device from '../../../../../../util/device';
 import { shouldStartLoadWithRequest } from '../../../../../../util/browser';
+import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
 
 interface CheckoutParams {
   url: string;
@@ -63,14 +66,21 @@ const CheckoutWebView = () => {
   const [customIdData, setCustomIdData] = useState<CustomIdData>();
   const [isRedirectionHandled, setIsRedirectionHandled] = useState(false);
   const [key, setKey] = useState(0);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<CheckoutParams>();
-  const theme = useTheme();
   const handleSuccessfulOrder = useHandleSuccessfulOrder();
 
-  const { styles } = useStyles(styleSheet, {});
-
   const { url: uri, customOrderId, provider } = params;
+
+  // Resolve the provider's iframe background color for the current theme.
+  // Applied to both the component-library BottomSheet (via providerBgStyle) and
+  // the WebView (via styles.webview) so the native chrome matches the embedded
+  // checkout seamlessly. Unknown providers fall back to the BottomSheet default surface.
+  const { themeAppearance } = useTheme();
+  const isDark = themeAppearance === AppThemeKey.dark;
+  const providerBg = getProviderWebviewColors(provider?.id, isDark);
+  const { styles } = useStyles(styleSheet, { providerBg });
+  const providerBgStyle = { backgroundColor: providerBg };
 
   const handleCancelPress = useCallback(() => {
     const chainId = selectedAsset?.network?.chainId || '';
@@ -93,17 +103,6 @@ const CheckoutWebView = () => {
     handleCancelPress();
     sheetRef.current?.onCloseBottomSheet();
   }, [handleCancelPress]);
-
-  useEffect(() => {
-    navigation.setOptions(
-      getDepositNavbarOptions(
-        navigation,
-        { title: provider.name },
-        theme,
-        handleCancelPress,
-      ),
-    );
-  }, [navigation, theme, handleCancelPress, provider.name]);
 
   useEffect(() => {
     if (
@@ -136,7 +135,7 @@ const CheckoutWebView = () => {
           // There was no query params in the URL to parse
           // Most likely the user clicked the X in Wyre widget
           // @ts-expect-error navigation prop mismatch
-          navigation.dangerouslyGetParent()?.pop();
+          navigation.getParent()?.pop();
           return;
         }
         if (!selectedAddress) {
@@ -201,7 +200,7 @@ const CheckoutWebView = () => {
               iconName={IconName.Close}
               size={ButtonIconSizes.Lg}
               iconColor={IconColor.Default}
-              testID="checkout-close-button"
+              testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
               onPress={handleClosePress}
             />
           }
@@ -233,7 +232,7 @@ const CheckoutWebView = () => {
               iconName={IconName.Close}
               size={ButtonIconSizes.Lg}
               iconColor={IconColor.Default}
-              testID="checkout-close-button"
+              testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
               onPress={handleClosePress}
             />
           }
@@ -265,6 +264,7 @@ const CheckoutWebView = () => {
         isFullscreen
         isInteractable={!Device.isAndroid()}
         keyboardAvoidingViewEnabled={false}
+        style={providerBgStyle}
       >
         <BottomSheetHeader
           endAccessory={
@@ -272,7 +272,7 @@ const CheckoutWebView = () => {
               iconName={IconName.Close}
               size={ButtonIconSizes.Lg}
               iconColor={IconColor.Default}
-              testID="checkout-close-button"
+              testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
               onPress={handleClosePress}
             />
           }
@@ -302,7 +302,7 @@ const CheckoutWebView = () => {
           onNavigationStateChange={handleNavigationStateChange}
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           userAgent={provider?.features?.buy?.userAgent ?? undefined}
-          testID="checkout-webview"
+          testID={CHECKOUT_TEST_IDS.WEBVIEW}
         />
       </BottomSheet>
     );
@@ -321,7 +321,7 @@ const CheckoutWebView = () => {
             iconName={IconName.Close}
             size={ButtonIconSizes.Lg}
             iconColor={IconColor.Default}
-            testID="checkout-close-button"
+            testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
             onPress={handleClosePress}
           />
         }

@@ -3,6 +3,7 @@
  */
 
 import {
+  formatPerpsBalance,
   formatPerpsFiat,
   formatPnl,
   formatPercentage,
@@ -11,13 +12,16 @@ import {
   formatPositionSize,
   formatLeverage,
   parseCurrencyString,
+  truncateToTwoDecimals,
   parsePercentageString,
   formatTransactionDate,
+  formatProOrderCardTimestamp,
   formatDateSection,
   formatFundingRate,
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
   formatPositiveFiat,
+  formatPerpsPrice,
 } from './formatUtils';
 import {
   countSignificantFigures,
@@ -571,20 +575,20 @@ describe('formatUtils', () => {
         formatPerpsFiat(0.0000012, { ranges: PRICE_RANGES_UNIVERSAL }),
       ).toBe('$0.000001'); // 4 sig figs: 1,2,0,0 → rounds to $0.000001
 
-      // Very small value that rounds to 0 after 6 decimal cap
+      // Very small value below VERY_SMALL threshold (0.000001) → <$0 prefix
       expect(
         formatPerpsFiat(0.00000045, { ranges: PRICE_RANGES_UNIVERSAL }),
-      ).toBe('$0'); // Rounds to 0 with 6 decimal cap
+      ).toBe('<$0'); // Below threshold: shows <$X prefix
 
       // Edge case: exactly at 6 decimal boundary
       expect(
         formatPerpsFiat(0.000001, { ranges: PRICE_RANGES_UNIVERSAL }),
       ).toBe('$0.000001'); // 1 sig fig at boundary
 
-      // Example from rules-decimals.md: 0.0000004 → 0 (rounds down with cap)
+      // Example from rules-decimals.md: 0.0000004 → below threshold → <$0 prefix
       expect(
         formatPerpsFiat(0.0000004, { ranges: PRICE_RANGES_UNIVERSAL }),
-      ).toBe('$0');
+      ).toBe('<$0');
     });
 
     describe('PRICE_RANGES_UNIVERSAL boundary testing', () => {
@@ -941,6 +945,62 @@ describe('formatUtils', () => {
     });
   });
 
+  describe('truncateToTwoDecimals', () => {
+    it('truncates without rounding up', () => {
+      expect(truncateToTwoDecimals(16.069)).toBe(16.06);
+      expect(truncateToTwoDecimals(16.999)).toBe(16.99);
+      expect(truncateToTwoDecimals(0.009)).toBe(0);
+    });
+
+    it('preserves values with 2 or fewer decimals', () => {
+      expect(truncateToTwoDecimals(16.07)).toBe(16.07);
+      expect(truncateToTwoDecimals(16)).toBe(16);
+      expect(truncateToTwoDecimals(0)).toBe(0);
+    });
+
+    it('handles IEEE 754 edge cases correctly', () => {
+      expect(truncateToTwoDecimals(10.29)).toBe(10.29);
+      expect(truncateToTwoDecimals(1.005)).toBe(1);
+      expect(truncateToTwoDecimals(0.1 + 0.2)).toBe(0.3);
+    });
+
+    it('handles negative values', () => {
+      expect(truncateToTwoDecimals(-16.069)).toBe(-16.06);
+      expect(truncateToTwoDecimals(-10.29)).toBe(-10.29);
+    });
+  });
+
+  describe('formatPerpsBalance', () => {
+    it('truncates values that would otherwise round up under halfExpand', () => {
+      // Without truncation, Intl.NumberFormat would render $50.39 for 50.389.
+      // formatPerpsBalance must show $50.38 so the Max button and
+      // insufficient-balance comparisons stay consistent.
+      expect(formatPerpsBalance('50.389')).toBe('$50.38');
+      expect(formatPerpsBalance('50.385')).toBe('$50.38');
+      expect(formatPerpsBalance('50.399')).toBe('$50.39');
+    });
+
+    it('preserves values that already have two decimals', () => {
+      expect(formatPerpsBalance('50.39')).toBe('$50.39');
+    });
+
+    it('accepts numeric input', () => {
+      expect(formatPerpsBalance(50.389)).toBe('$50.38');
+      expect(formatPerpsBalance(0)).toBe('$0');
+    });
+
+    it('strips currency formatting from input strings', () => {
+      expect(formatPerpsBalance('$1,232.39')).toBe('$1,232.39');
+      expect(formatPerpsBalance('$50.389')).toBe('$50.38');
+    });
+
+    it('returns zero for null, undefined, or empty input', () => {
+      expect(formatPerpsBalance(null)).toBe('$0');
+      expect(formatPerpsBalance(undefined)).toBe('$0');
+      expect(formatPerpsBalance('')).toBe('$0');
+    });
+  });
+
   describe('parsePercentageString', () => {
     it('should parse formatted percentage strings', () => {
       expect(parsePercentageString('+2.50%')).toBe(2.5);
@@ -1002,6 +1062,20 @@ describe('formatUtils', () => {
       expect(formatTransactionDate(zeroTimestamp)).toMatch(
         /January 1, 1970 at \d{1,2}:\d{2} (AM|PM)/,
       );
+    });
+  });
+
+  describe('formatProOrderCardTimestamp', () => {
+    it('formats order placement time in Figma pro-card style', () => {
+      // Local timezone-aware: construct from Date parts so the assertion is stable.
+      const date = new Date(2026, 3, 6, 19, 13, 54);
+      expect(formatProOrderCardTimestamp(date.getTime())).toBe(
+        '06 Apr 26 • 19:13:54',
+      );
+    });
+
+    it('returns empty string for invalid timestamps', () => {
+      expect(formatProOrderCardTimestamp(Number.NaN)).toBe('');
     });
   });
 
@@ -1212,7 +1286,7 @@ describe('formatUtils', () => {
         priceRange: '$0.00001-$0.0001',
         expected4SF: '$0.000012',
         expectedDetailed: '$0.00001234',
-        expectedMinimal: '$0',
+        expectedMinimal: '<$0.01',
         expectedUserInput: '$0.000012345',
       },
       {
@@ -1220,7 +1294,7 @@ describe('formatUtils', () => {
         priceRange: '$0.00001-$0.0001',
         expected4SF: '$0.000099',
         expectedDetailed: '$0.00009876',
-        expectedMinimal: '$0',
+        expectedMinimal: '<$0.01',
         expectedUserInput: '$0.000098765',
       },
       {
@@ -1228,7 +1302,7 @@ describe('formatUtils', () => {
         priceRange: '$0.00001-$0.0001',
         expected4SF: '$0.00005',
         expectedDetailed: '$0.00005',
-        expectedMinimal: '$0',
+        expectedMinimal: '<$0.01',
         expectedUserInput: '$0.00005',
       },
       // <$0.00001 range (<$0.01: 4 sig figs)
@@ -1237,7 +1311,7 @@ describe('formatUtils', () => {
         priceRange: '<$0.00001',
         expected4SF: '$0.000001',
         expectedDetailed: '$0.00000123',
-        expectedMinimal: '$0',
+        expectedMinimal: '<$0.01',
         expectedUserInput: '$0.00000123',
       },
       {
@@ -1245,7 +1319,7 @@ describe('formatUtils', () => {
         priceRange: '<$0.00001',
         expected4SF: '$0.000043',
         expectedDetailed: '$0.00004321',
-        expectedMinimal: '$0',
+        expectedMinimal: '<$0.01',
         expectedUserInput: '$0.00004321',
       },
       // Edge cases
@@ -1352,6 +1426,37 @@ describe('formatUtils', () => {
     });
 
     describe('PRICE_RANGES_UNIVERSAL (comprehensive formatting)', () => {
+      describe('formatPerpsPrice', () => {
+        it('uses market-aware Hyperliquid price precision when szDecimals is known', () => {
+          expect(formatPerpsPrice('2.1946', { szDecimals: 2 })).toBe('$2.1946');
+        });
+
+        it('returns market-aware price without currency symbol when requested', () => {
+          expect(
+            formatPerpsPrice('2.1946', {
+              szDecimals: 2,
+              includeCurrencySymbol: false,
+            }),
+          ).toBe('2.1946');
+        });
+
+        it('falls back to universal price ranges when szDecimals is null', () => {
+          expect(formatPerpsPrice(95123.45, { szDecimals: null })).toBe(
+            '$95,123',
+          );
+        });
+
+        it('falls back to universal price ranges when Hyperliquid formatting rejects the price', () => {
+          expect(formatPerpsPrice('not-a-price', { szDecimals: 2 })).toBe(
+            '$---',
+          );
+        });
+
+        it('falls back to universal price ranges when szDecimals is unknown', () => {
+          expect(formatPerpsPrice(95123.45)).toBe('$95,123');
+        });
+      });
+
       it('should format high-value BTC prices without decimals (> $10k)', () => {
         // BTC at $126k - no decimals for cleaner display
         expect(

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
+import { Image } from 'expo-image';
 import { useStyles } from '../../../../../component-library/hooks';
 import SensitiveText, {
   SensitiveTextLength,
@@ -13,7 +14,7 @@ import { formatPercentage, formatPrice } from '../../utils/format';
 import styleSheet from './PredictPosition.styles';
 import { PredictPositionSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   Text,
   TextColor,

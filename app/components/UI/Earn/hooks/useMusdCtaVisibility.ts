@@ -16,6 +16,10 @@ import { useMusdConversionTokens } from './useMusdConversionTokens';
 import { isTokenInWildcardList } from '../utils/wildcardTokenList';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
 import { useMusdConversionFlowData } from './useMusdConversionFlowData';
+import {
+  selectHasInFlightMusdConversion,
+  selectHasUnapprovedMusdConversion,
+} from '../selectors/musdConversionStatus';
 
 /**
  * Variant for the primary mUSD CTA.
@@ -90,6 +94,21 @@ export const useMusdCtaVisibility = () => {
 
   const { tokens: conversionTokens, hasConvertibleTokensByChainId } =
     useMusdConversionTokens();
+
+  const hasUnapprovedMusdConversion = useSelector(
+    selectHasUnapprovedMusdConversion,
+  );
+
+  const hasInFlightMusdConversion = useSelector(
+    selectHasInFlightMusdConversion,
+  );
+
+  // Covers the brief window where the tx is still `unapproved` before transitioning to `approved` after confirmation.
+  const hasNonTerminalMusdConversion =
+    hasUnapprovedMusdConversion || hasInFlightMusdConversion;
+
+  const isLastTokenBeingConverted =
+    hasNonTerminalMusdConversion && conversionTokens.length <= 1;
 
   const getConversionTokensWithCtas = useCallback(
     (tokens: AssetType[]) =>
@@ -206,6 +225,10 @@ export const useMusdCtaVisibility = () => {
       variant: null,
     };
 
+    if (isLastTokenBeingConverted) {
+      return hiddenResult;
+    }
+
     // If the buy/get mUSD CTA feature flag is disabled, don't show the buy/get mUSD CTA
     if (!isMusdGetBuyCtaEnabled) {
       return hiddenResult;
@@ -263,6 +286,7 @@ export const useMusdCtaVisibility = () => {
     hasMusdBalanceOnChain,
     isEmptyWallet,
     isGeoEligible,
+    isLastTokenBeingConverted,
     isMusdGetBuyCtaEnabled,
     isPopularNetworksFilterActive,
     selectedChainId,
@@ -294,6 +318,10 @@ export const useMusdCtaVisibility = () => {
 
   const shouldShowTokenListItemCta = useCallback(
     (asset?: TokenI) => {
+      if (isLastTokenBeingConverted) {
+        return false;
+      }
+
       if (!isMusdConversionTokenListItemCtaEnabled || !asset?.chainId) {
         return false;
       }
@@ -322,6 +350,7 @@ export const useMusdCtaVisibility = () => {
       hasMusdBalanceOnAnyChain,
       hasMusdBalanceOnChain,
       isGeoEligible,
+      isLastTokenBeingConverted,
       isMusdConversionTokenListItemCtaEnabled,
       isPopularNetworksFilterActive,
       isTokenWithCta,
@@ -330,6 +359,10 @@ export const useMusdCtaVisibility = () => {
 
   const shouldShowAssetOverviewCta = useCallback(
     (asset?: TokenI) => {
+      if (isLastTokenBeingConverted) {
+        return false;
+      }
+
       if (
         !isMusdConversionAssetOverviewEnabled ||
         !asset?.address ||
@@ -352,6 +385,7 @@ export const useMusdCtaVisibility = () => {
       return isTokenWithCta(asset);
     },
     [
+      isLastTokenBeingConverted,
       isMusdConversionAssetOverviewEnabled,
       isTokenWithCta,
       musdConversionAssetDetailCtasSeen,

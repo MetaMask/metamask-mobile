@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -62,7 +62,10 @@ export const usePredictPrices = (
     }
   }, [enabled]);
 
-  const queriesKey = JSON.stringify(queries);
+  // Memoize so the (potentially large) serialization only runs when the
+  // queries array identity actually changes, not on every re-render driven
+  // by live price ticks.
+  const queriesKey = useMemo(() => JSON.stringify(queries), [queries]);
 
   const fetchPrices = useCallback(async () => {
     if (!enabled) {
@@ -101,13 +104,6 @@ export const usePredictPrices = (
         setPrices(fetchedPrices);
         setError(null);
       }
-
-      // set up next poll if polling is enabled
-      if (pollingInterval && isMountedRef.current) {
-        pollingTimeoutRef.current = setTimeout(() => {
-          fetchPrices();
-        }, pollingInterval);
-      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Failed to fetch prices';
@@ -132,11 +128,15 @@ export const usePredictPrices = (
 
       if (isMountedRef.current) {
         setError(errorMessage);
-        setPrices({ providerId: '', results: [] });
       }
     } finally {
       if (isMountedRef.current) {
         setIsFetching(false);
+        if (pollingInterval && enabled) {
+          pollingTimeoutRef.current = setTimeout(() => {
+            fetchPrices();
+          }, pollingInterval);
+        }
       }
     }
     // eslint-disable-next-line react-compiler/react-compiler

@@ -10,10 +10,20 @@
  */
 import type { Hex } from '@metamask/utils';
 import { TokenI } from '../../Tokens/types';
+import {
+  PERPS_ADL_URL,
+  METAMASK_SUPPORT_URL,
+} from '../../../../constants/urls';
 
 /** Address used to represent "Perps balance" as the payment token (synthetic option). */
 export const PERPS_BALANCE_PLACEHOLDER_ADDRESS =
   '0x0000000000000000000000000000000000000000' as Hex;
+
+/**
+ * Collateral asset shown in market pair labels (e.g. `ETH-USD perp`).
+ * Perps markets are USD-margined, so this is the display quote across the UI.
+ */
+export const PERPS_COLLATERAL_SYMBOL = 'USD';
 
 /** Chain id used for the "Perps balance" payment option. */
 export { ARBITRUM_MAINNET_CHAIN_ID_HEX as PERPS_BALANCE_CHAIN_ID } from '@metamask/perps-controller/constants/hyperLiquidConfig';
@@ -86,6 +96,12 @@ export const LEVERAGE_SLIDER_CONFIG = {
 } as const;
 
 /**
+ * Maximum number of digits allowed in any perps price/size/percentage input.
+ * Prevents overflow and keeps inputs within safe numeric range.
+ */
+export const MAX_PERPS_INPUT_DIGITS = 9;
+
+/**
  * TP/SL View UI configuration
  * Controls the Take Profit / Stop Loss screen behavior and display options
  */
@@ -102,7 +118,7 @@ export const TP_SL_VIEW_CONFIG = {
 
   // Maximum number of digits allowed in price/percentage input fields
   // Prevents overflow and maintains reasonable input constraints
-  MaxInputDigits: 9,
+  MaxInputDigits: MAX_PERPS_INPUT_DIGITS,
 
   // Keypad configuration for price inputs
   // USD_PERPS is not a real currency - it's a custom configuration
@@ -127,24 +143,37 @@ export const LIMIT_PRICE_CONFIG = {
   // Direction-specific preset configurations (Mid/Bid/Ask buttons handled separately)
   LongPresets: [-1, -2], // Buy below market for long orders
   ShortPresets: [1, 2], // Sell above market for short orders
+
+  // Maximum allowed deviation of the order price from the reference (mark)
+  // price, as a decimal (0.95 = 95%). HyperLiquid rejects orders whose price is
+  // more than 95% away from the reference price ("oracleRejected"). The check is
+  // ratio-based: the smaller of the order price and the reference price must be
+  // at least (1 - 0.95) = 5% of the larger one. We block submission up front
+  // instead of letting the order fail at the exchange.
+  MaxDeviationFromMarket: 0.95,
 } as const;
 
-/**
- * Funding rate display configuration
- * Controls how funding rates are formatted and displayed across the app
- */
-export const FUNDING_RATE_CONFIG = {
-  // Number of decimal places to display for funding rates
-  Decimals: 4,
-  // Default display value when funding rate is zero or unavailable
-  ZeroDisplay: '0.0000%',
-  // Multiplier to convert decimal funding rate to percentage
-  PercentageMultiplier: 100,
-} as const;
+export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
 
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';
 export const PERPS_GTM_MODAL_ENGAGE = 'engage';
 export const PERPS_GTM_MODAL_DECLINE = 'decline';
+
+/**
+ * Retry policy for per-asset market-data fetches (TAT-3645).
+ *
+ * `getMarkets` throws while the Perps connection is still initialising (e.g.
+ * `CLIENT_NOT_INITIALIZED` right after unlocking, or during a reconnect). That
+ * is transient, not a verdict about the asset, so the fetch is retried across
+ * the initialisation window instead of being surfaced as a failure. The total
+ * budget comfortably covers a provider re-initialisation, which is ~1.5s.
+ */
+export const MARKET_DATA_FETCH_RETRY_CONFIG = {
+  /** Extra attempts after the first, when the fetch throws. */
+  MaxRetries: 3,
+  /** Delay between attempts. */
+  RetryDelayMs: 1000,
+} as const;
 
 /**
  * Development-only configuration for testing and debugging
@@ -172,9 +201,9 @@ export const HOME_SCREEN_CONFIG = {
   // Can be controlled via feature flag in the future
   ShowHeaderActionButtons: true,
 
-  // Maximum number of items to show in each carousel
-  PositionsCarouselLimit: 10,
-  OrdersCarouselLimit: 10,
+  // Maximum number of items to show in each carousel.
+  // Note: positions and orders are intentionally uncapped on the home screen —
+  // they render in a vertical ScrollView and must show every open entry.
   TrendingMarketsLimit: 5,
   RecentActivityLimit: 3,
 
@@ -202,7 +231,7 @@ export const LEARN_MORE_CONFIG = {
  * Contact support button configuration (matches Settings behavior)
  */
 export const SUPPORT_CONFIG = {
-  Url: 'https://support.metamask.io',
+  Url: METAMASK_SUPPORT_URL,
   TitleKey: 'perps.support.title',
   DescriptionKey: 'perps.support.description',
 } as const;
@@ -221,8 +250,7 @@ export const FEEDBACK_CONFIG = {
  * Links to specific MetaMask support articles for Perps features
  */
 export const PERPS_SUPPORT_ARTICLES_URLS = {
-  AdlUrl:
-    'https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/#what-is-auto-deleveraging-adl',
+  AdlUrl: PERPS_ADL_URL,
 } as const;
 
 /**
@@ -242,11 +270,6 @@ export const STOP_LOSS_PROMPT_CONFIG = {
   // Minimum loss threshold to show ANY banner (percentage)
   // No banner shown until ROE drops below this value
   MinLossThreshold: -10,
-
-  // Debounce duration for ROE threshold (milliseconds)
-  // User must have ROE below threshold for this duration before showing banner
-  // Prevents banner from appearing during temporary price fluctuations
-  RoeDebounceMs: 60_000, // 60 seconds
 
   // Minimum position age before showing any banner (milliseconds)
   // Prevents banner from appearing immediately after opening a position
@@ -307,3 +330,21 @@ export function getPerpsProviderChainId(
 ): string | undefined {
   return PERPS_PROVIDER_CHAIN_IDS[provider]?.[network];
 }
+
+// Re-export disk cache constants from controller layer
+export {
+  PERPS_DISK_CACHE_MARKETS,
+  PERPS_DISK_CACHE_USER_DATA,
+  PERPS_DISK_CACHE_THROTTLE_MS,
+} from '@metamask/perps-controller/constants/perpsConfig';
+
+/** Source identifiers for PerpsConnectionManager.connect/ensureConnected/resumeFromForeground calls. */
+export const PERPS_CONNECTION_SOURCE = {
+  WALLET_ROOT_MOUNT: 'wallet_root_mount',
+  WALLET_ROOT_RETRY: 'wallet_root_retry',
+  WALLET_ROOT_FOREGROUND: 'wallet_root_foreground',
+  TUTORIAL_PRELOAD: 'tutorial_preload',
+  PERPS_FULLSCREEN_ENTRY: 'perps_fullscreen_entry',
+  PERPS_CONNECTION_PROVIDER: 'perps_connection_provider',
+  UNSPECIFIED: 'unspecified',
+} as const;

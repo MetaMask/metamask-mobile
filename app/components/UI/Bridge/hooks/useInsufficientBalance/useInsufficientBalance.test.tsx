@@ -8,14 +8,15 @@ import { BigNumber } from 'ethers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope } from '@metamask/keyring-api';
 import { initialState } from '../../_mocks_/initialState';
-
-// Mock the selectBridgeQuotes selector
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let mockQuotes: any = null;
-jest.mock('../../../../../core/redux/slices/bridge', () => ({
-  ...jest.requireActual('../../../../../core/redux/slices/bridge'),
-  selectBridgeQuotes: jest.fn(() => mockQuotes),
-}));
+// eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
+import * as bridgeSlice from '../../../../../core/redux/slices/bridge';
+import {
+  ChainId,
+  getNativeAssetForChainId,
+  toBridgeAssetV2,
+  type DeepPartial,
+} from '@metamask/bridge-controller';
+import { merge } from 'lodash';
 
 // Mock selectMinSolBalance
 jest.mock('../../../../../selectors/bridgeController', () => ({
@@ -23,9 +24,26 @@ jest.mock('../../../../../selectors/bridgeController', () => ({
 }));
 
 // Helper to create a mock store with proper state structure
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createMockStore = (quotes: any): Store => {
-  mockQuotes = quotes;
+const createMockStore = (
+  quotes: DeepPartial<ReturnType<typeof bridgeSlice.selectBridgeQuotes>>,
+): Store => {
+  jest.spyOn(bridgeSlice, 'selectBridgeQuotes').mockImplementationOnce(() =>
+    merge(
+      {},
+      {
+        recommendedQuote: null,
+        sortedQuotes: [],
+        activeQuote: null,
+        quotesLastFetchedMs: 0,
+        isLoading: false,
+        quoteFetchError: null,
+        quotesRefreshCount: 0,
+        isQuoteGoingToRefresh: false,
+        quotesInitialLoadTimeMs: 0,
+      },
+      quotes,
+    ),
+  );
   const rootReducer = (state = initialState) => state;
   return createStore(rootReducer, initialState);
 };
@@ -37,9 +55,46 @@ const wrapper =
     <Provider store={store}>{children}</Provider>
   );
 
+type QuoteOverride = Exclude<
+  Parameters<typeof useIsInsufficientBalance>[0]['quoteOverride'],
+  undefined
+>;
+type QuoteWithGas = Exclude<QuoteOverride, null>;
+
+const createQuote = ({
+  gasIncluded = false,
+  gasIncluded7702 = false,
+  gasSponsored = false,
+  gasAmount = '0.001',
+}: {
+  gasIncluded?: boolean;
+  gasIncluded7702?: boolean;
+  gasSponsored?: boolean;
+  gasAmount?: string;
+} = {}): QuoteWithGas =>
+  ({
+    quote: {
+      gasIncluded,
+      gasIncluded7702,
+      gasSponsored,
+      feeData: {
+        network: [
+          {
+            normalizedAmount: gasAmount,
+            asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
+          },
+        ],
+      },
+    },
+  }) as QuoteWithGas;
+
 describe('useIsInsufficientBalance', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   afterEach(() => {
-    mockQuotes = null;
+    jest.restoreAllMocks();
   });
 
   describe('ERC-20 Tokens', () => {
@@ -100,10 +155,12 @@ describe('useIsInsufficientBalance', () => {
         recommendedQuote: {
           quote: {
             gasIncluded: false,
-          },
-          gasFee: {
-            effective: {
-              amount: '0.001', // 0.001 ETH gas
+            feeData: {
+              network: [
+                {
+                  normalizedAmount: '0.001', // 0.001 ETH gas
+                },
+              ],
             },
           },
         },
@@ -160,10 +217,13 @@ describe('useIsInsufficientBalance', () => {
         recommendedQuote: {
           quote: {
             gasIncluded: false, // Cross-chain, needs gas
-          },
-          gasFee: {
-            effective: {
-              amount: '0.01', // 0.01 ETH gas
+            feeData: {
+              network: [
+                {
+                  normalizedAmount: '0.01', // 0.01 ETH gas
+                  asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
+                },
+              ],
             },
           },
         },
@@ -188,10 +248,13 @@ describe('useIsInsufficientBalance', () => {
         recommendedQuote: {
           quote: {
             gasIncluded: false,
-          },
-          gasFee: {
-            effective: {
-              amount: '0.02', // 0.02 ETH gas
+            feeData: {
+              network: [
+                {
+                  normalizedAmount: '0.02', // 0.02 ETH gas
+                  asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
+                },
+              ],
             },
           },
         },
@@ -216,10 +279,13 @@ describe('useIsInsufficientBalance', () => {
         recommendedQuote: {
           quote: {
             gasIncluded: false,
-          },
-          gasFee: {
-            effective: {
-              amount: '0.001',
+            feeData: {
+              network: [
+                {
+                  normalizedAmount: '0.001', // 0.001 ETH gas
+                  asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
+                },
+              ],
             },
           },
         },
@@ -243,10 +309,13 @@ describe('useIsInsufficientBalance', () => {
         recommendedQuote: {
           quote: {
             gasIncluded: false,
-          },
-          gasFee: {
-            effective: {
-              amount: '1.5e-3', // 0.0015 ETH in scientific notation
+            feeData: {
+              network: [
+                {
+                  normalizedAmount: '1.5e-3', // 0.0015 ETH in scientific notation
+                  asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
+                },
+              ],
             },
           },
         },
@@ -272,10 +341,13 @@ describe('useIsInsufficientBalance', () => {
         recommendedQuote: {
           quote: {
             gasIncluded: false,
-          },
-          gasFee: {
-            effective: {
-              amount: '5e-2', // 0.05 ETH in scientific notation
+            feeData: {
+              network: [
+                {
+                  normalizedAmount: '5e-2', // 0.05 ETH in scientific notation
+                  asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
+                },
+              ],
             },
           },
         },
@@ -309,10 +381,15 @@ describe('useIsInsufficientBalance', () => {
         recommendedQuote: {
           quote: {
             gasIncluded: false,
-          },
-          gasFee: {
-            effective: {
-              amount: '0.1', // 0.1 MATIC gas
+            feeData: {
+              network: [
+                {
+                  normalizedAmount: '0.1', // 0.1 MATIC gas
+                  asset: toBridgeAssetV2(
+                    getNativeAssetForChainId(ChainId.POLYGON),
+                  ),
+                },
+              ],
             },
           },
         },
@@ -337,10 +414,15 @@ describe('useIsInsufficientBalance', () => {
         recommendedQuote: {
           quote: {
             gasIncluded: false,
-          },
-          gasFee: {
-            effective: {
-              amount: '1', // 1 MATIC gas
+            feeData: {
+              network: [
+                {
+                  normalizedAmount: '1', // 1 MATIC gas
+                  asset: toBridgeAssetV2(
+                    getNativeAssetForChainId(ChainId.POLYGON),
+                  ),
+                },
+              ],
             },
           },
         },
@@ -513,7 +595,7 @@ describe('useIsInsufficientBalance', () => {
     });
 
     it('still checks balance when no quote is available', () => {
-      const store = createMockStore(null);
+      const store = createMockStore({});
 
       const { result } = renderHook(
         () =>
@@ -527,6 +609,62 @@ describe('useIsInsufficientBalance', () => {
 
       // Should return true because 1 ETH > 0.5 ETH balance
       // Even without a quote, basic balance check still applies
+      expect(result.current).toBe(true);
+    });
+
+    it('uses quoteOverride instead of the Redux recommended quote', () => {
+      const store = createMockStore({
+        recommendedQuote: createQuote({ gasAmount: '0.02' }),
+      });
+
+      const { result } = renderHook(
+        () =>
+          useIsInsufficientBalance({
+            amount: '0.99',
+            token: ethToken,
+            latestAtomicBalance: BigNumber.from('1000000000000000000'),
+            quoteOverride: createQuote({ gasIncluded: true }),
+          }),
+        { wrapper: wrapper(store) },
+      );
+
+      expect(result.current).toBe(false);
+    });
+
+    it('ignores the Redux recommended quote when quoteOverride is null', () => {
+      const store = createMockStore({
+        recommendedQuote: createQuote({ gasAmount: '0.02' }),
+      });
+
+      const { result } = renderHook(
+        () =>
+          useIsInsufficientBalance({
+            amount: '0.99',
+            token: ethToken,
+            latestAtomicBalance: BigNumber.from('1000000000000000000'),
+            quoteOverride: null,
+          }),
+        { wrapper: wrapper(store) },
+      );
+
+      expect(result.current).toBe(false);
+    });
+
+    it('uses the Redux recommended quote when quoteOverride is omitted', () => {
+      const store = createMockStore({
+        recommendedQuote: createQuote({ gasAmount: '0.02' }),
+      });
+
+      const { result } = renderHook(
+        () =>
+          useIsInsufficientBalance({
+            amount: '0.99',
+            token: ethToken,
+            latestAtomicBalance: BigNumber.from('1000000000000000000'),
+          }),
+        { wrapper: wrapper(store) },
+      );
+
       expect(result.current).toBe(true);
     });
 
@@ -553,48 +691,48 @@ describe('useIsInsufficientBalance', () => {
     });
   });
 
-  describe('transformEffectiveToAtomic', () => {
-    it('transforms effective gas fee to atomic gas fee', () => {
-      const effectiveGasFee = '0.000000000000000001';
+  describe('transformTotalToAtomic', () => {
+    it('transforms total gas fee to atomic gas fee', () => {
+      const totalGasFee = '0.000000000000000001';
       const decimals = 18;
-      const atomicGasFee = parseAmount(effectiveGasFee, decimals);
+      const atomicGasFee = parseAmount(totalGasFee, decimals);
       expect(atomicGasFee.toString()).toBe('1');
     });
 
-    it('transforms effective gas fee to atomic gas fee with decimals', () => {
-      const effectiveGasFee = '0.000001426955931521';
+    it('transforms total gas fee to atomic gas fee with decimals', () => {
+      const totalGasFee = '0.000001426955931521';
       const decimals = 6;
-      const atomicGasFee = parseAmount(effectiveGasFee, decimals);
+      const atomicGasFee = parseAmount(totalGasFee, decimals);
       expect(atomicGasFee.toString()).toBe('1');
     });
   });
 
-  describe('formatEffectiveGasFee', () => {
-    it('formats effective gas fee to string', () => {
-      const effectiveGasFee = '0.000000000000000001';
+  describe('formatTotalGasFee', () => {
+    it('formats total gas fee to string', () => {
+      const totalGasFee = '0.000000000000000001';
       const decimals = 18;
-      const formattedGasFee = formatAmount(effectiveGasFee, decimals);
-      expect(formattedGasFee).toBe(effectiveGasFee);
+      const formattedGasFee = formatAmount(totalGasFee, decimals);
+      expect(formattedGasFee).toBe(totalGasFee);
     });
 
-    it('formats effective gas fee to string for integer part > 0', () => {
-      const effectiveGasFee = '23.000000000000000001';
+    it('formats total gas fee to string for integer part > 0', () => {
+      const totalGasFee = '23.000000000000000001';
       const decimals = 18;
-      const formattedGasFee = formatAmount(effectiveGasFee, decimals);
-      expect(formattedGasFee).toBe(effectiveGasFee);
+      const formattedGasFee = formatAmount(totalGasFee, decimals);
+      expect(formattedGasFee).toBe(totalGasFee);
     });
 
-    it('formats effective gas fee to string when token decimals is less than effective gas fee decimals', () => {
-      const effectiveGasFee = '0.000005426955931521';
+    it('formats total gas fee to string when token decimals is less than total gas fee decimals', () => {
+      const totalGasFee = '0.000005426955931521';
       const decimals = 6;
-      const formattedGasFee = formatAmount(effectiveGasFee, decimals);
+      const formattedGasFee = formatAmount(totalGasFee, decimals);
       expect(formattedGasFee).toBe('0.000005');
     });
 
-    it('formats effective gas fee to string when token decimals is more than effective gas fee decimals', () => {
-      const effectiveGasFee = '0.000005';
+    it('formats total gas fee to string when token decimals is more than total gas fee decimals', () => {
+      const totalGasFee = '0.000005';
       const decimals = 18;
-      const formattedGasFee = formatAmount(effectiveGasFee, decimals);
+      const formattedGasFee = formatAmount(totalGasFee, decimals);
       expect(formattedGasFee).toBe('0.000005');
     });
   });

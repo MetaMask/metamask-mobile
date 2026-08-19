@@ -3,12 +3,17 @@ import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
-import {
-  selectDeFiPositionsByAddress,
-  selectDefiPositionsByEnabledNetworks,
-} from '../../../../../../selectors/defiPositionsController';
-import { selectTokenSortConfig } from '../../../../../../selectors/preferencesController';
+import { makeSelectDefiPositionsByChainIds } from '../../../../../../selectors/defiPositionsController';
+import { useNetworkEnablement } from '../../../../../hooks/useNetworkEnablement/useNetworkEnablement';
+
 import { sortAssets } from '../../../../../UI/Tokens/util';
+
+/** Homepage always sorts DeFi by market value; View all uses user preference. */
+const HOMEPAGE_DEFI_SORT_BY_VALUE = {
+  key: 'protocolAggregate.aggregatedMarketValue',
+  order: 'dsc',
+  sortCallback: 'stringNumeric',
+} as const;
 
 /**
  * Represents a single DeFi position entry for the homepage.
@@ -47,15 +52,25 @@ const MAX_POSITIONS_DEFAULT = 5;
 export const useDeFiPositionsForHomepage = (
   maxPositions: number = MAX_POSITIONS_DEFAULT,
 ): UseDeFiPositionsForHomepageResult => {
-  const tokenSortConfig = useSelector(selectTokenSortConfig);
-  const defiPositions = useSelector(selectDeFiPositionsByAddress);
-  const defiPositionsByEnabledNetworks = useSelector(
-    selectDefiPositionsByEnabledNetworks,
+  const { popularEvmNetworks: rawPopularEvmNetworks } = useNetworkEnablement();
+  const popularEvmNetworksKey = (rawPopularEvmNetworks ?? []).join(',');
+  const popularEvmNetworks = useMemo(
+    () =>
+      popularEvmNetworksKey
+        ? (popularEvmNetworksKey.split(',') as Hex[])
+        : undefined,
+    [popularEvmNetworksKey],
   );
+
+  const selectHomepageDeFiPositions = useMemo(
+    () => makeSelectDefiPositionsByChainIds(popularEvmNetworks),
+    [popularEvmNetworks],
+  );
+  const defiPositionsByChainIds = useSelector(selectHomepageDeFiPositions);
 
   const result = useMemo((): UseDeFiPositionsForHomepageResult => {
     // Loading state - data not yet available
-    if (defiPositions === undefined) {
+    if (defiPositionsByChainIds === undefined) {
       return {
         positions: [],
         isLoading: true,
@@ -65,7 +80,7 @@ export const useDeFiPositionsForHomepage = (
     }
 
     // Error state - data fetch failed
-    if (defiPositions === null) {
+    if (defiPositionsByChainIds === null) {
       return {
         positions: [],
         isLoading: false,
@@ -74,7 +89,7 @@ export const useDeFiPositionsForHomepage = (
       };
     }
 
-    const chainFilteredDeFiPositions = defiPositionsByEnabledNetworks as {
+    const chainFilteredDeFiPositions = defiPositionsByChainIds as {
       [key: Hex]: GroupedDeFiPositions;
     };
 
@@ -102,18 +117,10 @@ export const useDeFiPositionsForHomepage = (
       )
       .flat();
 
-    // Sort by market value (descending) or name
-    const defiSortConfig = {
-      ...tokenSortConfig,
-      key:
-        tokenSortConfig.key === 'tokenFiatAmount'
-          ? 'protocolAggregate.aggregatedMarketValue'
-          : 'protocolAggregate.protocolDetails.name',
-    };
-
+    // Homepage always sorts by market value (descending); View all DeFi list uses user preference.
     const sortedPositions = sortAssets(
       defiPositionsList,
-      defiSortConfig,
+      HOMEPAGE_DEFI_SORT_BY_VALUE,
     ) as DeFiPositionEntry[];
 
     // Limit to maxPositions
@@ -125,12 +132,7 @@ export const useDeFiPositionsForHomepage = (
       hasError: false,
       isEmpty: limitedPositions.length === 0,
     };
-  }, [
-    defiPositions,
-    defiPositionsByEnabledNetworks,
-    tokenSortConfig,
-    maxPositions,
-  ]);
+  }, [defiPositionsByChainIds, maxPositions]);
 
   return result;
 };

@@ -1,5 +1,4 @@
 import React, { useCallback, useRef, useState } from 'react';
-import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -9,61 +8,62 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  HeaderStandard,
   Text,
 } from '@metamask/design-system-react-native';
 import { DefaultSlippageButtonGroup } from './DefaultSlippageButtonGroup';
 import { defaultSlippageModalStyles as styles } from './styles';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  selectSlippage,
-  setSlippage,
-} from '../../../../../core/redux/slices/bridge';
 import { useGetSlippageOptions } from '../../hooks/useGetSlippageOptions';
 import { AUTO_SLIPPAGE_VALUE } from './constants';
-import { DefaultSlippageModalParams } from './types';
-import { useParams } from '../../../../../util/navigation/navUtils';
 import { useSlippageConfig } from '../../hooks/useSlippageConfig';
 import { SlippageType } from '../../types';
-import { useModalCloseOnQuoteExpiry } from '../../hooks/useModalCloseOnQuoteExpiry';
+import { CaipChainId, Hex } from '@metamask/utils';
 
-export const DefaultSlippageModal = () => {
-  const navigation = useNavigation();
-  const dispatch = useDispatch();
-  useModalCloseOnQuoteExpiry();
+interface DefaultSlippageModalContentProps {
+  initialSlippage?: SlippageType;
+  sourceChainId?: CaipChainId | Hex;
+  destChainId?: CaipChainId | Hex;
+  onSubmitSlippage: (slippage: string | undefined) => void;
+  onOpenCustomSlippage: () => void;
+}
+
+export const DefaultSlippageModalContent = ({
+  initialSlippage,
+  sourceChainId,
+  destChainId,
+  onSubmitSlippage,
+  onOpenCustomSlippage,
+}: DefaultSlippageModalContentProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const slippage = useSelector(selectSlippage);
-  const [selectedSlippage, setSelectedSlippage] = useState<SlippageType>(
-    slippage ?? AUTO_SLIPPAGE_VALUE,
-  );
-  const { sourceChainId, destChainId } =
-    useParams<DefaultSlippageModalParams>();
   const slippageConfig = useSlippageConfig({ sourceChainId, destChainId });
+  const [selectedSlippage, setSelectedSlippage] = useState<
+    SlippageType | undefined
+  >(
+    initialSlippage ??
+      (slippageConfig.default_slippage_options.includes(AUTO_SLIPPAGE_VALUE)
+        ? AUTO_SLIPPAGE_VALUE
+        : undefined),
+  );
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
   const handleCustomOptionPress = useCallback(() => {
-    navigation.goBack();
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.CUSTOM_SLIPPAGE_MODAL,
-      params: { sourceChainId, destChainId },
-    });
-  }, [navigation, sourceChainId, destChainId]);
+    onOpenCustomSlippage();
+  }, [onOpenCustomSlippage]);
 
   const handleSubmit = useCallback(() => {
-    dispatch(
-      setSlippage(
-        selectedSlippage === undefined ||
-          selectedSlippage === AUTO_SLIPPAGE_VALUE
-          ? undefined
-          : String(selectedSlippage),
-      ),
-    );
+    if (selectedSlippage === undefined) return;
+
+    const nextSlippage =
+      selectedSlippage === AUTO_SLIPPAGE_VALUE
+        ? undefined
+        : String(selectedSlippage);
+
+    onSubmitSlippage(nextSlippage);
     sheetRef.current?.onCloseBottomSheet();
-  }, [selectedSlippage, dispatch]);
+  }, [selectedSlippage, onSubmitSlippage]);
 
   const handleDefaultOptionPress = useCallback(
     (value: SlippageType) => () => {
@@ -82,9 +82,12 @@ export const DefaultSlippageModal = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('bridge.slippage')}
         onClose={handleClose}
+        closeButtonProps={{
+          accessibilityLabel: strings('bridge.close'),
+        }}
       />
       <View style={styles.descriptionContainer}>
         <Text style={styles.descriptionText}>
@@ -99,6 +102,7 @@ export const DefaultSlippageModal = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={handleSubmit}
+          isDisabled={selectedSlippage === undefined}
           isFullWidth
         >
           {strings('bridge.submit')}

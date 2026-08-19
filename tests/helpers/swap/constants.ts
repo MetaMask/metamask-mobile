@@ -1,10 +1,32 @@
+import { ActionTypes, type QuoteResponseV1 } from '@metamask/bridge-controller';
+
+interface QuoteStreamCompleteMock {
+  quoteCount?: number;
+  hasQuotes?: boolean;
+  reason?: string;
+  context?: Record<string, unknown>;
+}
+
+const toSSEEvent = (event: string, data: object) =>
+  `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+
 /**
  * Wraps quote fixture objects as an SSE-formatted response string.
  * Required because bridge-controller uses fetchServerEvents (SSE parser)
  * which expects lines prefixed with "data: ". Raw JSON returns zero quotes.
  */
-export function toSSEResponse(quotes: object[]): string {
-  return quotes.map((q) => `data: ${JSON.stringify(q)}\n\n`).join('');
+export function toSSEResponse(
+  quotes: object[],
+  complete: QuoteStreamCompleteMock = {},
+): string {
+  const quoteEvents = quotes.map((q) => toSSEEvent('quote', q)).join('');
+  const completeEvent = {
+    quoteCount: quotes.length,
+    hasQuotes: quotes.length > 0,
+    ...complete,
+  };
+
+  return `${quoteEvents}${toSSEEvent('complete', completeEvent)}`;
 }
 
 export const localNodeOptions = {
@@ -102,6 +124,7 @@ export const GET_QUOTE_ETH_USDC_RESPONSE = [
       bridges: ['kyberswap'],
       protocols: ['kyberswap'],
       steps: [],
+      slippage: 2,
       priceData: {
         totalFromAmountUsd: '4496.87',
         totalToAmountUsd: '4456.264231788599',
@@ -790,6 +813,20 @@ export const GET_TOKENS_MAINNET_RESPONSE = [
       },
     },
   },
+  {
+    address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+    chainId: 1,
+    assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    symbol: 'MUSD',
+    decimals: 6,
+    name: 'MetaMask USD',
+    coingeckoId: 'metamask-usd',
+    aggregators: ['metamask', 'liFi', 'socket', 'rubic', 'rango', 'sonarwatch'],
+    occurrences: 6,
+    iconUrl:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+    metadata: { storage: {} },
+  },
 ];
 
 // Popular tokens response format for POST /getTokens/popular endpoint
@@ -802,6 +839,7 @@ export const GET_POPULAR_TOKENS_MAINNET_RESPONSE = [
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
     name: 'Ethereum',
     symbol: 'ETH',
+    isVerified: true,
   },
   {
     assetId: 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
@@ -843,6 +881,14 @@ export const GET_POPULAR_TOKENS_MAINNET_RESPONSE = [
     name: 'Alphabet Class A (Ondo Tokenized)',
     symbol: 'GOOGLON',
   },
+  {
+    assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    decimals: 6,
+    iconUrl:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+    name: 'MetaMask USD',
+    symbol: 'MUSD',
+  },
 ];
 
 export const GET_TOKENS_SOLANA_RESPONSE = [
@@ -867,7 +913,7 @@ export const GET_TOKENS_BASE_RESPONSE = [
   {
     address: '0x0000000000000000000000000000000000000000',
     chainId: 8453,
-    assetId: 'eip155:8453/slip44:8453',
+    assetId: 'eip155:8453/slip44:60',
     symbol: 'ETH',
     decimals: 18,
     name: 'Ether',
@@ -920,7 +966,7 @@ export const GET_TOKENS_BASE_RESPONSE = [
   },
 ];
 
-export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
+export const GET_QUOTE_ETH_SOLANA_RESPONSE: QuoteResponseV1[] = [
   {
     quote: {
       bridgeId: 'lifi',
@@ -936,13 +982,8 @@ export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
         symbol: 'ETH',
         decimals: 18,
         name: 'Ethereum',
-        coingeckoId: 'ethereum',
-        aggregators: [],
-        occurrences: 100,
         iconUrl:
           'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-        metadata: {},
-        price: '4631.438250855256',
       },
       destChainId: 1151111081099710,
       destTokenAmount: '22051125394',
@@ -954,12 +995,8 @@ export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
         symbol: 'SOL',
         decimals: 9,
         name: 'SOL',
-        aggregators: [],
-        occurrences: 100,
         iconUrl:
           'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
-        metadata: {},
-        price: '207.23731131530545',
       },
       feeData: {
         metabridge: {
@@ -971,13 +1008,8 @@ export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
             symbol: 'ETH',
             decimals: 18,
             name: 'Ethereum',
-            coingeckoId: 'ethereum',
-            aggregators: [],
-            occurrences: 100,
             iconUrl:
               'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-            metadata: {},
-            price: '4631.438250855256',
           },
         },
       },
@@ -985,14 +1017,9 @@ export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
       protocols: ['mayan (via LiFi)'],
       steps: [
         {
-          action: 'bridge',
+          action: ActionTypes.BRIDGE,
           srcChainId: 1,
           destChainId: 1151111081099710,
-          protocol: {
-            name: 'mayan',
-            displayName: 'Mayan (Swift)',
-            icon: 'https://raw.githubusercontent.com/lifinance/types/main/src/assets/icons/bridges/mayan.svg',
-          },
           srcAsset: {
             address: '0x0000000000000000000000000000000000000000',
             chainId: 1,
@@ -1000,12 +1027,8 @@ export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
             symbol: 'ETH',
             decimals: 18,
             name: 'Ethereum',
-            coingeckoId: 'ethereum',
-            aggregators: [],
-            occurrences: 100,
             iconUrl:
               'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-            metadata: {},
           },
           destAsset: {
             address: '0x0000000000000000000000000000000000000000',
@@ -1014,14 +1037,9 @@ export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
             symbol: 'SOL',
             decimals: 9,
             name: 'SOL',
-            aggregators: [],
-            occurrences: 100,
             iconUrl:
               'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png',
-            metadata: {},
           },
-          srcAmount: '991250000000000000',
-          destAmount: '22051125394',
         },
       ],
       priceData: {
@@ -1042,7 +1060,7 @@ export const GET_QUOTE_ETH_SOLANA_RESPONSE = [
   },
 ];
 
-export const GET_QUOTE_ETH_BASE_RESPONSE = [
+export const GET_QUOTE_ETH_BASE_RESPONSE: QuoteResponseV1[] = [
   {
     quote: {
       bridgeId: 'lifi',
@@ -1058,13 +1076,8 @@ export const GET_QUOTE_ETH_BASE_RESPONSE = [
         symbol: 'ETH',
         decimals: 18,
         name: 'Ethereum',
-        coingeckoId: 'ethereum',
-        aggregators: [],
-        occurrences: 100,
         iconUrl:
           'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-        metadata: {},
-        price: '4636.383365133272',
       },
       destChainId: 8453,
       destTokenAmount: '990753945481277500',
@@ -1072,17 +1085,12 @@ export const GET_QUOTE_ETH_BASE_RESPONSE = [
       destAsset: {
         address: '0x0000000000000000000000000000000000000000',
         chainId: 8453,
-        assetId: 'eip155:8453/slip44:8453',
+        assetId: 'eip155:8453/slip44:60',
         symbol: 'ETH',
         decimals: 18,
         name: 'Ether',
-        coingeckoId: 'base',
-        aggregators: [],
-        occurrences: 100,
         iconUrl:
           'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/slip44/8453.png',
-        metadata: {},
-        price: '4636.383365133272',
       },
       feeData: {
         metabridge: {
@@ -1094,13 +1102,8 @@ export const GET_QUOTE_ETH_BASE_RESPONSE = [
             symbol: 'ETH',
             decimals: 18,
             name: 'Ethereum',
-            coingeckoId: 'ethereum',
-            aggregators: [],
-            occurrences: 100,
             iconUrl:
               'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-            metadata: {},
-            price: '4636.383365133272',
           },
         },
       },
@@ -1108,14 +1111,9 @@ export const GET_QUOTE_ETH_BASE_RESPONSE = [
       protocols: ['mayan (via LiFi)'],
       steps: [
         {
-          action: 'bridge',
+          action: ActionTypes.BRIDGE,
           srcChainId: 1,
           destChainId: 8453,
-          protocol: {
-            name: 'mayan',
-            displayName: 'Mayan (Swift)',
-            icon: 'https://raw.githubusercontent.com/lifinance/types/main/src/assets/icons/bridges/mayan.svg',
-          },
           srcAsset: {
             address: '0x0000000000000000000000000000000000000000',
             chainId: 1,
@@ -1123,29 +1121,19 @@ export const GET_QUOTE_ETH_BASE_RESPONSE = [
             symbol: 'ETH',
             decimals: 18,
             name: 'Ethereum',
-            coingeckoId: 'ethereum',
-            aggregators: [],
-            occurrences: 100,
             iconUrl:
               'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-            metadata: {},
           },
           destAsset: {
             address: '0x0000000000000000000000000000000000000000',
             chainId: 8453,
-            assetId: 'eip155:8453/slip44:8453',
+            assetId: 'eip155:8453/slip44:60',
             symbol: 'ETH',
             decimals: 18,
             name: 'Ether',
-            coingeckoId: 'base',
-            aggregators: [],
-            occurrences: 100,
             iconUrl:
               'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/slip44/8453.png',
-            metadata: {},
           },
-          srcAmount: '991250000000000000',
-          destAmount: '990753945481277500',
         },
       ],
       priceData: {
@@ -1175,7 +1163,7 @@ export const GET_TOP_ASSETS_BASE_RESPONSE = [
 // This matches the PopularToken interface used by usePopularTokens hook
 export const GET_POPULAR_TOKENS_BASE_RESPONSE = [
   {
-    assetId: 'eip155:8453/slip44:8453',
+    assetId: 'eip155:8453/slip44:60',
     decimals: 18,
     iconUrl:
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/8453/slip44/8453.png',
@@ -1257,6 +1245,30 @@ export const GASLESS_SWAP_QUOTES_ETH_MUSD = [
           quoteBpsFee: 87.5,
           baseBpsFee: 87.5,
         },
+        // txFee is required by calcIncludedTxFees to compute the strikethrough
+        // gas cost shown next to "Included" in the Network fee row.
+        // Amount ≈ gasLimit(448721) * 4.67 gwei ≈ 0.00210 ETH.
+        // maxFeePerGas and maxPriorityFeePerGas are required by the
+        // bridge-controller quote validator (superstruct schema).
+        txFee: {
+          amount: '2095527070000000',
+          asset: {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: 1,
+            assetId: 'eip155:1/slip44:60',
+            symbol: 'ETH',
+            decimals: 18,
+            name: 'Ethereum',
+            coingeckoId: 'ethereum',
+            aggregators: [],
+            occurrences: 100,
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+            metadata: {},
+          },
+          maxFeePerGas: '4667609171',
+          maxPriorityFeePerGas: '1000000004',
+        },
       },
       bridges: ['openocean'],
       protocols: ['openocean'],
@@ -1278,6 +1290,248 @@ export const GASLESS_SWAP_QUOTES_ETH_MUSD = [
       gasLimit: 448721,
     },
     estimatedProcessingTimeInSeconds: 0,
+  },
+];
+
+export const GASLESS_SWAP_QUOTES_ETH_MUSD_7702 = [
+  {
+    quote: {
+      requestId:
+        '0xa1b2c3d4e5f60718293a4b5c6d7e8f9001122334455667788990aabbccddeeff',
+      bridgeId: 'openocean',
+      srcChainId: 1,
+      destChainId: 1,
+      aggregator: 'openocean',
+      aggregatorType: 'AGG',
+      srcAsset: {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: 1,
+        assetId: 'eip155:1/slip44:60',
+        symbol: 'ETH',
+        decimals: 18,
+        name: 'Ethereum',
+        coingeckoId: 'ethereum',
+        aggregators: [],
+        occurrences: 100,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+        metadata: {},
+      },
+      srcTokenAmount: '991250000000000000',
+      destAsset: {
+        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        chainId: 1,
+        assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        symbol: 'MUSD',
+        decimals: 6,
+        name: 'MetaMask USD',
+        coingeckoId: 'metamask-usd',
+        aggregators: ['metamask', 'liFi', 'socket', 'rubic', 'rango'],
+        occurrences: 5,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+        metadata: { storage: {} },
+      },
+      destTokenAmount: '3839447765',
+      minDestTokenAmount: '3762658809',
+      walletAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      destWalletAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      gasIncluded: false,
+      gasIncluded7702: true,
+      gasSponsored: false,
+      feeData: {
+        metabridge: {
+          amount: '8750000000000000',
+          asset: {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: 1,
+            assetId: 'eip155:1/slip44:60',
+            symbol: 'ETH',
+            decimals: 18,
+            name: 'Ethereum',
+            coingeckoId: 'ethereum',
+            aggregators: [],
+            occurrences: 100,
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+            metadata: {},
+          },
+          quoteBpsFee: 87.5,
+          baseBpsFee: 87.5,
+        },
+        txFee: {
+          amount: '2095527070000000',
+          asset: {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: 1,
+            assetId: 'eip155:1/slip44:60',
+            symbol: 'ETH',
+            decimals: 18,
+            name: 'Ethereum',
+            coingeckoId: 'ethereum',
+            aggregators: [],
+            occurrences: 100,
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+            metadata: {},
+          },
+          maxFeePerGas: '4667609171',
+          maxPriorityFeePerGas: '1000000004',
+        },
+      },
+      bridges: ['openocean'],
+      protocols: ['openocean'],
+      steps: [],
+      slippage: 2,
+      priceData: {
+        totalFromAmountUsd: '3865.21',
+        totalToAmountUsd: '3832.3211880033778',
+        priceImpact: '0.008508932760864812',
+        totalFeeAmountUsd: '33.8205875',
+      },
+    },
+    trade: {
+      chainId: 1,
+      to: '0x881D40237659C251811CEC9c364ef91dC08D300C',
+      from: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      value: '0xde0b6b3a7640000',
+      data: '0x5f575529000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000de0b6b3a764000000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f70656e4f6365616e46656544796e616d6963000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000aca92e438df0b2401ff60da7e4337b687a2435da0000000000000000000000000000000000000000000000000dc1a09f859b200000000000000000000000000000000000000000000000000000000000e0123b42',
+      gasLimit: 448721,
+    },
+    estimatedProcessingTimeInSeconds: 0,
+  },
+];
+
+export const GASLESS_SWAP_QUOTES_USDC_MUSD = [
+  {
+    quote: {
+      requestId:
+        '0x77dbb16ffe107c8a942da0cff5f70566cb33ac4629b606c196963077b809e6bd',
+      bridgeId: '1inch',
+      srcChainId: 1,
+      destChainId: 1,
+      aggregator: '1inch',
+      aggregatorType: 'AGG',
+      srcAsset: {
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: 1,
+        assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        symbol: 'USDC',
+        decimals: 6,
+        name: 'USDC',
+        coingeckoId: 'usd-coin',
+        aggregators: [
+          'metamask',
+          'oneInch',
+          'liFi',
+          'socket',
+          'rubic',
+          'squid',
+          'rango',
+          'sonarwatch',
+          'sushiSwap',
+          'pmm',
+          'bancor',
+        ],
+        occurrences: 11,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+        metadata: { storage: { balance: 9, approval: 10 } },
+      },
+      srcTokenAmount: '1000000000',
+      destAsset: {
+        address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        chainId: 1,
+        assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        symbol: 'MUSD',
+        decimals: 6,
+        name: 'MetaMask USD',
+        aggregators: ['metamask', 'liFi', 'socket', 'rubic', 'rango'],
+        occurrences: 5,
+        iconUrl:
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+        metadata: {},
+      },
+      destTokenAmount: '999626107',
+      minDestTokenAmount: '979633584',
+      walletAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      destWalletAddress: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      feeData: {
+        metabridge: {
+          amount: '0',
+          asset: {
+            address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+            chainId: 1,
+            assetId:
+              'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+            symbol: 'MUSD',
+            decimals: 6,
+            name: 'MetaMask USD',
+            aggregators: ['metamask', 'liFi', 'socket', 'rubic', 'rango'],
+            occurrences: 5,
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xaca92e438df0b2401ff60da7e4337b687a2435da.png',
+            metadata: {},
+          },
+          quoteBpsFee: 0,
+          baseBpsFee: 87.5,
+        },
+        // txFee: gas cost included in the swap (paid by the protocol, not the user).
+        // maxFeePerGas and maxPriorityFeePerGas are required by the quote validator schema.
+        txFee: {
+          amount: '2095527070000000',
+          asset: {
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: 1,
+            assetId: 'eip155:1/slip44:60',
+            symbol: 'ETH',
+            decimals: 18,
+            name: 'Ethereum',
+            coingeckoId: 'ethereum',
+            aggregators: [],
+            occurrences: 100,
+            iconUrl:
+              'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+            metadata: {},
+          },
+          maxFeePerGas: '4667609171',
+          maxPriorityFeePerGas: '1000000004',
+        },
+      },
+      bridges: ['1inch'],
+      protocols: ['1inch'],
+      steps: [],
+      slippage: 2,
+      gasSponsored: false,
+      gasIncluded: true,
+      gasIncluded7702: false,
+      priceData: {
+        totalFromAmountUsd: '999.924',
+        totalToAmountUsd: '999.5651298074731',
+        priceImpact: '0.00035889746873448894',
+        totalFeeAmountUsd: '0',
+      },
+    },
+    approval: {
+      chainId: 1,
+      to: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      from: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      value: '0x0',
+      data: '0x095ea7b3000000000000000000000000881d40237659c251811cec9c364ef91dc08d300c000000000000000000000000000000000000000000000000000000003b9aca00',
+      gasLimit: 36019,
+      effectiveGas: 35658,
+    },
+    trade: {
+      chainId: 1,
+      to: '0x881D40237659C251811CEC9c364ef91dC08D300C',
+      from: '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      value: '0x0',
+      data: '0x5f5755290000000000000000000000000000000000000000000000000000000000000080000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000000000000000000000000000000000003b9aca0000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000136f6e65496e6368563646656544796e616d69630000000000000000000000000000000000000000000000000000000000000000000000000000000000000003a0000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000aca92e438df0b2401ff60da7e4337b687a2435da000000000000000000000000000000000000000000000000000000003b9aca00000000000000000000000000000000000000000000000000000000003a6405b000000000000000000000000000000000000000000000000000000000000001200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f326e4de8f66a0bdc0970b79e0924e33c79f19150000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000026807ed2379000000000000000000000000990636ecb3ff04d33d92e970d3d588bf5cd8d086000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48000000000000000000000000aca92e438df0b2401ff60da7e4337b687a2435da000000000000000000000000990636ecb3ff04d33d92e970d3d588bf5cd8d08600000000000000000000000074de5d4fcbf63e00296fd95d33236b9794016631000000000000000000000000000000000000000000000000000000003b9aca00000000000000000000000000000000000000000000000000000000003a6405b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000012000000000000000000000000000000000000000000000000000000000000001050000000000000000000000000000000000000000000000e70000b900004e00a0744c8c09a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4890cbe4bdd538d6e9b379bff5fe72c3d67a521de50000000000000000000000000000000000000000000000000000000000061a8002a0000000000000000000000000000000000000000000000000000000003a6405b048c9503381a0b86991c6218b36c1d19d4a2e9eb0ce3606eb48aca92e438df0b2401ff60da7e4337b687a2435da0000000000010000111111125421ca6dc452d289314280a0f8842a650020d6bdbf78aca92e438df0b2401ff60da7e4337b687a2435da111111125421ca6dc452d289314280a0f8842a650000000000000000000000000000000000000000000000000000007dcbea7c0000000000000000000000000000000000000000000000004c',
+      gasLimit: 361700,
+      effectiveGas: 257105,
+    },
+    estimatedProcessingTimeInSeconds: 0,
+    quoteId: '45deada4-639c-433b-ada4-0312d548d736',
   },
 ];
 
@@ -1444,6 +1698,15 @@ export const GET_TOKENS_API_USDT_RESPONSE = [
     decimals: 6,
     name: 'Tether USD',
     symbol: 'USDT',
+  },
+];
+
+export const GET_TOKENS_API_MUSD_RESPONSE = [
+  {
+    assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    decimals: 6,
+    name: 'MetaMask USD',
+    symbol: 'MUSD',
   },
 ];
 

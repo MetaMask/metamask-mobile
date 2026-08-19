@@ -1,5 +1,5 @@
 import { appMetadataControllerInit } from './index';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
@@ -8,7 +8,7 @@ jest.mock('react-native-device-info', () => ({
 }));
 
 describe('AppMetadataController', () => {
-  let mockInitRequest: ReturnType<typeof buildControllerInitRequestMock>;
+  let mockInitRequest: ReturnType<typeof buildMessengerClientInitRequestMock>;
 
   beforeEach(() => {
     const baseControllerMessenger = new ExtendedMessenger<
@@ -18,7 +18,9 @@ describe('AppMetadataController', () => {
     >({
       namespace: MOCK_ANY_NAMESPACE,
     });
-    mockInitRequest = buildControllerInitRequestMock(baseControllerMessenger);
+    mockInitRequest = buildMessengerClientInitRequestMock(
+      baseControllerMessenger,
+    );
   });
 
   it('initializes with default state', async () => {

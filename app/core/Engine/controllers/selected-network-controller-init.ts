@@ -1,4 +1,4 @@
-import { ControllerInitFunction } from '../types';
+import { MessengerClientInitFunction } from '../types';
 import {
   SelectedNetworkController,
   type SelectedNetworkControllerMessenger,
@@ -13,7 +13,7 @@ import DomainProxyMap from '../../../lib/DomainProxyMap/DomainProxyMap';
  * @param request.persistedState - The persisted state of the extension.
  * @returns The initialized controller.
  */
-export const selectedNetworkControllerInit: ControllerInitFunction<
+export const selectedNetworkControllerInit: MessengerClientInitFunction<
   SelectedNetworkController,
   SelectedNetworkControllerMessenger
 > = ({ controllerMessenger, persistedState }) => {

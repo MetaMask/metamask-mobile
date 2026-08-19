@@ -5,10 +5,10 @@ import {
 } from '@metamask/messenger';
 
 import {
-  GetPermittedSnaps,
-  InstallSnaps,
-  MultichainRouterGetSupportedAccountsAction,
-  MultichainRouterIsSupportedScopeAction,
+  SnapControllerGetPermittedSnapsAction,
+  SnapControllerInstallSnapsAction,
+  MultichainRoutingServiceGetSupportedAccountsAction,
+  MultichainRoutingServiceIsSupportedScopeAction,
 } from '@metamask/snaps-controllers';
 import { AccountsControllerListAccountsAction } from '@metamask/accounts-controller';
 import {
@@ -18,6 +18,12 @@ import {
 import { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metamask/network-controller';
 import { RootMessenger } from '../types.ts';
 import { PermissionControllerMessenger } from '@metamask/permission-controller';
+import { SnapAccountServiceHandleKeyringSnapMessageAction } from '@metamask/snap-account-service';
+
+type PermissionControllerMessengerActions =
+  | MessengerActions<PermissionControllerMessenger>
+  | SnapControllerGetPermittedSnapsAction
+  | SnapControllerInstallSnapsAction;
 
 /**
  * Get the messenger for the permission controller. This is scoped to the
@@ -26,15 +32,17 @@ import { PermissionControllerMessenger } from '@metamask/permission-controller';
  * @param rootMessenger - The root messenger.
  * @returns The PermissionControllerMessenger.
  */
-export function getPermissionControllerMessenger(rootMessenger: RootMessenger) {
-  const messenger = new Messenger<
+export function getPermissionControllerMessenger(
+  rootMessenger: RootMessenger<
+    PermissionControllerMessengerActions,
+    MessengerEvents<PermissionControllerMessenger>
+  >,
+): PermissionControllerMessenger {
+  const messenger: Messenger<
     'PermissionController',
-    | MessengerActions<PermissionControllerMessenger>
-    | GetPermittedSnaps
-    | InstallSnaps,
-    MessengerEvents<PermissionControllerMessenger>,
-    RootMessenger
-  >({
+    PermissionControllerMessengerActions,
+    MessengerEvents<PermissionControllerMessenger>
+  > = new Messenger({
     namespace: 'PermissionController',
     parent: rootMessenger,
   });
@@ -44,9 +52,9 @@ export function getPermissionControllerMessenger(rootMessenger: RootMessenger) {
       'ApprovalController:hasRequest',
       'ApprovalController:acceptRequest',
       'ApprovalController:rejectRequest',
-      ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-      'SnapController:getPermitted',
-      'SnapController:install',
+      ///: BEGIN:ONLY_INCLUDE_IF(snaps)
+      'SnapController:getPermittedSnaps',
+      'SnapController:installSnaps',
       'SubjectMetadataController:getSubjectMetadata',
       ///: END:ONLY_INCLUDE_IF
     ],
@@ -58,10 +66,11 @@ export function getPermissionControllerMessenger(rootMessenger: RootMessenger) {
 
 type AllowedInitializationActions =
   | AccountsControllerListAccountsAction
-  | MultichainRouterIsSupportedScopeAction
-  | MultichainRouterGetSupportedAccountsAction
+  | MultichainRoutingServiceIsSupportedScopeAction
+  | MultichainRoutingServiceGetSupportedAccountsAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
-  | SnapPermissionSpecificationsActions;
+  | SnapPermissionSpecificationsActions
+  | SnapAccountServiceHandleKeyringSnapMessageAction;
 
 type AllowedInitializationEvents = SnapPermissionSpecificationsEvents;
 
@@ -94,24 +103,26 @@ export function getPermissionControllerInitMessenger(
       'ApprovalController:addRequest',
       'AccountsController:listAccounts',
       'CurrencyRateController:getState',
-      'KeyringController:getKeyringsByType',
       'KeyringController:getState',
       'KeyringController:withKeyring',
-      'MultichainRouter:isSupportedScope',
-      'MultichainRouter:getSupportedAccounts',
+      'KeyringController:withKeyringV2Unsafe',
+      'MultichainRoutingService:isSupportedScope',
+      'MultichainRoutingService:getSupportedAccounts',
       'NetworkController:findNetworkClientIdByChainId',
       'PermissionController:hasPermission',
       'PhishingController:maybeUpdateState',
       'PhishingController:testOrigin',
       'PreferencesController:getState',
       'SnapController:clearSnapState',
-      'SnapController:get',
+      'SnapController:getSnap',
       'SnapController:getSnapState',
       'SnapController:handleRequest',
       'SnapController:updateSnapState',
       'SnapInterfaceController:createInterface',
       'SnapInterfaceController:getInterface',
+      'SnapInterfaceController:setInterfaceDisplayed',
       'SnapInterfaceController:updateInterface',
+      'SnapAccountService:handleKeyringSnapMessage',
     ],
     events: ['KeyringController:unlock'],
     messenger,

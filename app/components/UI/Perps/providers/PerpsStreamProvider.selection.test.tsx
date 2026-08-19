@@ -7,10 +7,10 @@ describe('PerpsStreamProvider - selection without E2E', () => {
     jest.clearAllMocks();
   });
 
-  it('uses the real PerpsStreamManager when isE2E is false', () => {
-    // Given isE2E is false and no E2E mock is available
+  it('uses the real PerpsStreamManager when hasTestOverrides is false', () => {
+    // Given hasTestOverrides is false and no E2E mock is available
     jest.doMock('../../../../util/test/utils', () => ({
-      isE2E: false,
+      hasTestOverrides: false,
     }));
     jest.doMock('../utils/e2eBridgePerps', () => ({
       getE2EMockStreamManager: () => null,
@@ -41,10 +41,10 @@ describe('PerpsStreamProvider - selection without E2E', () => {
     );
   });
 
-  it('uses the E2E mock manager when isE2E is true and mock exists', () => {
-    // Given isE2E is true and bridge returns a mock manager
+  it('uses the E2E mock manager when hasTestOverrides is true and mock exists', () => {
+    // Given hasTestOverrides is true and bridge returns a mock manager
     jest.doMock('../../../../util/test/utils', () => ({
-      isE2E: true,
+      hasTestOverrides: true,
     }));
 
     const mockManager = { __mock: 'perps-stream-manager' };

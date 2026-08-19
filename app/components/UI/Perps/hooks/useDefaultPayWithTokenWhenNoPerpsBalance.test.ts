@@ -2,6 +2,10 @@ import { renderHookWithProvider } from '../../../../util/test/renderWithProvider
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from './useDefaultPayWithTokenWhenNoPerpsBalance';
 import type { PerpsToken } from '@metamask/perps-controller';
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('7.70.0'),
+}));
+
 jest.mock('./usePerpsPaymentTokens', () => ({
   usePerpsPaymentTokens: jest.fn(() => []),
 }));
@@ -14,17 +18,19 @@ const mockUsePerpsPaymentTokens = jest.requireMock<
 
 function getState(
   overrides: {
-    perpsAccount?: { availableBalance: string } | null;
+    perpsAccount?: { spendableBalance: string } | null;
     allowlistAssets?: string[];
     isTestnet?: boolean;
     activeProvider?: 'hyperliquid' | 'myx' | 'aggregated';
+    defaultPayTokenWhenNoBalanceEnabled?: boolean;
   } = {},
 ) {
   const {
-    perpsAccount = { availableBalance: '0' },
+    perpsAccount = { spendableBalance: '0' },
     allowlistAssets = [],
     isTestnet = false,
     activeProvider,
+    defaultPayTokenWhenNoBalanceEnabled = true,
   } = overrides;
   return {
     engine: {
@@ -37,6 +43,10 @@ function getState(
         RemoteFeatureFlagController: {
           remoteFeatureFlags: {
             perpsPayWithAnyTokenAllowlistAssets: allowlistAssets,
+            perpsDefaultPayTokenWhenNoBalanceEnabled:
+              defaultPayTokenWhenNoBalanceEnabled
+                ? { enabled: true, minimumVersion: '0.0.0' }
+                : { enabled: false, minimumVersion: '0.0.0' },
           },
         },
       },
@@ -72,8 +82,29 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
 
     const { result } = runHook(
       getState({
-        perpsAccount: { availableBalance: '100' },
+        perpsAccount: { spendableBalance: '100' },
         allowlistAssets: ['0xa4b1.0xusdc'],
+      }),
+    );
+
+    expect(result.current).toBeNull();
+  });
+
+  it('returns null when feature flag is disabled', () => {
+    mockUsePerpsPaymentTokens.mockReturnValue([
+      {
+        address: '0xusdc',
+        chainId: '0xa4b1',
+        symbol: 'USDC',
+        balanceFiat: 'US$500',
+        decimals: 6,
+      },
+    ] as PerpsToken[]);
+
+    const { result } = runHook(
+      getState({
+        allowlistAssets: ['0xa4b1.0xusdc'],
+        defaultPayTokenWhenNoBalanceEnabled: false,
       }),
     );
 

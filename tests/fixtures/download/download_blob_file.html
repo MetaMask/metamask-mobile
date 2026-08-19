@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download Blob file</title>
+</head>
+<body>
+  <h1>Download File document</h1>
+  <button id="download_button">Download</button>
+
+  <script>
+    document.getElementById("download_button").addEventListener("click", async () => {
+      try {
+        const response = await fetch("File.txt");
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "file.txt";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Download failed:", error);
+        alert("Failed to download file.");
+      }
+    });
+  </script>
+</body>
+</html>

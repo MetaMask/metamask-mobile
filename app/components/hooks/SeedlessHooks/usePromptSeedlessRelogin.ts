@@ -1,10 +1,11 @@
 import { useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useMetrics } from '../useMetrics';
+import { useAnalytics } from '../useAnalytics/useAnalytics';
 import { RootState } from '../../../reducers';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { SuccessErrorSheetParams } from '../../Views/SuccessErrorSheet/interface';
 import { clearHistory } from '../../../actions/browser';
 import { strings } from '../../../../locales/i18n';
@@ -12,7 +13,7 @@ import { Authentication } from '../../../core';
 import Logger from '../../../util/Logger';
 
 const usePromptSeedlessRelogin = () => {
-  const metrics = useMetrics();
+  const metrics = useAnalytics();
   const dispatch = useDispatch();
 
   const [isDeletingInProgress, setIsDeletingInProgress] = useState(false);
@@ -21,7 +22,7 @@ const usePromptSeedlessRelogin = () => {
   );
 
   const { signOut } = useSignOut();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
   );

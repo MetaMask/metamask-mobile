@@ -1,8 +1,9 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import SitesList from './SitesList';
 import { useNavigation } from '@react-navigation/native';
 import type { SiteData } from '../SiteRowItem/SiteRowItem';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock FlashList to render items in tests
 jest.mock('@shopify/flash-list', () => {
@@ -45,22 +46,23 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('../SiteRowItemWrapper/SiteRowItemWrapper', () => {
-  const { View, Text } = jest.requireActual('react-native');
+jest.mock('../SiteRowItem/SiteRowItem', () => {
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
       site,
-      navigation,
+      onPress,
     }: {
       site: SiteData;
-      navigation: unknown;
+      onPress?: () => void;
+      onRemoveFavorite?: () => void;
     }) => (
-      <View testID={`site-wrapper-${site.id}`}>
+      <TouchableOpacity testID={`site-wrapper-${site.id}`} onPress={onPress}>
         <Text testID={`site-id-${site.id}`}>{site.id}</Text>
         <Text testID={`site-name-${site.id}`}>{site.name}</Text>
-        <Text testID={`has-navigation-${site.id}`}>{String(!!navigation)}</Text>
-      </View>
+        <Text testID={`has-onpress-${site.id}`}>{String(!!onPress)}</Text>
+      </TouchableOpacity>
     ),
   };
 });
@@ -129,12 +131,33 @@ describe('SitesList', () => {
   });
 
   describe('props passthrough', () => {
-    it('passes navigation to SiteRowItemWrapper', () => {
+    it('passes onPress handler to SiteRowItem', () => {
       const sites = [createSite('1')];
 
       const { getByTestId } = render(<SitesList sites={sites} />);
 
-      expect(getByTestId('has-navigation-1').props.children).toBe('true');
+      expect(getByTestId('has-onpress-1').props.children).toBe('true');
+    });
+  });
+
+  describe('navigation', () => {
+    it('navigates to browser with site URL when row is pressed', () => {
+      const sites = [createSite('1', { url: 'https://example.com' })];
+
+      const { getByTestId } = render(<SitesList sites={sites} />);
+
+      fireEvent.press(getByTestId('site-wrapper-1'));
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.BROWSER.HOME,
+        expect.objectContaining({
+          screen: Routes.BROWSER.VIEW,
+          params: expect.objectContaining({
+            newTabUrl: 'https://example.com',
+            fromTrending: true,
+          }),
+        }),
+      );
     });
   });
 
@@ -185,13 +208,13 @@ describe('SitesList', () => {
       expect(getByTestId('site-wrapper-49')).toBeOnTheScreen();
     });
 
-    it('renders when navigation is not provided', () => {
+    it('still wires onPress when navigation hook returns undefined', () => {
       (useNavigation as jest.Mock).mockReturnValue(undefined);
       const sites = [createSite('1')];
 
       const { getByTestId } = render(<SitesList sites={sites} />);
 
-      expect(getByTestId('has-navigation-1').props.children).toBe('false');
+      expect(getByTestId('has-onpress-1').props.children).toBe('true');
     });
   });
 });

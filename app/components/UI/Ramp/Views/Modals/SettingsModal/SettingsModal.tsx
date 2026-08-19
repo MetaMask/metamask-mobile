@@ -6,41 +6,45 @@ import React, {
   useEffect,
 } from 'react';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import {
+  BottomSheet,
+  HeaderStandard,
   IconName,
-  IconColor,
+  type BottomSheetRef,
+} from '@metamask/design-system-react-native';
+import {
+  IconName as ComponentLibraryIconName,
+  IconColor as ComponentLibraryIconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../../../../component-library/components/Toast';
 import Logger from '../../../../../../util/Logger';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import MenuItem from '../../../components/MenuItem';
-import { useRampsController } from '../../../hooks/useRampsController';
+import { useRampsProviders } from '../../../hooks/useRampsProviders';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   getProviderToken,
   resetProviderToken,
-} from '../../../Deposit/utils/ProviderTokenVault';
+} from '../../../utils/ProviderTokenVault';
 import { PROVIDER_LINKS } from '../../../Aggregator/types';
 
 /**
- * Transak native provider path prefix - matches both production
- * ('/providers/transak-native') and staging ('/providers/transak-native-staging')
+ * Transak native provider code. Provider ids are canonical (non-prefixed), so
+ * `transak-native` matches both the native provider and its staging variant
+ * (`transak-native-staging`).
  */
-const TRANSAK_NATIVE_PREFIX = '/providers/transak-native';
+const TRANSAK_NATIVE_CODE = 'transak-native';
 
 const isTransakNativeProvider = (providerId?: string): boolean =>
-  providerId?.startsWith(TRANSAK_NATIVE_PREFIX) ?? false;
+  providerId?.startsWith(TRANSAK_NATIVE_CODE) ?? false;
 
 export const createSettingsModalNavDetails = createNavigationDetails(
   Routes.RAMP.MODALS.ID,
@@ -50,10 +54,9 @@ export const createSettingsModalNavDetails = createNavigationDetails(
 function SettingsModal() {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { toastRef } = useContext(ToastContext);
-  const { selectedProvider, setSelectedProvider } = useRampsController();
-
+  const { selectedProvider, setSelectedProvider } = useRampsProviders();
   const [isAuthenticatedWithProvider, setIsAuthenticatedWithProvider] =
     useState<boolean>(false);
 
@@ -104,12 +107,13 @@ function SettingsModal() {
         })
         .build(),
     );
-    sheetRef.current?.onCloseBottomSheet();
-    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-      screen: Routes.TRANSACTIONS_VIEW,
-      params: {
-        redirectToOrders: true,
-      },
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: {
+          redirectToOrders: true,
+        },
+      });
     });
   }, [navigation, trackEvent, createEventBuilder]);
 
@@ -130,8 +134,8 @@ function SettingsModal() {
         await InAppBrowser.open(supportUrl);
       } else {
         // Navigate without closing the sheet first. If we called onCloseBottomSheet() here,
-        // shouldNavigateBack would fire goBack() after the close animation and pop the
-        // Webview screen off the stack instead of the modal.
+        // goBack would run after the close animation and pop the Webview screen off the
+        // stack instead of the modal.
         navigation.navigate('Webview', {
           screen: 'SimpleWebview',
           params: { url: supportUrl },
@@ -166,8 +170,9 @@ function SettingsModal() {
             ),
           },
         ],
-        iconName: IconName.CheckBold,
-        iconColor: IconColor.Success,
+        iconName: ComponentLibraryIconName.Confirmation,
+        // Toast still renders component-library Icon; use its IconColor enum, not DS tokens.
+        iconColor: ComponentLibraryIconColor.Success,
         hasNoTimeout: false,
       });
     } catch (error) {
@@ -181,8 +186,8 @@ function SettingsModal() {
             ),
           },
         ],
-        iconName: IconName.CircleX,
-        iconColor: IconColor.Error,
+        iconName: ComponentLibraryIconName.CircleX,
+        iconColor: ComponentLibraryIconColor.Error,
         hasNoTimeout: false,
       });
     }
@@ -193,10 +198,11 @@ function SettingsModal() {
   }, []);
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
-      <BottomSheetHeader onClose={handleClosePress}>
-        {strings('fiat_on_ramp.build_quote_settings_modal.title')}
-      </BottomSheetHeader>
+    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
+      <HeaderStandard
+        title={strings('fiat_on_ramp.build_quote_settings_modal.title')}
+        onClose={handleClosePress}
+      />
       <MenuItem
         iconName={IconName.Clock}
         title={strings(
@@ -207,7 +213,7 @@ function SettingsModal() {
 
       {supportUrl && (
         <MenuItem
-          iconName={IconName.Messages}
+          iconName={IconName.Sms}
           title={strings(
             'fiat_on_ramp.build_quote_settings_modal.contact_support',
           )}

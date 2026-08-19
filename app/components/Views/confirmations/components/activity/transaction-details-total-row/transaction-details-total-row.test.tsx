@@ -130,4 +130,31 @@ describe('TransactionDetailsTotalRow', () => {
     // Uses fiatUnformatted and user's currency formatter
     expect(getByText('$123.45')).toBeOnTheScreen();
   });
+
+  it('falls back to token amount for moneyAccountWithdraw without pay totals', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        metamaskPay: {},
+        type: TransactionType.moneyAccountWithdraw,
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render();
+    expect(getByText(`$${TOKEN_TOTAL}`)).toBeOnTheScreen();
+  });
+
+  it('renders targetFiat for moneyAccountWithdraw as a receive-type', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        type: TransactionType.moneyAccountWithdraw,
+        metamaskPay: {
+          totalFiat: PAY_TOTAL,
+          targetFiat: '88.88',
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render();
+    expect(getByText('$88.88')).toBeOnTheScreen();
+  });
 });

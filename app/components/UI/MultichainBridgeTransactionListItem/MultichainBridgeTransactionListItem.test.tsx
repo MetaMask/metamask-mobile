@@ -9,7 +9,7 @@ import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import { StatusTypes } from '@metamask/bridge-controller';
 import { MonetizedPrimitive } from '../../../core/Analytics/MetaMetrics.types';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../core/Analytics/events/transactions';
 
@@ -40,6 +40,14 @@ jest.mock('../../../../locales/i18n', () => ({
 }));
 jest.mock('../../../util/date', () => ({
   toDateFormat: jest.fn(() => 'Mar 15, 2025'),
+}));
+
+const mockGetNetworkImageSource = jest.fn(
+  (_opts: { chainId?: string }) => ({}),
+);
+jest.mock('../../../util/networks', () => ({
+  getNetworkImageSource: (opts: { chainId?: string }) =>
+    mockGetNetworkImageSource(opts),
 }));
 
 // Create a mock store with the necessary state
@@ -252,7 +260,7 @@ describe('MultichainBridgeTransactionListItem', () => {
   });
 
   describe('analytics tracking', () => {
-    it('tracks Transaction Detail List Item Clicked for a bridge transaction', () => {
+    it('tracks Activity Details Opened for a bridge transaction', () => {
       const { getByTestId } = renderWithProvider(
         <MultichainBridgeTransactionListItem
           transaction={mockTransaction}
@@ -266,7 +274,7 @@ describe('MultichainBridgeTransactionListItem', () => {
       fireEvent.press(getByTestId('transaction-item-0'));
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+        ACTIVITY_DETAIL_EVENTS.OPENED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         transaction_type: 'bridge',
@@ -331,6 +339,105 @@ describe('MultichainBridgeTransactionListItem', () => {
           location: TransactionDetailLocation.AssetDetails,
         }),
       );
+    });
+  });
+
+  describe('showDestinationPerspective', () => {
+    it('displays destination amount and symbol with + prefix when showDestinationPerspective is true', () => {
+      const { getByText } = renderWithProvider(
+        <MultichainBridgeTransactionListItem
+          transaction={mockTransaction}
+          bridgeHistoryItem={mockBridgeHistoryItem}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+          showDestinationPerspective
+        />,
+      );
+
+      expect(getByText('+2 ETH')).toBeTruthy();
+    });
+
+    it('displays source amount and symbol without + when showDestinationPerspective is false', () => {
+      const { getByText, queryByText } = renderWithProvider(
+        <MultichainBridgeTransactionListItem
+          transaction={mockTransaction}
+          bridgeHistoryItem={mockBridgeHistoryItem}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+          showDestinationPerspective={false}
+        />,
+      );
+
+      expect(getByText('1 ETH')).toBeTruthy();
+      expect(queryByText('+2 ETH')).toBeNull();
+    });
+
+    it('uses destination asset chain for network badge when showDestinationPerspective is true', () => {
+      mockGetNetworkImageSource.mockClear();
+
+      renderWithProvider(
+        <MultichainBridgeTransactionListItem
+          transaction={mockTransaction}
+          bridgeHistoryItem={mockBridgeHistoryItem}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+          showDestinationPerspective
+        />,
+      );
+
+      expect(mockGetNetworkImageSource).toHaveBeenCalledWith(
+        expect.objectContaining({ chainId: 'eip155:10' }),
+      );
+    });
+
+    it('uses source asset chain for network badge when showDestinationPerspective is false', () => {
+      mockGetNetworkImageSource.mockClear();
+
+      renderWithProvider(
+        <MultichainBridgeTransactionListItem
+          transaction={mockTransaction}
+          bridgeHistoryItem={mockBridgeHistoryItem}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+          showDestinationPerspective={false}
+        />,
+      );
+
+      expect(mockGetNetworkImageSource).toHaveBeenCalledWith(
+        expect.objectContaining({ chainId: 'eip155:1' }),
+      );
+    });
+
+    it('formats destination amount with destination asset decimals when showDestinationPerspective is true', () => {
+      const customDecimalsBridgeItem = {
+        ...mockBridgeHistoryItem,
+        quote: {
+          ...mockBridgeHistoryItem.quote,
+          destAsset: {
+            ...mockBridgeHistoryItem.quote.destAsset,
+            symbol: 'OP',
+            decimals: 6,
+          },
+          destTokenAmount: '1500000',
+        },
+      };
+
+      const { getByText } = renderWithProvider(
+        <MultichainBridgeTransactionListItem
+          transaction={mockTransaction}
+          bridgeHistoryItem={customDecimalsBridgeItem}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+          showDestinationPerspective
+        />,
+      );
+
+      expect(getByText('+1.5 OP')).toBeTruthy();
     });
   });
 });

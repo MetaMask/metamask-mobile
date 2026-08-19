@@ -50,9 +50,13 @@ export const useUserHistory = ({
 
       DevLogger.log('Fetching user history with params:', params);
 
-      const history = await controller
-        .getActiveProvider()
-        .getUserHistory(params);
+      const provider = controller.getActiveProviderOrNull();
+      if (!provider) {
+        setIsLoading(false);
+        return [];
+      }
+
+      const history = await provider.getUserHistory(params);
 
       DevLogger.log('User history fetched successfully:', history);
       setUserHistory(history);

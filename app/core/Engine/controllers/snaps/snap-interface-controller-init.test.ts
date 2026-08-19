@@ -1,25 +1,25 @@
-import { SnapInterfaceController } from '@metamask/snaps-controllers';
-import { ControllerInitRequest } from '../../types';
 import {
-  getSnapInterfaceControllerMessenger,
-  SnapInterfaceControllerMessenger,
-} from '../../messengers/snaps';
+  SnapInterfaceController,
+  type SnapInterfaceControllerMessenger,
+} from '@metamask/snaps-controllers';
+import { MessengerClientInitRequest } from '../../types';
+import { getSnapInterfaceControllerMessenger } from '../../messengers/snaps';
 import { snapInterfaceControllerInit } from './snap-interface-controller-init';
-import { buildControllerInitRequestMock } from '../../utils/test-utils';
+import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 
 jest.mock('@metamask/snaps-controllers');
 
 function getInitRequestMock(): jest.Mocked<
-  ControllerInitRequest<SnapInterfaceControllerMessenger>
+  MessengerClientInitRequest<SnapInterfaceControllerMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
   const requestMock = {
-    ...buildControllerInitRequestMock(baseMessenger),
+    ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getSnapInterfaceControllerMessenger(baseMessenger),
     initMessenger: undefined,
   };

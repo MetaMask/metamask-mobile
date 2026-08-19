@@ -8,9 +8,10 @@ import renderWithProvider, {
 } from '../../../../../util/test/renderWithProvider';
 import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
 import MultichainAccountConnectMultiSelector from './MultichainAccountConnectMultiSelector';
-import { ConnectedAccountsSelectorsIDs } from '../../../AccountConnect/ConnectedAccountModal.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { AccountListBottomSheetSelectorsIDs } from '../../../AccountSelector/AccountListBottomSheet.testIds';
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../../AccountConnect/ConnectAccountBottomSheet.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import { ConnectionProps } from '../../../../../core/SDKConnect/Connection';
 import { RootState } from '../../../../../reducers';
 
@@ -86,9 +87,9 @@ const createMockState = (): DeepPartial<RootState> => ({
     backgroundState: {
       AccountTreeController: {
         accountTree: {
-          selectedAccountGroup: MOCK_GROUP_ID_1,
           wallets: {},
         },
+        selectedAccountGroup: MOCK_GROUP_ID_1,
       },
       AccountsController: {
         internalAccounts: {
@@ -306,7 +307,7 @@ describe('MultichainAccountConnectMultiSelector', () => {
       const updateButton = getByTestId(
         ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
       );
-      expect(updateButton.props.disabled).toBe(true);
+      expect(updateButton).toBeDisabled();
     });
   });
 

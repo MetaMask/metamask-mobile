@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Fuse from 'fuse.js';
 import styleSheet from './styles';
 import { useStyles } from '../../../component-library/hooks';
@@ -48,8 +49,10 @@ import {
   useSwapBridgeNavigation,
 } from '../Bridge/hooks/useSwapBridgeNavigation';
 import { BridgeToken } from '../Bridge/types';
-import { useExploreSearch } from '../../Views/TrendingView/hooks/useExploreSearch';
-import { type SectionId } from '../../Views/TrendingView/sections.config';
+import {
+  useExploreSearch,
+  type SearchFeedId,
+} from '../../Views/TrendingView/search/useExploreSearch';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket } from '../Predict/types';
@@ -81,19 +84,22 @@ const getTrendingTokenImageUrl = (assetId: string): string =>
   `https://token.api.cx.metamask.io/assets/${assetId}/logo.png`;
 
 interface ResultsWithCategory {
-  category: UrlAutocompleteCategory | SectionId;
+  category: UrlAutocompleteCategory | SearchFeedId;
   data: AutocompleteSearchResult[];
   isLoading?: boolean;
 }
 
 /**
- * Helper to map SectionId to UrlAutocompleteCategory for display
+ * Helper to map search feed id to UrlAutocompleteCategory for display
  */
-const sectionIdToCategory = (sectionId: SectionId): UrlAutocompleteCategory => {
+const sectionIdToCategory = (
+  sectionId: SearchFeedId,
+): UrlAutocompleteCategory => {
   switch (sectionId) {
     case 'sites':
       return UrlAutocompleteCategory.Sites;
     case 'tokens':
+    case 'stocks':
       return UrlAutocompleteCategory.Tokens;
     case 'perps':
       return UrlAutocompleteCategory.Perps;
@@ -177,6 +183,7 @@ interface SearchContentProps {
   browserHistory: FuseSearchResult[];
   bookmarks: FuseSearchResult[];
   onSelect: (item: AutocompleteSearchResult) => void;
+  onSelectPressIn?: () => void;
   hide: () => void;
   styles: ReturnType<typeof styleSheet>;
 }
@@ -190,23 +197,52 @@ const SearchContent: React.FC<SearchContentProps> = ({
   browserHistory,
   bookmarks,
   onSelect,
+  onSelectPressIn,
   hide,
   styles,
 }) => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
 
-  // Use omni-search hook with browser-specific section order (Sites first)
+  // Bridge Explore `useExploreSearch` ({ sections }) to the record shape this UI expects
+  const exploreResult = useExploreSearch(searchQuery);
   const {
     data: omniSearchData,
     isLoading: omniSearchLoading,
     sectionsOrder,
-  } = useExploreSearch(searchQuery, {
-    sectionsOrder: BROWSER_SEARCH_SECTIONS_ORDER,
-  });
+  } = useMemo(() => {
+    const order = BROWSER_SEARCH_SECTIONS_ORDER;
+    const byFeedId = new Map(exploreResult.sections.map((s) => [s.feedId, s]));
+
+    const data: Partial<Record<SearchFeedId, unknown[]>> = {};
+    const isLoading: Partial<Record<SearchFeedId, boolean>> = {};
+
+    for (const sectionId of order) {
+      if (sectionId === 'tokens') {
+        const tokensSec = byFeedId.get('tokens');
+        const stocksSec = byFeedId.get('stocks');
+        data.tokens = [
+          ...((tokensSec?.items as TrendingAsset[]) ?? []),
+          ...((stocksSec?.items as TrendingAsset[]) ?? []),
+        ];
+        isLoading.tokens =
+          Boolean(tokensSec?.isLoading) || Boolean(stocksSec?.isLoading);
+        continue;
+      }
+      const sec = byFeedId.get(sectionId);
+      data[sectionId] = sec?.items ?? [];
+      isLoading[sectionId] = sec?.isLoading ?? false;
+    }
+
+    return {
+      data: data as Record<SearchFeedId, unknown[]>,
+      isLoading: isLoading as Record<SearchFeedId, boolean>,
+      sectionsOrder: order,
+    };
+  }, [exploreResult]);
 
   // Create Fuse instance for filtering Recents and Favorites
   const fuseInstance = useMemo(() => {
@@ -371,9 +407,18 @@ const SearchContent: React.FC<SearchContentProps> = ({
         return (
           <Result
             result={item}
+            onPressIn={
+              item.category === UrlAutocompleteCategory.Sites ||
+              item.category === UrlAutocompleteCategory.Recents ||
+              item.category === UrlAutocompleteCategory.Favorites
+                ? onSelectPressIn
+                : undefined
+            }
             onPress={() => {
-              // Only hide for URL-based results (user navigates away from browser)
-              // Keep open for Tokens/Perps/Predictions so user can explore multiple items
+              // Select first so BrowserTab can start WebView navigation, then
+              // hide autocomplete for URL-based results.
+              // Keep autocomplete open for Tokens/Perps/Predictions.
+              onSelect(item);
               const isUrlBasedResult =
                 item.category === UrlAutocompleteCategory.Sites ||
                 item.category === UrlAutocompleteCategory.Recents ||
@@ -381,14 +426,13 @@ const SearchContent: React.FC<SearchContentProps> = ({
               if (isUrlBasedResult) {
                 hide();
               }
-              onSelect(item);
             }}
             onSwapPress={goToSwaps}
             navigation={navigation}
           />
         );
       },
-      [hide, onSelect, goToSwaps, navigation],
+      [hide, onSelect, onSelectPressIn, goToSwaps, navigation],
     );
 
   const keyExtractor = useCallback(
@@ -463,7 +507,7 @@ const SearchContent: React.FC<SearchContentProps> = ({
 const UrlAutocomplete = forwardRef<
   UrlAutocompleteRef,
   UrlAutocompleteComponentProps
->(({ onSelect, onDismiss }, ref) => {
+>(({ onSelect, onSelectPressIn, onDismiss }, ref) => {
   const browserHistory = useSelector(selectBrowserHistoryWithType);
   const bookmarks = useSelector(selectBrowserBookmarksWithType);
 
@@ -579,14 +623,15 @@ const UrlAutocomplete = forwardRef<
       ({ item }) => (
         <Result
           result={item}
+          onPressIn={onSelectPressIn}
           onPress={() => {
-            hide();
             onSelect(item);
+            hide();
           }}
           onSwapPress={goToSwaps}
         />
       ),
-      [hide, onSelect, goToSwaps],
+      [hide, onSelect, onSelectPressIn, goToSwaps],
     );
 
   const keyExtractor = useCallback(
@@ -629,6 +674,7 @@ const UrlAutocomplete = forwardRef<
                 browserHistory={browserHistory}
                 bookmarks={bookmarks}
                 onSelect={onSelect}
+                onSelectPressIn={onSelectPressIn}
                 hide={hide}
                 styles={styles}
               />

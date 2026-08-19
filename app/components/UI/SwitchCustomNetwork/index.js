@@ -5,6 +5,13 @@ import PermissionSummary from '../PermissionsSummary';
 /**
  * Account access approval component
  */
+/**
+ * @param {object} props
+ * @param {any} props.customNetworkInformation
+ * @param {any} props.currentPageInformation
+ * @param {() => void} [props.onCancel]
+ * @param {() => void} [props.onConfirm]
+ */
 const SwitchCustomNetwork = ({
   customNetworkInformation,
   currentPageInformation,

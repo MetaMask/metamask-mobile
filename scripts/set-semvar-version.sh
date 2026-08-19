@@ -25,7 +25,6 @@ SEMVER_REGEX="\
 
 PACKAGE_JSON_FILE=package.json
 ANDROID_BUILD_GRADLE_FILE=android/app/build.gradle
-BITRISE_YML_FILE=bitrise.yml
 IOS_PROJECT_FILE=ios/MetaMask.xcodeproj/project.pbxproj
 
 semver_to_nat () {
@@ -53,11 +52,6 @@ perform_updates () {
     sed -i '' 's/\(\s*versionName \)".*"/\1"'"$SEMVER_VERSION"'"/' "$ANDROID_BUILD_GRADLE_FILE"
     echo "- $ANDROID_BUILD_GRADLE_FILE successfully updated"
 
-    # update bitrise.yml
-    echo "Updating Bitrise configuration files..."
-    sed -i '' 's/\(\s*VERSION_NAME: \).*/\1'"$SEMVER_VERSION"'/' "$BITRISE_YML_FILE"
-    echo "- $BITRISE_YML_FILE successfully updated"
-
     echo "Updating iOS project settings..."
     sed -i '' 's/\(\s*MARKETING_VERSION = \).*/\1'"$SEMVER_VERSION;"'/' "$IOS_PROJECT_FILE"
     echo "- $IOS_PROJECT_FILE successfully updated"
@@ -70,11 +64,6 @@ perform_updates () {
     sed -i 's/\(\s*versionName \)".*"/\1"'"$SEMVER_VERSION"'"/' "$ANDROID_BUILD_GRADLE_FILE"
     echo "- $ANDROID_BUILD_GRADLE_FILE updated"
 
-    # update bitrise.yml
-    echo "Updating Bitrise configuration files..."
-    sed -i 's/\(\s*VERSION_NAME: \).*/\1'"$SEMVER_VERSION"'/' "$BITRISE_YML_FILE"
-    echo "- $BITRISE_YML_FILE updated"
-
     # update ios/MetaMask.xcodeproj/project.pbxproj
     echo "Updating iOS project settings..."
     sed -i 's/\(\s*MARKETING_VERSION = \).*/\1'"$SEMVER_VERSION;"'/' "$IOS_PROJECT_FILE"
@@ -83,7 +72,6 @@ perform_updates () {
   fi
 
   echo "- $ANDROID_BUILD_GRADLE_FILE updated"
-  echo "- $BITRISE_YML_FILE updated"
   echo "- $IOS_PROJECT_FILE updated"
 
   echo "-------------------"
@@ -92,9 +80,6 @@ perform_updates () {
 }
 
 
-
-# get current numbers
-CURRENT_SEMVER=$(awk '/^\s+VERSION_NAME: /{print $2}' $BITRISE_YML_FILE);
 
 # abort if values are empty
 if [[ -z $SEMVER_VERSION ]]; then

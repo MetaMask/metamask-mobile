@@ -1,5 +1,9 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 import type { SupportedCurve } from '@metamask/key-tree';
+import { isTestEnvironment } from '../util/test/utils';
+
+export const CAN_INSTALL_THIRD_PARTY_SNAPS =
+  process.env.METAMASK_BUILD_TYPE === 'flask' || isTestEnvironment;
 
 export type SnapsDerivationPathType = ['m', ...string[]];
 
@@ -60,6 +64,11 @@ export const SNAPS_DERIVATION_PATHS: SnapsDerivationPath[] = [
     path: ['m', `44'`, `195'`],
     curve: 'secp256k1',
     name: 'Tron',
+  },
+  {
+    path: ['m', `44'`, `148'`],
+    curve: 'ed25519',
+    name: 'Stellar',
   },
   {
     path: ['m', `44'`, `2'`],

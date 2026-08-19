@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
 import BN4 from 'bnjs4';
 import React from 'react';
+import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -9,7 +10,6 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/account
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { flushPromises } from '../../../../../util/test/utils';
-import { getStakingNavbar } from '../../../Navbar';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_POOLED_STAKES_API_RESPONSE,
@@ -25,30 +25,17 @@ import {
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { getAaveV3MaxRiskAwareWithdrawalAmount } from '../../utils/tempLending';
-import EarnWithdrawInputView from './EarnWithdrawInputView';
+import EarnWithdrawInputView, {
+  EARN_WITHDRAW_INPUT_VIEW_BACK_BUTTON_TEST_ID,
+  EARN_WITHDRAW_INPUT_VIEW_CANCEL_BUTTON_TEST_ID,
+} from './EarnWithdrawInputView';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import { TokenI } from '../../../Tokens/types';
 import { trace, TraceName } from '../../../../../util/trace';
 import { MAINNET_DISPLAY_NAME } from '../../../../../core/Engine/constants';
-
-jest.mock('../../../Navbar', () => ({
-  getStakingNavbar: jest.fn().mockReturnValue({}),
-}));
+import useEarnTokens from '../../hooks/useEarnTokens';
 
 jest.mock('../../../../../selectors/multichain', () => ({
-  selectAccountTokensAcrossChains: jest.fn(() => ({
-    '0x1': [
-      {
-        address: '0x0',
-        symbol: 'ETH',
-        decimals: 18,
-        balance: '1.5',
-        balanceFiat: '$3000',
-        isNative: true,
-        isETH: true,
-      },
-    ],
-  })),
   selectMultichainAssetsRates: jest.fn(() => ({})),
 }));
 
@@ -64,6 +51,7 @@ const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockReset = jest.fn();
 const mockPop = jest.fn();
+const mockGoBack = jest.fn();
 
 let mockRouteToken: TokenI | undefined;
 
@@ -73,11 +61,12 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
+      goBack: mockGoBack,
       setOptions: mockSetOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
       reset: mockReset,
-      dangerouslyGetParent: () => ({
+      getParent: () => ({
         pop: mockPop,
       }),
     }),
@@ -195,7 +184,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 jest.mock('../../hooks/useEarnTokens', () => ({
   __esModule: true,
-  default: () => ({
+  default: jest.fn(() => ({
     getEarnToken: jest.fn().mockImplementation((token) => {
       if (token.address === MOCK_ETH_MAINNET_ASSET.address) {
         return {
@@ -396,7 +385,7 @@ jest.mock('../../hooks/useEarnTokens', () => ({
       estimatedAnnualRewardsTokenMinimalUnit: '50000000',
       estimatedAnnualRewardsTokenFormatted: '50',
     }),
-  }),
+  })),
 }));
 
 jest.mock('../../utils/tempLending', () => ({
@@ -430,13 +419,16 @@ jest.mock('react-native-fade-in-image', () => {
 });
 
 describe('EarnWithdrawInputView', () => {
-  const mockGetStakingNavbar = jest.mocked(getStakingNavbar);
   const mockTrackEvent = jest.fn();
   const mockTrace = jest.mocked(trace);
+  const mockUseEarnTokens = useEarnTokens as jest.MockedFunction<
+    typeof useEarnTokens
+  >;
 
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    mockGoBack.mockClear();
 
     // Reset route.param.token
     mockRouteToken = undefined;
@@ -448,11 +440,11 @@ describe('EarnWithdrawInputView', () => {
     } as unknown as ReturnType<typeof useAnalytics>);
   });
 
-  it('render matches snapshot', async () => {
+  it('renders withdraw input view with review button', async () => {
     render(EarnWithdrawInputView);
 
     await waitFor(async () => {
-      expect(screen.toJSON()).toMatchSnapshot();
+      expect(screen.getByTestId('review-button')).toBeOnTheScreen();
     });
   });
 
@@ -465,7 +457,7 @@ describe('EarnWithdrawInputView', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('4000 USD')).toBeTruthy();
+        expect(screen.getByText('4000 USD')).toBeOnTheScreen();
       });
     });
   });
@@ -474,10 +466,10 @@ describe('EarnWithdrawInputView', () => {
     it('switches between ETH and fiat correctly', () => {
       render(EarnWithdrawInputView);
 
-      expect(screen.getByText('ETH')).toBeTruthy();
+      expect(screen.getByText('ETH')).toBeOnTheScreen();
       fireEvent.press(screen.getByText('0 USD'));
 
-      expect(screen.getByText('USD')).toBeTruthy();
+      expect(screen.getByText('USD')).toBeOnTheScreen();
     });
   });
 
@@ -487,7 +479,7 @@ describe('EarnWithdrawInputView', () => {
 
       fireEvent.press(screen.getByText('25%'));
 
-      expect(screen.getByText('1.44783')).toBeTruthy();
+      expect(screen.getByText('1.44783')).toBeOnTheScreen();
     });
 
     it('handles Max button press and sets full balance', async () => {
@@ -497,7 +489,7 @@ describe('EarnWithdrawInputView', () => {
         fireEvent.press(screen.getByText('Max'));
       });
 
-      expect(screen.getByText('5.79133')).toBeTruthy();
+      expect(screen.getByText('5.79133')).toBeOnTheScreen();
     });
 
     it('tracks quick amount button press for staking flows', async () => {
@@ -528,7 +520,7 @@ describe('EarnWithdrawInputView', () => {
     it('displays `Enter amount` if input is 0', () => {
       render(EarnWithdrawInputView);
 
-      expect(screen.getByText('Enter amount')).toBeTruthy();
+      expect(screen.getByText('Enter amount')).toBeOnTheScreen();
     });
 
     it('displays `Review` on withdraw button if input is valid', () => {
@@ -536,7 +528,7 @@ describe('EarnWithdrawInputView', () => {
 
       fireEvent.press(screen.getByText('1'));
 
-      expect(screen.getByText('Review')).toBeTruthy();
+      expect(screen.getByText('Review')).toBeOnTheScreen();
     });
 
     it('displays `Not enough ETH` when input exceeds balance', () => {
@@ -588,15 +580,10 @@ describe('EarnWithdrawInputView', () => {
     it('renders "Unstake <token name>" for pooled-staking withdrawals', () => {
       render(EarnWithdrawInputView);
 
-      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Unstake ETH',
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        null,
-      );
+      expect(screen.getByText('Unstake ETH')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(EARN_WITHDRAW_INPUT_VIEW_CANCEL_BUTTON_TEST_ID),
+      ).toBeOnTheScreen();
     });
 
     it('renders "Withdraw <token name>" for supported stablecoin lending assets', () => {
@@ -634,15 +621,80 @@ describe('EarnWithdrawInputView', () => {
 
       render(EarnWithdrawInputView, mockLendingToken);
 
-      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Withdraw USDC',
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        expect.anything(),
-        null,
+      expect(screen.getByText('Withdraw USDC')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(EARN_WITHDRAW_INPUT_VIEW_BACK_BUTTON_TEST_ID),
+      ).toBeOnTheScreen();
+    });
+
+    it('emits UNSTAKE_CANCEL_CLICKED and calls navigation.goBack when Cancel is pressed', () => {
+      render(EarnWithdrawInputView);
+      mockTrackEvent.mockClear();
+
+      fireEvent.press(
+        screen.getByTestId(EARN_WITHDRAW_INPUT_VIEW_CANCEL_BUTTON_TEST_ID),
       );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Unstake Cancel Clicked',
+          properties: expect.objectContaining({
+            location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+          }),
+        }),
+      );
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('emits EARN_INPUT_BACK_BUTTON_CLICKED and calls navigation.goBack when back is pressed for lending tokens', () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValueOnce(true);
+
+      const mockLendingToken: EarnTokenDetails = {
+        ...MOCK_USDC_MAINNET_ASSET,
+        balanceFormatted: '1000',
+        balanceMinimalUnit: '1000000000',
+        balanceFiatNumber: 1000,
+        tokenUsdExchangeRate: 1,
+        experiences: [
+          {
+            type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+            apr: '5%',
+            estimatedAnnualRewardsFormatted: '50',
+            estimatedAnnualRewardsFiatNumber: 50,
+            estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+            estimatedAnnualRewardsTokenFormatted: '50',
+          },
+        ],
+        experience: {
+          type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          apr: '5%',
+          estimatedAnnualRewardsFormatted: '50',
+          estimatedAnnualRewardsFiatNumber: 50,
+          estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+          estimatedAnnualRewardsTokenFormatted: '50',
+        },
+      };
+
+      mockTrackEvent.mockClear();
+      render(EarnWithdrawInputView, mockLendingToken);
+
+      fireEvent.press(
+        screen.getByTestId(EARN_WITHDRAW_INPUT_VIEW_BACK_BUTTON_TEST_ID),
+      );
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Earn Input Back Button Clicked',
+          properties: expect.objectContaining({
+            location: EVENT_LOCATIONS.EARN_WITHDRAWAL_INPUT_VIEW,
+          }),
+        }),
+      );
+      expect(mockGoBack).toHaveBeenCalled();
     });
   });
 
@@ -912,8 +964,14 @@ describe('EarnWithdrawInputView', () => {
       await act(async () => {
         fireEvent.press(screen.getByText('1'));
       });
+
+      // Reveal the TRON unstake preview, which renders the "Unstake" button.
+      await act(async () => {
+        fireEvent.press(screen.getByText('Done'));
+      });
+
       await waitFor(() => {
-        expect(screen.getAllByText('Unstake')[0]).toBeTruthy();
+        expect(screen.getAllByText('Unstake')[0]).toBeOnTheScreen();
       });
     });
 
@@ -935,16 +993,100 @@ describe('EarnWithdrawInputView', () => {
         tronToken,
       );
 
-      expect(getByText('Max')).toBeTruthy();
+      expect(getByText('Max')).toBeOnTheScreen();
 
       await act(async () => {
         fireEvent.press(getByText('1'));
       });
 
       await waitFor(() => {
-        expect(queryByText('Max')).toBeNull();
-        expect(getByText('Done')).toBeTruthy();
+        expect(queryByText('Max')).not.toBeOnTheScreen();
+        expect(getByText('Done')).toBeOnTheScreen();
       });
+    });
+
+    it('tracks TRX staking quick amount with TRX_STAKING experience', async () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValue(false);
+
+      const trxEarnToken = {
+        name: 'Staked TRX',
+        symbol: 'sTRX',
+        ticker: 'sTRX',
+        chainId: 'tron:728126428',
+        address: 'tron:728126428/slip44:195',
+        isNative: false,
+        isETH: false,
+        decimals: 6,
+        balance: '1000',
+        balanceFormatted: '1000 sTRX',
+        balanceMinimalUnit: '1000000000',
+        balanceFiat: '$100',
+        balanceFiatNumber: 100,
+        experience: {
+          type: EARN_EXPERIENCES.TRX_STAKING,
+          apr: '0',
+        },
+        experiences: [
+          {
+            type: EARN_EXPERIENCES.TRX_STAKING,
+            apr: '0',
+          },
+        ],
+      } as unknown as EarnTokenDetails;
+      const tronToken: TokenI = {
+        name: 'Tron',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        address: 'tron:728126428/slip44:195',
+        decimals: 6,
+        balance: '1000',
+        balanceFiat: '$100',
+        isNative: true,
+      } as unknown as TokenI;
+
+      mockUseEarnTokens.mockImplementationOnce(() => ({
+        getEarnToken: jest.fn(() => trxEarnToken),
+        getOutputToken: jest.fn(() => trxEarnToken),
+        getPairedEarnTokens: jest.fn(() => ({
+          earnToken: trxEarnToken,
+          outputToken: trxEarnToken,
+        })),
+        getEarnExperience: jest.fn(),
+        getEstimatedAnnualRewardsForAmount: jest.fn(),
+        earnTokens: [],
+        earnTokensByChainIdAndAddress: {},
+        earnOutputTokens: [],
+        earnOutputTokensByChainIdAndAddress: {},
+        earnTokenPairsByChainIdAndAddress: {},
+        earnOutputTokenPairsByChainIdAndAddress: {},
+        earnableTotalFiatNumber: 0,
+        earnableTotalFiatFormatted: '$0',
+      }));
+
+      render(EarnWithdrawInputView, tronToken);
+      mockTrackEvent.mockClear();
+
+      await act(async () => {
+        fireEvent.press(screen.getByText('50%'));
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Unstake Input Quick Amount Clicked',
+          properties: expect.objectContaining({
+            location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+            amount: 0.5,
+            is_max: false,
+            mode: 'native',
+            experience: EARN_EXPERIENCES.TRX_STAKING,
+          }),
+        }),
+      );
     });
   });
 

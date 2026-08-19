@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor, act } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { captureException } from '@sentry/react-native';
@@ -7,6 +7,10 @@ import SRPErrorScreen from './SRPErrorScreen';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import {
+  AccountType,
+  WalletCreationErrorCtaType,
+} from '../../../constants/onboarding';
 
 const mockTrackOnboarding = jest.fn();
 
@@ -35,16 +39,18 @@ jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
 
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  openURL: jest.fn(),
-  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
-  getInitialURL: jest.fn(() => Promise.resolve(null)),
-}));
-
 jest.mock('../../../core', () => ({
   Authentication: {
     deleteWallet: jest.fn().mockResolvedValue(undefined),
   },
+}));
+
+const mockOpenSupportWithConsent = jest.fn();
+
+jest.mock('../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
 }));
 
 import { Authentication } from '../../../core';
@@ -70,15 +76,30 @@ describe('SRPErrorScreen', () => {
       expect(mockTrackOnboarding).toHaveBeenCalled();
     });
 
-    it('tracks event with correct flow_type property', () => {
+    it('tracks screen viewed event with account_type, error_type, and error_message', () => {
       renderWithProvider(<SRPErrorScreen error={mockError} />);
 
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
         expect.objectContaining({
           properties: expect.objectContaining({
-            flow_type: 'srp',
-            error_name: 'WalletCreationError',
+            account_type: AccountType.Metamask,
+            error_type: 'WalletCreationError',
             error_message: 'Test wallet creation error',
+          }),
+        }),
+        expect.any(Function),
+      );
+    });
+
+    it('tracks screen viewed event with custom accountType when provided', () => {
+      renderWithProvider(
+        <SRPErrorScreen error={mockError} accountType={AccountType.Imported} />,
+      );
+
+      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            account_type: AccountType.Imported,
           }),
         }),
         expect.any(Function),
@@ -165,10 +186,11 @@ describe('SRPErrorScreen', () => {
         fireEvent.press(getByText('Try again'));
       });
 
-      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+      expect(mockTrackOnboarding).toHaveBeenLastCalledWith(
         expect.objectContaining({
           properties: expect.objectContaining({
-            flow_type: 'srp',
+            cta_type: WalletCreationErrorCtaType.Retry,
+            account_type: AccountType.Metamask,
           }),
         }),
         expect.any(Function),
@@ -222,10 +244,11 @@ describe('SRPErrorScreen', () => {
 
       fireEvent.press(getByText('Send error report'));
 
-      expect(mockTrackOnboarding).toHaveBeenCalledWith(
+      expect(mockTrackOnboarding).toHaveBeenLastCalledWith(
         expect.objectContaining({
           properties: expect.objectContaining({
-            flow_type: 'srp',
+            cta_type: WalletCreationErrorCtaType.SendErrorReport,
+            account_type: AccountType.Metamask,
           }),
         }),
         expect.any(Function),
@@ -234,12 +257,14 @@ describe('SRPErrorScreen', () => {
   });
 
   describe('handleCopyError', () => {
-    it('copies error report to clipboard when Copy is pressed', () => {
+    it('copies error report to clipboard when Copy is pressed', async () => {
       const { getByText } = renderWithProvider(
         <SRPErrorScreen error={mockError} />,
       );
 
-      fireEvent.press(getByText('Copy'));
+      await act(async () => {
+        fireEvent.press(getByText('Copy'));
+      });
 
       expect(Clipboard.setString).toHaveBeenCalledWith(
         'View: ChoosePassword\nError: WalletCreationError\nTest wallet creation error',
@@ -251,11 +276,11 @@ describe('SRPErrorScreen', () => {
         <SRPErrorScreen error={mockError} />,
       );
 
-      fireEvent.press(getByText('Copy'));
-
-      await waitFor(() => {
-        expect(getByText('Copied')).toBeTruthy();
+      await act(async () => {
+        fireEvent.press(getByText('Copy'));
       });
+
+      expect(getByText('Copied')).toBeOnTheScreen();
     });
 
     it('reverts to Copy text after 2 seconds', async () => {
@@ -263,33 +288,58 @@ describe('SRPErrorScreen', () => {
         <SRPErrorScreen error={mockError} />,
       );
 
-      fireEvent.press(getByText('Copy'));
-
-      await waitFor(() => {
-        expect(getByText('Copied')).toBeTruthy();
+      await act(async () => {
+        fireEvent.press(getByText('Copy'));
       });
+
+      expect(getByText('Copied')).toBeOnTheScreen();
 
       act(() => {
         jest.advanceTimersByTime(2000);
       });
 
-      await waitFor(() => {
-        expect(queryByText('Copied')).toBeNull();
-        expect(getByText('Copy')).toBeTruthy();
-      });
+      expect(queryByText('Copied')).not.toBeOnTheScreen();
+      expect(getByText('Copy')).toBeOnTheScreen();
     });
   });
 
   describe('handleContactSupport', () => {
-    it('opens support URL when MetaMask Support is pressed', () => {
+    it('calls openSupportWithConsent with an opener and the support base URL when MetaMask Support is pressed', () => {
       const { getByText } = renderWithProvider(
         <SRPErrorScreen error={mockError} />,
       );
 
       fireEvent.press(getByText('MetaMask Support'));
 
-      expect(Linking.openURL).toHaveBeenCalledWith(
+      expect(mockTrackOnboarding).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            cta_type: WalletCreationErrorCtaType.ContactSupport,
+            account_type: AccountType.Metamask,
+          }),
+        }),
+        expect.any(Function),
+      );
+      expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+        expect.any(Function),
         AppConstants.REVIEW_PROMPT.SUPPORT,
+      );
+    });
+
+    // Covers only the call-site opener wiring: invoking the opener passed to
+    // openSupportWithConsent opens the URL via Linking. The consent modal
+    // internals are covered by the core support-consent tests.
+    it('opens the support URL via Linking when the opener callback is invoked', () => {
+      const { getByText } = renderWithProvider(
+        <SRPErrorScreen error={mockError} />,
+      );
+
+      fireEvent.press(getByText('MetaMask Support'));
+      const [open] = mockOpenSupportWithConsent.mock.calls[0];
+      open('https://support.metamask.io/');
+
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://support.metamask.io/',
       );
     });
   });
@@ -331,11 +381,11 @@ describe('SRPErrorScreen', () => {
       );
 
       // Trigger copy to start a timeout
-      fireEvent.press(getByText('Copy'));
-
-      await waitFor(() => {
-        expect(getByText('Copied')).toBeTruthy();
+      await act(async () => {
+        fireEvent.press(getByText('Copy'));
       });
+
+      expect(getByText('Copied')).toBeOnTheScreen();
 
       // Unmount component
       unmount();
@@ -351,13 +401,15 @@ describe('SRPErrorScreen', () => {
         <SRPErrorScreen error={mockError} />,
       );
 
-      fireEvent.press(getByText('Copy'));
-
-      await waitFor(() => {
-        expect(getByText('Copied')).toBeTruthy();
+      await act(async () => {
+        fireEvent.press(getByText('Copy'));
       });
 
-      fireEvent.press(getByText('Copied'));
+      expect(getByText('Copied')).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.press(getByText('Copied'));
+      });
 
       expect(clearTimeoutSpy).toHaveBeenCalled();
       clearTimeoutSpy.mockRestore();

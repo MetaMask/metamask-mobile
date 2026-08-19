@@ -12,8 +12,11 @@ import {
   selectMusdConversionPaymentTokensBlocklist,
   selectIsMusdConversionRewardsUiEnabledFlag,
   selectMusdConversionBlockedCountries,
-  parseBlockedCountriesEnv,
   selectMusdConversionMinAssetBalanceRequired,
+  selectMusdTokenRegistrationChainIds,
+  MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK,
+  selectMusdBalanceChainIds,
+  MUSD_BALANCE_CHAIN_IDS_FALLBACK,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import type { Json } from '@metamask/utils';
@@ -25,7 +28,7 @@ import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag';
 
 jest.mock('react-native-device-info', () => ({
@@ -1766,62 +1769,6 @@ describe('Earn Feature Flag Selectors', () => {
     });
   });
 
-  describe('parseBlockedCountriesEnv', () => {
-    it('returns empty array for undefined input', () => {
-      const result = parseBlockedCountriesEnv(undefined);
-
-      expect(result).toEqual([]);
-    });
-
-    it('returns empty array for empty string', () => {
-      const result = parseBlockedCountriesEnv('');
-
-      expect(result).toEqual([]);
-    });
-
-    it('returns empty array for whitespace-only string', () => {
-      const result = parseBlockedCountriesEnv('   ');
-
-      expect(result).toEqual([]);
-    });
-
-    it('parses single country code', () => {
-      const result = parseBlockedCountriesEnv('GB');
-
-      expect(result).toEqual(['GB']);
-    });
-
-    it('parses comma-separated country codes', () => {
-      const result = parseBlockedCountriesEnv('GB,US,FR');
-
-      expect(result).toEqual(['GB', 'US', 'FR']);
-    });
-
-    it('trims whitespace around country codes', () => {
-      const result = parseBlockedCountriesEnv('GB , US , FR');
-
-      expect(result).toEqual(['GB', 'US', 'FR']);
-    });
-
-    it('converts country codes to uppercase', () => {
-      const result = parseBlockedCountriesEnv('gb,us,fr');
-
-      expect(result).toEqual(['GB', 'US', 'FR']);
-    });
-
-    it('filters out empty entries', () => {
-      const result = parseBlockedCountriesEnv('GB,,US,');
-
-      expect(result).toEqual(['GB', 'US']);
-    });
-
-    it('handles mixed case and whitespace', () => {
-      const result = parseBlockedCountriesEnv(' gb , Us, FR ');
-
-      expect(result).toEqual(['GB', 'US', 'FR']);
-    });
-  });
-
   describe('selectMusdConversionBlockedCountries', () => {
     it('returns blocked countries array when remote flag is valid', () => {
       const blockedRegions = ['GB', 'US'];
@@ -2144,6 +2091,110 @@ describe('Earn Feature Flag Selectors', () => {
         selectMusdConversionMinAssetBalanceRequired(stateWithoutRemote);
 
       expect(result).toBe(0.01);
+    });
+  });
+
+  describe('selectMusdTokenRegistrationChainIds', () => {
+    it('returns chain IDs from remote flag when the flag is a non-empty array', () => {
+      const stateWithRemote = createStateWithRemoteFlags({
+        earnMusdTokenRegistrationChainIds: { chainIds: ['0x1', '0xe708'] },
+      });
+
+      const result = selectMusdTokenRegistrationChainIds(stateWithRemote);
+
+      expect(result).toEqual(['0x1', '0xe708']);
+    });
+
+    it('returns fallback chain IDs when remote flag is absent', () => {
+      const stateWithoutRemote = createStateWithRemoteFlags({});
+
+      const result = selectMusdTokenRegistrationChainIds(stateWithoutRemote);
+
+      expect(result).toEqual(MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK);
+    });
+
+    it('returns an empty array when remote flag chainIds is an empty array, disabling registration', () => {
+      const stateWithEmptyRemote = createStateWithRemoteFlags({
+        earnMusdTokenRegistrationChainIds: { chainIds: [] },
+      });
+
+      const result = selectMusdTokenRegistrationChainIds(stateWithEmptyRemote);
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns fallback chain IDs when remote flag chainIds is not an array', () => {
+      const stateWithInvalidRemote = createStateWithRemoteFlags({
+        earnMusdTokenRegistrationChainIds: { chainIds: 'not-an-array' },
+      });
+
+      const result = selectMusdTokenRegistrationChainIds(
+        stateWithInvalidRemote,
+      );
+
+      expect(result).toEqual(MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK);
+    });
+
+    it('returns fallback chain IDs when remote flag is present but has no chainIds property', () => {
+      const stateWithMissingChainIds = createStateWithRemoteFlags({
+        earnMusdTokenRegistrationChainIds: {},
+      });
+
+      const result = selectMusdTokenRegistrationChainIds(
+        stateWithMissingChainIds,
+      );
+
+      expect(result).toEqual(MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK);
+    });
+  });
+
+  describe('selectMusdBalanceChainIds', () => {
+    it('returns chain IDs from remote flag when the flag is a non-empty array', () => {
+      const stateWithRemote = createStateWithRemoteFlags({
+        earnMusdBalanceChainIds: { chainIds: ['0x1', '0xe708'] },
+      });
+
+      const result = selectMusdBalanceChainIds(stateWithRemote);
+
+      expect(result).toEqual(['0x1', '0xe708']);
+    });
+
+    it('returns fallback chain IDs when remote flag is absent', () => {
+      const stateWithoutRemote = createStateWithRemoteFlags({});
+
+      const result = selectMusdBalanceChainIds(stateWithoutRemote);
+
+      expect(result).toEqual(MUSD_BALANCE_CHAIN_IDS_FALLBACK);
+    });
+
+    it('returns an empty array when remote flag chainIds is an empty array', () => {
+      const stateWithEmptyRemote = createStateWithRemoteFlags({
+        earnMusdBalanceChainIds: { chainIds: [] },
+      });
+
+      const result = selectMusdBalanceChainIds(stateWithEmptyRemote);
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns fallback chain IDs when remote flag chainIds is not an array', () => {
+      const stateWithInvalidRemote = createStateWithRemoteFlags({
+        earnMusdBalanceChainIds: { chainIds: 'not-an-array' },
+      });
+
+      const result = selectMusdBalanceChainIds(stateWithInvalidRemote);
+
+      expect(result).toEqual(MUSD_BALANCE_CHAIN_IDS_FALLBACK);
+    });
+
+    it('returns fallback chain IDs when remote flag is present but has no chainIds property', () => {
+      const stateWithMissingChainIds = createStateWithRemoteFlags({
+        earnMusdBalanceChainIds: {},
+      });
+
+      const result = selectMusdBalanceChainIds(stateWithMissingChainIds);
+
+      expect(result).toEqual(MUSD_BALANCE_CHAIN_IDS_FALLBACK);
     });
   });
 });

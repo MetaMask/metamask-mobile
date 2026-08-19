@@ -33,74 +33,70 @@ const PredictMarketDetailsStatus = memo(
 
     return (
       <Box twClassName="gap-2">
-        <Box flexDirection={BoxFlexDirection.Column} twClassName="gap-2">
-          {winningOutcomeToken && !multipleOpenOutcomesPartiallyResolved && (
+        {winningOutcomeToken && !multipleOpenOutcomesPartiallyResolved && (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2"
+          >
+            {resolutionStatus === 'resolved' ? (
+              <>
+                <Icon
+                  name={IconName.CheckBold}
+                  size={IconSize.Md}
+                  color={colors.text.alternative}
+                />
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName="font-medium"
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('predict.market_details.market_resulted_to', {
+                    outcome: winningOutcomeToken.title,
+                  })}
+                </Text>
+              </>
+            ) : (
+              <>
+                <Icon
+                  name={IconName.CheckBold}
+                  size={IconSize.Md}
+                  color={colors.text.alternative}
+                />
+                <Text
+                  variant={TextVariant.BodyMd}
+                  twClassName="font-medium"
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('predict.market_details.market_ended_on', {
+                    outcome: winningOutcomeToken.title,
+                  })}
+                </Text>
+              </>
+            )}
+          </Box>
+        )}
+        {marketStatus === PredictMarketStatus.CLOSED &&
+          resolutionStatus !== 'resolved' && (
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               twClassName="gap-2"
             >
-              {resolutionStatus === 'resolved' ? (
-                <>
-                  <Icon
-                    name={IconName.CheckBold}
-                    size={IconSize.Md}
-                    color={colors.text.alternative}
-                  />
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName="font-medium"
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings('predict.market_details.market_resulted_to', {
-                      outcome: winningOutcomeToken.title,
-                    })}
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Icon
-                    name={IconName.CheckBold}
-                    size={IconSize.Md}
-                    color={colors.text.alternative}
-                  />
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    twClassName="font-medium"
-                    color={TextColor.TextAlternative}
-                  >
-                    {strings('predict.market_details.market_ended_on', {
-                      outcome: winningOutcomeToken.title,
-                    })}
-                  </Text>
-                </>
-              )}
+              <Icon
+                name={IconName.Clock}
+                size={IconSize.Md}
+                color={colors.text.default}
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="font-medium"
+                color={TextColor.TextDefault}
+              >
+                {strings('predict.market_details.waiting_for_final_resolution')}
+              </Text>
             </Box>
           )}
-          {marketStatus === PredictMarketStatus.CLOSED &&
-            resolutionStatus !== 'resolved' && (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="gap-2"
-              >
-                <Icon
-                  name={IconName.Clock}
-                  size={IconSize.Md}
-                  color={colors.text.default}
-                />
-                <Text
-                  variant={TextVariant.BodyMd}
-                  twClassName="font-medium"
-                  color={TextColor.TextDefault}
-                >
-                  {strings(
-                    'predict.market_details.waiting_for_final_resolution',
-                  )}
-                </Text>
-              </Box>
-            )}
-        </Box>
       </Box>
     );
   },
