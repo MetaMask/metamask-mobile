@@ -5,8 +5,11 @@ import ButtonIcon, {
 import {
   IconColor,
   IconName,
-  IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import {
+  IconColor as DsIconColor,
+  IconSize as DsIconSize,
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -121,8 +124,8 @@ function DotStatusLine({
         gap={4}
       >
         <PendingSpinner
-          size={IconSize.Sm}
-          color={IconColor.Warning}
+          size={DsIconSize.Sm}
+          color={DsIconColor.WarningDefault}
           testID="progress-list-item-pending-spinner"
         />
         <Text
