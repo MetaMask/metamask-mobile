@@ -185,6 +185,10 @@ import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWallet
 import { AccessRestrictedProvider } from '../../UI/Compliance';
 import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
 import DesignerModeOverlay from '../../UI/DesignerMode';
+import ProSubscription from '../../Views/ProSubscription';
+import ProHub from '../../Views/ProHub';
+import Membership from '../../Views/ProHub/screens/Membership';
+import CancelMembership from '../../Views/ProHub/screens/CancelMembership';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -1386,6 +1390,46 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET}
         component={PayWithBottomSheet}
+      />
+      <NativeStack.Screen
+        name={Routes.PRO_SUBSCRIPTION.ROOT}
+        component={ProSubscription}
+        options={{
+          headerShown: false,
+          gestureEnabled: true,
+          presentation: 'modal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <NativeStack.Screen
+        name={Routes.PRO_HUB.ROOT}
+        component={ProHub}
+        options={{
+          headerShown: false,
+          gestureEnabled: true,
+          presentation: 'card',
+          animation: 'default',
+        }}
+      />
+      <NativeStack.Screen
+        name={Routes.PRO_HUB.MEMBERSHIP}
+        component={Membership}
+        options={{
+          headerShown: false,
+          gestureEnabled: true,
+          presentation: 'card',
+          animation: 'default',
+        }}
+      />
+      <NativeStack.Screen
+        name={Routes.PRO_HUB.CANCEL_MEMBERSHIP}
+        component={CancelMembership}
+        options={{
+          headerShown: false,
+          gestureEnabled: true,
+          presentation: 'card',
+          animation: 'default',
+        }}
       />
       <NativeStack.Screen
         name={Routes.AGENTIC_CLI_DASHBOARD_WEBVIEW.CONFIRM}

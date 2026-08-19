@@ -303,4 +303,33 @@ export default class Matchers {
   ): Promise<PlaywrightElement> {
     return PlaywrightMatchers.getElementByAndroidUIAutomator(selector, options);
   }
+
+  /**
+   * Counts native elements matching text via a single snapshot (Appium).
+   * Returns 0 when absent so callers can fast-fail instead of polling.
+   */
+  static countElementsByText(
+    text: string,
+    exactMatch = false,
+  ): Promise<number> {
+    return PlaywrightMatchers.countElementsByText(text, exactMatch);
+  }
+
+  /**
+   * Native iOS name locator (Appium).
+   */
+  static getElementByNameiOS(
+    name: string,
+    lazy = false,
+  ): Promise<PlaywrightElement> {
+    return PlaywrightMatchers.getElementByNameiOS(name, lazy);
+  }
+
+  /**
+   * Exact text match (Appium). Prefer over getElementByText when the label
+   * must not be a substring of another control.
+   */
+  static getElementByExactText(text: string): EncapsulatedElementType {
+    return PlaywrightMatchers.getElementByText(text, true);
+  }
 }

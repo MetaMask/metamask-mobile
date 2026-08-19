@@ -603,6 +603,18 @@ const Routes = {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
   },
+  PRO_SUBSCRIPTION: {
+    /** Root screen for the MetaMask Pro subscription flow. */
+    ROOT: 'ProSubscription',
+  },
+  PRO_HUB: {
+    /** Root screen for the MetaMask Pro hub — reachable from anywhere in the app. */
+    ROOT: 'ProHub',
+    /** Membership details screen — plan info, payment details, and manage actions. */
+    MEMBERSHIP: 'ProHubMembership',
+    /** Cancel membership screen — cancellation survey and confirmation. */
+    CANCEL_MEMBERSHIP: 'ProHubCancelMembership',
+  },
 } as const;
 
 export default Routes;
