@@ -266,7 +266,7 @@ const NetworkMultiSelectList = ({
             isSelected={isSelected}
             title={
               isGasSponsored ? (
-                <Box twClassName="flex-row gap-2 items-center">
+                <Box style={styles.titleWithBadge}>
                   <Text
                     variant={TextVariant.BodyMd}
                     numberOfLines={1}
@@ -274,21 +274,18 @@ const NetworkMultiSelectList = ({
                   >
                     {name}
                   </Text>
-                  <TagColored
-                    color={TagColor.Success}
-                    style={styles.noNetworkFeeContainer}
-                    labelProps={{
-                      variant: LegacyTextVariant.BodySM,
-                      style: {
-                        textTransform: 'none',
-                        textAlign: 'center',
-                        bottom: 1,
-                        fontWeight: 'normal',
-                      },
-                    }}
-                  >
-                    {strings('networks.no_network_fee')}
-                  </TagColored>
+                  <Box style={styles.noNetworkFeeBadgeWrapper}>
+                    <TagColored
+                      color={TagColor.Success}
+                      style={styles.noNetworkFeeContainer}
+                      labelProps={{
+                        variant: LegacyTextVariant.BodySM,
+                        style: styles.noNetworkFeeLabelText,
+                      }}
+                    >
+                      {strings('networks.no_network_fee')}
+                    </TagColored>
+                  </Box>
                 </Box>
               ) : (
                 name
@@ -337,7 +334,10 @@ const NetworkMultiSelectList = ({
       openRpcModal,
       isGasFeesSponsoredNetworkEnabled,
       isHardwareWallet,
+      styles.titleWithBadge,
       styles.noNetworkFeeContainer,
+      styles.noNetworkFeeBadgeWrapper,
+      styles.noNetworkFeeLabelText,
       tw,
       styles.networkNameText,
     ],
