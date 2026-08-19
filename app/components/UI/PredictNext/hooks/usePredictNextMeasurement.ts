@@ -19,6 +19,7 @@ export interface UsePredictNextMeasurementOptions {
 
 /**
  * Starts a PredictNext screen span on mount and ends it when `conditions` are all true.
+ * Leaving the screen before those conditions are met ends the span as unmounted.
  */
 export const usePredictNextMeasurement = ({
   traceName,
@@ -35,11 +36,13 @@ export const usePredictNextMeasurement = ({
   const shouldEnd = conditions.length > 0 && conditions.every(Boolean);
 
   useEffect(() => {
+    const id = traceId.current;
+
     if (!traceStarted.current && !hasCompleted.current) {
       trace({
         name: traceName,
         op,
-        id: traceId.current,
+        id,
         tags: {
           feature: PREDICT_NEXT_FEATURE_NAME,
         },
@@ -48,6 +51,19 @@ export const usePredictNextMeasurement = ({
       traceStarted.current = true;
     }
 
+    return () => {
+      if (traceStarted.current && !hasCompleted.current) {
+        endTrace({
+          name: traceName,
+          id,
+          data: { success: false, reason: 'unmounted' },
+        });
+        traceStarted.current = false;
+      }
+    };
+  }, [op, traceName]);
+
+  useEffect(() => {
     if (shouldEnd && traceStarted.current && !hasCompleted.current) {
       endTrace({
         name: traceName,
@@ -57,5 +73,5 @@ export const usePredictNextMeasurement = ({
       traceStarted.current = false;
       hasCompleted.current = true;
     }
-  }, [op, shouldEnd, traceName]);
+  }, [shouldEnd, traceName]);
 };

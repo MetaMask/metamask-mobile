@@ -79,15 +79,14 @@ export const PredictHome = () => {
   const statusQuery = useVenueStatus(KALSHI_VENUE_ID, {
     enabled: needsVenueStatus,
   });
+  const isWaitingForVenueStatus =
+    needsVenueStatus && statusQuery.data === undefined && !statusQuery.isError;
   const endReached = useRef(false);
   const [paginationError, setPaginationError] = useState(false);
 
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextHomeView,
-    conditions: [
-      !eventsQuery.isLoading,
-      events.length > 0 || eventsQuery.isError || !statusQuery.isLoading,
-    ],
+    conditions: [!eventsQuery.isLoading, !isWaitingForVenueStatus],
     debugContext: {
       eventCount: events.length,
       eventsError: eventsQuery.isError,
@@ -148,7 +147,7 @@ export const PredictHome = () => {
   };
 
   let blockingContent: React.ReactNode;
-  if (eventsQuery.isLoading) {
+  if (eventsQuery.isLoading || isWaitingForVenueStatus) {
     blockingContent = (
       <Box testID="predict-next-loading" twClassName="gap-4 p-4">
         <Box twClassName="h-32 rounded-xl bg-muted" />

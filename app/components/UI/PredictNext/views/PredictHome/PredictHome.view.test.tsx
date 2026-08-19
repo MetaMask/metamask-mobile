@@ -304,6 +304,56 @@ describe('PredictHome', () => {
     ).toBe(true);
   });
 
+  it('keeps loading after an empty Feed until Venue Status resolves', async () => {
+    let resolveStatus: (value: {
+      venueId: string;
+      status: 'available';
+      checkedAt: string;
+    }) => void = () => undefined;
+    const statusResult = new Promise<{
+      venueId: string;
+      status: 'available';
+      checkedAt: string;
+    }>((resolve) => {
+      resolveStatus = resolve;
+    });
+    messengerCall.mockImplementation((action: string) => {
+      if (action === 'PredictMarketDataService:getVenueStatus') {
+        return statusResult;
+      }
+      if (action === 'PredictMarketDataService:getFeed') {
+        return Promise.resolve({
+          venueId: 'kalshi',
+          id: 'sports-football-nfl-games',
+          title: 'NFL Games',
+          events: [],
+        });
+      }
+      return Promise.resolve(undefined);
+    });
+
+    const view = renderPredictNext();
+
+    await waitFor(() =>
+      expect(
+        messengerCall.mock.calls.some(
+          (call) => call[0] === 'PredictMarketDataService:getVenueStatus',
+        ),
+      ).toBe(true),
+    );
+    expect(view.getByTestId(PredictHomeTestIds.LOADING)).toBeOnTheScreen();
+    expect(view.queryByText('No predictions yet.')).not.toBeOnTheScreen();
+
+    resolveStatus({
+      venueId: 'kalshi',
+      status: 'available',
+      checkedAt: '2026-01-01T00:00:00Z',
+    });
+
+    expect(await view.findByText('No predictions yet.')).toBeOnTheScreen();
+    expect(view.queryByTestId(PredictHomeTestIds.LOADING)).not.toBeOnTheScreen();
+  });
+
   it('does not fetch Venue Status when Events are available', async () => {
     const view = renderPredictNext();
 

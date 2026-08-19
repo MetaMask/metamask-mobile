@@ -75,4 +75,40 @@ describe('usePredictNextMeasurement', () => {
 
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
   });
+
+  it('ends an open trace as unmounted when the consumer unmounts', () => {
+    const { unmount } = renderHook(() =>
+      usePredictNextMeasurement({
+        traceName: TraceName.PredictNextHomeView,
+        conditions: [false],
+      }),
+    );
+
+    unmount();
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextHomeView,
+      id: 'trace-id-1',
+      data: { success: false, reason: 'unmounted' },
+    });
+  });
+
+  it('does not end a completed trace as unmounted', () => {
+    const { unmount } = renderHook(() =>
+      usePredictNextMeasurement({
+        traceName: TraceName.PredictNextHomeView,
+        conditions: [true],
+      }),
+    );
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.PredictNextHomeView,
+      id: 'trace-id-1',
+      data: { success: true },
+    });
+
+    unmount();
+
+    expect(mockEndTrace).toHaveBeenCalledTimes(1);
+  });
 });
