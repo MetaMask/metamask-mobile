@@ -5,12 +5,27 @@ import {
   type Hex,
 } from '@metamask/utils';
 import type { AssetType as AssetsControllerAssetType } from '@metamask/assets-controller';
+import type { AccountGroupId } from '@metamask/account-api';
 import Engine from '../Engine';
+import ReduxService from '../redux';
+import type { RootState } from '../../reducers';
+import { selectInternalAccountByAddresses } from '../../selectors/accountsController';
+import { selectAccountToGroupMap } from '../../selectors/multichainAccounts/accountTreeController';
+import { selectInternalAccountsByGroupId } from '../../selectors/multichainAccounts/accounts';
+import { selectIsAssetsUnifyStateEnabled } from '../../selectors/featureFlagController/assetsUnifyState';
+import {
+  selectEvmEnabledCaipNetworks,
+  selectEVMEnabledNetworks,
+  selectNonEVMEnabledNetworks,
+} from '../../selectors/networkEnablementController';
 
 const log = createProjectLogger('account-group-asset-loader');
 
-/** Matches the homepage token list: native + ERC-20 / SPL fungibles. */
-const FETCH_ASSET_TYPES: AssetsControllerAssetType[] = ['fungible'];
+/**
+ * Asset types shown in token lists: native + ERC-20 / SPL fungibles, excluding
+ * NFT collections. Shared so every asset refresh path requests the same shape.
+ */
+export const FUNGIBLE_ASSET_TYPES: AssetsControllerAssetType[] = ['fungible'];
 
 /**
  * Safety cap so a hung data source cannot pin a surface in a loading state
@@ -167,6 +182,55 @@ export async function loadAccountGroupAssets({
   }
 }
 
+/**
+ * `loadAccountGroupAssets` for callers outside React, resolving accounts and
+ * enabled chains from the store rather than from hook selectors.
+ *
+ * @param accountAddresses - Addresses whose account groups should be loaded.
+ */
+export async function loadAssetsForAddresses(
+  accountAddresses: string[],
+): Promise<void> {
+  if (accountAddresses.length === 0) {
+    return;
+  }
+
+  const state = ReduxService.store.getState() as RootState;
+
+  const accountsByAddress = selectInternalAccountByAddresses(state);
+  const accountToGroupMap = selectAccountToGroupMap(state);
+  const getAccountsByGroupId = selectInternalAccountsByGroupId(state);
+
+  const groupIds = new Set<string>();
+  for (const account of accountsByAddress(accountAddresses)) {
+    const groupId = accountToGroupMap[account.id]?.id;
+    if (groupId) {
+      groupIds.add(groupId);
+    }
+  }
+
+  const groups = [...groupIds]
+    .map((accountGroupId) => ({
+      accountGroupId,
+      accounts: getAccountsByGroupId(accountGroupId as AccountGroupId),
+    }))
+    .filter(({ accounts }) => accounts.length > 0);
+
+  if (groups.length === 0) {
+    return;
+  }
+
+  await loadAccountGroupAssets({
+    groups,
+    caipChainIds: [
+      ...selectEvmEnabledCaipNetworks(state),
+      ...selectNonEVMEnabledNetworks(state),
+    ] as CaipChainId[],
+    evmChainIds: selectEVMEnabledNetworks(state),
+    isAssetsUnifyStateEnabled: selectIsAssetsUnifyStateEnabled(state),
+  });
+}
+
 function dedupeAccounts(accounts: InternalAccount[]): InternalAccount[] {
   const byId = new Map<string, InternalAccount>();
 
@@ -205,7 +269,7 @@ async function fetchAssets({
 
     await AssetsController.getAssets(accounts, {
       chainIds: caipChainIds,
-      assetTypes: FETCH_ASSET_TYPES,
+      assetTypes: FUNGIBLE_ASSET_TYPES,
       forceUpdate: true,
     });
 

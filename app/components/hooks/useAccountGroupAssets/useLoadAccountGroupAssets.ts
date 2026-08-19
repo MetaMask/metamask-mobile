@@ -7,7 +7,8 @@ import {
   selectEVMEnabledNetworks,
   selectNonEVMEnabledNetworks,
 } from '../../../selectors/networkEnablementController';
-import { selectAccountGroupWithInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
+import type { AccountGroupId } from '@metamask/account-api';
+import { selectInternalAccountsByGroupId } from '../../../selectors/multichainAccounts/accounts';
 import { loadAccountGroupAssets } from '../../../core/Assets/accountGroupAssetLoader';
 
 /**
@@ -28,7 +29,7 @@ export function useLoadAccountGroupAssets(): (
   const isAssetsUnifyStateEnabled = useSelector(
     selectIsAssetsUnifyStateEnabled,
   );
-  const accountGroups = useSelector(selectAccountGroupWithInternalAccounts);
+  const getAccountsByGroupId = useSelector(selectInternalAccountsByGroupId);
   const evmCaipChainIds = useSelector(selectEvmEnabledCaipNetworks);
   const evmChainIds = useSelector(selectEVMEnabledNetworks);
   const nonEvmChainIds = useSelector(selectNonEVMEnabledNetworks);
@@ -41,13 +42,13 @@ export function useLoadAccountGroupAssets(): (
   // Read through a ref so the returned callback stays stable across the
   // frequent selector churn these inputs are subject to.
   const latest = useRef({
-    accountGroups,
+    getAccountsByGroupId,
     caipChainIds,
     evmChainIds,
     isAssetsUnifyStateEnabled,
   });
   latest.current = {
-    accountGroups,
+    getAccountsByGroupId,
     caipChainIds,
     evmChainIds,
     isAssetsUnifyStateEnabled,
@@ -59,14 +60,13 @@ export function useLoadAccountGroupAssets(): (
     }
 
     const current = latest.current;
-    const byId = new Map(
-      current.accountGroups.map((group) => [group.id as string, group]),
-    );
 
     const groups = accountGroupIds
       .map((accountGroupId) => ({
         accountGroupId,
-        accounts: [...(byId.get(accountGroupId)?.accounts ?? [])],
+        accounts: current.getAccountsByGroupId(
+          accountGroupId as AccountGroupId,
+        ),
       }))
       .filter(({ accounts }) => accounts.length > 0);
 

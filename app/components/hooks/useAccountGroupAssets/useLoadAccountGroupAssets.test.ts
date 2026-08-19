@@ -6,7 +6,7 @@ import {
   selectEVMEnabledNetworks,
   selectNonEVMEnabledNetworks,
 } from '../../../selectors/networkEnablementController';
-import { selectAccountGroupWithInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
+import { selectInternalAccountsByGroupId } from '../../../selectors/multichainAccounts/accounts';
 import { loadAccountGroupAssets } from '../../../core/Assets/accountGroupAssetLoader';
 import { useLoadAccountGroupAssets } from './useLoadAccountGroupAssets';
 
@@ -26,12 +26,9 @@ jest.mock('../../../selectors/networkEnablementController', () => ({
   selectNonEVMEnabledNetworks: jest.fn(),
 }));
 
-jest.mock(
-  '../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    selectAccountGroupWithInternalAccounts: jest.fn(),
-  }),
-);
+jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
+  selectInternalAccountsByGroupId: jest.fn(),
+}));
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockLoadAccountGroupAssets = jest.mocked(loadAccountGroupAssets);
@@ -42,11 +39,14 @@ const GROUP_2 = 'entropy:wallet-1/2';
 const ACCOUNT_1 = { id: 'account-1', address: '0xAAA' };
 const ACCOUNT_2 = { id: 'account-2', address: '0xBBB' };
 
-const ACCOUNT_GROUPS = [
-  { id: GROUP_1, accounts: [ACCOUNT_1] },
-  { id: GROUP_2, accounts: [ACCOUNT_2] },
-  { id: 'entropy:wallet-1/3', accounts: [] },
-];
+const ACCOUNTS_BY_GROUP: Record<string, unknown[]> = {
+  [GROUP_1]: [ACCOUNT_1],
+  [GROUP_2]: [ACCOUNT_2],
+  'entropy:wallet-1/3': [],
+};
+
+const getAccountsByGroupId = (groupId: string) =>
+  ACCOUNTS_BY_GROUP[groupId] ?? [];
 
 describe('useLoadAccountGroupAssets', () => {
   beforeEach(() => {
@@ -54,8 +54,8 @@ describe('useLoadAccountGroupAssets', () => {
 
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsAssetsUnifyStateEnabled) return true;
-      if (selector === selectAccountGroupWithInternalAccounts)
-        return ACCOUNT_GROUPS;
+      if (selector === selectInternalAccountsByGroupId)
+        return getAccountsByGroupId;
       if (selector === selectEvmEnabledCaipNetworks) return ['eip155:1'];
       if (selector === selectEVMEnabledNetworks) return ['0x1'];
       if (selector === selectNonEVMEnabledNetworks) return ['solana:mainnet'];
@@ -119,8 +119,8 @@ describe('useLoadAccountGroupAssets', () => {
   it('passes the legacy flag through when unified state is disabled', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectIsAssetsUnifyStateEnabled) return false;
-      if (selector === selectAccountGroupWithInternalAccounts)
-        return ACCOUNT_GROUPS;
+      if (selector === selectInternalAccountsByGroupId)
+        return getAccountsByGroupId;
       if (selector === selectEvmEnabledCaipNetworks) return ['eip155:1'];
       if (selector === selectEVMEnabledNetworks) return ['0x1'];
       if (selector === selectNonEVMEnabledNetworks) return [];
