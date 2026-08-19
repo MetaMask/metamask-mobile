@@ -19,12 +19,16 @@ import { SOCIAL_AI_QUICK_BUY_AB_KEY } from '../../QuickBuy/abTestConfig';
 
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
+import { useHomepageLucideIcons } from '../../../Views/Homepage/hooks/useHomepageLucideIcons';
 
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
 
 jest.mock('../../Money/hooks/useMoneyAssetOverviewCtas', () => ({
   useMoneyAssetOverviewCtas: () => mockUseMoneyAssetOverviewCtas(),
+}));
+jest.mock('../../../Views/Homepage/hooks/useHomepageLucideIcons', () => ({
+  useHomepageLucideIcons: jest.fn(),
 }));
 
 jest.mock('../../Money/components/MoneyAssetOverviewBalanceCta', () => ({
@@ -500,6 +504,12 @@ describe('TokenDetails', () => {
       if (selector === selectDepositMinimumVersionFlag) return null;
       return undefined;
     });
+  });
+
+  it('applies Lucide icons while token details is focused', () => {
+    render(<TokenDetails />);
+
+    expect(useHomepageLucideIcons).toHaveBeenCalled();
   });
 
   it('renders loader when txLoading is true', () => {

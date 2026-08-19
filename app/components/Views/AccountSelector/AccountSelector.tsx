@@ -66,8 +66,11 @@ import { getTraceTags } from '../../../util/sentry/tags';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 import { useAccountsOperationsLoadingStates } from '../../../util/accounts/useAccountsOperationsLoadingStates';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): Icon Lab is the temporary icon-set host
+import { useHomepageLucideIcons } from '../Homepage/hooks/useHomepageLucideIcons';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
+  useHomepageLucideIcons();
   const tw = useTailwind();
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
