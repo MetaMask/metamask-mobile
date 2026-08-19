@@ -612,6 +612,8 @@ const Routes = {
     ROOT: 'ProHub',
     /** Membership details screen — plan info, payment details, and manage actions. */
     MEMBERSHIP: 'ProHubMembership',
+    /** Cancel membership screen — cancellation survey and confirmation. */
+    CANCEL_MEMBERSHIP: 'ProHubCancelMembership',
   },
 } as const;
 
