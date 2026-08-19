@@ -52,6 +52,10 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'visible',
+  },
+  touchable: {
+    overflow: 'visible',
   },
   labelActive: {
     ...StyleSheet.absoluteFillObject,
@@ -206,26 +210,29 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
           accessibilityRole="button"
           accessibilityState={{ selected: displayValue === 'following' }}
           testID={getFeedAudienceOptionTestId('following')}
+          style={styles.touchable}
         >
           <Box twClassName="rounded-xl px-4 h-8 items-center justify-center">
             <Box style={styles.labelWrap}>
-              <Animated.View style={followingBaseStyle}>
+              {/* In-flow Medium label sets the segment width so the wider
+                  selected weight never clips (e.g. Android "Followin[g]"). */}
+              <Animated.View style={followingActiveStyle}>
                 <Text
                   variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Regular}
-                  color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
                 >
                   {strings('social_leaderboard.feed.following')}
                 </Text>
               </Animated.View>
               <Animated.View
-                style={[styles.labelActive, followingActiveStyle]}
+                style={[styles.labelActive, followingBaseStyle]}
                 pointerEvents="none"
               >
                 <Text
                   variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
+                  fontWeight={FontWeight.Regular}
+                  color={TextColor.TextAlternative}
                 >
                   {strings('social_leaderboard.feed.following')}
                 </Text>
@@ -244,26 +251,27 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
           accessibilityRole="button"
           accessibilityState={{ selected: displayValue === 'all' }}
           testID={getFeedAudienceOptionTestId('all')}
+          style={styles.touchable}
         >
           <Box twClassName="rounded-xl px-4 h-8 items-center justify-center">
             <Box style={styles.labelWrap}>
-              <Animated.View style={allBaseStyle}>
+              <Animated.View style={allActiveStyle}>
                 <Text
                   variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Regular}
-                  color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
                 >
                   {strings('social_leaderboard.feed.all')}
                 </Text>
               </Animated.View>
               <Animated.View
-                style={[styles.labelActive, allActiveStyle]}
+                style={[styles.labelActive, allBaseStyle]}
                 pointerEvents="none"
               >
                 <Text
                   variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
+                  fontWeight={FontWeight.Regular}
+                  color={TextColor.TextAlternative}
                 >
                   {strings('social_leaderboard.feed.all')}
                 </Text>

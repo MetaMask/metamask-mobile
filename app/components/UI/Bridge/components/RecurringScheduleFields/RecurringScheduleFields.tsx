@@ -22,29 +22,19 @@ import {
   selectRecurringRepeatCount,
   selectRecurringScheduleValidation,
   setRecurringEveryUnit,
-  setRecurringEveryValue,
-  setRecurringRepeatCount,
 } from '../../../../../core/redux/slices/bridge';
-import type { KeypadChangeData } from '../../../../Base/Keypad';
-import { SwapsKeypad } from '../SwapsKeypad';
-import type { SwapsKeypadRef } from '../SwapsKeypad/types';
 import RecurringIntervalSheet from '../RecurringIntervalSheet';
 import {
-  capRecurringKeypadValue,
-  RECURRING_EVERY_MAX_DIGITS,
-  RECURRING_REPEAT_MAX_DIGITS,
   RecurringScheduleErrorCode,
   type RecurringIntervalUnit,
 } from '../../utils/recurringSchedule';
 import { RecurringScheduleFieldsSelectorsIDs } from './RecurringScheduleFields.testIds';
 
-enum FocusedScheduleField {
-  Every = 'every',
-  Repeat = 'repeat',
+interface RecurringScheduleFieldsProps {
+  onEveryPress: () => void;
+  onRepeatPress: () => void;
+  onDismissKeypad: () => void;
 }
-
-// SwapsKeypad requires a currency code; Recurring isn't a currency input.
-const DUMMY_KEYPAD_CURRENCY = '';
 
 function RecurringNumberCard({
   label,
@@ -103,12 +93,12 @@ function RecurringNumberCard({
   );
 }
 
-const RecurringScheduleFields = () => {
+const RecurringScheduleFields = ({
+  onEveryPress,
+  onRepeatPress,
+  onDismissKeypad,
+}: RecurringScheduleFieldsProps) => {
   const dispatch = useDispatch();
-  const keypadRef = useRef<SwapsKeypadRef>(null);
-  const [focusedField, setFocusedField] = useState<FocusedScheduleField | null>(
-    null,
-  );
   const [isIntervalSheetVisible, setIsIntervalSheetVisible] = useState(false);
   const everyValue = useSelector(selectRecurringEveryValue);
   const everyUnit = useSelector(selectRecurringEveryUnit);
@@ -128,28 +118,10 @@ const RecurringScheduleFields = () => {
       error === RecurringScheduleErrorCode.DurationExceedsMax,
   );
 
-  const keypadValue =
-    focusedField === FocusedScheduleField.Repeat ? repeatCount : everyValue;
-
-  const closeKeypad = useCallback(() => {
-    keypadRef.current?.close();
-    setFocusedField(null);
-  }, []);
-
-  const handleEveryPress = useCallback(() => {
-    setFocusedField(FocusedScheduleField.Every);
-    keypadRef.current?.open();
-  }, []);
-
-  const handleRepeatPress = useCallback(() => {
-    setFocusedField(FocusedScheduleField.Repeat);
-    keypadRef.current?.open();
-  }, []);
-
   const handleUnitPress = useCallback(() => {
-    closeKeypad();
+    onDismissKeypad();
     setIsIntervalSheetVisible(true);
-  }, [closeKeypad]);
+  }, [onDismissKeypad]);
 
   const handleIntervalSheetClosed = useCallback(() => {
     setIsIntervalSheetVisible(false);
@@ -162,41 +134,11 @@ const RecurringScheduleFields = () => {
     [dispatch],
   );
 
-  const handleKeypadChange = useCallback(
-    ({ value }: KeypadChangeData) => {
-      if (focusedField === FocusedScheduleField.Every) {
-        dispatch(
-          setRecurringEveryValue(
-            capRecurringKeypadValue(
-              everyValue,
-              value,
-              RECURRING_EVERY_MAX_DIGITS,
-            ),
-          ),
-        );
-        return;
-      }
-
-      if (focusedField === FocusedScheduleField.Repeat) {
-        dispatch(
-          setRecurringRepeatCount(
-            capRecurringKeypadValue(
-              repeatCount,
-              value,
-              RECURRING_REPEAT_MAX_DIGITS,
-            ),
-          ),
-        );
-      }
-    },
-    [dispatch, everyValue, focusedField, repeatCount],
-  );
-
   return (
     <Box
       testID={RecurringScheduleFieldsSelectorsIDs.CONTAINER}
       onStartShouldSetResponder={() => true}
-      onResponderRelease={closeKeypad}
+      onResponderRelease={onDismissKeypad}
     >
       <Box padding={4} flexDirection={BoxFlexDirection.Row} gap={2}>
         <RecurringNumberCard
@@ -204,7 +146,7 @@ const RecurringScheduleFields = () => {
           value={everyValue}
           testID={RecurringScheduleFieldsSelectorsIDs.EVERY_CARD}
           inputTestID={RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT}
-          onInputPress={handleEveryPress}
+          onInputPress={onEveryPress}
           hasError={hasEveryError}
           accessory={
             <ButtonBase
@@ -226,7 +168,7 @@ const RecurringScheduleFields = () => {
           value={repeatCount}
           testID={RecurringScheduleFieldsSelectorsIDs.REPEAT_CARD}
           inputTestID={RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT}
-          onInputPress={handleRepeatPress}
+          onInputPress={onRepeatPress}
           hasError={hasRepeatError}
           accessory={
             <Text
@@ -239,14 +181,6 @@ const RecurringScheduleFields = () => {
           }
         />
       </Box>
-      <SwapsKeypad
-        ref={keypadRef}
-        value={keypadValue}
-        onChange={handleKeypadChange}
-        currency={DUMMY_KEYPAD_CURRENCY}
-        decimals={0}
-        periodButtonProps={{ isDisabled: true }}
-      />
       <RecurringIntervalSheet
         isVisible={isIntervalSheetVisible}
         currentUnit={everyUnit}
