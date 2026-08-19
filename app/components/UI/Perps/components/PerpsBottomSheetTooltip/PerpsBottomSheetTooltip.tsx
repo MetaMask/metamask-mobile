@@ -12,7 +12,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsBottomSheetTooltipProps } from './PerpsBottomSheetTooltip.types';
 import { tooltipContentRegistry } from './content/contentRegistry';
@@ -123,25 +122,23 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
     if (!isVisible || !title) return null;
 
     return (
-      <ModalSafeAreaProvider testID={`${testID}-safe-area-provider`}>
-        <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
-          {!hasCustomHeader && (
-            <BottomSheetHeader
-              onClose={handleClose}
-              testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
-            >
-              {title}
-            </BottomSheetHeader>
-          )}
-          <Box paddingHorizontal={4}>{renderContent()}</Box>
-          <BottomSheetFooter
-            buttonsAlignment={ButtonsAlignment.Horizontal}
-            primaryButtonProps={primaryButtonProps}
-            secondaryButtonProps={secondaryButtonProps}
-            twClassName="pt-6"
-          />
-        </BottomSheet>
-      </ModalSafeAreaProvider>
+      <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
+        {!hasCustomHeader && (
+          <BottomSheetHeader
+            onClose={handleClose}
+            testID={PerpsBottomSheetTooltipSelectorsIDs.TITLE}
+          >
+            {title}
+          </BottomSheetHeader>
+        )}
+        <Box paddingHorizontal={4}>{renderContent()}</Box>
+        <BottomSheetFooter
+          buttonsAlignment={ButtonsAlignment.Horizontal}
+          primaryButtonProps={primaryButtonProps}
+          secondaryButtonProps={secondaryButtonProps}
+          twClassName="pt-6"
+        />
+      </BottomSheet>
     );
   },
 );

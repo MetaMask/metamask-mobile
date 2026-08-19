@@ -1,6 +1,5 @@
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import React from 'react';
-import { Platform } from 'react-native';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -256,50 +255,27 @@ describe('PerpsBottomSheetTooltip', () => {
     expect(getByText('0.045%')).toBeTruthy();
   });
 
-  // TAT-3758: callers render this tooltip inside a react-native <Modal>, which
-  // on Android is its own window. Without a nested SafeAreaProvider the root
-  // provider measures the activity window and reports a bottom inset of 0,
-  // collapsing BottomSheetDialog's bottom padding and leaving the footer button
-  // under the navigation bar.
-  describe('modal safe-area inset (TAT-3758)', () => {
-    const originalPlatform = Platform.OS;
+  // TAT-3758: this component must NOT wrap itself in a SafeAreaProvider. Many
+  // call sites (PerpsOrderView, PerpsAdjustMarginView, PerpsMarketDetailsView,
+  // PerpsProOrderFormPanel, ...) render it inline with no Modal. SafeAreaProvider
+  // applies flex: 1, so wrapping here would inject a flex sibling into those
+  // screens and shrink their content whenever a tooltip opens. The provider
+  // belongs at the Modal roots that actually need it.
+  it('does not wrap itself in a SafeAreaProvider, so inline call sites keep their layout', () => {
+    const customTestID = 'geo-block-tooltip';
 
-    afterEach(() => {
-      Platform.OS = originalPlatform;
+    const { queryByTestId, getByTestId } = renderBottomSheetTooltip({
+      isVisible: true,
+      onClose: mockOnClose,
+      contentKey: 'geo_block',
+      testID: customTestID,
     });
 
-    it('nests a SafeAreaProvider on Android so the bottom inset is measured against the modal window', () => {
-      Platform.OS = 'android';
-      const customTestID = 'geo-block-tooltip';
-
-      const { getByTestId } = renderBottomSheetTooltip({
-        isVisible: true,
-        onClose: mockOnClose,
-        contentKey: 'geo_block',
-        testID: customTestID,
-      });
-
-      expect(getByTestId(`${customTestID}-safe-area-provider`)).toBeTruthy();
-    });
-
-    it('does not nest a SafeAreaProvider on iOS, where the root provider already reports correct insets', () => {
-      Platform.OS = 'ios';
-      const customTestID = 'geo-block-tooltip';
-
-      const { queryByTestId, getByTestId } = renderBottomSheetTooltip({
-        isVisible: true,
-        onClose: mockOnClose,
-        contentKey: 'geo_block',
-        testID: customTestID,
-      });
-
-      expect(queryByTestId(`${customTestID}-safe-area-provider`)).toBeNull();
-      // The tooltip still renders normally on iOS.
-      expect(getByTestId(customTestID)).toBeTruthy();
-      expect(
-        getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
-      ).toBeTruthy();
-    });
+    expect(queryByTestId(`${customTestID}-safe-area-provider`)).toBeNull();
+    expect(getByTestId(customTestID)).toBeTruthy();
+    expect(
+      getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
+    ).toBeTruthy();
   });
 
   it('uses custom testID when provided', () => {
