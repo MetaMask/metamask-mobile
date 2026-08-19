@@ -4,6 +4,8 @@ import { fireEvent } from '@testing-library/react-native';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { CaipChainId } from '@metamask/utils';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
+import type { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { initialState } from '../../_mocks_/initialState';
@@ -28,7 +30,7 @@ jest.mock('@react-navigation/native', () => ({
 
 function renderOrdersTabs<TOpen, THistory>(
   props: OrdersTabsProps<TOpen, THistory>,
-  state = initialState,
+  state: DeepPartial<RootState> = initialState,
 ) {
   return renderWithProvider(<OrdersTabs {...props} />, {
     state,

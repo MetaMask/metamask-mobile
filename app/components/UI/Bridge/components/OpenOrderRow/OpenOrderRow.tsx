@@ -9,6 +9,7 @@ import {
   FontWeight,
   ListItem,
   TextColor,
+  type ImageOrSvgSrc,
 } from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { getTokenImageSource } from '../../utils';
@@ -57,7 +58,7 @@ function OpenOrderRow({
       >
         <AvatarToken
           name={token.symbol}
-          src={tokenImageSource}
+          src={tokenImageSource as ImageOrSvgSrc}
           size={AvatarTokenSize.Lg}
         />
       </BadgeWrapper>
