@@ -28,9 +28,6 @@ import { useSwitchTokens } from '../../../hooks/useSwitchTokens';
 import { normalizeSourceAmountToMaxLength } from '../../../utils/normalizeSourceAmountToMaxLength';
 import { getDefaultTokenPairForChains } from '../../../utils/tokenUtils';
 
-// TODO: try to extract swpwas input section into a separate component to consume from limit order and DCA
-// TODO: add swap execute
-
 interface UseLimitOrderSwapInputsOptions {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
   /** Chains the limit order token selectors are restricted to. */
