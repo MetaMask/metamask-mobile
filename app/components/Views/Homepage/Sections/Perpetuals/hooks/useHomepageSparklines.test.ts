@@ -1,6 +1,18 @@
-import { renderHook } from '@testing-library/react-native';
+import { act, renderHook } from '@testing-library/react-native';
 import { useHomepageSparklines } from './useHomepageSparklines';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import {
+  CandlePeriod,
+  TimeDuration,
+  type CandleData,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+
+const mockSubscribe = jest.fn();
+const mockStream = { candles: { subscribe: mockSubscribe } };
+
+jest.mock('../../../../../UI/Perps/providers/PerpsStreamManager', () => ({
+  usePerpsStream: jest.fn(() => mockStream),
+}));
 
 function makeMarket(
   symbol: string,
@@ -25,7 +37,23 @@ function makeTrend(count: number, prices?: number[]): [number, string][] {
   ]);
 }
 
+function makeCandles(count: number): CandleData['candles'] {
+  return Array.from({ length: count }, (_, i) => ({
+    time: 1700000000000 + i * 900_000,
+    open: '100',
+    high: '110',
+    low: '90',
+    close: String(100 + i),
+    volume: '50',
+  }));
+}
+
 describe('useHomepageSparklines', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockSubscribe.mockReturnValue(jest.fn());
+  });
+
   it('builds sparklines from market trend data', () => {
     const markets = [
       makeMarket('BTC', makeTrend(60)),
@@ -37,6 +65,7 @@ describe('useHomepageSparklines', () => {
     expect(result.current.sparklines.BTC).toBeDefined();
     expect(result.current.sparklines.BTC.length).toBe(50);
     expect(result.current.sparklines.ETH).toBeDefined();
+    expect(mockSubscribe).not.toHaveBeenCalled();
   });
 
   it('returns an empty sparklines map for an empty markets array', () => {
@@ -66,12 +95,41 @@ describe('useHomepageSparklines', () => {
     expect(result.current.sparklines.BTC).toBeUndefined();
   });
 
-  it('skips markets with no trend data', () => {
+  it('falls back to candle data when trend is unavailable', async () => {
+    mockSubscribe.mockImplementation(
+      (params: { callback: (candleData: CandleData) => void }) => {
+        params.callback({
+          symbol: 'BTC',
+          interval: CandlePeriod.FifteenMinutes,
+          candles: makeCandles(60),
+        });
+        return jest.fn();
+      },
+    );
     const markets = [makeMarket('BTC')];
 
     const { result } = renderHook(() => useHomepageSparklines(markets));
+    await act(async () => undefined);
 
-    expect(result.current.sparklines.BTC).toBeUndefined();
+    expect(mockSubscribe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        symbol: 'BTC',
+        interval: CandlePeriod.FifteenMinutes,
+        duration: TimeDuration.OneDay,
+      }),
+    );
+    expect(result.current.sparklines.BTC).toHaveLength(50);
+  });
+
+  it('subscribes only for markets whose trend is missing', () => {
+    const markets = [makeMarket('BTC', makeTrend(10)), makeMarket('ETH')];
+
+    renderHook(() => useHomepageSparklines(markets));
+
+    expect(mockSubscribe).toHaveBeenCalledTimes(1);
+    expect(mockSubscribe).toHaveBeenCalledWith(
+      expect.objectContaining({ symbol: 'ETH' }),
+    );
   });
 
   it('filters out unparseable trend price entries', () => {

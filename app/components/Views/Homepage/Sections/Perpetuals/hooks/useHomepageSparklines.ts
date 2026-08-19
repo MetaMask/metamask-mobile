@@ -1,22 +1,20 @@
-import { useMemo } from 'react';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  CandlePeriod,
+  TimeDuration,
+  type CandleData,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+import { usePerpsStream } from '../../../../../UI/Perps/providers/PerpsStreamManager';
 
 const SPARKLINE_TARGET_POINTS = 50;
+const SPARKLINE_CANDLE_COUNT = 96;
 
 export interface UseHomepageSparklinesResult {
   sparklines: Record<string, number[]>;
 }
 
-type MarketTrend = [number, string][];
-
-/**
- * `trend` is populated by the paired @metamask/perps-controller change (see
- * docs/decisions/0001-perps-homepage-hyperliquid-calls.md) but isn't in the
- * currently published package types yet, so it's read via this local type
- * rather than `PerpsMarketData['trend']`. Drop this once the dependency is
- * bumped to a release that declares the field.
- */
-type MarketWithTrend = PerpsMarketData & { trend?: MarketTrend };
+type MarketTrend = NonNullable<PerpsMarketData['trend']>;
 
 function downsample(data: number[], targetLength: number): number[] {
   if (data.length <= targetLength) return data;
@@ -35,15 +33,22 @@ function extractCloses(trend: MarketTrend | undefined): number[] {
     .filter((price) => !Number.isNaN(price));
 }
 
+function extractCandleCloses(candleData: CandleData): number[] {
+  return candleData.candles
+    .slice(-SPARKLINE_CANDLE_COUNT)
+    .map((candle) => Number.parseFloat(String(candle.close)))
+    .filter((price) => !Number.isNaN(price));
+}
+
 /**
- * Build downsampled close-price arrays for sparklines from each market's
- * `trend` field, which already comes from the Terminal API response.
+ * Build downsampled close-price arrays from Terminal trend data when present.
+ * Markets returned by the direct-provider fallback have no trend, so only
+ * those markets retain the candle subscription needed to avoid blank tiles.
  *
  * Previously this subscribed to a per-symbol candle stream, which fired a
  * HyperLiquid `candleSnapshot` call per symbol on every reconnect. Reading
  * `trend` instead avoids that, at the cost of hourly (not live) freshness —
- * fine for the small homepage preview. See
- * docs/decisions/0001-perps-homepage-hyperliquid-calls.md.
+ * fine for the small homepage preview.
  *
  * @param markets - Markets to build sparklines for.
  */
@@ -51,16 +56,83 @@ export function useHomepageSparklines(
   markets: PerpsMarketData[],
 ): UseHomepageSparklinesResult {
   const safeMarkets = useMemo(() => markets ?? [], [markets]);
+  const stream = usePerpsStream();
+  const [fallbackSparklines, setFallbackSparklines] = useState<
+    Record<string, number[]>
+  >({});
+  const fallbackDataRef = useRef<Record<string, number[]>>({});
+  const flushScheduledRef = useRef(false);
 
-  const sparklines = useMemo(() => {
+  const trendSparklines = useMemo(() => {
     const result: Record<string, number[]> = {};
     for (const market of safeMarkets) {
-      const closes = extractCloses((market as MarketWithTrend).trend);
+      const closes = extractCloses(market.trend);
       if (closes.length < 2) continue;
       result[market.symbol] = downsample(closes, SPARKLINE_TARGET_POINTS);
     }
     return result;
   }, [safeMarkets]);
+
+  const fallbackSymbolsKey = useMemo(
+    () =>
+      safeMarkets
+        .filter((market) => extractCloses(market.trend).length < 2)
+        .map((market) => market.symbol)
+        .join(','),
+    [safeMarkets],
+  );
+
+  useEffect(() => {
+    let active = true;
+    fallbackDataRef.current = {};
+    flushScheduledRef.current = false;
+    setFallbackSparklines((current) =>
+      Object.keys(current).length === 0 ? current : {},
+    );
+
+    if (!fallbackSymbolsKey) return undefined;
+
+    const scheduleFlush = () => {
+      if (flushScheduledRef.current) return;
+      flushScheduledRef.current = true;
+      queueMicrotask(() => {
+        if (!active) return;
+        flushScheduledRef.current = false;
+        setFallbackSparklines({ ...fallbackDataRef.current });
+      });
+    };
+
+    const unsubscribes = fallbackSymbolsKey.split(',').map((symbol) =>
+      stream.candles.subscribe({
+        symbol,
+        interval: CandlePeriod.FifteenMinutes,
+        duration: TimeDuration.OneDay,
+        callback: (candleData: CandleData) => {
+          if (fallbackDataRef.current[symbol]) return;
+          if (!candleData?.candles || candleData.candles.length < 2) return;
+
+          const closes = extractCandleCloses(candleData);
+          if (closes.length < 2) return;
+
+          fallbackDataRef.current = {
+            ...fallbackDataRef.current,
+            [symbol]: downsample(closes, SPARKLINE_TARGET_POINTS),
+          };
+          scheduleFlush();
+        },
+      }),
+    );
+
+    return () => {
+      active = false;
+      unsubscribes.forEach((unsubscribe) => unsubscribe());
+    };
+  }, [fallbackSymbolsKey, stream]);
+
+  const sparklines = useMemo(
+    () => ({ ...fallbackSparklines, ...trendSparklines }),
+    [fallbackSparklines, trendSparklines],
+  );
 
   return useMemo(() => ({ sparklines }), [sparklines]);
 }
