@@ -13,6 +13,8 @@ import {
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import type { RootState } from '../../../reducers';
 import { showExtensionCancelledErrorSheet } from '../../../core/QrSync/showExtensionCancelledErrorSheet';
+import { RouteMessengerContext } from '../../../contexts/route-messenger';
+import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 
 const { ButtonIcon } = jest.requireActual(
   '@metamask/design-system-react-native',
@@ -50,13 +52,8 @@ jest.mock('../../../core/Engine', () => {
 
   return {
     context: {
-      KeyringController: {
-        getAccounts: jest.fn(() => Promise.resolve([])),
-      },
       QrSyncController: {
         state: { ...mockDefaultQrSyncControllerState },
-        resetState: jest.fn(),
-        importRemainingSecrets: jest.fn(() => Promise.resolve()),
       },
       QrSyncProvisioningService: {
         provisionFromMetadata: jest.fn(() => Promise.resolve()),
@@ -67,11 +64,10 @@ jest.mock('../../../core/Engine', () => {
 
 import Engine from '../../../core/Engine';
 
-const mockResetState = Engine.context.QrSyncController.resetState as jest.Mock;
-const mockImportRemainingSecrets = Engine.context.QrSyncController
-  .importRemainingSecrets as jest.Mock;
-const mockGetAccounts = Engine.context.KeyringController
-  .getAccounts as jest.Mock;
+const mockResetState = jest.fn();
+const mockImportRemainingSecrets = jest.fn(() => Promise.resolve());
+const mockGetAccounts = jest.fn(() => Promise.resolve([]));
+const mockHasPendingSecretImports = jest.fn().mockResolvedValue(false);
 const mockProvisionFromMetadata = Engine.context.QrSyncProvisioningService
   .provisionFromMetadata as jest.Mock;
 
@@ -105,6 +101,22 @@ jest.mock('react-redux', () => {
     ),
   };
 });
+
+const wrapQrTabSwitcher = (ui: React.ReactElement = <QRTabSwitcher />) => (
+  <RouteMessengerContext.Provider
+    value={createMockRouteMessenger({
+      'QrSyncController:resetState': mockResetState,
+      'QrSyncController:importRemainingSecrets': mockImportRemainingSecrets,
+      'QrSyncController:handleScannedQrPayload': jest.fn(),
+      'QrSyncController:hasPendingSecretImports': mockHasPendingSecretImports,
+      'KeyringController:getAccounts': mockGetAccounts,
+    })}
+  >
+    {ui}
+  </RouteMessengerContext.Provider>
+);
+
+const renderQrTabSwitcher = () => render(wrapQrTabSwitcher());
 
 jest.mock('../QRScanner', () => jest.fn(() => null));
 
@@ -143,7 +155,7 @@ const renderWithQrSyncState = (
       } as RootState),
   );
 
-  return render(<QRTabSwitcher />);
+  return render(wrapQrTabSwitcher());
 };
 
 const renderAddDeviceFlow = (
@@ -165,6 +177,7 @@ describe('QRTabSwitcher', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockHasPendingSecretImports.mockResolvedValue(false);
   });
 
   afterEach(() => {
@@ -179,13 +192,13 @@ describe('QRTabSwitcher', () => {
   });
 
   it('starts and ends QRTabSwitcher trace on mount', () => {
-    render(<QRTabSwitcher />);
+    renderQrTabSwitcher();
 
     expect(trace).toHaveBeenCalledWith({ name: TraceName.QRTabSwitcher });
     expect(endTrace).toHaveBeenCalledWith({ name: TraceName.QRTabSwitcher });
   });
 
-  it('calls onScanError with USER_CANCELLED when close is pressed', () => {
+  it('calls onScanError with USER_CANCELLED when close is pressed', async () => {
     const onScanError = jest.fn();
     (useRoute as jest.Mock).mockReturnValue({
       params: {
@@ -195,16 +208,18 @@ describe('QRTabSwitcher', () => {
       },
     });
 
-    const { UNSAFE_getAllByType } = render(<QRTabSwitcher />);
+    const { UNSAFE_getAllByType } = renderQrTabSwitcher();
     const closeButtons = UNSAFE_getAllByType(ButtonIcon);
 
     fireEvent.press(closeButtons[0]);
 
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(onScanError).toHaveBeenCalledWith('USER_CANCELLED');
+    await waitFor(() => {
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(onScanError).toHaveBeenCalledWith('USER_CANCELLED');
+    });
   });
 
-  it('logs a warning when onScanError throws', () => {
+  it('logs a warning when onScanError throws', async () => {
     const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
     const onScanError = jest.fn(() => {
       throw new Error('callback failed');
@@ -217,12 +232,14 @@ describe('QRTabSwitcher', () => {
       },
     });
 
-    const { UNSAFE_getAllByType } = render(<QRTabSwitcher />);
+    const { UNSAFE_getAllByType } = renderQrTabSwitcher();
     fireEvent.press(UNSAFE_getAllByType(ButtonIcon)[0]);
 
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      'Error setting onScanError: callback failed',
-    );
+    await waitFor(() => {
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Error setting onScanError: callback failed',
+      );
+    });
     consoleWarnSpy.mockRestore();
   });
 
@@ -247,7 +264,7 @@ describe('QRTabSwitcher', () => {
     expect(getByTestId('device-added-loader-screen')).toBeOnTheScreen();
   });
 
-  it('resets QR sync session when closing scanner during add-device flow', () => {
+  it('resets QR sync session when closing scanner during add-device flow', async () => {
     const { UNSAFE_getByType } = renderAddDeviceFlow({
       phase: QrSyncPhases.DISPLAYING_OTP,
       otp: { otp: '123456', deadline: Date.now() + 30_000 },
@@ -255,8 +272,10 @@ describe('QRTabSwitcher', () => {
 
     fireEvent.press(UNSAFE_getByType(ButtonIcon));
 
-    expect(mockResetState).toHaveBeenCalledTimes(1);
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockResetState).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('navigates to import when awaiting password with pending secrets for new users', async () => {
@@ -291,6 +310,7 @@ describe('QRTabSwitcher', () => {
     const mnemonic =
       'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12';
 
+    mockHasPendingSecretImports.mockResolvedValue(true);
     mockGetAccounts
       .mockResolvedValueOnce(['0xold'])
       .mockResolvedValueOnce(['0xold', '0xnew']);
@@ -363,13 +383,13 @@ describe('QRTabSwitcher', () => {
         } as RootState),
     );
 
-    const { getByTestId, rerender } = render(<QRTabSwitcher />);
+    const { getByTestId, rerender } = renderQrTabSwitcher();
 
     expect(getByTestId('device-added-loader-screen')).toBeOnTheScreen();
 
     phase = QrSyncPhases.FAILED;
     error = syncError;
-    rerender(<QRTabSwitcher />);
+    rerender(wrapQrTabSwitcher());
 
     expect(mockShowExtensionCancelledErrorSheet).toHaveBeenCalledTimes(1);
     expect(mockShowExtensionCancelledErrorSheet).toHaveBeenCalledWith(

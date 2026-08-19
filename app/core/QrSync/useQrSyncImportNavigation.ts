@@ -6,8 +6,9 @@ import Routes from '../../constants/navigation/Routes';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import { selectQrSyncShouldNavigateToImport } from '../../selectors/qrSyncController';
 import type { AppNavigationProp } from '../NavigationService/types';
-import Engine from '../Engine';
+import { useMessenger } from '../../hooks/useMessenger';
 import { QrSyncSyncFlows } from './constants';
+import type { RouteMessengerInstance } from './route-messenger';
 import { navigateToQrSyncImport } from './navigateToQrSyncImport';
 import { showAlreadySyncedSheet } from '../../components/Views/AddDeviceToWallet/showAlreadySyncedSheet';
 import { showImportFailedSheet } from '../../components/Views/AddDeviceToWallet/showImportFailedSheet';
@@ -39,12 +40,13 @@ let inFlightImportNavigation: Promise<void> | null = null;
  */
 const finishExistingUserSyncWithoutMnemonic = async (
   navigation: AppNavigationProp,
+  messenger: RouteMessengerInstance,
 ): Promise<void> => {
-  const accountsBefore = await Engine.context.KeyringController.getAccounts();
+  const accountsBefore = await messenger.call('KeyringController:getAccounts');
   let importFailed = false;
 
   try {
-    await Engine.context.QrSyncController.importRemainingSecrets();
+    await messenger.call('QrSyncController:importRemainingSecrets');
   } catch (error) {
     importFailed = true;
     reportQrSyncFailure(error, {
@@ -55,20 +57,20 @@ const finishExistingUserSyncWithoutMnemonic = async (
     });
   }
 
-  const accountsAfter = await Engine.context.KeyringController.getAccounts();
+  const accountsAfter = await messenger.call('KeyringController:getAccounts');
   const addedNewAccounts = accountsAfter.length > accountsBefore.length;
 
   // Thrown failures are real import errors. Unchanged account count after a
   // successful importRemainingSecrets call means the secrets were already here.
   if (importFailed && !addedNewAccounts) {
-    Engine.context.QrSyncController.resetState();
+    await messenger.call('QrSyncController:resetState');
     navigation.navigate(Routes.WALLET_VIEW);
     showImportFailedSheet(navigation);
     return;
   }
 
   if (!addedNewAccounts) {
-    Engine.context.QrSyncController.resetState();
+    await messenger.call('QrSyncController:resetState');
     navigation.navigate(Routes.WALLET_VIEW);
     showAlreadySyncedSheet(navigation);
     return;
@@ -95,6 +97,7 @@ export const useQrSyncImportNavigation = ({
   isScannerOpen: _isScannerOpen = false,
 }: UseQrSyncImportNavigationOptions): void => {
   const navigation = useNavigation<AppNavigationProp>();
+  const messenger = useMessenger<RouteMessengerInstance>();
   const completedOnboarding = useSelector(selectCompletedOnboarding);
   const shouldNavigateToImport = useSelector(
     selectQrSyncShouldNavigateToImport,
@@ -112,27 +115,28 @@ export const useQrSyncImportNavigation = ({
     }
 
     if (completedOnboarding) {
-      // Prefer live controller state — Redux can lag/strip ephemeral secrets.
-      const pendingSecretImports =
-        Engine.context.QrSyncController.state?.pendingSecretImports;
-
       hasHandledImportNavigationRef.current = true;
 
-      if (!pendingSecretImports?.length) {
-        Logger.log(
-          'QR sync existing-user import: no pending secrets in sync data',
+      inFlightImportNavigation = (async () => {
+        // Live controller check — Redux can lag/strip ephemeral secrets.
+        const hasPendingSecretImports = await messenger.call(
+          'QrSyncController:hasPendingSecretImports',
         );
-        Engine.context.QrSyncController.resetState();
-        navigation.navigate(Routes.WALLET_VIEW);
-        return;
-      }
 
-      inFlightImportNavigation = finishExistingUserSyncWithoutMnemonic(
-        navigation,
-      )
-        .catch((error: unknown) => {
+        if (!hasPendingSecretImports) {
+          Logger.log(
+            'QR sync existing-user import: no pending secrets in sync data',
+          );
+          await messenger.call('QrSyncController:resetState');
+          navigation.navigate(Routes.WALLET_VIEW);
+          return;
+        }
+
+        await finishExistingUserSyncWithoutMnemonic(navigation, messenger);
+      })()
+        .catch(async (error: unknown) => {
           hasHandledImportNavigationRef.current = false;
-          Engine.context.QrSyncController.resetState();
+          await messenger.call('QrSyncController:resetState');
           reportQrSyncFailure(error, {
             surface: QrSyncSurfaces.IMPORT,
             operation: QrSyncOperations.EXISTING_USER_IMPORT_NAVIGATION,
@@ -148,5 +152,11 @@ export const useQrSyncImportNavigation = ({
 
     hasHandledImportNavigationRef.current = true;
     navigateToQrSyncImport(navigation);
-  }, [completedOnboarding, enabled, navigation, shouldNavigateToImport]);
+  }, [
+    completedOnboarding,
+    enabled,
+    messenger,
+    navigation,
+    shouldNavigateToImport,
+  ]);
 };

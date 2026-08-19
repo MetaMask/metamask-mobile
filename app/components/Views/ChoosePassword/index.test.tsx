@@ -87,6 +87,8 @@ import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { captureException } from '@sentry/react-native';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
+import { RouteMessengerContext } from '../../../contexts/route-messenger';
+import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
@@ -100,8 +102,7 @@ OAuthLoginService.updateMarketingOptInStatus = jest
   .fn()
   .mockResolvedValue({ is_opt_in: true });
 
-const mockRefreshGeolocation = Engine.context.GeolocationController
-  .refreshGeolocation as jest.Mock;
+const mockRefreshGeolocation = jest.fn().mockResolvedValue('GB');
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -136,9 +137,6 @@ jest.mock('../../../core/Engine', () => ({
     },
     AccountTrackerController: {
       refresh: jest.fn().mockResolvedValue(undefined),
-    },
-    GeolocationController: {
-      refreshGeolocation: jest.fn().mockResolvedValue('GB'),
     },
   },
 }));
@@ -297,7 +295,15 @@ const VALID_PASSWORD = 'Test123456!';
 const renderWithProviders = (ui: React.ReactElement) =>
   render(
     <Provider store={store}>
-      <ThemeContext.Provider value={mockTheme}>{ui}</ThemeContext.Provider>
+      <ThemeContext.Provider value={mockTheme}>
+        <RouteMessengerContext.Provider
+          value={createMockRouteMessenger({
+            'GeolocationController:refreshGeolocation': mockRefreshGeolocation,
+          })}
+        >
+          {ui}
+        </RouteMessengerContext.Provider>
+      </ThemeContext.Provider>
     </Provider>,
   );
 

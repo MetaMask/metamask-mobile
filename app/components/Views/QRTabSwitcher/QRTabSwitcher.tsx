@@ -21,8 +21,9 @@ import {
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { QrSyncPhases } from '../../../core/QrSync/constants';
 import type { QrSyncPhase } from '../../../core/QrSync/types';
-import Engine from '../../../core/Engine';
+import { useMessenger } from '../../../hooks/useMessenger';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { RouteMessengerInstance } from './messenger';
 import {
   selectQrSyncError,
   selectQrSyncIsSessionActive,
@@ -79,6 +80,7 @@ export const createQRScannerNavDetails =
 const QRTabSwitcher = () => {
   const route = useRoute();
   const navigation = useNavigation<AppNavigationProp>();
+  const messenger = useMessenger<RouteMessengerInstance>();
   const { onScanError, onScanSuccess, onStartScan, origin } =
     route.params as QRTabSwitcherParams;
 
@@ -205,23 +207,29 @@ const QRTabSwitcher = () => {
   }, []);
 
   const goBack = () => {
-    if (isAddDeviceOrigin && isSessionActive) {
-      Engine.context.QrSyncController.resetState();
-    }
+    const leaveScanner = async () => {
+      if (isAddDeviceOrigin && isSessionActive) {
+        await messenger.call('QrSyncController:resetState');
+      }
 
-    navigation.goBack();
-    const scanErrorCallback = onScanError;
-    try {
-      if (scanErrorCallback) {
-        scanErrorCallback(USER_CANCELLED);
+      navigation.goBack();
+      const scanErrorCallback = onScanError;
+      try {
+        if (scanErrorCallback) {
+          scanErrorCallback(USER_CANCELLED);
+        }
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.warn(`Error setting onScanError: ${error.message}`);
+        } else {
+          console.warn('An unknown error occurred');
+        }
       }
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.warn(`Error setting onScanError: ${error.message}`);
-      } else {
-        console.warn('An unknown error occurred');
-      }
-    }
+    };
+
+    leaveScanner().catch(() => {
+      navigation.goBack();
+    });
   };
 
   if (showDeviceAddedLoader) {

@@ -18,6 +18,14 @@ import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
+import { ALLOWED_CAPABILITIES as IMPORT_FROM_SECRET_RECOVERY_PHRASE_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ImportFromSecretRecoveryPhrase/messenger';
+import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
+import { ALLOWED_CAPABILITIES as MANUAL_BACKUP_STEP_1_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ManualBackupStep1/messenger';
+import { ALLOWED_CAPABILITIES as MANUAL_BACKUP_STEP_2_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ManualBackupStep2/messenger';
+import { ALLOWED_CAPABILITIES as MANUAL_BACKUP_STEP_3_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ManualBackupStep3/messenger';
+import { ALLOWED_CAPABILITIES as OAUTH_REHYDRATION_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/OAuthRehydration/messenger';
+import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
+import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 import DeleteWalletModal from '../../UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
@@ -185,11 +193,45 @@ import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDeta
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
 import { AccessRestrictedProvider } from '../../UI/Compliance';
 import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
+import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/AddDeviceToWallet/messenger';
 import DesignerModeOverlay from '../../UI/DesignerMode';
 import ProSubscription from '../../Views/ProSubscription';
 import ProHub from '../../Views/ProHub';
 
 const NativeStack = createNativeStackNavigator();
+
+const ImportFromSecretRecoveryPhraseWithMessenger = withMessenger(
+  ImportFromSecretRecoveryPhrase,
+  { capabilities: IMPORT_FROM_SECRET_RECOVERY_PHRASE_ROUTE_ALLOWED_CAPABILITIES },
+);
+
+const AddDeviceToWalletWithMessenger = withMessenger(AddDeviceToWallet, {
+  capabilities: ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const ChoosePasswordWithMessenger = withMessenger(ChoosePassword, {
+  capabilities: CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const ManualBackupStep1WithMessenger = withMessenger(ManualBackupStep1, {
+  capabilities: MANUAL_BACKUP_STEP_1_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const ManualBackupStep2WithMessenger = withMessenger(ManualBackupStep2, {
+  capabilities: MANUAL_BACKUP_STEP_2_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const ManualBackupStep3WithMessenger = withMessenger(ManualBackupStep3, {
+  capabilities: MANUAL_BACKUP_STEP_3_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const OAuthRehydrationWithMessenger = withMessenger(OAuthRehydration, {
+  capabilities: OAUTH_REHYDRATION_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const QRTabSwitcherWithMessenger = withMessenger(QRTabSwitcher, {
+  capabilities: QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES,
+});
 
 const accountSelectorTransitionOptions: NativeStackNavigationOptions = {
   animation: 'slide_from_right',
@@ -296,7 +338,7 @@ const OnboardingNav = () => {
       />
       <NativeStack.Screen
         name="ChoosePassword"
-        component={ChoosePassword}
+        component={ChoosePasswordWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -321,27 +363,27 @@ const OnboardingNav = () => {
       />
       <NativeStack.Screen
         name="ManualBackupStep1"
-        component={ManualBackupStep1}
+        component={ManualBackupStep1WithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name="ManualBackupStep2"
-        component={ManualBackupStep2}
+        component={ManualBackupStep2WithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name="ManualBackupStep3"
-        component={ManualBackupStep3}
+        component={ManualBackupStep3WithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
-        component={ImportFromSecretRecoveryPhrase}
+        component={ImportFromSecretRecoveryPhraseWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
-        component={AddDeviceToWallet}
+        component={AddDeviceToWalletWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -384,7 +426,7 @@ const OnboardingNav = () => {
       {/* OAuth rehydration inside onboarding stack (distinct route name from AppFlow). */}
       <NativeStack.Screen
         name={Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE}
-        component={OAuthRehydration}
+        component={OAuthRehydrationWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -434,7 +476,7 @@ const OnboardingRootNav = () => (
     <NativeStack.Screen name="OnboardingNav" component={OnboardingNav} />
     <NativeStack.Screen
       name={Routes.QR_TAB_SWITCHER}
-      component={QRTabSwitcher}
+      component={QRTabSwitcherWithMessenger}
       options={{ presentation: 'modal' }}
     />
     <NativeStack.Screen
@@ -809,7 +851,7 @@ const ImportPrivateKeyView = () => {
       />
       <NativeStack.Screen
         name={Routes.QR_TAB_SWITCHER}
-        component={QRTabSwitcher}
+        component={QRTabSwitcherWithMessenger}
       />
     </NativeStack.Navigator>
   );
@@ -828,7 +870,7 @@ const ImportSRPView = () => (
     />
     <NativeStack.Screen
       name={Routes.QR_TAB_SWITCHER}
-      component={QRTabSwitcher}
+      component={QRTabSwitcherWithMessenger}
       options={{ presentation: 'modal' }}
     />
     <NativeStack.Screen
@@ -1136,7 +1178,7 @@ const AppFlow = () => {
       {/* Same screen as ONBOARDING_OAUTH_REHYDRATE but registered on root AppFlow for post-login unlock. */}
       <NativeStack.Screen
         name={Routes.ONBOARDING.REHYDRATE}
-        component={OAuthRehydration}
+        component={OAuthRehydrationWithMessenger}
       />
       <NativeStack.Screen
         name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
@@ -1214,7 +1256,7 @@ const AppFlow = () => {
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
-        component={AddDeviceToWallet}
+        component={AddDeviceToWalletWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -1224,7 +1266,7 @@ const AppFlow = () => {
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
-        component={ImportFromSecretRecoveryPhrase}
+        component={ImportFromSecretRecoveryPhraseWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
