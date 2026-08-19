@@ -1,0 +1,136 @@
+{
+  "$schema": "https://farmslot.io/schemas/recipe-v1.schema.json",
+  "title": "Lighter testnet — Long press opens a working order form seeded at the venue minimum",
+  "description": "Success-path validation of the one-click trade flow on Lighter testnet (originally a defect repro: the same press used to fail with 'Could not open position' because the deposit scaffold targeted Lighter's informational devnet chain eip155:123456). After the route-contract fix (getDepositRoutes isTestnet override), the DepositService guard, and the dynamic per-market minimum (Terminal API gated to HyperLiquid-backed providers; LighterProvider computes a grid-aware binding minimum), pressing Long on ETH must land on PerpsOrderView with the amount seeded at the venue minimum (~$10.16 at ETH ~$1900, margin ≈ amount/3x) and an enabled place-order button.",
+  "workflow": {
+    "entry": "restart-app",
+    "nodes": {
+      "restart-app": {
+        "action": "app.lifecycle",
+        "intent": "Restart so provider init and log watches are deterministic.",
+        "next": "settle-boot",
+        "command": "restart"
+      },
+      "settle-boot": {
+        "action": "wait",
+        "duration_ms": 20000,
+        "intent": "Let the JS boot finish.",
+        "next": "unlock-wallet"
+      },
+      "unlock-wallet": {
+        "action": "metamask.wallet.ensure_unlocked",
+        "intent": "Fixture wallet ready (dev1 owns Lighter venue account 899).",
+        "next": "navigate-perps"
+      },
+      "navigate-perps": {
+        "action": "ui.navigate",
+        "page": "perps",
+        "intent": "Open Perps home.",
+        "next": "settle-home"
+      },
+      "settle-home": {
+        "action": "wait",
+        "duration_ms": 10000,
+        "intent": "Venue connection init.",
+        "next": "open-provider-picker"
+      },
+      "open-provider-picker": {
+        "action": "ui.press",
+        "test_id": "perps-home-heading-provider-badge",
+        "intent": "Open the venue picker so the run selects Lighter testnet regardless of persisted venue.",
+        "next": "wait-picker"
+      },
+      "wait-picker": {
+        "action": "wait",
+        "duration_ms": 2000,
+        "intent": "Sheet renders.",
+        "next": "pick-lighter-testnet"
+      },
+      "pick-lighter-testnet": {
+        "action": "ui.press",
+        "test_id": "perps-select-provider-sheet-option-lighter-testnet",
+        "intent": "Activate Lighter Testnet.",
+        "next": "settle-switch"
+      },
+      "settle-switch": {
+        "action": "wait",
+        "duration_ms": 10000,
+        "intent": "Lighter venue initializes; account resolves by address (no configured-index pin).",
+        "next": "watch-registered"
+      },
+      "watch-registered": {
+        "action": "watch_logs",
+        "scope": "file",
+        "path": "temp/recipe/runtime/app-console.log",
+        "contains": "price stream connected (ws)",
+        "intent": "Venue session is live before driving the trade surface.",
+        "next": "open-eth-market"
+      },
+      "open-eth-market": {
+        "action": "ui.navigate",
+        "page": "perps-market",
+        "market": "ETH",
+        "intent": "Open ETH details — the surface where the original defect was observed.",
+        "next": "settle-eth"
+      },
+      "settle-eth": {
+        "action": "wait",
+        "duration_ms": 15000,
+        "intent": "Details render with live prices; Long/Short row appears.",
+        "next": "pre-screenshot"
+      },
+      "pre-screenshot": {
+        "action": "ui.screenshot",
+        "path": "screenshots/lighter-eth-before-long.png",
+        "intent": "ETH details with the Long button, Lighter testnet active.",
+        "next": "press-long"
+      },
+      "press-long": {
+        "action": "ui.press",
+        "test_id": "perps-market-details-long-button",
+        "intent": "The exact user action that used to fail; must now open the order form.",
+        "next": "settle-press"
+      },
+      "settle-press": {
+        "action": "wait",
+        "duration_ms": 6000,
+        "intent": "Let the one-click-trade path route into PerpsOrderView and seed the form.",
+        "next": "assert-order-form"
+      },
+      "assert-order-form": {
+        "action": "ui.wait_for",
+        "test_id": "perps-order-view-place-order-button",
+        "visible": true,
+        "timeout_ms": 15000,
+        "intent": "SUCCESS SIGNATURE: the order form rendered with its place-order button — the press no longer dead-ends in the deposit scaffold.",
+        "next": "assert-no-failure-toast"
+      },
+      "assert-no-failure-toast": {
+        "action": "ui.wait_for",
+        "text": "Could not open position",
+        "visible": false,
+        "timeout_ms": 5000,
+        "intent": "The original defect toast must NOT appear.",
+        "next": "assert-venue-min-size"
+      },
+      "assert-venue-min-size": {
+        "action": "ui.wait_for",
+        "text": "0.0053 ETH",
+        "visible": true,
+        "timeout_ms": 15000,
+        "intent": "Amount seeded at the venue minimum, not the flat $10 default: 0.0053 ETH is Lighter's grid-ceiled minimum base size (~$10.16 at ETH ~$1900); the old default would read 0.0052 ETH. Price-sensitive — if ETH moves far from ~$1900, re-derive the expected size (max(min_base, min_quote/price) ceiled to 4 decimals).",
+        "next": "post-screenshot"
+      },
+      "post-screenshot": {
+        "action": "ui.screenshot",
+        "path": "screenshots/lighter-eth-order-form.png",
+        "intent": "Order form seeded above the venue floor with an enabled Long ETH button (margin ≈ amount/3x confirms the seeded amount).",
+        "next": "done"
+      },
+      "done": {
+        "action": "end",
+        "status": "pass"
+      }
+    }
+  }
+}
