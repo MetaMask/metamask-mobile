@@ -7,7 +7,7 @@ import { RouteMessengerContext } from '../../contexts/route-messenger';
 import { createMockRouteMessenger } from '../../util/test/mock-route-messenger';
 
 const mockNavigate = jest.fn();
-const mockGetAccounts = jest.fn();
+const mockGetAccounts = jest.fn<Promise<string[]>, []>();
 const mockImportRemainingSecrets = jest.fn();
 const mockResetState = jest.fn().mockResolvedValue(undefined);
 const mockHasPendingSecretImports = jest.fn().mockResolvedValue(false);
@@ -99,9 +99,9 @@ const flushAsync = async () => {
   await Promise.resolve();
 };
 
-const renderUseQrSyncImportNavigation = (
-  callback: () => void,
-  options?: Parameters<typeof renderHook>[1],
+const renderUseQrSyncImportNavigation = <TProps>(
+  callback: (props: TProps) => void,
+  options?: { initialProps?: TProps },
 ) =>
   renderHook(callback, {
     wrapper: ({ children }: { children: React.ReactNode }) =>

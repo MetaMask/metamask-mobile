@@ -66,7 +66,9 @@ import Engine from '../../../core/Engine';
 
 const mockResetState = jest.fn();
 const mockImportRemainingSecrets = jest.fn(() => Promise.resolve());
-const mockGetAccounts = jest.fn(() => Promise.resolve([]));
+const mockGetAccounts = jest.fn<Promise<string[]>, []>(() =>
+  Promise.resolve([]),
+);
 const mockHasPendingSecretImports = jest.fn().mockResolvedValue(false);
 const mockProvisionFromMetadata = Engine.context.QrSyncProvisioningService
   .provisionFromMetadata as jest.Mock;
