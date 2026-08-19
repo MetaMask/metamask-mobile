@@ -85,9 +85,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
         </View>
         <View style={styles.headerContainer}>
           <Text style={styles.headerText} variant={TextVariant.BodyMDBold}>
-            {onlyBlockaidAlert
-              ? strings('alert_system.confirm_modal.title_blockaid')
-              : strings('alert_system.confirm_modal.title')}
+            {strings('alert_system.confirm_modal.title')}
           </Text>
         </View>
         <Text style={styles.message}>
