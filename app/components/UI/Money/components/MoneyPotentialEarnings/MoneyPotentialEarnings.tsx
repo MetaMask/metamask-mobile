@@ -24,6 +24,7 @@ import { AssetType } from '../../../../Views/confirmations/types/token';
 import { isPositiveNumber } from '../../utils/number';
 import PotentialEarningsTokenRow from './PotentialEarningsTokenRow';
 import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
+import { Platform } from 'react-native';
 
 const VISIBLE_TOKENS_COUNT = 5;
 
@@ -111,6 +112,7 @@ const MoneyPotentialEarnings = ({
           size={IconSize.Sm}
           color={IconColor.IconAlternative}
           onPress={onInfoPress}
+          twClassName={Platform.OS === 'android' ? 'translate-y-0.5' : ''}
         />
       </Text>
     </>

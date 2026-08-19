@@ -109,8 +109,13 @@ const configureQueries = (
         checkedAt: '2026-01-01T00:00:00Z',
       });
     }
-    if (action === 'PredictMarketDataService:getEvents') {
-      return Promise.resolve({ items: events });
+    if (action === 'PredictMarketDataService:getFeed') {
+      return Promise.resolve({
+        venueId: 'kalshi',
+        id: 'sports-football-nfl-games',
+        title: 'NFL Games',
+        events,
+      });
     }
     return Promise.resolve(undefined);
   });
@@ -328,16 +333,25 @@ describe('PredictHome', () => {
           checkedAt: '2026-01-01T00:00:00Z',
         });
       }
-      if (action === 'PredictMarketDataService:getEvents') {
+      if (action === 'PredictMarketDataService:getFeed') {
         eventRequest += 1;
         if (eventRequest === 1) {
-          return Promise.resolve({ items: [event], nextCursor: 'next' });
+          return Promise.resolve({
+            venueId: 'kalshi',
+            id: 'sports-football-nfl-games',
+            title: 'NFL Games',
+            events: [event],
+            nextCursor: 'next',
+          });
         }
         if (eventRequest === 2) {
           return Promise.reject(new Error('next page failed'));
         }
         return Promise.resolve({
-          items: [{ ...event, id: 'event-2', title: 'Second Event' }],
+          venueId: 'kalshi',
+          id: 'sports-football-nfl-games',
+          title: 'NFL Games',
+          events: [{ ...event, id: 'event-2', title: 'Second Event' }],
         });
       }
       return Promise.resolve(undefined);

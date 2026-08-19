@@ -159,8 +159,8 @@ describe('VipPointsSection', () => {
       );
     });
 
-    it('is hidden while equity is still locked, even with a positive lifetime total', () => {
-      const { queryByTestId } = render(
+    it('still shows the lifetime total while equity is currently locked (e.g. dropped below the equity tier)', () => {
+      const { getByTestId } = render(
         <VipPointsSection
           {...baseProps}
           pointsAllocation={{
@@ -173,24 +173,43 @@ describe('VipPointsSection', () => {
       );
 
       expect(
-        queryByTestId(VIP_POINTS_SECTION_TEST_IDS.LIFETIME_POINTS),
-      ).toBeNull();
+        getByTestId(VIP_POINTS_SECTION_TEST_IDS.LIFETIME_POINTS),
+      ).toHaveTextContent(
+        'Keep earning to unlock equity. Lifetime total: 12.35M',
+      );
     });
 
     it.each([
       ['null (legacy backend mode)', null],
       ['zero', 0],
-    ])('is hidden when the lifetime total is %s', (_label, value) => {
-      const { queryByTestId } = render(
-        <VipPointsSection
-          {...baseProps}
-          pointsAllocation={unlockedWithLifetime(value)}
-        />,
-      );
+    ])(
+      'is hidden when the lifetime total is %s, regardless of lock state',
+      (_label, value) => {
+        const { queryByTestId: queryUnlocked } = render(
+          <VipPointsSection
+            {...baseProps}
+            pointsAllocation={unlockedWithLifetime(value)}
+          />,
+        );
+        expect(
+          queryUnlocked(VIP_POINTS_SECTION_TEST_IDS.LIFETIME_POINTS),
+        ).toBeNull();
 
-      expect(
-        queryByTestId(VIP_POINTS_SECTION_TEST_IDS.LIFETIME_POINTS),
-      ).toBeNull();
-    });
+        const { queryByTestId: queryLocked } = render(
+          <VipPointsSection
+            {...baseProps}
+            pointsAllocation={{
+              earned: 5_555_555,
+              threshold: 7_777_777,
+              percent: 71.4,
+              lifetimeQualifyingPoints: value,
+            }}
+          />,
+        );
+        expect(
+          queryLocked(VIP_POINTS_SECTION_TEST_IDS.LIFETIME_POINTS),
+        ).toBeNull();
+      },
+    );
   });
 });
