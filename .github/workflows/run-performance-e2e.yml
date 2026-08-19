@@ -659,6 +659,7 @@ jobs:
           !inputs.browserstack_app_url_android_onboarding &&
           !inputs.browserstack_app_url_android_imported_wallet &&
           (
+            inputs.enable_saucelabs == true ||
             !inputs.reuse_main_builds ||
             needs.resolve-main-browserstack-urls.outputs.found != 'true'
           )
