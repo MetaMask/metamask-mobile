@@ -289,11 +289,9 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
                 <Text
                   variant={TextVariant.BodySm}
                   color={
-                    isMoneyAccountSweepstakes && campaignStatus === 'upcoming'
-                      ? TextColor.OverlayInverse
-                      : colorScheme === 'dark'
-                        ? TextColor.SuccessDefault
-                        : TextColor.OverlayInverse
+                    colorScheme === 'dark'
+                      ? TextColor.SuccessDefault
+                      : TextColor.OverlayInverse
                   }
                   fontWeight={FontWeight.Medium}
                 >
