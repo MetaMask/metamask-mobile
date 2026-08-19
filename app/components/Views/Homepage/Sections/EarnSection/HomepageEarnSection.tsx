@@ -1,5 +1,6 @@
 import React, { forwardRef } from 'react';
 import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import EarnSection from './EarnSection';
 
 interface HomepageEarnSectionProps {
@@ -21,6 +22,7 @@ const HomepageEarnSection = forwardRef<
 >(({ sectionIndex, totalSectionsLoaded, showDividers }, ref) => (
   <EarnSection
     ref={ref}
+    tokenDetailsSource={TokenDetailsSource.HomeSection}
     homeAnalytics={{ sectionIndex, totalSectionsLoaded }}
     showDividers={showDividers}
   />

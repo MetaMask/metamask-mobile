@@ -68,8 +68,10 @@ export interface EarnSectionHomeAnalytics {
 }
 
 export interface EarnSectionProps {
+  tokenDetailsSource: TokenDetailsSource;
   homeAnalytics?: EarnSectionHomeAnalytics;
   showDividers?: boolean;
+  refreshTrigger?: number;
 }
 
 const renderEarnAssetIcon = (token: TokenI) => {
@@ -122,7 +124,10 @@ const renderUnavailableAssetCard = (key: string) => (
 );
 
 const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
-  ({ homeAnalytics, showDividers = false }, ref) => {
+  (
+    { tokenDetailsSource, homeAnalytics, showDividers = false, refreshTrigger },
+    ref,
+  ) => {
     const tw = useTailwind();
     const navigation = useNavigation<AppNavigationProp>();
     const isHomepageSection = homeAnalytics !== undefined;
@@ -141,8 +146,8 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       moneyRateStatus,
       isLoading,
       hasError,
-      refresh: refreshEarnSectionAssets,
-    } = useEarnSectionAssets();
+      refresh,
+    } = useEarnSectionAssets({ refreshTrigger });
 
     const {
       totalFiatFormatted: moneyAccountBalanceFiat,
@@ -208,7 +213,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
             isETH: token.isETH,
             aggregators: token.aggregators,
             rwaData: token.rwaData,
-            source: TokenDetailsSource.HomeSection,
+            source: tokenDetailsSource,
           });
           return;
         }
@@ -218,7 +223,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           params: { assetId: asset.assetId },
         });
       },
-      [navigation],
+      [navigation, tokenDetailsSource],
     );
 
     const handleViewMoreCardPress = () => {
