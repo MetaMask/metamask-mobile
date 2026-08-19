@@ -36,6 +36,7 @@ import {
   PERPS_BALANCE_CHAIN_ID,
   HOME_SCREEN_CONFIG,
 } from '../../constants/perpsConfig';
+import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
 
 interface PerpsMarketTradesListProps {
   symbol: string; // Market symbol to filter trades
@@ -88,10 +89,7 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
           .build(),
       );
 
-      // Navigate to the position transaction detail screen
-      navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
-        transaction,
-      });
+      navigateToPerpsTransactionDetails(navigation, transaction);
     },
     [navigation, trackEvent, createEventBuilder],
   );

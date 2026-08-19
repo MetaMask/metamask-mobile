@@ -359,7 +359,7 @@ describe('PerpsMarketTradesList', () => {
       });
     });
 
-    it('navigates to position transaction detail when trade item is pressed', () => {
+    it('navigates to Activity details when trade item is pressed', () => {
       mockUsePerpsMarketFills.mockReturnValue(
         createMockFillsReturn(mockOrderFills),
       );
@@ -373,15 +373,10 @@ describe('PerpsMarketTradesList', () => {
       // Verify navigation to correct route with transaction param
       // ID format: {orderId}-{timestamp}-{index}
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_TRANSACTION,
+        Routes.ACTIVITY_DETAILS,
         expect.objectContaining({
-          transaction: expect.objectContaining({
-            id: expect.stringContaining('fill-1'),
-            type: 'trade',
-            category: 'position_open',
-            title: 'Opened long',
-            asset: 'ETH',
-          }),
+          txIdentifier: expect.stringContaining('fill-1'),
+          preloadKey: expect.any(String),
         }),
       );
     });
@@ -399,15 +394,10 @@ describe('PerpsMarketTradesList', () => {
       // Verify navigation with correct transformed transaction data
       // ID format: {orderId}-{timestamp}-{index}
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_TRANSACTION,
+        Routes.ACTIVITY_DETAILS,
         expect.objectContaining({
-          transaction: expect.objectContaining({
-            id: expect.stringContaining('fill-2'),
-            type: 'trade',
-            category: 'position_close',
-            title: 'Closed long',
-            asset: 'ETH',
-          }),
+          txIdentifier: expect.stringContaining('fill-2'),
+          preloadKey: expect.any(String),
         }),
       );
     });

@@ -28,6 +28,7 @@ import {
   ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../../../core/Analytics/events/transactions';
+import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
@@ -67,9 +68,7 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
             .build(),
         );
 
-        navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
-          transaction,
-        });
+        navigateToPerpsTransactionDetails(navigation, transaction);
       }
     },
     [navigation, trackEvent, createEventBuilder],

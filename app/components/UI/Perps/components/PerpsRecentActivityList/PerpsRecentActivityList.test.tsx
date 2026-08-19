@@ -305,7 +305,7 @@ describe('PerpsRecentActivityList', () => {
       });
     });
 
-    it('navigates to position transaction detail when transaction item is pressed', () => {
+    it('navigates to Activity details when transaction item is pressed', () => {
       render(<PerpsRecentActivityList transactions={mockTransactions} />);
 
       const transactionItem = screen.getByText('Opened long');
@@ -313,10 +313,12 @@ describe('PerpsRecentActivityList', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_TRANSACTION,
-        {
-          transaction: mockTransactions[0],
-        },
+        Routes.ACTIVITY_DETAILS,
+        expect.objectContaining({
+          chainId: 'eip155:42161',
+          txIdentifier: mockTransactions[0].id,
+          preloadKey: expect.any(String),
+        }),
       );
     });
 
@@ -327,10 +329,12 @@ describe('PerpsRecentActivityList', () => {
       fireEvent.press(ethTransaction.parent?.parent || ethTransaction);
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.PERPS.POSITION_TRANSACTION,
-        {
-          transaction: mockTransactions[1],
-        },
+        Routes.ACTIVITY_DETAILS,
+        expect.objectContaining({
+          chainId: 'eip155:42161',
+          txIdentifier: mockTransactions[1].id,
+          preloadKey: expect.any(String),
+        }),
       );
     });
 
