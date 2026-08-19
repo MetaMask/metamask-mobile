@@ -5,7 +5,7 @@ import { formatUsd } from '../utils/formatUtils';
 import CampaignWinningView from './CampaignWinningView';
 import Routes from '../../../../constants/navigation/Routes';
 
-const PRIZE_EMAIL = 'moneyaccountcampaign@consensys.net';
+const PRIZE_EMAIL = 'moneycampaign@consensys.net';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type MoneyAccountSweepstakesCampaignWinningRouteParams = {

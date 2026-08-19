@@ -17,6 +17,8 @@ import type {
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { useGetMoneyAccountSweepstakesDrawProof } from '../../../hooks/useGetMoneyAccountSweepstakesDrawProof';
 import { useGetMoneyAccountSweepstakesPrizePool } from '../../../hooks/useGetMoneyAccountSweepstakesPrizePool';
+import { useMoneyAccountSweepstakesOutcome } from '../../../hooks/useMoneyAccountSweepstakesOutcome';
+import { strings } from '../../../../../../../locales/i18n';
 import {
   formatCampaignDateRange,
   getCampaignStatus,
@@ -32,6 +34,7 @@ export const MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS = {
   WEEK_ROW: 'money-account-sweepstakes-draw-schedule-week-row',
   DRAW_COMPLETE_BUTTON:
     'money-account-sweepstakes-draw-schedule-draw-complete-button',
+  WINNER_BUTTON: 'money-account-sweepstakes-draw-schedule-winner-button',
 } as const;
 
 interface MoneyAccountSweepstakesDrawScheduleSectionProps {
@@ -41,6 +44,8 @@ interface MoneyAccountSweepstakesDrawScheduleSectionProps {
   isParticipating?: boolean;
   /** Open draw-proof sheet outside ScrollView (parent mounts the modal). */
   onOpenDrawProof?: (drawProof: MoneyAccountSweepstakesDrawProofDto) => void;
+  /** Open winner details for a won week (parent handles navigation). */
+  onOpenWinnerDetails?: (campaign: CampaignDto) => void;
 }
 
 const formatWeekTitle = (
@@ -56,6 +61,7 @@ interface WeekRowProps {
   entryCount?: number;
   isParticipating?: boolean;
   onOpenDrawProof?: (drawProof: MoneyAccountSweepstakesDrawProofDto) => void;
+  onOpenWinnerDetails?: (campaign: CampaignDto) => void;
 }
 
 const WeekRow: React.FC<WeekRowProps> = ({
@@ -65,6 +71,7 @@ const WeekRow: React.FC<WeekRowProps> = ({
   entryCount,
   isParticipating = false,
   onOpenDrawProof,
+  onOpenWinnerDetails,
 }) => {
   const status = getCampaignStatus(campaign);
   const { drawProof } = useGetMoneyAccountSweepstakesDrawProof(
@@ -72,6 +79,9 @@ const WeekRow: React.FC<WeekRowProps> = ({
     status === 'complete',
   );
   const { prizePool } = useGetMoneyAccountSweepstakesPrizePool(campaign.id);
+  const { outcome } = useMoneyAccountSweepstakesOutcome(
+    status === 'complete' ? campaign.id : undefined,
+  );
 
   const weekTitle = formatWeekTitle(localizedText.weekTitle, weekNumber);
   const dateRange = formatCampaignDateRange(
@@ -86,6 +96,10 @@ const WeekRow: React.FC<WeekRowProps> = ({
     onOpenDrawProof?.(drawProof);
   }, [drawProof, onOpenDrawProof]);
 
+  const openWinnerDetails = useCallback(() => {
+    onOpenWinnerDetails?.(campaign);
+  }, [campaign, onOpenWinnerDetails]);
+
   const rowTestId = `${MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.WEEK_ROW}-${campaign.id}`;
   const formattedPrizePoolAmount =
     prizePool?.unlockedPoolUsd != null
@@ -95,51 +109,62 @@ const WeekRow: React.FC<WeekRowProps> = ({
 
   if (status === 'complete') {
     const hasProof = drawProof != null;
+    const hasWon = Boolean(outcome?.winnerVerificationCode);
+    const isOutcomeFinalized = outcome?.outcomeStatus === 'finalized';
 
     return (
-      <Box twClassName="gap-1 py-3" testID={rowTestId}>
-        <Box twClassName="flex-row gap-4">
-          <Box twClassName="flex-1 gap-1">
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {dateRange}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {weekTitle}
-            </Text>
-          </Box>
-          <Box alignItems={BoxAlignItems.End} twClassName="flex-1 gap-1">
-            {formattedPrizePoolAmount != null && (
-              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {formattedPrizePoolAmount}
-              </Text>
-            )}
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {hasProof
-                ? localizedText.awardedLabel
-                : localizedText.drawPendingTitle}
-            </Text>
-          </Box>
+      <Box twClassName="flex-row gap-4 py-3" testID={rowTestId}>
+        <Box twClassName="flex-1 gap-1">
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {dateRange}
+          </Text>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {weekTitle}
+          </Text>
         </Box>
-        {hasProof && (
-          <Box alignItems={BoxAlignItems.Start} twClassName="pt-1">
+        <Box alignItems={BoxAlignItems.End} twClassName="flex-1 gap-1">
+          {formattedPrizePoolAmount != null && (
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {formattedPrizePoolAmount}
+            </Text>
+          )}
+          {hasWon ? (
             <Button
-              variant={ButtonVariant.Tertiary}
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Sm}
+              onPress={
+                isOutcomeFinalized ? openDrawProofSheet : openWinnerDetails
+              }
+              twClassName="self-end bg-success-muted"
+              textProps={{
+                color: TextColor.SuccessDefault,
+                twClassName: 'text-success-default',
+              }}
+              testID={`${MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.WINNER_BUTTON}-${campaign.id}`}
+            >
+              {strings('rewards.campaign_winning.you_won')}
+            </Button>
+          ) : hasProof ? (
+            <Button
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Sm}
               onPress={openDrawProofSheet}
+              twClassName="self-end"
               testID={
                 MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.DRAW_COMPLETE_BUTTON
               }
             >
               {localizedText.drawScheduleViewResults}
             </Button>
-          </Box>
-        )}
+          ) : (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {localizedText.drawPendingTitle}
+            </Text>
+          )}
+        </Box>
       </Box>
     );
   }
@@ -213,6 +238,7 @@ const MoneyAccountSweepstakesDrawScheduleSection: React.FC<
   entryCount,
   isParticipating,
   onOpenDrawProof,
+  onOpenWinnerDetails,
 }) => {
   if (campaigns.length === 0) {
     return null;
@@ -241,6 +267,7 @@ const MoneyAccountSweepstakesDrawScheduleSection: React.FC<
             entryCount={entryCount}
             isParticipating={isParticipating}
             onOpenDrawProof={onOpenDrawProof}
+            onOpenWinnerDetails={onOpenWinnerDetails}
           />
         </React.Fragment>
       ))}

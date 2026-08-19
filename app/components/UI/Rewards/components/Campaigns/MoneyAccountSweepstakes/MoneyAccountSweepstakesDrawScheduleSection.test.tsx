@@ -11,6 +11,8 @@ import {
 import { createMoneyAccountSweepstakesLocalizedText } from './testUtils';
 
 const mockGetDrawProof = jest.fn();
+const mockGetOutcome = jest.fn();
+const mockGetPrizePool = jest.fn();
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -48,13 +50,14 @@ jest.mock('../../../hooks/useGetMoneyAccountSweepstakesDrawProof', () => ({
     mockGetDrawProof(campaignId),
 }));
 
+jest.mock('../../../hooks/useMoneyAccountSweepstakesOutcome', () => ({
+  useMoneyAccountSweepstakesOutcome: (campaignId: string | undefined) =>
+    mockGetOutcome(campaignId),
+}));
+
 jest.mock('../../../hooks/useGetMoneyAccountSweepstakesPrizePool', () => ({
-  useGetMoneyAccountSweepstakesPrizePool: () => ({
-    prizePool: { unlockedPoolUsd: 4125 },
-    isLoading: false,
-    hasError: false,
-    refetch: jest.fn(),
-  }),
+  useGetMoneyAccountSweepstakesPrizePool: (campaignId: string | undefined) =>
+    mockGetPrizePool(campaignId),
 }));
 
 jest.mock('../../../utils/formatUtils', () => ({
@@ -134,6 +137,18 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
       hasError: false,
       refetch: jest.fn(),
     }));
+    mockGetOutcome.mockImplementation(() => ({
+      outcome: null,
+      isLoading: false,
+      hasError: false,
+    }));
+    // Mirrors the real hook: no campaign id means no fetch and no pool.
+    mockGetPrizePool.mockImplementation((campaignId: string | undefined) => ({
+      prizePool: campaignId ? { unlockedPoolUsd: 4125 } : null,
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    }));
   });
 
   afterEach(() => {
@@ -179,6 +194,37 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
     expect(
       getByText('Entries reset after each weekly draw.'),
     ).toBeOnTheScreen();
+  });
+
+  it('fetches the prize pool for every week in the schedule', () => {
+    const campaigns = [
+      buildCampaign({
+        id: 'complete-week',
+        startDate: '2024-12-01T00:00:00.000Z',
+        endDate: '2024-12-08T00:00:00.000Z',
+      }),
+      buildCampaign({
+        id: 'active-week',
+        startDate: '2025-01-08T00:00:00.000Z',
+        endDate: '2025-01-15T00:00:00.000Z',
+      }),
+      buildCampaign({
+        id: 'upcoming-week',
+        startDate: '2025-02-01T00:00:00.000Z',
+        endDate: '2025-02-08T00:00:00.000Z',
+      }),
+    ];
+
+    render(
+      <MoneyAccountSweepstakesDrawScheduleSection
+        campaigns={campaigns}
+        localizedText={localizedText}
+      />,
+    );
+
+    expect(mockGetPrizePool).toHaveBeenCalledWith('complete-week');
+    expect(mockGetPrizePool).toHaveBeenCalledWith('active-week');
+    expect(mockGetPrizePool).toHaveBeenCalledWith('upcoming-week');
   });
 
   it('renders an active week without the prize pool meter', () => {
@@ -289,6 +335,94 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
     );
 
     expect(onOpenDrawProof).toHaveBeenCalledWith(drawProof);
+  });
+
+  it('opens winner details when a pending won week is pressed', () => {
+    const onOpenWinnerDetails = jest.fn();
+    const complete = buildCampaign({
+      id: 'won-pending-week',
+      startDate: '2024-12-01T00:00:00.000Z',
+      endDate: '2024-12-08T00:00:00.000Z',
+    });
+    mockGetOutcome.mockImplementation((campaignId: string | undefined) => ({
+      outcome:
+        campaignId === complete.id
+          ? {
+              subscriptionId: 'sub-1',
+              outcomeStatus: 'pending',
+              winnerVerificationCode: 'WIN-123',
+            }
+          : null,
+      isLoading: false,
+      hasError: false,
+    }));
+
+    const { getByTestId, getByText, queryByText } = render(
+      <MoneyAccountSweepstakesDrawScheduleSection
+        campaigns={[complete]}
+        localizedText={localizedText}
+        onOpenWinnerDetails={onOpenWinnerDetails}
+      />,
+    );
+
+    expect(getByText('You won')).toBeOnTheScreen();
+    expect(queryByText('Draw pending')).toBeNull();
+
+    fireEvent.press(
+      getByTestId(
+        `${MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.WINNER_BUTTON}-${complete.id}`,
+      ),
+    );
+
+    expect(onOpenWinnerDetails).toHaveBeenCalledWith(complete);
+  });
+
+  it('opens the draw proof sheet when a finalized won week is pressed', () => {
+    const onOpenWinnerDetails = jest.fn();
+    const onOpenDrawProof = jest.fn();
+    const complete = buildCampaign({
+      id: 'won-finalized-week',
+      startDate: '2024-12-01T00:00:00.000Z',
+      endDate: '2024-12-08T00:00:00.000Z',
+    });
+    mockGetDrawProof.mockImplementation((campaignId: string) => ({
+      drawProof: campaignId === complete.id ? drawProof : null,
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    }));
+    mockGetOutcome.mockImplementation((campaignId: string | undefined) => ({
+      outcome:
+        campaignId === complete.id
+          ? {
+              subscriptionId: 'sub-1',
+              outcomeStatus: 'finalized',
+              winnerVerificationCode: 'WIN-123',
+            }
+          : null,
+      isLoading: false,
+      hasError: false,
+    }));
+
+    const { getByTestId, getByText } = render(
+      <MoneyAccountSweepstakesDrawScheduleSection
+        campaigns={[complete]}
+        localizedText={localizedText}
+        onOpenDrawProof={onOpenDrawProof}
+        onOpenWinnerDetails={onOpenWinnerDetails}
+      />,
+    );
+
+    expect(getByText('You won')).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(
+        `${MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.WINNER_BUTTON}-${complete.id}`,
+      ),
+    );
+
+    expect(onOpenDrawProof).toHaveBeenCalledWith(drawProof);
+    expect(onOpenWinnerDetails).not.toHaveBeenCalled();
   });
 
   it('numbers weeks sequentially across multiple campaigns', () => {

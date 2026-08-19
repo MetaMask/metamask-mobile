@@ -20,7 +20,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
-import { CampaignOutcomeBanner } from '../components/Campaigns/CampaignOutcomeBanners';
 import MoneyAccountSweepstakesCampaignCTA from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesCampaignCTA';
 import MoneyAccountSweepstakesDrawProofModal from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesDrawProofModal';
 import MoneyAccountSweepstakesDrawScheduleSection from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesDrawScheduleSection';
@@ -30,7 +29,6 @@ import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useGetMoneyAccountSweepstakesStatsMe } from '../hooks/useGetMoneyAccountSweepstakesStatsMe';
 import { useMoneyAccountSweepstakesBinding } from '../hooks/useMoneyAccountSweepstakesBinding';
 import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
-import { useMoneyAccountSweepstakesOutcome } from '../hooks/useMoneyAccountSweepstakesOutcome';
 import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import useRewardsToast from '../hooks/useRewardsToast';
@@ -40,6 +38,7 @@ import { navigateToRewardsRoute } from '../utils';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type {
+  CampaignDto,
   CampaignHowItWorks as CampaignHowItWorksData,
   MoneyAccountSweepstakesCampaignDetails,
   MoneyAccountSweepstakesDrawProofDto,
@@ -131,9 +130,6 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
     hasError: hasStatsError,
     refetch: refetchStats,
   } = useGetMoneyAccountSweepstakesStatsMe(displayCampaign?.id);
-  const { outcome } = useMoneyAccountSweepstakesOutcome(
-    seriesStatus === 'previous' ? displayCampaign?.id : undefined,
-  );
 
   const tileCampaign = useMemo(
     () => buildMoneyAccountSweepstakesTileCampaign(series),
@@ -189,17 +185,19 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
 
   const statusCampaign = tileCampaign ?? displayCampaign;
 
-  const navigateToWinnerDetails = useCallback(() => {
-    if (!displayCampaign?.id) return;
-    navigateToRewardsRoute(
-      navigation,
-      Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_WINNING_VIEW,
-      {
-        campaignId: displayCampaign.id,
-        campaignName: displayCampaign.name,
-      },
-    );
-  }, [displayCampaign?.id, displayCampaign?.name, navigation]);
+  const navigateToWinnerDetails = useCallback(
+    (campaign: CampaignDto) => {
+      navigateToRewardsRoute(
+        navigation,
+        Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_WINNING_VIEW,
+        {
+          campaignId: campaign.id,
+          campaignName: campaign.name,
+        },
+      );
+    },
+    [navigation],
+  );
 
   return (
     <ErrorBoundary
@@ -265,16 +263,6 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
                 )}
               </MoneyAccountSweepstakesCampaignOverview>
 
-              {seriesStatus === 'previous' && outcome && (
-                <Box twClassName="px-4 pt-4">
-                  <CampaignOutcomeBanner
-                    outcomeStatus={outcome.outcomeStatus}
-                    winnerVerificationCode={outcome.winnerVerificationCode}
-                    onWinnerPress={navigateToWinnerDetails}
-                  />
-                </Box>
-              )}
-
               {showHowItWorksSection &&
                 displayCampaign?.details?.howItWorks && (
                   <>
@@ -312,6 +300,7 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
                       entryCount={stats?.entryCount}
                       isParticipating={optedInAny}
                       onOpenDrawProof={setSelectedDrawProof}
+                      onOpenWinnerDetails={navigateToWinnerDetails}
                     />
                   </Box>
                 </>

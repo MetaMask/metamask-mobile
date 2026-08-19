@@ -173,9 +173,7 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
             <Text
               variant={TextVariant.BodyLg}
               fontWeight={FontWeight.Medium}
-              color={
-                isQualified ? TextColor.SuccessDefault : TextColor.TextDefault
-              }
+              color={TextColor.TextDefault}
             >
               {entriesDisplay}
             </Text>

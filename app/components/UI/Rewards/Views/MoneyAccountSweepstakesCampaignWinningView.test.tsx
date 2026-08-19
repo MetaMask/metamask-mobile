@@ -78,7 +78,7 @@ describe('MoneyAccountSweepstakesCampaignWinningView', () => {
         testID:
           MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_WINNING_VIEW_TEST_IDS.CONTAINER,
         viewName: 'MoneyAccountSweepstakesCampaignWinningView',
-        prizeEmail: 'moneyaccountcampaign@consensys.net',
+        prizeEmail: 'moneycampaign@consensys.net',
         campaignName: 'Money Account Sweepstakes',
         campaignId: 'mas-campaign-1',
         analyticsPageType: 'money_account_sweepstakes_campaign_winning',
