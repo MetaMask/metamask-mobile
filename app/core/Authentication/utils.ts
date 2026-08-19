@@ -133,9 +133,7 @@ export const handlePasswordSubmissionError = (error: Error) => {
     throw error;
   }
 
-  throw new Error(
-    `${classifyUnlockError(error)}: ${loginErrorMessage}`,
-  );
+  throw new Error(`${classifyUnlockError(error)}: ${loginErrorMessage}`);
 };
 
 /**
