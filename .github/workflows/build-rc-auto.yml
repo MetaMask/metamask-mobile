@@ -19,6 +19,23 @@
 #   thumbs-up, the last cherry-pick has landed, and the branch is being prepared to
 #   merge into stable. Removing the label resumes normal auto RC builds.
 #
+# Repack fast path (opt-in):
+#   Add the 'repack-rc-enabled' label to the release PR to let a push reuse the signed
+#   IPA/APK of an earlier auto RC build on the SAME release branch whose @expo/fingerprint
+#   hash matches, swapping in a freshly bundled JS layer via @expo/repack-app instead of
+#   compiling natively (build-rc-repack.yml). Without the label — and on any fingerprint
+#   miss, expired artifact, or failure — the run takes the unchanged native path below.
+#   Note the first build after labelling always compiles natively: it is the one that
+#   publishes the build-source-hash status the next push looks up.
+#
+#   Removing the label reverts instantly — the next push builds natively again, with no
+#   revert PR. The label lives on the release PR, so enabling it scopes the fast path to
+#   one release cycle. On the first repacked build of a cycle, compare it against a native
+#   RC build of the same commit: launch, OTA update check, Sentry symbolication, deep
+#   links, Apple Sign-In, and the build number matching what the RC comment claims. The JS
+#   here is bundled by `expo export:embed`, not by the bundler scripts/build.sh uses, and
+#   RC builds reach external testers.
+#
 ##############################################################################################
 name: Auto RC builds
 
@@ -36,6 +53,7 @@ permissions:
   contents: read
   actions: write
   id-token: write
+  statuses: write # build-source-hash fingerprint status consumed by the repack fast path
 
 jobs:
   validate-and-find-pr:
@@ -47,6 +65,7 @@ jobs:
       branch-name: ${{ steps.extract-version.outputs.branch-name }}
       pr-number: ${{ steps.find-pr.outputs.pr-number }}
       rc-frozen: ${{ steps.find-pr.outputs.rc-frozen }}
+      repack-enabled: ${{ steps.find-pr.outputs.repack-enabled }}
     permissions:
       pull-requests: read
     steps:
@@ -88,8 +107,11 @@ jobs:
 
           if [[ -z "$PR_NUMBER" ]]; then
             echo "No PR found for branch $BRANCH_NAME. Skipping."
-            echo "has-pr=false" >> "$GITHUB_OUTPUT"
-            echo "rc-frozen=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "has-pr=false"
+              echo "rc-frozen=false"
+              echo "repack-enabled=false"
+            } >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -100,14 +122,26 @@ jobs:
 
           if [[ "$RC_FROZEN" == "true" ]]; then
             echo "::notice::PR #$PR_NUMBER has the 'rc-freeze' label — auto RC build skipped."
-            echo "rc-frozen=true" >> "$GITHUB_OUTPUT"
           else
             echo "Found PR #$PR_NUMBER - proceeding with RC build"
-            echo "rc-frozen=false" >> "$GITHUB_OUTPUT"
           fi
 
-          echo "pr-number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
-          echo "has-pr=true" >> "$GITHUB_OUTPUT"
+          # Opt-in gate for the repack fast path. Absent label means the native build
+          # path, so this feature is inert on any release branch that has not asked for it.
+          REPACK_ENABLED=$(echo "$PR_JSON" | jq -r '[.labels[].name] | map(select(. == "repack-rc-enabled")) | length > 0')
+
+          if [[ "$REPACK_ENABLED" == "true" ]]; then
+            echo "::notice::PR #$PR_NUMBER has the 'repack-rc-enabled' label — repack fast path is eligible."
+          else
+            echo "No 'repack-rc-enabled' label on PR #$PR_NUMBER — native builds only."
+          fi
+
+          {
+            echo "rc-frozen=$RC_FROZEN"
+            echo "repack-enabled=$REPACK_ENABLED"
+            echo "pr-number=$PR_NUMBER"
+            echo "has-pr=true"
+          } >> "$GITHUB_OUTPUT"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -117,13 +151,198 @@ jobs:
     needs: validate-and-find-pr
     if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
 
+  # Publishes this commit's @expo/fingerprint hash as a `build-source-hash` status (so the
+  # NEXT push on this branch can find this run) and looks for an earlier auto RC run on the
+  # SAME release branch whose hash matches and whose IPA/APK are still available.
+  #
+  # This job must always run to completion, even when the repack fast path is disabled: the
+  # native build jobs depend on it, and a skipped job would take them down with it. When the
+  # label is absent every step is skipped, `found` stays empty, and the run behaves exactly
+  # as it did before this fast path existed.
+  resolve-rc-reuse:
+    name: Resolve repack donor build
+    runs-on: ubuntu-latest
+    needs: validate-and-find-pr
+    if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
+    # Reuse is an optimization, never a gate. Any failure here (fingerprint, API, network)
+    # leaves `found` empty and the run falls back to the unchanged native build path.
+    continue-on-error: true
+    permissions:
+      contents: read
+      statuses: write
+      actions: read
+    env:
+      REPACK_ENABLED: ${{ needs.validate-and-find-pr.outputs.repack-enabled }}
+    outputs:
+      found: ${{ steps.lookup.outputs.found }}
+      run-id: ${{ steps.lookup.outputs.run-id }}
+      fingerprint: ${{ steps.fingerprint.outputs.fingerprint }}
+    steps:
+      - name: Checkout repository
+        if: env.REPACK_ENABLED == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        if: env.REPACK_ENABLED == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      # fingerprint.config.js shells out to expo-modules-autolinking, so a full install
+      # is required before the hash can be computed.
+      - name: Install Yarn dependencies with retry
+        if: env.REPACK_ENABLED == 'true'
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+
+      - name: Compute fingerprint and post build-source-hash
+        id: fingerprint
+        if: env.REPACK_ENABLED == 'true'
+        uses: ./.github/actions/post-build-source-hash
+        with:
+          github-token: ${{ github.token }}
+          # `find-reusable-build` matches the status against `run.head_sha`, which GitHub
+          # reports as the pushed commit for `push` events — the same SHA we build.
+          target-sha: ${{ github.sha }}
+
+      # `base-branch` is deliberately set to the current branch: `find-reusable-build` only
+      # adds its base-branch tier when that value differs from the head branch, so this
+      # confines discovery to the same release branch. Its third tier filters on
+      # `event: pull_request`, which never matches these `push` runs.
+      - name: Find reusable RC build on this release branch
+        id: lookup
+        if: env.REPACK_ENABLED == 'true'
+        uses: ./.github/actions/find-reusable-build
+        with:
+          fingerprint: ${{ steps.fingerprint.outputs.fingerprint }}
+          workflow-file: build-rc-auto.yml
+          base-branch: ${{ github.ref_name }}
+          artifact-names: '["ios-ipa-main-rc","android-apk-main-rc"]'
+          github-token: ${{ github.token }}
+
+      - name: Summarize reuse decision
+        if: always()
+        env:
+          FOUND: ${{ steps.lookup.outputs.found }}
+          RUN_ID: ${{ steps.lookup.outputs.run-id }}
+          SOURCE_SHA: ${{ steps.lookup.outputs.source-sha }}
+          FINGERPRINT: ${{ steps.fingerprint.outputs.fingerprint }}
+        run: |
+          {
+            echo "### RC build source"
+            echo ""
+            if [[ "$REPACK_ENABLED" != "true" ]]; then
+              echo "Native build — the \`repack-rc-enabled\` label is not on the release PR."
+            elif [[ "$FOUND" == "true" ]]; then
+              echo "Repack — reusing native artifacts from run [$RUN_ID](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}) (commit \`${SOURCE_SHA}\`)."
+              echo ""
+              echo "Fingerprint: \`${FINGERPRINT}\`"
+            else
+              echo "Native build — no earlier RC run on \`${GITHUB_REF_NAME}\` matches fingerprint \`${FINGERPRINT:-unavailable}\` with usable artifacts."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Mirrors the OTA-bump check auto-rc-ota-build-core.yml performs internally, so the repack
+  # path skips the build on an OTA_VERSION bump exactly like the native path does.
+  resolve-ota-context:
+    name: Resolve OTA context (repack path)
+    uses: ./.github/workflows/runway-ota-resolve-context.yml
+    needs: validate-and-find-pr
+    if: >-
+      needs.validate-and-find-pr.outputs.has-pr == 'true' &&
+      needs.validate-and-find-pr.outputs.rc-frozen != 'true' &&
+      needs.validate-and-find-pr.outputs.repack-enabled == 'true'
+    with:
+      source_branch: ${{ github.sha }}
+    secrets: inherit
+
+  # Fast path: reuse the donor's native artifacts and swap in this commit's JS. Requires a
+  # donor, which in turn requires the opt-in label, so this is skipped by default.
+  repack-ios-rc-build:
+    name: Repack iOS RC Build
+    uses: ./.github/workflows/build-rc-repack.yml
+    needs:
+      - validate-and-find-pr
+      - generate_rc_build_version
+      - resolve-rc-reuse
+      - resolve-ota-context
+    if: >-
+      !cancelled() &&
+      needs.generate_rc_build_version.result == 'success' &&
+      needs.resolve-ota-context.result == 'success' &&
+      needs.validate-and-find-pr.outputs.has-pr == 'true' &&
+      needs.validate-and-find-pr.outputs.rc-frozen != 'true' &&
+      needs.resolve-rc-reuse.outputs.found == 'true' &&
+      needs.resolve-ota-context.outputs.ota_bump != 'true'
+    with:
+      platform: ios
+      source_branch: ${{ github.sha }}
+      build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
+      donor_run_id: ${{ needs.resolve-rc-reuse.outputs.run-id }}
+      distribute_external: true
+    secrets: inherit
+
+  repack-android-rc-build:
+    name: Repack Android RC Build
+    uses: ./.github/workflows/build-rc-repack.yml
+    needs:
+      - validate-and-find-pr
+      - generate_rc_build_version
+      - resolve-rc-reuse
+      - resolve-ota-context
+    if: >-
+      !cancelled() &&
+      needs.generate_rc_build_version.result == 'success' &&
+      needs.resolve-ota-context.result == 'success' &&
+      needs.validate-and-find-pr.outputs.has-pr == 'true' &&
+      needs.validate-and-find-pr.outputs.rc-frozen != 'true' &&
+      needs.resolve-rc-reuse.outputs.found == 'true' &&
+      needs.resolve-ota-context.outputs.ota_bump != 'true'
+    with:
+      platform: android
+      source_branch: ${{ github.sha }}
+      build_number: ${{ needs.generate_rc_build_version.outputs.build-version }}
+      donor_run_id: ${{ needs.resolve-rc-reuse.outputs.run-id }}
+    secrets: inherit
+
+  # Default path, unchanged.
+  #
+  # `!cancelled()` plus explicit result checks reproduce the implicit `needs` semantics this
+  # job had before the fast path existed: `resolve-rc-reuse` and `resolve-ota-context` are
+  # both allowed to fail without blocking a build, so their failures must not skip this job.
+  #
+  # It also depends on the repack job so it can pick up the pieces: a repack that errors out
+  # leaves this to produce the RC build natively, at the cost of starting late. `ota_bump` is
+  # empty whenever the repack path is off, so that clause only bites on the fast path (the
+  # native path resolves the OTA bump itself, inside auto-rc-ota-build-core.yml).
   trigger-ios-rc-build:
     name: Trigger iOS RC Build
     uses: ./.github/workflows/auto-rc-ota-build-core.yml
     needs:
       - validate-and-find-pr
       - generate_rc_build_version
-    if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
+      - resolve-rc-reuse
+      - resolve-ota-context
+      - repack-ios-rc-build
+    if: >-
+      !cancelled() &&
+      needs.validate-and-find-pr.result == 'success' &&
+      needs.generate_rc_build_version.result == 'success' &&
+      needs.validate-and-find-pr.outputs.has-pr == 'true' &&
+      needs.validate-and-find-pr.outputs.rc-frozen != 'true' &&
+      needs.resolve-ota-context.outputs.ota_bump != 'true' &&
+      (
+        needs.resolve-rc-reuse.outputs.found != 'true' ||
+        needs.repack-ios-rc-build.result == 'failure'
+      )
     with:
       platform: ios
       # Pin to the triggering commit so iOS and Android build the same SHA even if
@@ -139,7 +358,20 @@ jobs:
     needs:
       - validate-and-find-pr
       - generate_rc_build_version
-    if: needs.validate-and-find-pr.outputs.has-pr == 'true' && needs.validate-and-find-pr.outputs.rc-frozen != 'true'
+      - resolve-rc-reuse
+      - resolve-ota-context
+      - repack-android-rc-build
+    if: >-
+      !cancelled() &&
+      needs.validate-and-find-pr.result == 'success' &&
+      needs.generate_rc_build_version.result == 'success' &&
+      needs.validate-and-find-pr.outputs.has-pr == 'true' &&
+      needs.validate-and-find-pr.outputs.rc-frozen != 'true' &&
+      needs.resolve-ota-context.outputs.ota_bump != 'true' &&
+      (
+        needs.resolve-rc-reuse.outputs.found != 'true' ||
+        needs.repack-android-rc-build.result == 'failure'
+      )
     with:
       platform: android
       source_branch: ${{ github.sha }}
@@ -153,7 +385,15 @@ jobs:
       - validate-and-find-pr
       - trigger-ios-rc-build
       - trigger-android-rc-build
-    if: always() && needs.trigger-ios-rc-build.result == 'success' && needs.trigger-android-rc-build.result == 'success' && needs.validate-and-find-pr.outputs.pr-number != ''
+      - repack-ios-rc-build
+      - repack-android-rc-build
+    # Both platforms must have succeeded, each on whichever path it took — they can differ
+    # if one platform's repack failed and fell back to a native build.
+    if: >-
+      always() &&
+      needs.validate-and-find-pr.outputs.pr-number != '' &&
+      (needs.trigger-ios-rc-build.result == 'success' || needs.repack-ios-rc-build.result == 'success') &&
+      (needs.trigger-android-rc-build.result == 'success' || needs.repack-android-rc-build.result == 'success')
     environment: release-ci
     permissions:
       pull-requests: write
@@ -186,8 +426,9 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ needs.validate-and-find-pr.outputs.pr-number }}
           SEMVER: ${{ needs.validate-and-find-pr.outputs.semver }}
-          IOS_BUILD_NUMBER: ${{ needs.trigger-ios-rc-build.outputs.ios_version_code }}
-          ANDROID_BUILD_NUMBER: ${{ needs.trigger-android-rc-build.outputs.android_version_code }}
+          # Exactly one of the two paths ran per platform; the skipped one contributes an empty string.
+          IOS_BUILD_NUMBER: ${{ needs.trigger-ios-rc-build.outputs.ios_version_code || needs.repack-ios-rc-build.outputs.ios_version_code }}
+          ANDROID_BUILD_NUMBER: ${{ needs.trigger-android-rc-build.outputs.android_version_code || needs.repack-android-rc-build.outputs.android_version_code }}
           BUILD_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           # AI Provider keys for test plan generation
           E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
@@ -210,12 +451,18 @@ jobs:
       - validate-and-find-pr
       - trigger-ios-rc-build
       - trigger-android-rc-build
-    if: always() && needs.trigger-ios-rc-build.result == 'success' && needs.trigger-android-rc-build.result == 'success'
+      - repack-ios-rc-build
+      - repack-android-rc-build
+    if: >-
+      always() &&
+      (needs.trigger-ios-rc-build.result == 'success' || needs.repack-ios-rc-build.result == 'success') &&
+      (needs.trigger-android-rc-build.result == 'success' || needs.repack-android-rc-build.result == 'success')
     uses: ./.github/workflows/slack-rc-notification.yml
     with:
       source_branch: ${{ needs.validate-and-find-pr.outputs.branch-name }}
-      semver: ${{ needs.trigger-ios-rc-build.outputs.semantic_version }}
-      ios_build_number: ${{ needs.trigger-ios-rc-build.outputs.ios_version_code }}
-      android_build_number: ${{ needs.trigger-android-rc-build.outputs.android_version_code }}
+      # Exactly one of the two paths ran per platform; the skipped one contributes an empty string.
+      semver: ${{ needs.trigger-ios-rc-build.outputs.semantic_version || needs.repack-ios-rc-build.outputs.semantic_version }}
+      ios_build_number: ${{ needs.trigger-ios-rc-build.outputs.ios_version_code || needs.repack-ios-rc-build.outputs.ios_version_code }}
+      android_build_number: ${{ needs.trigger-android-rc-build.outputs.android_version_code || needs.repack-android-rc-build.outputs.android_version_code }}
       pr_number: ${{ needs.validate-and-find-pr.outputs.pr-number }}
     secrets: inherit
