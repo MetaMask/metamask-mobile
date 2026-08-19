@@ -250,6 +250,37 @@ describe('getLimitPriceCrossingWarning', () => {
     );
   });
 
+  it('measures a trigger-limit against its trigger, not mid', () => {
+    // Valid long take-profit: trigger below mid, limit at/above trigger. The
+    // limit crosses the trigger but sits below mid, so a mid-referenced rule
+    // would stay silent here.
+    const warning = getLimitPriceCrossingWarning({
+      orderType: 'take_profit_limit',
+      direction: 'long',
+      limitPrice: '2400',
+      midPrice: 2500,
+      triggerPrice: '2300',
+    });
+
+    expect(warning).toBe(
+      'perps.order.validation.trigger_limit_price_above_warning',
+    );
+  });
+
+  it('stays silent when a trigger-limit rests at its trigger', () => {
+    // HyperLiquid: a limit equal to the trigger rests instead of filling, so
+    // there is no market-execution warning to give.
+    expect(
+      getLimitPriceCrossingWarning({
+        orderType: 'stop_limit',
+        direction: 'long',
+        limitPrice: '2600',
+        midPrice: 2500,
+        triggerPrice: '2600',
+      }),
+    ).toBeUndefined();
+  });
+
   it('returns undefined when the limit does not cross mid', () => {
     expect(
       getLimitPriceCrossingWarning({

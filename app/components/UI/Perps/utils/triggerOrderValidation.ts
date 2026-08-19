@@ -333,10 +333,21 @@ export const getOrderFormFieldIssueMessage = (
     : getLimitPriceValidationMessage(issue.issue);
 
 /**
- * Non-blocking warning when a limit (or trigger-limit) price would cross mid
- * and may fill as a taker limit. Equality is not a warning.
+ * Non-blocking warning when a limit price would cross the book and execute as a
+ * market order rather than resting. Equality is not a warning.
  *
- * @param input - Order type, side, typed limit, and live mid.
+ * The reference price differs by placement because the two reach the book at
+ * different moments. A plain limit reaches it immediately, so it is compared to
+ * the live mid. A trigger-limit rests off-book until its trigger fires, at which
+ * point the market is at the trigger — so it is compared to the trigger, and the
+ * mid at placement time is irrelevant. HyperLiquid documents this directly: a
+ * stop closing a long with trigger $10 and limit $10 "would rest at $10 instead
+ * of filling", while limit $8 against the same trigger "is likely to fill". Do not collapse the
+ * trigger branch into the mid comparison — the blocking trigger-vs-mid and
+ * limit-vs-trigger rules force a valid stop-limit's price to the crossing side
+ * of mid, so a mid-referenced warning would fire on every valid stop-limit.
+ *
+ * @param input - Order type, side, typed limit, live mid, and typed trigger.
  * @returns Localized warning copy, or `undefined`.
  */
 export const getLimitPriceCrossingWarning = ({
