@@ -1,10 +1,8 @@
 import React, { useCallback } from 'react';
+import { Pressable } from 'react-native';
 import {
   Box,
   BoxAlignItems,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   FontWeight,
   Text,
   TextColor,
@@ -12,7 +10,6 @@ import {
 } from '@metamask/design-system-react-native';
 import type {
   CampaignDto,
-  MoneyAccountSweepstakesDrawProofDto,
   MoneyAccountSweepstakesLocalizedTextDto,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { useGetMoneyAccountSweepstakesDrawProof } from '../../../hooks/useGetMoneyAccountSweepstakesDrawProof';
@@ -32,8 +29,6 @@ import {
 export const MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS = {
   CONTAINER: 'money-account-sweepstakes-draw-schedule-container',
   WEEK_ROW: 'money-account-sweepstakes-draw-schedule-week-row',
-  DRAW_COMPLETE_BUTTON:
-    'money-account-sweepstakes-draw-schedule-draw-complete-button',
   WINNER_BUTTON: 'money-account-sweepstakes-draw-schedule-winner-button',
 } as const;
 
@@ -42,8 +37,6 @@ interface MoneyAccountSweepstakesDrawScheduleSectionProps {
   localizedText: MoneyAccountSweepstakesLocalizedTextDto;
   entryCount?: number;
   isParticipating?: boolean;
-  /** Open draw-proof sheet outside ScrollView (parent mounts the modal). */
-  onOpenDrawProof?: (drawProof: MoneyAccountSweepstakesDrawProofDto) => void;
   /** Open winner details for a won week (parent handles navigation). */
   onOpenWinnerDetails?: (campaign: CampaignDto) => void;
 }
@@ -60,7 +53,6 @@ interface WeekRowProps {
   localizedText: MoneyAccountSweepstakesLocalizedTextDto;
   entryCount?: number;
   isParticipating?: boolean;
-  onOpenDrawProof?: (drawProof: MoneyAccountSweepstakesDrawProofDto) => void;
   onOpenWinnerDetails?: (campaign: CampaignDto) => void;
 }
 
@@ -70,7 +62,6 @@ const WeekRow: React.FC<WeekRowProps> = ({
   localizedText,
   entryCount,
   isParticipating = false,
-  onOpenDrawProof,
   onOpenWinnerDetails,
 }) => {
   const status = getCampaignStatus(campaign);
@@ -88,13 +79,6 @@ const WeekRow: React.FC<WeekRowProps> = ({
     campaign.startDate,
     campaign.endDate,
   );
-
-  const openDrawProofSheet = useCallback(() => {
-    if (!drawProof) {
-      return;
-    }
-    onOpenDrawProof?.(drawProof);
-  }, [drawProof, onOpenDrawProof]);
 
   const openWinnerDetails = useCallback(() => {
     onOpenWinnerDetails?.(campaign);
@@ -129,33 +113,29 @@ const WeekRow: React.FC<WeekRowProps> = ({
             </Text>
           )}
           {hasWon ? (
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Sm}
-              onPress={
-                isOutcomeFinalized ? openDrawProofSheet : openWinnerDetails
-              }
-              twClassName="self-end bg-success-muted"
-              textProps={{
-                color: TextColor.SuccessDefault,
-                twClassName: 'text-success-default',
-              }}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: isOutcomeFinalized }}
+              disabled={isOutcomeFinalized}
+              onPress={openWinnerDetails}
               testID={`${MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.WINNER_BUTTON}-${campaign.id}`}
             >
-              {strings('rewards.campaign_winning.you_won')}
-            </Button>
+              <Box twClassName="rounded-md bg-success-muted px-2 py-1">
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.SuccessDefault}
+                >
+                  {strings('rewards.campaign_winning.you_won')}
+                </Text>
+              </Box>
+            </Pressable>
           ) : hasProof ? (
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Sm}
-              onPress={openDrawProofSheet}
-              twClassName="self-end"
-              testID={
-                MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.DRAW_COMPLETE_BUTTON
-              }
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
             >
-              {localizedText.drawScheduleViewResults}
-            </Button>
+              {localizedText.drawCompleteTitle}
+            </Text>
           ) : (
             <Text
               variant={TextVariant.BodySm}
@@ -237,7 +217,6 @@ const MoneyAccountSweepstakesDrawScheduleSection: React.FC<
   localizedText,
   entryCount,
   isParticipating,
-  onOpenDrawProof,
   onOpenWinnerDetails,
 }) => {
   if (campaigns.length === 0) {
@@ -266,7 +245,6 @@ const MoneyAccountSweepstakesDrawScheduleSection: React.FC<
             localizedText={localizedText}
             entryCount={entryCount}
             isParticipating={isParticipating}
-            onOpenDrawProof={onOpenDrawProof}
             onOpenWinnerDetails={onOpenWinnerDetails}
           />
         </React.Fragment>

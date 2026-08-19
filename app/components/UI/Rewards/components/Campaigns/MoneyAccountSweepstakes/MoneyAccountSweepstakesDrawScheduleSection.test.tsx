@@ -22,20 +22,6 @@ jest.mock('@metamask/design-system-react-native', () => {
     ...actual,
     Text: (props: Record<string, unknown>) =>
       ReactActual.createElement(RN.Text, props, props.children),
-    Button: ({
-      children,
-      onPress,
-      testID,
-    }: {
-      children: React.ReactNode;
-      onPress?: () => void;
-      testID?: string;
-    }) =>
-      ReactActual.createElement(
-        RN.Pressable,
-        { onPress, testID },
-        ReactActual.createElement(RN.Text, null, children),
-      ),
   };
 });
 
@@ -290,7 +276,7 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
       endDate: '2024-12-08T00:00:00.000Z',
     });
 
-    const { getByText, queryByTestId } = render(
+    const { getByText, queryByText } = render(
       <MoneyAccountSweepstakesDrawScheduleSection
         campaigns={[complete]}
         localizedText={localizedText}
@@ -299,15 +285,10 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
 
     expect(getByText('Week 1')).toBeOnTheScreen();
     expect(getByText('Draw pending')).toBeOnTheScreen();
-    expect(
-      queryByTestId(
-        MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.DRAW_COMPLETE_BUTTON,
-      ),
-    ).toBeNull();
+    expect(queryByText('Winners drawn')).toBeNull();
   });
 
-  it('calls onOpenDrawProof for a completed week with proof', () => {
-    const onOpenDrawProof = jest.fn();
+  it('shows draw complete title for a completed week with proof', () => {
     const complete = buildCampaign({
       id: 'complete-with-proof',
       startDate: '2024-12-01T00:00:00.000Z',
@@ -320,21 +301,15 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
       refetch: jest.fn(),
     }));
 
-    const { getByTestId } = render(
+    const { getByText, queryByText } = render(
       <MoneyAccountSweepstakesDrawScheduleSection
         campaigns={[complete]}
         localizedText={localizedText}
-        onOpenDrawProof={onOpenDrawProof}
       />,
     );
 
-    fireEvent.press(
-      getByTestId(
-        MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.DRAW_COMPLETE_BUTTON,
-      ),
-    );
-
-    expect(onOpenDrawProof).toHaveBeenCalledWith(drawProof);
+    expect(getByText('Winners drawn')).toBeOnTheScreen();
+    expect(queryByText('Draw pending')).toBeNull();
   });
 
   it('opens winner details when a pending won week is pressed', () => {
@@ -377,9 +352,8 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
     expect(onOpenWinnerDetails).toHaveBeenCalledWith(complete);
   });
 
-  it('opens the draw proof sheet when a finalized won week is pressed', () => {
+  it('disables the winner button when a won week is finalized', () => {
     const onOpenWinnerDetails = jest.fn();
-    const onOpenDrawProof = jest.fn();
     const complete = buildCampaign({
       id: 'won-finalized-week',
       startDate: '2024-12-01T00:00:00.000Z',
@@ -408,20 +382,19 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
       <MoneyAccountSweepstakesDrawScheduleSection
         campaigns={[complete]}
         localizedText={localizedText}
-        onOpenDrawProof={onOpenDrawProof}
         onOpenWinnerDetails={onOpenWinnerDetails}
       />,
     );
 
     expect(getByText('You won')).toBeOnTheScreen();
 
-    fireEvent.press(
-      getByTestId(
-        `${MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.WINNER_BUTTON}-${complete.id}`,
-      ),
+    const winnerButton = getByTestId(
+      `${MONEY_ACCOUNT_SWEEPSTAKES_DRAW_SCHEDULE_TEST_IDS.WINNER_BUTTON}-${complete.id}`,
     );
+    expect(winnerButton.props.accessibilityState).toEqual({ disabled: true });
 
-    expect(onOpenDrawProof).toHaveBeenCalledWith(drawProof);
+    fireEvent.press(winnerButton);
+
     expect(onOpenWinnerDetails).not.toHaveBeenCalled();
   });
 

@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -21,7 +15,6 @@ import HeaderCompactStandard from '../../../../component-library/components-temp
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import MoneyAccountSweepstakesCampaignCTA from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesCampaignCTA';
-import MoneyAccountSweepstakesDrawProofModal from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesDrawProofModal';
 import MoneyAccountSweepstakesDrawScheduleSection from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesDrawScheduleSection';
 import MoneyAccountSweepstakesCampaignOverview from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesCampaignOverview';
 import MoneyAccountSweepstakesLearnMoreRows from '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesLearnMoreRows';
@@ -41,7 +34,6 @@ import type {
   CampaignDto,
   CampaignHowItWorks as CampaignHowItWorksData,
   MoneyAccountSweepstakesCampaignDetails,
-  MoneyAccountSweepstakesDrawProofDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { documentToPlainText } from '../components/ContentfulRichText/ContentfulRichText';
 
@@ -106,8 +98,6 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const conflictToastShownRef = useRef(false);
-  const [selectedDrawProof, setSelectedDrawProof] =
-    useState<MoneyAccountSweepstakesDrawProofDto | null>(null);
 
   const {
     isLoading: isCampaignsLoading,
@@ -299,7 +289,6 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
                       localizedText={localizedText}
                       entryCount={stats?.entryCount}
                       isParticipating={optedInAny}
-                      onOpenDrawProof={setSelectedDrawProof}
                       onOpenWinnerDetails={navigateToWinnerDetails}
                     />
                   </Box>
@@ -326,14 +315,6 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
               localizedText={localizedText}
             />
           )}
-
-        {selectedDrawProof && localizedText && (
-          <MoneyAccountSweepstakesDrawProofModal
-            drawProof={selectedDrawProof}
-            localizedText={localizedText}
-            onClose={() => setSelectedDrawProof(null)}
-          />
-        )}
       </SafeAreaView>
     </ErrorBoundary>
   );
