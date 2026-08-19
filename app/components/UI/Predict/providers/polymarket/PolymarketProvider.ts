@@ -28,7 +28,6 @@ import {
 } from '../../constants/eventNames';
 import { filterSupportedLeagues } from '../../constants/sports';
 import { getPrimarySportsCardOutcomes } from '../../utils/sports';
-import { resolveWorldCupFeedEvents } from './sportsUtils';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
@@ -433,11 +432,7 @@ export class PolymarketProvider implements PredictProvider {
 
     const neededTeams = extractNeededTeamsFromEvents(events, supportedLeagues);
 
-    await Promise.all(
-      [...neededTeams.entries()].map(([league, abbreviations]) =>
-        TeamsCache.getInstance().ensureTeamsLoaded(league, abbreviations),
-      ),
-    );
+    await TeamsCache.getInstance().ensureTeamsLoadedBatch(neededTeams);
   }
 
   async #parseEventsToMarkets({
@@ -481,13 +476,19 @@ export class PolymarketProvider implements PredictProvider {
   async #resolveSportMarketFromPolymarket({
     event,
     extendedSportsMarketsLeagues,
+    includeChildEvents,
   }: {
     event: PolymarketApiEvent;
     extendedSportsMarketsLeagues: string[];
+    includeChildEvents: boolean;
   }): Promise<{
     resolvedEvent: PolymarketApiEvent;
     childMarketIds?: string[];
   }> {
+    if (!includeChildEvents) {
+      return { resolvedEvent: event };
+    }
+
     const eventLeague = getEventLeague(event, extendedSportsMarketsLeagues);
     if (!eventLeague || !extendedSportsMarketsLeagues.includes(eventLeague)) {
       return { resolvedEvent: event };
@@ -945,6 +946,7 @@ export class PolymarketProvider implements PredictProvider {
           await this.#resolveSportMarketFromPolymarket({
             event,
             extendedSportsMarketsLeagues,
+            includeChildEvents: true,
           });
         mergedEvent = resolvedSportMarket.resolvedEvent;
         childMarketIds = resolvedSportMarket.childMarketIds;
@@ -1062,12 +1064,9 @@ export class PolymarketProvider implements PredictProvider {
     try {
       const { events, category, nextCursor } =
         await fetchEventsFromPolymarketApi(params);
-      const resolvedEvents = await resolveWorldCupFeedEvents(events, {
-        extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
-      });
 
       const markets = await this.#parseEventsToMarkets({
-        events: resolvedEvents,
+        events,
         category,
       });
 
