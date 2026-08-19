@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { View, TouchableOpacity, FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import {
@@ -37,6 +38,7 @@ import {
   HOME_SCREEN_CONFIG,
 } from '../../constants/perpsConfig';
 import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
+import { selectIsTransactionsRedesignEnabled } from '../../../../../selectors/featureFlagController/activityRedesign';
 
 interface PerpsMarketTradesListProps {
   symbol: string; // Market symbol to filter trades
@@ -49,6 +51,9 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
+  const isTransactionsRedesignEnabled = useSelector(
+    selectIsTransactionsRedesignEnabled,
+  );
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Fetch order fills via WebSocket + REST API for complete history
@@ -89,9 +94,13 @@ const PerpsMarketTradesList: React.FC<PerpsMarketTradesListProps> = ({
           .build(),
       );
 
-      navigateToPerpsTransactionDetails(navigation, transaction);
+      navigateToPerpsTransactionDetails(
+        navigation,
+        transaction,
+        isTransactionsRedesignEnabled,
+      );
     },
-    [navigation, trackEvent, createEventBuilder],
+    [navigation, isTransactionsRedesignEnabled, trackEvent, createEventBuilder],
   );
 
   // Render right content for trades

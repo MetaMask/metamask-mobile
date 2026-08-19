@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { FlatList } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
@@ -29,6 +30,7 @@ import {
   TransactionDetailLocation,
 } from '../../../../../core/Analytics/events/transactions';
 import { navigateToPerpsTransactionDetails } from '../../utils/navigateToPerpsTransactionDetails';
+import { selectIsTransactionsRedesignEnabled } from '../../../../../selectors/featureFlagController/activityRedesign';
 
 interface PerpsRecentActivityListProps {
   transactions: PerpsTransaction[];
@@ -42,6 +44,9 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const isTransactionsRedesignEnabled = useSelector(
+    selectIsTransactionsRedesignEnabled,
+  );
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activityTitle = strings('perps.home.recent_activity');
 
@@ -68,10 +73,14 @@ const PerpsRecentActivityList: React.FC<PerpsRecentActivityListProps> = ({
             .build(),
         );
 
-        navigateToPerpsTransactionDetails(navigation, transaction);
+        navigateToPerpsTransactionDetails(
+          navigation,
+          transaction,
+          isTransactionsRedesignEnabled,
+        );
       }
     },
-    [navigation, trackEvent, createEventBuilder],
+    [navigation, isTransactionsRedesignEnabled, trackEvent, createEventBuilder],
   );
 
   const renderItem = useCallback(

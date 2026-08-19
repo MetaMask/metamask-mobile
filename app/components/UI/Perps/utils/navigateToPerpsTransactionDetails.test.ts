@@ -29,10 +29,10 @@ const tradeTransaction: PerpsTransaction = {
 };
 
 describe('navigateToPerpsTransactionDetails', () => {
-  it('opens Activity details for a mapped historic fill', () => {
+  it('opens Activity details for a mapped historic fill when redesign is enabled', () => {
     const navigation = createNavigation();
 
-    navigateToPerpsTransactionDetails(navigation, tradeTransaction);
+    navigateToPerpsTransactionDetails(navigation, tradeTransaction, true);
 
     expect(navigation.navigate).toHaveBeenCalledWith(
       Routes.ACTIVITY_DETAILS,
@@ -41,6 +41,17 @@ describe('navigateToPerpsTransactionDetails', () => {
         txIdentifier: 'order-1',
         preloadKey: expect.any(String),
       }),
+    );
+  });
+
+  it('opens the legacy position screen for a mapped fill when redesign is disabled', () => {
+    const navigation = createNavigation();
+
+    navigateToPerpsTransactionDetails(navigation, tradeTransaction, false);
+
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      Routes.PERPS.POSITION_TRANSACTION,
+      { transaction: tradeTransaction },
     );
   });
 
@@ -58,7 +69,7 @@ describe('navigateToPerpsTransactionDetails', () => {
       },
     };
 
-    navigateToPerpsTransactionDetails(navigation, unmappedTrade);
+    navigateToPerpsTransactionDetails(navigation, unmappedTrade, true);
 
     expect(navigation.navigate).toHaveBeenCalledWith(
       Routes.PERPS.POSITION_TRANSACTION,
@@ -78,7 +89,7 @@ describe('navigateToPerpsTransactionDetails', () => {
       asset: 'ETH',
     };
 
-    navigateToPerpsTransactionDetails(navigation, unmappedOrder);
+    navigateToPerpsTransactionDetails(navigation, unmappedOrder, true);
 
     expect(navigation.navigate).toHaveBeenCalledWith(
       Routes.PERPS.ORDER_TRANSACTION,
@@ -98,7 +109,7 @@ describe('navigateToPerpsTransactionDetails', () => {
       asset: 'ETH',
     };
 
-    navigateToPerpsTransactionDetails(navigation, unmappedFunding);
+    navigateToPerpsTransactionDetails(navigation, unmappedFunding, true);
 
     expect(navigation.navigate).toHaveBeenCalledWith(
       Routes.PERPS.FUNDING_TRANSACTION,

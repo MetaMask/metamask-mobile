@@ -14,6 +14,11 @@ const mockBuild = jest.fn(() => ({ name: 'test-event' }));
 const mockCreateEventBuilder = jest.fn();
 
 // Mock dependencies
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => true),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
     navigate: jest.fn(),
@@ -201,6 +206,9 @@ describe('PerpsMarketTradesList', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });
+
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation(() => true);
   });
 
   afterEach(() => {
@@ -398,6 +406,29 @@ describe('PerpsMarketTradesList', () => {
         expect.objectContaining({
           txIdentifier: expect.stringContaining('fill-2'),
           preloadKey: expect.any(String),
+        }),
+      );
+    });
+
+    it('navigates to the legacy position screen when redesign is disabled', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(() => false);
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills),
+      );
+
+      render(<PerpsMarketTradesList symbol="ETH" />);
+
+      const tradeItem = screen.getByText('Opened long');
+      fireEvent.press(tradeItem.parent?.parent || tradeItem);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.POSITION_TRANSACTION,
+        expect.objectContaining({
+          transaction: expect.objectContaining({
+            type: 'trade',
+            id: expect.stringContaining('fill-1'),
+          }),
         }),
       );
     });

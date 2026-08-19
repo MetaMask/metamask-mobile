@@ -16,23 +16,28 @@ const PERPS_ACTIVITY_CHAIN_ID = ARBITRUM_MAINNET_CAIP_CHAIN_ID as CaipChainId;
 const PERPS_COLLATERAL_ASSET_ID = `${PERPS_ACTIVITY_CHAIN_ID}/erc20:${USDC_ARBITRUM_MAINNET_ADDRESS.toLowerCase()}`;
 
 /**
- * Opens Activity details for a mapped Perps history row. Falls back to the
- * legacy Perps transaction screens when the row cannot be mapped (open orders,
- * unrecognized trades).
+ * Opens Activity details for a mapped Perps history row when
+ * `selectIsTransactionsRedesignEnabled` is true. Callers pass that selector
+ * result so this module stays store-free. Falls back to the legacy Perps
+ * transaction screens when the flag is off or the row cannot be mapped
+ * (open orders, unrecognized trades).
  */
 export function navigateToPerpsTransactionDetails(
   navigation: Pick<NavigationProp<ParamListBase>, 'navigate'>,
   transaction: PerpsTransaction,
+  isTransactionsRedesignEnabled: boolean,
 ): void {
-  const item = mapPerpsTransaction({
-    transaction,
-    chainId: PERPS_ACTIVITY_CHAIN_ID,
-    collateralAssetId: PERPS_COLLATERAL_ASSET_ID,
-  });
-  const detailsRoute = item ? getActivityDetailsRoute(item) : null;
-  if (detailsRoute) {
-    navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
-    return;
+  if (isTransactionsRedesignEnabled) {
+    const item = mapPerpsTransaction({
+      transaction,
+      chainId: PERPS_ACTIVITY_CHAIN_ID,
+      collateralAssetId: PERPS_COLLATERAL_ASSET_ID,
+    });
+    const detailsRoute = item ? getActivityDetailsRoute(item) : null;
+    if (detailsRoute) {
+      navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+      return;
+    }
   }
 
   if (transaction.type === 'trade') {

@@ -12,6 +12,11 @@ const mockBuild = jest.fn(() => ({ name: 'test-event' }));
 const mockCreateEventBuilder = jest.fn();
 
 // Mock dependencies
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => true),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({
     navigate: jest.fn(),
@@ -137,6 +142,9 @@ describe('PerpsRecentActivityList', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });
+
+    const { useSelector } = jest.requireMock('react-redux');
+    useSelector.mockImplementation(() => true);
   });
 
   afterEach(() => {
@@ -335,6 +343,21 @@ describe('PerpsRecentActivityList', () => {
           txIdentifier: mockTransactions[1].id,
           preloadKey: expect.any(String),
         }),
+      );
+    });
+
+    it('navigates to the legacy position screen when redesign is disabled', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      useSelector.mockImplementation(() => false);
+
+      render(<PerpsRecentActivityList transactions={mockTransactions} />);
+
+      const transactionItem = screen.getByText('Opened long');
+      fireEvent.press(transactionItem.parent?.parent || transactionItem);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.POSITION_TRANSACTION,
+        { transaction: mockTransactions[0] },
       );
     });
 
