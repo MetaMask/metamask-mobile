@@ -35,6 +35,8 @@ import PredictFeedBanner from '../../components/PredictFeedBanner';
 import { PredictFeedBannerPosition } from '../../constants/feedBanner';
 import PredictOffline from '../../components/PredictOffline';
 import { usePredictTrendingSection } from './components/PredictTrendingSection/usePredictTrendingSection';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { useHomepagePhosphorBoldIcons } from '../../../../Views/Homepage/hooks/useHomepagePhosphorBoldIcons';
 
 /**
  * Redesigned Predict homepage shell (PRED-834).
@@ -49,6 +51,7 @@ import { usePredictTrendingSection } from './components/PredictTrendingSection/u
  * `predictHomeRedesign.enabled` is true; otherwise `PredictFeed` renders.
  */
 const PredictHome: React.FC = () => {
+  useHomepagePhosphorBoldIcons();
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();

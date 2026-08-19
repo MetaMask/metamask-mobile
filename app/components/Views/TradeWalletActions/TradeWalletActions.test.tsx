@@ -231,6 +231,10 @@ jest.mock('../../../core/redux/slices/bridge', () => ({
   selectEnabledSourceChains: jest.fn().mockReturnValue([]),
 }));
 
+jest.mock('../Homepage/hooks/useHomepagePhosphorBoldIcons', () => ({
+  useHomepagePhosphorBoldIcons: jest.fn(),
+}));
+
 jest.mock('../../UI/Stake/hooks/useStakingEligibility', () => ({
   __esModule: true,
   default: jest.fn(),

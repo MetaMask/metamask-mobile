@@ -173,6 +173,8 @@ import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { useHomepagePhosphorBoldIcons } from '../Homepage/hooks/useHomepagePhosphorBoldIcons';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -308,6 +310,7 @@ const Wallet = ({
   shouldShowNewPrivacyToast,
   storePrivacyPolicyClickedOrClosed,
 }: WalletProps) => {
+  useHomepagePhosphorBoldIcons();
   const appNavigation = useNavigation<AppNavigationProp>();
   const { navigate } = appNavigation;
   const scrollViewRef = useRef<ScrollView>(null);

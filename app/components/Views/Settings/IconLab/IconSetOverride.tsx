@@ -5,18 +5,14 @@
  * component rendering a DS `Icon` picks up a different library, with no
  * per-component wiring.
  *
- * How it works: `Icon.cjs` reads `assetByIconName[name]` at render time, and
+ * How it works: DS `Icon` reads `assetByIconName[name]` at render time, and
  * that map is a plain unfrozen object. Reassigning its entries therefore
- * redirects every icon in the app on the next render.
+ * redirects every icon on the next render.
  *
- * Two notes on the import below:
- * It is a RELATIVE FILE path, not a package specifier, because
- * `assetByIconName` is not in the package's `exports` map and Metro runs with
- * `unstable_enablePackageExports`.
- *
- * It targets `.cjs` deliberately. Metro resolves this package through the
- * `require` condition, so `.cjs` is the instance the real `Icon` uses;
- * importing `.mjs` would mutate a different copy and silently do nothing.
+ * Metro with `unstable_enablePackageExports` may resolve the package through
+ * either the `import` (.mjs) or `require` (.cjs) condition, so both asset
+ * tables are patched. The relative file paths are required because
+ * `assetByIconName` is not in the package's `exports` map.
  *
  * Remove this file with the rest of the icon experiment.
  */
@@ -31,33 +27,63 @@ import {
   materialVariantKey,
   type MaterialStyle,
 } from './material';
-import type { IconWeight } from 'phosphor-react-native';
+import { PresentationChartIcon, type IconWeight } from 'phosphor-react-native';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-expect-error -- deep relative import into the design system CJS build; see above.
 import { assetByIconName } from '../../../../../node_modules/@metamask/design-system-react-native/dist/components/Icon/Icon.assets.cjs';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error -- deep relative import into the design system ESM build; see above.
+import { assetByIconName as assetByIconNameEsm } from '../../../../../node_modules/@metamask/design-system-react-native/dist/components/Icon/Icon.assets.mjs';
+import { assetByIconName as componentLibraryAssetByIconName } from '../../../../component-library/components/Icons/Icon/Icon.assets';
 
 type IconComponent = React.ComponentType<Record<string, unknown>>;
 
 /** DS names whose Phosphor equivalent is named differently. */
 const PHOSPHOR_ALIASES: Record<string, string> = {
+  Activity: 'Pulse',
   Add: 'Plus',
+  Arrow2Down: 'ArrowDown',
+  Arrow2UpRight: 'ArrowUpRight',
+  ArrowDown: 'CaretDown',
+  ArrowLeft: 'CaretLeft',
+  ArrowRight: 'CaretRight',
+  AttachMoney: 'CurrencyDollar',
+  Book: 'BookOpen',
   Campaign: 'Megaphone',
-  Candlestick: 'ChartLine',
+  Candlestick: 'PresentationChart',
+  Card: 'CreditCard',
   Category: 'SquaresFour',
+  Chart: 'ChartBar',
+  ClockFilled: 'Clock',
   Close: 'X',
   Confirmation: 'CheckCircle',
   Danger: 'WarningCircle',
+  Diagram: 'ChartLineUp',
   Edit: 'PencilSimple',
+  Ethereum: 'CurrencyEth',
+  Exchange: 'CurrencyCircleDollar',
+  Explore: 'Compass',
   Flash: 'Lightning',
   Global: 'Globe',
   Home: 'House',
+  HomeFilled: 'House',
   Info: 'Info',
+  Loading: 'CircleNotch',
   Lock: 'Lock',
+  LockSlash: 'LockOpen',
+  Mail: 'Envelope',
   Menu: 'List',
+  Merge: 'ArrowsSplit',
+  MoneyBag: 'Money',
   MoreHorizontal: 'DotsThree',
   MoreVertical: 'DotsThreeVertical',
+  Musd: 'CurrencyCircleDollar',
+  MusdFilled: 'CurrencyCircleDollar',
   Notification: 'Bell',
+  People: 'UsersThree',
+  Predictions: 'ChartBar',
   Question: 'Question',
+  Received: 'ArrowDownLeft',
   Refresh: 'ArrowsClockwise',
   Search: 'MagnifyingGlass',
   Security: 'ShieldCheck',
@@ -65,14 +91,23 @@ const PHOSPHOR_ALIASES: Record<string, string> = {
   Setting: 'Gear',
   SettingFilled: 'GearFine',
   Share: 'ShareNetwork',
-  Speedometer: 'Gauge',
-  StarFilled: 'StarFill',
+  Sms: 'ChatCenteredDots',
+  Stake: 'Plant',
+  StarFilled: 'Star',
   SwapHorizontal: 'ArrowsLeftRight',
   SwapVertical: 'ArrowsDownUp',
-  LockSlash: 'LockOpen',
+  Tint: 'Drop',
+  UserCircleAdd: 'UserPlus',
+  Verified: 'SealCheck',
+  VerifiedFilled: 'SealCheck',
   WalletFilled: 'WalletFill',
   Warning: 'Warning',
 };
+
+/** DS filled glyphs that must keep Phosphor `fill` even when the set weight is outline. */
+const PHOSPHOR_FILL_WEIGHT_NAMES: ReadonlySet<string> = new Set([
+  'VerifiedFilled',
+]);
 
 /** DS names that resolve to a Phosphor export of the same name. */
 const PHOSPHOR_DIRECT: readonly string[] = [
@@ -161,9 +196,21 @@ const PHOSPHOR_DIRECT: readonly string[] = [
 
 const PHOSPHOR_REGISTRY = Phosphor as unknown as Record<string, IconComponent>;
 
+/**
+ * Named imports Metro's `import *` table can miss. Keys are Phosphor export
+ * names (the alias target), not DS names.
+ */
+const PHOSPHOR_EXPLICIT: Record<string, IconComponent> = {
+  PresentationChart: PresentationChartIcon as unknown as IconComponent,
+};
+
 const resolvePhosphor = (dsName: string): IconComponent | undefined => {
   const base = PHOSPHOR_ALIASES[dsName] ?? dsName;
-  return PHOSPHOR_REGISTRY[`${base}Icon`] ?? PHOSPHOR_REGISTRY[base];
+  return (
+    PHOSPHOR_EXPLICIT[base] ??
+    PHOSPHOR_REGISTRY[`${base}Icon`] ??
+    PHOSPHOR_REGISTRY[base]
+  );
 };
 
 const PHOSPHOR_BY_DS_NAME: Record<string, IconComponent> = {};
@@ -317,9 +364,18 @@ const LUCIDE_BY_DS_NAME: Record<string, IconComponent> = {};
 export const LUCIDE_STROKE_WIDTHS: readonly number[] = [1, 1.5, 2, 2.5, 3];
 
 const ASSET_MAP = assetByIconName as Record<string, IconComponent>;
+const ESM_ASSET_MAP = assetByIconNameEsm as Record<string, IconComponent>;
+const CL_ASSET_MAP = componentLibraryAssetByIconName as unknown as Record<
+  string,
+  IconComponent
+>;
 
 /** Pristine copy, captured once at module load, for restoring. */
 const ORIGINAL_ASSETS: Record<string, IconComponent> = { ...ASSET_MAP };
+const ORIGINAL_ESM_ASSETS: Record<string, IconComponent> = {
+  ...ESM_ASSET_MAP,
+};
+const ORIGINAL_CL_ASSETS: Record<string, IconComponent> = { ...CL_ASSET_MAP };
 
 export const ALL_DS_ICON_NAMES: readonly string[] =
   Object.keys(ORIGINAL_ASSETS);
@@ -379,14 +435,29 @@ const adaptPhosphor = (
   PhosphorIcon: IconComponent,
   weight: IconWeight,
 ): IconComponent => {
-  const Adapted = ({ style, ...rest }: AdaptedProps) => {
+  const Adapted = ({
+    style,
+    width,
+    height: _height,
+    color,
+    fill: _fill,
+    ...rest
+  }: AdaptedProps) => {
     const flat = StyleSheet.flatten(style) as FlatIconStyle | undefined;
+    const size =
+      (typeof flat?.width === 'number' ? flat.width : undefined) ??
+      (typeof width === 'number' ? width : undefined) ??
+      24;
+    const resolvedColor =
+      (typeof flat?.color === 'string' ? flat.color : undefined) ??
+      (typeof color === 'string' ? color : undefined) ??
+      'currentColor';
     return (
       <PhosphorIcon
         {...rest}
         style={style}
-        size={flat?.width ?? 24}
-        color={flat?.color ?? 'currentColor'}
+        size={size}
+        color={resolvedColor}
         weight={weight}
       />
     );
@@ -437,6 +508,44 @@ export interface LucideOptions {
   absoluteStrokeWidth: boolean;
 }
 
+const applySetToMap = (
+  map: Record<string, IconComponent>,
+  originals: Record<string, IconComponent>,
+  set: IconSetName,
+  weight: IconWeight,
+  materialSet: Record<string, IconComponent | undefined>,
+  lucide: LucideOptions,
+): void => {
+  Object.keys(originals).forEach((name) => {
+    // Guard: an unmapped or missing entry must never reach React as
+    // `undefined`, which renders as "Element type is invalid".
+    if (!originals[name]) {
+      return;
+    }
+    if (set === 'material') {
+      const svg = materialSet[name];
+      map[name] = svg ? adaptMaterial(svg) : originals[name];
+      return;
+    }
+    if (set === 'phosphor') {
+      const icon = PHOSPHOR_BY_DS_NAME[name];
+      const phosphorWeight = PHOSPHOR_FILL_WEIGHT_NAMES.has(name)
+        ? 'fill'
+        : weight;
+      map[name] = icon ? adaptPhosphor(icon, phosphorWeight) : originals[name];
+      return;
+    }
+    if (set === 'lucide') {
+      const icon = LUCIDE_BY_DS_NAME[name];
+      map[name] = icon
+        ? adaptLucide(icon, lucide.strokeWidth, lucide.absoluteStrokeWidth)
+        : originals[name];
+      return;
+    }
+    map[name] = originals[name];
+  });
+};
+
 export const applyIconSet = (
   set: IconSetName,
   weight: IconWeight,
@@ -446,38 +555,47 @@ export const applyIconSet = (
   const materialSet =
     MATERIAL_VARIANTS[materialVariantKey(material.style, material.filled)] ??
     MATERIAL_VARIANTS.outlined;
-  ALL_DS_ICON_NAMES.forEach((name) => {
-    // Guard: an unmapped or missing entry must never reach React as
-    // `undefined`, which renders as "Element type is invalid".
-    if (!ORIGINAL_ASSETS[name]) {
-      return;
-    }
-    if (set === 'material') {
-      const svg = materialSet[name];
-      ASSET_MAP[name] = svg ? adaptMaterial(svg) : ORIGINAL_ASSETS[name];
-      return;
-    }
-    if (set === 'phosphor') {
-      const icon = PHOSPHOR_BY_DS_NAME[name];
-      ASSET_MAP[name] = icon
-        ? adaptPhosphor(icon, weight)
-        : ORIGINAL_ASSETS[name];
-      return;
-    }
-    if (set === 'lucide') {
-      const icon = LUCIDE_BY_DS_NAME[name];
-      ASSET_MAP[name] = icon
-        ? adaptLucide(icon, lucide.strokeWidth, lucide.absoluteStrokeWidth)
-        : ORIGINAL_ASSETS[name];
-      return;
-    }
-    ASSET_MAP[name] = ORIGINAL_ASSETS[name];
-  });
+  applySetToMap(ASSET_MAP, ORIGINAL_ASSETS, set, weight, materialSet, lucide);
+  applySetToMap(
+    ESM_ASSET_MAP,
+    ORIGINAL_ESM_ASSETS,
+    set,
+    weight,
+    materialSet,
+    lucide,
+  );
+  applySetToMap(
+    CL_ASSET_MAP,
+    ORIGINAL_CL_ASSETS,
+    set,
+    weight,
+    materialSet,
+    lucide,
+  );
 };
 
 /** Restore the design system's own icons app-wide. */
 export const restoreIconSet = (): void => {
   applyIconSet('design-system', 'regular');
+};
+
+/**
+ * Homepage, trade sheet, and Perps home can all be "focused" in overlapping
+ * windows. Restore only when the last host releases so opening TradeWalletActions
+ * does not flash design-system glyphs.
+ */
+let phosphorRegularRetainCount = 0;
+
+export const retainPhosphorRegular = (): void => {
+  phosphorRegularRetainCount += 1;
+  applyIconSet('phosphor', 'regular');
+};
+
+export const releasePhosphorRegular = (): void => {
+  phosphorRegularRetainCount = Math.max(0, phosphorRegularRetainCount - 1);
+  if (phosphorRegularRetainCount === 0) {
+    restoreIconSet();
+  }
 };
 
 export type { MaterialStyle };

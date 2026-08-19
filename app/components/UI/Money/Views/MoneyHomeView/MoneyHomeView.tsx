@@ -108,12 +108,14 @@ import {
 import { TransactionMeta } from '@metamask/transaction-controller';
 import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 import useMoneyAccountInterest from '../../hooks/useMoneyAccountInterest';
+import { useHomepagePhosphorBoldIcons } from '../../../../Views/Homepage/hooks/useHomepagePhosphorBoldIcons';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
 const ACTION_BUTTON_ROW_BUTTON_COUNT = 3;
 
 const MoneyHomeView = () => {
+  useHomepagePhosphorBoldIcons();
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<MoneyNavigationParamList, 'MoneyHome'>>();
   const insets = useSafeAreaInsets();
