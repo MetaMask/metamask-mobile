@@ -16,6 +16,11 @@ on:
         required: false
         type: string
         default: '[{"name":"Google_Pixel_7_POC49","os_version":""}]'
+      device_mode:
+        required: false
+        type: string
+        default: private
+        description: 'private or cloud device allocation mode'
       branch_name:
         required: true
         type: string
@@ -105,8 +110,15 @@ jobs:
             echo "SAUCE_ANDROID_CLEAN_APP_URL=$sauce_app_url"
             echo "SAUCE_ANDROID_SEEDLESS_APP_URL=$sauce_app_url"
             echo "SAUCE_BUILD_TYPE=${{ inputs.build_type }}"
-            echo "SAUCE_DEVICE=Google_Pixel_7_POC(49|05)"
-            echo "SAUCE_WORKERS=2"
+            if [ "${{ inputs.device_mode }}" = "cloud" ]; then
+              echo "SAUCE_DEVICE=Google Pixel.*"
+              echo "SAUCE_WORKERS=4"
+              echo "SAUCE_PRIVATE_DEVICES_ONLY=false"
+            else
+              echo "SAUCE_DEVICE=Google_Pixel_7_POC(49|05)"
+              echo "SAUCE_WORKERS=2"
+              echo "SAUCE_PRIVATE_DEVICES_ONLY=true"
+            fi
             echo "SAUCE_BUILD_NAME=${{ inputs.sauce_build_name }}"
             echo "TEST_PLATFORM=${{ inputs.platform }}"
             echo "QA_APP_VERSION=sauce-${{ github.run_id }}"

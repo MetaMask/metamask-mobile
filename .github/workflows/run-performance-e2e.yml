@@ -73,6 +73,16 @@ on:
         required: false
         type: boolean
         default: false
+      enable_saucelabs_cloud:
+        description: 'Run Sauce Labs with dynamically allocated cloud devices'
+        required: false
+        type: boolean
+        default: false
+      enable_testmu_standard_cloud:
+        description: 'Run TestMu Standard with dynamically allocated cloud devices'
+        required: false
+        type: boolean
+        default: false
       enable_testmu_benchmark:
         description: 'Run TestMu AI HyperExecute performance lanes (requires LT_ACCESS_KEY secret; username is fixed to javiervera)'
         required: false
@@ -171,6 +181,16 @@ on:
         default: false
       enable_saucelabs:
         description: 'Run Sauce Labs performance lanes (disabled by default)'
+        required: false
+        type: boolean
+        default: false
+      enable_saucelabs_cloud:
+        description: 'Run Sauce Labs with dynamically allocated cloud devices'
+        required: false
+        type: boolean
+        default: false
+      enable_testmu_standard_cloud:
+        description: 'Run TestMu Standard with dynamically allocated cloud devices'
         required: false
         type: boolean
         default: false
@@ -659,7 +679,7 @@ jobs:
           !inputs.browserstack_app_url_android_onboarding &&
           !inputs.browserstack_app_url_android_imported_wallet &&
           (
-            inputs.enable_saucelabs == true ||
+            (inputs.enable_saucelabs == true || inputs.enable_saucelabs_cloud == true) ||
             !inputs.reuse_main_builds ||
             needs.resolve-main-browserstack-urls.outputs.found != 'true'
           )
@@ -678,7 +698,7 @@ jobs:
       reuse_latest_main_builds: ${{ inputs.reuse_main_builds && inputs.build_variant == 'e2e' }}
       main_branch_only: ${{ inputs.reuse_main_builds }}
       lt_username: ${{ needs.check-testmu-credentials.outputs.lt_username }}
-      enable_saucelabs: ${{ inputs.enable_saucelabs == true }}
+      enable_saucelabs: ${{ inputs.enable_saucelabs == true || inputs.enable_saucelabs_cloud == true }}
       # LT_ACCESS_KEY must travel via secrets: inherit — secrets.* is illegal in reusable-workflow `with:`
     secrets: inherit
 
@@ -776,6 +796,7 @@ jobs:
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.testmu_android_matrix }}
+      cloud_devices: ${{ inputs.enable_testmu_standard_cloud }}
       testmu_app_url: ${{ needs.upload-reused-apks-to-testmu.outputs.without-srp-testmu-url || needs.trigger-android-dual-versions.outputs.without-srp-testmu-url }}
       app_version: ${{ needs.upload-reused-apks-to-testmu.outputs.without-srp-version || needs.trigger-android-dual-versions.outputs.without-srp-testmu-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
@@ -836,7 +857,7 @@ jobs:
       ]
     if: >-
       always() && !failure() && !cancelled() &&
-      inputs.enable_saucelabs == true &&
+      (inputs.enable_saucelabs == true || inputs.enable_saucelabs_cloud == true) &&
       needs.compute-test-selection.outputs.run_tests == 'true' &&
       needs.trigger-android-dual-versions.result == 'success' &&
       needs.trigger-android-dual-versions.outputs.without-srp-sauce-url != ''
@@ -844,6 +865,7 @@ jobs:
       platform: android
       build_type: onboarding
       sauce_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-sauce-url }}
+      device_mode: ${{ inputs.enable_saucelabs_cloud == true && 'cloud' || 'private' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       sauce_build_name: ${{ needs.set-build-names.outputs.android_build_name }}-SauceLabs
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}
@@ -996,6 +1018,7 @@ jobs:
       sentry_target: ${{ inputs.sentry_target || 'test' }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.testmu_android_matrix }}
+      cloud_devices: ${{ inputs.enable_testmu_standard_cloud }}
       testmu_app_url: ${{ needs.upload-reused-apks-to-testmu.outputs.with-srp-testmu-url || needs.trigger-android-dual-versions.outputs.with-srp-testmu-url }}
       app_version: ${{ needs.upload-reused-apks-to-testmu.outputs.with-srp-version || needs.trigger-android-dual-versions.outputs.with-srp-testmu-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
@@ -1019,7 +1042,7 @@ jobs:
       ]
     if: >-
       always() && !cancelled() &&
-      inputs.enable_saucelabs == true &&
+      (inputs.enable_saucelabs == true || inputs.enable_saucelabs_cloud == true) &&
       needs.compute-test-selection.outputs.run_tests == 'true' &&
       needs.trigger-android-dual-versions.result == 'success' &&
       needs.trigger-android-dual-versions.outputs.with-srp-sauce-url != ''
@@ -1027,6 +1050,7 @@ jobs:
       platform: android
       build_type: imported-wallet
       sauce_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-sauce-url }}
+      device_mode: ${{ inputs.enable_saucelabs_cloud == true && 'cloud' || 'private' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       sauce_build_name: ${{ needs.set-build-names.outputs.android_build_name }}-SauceLabs
       grep_tags: ${{ needs.compute-test-selection.outputs.grep_pattern }}

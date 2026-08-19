@@ -15,6 +15,11 @@ on:
         required: true
         type: string
         description: 'JSON string of device matrix'
+      cloud_devices:
+        required: false
+        type: boolean
+        default: false
+        description: 'Use four dynamically allocated cloud devices'
       testmu_app_url:
         required: true
         type: string
@@ -207,6 +212,11 @@ jobs:
           # Map BrowserStack matrix names to TestMu AI catalog names.
           MATRIX_DEVICE="${{ matrix.device.name }}"
           MATRIX_OS="${{ matrix.device.os_version }}"
+          CLOUD_DEVICES="${{ inputs.cloud_devices }}"
+          if [ "$CLOUD_DEVICES" = "true" ]; then
+            MATRIX_DEVICE="Pixel"
+            MATRIX_OS=""
+          fi
           case "$MATRIX_DEVICE" in
             "Google Pixel 7 Pro"|"Pixel 7 Pro")
               TESTMU_DEVICE_NAME="Pixel 7 Pro"
@@ -231,6 +241,11 @@ jobs:
             echo "BUILD_TYPE=${{ inputs.build_type }}"
             echo "TESTMU_DEVICE=$TESTMU_DEVICE_NAME"
             echo "TESTMU_OS_VERSION=$TESTMU_OS_VERSION"
+            if [ "$CLOUD_DEVICES" = "true" ]; then
+              echo "TESTMU_DEVICE=Pixel"
+              echo "TESTMU_OS_VERSION="
+              echo "PLAYWRIGHT_WORKERS=4"
+            fi
             echo "TESTMU_ANDROID_APP_URL=${{ inputs.testmu_app_url }}"
             echo "TESTMU_ANDROID_${{ inputs.build_type == 'onboarding' && 'CLEAN_' || '' }}APP_URL=${{ inputs.testmu_app_url }}"
             if [ -n "${{ inputs.testmu_playground_url }}" ]; then

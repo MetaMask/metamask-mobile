@@ -26,6 +26,8 @@ export class SauceLabsConfigBuilder {
 
     const platformName = this.project.use.platform;
     const projectName = path.basename(process.cwd());
+    const privateDevicesOnly =
+      process.env.SAUCE_PRIVATE_DEVICES_ONLY?.toLowerCase() !== 'false';
     const sauceOptions = {
       name: `${projectName} ${platformName} test`,
       build: process.env.SAUCE_BUILD_NAME || `${projectName} ${platformName}`,
@@ -37,7 +39,9 @@ export class SauceLabsConfigBuilder {
       capturePerformance: true,
       recordVideo: true,
       recordScreenshots: true,
-      privateDevicesOnly: true,
+      ...(privateDevicesOnly
+        ? { privateDevicesOnly: true }
+        : { publicDevicesOnly: true }),
       ...(device.orientation ? { orientation: device.orientation } : {}),
     };
 

@@ -47,6 +47,16 @@ on:
         required: false
         type: boolean
         default: false
+      enable_saucelabs_cloud:
+        description: 'Run Sauce Labs using four dynamically allocated cloud devices'
+        required: false
+        type: boolean
+        default: false
+      enable_testmu_standard_cloud:
+        description: 'Run TestMu Standard using four dynamically allocated cloud devices'
+        required: false
+        type: boolean
+        default: false
       enable_testmu_standard:
         description: 'Also run TestMu Standard using the TestMu device matrix'
         required: false
@@ -111,6 +121,8 @@ jobs:
       enable_testmu_benchmark: ${{ inputs.enable_testmu_benchmark }}
       enable_browserstack: ${{ inputs.enable_browserstack }}
       enable_saucelabs: ${{ inputs.enable_saucelabs }}
+      enable_saucelabs_cloud: ${{ inputs.enable_saucelabs_cloud }}
+      enable_testmu_standard_cloud: ${{ inputs.enable_testmu_standard_cloud }}
       enable_testmu_standard: ${{ inputs.enable_testmu_standard }}
       sentry_target: ${{ inputs.sentry_target }}
       browserstack_app_url_android_onboarding: ${{ inputs.browserstack_app_url_android_onboarding }}
