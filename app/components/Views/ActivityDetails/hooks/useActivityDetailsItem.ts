@@ -164,9 +164,7 @@ export function useActivityDetailsItem(
   const nonEvmState = useSelector(
     selectNonEvmTransactionsForSelectedAccountGroup,
   );
-  const selectedAccountGroupInternalAccounts = useSelector(
-    selectSelectedAccountGroupInternalAccounts,
-  );
+  const accounts = useSelector(selectSelectedAccountGroupInternalAccounts);
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
   const confirmedEvmItems = useMemo<ActivityListItem[]>(
@@ -181,15 +179,10 @@ export function useActivityDetailsItem(
         (txId) =>
           findBridgeHistoryItemBySrcTxHash(bridgeHistoryItemsBySrcTxHash, txId),
         (transaction) =>
-          selectedAccountGroupInternalAccounts.find(
-            (account) => account.id === transaction.account,
-          )?.address,
+          accounts.find((account) => account.id === transaction.account)
+            ?.address,
       ),
-    [
-      nonEvmState?.transactions,
-      bridgeHistoryItemsBySrcTxHash,
-      selectedAccountGroupInternalAccounts,
-    ],
+    [nonEvmState?.transactions, bridgeHistoryItemsBySrcTxHash, accounts],
   );
 
   const chainedLocalItems = useMemo(
