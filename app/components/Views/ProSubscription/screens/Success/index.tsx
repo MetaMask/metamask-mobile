@@ -3,34 +3,75 @@ import {
   Box,
   Text,
   TextVariant,
+  TextColor,
+  FontWeight,
   Button,
   ButtonVariant,
   ButtonSize,
+  Icon,
+  IconName,
+  IconSize,
+  IconColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { SuccessTestIds } from './Success.testIds';
 
 interface SuccessProps {
-  onClose: () => void;
+  onSuccess: () => void;
 }
 
-/**
- * SUB-994: Post-purchase success screen.
- * Placeholder — replaces Benefits once the user completes checkout.
- */
-const Success = ({ onClose }: SuccessProps) => (
-  <Box twClassName="flex-1 bg-background-default items-center justify-center px-6">
-    <Text variant={TextVariant.HeadingLg} twClassName="mb-4 text-center">
-      {strings('pro_subscription.success.title')}
-    </Text>
+const ALY_NAME = 'Aly';
 
-    <Button
-      variant={ButtonVariant.Primary}
-      size={ButtonSize.Lg}
-      onPress={onClose}
-      isFullWidth
-    >
-      {strings('pro_subscription.success.cta')}
-    </Button>
+const Success = ({ onSuccess }: SuccessProps) => (
+  <Box
+    twClassName="flex-1 bg-background-default"
+    testID={SuccessTestIds.CONTAINER}
+  >
+    {/* Icon placeholder — centred in remaining space */}
+    <Box twClassName="flex-1 items-center justify-center">
+      <Box
+        twClassName="w-28 h-28 rounded-2xl bg-background-muted items-center justify-center"
+        testID={SuccessTestIds.ICON_PLACEHOLDER}
+      >
+        <Icon
+          name={IconName.Gift}
+          size={IconSize.Xl}
+          color={IconColor.IconDefault}
+        />
+      </Box>
+    </Box>
+
+    {/* Title, subtitle and CTA anchored at the bottom */}
+    <Box twClassName="px-4 pb-2 gap-y-4">
+      <Box twClassName="gap-y-2">
+        <Text
+          variant={TextVariant.DisplayMd}
+          fontWeight={FontWeight.Bold}
+          color={TextColor.TextDefault}
+          twClassName="w-[85%]"
+          testID={SuccessTestIds.TITLE}
+        >
+          {strings('pro_subscription.success.title', { name: ALY_NAME })}
+        </Text>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          testID={SuccessTestIds.DESCRIPTION}
+        >
+          {strings('pro_subscription.success.description')}
+        </Text>
+      </Box>
+
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Lg}
+        onPress={onSuccess}
+        isFullWidth
+        testID={SuccessTestIds.CTA_BUTTON}
+      >
+        {strings('pro_subscription.success.cta')}
+      </Button>
+    </Box>
   </Box>
 );
 

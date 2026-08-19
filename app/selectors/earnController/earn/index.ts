@@ -19,6 +19,7 @@ import {
   weiToFiatNumber,
   toTokenMinimalUnit,
 } from '../../../util/number';
+import { renderFiat as renderFiatBigInt } from '../../../util/number/bigint';
 import { selectSelectedInternalAccountByScope } from '../../multichainAccounts/accounts';
 import { selectAccountsByChainId } from '../../accountTrackerController';
 import {
@@ -71,6 +72,9 @@ const getPooledStakingApr = (
 const selectEarnControllerState = (state: RootState) =>
   state.engine.backgroundState.EarnController;
 
+const selectSelectedEvmAddress = (state: RootState) =>
+  selectSelectedInternalAccountByScope(state)(EVM_SCOPE)?.address;
+
 const selectEarnTokenBaseData = createSelector(
   [
     selectEarnControllerState,
@@ -80,7 +84,7 @@ const selectEarnTokenBaseData = createSelector(
     pooledStakingSelectors.selectEligibility,
     selectTokensBalances,
     selectTokenMarketData,
-    selectSelectedInternalAccountByScope,
+    selectSelectedEvmAddress,
     selectCurrentCurrency,
     selectNetworkConfigurations,
     selectAccountTokensAcrossChainsUnified,
@@ -96,7 +100,7 @@ const selectEarnTokenBaseData = createSelector(
     isPooledStakingEligible,
     tokenBalances,
     marketData,
-    selectedAccountByScope,
+    selectedAddress,
     currentCurrency,
     networkConfigs,
     accountTokensAcrossChains,
@@ -111,7 +115,7 @@ const selectEarnTokenBaseData = createSelector(
     isPooledStakingEligible,
     tokenBalances,
     marketData,
-    selectedAddress: selectedAccountByScope(EVM_SCOPE)?.address,
+    selectedAddress,
     currentCurrency,
     networkConfigs,
     accountTokensAcrossChains,
@@ -283,14 +287,22 @@ const selectEarnTokens = createDeepEqualSelector(
       const ethToUserSelectedFiatConversionRate =
         currencyRates?.[nativeCurrency]?.conversionRate ?? 0;
       const balanceFiatNumber = weiToFiatNumber(
-        balanceWei.toString(),
-        ethToUsdConversionRate,
+        tokenBalanceMinimalUnit.toString(),
+        ethToUserSelectedFiatConversionRate,
         2,
       );
       const nonEvmOrDerived = isNonEvmNative
         ? {
             balanceValueFormatted: token.balance ?? '0',
-            balanceFiat: token.balanceFiat ?? '0',
+            balanceFiat:
+              token.balanceFiat === undefined ||
+              !Number.isFinite(parseFloat(token.balanceFiat))
+                ? undefined
+                : renderFiatBigInt(
+                    parseFloat(token.balanceFiat),
+                    currentCurrency as Parameters<typeof renderFiatBigInt>[1],
+                    2,
+                  ),
             balanceFiatCalculation: parseFloat(token.balanceFiat ?? '0'),
           }
         : deriveBalanceFromAssetMarketDetails(
@@ -305,6 +317,15 @@ const selectEarnTokens = createDeepEqualSelector(
         nonEvmOrDerived.balanceValueFormatted || '0';
       const balanceFiat = nonEvmOrDerived.balanceFiat || '0';
       const balanceFiatCalculation = nonEvmOrDerived.balanceFiatCalculation;
+      const isBalanceFiatAvailable = isNonEvmNative // E.g. TRX
+        ? token.balanceFiat !== undefined &&
+          Number.isFinite(parseFloat(token.balanceFiat)) &&
+          (parseFloat(token.balance ?? '0') === 0 ||
+            parseFloat(token.balanceFiat) > 0)
+        : token.isETH
+          ? ethToUserSelectedFiatConversionRate > 0 ||
+            new BN4(tokenBalanceMinimalUnit.toString()).isZero()
+          : Number.isFinite(balanceFiatCalculation);
 
       let assetBalanceFiatNumber = isNonEvmNative
         ? parseFloat(token.balanceFiat ?? '0') || 0
@@ -328,8 +349,12 @@ const selectEarnTokens = createDeepEqualSelector(
           token,
           pooledStakingVaultAprForChain,
         );
+        const stakingExperienceType =
+          isTronNative || isTronStakedToken
+            ? EARN_EXPERIENCES.TRX_STAKING
+            : EARN_EXPERIENCES.POOLED_STAKING;
         experiences.push({
-          type: EARN_EXPERIENCES.POOLED_STAKING,
+          type: stakingExperienceType,
           apr: aprForExperience,
           ...getEstimatedAnnualRewards(
             aprForExperience,
@@ -403,6 +428,7 @@ const selectEarnTokens = createDeepEqualSelector(
           // fiat balance of the asset in number format, the most accurate
           // i.e. 100.12345
           balanceFiatNumber: assetBalanceFiatNumber,
+          isBalanceFiatAvailable,
           tokenUsdExchangeRate,
           experience: experiences[0],
           // asset apr info per experience
@@ -613,7 +639,7 @@ const selectPrimaryEarnExperienceTypeForAsset = createSelector(
     const isTronNative =
       asset?.ticker === 'TRX' && asset?.chainId?.startsWith('tron:');
     if (isTronNative && isTrxStakingEnabled) {
-      return EARN_EXPERIENCES.POOLED_STAKING;
+      return EARN_EXPERIENCES.TRX_STAKING;
     }
     return undefined;
   },
