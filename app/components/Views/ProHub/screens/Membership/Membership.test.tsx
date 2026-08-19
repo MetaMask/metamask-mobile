@@ -10,7 +10,7 @@ import {
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
-const mockGoBack = jest.fn();
+let mockGoBack: jest.Mock;
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -44,6 +44,7 @@ const renderMembership = () => render(<Membership />);
 describe('Membership', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGoBack = jest.fn();
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
