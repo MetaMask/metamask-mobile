@@ -74,7 +74,7 @@
       <header class="hero">
         <div class="eyebrow">MetaMask Mobile · Performance E2E</div>
         <h1>Vendor comparison</h1>
-        <p>Comparativa de los cuatro proveedores ejecutados en el run 32265974787. Los tiempos representan métricas de aplicación y no incluyen completamente la creación de sesión del proveedor.</p>
+        <p>Comparison of the four providers executed in run 32265974787. Timings represent application metrics and do not fully include provider session creation.</p>
         <nav class="links">
           <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787" target="_blank">Run completo</a>
           <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32248728966" target="_blank">TestMu Standard + HE</a>
@@ -83,55 +83,55 @@
       </header>
 
       <section class="grid">
-        <div class="card"><div class="metric">Escenarios ejecutados<strong>23</strong></div></div>
-        <div class="card"><div class="metric">BrowserStack · pasados<strong>16 / 23</strong></div></div>
-        <div class="card"><div class="metric">Sauce Labs · pasados<strong>14 / 23</strong></div></div>
+        <div class="card"><div class="metric">Scenarios executed<strong>23</strong></div></div>
+        <div class="card"><div class="metric">BrowserStack · passed<strong>16 / 23</strong></div></div>
+        <div class="card"><div class="metric">Sauce Labs · passed<strong>14 / 23</strong></div></div>
         <div class="card"><div class="metric">TestMu · Standard / HE<strong>17 / 18</strong></div></div>
       </section>
 
       <section class="grid">
         <article class="card provider"><h3>BrowserStack</h3><small>Pixel 7 Pro · Android 13</small></article>
-        <article class="card provider sauce"><h3>Sauce Labs Private</h3><small>Dos dispositivos privados · 2 workers</small></article>
+        <article class="card provider sauce"><h3>Sauce Labs Private</h3><small>Two private devices · 2 workers</small></article>
         <article class="card provider standard"><h3>TestMu Standard</h3><small>Pixel 8 Pro · Android 14</small></article>
         <article class="card provider he"><h3>TestMu HyperExecute</h3><small>Pixel 8 Pro · Android 14</small></article>
       </section>
 
       <section class="section">
-        <h2>Quality gates y tiempos por escenario</h2>
-        <div class="note"><strong>Lectura:</strong> verde = quality gate pasado; rojo = quality gate fallido; naranja = sin métricas. El fondo verde marca el tiempo más bajo entre métricas válidas.</div>
+        <h2>Quality gates and timings by scenario</h2>
+        <div class="note"><strong>How to read:</strong> green = quality gate passed; red = quality gate failed; orange = no metrics. The green cell marks the lowest valid timing.</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Escenario</th><th>BrowserStack</th><th>Sauce Private</th><th>TestMu Standard</th><th>TestMu HE</th></tr></thead>
+            <thead><tr><th>Scenario</th><th>BrowserStack</th><th>Sauce Private</th><th>TestMu Standard</th><th>TestMu HE</th></tr></thead>
             <tbody id="results"></tbody>
           </table>
         </div>
         <div class="legend">
-          <span><i class="dot" style="background:#15803d"></i>Quality gate OK</span>
-          <span><i class="dot" style="background:#b42318"></i>Quality gate fallido</span>
-          <span><i class="dot" style="background:#b54708"></i>Sin métricas</span>
+          <span><i class="dot" style="background:#15803d"></i>Quality gate passed</span>
+          <span><i class="dot" style="background:#b42318"></i>Quality gate failed</span>
+          <span><i class="dot" style="background:#b54708"></i>No metrics</span>
         </div>
       </section>
 
       <section class="section">
-        <h2>Conclusiones rápidas</h2>
+        <h2>Quick conclusions</h2>
         <ul>
-          <li><strong>HyperExecute</strong> tuvo el mayor número de escenarios pasados: 18/23.</li>
-          <li><strong>TestMu Standard</strong> pasó 17/23 y tuvo un único quality gate fallido.</li>
-          <li><strong>BrowserStack</strong> pasó 16/23 y fue el más rápido en varios flujos válidos.</li>
-          <li><strong>Sauce Labs Private</strong> pasó 14/23 y acumuló cinco quality gates fallidos.</li>
-          <li>Los tests sin métricas no deben interpretarse como lentitud de la aplicación: indican un fallo de instrumentación, sesión o flujo.</li>
+          <li><strong>HyperExecute</strong> had the highest number of passing scenarios: 18/23.</li>
+          <li><strong>TestMu Standard</strong> passed 17/23 with only one quality gate failure.</li>
+          <li><strong>BrowserStack</strong> passed 16/23 and was the fastest in several valid flows.</li>
+          <li><strong>Sauce Labs Private</strong> passed 14/23 and had five quality gate failures.</li>
+          <li>Tests without metrics should not be interpreted as application slowness; they indicate an instrumentation, session, or flow failure.</li>
         </ul>
       </section>
-      <p class="foot">Generado para el run 32265974787 · Branch MMQA-TestMu-PoC-HyperExecute · Todos los valores están expresados en segundos.</p>
+      <p class="foot">Generated for run 32265974787 · Branch MMQA-TestMu-PoC-HyperExecute · All values are expressed in seconds.</p>
     </main>
     <script>
       const rows = [
         ["Cold Start → Onboarding", [2.164,"P"], [1.247,"P"], [2.266,"P"], [2.643,"P"]],
         ["Fresh SRP wallet creation", [15.850,"F"], [18.877,"F"], [12.985,"F"], [11.591,"F"]],
-        ["Import SRP onboarding +50 cuentas", [5.183,"P"], [7.524,"P"], [4.448,"P"], [5.904,"P"]],
-        ["Money Home · wallet vacío", [null,"N"], [null,"N"], [null,"N"], [null,"N"]],
+        ["Import SRP onboarding +50 accounts", [5.183,"P"], [7.524,"P"], [4.448,"P"], [5.904,"P"]],
+        ["Money Home · empty wallet", [null,"N"], [null,"N"], [null,"N"], [null,"N"]],
         ["Account creation", [1.745,"P"], [3.657,"F"], [2.723,"P"], [1.591,"P"]],
-        ["Money Home · wallet importado", [null,"N"], [null,"N"], [null,"N"], [null,"N"]],
+        ["Money Home · imported wallet", [null,"N"], [null,"N"], [null,"N"], [null,"N"]],
         ["Perps open position and close it", [null,"N"], [null,"N"], [null,"N"], [null,"N"]],
         ["Seedless Apple", [1.501,"P"], [6.332,"P"], [4.754,"P"], [5.358,"P"]],
         ["Seedless Google", [3.030,"P"], [5.456,"P"], [5.156,"P"], [3.451,"P"]],
@@ -141,7 +141,7 @@
         ["Asset View", [3.898,"P"], [4.681,"P"], [2.581,"P"], [3.984,"P"]],
         ["Cold Start → Login", [5.801,"F"], [7.222,"F"], [null,"P"], [0.387,"P"]],
         ["Swap ETH → LINK", [1.978,"P"], [3.685,"P"], [1.919,"P"], [1.627,"P"]],
-        ["Import SRP +50 cuentas", [3.486,"P"], [14.563,"F"], [null,"P"], [2.222,"P"]],
+        ["Import SRP +50 accounts", [3.486,"P"], [14.563,"F"], [null,"P"], [2.222,"P"]],
         ["Warm Start → Wallet", [1.554,"P"], [5.493,"F"], [null,"N"], [0.926,"P"]],
         ["Perps add funds", [6.633,"P"], [7.310,"P"], [8.374,"P"], [9.095,"P"]],
         ["Warm Start → Login", [0.931,"P"], [1.262,"P"], [0.539,"P"], [0.463,"P"]],
@@ -158,7 +158,7 @@
         const cells = values.map(([time, status]) => {
           const cls = status === "P" ? "pass" : status === "F" ? "fail" : "missing";
           const text = time === null ? "N/D" : `${time.toFixed(3)} s`;
-          const mark = status === "P" ? "Quality OK" : status === "F" ? "Quality fail" : "No metrics";
+          const mark = status === "P" ? "Quality gate passed" : status === "F" ? "Quality gate failed" : "No metrics";
           return `<td class="${time === fastest && fastest !== null ? "winner" : ""}"><span class="time ${cls}">${text}</span><span class="status ${cls}">${mark}</span></td>`;
         }).join("");
         tbody.insertAdjacentHTML("beforeend", `<tr><td>${name}</td>${cells}</tr>`);
