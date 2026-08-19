@@ -102,7 +102,7 @@ Imperative hooks wrap service-owned workflows but do not recreate state machines
 
 UI uses the MetaMask design system first and may reuse existing venue-neutral presentation. It consumes canonical models and user-meaningful states, not Venue DTOs, credentials, transport errors, or protocol steps.
 
-Product UI is organized by owning feature or domain. Reusable primitives and views are extracted when real callers prove reuse; do not introduce a generic `widgets` tier. Cross-module consumers use deliberate module-root public APIs, while private composition stays under its owner's `internal/` directory. The architecture does not require a complete UI scaffold before implementation. See [`module-structure.md`](./module-structure.md).
+Product UI is organized by owning feature or domain. Reusable primitives and views are extracted when real callers prove reuse; do not introduce a generic `widgets` tier. Cross-module consumers use deliberate module-root public APIs, while private composition stays under its owner's `internal/` directory. Event lists render `EventListCard`; Game vs Standard resolution and Game Selection quote projection stay inside the Event cards module. The architecture does not require a complete UI scaffold before implementation. See [`module-structure.md`](./module-structure.md).
 
 ## Data flows
 

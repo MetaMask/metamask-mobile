@@ -9,9 +9,11 @@ PredictNext/
   events/
     cards/
       index.ts                 # Supported Event-card API
-      EventCardGame.tsx        # Public composition
-      EventCardStandard.tsx    # Public composition
-      internal/                # Card primitives, helpers, and private composition
+      EventListCard.tsx        # List-surface composition; owns Game vs Standard resolution
+      EventCardGame.tsx        # Public Game composition
+      EventCardStandard.tsx    # Public standard composition
+      resolveEventCardKind.ts  # Sport + Game snapshot → card kind
+      internal/                # Card primitives, Game projection, private composition
 
   views/                       # Existing screens awaiting proven feature ownership
   hooks/                       # Existing cross-screen React query integration

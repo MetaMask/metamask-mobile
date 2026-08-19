@@ -15,7 +15,7 @@ PredictNext core UI uses composition to keep product variants explicit and reusa
 
 Do not grow a core component through combinations such as `isGame`, `showChart`, `showRules`, or `isCompact`. Boolean props remain appropriate for intrinsic platform state such as `disabled`; they are not a variant system.
 
-Create explicit product compositions instead, such as `EventCardStandard` and `EventCardGame`, from shared primitives. Each variant should make its rendered structure and supported actions obvious.
+Create explicit product compositions instead, such as `EventCardStandard` and `EventCardGame`, from shared primitives. Each variant should make its rendered structure and supported actions obvious. List surfaces import `EventListCard`, which owns Game vs Standard resolution; they must not re-encode Sport IDs or Game snapshot checks.
 
 ### Use compound components where they earn their cost
 

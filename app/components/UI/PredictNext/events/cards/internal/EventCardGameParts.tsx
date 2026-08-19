@@ -12,12 +12,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Image as ExpoImage } from 'expo-image';
-import BigNumber from 'bignumber.js';
 import I18n, { strings } from '../../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
 import { useTheme } from '../../../../../../util/theme';
 import type {
-  PredictEntityId,
   PredictEvent,
   PredictGame,
   PredictGameStatus,
@@ -29,20 +27,17 @@ import { EventCard } from './EventCard';
 import { formatAskPrice } from './formatAskPrice';
 import { formatMultiplier } from './formatMultiplier';
 import { getAskPricePercent } from './getAskPricePercent';
-import { parsePredictDecimal } from './parsePredictDecimal';
-
-type GameSelection = 'away' | 'home';
+import {
+  projectGameCard,
+  type GameCardProjection,
+  type GameCardSelection,
+} from './projectGameCard';
 
 type OrderHandler = (
   event: PredictEvent,
   market: PredictMarket,
   outcome: PredictOutcome,
 ) => void;
-
-interface TeamQuote {
-  market: PredictMarket;
-  outcome: PredictOutcome;
-}
 
 interface StatusLine {
   label: string;
@@ -52,14 +47,15 @@ interface StatusLine {
 interface GameCardContextValue {
   event: PredictEvent;
   game: PredictGame;
-  quotes: Record<GameSelection, TeamQuote | undefined>;
+  quotes: GameCardProjection['quotes'];
+  hiddenMarketCount: number;
+  probability: GameCardProjection['probability'];
   statusLines: Record<'compact' | 'featured', StatusLine>;
-  representedMarketIds: ReadonlySet<PredictEntityId>;
   actions: {
     openEvent: () => void;
     order?: OrderHandler;
   };
-  colors: Record<GameSelection, string>;
+  colors: Record<GameCardSelection, string>;
 }
 
 const GameCardContext = createContext<GameCardContextValue | undefined>(
@@ -74,7 +70,7 @@ const useGameCard = () => {
   return value;
 };
 
-const useTeam = (selection: GameSelection) => {
+const useTeam = (selection: GameCardSelection) => {
   const value = useGameCard();
   return {
     ...value,
@@ -96,19 +92,6 @@ const STATUS_KEYS: Record<PredictGameStatus, string> = {
 
 const getDisplayAbbreviation = (team: PredictTeam) =>
   (team.abbreviation ?? team.name.slice(0, 3)).toUpperCase();
-
-const getTeamQuote = (
-  event: PredictEvent,
-  selection: GameSelection,
-): TeamQuote | undefined => {
-  const matches = event.markets.flatMap((market) =>
-    market.outcomes
-      .filter((outcome) => outcome.gameSelection === selection)
-      .map((outcome) => ({ market, outcome })),
-  );
-
-  return matches.length === 1 ? matches[0] : undefined;
-};
 
 const getStatusLabel = (status: PredictGameStatus) =>
   strings(`predict.game_status.${STATUS_KEYS[status]}`);
@@ -173,23 +156,14 @@ const Provider = ({
 }: ProviderProps) => {
   const { colors } = useTheme();
   const value = useMemo<GameCardContextValue>(() => {
-    const quotes = {
-      away: getTeamQuote(event, 'away'),
-      home: getTeamQuote(event, 'home'),
-    };
-    const representedMarketIds = new Set<PredictEntityId>();
-
-    for (const quote of Object.values(quotes)) {
-      if (quote && formatAskPrice(quote.outcome.askPrice)) {
-        representedMarketIds.add(quote.market.id);
-      }
-    }
+    const { quotes, hiddenMarketCount, probability } = projectGameCard(event);
 
     return {
       event,
       game,
       quotes,
-      representedMarketIds,
+      hiddenMarketCount,
+      probability,
       statusLines: {
         compact: getStatusLine(game, event.startsAt, 'compact'),
         featured: getStatusLine(game, event.startsAt, 'featured'),
@@ -220,7 +194,7 @@ const TeamLogo = ({
   selection,
   size = 'small',
 }: {
-  selection: GameSelection;
+  selection: GameCardSelection;
   size?: 'small' | 'large';
 }) => {
   const { event, team } = useTeam(selection);
@@ -302,7 +276,7 @@ const StatusContent = ({ variant }: { variant: 'compact' | 'featured' }) => {
 const CompactStatus = () => <StatusContent variant="compact" />;
 const FeaturedStatus = () => <StatusContent variant="featured" />;
 
-const CompactTeamRow = ({ selection }: { selection: GameSelection }) => {
+const CompactTeamRow = ({ selection }: { selection: GameCardSelection }) => {
   const { event, game, team, quote, fallbackColor } = useTeam(selection);
   const score = game.score?.[selection];
   const percent = getAskPricePercent(quote?.outcome.askPrice);
@@ -354,7 +328,7 @@ const CompactTeamRow = ({ selection }: { selection: GameSelection }) => {
   );
 };
 
-const FeaturedTeam = ({ selection }: { selection: GameSelection }) => {
+const FeaturedTeam = ({ selection }: { selection: GameCardSelection }) => {
   const { team } = useTeam(selection);
 
   return (
@@ -373,7 +347,7 @@ const FeaturedTeam = ({ selection }: { selection: GameSelection }) => {
   );
 };
 
-const Score = ({ selection }: { selection: GameSelection }) => {
+const Score = ({ selection }: { selection: GameCardSelection }) => {
   const { game } = useGameCard();
   return game.score ? (
     <Text
@@ -399,20 +373,11 @@ const Matchup = ({ children }: { children: React.ReactNode }) => {
 };
 
 const ProbabilityBar = () => {
-  const { event, game, quotes, colors } = useGameCard();
-  const away = parsePredictDecimal(quotes.away?.outcome.askPrice);
-  const home = parsePredictDecimal(quotes.home?.outcome.askPrice);
+  const { event, game, probability, colors } = useGameCard();
 
-  if (!away || !home) {
+  if (!probability) {
     return null;
   }
-
-  const total = away.plus(home);
-  if (total.lte(0)) {
-    return null;
-  }
-
-  const awayWidth = away.div(total).times(new BigNumber(100)).toNumber();
 
   return (
     <Box
@@ -422,7 +387,7 @@ const ProbabilityBar = () => {
       <Box
         testID={`predict-next-game-bar-${event.id}-away`}
         style={{
-          width: `${awayWidth}%`,
+          width: `${probability.awayPercent}%`,
           backgroundColor: game.awayTeam.primaryColor ?? colors.away,
         }}
       />
@@ -437,7 +402,7 @@ const ProbabilityBar = () => {
   );
 };
 
-const Quote = ({ selection }: { selection: GameSelection }) => {
+const Quote = ({ selection }: { selection: GameCardSelection }) => {
   const { colors: themeColors } = useTheme();
   const { event, team, quote, actions, fallbackColor } = useTeam(selection);
   const formattedPrice = formatAskPrice(quote?.outcome.askPrice);
@@ -522,12 +487,13 @@ const Actions = () => {
 };
 
 const Footer = ({ children }: { children: React.ReactNode }) => {
-  const { event, representedMarketIds } = useGameCard();
-  const hiddenCount = event.markets.filter(
-    (market) => !representedMarketIds.has(market.id),
-  ).length;
+  const { event, hiddenMarketCount } = useGameCard();
 
-  if (!event.sports?.competition?.label && !event.volume && !hiddenCount) {
+  if (
+    !event.sports?.competition?.label &&
+    !event.volume &&
+    !hiddenMarketCount
+  ) {
     return null;
   }
 
@@ -551,14 +517,11 @@ const Competition = () => {
 };
 
 const MoreMarkets = () => {
-  const { event, representedMarketIds, actions } = useGameCard();
-  const count = event.markets.filter(
-    (market) => !representedMarketIds.has(market.id),
-  ).length;
+  const { event, hiddenMarketCount, actions } = useGameCard();
 
   return (
     <EventCard.MoreMarkets
-      count={count}
+      count={hiddenMarketCount}
       onPress={actions.openEvent}
       testID={`predict-next-event-more-${event.id}`}
     />
