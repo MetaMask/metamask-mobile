@@ -1,7 +1,7 @@
 {
   "$schema": "https://farmslot.io/schemas/recipe-v1.schema.json",
   "title": "Lighter \u2014 close a position through the real close flow",
-  "description": "From market details, presses Close, confirms in the close-position view, and verifies against the venue that no position remains.",
+  "description": "From market details, presses Close, confirms in the close-position view, and verifies against the venue that no position remains. Re-entrant: when the market is already flat the UI-close leg is skipped and the unit just verifies flatness (ensure semantics via graph branching).",
   "paramsSchema": {
     "type": "object",
     "additionalProperties": false,
@@ -13,7 +13,7 @@
     }
   },
   "workflow": {
-    "entry": "market",
+    "entry": "check",
     "nodes": {
       "market": {
         "action": "ui.navigate",
@@ -69,6 +69,22 @@
       "done": {
         "action": "end",
         "status": "pass"
+      },
+      "check": {
+        "action": "metamask.perps.read_positions",
+        "market": "{{params.market}}",
+        "intent": "Read whether a position exists so the unit can converge instead of failing on a re-run.",
+        "next": "branch"
+      },
+      "branch": {
+        "action": "switch",
+        "value": "n:{{outputs.check.matchingCount}}",
+        "equals": "n:0",
+        "cases": {
+          "match": "assert-flat"
+        },
+        "default": "market",
+        "intent": "Drive the UI close only when a position exists; an already-flat market already satisfies this unit."
       }
     }
   }
