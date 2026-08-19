@@ -110,6 +110,7 @@ import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
+import type { NavigationAnalyticsRouteParams } from '../../../../../util/analytics/navigationAnalyticsAttribution';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -143,6 +144,9 @@ const PerpsHomeView = () => {
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
+  const analyticsContext = (
+    route.params as NavigationAnalyticsRouteParams | undefined
+  )?.analyticsContext;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { openSupportWithConsent } = useSupportConsent();
 
@@ -426,7 +430,10 @@ const PerpsHomeView = () => {
 
   // Track home screen viewed event
   const source =
-    route.params?.source || PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON;
+    route.params?.source ||
+    (analyticsContext
+      ? undefined
+      : PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON);
 
   // Get perp balance status for tracking
   const livePositions = usePerpsLivePositions({ throttleMs: 5000 });
@@ -504,7 +511,9 @@ const PerpsHomeView = () => {
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.PERPS_HOME,
-      [PERPS_EVENT_PROPERTY.SOURCE]: source,
+      ...(source && {
+        [PERPS_EVENT_PROPERTY.SOURCE]: source,
+      }),
       [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: livePositions.positions.length,
       [PERPS_EVENT_PROPERTY.OPEN_ORDER]: orders?.length || 0,

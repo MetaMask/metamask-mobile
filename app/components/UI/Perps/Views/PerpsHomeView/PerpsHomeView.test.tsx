@@ -1328,6 +1328,22 @@ describe('PerpsHomeView', () => {
       jest.clearAllMocks();
     });
 
+    it('omits the default source when navigation analytics context is present', () => {
+      mockRouteParams = {
+        analyticsContext: {
+          id: 'balance-breakdown-navigation',
+          attribution: 'homescreen_balance_breakdown',
+        },
+      };
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.source).toBeUndefined();
+    });
+
     it('includes sections_displayed containing balance and explore sections when markets exist', () => {
       mockUsePerpsHomeData.mockReturnValue({
         ...mockDefaultData,
