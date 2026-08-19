@@ -80,6 +80,18 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+const mockStartDeeplinkNavigatedTrace = jest.fn();
+const mockCancelDeeplinkNavigatedTrace = jest.fn();
+const mockCancelDeeplinkProcessedTrace = jest.fn();
+jest.mock('../../Performance/DeeplinkPerformance', () => ({
+  startDeeplinkNavigatedTrace: (...args: unknown[]) =>
+    mockStartDeeplinkNavigatedTrace(...args),
+  cancelDeeplinkNavigatedTrace: (...args: unknown[]) =>
+    mockCancelDeeplinkNavigatedTrace(...args),
+  cancelDeeplinkProcessedTrace: (...args: unknown[]) =>
+    mockCancelDeeplinkProcessedTrace(...args),
+}));
+
 describe('startupDeeplinkNavigation', () => {
   const intent: DeeplinkIntent = {
     target: {
@@ -157,6 +169,34 @@ describe('startupDeeplinkNavigation', () => {
 
     expect(mockExecuteStartupDeeplinkIntent).not.toHaveBeenCalled();
     expect(mockClearPendingDeeplink).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts Deeplink Navigated as a fallback for saga-driven auto-unlock', async () => {
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
+
+    await navigateToPendingStartupDeeplink();
+
+    expect(mockStartDeeplinkNavigatedTrace).toHaveBeenCalledWith({
+      url: 'https://link.metamask.io/rewards',
+      source: 'unlock',
+      appStartType: 'cold',
+    });
+  });
+
+  it('cancels both deeplink traces when startup navigation throws', async () => {
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
+    mockExecuteStartupDeeplinkIntent.mockRejectedValueOnce(
+      new Error('reset failed'),
+    );
+
+    await expect(navigateToPendingStartupDeeplink()).resolves.toBe(false);
+
+    expect(mockCancelDeeplinkProcessedTrace).toHaveBeenCalledWith({
+      reason: 'error',
+    });
+    expect(mockCancelDeeplinkNavigatedTrace).toHaveBeenCalledWith({
+      reason: 'error',
+    });
   });
 
   it('re-dispatches deeplink handling after default navigation when pending remains', () => {

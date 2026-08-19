@@ -59,6 +59,12 @@ import { handleAssetUrl } from './legacy/handleAssetUrl';
 import { handleNftUrl } from './legacy/handleNftUrl';
 import { handleAgenticCliApproval } from './legacy/handleAgenticCliApproval';
 import { handlePrivacyUrl } from './legacy/handlePrivacyUrl';
+import {
+  getDeeplinkProcessedTraceContext,
+  markDeeplinkInterstitialShown,
+  markDeeplinkInterstitialContinued,
+} from '../../Performance/DeeplinkPerformance';
+import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { RampType } from '../../../reducers/fiatOrders/types';
 import { SHIELD_WEBSITE_URL } from '../../../constants/shield';
 import {
@@ -409,7 +415,17 @@ async function handleUniversalLink({
   }
   if (hasSignature(validatedUrl) && isSupportedDomain) {
     try {
-      const signatureResult = await verifyDeeplinkSignature(validatedUrl);
+      const processedTraceContext = getDeeplinkProcessedTraceContext();
+      const signatureResult = processedTraceContext
+        ? await trace(
+            {
+              name: TraceName.DeeplinkSignatureVerify,
+              op: TraceOperation.DeeplinkPerformance,
+              parentContext: processedTraceContext,
+            },
+            () => verifyDeeplinkSignature(validatedUrl),
+          )
+        : await verifyDeeplinkSignature(validatedUrl);
       switch (signatureResult) {
         case VALID:
           DevLogger.log(
@@ -616,11 +632,21 @@ async function handleUniversalLink({
         return;
       }
 
-      // For public/private links, pass pageTitle and onContinue
+      // For public/private links, pass pageTitle and onContinue.
+      // PUBLIC always shows the modal; PRIVATE only when the user has not
+      // disabled it. When it will show, end the Processed `before_gate`
+      // segment now — the user's dwell on the modal is not app work.
+      if (
+        linkInstanceType === DeepLinkModalLinkType.PUBLIC ||
+        !interstitialDisabled
+      ) {
+        markDeeplinkInterstitialShown();
+      }
       const modalParams: DeepLinkModalParams = {
         linkType: linkInstanceType,
         pageTitle,
         onContinue: () => {
+          markDeeplinkInterstitialContinued();
           // Determine if modal was actually shown or auto-accepted due to disabled setting
           // PUBLIC links always show modal (security requirement), so if we reach onContinue,
           // the modal was shown regardless of interstitialDisabled setting

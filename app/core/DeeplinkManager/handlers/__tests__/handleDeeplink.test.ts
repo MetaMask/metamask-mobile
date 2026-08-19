@@ -14,6 +14,7 @@ import {
   SignatureStatus,
 } from '../../types/deepLinkAnalytics.types';
 import { detectAppInstallation } from '../../util/deeplinks/deepLinkAnalytics';
+import { startDeeplinkNavigatedTrace } from '../../../Performance/DeeplinkPerformance';
 
 jest.mock('../../../../actions/user', () => ({
   checkForDeeplink: jest.fn(() => ({ type: 'CHECK_FOR_DEEPLINK' })),
@@ -26,9 +27,14 @@ jest.mock('../../../redux', () => ({
       dispatch: jest.fn(),
       getState: jest.fn(() => ({
         security: { dataCollectionForMarketing: true },
+        user: { userLoggedIn: false },
       })),
     },
   },
+}));
+
+jest.mock('../../../Performance/DeeplinkPerformance', () => ({
+  startDeeplinkNavigatedTrace: jest.fn(),
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -91,6 +97,7 @@ describe('handleDeeplink', () => {
     mockIsMwpDeeplink.mockReturnValue(false);
     mockGetState.mockReturnValue({
       security: { dataCollectionForMarketing: true },
+      user: { userLoggedIn: false },
     });
   });
 
@@ -103,6 +110,28 @@ describe('handleDeeplink', () => {
     expect(mockCheckForDeeplink).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith({ type: 'CHECK_FOR_DEEPLINK' });
     expect(mockLoggerError).not.toHaveBeenCalled();
+  });
+
+  it('starts a warm Deeplink Navigated trace when the app is already unlocked', () => {
+    mockGetState.mockReturnValue({
+      security: { dataCollectionForMarketing: false },
+      user: { userLoggedIn: true },
+    });
+    const testUri = 'https://link.metamask.io/trending';
+
+    handleDeeplink({ uri: testUri, source: 'deeplink' });
+
+    expect(startDeeplinkNavigatedTrace).toHaveBeenCalledWith({
+      url: testUri,
+      source: 'warm',
+      appStartType: 'warm',
+    });
+  });
+
+  it('does not start Deeplink Navigated while locked — unlock submit owns that start', () => {
+    handleDeeplink({ uri: 'https://link.metamask.io/trending' });
+
+    expect(startDeeplinkNavigatedTrace).not.toHaveBeenCalled();
   });
 
   it('dispatches saveAttribution when marketing consent is on and URI has acquisition params', () => {
@@ -124,6 +153,7 @@ describe('handleDeeplink', () => {
   it('does not dispatch saveAttribution when marketing consent is off', () => {
     mockGetState.mockReturnValue({
       security: { dataCollectionForMarketing: false },
+      user: { userLoggedIn: false },
     });
     const testUri = 'metamask://open?utm_source=email';
 

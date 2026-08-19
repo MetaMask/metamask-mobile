@@ -279,16 +279,19 @@ jest.mock('../../../util/trace', () => {
   };
 });
 
-const HOMEPAGE_READY_TRACE_TOKEN = 1;
-const mockStartHomepageReadyTrace = jest.fn(
-  (..._args: unknown[]) => HOMEPAGE_READY_TRACE_TOKEN,
+const UNLOCK_TRACE_TOKENS = {
+  homepageReadyTraceToken: 1,
+  deeplinkNavigatedTraceToken: 2,
+};
+const mockStartUnlockDeeplinkTraces = jest.fn(
+  (..._args: unknown[]) => UNLOCK_TRACE_TOKENS,
 );
-const mockCancelHomepageReadyTrace = jest.fn();
-jest.mock('../../../core/Performance/HomepageReady', () => ({
-  startHomepageReadyTrace: (...args: unknown[]) =>
-    mockStartHomepageReadyTrace(...args),
-  cancelHomepageReadyTrace: (...args: unknown[]) =>
-    mockCancelHomepageReadyTrace(...args),
+const mockCancelUnlockDeeplinkTraces = jest.fn();
+jest.mock('../../../core/Performance/unlockDeeplinkTraces', () => ({
+  startUnlockDeeplinkTraces: (...args: unknown[]) =>
+    mockStartUnlockDeeplinkTraces(...args),
+  cancelUnlockDeeplinkTraces: (...args: unknown[]) =>
+    mockCancelUnlockDeeplinkTraces(...args),
 }));
 
 jest.mock('@react-native-community/netinfo', () => ({
@@ -1912,7 +1915,24 @@ describe('Login', () => {
       );
     });
 
-    it('cancels Homepage Ready when password unlock fails', async () => {
+    it('starts the unlock CUF traces on password submit', async () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      expect(mockStartUnlockDeeplinkTraces).toHaveBeenCalledWith({
+        appStartType: LOGIN_APP_START_TYPE.COLD,
+      });
+      expect(mockCancelUnlockDeeplinkTraces).not.toHaveBeenCalled();
+    });
+
+    it('cancels the unlock CUF traces when password unlock fails', async () => {
       mockUnlockWallet.mockRejectedValueOnce(new Error('Wrong password'));
       const { getByTestId } = renderWithProvider(<Login />);
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -1922,13 +1942,12 @@ describe('Login', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
-        reason: 'unlock_failed',
-        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
-      });
+      expect(mockCancelUnlockDeeplinkTraces).toHaveBeenCalledWith(
+        UNLOCK_TRACE_TOKENS,
+      );
     });
 
-    it('cancels Homepage Ready when device authentication fails', async () => {
+    it('cancels the unlock CUF traces when device authentication fails', async () => {
       mockUseAuthCapabilities.mockReturnValue({
         capabilities: defaultCapabilities,
         isLoading: false,
@@ -1949,10 +1968,9 @@ describe('Login', () => {
         );
       });
 
-      expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
-        reason: 'unlock_failed',
-        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
-      });
+      expect(mockCancelUnlockDeeplinkTraces).toHaveBeenCalledWith(
+        UNLOCK_TRACE_TOKENS,
+      );
     });
   });
 

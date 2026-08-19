@@ -27,6 +27,11 @@ import {
   subscribeToBrazePushOpens,
 } from '../Braze/BrazeDeeplinks';
 import { AppStateEventProcessor } from '../AppStateEventListener';
+import {
+  startDeeplinkProcessedTrace,
+  endDeeplinkProcessedTrace,
+  cancelDeeplinkProcessedTrace,
+} from '../Performance/DeeplinkPerformance';
 
 jest.mock('./handlers/legacy/handleApproveUrl');
 jest.mock('./handlers/handleEthereumUrl');
@@ -51,6 +56,11 @@ jest.mock('../../store', () => ({
   store: {
     getState: jest.fn(),
   },
+}));
+jest.mock('../Performance/DeeplinkPerformance', () => ({
+  startDeeplinkProcessedTrace: jest.fn(),
+  endDeeplinkProcessedTrace: jest.fn(),
+  cancelDeeplinkProcessedTrace: jest.fn(),
 }));
 
 // Branch and Linking mocks for DeeplinkManager.start tests
@@ -152,6 +162,73 @@ describe('DeeplinkManager', () => {
       url,
       origin,
       mode: 'resolve',
+    });
+  });
+
+  describe('Deeplink Processed instrumentation', () => {
+    const url = 'https://link.metamask.io/trending';
+    const origin = 'testOrigin';
+    const mockParseDeeplink = jest.mocked(parseDeeplink);
+    const mockStartProcessed = jest.mocked(startDeeplinkProcessedTrace);
+    const mockEndProcessed = jest.mocked(endDeeplinkProcessedTrace);
+    const mockCancelProcessed = jest.mocked(cancelDeeplinkProcessedTrace);
+
+    it('starts on parse and ends at the parse_return seam when handled', async () => {
+      mockParseDeeplink.mockResolvedValueOnce(true);
+
+      await deeplinkManager.parse(url, { origin });
+
+      expect(mockStartProcessed).toHaveBeenCalledWith({
+        url,
+        source: 'warm',
+        appStartType: 'warm',
+      });
+      expect(mockEndProcessed).toHaveBeenCalledWith({ seam: 'parse_return' });
+      expect(mockCancelProcessed).not.toHaveBeenCalled();
+    });
+
+    it('cancels as rejected when parse does not handle the link', async () => {
+      mockParseDeeplink.mockResolvedValueOnce(false);
+
+      await deeplinkManager.parse(url, { origin });
+
+      expect(mockCancelProcessed).toHaveBeenCalledWith({ reason: 'rejected' });
+      expect(mockEndProcessed).not.toHaveBeenCalled();
+    });
+
+    it('starts on resolve and leaves the span open for the pre_navigate seam', async () => {
+      const intent = { target: { type: 'home-tab', routeName: 'Trending' } };
+      mockParseDeeplink.mockResolvedValueOnce(
+        intent as Awaited<ReturnType<typeof parseDeeplink>>,
+      );
+
+      await deeplinkManager.resolve(url, { origin });
+
+      expect(mockStartProcessed).toHaveBeenCalledWith({
+        url,
+        source: 'unlock',
+        appStartType: 'cold',
+      });
+      expect(mockEndProcessed).not.toHaveBeenCalled();
+      expect(mockCancelProcessed).not.toHaveBeenCalled();
+    });
+
+    it('cancels as rejected when resolve is declined at the interstitial', async () => {
+      mockParseDeeplink.mockResolvedValueOnce(false);
+
+      await deeplinkManager.resolve(url, { origin });
+
+      expect(mockCancelProcessed).toHaveBeenCalledWith({ reason: 'rejected' });
+    });
+
+    it('cancels as unresolved when resolve yields no intent', async () => {
+      mockParseDeeplink.mockResolvedValueOnce(null);
+
+      await deeplinkManager.resolve(url, { origin });
+
+      expect(mockCancelProcessed).toHaveBeenCalledWith({
+        reason: 'unresolved',
+      });
     });
   });
 });

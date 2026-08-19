@@ -7,6 +7,11 @@ import NavigationService from '../../NavigationService';
 import ReduxService from '../../redux';
 import SharedDeeplinkManager from '../DeeplinkManager';
 import { executeStartupDeeplinkIntent } from './executeDeeplinkIntent';
+import {
+  cancelDeeplinkNavigatedTrace,
+  cancelDeeplinkProcessedTrace,
+  startDeeplinkNavigatedTrace,
+} from '../../Performance/DeeplinkPerformance';
 
 const scheduleAfterNavigation = (callback: () => void) => {
   if (typeof requestAnimationFrame === 'function') {
@@ -26,6 +31,15 @@ export const navigateToPendingStartupDeeplink = async (): Promise<boolean> => {
   const origin =
     AppStateEventProcessor.pendingDeeplinkSource ??
     AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+
+  // Saga-driven biometric auto-unlock reaches here without passing through an
+  // unlock screen; the in-flight guard makes this a no-op when Login or OAuth
+  // rehydration already started the span at submit.
+  startDeeplinkNavigatedTrace({
+    url: deeplink,
+    source: 'unlock',
+    appStartType: 'cold',
+  });
 
   try {
     const intent = await SharedDeeplinkManager.resolve(deeplink, { origin });
@@ -48,6 +62,8 @@ export const navigateToPendingStartupDeeplink = async (): Promise<boolean> => {
 
     return handled;
   } catch (error) {
+    cancelDeeplinkProcessedTrace({ reason: 'error' });
+    cancelDeeplinkNavigatedTrace({ reason: 'error' });
     Logger.error(
       error as Error,
       'DeeplinkManager: failed to navigate to pending startup deeplink',

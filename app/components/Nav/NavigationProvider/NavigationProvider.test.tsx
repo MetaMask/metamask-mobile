@@ -13,6 +13,7 @@ import {
 } from '@react-navigation/native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { getNavIntegration } from '../../../util/sentry/utils';
+import { handleDeeplinkNavigationStateChange } from '../../../core/Performance/DeeplinkPerformance';
 
 jest.mock('../../../util/trace', () => {
   const actual = jest.requireActual('../../../util/trace');
@@ -48,6 +49,10 @@ jest.mock('../../../core/NavigationService', () => ({
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
+}));
+
+jest.mock('../../../core/Performance/DeeplinkPerformance', () => ({
+  handleDeeplinkNavigationStateChange: jest.fn(),
 }));
 
 describe('NavigationProvider', () => {
@@ -131,6 +136,45 @@ describe('NavigationProvider', () => {
         background: 'transparent',
       },
     });
+  });
+
+  it('reports the focused route chain to Deeplink Navigated on every state change', () => {
+    const { UNSAFE_getByType } = render(
+      <NavigationProvider>
+        <View />
+      </NavigationProvider>,
+    );
+
+    const container = UNSAFE_getByType(NavigationContainer);
+    container.props.onStateChange?.({
+      index: 0,
+      routes: [
+        {
+          name: 'HomeNav',
+          state: {
+            index: 1,
+            routes: [{ name: 'Wallet' }, { name: 'TrendingView' }],
+          },
+        },
+      ],
+    });
+
+    expect(handleDeeplinkNavigationStateChange).toHaveBeenCalledWith({
+      focusedRouteNames: ['HomeNav', 'TrendingView'],
+    });
+  });
+
+  it('ignores an undefined navigation state', () => {
+    const { UNSAFE_getByType } = render(
+      <NavigationProvider>
+        <View />
+      </NavigationProvider>,
+    );
+
+    const container = UNSAFE_getByType(NavigationContainer);
+    container.props.onStateChange?.(undefined);
+
+    expect(handleDeeplinkNavigationStateChange).not.toHaveBeenCalled();
   });
 
   it('Measures performance trace order when navigation provider is initialized', () => {
