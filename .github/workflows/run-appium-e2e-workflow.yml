@@ -112,14 +112,18 @@ jobs:
           install-applesimutils: 'false'
           runner_provider: ${{ inputs.runner_provider }}
 
+      # The cache key must be provider-scoped: runner.os is macOS on both Cirrus and
+      # Namespace, but their images carry different Homebrew installations — a snapshot
+      # created on one crashes brew on the other (Utils::Bottles.load_tab NoMethodError
+      # while pouring a cached bottle). Both buckets rebuild once from empty.
       - name: Cache ffmpeg (Homebrew)
         if: ${{ inputs.platform == 'ios' }}
         uses: actions/cache@v4
         with:
           path: ~/.cache/mms-ffmpeg
-          key: brew-ffmpeg-${{ runner.os }}-v1
+          key: brew-ffmpeg-${{ runner.os }}-${{ inputs.runner_provider == 'namespace' && 'namespace' || 'current' }}-v1
           restore-keys: |
-            brew-ffmpeg-${{ runner.os }}-
+            brew-ffmpeg-${{ runner.os }}-${{ inputs.runner_provider == 'namespace' && 'namespace' || 'current' }}-
 
       - name: Install ffmpeg for XCUITest screen recording
         if: ${{ inputs.platform == 'ios' }}
@@ -176,6 +180,18 @@ jobs:
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+      # actions/download-artifact merges into its target directory rather than
+      # replacing it (same caveat as in build-ios-e2e.yml) — clear any residue from
+      # the failed Namespace attempt so the fallback starts from an empty bundle dir.
+      - name: Clear any partial iOS app before the fallback download
+        if: >-
+          ${{
+            inputs.platform == 'ios' &&
+            inputs.runner_provider == 'namespace' &&
+            steps.download-ios-app-namespace.outcome != 'success'
+          }}
+        shell: bash
+        run: rm -rf "artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"
       - name: Download iOS build artifacts (GitHub — build may be on Cirrus)
         if: >-
           ${{
