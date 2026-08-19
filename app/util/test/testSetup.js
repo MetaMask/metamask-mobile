@@ -68,6 +68,12 @@ jest.mock('expo/fetch', () => {
 });
 
 jest.mock('react-native-quick-crypto', () => ({
+  __esModule: true,
+  default: {
+    randomBytes: jest.fn((size) =>
+      Buffer.from(Array.from({ length: size }, (_, i) => (i % 255) + 1)),
+    ),
+  },
   getRandomValues: jest.fn((array) => {
     for (let i = 0; i < array.length; i++) {
       array[i] = Math.floor(Math.random() * 256);
