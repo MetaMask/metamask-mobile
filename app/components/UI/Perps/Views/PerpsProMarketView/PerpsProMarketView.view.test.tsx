@@ -465,7 +465,11 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'submits a stop-limit order with triggerPrice and limit price',
     async () => {
+      const validateOrder = Engine.context.PerpsController
+        .validateOrder as jest.Mock;
       const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      validateOrder.mockClear();
+      placeOrder.mockClear();
       renderProMarketWithTriggeredOrdersFlag(true);
       const sizeInput = await findSizeInput();
       fireEvent.changeText(sizeInput, '100');
@@ -487,6 +491,24 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent(limitInput, 'blur');
 
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      let finalValidation: Promise<unknown> | undefined;
+      await waitFor(
+        () => {
+          const validationCallIndex = validateOrder.mock.calls.findIndex(
+            ([params]) =>
+              params.orderType === 'stop_limit' &&
+              params.triggerPrice === '2600' &&
+              params.price === '2650',
+          );
+          expect(validationCallIndex).toBeGreaterThanOrEqual(0);
+          finalValidation = validateOrder.mock.results[validationCallIndex]
+            ?.value as Promise<unknown>;
+        },
+        { timeout: TIMEOUT_MS },
+      );
+      await act(async () => {
+        await finalValidation;
+      });
       await waitFor(
         () => {
           expect(placeOrderButton).not.toBeDisabled();
