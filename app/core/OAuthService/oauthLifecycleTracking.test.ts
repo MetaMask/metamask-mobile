@@ -43,6 +43,40 @@ describe('oauthLifecycleTracking', () => {
     jest.useRealTimers();
   });
 
+  it('does not reset background start time when backgrounded twice before resume', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
+
+    await startOAuthLifecycleTracking('google');
+
+    recordOAuthBackgrounded();
+    jest.advanceTimersByTime(3_000);
+    recordOAuthBackgrounded();
+    jest.advanceTimersByTime(2_000);
+    recordOAuthResumed();
+
+    expect(getOAuthBackgroundAnalyticsProperties()).toEqual({
+      had_background_during_oauth: true,
+      background_count: 1,
+      time_in_background_ms: 5_000,
+    });
+
+    jest.useRealTimers();
+  });
+
+  it('includes an explicit resume outcome even before finalize', async () => {
+    await startOAuthLifecycleTracking('google');
+
+    expect(
+      getOAuthBackgroundAnalyticsProperties(OAUTH_RESUME_OUTCOME.FAILED),
+    ).toEqual({
+      had_background_during_oauth: false,
+      background_count: 0,
+      time_in_background_ms: 0,
+      resume_outcome: OAUTH_RESUME_OUTCOME.FAILED,
+    });
+  });
+
   it('finalizes lifecycle with resume outcome and clears persisted state', async () => {
     await startOAuthLifecycleTracking('apple');
 

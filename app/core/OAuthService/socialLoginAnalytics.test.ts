@@ -69,6 +69,7 @@ describe('socialLoginAnalytics', () => {
             is_rehydration: 'false',
             failure_type: 'error',
             error_category: 'provider_login',
+            resume_outcome: 'failed',
           }),
         }),
       );
@@ -88,6 +89,7 @@ describe('socialLoginAnalytics', () => {
             account_type: AccountType.ImportedApple,
             is_rehydration: 'true',
             failure_type: 'user_cancelled',
+            resume_outcome: 'dismissed',
           }),
         }),
       );

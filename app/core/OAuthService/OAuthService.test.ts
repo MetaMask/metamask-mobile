@@ -499,6 +499,7 @@ describe('OAuth login service', () => {
         properties: expect.objectContaining({
           account_type: AccountType.MetamaskGoogle,
           is_rehydration: 'false',
+          resume_outcome: 'failed',
         }),
       }),
     );
@@ -521,6 +522,7 @@ describe('OAuth login service', () => {
         properties: expect.objectContaining({
           account_type: AccountType.ImportedGoogle,
           is_rehydration: 'true',
+          resume_outcome: 'failed',
         }),
       }),
     );
@@ -545,6 +547,7 @@ describe('OAuth login service', () => {
           account_type: AccountType.MetamaskGoogle,
           surface: 'onboarding',
           elapsed_ms: expect.any(Number),
+          resume_outcome: 'dismissed',
         }),
       }),
     );
@@ -574,6 +577,7 @@ describe('OAuth login service', () => {
           account_type: AccountType.MetamaskGoogle,
           surface: 'onboarding',
           elapsed_ms: expect.any(Number),
+          resume_outcome: 'dismissed',
         }),
       }),
     );
@@ -603,6 +607,7 @@ describe('OAuth login service', () => {
           account_type: AccountType.ImportedGoogle,
           surface: 'rehydration',
           elapsed_ms: expect.any(Number),
+          resume_outcome: 'dismissed',
         }),
       }),
     );

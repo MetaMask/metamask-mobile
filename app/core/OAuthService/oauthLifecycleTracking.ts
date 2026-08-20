@@ -42,13 +42,16 @@ const createDefaultState = (): OAuthLifecycleState => ({
 
 let lifecycleState: OAuthLifecycleState = createDefaultState();
 
-export function getOAuthBackgroundAnalyticsProperties(): OAuthBackgroundAnalyticsProperties {
+export function getOAuthBackgroundAnalyticsProperties(
+  resumeOutcome?: OAuthResumeOutcome,
+): OAuthBackgroundAnalyticsProperties {
+  const outcome = resumeOutcome ?? lifecycleState.resumeOutcome;
   return {
     had_background_during_oauth: lifecycleState.backgroundCount > 0,
     background_count: lifecycleState.backgroundCount,
     time_in_background_ms: lifecycleState.totalBackgroundMs,
-    ...(lifecycleState.resumeOutcome && {
-      resume_outcome: lifecycleState.resumeOutcome,
+    ...(outcome && {
+      resume_outcome: outcome,
     }),
   };
 }
@@ -64,26 +67,31 @@ export function getOAuthLifecycleAuthConnection(): string | undefined {
 export async function startOAuthLifecycleTracking(
   authConnection: string,
 ): Promise<void> {
+  const startedAt = Date.now();
   lifecycleState = {
     inProgress: true,
     authConnection,
-    startedAt: Date.now(),
+    startedAt,
     backgroundCount: 0,
     totalBackgroundMs: 0,
   };
 
   const persisted: PersistedOAuthInProgress = {
     authConnection,
-    startedAt: lifecycleState.startedAt,
+    startedAt,
   };
   await StorageWrapper.setItem(OAUTH_IN_PROGRESS, JSON.stringify(persisted));
 }
 
-export function recordOAuthBackgrounded(): void {
-  if (!lifecycleState.inProgress) {
-    return;
+export function recordOAuthBackgrounded(): boolean {
+  if (
+    !lifecycleState.inProgress ||
+    lifecycleState.lastBackgroundedAt !== undefined
+  ) {
+    return false;
   }
   lifecycleState.lastBackgroundedAt = Date.now();
+  return true;
 }
 
 export function recordOAuthResumed(): void {

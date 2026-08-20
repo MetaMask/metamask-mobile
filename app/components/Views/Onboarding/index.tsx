@@ -193,6 +193,44 @@ function getSocialCtaId(provider: string): OnboardingCtaId {
   );
 }
 
+const ANDROID_GOOGLE_BROWSER_FALLBACK_ERROR_CODES: ReadonlySet<OAuthErrorType> =
+  new Set([
+    OAuthErrorType.GoogleLoginNoCredential,
+    OAuthErrorType.GoogleLoginNoMatchingCredential,
+    OAuthErrorType.GoogleLoginUserDisabledOneTapFeature,
+    OAuthErrorType.GoogleLoginOneTapFailure,
+    OAuthErrorType.GoogleLoginNoProviderDependencies,
+    OAuthErrorType.UnknownError,
+  ]);
+
+/**
+ * Android Google One Tap failures retry in the system browser. Lifecycle must
+ * stay open across that retry so background/resume analytics attach to the
+ * attempt that actually leaves the app.
+ */
+function shouldAttemptAndroidGoogleBrowserFallback(
+  error: unknown,
+  socialConnectionType: string,
+): boolean {
+  return (
+    Platform.OS === 'android' &&
+    socialConnectionType === AuthConnection.Google &&
+    error instanceof OAuthError &&
+    ANDROID_GOOGLE_BROWSER_FALLBACK_ERROR_CODES.has(error.code)
+  );
+}
+
+function getOAuthResumeOutcomeForLoginError(error: unknown) {
+  if (
+    error instanceof OAuthError &&
+    (error.code === OAuthErrorType.UserCancelled ||
+      error.code === OAuthErrorType.UserDismissed)
+  ) {
+    return OAUTH_RESUME_OUTCOME.DISMISSED;
+  }
+  return OAUTH_RESUME_OUTCOME.FAILED;
+}
+
 /**
  * Kept outside the component so React Compiler can optimize Onboarding.
  * Conditionals / value blocks inside try/catch inside the component bail out.
@@ -751,7 +789,12 @@ const Onboarding = () => {
           // fallback catch block to prevent nested fallback attempts. The browser-based
           // fallback handler won't throw ACM-specific errors, but this pattern ensures
           // we don't accidentally create infinite fallback loops if the code is refactored.
-          if (Platform.OS === 'android' && socialConnectionType === 'google') {
+          if (
+            shouldAttemptAndroidGoogleBrowserFallback(
+              error,
+              socialConnectionType,
+            )
+          ) {
             try {
               setLoading();
               const fallbackHandler = createLoginHandler(
@@ -779,6 +822,14 @@ const Onboarding = () => {
               return;
             } catch (fallbackError) {
               unsetLoading();
+              finalizeOAuthLifecycle(
+                getOAuthResumeOutcomeForLoginError(fallbackError),
+              ).catch((finalizeError) => {
+                Logger.error(
+                  finalizeError as Error,
+                  'Failed to finalize OAuth lifecycle after browser fallback error',
+                );
+              });
               if (
                 fallbackError instanceof OAuthError &&
                 (fallbackError.code === OAuthErrorType.UserCancelled ||
@@ -1110,18 +1161,16 @@ const Onboarding = () => {
             }, 1000);
           } catch (error) {
             unsetLoading();
-            finalizeOAuthLifecycle(
-              error instanceof OAuthError &&
-                (error.code === OAuthErrorType.UserCancelled ||
-                  error.code === OAuthErrorType.UserDismissed)
-                ? OAUTH_RESUME_OUTCOME.DISMISSED
-                : OAUTH_RESUME_OUTCOME.FAILED,
-            ).catch((finalizeError) => {
-              Logger.error(
-                finalizeError as Error,
-                'Failed to finalize OAuth lifecycle after login error',
-              );
-            });
+            if (!shouldAttemptAndroidGoogleBrowserFallback(error, provider)) {
+              finalizeOAuthLifecycle(
+                getOAuthResumeOutcomeForLoginError(error),
+              ).catch((finalizeError) => {
+                Logger.error(
+                  finalizeError as Error,
+                  'Failed to finalize OAuth lifecycle after login error',
+                );
+              });
+            }
             await handleLoginError(error as Error, provider, createWallet);
           }
         } catch (error) {
@@ -1450,14 +1499,13 @@ const Onboarding = () => {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
       // Arm ONLY when the app leaves while a social-login attempt is genuinely in flight.
-      if (
-        (nextState === 'background' || nextState === 'inactive') &&
-        socialLoginTraceCtx.current
-      ) {
+      // iOS resume is background -> inactive -> active. Treating inactive as a
+      // new background overwrites lastBackgroundedAt and zeros duration.
+      if (nextState === 'background' && socialLoginTraceCtx.current) {
         appBackgroundedDuringSocialLoginRef.current = true;
-        recordOAuthBackgrounded();
+        const startedBackgroundPeriod = recordOAuthBackgrounded();
         const authConnection = getOAuthLifecycleAuthConnection();
-        if (authConnection) {
+        if (startedBackgroundPeriod && authConnection) {
           track(MetaMetricsEvents.SOCIAL_LOGIN_BACKGROUNDED, {
             auth_connection: authConnection,
             is_rehydration: String(socialLoginIsRehydrationRef.current),
