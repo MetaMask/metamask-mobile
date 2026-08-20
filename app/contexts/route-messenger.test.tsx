@@ -3,10 +3,10 @@ import { act } from '@testing-library/react-native';
 import { View } from 'react-native';
 // eslint-disable-next-line import-x/no-namespace
 import * as routeMessengerModule from '../messengers/route-messenger';
+import type { UIMessengerActions, UIMessengerEvents } from '../messengers/ui-messenger';
 import { RouteMessengerProvider } from './route-messenger';
 import renderWithProvider from '../util/test/renderWithProvider';
 import { createMockUIMessenger } from '../util/test/mock-ui-messenger';
-import type { UIMessengerActions, UIMessengerEvents } from './ui-messenger';
 
 const CAPABILITIES = {
   actions: [
