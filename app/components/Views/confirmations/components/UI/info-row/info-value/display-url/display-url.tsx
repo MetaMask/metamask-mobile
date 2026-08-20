@@ -6,9 +6,9 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../../component-library/hooks';
 import styleSheet from './display-url.styles';
+import { Text } from '@metamask/design-system-react-native';
 
 interface DisplayURLProps {
   url: string;
