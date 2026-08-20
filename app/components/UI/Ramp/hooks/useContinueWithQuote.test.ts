@@ -519,6 +519,44 @@ describe('useContinueWithQuote', () => {
       });
     });
 
+    it('registers a precreated order with chainId on the Android external-browser path', async () => {
+      mockDeviceIsAndroid.mockReturnValue(true);
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://widget.example.com/checkout',
+        orderId: 'ord-android-1',
+      });
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, WIDGET_PROVIDER_QUOTE);
+
+      expect(caught).toBeUndefined();
+      expect(mockAddPrecreatedOrder).toHaveBeenCalledWith({
+        orderId: 'ord-android-1',
+        providerCode: 'moonpay',
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        chainId: '1',
+      });
+    });
+
+    it('does not register a precreated order when chainId is missing', async () => {
+      mockDeviceIsAndroid.mockReturnValue(true);
+      mockUseRampsController.mockReturnValue(
+        buildController({ selectedToken: null }),
+      );
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://widget.example.com/checkout',
+        orderId: 'ord-no-chain',
+      });
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, WIDGET_PROVIDER_QUOTE);
+
+      expect(caught).toBeUndefined();
+      expect(mockAddPrecreatedOrder).not.toHaveBeenCalled();
+    });
+
     it('resets to order details after InAppBrowser success', async () => {
       mockDeviceIsAndroid.mockReturnValue(false);
       mockInAppBrowser.isAvailable.mockResolvedValue(true);
