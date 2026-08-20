@@ -6,7 +6,12 @@ import {
   TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
-import { TimeDuration, type PerpsMarketData } from '@metamask/perps-controller';
+import {
+  isLimitExecutionOrderType,
+  isTriggerOrderType,
+  TimeDuration,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -64,6 +69,7 @@ import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
 import { createStyles } from './PerpsProMarketView.styles';
+import { canonicalizeOrderPrice } from '../../utils/triggerOrderValidation';
 
 interface PerpsProOrderBookColumnProps {
   symbol: string;
@@ -75,29 +81,45 @@ interface PerpsProOrderBookColumnProps {
  * Order-book column bridged to the shared order-form state (TAT-3643).
  *
  * Rendered inside `PerpsOrderProvider` (owned by `PerpsProMarketView`) so a
- * bid/ask row tap can flip the form to a Limit order and prefill the tapped
- * price — the two setters live in `PerpsOrderContext`, which the sibling order
- * book cannot otherwise reach. Wiring both at once has no existing analog
- * (`onUseMidPricePress` only sets price and assumes the form is already Limit).
+ * bid/ask row tap can prefill the semantic price field for the selected type
+ * without changing a trigger placement to plain Limit.
  */
 const PerpsProOrderBookColumn = ({
   symbol,
   marketPrice,
   onCollapse,
 }: PerpsProOrderBookColumnProps) => {
-  const { setLimitPrice, setOrderType } = usePerpsOrderContext();
+  const { orderForm, commitLimitPrice, setOrderType, commitTriggerPrice } =
+    usePerpsOrderContext();
   // Drives the ladder's price precision and base-size decimals — without it
   // every price falls back to magnitude-based formatting.
   const { marketData } = usePerpsMarketData({ asset: symbol });
 
   const handleSelectPrice = useCallback(
     (price: string) => {
-      // Force Limit first (no-op when already Limit) so the prefilled price is
-      // always shown in the limit-price input, regardless of the prior type.
+      if (isTriggerOrderType(orderForm.type)) {
+        if (isLimitExecutionOrderType(orderForm.type)) {
+          commitLimitPrice(
+            canonicalizeOrderPrice(price, marketData?.szDecimals),
+          );
+          return;
+        }
+        commitTriggerPrice(
+          canonicalizeOrderPrice(price, marketData?.szDecimals),
+        );
+        return;
+      }
+
       setOrderType('limit');
-      setLimitPrice(price);
+      commitLimitPrice(canonicalizeOrderPrice(price, marketData?.szDecimals));
     },
-    [setOrderType, setLimitPrice],
+    [
+      commitLimitPrice,
+      commitTriggerPrice,
+      marketData?.szDecimals,
+      orderForm.type,
+      setOrderType,
+    ],
   );
 
   return (

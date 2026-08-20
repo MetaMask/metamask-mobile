@@ -42,6 +42,10 @@ const PerpsProOrderFormPanel = ({
   onRequestScrollBy,
   scrollViewRef,
 }: PerpsProOrderFormPanelProps) => {
+  const isProModeActive = useIsPerpsProModeActive();
+  const isTriggeredOrdersEnabled = useSelector(
+    selectPerpsProTriggeredOrdersEnabledFlag,
+  );
   const {
     direction,
     onDirectionChange,
@@ -53,6 +57,10 @@ const PerpsProOrderFormPanel = ({
     onLimitPriceChange,
     onLimitPriceBlur,
     onUseMidPricePress,
+    triggerPrice,
+    onTriggerPriceChange,
+    onTriggerPriceBlur,
+    priceCardMessage,
     sizeInput,
     sizeSlider,
     availableBalance,
@@ -87,13 +95,12 @@ const PerpsProOrderFormPanel = ({
     feeProtocolFeeRate,
     feeOriginalMetamaskFeeRate,
     feeDiscountPercentage,
-  } = usePerpsProOrderForm({ market });
+  } = usePerpsProOrderForm({
+    market,
+    isTriggeredOrdersEnabled: isProModeActive && isTriggeredOrdersEnabled,
+  });
 
   const { styles } = useStyles(createStyles, {});
-  const isProModeActive = useIsPerpsProModeActive();
-  const isTriggeredOrdersEnabled = useSelector(
-    selectPerpsProTriggeredOrdersEnabledFlag,
-  );
   const showTriggeredTypes = isProModeActive && isTriggeredOrdersEnabled;
 
   const [isMarginModeVisible, setIsMarginModeVisible] = useState(false);
@@ -141,6 +148,11 @@ const PerpsProOrderFormPanel = ({
     onLimitPriceCardBlur();
   }, [onLimitPriceBlur, onLimitPriceCardBlur]);
 
+  const onTriggerPriceBlurWithKeyboardScroll = useCallback(() => {
+    onTriggerPriceBlur();
+    onLimitPriceCardBlur();
+  }, [onTriggerPriceBlur, onLimitPriceCardBlur]);
+
   return (
     <Box
       testID={PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL}
@@ -165,6 +177,12 @@ const PerpsProOrderFormPanel = ({
         orderTypeCardRef={orderTypeCardRef}
         onLimitPriceFieldPress={onLimitPriceFieldPress}
         onUseMidPricePress={onUseMidPricePress}
+        triggerPrice={triggerPrice}
+        onTriggerPriceChange={onTriggerPriceChange}
+        onTriggerPriceFocus={onLimitPriceFocus}
+        onTriggerPriceBlur={onTriggerPriceBlurWithKeyboardScroll}
+        onTriggerPriceFieldPress={onLimitPriceFieldPress}
+        priceCardMessage={priceCardMessage}
         sizeInput={sizeInputWithKeyboardScroll}
         sizeSlider={sizeSlider}
         sizeCardRef={sizeCardRef}
@@ -226,6 +244,7 @@ const PerpsProOrderFormPanel = ({
             direction={direction}
             asset={market.symbol}
             limitPrice={limitPrice}
+            triggerPrice={triggerPrice}
             orderType={orderType}
           />
         </PerpsProModalPortal>

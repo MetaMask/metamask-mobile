@@ -13,6 +13,8 @@ import {
   Checkbox,
   FilterButton,
   FontWeight,
+  HelpText,
+  HelpTextSeverity,
   Icon,
   IconColor,
   IconName,
@@ -23,6 +25,10 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import {
+  isLimitExecutionOrderType,
+  isTriggerOrderType,
+} from '@metamask/perps-controller';
 import React from 'react';
 import {
   InputAccessoryView,
@@ -120,6 +126,75 @@ const KeyboardAccessory = ({ inputTestID }: { inputTestID: string }) => (
       />
     </Box>
   </InputAccessoryView>
+);
+
+interface PriceFieldProps {
+  label: string;
+  value: string;
+  onChangeText: (value: string) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  onFieldPress?: () => void;
+  onUseMidPress?: () => void;
+  testID: string;
+  prefixTestID: string;
+  midButtonTestID?: string;
+  isHidden?: boolean;
+}
+
+const PriceField = ({
+  label,
+  value,
+  onChangeText,
+  onFocus,
+  onBlur,
+  onFieldPress,
+  onUseMidPress,
+  testID,
+  prefixTestID,
+  midButtonTestID,
+  isHidden,
+}: PriceFieldProps) => (
+  <PerpsProCompactInput
+    label={label}
+    value={value}
+    onChangeText={onChangeText}
+    onFocus={onFocus}
+    onBlur={onBlur}
+    onFieldPress={onFieldPress}
+    testID={testID}
+    variant="inline"
+    isHidden={isHidden}
+    placeholder="0.00"
+    startAccessory={
+      <Text
+        variant={TextVariant.BodySm}
+        twClassName="mr-1"
+        testID={prefixTestID}
+      >
+        $
+      </Text>
+    }
+    endAccessory={
+      onUseMidPress ? (
+        <Box twClassName="h-full shrink-0 justify-center">
+          <ButtonBase
+            size={ButtonBaseSize.Sm}
+            onPress={onUseMidPress}
+            twClassName="h-[26px] shrink-0 rounded bg-subsection px-2 py-0.5"
+            contentWrapperProps={{ twClassName: 'justify-end' }}
+            textProps={{
+              variant: TextVariant.BodySm,
+              fontWeight: FontWeight.Medium,
+            }}
+            testID={midButtonTestID}
+          >
+            {strings('perps.order.limit_price_modal.mid_price')}
+          </ButtonBase>
+        </Box>
+      ) : undefined
+    }
+  />
 );
 
 const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
@@ -269,6 +344,12 @@ const PerpsProOrderForm = ({
   orderTypeCardRef,
   onLimitPriceFieldPress,
   onUseMidPricePress,
+  triggerPrice = '',
+  onTriggerPriceChange = () => undefined,
+  onTriggerPriceFocus,
+  onTriggerPriceBlur,
+  onTriggerPriceFieldPress,
+  priceCardMessage,
   sizeInput,
   sizeSlider,
   sizeCardRef,
@@ -287,6 +368,10 @@ const PerpsProOrderForm = ({
   onPlaceOrderPress,
 }: PerpsProOrderFormProps) => {
   const isLong = direction === 'long';
+  const showsTriggerPrice = isTriggerOrderType(orderType);
+  const showsLimitPrice = isLimitExecutionOrderType(orderType);
+  const showsTpSl = !reduceOnly && !showsTriggerPrice;
+  const orderTypeTitle = strings(`perps.order.type.${orderType}.title`);
 
   return (
     <>
@@ -393,51 +478,45 @@ const PerpsProOrderForm = ({
               }}
               testID={ids.ORDER_TYPE_BUTTON}
             >
-              {orderType === 'market'
-                ? strings('perps.order.type.market.title')
-                : strings('perps.order.type.limit.title')}
+              {orderTypeTitle}
             </ButtonBase>
-            {orderType === 'limit' ? (
-              <PerpsProCompactInput
-                label={strings('perps.order.limit_price_modal.title')}
-                value={limitPrice}
-                onChangeText={onLimitPriceChange}
-                onFocus={onLimitPriceFocus}
-                onBlur={onLimitPriceBlur}
-                onFieldPress={onLimitPriceFieldPress}
-                testID={ids.LIMIT_PRICE_INPUT}
-                variant="inline"
-                placeholder={strings('perps.order.limit_price_modal.title')}
-                startAccessory={
-                  <Text
-                    variant={TextVariant.BodySm}
-                    twClassName="mr-1"
-                    testID={ids.LIMIT_PRICE_PREFIX}
-                  >
-                    $
-                  </Text>
-                }
-                endAccessory={
-                  <Box twClassName="h-full shrink-0 justify-center">
-                    <ButtonBase
-                      size={ButtonBaseSize.Sm}
-                      onPress={onUseMidPricePress}
-                      isDisabled={!onUseMidPricePress}
-                      twClassName="h-[26px] shrink-0 rounded bg-subsection px-2 py-0.5"
-                      contentWrapperProps={{ twClassName: 'justify-end' }}
-                      textProps={{
-                        variant: TextVariant.BodySm,
-                        fontWeight: FontWeight.Medium,
-                      }}
-                      testID={ids.MID_PRICE_BUTTON}
-                    >
-                      {strings('perps.order.limit_price_modal.mid_price')}
-                    </ButtonBase>
-                  </Box>
-                }
-              />
-            ) : null}
+            <PriceField
+              label={strings('perps.order.trigger_price')}
+              value={triggerPrice}
+              onChangeText={onTriggerPriceChange}
+              onFocus={onTriggerPriceFocus}
+              onBlur={onTriggerPriceBlur}
+              onFieldPress={onTriggerPriceFieldPress}
+              testID={ids.TRIGGER_PRICE_INPUT}
+              prefixTestID={ids.TRIGGER_PRICE_PREFIX}
+              isHidden={!showsTriggerPrice}
+            />
+            <PriceField
+              label={strings('perps.order.limit_price')}
+              value={limitPrice}
+              onChangeText={onLimitPriceChange}
+              onFocus={onLimitPriceFocus}
+              onBlur={onLimitPriceBlur}
+              onFieldPress={onLimitPriceFieldPress}
+              onUseMidPress={showsLimitPrice ? onUseMidPricePress : undefined}
+              testID={ids.LIMIT_PRICE_INPUT}
+              prefixTestID={ids.LIMIT_PRICE_PREFIX}
+              midButtonTestID={ids.MID_PRICE_BUTTON}
+              isHidden={!showsLimitPrice}
+            />
           </Box>
+          {priceCardMessage ? (
+            <HelpText
+              severity={
+                priceCardMessage.severity === 'error'
+                  ? HelpTextSeverity.Danger
+                  : HelpTextSeverity.Warning
+              }
+              testID={ids.PRICE_CARD_MESSAGE}
+            >
+              {priceCardMessage.message}
+            </HelpText>
+          ) : null}
           <PerpsProSizeInput
             containerRef={sizeCardRef}
             onFieldPress={onSizeFieldPress}
@@ -466,7 +545,7 @@ const PerpsProOrderForm = ({
               twClassName="w-full flex-row-reverse justify-between"
             />
           </Box>
-          {!reduceOnly ? (
+          {showsTpSl ? (
             <TPSLRow
               label={strings('perps.pro_order_form.tpsl')}
               onPress={onTPSLPress}
@@ -495,9 +574,8 @@ const PerpsProOrderForm = ({
       {Platform.OS === 'ios' ? (
         <>
           <KeyboardAccessory inputTestID={ids.SIZE_INPUT} />
-          {orderType === 'limit' ? (
-            <KeyboardAccessory inputTestID={ids.LIMIT_PRICE_INPUT} />
-          ) : null}
+          <KeyboardAccessory inputTestID={ids.TRIGGER_PRICE_INPUT} />
+          <KeyboardAccessory inputTestID={ids.LIMIT_PRICE_INPUT} />
         </>
       ) : null}
     </>
