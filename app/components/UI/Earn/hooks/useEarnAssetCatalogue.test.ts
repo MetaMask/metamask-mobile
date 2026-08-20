@@ -192,6 +192,7 @@ const refetchTrxApy = jest.fn();
 
 const mockSelectorValues = ({
   isMoneyAccountVisible = true,
+  isEarnEligible = true,
   isPooledStakingEnabled = true,
   isStablecoinLendingEnabled = true,
   isTrxStakingEnabled = false,
@@ -202,6 +203,7 @@ const mockSelectorValues = ({
   relayFixedSpread = EMPTY_RELAY_FIXED_SPREAD_CONFIG,
 }: {
   isMoneyAccountVisible?: boolean;
+  isEarnEligible?: boolean;
   isPooledStakingEnabled?: boolean;
   isStablecoinLendingEnabled?: boolean;
   isTrxStakingEnabled?: boolean;
@@ -227,7 +229,7 @@ const mockSelectorValues = ({
           ...earnTokens.map(earnTokenToAsset),
           ...earnOutputTokens.map(earnTokenToAsset),
         ],
-        isEarnEligible: true,
+        isEarnEligible,
         isPooledStakingEnabled,
         isStablecoinLendingEnabled,
         isTrxStakingEnabled,
@@ -374,6 +376,52 @@ describe('useEarnAssetCatalogue', () => {
     });
   });
 
+  it('keeps Money funding while Earn strategies are ineligible', () => {
+    mockSelectorValues({ isEarnEligible: false });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    expect(result.current.assets).toHaveLength(1);
+    expect(result.current.assets[0].experiences).toEqual([
+      expect.objectContaining({ type: 'MONEY_ACCOUNT_DEPOSIT' }),
+    ]);
+  });
+
+  it('omits Money funding when the Money account is hidden', () => {
+    mockSelectorValues({ isMoneyAccountVisible: false });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    expect(
+      result.current.assets.some(({ experiences }) =>
+        experiences.some(({ type }) => type === 'MONEY_ACCOUNT_DEPOSIT'),
+      ),
+    ).toBe(false);
+  });
+
+  it('reports Money assets that cannot be converted to CAIP-19', () => {
+    const unresolvedMoneyAsset = {
+      ...moneyToken,
+      address: '0x0000000000000000000000000000000000000000',
+      assetId: '0x0000000000000000000000000000000000000000',
+      chainId: '0x999',
+      isNative: true,
+    } as MoneyDepositAsset;
+    mockFormatAddressToAssetId.mockReturnValue(undefined);
+    mockSelectorValues({ moneyDepositAssets: [unresolvedMoneyAsset] });
+
+    const { result } = renderHook(() => useEarnAssetCatalogue());
+
+    expect(result.current.hasError).toBe(true);
+    expect(result.current.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          message: 'Money deposit asset has no valid CAIP-19 identity',
+        }),
+      ]),
+    );
+  });
+
   it('omits unheld lending output tokens', () => {
     const { result } = renderHook(() => useEarnAssetCatalogue());
 
@@ -462,6 +510,7 @@ describe('useEarnAssetCatalogue', () => {
       kind: 'discovery',
       assetId: ETH_ASSET_ID,
       metadata: {
+        symbol: 'ETH',
         ticker: 'ETH',
       },
     });
@@ -744,5 +793,7 @@ describe('useEarnAssetCatalogue', () => {
     const refreshPromise = act(async () => result.current.refresh());
 
     await expect(refreshPromise).rejects.toThrow('Lending unavailable');
+    expect(refreshLendingMetadata).toHaveBeenCalledTimes(1);
+    expect(refetchMoneyApy).toHaveBeenCalledTimes(1);
   });
 });

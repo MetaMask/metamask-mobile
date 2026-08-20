@@ -78,6 +78,29 @@ describe('Earn asset adapters', () => {
     });
   });
 
+  it('does not mark native ETH on another EVM chain as mainnet ETH', () => {
+    const ethAsset = {
+      ...createWalletAsset(),
+      assetId: '0x0000000000000000000000000000000000000000',
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0xa4b1',
+      decimals: 18,
+      name: 'Ethereum',
+      symbol: 'ETH',
+      isNative: true,
+    } as Asset;
+    const asset = createHeldEarnAsset(
+      ethAsset,
+      'eip155:42161/slip44:60' as EarnAssetId,
+      [],
+    );
+
+    expect(earnAssetToToken(asset)).toMatchObject({
+      isETH: false,
+      isStaked: false,
+    });
+  });
+
   it('keeps discovery metadata separate from wallet asset state', () => {
     const asset = createDiscoveryEarnAsset(
       ASSET_ID,

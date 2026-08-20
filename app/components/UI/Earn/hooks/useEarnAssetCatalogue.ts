@@ -78,7 +78,7 @@ const createEthDiscoveryMetadata = (): EarnAssetMetadata => ({
   decimals: 18,
   image: '',
   name: 'Ethereum',
-  symbol: 'Ethereum',
+  symbol: 'ETH',
   ticker: 'ETH',
   logo: undefined,
   isETH: true,

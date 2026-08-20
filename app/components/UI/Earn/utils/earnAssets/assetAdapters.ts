@@ -1,6 +1,7 @@
 import type { Asset } from '@metamask/assets-controllers';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { isCaipAssetType, type CaipAssetType, type Hex } from '@metamask/utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import BigNumber from 'bignumber.js';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
 import { moneyFormatFiat } from '../../../Money/utils/moneyFormatFiat';
@@ -117,6 +118,7 @@ export const getEarnAssetMetadata = (
     isStaked: false,
     isETH:
       asset.accountType.startsWith('eip155') &&
+      asset.chainId === CHAIN_IDS.MAINNET &&
       asset.isNative &&
       asset.symbol === 'ETH',
   };

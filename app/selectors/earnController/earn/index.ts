@@ -530,7 +530,7 @@ const selectEarnTokens = createDeepEqualSelector(
   },
 );
 
-export const selectEarnAssetCatalogueInputs = createDeepEqualSelector(
+export const selectEarnAssetCatalogueInputs = createSelector(
   [
     selectEarnTokens,
     selectAllLendingMarkets,
