@@ -402,7 +402,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2, 3, 4, 5]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -410,7 +410,7 @@ jobs:
       platform: android
       test_suite_tag: SmokeNetworkExpansion
       split_number: ${{ matrix.split }}
-      total_splits: 5
+      total_splits: 2
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}

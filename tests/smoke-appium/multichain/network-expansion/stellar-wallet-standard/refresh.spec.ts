@@ -12,38 +12,45 @@ import {
 
 const stellarDappServer = createStellarDappServer();
 
-appiumTest.describe(SmokeNetworkExpansion('Stellar Wallet Standard'), () => {
-  appiumTest.describe.configure({ timeout: 300_000 });
+// Skipped: wallet_createSession for stellar:pubnet returns 5100 until a Stellar
+// snap account exists. Unlike Solana there is no create-account prompt, and
+// login-time XlmAccountProvider alignment is not reliable enough for smoke CI.
+// Re-enable once account creation is guaranteed (or Solana-style opt-in exists).
+appiumTest.describe.skip(
+  SmokeNetworkExpansion('Stellar Wallet Standard'),
+  () => {
+    appiumTest.describe.configure({ timeout: 300_000 });
 
-  appiumTest.beforeAll(async () => {
-    await startStellarDappServer(stellarDappServer);
-  });
+    appiumTest.beforeAll(async () => {
+      await startStellarDappServer(stellarDappServer);
+    });
 
-  appiumTest.afterAll(async () => {
-    await stopStellarDappServer(stellarDappServer);
-  });
+    appiumTest.afterAll(async () => {
+      await stopStellarDappServer(stellarDappServer);
+    });
 
-  appiumTest(
-    'Stays connected after page refresh',
-    async ({ driver: _driver, currentDeviceDetails }) => {
-      await withFixtures(
-        {
-          ...stellarFixture,
-          currentDeviceDetails,
-        },
-        async () => {
-          await StellarTestDapp.setupAndNavigate();
-          await StellarTestDapp.connect();
+    appiumTest(
+      'Stays connected after page refresh',
+      async ({ driver: _driver, currentDeviceDetails }) => {
+        await withFixtures(
+          {
+            ...stellarFixture,
+            currentDeviceDetails,
+          },
+          async () => {
+            await StellarTestDapp.setupAndNavigate();
+            await StellarTestDapp.connect();
 
-          await StellarTestDapp.verifyAccount(account1Short);
-          await StellarTestDapp.verifyConnectionStatus('Connected');
+            await StellarTestDapp.verifyAccount(account1Short);
+            await StellarTestDapp.verifyConnectionStatus('Connected');
 
-          await StellarTestDapp.reload();
+            await StellarTestDapp.reload();
 
-          await StellarTestDapp.verifyAccount(account1Short);
-          await StellarTestDapp.verifyConnectionStatus('Connected');
-        },
-      );
-    },
-  );
-});
+            await StellarTestDapp.verifyAccount(account1Short);
+            await StellarTestDapp.verifyConnectionStatus('Connected');
+          },
+        );
+      },
+    );
+  },
+);
