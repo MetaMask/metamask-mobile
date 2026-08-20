@@ -9,9 +9,16 @@ import {
 import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
 import PerpsProOrderForm from './PerpsProOrderForm';
 import type { PerpsProOrderFormProps } from './PerpsProOrderForm.types';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../../../util/haptics';
 
 jest.mock('../../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
+
+jest.mock('../../../../../../../util/haptics');
 
 const host = (name: string) => name as unknown as React.ComponentType<unknown>;
 
@@ -74,6 +81,11 @@ const renderForm = (overrides: Partial<PerpsProOrderFormProps> = {}) =>
   render(<PerpsProOrderForm {...createProps(overrides)} />);
 
 describe('PerpsProOrderForm', () => {
+  beforeEach(() => {
+    jest.mocked(playImpact).mockClear();
+    jest.mocked(playSelection).mockClear();
+  });
+
   afterEach(() => {
     jest.restoreAllMocks();
   });
@@ -322,6 +334,14 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.AVAILABLE_BALANCE));
 
       expect(onAddFundsPress).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    });
+
+    it('does not play Add funds haptics when the action is disabled', () => {
+      renderForm({ onAddFundsPress: undefined });
+
+      expect(screen.getByTestId(ids.ADD_FUNDS_BUTTON)).toBeDisabled();
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     const sizeAccessoryID = getPerpsProInputAccessoryID(ids.SIZE_INPUT);
@@ -483,6 +503,17 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
 
       expect(onDirectionChange).toHaveBeenCalledWith('short');
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not play a haptic when the current direction is re-selected', () => {
+      const onDirectionChange = jest.fn();
+      renderForm({ onDirectionChange, direction: 'long' });
+
+      fireEvent.press(screen.getByTestId(ids.DIRECTION_LONG));
+
+      expect(onDirectionChange).not.toHaveBeenCalled();
+      expect(playSelection).not.toHaveBeenCalled();
     });
 
     it('calls onOrderTypeButtonPress when order type is pressed', () => {
@@ -492,6 +523,7 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
 
       expect(onOrderTypeButtonPress).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
     });
 
     it('exposes Reduce only with checked checkbox semantics', () => {
@@ -514,6 +546,22 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.REDUCE_ONLY));
 
       expect(onReduceOnlyChange).toHaveBeenCalledWith(true);
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('plays selection when the size denomination toggle is pressed', () => {
+      const onToggleDenomination = jest.fn();
+      renderForm({
+        sizeInput: createSizeInput({
+          canToggleDenomination: true,
+          onToggleDenomination,
+        }),
+      });
+
+      fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+
+      expect(onToggleDenomination).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
     });
 
     it('hides the TP/SL row when Reduce Only is on', () => {
@@ -550,7 +598,17 @@ describe('PerpsProOrderForm', () => {
       expect(onPlaceOrderPress).toHaveBeenCalledTimes(1);
     });
 
-    it('calls onSlippagePress when the slippage value is pressed', () => {
+    it('plays selection when leverage is opened', () => {
+      const onLeveragePress = jest.fn();
+      renderForm({ onLeveragePress });
+
+      fireEvent.press(screen.getByTestId(ids.LEVERAGE_BUTTON));
+
+      expect(onLeveragePress).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('plays selection when the slippage summary value opens the sheet', () => {
       const onSlippagePress = jest.fn();
       renderForm({
         summary: {
@@ -564,6 +622,21 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON));
 
       expect(onSlippagePress).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps haptics silent when the slippage summary action is disabled', () => {
+      renderForm({
+        summary: {
+          margin: '--',
+          liquidationPrice: '--',
+          slippage: '0.50% / 1%',
+        },
+      });
+
+      fireEvent.press(screen.getByTestId(ids.SUMMARY_SLIPPAGE_BUTTON));
+
+      expect(playSelection).not.toHaveBeenCalled();
     });
 
     it('disables Place Order when requested', () => {
@@ -656,6 +729,7 @@ describe('PerpsProOrderForm', () => {
       );
 
       expect(onExpandOrderBook).toHaveBeenCalledTimes(1);
+      expect(playSelection).toHaveBeenCalledTimes(1);
     });
   });
 

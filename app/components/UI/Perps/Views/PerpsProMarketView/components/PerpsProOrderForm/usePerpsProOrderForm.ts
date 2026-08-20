@@ -27,6 +27,7 @@ import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { selectSelectedInternalAccountAddress } from '../../../../../../../selectors/accountsController';
+import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
 import { useVipTier } from '../../../../../Rewards/hooks/useVipTier';
 import { useComplianceGate } from '../../../../../Compliance';
 import type { PerpsTooltipContentKey } from '../../../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
@@ -338,6 +339,7 @@ export const usePerpsProOrderForm = ({
 
   const { isInitialized } = usePerpsConnection();
   const { track } = usePerpsEventTracking();
+  const { playImpact } = useHaptics();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const { updatePositionTPSL } = usePerpsTrading();
 
@@ -903,6 +905,7 @@ export const usePerpsProOrderForm = ({
         }),
       });
 
+      playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
       showToast(
         PerpsToastOptions.orderManagement[
           getOrderManagementToastKey(orderForm.type)
@@ -1010,6 +1013,7 @@ export const usePerpsProOrderForm = ({
     sourceSection,
     chartLibrary,
     vipTier,
+    playImpact,
     executeOrder,
     updateOrderForm,
     setLimitPrice,
@@ -1026,6 +1030,7 @@ export const usePerpsProOrderForm = ({
       showToast(PerpsToastOptions.formValidation.orderForm.limitPriceRequired);
       return;
     }
+    playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
     navigation.navigate(Routes.PERPS.TPSL, {
       asset: orderForm.asset,
       currentPrice: assetData.price,
@@ -1037,6 +1042,7 @@ export const usePerpsProOrderForm = ({
       initialStopLossPrice: orderForm.stopLossPrice,
       amount: effectiveUsdAmount,
       szDecimals,
+      enableHaptics: true,
       onConfirm: async (
         _position?: Position,
         takeProfitPrice?: string,
@@ -1060,6 +1066,7 @@ export const usePerpsProOrderForm = ({
     assetData.price,
     showToast,
     navigation,
+    playImpact,
     setTakeProfitPrice,
     setStopLossPrice,
     szDecimals,

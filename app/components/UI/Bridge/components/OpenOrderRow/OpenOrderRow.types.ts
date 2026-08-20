@@ -1,8 +1,5 @@
 import type { ReactNode } from 'react';
-import type {
-  FontWeight,
-  TextColor,
-} from '@metamask/design-system-react-native';
+import type { TextColor } from '@metamask/design-system-react-native';
 import type { BridgeToken } from '../../types';
 
 export interface OpenOrderRowProps {
@@ -43,10 +40,6 @@ export interface OpenOrderRowProps {
    * Color for `subtitle`. Defaults to `TextAlternative`.
    */
   subtitleColor?: TextColor;
-  /**
-   * Font weight for `subtitle`. Defaults to Regular.
-   */
-  subtitleFontWeight?: FontWeight;
   /**
    * Press handler. When omitted the row is not interactive.
    */
