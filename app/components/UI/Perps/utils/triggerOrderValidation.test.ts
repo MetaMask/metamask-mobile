@@ -236,38 +236,30 @@ describe('getLimitPriceCrossingWarning', () => {
     expect(warning).toBe('perps.order.validation.limit_price_above_warning');
   });
 
-  it('uses the normal limit warning for a short stop-limit below mid', () => {
-    const warning = getLimitPriceCrossingWarning({
-      orderType: 'stop_limit',
-      direction: 'short',
+  it.each([
+    {
+      orderType: 'stop_limit' as const,
+      direction: 'short' as const,
       limitPrice: '2400',
-      midPrice: 2500,
-    });
-
-    expect(warning).toBe('perps.order.validation.limit_price_below_warning');
-  });
-
-  it('uses the normal limit warning for a long take-limit above mid', () => {
-    const warning = getLimitPriceCrossingWarning({
-      orderType: 'take_profit_limit',
-      direction: 'long',
+    },
+    {
+      orderType: 'take_profit_limit' as const,
+      direction: 'long' as const,
       limitPrice: '2600',
-      midPrice: 2500,
-    });
-
-    expect(warning).toBe('perps.order.validation.limit_price_above_warning');
-  });
-
-  it('stays silent when a trigger-limit equals mid', () => {
-    expect(
-      getLimitPriceCrossingWarning({
-        orderType: 'stop_limit',
-        direction: 'long',
-        limitPrice: '2500',
+    },
+  ])(
+    'does not warn for dormant $orderType orders crossing placement-time mid',
+    ({ orderType, direction, limitPrice }) => {
+      const warning = getLimitPriceCrossingWarning({
+        orderType,
+        direction,
+        limitPrice,
         midPrice: 2500,
-      }),
-    ).toBeUndefined();
-  });
+      });
+
+      expect(warning).toBeUndefined();
+    },
+  );
 
   it('returns undefined when the limit does not cross mid', () => {
     expect(

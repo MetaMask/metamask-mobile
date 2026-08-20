@@ -1295,20 +1295,26 @@ describe('usePerpsProOrderForm', () => {
 
     it.each([
       {
+        orderType: 'limit' as const,
+        direction: 'long' as const,
+        triggerPrice: '',
+        limitPrice: '92000',
+        expectedMessage:
+          'Limit price is above current price. Your order may execute as a market order.',
+      },
+      {
         orderType: 'stop_limit' as const,
         direction: 'long' as const,
         triggerPrice: '91000',
         limitPrice: '92000',
-        expectedMessage:
-          'Limit price is above current price. Your order may execute as a market order.',
+        expectedMessage: undefined,
       },
       {
         orderType: 'take_profit_limit' as const,
         direction: 'short' as const,
         triggerPrice: '91000',
         limitPrice: '89000',
-        expectedMessage:
-          'Limit price is below current price. Your order may execute as a market order.',
+        expectedMessage: undefined,
       },
       {
         orderType: 'take_profit_limit' as const,
@@ -1318,7 +1324,7 @@ describe('usePerpsProOrderForm', () => {
         expectedMessage: undefined,
       },
     ])(
-      'uses the normal limit marketability warning for $orderType $direction',
+      'handles marketability warnings for $orderType orders',
       ({ orderType, direction, triggerPrice, limitPrice, expectedMessage }) => {
         mockOrderForm.type = orderType;
         mockOrderForm.direction = direction;

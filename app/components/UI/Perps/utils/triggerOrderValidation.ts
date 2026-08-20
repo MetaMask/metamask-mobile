@@ -277,8 +277,10 @@ export const getOrderFormFieldIssueMessage = (
     : getLimitPriceValidationMessage(issue.issue);
 
 /**
- * Non-blocking warning when a limit price would cross the book and execute as a
- * market order rather than resting. Equality is not a warning.
+ * Non-blocking warning when a plain limit price would cross the book and
+ * execute as a market order rather than resting. Trigger-limit orders remain
+ * dormant until their trigger fires, so their placement-time mid price is not
+ * a meaningful marketability reference.
  *
  * @param input - Order type, side, typed limit, and live mid.
  * @returns Localized warning copy, or `undefined`.
@@ -290,7 +292,7 @@ export const getLimitPriceCrossingWarning = ({
   midPrice,
   szDecimals,
 }: LimitPriceCrossingWarningInput): string | undefined => {
-  if (!isLimitExecutionOrderType(orderType)) {
+  if (orderType !== 'limit') {
     return undefined;
   }
 
