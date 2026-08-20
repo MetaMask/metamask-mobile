@@ -281,6 +281,9 @@ describe('PredictFeedScreen', () => {
     fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.tab('games')));
 
     expect(
+      view.queryByTestId(PredictFeedScreenTestIds.LOADING),
+    ).not.toBeOnTheScreen();
+    expect(
       await view.findByTestId(
         PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
       ),

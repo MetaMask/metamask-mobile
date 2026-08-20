@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -33,6 +33,9 @@ import { FeedScreenTabs } from './internal/FeedScreenTabs';
 import { PredictFeedScreenTestIds } from './PredictFeedScreen.testIds';
 
 const FEED_PAGE_LIMIT = 20;
+const FEED_PARAMS = { limit: FEED_PAGE_LIMIT };
+
+const getEventKey = (event: PredictEvent) => `${event.venueId}-${event.id}`;
 
 interface PredictFeedContentProps {
   venueId: PredictVenueId;
@@ -42,7 +45,16 @@ interface PredictFeedContentProps {
   onOpenEvent: (event: PredictEvent) => void;
 }
 
+interface FeedEventRowProps {
+  event: PredictEvent;
+  onOpenEvent: (event: PredictEvent) => void;
+}
+
 const EventSeparator = () => <Box twClassName="h-3" />;
+
+const FeedEventRow = React.memo(({ event, onOpenEvent }: FeedEventRowProps) => (
+  <PredictEventCard event={event} onPress={() => onOpenEvent(event)} />
+));
 
 const FeedLoading = () => (
   <Box testID={PredictFeedScreenTestIds.LOADING} twClassName="gap-3 px-3 pt-2">
@@ -75,6 +87,8 @@ const PredictFeedContent = ({
   onOpenEvent,
 }: PredictFeedContentProps) => {
   const tw = useTailwind();
+  const listRef = useRef<FlatList<PredictEvent>>(null);
+  const listContentContainerStyle = useMemo(() => tw.style('px-3 pb-6'), [tw]);
   const defaultTab = getFeedScreenTab(definition, selectedTabId);
   const [activeTabId, setActiveTabId] = useState(defaultTab.id);
   const activeTab = getFeedScreenTab(definition, activeTabId);
@@ -86,7 +100,7 @@ const PredictFeedContent = ({
     isFetchingNextPage,
     isLoading,
     refetch,
-  } = useFeed(venueId, activeTab.feedId, { limit: FEED_PAGE_LIMIT });
+  } = useFeed(venueId, activeTab.feedId, FEED_PARAMS);
   const events = useMemo(
     () => data?.pages.flatMap((page) => page.events) ?? [],
     [data],
@@ -114,9 +128,21 @@ const PredictFeedContent = ({
     refetch().catch(() => undefined);
   }, [refetch]);
 
+  const handleTabSelect = useCallback(
+    (tabId: string) => {
+      if (tabId === activeTabId) {
+        return;
+      }
+
+      listRef.current?.scrollToOffset({ offset: 0, animated: false });
+      setActiveTabId(tabId);
+    },
+    [activeTabId],
+  );
+
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<PredictEvent>) => (
-      <PredictEventCard event={item} onPress={() => onOpenEvent(item)} />
+      <FeedEventRow event={item} onOpenEvent={onOpenEvent} />
     ),
     [onOpenEvent],
   );
@@ -174,15 +200,16 @@ const PredictFeedContent = ({
   } else {
     feedContent = (
       <FlatList
-        key={activeTab.id}
+        ref={listRef}
         testID={PredictFeedScreenTestIds.LIST}
         data={events}
+        extraData={activeTab.id}
         renderItem={renderItem}
-        keyExtractor={(event) => `${event.venueId}-${event.id}`}
+        keyExtractor={getEventKey}
         ItemSeparatorComponent={EventSeparator}
         ListEmptyComponent={renderEmpty}
         ListFooterComponent={renderFooter}
-        contentContainerStyle={tw.style('px-3 pb-6')}
+        contentContainerStyle={listContentContainerStyle}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.6}
         showsVerticalScrollIndicator={false}
@@ -209,7 +236,7 @@ const PredictFeedContent = ({
         <FeedScreenTabs
           tabs={definition.tabs}
           selectedTabId={activeTab.id}
-          onTabSelect={setActiveTabId}
+          onTabSelect={handleTabSelect}
         />
         {feedContent}
       </Box>
