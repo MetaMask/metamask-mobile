@@ -31,7 +31,7 @@ import type { RootState } from '../../../../../reducers';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import {
   selectAllowedChainRanking,
-  selectTokenSelectorNetworkFilter,
+  selectOrdersNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import { OrdersEmptyState } from './OrdersEmptyState';
 import { OrdersTabsSelectorsIDs } from './OrdersTabs.testIds';
@@ -63,7 +63,7 @@ function OrdersNetworkFilter({
   enabledChainIds?: CaipChainId[];
 }) {
   const navigation = useNavigation<AppNavigationProp>();
-  const selectedChainId = useSelector(selectTokenSelectorNetworkFilter);
+  const selectedChainId = useSelector(selectOrdersNetworkFilter);
   const chainRanking = useSelector((state: RootState) =>
     selectAllowedChainRanking(state, enabledChainIds),
   );
@@ -76,7 +76,7 @@ function OrdersNetworkFilter({
   const handlePress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-      params: { enabledChainIds },
+      params: { enabledChainIds, filterTarget: 'orders' },
     });
   }, [enabledChainIds, navigation]);
 
@@ -128,7 +128,7 @@ function OrdersTabPanel<T>({
   emptyDescription: string;
 }) {
   const tw = useTailwind();
-  const selectedChainId = useSelector(selectTokenSelectorNetworkFilter);
+  const selectedChainId = useSelector(selectOrdersNetworkFilter);
 
   const filteredItems = useMemo(
     () =>
@@ -211,17 +211,15 @@ function OrdersTabs<TOpen, THistory>({
         testID={OrdersTabsSelectorsIDs.TABS_BAR}
       />
       <Box twClassName="mx-4 flex-1 gap-4 py-4">
+        <OrdersNetworkFilter enabledChainIds={enabledChainIds} />
         {selectedTab === OrdersTabKey.OpenOrders ? (
-          <>
-            <OrdersNetworkFilter enabledChainIds={enabledChainIds} />
-            <OrdersTabPanel
-              items={openOrders.items}
-              renderItem={openOrders.renderItem}
-              keyExtractor={openOrders.keyExtractor}
-              getItemChainId={openOrders.getItemChainId}
-              emptyDescription={strings('bridge.orders.empty.open_orders')}
-            />
-          </>
+          <OrdersTabPanel
+            items={openOrders.items}
+            renderItem={openOrders.renderItem}
+            keyExtractor={openOrders.keyExtractor}
+            getItemChainId={openOrders.getItemChainId}
+            emptyDescription={strings('bridge.orders.empty.open_orders')}
+          />
         ) : (
           <OrdersTabPanel
             items={history.items}
