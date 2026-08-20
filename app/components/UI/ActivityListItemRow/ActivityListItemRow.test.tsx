@@ -1924,7 +1924,7 @@ describe('ActivityListItemRow — amount display', () => {
     const solanaChainId = SolScope.Mainnet;
     const usdcAssetId = `${solanaChainId}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`;
     jest.mocked(selectMultichainAssetsRates).mockReturnValue({
-      [usdcAssetId]: { rate: '1' },
+      [usdcAssetId]: { rate: '1', conversionTime: 0 },
     } as ReturnType<typeof selectMultichainAssetsRates>);
 
     const item = makeItem({

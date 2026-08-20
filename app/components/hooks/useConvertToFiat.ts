@@ -1,5 +1,10 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import {
+  MUSD_DECIMALS,
+  MUSD_TOKEN,
+  MUSD_TOKEN_ADDRESS_BY_CHAIN,
+} from '@metamask/money-account-utils';
 import { isCaipAssetType, type Hex } from '@metamask/utils';
 import type { RootState } from '../../reducers';
 import {
@@ -17,11 +22,6 @@ import {
 import type { MarketRateLookupToken } from '../../util/activity-adapters/fiat';
 import { getMaybeHexChainId } from '../../util/bridge';
 import { balanceToFiatNumber } from '../../util/number/bigint';
-import {
-  MUSD_DECIMALS,
-  MUSD_TOKEN,
-  MUSD_TOKEN_ADDRESS_BY_CHAIN,
-} from '@metamask/money-account-utils';
 
 function getPositiveRate(value: unknown): number | undefined {
   const rate = Number(value);
