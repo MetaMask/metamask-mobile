@@ -1690,8 +1690,10 @@ describe('Login', () => {
 
     it('navigates to the delete-wallet modal once when reset wallet is pressed twice', async () => {
       mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
-      let resolveBackup: (value: { success: boolean; vault: string }) => void =
-        () => undefined;
+      let resolveBackup: (value: {
+        success: boolean;
+        vault: string;
+      }) => void = () => undefined;
       mockGetVaultFromBackup.mockImplementationOnce(
         () =>
           new Promise((resolve) => {
