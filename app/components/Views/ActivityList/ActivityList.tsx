@@ -1204,8 +1204,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       [tabBarHeight, bottomInset],
     );
 
-    const isPerpsLoading = isPerpsEnabled && perpsSource.isLoading;
-    const isPredictLoading = isPredictEnabled && predictSource.isLoading;
+    const isPerpsLoading =
+      shouldMountPerpsSource &&
+      (!hasPerpsSourceReported || perpsSource.isLoading);
+    const isPredictLoading =
+      shouldMountPredictSource &&
+      (!hasPredictSourceReported || predictSource.isLoading);
     const isRelevantActivityLoading = (() => {
       switch (typeFilter) {
         case ActivityTypeFilter.Perps:
