@@ -33,6 +33,7 @@ import {
   selectIsNonEvmNonEvmBridge,
   selectBridgeBalanceRefreshKey,
   selectBridgeControllerState,
+  selectQuoteStreamComplete,
   selectSlippage,
   selectIsSlippageUserOverride,
 } from '../../../../../../core/redux/slices/bridge';
@@ -287,6 +288,7 @@ const BridgeMarketViewContent = ({
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
+  const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const slippage = useSelector(selectSlippage);
   const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
 
