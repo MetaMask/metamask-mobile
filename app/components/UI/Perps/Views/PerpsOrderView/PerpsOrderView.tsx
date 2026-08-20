@@ -333,7 +333,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     handlePercentageAmount,
     handleMaxAmount,
     maxPossibleAmount,
-    effectiveMaxSlippageBps,
     balanceForValidation: spendableBalance,
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
@@ -1507,7 +1506,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           effectivePrice,
           leverage: orderForm.leverage,
           usdAmount: orderForm.amount,
-          maxSlippageBps: effectiveMaxSlippageBps,
+          maxSlippageBps,
           limitPrice: orderForm.limitPrice,
           takeProfitPrice: orderForm.takeProfitPrice,
           stopLossPrice: orderForm.stopLossPrice,
@@ -1627,7 +1626,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       fromTokenDetails,
       maxSlippageBps,
       maxSlippageSource,
-      effectiveMaxSlippageBps,
       estimatedSlippageBps,
       exceedsMaxSlippage,
       vipTier,
