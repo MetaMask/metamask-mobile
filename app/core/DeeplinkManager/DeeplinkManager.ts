@@ -104,6 +104,7 @@ export class DeeplinkManager {
       source: 'parse',
       appStartType,
     });
+
     const result = await parseDeeplink({
       deeplinkManager: this,
       url,
@@ -119,6 +120,7 @@ export class DeeplinkManager {
     } else {
       cancelDeeplinkProcessedTrace({ reason: 'rejected' });
     }
+
     return handled;
   }
 
@@ -132,14 +134,12 @@ export class DeeplinkManager {
       appStartType?: DeeplinkPerfAppStartType;
     },
   ): Promise<DeeplinkResolveResult> {
-    // On success the span stays open past this return —
-    // executeStartupDeeplinkIntent ends it at the `pre_navigate` seam,
-    // after `intent.prepare()`.
     startDeeplinkProcessedTrace({
       url,
       source: 'resolve',
       appStartType,
     });
+
     const result = await parseDeeplink({
       deeplinkManager: this,
       url,
@@ -153,9 +153,11 @@ export class DeeplinkManager {
     }
 
     const intent = result && typeof result !== 'boolean' ? result : null;
+
     if (intent === null) {
       cancelDeeplinkProcessedTrace({ reason: 'unresolved' });
     }
+
     return intent;
   }
 

@@ -19,9 +19,8 @@ import {
 } from '../../Performance/unlockDeeplinkTraces';
 
 /**
- * When a startup `resolve` produces no intent (legacy handlers), Home resets
- * and the saga calls `parse`. Reuse the unlock-session `app_start_type` so
- * that leftover parse is not hardcoded warm or cold.
+ * When startup `resolve` yields no intent, Home resets and the saga `parse`s.
+ * Carry the unlock-session `app_start_type` onto that parse.
  */
 let nextParseIsUnlockSession = false;
 
@@ -104,7 +103,8 @@ export const navigateToPendingStartupDeeplink = async (): Promise<boolean> => {
   } catch (error) {
     cancelDeeplinkProcessedTrace({ reason: 'error' });
     cancelDeeplinkNavigatedTrace({ reason: 'error' });
-    clearUnlockDeeplinkAppStartType();
+    // Keep pending and the unlock-session app_start_type: Home will retry via
+    // parse, which still needs that type.
     Logger.error(
       error as Error,
       'DeeplinkManager: failed to navigate to pending startup deeplink',

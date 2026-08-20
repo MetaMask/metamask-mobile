@@ -209,6 +209,20 @@ describe('startupDeeplinkNavigation', () => {
     });
   });
 
+  it('keeps the unlock-session app start type after a throw for leftover parse', async () => {
+    rememberUnlockDeeplinkAppStartType('warm');
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
+    mockExecuteStartupDeeplinkIntent.mockRejectedValueOnce(
+      new Error('reset failed'),
+    );
+
+    await navigateToPendingStartupDeeplink();
+    retryPendingDeeplinkAfterDefaultNavigation();
+
+    expect(mockClearPendingDeeplink).not.toHaveBeenCalled();
+    expect(consumeNextParseAppStartType()).toBe('warm');
+  });
+
   it('re-dispatches deeplink handling after default navigation when pending remains', () => {
     AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/swap';
 
