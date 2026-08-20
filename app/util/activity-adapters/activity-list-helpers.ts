@@ -71,8 +71,7 @@ export function shouldPreferLocalActivityItem(
   apiItem: ActivityListItem,
 ): boolean {
   const localOutCategorizesApi =
-    apiItem.type !== localItem.type &&
-    localItem.type !== 'contractInteraction';
+    apiItem.type !== localItem.type && localItem.type !== 'contractInteraction';
 
   const localHasRicherSpendingCap =
     apiItem.type === localItem.type &&
