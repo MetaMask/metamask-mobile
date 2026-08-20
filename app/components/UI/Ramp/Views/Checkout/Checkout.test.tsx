@@ -243,6 +243,14 @@ jest.mock('@metamask/react-native-webview', () => {
   };
 });
 
+const mockGetRampCallbackBaseUrl = getRampCallbackBaseUrl as jest.Mock;
+const mockShouldStartLoadWithRequest = jest.requireMock(
+  '../../../../../util/browser',
+).shouldStartLoadWithRequest as jest.Mock;
+const mockUseRampSDK = jest.requireMock('../../Aggregator/sdk')
+  .useRampSDK as jest.Mock;
+const mockUuidV4 = jest.requireMock('uuid').v4 as jest.Mock;
+
 const mockUseParams = jest.requireMock(
   '../../../../../util/navigation/navUtils',
 ).useParams as jest.Mock;
@@ -275,6 +283,13 @@ describe('Checkout', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    capturedOnNavigationStateChange = undefined;
+    mockGetRampCallbackBaseUrl.mockReturnValue(
+      'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
+    );
+    mockShouldStartLoadWithRequest.mockReturnValue(true);
+    mockUseRampSDK.mockReturnValue(null);
+    mockUuidV4.mockReturnValue('mock-uuid-xyz');
     mockUseParams.mockReturnValue({
       url: 'https://provider.example.com/checkout',
       providerName: 'Test Provider',
@@ -297,6 +312,7 @@ describe('Checkout', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- jest mock
     const nav = require('@react-navigation/native');
     nav.useNavigation.mockReturnValue(mockNavigation);
+    mockNavigation.isFocused.mockReturnValue(true);
     mockNavigation.getParent.mockReset();
     mockHeadlessEntrySetOptions.mockReset();
     mockNavigation.getParent.mockImplementation(() => ({
@@ -305,6 +321,10 @@ describe('Checkout', () => {
         setOptions: mockHeadlessEntrySetOptions,
       }),
     }));
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
   describe('handleNavigationStateChange (callback flow)', () => {

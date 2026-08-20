@@ -102,6 +102,8 @@ const mockFiatOrdersModule = jest.requireMock(
 ) as {
   selectHasAgreedTransakNativePolicy: jest.Mock;
 };
+const mockUseRampAccountAddress = jest.requireMock('./useRampAccountAddress')
+  .default as jest.Mock;
 const mockDeviceIsAndroid = jest.requireMock('../../../../util/device')
   .isAndroid as jest.Mock;
 const mockLinkingOpenURL = jest.requireMock(
@@ -236,6 +238,11 @@ async function invoke(
 describe('useContinueWithQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseRampAccountAddress.mockReturnValue(
+      '0x1234567890123456789012345678901234567890',
+    );
+    mockDeviceIsAndroid.mockReturnValue(false);
+    mockLinkingOpenURL.mockResolvedValue(undefined);
     mockFiatOrdersModule.selectHasAgreedTransakNativePolicy.mockReturnValue(
       false,
     );
@@ -259,6 +266,10 @@ describe('useContinueWithQuote', () => {
     (useSelector as jest.Mock).mockImplementation((selector) =>
       typeof selector === 'function' ? selector() : undefined,
     );
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
   describe('continueWithQuote: native provider', () => {
