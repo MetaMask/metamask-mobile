@@ -13,42 +13,17 @@ jobs:
     if: github.event.pull_request.state == 'open' && github.event.label.name == 'skip-sonar-cloud'
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       actions: write
     steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts/rerun-ci-on-skip-sonar-cloud.sh
       - name: Rerun failed jobs on latest CI workflow
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           HEAD_REF: ${{ github.head_ref }}
-        run: |
-          set -euo pipefail
-
-          echo "Looking for latest ci.yml run on $HEAD_REF..."
-          RUN_JSON=$(gh run list \
-            --repo "$REPO" \
-            --branch "$HEAD_REF" \
-            --workflow "ci.yml" \
-            --limit 1 \
-            --json databaseId,status)
-
-          RUN_ID=$(jq -r '.[0].databaseId // empty' <<< "$RUN_JSON")
-          STATUS=$(jq -r '.[0].status // empty' <<< "$RUN_JSON")
-
-          if [[ -z "$RUN_ID" ]]; then
-            echo "No CI workflow run found for branch $HEAD_REF"
-            exit 0
-          fi
-
-          echo "Latest run: $RUN_ID (status=$STATUS)"
-
-          if [[ "$STATUS" == "in_progress" || "$STATUS" == "queued" || "$STATUS" == "pending" || "$STATUS" == "waiting" ]]; then
-            echo "CI is still running; the quality-gate job will read skip-sonar-cloud live."
-            exit 0
-          fi
-
-          echo "Re-running failed jobs on $RUN_ID..."
-          if gh run rerun "$RUN_ID" --repo "$REPO" --failed; then
-            echo "Failed jobs re-triggered successfully"
-          else
-            echo "Rerun not possible (run may not be in a retriable state or had no failed jobs)"
-          fi
+        run: bash .github/scripts/rerun-ci-on-skip-sonar-cloud.sh
