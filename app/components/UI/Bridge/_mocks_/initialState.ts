@@ -831,6 +831,7 @@ export const initialState = {
     bridgeViewMode: undefined,
     isSelectingRecipient: false,
     isSelectingToken: false,
+    tokenSelectorNetworkFilter: undefined,
     recurring: initialRecurringState,
   },
 };

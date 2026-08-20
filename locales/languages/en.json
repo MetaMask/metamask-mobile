@@ -2413,13 +2413,17 @@
     },
     "close_all_modal": {
       "title": "Close all positions",
-      "description": "We'll close all your open positions at current market price.",
+      "title_filtered": "Close positions",
+      "description": {
+        "one": "We'll close your open position at current market price.",
+        "other": "We'll close your {{count}} open positions at current market price."
+      },
       "margin": "Margin",
       "includes_pnl": "includes {{pnlAmount}}",
       "fees": "Fees",
       "you_will_receive": "You'll receive",
       "keep_positions": "Keep positions",
-      "close_all": "Close all",
+      "close_count": "Close ({{count}})",
       "closing": "Closing...",
       "success_title": "Positions closed",
       "success_message": "Successfully closed {{count}} position(s)",
@@ -8501,6 +8505,16 @@
         "history": "Order history appears here"
       }
     },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price",
+      "not_enough_gas": "Not enough gas",
+      "filled": "Filled",
+      "filled_at": "Filled at {{date}}",
+      "expired": "Expired",
+      "expired_after": "Expired after {{duration}}"
+    },
     "recurring": {
       "every": "Every",
       "repeat": "Repeat",
@@ -8517,7 +8531,11 @@
         "hour": "Hour",
         "day": "Day",
         "week": "Week"
-      }
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled",
+      "filled": "Filled"
     },
     "continue": "Continue",
     "confirm_bridge": "Bridge",
@@ -10484,8 +10502,8 @@
       "you_received": "You received",
       "token_received": "Token received",
       "money_account": "Money account",
-      "perps_account": "Perps Account 1",
-      "predictions_account": "Predictions Account 1",
+      "perps_account": "Account 1 Perps",
+      "predictions_account": "Account 1 Predictions",
       "steps_completed": "Steps ({{count}} completed)",
       "summary": "Summary"
     },

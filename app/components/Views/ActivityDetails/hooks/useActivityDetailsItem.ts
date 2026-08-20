@@ -26,11 +26,8 @@ import {
  *
  * Mirrors the extension's `ui/pages/details/transaction-details.tsx` resolution:
  * a more-categorized API item takes precedence over a local item when the local
- * item is less-categorized than the API copy — either a generic
- * `contractInteraction` or a `swapIncomplete` (a swap whose destination token
- * could not be resolved on-device, which the API often resolves to a full
- * `swap`). This keeps the details page in sync with the list, which dedups
- * confirmed swaps to the API copy.
+ * item is less-categorized than the API copy — a generic
+ * `contractInteraction`. This keeps the details page in sync with the list.
  *
  * Local gasless/STX rows may temporarily change their displayed hash while the
  * meta `id` stays stable. Lookup therefore indexes local rows by meta id and
