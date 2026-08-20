@@ -91,12 +91,5 @@ describe('CancelSuccessStep', () => {
 
       expect(onDone).toHaveBeenCalledTimes(1);
     });
-
-    it('does not call onDone before it is pressed', () => {
-      const onDone = jest.fn();
-      renderStep(onDone);
-
-      expect(onDone).not.toHaveBeenCalled();
-    });
   });
 });

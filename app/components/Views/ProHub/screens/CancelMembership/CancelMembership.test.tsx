@@ -9,12 +9,19 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockSetOptions = jest.fn();
+const mockAddListener = jest.fn().mockReturnValue(jest.fn());
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+    useNavigation: () => ({
+      goBack: mockGoBack,
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+      addListener: mockAddListener,
+    }),
   };
 });
 
@@ -37,6 +44,10 @@ describe('CancelMembership', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders the container', () => {
     const { getByTestId } = renderScreen();
 
@@ -47,7 +58,9 @@ describe('CancelMembership', () => {
     const { getByTestId, queryByTestId } = renderScreen();
 
     expect(getByTestId(CancelMembershipTestIds.TITLE)).toBeOnTheScreen();
-    expect(queryByTestId(CancelMembershipTestIds.SUCCESS_TITLE)).toBeNull();
+    expect(
+      queryByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
+    ).not.toBeOnTheScreen();
   });
 
   it('calls goBack when the back button on the survey step is pressed', () => {
@@ -74,12 +87,12 @@ describe('CancelMembership', () => {
     expect(
       getByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
     ).toBeOnTheScreen();
-    expect(queryByTestId(CancelMembershipTestIds.TITLE)).toBeNull();
+    expect(queryByTestId(CancelMembershipTestIds.TITLE)).not.toBeOnTheScreen();
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('navigates back to the existing ProHub root (popping Membership/CancelMembership) when done is pressed on the success step', () => {
+  it('navigates back to the existing ProHub root when done is pressed on the success step', () => {
     const { getByTestId } = renderScreen();
 
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
@@ -87,6 +100,51 @@ describe('CancelMembership', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
       source: 'pro_subscription_cancellation_success',
+    });
+  });
+
+  // ── Gesture / navigation interception ─────────────────────────────────────
+
+  describe('gesture and navigation interception', () => {
+    it('registers a beforeRemove listener on the success step', () => {
+      const { getByTestId } = renderScreen();
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      expect(mockAddListener).toHaveBeenCalledWith(
+        'beforeRemove',
+        expect.any(Function),
+      );
+    });
+
+    it('beforeRemove handler prevents default and calls navigate to ProHub root', () => {
+      let beforeRemoveHandler:
+        | ((e: { preventDefault: () => void }) => void)
+        | undefined;
+      mockAddListener.mockImplementation(
+        (
+          event: string,
+          handler: (e: { preventDefault: () => void }) => void,
+        ) => {
+          if (event === 'beforeRemove') {
+            beforeRemoveHandler = handler;
+          }
+          return jest.fn();
+        },
+      );
+
+      const { getByTestId } = renderScreen();
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      expect(beforeRemoveHandler).toBeDefined();
+
+      const mockPreventDefault = jest.fn();
+      beforeRemoveHandler?.({ preventDefault: mockPreventDefault });
+
+      expect(mockPreventDefault).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+        source: 'pro_subscription_cancellation_success',
+      });
     });
   });
 
@@ -99,8 +157,6 @@ describe('CancelMembership', () => {
       renderScreen();
 
       expect(addSpy).not.toHaveBeenCalled();
-
-      addSpy.mockRestore();
     });
 
     it('registers a BackHandler listener once the success step is reached', () => {
@@ -113,8 +169,6 @@ describe('CancelMembership', () => {
         'hardwareBackPress',
         expect.any(Function),
       );
-
-      addSpy.mockRestore();
     });
 
     it('behaves like pressing Done (navigates to ProHub root) instead of popping the screen', () => {
@@ -137,8 +191,6 @@ describe('CancelMembership', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
         source: 'pro_subscription_cancellation_success',
       });
-
-      jest.restoreAllMocks();
     });
 
     it('removes the BackHandler listener on unmount so it cannot leak into other screens', () => {
@@ -152,8 +204,6 @@ describe('CancelMembership', () => {
       unmount();
 
       expect(mockRemove).toHaveBeenCalled();
-
-      jest.restoreAllMocks();
     });
   });
 });

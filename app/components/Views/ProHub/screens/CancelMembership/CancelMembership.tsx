@@ -39,10 +39,27 @@ const CancelMembership = () => {
     });
   }, [navigation]);
 
-  // On the success step, the membership is already cancelled, so Android's
-  // hardware back button must behave like "Done" instead of popping this
-  // screen and revealing a stale `Membership` screen. `gestureEnabled: false`
-  // on the navigator only blocks the iOS swipe gesture, not Android back.
+  // Once the membership is cancelled (success step), disable iOS swipe-back
+  // so the user cannot accidentally return to the now-stale Membership screen.
+  useEffect(() => {
+    navigation.setOptions({ gestureEnabled: step !== 'success' });
+  }, [navigation, step]);
+
+  // Intercept any navigation attempt that would remove this screen while
+  // on the success step. Covers programmatic goBack() and acts as
+  // defense-in-depth alongside the disabled gesture.
+  useEffect(() => {
+    if (step !== 'success') {
+      return undefined;
+    }
+    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      e.preventDefault();
+      handleDone();
+    });
+    return () => unsubscribe();
+  }, [step, navigation, handleDone]);
+
+  // Android hardware back button: redirect to handleDone on the success step.
   useEffect(() => {
     if (step !== 'success') {
       return undefined;
