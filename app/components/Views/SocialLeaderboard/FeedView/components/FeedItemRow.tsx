@@ -54,6 +54,12 @@ export interface FeedItemRowProps {
   onTradePress: (item: FeedItem) => void;
   onPositionPress: (item: FeedItem) => void;
   onTraderPress: (item: FeedItem) => void;
+  /**
+   * Wall-clock instant used to format the relative timestamp. Parent should
+   * bump this after pull-to-refresh so memoized rows recompute even when the
+   * feed payload is unchanged. Defaults to `Date.now()`.
+   */
+  now?: number;
 }
 
 /**
@@ -66,6 +72,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   onTradePress,
   onPositionPress,
   onTraderPress,
+  now,
 }) => {
   const handleTradePress = useCallback(() => {
     onTradePress(item);
@@ -80,7 +87,7 @@ const FeedItemRow: React.FC<FeedItemRowProps> = ({
   }, [item, onTraderPress]);
 
   const actionLabel = strings(`social_leaderboard.feed.action.${item.action}`);
-  const timeLabel = formatFeedTimestamp(item.timestamp);
+  const timeLabel = formatFeedTimestamp(item.timestamp, now);
   const symbol = item.type === 'spot' ? item.tokenSymbol : item.marketSymbol;
 
   // For open rows whose value/P&L hasn't arrived yet, surface an intentional

@@ -479,6 +479,42 @@ describe('FeedView', () => {
     }
   });
 
+  it('updates the relative timestamp on pull-to-refresh when the payload is unchanged', async () => {
+    jest.useFakeTimers();
+    const t0 = 1_700_000_000_000;
+    jest.setSystemTime(t0);
+    const unchangedItem: FeedItem = {
+      ...spotItem,
+      timestamp: t0 - 29_000,
+    };
+    mockFeedResult = buildResult({
+      items: [unchangedItem],
+      sections: [{ dateLabel: 'Today', data: [unchangedItem] }],
+    });
+
+    try {
+      renderWithProvider(<FeedView />);
+
+      expect(screen.getByText(/29s/)).toBeOnTheScreen();
+
+      jest.setSystemTime(t0 + 10_000);
+
+      const list = screen.getByTestId(FeedViewSelectorsIDs.LIST);
+      await act(async () => {
+        const refreshPromise = list.props.refreshControl.props.onRefresh();
+        jest.runAllTimers();
+        await refreshPromise;
+      });
+
+      expect(mockRefresh).toHaveBeenCalledTimes(1);
+      // 10s wall-clock wait plus the 1s min-duration spinner inside handleRefresh.
+      expect(screen.getByText(/40s/)).toBeOnTheScreen();
+      expect(screen.queryByText(/29s/)).not.toBeOnTheScreen();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('shows the audience empty state when the raw feed has no loaded items', () => {
     mockFeedResult = buildResult({ items: [], hasLoadedItems: false });
 

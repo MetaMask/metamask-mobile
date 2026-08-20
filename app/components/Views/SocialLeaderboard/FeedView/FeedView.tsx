@@ -192,6 +192,9 @@ const FeedView: React.FC<FeedViewProps> = ({
   }, [isActive, source, audience, typeFilter, track]);
 
   const [refreshing, setRefreshing] = useState(false);
+  // Bumped after pull-to-refresh so relative timestamps recompute even when
+  // the feed payload (and therefore memoized row props) is unchanged.
+  const [now, setNow] = useState(() => Date.now());
 
   const {
     sections,
@@ -240,6 +243,7 @@ const FeedView: React.FC<FeedViewProps> = ({
         }),
       );
     } finally {
+      setNow(Date.now());
       setRefreshing(false);
     }
   }, [refresh]);
@@ -373,9 +377,10 @@ const FeedView: React.FC<FeedViewProps> = ({
         onTradePress={handleTradePress}
         onPositionPress={handlePositionPress}
         onTraderPress={handleTraderPress}
+        now={now}
       />
     ),
-    [handleTradePress, handlePositionPress, handleTraderPress],
+    [handleTradePress, handlePositionPress, handleTraderPress, now],
   );
 
   const renderSectionHeader = useCallback(
@@ -541,6 +546,7 @@ const FeedView: React.FC<FeedViewProps> = ({
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         contentContainerStyle={tw.style('pb-6 flex-grow')}
+        extraData={now}
         refreshControl={refreshControl}
         testID={FeedViewSelectorsIDs.LIST}
       />
@@ -559,6 +565,7 @@ const FeedView: React.FC<FeedViewProps> = ({
     filterRow,
     onScroll,
     tw,
+    now,
   ]);
 
   return (

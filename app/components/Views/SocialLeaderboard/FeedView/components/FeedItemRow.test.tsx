@@ -334,4 +334,25 @@ describe('FeedItemRow', () => {
     expect(screen.getByText('+12%')).toBeOnTheScreen();
     expect(screen.queryByTestId(getFeedNewPositionTestId('spot-1'))).toBeNull();
   });
+
+  it('renders the relative timestamp from the injected now', () => {
+    const timestamp = 1_700_000_000_000;
+    const now = timestamp + 30_000;
+    const item: FeedSpotItem = {
+      ...spotItem,
+      timestamp,
+    };
+
+    renderWithProvider(
+      <FeedItemRow
+        item={item}
+        now={now}
+        onTradePress={jest.fn()}
+        onPositionPress={jest.fn()}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByText(/30s/)).toBeOnTheScreen();
+  });
 });
