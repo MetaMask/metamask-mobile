@@ -50,10 +50,6 @@ import {
 import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { ConfirmationParams } from '../../confirm/confirm-component';
@@ -82,6 +78,11 @@ import {
 } from '../../custom-amount/custom-amount-buy';
 import { CustomAmountTotals } from '../../custom-amount/custom-amount-totals';
 import { CustomAmountConfirmButton } from '../../custom-amount/custom-amount-confirm-button';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
 
@@ -474,8 +475,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
           )}
           {footerText && (
             <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
               style={styles.footerText}
             >
               {footerText}

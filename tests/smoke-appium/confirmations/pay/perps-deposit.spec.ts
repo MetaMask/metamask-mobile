@@ -7,7 +7,11 @@ import {
   type TokenHolding,
 } from '../../../framework/fixtures/mmpay-token-holdings-registry.js';
 import { SmokeConfirmations } from '../../../tags.js';
-import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
+import {
+  loginToAppPlaywright,
+  waitForWalletHomePlaywright,
+} from '../../../flows/wallet.flow.js';
+import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
 import { Assertions } from '../../../framework/index.js';
 import WalletView from '../../../page-objects/wallet/WalletView.js';
 import PerpsHomeView from '../../../page-objects/Perps/PerpsHomeView.js';
@@ -84,7 +88,8 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Perps deposit'), () => {
           await FooterActions.tapConfirmAndExpectConfirmationUnmount();
 
           await PerpsHomeView.tapBackHomeButton();
-          await WalletView.tapActivityButton();
+          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
+          await TabBarComponent.tapActivity();
 
           await ActivitiesView.tapTypeFilterChip();
           await ActivitiesView.tapTypeFilterOption('perps');
