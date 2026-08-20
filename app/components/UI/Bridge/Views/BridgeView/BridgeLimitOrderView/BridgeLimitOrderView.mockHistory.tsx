@@ -80,7 +80,6 @@ function renderLimitHistoryOrder(item: MockLimitHistoryOrder) {
         source: 'ETH',
         dest: item.token.symbol,
       })}
-      subtitleFontWeight={FontWeight.Medium}
       {...getLimitHistorySlots(item)}
     />
   );
