@@ -1,5 +1,7 @@
 import React from 'react';
+import { Linking, Share } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import FileShare from 'react-native-share';
 import ReferralRevenueShareDashboard from './ReferralRevenueShareDashboard';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import {
@@ -23,7 +25,23 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   },
 }));
 
-jest.mock('react-native-qrcode-svg', () => 'QRCode');
+jest.mock('react-native-qrcode-svg', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      getRef,
+    }: {
+      getRef?: (ref: {
+        toDataURL: (callback: (data: string) => void) => void;
+      }) => void;
+    }) => {
+      getRef?.({ toDataURL: (callback) => callback('MOCK_QR_DATA') });
+      return ReactActual.createElement(View, { testID: 'qr-code' });
+    },
+  };
+});
 
 jest.mock('react-native-share', () => ({
   __esModule: true,
@@ -157,6 +175,129 @@ describe('ReferralRevenueShareDashboard', () => {
       fireEvent.press(screen.getByTestId('close-claim-sheet-button'));
 
       expect(screen.queryByText('Review claim')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('overview share', () => {
+    it('shares the referral link with a compensation disclosure', async () => {
+      const shareSpy = jest
+        .spyOn(Share, 'share')
+        .mockResolvedValue({ action: Share.dismissedAction });
+      renderDashboard();
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('referral-share-button'));
+      });
+
+      expect(shareSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining(
+            'I may receive compensation from your eligible activity.',
+          ),
+          url: 'https://link.metamask.io/rewards?referral=8F3A21',
+        }),
+      );
+    });
+  });
+
+  describe('performance earnings statuses', () => {
+    it('opens the available earnings info sheet from the status label', () => {
+      renderDashboard('performance');
+
+      fireEvent.press(screen.getByLabelText('Learn about available earnings'));
+
+      expect(screen.getByText('Available earnings')).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          'These earnings have completed eligibility checks and are ready to claim.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the pending earnings info sheet from the status label', () => {
+      renderDashboard('performance');
+
+      fireEvent.press(screen.getByLabelText('Learn about pending earnings'));
+
+      expect(screen.getByText('Pending earnings')).toBeOnTheScreen();
+    });
+  });
+
+  describe('payout details', () => {
+    it('opens payout details when the recent payout row is pressed', () => {
+      renderDashboard('performance');
+
+      fireEvent.press(screen.getByTestId('recent-payout-row'));
+
+      expect(screen.getByText('Payout details')).toBeOnTheScreen();
+      expect(screen.getByText('200.00 mUSD · Completed')).toBeOnTheScreen();
+    });
+
+    it('copies the transaction id from payout details', () => {
+      renderDashboard('performance');
+      fireEvent.press(screen.getByTestId('recent-payout-row'));
+
+      fireEvent.press(screen.getByLabelText('Copy transaction ID'));
+
+      expect(jest.mocked(ClipboardManager.setString)).toHaveBeenCalledWith(
+        '0x8a21d534f83b09e91c62abf6e12d4720f9d4c1095fd8407cc40ba4df352f7f3c',
+      );
+    });
+
+    it('opens the block explorer from payout details', () => {
+      const openUrlSpy = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+      renderDashboard('performance');
+      fireEvent.press(screen.getByTestId('recent-payout-row'));
+
+      fireEvent.press(screen.getByTestId('view-payout-on-explorer-button'));
+
+      expect(openUrlSpy).toHaveBeenCalledWith(
+        'https://etherscan.io/tx/0x8a21d534f83b09e91c62abf6e12d4720f9d4c1095fd8407cc40ba4df352f7f3c',
+      );
+    });
+  });
+
+  describe('QR code sheet', () => {
+    const renderQrSheet = () =>
+      render(
+        <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+          <ReferralRevenueShareDashboard
+            isQrCodeVisible
+            onQrCodeClose={jest.fn()}
+          />
+        </ToastContext.Provider>,
+      );
+
+    it('saves the QR code to files', async () => {
+      renderQrSheet();
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('save-referral-qr-code-button'));
+      });
+
+      expect(jest.mocked(FileShare.open)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: 'data:image/png;base64,MOCK_QR_DATA',
+          filename: 'metamask-referral-8F3A21',
+          saveToFiles: true,
+        }),
+      );
+    });
+
+    it('shares the QR code with a compensation disclosure', async () => {
+      renderQrSheet();
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('share-referral-qr-code-button'));
+      });
+
+      expect(jest.mocked(FileShare.open)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining(
+            'I may receive compensation from your eligible activity.',
+          ),
+        }),
+      );
     });
   });
 });
