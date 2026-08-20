@@ -14,6 +14,8 @@ import {
 } from '.';
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { selectBatchSellSourceWalletAddress } from '../../../../../selectors/bridge';
 
 const ethToken: BridgeToken = {
   address: '0x1111111111111111111111111111111111111111',
@@ -57,18 +59,23 @@ async function flushQuoteRequestDebounce(waitMs: number) {
   });
 }
 
+const mockSelectShouldUseSmartTransaction =
+  selectShouldUseSmartTransaction as jest.MockedFunction<
+    typeof selectShouldUseSmartTransaction
+  >;
+
+const mockSelectBatchSellSourceWalletAddress =
+  selectBatchSellSourceWalletAddress as jest.MockedFunction<
+    typeof selectBatchSellSourceWalletAddress
+  >;
+
+const mockWalletAddress = '0x1234567890123456789012345678901234567890';
+
 export const runBatchSellQuoteRequestCases = ({
   debounceMs,
-  batchSellRequestMocks,
-  mockSelectShouldUseSmartTransaction,
   renderHook,
 }: {
   debounceMs: number;
-  batchSellRequestMocks: {
-    walletAddress: string | undefined;
-    smartTransactionsEnabled: boolean;
-  };
-  mockSelectShouldUseSmartTransaction: jest.Mock;
   renderHook: (state?: DeepPartial<RootState>) => {
     result: {
       current: {
@@ -82,9 +89,8 @@ export const runBatchSellQuoteRequestCases = ({
     beforeEach(() => {
       jest.clearAllMocks();
       jest.useFakeTimers();
-      batchSellRequestMocks.walletAddress =
-        '0x1234567890123456789012345678901234567890';
-      batchSellRequestMocks.smartTransactionsEnabled = false;
+      mockSelectBatchSellSourceWalletAddress.mockReturnValue(mockWalletAddress);
+      mockSelectShouldUseSmartTransaction.mockReturnValue(false);
     });
 
     afterEach(() => {
@@ -172,7 +178,7 @@ export const runBatchSellQuoteRequestCases = ({
         destToken: usdcToken,
         smartTransactionsEnabled: false,
         sourceTokens: [ethToken],
-        walletAddress: batchSellRequestMocks.walletAddress,
+        walletAddress: mockWalletAddress,
       });
 
       expect(quoteRequestData).toEqual([]);
@@ -189,7 +195,7 @@ export const runBatchSellQuoteRequestCases = ({
         destToken: usdcToken,
         smartTransactionsEnabled: false,
         sourceTokens: [ethToken, uniToken],
-        walletAddress: batchSellRequestMocks.walletAddress,
+        walletAddress: mockWalletAddress,
       });
 
       expect(quoteRequestData).toEqual([
@@ -201,8 +207,8 @@ export const runBatchSellQuoteRequestCases = ({
             destTokenAddress: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
             srcTokenAmount: '749000000000000000',
             slippage: 2.5,
-            walletAddress: batchSellRequestMocks.walletAddress,
-            destWalletAddress: batchSellRequestMocks.walletAddress,
+            walletAddress: mockWalletAddress,
+            destWalletAddress: mockWalletAddress,
           }),
           context: expect.objectContaining({
             stx_enabled: false,
@@ -322,7 +328,7 @@ export const runBatchSellQuoteRequestCases = ({
     });
 
     it('skips update when wallet address is missing', async () => {
-      batchSellRequestMocks.walletAddress = undefined;
+      mockSelectBatchSellSourceWalletAddress.mockReturnValue(undefined);
       const testState = createBridgeTestState({
         bridgeReducerOverrides: {
           batchSellSourceTokens: [ethToken],
@@ -415,7 +421,7 @@ export const runBatchSellQuoteRequestCases = ({
     });
 
     it('passes stx_enabled: true in context when smart transactions are enabled', async () => {
-      batchSellRequestMocks.smartTransactionsEnabled = true;
+      mockSelectShouldUseSmartTransaction.mockReturnValue(true);
 
       const testState = createBridgeTestState({
         bridgeReducerOverrides: {
@@ -444,7 +450,7 @@ export const runBatchSellQuoteRequestCases = ({
     });
 
     it('passes stx_enabled: false in context when smart transactions are disabled', async () => {
-      batchSellRequestMocks.smartTransactionsEnabled = false;
+      mockSelectShouldUseSmartTransaction.mockReturnValue(false);
 
       const testState = createBridgeTestState({
         bridgeReducerOverrides: {
