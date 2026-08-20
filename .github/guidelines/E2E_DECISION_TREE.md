@@ -33,7 +33,7 @@ When a PR only changes E2E/performance test files (and other ignorable files), C
 
 The native build fingerprint for test-only PRs is computed from **`main` HEAD** (not the PR merge tree) so the lookup key matches completed `ci.yml` runs on `main`.
 
-On `current` runners, reuse tries GitHub Actions artifacts first (`find-reusable-build`), then the Cirrus `main` APK / iOS app cache. Namespace e2e builds skip that lookup. Android then checks the Namespace APK cache and compiles on miss; iOS has no equivalent fingerprint cache yet, so it compiles. The workflow still falls back to a fresh build instead of failing.
+On Namespace runners, reuse checks the Namespace APK cache after looking for a matching GitHub Actions artifact. Explicit GitHub-hosted fallback runs use GitHub Actions caches instead. Android and iOS both fall back to a fresh native build when no reusable artifact or cache entry is available.
 
 If `main` has new native-changing commits but its CI build has not finished yet, reuse lookup may miss — CI logs a warning and **falls back to a fresh native build** instead of failing the workflow. Performance E2E on test-only PRs resolves BrowserStack apps via stable main `custom_id`s (`MetaMask-Android-*-main`) first, then legacy `…-main-<run_id>` IDs; if none are found it **falls back to a fresh dual Android upload** instead of failing.
 

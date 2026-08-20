@@ -22,7 +22,6 @@ on:
         required: false
         type: choice
         options:
-          - current
           - namespace
         default: namespace
       ios_build_run_id:
@@ -43,9 +42,9 @@ jobs:
       contents: read
     runs-on: >-
       ${{
-        (inputs.runner_provider || 'current') == 'namespace' &&
+        (inputs.runner_provider || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ios-e2e' ||
-        fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]')
+        'macos-15'
       }}
 
     env:
@@ -62,11 +61,11 @@ jobs:
 
     steps:
       - name: Checkout (Namespace)
-        if: ${{ (inputs.runner_provider || 'current') == 'namespace' }}
+        if: ${{ (inputs.runner_provider || 'namespace') == 'namespace' }}
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
 
       - name: Checkout
-        if: ${{ (inputs.runner_provider || 'current') != 'namespace' }}
+        if: ${{ (inputs.runner_provider || 'namespace') != 'namespace' }}
         uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref }}
@@ -81,7 +80,7 @@ jobs:
           install-foundry: 'true'
           skip-pod-install: 'true'
           install-applesimutils: 'false'
-          runner_provider: ${{ inputs.runner_provider || 'current' }}
+          runner_provider: ${{ inputs.runner_provider || 'namespace' }}
 
       - name: Cache ffmpeg (Homebrew)
         uses: actions/cache@v4
@@ -313,7 +312,7 @@ jobs:
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
       - name: Upload Playwright HTML report (Namespace)
-        if: ${{ always() && (inputs.runner_provider || 'current') == 'namespace' }}
+        if: ${{ always() && (inputs.runner_provider || 'namespace') == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
           name: api-specs-report
@@ -321,8 +320,8 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Upload Playwright HTML report (current)
-        if: ${{ always() && (inputs.runner_provider || 'current') != 'namespace' }}
+      - name: Upload Playwright HTML report (GitHub)
+        if: ${{ always() && (inputs.runner_provider || 'namespace') != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: api-specs-report

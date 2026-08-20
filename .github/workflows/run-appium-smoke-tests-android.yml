@@ -19,7 +19,7 @@ on:
         type: string
         default: 'e2e'
       runner_provider:
-        description: 'Runner provider (namespace or current)'
+        description: 'Runner provider (namespace)'
         required: false
         type: string
         default: 'namespace'
@@ -41,7 +41,7 @@ on:
         type: string
         default: 'e2e'
       runner_provider:
-        description: 'Runner provider (namespace or current)'
+        description: 'Runner provider (namespace)'
         required: false
         type: string
         default: 'namespace'

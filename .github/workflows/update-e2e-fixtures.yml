@@ -27,7 +27,6 @@ on:
         required: false
         type: choice
         options:
-          - current
           - namespace
         default: namespace
 
@@ -180,7 +179,7 @@ jobs:
     name: Export & update fixtures
     needs: [is-fork-pull-request, prepare]
     if: ${{ needs.prepare.result == 'success' && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-e2e' || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe", "low-priority"]')) }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-e2e' || 'macos-15' }}
     timeout-minutes: 60
 
     env:
@@ -258,7 +257,7 @@ jobs:
         shell: bash
         run: rm -rf artifacts/main-e2e-MetaMask.app
 
-      - name: Download iOS app artifact from CI (GitHub — build may be on Cirrus)
+      - name: Download iOS app artifact from CI (GitHub fallback)
         if: >-
           ${{
             inputs.runner_provider != 'namespace' ||

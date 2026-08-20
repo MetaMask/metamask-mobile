@@ -28,7 +28,6 @@ on:
         options:
           - inherit
           - namespace
-          - current
         default: inherit
 
 permissions:
@@ -53,7 +52,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+         vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     outputs:

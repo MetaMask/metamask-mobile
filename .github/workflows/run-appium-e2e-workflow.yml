@@ -44,7 +44,7 @@ on:
         type: string
         default: 'e2e'
       runner_provider:
-        description: 'Runner provider (namespace or current)'
+        description: 'Runner provider (namespace)'
         required: false
         type: string
         default: 'namespace'
@@ -61,19 +61,14 @@ permissions:
 jobs:
   test-appium-mobile:
     name: ${{ inputs.test-suite-name }}
-    # iOS Appium smoke is not put on low-priority: those runners are often
-    # preempted around ~15m wall-clock, which kills the Playwright step before
-    # reports/logs upload (and before shards that no longer fail-fast can finish).
+    # iOS Appium smoke uses the dedicated Namespace profile. The macOS fallback is
+    # retained for explicitly overridden provider values.
     runs-on: >-
       ${{
         inputs.runner_provider == 'namespace' &&
         (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-e2e' ||
          'namespace-profile-metamask-android-build') ||
-        (inputs.platform == 'ios' &&
-          fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]')) ||
-        (startsWith(github.base_ref, 'release/') &&
-          fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
-          fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]'))
+        (inputs.platform == 'ios' && 'macos-15' || 'ubuntu-latest')
       }}
 
     steps:
@@ -150,7 +145,7 @@ jobs:
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
           path: ${{ steps.android-artifacts.outputs.apk-target-path }}
-      - name: Download Android build artifacts (GitHub — build may be on Cirrus)
+      - name: Download Android build artifacts (GitHub fallback)
         if: >-
           ${{
             inputs.platform == 'android' &&
@@ -161,7 +156,7 @@ jobs:
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
           path: ${{ steps.android-artifacts.outputs.apk-target-path }}
-      - name: Download Android build artifacts (current)
+      - name: Download Android build artifacts (GitHub)
         if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' }}
         uses: actions/download-artifact@v4
         with:
@@ -188,7 +183,7 @@ jobs:
           }}
         shell: bash
         run: rm -rf "artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app"
-      - name: Download iOS build artifacts (GitHub — build may be on Cirrus)
+      - name: Download iOS build artifacts (GitHub fallback)
         if: >-
           ${{
             inputs.platform == 'ios' &&
@@ -199,7 +194,7 @@ jobs:
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
-      - name: Download iOS build artifacts (current)
+      - name: Download iOS build artifacts (GitHub)
         if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
         uses: actions/download-artifact@v4
         with:
@@ -378,7 +373,7 @@ jobs:
           path: tests/test-reports/appium-smoke-report/${{ inputs.test-suite-name }}/
           if-no-files-found: ignore
           retention-days: 7
-      - name: Upload Playwright HTML report (current)
+      - name: Upload Playwright HTML report (GitHub)
         if: ${{ always() && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
@@ -397,7 +392,7 @@ jobs:
           path: tests/test-reports/playwright-json/playwright-report.json
           if-no-files-found: ignore
           retention-days: 7
-      - name: Upload Playwright JSON report (current)
+      - name: Upload Playwright JSON report (GitHub)
         if: ${{ always() && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
@@ -414,7 +409,7 @@ jobs:
           path: tests/test-reports/appium-timings/
           if-no-files-found: ignore
           retention-days: 7
-      - name: Upload Appium phase timings (current)
+      - name: Upload Appium phase timings (GitHub)
         if: ${{ always() && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
@@ -431,7 +426,7 @@ jobs:
           path: tests/test-reports/appium-smoke-videos/${{ inputs.test-suite-name }}/
           if-no-files-found: ignore
           retention-days: 7
-      - name: Upload failure screen recordings (current)
+      - name: Upload failure screen recordings (GitHub)
         if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:

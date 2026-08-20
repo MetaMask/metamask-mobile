@@ -49,7 +49,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+         vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     environment: ${{ inputs.github_environment }}
@@ -57,7 +57,7 @@ jobs:
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-          vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+          vars.NAMESPACE_RUNNER_LINUX || 'namespace'
         }}
       # OTA-specific vars only — build config + secrets come from builds.yml via steps below
       TARGET_COMMIT_HASH: ${{ inputs.commit_sha }}

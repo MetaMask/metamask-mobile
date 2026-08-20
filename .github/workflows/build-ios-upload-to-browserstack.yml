@@ -72,7 +72,6 @@ on:
         type: choice
         options:
           - inherit
-          - current
           - namespace
         default: inherit
 
@@ -126,7 +125,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+         vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     needs: [check-builds-needed, trigger-ios-with-srp-build, trigger-ios-without-srp-build]
