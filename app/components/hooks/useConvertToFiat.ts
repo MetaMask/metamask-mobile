@@ -21,7 +21,7 @@ import {
   MUSD_DECIMALS,
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
-} from '../UI/Earn/constants/musd';
+} from '@metamask/money-account-utils';
 
 function getPositiveRate(value: unknown): number | undefined {
   const rate = Number(value);
