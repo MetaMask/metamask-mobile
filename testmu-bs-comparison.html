@@ -8,13 +8,15 @@
       :root{--bg:#f4f7fb;--card:#fff;--ink:#172033;--muted:#667085;--line:#e7ebf2;--blue:#2563eb;--green:#15803d;--purple:#7c3aed;--red:#b42318;--orange:#b54708}
       *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,sans-serif}
       .wrap{max-width:1400px;margin:auto;padding:36px 22px 60px}.hero{background:linear-gradient(135deg,#172554,#2563eb);border-radius:24px;color:#fff;padding:34px;box-shadow:0 18px 45px #17255425}
-      .eyebrow{color:#bfdbfe;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:12px}h1{font-size:clamp(28px,4vw,48px);line-height:1.08;margin:10px 0 12px}h2{margin:0 0 16px;font-size:21px}.hero p{max-width:850px;color:#dbeafe;margin:0}
+      .eyebrow{color:#bfdbfe;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:12px}h1{font-size:clamp(28px,4vw,48px);line-height:1.08;margin:10px 0 12px}h2{margin:0 0 16px;font-size:21px}h3{margin:0 0 8px;font-size:16px}.hero p{max-width:900px;color:#dbeafe;margin:0}
       .links{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}.links a{color:#fff;border:1px solid #ffffff55;border-radius:999px;padding:7px 12px;text-decoration:none;font-size:13px}
       .grid{display:grid;gap:16px;grid-template-columns:repeat(3,minmax(0,1fr));margin:22px 0}.card,.section{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 5px 18px #1018280a}
       .metric{color:var(--muted);font-size:13px}.metric strong{display:block;color:var(--ink);font-size:30px;line-height:1.15;margin-top:5px}.provider{border-top:4px solid var(--blue)}.provider.standard{border-color:var(--green)}.provider.he{border-color:var(--purple)}.provider h3{margin:0 0 4px;font-size:17px}.provider small{color:var(--muted)}
       .section{margin-top:18px;overflow:hidden}.note{background:#fffaeb;border:1px solid #fedf89;color:#7a4b00;border-radius:12px;padding:13px 15px;margin:14px 0}.table-wrap{overflow-x:auto}
-      table{width:100%;border-collapse:collapse;min-width:760px}th,td{border-bottom:1px solid var(--line);padding:12px 10px;text-align:left;vertical-align:middle}th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em;background:#f8fafc}tr:last-child td{border:0}td:first-child{min-width:310px;font-weight:600}
+      table{width:100%;border-collapse:collapse;min-width:760px}th,td{border-bottom:1px solid var(--line);padding:12px 10px;text-align:left;vertical-align:middle}th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em;background:#f8fafc}tr:last-child td{border:0}td:first-child{min-width:280px;font-weight:600}
       .pass{color:var(--green);font-weight:700}.fail{color:var(--red);font-weight:700}.missing{color:var(--orange);font-weight:700}.time{display:block;font-variant-numeric:tabular-nums}.status{display:inline-block;font-size:11px;margin-top:2px}.winner{background:#ecfdf3}.foot{color:var(--muted);font-size:12px;margin-top:18px}
+      .scenario{border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0;background:#fcfdff}.scenario header{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:baseline;justify-content:space-between;margin-bottom:10px}.badge{font-size:12px;font-weight:700;padding:3px 8px;border-radius:999px}.badge.pass{background:#ecfdf3;color:var(--green)}.badge.fail{background:#fef3f2;color:var(--red)}.badge.missing{background:#fffaeb;color:var(--orange)}
+      .meta{color:var(--muted);font-size:13px}td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
       @media(max-width:800px){.grid{grid-template-columns:1fr 1fr}}@media(max-width:540px){.wrap{padding:18px 12px 40px}.hero{padding:24px;border-radius:18px}.grid{grid-template-columns:1fr 1fr;gap:10px}.card{padding:15px}}
     </style>
   </head>
@@ -23,94 +25,61 @@
       <header class="hero">
         <div class="eyebrow">MetaMask Mobile · Performance E2E</div>
         <h1>TestMu performance comparison</h1>
-        <p>Comparison of BrowserStack, TestMu Standard, and TestMu HyperExecute from the same performance run. Timings represent application metrics and do not fully include provider session creation.</p>
+        <p>
+          BrowserStack and TestMu Standard kept from the prior comparison baseline.
+          <strong>TestMu HyperExecute</strong> values replaced with run 32373754440
+          (<code>settings[waitForIdleTimeout]=0</code>, <code>settings[snapshotMaxDepth]=62</code>).
+          Timings are application metrics and do not fully include provider session creation.
+        </p>
         <nav class="links">
-          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787" target="_blank">Full run</a>
-          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32248728966" target="_blank">TestMu Standard + HE</a>
+          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32373754440" target="_blank">TestMu HE · latest</a>
+          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787" target="_blank">Prior full comparison</a>
+          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32248728966" target="_blank">TestMu Standard + HE baseline</a>
         </nav>
       </header>
       <section class="grid">
         <div class="card"><div class="metric">Scenarios executed<strong>23</strong></div></div>
-        <div class="card"><div class="metric">TestMu Standard · passed<strong>17 / 23</strong></div></div>
         <div class="card"><div class="metric">TestMu HE · passed<strong>18 / 23</strong></div></div>
+        <div class="card"><div class="metric">HE failures<strong>1 QG · 4 no metrics</strong></div></div>
       </section>
       <section class="grid">
-        <article class="card provider"><h3>BrowserStack</h3><small>Pixel 7 Pro · Android 13 · 16/23 passed</small></article>
-        <article class="card provider standard"><h3>TestMu Standard</h3><small>Pixel 8 Pro · Android 14 · 17/23 passed</small></article>
-        <article class="card provider he"><h3>TestMu HyperExecute</h3><small>Pixel 8 Pro · Android 14 · 18/23 passed</small></article>
+        <article class="card provider"><h3>BrowserStack</h3><small>Pixel 7 Pro · Android 13 · prior baseline</small></article>
+        <article class="card provider standard"><h3>TestMu Standard</h3><small>Pixel 8 Pro · Android 14 · prior baseline</small></article>
+        <article class="card provider he"><h3>TestMu HyperExecute</h3><small>Pixel 8 Pro · Android 14 · run 32373754440 · 18/23 passed</small></article>
       </section>
       <section class="section">
         <h2>Quality gates and timings by scenario</h2>
-        <div class="note"><strong>How to read:</strong> green = quality gate passed; red = quality gate failed; orange = no metrics. The green cell marks the lowest valid timing.</div>
+        <div class="note"><strong>How to read:</strong> green = quality gate passed; red = quality gate failed; orange = no metrics. The green cell marks the lowest valid timing. HE column uses the latest run.</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Scenario</th><th>BrowserStack</th><th>TestMu Standard</th><th>TestMu HE</th></tr></thead>
+            <thead><tr><th>Scenario</th><th>BrowserStack</th><th>TestMu Standard</th><th>TestMu HE (latest)</th></tr></thead>
             <tbody id="results"></tbody>
           </table>
         </div>
       </section>
+
+      <section class="section">
+        <h2>TestMu HE · timers and quality gates (run 32373754440)</h2>
+        <div class="note">Each scenario lists every timer: actual duration, quality-gate threshold (with base), and pass/fail. Test total is the sum of measured steps.</div>
+        <div id="he-detail"></div>
+      </section>
+
       <section class="section">
         <h2>Quick conclusions</h2>
         <ul>
-          <li><strong>TestMu HyperExecute</strong> had the highest pass rate: 18/23 scenarios.</li>
-          <li><strong>TestMu Standard</strong> passed 17/23 scenarios.</li>
-          <li><strong>BrowserStack</strong> passed 16/23 and was fastest in several valid flows.</li>
-          <li>Tests without metrics indicate an instrumentation, session, or flow failure rather than application slowness.</li>
+          <li><strong>TestMu HyperExecute</strong> (latest): 18/23 passed with the new settings caps.</li>
+          <li>Only quality-gate failure: <strong>Fresh SRP wallet creation</strong> — Agree → usable wallet 7107ms vs 6600ms (+507ms / +7.7%).</li>
+          <li>Four scenarios still have <strong>no metrics</strong>: Money Home empty/funded, Perps open/close, Rewards tab.</li>
+          <li><strong>Account creation</strong> passed in this run (it failed the prior HE baseline by +18ms).</li>
         </ul>
       </section>
 
-      <section class="section">
-        <h2>Steps where TestMu was slower than BrowserStack</h2>
-        <div class="note">
-          Differences are calculated as <strong>TestMu time − BrowserStack time</strong>.
-          Only steps with valid metrics and a positive difference are shown.
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Scenario</th>
-                <th>Step</th>
-                <th>BrowserStack</th>
-                <th>TestMu Standard</th>
-                <th>Difference</th>
-                <th>TestMu HE</th>
-                <th>Difference</th>
-              </tr>
-            </thead>
-            <tbody id="slower-steps"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <p class="foot">Generated for run 32265974787 · Branch MMQA-TestMu-PoC-HyperExecute · All values are expressed in seconds.</p>
+      <p class="foot">HE values from run 32373754440 · Branch MMQA-TestMu-PoC-HyperExecute · BrowserStack/Standard from prior comparison baseline · Values in seconds for the summary table; timer detail in milliseconds.</p>
     </main>
     <script>
-      const rows=[
-        ["Cold Start → Onboarding",[2.164,"P"],[2.266,"P"],[2.643,"P"]],
-        ["Fresh SRP wallet creation",[15.850,"F"],[12.985,"F"],[11.591,"F"]],
-        ["Import SRP onboarding +50 accounts",[5.183,"P"],[4.448,"P"],[5.904,"P"]],
-        ["Money Home · empty wallet",[null,"N"],[null,"N"],[null,"N"]],
-        ["Account creation",[1.745,"P"],[2.723,"P"],[1.591,"P"]],
-        ["Money Home · imported wallet",[null,"N"],[null,"N"],[null,"N"]],
-        ["Perps open position and close it",[null,"N"],[null,"N"],[null,"N"]],
-        ["Seedless Apple",[1.501,"P"],[4.754,"P"],[5.358,"P"]],
-        ["Seedless Google",[3.030,"P"],[5.156,"P"],[3.451,"P"]],
-        ["Seedless Telegram",[3.156,"P"],[null,"P"],[5.758,"P"]],
-        ["Aggregated Balance Loading",[8.181,"P"],[8.933,"P"],[8.724,"P"]],
-        ["Cross-chain swap ETH → SOL",[5.430,"P"],[8.268,"P"],[5.917,"P"]],
-        ["Asset View",[3.898,"P"],[2.581,"P"],[3.984,"P"]],
-        ["Cold Start → Login",[5.801,"F"],[null,"P"],[0.387,"P"]],
-        ["Swap ETH → LINK",[1.978,"P"],[1.919,"P"],[1.627,"P"]],
-        ["Import SRP +50 accounts",[3.486,"P"],[null,"P"],[2.222,"P"]],
-        ["Warm Start → Wallet",[1.554,"P"],[null,"N"],[0.926,"P"]],
-        ["Perps add funds",[6.633,"P"],[8.374,"P"],[9.095,"P"]],
-        ["Warm Start → Login",[0.931,"P"],[0.539,"P"],[0.463,"P"]],
-        ["Predict Available Balance",[0.775,"P"],[null,"P"],[1.424,"P"]],
-        ["Predict Market Details",[3.732,"P"],[3.928,"P"],[2.082,"P"]],
-        ["Predict Deposit",[24.645,"F"],[19.625,"P"],[7.586,"P"]],
-        ["Rewards tab",[null,"N"],[null,"N"],[null,"N"]]
-      ];
+      const rows = [["Cold Start \u2192 Onboarding", [2.164, "P"], [2.266, "P"], [1.699, "P"]], ["Fresh SRP wallet creation", [15.85, "F"], [12.985, "F"], [10.272, "F"]], ["Import SRP onboarding +50 accounts", [5.183, "P"], [4.448, "P"], [3.805, "P"]], ["Money Home \u00b7 empty wallet", [null, "N"], [null, "N"], [0.0, "N"]], ["Account creation", [1.745, "P"], [2.723, "P"], [2.826, "P"]], ["Money Home \u00b7 imported wallet", [null, "N"], [null, "N"], [0.0, "N"]], ["Perps open position and close it", [null, "N"], [null, "N"], [0.0, "N"]], ["Seedless Apple", [1.501, "P"], [4.754, "P"], [8.368, "P"]], ["Seedless Google", [3.03, "P"], [5.156, "P"], [4.292, "P"]], ["Seedless Telegram", [3.156, "P"], [null, "P"], [3.113, "P"]], ["Aggregated Balance Loading", [8.181, "P"], [8.933, "P"], [8.914, "P"]], ["Cross-chain swap ETH \u2192 SOL", [5.43, "P"], [8.268, "P"], [5.812, "P"]], ["Asset View", [3.898, "P"], [2.581, "P"], [2.55, "P"]], ["Cold Start \u2192 Login", [5.801, "F"], [null, "P"], [2.787, "P"]], ["Swap ETH \u2192 LINK", [1.978, "P"], [1.919, "P"], [1.905, "P"]], ["Import SRP +50 accounts", [3.486, "P"], [null, "P"], [3.15, "P"]], ["Warm Start \u2192 Wallet", [1.554, "P"], [null, "N"], [3.115, "P"]], ["Perps add funds", [6.633, "P"], [8.374, "P"], [7.751, "P"]], ["Warm Start \u2192 Login", [0.931, "P"], [0.539, "P"], [0.424, "P"]], ["Predict Available Balance", [0.775, "P"], [null, "P"], [0.932, "P"]], ["Predict Market Details", [3.732, "P"], [3.928, "P"], [2.826, "P"]], ["Predict Deposit", [24.645, "F"], [19.625, "P"], [9.312, "P"]], ["Rewards tab", [null, "N"], [null, "N"], [0.0, "N"]]];
+      const heScenarios = [{"group": "Onboarding", "name": "Account creation", "fullName": "Account creation after fresh install", "status": "P", "reason": null, "totalMs": 2826, "totalThreshold": 7920, "steps": [{"name": "Time since the user clicks on \"Account list\" button until the account list is visible", "duration": 968, "threshold": 2420, "baseThreshold": 2200, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since the user clicks on \"Create account\" button until the account is in the account list", "duration": 975, "threshold": 2200, "baseThreshold": 2000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since the user clicks on new account created until the Token list is visible", "duration": 883, "threshold": 3300, "baseThreshold": 3000, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Onboarding", "name": "Cold Start \u2192 Onboarding", "fullName": "Measure Cold Start To Onboarding Screen", "status": "P", "reason": null, "totalMs": 1699, "totalThreshold": 4400, "steps": [{"name": "Time since the the app is installed, until onboarding screen appears", "duration": 1699, "threshold": 4400, "baseThreshold": 4000, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Onboarding", "name": "Fresh SRP wallet creation", "fullName": "Fresh SRP wallet creation performance", "status": "F", "reason": "quality_gates_exceeded", "totalMs": 10272, "totalThreshold": 21230, "steps": [{"name": "Time since the user taps \"Create a new wallet\" until the onboarding sheet is visible", "duration": 899, "threshold": 1980, "baseThreshold": 1800, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since the user selects SRP wallet creation until the password fields are visible", "duration": 350, "threshold": 2200, "baseThreshold": 2000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since the user taps \"Create Password\" until the wallet backup screen is visible", "duration": 1542, "threshold": 7700, "baseThreshold": 7000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since the user taps \"Remind me later\" until the MetaMetrics screen is visible", "duration": 374, "threshold": 2750, "baseThreshold": 2500, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since the user taps \"Agree\" on MetaMetrics until usable wallet is visible", "duration": 7107, "threshold": 6600, "baseThreshold": 6000, "passed": false, "exceeded": 507, "percentOver": "7.7"}]}, {"group": "Onboarding", "name": "Import SRP onboarding +50 accounts", "fullName": "Onboarding Import SRP with +50 accounts, SRP 3", "status": "P", "reason": null, "totalMs": 3805.0000000000005, "totalThreshold": 15730, "steps": [{"name": "Time since the user clicks on \"Create new wallet\" button until \"Social sign up\" is visible", "duration": 984, "threshold": 1980, "baseThreshold": 1800, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since the user clicks on \"Import using SRP\" button until SRP field is displayed", "duration": 390, "threshold": 2200, "baseThreshold": 2000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since the user clicks on \"Continue\" button on SRP screen until Password fields are visible", "duration": 324, "threshold": 1650, "baseThreshold": 1500, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since the user clicks on \"Create Password\" button until Metrics screen is displayed", "duration": 1569, "threshold": 3300, "baseThreshold": 3000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since the user clicks on \"Done\" button until ETH and BTC are visible", "duration": 538, "threshold": 6600, "baseThreshold": 6000, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Onboarding", "name": "Money Home \u00b7 empty wallet", "fullName": "Money Home after fresh wallet creation with empty balance", "status": "N", "reason": "no_performance_metrics", "totalMs": 0, "totalThreshold": null, "steps": []}, {"group": "Onboarding", "name": "Money Home \u00b7 imported wallet", "fullName": "Money Home after importing SRP with funded balance", "status": "N", "reason": "no_performance_metrics", "totalMs": 0, "totalThreshold": null, "steps": []}, {"group": "Onboarding", "name": "Perps open position and close it", "fullName": "Perps open position and close it", "status": "N", "reason": "no_performance_metrics", "totalMs": 0, "totalThreshold": null, "steps": []}, {"group": "Onboarding", "name": "Seedless Apple", "fullName": "Seedless Onboarding: Apple Login New User", "status": "P", "reason": null, "totalMs": 8368, "totalThreshold": 18700, "steps": [{"name": "Apple: Tap \"Create new wallet\" \u2192 OnboardingSheet visible", "duration": 955, "threshold": 2200, "baseThreshold": 2000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Apple: Tap Apple login \u2192 post-OAuth screen visible", "duration": 2822, "threshold": 6600, "baseThreshold": 6000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Apple: Tap \"Create Password\" \u2192 Onboarding Success visible", "duration": 3871, "threshold": 4400, "baseThreshold": 4000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Apple: Tap \"Done\" \u2192 wallet main screen visible", "duration": 720, "threshold": 5500, "baseThreshold": 5000, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Onboarding", "name": "Seedless Google", "fullName": "Seedless Onboarding: Google Login New User", "status": "P", "reason": null, "totalMs": 4292, "totalThreshold": 17600, "steps": [{"name": "Google: Tap \"Create new wallet\" \u2192 OnboardingSheet visible", "duration": 1012, "threshold": 2200, "baseThreshold": 2000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Google: Tap Google login \u2192 post-OAuth screen visible", "duration": 600, "threshold": 5500, "baseThreshold": 5000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Google: Tap \"Create Password\" \u2192 Onboarding Success visible", "duration": 1689, "threshold": 4400, "baseThreshold": 4000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Google: Tap \"Done\" \u2192 wallet main screen visible", "duration": 991, "threshold": 5500, "baseThreshold": 5000, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Onboarding", "name": "Seedless Telegram", "fullName": "Seedless Onboarding: Telegram Login New User", "status": "P", "reason": null, "totalMs": 3112.9999999999995, "totalThreshold": 17600, "steps": [{"name": "Telegram: Tap \"Create new wallet\" \u2192 OnboardingSheet visible", "duration": 957, "threshold": 2200, "baseThreshold": 2000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Telegram: Tap Telegram login \u2192 post-OAuth screen visible", "duration": 326, "threshold": 5500, "baseThreshold": 5000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Telegram: Tap \"Create Password\" \u2192 Onboarding Success visible", "duration": 1397, "threshold": 4400, "baseThreshold": 4000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Telegram: Tap \"Done\" \u2192 wallet main screen visible", "duration": 433, "threshold": 5500, "baseThreshold": 5000, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Imported wallet", "name": "Aggregated Balance Loading", "fullName": "Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3", "status": "P", "reason": null, "totalMs": 8914, "totalThreshold": 22000, "steps": [{"name": "Time since the user navigates to wallet tab until the balance stabilizes", "duration": 8914, "threshold": 22000, "baseThreshold": 20000, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Imported wallet", "name": "Asset View", "fullName": "Asset View, SRP 1 + SRP 2 + SRP 3", "status": "P", "reason": null, "totalMs": 2550, "totalThreshold": 7150, "steps": [{"name": "Time since the user clicks on the asset view button until the user sees the token overview screen", "duration": 2550, "threshold": 7150, "baseThreshold": 6500, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Imported wallet", "name": "Cold Start \u2192 Login", "fullName": "Cold Start: Measure ColdStart To Login Screen", "status": "P", "reason": null, "totalMs": 2787, "totalThreshold": 5500, "steps": [{"name": "Time since the the app is launched, until login screen appears", "duration": 2787, "threshold": 5500, "baseThreshold": 5000, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Imported wallet", "name": "Cross-chain swap ETH \u2192 SOL", "fullName": "Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3", "status": "P", "reason": null, "totalMs": 5812, "totalThreshold": 10120, "steps": [{"name": "Time since the user clicks on the \"Swap\" button until the swap page is loaded", "duration": 974, "threshold": 2420, "baseThreshold": 2200, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since the user enters the amount until the quote is displayed", "duration": 4838, "threshold": 7700, "baseThreshold": 7000, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Imported wallet", "name": "Import SRP +50 accounts", "fullName": "Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3", "status": "P", "reason": null, "totalMs": 3150.0000000000005, "totalThreshold": 9570, "steps": [{"name": "Time since the user clicks on \"Account list\" button until the account list is visible", "duration": 931, "threshold": 3300, "baseThreshold": 3000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since the user clicks on \"Add account\" button until the next modal is visible", "duration": 366, "threshold": 1650, "baseThreshold": 1500, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since the user clicks on \"Import SRP\" button until SRP field is displayed", "duration": 479, "threshold": 1870, "baseThreshold": 1700, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since the user clicks on \"Continue\" button on SRP screen until Wallet main screen is visible", "duration": 1374, "threshold": 2750, "baseThreshold": 2500, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Imported wallet", "name": "Perps add funds", "fullName": "Perps add funds", "status": "P", "reason": null, "totalMs": 7751, "totalThreshold": 16170, "steps": [{"name": "Select Perps Main Screen", "duration": 1096, "threshold": 4620, "baseThreshold": 4200, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Open Add Funds", "duration": 2106, "threshold": 3850, "baseThreshold": 3500, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Get Quote", "duration": 4549, "threshold": 7700, "baseThreshold": 7000, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Imported wallet", "name": "Predict Available Balance", "fullName": "Predict Available Balance - Complete Flow Performance", "status": "P", "reason": null, "totalMs": 932, "totalThreshold": 5500, "steps": [{"name": "Time since user taps Predict button until Available Balance is displayed", "duration": 932, "threshold": 5500, "baseThreshold": 5000, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Imported wallet", "name": "Predict Deposit", "fullName": "Predict Deposit - Complete Flow Performance", "status": "P", "reason": null, "totalMs": 9312.000000000002, "totalThreshold": 28600, "steps": [{"name": "Time since user taps Predict button until Predict Market List is displayed", "duration": 956, "threshold": 8800, "baseThreshold": 8000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since user taps Add Funds button until Predict Deposit screen is visible", "duration": 3076, "threshold": 6600, "baseThreshold": 6000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since user taps Continue button until quote is displayed on confirmation page", "duration": 5280, "threshold": 13200, "baseThreshold": 12000, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Imported wallet", "name": "Predict Market Details", "fullName": "Predict Market Details - Complete Flow Performance", "status": "P", "reason": null, "totalMs": 2825.9999999999995, "totalThreshold": 19800, "steps": [{"name": "Time since user taps Predict button until Predict Market List is displayed", "duration": 1345, "threshold": 5500, "baseThreshold": 5000, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since user taps market card until Market Detail screen is visible", "duration": 377, "threshold": 7150, "baseThreshold": 6500, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since user taps About tab until About tab is visible", "duration": 522, "threshold": 2750, "baseThreshold": 2500, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since user taps Outcomes tab until Outcomes tab is visible", "duration": 582, "threshold": 4400, "baseThreshold": 4000, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Imported wallet", "name": "Rewards tab", "fullName": "Rewards tab time-to-content (onboarding or dashboard)", "status": "N", "reason": "no_performance_metrics", "totalMs": 0, "totalThreshold": null, "steps": []}, {"group": "Imported wallet", "name": "Swap ETH \u2192 LINK", "fullName": "Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3", "status": "P", "reason": null, "totalMs": 1904.9999999999998, "totalThreshold": 10450, "steps": [{"name": "Time since the user clicks on the \"Swap\" button until the swap page is loaded", "duration": 1428, "threshold": 2750, "baseThreshold": 2500, "passed": true, "exceeded": null, "percentOver": null}, {"name": "Time since the user enters the amount until the quote is displayed", "duration": 477, "threshold": 7700, "baseThreshold": 7000, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Imported wallet", "name": "Warm Start \u2192 Login", "fullName": "Measure Warm Start: Warm Start to Login Screen", "status": "P", "reason": null, "totalMs": 424, "totalThreshold": 3300, "steps": [{"name": "Time since the user open the app again and the login screen appears", "duration": 424, "threshold": 3300, "baseThreshold": 3000, "passed": true, "exceeded": null, "percentOver": null}]}, {"group": "Imported wallet", "name": "Warm Start \u2192 Wallet", "fullName": "Measure Warm Start: Login To Wallet Screen", "status": "P", "reason": null, "totalMs": 3115, "totalThreshold": 3300, "steps": [{"name": "Time since the user clicks on unlock button, until the app unlocks", "duration": 3115, "threshold": 3300, "baseThreshold": 3000, "passed": true, "exceeded": null, "percentOver": null}]}];
+
       const tbody=document.getElementById("results");
       rows.forEach(([name,...values])=>{
         const valid=values.map(v=>v[0]).filter(v=>typeof v==="number");
@@ -124,52 +93,58 @@
         tbody.insertAdjacentHTML("beforeend",`<tr><td>${name}</td>${cells}</tr>`);
       });
 
-      const slowerSteps = [
-        ["Cold Start → Onboarding", "App installed → onboarding screen", 2164, 2266, 2643],
-        ["Onboarding Import SRP", "Create wallet → social sign-up", 1025, 1062, 1014],
-        ["Onboarding Import SRP", "Import SRP → SRP field", 722, 533, 933],
-        ["Onboarding Import SRP", "Continue → password fields", 569, 425, 1065],
-        ["Onboarding Import SRP", "Done → ETH and BTC visible", 839, 526, 1003],
-        ["Account creation", "Account list visible", 1218, 1526, 593],
-        ["Account creation", "Account created in list", 238, 651, 664],
-        ["Account creation", "Token list visible", 289, 546, 334],
-        ["Seedless Apple", "Apple login → post-OAuth", 49, 300, 600],
-        ["Seedless Apple", "Create Password → success", 562, 3505, 3250],
-        ["Seedless Apple", "Done → wallet main screen", 140, 485, 413],
-        ["Seedless Google", "Create wallet → onboarding sheet", 564, 1161, 1009],
-        ["Seedless Google", "Create Password → success", 1200, 3041, 1584],
-        ["Seedless Telegram", "Create wallet → onboarding sheet", 647, null, 1144],
-        ["Seedless Telegram", "Telegram login → post-OAuth", 455, null, 2659],
-        ["Seedless Telegram", "Done → wallet main screen", 152, null, 429],
-        ["Aggregated Balance Loading", "Wallet tab → balance stable", 8181, 8933, 8724],
-        ["Cross-chain swap ETH → SOL", "Swap button → swap page", 908, 1186, 1240],
-        ["Cross-chain swap ETH → SOL", "Amount entered → quote", 4522, 7082, 4677],
-        ["Asset View", "Asset button → token overview", 3898, 2581, 3984],
-        ["Swap ETH → LINK", "Amount entered → quote", 441, 617, 397],
-        ["Perps add funds", "Select Perps main screen", 1391, 1885, 877],
-        ["Perps add funds", "Open Add Funds", 2077, 3046, 2049],
-        ["Perps add funds", "Get Quote", 3165, 3443, 6169],
-        ["Predict Available Balance", "Predict button → balance", 775, null, 1424],
-        ["Predict Market Details", "Predict button → market list", 837, 1274, 892],
-        ["Predict Market Details", "About tab visible", 581, 829, 471],
-        ["Predict Market Details", "Outcomes tab visible", 799, 1521, 523],
-      ];
-
-      document.getElementById("slower-steps").innerHTML = slowerSteps.map(
-        ([scenario, step, browserStack, standard, he]) => {
-          const diff = (value) =>
-            value === null || browserStack === null ? "N/A" : `${value - browserStack} ms`;
-          return `<tr>
-            <td>${scenario}</td>
-            <td>${step}</td>
-            <td>${browserStack === null ? "N/A" : `${browserStack} ms`}</td>
-            <td>${standard === null ? "N/A" : `${standard} ms`}</td>
-            <td class="${standard !== null && standard > browserStack ? "fail" : "missing"}">${diff(standard)}</td>
-            <td>${he === null ? "N/A" : `${he} ms`}</td>
-            <td class="${he !== null && he > browserStack ? "fail" : "missing"}">${diff(he)}</td>
-          </tr>`;
-        },
-      ).join("");
+      const detail=document.getElementById("he-detail");
+      let currentGroup=null;
+      heScenarios.forEach((s)=>{
+        if(s.group!==currentGroup){
+          currentGroup=s.group;
+          detail.insertAdjacentHTML("beforeend", `<h3 style="margin:22px 0 8px">${currentGroup}</h3>`);
+        }
+        const cls=s.status==="P"?"pass":s.status==="F"?"fail":"missing";
+        const label=s.status==="P"?"PASSED":s.status==="F"?"QG FAILED":"NO METRICS";
+        const total = s.totalMs==null ? "n/a" : `${(s.totalMs/1000).toFixed(3)}s`;
+        const thr = s.totalThreshold==null ? "" : ` / QG total ${s.totalThreshold}ms`;
+        const reason = s.reason && s.status!=="P" ? ` · ${s.reason}` : "";
+        let table="";
+        if(!s.steps.length){
+          table=`<p class="meta">No timers available for this scenario.</p>`;
+        } else {
+          const rowsHtml=s.steps.map((st)=>{
+            const mark=st.passed?"✅":"❌";
+            const cls2=st.passed?"pass":"fail";
+            let delta="";
+            if(st.duration!=null && st.threshold!=null){
+              const diff=st.duration-st.threshold;
+              if(!st.passed && st.exceeded!=null){
+                delta=` (+${st.exceeded}ms / +${st.percentOver}%)`;
+              } else {
+                delta=` (${diff>=0?"+":""}${diff}ms)`;
+              }
+            }
+            const gate=st.threshold==null?"n/a":`${st.threshold}ms`+(st.baseThreshold && st.baseThreshold!==st.threshold?` (base ${st.baseThreshold})`:"");
+            return `<tr>
+              <td>${st.name}</td>
+              <td class="num ${cls2}">${st.duration}ms${delta}</td>
+              <td class="num">${gate}</td>
+              <td class="${cls2}">${mark}</td>
+            </tr>`;
+          }).join("");
+          table=`<div class="table-wrap"><table>
+            <thead><tr><th>Timer</th><th>Actual</th><th>Quality gate</th><th>Result</th></tr></thead>
+            <tbody>${rowsHtml}</tbody>
+          </table></div>`;
+        }
+        detail.insertAdjacentHTML("beforeend", `
+          <article class="scenario">
+            <header>
+              <h3>${s.name}</h3>
+              <span class="badge ${cls}">${label}</span>
+            </header>
+            <p class="meta"><strong>Test total:</strong> ${total}${thr}${reason}</p>
+            ${table}
+          </article>
+        `);
+      });
     </script>
   </body>
 </html>

@@ -74,8 +74,9 @@
       <header class="hero">
         <div class="eyebrow">MetaMask Mobile · Performance E2E</div>
         <h1>Vendor comparison</h1>
-        <p>Comparison of the four providers executed in run 32265974787. Timings represent application metrics and do not fully include provider session creation.</p>
+        <p>Four-provider baseline from run 32265974787, with TestMu HE timings replaced by run 32373754440. Timings represent application metrics and do not fully include provider session creation.</p>
         <nav class="links">
+          <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32373754440" target="_blank">TestMu HE latest</a>
           <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787" target="_blank">Full run</a>
           <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32248728966" target="_blank">TestMu Standard + HE</a>
           <a href="https://github.com/MetaMask/metamask-mobile/actions/runs/32249603472" target="_blank">Sauce Labs</a>
@@ -122,32 +123,32 @@
           <li>Tests without metrics should not be interpreted as application slowness; they indicate an instrumentation, session, or flow failure.</li>
         </ul>
       </section>
-      <p class="foot">Generated for run 32265974787 · Branch MMQA-TestMu-PoC-HyperExecute · All values are expressed in seconds.</p>
+      <p class="foot">HE column updated from run 32373754440 · original multi-vendor baseline 32265974787 · Branch MMQA-TestMu-PoC-HyperExecute · All values are expressed in seconds.</p>
     </main>
     <script>
       const rows = [
-        ["Cold Start → Onboarding", [2.164,"P"], [1.247,"P"], [2.266,"P"], [2.643,"P"]],
-        ["Fresh SRP wallet creation", [15.850,"F"], [18.877,"F"], [12.985,"F"], [11.591,"F"]],
-        ["Import SRP onboarding +50 accounts", [5.183,"P"], [7.524,"P"], [4.448,"P"], [5.904,"P"]],
+        ["Cold Start → Onboarding", [2.164,"P"], [1.247,"P"], [2.266,"P"], [1.699,"P"]],
+        ["Fresh SRP wallet creation", [15.850,"F"], [18.877,"F"], [12.985,"F"], [10.272,"F"]],
+        ["Import SRP onboarding +50 accounts", [5.183,"P"], [7.524,"P"], [4.448,"P"], [3.805,"P"]],
         ["Money Home · empty wallet", [null,"N"], [null,"N"], [null,"N"], [null,"N"]],
-        ["Account creation", [1.745,"P"], [3.657,"F"], [2.723,"P"], [1.591,"P"]],
+        ["Account creation", [1.745,"P"], [3.657,"F"], [2.723,"P"], [2.826,"P"]],
         ["Money Home · imported wallet", [null,"N"], [null,"N"], [null,"N"], [null,"N"]],
         ["Perps open position and close it", [null,"N"], [null,"N"], [null,"N"], [null,"N"]],
-        ["Seedless Apple", [1.501,"P"], [6.332,"P"], [4.754,"P"], [5.358,"P"]],
-        ["Seedless Google", [3.030,"P"], [5.456,"P"], [5.156,"P"], [3.451,"P"]],
-        ["Seedless Telegram", [3.156,"P"], [5.818,"P"], [null,"P"], [5.758,"P"]],
-        ["Aggregated Balance Loading", [8.181,"P"], [8.800,"P"], [8.933,"P"], [8.724,"P"]],
-        ["Cross-chain swap ETH → SOL", [5.430,"P"], [9.985,"P"], [8.268,"P"], [5.917,"P"]],
-        ["Asset View", [3.898,"P"], [4.681,"P"], [2.581,"P"], [3.984,"P"]],
-        ["Cold Start → Login", [5.801,"F"], [7.222,"F"], [null,"P"], [0.387,"P"]],
-        ["Swap ETH → LINK", [1.978,"P"], [3.685,"P"], [1.919,"P"], [1.627,"P"]],
-        ["Import SRP +50 accounts", [3.486,"P"], [14.563,"F"], [null,"P"], [2.222,"P"]],
-        ["Warm Start → Wallet", [1.554,"P"], [5.493,"F"], [null,"N"], [0.926,"P"]],
-        ["Perps add funds", [6.633,"P"], [7.310,"P"], [8.374,"P"], [9.095,"P"]],
-        ["Warm Start → Login", [0.931,"P"], [1.262,"P"], [0.539,"P"], [0.463,"P"]],
-        ["Predict Available Balance", [0.775,"P"], [1.818,"P"], [null,"P"], [1.424,"P"]],
-        ["Predict Market Details", [3.732,"P"], [8.487,"P"], [3.928,"P"], [2.082,"P"]],
-        ["Predict Deposit", [24.645,"F"], [null,"N"], [19.625,"P"], [7.586,"P"]],
+        ["Seedless Apple", [1.501,"P"], [6.332,"P"], [4.754,"P"], [8.368,"P"]],
+        ["Seedless Google", [3.030,"P"], [5.456,"P"], [5.156,"P"], [4.292,"P"]],
+        ["Seedless Telegram", [3.156,"P"], [5.818,"P"], [null,"P"], [3.113,"P"]],
+        ["Aggregated Balance Loading", [8.181,"P"], [8.800,"P"], [8.933,"P"], [8.914,"P"]],
+        ["Cross-chain swap ETH → SOL", [5.430,"P"], [9.985,"P"], [8.268,"P"], [5.812,"P"]],
+        ["Asset View", [3.898,"P"], [4.681,"P"], [2.581,"P"], [2.550,"P"]],
+        ["Cold Start → Login", [5.801,"F"], [7.222,"F"], [null,"P"], [2.787,"P"]],
+        ["Swap ETH → LINK", [1.978,"P"], [3.685,"P"], [1.919,"P"], [1.905,"P"]],
+        ["Import SRP +50 accounts", [3.486,"P"], [14.563,"F"], [null,"P"], [3.150,"P"]],
+        ["Warm Start → Wallet", [1.554,"P"], [5.493,"F"], [null,"N"], [3.115,"P"]],
+        ["Perps add funds", [6.633,"P"], [7.310,"P"], [8.374,"P"], [7.751,"P"]],
+        ["Warm Start → Login", [0.931,"P"], [1.262,"P"], [0.539,"P"], [0.424,"P"]],
+        ["Predict Available Balance", [0.775,"P"], [1.818,"P"], [null,"P"], [0.932,"P"]],
+        ["Predict Market Details", [3.732,"P"], [8.487,"P"], [3.928,"P"], [2.826,"P"]],
+        ["Predict Deposit", [24.645,"F"], [null,"N"], [19.625,"P"], [9.312,"P"]],
         ["Rewards tab", [null,"N"], [3.949,"P"], [null,"N"], [null,"N"]]
       ];
       const labels = ["BrowserStack", "Sauce Private", "TestMu Standard", "TestMu HE"];
