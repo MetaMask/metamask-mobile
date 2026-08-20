@@ -568,6 +568,78 @@ describe('useRWAToken', () => {
       expect(result.current.isTokenMarketFullyClosed(token)).toBe(true);
     });
   });
+
+  describe('isTokenTradable (hook wrapper)', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('returns true when stock token is in regular market hours', () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2024-01-01T10:00:00.000Z'));
+      const { result } = renderHookWithProvider(() => useRWAToken(), {
+        state: createState(true),
+      });
+      const token = createToken({
+        rwaData: {
+          instrumentType: 'stock',
+          market: {
+            nextOpen: '2024-01-01T09:00:00.000Z',
+            nextClose: '2024-01-01T17:00:00.000Z',
+          },
+        } as BridgeToken['rwaData'],
+      });
+
+      expect(result.current.isTokenTradable(token)).toBe(true);
+    });
+
+    it('returns true when stock token is in off-hours window', () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2024-01-01T19:00:00.000Z'));
+      const { result } = renderHookWithProvider(() => useRWAToken(), {
+        state: createState(true),
+      });
+      const token = createToken({
+        rwaData: {
+          instrumentType: 'stock',
+          market: {
+            nextOpen: '2024-01-02T09:00:00.000Z',
+            nextClose: '2024-01-02T17:00:00.000Z',
+          },
+          offhours: {
+            nextOpen: '2024-01-01T17:30:00.000Z',
+            nextClose: '2024-01-01T20:00:00.000Z',
+          },
+        } as BridgeToken['rwaData'],
+      });
+
+      expect(result.current.isTokenTradingOpen(token)).toBe(false);
+      expect(result.current.isTokenTradable(token)).toBe(true);
+    });
+
+    it('returns false when stock token is fully closed', () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2024-01-01T17:15:00.000Z'));
+      const { result } = renderHookWithProvider(() => useRWAToken(), {
+        state: createState(true),
+      });
+      const token = createToken({
+        rwaData: {
+          instrumentType: 'stock',
+          market: {
+            nextOpen: '2024-01-02T09:00:00.000Z',
+            nextClose: '2024-01-01T17:00:00.000Z',
+          },
+          offhours: {
+            nextOpen: '2024-01-01T17:30:00.000Z',
+            nextClose: '2024-01-01T20:00:00.000Z',
+          },
+        } as BridgeToken['rwaData'],
+      });
+
+      expect(result.current.isTokenTradable(token)).toBe(false);
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------

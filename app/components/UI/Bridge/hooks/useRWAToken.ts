@@ -108,6 +108,15 @@ export function useRWAToken() {
   );
 
   /**
+   * True when the token is tradable: regular market hours OR an off-hours window.
+   * Use this (not `isTokenTradingOpen`) to gate navigation into swap.
+   */
+  const isTokenTradable = useCallback(
+    (token?: BridgeToken) => isTokenTradableAt(token, isRWAEnabled, Date.now()),
+    [isRWAEnabled],
+  );
+
+  /**
    * True when the token is a stock RWA and neither regular hours nor off-hours
    * are currently active. Only fully-closed tokens should trigger the market-closed modal.
    */
@@ -129,6 +138,7 @@ export function useRWAToken() {
   return {
     isStockToken,
     isTokenTradingOpen,
+    isTokenTradable,
     isTokenMarketFullyClosed,
   };
 }

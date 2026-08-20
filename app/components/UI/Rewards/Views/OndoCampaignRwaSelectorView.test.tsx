@@ -92,12 +92,12 @@ jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   SwapBridgeNavigationLocation: { Rewards: 'Rewards' },
 }));
 
-let mockIsTokenTradingOpen = jest.fn(() => true);
+let mockIsTokenTradable = jest.fn(() => true);
 
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
     isStockToken: jest.fn(() => false),
-    isTokenTradingOpen: mockIsTokenTradingOpen,
+    isTokenTradable: mockIsTokenTradable,
   }),
 }));
 
@@ -329,7 +329,7 @@ describe('OndoCampaignRwaSelectorView', () => {
     jest.clearAllMocks();
     mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
     mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
-    mockIsTokenTradingOpen = jest.fn(() => true);
+    mockIsTokenTradable = jest.fn(() => true);
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -633,10 +633,10 @@ describe('OndoCampaignRwaSelectorView', () => {
 
   describe('after hours sheet', () => {
     beforeEach(() => {
-      mockIsTokenTradingOpen = jest.fn(() => false);
+      mockIsTokenTradable = jest.fn(() => false);
     });
 
-    it('shows after hours sheet when token trading is closed', () => {
+    it('shows after hours sheet when token is not tradable', () => {
       const token = buildToken('AAPL');
       mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);

@@ -277,10 +277,10 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-const mockIsTokenTradingOpen = jest.fn(() => true);
+const mockIsTokenTradable = jest.fn(() => true);
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
-    isTokenTradingOpen: mockIsTokenTradingOpen,
+    isTokenTradable: mockIsTokenTradable,
     isStockToken: jest.fn(() => false),
   }),
 }));
@@ -527,7 +527,7 @@ describe('OndoCampaignDetailsView', () => {
       }
       return null;
     });
-    mockIsTokenTradingOpen.mockReturnValue(true);
+    mockIsTokenTradable.mockReturnValue(true);
     mockOndoCampaignStatsSummary.mockReset();
     mockUseRewardCampaigns.mockReturnValue(hookDefaults);
     mockUseGetCampaignParticipantStatus.mockReturnValue({

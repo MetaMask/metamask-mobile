@@ -279,7 +279,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     };
   }, [mode, activeGroupAccounts, allTokenBalances]);
 
-  const { isTokenTradingOpen } = useRWAToken();
+  const { isTokenTradable } = useRWAToken();
 
   useTrackRewardsPageView({
     page_type:
@@ -326,7 +326,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
           ? (ondoUsdSrcToken ?? getOndoOpenPositionSourceToken(destChainId))
           : undefined;
 
-      if (!isTokenTradingOpen(destToken)) {
+      if (!isTokenTradable(destToken)) {
         const rawNextOpen = destToken.rwaData?.market?.nextOpen;
         const nextOpenDate = rawNextOpen ? new Date(String(rawNextOpen)) : null;
         setAfterHoursNextOpen(
@@ -349,7 +349,7 @@ const OndoCampaignRwaSelectorView: React.FC = () => {
     [
       mode,
       goToSwaps,
-      isTokenTradingOpen,
+      isTokenTradable,
       trackEvent,
       createEventBuilder,
       ondoUsdSrcToken,
