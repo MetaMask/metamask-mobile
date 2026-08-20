@@ -64,7 +64,10 @@ export interface UsePerpsProPositionsPanelActionsReturn {
   isOrderCancelable: (order: Order) => boolean;
   isOrderEditable: (order: Order) => boolean;
   isOrderSizeEditable: (order: Order) => boolean;
-  renderActionSheets: (filteredPositions?: Position[]) => React.ReactNode;
+  renderActionSheets: (
+    filteredPositions?: Position[],
+    isFiltered?: boolean,
+  ) => React.ReactNode;
 }
 
 /**
@@ -343,7 +346,7 @@ export const usePerpsProPositionsPanelActions =
     }, [runGatedEligibleAction]);
 
     const renderActionSheets = useCallback(
-      (filteredPositions?: Position[]) => (
+      (filteredPositions?: Position[], isFiltered?: boolean) => (
         <>
           {showCloseAllSheet && (
             <PerpsProModalPortal onRequestClose={handleCloseAllSheetClose}>
@@ -351,6 +354,7 @@ export const usePerpsProPositionsPanelActions =
                 sheetRef={closeAllSheetRef}
                 onClose={handleCloseAllSheetClose}
                 positions={filteredPositions}
+                isFiltered={isFiltered}
               />
             </PerpsProModalPortal>
           )}
