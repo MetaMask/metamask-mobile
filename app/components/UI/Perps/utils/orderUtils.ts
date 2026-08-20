@@ -30,6 +30,19 @@ const TRIGGER_CONDITION_PRICE_BELOW = 'perps.order_details.price_below';
 export type OrderPlacementKind = 'immediate' | 'resting';
 
 /**
+ * Parses a Perps price, returning null when absent or invalid.
+ *
+ * @param price - Price value from a controller order or transaction.
+ * @returns The positive numeric price, or null when unavailable.
+ */
+export const getValidPerpsPrice = (
+  price: string | number | null | undefined,
+): number | null => {
+  const parsed = typeof price === 'number' ? price : parseFloat(price ?? '');
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
+/**
  * Identifies whether submitting an order creates an immediate fill or a
  * resting order. Trigger-market describes how the order executes after its
  * trigger fires; it still rests in the open-orders stream at placement time.
@@ -60,18 +73,14 @@ export const getOrderManagementToastKey = (
  * Parses the trigger price from an order, returning null when absent or invalid.
  * Use this instead of inline `parseFloat(order.triggerPrice ?? '')` + validity checks.
  */
-export const getValidTriggerPrice = (order: Order): number | null => {
-  const parsed = parseFloat(order.triggerPrice ?? '');
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-};
+export const getValidTriggerPrice = (order: Order): number | null =>
+  getValidPerpsPrice(order.triggerPrice);
 
 /**
  * Parses the execution/limit price from an order, returning null when absent or invalid.
  */
-export const getValidOrderPrice = (order: Order): number | null => {
-  const parsed = parseFloat(order.price ?? '');
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-};
+export const getValidOrderPrice = (order: Order): number | null =>
+  getValidPerpsPrice(order.price);
 
 /**
  * Whether an order price is outside HyperLiquid's allowed band relative to a
@@ -121,6 +130,59 @@ type OrderPriceLabelKey =
  */
 export const isTriggerOrder = (order: Order): boolean =>
   Boolean(order.isTrigger || isTPSLOrder(order.detailedOrderType));
+
+export interface PerpsTransactionOrderLike {
+  type: 'limit' | 'market';
+  orderType?: OrderType;
+  detailedOrderType?: string;
+}
+
+/**
+ * Resolves the normalized order type for transaction-history data.
+ *
+ * @param order - Transaction order data, including legacy fields.
+ * @returns The normalized order type used by detail-row policies.
+ */
+export const resolvePerpsTransactionOrderType = (
+  order: PerpsTransactionOrderLike,
+): OrderType => {
+  if (order.orderType) {
+    return order.orderType;
+  }
+
+  const detailedOrderType = order.detailedOrderType?.toLowerCase() ?? '';
+
+  if (detailedOrderType.includes('take profit')) {
+    return detailedOrderType.includes('limit')
+      ? 'take_profit_limit'
+      : 'take_profit_market';
+  }
+
+  if (detailedOrderType.includes('stop')) {
+    return detailedOrderType.includes('limit') ? 'stop_limit' : 'stop_market';
+  }
+
+  return order.type;
+};
+
+export interface PerpsOrderPriceRowVisibility {
+  showTriggerPrice: boolean;
+  showLimitPrice: boolean;
+}
+
+/**
+ * Resolves which price rows belong in an order detail view.
+ *
+ * @param orderType - Normalized placement type for the order.
+ * @returns Visibility flags for trigger and limit price rows.
+ */
+export const getOrderPriceRowVisibility = (
+  orderType: OrderType | undefined,
+): PerpsOrderPriceRowVisibility => ({
+  showTriggerPrice: orderType !== undefined && isTriggerOrderType(orderType),
+  showLimitPrice:
+    orderType !== undefined && isLimitExecutionOrderType(orderType),
+});
 
 export const resolveOrderDisplayPriceAndLabel = (
   order: Order,
