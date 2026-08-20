@@ -187,7 +187,21 @@ class TabBarComponent {
   async tapActivity(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await Gestures.waitAndTap(this.tabBarActivityButton, { timeout: 2000 });
+        // Money account replaces the Activity tab with Money; Activity is then
+        // opened from the wallet-header clock button (`wallet-activity-button`).
+        // When Money is off, that header button is hidden and the Activity tab
+        // is the only entry point. Prefer whichever control is present.
+        try {
+          await Gestures.waitAndTap(this.tabBarActivityButton, {
+            timeout: 2000,
+            elemDescription: 'Tab Bar - Activity Button',
+          });
+        } catch {
+          await Gestures.waitAndTap(WalletView.activityButton, {
+            timeout: 2000,
+            elemDescription: 'Wallet Activity button',
+          });
+        }
         await Assertions.expectElementToBeVisible(ActivitiesView.title, {
           description: 'Activity View Title',
           timeout: 500,
