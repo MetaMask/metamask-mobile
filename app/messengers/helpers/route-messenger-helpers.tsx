@@ -1,6 +1,6 @@
 import React, { ComponentType, FunctionComponent } from 'react';
 import { UIMessengerActions, UIMessengerEvents } from '../ui-messenger';
-import { RouteWithMessenger } from '../route-with-messenger';
+import { RouteMessengerProvider } from '../../contexts/route-messenger';
 import {
   NavigationProp,
   EventMapBase,
@@ -17,10 +17,10 @@ export type ValidateElements<
   Elements extends readonly string[],
   AllowedElements extends string,
 > = {
-  [K in keyof Elements]: Elements[K] extends AllowedElements
+    [K in keyof Elements]: Elements[K] extends AllowedElements
     ? Elements[K]
     : AllowedElements;
-};
+  };
 
 /**
  * Helper function to define the allowed capabilities for a route messenger.
@@ -74,17 +74,17 @@ interface RouteProps<
 }
 
 /**
- * Create a route object with a {@link RouteWithMessenger} element that provides
- * a route messenger with the specified capabilities.
+ * Create a route object with a {@link RouteMessengerProvider} element that
+ * provides a route messenger with the specified capabilities.
  *
  * @param Component - The component to render for this route. This will be
- * wrapped in a {@link RouteWithMessenger} component that provides the route
+ * wrapped in a {@link RouteMessengerProvider} component that provides the route
  * messenger.
  * @param options - Options bag.
  * @param options.capabilities - Capabilities to delegate from the UI messenger
  * to the route messenger.
  */
-export function withMessenger<
+export function withRouteMessenger<
   ParamList extends ParamListBase,
   RouteName extends keyof ParamList,
   NavigatorID extends string | undefined = undefined,
@@ -106,7 +106,7 @@ export function withMessenger<
 ): FunctionComponent<
   RouteProps<ParamList, RouteName, NavigatorID, State, ScreenOptions, EventMap>
 > {
-  return function RouteWithMessengerElement(
+  return function RouteMessengerProviderWrapper(
     props: RouteProps<
       ParamList,
       RouteName,
@@ -117,9 +117,9 @@ export function withMessenger<
     >,
   ) {
     return (
-      <RouteWithMessenger path={props.route.name} capabilities={capabilities}>
+      <RouteMessengerProvider path={props.route.name} capabilities={capabilities}>
         <Component {...props} />
-      </RouteWithMessenger>
+      </RouteMessengerProvider>
     );
   };
 }
