@@ -344,6 +344,26 @@ describe('ReferralRevenueShareDashboard', () => {
       ).toBeOnTheScreen();
     });
 
+    it('keeps the referral code field reserved height when edit is pressed', () => {
+      renderDashboard();
+      fireEvent.press(
+        screen.getByTestId('prototype-scenario-invited-existing-user'),
+      );
+      const codeField = screen.getByTestId('referral-invite-code-field');
+
+      fireEvent(codeField, 'layout', {
+        nativeEvent: { layout: { x: 0, y: 0, width: 320, height: 84 } },
+      });
+
+      expect(codeField).not.toHaveStyle({ minHeight: 84 });
+
+      fireEvent.press(screen.getByTestId('edit-referral-code-button'));
+
+      expect(screen.getByTestId('referral-invite-code-field')).toHaveStyle({
+        minHeight: 84,
+      });
+    });
+
     it('edits the referral code on the invited existing user sheet after edit is pressed', () => {
       renderDashboard();
       fireEvent.press(
