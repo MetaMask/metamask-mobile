@@ -75,6 +75,9 @@ import MoneyEarnings from '../../../Money/components/MoneyEarnings';
 
 const CREATOR_REFERRAL_CODE = '8F3A21';
 const REFERRAL_CODE_LENGTH = 6;
+const REFERRAL_INVITE_HEADER = "You're invited";
+const REFERRAL_INVITE_BODY =
+  "Someone shared an invite with you. Tap Accept to join. Opening this link doesn't enroll you automatically.";
 // Placeholder program values — configured by the backend in production.
 const REFERRER_REVENUE_SHARE_RATE = '25%';
 const REFERRED_USER_CASHBACK_RATE = '10%';
@@ -430,7 +433,7 @@ const ReferralQrCodeSheet = ({
           </Box>
         </Box>
         <BottomSheetFooter
-          primaryButtonProps={{
+          secondaryButtonProps={{
             children: 'Save QR code',
             onPress: () => {
               saveQrCode().catch(() => undefined);
@@ -438,7 +441,7 @@ const ReferralQrCodeSheet = ({
             size: ButtonSize.Lg,
             testID: 'save-referral-qr-code-button',
           }}
-          secondaryButtonProps={{
+          primaryButtonProps={{
             children: 'Share',
             onPress: () => {
               shareQrCode().catch(() => undefined);
@@ -997,6 +1000,21 @@ const ReferralInviteCodeField = ({
   );
 };
 
+const ReferralInviteIllustration = () => {
+  const tw = useTailwind();
+
+  return (
+    <Box alignItems={BoxAlignItems.Center} twClassName="pt-2">
+      <Image
+        source={referralShareHero}
+        resizeMode="contain"
+        style={tw.style('h-28 w-48')}
+        accessibilityLabel="Referral invite illustration"
+      />
+    </Box>
+  );
+};
+
 const ReferralInviteBody = ({
   referralCode,
   onChangeReferralCode,
@@ -1009,22 +1027,19 @@ const ReferralInviteBody = ({
   includeOnboardingHeader?: boolean;
 }) => (
   <>
+    <ReferralInviteIllustration />
     {includeOnboardingHeader ? (
       <Box twClassName="gap-y-1">
         <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
-          {"You've been referred"}
+          {REFERRAL_INVITE_HEADER}
         </Text>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {
-            "Tap Accept to confirm. You won't be enrolled just by opening this link."
-          }
+          {REFERRAL_INVITE_BODY}
         </Text>
       </Box>
     ) : (
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {
-          "You've been referred. Tap Accept to confirm. You won't be enrolled just by opening this link."
-        }
+        {REFERRAL_INVITE_BODY}
       </Text>
     )}
     <ReferralInviteCodeField
@@ -1212,7 +1227,7 @@ const InvitedExistingUserSheet = ({
         isInteractable={false}
         testID="invited-existing-user-sheet"
       >
-        <BottomSheetHeader>Referral invite</BottomSheetHeader>
+        <BottomSheetHeader>{REFERRAL_INVITE_HEADER}</BottomSheetHeader>
         <Box twClassName="px-4 pb-6 gap-4">
           <ReferralInviteBody
             referralCode={referralCode}
@@ -1282,7 +1297,9 @@ const ReferralRevenueShareDashboard = ({
     if (id === 'ineligible-user') {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
-        iconName: IconNameLegacy.Info,
+        iconName: IconNameLegacy.Warning,
+        iconColor: colors.warning.default,
+        backgroundColor: 'transparent',
         hasNoTimeout: false,
         labelOptions: [
           {
@@ -1316,7 +1333,10 @@ const ReferralRevenueShareDashboard = ({
     await ClipboardManager.setString(referralCode);
     setIsCodeCopied(true);
     toastRef?.current?.showToast({
-      variant: ToastVariants.Plain,
+      variant: ToastVariants.Icon,
+      iconName: IconNameLegacy.Confirmation,
+      iconColor: colors.success.default,
+      backgroundColor: 'transparent',
       hasNoTimeout: false,
       labelOptions: [
         {

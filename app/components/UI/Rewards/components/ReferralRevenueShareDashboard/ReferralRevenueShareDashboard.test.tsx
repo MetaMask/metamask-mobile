@@ -142,7 +142,10 @@ describe('ReferralRevenueShareDashboard', () => {
     });
 
     expect(mockShowToast).toHaveBeenCalledWith({
-      variant: ToastVariants.Plain,
+      variant: ToastVariants.Icon,
+      iconName: IconName.Confirmation,
+      iconColor: expect.any(String),
+      backgroundColor: 'transparent',
       hasNoTimeout: false,
       labelOptions: [
         {
@@ -209,11 +212,14 @@ describe('ReferralRevenueShareDashboard', () => {
 
       expect(screen.queryByText('Prototype Scenarios')).not.toBeOnTheScreen();
       expect(screen.getByTestId('invited-new-user-screen')).toBeOnTheScreen();
-      expect(screen.getByText("You've been referred")).toBeOnTheScreen();
+      expect(screen.getByText("You're invited")).toBeOnTheScreen();
       expect(
         screen.queryByTestId('invited-existing-user-sheet'),
       ).not.toBeOnTheScreen();
-      expect(screen.getByText(/Tap Accept to confirm/)).toBeOnTheScreen();
+      expect(
+        screen.getByText(/Someone shared an invite with you/),
+      ).toBeOnTheScreen();
+      expect(screen.getByText(/Tap Accept to join/)).toBeOnTheScreen();
       expect(
         screen.getByTestId('invited-new-user-referral-code-input'),
       ).toHaveTextContent(/8F3A21/);
@@ -223,8 +229,8 @@ describe('ReferralRevenueShareDashboard', () => {
         screen.getByTestId('invited-new-user-back-button'),
       ).toBeOnTheScreen();
       expect(
-        screen.queryByLabelText('Referral invite illustration'),
-      ).not.toBeOnTheScreen();
+        screen.getByLabelText('Referral invite illustration'),
+      ).toBeOnTheScreen();
       expect(
         screen.getByTestId('decline-invited-new-user-button'),
       ).toBeOnTheScreen();
@@ -308,11 +314,14 @@ describe('ReferralRevenueShareDashboard', () => {
       expect(
         screen.queryByTestId('invited-new-user-screen'),
       ).not.toBeOnTheScreen();
-      expect(screen.getByText('Referral invite')).toBeOnTheScreen();
-      expect(screen.getByText(/Tap Accept to confirm/)).toBeOnTheScreen();
+      expect(screen.getByText("You're invited")).toBeOnTheScreen();
       expect(
-        screen.queryByLabelText('Referral invite illustration'),
-      ).not.toBeOnTheScreen();
+        screen.getByText(/Someone shared an invite with you/),
+      ).toBeOnTheScreen();
+      expect(screen.getByText(/Tap Accept to join/)).toBeOnTheScreen();
+      expect(
+        screen.getByLabelText('Referral invite illustration'),
+      ).toBeOnTheScreen();
       expect(
         screen.getByTestId('invited-existing-user-referral-code-input'),
       ).toHaveTextContent(/8F3A21/);
@@ -513,7 +522,9 @@ describe('ReferralRevenueShareDashboard', () => {
 
       expect(mockShowToast).toHaveBeenCalledWith({
         variant: ToastVariants.Icon,
-        iconName: IconName.Info,
+        iconName: IconName.Warning,
+        iconColor: expect.any(String),
+        backgroundColor: 'transparent',
         hasNoTimeout: false,
         labelOptions: [
           {
