@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking, Share } from 'react-native';
+import { Linking, ScrollView, Share } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import FileShare from 'react-native-share';
 import ReferralRevenueShareDashboard, {
@@ -203,6 +203,22 @@ describe('ReferralRevenueShareDashboard', () => {
       expect(screen.queryByText('Prototype Scenarios')).not.toBeOnTheScreen();
     });
 
+    it('scrolls the referrals screen to the top when a prototype scenario is selected', () => {
+      const scrollTo = jest
+        .spyOn(ScrollView.prototype, 'scrollTo')
+        .mockImplementation(jest.fn());
+
+      try {
+        renderDashboard();
+
+        fireEvent.press(screen.getByTestId('prototype-scenario-onboarded-kol'));
+
+        expect(scrollTo).toHaveBeenCalledWith({ y: 0, animated: false });
+      } finally {
+        scrollTo.mockRestore();
+      }
+    });
+
     it('opens the invited new user full-page screen when that scenario is selected', () => {
       renderDashboard();
 
@@ -286,13 +302,16 @@ describe('ReferralRevenueShareDashboard', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('dismisses the invited new user screen when accept is pressed', () => {
+    it('navigates home when the invited new user screen is accepted', () => {
       renderDashboard();
       fireEvent.press(
         screen.getByTestId('prototype-scenario-invited-new-user'),
       );
 
       fireEvent.press(screen.getByTestId('accept-invited-new-user-button'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+
       flushInvitedNewUserDismiss();
 
       expect(
@@ -515,25 +534,34 @@ describe('ReferralRevenueShareDashboard', () => {
       });
     });
 
-    it('navigates home and shows an unavailable toast when Ineligible user is selected', () => {
+    it('navigates home and shows an ineligible toast when Ineligible user is selected', () => {
       renderDashboard();
 
       fireEvent.press(screen.getByTestId('prototype-scenario-ineligible-user'));
 
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockShowToast).not.toHaveBeenCalled();
+
+      act(() => {
+        jest.advanceTimersByTime(350);
+      });
+
       expect(mockShowToast).toHaveBeenCalledWith({
         variant: ToastVariants.Icon,
-        iconName: IconName.Warning,
+        iconName: IconName.Danger,
         iconColor: expect.any(String),
         backgroundColor: 'transparent',
         hasNoTimeout: false,
         labelOptions: [
           {
-            label: "This referral isn't available",
+            label: 'Referral code ineligible',
             isBold: true,
           },
         ],
+        descriptionOptions: {
+          description: 'This code is no longer active.',
+        },
       });
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
     it('reopens the sheet when the scenarios button is pressed', () => {
