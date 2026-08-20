@@ -10194,10 +10194,12 @@
       "geo_locked_cta": "Check eligibility",
       "geo_loading": "Checking region...",
       "remind_me_success_toast": "We'll let you know when this campaign starts.",
-      "remind_me_save_error": "Could not save your reminder. Please try again."
+      "remind_me_save_error": "Could not save your reminder. Please try again.",
+      "view_details": "View details",
+      "view_details_accessibility": "View details for {{campaignName}}"
     },
     "campaign_mechanics": {
-      "title": "Mechanics"
+      "title": "Rules and eligibility"
     },
     "campaign_details": {
       "start_date": "Starts: {{date}}",
@@ -10214,6 +10216,11 @@
       "swap_ondo_assets": "Swap Ondo Assets",
       "open_position": "Trade now",
       "how_it_works": "How it works",
+      "error_title": "Unable to load this campaign",
+      "error_description": "We couldn't load this campaign. Please try again.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "retry": "Retry",
       "ondo": {
         "entries_closed_title": "Entries closed",
         "entries_closed_description": "You missed the opt-in window. Check back for more campaigns in the future."
