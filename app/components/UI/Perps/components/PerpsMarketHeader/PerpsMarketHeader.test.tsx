@@ -12,6 +12,11 @@ import {
 import PerpsMarketHeader from './PerpsMarketHeader';
 import { createProMarketHeaderTestIDs } from './perpsMarketHeaderTestIds';
 import { GLOW_TOTAL_MS } from '../PerpsModeToggle/PerpsModeSwitchPill';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../util/haptics';
 
 jest.mock('../../providers/PerpsStreamManager');
 
@@ -26,6 +31,7 @@ jest.mock('../../hooks/stream', () => ({
     },
   })),
 }));
+jest.mock('../../../../../util/haptics');
 
 const mockMarket: PerpsMarketData = {
   symbol: 'BTC',
@@ -57,6 +63,11 @@ const renderHeader = (
   );
 
 describe('PerpsMarketHeader', () => {
+  beforeEach(() => {
+    jest.mocked(playImpact).mockClear();
+    jest.mocked(playSelection).mockClear();
+  });
+
   afterEach(() => {
     jest.useRealTimers();
   });
@@ -117,6 +128,30 @@ describe('PerpsMarketHeader', () => {
     );
 
     expect(onBackPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays PageNavigation when back is pressed with enableHaptics', () => {
+    const onBackPress = jest.fn();
+    const { getByTestId } = renderHeader({ onBackPress, enableHaptics: true });
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON),
+    );
+
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+    expect(onBackPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not play a haptic on back press when enableHaptics is omitted', () => {
+    const onBackPress = jest.fn();
+    const { getByTestId } = renderHeader({ onBackPress });
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON),
+    );
+
+    expect(playImpact).not.toHaveBeenCalled();
+    expect(playSelection).not.toHaveBeenCalled();
   });
 
   it('omits the back button when onBackPress is not provided', () => {
@@ -184,6 +219,86 @@ describe('PerpsMarketHeader', () => {
     expect(onFavoritePress).toHaveBeenCalledTimes(1);
   });
 
+  it('plays selection when favorite is pressed with enableHaptics', () => {
+    const onFavoritePress = jest.fn();
+    const { getByTestId } = renderHeader({
+      onFavoritePress,
+      enableHaptics: true,
+    });
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
+    );
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays PageNavigation when wallet is pressed with enableHaptics', () => {
+    const onWalletPress = jest.fn();
+    const { getByTestId } = renderHeader({
+      onWalletPress,
+      enableHaptics: true,
+    });
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON),
+    );
+
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+  });
+
+  it('plays TabChange as soon as a mode-pill switch is accepted', async () => {
+    jest.useFakeTimers();
+    const onModeChange = jest.fn();
+    const { getByTestId } = renderHeader({
+      onModeChange,
+      enableHaptics: true,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+    });
+
+    expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Lite);
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
+
+    // Drain the shimmer timer so it cannot leak into later tests.
+    await act(async () => {
+      jest.advanceTimersByTime(GLOW_TOTAL_MS);
+    });
+
+    expect(playImpact).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps other Lite header actions silent when mode haptics are enabled', async () => {
+    jest.useFakeTimers();
+    const onBackPress = jest.fn();
+    const onModeChange = jest.fn();
+    const { getByTestId } = renderHeader({
+      mode: PerpsMode.Lite,
+      onBackPress,
+      onModeChange,
+      enableModeHaptics: true,
+    });
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON),
+    );
+    expect(playImpact).not.toHaveBeenCalled();
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
+
+    await act(async () => {
+      jest.advanceTimersByTime(GLOW_TOTAL_MS);
+      await Promise.resolve();
+    });
+
+    expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Pro);
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
+  });
+
   it('renders the filled star when the market is favorited', () => {
     const { getByTestId } = renderHeader({
       onFavoritePress: jest.fn(),
@@ -195,19 +310,21 @@ describe('PerpsMarketHeader', () => {
     ).toBeOnTheScreen();
   });
 
-  it('fires onModeChange from the active Pro mode pill once the shimmer finishes', () => {
+  it('fires onModeChange from the active Pro mode pill without waiting for the shimmer', () => {
     jest.useFakeTimers();
     const onModeChange = jest.fn();
     const { getByTestId } = renderHeader({ onModeChange });
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
 
-    expect(onModeChange).not.toHaveBeenCalled();
+    expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Lite);
+
+    // Drain the shimmer timer so it cannot leak into later tests.
     act(() => {
       jest.advanceTimersByTime(GLOW_TOTAL_MS);
     });
 
-    expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Lite);
+    expect(onModeChange).toHaveBeenCalledTimes(1);
   });
 
   it('omits the mode pill when mode is not provided', () => {

@@ -119,13 +119,20 @@ export interface BridgeState {
   selectedQuoteRequestId: string | undefined;
   balanceRefreshKey: number;
   hardwareWalletsSwaps: HardwareWalletsSwapsState;
+
+  // Batch Sell
   batchSellSourceTokens: BridgeToken[];
   batchSellSourceTokenAmounts: Partial<
     Record<CaipAssetType, string | undefined>
   >;
   batchSellDestToken: BridgeToken | undefined;
   batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>;
+
+  // Recurring
   recurring: RecurringState;
+
+  // Orders (Limit + Recurring, Open + History)
+  ordersNetworkFilter: CaipChainId | undefined;
 }
 
 export const initialState: BridgeState = {
@@ -158,7 +165,12 @@ export const initialState: BridgeState = {
   batchSellSourceTokenAmounts: {},
   batchSellDestToken: undefined,
   batchSellSlippages: {},
+
+  // Recurring
   recurring: initialRecurringState,
+
+  // Orders (Limit + Recurring, Open + History)
+  ordersNetworkFilter: undefined,
 };
 
 const name = 'bridge';
@@ -326,6 +338,12 @@ const slice = createSlice({
       action: PayloadAction<CaipChainId | undefined>,
     ) => {
       state.tokenSelectorNetworkFilter = action.payload;
+    },
+    setOrdersNetworkFilter: (
+      state,
+      action: PayloadAction<CaipChainId | undefined>,
+    ) => {
+      state.ordersNetworkFilter = action.payload;
     },
     setVisiblePillChainIds: (
       state,
@@ -1087,6 +1105,11 @@ export const selectTokenSelectorNetworkFilter = createSelector(
   (bridgeState) => bridgeState.tokenSelectorNetworkFilter,
 );
 
+export const selectOrdersNetworkFilter = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.ordersNetworkFilter,
+);
+
 export const selectVisiblePillChainIds = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.visiblePillChainIds,
@@ -1193,6 +1216,7 @@ export const {
   setIsGasIncluded7702Supported,
   setAbTestContext,
   setTokenSelectorNetworkFilter,
+  setOrdersNetworkFilter,
   setVisiblePillChainIds,
   setSelectedQuoteRequestId,
   updateHardwareWalletsSwaps,

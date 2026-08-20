@@ -58,7 +58,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
       testID={BenefitsTestIds.CONTAINER}
     >
       {/* Header */}
-      <Box twClassName="px-4 pt-2 pb-5">
+      <Box twClassName="px-4 py-2">
         <Text
           variant={TextVariant.HeadingLg}
           twClassName="mb-2"

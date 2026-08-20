@@ -3,6 +3,13 @@ import type { PredictFeedId } from '../types';
 export const NFL_FEED_SCREEN_ID = 'sports-football-nfl';
 export const NCAA_FEED_SCREEN_ID = 'sports-football-ncaa';
 
+export const NFL_GAMES_FEED_ID = 'sports-football-nfl-games' as PredictFeedId;
+export const NFL_WIN_TOTALS_FEED_ID =
+  'sports-football-nfl-win-totals' as PredictFeedId;
+export const NCAA_GAMES_FEED_ID = 'sports-football-ncaa-games' as PredictFeedId;
+export const NCAA_WIN_TOTALS_FEED_ID =
+  'sports-football-ncaa-win-totals' as PredictFeedId;
+
 interface FeedScreenTabDefinition {
   id: string;
   label: string;
@@ -23,7 +30,12 @@ export const FEED_SCREENS = {
       {
         id: 'games',
         label: 'Games',
-        feedId: 'sports-football-nfl-games' as PredictFeedId,
+        feedId: NFL_GAMES_FEED_ID,
+      },
+      {
+        id: 'props',
+        label: 'Props',
+        feedId: NFL_WIN_TOTALS_FEED_ID,
       },
     ],
   },
@@ -34,7 +46,12 @@ export const FEED_SCREENS = {
       {
         id: 'games',
         label: 'Games',
-        feedId: 'sports-football-ncaa-games' as PredictFeedId,
+        feedId: NCAA_GAMES_FEED_ID,
+      },
+      {
+        id: 'props',
+        label: 'Props',
+        feedId: NCAA_WIN_TOTALS_FEED_ID,
       },
     ],
   },

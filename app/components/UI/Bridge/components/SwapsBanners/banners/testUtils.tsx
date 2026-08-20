@@ -52,11 +52,13 @@ export const createStockRwaToken = ({
 
 export const createBannerState = ({
   sourceAmount = '1',
+  sourceToken = mockSourceToken,
   destToken = createMockToken({ address: '0xdest', symbol: 'USDC' }),
   quoteStreamComplete,
   rwaEnabled = false,
 }: {
   sourceAmount?: string;
+  sourceToken?: BridgeToken;
   destToken?: BridgeToken;
   quoteStreamComplete?: {
     quoteCount: number;
@@ -73,7 +75,7 @@ export const createBannerState = ({
     },
     bridgeReducerOverrides: {
       sourceAmount,
-      sourceToken: mockSourceToken,
+      sourceToken,
       destToken,
     },
   });

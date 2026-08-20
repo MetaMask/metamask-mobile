@@ -111,7 +111,7 @@ import { BridgeMarketViewFooter } from './BridgeMarketViewFooter.tsx';
 import {
   InsufficientNativeReserveBanner,
   MarketClosedBanner,
-  MissingPriceDataBanner,
+  MissingQuotePriceDataBanner,
   OffHoursTradingBanner,
   QuoteErrorBanner,
   SwapsBanners,
@@ -626,7 +626,7 @@ const BridgeMarketViewContent = ({
             <QuoteErrorBanner />
             <TokenWarningBanner />
             <InsufficientNativeReserveBanner />
-            <MissingPriceDataBanner />
+            <MissingQuotePriceDataBanner />
             <OffHoursTradingBanner />
             <MarketClosedBanner />
           </SwapsBanners>

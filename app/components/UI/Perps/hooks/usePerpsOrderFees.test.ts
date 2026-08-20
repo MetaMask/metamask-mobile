@@ -17,7 +17,10 @@ import {
 jest.mock('./usePerpsTrading');
 
 // Import existing mocks
-import { createMockEngineContext, TEST_CONSTANTS } from '../__mocks__';
+import {
+  createMockEngineContext,
+  TEST_CONSTANTS,
+} from '../__mocks__/perpsMocks';
 
 // Use shared Engine context mock
 const mockEngineContext = createMockEngineContext();

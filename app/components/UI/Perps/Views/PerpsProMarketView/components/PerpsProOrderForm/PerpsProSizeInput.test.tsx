@@ -1,10 +1,18 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { TextVariant } from '@metamask/design-system-react-native';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../../../util/haptics';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
+import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
 import PerpsProSizeInput, {
   type PerpsProSizeInputProps,
 } from './PerpsProSizeInput';
+
+jest.mock('../../../../../../../util/haptics');
 
 const mockInputFocus = jest.fn();
 
@@ -63,6 +71,8 @@ const renderInput = (overrides: Partial<PerpsProSizeInputProps> = {}) =>
 describe('PerpsProSizeInput', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(playImpact).mockClear();
+    jest.mocked(playSelection).mockClear();
   });
 
   it('focuses the input when the upper field is pressed', () => {
@@ -81,6 +91,24 @@ describe('PerpsProSizeInput', () => {
 
     expect(onToggleDenomination).toHaveBeenCalledTimes(1);
     expect(mockInputFocus).toHaveBeenCalledTimes(1);
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays PrimaryCTA when Add funds is pressed', () => {
+    const onAddFundsPress = jest.fn();
+    renderInput({ onAddFundsPress });
+
+    fireEvent.press(screen.getByTestId(ids.ADD_FUNDS_BUTTON));
+
+    expect(onAddFundsPress).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+  });
+
+  it('does not play Add funds haptics when the action is disabled', () => {
+    renderInput({ onAddFundsPress: undefined });
+
+    expect(screen.getByTestId(ids.ADD_FUNDS_BUTTON)).toBeDisabled();
+    expect(playImpact).not.toHaveBeenCalled();
   });
 
   it('disables the denomination toggle when conversion is unavailable', () => {
@@ -94,6 +122,7 @@ describe('PerpsProSizeInput', () => {
 
     expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
       'inputAccessoryViewID',
+      getPerpsProInputAccessoryID(ids.SIZE_INPUT),
     );
     expect(screen.getByTestId(ids.SIZE_INPUT)).not.toHaveProp('returnKeyType');
     expect(screen.getByTestId(ids.SIZE_INPUT)).not.toHaveProp(

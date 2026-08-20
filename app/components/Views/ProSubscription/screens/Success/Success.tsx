@@ -42,7 +42,7 @@ const Success = ({ onSuccess }: SuccessProps) => (
     </Box>
 
     {/* Title, subtitle and CTA anchored at the bottom */}
-    <Box twClassName="px-4 pb-2 gap-y-4">
+    <Box twClassName="px-4 pb-2 gap-y-6">
       <Box twClassName="gap-y-2">
         <Text
           variant={TextVariant.DisplayMd}
