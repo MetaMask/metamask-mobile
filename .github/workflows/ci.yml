@@ -440,12 +440,8 @@ jobs:
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
         env:
-          # INFRA-3891: this runner has ~14.6 GB usable and no swap. At the previous
-          # 8192 MB ceiling the bundler peaked at 14.2 to 14.4 GB, on the limit, and the
-          # host killed it (exit 137) on roughly 14% of runs. 6144 MB puts the peak near
-          # 13.2 GB. Keep this value here and not inline in the gen-bundle:ios script:
-          # an inline value silently shadows this one, which is why a 2025-11-26 change
-          # raising this ceiling never took effect.
+          # INFRA-3891: sized for a 16 GB runner with no swap. Do not move this inline
+          # into gen-bundle:ios, an inline value silently shadows it.
           NODE_OPTIONS: --max-old-space-size=6144
 
       - name: Check bundle size
