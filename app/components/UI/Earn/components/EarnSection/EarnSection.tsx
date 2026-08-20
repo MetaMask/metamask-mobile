@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   BadgeNetwork,
@@ -52,7 +53,7 @@ import {
 } from '../../utils/earnAssets';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
-import useMoneyAccountVisibility from '../../../Money/hooks/useMoneyAccountVisibility';
+import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { EarnAsset } from '../../types/earnAssets';
 import EarnNewTag from '../EarnNewTag';
@@ -119,7 +120,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     const tw = useTailwind();
     const navigation = useNavigation<AppNavigationProp>();
 
-    const { isMoneyAccountVisible } = useMoneyAccountVisibility();
+    const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
 
     const sectionViewRef = useRef<View>(null);
     const isRetryingRef = useRef(false);

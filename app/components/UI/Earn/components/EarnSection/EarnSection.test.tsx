@@ -2,6 +2,7 @@ import React from 'react';
 import type { Asset } from '@metamask/assets-controllers';
 import { EthAccountType } from '@metamask/keyring-api';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
   Icon,
@@ -12,7 +13,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
-import useMoneyAccountVisibility from '../../../Money/hooks/useMoneyAccountVisibility';
+import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
 import useHomeViewedEvent from '../../../../Views/Homepage/hooks/useHomeViewedEvent';
@@ -27,10 +28,14 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 import EarnSection from './EarnSection';
 
 jest.mock('@react-navigation/native');
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 jest.mock('@metamask/design-system-twrnc-preset');
 jest.mock('../../hooks/useEarnSectionAssets');
 jest.mock('../../../Money/hooks/useMoneyAccountBalance');
-jest.mock('../../../Money/hooks/useMoneyAccountVisibility');
+jest.mock('../../../Money/selectors/visibility');
 jest.mock('../../../Money/hooks/useMoneyNavigation');
 jest.mock('../../../../Views/Homepage/hooks/useHomeViewedEvent');
 jest.mock('../../../../Views/Homepage/hooks/useSectionPerformance');
@@ -45,10 +50,7 @@ const mockUseEarnSectionAssets = useEarnSectionAssets as jest.MockedFunction<
 >;
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
-const mockUseMoneyAccountVisibility =
-  useMoneyAccountVisibility as jest.MockedFunction<
-    typeof useMoneyAccountVisibility
-  >;
+const mockUseSelector = jest.mocked(useSelector);
 const mockUseMoneyNavigation = useMoneyNavigation as jest.MockedFunction<
   typeof useMoneyNavigation
 >;
@@ -129,6 +131,7 @@ const zeroBalanceAssetSlot: typeof assetSlot = {
   },
 };
 const navigate = jest.fn();
+let mockMoneyAccountVisible = false;
 
 const mockSectionResult = (
   overrides: Partial<ReturnType<typeof useEarnSectionAssets>> = {},
@@ -158,15 +161,18 @@ const getSuccessArrowIcons = () =>
 describe('EarnSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMoneyAccountVisible = false;
+    mockUseSelector.mockImplementation((selector) =>
+      selector === selectIsMoneyAccountVisible
+        ? mockMoneyAccountVisible
+        : undefined,
+    );
     mockUseNavigation.mockReturnValue({
       navigate,
     } as unknown as ReturnType<typeof useNavigation>);
     mockUseTailwind.mockReturnValue({
       style: jest.fn(() => ({})),
     } as unknown as ReturnType<typeof useTailwind>);
-    mockUseMoneyAccountVisibility.mockReturnValue({
-      isMoneyAccountVisible: false,
-    });
     mockUseMoneyAccountBalance.mockReturnValue({
       totalFiatFormatted: '$0.00',
       totalFiatRaw: '0',
@@ -280,9 +286,7 @@ describe('EarnSection', () => {
   });
 
   it('renders New on the Money card with a zero balance', () => {
-    mockUseMoneyAccountVisibility.mockReturnValue({
-      isMoneyAccountVisible: true,
-    });
+    mockMoneyAccountVisible = true;
     mockSectionResult({ assetSlots: [] });
 
     render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
@@ -294,9 +298,7 @@ describe('EarnSection', () => {
   });
 
   it('hides New on the Money card with a nonzero balance', () => {
-    mockUseMoneyAccountVisibility.mockReturnValue({
-      isMoneyAccountVisible: true,
-    });
+    mockMoneyAccountVisible = true;
     mockUseMoneyAccountBalance.mockReturnValue({
       totalFiatFormatted: '$10.00',
       totalFiatRaw: '10',
@@ -311,9 +313,7 @@ describe('EarnSection', () => {
   });
 
   it('hides New on the Money card when balance is unavailable', () => {
-    mockUseMoneyAccountVisibility.mockReturnValue({
-      isMoneyAccountVisible: true,
-    });
+    mockMoneyAccountVisible = true;
     mockUseMoneyAccountBalance.mockReturnValue({
       totalFiatFormatted: undefined,
       totalFiatRaw: undefined,
@@ -331,9 +331,7 @@ describe('EarnSection', () => {
   });
 
   it('renders a skeleton while the Money balance is loading', () => {
-    mockUseMoneyAccountVisibility.mockReturnValue({
-      isMoneyAccountVisible: true,
-    });
+    mockMoneyAccountVisible = true;
     mockUseMoneyAccountBalance.mockReturnValue({
       totalFiatFormatted: undefined,
       totalFiatRaw: undefined,
@@ -352,9 +350,7 @@ describe('EarnSection', () => {
   });
 
   it('renders a skeleton while the Money APY is loading', () => {
-    mockUseMoneyAccountVisibility.mockReturnValue({
-      isMoneyAccountVisible: true,
-    });
+    mockMoneyAccountVisible = true;
     mockSectionResult({
       assetSlots: [],
       moneyApyPercent: undefined,
@@ -372,9 +368,7 @@ describe('EarnSection', () => {
   });
 
   it('renders unavailable APY copy after loading settles without a rate', () => {
-    mockUseMoneyAccountVisibility.mockReturnValue({
-      isMoneyAccountVisible: true,
-    });
+    mockMoneyAccountVisible = true;
     mockSectionResult({
       assetSlots: [],
       moneyApyPercent: undefined,
@@ -406,9 +400,7 @@ describe('EarnSection', () => {
   });
 
   it('removes green arrows from Money and asset tiles', () => {
-    mockUseMoneyAccountVisibility.mockReturnValue({
-      isMoneyAccountVisible: true,
-    });
+    mockMoneyAccountVisible = true;
 
     render(<EarnSection sectionIndex={0} totalSectionsLoaded={1} />);
 
