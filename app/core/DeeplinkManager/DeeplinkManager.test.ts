@@ -180,7 +180,7 @@ describe('DeeplinkManager', () => {
 
       expect(mockStartProcessed).toHaveBeenCalledWith({
         url,
-        source: 'intake',
+        source: 'parse',
         appStartType: 'warm',
       });
       expect(mockEndProcessed).toHaveBeenCalledWith({
@@ -196,7 +196,7 @@ describe('DeeplinkManager', () => {
 
       expect(mockStartProcessed).toHaveBeenCalledWith({
         url,
-        source: 'intake',
+        source: 'parse',
         appStartType: 'cold',
       });
     });
@@ -220,11 +220,26 @@ describe('DeeplinkManager', () => {
 
       expect(mockStartProcessed).toHaveBeenCalledWith({
         url,
-        source: 'unlock',
+        source: 'resolve',
         appStartType: 'cold',
       });
       expect(mockEndProcessed).not.toHaveBeenCalled();
       expect(mockCancelProcessed).not.toHaveBeenCalled();
+    });
+
+    it('stamps resolve Processed with the unlock-session app start type', async () => {
+      const intent = { target: { type: 'home-tab', routeName: 'Trending' } };
+      mockParseDeeplink.mockResolvedValueOnce(
+        intent as Awaited<ReturnType<typeof parseDeeplink>>,
+      );
+
+      await deeplinkManager.resolve(url, { origin, appStartType: 'warm' });
+
+      expect(mockStartProcessed).toHaveBeenCalledWith({
+        url,
+        source: 'resolve',
+        appStartType: 'warm',
+      });
     });
 
     it('cancels as rejected when resolve is declined at the interstitial', async () => {

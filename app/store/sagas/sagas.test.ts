@@ -26,9 +26,11 @@ import {
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import {
-  markNextParseAsColdStart,
+  markNextParseAsUnlockSession,
   resetNextParseAppStartTypeForTesting,
 } from '../../core/DeeplinkManager/utils/startupDeeplinkNavigation';
+import { resetUnlockDeeplinkAppStartTypeForTesting } from '../../core/Performance/unlockDeeplinkTraces';
+import { resetLoginAppStartTypeForTesting } from '../../components/Views/Login/loginPerformanceTags';
 import Engine from '../../core/Engine';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 
@@ -682,6 +684,8 @@ describe('handleDeeplinkSaga', () => {
     __setMainNavigatorReadyForTesting(true);
     __resetSDKServicesInitializationForTesting();
     resetNextParseAppStartTypeForTesting();
+    resetUnlockDeeplinkAppStartTypeForTesting();
+    resetLoginAppStartTypeForTesting();
     AppStateEventProcessor.pendingDeeplink = null;
     AppStateEventProcessor.pendingDeeplinkSource = null;
     mockGetUtmAttributesFromDeeplinkUrl.mockReturnValue(null);
@@ -1082,14 +1086,14 @@ describe('handleDeeplinkSaga', () => {
         );
       });
 
-      it('passes cold appStartType when the leftover cold-start parse flag is set', async () => {
+      it('passes the unlock-session appStartType when the leftover parse flag is set', async () => {
         const testLink = 'https://link.metamask.io/buy';
         AppStateEventProcessor.pendingDeeplink = testLink;
         AppStateEventProcessor.pendingDeeplinkSource = null;
         Engine.context.KeyringController.isUnlocked = jest
           .fn()
           .mockReturnValue(true);
-        markNextParseAsColdStart();
+        markNextParseAsUnlockSession();
 
         await expectSaga(handleDeeplinkSaga)
           .withState({

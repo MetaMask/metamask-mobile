@@ -20,6 +20,10 @@ import {
  * requestAnimationFrame for exactly that gap. First paint is per-route work
  * (Deeplink Ready).
  *
+ * `start_source` is the entry point of *this* span: Processed uses
+ * `parse` / `resolve`; Navigated uses `unlock` / `intake`. `app_start_type`
+ * is the only cold/warm tag and is process-scoped.
+ *
  * Neither span measures human wait. The interstitial modal splits Processed
  * into `before_gate` / `after_gate` segments so the user's reaction time is a
  * hole between spans rather than noise inside one, and Navigated starts at
@@ -30,7 +34,10 @@ import {
  * `beforeSendTransaction` drops them.
  */
 
-export type DeeplinkPerfStartSource = 'unlock' | 'intake';
+/** Which DeeplinkManager method opened the Processed span. */
+export type DeeplinkProcessedSource = 'parse' | 'resolve';
+/** Where the Navigated clock started: unlock submit vs link intake. */
+export type DeeplinkNavigatedSource = 'unlock' | 'intake';
 export type DeeplinkPerfAppStartType = 'cold' | 'warm';
 export type DeeplinkProcessedSeam = 'pre_navigate' | 'handler_finished';
 export type DeeplinkTraceToken = number;
@@ -50,9 +57,16 @@ interface DeeplinkUrlTags {
   signed: boolean;
 }
 
-interface StartDeeplinkTraceOptions {
+interface StartDeeplinkProcessedTraceOptions {
   url: string;
-  source: DeeplinkPerfStartSource;
+  source: DeeplinkProcessedSource;
+  appStartType: DeeplinkPerfAppStartType;
+  startTime?: number;
+}
+
+interface StartDeeplinkNavigatedTraceOptions {
+  url: string;
+  source: DeeplinkNavigatedSource;
   appStartType: DeeplinkPerfAppStartType;
   startTime?: number;
 }
@@ -125,7 +139,7 @@ interface ProcessedState {
   startedAt: number;
   phase: ProcessedPhase;
   urlTags: DeeplinkUrlTags;
-  source: DeeplinkPerfStartSource;
+  source: DeeplinkProcessedSource;
   appStartType: DeeplinkPerfAppStartType;
   spanContext: TraceContext;
 }
@@ -144,6 +158,8 @@ let nextTraceToken = 0;
 
 const processedTags = (state: ProcessedState) => ({
   ...state.urlTags,
+  // Entry point of this span: `parse` or `resolve`. Not Navigated's
+  // `unlock` / `intake` — those are a different clock.
   start_source: state.source,
   app_start_type: state.appStartType,
 });
@@ -166,7 +182,7 @@ export const startDeeplinkProcessedTrace = ({
   source,
   appStartType,
   startTime,
-}: StartDeeplinkTraceOptions): DeeplinkTraceToken | null => {
+}: StartDeeplinkProcessedTraceOptions): DeeplinkTraceToken | null => {
   const now = Date.now();
   if (
     processed !== null &&
@@ -346,7 +362,7 @@ export const startDeeplinkNavigatedTrace = ({
   source,
   appStartType,
   startTime,
-}: StartDeeplinkTraceOptions): DeeplinkTraceToken | null => {
+}: StartDeeplinkNavigatedTraceOptions): DeeplinkTraceToken | null => {
   const now = Date.now();
   if (
     navigated !== null &&

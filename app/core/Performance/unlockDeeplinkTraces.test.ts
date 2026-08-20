@@ -9,8 +9,11 @@ import {
 } from './DeeplinkPerformance';
 import {
   cancelUnlockDeeplinkTraces,
+  getUnlockDeeplinkAppStartType,
+  resetUnlockDeeplinkAppStartTypeForTesting,
   startUnlockDeeplinkTraces,
 } from './unlockDeeplinkTraces';
+import { resetLoginAppStartTypeForTesting } from '../../components/Views/Login/loginPerformanceTags';
 
 jest.mock('../AppStateEventListener', () => ({
   AppStateEventProcessor: {
@@ -40,6 +43,8 @@ describe('unlockDeeplinkTraces', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAppState.pendingDeeplink = null;
+    resetUnlockDeeplinkAppStartTypeForTesting();
+    resetLoginAppStartTypeForTesting();
   });
 
   it('starts only Homepage Ready when no deeplink is pending', () => {
@@ -70,6 +75,27 @@ describe('unlockDeeplinkTraces', () => {
       homepageReadyTraceToken: 1,
       deeplinkNavigatedTraceToken: 2,
     });
+  });
+
+  it('remembers the unlock-session app start type for later resolve/parse', () => {
+    startUnlockDeeplinkTraces({ appStartType: 'warm' });
+
+    expect(getUnlockDeeplinkAppStartType()).toBe('warm');
+  });
+
+  it('falls back to getLoginAppStartType when nothing was captured', () => {
+    expect(getUnlockDeeplinkAppStartType()).toBe('cold');
+  });
+
+  it('clears the captured type after a failed unlock', () => {
+    startUnlockDeeplinkTraces({ appStartType: 'warm' });
+
+    cancelUnlockDeeplinkTraces({
+      homepageReadyTraceToken: 1,
+      deeplinkNavigatedTraceToken: 2,
+    });
+
+    expect(getUnlockDeeplinkAppStartType()).toBe('cold');
   });
 
   it('cancels both traces with the tokens the start returned', () => {
