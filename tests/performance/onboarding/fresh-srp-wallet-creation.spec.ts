@@ -190,7 +190,9 @@ const waitForPostOnboardingDestination = async (
       if (!walletCandidate) break;
 
       const walletT0 = Date.now();
-      const walletVisible = await isCandidateVisible(walletCandidate.getElement);
+      const walletVisible = await isCandidateVisible(
+        walletCandidate.getElement,
+      );
       const walletElapsed = Date.now() - walletT0;
 
       if (!walletVisible) {
@@ -209,9 +211,9 @@ const waitForPostOnboardingDestination = async (
         const t0 = Date.now();
         try {
           const sheetEl = await sheet.getElement();
-          const exists = await sheetEl.unwrap().isExisting();
+          const visible = await sheetEl.isVisible();
           if (tracking) recordFailedPollCommand(Date.now() - t0);
-          if (exists) {
+          if (visible) {
             deferred = true;
             break;
           }
