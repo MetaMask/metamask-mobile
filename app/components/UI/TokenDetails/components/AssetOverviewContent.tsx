@@ -436,22 +436,17 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     securityData?.resultType,
   ]);
 
-  // Start the entry card trace synchronously during render so it is registered
-  // in the trace map before any child useEffect (where endTrace fires) runs.
-  // Using a ref guard ensures we only start one trace per unique asset.
-  const entryCardTraceStartedRef = useRef<string | null>(null);
-  if (
-    isMarketInsightsEnabled &&
-    marketInsightsCaip19Id &&
-    entryCardTraceStartedRef.current !== marketInsightsCaip19Id
-  ) {
-    entryCardTraceStartedRef.current = marketInsightsCaip19Id;
-    trace({
-      name: TraceName.MarketInsightsEntryCardLoad,
-      op: TraceOperation.MarketInsightsLoad,
-      id: marketInsightsCaip19Id,
-    });
-  }
+  // Runs during render (not useEffect) so the trace is registered before any
+  // child's endTrace(); useMemo's deps guard against restarting it per render.
+  useMemo(() => {
+    if (isMarketInsightsEnabled && marketInsightsCaip19Id) {
+      trace({
+        name: TraceName.MarketInsightsEntryCardLoad,
+        op: TraceOperation.MarketInsightsLoad,
+        id: marketInsightsCaip19Id,
+      });
+    }
+  }, [isMarketInsightsEnabled, marketInsightsCaip19Id]);
 
   const goToBrowserUrl = (url: string) => {
     navigateWithDetails(navigation, createWebviewNavDetails({ url }));

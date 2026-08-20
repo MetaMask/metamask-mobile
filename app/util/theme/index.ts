@@ -15,9 +15,8 @@ import {
   brandColor,
 } from '@metamask/design-tokens';
 import Device from '../device';
-import { isPureBlackEnabled } from './pureBlackPreview';
 
-const resolvedDarkTheme = resolveDarkTheme(isPureBlackEnabled);
+const resolvedDarkTheme = resolveDarkTheme(true);
 
 /**
  * Darker success green used in light mode for better contrast on charts,

@@ -24,12 +24,10 @@ import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds
 import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
 
 export function CustomAmountConfirmButton({
-  alertTitle,
   isDisabled,
   onContinue,
   stage,
 }: Readonly<{
-  alertTitle: string | undefined;
   isDisabled: boolean;
   onContinue?: () => void;
   stage: CustomAmountStage;
@@ -58,12 +56,7 @@ export function CustomAmountConfirmButton({
     hasBlockingAlerts ||
     isHeadlessBuyInProgress;
 
-  const enabledButtonLabel = useButtonLabel();
-
-  const buttonLabel =
-    stage === CustomAmountStage.Loading
-      ? enabledButtonLabel
-      : (alertTitle ?? enabledButtonLabel);
+  const buttonLabel = useButtonLabel();
 
   return (
     <Button

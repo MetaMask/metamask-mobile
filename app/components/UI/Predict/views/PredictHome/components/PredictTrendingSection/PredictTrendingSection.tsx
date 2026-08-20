@@ -67,7 +67,8 @@ const PredictTrendingSection: React.FC<PredictTrendingSectionProps> = ({
       />
 
       {isLoading ? (
-        <Box twClassName="gap-3">
+        // No list gap: skeletons already use mb-3 (12px), matching feed cards.
+        <Box>
           {Array.from({ length: TRENDING_DISPLAY_LIMIT }).map((_, index) => (
             <PredictMarketSkeleton
               key={`${PREDICT_TRENDING_SECTION_TEST_IDS.SKELETON_PREFIX}-${index}`}
@@ -89,7 +90,7 @@ const PredictTrendingSection: React.FC<PredictTrendingSectionProps> = ({
           </Text>
         </Box>
       ) : (
-        <Box twClassName="gap-1">
+        <Box>
           {markets.map((market) => (
             <PredictMarket
               key={market.id}

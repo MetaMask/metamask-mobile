@@ -178,7 +178,7 @@ export default class Assertions {
    * Assert element contains specific text with auto-retry
    */
   static async expectElementToContainText(
-    webElement: WebElement,
+    elem: EncapsulatedElementType | WebElement,
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -187,9 +187,27 @@ export default class Assertions {
       description = `element contains text "${text}"`,
     } = options;
 
+    if (FrameworkDetector.isAppium()) {
+      const el = await asPlaywrightElement(elem as EncapsulatedElementType);
+      return Utilities.executeWithRetry(
+        async () => {
+          const actual = ((await el.textContent()) ?? '').trim();
+          if (!actual.includes(text)) {
+            throw new Error(
+              `Expected text containing "${text}" but got "${actual}"`,
+            );
+          }
+        },
+        {
+          timeout,
+          description: `Assert ${description}`,
+        },
+      );
+    }
+
     return Utilities.executeWithRetry(
       async () => {
-        const el = await webElement;
+        const el = await (elem as WebElement);
         const actualText = await el.getText();
         const normalizedText = actualText
           .replace(/\s+/g, ' ')
