@@ -44,10 +44,6 @@ export interface OpenOrderRowProps {
    */
   subtitleColor?: TextColor;
   /**
-   * Font weight for `subtitle`. Defaults to Regular.
-   */
-  subtitleFontWeight?: FontWeight;
-  /**
    * Press handler. When omitted the row is not interactive.
    */
   onPress?: () => void;

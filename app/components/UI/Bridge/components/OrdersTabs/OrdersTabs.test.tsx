@@ -14,13 +14,6 @@ import OrdersTabs from './OrdersTabs';
 import { OrdersTabsSelectorsIDs } from './OrdersTabs.testIds';
 import type { OrdersTabsProps } from './OrdersTabs.types';
 
-jest.mock('@shopify/flash-list', () => {
-  const { flashListMock } = jest.requireActual(
-    '../../../../../util/test/mockFlashList',
-  );
-  return flashListMock();
-});
-
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   ...jest.requireActual('../../../../../util/remoteFeatureFlag'),
   hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),

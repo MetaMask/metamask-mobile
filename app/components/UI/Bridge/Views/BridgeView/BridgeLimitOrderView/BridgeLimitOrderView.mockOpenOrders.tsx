@@ -110,7 +110,6 @@ function renderLimitOpenOrder(item: MockLimitOpenOrder) {
         source: 'ETH',
         dest: item.token.symbol,
       })}
-      subtitleFontWeight={FontWeight.Medium}
       {...getLimitOpenOrderSlots(item)}
     />
   );
