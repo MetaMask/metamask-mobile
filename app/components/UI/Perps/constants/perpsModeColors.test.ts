@@ -1,3 +1,4 @@
+import { colors } from '../../../../styles/common';
 import {
   getPerpsProChooserIconColors,
   getPerpsProPillGradientColors,
@@ -9,12 +10,19 @@ import {
   PERPS_PRO_ICON_TILE_LIGHT,
 } from './perpsModeColors';
 
-// Restated from the Figma spec so a stray edit to the palette fails here.
-/* eslint-disable @metamask/design-tokens/color-no-hex */
-const GOLD_DEEP = '#946500';
-const GOLD_BRIGHT = '#CF8D00';
-const GOLD_PALE = '#DDC598';
-/* eslint-enable @metamask/design-tokens/color-no-hex */
+const GOLD_DEEP = colors.perpsProGoldDeep;
+const GOLD_BRIGHT = colors.perpsProGoldBright;
+const GOLD_PALE = colors.perpsProGoldPale;
+
+describe('Perps Pro golds', () => {
+  it('keeps the Figma hex values in the shared color map', () => {
+    /* eslint-disable @metamask/design-tokens/color-no-hex */
+    expect(GOLD_DEEP).toBe('#946500');
+    expect(GOLD_BRIGHT).toBe('#CF8D00');
+    expect(GOLD_PALE).toBe('#DDC598');
+    /* eslint-enable @metamask/design-tokens/color-no-hex */
+  });
+});
 
 describe('getPerpsProPillGradientColors', () => {
   it('alternates the light-theme label gradient between deep and bright gold', () => {
