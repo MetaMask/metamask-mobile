@@ -13,7 +13,7 @@ import {
   isEnabled as isOTAUpdatesEnabled,
 } from 'expo-updates';
 import { connect } from 'react-redux';
-import { OTA_RC_AUTO_COMMIT, OTA_VERSION } from '../../../../constants/ota';
+import { OTA_VERSION } from '../../../../constants/ota';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import { useTheme } from '../../../../util/theme';
@@ -123,13 +123,10 @@ const AppInformation = ({ navigation, preinstalledSnaps }: Props) => {
   /**
    * Returns the version string to display (native app version or OTA version).
    * When OTA is disabled we're always on embedded code; native isEmbeddedLaunch can be false in that case.
-   * Automated RC OTAs don't bump OTA_VERSION, so they identify themselves by commit instead.
    */
   const getVersionDisplay = () => {
     const appInfo = `${appName} v${appVersion} (${buildNumber})`;
-    const appInfoOta = `${appName} ota ${
-      OTA_RC_AUTO_COMMIT || OTA_VERSION
-    } (${buildNumber})`;
+    const appInfoOta = `${appName} ota ${OTA_VERSION} (${buildNumber})`;
     const isRunningEmbedded = isEmbeddedLaunch || !isOTAUpdatesEnabled;
     return __DEV__ || isRunningEmbedded ? appInfo : appInfoOta;
   };
