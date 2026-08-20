@@ -182,7 +182,7 @@ describe('TransactionDetailsAccountRow', () => {
       useIsMoneyAccountContextMock.mockReturnValue(false);
     });
 
-    it('renders "From" with "Perps Account 1" for perpsWithdraw in money context', () => {
+    it('renders "From" with "Account 1 Perps" for perpsWithdraw in money context', () => {
       useIsMoneyAccountContextMock.mockReturnValue(true);
 
       useTransactionDetailsMock.mockReturnValue({
@@ -201,7 +201,7 @@ describe('TransactionDetailsAccountRow', () => {
       ).toBeDefined();
     });
 
-    it('renders "From" with "Predictions Account 1" for predictWithdraw in money context', () => {
+    it('renders "From" with "Account 1 Predictions" for predictWithdraw in money context', () => {
       useIsMoneyAccountContextMock.mockReturnValue(true);
 
       useTransactionDetailsMock.mockReturnValue({
