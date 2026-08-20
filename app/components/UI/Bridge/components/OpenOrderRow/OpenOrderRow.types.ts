@@ -1,8 +1,5 @@
 import type { ReactNode } from 'react';
-import type {
-  FontWeight,
-  TextColor,
-} from '@metamask/design-system-react-native';
+import type { TextColor } from '@metamask/design-system-react-native';
 import type { BridgeToken } from '../../types';
 
 export interface OpenOrderRowProps {
