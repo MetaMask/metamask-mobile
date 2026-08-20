@@ -8,6 +8,7 @@ jest.mock('./PlaywrightGestures.ts', () => ({
     activateApp: jest.fn().mockResolvedValue(undefined),
     terminateApp: jest.fn().mockResolvedValue(undefined),
     submitAndroidUrlBar: jest.fn().mockResolvedValue(undefined),
+    swipe: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -47,5 +48,19 @@ describe('Gestures Appium lifecycle facades', () => {
     await Gestures.submitAndroidUrlBar();
 
     expect(PlaywrightGestures.submitAndroidUrlBar).toHaveBeenCalledTimes(1);
+  });
+
+  it('forwards swipeScreen to PlaywrightGestures.swipe', async () => {
+    const options = {
+      scrollParams: { direction: 'down' as const },
+      duration: 100,
+      from: { x: 100, y: 300 },
+      to: { x: 100, y: 1700 },
+      percent: 0.5,
+    };
+
+    await Gestures.swipeScreen(options);
+
+    expect(PlaywrightGestures.swipe).toHaveBeenCalledWith(options);
   });
 });

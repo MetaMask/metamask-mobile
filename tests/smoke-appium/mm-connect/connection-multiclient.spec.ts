@@ -17,8 +17,7 @@ import {
   DappVariants,
   TestDapps,
   sleep,
-  PlaywrightGestures,
-  asPlaywrightElement,
+  Gestures,
 } from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
@@ -154,7 +153,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
         );
         // Verify wagmi personal sign works when wagmi is connected
         await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello MetaMask');
-        await PlaywrightGestures.hideKeyboard();
+        await Gestures.hideKeyboard();
         await BrowserPlaygroundDapp.tapWagmiSignMessage();
       }, DAPP_URL);
 
@@ -175,9 +174,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
           ACCOUNT_1_SOLANA_ADDRESS,
         );
         // Verify solana sign works when solana is connected
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(BrowserPlaygroundDapp.solanaCard),
-        );
+        await Gestures.scrollIntoView(BrowserPlaygroundDapp.solanaCard);
         await BrowserPlaygroundDapp.tapSolanaSignMessage();
       }, DAPP_URL);
 
@@ -195,10 +192,9 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
           ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT,
         );
 
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(BrowserPlaygroundDapp.legacyEvmCard),
-          { scrollParams: { direction: 'down' } },
-        );
+        await Gestures.scrollIntoView(BrowserPlaygroundDapp.legacyEvmCard, {
+          direction: 'down',
+        });
         // Test EVM sign (legacy personal sign) when EVM is connected
         await BrowserPlaygroundDapp.tapPersonalSign();
       }, DAPP_URL);
@@ -218,18 +214,14 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
         );
 
         // Disconnect EVM
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(
-            BrowserPlaygroundDapp.wagmiDisconnectButton,
-          ),
+        await Gestures.scrollIntoView(
+          BrowserPlaygroundDapp.wagmiDisconnectButton,
         );
         await BrowserPlaygroundDapp.tapWagmiDisconnect();
 
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(
-            BrowserPlaygroundDapp.connectedScopesSection,
-          ),
-          { scrollParams: { direction: 'down' } },
+        await Gestures.scrollIntoView(
+          BrowserPlaygroundDapp.connectedScopesSection,
+          { direction: 'down' },
         );
         await BrowserPlaygroundDapp.assertMultichainConnected(true);
         await BrowserPlaygroundDapp.assertScopeCardNotVisible('eip155:1');
@@ -242,9 +234,11 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
         await BrowserPlaygroundDapp.assertSolanaConnected(true);
 
         // Reconnect EVM
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(BrowserPlaygroundDapp.connectWagmiButton),
-          { scrollParams: { direction: 'down' } },
+        await Gestures.scrollIntoView(
+          BrowserPlaygroundDapp.connectWagmiButton,
+          {
+            direction: 'down',
+          },
         );
         await BrowserPlaygroundDapp.tapConnectWagmi();
       }, DAPP_URL);
@@ -259,10 +253,9 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
       await sleep(1000);
 
       await PlaywrightContextHelpers.withWebAction(async () => {
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(BrowserPlaygroundDapp.wagmiCard),
-          { scrollParams: { direction: 'up' } },
-        );
+        await Gestures.scrollIntoView(BrowserPlaygroundDapp.wagmiCard, {
+          direction: 'up',
+        });
 
         await BrowserPlaygroundDapp.assertScopeCardVisible('eip155:1');
 
@@ -277,7 +270,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
         );
         // Verify wagmi personal sign works when wagmi is connected
         await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello MetaMask');
-        await PlaywrightGestures.hideKeyboard();
+        await Gestures.hideKeyboard();
         await BrowserPlaygroundDapp.tapWagmiSignMessage();
       }, DAPP_URL);
 
@@ -315,10 +308,8 @@ appiumTest.describe.skip(SmokeMMConnect('Multiclient connect'), () => {
       await sleep(1000);
 
       await PlaywrightContextHelpers.withWebAction(async () => {
-        await PlaywrightGestures.scrollIntoView(
-          await asPlaywrightElement(
-            BrowserPlaygroundDapp.solanaSignedMessageResult,
-          ),
+        await Gestures.scrollIntoView(
+          BrowserPlaygroundDapp.solanaSignedMessageResult,
         );
         await BrowserPlaygroundDapp.assertSolanaSignedMessageResult(
           ACCOUNT_1_SOLANA_SIGNED_MESSAGE_RESULT,

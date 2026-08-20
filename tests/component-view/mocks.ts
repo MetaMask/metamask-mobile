@@ -282,6 +282,7 @@ jest.mock('../../app/core/Engine', () => {
       AssetsContractController: {
         getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
         getERC721AssetSymbol: jest.fn().mockResolvedValue(undefined),
+        getERC20BalanceOf: jest.fn().mockResolvedValue(null),
       },
       TransactionController: {
         state: {

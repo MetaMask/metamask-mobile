@@ -1076,6 +1076,7 @@ const Wallet = ({
         accountGroupBalanceProps: walletHomeAccountGroupBalanceProps,
         hideRows: inWalletHomePostOnboardingFlow,
         layout: balanceBreakdownLayout,
+        showRowArrows: balanceBreakdownVariant.showRowArrows,
         transactionActiveAbTests: balanceBreakdownTransactionActiveAbTests,
         children: contentBeforeBalanceBreakdown,
       }
