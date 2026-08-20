@@ -1,1 +1,4 @@
-export { PredictMarketHistory } from './PredictMarketHistory';
+export {
+  PredictGameMarketHistory,
+  PredictMarketHistory,
+} from './PredictMarketHistory';

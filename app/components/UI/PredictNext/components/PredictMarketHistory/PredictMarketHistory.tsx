@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
+import METAMASK_WORDMARK from '../../../../../images/branding/metamask-name.png';
 import {
   Box,
   Button,
@@ -14,7 +15,9 @@ import { useTheme } from '../../../../../util/theme';
 import { useMarketHistory } from '../../hooks/useMarketHistory';
 import type {
   PredictMarket,
+  PredictMarketHistoryPoint,
   PredictMarketHistoryRange,
+  PredictTeam,
   PredictVenueId,
 } from '../../types';
 import {
@@ -33,12 +36,146 @@ const HISTORY_RANGES: readonly PredictMarketHistoryRange[] = [
 ];
 
 const styles = StyleSheet.create({
+  chartFrame: {
+    marginHorizontal: -16,
+  },
+  rangeRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  wordmark: {
+    height: 24,
+    resizeMode: 'contain',
+    width: 49,
+  },
+  rangeGroup: {
+    flex: 1,
+  },
+  rangeGroupContent: {
+    flexGrow: 1,
+  },
   rangeFilter: {
-    height: 'auto',
-    minHeight: 32,
-    paddingVertical: 6,
+    flex: 1,
+    height: 34,
+    minHeight: 34,
+    minWidth: 0,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
 });
+
+interface MarketHistorySeries {
+  id: string;
+  label: string;
+  color: string;
+  points: readonly PredictMarketHistoryPoint[];
+}
+
+interface MarketHistoryContentProps {
+  range: PredictMarketHistoryRange;
+  onRangeChange: (range: PredictMarketHistoryRange) => void;
+  series: readonly MarketHistorySeries[];
+  isLoading: boolean;
+  isError: boolean;
+  onRetry: () => void;
+  header?: React.ReactNode;
+}
+
+const MarketHistoryContent = ({
+  range,
+  onRangeChange,
+  series,
+  isLoading,
+  isError,
+  onRetry,
+  header,
+}: MarketHistoryContentProps) => {
+  const { colors } = useTheme();
+  const hasDrawableSeries =
+    series.length > 0 && series.every((entry) => entry.points.length >= 2);
+  const chartSeries = series.map((entry) => ({
+    id: entry.id,
+    label: entry.label,
+    color: entry.color,
+    data: entry.points.map((point) => ({
+      time: Date.parse(point.timestamp),
+      value: Number(point.yesPrice),
+    })),
+  }));
+
+  return (
+    <Box twClassName="gap-4" testID={PredictMarketHistoryTestIds.VIEW}>
+      {header}
+
+      {isLoading ? (
+        <Box
+          accessible
+          accessibilityLabel="Loading Market history"
+          testID={PredictMarketHistoryTestIds.LOADING}
+          twClassName="h-44 rounded-2xl bg-muted"
+        />
+      ) : isError ? (
+        <Box
+          testID={PredictMarketHistoryTestIds.ERROR}
+          twClassName="h-44 items-center justify-center gap-4 rounded-2xl bg-muted px-6"
+        >
+          <Text>Market history could not be loaded.</Text>
+          <Button onPress={onRetry}>Retry</Button>
+        </Box>
+      ) : !hasDrawableSeries ? (
+        <Box
+          testID={PredictMarketHistoryTestIds.EMPTY}
+          twClassName="h-44 items-center justify-center rounded-2xl bg-muted px-6"
+        >
+          <Text color={TextColor.TextAlternative}>
+            Market history is not available for this range.
+          </Text>
+        </Box>
+      ) : (
+        <Box style={styles.chartFrame}>
+          <PredictMarketChart
+            testID={PredictMarketHistoryTestIds.CHART}
+            series={chartSeries}
+            height={170}
+          />
+        </Box>
+      )}
+
+      <Box style={styles.rangeRow}>
+        <Image
+          accessibilityIgnoresInvertColors
+          source={METAMASK_WORDMARK}
+          style={[styles.wordmark, { tintColor: colors.text.muted }]}
+        />
+        <FilterButtonGroup
+          value={range}
+          onChange={(value) =>
+            onRangeChange(value as PredictMarketHistoryRange)
+          }
+          variant={FilterButtonVariant.Secondary}
+          style={styles.rangeGroup}
+          contentContainerStyle={styles.rangeGroupContent}
+          testID={PredictMarketHistoryTestIds.RANGES}
+        >
+          {HISTORY_RANGES.map((option) => (
+            <FilterButton
+              key={option}
+              value={option}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: range === option }}
+              style={styles.rangeFilter}
+              testID={PredictMarketHistoryTestIds.range(option)}
+            >
+              {option}
+            </FilterButton>
+          ))}
+        </FilterButtonGroup>
+      </Box>
+    </Box>
+  );
+};
 
 interface PredictMarketHistoryProps {
   venueId: PredictVenueId;
@@ -57,17 +194,14 @@ export const PredictMarketHistory = ({
   const points = historyQuery.data?.points ?? [];
   const latestPoint = points[points.length - 1];
   const initialPoint = points[0];
-  const series = [
+  const series: MarketHistorySeries[] = [
     ...(yesOutcome
       ? [
           {
             id: yesOutcome.id,
             label: yesOutcome.label || 'Yes',
             color: colors.primary.default,
-            data: points.map((point) => ({
-              time: Date.parse(point.timestamp),
-              value: Number(point.yesPrice),
-            })),
+            points,
           },
         ]
       : []),
@@ -75,11 +209,14 @@ export const PredictMarketHistory = ({
       ? [
           {
             id: noOutcome.id,
-            label: noOutcome.label || 'No',
+            label:
+              noOutcome.label && noOutcome.label !== yesOutcome?.label
+                ? noOutcome.label
+                : 'No',
             color: colors.error.default,
-            data: points.map((point) => ({
-              time: Date.parse(point.timestamp),
-              value: Number(point.noPrice),
+            points: points.map((point) => ({
+              ...point,
+              yesPrice: point.noPrice,
             })),
           },
         ]
@@ -92,78 +229,87 @@ export const PredictMarketHistory = ({
     latestPoint && initialPoint
       ? formatProbabilityChange(initialPoint.yesPrice, latestPoint.yesPrice)
       : undefined;
-
-  return (
-    <Box twClassName="gap-4" testID={PredictMarketHistoryTestIds.VIEW}>
-      <Box twClassName="gap-1">
-        <Text variant={TextVariant.HeadingSm}>Market history</Text>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          Last traded Yes probability
-        </Text>
-        {latestProbability ? (
-          <Box twClassName="flex-row items-baseline gap-2">
-            <Text variant={TextVariant.DisplayMd}>{latestProbability}</Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {changeLabel}
-            </Text>
-          </Box>
-        ) : null}
-      </Box>
-
-      {historyQuery.isLoading && !historyQuery.data ? (
-        <Box
-          accessible
-          accessibilityLabel="Loading Market history"
-          testID={PredictMarketHistoryTestIds.LOADING}
-          twClassName="h-60 rounded-2xl bg-muted"
-        />
-      ) : historyQuery.isError && !historyQuery.data ? (
-        <Box
-          testID={PredictMarketHistoryTestIds.ERROR}
-          twClassName="h-60 items-center justify-center gap-4 rounded-2xl bg-muted px-6"
-        >
-          <Text>Market history could not be loaded.</Text>
-          <Button onPress={() => historyQuery.refetch()}>Retry</Button>
-        </Box>
-      ) : points.length < 2 ? (
-        <Box
-          testID={PredictMarketHistoryTestIds.EMPTY}
-          twClassName="h-60 items-center justify-center rounded-2xl bg-muted px-6"
-        >
-          <Text color={TextColor.TextAlternative}>
-            Market history is not available for this range.
+  const header = (
+    <Box twClassName="gap-1">
+      <Text variant={TextVariant.HeadingSm}>Market history</Text>
+      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        Last traded Yes probability
+      </Text>
+      {latestProbability ? (
+        <Box twClassName="flex-row items-baseline gap-2">
+          <Text variant={TextVariant.DisplayMd}>{latestProbability}</Text>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {changeLabel}
           </Text>
         </Box>
-      ) : (
-        <PredictMarketChart
-          testID={PredictMarketHistoryTestIds.CHART}
-          series={series}
-          height={250}
-        />
-      )}
-
-      <FilterButtonGroup
-        value={range}
-        onChange={(value) => setRange(value as PredictMarketHistoryRange)}
-        variant={FilterButtonVariant.Secondary}
-        testID={PredictMarketHistoryTestIds.RANGES}
-      >
-        {HISTORY_RANGES.map((option) => (
-          <FilterButton
-            key={option}
-            value={option}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: range === option }}
-            style={styles.rangeFilter}
-            testID={PredictMarketHistoryTestIds.range(option)}
-          >
-            {option}
-          </FilterButton>
-        ))}
-      </FilterButtonGroup>
+      ) : null}
     </Box>
+  );
+
+  return (
+    <MarketHistoryContent
+      range={range}
+      onRangeChange={setRange}
+      series={series}
+      isLoading={historyQuery.isLoading && !historyQuery.data}
+      isError={historyQuery.isError && !historyQuery.data}
+      onRetry={() => historyQuery.refetch()}
+      header={header}
+    />
+  );
+};
+
+interface PredictGameMarketHistoryProps {
+  venueId: PredictVenueId;
+  home: { market: PredictMarket; team: PredictTeam };
+  away: { market: PredictMarket; team: PredictTeam };
+}
+
+const getCompactTeamLabel = (team: PredictTeam) => {
+  const words = team.name.trim().split(/\s+/);
+  return words[words.length - 1] || team.abbreviation || team.name;
+};
+
+export const PredictGameMarketHistory = ({
+  venueId,
+  home,
+  away,
+}: PredictGameMarketHistoryProps) => {
+  const { colors } = useTheme();
+  const [range, setRange] = useState<PredictMarketHistoryRange>('LIVE');
+  const homeHistory = useMarketHistory(venueId, home.market.id, range);
+  const awayHistory = useMarketHistory(venueId, away.market.id, range);
+  const homePoints = homeHistory.data?.points ?? [];
+  const awayPoints = awayHistory.data?.points ?? [];
+  const hasCompleteData = Boolean(homeHistory.data && awayHistory.data);
+  const series: MarketHistorySeries[] = [
+    {
+      id: home.market.id,
+      label: getCompactTeamLabel(home.team),
+      color: colors.error.default,
+      points: homePoints,
+    },
+    {
+      id: away.market.id,
+      label: getCompactTeamLabel(away.team),
+      color: colors.primary.default,
+      points: awayPoints,
+    },
+  ];
+
+  return (
+    <MarketHistoryContent
+      range={range}
+      onRangeChange={setRange}
+      series={series}
+      isLoading={
+        (homeHistory.isLoading || awayHistory.isLoading) && !hasCompleteData
+      }
+      isError={(homeHistory.isError || awayHistory.isError) && !hasCompleteData}
+      onRetry={() => {
+        homeHistory.refetch();
+        awayHistory.refetch();
+      }}
+    />
   );
 };

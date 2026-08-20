@@ -11,6 +11,7 @@ import Svg, {
   Defs,
   G,
   LinearGradient,
+  Mask,
   Path,
   Rect,
   Stop,
@@ -21,14 +22,17 @@ import { useTheme } from '../../../../../util/theme';
 import { roundProbabilityToWhole } from '../../utils/formatProbability';
 
 const DEFAULT_HEIGHT = 240;
-const DEFAULT_LABEL_GUTTER = 116;
+const DEFAULT_LABEL_GUTTER = 104;
 const DEFAULT_CONTINUATION_WIDTH = 42;
-const PLOT_TOP = 16;
-const PLOT_BOTTOM_INSET = 20;
-const ENDPOINT_LABEL_GAP = 34;
-const ENDPOINT_RADIUS = 10;
-const LABEL_BLOCK_HEIGHT = 50;
-const MIN_LABEL_SPACING = 54;
+const PLOT_TOP = 12;
+const PLOT_BOTTOM_INSET = 12;
+const ENDPOINT_LABEL_GAP = 18;
+const ENDPOINT_RADIUS = 6;
+const LABEL_BLOCK_HEIGHT = 42;
+const MIN_LABEL_SPACING = 46;
+const LABEL_NAME_BASELINE_OFFSET = -5;
+const LABEL_VALUE_BASELINE_OFFSET = 24;
+const LABEL_VALUE_BOTTOM_INSET = 10;
 
 const styles = StyleSheet.create({
   container: {
@@ -75,6 +79,43 @@ interface PreparedSeries extends PredictMarketChartSeries {
 
 const getGradientId = (prefix: string, seriesId: string, index: number) =>
   `${prefix}-gradient-${index}-${seriesId.replace(/[^a-zA-Z0-9_-]/g, '')}`;
+
+const getSharedTimeDomain = (
+  series: readonly PredictMarketChartSeries[],
+): [number, number] | undefined => {
+  const starts = series.map((entry) => entry.data[0]?.time);
+  const ends = series.map((entry) => entry.data[entry.data.length - 1]?.time);
+  if (starts.some((time) => time === undefined)) return undefined;
+  if (ends.some((time) => time === undefined)) return undefined;
+
+  const start = Math.max(...(starts as number[]));
+  const end = Math.min(...(ends as number[]));
+  return start < end ? [start, end] : undefined;
+};
+
+const sampleAtTime = (
+  data: readonly PredictMarketChartPoint[],
+  time: number,
+): number => {
+  const exact = data.find((point) => point.time === time);
+  if (exact) return exact.value;
+
+  return (
+    [...data].reverse().find((point) => point.time < time)?.value ??
+    data[0]?.value ??
+    0
+  );
+};
+
+const clipToTimeDomain = (
+  data: readonly PredictMarketChartPoint[],
+  minTime: number,
+  maxTime: number,
+): PredictMarketChartPoint[] => [
+  { time: minTime, value: sampleAtTime(data, minTime) },
+  ...data.filter((point) => point.time > minTime && point.time < maxTime),
+  { time: maxTime, value: sampleAtTime(data, maxTime) },
+];
 
 const separateLabelPositions = (
   positions: readonly number[],
@@ -128,8 +169,8 @@ export const PredictMarketChart = ({
   height = DEFAULT_HEIGHT,
   labelGutter = DEFAULT_LABEL_GUTTER,
   continuationWidth = DEFAULT_CONTINUATION_WIDTH,
-  lineWidth = 4,
-  fillOpacity = 0.2,
+  lineWidth = 2,
+  fillOpacity = 0.16,
   formatValue = (value) => `${roundProbabilityToWhole(value)}%`,
   testID = 'predict-market-chart',
 }: PredictMarketChartProps) => {
@@ -151,20 +192,10 @@ export const PredictMarketChart = ({
     if (width <= effectiveLabelGutter) return [];
 
     const drawableSeries = series.filter((entry) => entry.data.length >= 2);
-    const allPoints = drawableSeries.flatMap((entry) => entry.data);
-    if (allPoints.length === 0) return [];
+    const timeDomain = getSharedTimeDomain(drawableSeries);
+    if (!timeDomain) return [];
 
-    const values = allPoints.map((point) => point.value);
-    const times = allPoints.map((point) => point.time);
-    const minValue = Math.min(...values);
-    const maxValue = Math.max(...values);
-    const valueRange = maxValue - minValue;
-    const valuePadding = Math.max(0.04, valueRange * 0.14);
-    const domainMin = Math.max(0, minValue - valuePadding);
-    const domainMax = Math.min(1, maxValue + valuePadding);
-    const safeValueRange = domainMax - domainMin || 1;
-    const minTime = Math.min(...times);
-    const maxTime = Math.max(...times);
+    const [minTime, maxTime] = timeDomain;
     const safeTimeRange = maxTime - minTime || 1;
     const plotRight = width - effectiveLabelGutter;
     const plotBottom = effectiveHeight - PLOT_BOTTOM_INSET;
@@ -173,7 +204,7 @@ export const PredictMarketChart = ({
     const x = (time: number) =>
       -continuationWidth + ((time - minTime) / safeTimeRange) * plotWidth;
     const y = (value: number) =>
-      plotBottom - ((value - domainMin) / safeValueRange) * plotHeight;
+      plotBottom - Math.max(0, Math.min(1, value)) * plotHeight;
     const curve = curveCatmullRom.alpha(0.45);
     const lineGenerator = line<PredictMarketChartPoint>()
       .x((point) => x(point.time))
@@ -185,24 +216,29 @@ export const PredictMarketChart = ({
       .y1((point) => y(point.value))
       .curve(curve);
     const endpoints = drawableSeries.map((entry) => {
-      const point = entry.data[entry.data.length - 1];
-      return { x: x(point.time), y: y(point.value), value: point.value };
+      const value = sampleAtTime(entry.data, maxTime);
+      return { x: x(maxTime), y: y(value), value };
     });
     const labelPositions = separateLabelPositions(
       endpoints.map((endpoint) => endpoint.y),
       (LABEL_BLOCK_HEIGHT * labelFontScale) / 2,
-      effectiveHeight - (LABEL_BLOCK_HEIGHT * labelFontScale) / 2,
+      effectiveHeight -
+        (LABEL_VALUE_BASELINE_OFFSET + LABEL_VALUE_BOTTOM_INSET) *
+          labelFontScale,
     );
 
-    return drawableSeries.map((entry, index) => ({
-      ...entry,
-      linePath: lineGenerator([...entry.data]) ?? '',
-      areaPath: areaGenerator([...entry.data]) ?? '',
-      endpoint: {
-        ...endpoints[index],
-        labelY: labelPositions[index],
-      },
-    }));
+    return drawableSeries.map((entry, index) => {
+      const data = clipToTimeDomain(entry.data, minTime, maxTime);
+      return {
+        ...entry,
+        linePath: lineGenerator(data) ?? '',
+        areaPath: areaGenerator(data) ?? '',
+        endpoint: {
+          ...endpoints[index],
+          labelY: labelPositions[index],
+        },
+      };
+    });
   }, [
     continuationWidth,
     effectiveHeight,
@@ -217,6 +253,8 @@ export const PredictMarketChart = ({
     .join(', ');
   const plotRight = Math.max(0, width - effectiveLabelGutter);
   const clipId = `${idPrefix}-plot-clip`;
+  const edgeFadeId = `${idPrefix}-edge-fade`;
+  const edgeFadeMaskId = `${idPrefix}-edge-fade-mask`;
 
   return (
     <View
@@ -237,6 +275,18 @@ export const PredictMarketChart = ({
             <ClipPath id={clipId}>
               <Rect width={plotRight} height={effectiveHeight} />
             </ClipPath>
+            <LinearGradient id={edgeFadeId} x1="0%" y1="0%" x2="100%" y2="0%">
+              <Stop offset="0%" stopColor="white" stopOpacity={0} />
+              <Stop offset="14%" stopColor="white" stopOpacity={1} />
+              <Stop offset="100%" stopColor="white" stopOpacity={1} />
+            </LinearGradient>
+            <Mask id={edgeFadeMaskId}>
+              <Rect
+                width={plotRight}
+                height={effectiveHeight}
+                fill={`url(#${edgeFadeId})`}
+              />
+            </Mask>
             {preparedSeries.map((entry, index) => (
               <LinearGradient
                 key={`gradient-${entry.id}`}
@@ -256,7 +306,7 @@ export const PredictMarketChart = ({
             ))}
           </Defs>
 
-          <G clipPath={`url(#${clipId})`}>
+          <G clipPath={`url(#${clipId})`} mask={`url(#${edgeFadeMaskId})`}>
             {preparedSeries.map((entry, index) => (
               <Path
                 key={`area-${entry.id}`}
@@ -273,6 +323,7 @@ export const PredictMarketChart = ({
                 strokeWidth={lineWidth}
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                testID={`${testID}-line-${entry.id}`}
               />
             ))}
           </G>
@@ -284,35 +335,39 @@ export const PredictMarketChart = ({
                 <Circle
                   cx={entry.endpoint.x}
                   cy={entry.endpoint.y}
-                  r={19}
-                  fill={entry.color}
-                  opacity={0.1}
-                />
-                <Circle
-                  cx={entry.endpoint.x}
-                  cy={entry.endpoint.y}
                   r={ENDPOINT_RADIUS}
                   fill={entry.color}
                   stroke={colors.background.default}
-                  strokeWidth={3}
+                  strokeWidth={2}
                 />
                 <SvgText
                   fill={entry.color}
-                  fontSize={16 * labelFontScale}
+                  fontSize={14 * labelFontScale}
                   fontWeight="600"
-                  transform={`translate(${labelX} ${
-                    entry.endpoint.labelY - 6 * labelFontScale
-                  })`}
+                  transform={[
+                    { translateX: labelX },
+                    {
+                      translateY:
+                        entry.endpoint.labelY +
+                        LABEL_NAME_BASELINE_OFFSET * labelFontScale,
+                    },
+                  ]}
                 >
                   {entry.label}
                 </SvgText>
                 <SvgText
                   fill={entry.color}
-                  fontSize={32 * labelFontScale}
+                  fontSize={28 * labelFontScale}
                   fontWeight="700"
-                  transform={`translate(${labelX} ${
-                    entry.endpoint.labelY + 28 * labelFontScale
-                  })`}
+                  transform={[
+                    { translateX: labelX },
+                    {
+                      translateY:
+                        entry.endpoint.labelY +
+                        LABEL_VALUE_BASELINE_OFFSET * labelFontScale,
+                    },
+                  ]}
+                  testID={`${testID}-value-${entry.id}`}
                 >
                   {formatValue(entry.endpoint.value)}
                 </SvgText>

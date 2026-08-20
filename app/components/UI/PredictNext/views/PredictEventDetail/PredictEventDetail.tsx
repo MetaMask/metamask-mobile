@@ -19,7 +19,10 @@ import {
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { PredictNextRoutes } from '../../navigation/routes';
 import { useEventDetail } from '../../hooks/useEventDetail';
-import { PredictMarketHistory } from '../../components/PredictMarketHistory';
+import {
+  PredictGameMarketHistory,
+  PredictMarketHistory,
+} from '../../components/PredictMarketHistory';
 import { PredictEventDetailTestIds } from './PredictEventDetail.testIds';
 
 const styles = StyleSheet.create({
@@ -47,6 +50,17 @@ export const PredictEventDetail = () => {
   const selectedMarket =
     event?.markets.find((market) => market.id === selectedMarketId) ??
     event?.markets[0];
+  const game = event?.sports?.game;
+  const homeMarket = event?.markets.find((market) =>
+    market.outcomes.some(
+      (outcome) => outcome.side === 'yes' && outcome.gameSelection === 'home',
+    ),
+  );
+  const awayMarket = event?.markets.find((market) =>
+    market.outcomes.some(
+      (outcome) => outcome.side === 'yes' && outcome.gameSelection === 'away',
+    ),
+  );
   const handleBack = () =>
     navigation.canGoBack()
       ? navigation.goBack()
@@ -105,7 +119,13 @@ export const PredictEventDetail = () => {
                 ))}
               </FilterButtonGroup>
             ) : null}
-            {selectedMarket ? (
+            {game && homeMarket && awayMarket ? (
+              <PredictGameMarketHistory
+                venueId={event.venueId}
+                home={{ market: homeMarket, team: game.homeTeam }}
+                away={{ market: awayMarket, team: game.awayTeam }}
+              />
+            ) : selectedMarket ? (
               <PredictMarketHistory
                 venueId={event.venueId}
                 market={selectedMarket}

@@ -49,6 +49,80 @@ const event: PredictEvent = {
   ],
 };
 
+const gameEvent: PredictEvent = {
+  venueId: 'kalshi' as PredictEvent['venueId'],
+  id: 'game-event' as PredictEvent['id'],
+  title: 'Chiefs vs. Ravens',
+  sports: {
+    sport: {
+      id: 'american-football' as PredictEvent['id'],
+      label: 'American football',
+    },
+    competition: { id: 'nfl' as PredictEvent['id'], label: 'NFL' },
+    game: {
+      status: 'in_progress',
+      awayTeam: {
+        name: 'Baltimore Ravens',
+        abbreviation: 'BAL',
+        primaryColor: 'rgb(36, 23, 115)' as NonNullable<
+          NonNullable<PredictEvent['sports']>['game']
+        >['awayTeam']['primaryColor'],
+      },
+      homeTeam: {
+        name: 'Kansas City Chiefs',
+        abbreviation: 'KC',
+        primaryColor: 'rgb(227, 24, 55)' as NonNullable<
+          NonNullable<PredictEvent['sports']>['game']
+        >['homeTeam']['primaryColor'],
+      },
+      score: { away: '17', home: '21' },
+      period: 'Q3',
+      clock: '5:58',
+      observedAt: '2026-08-17T20:00:00Z' as NonNullable<
+        NonNullable<PredictEvent['sports']>['game']
+      >['observedAt'],
+    },
+  },
+  markets: [
+    {
+      id: 'chiefs-market' as PredictEvent['markets'][number]['id'],
+      question: 'Chiefs win',
+      status: 'active',
+      outcomes: [
+        {
+          id: 'chiefs-market:yes' as PredictEvent['markets'][number]['outcomes'][number]['id'],
+          side: 'yes',
+          label: 'Kansas City Chiefs',
+          gameSelection: 'home',
+        },
+        {
+          id: 'chiefs-market:no' as PredictEvent['markets'][number]['outcomes'][number]['id'],
+          side: 'no',
+          label: 'Kansas City Chiefs',
+        },
+      ],
+    },
+    {
+      id: 'ravens-market' as PredictEvent['markets'][number]['id'],
+      question: 'Ravens win',
+      status: 'active',
+      outcomes: [
+        {
+          id: 'ravens-market:yes' as PredictEvent['markets'][number]['outcomes'][number]['id'],
+          side: 'yes',
+          label: 'Baltimore Ravens',
+          gameSelection: 'away',
+        },
+        {
+          id: 'ravens-market:no' as PredictEvent['markets'][number]['outcomes'][number]['id'],
+          side: 'no',
+          label: 'Baltimore Ravens',
+        },
+      ],
+    },
+  ],
+};
+
 const messengerCall = Engine.controllerMessenger.call as unknown as jest.Mock;
 
 const history = (marketId: string, range: string, points = 2) => ({
@@ -62,7 +136,7 @@ const history = (marketId: string, range: string, points = 2) => ({
   ].slice(0, points),
 });
 
-const configureQueries = () => {
+const configureQueries = (configuredEvent: PredictEvent = event) => {
   messengerCall.mockImplementation(
     (action: string, _venueId?: string, id?: string, range?: string) => {
       if (action === 'PredictMarketDataService:getVenueStatus') {
@@ -77,26 +151,26 @@ const configureQueries = () => {
           venueId: 'kalshi',
           id: 'sports-football-nfl-games',
           title: 'NFL Games',
-          events: [event],
+          events: [configuredEvent],
         });
       }
       if (action === 'PredictMarketDataService:getEvent') {
-        return Promise.resolve(event);
+        return Promise.resolve(configuredEvent);
       }
       if (action === 'PredictMarketDataService:getMarketHistory') {
-        return Promise.resolve(history(id ?? 'market-1', range ?? 'LIVE'));
+        return Promise.resolve(
+          history(id ?? String(configuredEvent.markets[0].id), range ?? 'LIVE'),
+        );
       }
       return Promise.resolve(undefined);
     },
   );
 };
 
-const openDetail = async () => {
+const openDetail = async (eventId = 'event-1') => {
   const view = renderPredictNext();
   fireEvent.press(
-    await view.findByTestId(
-      PredictHomeTestIds.eventContent('kalshi', 'event-1'),
-    ),
+    await view.findByTestId(PredictHomeTestIds.eventContent('kalshi', eventId)),
   );
   await view.findByTestId(PredictEventDetailTestIds.VIEW);
   return view;
@@ -196,6 +270,40 @@ describe('PredictEventDetail', () => {
       view.getByTestId(PredictMarketHistoryTestIds.range('1W')).props
         .accessibilityState,
     ).toEqual(expect.objectContaining({ selected: true }));
+  });
+
+  it('renders Game chart lines from each Team Market history', async () => {
+    configureQueries(gameEvent);
+
+    const view = await openDetail(gameEvent.id);
+    const chart = await view.findByTestId(PredictMarketHistoryTestIds.CHART);
+
+    fireEvent(chart, 'layout', {
+      nativeEvent: { layout: { width: 343, height: 170 } },
+    });
+
+    expect(
+      await view.findByLabelText(
+        'Market probability history. Chiefs 42%, Ravens 42%',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictEventDetailTestIds.MARKETS),
+    ).toBeOnTheScreen();
+    expect(messengerCall).toHaveBeenCalledWith(
+      'PredictMarketDataService:getMarketHistory',
+      gameEvent.venueId,
+      gameEvent.markets[0].id,
+      'LIVE',
+      undefined,
+    );
+    expect(messengerCall).toHaveBeenCalledWith(
+      'PredictMarketDataService:getMarketHistory',
+      gameEvent.venueId,
+      gameEvent.markets[1].id,
+      'LIVE',
+      undefined,
+    );
   });
 
   it('shows loading while Market history is pending', async () => {
