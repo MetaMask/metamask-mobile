@@ -421,7 +421,6 @@ jobs:
           path: |
             ~/.cache/yarn
             .metamask
-            node_modules
             .yarn/cache
       - uses: actions/setup-node@v6
         with:
@@ -439,8 +438,6 @@ jobs:
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
-        env:
-          NODE_OPTIONS: --max_old_space_size=12288
 
       - name: Check bundle size
         if: github.event_name == 'pull_request'
