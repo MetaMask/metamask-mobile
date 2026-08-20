@@ -13,7 +13,7 @@ import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.j
 import {
   DappServer,
   DappVariants,
-  PlaywrightGestures,
+  Gestures,
   TestDapps,
   sleep,
 } from '../../framework/index.js';
@@ -77,7 +77,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
   //    - Assert: connected true, chainId '0x1'
   //
   // 5. READ-ONLY METHOD WITH APP TERMINATED
-  //    - Terminate the MetaMask app (PlaywrightGestures.terminateApp)
+  //    - Terminate the MetaMask app (Gestures.terminateApp)
   //    - Tap getBalance in the dapp; sleep 10s for RPC response
   //    - Assert: response value contains 'Balance:' prefix
   //      (confirms read-only calls go directly to the RPC endpoint, not the wallet)
@@ -172,7 +172,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
       //
       // Read-only method should hit rpc endpoint instead of wallet
       //
-      await PlaywrightGestures.terminateApp(currentDeviceDetails);
+      await Gestures.terminateApp(currentDeviceDetails);
       await PlaywrightContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapGetBalance();
         await sleep(10000);
