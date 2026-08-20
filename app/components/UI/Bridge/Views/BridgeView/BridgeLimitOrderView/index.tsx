@@ -14,7 +14,7 @@ import OrdersTabs from '../../../components/OrdersTabs';
 import {
   HardwareWalletUnsupportedBanner,
   InsufficientNativeReserveBanner,
-  MissingPriceDataBanner,
+  MissingQuoteAndAssetsPriceDataBanner,
   QuoteErrorBanner,
   SwapsBanners,
   TokenWarningBanner,
@@ -111,7 +111,7 @@ const BridgeLimitOrderViewContent = ({
             <QuoteErrorBanner />
             <TokenWarningBanner />
             <InsufficientNativeReserveBanner />
-            <MissingPriceDataBanner />
+            <MissingQuoteAndAssetsPriceDataBanner />
           </SwapsBanners>
 
           <OrdersTabs
