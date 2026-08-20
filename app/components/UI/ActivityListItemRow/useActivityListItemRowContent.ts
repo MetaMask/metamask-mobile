@@ -527,15 +527,6 @@ function resolveCoreContent(
           cancelled: cancelledLabel,
         }),
         subtitle: `${subtitlePrefix}: ${counterpartyLabel}`,
-        ...(counterpartyName && address
-          ? {
-              subtitleAccount: {
-                prefix: subtitlePrefix,
-                address,
-                name: counterpartyName,
-              },
-            }
-          : {}),
         primaryToken: token,
       };
     }
