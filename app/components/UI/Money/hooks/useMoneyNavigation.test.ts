@@ -10,6 +10,10 @@ import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../select
 import { MoneyPostOnboardingRedirectType } from '../types/navigation';
 
 const mockNavigate = jest.fn();
+const analyticsContext = {
+  id: 'balance-breakdown-navigation',
+  attribution: 'homescreen_balance_breakdown' as const,
+};
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -66,15 +70,13 @@ describe('useMoneyNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING);
     });
 
-    it('forwards the entry point through Money onboarding', () => {
+    it('forwards analytics context through Money onboarding', () => {
       const { result } = renderHook(() => useMoneyNavigation());
 
-      act(() =>
-        result.current.navigateToMoneyHome('homescreen_balance_breakdown'),
-      );
+      act(() => result.current.navigateToMoneyHome(analyticsContext));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING, {
-        entryPoint: 'homescreen_balance_breakdown',
+        analyticsContext,
       });
     });
 
@@ -95,22 +97,20 @@ describe('useMoneyNavigation', () => {
       });
     });
 
-    it('forwards the entry point to Money home', () => {
+    it('forwards analytics context to Money home', () => {
       setupSelectorMocks({
         hasSeenOnboarding: true,
         isOnboardingEnabled: true,
       });
       const { result } = renderHook(() => useMoneyNavigation());
 
-      act(() =>
-        result.current.navigateToMoneyHome('homescreen_balance_breakdown'),
-      );
+      act(() => result.current.navigateToMoneyHome(analyticsContext));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
         screen: Routes.MONEY.ROOT,
         params: {
           screen: Routes.MONEY.HOME,
-          params: { entryPoint: 'homescreen_balance_breakdown' },
+          params: { analyticsContext },
         },
       });
     });

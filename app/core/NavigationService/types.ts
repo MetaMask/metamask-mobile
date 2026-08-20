@@ -5,6 +5,7 @@ import type {
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
+import type { NavigationAnalyticsRouteParams } from '../../util/analytics/navigationAnalyticsAttribution';
 
 // ============================================================================
 // Import types from their source files
@@ -852,9 +853,9 @@ export type RootStackParamList = {
     | NavigatorScreenParams<WalletTabStackParamList>
     | undefined;
   WalletConnectSessionsView: undefined;
-  DeFiFullView: { source?: string } | undefined;
+  DeFiFullView: NavigationAnalyticsRouteParams | undefined;
   NftFullView: undefined;
-  TokensFullView: { source?: string } | undefined;
+  TokensFullView: NavigationAnalyticsRouteParams | undefined;
   CashTokensFullView: undefined;
   WatchlistFullView: undefined;
 
