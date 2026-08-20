@@ -15,7 +15,7 @@ import RecurringScheduleFields from '../../../components/RecurringScheduleFields
 import {
   HardwareWalletUnsupportedBanner,
   InsufficientNativeReserveBanner,
-  MissingPriceDataBanner,
+  MissingQuoteAndAssetsPriceDataBanner,
   QuoteErrorBanner,
   SwapsBanners,
   TokenWarningBanner,
@@ -121,7 +121,7 @@ const BridgeRecurringBuyViewContent = ({
             <QuoteErrorBanner />
             <TokenWarningBanner />
             <InsufficientNativeReserveBanner />
-            <MissingPriceDataBanner />
+            <MissingQuoteAndAssetsPriceDataBanner />
           </SwapsBanners>
 
           <RecurringScheduleFields

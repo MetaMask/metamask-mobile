@@ -1,6 +1,6 @@
 import React, { createRef } from 'react';
 import { CaipChainId } from '@metamask/utils';
-import { initialState } from '../../_mocks_/initialState';
+import { ethToken1Address, initialState } from '../../_mocks_/initialState';
 import { act, fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { TokenInputArea, TokenInputAreaRef, TokenInputAreaType } from '.';
@@ -996,6 +996,52 @@ describe('TokenInputArea', () => {
 
       // Assert
       expect(mockOnAmountTypeTogglePress).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the currency value of an unpriced token when hideFiatValueWhenUnpriced is set', () => {
+      // Arrange — mockToken has no market data in the mocked state
+      mockUseDisplayCurrencyValue.mockReturnValue('$0.00');
+
+      // Act
+      const { queryByText } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={mockToken}
+            amount="1"
+            hideFiatValueWhenUnpriced
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      // Assert
+      expect(queryByText('$0.00')).toBeNull();
+    });
+
+    it('keeps the currency value of a priced token when hideFiatValueWhenUnpriced is set', () => {
+      // Arrange
+      mockUseDisplayCurrencyValue.mockReturnValue('$50.00');
+
+      // Act
+      const { getByText } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={{ ...mockToken, address: ethToken1Address }}
+            amount="1"
+            hideFiatValueWhenUnpriced
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      // Assert
+      expect(getByText('$50.00')).toBeTruthy();
     });
   });
 

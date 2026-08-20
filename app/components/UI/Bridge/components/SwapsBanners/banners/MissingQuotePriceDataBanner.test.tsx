@@ -1,7 +1,8 @@
 import React from 'react';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { createMockToken } from '../../../testUtils';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
-import { MissingPriceDataBanner } from './MissingPriceDataBanner';
+import { MissingQuotePriceDataBanner } from './MissingQuotePriceDataBanner';
 import { createBannerState, renderBanner } from './testUtils';
 
 jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
@@ -18,7 +19,7 @@ const setQuoteData = (overrides: Partial<QuoteContextValue> = {}) => {
   } as unknown as QuoteContextValue);
 };
 
-describe('MissingPriceDataBanner', () => {
+describe('MissingQuotePriceDataBanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setQuoteData();
@@ -29,10 +30,10 @@ describe('MissingPriceDataBanner', () => {
       activeQuote: { quote: {} } as QuoteContextValue['activeQuote'],
     });
 
-    const { getByTestId } = renderBanner(<MissingPriceDataBanner />);
+    const { getByTestId } = renderBanner(<MissingQuotePriceDataBanner />);
 
     expect(
-      getByTestId(SwapsBannersSelectorsIDs.MISSING_PRICE),
+      getByTestId(SwapsBannersSelectorsIDs.MISSING_QUOTE_PRICE),
     ).toBeOnTheScreen();
   });
 
@@ -41,11 +42,13 @@ describe('MissingPriceDataBanner', () => {
       activeQuote: { quote: {} } as QuoteContextValue['activeQuote'],
     });
 
-    const { queryByTestId } = renderBanner(<MissingPriceDataBanner />, {
+    const { queryByTestId } = renderBanner(<MissingQuotePriceDataBanner />, {
       state: createBannerState({ sourceAmount: '0' }),
     });
 
-    expect(queryByTestId(SwapsBannersSelectorsIDs.MISSING_PRICE)).toBeNull();
+    expect(
+      queryByTestId(SwapsBannersSelectorsIDs.MISSING_QUOTE_PRICE),
+    ).toBeNull();
   });
 
   it('is hidden when the quote carries price impact data', () => {
@@ -55,8 +58,32 @@ describe('MissingPriceDataBanner', () => {
       } as QuoteContextValue['activeQuote'],
     });
 
-    const { queryByTestId } = renderBanner(<MissingPriceDataBanner />);
+    const { queryByTestId } = renderBanner(<MissingQuotePriceDataBanner />);
 
-    expect(queryByTestId(SwapsBannersSelectorsIDs.MISSING_PRICE)).toBeNull();
+    expect(
+      queryByTestId(SwapsBannersSelectorsIDs.MISSING_QUOTE_PRICE),
+    ).toBeNull();
+  });
+
+  it('stays hidden when the quote is priced but a traded token has no fiat rate', () => {
+    setQuoteData({
+      activeQuote: {
+        quote: { priceData: { priceImpact: { amount: '0.01' } } },
+      } as QuoteContextValue['activeQuote'],
+    });
+
+    const { queryByTestId } = renderBanner(<MissingQuotePriceDataBanner />, {
+      // Absent from market data in the mocked state, so it has no fiat rate.
+      state: createBannerState({
+        destToken: createMockToken({
+          address: '0x00000000000000000000000000000000000000ff',
+          symbol: 'MUSD',
+        }),
+      }),
+    });
+
+    expect(
+      queryByTestId(SwapsBannersSelectorsIDs.MISSING_QUOTE_PRICE),
+    ).toBeNull();
   });
 });

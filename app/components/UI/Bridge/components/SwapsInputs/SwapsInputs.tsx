@@ -93,6 +93,7 @@ export const SwapsInputs = ({
             amountTypeToggleTestID={sourceAmountTypeToggleTestID}
             enabledChainIds={enabledChainIds}
             excludeRwaTokens
+            hideFiatValueWhenUnpriced
           />
         </Box>
         <FLipQuoteButton onPress={onFlipPress} disabled={isFlipDisabled} />
@@ -113,6 +114,7 @@ export const SwapsInputs = ({
             showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
             enabledChainIds={enabledChainIds}
             excludeRwaTokens
+            hideFiatValueWhenUnpriced
           />
         </Box>
       </Box>
