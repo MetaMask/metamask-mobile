@@ -1,6 +1,7 @@
 import {
   useRwaTokens,
   STOCKS_FEED_RWA_CHAIN_IDS,
+  RWA_CHAIN_IDS,
 } from './useRwaTokens';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { fetchRwas } from '@metamask/assets-controllers';
@@ -8,7 +9,6 @@ import {
   PriceChangeOption,
   SortDirection,
 } from '../../components/TrendingTokensBottomSheet';
-import { RWA_CHAIN_IDS } from '../../utils/trendingNetworksList';
 import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { act, waitFor } from '@testing-library/react-native';
 

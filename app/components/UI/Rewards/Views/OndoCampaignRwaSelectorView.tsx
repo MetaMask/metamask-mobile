@@ -34,11 +34,13 @@ import Badge, {
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
-import { useRwaTokens } from '../../Trending/hooks/useRwaTokens/useRwaTokens';
+import {
+  useRwaTokens,
+  RWA_NETWORKS_LIST,
+} from '../../Trending/hooks/useRwaTokens/useRwaTokens';
 import TrendingTokenRowItem from '../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { getTrendingTokenImageUrl } from '../../Trending/utils/getTrendingTokenImageUrl';
 import { parseCaip19, caipChainIdToHex } from '../utils/formatUtils';
-import { RWA_NETWORKS_LIST } from '../../Trending/utils/trendingNetworksList';
 import {
   useSwapBridgeNavigation,
   SwapBridgeNavigationLocation,
