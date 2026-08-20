@@ -276,6 +276,37 @@ describe('ActivityList transformations', () => {
   });
 
   describe('selectApiEvmTransactions', () => {
+    it('classifies BRIDGE_OUT transactions as bridges', () => {
+      const bridgeOut = buildTransaction({
+        hash: '0xbridge-out',
+        transactionCategory: 'BRIDGE_OUT',
+        valueTransfers: [
+          {
+            amount: '420300',
+            contractAddress: '0x5555555555555555555555555555555555555555',
+            decimal: 6,
+            from: address,
+            symbol: 'MUSD',
+            to: otherAddress,
+            transferType: 'ERC20',
+          },
+        ],
+      } as Partial<V1TransactionByHashResponse>);
+
+      const result = selectApiEvmTransactions({ address })(
+        buildData([bridgeOut]),
+      );
+
+      const [item] = result.pages[0].data;
+      expect(item.type).toBe('bridge');
+      expect(item.data).toMatchObject({
+        sourceToken: { symbol: 'MUSD', direction: 'out' },
+      });
+      expect(item.raw).toMatchObject({
+        data: { transactionCategory: 'BRIDGE_OUT' },
+      });
+    });
+
     it('filters incoming ERC-20 transfers when the account only appears in valueTransfers', () => {
       const incomingTokenTransfer = buildTransaction({
         hash: '0xincoming-token',

@@ -1593,7 +1593,7 @@ describe('ActivityListItemRow — row content', () => {
     );
   });
 
-  it('renders source-only API bridge rows as sends when bridge history is unavailable', () => {
+  it('renders source-only API bridge rows as bridges when bridge history is unavailable', () => {
     const item = makeItem({
       type: 'bridge',
       status: 'success',
@@ -1609,7 +1609,7 @@ describe('ActivityListItemRow — row content', () => {
     );
 
     expect(getByTestId('activity-title-0xabc').props.children).toBe(
-      'Sent USDC',
+      'Bridged USDC',
     );
     expect(queryByTestId('activity-subtitle-0xabc')).toBeNull();
     expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(

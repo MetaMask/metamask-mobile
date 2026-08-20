@@ -613,34 +613,25 @@ function resolveCoreContent(
         bridgeQuoteTokens.sourceToken ?? item.data.sourceToken;
       const destinationToken =
         bridgeQuoteTokens.destinationToken ?? item.data.destinationToken;
-      const sourceSymbol = sourceToken?.symbol;
-      const destinationSymbol = destinationToken?.symbol;
-      const isSourceOnlyApiBridge =
-        !bridgeHistoryItem && sourceToken && !destinationToken;
+      // The API only reports the source token for the outgoing leg, so fall
+      // back to it when the destination token is unknown rather than labelling
+      // the row a send.
+      const symbol = destinationToken?.symbol ?? sourceToken?.symbol;
       const subtitle =
         bridgeRouteSubtitle(bridgeHistoryItem) ??
         tokenPairSubtitle(sourceToken, destinationToken);
 
       return {
         title: statusTitle(item, {
-          success: isSourceOnlyApiBridge
-            ? withOptionalSymbol(strings('transactions.sent'), sourceSymbol)
-            : withOptionalSymbol(
-                strings('transactions.activity_bridged'),
-                destinationSymbol ?? sourceSymbol,
-              ),
-          pending: isSourceOnlyApiBridge
-            ? withOptionalSymbol(
-                strings('transactions.activity_sending'),
-                sourceSymbol,
-              )
-            : withOptionalSymbol(
-                strings('transactions.activity_bridging'),
-                destinationSymbol ?? sourceSymbol,
-              ),
-          failed: isSourceOnlyApiBridge
-            ? strings('transactions.activity_send_failed')
-            : strings('transactions.activity_bridge_failed'),
+          success: withOptionalSymbol(
+            strings('transactions.activity_bridged'),
+            symbol,
+          ),
+          pending: withOptionalSymbol(
+            strings('transactions.activity_bridging'),
+            symbol,
+          ),
+          failed: strings('transactions.activity_bridge_failed'),
         }),
         subtitle,
         ...bridgeAmountTokens(sourceToken, destinationToken),
