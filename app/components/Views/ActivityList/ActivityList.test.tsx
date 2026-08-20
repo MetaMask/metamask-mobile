@@ -1,6 +1,7 @@
 import React from 'react';
 import type { SharedValue } from 'react-native-reanimated';
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -1780,6 +1781,53 @@ describe('ActivityList', () => {
     expect(
       screen.queryByTestId(ActivityListSelectorsIDs.LOAD_MORE_INDICATOR),
     ).toBeNull();
+  });
+
+  it('keeps partial local activity hidden while the initial EVM query loads', () => {
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: true,
+      refetch: mockRefetch,
+    });
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
+
+    expect(
+      screen.getByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('row-0xlocal')).not.toBeOnTheScreen();
+  });
+
+  it('does not auto-scroll when initial API activity replaces partial local activity', async () => {
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: true,
+      refetch: mockRefetch,
+    });
+    const { rerender } = render(
+      <ActivityList typeFilter={ActivityTypeFilter.Transactions} />,
+    );
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [confirmedItem] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+    (useLocalActivityItems as jest.Mock).mockReturnValue([]);
+
+    rerender(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
+    await act(() => new Promise((resolve) => setTimeout(resolve, 200)));
+
+    expect(screen.getByTestId('row-0xconfirmed')).toBeOnTheScreen();
+    expect(mockScrollToOffset).not.toHaveBeenCalled();
   });
 
   it('shows the loading indicator (not the empty state) while Perps is still loading after the EVM query settles', () => {

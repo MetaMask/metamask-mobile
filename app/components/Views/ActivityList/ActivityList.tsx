@@ -1204,12 +1204,30 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       [tabBarHeight, bottomInset],
     );
 
+    const isPerpsLoading = isPerpsEnabled && perpsSource.isLoading;
+    const isPredictLoading = isPredictEnabled && predictSource.isLoading;
+    const isRelevantActivityLoading = (() => {
+      switch (typeFilter) {
+        case ActivityTypeFilter.Perps:
+          return isPerpsLoading;
+        case ActivityTypeFilter.Predictions:
+          return isPredictLoading;
+        // No filter / "All" depends on every source; the remaining filters
+        // (Transactions, Buy/Sell, Money, …) are EVM-backed.
+        case undefined:
+        case ActivityTypeFilter.All:
+          return isInitialLoading || isPerpsLoading || isPredictLoading;
+        default:
+          return isInitialLoading;
+      }
+    })();
+
     const isDomainFilter =
       typeFilter === ActivityTypeFilter.Perps ||
       typeFilter === ActivityTypeFilter.Predictions;
 
     const { handleScroll } = useTransactionAutoScroll(data, listRef, {
-      enabled: !isDomainFilter,
+      enabled: !isDomainFilter && !isRelevantActivityLoading,
       keyExtractor: (item) =>
         item.hash ?? `${item.chainId}-${item.timestamp}-${item.type}`,
     });
@@ -1277,25 +1295,8 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       </View>
     );
 
-    const isPerpsLoading = isPerpsEnabled && perpsSource.isLoading;
-    const isPredictLoading = isPredictEnabled && predictSource.isLoading;
-    const isRelevantActivityLoading = (() => {
-      switch (typeFilter) {
-        case ActivityTypeFilter.Perps:
-          return isPerpsLoading;
-        case ActivityTypeFilter.Predictions:
-          return isPredictLoading;
-        // No filter / "All" depends on every source; the remaining filters
-        // (Transactions, Buy/Sell, Money, …) are EVM-backed.
-        case undefined:
-        case ActivityTypeFilter.All:
-          return isInitialLoading || isPerpsLoading || isPredictLoading;
-        default:
-          return isInitialLoading;
-      }
-    })();
-
-    const shouldShowTransactionList = data.length > 0;
+    const shouldShowTransactionList =
+      !isRelevantActivityLoading && data.length > 0;
     const items = shouldShowTransactionList ? groupedData : [];
 
     const haveRelevantSourcesReported = (() => {
