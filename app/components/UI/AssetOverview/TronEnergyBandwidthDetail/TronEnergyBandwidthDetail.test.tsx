@@ -82,6 +82,7 @@ describe('TronEnergyBandwidthDetail', () => {
 
   it('renders values, coverage counts, and passes correct progress to ResourceRing', () => {
     jest.mocked(selectTronSpecialAssetsBySelectedAccountGroup).mockReturnValue({
+      ...createEmptySpecialAssetsMap(),
       energy: res('energy', 130000),
       bandwidth: res('bandwidth', 560),
       maxEnergy: res('max-energy', 200000),
@@ -114,6 +115,7 @@ describe('TronEnergyBandwidthDetail', () => {
 
   it('parses balances and caps progress', () => {
     jest.mocked(selectTronSpecialAssetsBySelectedAccountGroup).mockReturnValue({
+      ...createEmptySpecialAssetsMap(),
       energy: res('energy', '1000'),
       bandwidth: res('bandwidth', '2000'),
       maxEnergy: res('max-energy', '400'),
