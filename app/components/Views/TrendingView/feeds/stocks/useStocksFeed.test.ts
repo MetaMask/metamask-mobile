@@ -1,9 +1,15 @@
 import { renderHook } from '@testing-library/react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
-import { useRwaTokens } from '../../../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
+import {
+  useRwaTokens,
+  STOCKS_FEED_RWA_CHAIN_IDS,
+} from '../../../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
 import { useStocksFeed } from './useStocksFeed';
 
 jest.mock('../../../../UI/Trending/hooks/useRwaTokens/useRwaTokens', () => ({
+  ...jest.requireActual(
+    '../../../../UI/Trending/hooks/useRwaTokens/useRwaTokens',
+  ),
   useRwaTokens: jest.fn(),
 }));
 
@@ -20,9 +26,10 @@ const makeAsset = (assetId: string, symbol: string): TrendingAsset =>
 
 const ETH_OUSG = makeAsset('eip155:1/erc20:0xaaa', 'OUSG');
 const ETH_BUIDL = makeAsset('eip155:1/erc20:0xbbb', 'BUIDL');
+const ROBINHOOD_AAPL = makeAsset('eip155:4663/erc20:0xddd', 'AAPL');
 const BNB_OUSG = makeAsset('eip155:56/erc20:0xccc', 'bOUSG');
 
-const ALL_RWA_ASSETS = [ETH_OUSG, ETH_BUIDL, BNB_OUSG];
+const ALL_RWA_ASSETS = [ETH_OUSG, ETH_BUIDL, ROBINHOOD_AAPL, BNB_OUSG];
 
 const arrangeRwaTokens = (assets = ALL_RWA_ASSETS) => {
   mockUseRwaTokens.mockReturnValue({
@@ -43,10 +50,10 @@ describe('useStocksFeed', () => {
   });
 
   describe('no-query path (tab sections)', () => {
-    it('filters to Ethereum-only assets', () => {
+    it('filters to Ethereum and Robinhood assets', () => {
       const { result } = renderHook(() => useStocksFeed());
       const symbols = result.current.data.map((d) => d.symbol);
-      expect(symbols).toEqual(['OUSG', 'BUIDL']);
+      expect(symbols).toEqual(['OUSG', 'BUIDL', 'AAPL']);
       expect(symbols).not.toContain('bOUSG');
     });
 
@@ -57,11 +64,11 @@ describe('useStocksFeed', () => {
       );
     });
 
-    it('requests Ethereum only from the RWA API', () => {
+    it('requests Ethereum and Robinhood from the RWA API', () => {
       renderHook(() => useStocksFeed());
 
       expect(mockUseRwaTokens).toHaveBeenCalledWith(
-        expect.objectContaining({ chainIds: ['eip155:1'] }),
+        expect.objectContaining({ chainIds: STOCKS_FEED_RWA_CHAIN_IDS }),
       );
     });
 
@@ -111,15 +118,15 @@ describe('useStocksFeed', () => {
       );
     });
 
-    it('treats a whitespace-only query the same as no query (Ethereum-only)', () => {
+    it('treats a whitespace-only query the same as no query (Ethereum + Robinhood)', () => {
       const { result } = renderHook(() => useStocksFeed({ query: '   ' }));
       const symbols = result.current.data.map((d) => d.symbol);
-      expect(symbols).toEqual(['OUSG', 'BUIDL']);
+      expect(symbols).toEqual(['OUSG', 'BUIDL', 'AAPL']);
       expect(symbols).not.toContain('bOUSG');
       expect(mockUseRwaTokens).toHaveBeenCalledWith(
         expect.objectContaining({
           searchQuery: undefined,
-          chainIds: ['eip155:1'],
+          chainIds: STOCKS_FEED_RWA_CHAIN_IDS,
         }),
       );
     });

@@ -7,8 +7,20 @@ import {
   SortDirection,
 } from '../../components/TrendingTokensBottomSheet';
 import { RWA_CHAIN_IDS } from '../../utils/trendingNetworksList';
+import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
 
 const RWA_PAGE_SIZE = 100;
+
+/**
+ * Default chains for the tokenized stocks feed (Ethereum + Robinhood).
+ * Stocks tab sections request only these chains so the API page is not
+ * consumed by other supported RWA chains; search passes chainIds: undefined
+ * to fall back to all RWA_CHAIN_IDS.
+ */
+export const STOCKS_FEED_RWA_CHAIN_IDS: CaipChainId[] = [
+  NetworkToCaipChainId.ETHEREUM,
+  NetworkToCaipChainId.ROBINHOOD,
+];
 const DEFAULT_SORT_OPTION = PriceChangeOption.PriceChange;
 const DEFAULT_SORT_DIRECTION = SortDirection.Descending;
 
