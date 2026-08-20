@@ -21,6 +21,7 @@ import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet.js';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList.js';
 import ActivitiesView from '../../../page-objects/Transactions/ActivitiesView.js';
+import WalletView from '../../../page-objects/wallet/WalletView.js';
 import ActivityDetails from '../../../page-objects/Transactions/ActivityDetails.js';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { predictDepositFlags } from '../../../api-mocking/mock-responses/pay/feature-flag-mocks.js';
