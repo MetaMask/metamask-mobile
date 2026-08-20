@@ -25,6 +25,12 @@ import {
 } from '../../actions/navigation';
 import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
+import {
+  markNextParseAsUnlockSession,
+  resetNextParseAppStartTypeForTesting,
+} from '../../core/DeeplinkManager/utils/startupDeeplinkNavigation';
+import { resetUnlockDeeplinkAppStartTypeForTesting } from '../../core/Performance/unlockDeeplinkTraces';
+import { resetLoginAppStartTypeForTesting } from '../../components/Views/Login/loginPerformanceTags';
 import Engine from '../../core/Engine';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 
@@ -677,6 +683,9 @@ describe('handleDeeplinkSaga', () => {
     jest.clearAllMocks();
     __setMainNavigatorReadyForTesting(true);
     __resetSDKServicesInitializationForTesting();
+    resetNextParseAppStartTypeForTesting();
+    resetUnlockDeeplinkAppStartTypeForTesting();
+    resetLoginAppStartTypeForTesting();
     AppStateEventProcessor.pendingDeeplink = null;
     AppStateEventProcessor.pendingDeeplinkSource = null;
     mockGetUtmAttributesFromDeeplinkUrl.mockReturnValue(null);
@@ -1076,6 +1085,32 @@ describe('handleDeeplinkSaga', () => {
           }),
         );
       });
+
+      it('passes the unlock-session appStartType when the leftover parse flag is set', async () => {
+        const testLink = 'https://link.metamask.io/buy';
+        AppStateEventProcessor.pendingDeeplink = testLink;
+        AppStateEventProcessor.pendingDeeplinkSource = null;
+        Engine.context.KeyringController.isUnlocked = jest
+          .fn()
+          .mockReturnValue(true);
+        markNextParseAsUnlockSession();
+
+        await expectSaga(handleDeeplinkSaga)
+          .withState({
+            ...defaultMockState,
+            onboarding: { completedOnboarding: true },
+          })
+          .dispatch(checkForDeeplink())
+          .silentRun();
+
+        expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+          testLink,
+          expect.objectContaining({
+            origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+            appStartType: 'cold',
+          }),
+        );
+      });
     });
   });
 });
@@ -1093,6 +1128,15 @@ describe('parseDeeplink', () => {
 
     expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
       origin: TEST_ORIGIN,
+    });
+  });
+
+  it('forwards a cold appStartType to parse', async () => {
+    await expectSaga(parseDeeplink, TEST_URL, TEST_ORIGIN, 'cold').run();
+
+    expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(TEST_URL, {
+      origin: TEST_ORIGIN,
+      appStartType: 'cold',
     });
   });
 });

@@ -62,10 +62,10 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import {
-  cancelHomepageReadyTrace,
-  startHomepageReadyTrace,
-  type HomepageReadyTraceToken,
-} from '../../../core/Performance/HomepageReady';
+  cancelUnlockDeeplinkTraces,
+  startUnlockDeeplinkTraces,
+  type UnlockDeeplinkTraceTokens,
+} from '../../../core/Performance/unlockDeeplinkTraces';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { getLoginAppStartType } from '../Login/loginPerformanceTags';
 import { useNetInfo } from '@react-native-community/netinfo';
@@ -565,13 +565,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       account_type: accountType,
       biometrics: biometryChoice,
     });
-    let homepageReadyTraceToken: HomepageReadyTraceToken | null = null;
+    let unlockTraceTokens: UnlockDeeplinkTraceTokens | null = null;
 
     try {
       if (finalLoading) return;
 
-      homepageReadyTraceToken = startHomepageReadyTrace({
-        source: 'unlock',
+      unlockTraceTokens = startUnlockDeeplinkTraces({
         appStartType: getLoginAppStartType(),
       });
       setLoading(true);
@@ -650,10 +649,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
-      cancelHomepageReadyTrace({
-        reason: 'unlock_failed',
-        traceToken: homepageReadyTraceToken,
-      });
+      if (unlockTraceTokens) {
+        cancelUnlockDeeplinkTraces(unlockTraceTokens);
+      }
       await handleLoginError(ensureError(loginErr, 'Rehydrate login failed'));
       if (passwordLoginAttemptTraceCtxRef.current) {
         endTrace({
@@ -679,13 +677,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
-    let homepageReadyTraceToken: HomepageReadyTraceToken | null = null;
+    let unlockTraceTokens: UnlockDeeplinkTraceTokens | null = null;
 
     try {
       if (finalLoading) return;
 
-      homepageReadyTraceToken = startHomepageReadyTrace({
-        source: 'unlock',
+      unlockTraceTokens = startUnlockDeeplinkTraces({
         appStartType: getLoginAppStartType(),
       });
       setLoading(true);
@@ -721,10 +718,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
-      cancelHomepageReadyTrace({
-        reason: 'unlock_failed',
-        traceToken: homepageReadyTraceToken,
-      });
+      if (unlockTraceTokens) {
+        cancelUnlockDeeplinkTraces(unlockTraceTokens);
+      }
       await handleLoginError(
         ensureError(loginErr, 'Global password login failed'),
       );

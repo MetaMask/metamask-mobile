@@ -6,7 +6,13 @@ import {
   navigateToPostUnlockHome,
   navigateToPendingStartupDeeplink,
   retryPendingDeeplinkAfterDefaultNavigation,
+  consumeNextParseAppStartType,
+  resetNextParseAppStartTypeForTesting,
 } from './startupDeeplinkNavigation';
+import {
+  rememberUnlockDeeplinkAppStartType,
+  resetUnlockDeeplinkAppStartTypeForTesting,
+} from '../../Performance/unlockDeeplinkTraces';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 
 const mockDispatch = jest.fn();
@@ -80,6 +86,18 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+const mockStartDeeplinkNavigatedTrace = jest.fn();
+const mockCancelDeeplinkNavigatedTrace = jest.fn();
+const mockCancelDeeplinkProcessedTrace = jest.fn();
+jest.mock('../../Performance/DeeplinkPerformance', () => ({
+  startDeeplinkNavigatedTrace: (...args: unknown[]) =>
+    mockStartDeeplinkNavigatedTrace(...args),
+  cancelDeeplinkNavigatedTrace: (...args: unknown[]) =>
+    mockCancelDeeplinkNavigatedTrace(...args),
+  cancelDeeplinkProcessedTrace: (...args: unknown[]) =>
+    mockCancelDeeplinkProcessedTrace(...args),
+}));
+
 describe('startupDeeplinkNavigation', () => {
   const intent: DeeplinkIntent = {
     target: {
@@ -90,6 +108,8 @@ describe('startupDeeplinkNavigation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetNextParseAppStartTypeForTesting();
+    resetUnlockDeeplinkAppStartTypeForTesting();
     AppStateEventProcessor.pendingDeeplink = null;
     AppStateEventProcessor.pendingDeeplinkSource = null;
     setRequestAnimationFrame(mockRequestAnimationFrame);
@@ -118,6 +138,7 @@ describe('startupDeeplinkNavigation', () => {
       'https://link.metamask.io/rewards',
       {
         origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+        appStartType: 'cold',
       },
     );
     expect(mockExecuteStartupDeeplinkIntent).toHaveBeenCalledWith(intent);
@@ -135,6 +156,7 @@ describe('startupDeeplinkNavigation', () => {
       'https://link.metamask.io/rewards',
       {
         origin: AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
+        appStartType: 'cold',
       },
     );
   });
@@ -159,6 +181,48 @@ describe('startupDeeplinkNavigation', () => {
     expect(mockClearPendingDeeplink).toHaveBeenCalledTimes(1);
   });
 
+  it('starts Deeplink Navigated as a fallback for saga-driven auto-unlock', async () => {
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
+
+    await navigateToPendingStartupDeeplink();
+
+    expect(mockStartDeeplinkNavigatedTrace).toHaveBeenCalledWith({
+      url: 'https://link.metamask.io/rewards',
+      source: 'unlock',
+      appStartType: 'cold',
+    });
+  });
+
+  it('cancels both deeplink traces when startup navigation throws', async () => {
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
+    mockExecuteStartupDeeplinkIntent.mockRejectedValueOnce(
+      new Error('reset failed'),
+    );
+
+    await expect(navigateToPendingStartupDeeplink()).resolves.toBe(false);
+
+    expect(mockCancelDeeplinkProcessedTrace).toHaveBeenCalledWith({
+      reason: 'error',
+    });
+    expect(mockCancelDeeplinkNavigatedTrace).toHaveBeenCalledWith({
+      reason: 'error',
+    });
+  });
+
+  it('keeps the unlock-session app start type after a throw for leftover parse', async () => {
+    rememberUnlockDeeplinkAppStartType('warm');
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
+    mockExecuteStartupDeeplinkIntent.mockRejectedValueOnce(
+      new Error('reset failed'),
+    );
+
+    await navigateToPendingStartupDeeplink();
+    retryPendingDeeplinkAfterDefaultNavigation();
+
+    expect(mockClearPendingDeeplink).not.toHaveBeenCalled();
+    expect(consumeNextParseAppStartType()).toBe('warm');
+  });
+
   it('re-dispatches deeplink handling after default navigation when pending remains', () => {
     AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/swap';
 
@@ -166,6 +230,17 @@ describe('startupDeeplinkNavigation', () => {
 
     expect(mockRequestAnimationFrame).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(checkForDeeplink());
+    expect(consumeNextParseAppStartType()).toBe('cold');
+    expect(consumeNextParseAppStartType()).toBeUndefined();
+  });
+
+  it('reuses the unlock-session app start type for leftover parse after a warm lock-unlock', () => {
+    rememberUnlockDeeplinkAppStartType('warm');
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/swap';
+
+    retryPendingDeeplinkAfterDefaultNavigation();
+
+    expect(consumeNextParseAppStartType()).toBe('warm');
   });
 
   it('navigates directly to a handled startup deeplink after unlock', async () => {

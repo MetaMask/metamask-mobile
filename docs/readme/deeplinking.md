@@ -11,6 +11,7 @@
 - [Adding New Handlers](#adding-new-handlers)
 - [Signature Verification](#signature-verification) → [See Verification Diagrams](./deeplinking-diagrams.md#signature-creation-and-verification-detail)
 - [Analytics](#analytics) → [See Analytics Documentation](./deeplink-analytics.md)
+- [Performance (Sentry CUFs)](#performance-sentry-cufs) → [See Deeplink Sentry Performance](../engagement/deeplink-sentry-performance.md)
 - [Testing Links](#testing-links)
 - [Security Considerations](#security-considerations)
 - [Custom Schemes Explained](#custom-uri-schemes-explained)
@@ -416,6 +417,17 @@ MetaMask Mobile tracks deep link usage through a consolidated `DEEP_LINK_USED` a
 - Route-specific sensitive properties
 
 For comprehensive analytics documentation, see [Deep Link Analytics](./deeplink-analytics.md).
+
+## Performance (Sentry CUFs)
+
+Sentry traces measure **how long** a deeplink takes to process and to commit navigation. They are separate from `DEEP_LINK_USED`.
+
+| Trace                | Measures                                                   |
+| -------------------- | ---------------------------------------------------------- |
+| `Deeplink Processed` | App-side processing until immediately before navigate      |
+| `Deeplink Navigated` | Unlock submit or link intake until navigation state commit |
+
+Catalog, tags, and how to extend: [Deeplink Sentry Performance](../engagement/deeplink-sentry-performance.md).
 
 ### Quick Overview
 

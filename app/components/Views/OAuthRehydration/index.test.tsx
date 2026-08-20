@@ -43,11 +43,14 @@ const mockRequestBiometricsAccessControlForIOS = jest.fn();
 const mockUpdateAuthPreference = jest.fn();
 const mockAnalyticsIdentify = jest.fn();
 const mockAnalyticsTrackEvent = jest.fn();
-const HOMEPAGE_READY_TRACE_TOKEN = 1;
-const mockStartHomepageReadyTrace = jest.fn(
-  (..._args: unknown[]) => HOMEPAGE_READY_TRACE_TOKEN,
+const UNLOCK_TRACE_TOKENS = {
+  homepageReadyTraceToken: 1,
+  deeplinkNavigatedTraceToken: 2,
+};
+const mockStartUnlockDeeplinkTraces = jest.fn(
+  (..._args: unknown[]) => UNLOCK_TRACE_TOKENS,
 );
-const mockCancelHomepageReadyTrace = jest.fn();
+const mockCancelUnlockDeeplinkTraces = jest.fn();
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -65,11 +68,11 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   }),
 }));
 
-jest.mock('../../../core/Performance/HomepageReady', () => ({
-  startHomepageReadyTrace: (...args: unknown[]) =>
-    mockStartHomepageReadyTrace(...args),
-  cancelHomepageReadyTrace: (...args: unknown[]) =>
-    mockCancelHomepageReadyTrace(...args),
+jest.mock('../../../core/Performance/unlockDeeplinkTraces', () => ({
+  startUnlockDeeplinkTraces: (...args: unknown[]) =>
+    mockStartUnlockDeeplinkTraces(...args),
+  cancelUnlockDeeplinkTraces: (...args: unknown[]) =>
+    mockCancelUnlockDeeplinkTraces(...args),
 }));
 
 jest.mock('../../../util/Logger');
@@ -389,10 +392,9 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
       });
-      expect(mockCancelHomepageReadyTrace).toHaveBeenCalledWith({
-        reason: 'unlock_failed',
-        traceToken: HOMEPAGE_READY_TRACE_TOKEN,
-      });
+      expect(mockCancelUnlockDeeplinkTraces).toHaveBeenCalledWith(
+        UNLOCK_TRACE_TOKENS,
+      );
     });
 
     it('does not prompt biometrics when password unlock fails', async () => {

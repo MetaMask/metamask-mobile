@@ -21,6 +21,13 @@ import {
 } from '../AppStateEventListener';
 import type { DeeplinkIntent } from './types/DeeplinkIntent';
 import NotificationsService from '../../util/notifications/services/NotificationService';
+import {
+  startDeeplinkProcessedTrace,
+  endDeeplinkProcessedTrace,
+  cancelDeeplinkProcessedTrace,
+  type DeeplinkPerfAppStartType,
+} from '../Performance/DeeplinkPerformance';
+import { getUnlockDeeplinkAppStartType } from '../Performance/unlockDeeplinkTraces';
 
 // `false` means the deeplink was handled but intentionally rejected, for
 // example when the user dismisses the interstitial during startup resolution.
@@ -84,12 +91,20 @@ export class DeeplinkManager {
       browserCallBack,
       origin,
       onHandled,
+      appStartType = 'warm',
     }: {
       browserCallBack?: (url: string) => void;
       origin: string;
       onHandled?: () => void;
+      appStartType?: DeeplinkPerfAppStartType;
     },
   ): Promise<boolean> {
+    startDeeplinkProcessedTrace({
+      url,
+      source: 'parse',
+      appStartType,
+    });
+
     const result = await parseDeeplink({
       deeplinkManager: this,
       url,
@@ -98,17 +113,33 @@ export class DeeplinkManager {
       onHandled,
     });
 
-    return typeof result === 'boolean' ? result : Boolean(result);
+    const handled = typeof result === 'boolean' ? result : Boolean(result);
+
+    if (handled) {
+      endDeeplinkProcessedTrace({ seam: 'handler_finished' });
+    } else {
+      cancelDeeplinkProcessedTrace({ reason: 'rejected' });
+    }
+
+    return handled;
   }
 
   async resolve(
     url: string,
     {
       origin,
+      appStartType = getUnlockDeeplinkAppStartType(),
     }: {
       origin: string;
+      appStartType?: DeeplinkPerfAppStartType;
     },
   ): Promise<DeeplinkResolveResult> {
+    startDeeplinkProcessedTrace({
+      url,
+      source: 'resolve',
+      appStartType,
+    });
+
     const result = await parseDeeplink({
       deeplinkManager: this,
       url,
@@ -117,10 +148,17 @@ export class DeeplinkManager {
     });
 
     if (result === false) {
+      cancelDeeplinkProcessedTrace({ reason: 'rejected' });
       return false;
     }
 
-    return result && typeof result !== 'boolean' ? result : null;
+    const intent = result && typeof result !== 'boolean' ? result : null;
+
+    if (intent === null) {
+      cancelDeeplinkProcessedTrace({ reason: 'unresolved' });
+    }
+
+    return intent;
   }
 
   static start() {
@@ -272,12 +310,14 @@ export default {
       browserCallBack?: (url: string) => void;
       origin: string;
       onHandled?: () => void;
+      appStartType?: DeeplinkPerfAppStartType;
     },
   ) => DeeplinkManager.getInstance().parse(url, args),
   resolve: (
     url: string,
     args: {
       origin: string;
+      appStartType?: DeeplinkPerfAppStartType;
     },
   ) => DeeplinkManager.getInstance().resolve(url, args),
   setDeeplink: (url: string) => DeeplinkManager.getInstance().setDeeplink(url),
