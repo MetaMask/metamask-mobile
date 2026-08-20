@@ -7,7 +7,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import type { LayoutChangeEvent, ScrollView } from 'react-native';
-import PredictChipList from './PredictChipList';
+import PredictChipList, { getPredictChipTwArgs } from './PredictChipList';
 import { calculateChipScrollX } from './calculateChipScrollX';
 import { useChipScrollList } from './useChipScrollList';
 import {
@@ -148,6 +148,34 @@ describe('PredictChipList', () => {
   });
 
   describe('selection', () => {
+    it('applies muted-pressed background when an inactive chip is pressed', () => {
+      const restArgs = getPredictChipTwArgs(
+        'rounded-xl px-4 py-2',
+        false,
+        false,
+      );
+      const pressedArgs = getPredictChipTwArgs(
+        'rounded-xl px-4 py-2',
+        false,
+        true,
+      );
+
+      expect(restArgs).toContain('bg-muted');
+      expect(restArgs).not.toContain('bg-muted-pressed');
+      expect(pressedArgs).toContain('bg-muted-pressed');
+    });
+
+    it('keeps the selected chip icon-default background while pressed', () => {
+      const pressedArgs = getPredictChipTwArgs(
+        'rounded-xl px-4 py-2',
+        true,
+        true,
+      );
+
+      expect(pressedArgs).toContain('bg-icon-default');
+      expect(pressedArgs).not.toContain('bg-muted-pressed');
+    });
+
     it('marks the active chip with accessibilityState selected', () => {
       const chips = createMockChips();
 
