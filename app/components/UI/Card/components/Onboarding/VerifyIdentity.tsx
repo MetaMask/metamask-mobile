@@ -7,6 +7,8 @@ import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Box,
+  BoxAlignItems,
+  BoxJustifyContent,
   Icon,
   IconColor,
   IconName,
@@ -29,6 +31,19 @@ import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
 import { brandColor } from '@metamask/design-tokens';
 import useRegions from '../../hooks/useRegions';
+
+/**
+ * The KYC fingerprint PNG is 2096² with artwork whose visual center sits
+ * ~5% right and ~2.5% down of the frame. Display it in a fixed square and
+ * nudge opposite that offset so it reads as centered on screen.
+ */
+const VERIFY_IDENTITY_ILLUSTRATION_SIZE = 240;
+const VERIFY_IDENTITY_ILLUSTRATION_NUDGE_X = -Math.round(
+  VERIFY_IDENTITY_ILLUSTRATION_SIZE * (105.5 / 2096),
+);
+const VERIFY_IDENTITY_ILLUSTRATION_NUDGE_Y = -Math.round(
+  VERIFY_IDENTITY_ILLUSTRATION_SIZE * (53.5 / 2096),
+);
 
 const VerifyIdentity = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -158,11 +173,24 @@ const VerifyIdentity = () => {
 
   const renderFormFields = () => (
     <>
-      <Box twClassName="flex flex-1 items-center justify-center">
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="w-full flex-1"
+        testID="verify-identity-illustration-container"
+      >
         <Image
           source={MM_CARD_VERIFY_IDENTITY}
           resizeMode="contain"
-          style={tw.style('w-full h-full')}
+          testID="verify-identity-illustration"
+          style={tw.style({
+            width: VERIFY_IDENTITY_ILLUSTRATION_SIZE,
+            height: VERIFY_IDENTITY_ILLUSTRATION_SIZE,
+            transform: [
+              { translateX: VERIFY_IDENTITY_ILLUSTRATION_NUDGE_X },
+              { translateY: VERIFY_IDENTITY_ILLUSTRATION_NUDGE_Y },
+            ],
+          })}
         />
       </Box>
       <Box twClassName="flex flex-row gap-3">

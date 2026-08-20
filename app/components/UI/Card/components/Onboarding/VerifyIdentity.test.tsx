@@ -135,6 +135,12 @@ jest.mock('@metamask/design-system-react-native', () => {
       BodySm: 'BodySm',
       BodyMd: 'BodyMd',
     },
+    BoxAlignItems: {
+      Center: 'center',
+    },
+    BoxJustifyContent: {
+      Center: 'center',
+    },
     IconName: {
       EyeSlash: 'EyeSlash',
       Verified: 'Verified',
@@ -328,6 +334,19 @@ describe('VerifyIdentity Component', () => {
       expect(getByTestId('onboarding-step-form-fields')).toBeTruthy();
       expect(getByTestId('onboarding-step-actions')).toBeTruthy();
       expect(getByTestId('verify-identity-continue-button')).toBeTruthy();
+    });
+
+    it('renders the identity illustration in a centered container', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <VerifyIdentity />
+        </Provider>,
+      );
+
+      expect(
+        getByTestId('verify-identity-illustration-container'),
+      ).toBeTruthy();
+      expect(getByTestId('verify-identity-illustration')).toBeTruthy();
     });
 
     it('has continue button enabled when sessionUrl is available', () => {
