@@ -1,11 +1,9 @@
-import { waitFor } from './legacy-detox-shim';
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types.ts';
 import {
   asPlaywrightElement,
   type EncapsulatedElementType,
 } from './EncapsulatedElement.ts';
-import { FrameworkDetector } from './FrameworkDetector.ts';
 import PlaywrightAssertions from './PlaywrightAssertions.ts';
 import PlaywrightGestures from './PlaywrightGestures.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
@@ -64,27 +62,8 @@ export default class Utilities {
   static async checkElementEnabled(
     elem: EncapsulatedElementType,
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      const el = await asPlaywrightElement(elem);
-      if (!(await el.isEnabled())) {
-        throw new Error(
-          [
-            '🚫 Element is not enabled.',
-            '',
-            '💡 If this element might be disabled in some situations,',
-            '   consider using the {checkEnabled: false} option.',
-            '',
-            '📝 Example:',
-            '   await Gestures.waitAndTap(element, {checkEnabled: false})',
-          ].join('\n'),
-        );
-      }
-      return;
-    }
-
-    const el = (await elem) as Detox.IndexableNativeElement;
-    const attributes = await el.getAttributes();
-    if (!('enabled' in attributes) || !attributes.enabled) {
+    const el = await asPlaywrightElement(elem);
+    if (!(await el.isEnabled())) {
       throw new Error(
         [
           '🚫 Element is not enabled.',
@@ -97,29 +76,22 @@ export default class Utilities {
         ].join('\n'),
       );
     }
+    return;
   }
 
   static async checkElementDisabled(
     elem: EncapsulatedElementType,
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      const el = await asPlaywrightElement(elem);
-      if (!(await el.isEnabled())) {
-        return;
-      }
-      // RN may report isEnabled=true while native enabled="false".
-      const enabledAttr = await el.getAttribute('enabled');
-      if (enabledAttr === 'false') {
-        return;
-      }
-      throw new Error('🚫 Element is enabled, but should be disabled.');
+    const el = await asPlaywrightElement(elem);
+    if (!(await el.isEnabled())) {
+      return;
     }
-
-    const el = (await elem) as Detox.IndexableNativeElement;
-    const attributes = await el.getAttributes();
-    if (!('enabled' in attributes) || attributes.enabled) {
-      throw new Error('🚫 Element is enabled, but should be disabled.');
+    // RN may report isEnabled=true while native enabled="false".
+    const enabledAttr = await el.getAttribute('enabled');
+    if (enabledAttr === 'false') {
+      return;
     }
+    throw new Error('🚫 Element is enabled, but should be disabled.');
   }
 
   /**
@@ -156,18 +128,8 @@ export default class Utilities {
    * Read text content from an element.
    */
   static async getElementText(elem: EncapsulatedElementType): Promise<string> {
-    if (FrameworkDetector.isAppium()) {
-      const playwrightElement = await asPlaywrightElement(elem);
-      return playwrightElement.textContent();
-    }
-
-    const detoxElement = (await elem) as Detox.IndexableNativeElement;
-    const attributes = (await detoxElement.getAttributes()) as {
-      text?: string;
-      label?: string;
-    };
-
-    return attributes.text ?? attributes.label ?? '';
+    const playwrightElement = await asPlaywrightElement(elem);
+    return playwrightElement.textContent();
   }
 
   /**
@@ -334,55 +296,26 @@ export default class Utilities {
      * - Stability check: 2000ms (allows time for UI to settle)
      */
 
-    if (FrameworkDetector.isAppium()) {
-      const playwrightElem = asPlaywrightElement(elem);
-
-      if (checkVisibility) {
-        const visibilityTimeout = timeout || 100;
-        await PlaywrightAssertions.expectElementToBeVisible(playwrightElem, {
-          timeout: visibilityTimeout,
-        });
-      }
-
-      if (checkEnabled && PlatformDetector.isAndroid()) {
-        const pwEl = await playwrightElem;
-        if (!(await pwEl.isEnabled())) {
-          throw new Error('Element is not enabled');
-        }
-      }
-
-      if (checkStability) {
-        const stabilityTimeout = timeout || 2000;
-        const stabilityCheckInterval = timeout ? timeout / 10 : 200;
-        await PlaywrightGestures.waitForElementStable(await playwrightElem, {
-          timeout: stabilityTimeout,
-          interval: stabilityCheckInterval,
-        });
-      }
-
-      return el;
-    }
+    const playwrightElem = asPlaywrightElement(elem);
 
     if (checkVisibility) {
-      const visibilityTimeout = timeout || 100; // If no timeout is provided, default to 100ms
-      if (device.getPlatform() === 'ios') {
-        await waitFor(el).toExist().withTimeout(visibilityTimeout);
-      } else {
-        await waitFor(el).toBeVisible().withTimeout(visibilityTimeout);
-        await this.checkElementNotObscured(Promise.resolve(el)); // Ensure element is not obscured
-      }
+      const visibilityTimeout = timeout || 100;
+      await PlaywrightAssertions.expectElementToBeVisible(playwrightElem, {
+        timeout: visibilityTimeout,
+      });
     }
 
-    if (checkEnabled && device.getPlatform() === 'android') {
-      // checkEnabled is only relevant for Android
-      // iOS elements often fail on enabled checks even when they are tappable
-      await this.checkElementEnabled(Promise.resolve(el));
+    if (checkEnabled && PlatformDetector.isAndroid()) {
+      const pwEl = await playwrightElem;
+      if (!(await pwEl.isEnabled())) {
+        throw new Error('Element is not enabled');
+      }
     }
 
     if (checkStability) {
-      const stabilityTimeout = timeout || 2000; // If no timeout is provided, default to 2000ms
-      const stabilityCheckInterval = timeout ? timeout / 10 : 200; // Default to 200ms if no timeout is provided
-      await this.checkElementStable(Promise.resolve(el), {
+      const stabilityTimeout = timeout || 2000;
+      const stabilityCheckInterval = timeout ? timeout / 10 : 200;
+      await PlaywrightGestures.waitForElementStable(await playwrightElem, {
         timeout: stabilityTimeout,
         interval: stabilityCheckInterval,
       });
@@ -422,23 +355,11 @@ export default class Utilities {
     elem: DetoxMatcher | EncapsulatedElementType,
     timeout: number = 2000,
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      await PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(elem as EncapsulatedElementType),
-        { timeout },
-      );
-      return;
-    }
-
-    const el = (await elem) as Detox.IndexableNativeElement;
-    const isWebElement = this.isWebElement(el);
-
-    if (isWebElement) {
-      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-      await (expect(el) as any).toExist();
-    } else {
-      await waitFor(el).toBeVisible().withTimeout(timeout);
-    }
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(elem as EncapsulatedElementType),
+      { timeout },
+    );
+    return;
   }
 
   /**
@@ -448,24 +369,11 @@ export default class Utilities {
     elem: DetoxMatcher | EncapsulatedElementType,
     timeout: number = 2000,
   ): Promise<void> {
-    if (FrameworkDetector.isAppium()) {
-      await PlaywrightAssertions.expectElementToNotBeVisible(
-        asPlaywrightElement(elem as EncapsulatedElementType),
-        { timeout },
-      );
-      return;
-    }
-
-    const el = (await elem) as Detox.IndexableNativeElement;
-    const isWebElement = this.isWebElement(el);
-    if (isWebElement) {
-      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-      await (expect(el) as any).not.toExist();
-    } else if (device.getPlatform() === 'ios') {
-      await waitFor(el).not.toExist().withTimeout(timeout);
-    } else {
-      await waitFor(el).not.toBeVisible().withTimeout(timeout);
-    }
+    await PlaywrightAssertions.expectElementToNotBeVisible(
+      asPlaywrightElement(elem as EncapsulatedElementType),
+      { timeout },
+    );
+    return;
   }
 
   /**
