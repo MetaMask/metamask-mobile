@@ -491,10 +491,13 @@ jobs:
 
           yarn gen-bundle:ios
         env:
-          # INFRA-3891: measured no-op. The gen-bundle:ios script in package.json sets
-          # its own NODE_OPTIONS inline, and /proc/<pid>/environ of the live bundler
-          # shows that inline value is what it runs with, not this one.
-          NODE_OPTIONS: --max_old_space_size=12288
+          # INFRA-3891: this runner has ~14.6 GB usable and no swap. At the previous
+          # 8192 MB ceiling the bundler peaked at 14.2 to 14.4 GB, on the limit, and the
+          # host killed it on roughly 14% of runs. 6144 MB puts the peak near 13.1 GB.
+          # Keep this value here, not inline in the gen-bundle:ios script: an inline
+          # value silently shadows this one, which is how a 2025-11-26 change to raise
+          # the ceiling ended up having no effect at all.
+          NODE_OPTIONS: --max-old-space-size=6144
 
       # INFRA-3891 (TEMPORARY INSTRUMENTATION, remove once the fix is chosen).
       # Runs after a SIGKILL too, so the peak that preceded the kill is reported.
