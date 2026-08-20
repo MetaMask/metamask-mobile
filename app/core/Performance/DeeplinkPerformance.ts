@@ -154,6 +154,13 @@ let processed: ProcessedState | null = null;
 let navigated: NavigatedState | null = null;
 /** When Processed last closed; the inferred Navigated end keys off this. */
 let processedEndedAt: number | null = null;
+/**
+ * Focused route chain as of the last navigation commit, recorded whether or
+ * not a deeplink is in flight. Needed to close a Navigated span whose target
+ * is already focused: navigating to the focused route commits no state
+ * change, so the nav callback would never fire for it.
+ */
+let lastFocusedRouteNames: string[] = [];
 let nextTraceToken = 0;
 
 const processedTags = (state: ProcessedState) => ({
@@ -255,19 +262,60 @@ export const markDeeplinkInterstitialContinued = () => {
 };
 
 /**
+ * Closes Navigated when its known target is already focused as Processed
+ * ends. Navigating to the focused route commits no state change, so
+ * `handleDeeplinkNavigationStateChange` would never fire and the span would
+ * hang until cleanup dropped it (e.g. a `home` link opened while on Home).
+ * Inferred spans are deliberately not settled here: without a known route
+ * there is no way to tell "already there" from "has not navigated yet".
+ */
+const settleAlreadyFocusedNavigatedTrace = () => {
+  if (navigated === null || navigated.targetRoute === null) {
+    return;
+  }
+  if (!lastFocusedRouteNames.includes(navigated.targetRoute)) {
+    return;
+  }
+
+  endTrace({
+    name: TraceName.DeeplinkNavigated,
+    data: {
+      success: true,
+      nav_target: 'known',
+      target_route: navigated.targetRoute,
+      focused_route:
+        lastFocusedRouteNames[lastFocusedRouteNames.length - 1] ?? '',
+      already_focused: true,
+    },
+  });
+  navigated = null;
+  processedEndedAt = null;
+};
+
+/**
  * Ends Processed at one of two seams. `pre_navigate` (intent handlers, after
  * `intent.prepare()`) is exact; `handler_finished` (everything else) includes the
  * handler's own navigate call. The tag makes the imprecision explicit — as
  * handlers migrate to intents they graduate seams with no telemetry change.
+ *
+ * @param traceToken - When given, the end only applies to the span opened
+ * with that token. Detached callers (the universal-link flow settles after
+ * `parse` has already returned) must pass it so a slow flow cannot close a
+ * later deeplink's span.
  */
 export const endDeeplinkProcessedTrace = ({
   seam,
   targetRoute,
+  traceToken,
 }: {
   seam: DeeplinkProcessedSeam;
   targetRoute?: string;
+  traceToken?: DeeplinkTraceToken | null;
 }) => {
   if (processed === null || processed.phase === 'awaiting_continue') {
+    return;
+  }
+  if (traceToken !== undefined && traceToken !== processed.token) {
     return;
   }
 
@@ -283,6 +331,7 @@ export const endDeeplinkProcessedTrace = ({
   });
   processed = null;
   processedEndedAt = Date.now();
+  settleAlreadyFocusedNavigatedTrace();
 };
 
 /**
@@ -324,13 +373,21 @@ export const cancelDeeplinkNavigatedTrace = ({
  * waiting on a state change that never comes. A rejection while the modal is
  * up has no open span (the `before_gate` segment already closed as a valid
  * measurement); only the state is released.
+ *
+ * @param traceToken - When given, the cancel only applies to the span opened
+ * with that token; see {@link endDeeplinkProcessedTrace}.
  */
 export const cancelDeeplinkProcessedTrace = ({
   reason,
+  traceToken,
 }: {
   reason: DeeplinkProcessedCancelReason;
+  traceToken?: DeeplinkTraceToken | null;
 }) => {
   if (processed === null) {
+    return;
+  }
+  if (traceToken !== undefined && traceToken !== processed.token) {
     return;
   }
 
@@ -424,6 +481,10 @@ export const handleDeeplinkNavigationStateChange = ({
 }: {
   focusedRouteNames: string[];
 }) => {
+  // Recorded even with no span in flight — the already-focused settle needs
+  // to know where the app was *before* the deeplink arrived.
+  lastFocusedRouteNames = focusedRouteNames;
+
   if (navigated === null) {
     return;
   }
@@ -463,5 +524,6 @@ export const resetDeeplinkPerformanceForTesting = () => {
   processed = null;
   navigated = null;
   processedEndedAt = null;
+  lastFocusedRouteNames = [];
   nextTraceToken = 0;
 };

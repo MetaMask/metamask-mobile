@@ -163,9 +163,16 @@ export const createPersistController = (debounceMs: number = 200) =>
 
 const persistUserTransform = createTransform(
   (inboundState: UserState) => {
-    const { initialScreen, isAuthChecked, appServicesReady, ...state } =
-      inboundState;
-    // Reconstruct data to persist
+    const {
+      initialScreen,
+      isAuthChecked,
+      appServicesReady,
+      userLoggedIn,
+      ...state
+    } = inboundState;
+    // Reconstruct data to persist. `userLoggedIn` is session-only: a rehydrated
+    // `true` would claim the wallet is unlocked while Login is still up.
+    // Omitted here, so autoMergeLevel2 falls back to `userInitialState`.
     return state;
   },
   null,

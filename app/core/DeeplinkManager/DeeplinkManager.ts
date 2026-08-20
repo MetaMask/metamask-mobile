@@ -99,7 +99,10 @@ export class DeeplinkManager {
       appStartType?: DeeplinkPerfAppStartType;
     },
   ): Promise<boolean> {
-    startDeeplinkProcessedTrace({
+    // `null` when another parse already owns the span (e.g. the recursive
+    // send/wc re-entry) — the token keeps this call's end/cancel from
+    // touching that outer span.
+    const processedTraceToken = startDeeplinkProcessedTrace({
       url,
       source: 'parse',
       appStartType,
@@ -111,14 +114,21 @@ export class DeeplinkManager {
       origin,
       browserCallBack,
       onHandled,
+      processedTraceToken,
     });
 
     const handled = typeof result === 'boolean' ? result : Boolean(result);
 
     if (handled) {
-      endDeeplinkProcessedTrace({ seam: 'handler_finished' });
+      endDeeplinkProcessedTrace({
+        seam: 'handler_finished',
+        traceToken: processedTraceToken,
+      });
     } else {
-      cancelDeeplinkProcessedTrace({ reason: 'rejected' });
+      cancelDeeplinkProcessedTrace({
+        reason: 'rejected',
+        traceToken: processedTraceToken,
+      });
     }
 
     return handled;
@@ -134,7 +144,7 @@ export class DeeplinkManager {
       appStartType?: DeeplinkPerfAppStartType;
     },
   ): Promise<DeeplinkResolveResult> {
-    startDeeplinkProcessedTrace({
+    const processedTraceToken = startDeeplinkProcessedTrace({
       url,
       source: 'resolve',
       appStartType,
@@ -145,17 +155,24 @@ export class DeeplinkManager {
       url,
       origin,
       mode: 'resolve',
+      processedTraceToken,
     });
 
     if (result === false) {
-      cancelDeeplinkProcessedTrace({ reason: 'rejected' });
+      cancelDeeplinkProcessedTrace({
+        reason: 'rejected',
+        traceToken: processedTraceToken,
+      });
       return false;
     }
 
     const intent = result && typeof result !== 'boolean' ? result : null;
 
     if (intent === null) {
-      cancelDeeplinkProcessedTrace({ reason: 'unresolved' });
+      cancelDeeplinkProcessedTrace({
+        reason: 'unresolved',
+        traceToken: processedTraceToken,
+      });
     }
 
     return intent;
