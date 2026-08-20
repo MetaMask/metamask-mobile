@@ -28,7 +28,7 @@ import {
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { PredictEventCard } from '../../events/cards';
-import type { PredictEvent, PredictVenueId } from '../../types';
+import type { PredictEvent, PredictFeedId, PredictVenueId } from '../../types';
 import { FeedScreenTabs } from './internal/FeedScreenTabs';
 import { PredictFeedScreenTestIds } from './PredictFeedScreen.testIds';
 
@@ -97,32 +97,67 @@ const PredictFeedContent = ({
     fetchNextPage,
     hasNextPage,
     isError,
+    isFetching,
     isFetchingNextPage,
     isLoading,
     refetch,
   } = useFeed(venueId, activeTab.feedId, FEED_PARAMS);
+  const [nextPageErrorFeedIds, setNextPageErrorFeedIds] = useState<
+    ReadonlySet<PredictFeedId>
+  >(() => new Set());
   const events = useMemo(
     () => data?.pages.flatMap((page) => page.events) ?? [],
     [data],
   );
   const hasInitialError = isError && events.length === 0;
-  const hasNextPageError = isError && events.length > 0;
+  const hasNextPageError = nextPageErrorFeedIds.has(activeTab.feedId);
+
+  const setNextPageError = useCallback(
+    (feedId: PredictFeedId, hasError: boolean) => {
+      setNextPageErrorFeedIds((currentFeedIds) => {
+        if (currentFeedIds.has(feedId) === hasError) {
+          return currentFeedIds;
+        }
+
+        const nextFeedIds = new Set(currentFeedIds);
+        if (hasError) {
+          nextFeedIds.add(feedId);
+        } else {
+          nextFeedIds.delete(feedId);
+        }
+        return nextFeedIds;
+      });
+    },
+    [],
+  );
+
+  const fetchNextPageWithErrorTracking = useCallback(() => {
+    const feedId = activeTab.feedId;
+    fetchNextPage({ throwOnError: true })
+      .then(() => setNextPageError(feedId, false))
+      .catch(() => setNextPageError(feedId, true));
+  }, [activeTab.feedId, fetchNextPage, setNextPageError]);
 
   const handleEndReached = useCallback(() => {
-    if (!hasNextPage || isFetchingNextPage || isError) {
+    if (!hasNextPage || isFetching || hasNextPageError) {
       return;
     }
 
-    fetchNextPage().catch(() => undefined);
-  }, [fetchNextPage, hasNextPage, isError, isFetchingNextPage]);
+    fetchNextPageWithErrorTracking();
+  }, [
+    fetchNextPageWithErrorTracking,
+    hasNextPage,
+    hasNextPageError,
+    isFetching,
+  ]);
 
   const handleNextPageRetry = useCallback(() => {
-    if (!hasNextPage || isFetchingNextPage) {
+    if (!hasNextPage || isFetching) {
       return;
     }
 
-    fetchNextPage().catch(() => undefined);
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+    fetchNextPageWithErrorTracking();
+  }, [fetchNextPageWithErrorTracking, hasNextPage, isFetching]);
 
   const handleRetry = useCallback(() => {
     refetch().catch(() => undefined);

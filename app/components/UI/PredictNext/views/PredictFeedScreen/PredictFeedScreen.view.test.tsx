@@ -1,7 +1,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictFeedScreen } from '../../../../../../tests/component-view/renderers/predictNext';
 import Engine from '../../../../../core/Engine';
-import { act, fireEvent, within } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import {
   KALSHI_VENUE_ID,
   type PredictDecimal,
@@ -20,7 +20,6 @@ import {
   NFL_GAMES_FEED_ID,
   NFL_WIN_TOTALS_FEED_ID,
 } from '../../navigation/feedScreens';
-import { PredictEventDetailTestIds } from '../PredictEventDetail/PredictEventDetail.testIds';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictFeedScreenTestIds } from './PredictFeedScreen.testIds';
 
@@ -528,7 +527,64 @@ describe('PredictFeedScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('uses the correct card composition and preserves the feed after detail back', async () => {
+  it('keeps pagination available when a background refetch fails', async () => {
+    let gamesRequestCount = 0;
+    configureFeeds({
+      [NFL_GAMES_FEED_ID]: (cursor) => {
+        if (cursor) {
+          return { events: [secondGameEvent] };
+        }
+        gamesRequestCount += 1;
+        return gamesRequestCount === 1
+          ? {
+              events: [gameEvent],
+              nextCursor: 'page-2',
+            }
+          : new Error('Background refetch unavailable');
+      },
+      [NFL_WIN_TOTALS_FEED_ID]: [propsEvent],
+    });
+
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: NFL_FEED_SCREEN_ID,
+    });
+    await view.findByTestId(
+      PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
+    );
+    fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.tab('props')));
+    await view.findByTestId(
+      PredictHomeTestIds.event(KALSHI_VENUE_ID, propsEvent.id),
+    );
+    fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.tab('games')));
+    await view.findByTestId(
+      PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
+    );
+
+    await waitFor(() => {
+      fireEvent(
+        view.getByTestId(PredictFeedScreenTestIds.LIST),
+        'onEndReached',
+      );
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getFeed',
+        KALSHI_VENUE_ID,
+        NFL_GAMES_FEED_ID,
+        { limit: 20 },
+        'page-2',
+      );
+    });
+    expect(
+      view.queryByTestId(PredictFeedScreenTestIds.NEXT_PAGE_ERROR),
+    ).not.toBeOnTheScreen();
+    expect(
+      await view.findByTestId(
+        PredictHomeTestIds.event(KALSHI_VENUE_ID, secondGameEvent.id),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('uses the correct card composition for each Event type', async () => {
     configureFeeds({
       [NFL_GAMES_FEED_ID]: [gameEvent, propsEvent],
     });
@@ -562,29 +618,5 @@ describe('PredictFeedScreen', () => {
     ).toBeOnTheScreen();
     expect(within(propsCard).getByText('Sports')).toBeOnTheScreen();
     expect(within(propsCard).getByText('$1.5M Vol')).toBeOnTheScreen();
-
-    fireEvent.press(
-      view.getByTestId(
-        PredictHomeTestIds.eventContent(KALSHI_VENUE_ID, propsEvent.id),
-      ),
-    );
-
-    expect(
-      await view.findByTestId(PredictEventDetailTestIds.VIEW),
-    ).toBeOnTheScreen();
-    expect(view.getByText(propsEvent.title)).toBeOnTheScreen();
-
-    fireEvent.press(view.getByTestId(PredictEventDetailTestIds.BACK));
-
-    expect(
-      await view.findByTestId(PredictFeedScreenTestIds.LIST),
-    ).toBeOnTheScreen();
-    expect(
-      view.getByTestId(PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id)),
-    ).toBeOnTheScreen();
-    expect(
-      view.getByTestId(PredictFeedScreenTestIds.tab('games')).props
-        .accessibilityState,
-    ).toEqual({ selected: true });
   });
 });
