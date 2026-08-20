@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 import { useSelector } from 'react-redux';
-import { selectEvmAddress } from '../../../../../../selectors/accountsController';
 import { selectHip3ConfigVersion } from '../../../../../UI/Perps/selectors/featureFlags';
 import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../../../../../UI/Perps/selectors/perpsController';
+import { selectPerpsSelectedAccountAddress } from '../../../../../UI/Perps/selectors/selectedAccountAddress';
 import { getPerpsLifecycleContext } from '../../../../../UI/Perps/utils/perpsLifecycleContext';
 import {
   cancelPerpsLoadingSession,
@@ -44,7 +44,7 @@ function identitiesMatch(
 }
 
 export function usePerpsHomepageLoadingSession(): PerpsHomepageLoadingSession {
-  const address = useSelector(selectEvmAddress)?.toLowerCase();
+  const address = useSelector(selectPerpsSelectedAccountAddress);
   const network = useSelector(selectPerpsNetwork);
   const provider = useSelector(selectPerpsProvider);
   const hip3ConfigVersion = useSelector(selectHip3ConfigVersion);

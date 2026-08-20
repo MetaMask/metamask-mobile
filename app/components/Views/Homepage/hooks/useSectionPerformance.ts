@@ -43,6 +43,8 @@ interface UseSectionPerformanceConfig {
   tags?: Record<string, string | number | boolean>;
   /** Trace data/context applied to the existing TTC and DFD ends. */
   data?: Record<string, string | number | boolean>;
+  /** Restarts TTC/DFD when one mounted surface begins a new data generation. */
+  generationKey?: string;
 }
 
 const DEFAULT_RE_RENDER_THRESHOLD = 3;
@@ -86,11 +88,21 @@ export const useSectionPerformance = ({
   reRenderWindowMs = DEFAULT_RE_RENDER_WINDOW_MS,
   tags,
   data,
+  generationKey,
 }: UseSectionPerformanceConfig) => {
-  const tagsRef = useRef(sanitizeMetadata(tags));
-  tagsRef.current = sanitizeMetadata(tags);
-  const dataRef = useRef(sanitizeMetadata(data));
-  dataRef.current = sanitizeMetadata(data);
+  const nextTagsRef = useRef(sanitizeMetadata(tags));
+  nextTagsRef.current = sanitizeMetadata(tags);
+  const nextDataRef = useRef(sanitizeMetadata(data));
+  nextDataRef.current = sanitizeMetadata(data);
+  const pendingGenerationKeyRef = useRef(generationKey);
+  pendingGenerationKeyRef.current = generationKey;
+  const activeGenerationKeyRef = useRef(generationKey);
+  const tagsRef = useRef(nextTagsRef.current);
+  const dataRef = useRef(nextDataRef.current);
+  if (activeGenerationKeyRef.current === generationKey) {
+    tagsRef.current = nextTagsRef.current;
+    dataRef.current = nextDataRef.current;
+  }
 
   const annotateLatestTags = (name: TraceName, id: string) => {
     if (!tagsRef.current) {
@@ -127,8 +139,15 @@ export const useSectionPerformance = ({
   // 1. Time to Content — start span on mount
   // ──────────────────────────────────────────────
   useEffect(() => {
+    activeGenerationKeyRef.current = generationKey;
+    tagsRef.current = nextTagsRef.current;
+    dataRef.current = nextDataRef.current;
+    fetchStarted.current = false;
+    fetchEnded.current = false;
+    prevIsLoading.current = undefined;
     if (!enabled) return;
 
+    const startedGenerationKey = generationKey;
     ttcTraceId.current = uuidv4();
     ttcEnded.current = false;
     trace({
@@ -153,7 +172,10 @@ export const useSectionPerformance = ({
             ...tagsRef.current,
             ...dataRef.current,
             success: false,
-            reason: 'unmounted',
+            reason:
+              pendingGenerationKeyRef.current === startedGenerationKey
+                ? 'unmounted'
+                : 'generation_changed',
             section_id: sectionId,
           },
         });
@@ -171,14 +193,17 @@ export const useSectionPerformance = ({
             ...tagsRef.current,
             ...dataRef.current,
             success: false,
-            reason: 'unmounted',
+            reason:
+              pendingGenerationKeyRef.current === startedGenerationKey
+                ? 'unmounted'
+                : 'generation_changed',
             section_id: sectionId,
           },
         });
         fetchStarted.current = false;
       }
     };
-  }, [enabled, sectionId]);
+  }, [enabled, generationKey, sectionId]);
 
   // Time to Content — end span when content is ready
   useEffect(() => {

@@ -209,6 +209,74 @@ describe('useSectionPerformance', () => {
 
       expect(mockEndTrace).not.toHaveBeenCalled();
     });
+
+    it('restarts traces without relabelling the cancelled generation', () => {
+      const { rerender } = renderHook(
+        ({ enabled, generationKey, lifecycle, sessionId }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            enabled,
+            generationKey,
+            isLoading: true,
+            tags: { lifecycle },
+            data: sessionId ? { perps_session_id: sessionId } : undefined,
+          }),
+        {
+          initialProps: {
+            enabled: true,
+            generationKey: 'session-id-1' as string | undefined,
+            lifecycle: 'cold_no_cache',
+            sessionId: 'session-id-1' as string | undefined,
+          },
+        },
+      );
+
+      rerender({
+        enabled: false,
+        generationKey: undefined,
+        lifecycle: 'background_short',
+        sessionId: undefined,
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({
+            lifecycle: 'cold_no_cache',
+            perps_session_id: 'session-id-1',
+            reason: 'generation_changed',
+            success: false,
+          }),
+        }),
+      );
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionDataFetch,
+          data: expect.objectContaining({
+            lifecycle: 'cold_no_cache',
+            perps_session_id: 'session-id-1',
+            reason: 'generation_changed',
+            success: false,
+          }),
+        }),
+      );
+
+      jest.clearAllMocks();
+      rerender({
+        enabled: true,
+        generationKey: 'session-id-2',
+        lifecycle: 'background_short',
+        sessionId: 'session-id-2',
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          tags: expect.objectContaining({ lifecycle: 'background_short' }),
+          data: expect.objectContaining({ lifecycle: 'background_short' }),
+        }),
+      );
+    });
   });
 
   describe('Data Fetch Latency', () => {

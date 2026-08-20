@@ -1317,9 +1317,12 @@ describe('PerpsSection', () => {
         mockUseSectionPerformance.mock.calls.length - 1
       ][0] as Record<string, unknown>;
       expect(sectionPerformanceConfig).toEqual(
-        expect.objectContaining({ contentReady: true, isEmpty: true }),
+        expect.objectContaining({
+          contentReady: true,
+          enabled: true,
+          isEmpty: true,
+        }),
       );
-      expect(sectionPerformanceConfig).not.toHaveProperty('enabled');
       expect(mockFinishPerpsLoadingSession).toHaveBeenCalledWith(
         expect.objectContaining({
           success: true,

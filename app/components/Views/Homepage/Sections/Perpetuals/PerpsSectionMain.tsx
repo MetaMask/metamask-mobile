@@ -346,6 +346,8 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     useSectionPerformance({
       sectionId: HomeSectionNames.PERPS,
+      enabled: Boolean(sessionId),
+      generationKey: sessionId,
       contentReady:
         sessionReady && (Boolean(connectionError) || !isLoadingSection),
       isEmpty: !hasItems,

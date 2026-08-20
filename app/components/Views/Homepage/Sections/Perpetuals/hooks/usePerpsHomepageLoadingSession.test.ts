@@ -1,12 +1,12 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { AppState, type AppStateStatus } from 'react-native';
 import { useSelector } from 'react-redux';
-import { selectEvmAddress } from '../../../../../../selectors/accountsController';
 import { selectHip3ConfigVersion } from '../../../../../UI/Perps/selectors/featureFlags';
 import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../../../../../UI/Perps/selectors/perpsController';
+import { selectPerpsSelectedAccountAddress } from '../../../../../UI/Perps/selectors/selectedAccountAddress';
 import {
   cancelPerpsLoadingSession,
   getActivePerpsLoadingSessionContext,
@@ -16,11 +16,11 @@ import {
 import { usePerpsHomepageLoadingSession } from './usePerpsHomepageLoadingSession';
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
-jest.mock('../../../../../../selectors/accountsController', () => ({
-  selectEvmAddress: jest.fn(),
-}));
 jest.mock('../../../../../UI/Perps/selectors/featureFlags', () => ({
   selectHip3ConfigVersion: jest.fn(),
+}));
+jest.mock('../../../../../UI/Perps/selectors/selectedAccountAddress', () => ({
+  selectPerpsSelectedAccountAddress: jest.fn(),
 }));
 jest.mock('../../../../../UI/Perps/selectors/perpsController', () => ({
   selectPerpsNetwork: jest.fn(),
@@ -64,7 +64,7 @@ describe('usePerpsHomepageLoadingSession', () => {
         return { remove: jest.fn() };
       });
     jest.mocked(useSelector).mockImplementation((selector) => {
-      if (selector === selectEvmAddress) return address;
+      if (selector === selectPerpsSelectedAccountAddress) return address;
       if (selector === selectPerpsNetwork) return network;
       if (selector === selectPerpsProvider) return provider;
       if (selector === selectHip3ConfigVersion) return hip3ConfigVersion;
