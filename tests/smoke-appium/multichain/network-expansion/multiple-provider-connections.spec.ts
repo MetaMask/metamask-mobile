@@ -33,6 +33,12 @@ async function setupAndNavigateToTestDapp(): Promise<void> {
   await BrowserView.navigateToTestDApp();
 }
 
+async function connectAndOpenConnectedAccounts(): Promise<void> {
+  await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
+  await DappConnectionModal.waitForConnectionToSettle();
+  await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
+}
+
 appiumTest.describe(
   SmokeNetworkExpansion('Multiple Standard Dapp Connections'),
   () => {
@@ -79,10 +85,9 @@ appiumTest.describe(
             // The account already permitted (Account 2) should be pre-selected
             await PlaywrightAssertions.expectTextDisplayed('Account 2');
 
-            await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
+            await connectAndOpenConnectedAccounts();
 
             // Only the already-permitted EVM account should remain connected
-            await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
             await PlaywrightAssertions.expectTextDisplayed('Account 2');
           },
         );
@@ -107,9 +112,7 @@ appiumTest.describe(
             // Account 1 should be the default selection
             await PlaywrightAssertions.expectTextDisplayed('Account 1');
 
-            await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
-
-            await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
+            await connectAndOpenConnectedAccounts();
             await PlaywrightAssertions.expectTextDisplayed('Account 1');
 
             // Navigate to the permissions summary and open the network editor
@@ -158,10 +161,9 @@ appiumTest.describe(
             // Account 1 should be pre-selected
             await PlaywrightAssertions.expectTextDisplayed('Account 1');
 
-            await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
+            await connectAndOpenConnectedAccounts();
 
             // EVM account should be connected
-            await BrowserView.tapNetworkAvatarOrAccountButtonOnBrowser();
             await PlaywrightAssertions.expectTextDisplayed('Account 1');
           },
         );

@@ -92,6 +92,35 @@ class DappConnectionModal {
     }
   }
 
+  /**
+   * After tapping Connect, wait until the sheet is gone and the MMDS
+   * "Permissions updated" toast has dismissed. The navbar account button
+   * sits under the still-open sheet (and under that toast) so tapping it
+   * immediately races with handleConfirm's goBack().
+   */
+  async waitForConnectionToSettle({
+    timeout = 15_000,
+  }: {
+    timeout?: number;
+  } = {}): Promise<void> {
+    await Assertions.expectElementToNotBeVisible(this.connectButton, {
+      timeout,
+      description: 'Connect sheet dismissed after approving connection',
+    });
+
+    const toast = Matchers.getElementByText(
+      ConnectedAccountModalSelectorsText.PERMISSIONS_UPDATED,
+    );
+    await Assertions.expectElementToBeVisible(toast, {
+      timeout: 10_000,
+      description: '"Permissions updated" toast did not appear',
+    });
+    await Assertions.expectElementToNotBeVisible(toast, {
+      timeout: 15_000,
+      description: '"Permissions updated" toast did not dismiss',
+    });
+  }
+
   /** Waits for the "Return to app" success toast to appear then dismiss. */
   async waitForReturnToAppToastToDismiss(): Promise<void> {
     const toastText = 'Return to the app to continue.';
