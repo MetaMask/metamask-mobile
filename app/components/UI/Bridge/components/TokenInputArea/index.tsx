@@ -332,6 +332,7 @@ export const TokenInputArea = forwardRef<
     const shouldShowFiatAmountAsPrimary = Boolean(
       tokenType === TokenInputAreaType.Destination &&
         showFiatAmountAsPrimary &&
+        !shouldHideFiatValue &&
         token &&
         amount &&
         Number(amount) > 0,

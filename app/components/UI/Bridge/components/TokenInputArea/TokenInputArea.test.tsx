@@ -1043,6 +1043,31 @@ describe('TokenInputArea', () => {
       // Assert
       expect(getByText('$50.00')).toBeTruthy();
     });
+
+    it('shows token amount as primary for an unpriced destination when fiat-as-primary and hideFiatValueWhenUnpriced are both set', () => {
+      // Arrange — mockToken has no market data; limit/recurring buys pass both flags
+      mockUseDisplayCurrencyValue.mockReturnValue('$0.00');
+
+      // Act
+      const { getByTestId, queryByText } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Destination}
+            token={mockToken}
+            amount="1.5"
+            showFiatAmountAsPrimary
+            hideFiatValueWhenUnpriced
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      // Assert — fall back to token amount rather than rendering the unpriced "$0.00"
+      expect(getByTestId('token-input-input').props.value).toBe('1.5');
+      expect(queryByText('$0.00')).toBeNull();
+    });
   });
 
   describe('amount overrides', () => {
