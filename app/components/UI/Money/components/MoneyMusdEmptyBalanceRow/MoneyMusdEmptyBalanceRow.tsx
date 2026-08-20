@@ -46,7 +46,6 @@ const MoneyMusdEmptyBalanceRow = ({
         style={styles.badgeWrapper}
         badge={
           <BadgeNetwork
-            name={MUSD_TOKEN.symbol}
             src={
               getNetworkImageSource({
                 chainId: CHAIN_IDS.MAINNET,

@@ -102,7 +102,6 @@ const PotentialEarningsTokenRow = ({
             badge={
               networkBadgeSource ? (
                 <BadgeNetwork
-                  name={token.symbol}
                   src={
                     networkBadgeSource as React.ComponentProps<
                       typeof BadgeNetwork
