@@ -156,10 +156,17 @@ appiumTest.describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
           await TestSnaps.selectInDropdown('bip32EntropyDropDown', 'Invalid');
           await TestSnaps.fillMessage('messageSecp256k1Input', 'bar baz');
           await TestSnaps.tapButton('signMessageBip32Secp256k1Button');
-          await Assertions.expectTextDisplayed(
-            'Entropy source with ID "invalid" not found.',
-            { timeout: 30_000 },
-          );
+          // Stable substrings — iOS alert a11y text can omit/alter quotes
+          // (same pattern as test-snap-get-entropy).
+          await Assertions.expectTextDisplayed('Entropy source with ID', {
+            timeout: 30_000,
+            description:
+              'Invalid entropy alert should mention entropy source ID',
+          });
+          await Assertions.expectTextDisplayed('not found', {
+            timeout: 30_000,
+            description: 'Invalid entropy alert should report source not found',
+          });
           await TestSnaps.dismissAlert();
         },
       );
