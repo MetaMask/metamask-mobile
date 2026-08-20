@@ -11,15 +11,14 @@ import type { ActivityListItem } from '../../../../util/activity-adapters';
 /**
  * The local transaction behind an activity row.
  *
- * A local row's own copy can be a snapshot stashed at navigation time, so the
- * live one is re-read by id first. Provider-backed rows (Perps, Predict) are
+ * A local row's own copy can be a stale navigation-time snapshot, so the live
+ * one is re-read by id first. Provider-backed rows (Perps, Predict) are
  * matched on hash instead, scoped to the row's chain since that selector
  * matches on hash alone.
  *
  * @param item - Row to resolve.
- * @param enabled - When false, the selectors bail immediately so callers that
- * render for rows this data cannot serve (e.g. withdrawals) subscribe to
- * nothing that recomputes.
+ * @param enabled - When false, the selectors bail immediately and recompute
+ * nothing.
  */
 export function useActivityLocalTransaction(
   item: ActivityListItem,

@@ -62,7 +62,7 @@ describe('PredictDetails.utils', () => {
 
     it('places a bridge failure on the bridge step', () => {
       const steps = getPredictFundsSteps('failed', TS, {
-        shape: 'bridgeFailed',
+        failedLeg: 'relay',
         message: 'Bridge did not land',
       });
 
@@ -74,13 +74,14 @@ describe('PredictDetails.utils', () => {
 
     it('places a deposit failure on the terminal step', () => {
       const steps = getPredictFundsSteps('failed', TS, {
-        shape: 'bridgedNotDeposited',
-        message: 'Funds are on Polygon',
+        message: 'execution reverted: deposit below minimum',
       });
 
       expect(steps[0].status).toBe('completed');
       expect(steps[1].status).toBe('failed');
-      expect(steps[1].failureMessage).toBe('Funds are on Polygon');
+      expect(steps[1].failureMessage).toBe(
+        'execution reverted: deposit below minimum',
+      );
     });
 
     it('leaves the failure message unset when none was classified', () => {

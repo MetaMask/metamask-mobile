@@ -6,6 +6,7 @@ import { useActivityBlockExplorer } from '../hooks/useActivityBlockExplorer';
 import {
   ActivityDetailsSelectorsIDs,
   getActivityDetailsStepFailureTestId,
+  getActivityDetailsStepIconTestId,
   getActivityDetailsStepTestId,
 } from '../ActivityDetails.testIds';
 import {
@@ -217,6 +218,35 @@ describe('ActivityDetailsStepTimeline', () => {
       ).not.toBeOnTheScreen();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
+  });
+
+  it('renders upcoming steps inert, with no explorer icon or press', () => {
+    jest.mocked(useActivityBlockExplorer).mockReturnValue({
+      url: 'https://arbiscan.io/tx/0xdeposit',
+      title: 'Arbiscan',
+    });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <ActivityDetailsStepTimeline
+        explorerTarget={{ chainId: 'eip155:42161', hash: '0xdeposit' }}
+        steps={steps}
+        title="Steps"
+      />,
+    );
+
+    // Completed step keeps its explorer icon and press.
+    expect(getByTestId(getActivityDetailsStepIconTestId(0))).toBeOnTheScreen();
+    fireEvent.press(getByTestId(getActivityDetailsStepTestId(0)));
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+
+    // Upcoming steps never executed: no icon, press does nothing.
+    [2, 3].forEach((index) => {
+      expect(
+        queryByTestId(getActivityDetailsStepIconTestId(index)),
+      ).not.toBeOnTheScreen();
+      fireEvent.press(getByTestId(getActivityDetailsStepTestId(index)));
+    });
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
   it('renders every step row regardless of where the failure sits', () => {

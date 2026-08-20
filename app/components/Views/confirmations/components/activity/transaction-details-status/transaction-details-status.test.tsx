@@ -185,10 +185,8 @@ describe('TransactionDetailsStatus', () => {
 
     expect(
       getByText(
-        strings('activity_details.failure.bridged_not_deposited', {
+        strings('transaction_details.perps_deposit_solution', {
           fiat: '$123.45',
-          network: 'Arbitrum',
-          symbol: 'USDC',
         }),
       ),
     ).toBeDefined();
@@ -224,10 +222,8 @@ describe('TransactionDetailsStatus', () => {
 
     expect(
       getByText(
-        strings('activity_details.failure.bridged_not_deposited', {
+        strings('transaction_details.perps_deposit_solution', {
           fiat: '$100.00',
-          network: 'Arbitrum',
-          symbol: 'USDC',
         }),
       ),
     ).toBeDefined();

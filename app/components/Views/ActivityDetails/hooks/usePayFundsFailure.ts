@@ -1,8 +1,5 @@
 import { useMemo } from 'react';
 import { shallowEqual, useSelector } from 'react-redux';
-import { BigNumber } from 'bignumber.js';
-import { StatusTypes } from '@metamask/bridge-controller';
-import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import {
   hasTransactionType,
   TransactionStatus,
@@ -12,52 +9,28 @@ import {
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { strings } from '../../../../../locales/i18n';
 import type { RootState } from '../../../../reducers';
-import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
 import { selectTransactionsByIds } from '../../../../selectors/transactionController';
+import { getTransactionErrorMessage } from '../../../../util/activity/transactionError';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared Pay constants; route-isolation backlog
-import { ACTIVITY_FIAT_FRACTION_DIGITS, RELAY_DEPOSIT_TYPES } from '../../confirmations/constants/confirmations';
-import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { RELAY_DEPOSIT_TYPES } from '../../confirmations/constants/confirmations';
 import { useActivityLocalTransaction } from './useActivityLocalTransaction';
 import type { ActivityDetailsStepExplorerTarget } from '../components/ActivityDetailsStepTimeline';
 
-/** Pay records its fiat values in USD, not the user's display currency. */
-const PAY_FIAT_CURRENCY = 'usd';
-
-/**
- * What went wrong with a Pay-funded deposit, in terms of where the user's money
- * ended up. Derived from the legs and bridge history rather than from error
- * text, because the useful cases record no error at all — a bridge that settles
- * off-chain leaves its on-chain leg confirmed.
- */
-export type PayFundsFailureShape =
-  /** Bridge landed, the deposit itself did not: funds sit on the destination. */
-  | 'bridgedNotDeposited'
-  /** The bridge leg failed: funds never left the paying network. */
-  | 'bridgeFailed'
-  /** The approval failed: nothing moved at all. */
-  | 'approvalFailed'
-  /** Never broadcast, so nothing left the wallet. */
-  | 'notSubmitted'
-  /** The user cancelled the deposit: nothing was deposited. */
-  | 'cancelled'
-  /** Failed, but state does not say how. */
-  | 'unknown';
+/** Which leg of the Pay flow broke, for placing the failed step. */
+export type PayFundsFailedLeg = 'approval' | 'relay';
 
 export interface PayFundsFailure {
-  shape: PayFundsFailureShape;
+  /**
+   * The failed leg's `TransactionMeta.error` (parent's as fallback), surfaced
+   * verbatim — the pay strategies own the wording — or generic copy when
+   * nothing was recorded.
+   */
   message: string;
+  /** Set when a specific leg failed; absent means the deposit call itself. */
+  failedLeg?: PayFundsFailedLeg;
+  /** The culprit leg's own chain and hash, for the sheet's explorer button. */
   explorerTarget?: ActivityDetailsStepExplorerTarget;
-}
-
-/**
- * Where a surface's bridge leg lands, so the bridged-not-deposited sentence can
- * name it: USDC on Arbitrum for Perps, USDC.e on Polygon for Predict.
- */
-export interface PayFundsDestination {
-  network: string;
-  symbol: string;
-  assetAddress: string;
 }
 
 const FAILED_STATUSES: TransactionStatus[] = [
@@ -67,147 +40,30 @@ const FAILED_STATUSES: TransactionStatus[] = [
 
 const NO_LEGS: TransactionMeta[] = [];
 const NO_LEG_IDS: string[] = [];
-const NO_BRIDGE_HISTORY: Record<string, BridgeHistoryItem> = {};
 
 function hasFailed(tx: TransactionMeta | undefined): boolean {
   return Boolean(tx && FAILED_STATUSES.includes(tx.status));
 }
 
-/** Whether a COMPLETE bridge entry actually landed on the expected asset. */
-function landedOnDestination(
-  entry: BridgeHistoryItem | undefined,
-  destination: PayFundsDestination,
-): boolean {
-  const destAddress = entry?.quote?.destAsset?.address;
-  return Boolean(
-    destAddress &&
-      destAddress.toLowerCase() === destination.assetAddress.toLowerCase(),
-  );
-}
-
 /**
- * Classifies a failed funding row. Order matters: the earliest leg that broke is
- * the most specific explanation, so approval is checked before the bridge, and
- * the bridge before the deposit.
+ * Why a Pay-funded row failed, ready to render. Shared by the Perps and
+ * Predict funding screens.
  *
- * Returns the culprit leg when the failure lives on one, so the sheet can link
- * that leg's transaction rather than the parent's.
- */
-function classify({
-  parent,
-  legs,
-  legIds,
-  bridgeHistory,
-  destination,
-}: {
-  parent: TransactionMeta;
-  legs: TransactionMeta[];
-  legIds: string[];
-  bridgeHistory: Record<string, BridgeHistoryItem>;
-  destination: PayFundsDestination;
-}): { shape: PayFundsFailureShape; leg?: TransactionMeta } {
-  const failedApproval = legs.find(
-    (leg) => leg.type === TransactionType.tokenMethodApprove && hasFailed(leg),
-  );
-  if (failedApproval) {
-    return { shape: 'approvalFailed', leg: failedApproval };
-  }
-
-  const failedBridge = legs.find(
-    (leg) => hasTransactionType(leg, RELAY_DEPOSIT_TYPES) && hasFailed(leg),
-  );
-  const offChainFailedLegId = legIds.find(
-    (id) => bridgeHistory[id]?.status?.status === StatusTypes.FAILED,
-  );
-  if (failedBridge || offChainFailedLegId) {
-    return {
-      shape: 'bridgeFailed',
-      leg: failedBridge ?? legs.find((leg) => leg.id === offChainFailedLegId),
-    };
-  }
-
-  const bridgeLanded = legIds.some(
-    (id) =>
-      bridgeHistory[id]?.status?.status === StatusTypes.COMPLETE &&
-      landedOnDestination(bridgeHistory[id], destination),
-  );
-  if (bridgeLanded) {
-    return { shape: 'bridgedNotDeposited' };
-  }
-
-  if (!parent.hash) {
-    return { shape: 'notSubmitted' };
-  }
-
-  return { shape: 'unknown' };
-}
-
-/**
- * Copy for a shape. `bridgedNotDeposited` keeps the wording the pre-redesign
- * transaction details screen ships, with the destination and amount filled in;
- * without a recorded amount it drops to the same sentence without one.
- */
-function getMessage(
-  shape: PayFundsFailureShape,
-  destination: PayFundsDestination,
-  totalFiat: string | undefined,
-): string {
-  switch (shape) {
-    case 'bridgedNotDeposited':
-      return totalFiat
-        ? strings('activity_details.failure.bridged_not_deposited', {
-            fiat: totalFiat,
-            network: destination.network,
-            symbol: destination.symbol,
-          })
-        : strings('activity_details.failure.bridged_not_deposited_no_amount', {
-            network: destination.network,
-          });
-    case 'bridgeFailed':
-      return strings('activity_details.failure.bridge_failed');
-    case 'approvalFailed':
-      return strings('activity_details.failure.approval_failed');
-    case 'notSubmitted':
-      return strings('activity_details.failure.not_submitted');
-    case 'cancelled':
-      return strings('activity_details.failure.cancelled');
-    case 'unknown':
-    default:
-      return strings('activity_details.failure.unknown');
-  }
-}
-
-/**
- * Why a Pay-funded deposit failed, ready to render. Shared by the Perps and
- * Predict funding screens; only the destination wording differs.
+ * The failed leg is found from `TransactionMeta` statuses — approval before
+ * relay, since the earliest break is the most specific explanation — and its
+ * recorded error is the message, falling back to the parent's.
  *
  * @param item - The activity row being shown.
- * @param options.destination - Where the bridge leg lands, named in the
- * bridged-not-deposited sentence and required of the bridge entry.
- * @param options.payTargetFiat - Pay's USD target amount, so that sentence can
- * say how much is waiting there.
- * @param options.skip - Callers rendering non-deposit rows set this; the copy
- * is deposit-worded, so withdrawals must not receive it.
+ * @param options.skip - Opt-out for rows that never render the message (e.g.
+ * Predict withdrawals), so they subscribe to nothing.
  * @returns The failure, or `undefined` when the row did not fail or is skipped.
  */
 export function usePayFundsFailure(
   item: ActivityListItem,
-  {
-    destination,
-    payTargetFiat,
-    skip = false,
-  }: {
-    destination: PayFundsDestination;
-    payTargetFiat?: string;
-    skip?: boolean;
-  },
+  { skip = false }: { skip?: boolean } = {},
 ): PayFundsFailure | undefined {
   const enabled = !skip;
   const parent = useActivityLocalTransaction(item, enabled);
-  const formatFiat = useFiatFormatter({
-    currency: PAY_FIAT_CURRENCY,
-    fractionDigits: ACTIVITY_FIAT_FRACTION_DIGITS,
-  });
 
   const rowFailed =
     enabled &&
@@ -215,6 +71,8 @@ export function usePayFundsFailure(
       item.status === 'cancelled' ||
       hasFailed(parent));
 
+  // Legs are only selected for failed rows, and `shallowEqual` absorbs the
+  // selector's new-array-per-run so unrelated tx updates don't re-render.
   const legIds = useMemo(
     () =>
       rowFailed ? (parent?.requiredTransactionIds ?? NO_LEG_IDS) : NO_LEG_IDS,
@@ -227,57 +85,42 @@ export function usePayFundsFailure(
     shallowEqual,
   );
 
-  const bridgeHistory = useSelector((state: RootState) =>
-    legIds.length ? selectBridgeHistoryForAccount(state) : NO_BRIDGE_HISTORY,
-  );
-
-  const targetAmount = payTargetFiat ? new BigNumber(payTargetFiat) : undefined;
-  const totalFiat =
-    rowFailed && targetAmount?.isFinite() && targetAmount.gt(0)
-      ? formatFiat(targetAmount)
-      : undefined;
-
   return useMemo(() => {
     if (!rowFailed) {
       return undefined;
     }
 
-    if (item.status === 'cancelled') {
-      const shape: PayFundsFailureShape = 'cancelled';
-      return { shape, message: getMessage(shape, destination, totalFiat) };
-    }
+    const failedApproval = legs.find(
+      (leg) =>
+        leg.type === TransactionType.tokenMethodApprove && hasFailed(leg),
+    );
+    const failedRelay = failedApproval
+      ? undefined
+      : legs.find(
+          (leg) => hasTransactionType(leg, RELAY_DEPOSIT_TYPES) && hasFailed(leg),
+        );
+    const culprit = failedApproval ?? failedRelay;
 
-    if (!parent) {
-      const shape: PayFundsFailureShape = 'unknown';
-      return { shape, message: getMessage(shape, destination, totalFiat) };
-    }
+    const message =
+      (culprit && getTransactionErrorMessage(culprit)) ??
+      (parent && getTransactionErrorMessage(parent)) ??
+      strings('activity_details.failure.unknown');
 
-    const { shape, leg } = classify({
-      parent,
-      legs,
-      legIds,
-      bridgeHistory,
-      destination,
-    });
+    const failedLeg: PayFundsFailedLeg | undefined = failedApproval
+      ? 'approval'
+      : failedRelay
+        ? 'relay'
+        : undefined;
 
     const explorerTarget =
-      leg?.hash && leg.chainId
-        ? { chainId: toEvmCaipChainId(leg.chainId), hash: leg.hash }
+      culprit?.hash && culprit.chainId
+        ? { chainId: toEvmCaipChainId(culprit.chainId), hash: culprit.hash }
         : undefined;
 
     return {
-      shape,
-      message: getMessage(shape, destination, totalFiat),
+      message,
+      ...(failedLeg ? { failedLeg } : {}),
       ...(explorerTarget ? { explorerTarget } : {}),
     };
-  }, [
-    bridgeHistory,
-    destination,
-    item.status,
-    legIds,
-    legs,
-    parent,
-    rowFailed,
-    totalFiat,
-  ]);
+  }, [legs, parent, rowFailed]);
 }

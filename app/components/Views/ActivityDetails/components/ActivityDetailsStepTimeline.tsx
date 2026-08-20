@@ -131,11 +131,12 @@ export function ActivityDetailsStepTimeline({
           const isLast = index === steps.length - 1;
           const failureMessage =
             step.status === 'failed' ? step.failureMessage : undefined;
+          const showsExplorer = step.status !== 'upcoming' && explorerLink;
 
           return (
             <Pressable
               key={`${step.label}-${index}`}
-              disabled={!failureMessage && !explorerLink}
+              disabled={!failureMessage && !showsExplorer}
               onPress={
                 failureMessage ? () => setFailureIndex(index) : openExplorer
               }
@@ -178,7 +179,7 @@ export function ActivityDetailsStepTimeline({
                     color={IconColor.IconAlternative}
                     testID={getActivityDetailsStepIconTestId(index)}
                   />
-                ) : explorerLink ? (
+                ) : showsExplorer ? (
                   <Icon
                     name={IconName.Export}
                     size={IconSize.Sm}

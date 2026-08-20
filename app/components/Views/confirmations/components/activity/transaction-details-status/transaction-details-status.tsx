@@ -40,6 +40,8 @@ export function TransactionDetailsStatus({
   const hasSuccessfulPerpsBridge = useHasSuccessfulPerpsBridge();
   const { fiatUnformatted } = useTokenAmount({ transactionMeta });
   const errorMessage = getErrorMessage(transactionMeta);
+  // useTokenAmount's own `fiat` lets the decimals follow the amount, which would
+  // disagree with the pinned rows elsewhere on this screen.
   const formatFiat = useFiatFormatter({
     fractionDigits: ACTIVITY_FIAT_FRACTION_DIGITS,
   });
@@ -48,10 +50,8 @@ export function TransactionDetailsStatus({
 
   const solutionText =
     !text && status === TransactionStatus.failed && hasSuccessfulPerpsBridge
-      ? strings('activity_details.failure.bridged_not_deposited', {
+      ? strings('transaction_details.perps_deposit_solution', {
           fiat: formatFiat(new BigNumber(fiatUnformatted ?? 0)),
-          network: 'Arbitrum',
-          symbol: ARBITRUM_USDC.symbol,
         })
       : undefined;
 
@@ -67,6 +67,9 @@ export function TransactionDetailsStatus({
         gap={gap ?? 6}
         alignItems={AlignItems.center}
       >
+        {/* The Money account status row is a plain colour-coded label per the
+            Activity redesign; other contexts keep the status icon (and its
+            error tooltip). */}
         {!isMoneyContext && (
           <StatusIcon severity={getSeverity(status)} tooltip={errorMessage} />
         )}

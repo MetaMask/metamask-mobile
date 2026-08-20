@@ -34,8 +34,6 @@ import {
   useFormatActivityTokenAmount,
 } from '../components';
 import { usePayFundsFailure } from '../hooks/usePayFundsFailure';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared Pay constants; route-isolation backlog
-import { ARBITRUM_USDC } from '../../confirmations/constants/perps';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import {
   asPerpsActivityItem,
@@ -57,12 +55,6 @@ import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
 import { resolvePerpsOrderStatusLabel } from '../../../UI/ActivityListItemRow/titleLabels';
 import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../../UI/Perps/providers/PerpsStreamManager';
-
-const PERPS_FUNDS_DESTINATION = {
-  network: 'Arbitrum',
-  symbol: ARBITRUM_USDC.symbol,
-  assetAddress: ARBITRUM_USDC.address,
-};
 
 /**
  * The local row's activity status in the terms the step timeline speaks. A
@@ -377,11 +369,7 @@ function FundsDetails({
   const openPerpsHome = useNavigateToPerpsHome();
   const pay = useActivityPayFiat(item);
   const isDeposit = transaction.type === 'deposit';
-  const failure = usePayFundsFailure(item, {
-    destination: PERPS_FUNDS_DESTINATION,
-    payTargetFiat: pay?.targetFiat,
-    skip: !isDeposit,
-  });
+  const failure = usePayFundsFailure(item);
   const isWalletOriginated = transaction.id.startsWith('wallet-');
   const stepExplorerTarget =
     isWalletOriginated && depositWithdrawal?.txHash
@@ -438,11 +426,7 @@ function LocalFundsDetails({ item }: { item: PerpsActivityListItem }) {
   const openPerpsHome = useNavigateToPerpsHome();
   const pay = useActivityPayFiat(item);
   const isDeposit = item.type === 'perpsAddFunds';
-  const failure = usePayFundsFailure(item, {
-    destination: PERPS_FUNDS_DESTINATION,
-    payTargetFiat: pay?.targetFiat,
-    skip: !isDeposit,
-  });
+  const failure = usePayFundsFailure(item);
   const formatActivityTokenAmount = useFormatActivityTokenAmount();
   const token = 'token' in item.data ? item.data.token : undefined;
 

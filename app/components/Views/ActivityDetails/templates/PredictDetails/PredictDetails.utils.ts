@@ -25,16 +25,6 @@ export function getPolymarketActivityUrl(activity?: {
     : POLYMARKET_BASE_URL;
 }
 
-const PREDICT_FAILED_STEP_BY_SHAPE: Partial<
-  Record<PayFundsFailure['shape'], number>
-> = {
-  approvalFailed: 0,
-  notSubmitted: 0,
-  cancelled: 0,
-  bridgeFailed: 0,
-  bridgedNotDeposited: 1,
-};
-
 export function getPredictFundsSteps(
   status: ActivityListItem['status'],
   timestamp: number,
@@ -52,10 +42,7 @@ export function getPredictFundsSteps(
   }
 
   const failedIndex =
-    status === 'failed'
-      ? (PREDICT_FAILED_STEP_BY_SHAPE[failure?.shape ?? 'unknown'] ??
-        labels.length - 1)
-      : undefined;
+    status === 'failed' ? (failure?.failedLeg ? 0 : labels.length - 1) : undefined;
 
   return labels.map((label, index) => {
     if (index === failedIndex) {

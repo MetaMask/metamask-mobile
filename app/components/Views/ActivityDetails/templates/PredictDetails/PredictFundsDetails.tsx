@@ -17,8 +17,6 @@ import {
   useFormatActivityTokenAmount,
 } from '../../components';
 import { usePayFundsFailure } from '../../hooks/usePayFundsFailure';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared Pay constants; route-isolation backlog
-import { POLYGON_USDCE } from '../../../confirmations/constants/predict';
 import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
 import {
   getPredictFundsCtaLabel,
@@ -30,12 +28,6 @@ import {
   getPredictFundsStepTitle,
 } from './PredictDetails.utils';
 import { useOpenPredictHome } from './useOpenPredictHome';
-
-const PREDICT_FUNDS_DESTINATION = {
-  network: 'Polygon',
-  symbol: POLYGON_USDCE.symbol,
-  assetAddress: POLYGON_USDCE.address,
-};
 
 function PredictFundsMetadata({
   item,
@@ -79,11 +71,7 @@ export function PredictFundsDetails({
   const amount = formatActivityTokenAmount(item.data.token);
 
   const pay = useActivityPayFiat(item);
-  const failure = usePayFundsFailure(item, {
-    destination: PREDICT_FUNDS_DESTINATION,
-    payTargetFiat: pay?.targetFiat,
-    skip: !isDeposit,
-  });
+  const failure = usePayFundsFailure(item, { skip: !isDeposit });
 
   const steps =
     isDeposit && item.status !== 'cancelled'

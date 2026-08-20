@@ -6,21 +6,19 @@ import {
   getPerpsStepLabels,
   type PerpsDepositWithdrawalStatus,
 } from './ActivityDetailsPerps.utils';
-import type { PayFundsFailure } from '../hooks/usePayFundsFailure';
+import type {
+  PayFundsFailedLeg,
+  PayFundsFailure,
+} from '../hooks/usePayFundsFailure';
 import {
   ActivityDetailsStepTimeline,
   type ActivityDetailsStep,
   type ActivityDetailsStepExplorerTarget,
 } from './ActivityDetailsStepTimeline';
 
-const DEPOSIT_FAILED_STEP_BY_SHAPE: Partial<
-  Record<PayFundsFailure['shape'], number>
-> = {
-  approvalFailed: 0,
-  notSubmitted: 0,
-  cancelled: 0,
-  bridgeFailed: 1,
-  bridgedNotDeposited: 3,
+const DEPOSIT_FAILED_STEP_BY_LEG: Record<PayFundsFailedLeg, number> = {
+  approval: 0,
+  relay: 1,
 };
 
 function formatStepTimestamp(timestamp: number): string {
@@ -81,12 +79,12 @@ export function ActivityDetailsPerpsStepTimeline({
   type: 'deposit' | 'withdrawal';
 }) {
   const labels = getPerpsStepLabels(type);
-  const shapeIndex =
-    type === 'deposit' && failure
-      ? DEPOSIT_FAILED_STEP_BY_SHAPE[failure.shape]
+  const legIndex =
+    type === 'deposit' && failure?.failedLeg
+      ? DEPOSIT_FAILED_STEP_BY_LEG[failure.failedLeg]
       : undefined;
   const failedIndex =
-    status === 'failed' ? (shapeIndex ?? labels.length - 1) : undefined;
+    status === 'failed' ? (legIndex ?? labels.length - 1) : undefined;
   const completedCount =
     failedIndex !== undefined
       ? failedIndex

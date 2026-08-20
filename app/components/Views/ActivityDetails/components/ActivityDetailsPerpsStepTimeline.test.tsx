@@ -96,15 +96,13 @@ describe('ActivityDetailsPerpsStepTimeline', () => {
   });
 
   it.each([
-    ['approvalFailed' as const, 0],
-    ['bridgeFailed' as const, 1],
-    ['bridgedNotDeposited' as const, 3],
-    ['notSubmitted' as const, 0],
-  ])('places the cross on the step %s names', (shape, expectedIndex) => {
+    ['approval' as const, 0],
+    ['relay' as const, 1],
+  ])('places the cross on the %s step the failure names', (failedLeg, expectedIndex) => {
     const { getByTestId, queryByTestId, queryByText } = renderWithProvider(
       <ActivityDetailsPerpsStepTimeline
         explorerTarget={{ chainId: 'eip155:42161', hash: '0xdeposit' }}
-        failure={{ shape, message: 'Something specific happened.' }}
+        failure={{ failedLeg, message: 'execution reverted' }}
         status="failed"
         timestamp={1_765_361_640_000}
         type="deposit"
@@ -122,9 +120,24 @@ describe('ActivityDetailsPerpsStepTimeline', () => {
         ).not.toBeOnTheScreen(),
       );
     if (expectedIndex === 0) {
-      // No step completed, so no fabricated completion timestamps render.
       expect(queryByText(/2025|2026/)).not.toBeOnTheScreen();
     }
+  });
+
+  it('keeps the cross on the last step when no leg was named', () => {
+    const { getByTestId } = renderWithProvider(
+      <ActivityDetailsPerpsStepTimeline
+        explorerTarget={{ chainId: 'eip155:42161', hash: '0xdeposit' }}
+        failure={{ message: 'execution reverted: deposit below minimum' }}
+        status="failed"
+        timestamp={1_765_361_640_000}
+        type="deposit"
+      />,
+    );
+
+    expect(
+      getByTestId(getActivityDetailsStepFailureTestId(3)),
+    ).toBeOnTheScreen();
   });
 
   it('opens the sheet with the classified message from the failed step', () => {
@@ -132,8 +145,8 @@ describe('ActivityDetailsPerpsStepTimeline', () => {
       <ActivityDetailsPerpsStepTimeline
         explorerTarget={{ chainId: 'eip155:42161', hash: '0xdeposit' }}
         failure={{
-          shape: 'bridgeFailed',
-          message: 'The bridge did not complete.',
+          failedLeg: 'relay',
+          message: 'execution reverted',
         }}
         status="failed"
         timestamp={1_765_361_640_000}
