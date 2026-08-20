@@ -1412,6 +1412,48 @@ describe('getMultiChainAssetsControllerAccountsAssets', () => {
         [mockAccountId2]: [solanaTokenAssetId],
       });
     });
+
+    it('merges Tron Snap staking CAIP-19s omitted from AssetsController', () => {
+      const tronAccountId = 'mock-tron-account-id';
+      const tronNativeAssetId = 'tron:728126428/slip44:195' as CaipAssetType;
+      const tronStakedEnergyAssetId =
+        'tron:728126428/slip44:195-staked-for-energy' as CaipAssetType;
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsController: {
+              accountsAssets: {
+                [tronAccountId]: [tronStakedEnergyAssetId],
+              },
+            },
+            AssetsController: {
+              assetsBalance: {
+                [tronAccountId]: {
+                  [tronNativeAssetId]: { amount: '1000' },
+                },
+              },
+              customAssets: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [tronAccountId]: {
+                    id: tronAccountId,
+                    type: 'tron:eoa',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = getMultiChainAssetsControllerAccountsAssets(state);
+
+      expect(result[tronAccountId]).toEqual(
+        expect.arrayContaining([tronNativeAssetId, tronStakedEnergyAssetId]),
+      );
+    });
   });
 
   describe('edge cases when enabled', () => {
@@ -1596,6 +1638,36 @@ describe('getMultiChainAssetsControllerAssetsMetadata', () => {
           name: 'USD Coin',
         },
       });
+    });
+
+    it('merges Tron Snap staking metadata omitted from AssetsController', () => {
+      const tronStakedEnergyAssetId =
+        'tron:728126428/slip44:195-staked-for-energy';
+      const snapMetadata = {
+        fungible: true as const,
+        iconUrl: '',
+        units: [{ decimals: 6, symbol: 'TRX', name: 'Staked TRX Energy' }],
+        symbol: 'sTRX-ENERGY',
+        name: 'Staked TRX Energy',
+      };
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainAssetsController: {
+              assetsMetadata: {
+                [tronStakedEnergyAssetId]: snapMetadata,
+              },
+            },
+            AssetsController: {
+              assetsInfo: {},
+            },
+          },
+        },
+      };
+      const result = getMultiChainAssetsControllerAssetsMetadata(state);
+
+      expect(result[tronStakedEnergyAssetId]).toStrictEqual(snapMetadata);
     });
   });
 
@@ -1881,6 +1953,61 @@ describe('getMultiChainBalancesControllerBalances', () => {
         [mockAccountId2]: {
           [solanaTokenAssetId]: { amount: '250.5', unit: 'USDC' },
         },
+      });
+    });
+
+    it('merges Tron Snap staking balances omitted from AssetsController', () => {
+      const tronAccountId = 'mock-tron-account-id';
+      const tronNativeAssetId = 'tron:728126428/slip44:195';
+      const tronStakedEnergyAssetId =
+        'tron:728126428/slip44:195-staked-for-energy';
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            MultichainBalancesController: {
+              balances: {
+                [tronAccountId]: {
+                  [tronStakedEnergyAssetId]: { amount: '50', unit: 'TRX' },
+                },
+              },
+            },
+            AssetsController: {
+              assetsInfo: {
+                [tronNativeAssetId]: {
+                  type: 'native',
+                  decimals: 6,
+                  symbol: 'TRX',
+                },
+              },
+              assetsBalance: {
+                [tronAccountId]: {
+                  [tronNativeAssetId]: { amount: '1000' },
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [tronAccountId]: {
+                    id: tronAccountId,
+                    type: 'tron:eoa',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = getMultiChainBalancesControllerBalances(state);
+
+      expect(result[tronAccountId][tronNativeAssetId]).toStrictEqual({
+        amount: '1000',
+        unit: 'TRX',
+      });
+      expect(result[tronAccountId][tronStakedEnergyAssetId]).toStrictEqual({
+        amount: '50',
+        unit: 'TRX',
       });
     });
   });

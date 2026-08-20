@@ -11,7 +11,10 @@ import TronClaimableRewardsRow from '../../Earn/components/Tron/TronStakingRewar
 import TronEstimatedAnnualRewardsRow from '../../Earn/components/Tron/TronStakingRewardsRows/TronEstimatedAnnualRewardsRow';
 import TronErrorsBanner from '../../Earn/components/Tron/TronStakingRewardsRows/TronErrorsBanner';
 import useTronAssetOverviewSection from './useTronAssetOverviewSection';
-import type { TronNativeToken } from '../utils/isTronNativeToken';
+import {
+  getTronNativeChainId,
+  type TronNativeToken,
+} from '../utils/isTronNativeToken';
 
 export interface TronAssetOverviewSectionProps {
   token: TronNativeToken;
@@ -26,6 +29,7 @@ const TronAssetOverviewSection = ({
   inLockPeriodBalance,
   readyForWithdrawalBalance,
 }: TronAssetOverviewSectionProps) => {
+  const tronChainId = getTronNativeChainId(token);
   const {
     aprText,
     claimableRewardsRowProps,
@@ -34,7 +38,7 @@ const TronAssetOverviewSection = ({
   } = useTronAssetOverviewSection({
     enabled: true,
     tokenAddress: token.address,
-    tokenChainId: token.chainId,
+    tokenChainId: tronChainId,
   });
 
   return (
@@ -65,11 +69,11 @@ const TronAssetOverviewSection = ({
           ) : null}
         </Box>
       ) : null}
-      {readyForWithdrawalBalance ? (
+      {readyForWithdrawalBalance && tronChainId ? (
         <Box paddingTop={3} paddingHorizontal={4}>
           <TronUnstakedBanner
             amount={readyForWithdrawalBalance}
-            chainId={String(token.chainId) as CaipChainId}
+            chainId={tronChainId as CaipChainId}
           />
         </Box>
       ) : null}

@@ -11,10 +11,8 @@ import { isAddress as isSolanaAddress } from '@solana/addresses';
 import Engine from '../Engine';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { validate, Network } from 'bitcoin-address-validation';
-import {
-  MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP,
-  TRON_SPECIAL_ASSET_IDS_SET,
-} from './constants';
+import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from './constants';
+import { isTronSpecialAssetId } from './tronSpecialAssets';
 import { formatAddress, isEthAddress } from '../../util/address';
 import {
   formatBlockExplorerAddressUrl,
@@ -287,10 +285,8 @@ export function shortenTransactionId(txId: string) {
  * Checks if a token is a Tron special asset (resources, staking state, etc.)
  * that should be filtered out from user-facing asset lists.
  *
- * Matching is by CAIP-19 asset ID only — symbols are not stable across
- * AssetsController migrations.
+ * Matching is by parsed CAIP-19 (namespace + slip44 reference) — symbols
+ * are not stable across AssetsController migrations, and chain references
+ * may be decimal or hex.
  */
-export const isTronSpecialAsset = (
-  assetId: string | undefined,
-): assetId is string =>
-  Boolean(assetId && TRON_SPECIAL_ASSET_IDS_SET.has(assetId));
+export const isTronSpecialAsset = isTronSpecialAssetId;

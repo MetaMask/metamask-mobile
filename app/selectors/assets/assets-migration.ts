@@ -29,6 +29,10 @@ import {
 } from '@metamask/assets-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { NetworkState } from '@metamask/network-controller';
+import {
+  getTronSpecialAssetMapKey,
+  getTronSpecialAssetUnit,
+} from '../../core/Multichain/tronSpecialAssets';
 
 // CAIP-19 asset identifiers (with checksummed addresses) for the pooled-staking
 // vault token that should never surface as regular ERC-20 tokens in the wallet
@@ -52,6 +56,42 @@ const isStakedTokenAssetId = (assetId: string): boolean => {
       assetReference,
     )}` as CaipAssetType,
   );
+};
+
+/**
+ * Accounts API / AssetsController does not model Tron Snap synthetic
+ * staking and resource CAIP-19s. When unify is on, copy those IDs from
+ * the Snap-backed Multichain* controllers so Token Details can still
+ * show staked TRX.
+ */
+const mergeTronSpecialAssetIds = (
+  targetIds: CaipAssetType[],
+  sourceIds: CaipAssetType[] | undefined,
+): void => {
+  if (!sourceIds) {
+    return;
+  }
+  const existing = new Set(targetIds);
+  for (const assetId of sourceIds) {
+    if (getTronSpecialAssetMapKey(assetId) && !existing.has(assetId)) {
+      targetIds.push(assetId);
+      existing.add(assetId);
+    }
+  }
+};
+
+const mergeTronSpecialAssetRecords = <T>(
+  target: Record<string, T>,
+  source: Record<string, T> | undefined,
+): void => {
+  if (!source) {
+    return;
+  }
+  for (const [assetId, value] of Object.entries(source)) {
+    if (getTronSpecialAssetMapKey(assetId) && target[assetId] === undefined) {
+      target[assetId] = value;
+    }
+  }
 };
 
 // ChainId (hex) -> AccountAddress (hex checksummed) -> Balance (hex)
@@ -473,6 +513,16 @@ export const getMultiChainAssetsControllerAccountsAssets =
         }
       }
 
+      for (const [accountId, assetIds] of Object.entries(accountsAssets)) {
+        const internalAccount = internalAccountsById[accountId];
+        if (!internalAccount || isEvmAccountType(internalAccount.type)) {
+          continue;
+        }
+
+        result[accountId] ??= [];
+        mergeTronSpecialAssetIds(result[accountId], assetIds);
+      }
+
       return result;
     },
   );
@@ -520,6 +570,8 @@ export const getMultiChainAssetsControllerAssetsMetadata =
           name: metadata.name,
         };
       }
+
+      mergeTronSpecialAssetRecords(result, assetsMetadata);
 
       return result;
     },
@@ -616,19 +668,31 @@ export const getMultiChainBalancesControllerBalances = createDeepEqualSelector(
       for (const [assetId, balance] of Object.entries(chainIdBalances)) {
         const assetType = parseCaipAssetType(assetId as CaipAssetType);
         const metadata = assetsInfo[assetId];
+        const specialKey = getTronSpecialAssetMapKey(assetId);
 
-        if (
-          !metadata ||
-          assetType.chain.namespace === KnownCaipNamespace.Eip155
-        ) {
+        if (assetType.chain.namespace === KnownCaipNamespace.Eip155) {
+          continue;
+        }
+
+        if (!metadata && !specialKey) {
           continue;
         }
 
         result[accountId][assetId] = {
           amount: balance.amount,
-          unit: metadata.symbol,
+          unit: metadata?.symbol ?? getTronSpecialAssetUnit(assetId) ?? '',
         };
       }
+    }
+
+    for (const [accountId, accountBalances] of Object.entries(balances)) {
+      const internalAccount = internalAccountsById[accountId];
+      if (!internalAccount || isEvmAccountType(internalAccount.type)) {
+        continue;
+      }
+
+      result[accountId] ??= {};
+      mergeTronSpecialAssetRecords(result[accountId], accountBalances);
     }
 
     return result;
