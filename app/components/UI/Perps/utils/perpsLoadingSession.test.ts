@@ -178,6 +178,18 @@ describe('perpsLoadingSession', () => {
     );
   });
 
+  it('ignores completion from a stale render generation', () => {
+    startPerpsLoadingSession();
+
+    finishPerpsLoadingSession(
+      { success: true, content_state: 'filled' },
+      'stale-session-id',
+    );
+
+    expect(endTrace).not.toHaveBeenCalled();
+    expect(getActivePerpsLoadingSessionContext()?.id).toBe('session-id-1');
+  });
+
   describe('recordPerpsLoadingSessionValuesReady', () => {
     const valuesReadyRecords = () =>
       jest

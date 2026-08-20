@@ -15,7 +15,9 @@ import type { PerpsLoadingSessionContext } from '../../../../UI/Perps/utils/perp
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
 const mockUseSectionPerformance = jest.fn((_config: unknown) => undefined);
-const mockFinishPerpsLoadingSession = jest.fn((_data: unknown) => undefined);
+const mockFinishPerpsLoadingSession = jest.fn(
+  (_data: unknown, _expectedSessionId?: string) => undefined,
+);
 const mockGetActivePerpsLoadingSessionContext = jest.fn<
   PerpsLoadingSessionContext | null,
   []
@@ -31,8 +33,8 @@ jest.mock('../../hooks/useSectionPerformance', () => ({
 }));
 
 jest.mock('../../../../UI/Perps/utils/perpsLoadingSession', () => ({
-  finishPerpsLoadingSession: (data: unknown) =>
-    mockFinishPerpsLoadingSession(data),
+  finishPerpsLoadingSession: (data: unknown, expectedSessionId?: string) =>
+    mockFinishPerpsLoadingSession(data, expectedSessionId),
   resolvePerpsMarketSource: () => 'provider',
 }));
 
@@ -507,6 +509,7 @@ describe('PerpsSection', () => {
         success: false,
         content_state: 'error',
       }),
+      'session-id-1',
     );
   });
 
@@ -1322,9 +1325,11 @@ describe('PerpsSection', () => {
           success: true,
           content_state: 'empty',
         }),
+        'session-id-1',
       );
       expect(mockFinishPerpsLoadingSession).not.toHaveBeenCalledWith(
         expect.objectContaining({ failure_stage: 'surface_not_rendered' }),
+        expect.anything(),
       );
     });
 

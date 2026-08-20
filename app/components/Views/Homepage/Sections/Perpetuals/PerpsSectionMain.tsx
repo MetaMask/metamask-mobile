@@ -325,6 +325,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
               ? 'pills'
               : 'trending';
     const lifecycle = sessionContext?.lifecycle ?? proposedLifecycle;
+    const sessionId = sessionContext?.id;
     const marketSource = resolvePerpsMarketSource(
       allCarouselMarkets.length > 0 ? allCarouselMarkets : markets,
       sessionContext?.marketSource,
@@ -357,31 +358,38 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     });
 
     useEffect(() => {
-      if (!sessionReady) return;
+      if (!sessionReady || !sessionId) return;
       if (pillsEmptyFeedHidden) {
-        finishPerpsLoadingSession({
-          success: true,
-          content_state: 'empty',
-          ...cohortTags,
-        });
+        finishPerpsLoadingSession(
+          {
+            success: true,
+            content_state: 'empty',
+            ...cohortTags,
+          },
+          sessionId,
+        );
         return;
       }
       if (isLoadingSection && !connectionError) return;
-      finishPerpsLoadingSession({
-        success: !connectionError,
-        content_state: connectionError
-          ? 'error'
-          : hasItems
-            ? 'filled'
-            : 'empty',
-        ...cohortTags,
-      });
+      finishPerpsLoadingSession(
+        {
+          success: !connectionError,
+          content_state: connectionError
+            ? 'error'
+            : hasItems
+              ? 'filled'
+              : 'empty',
+          ...cohortTags,
+        },
+        sessionId,
+      );
     }, [
       cohortTags,
       connectionError,
       hasItems,
       isLoadingSection,
       pillsEmptyFeedHidden,
+      sessionId,
       sessionReady,
     ]);
 

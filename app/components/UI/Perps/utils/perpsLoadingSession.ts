@@ -488,7 +488,11 @@ function tryFinishPendingSession(): void {
 
 export function finishPerpsLoadingSession(
   data: Record<string, string | number | boolean> = {},
+  expectedSessionId?: string,
 ): void {
+  if (expectedSessionId && activeSessionId !== expectedSessionId) {
+    return;
+  }
   if (!activeSessionId) {
     if (preSessionBufferArmed) {
       preSessionFinishData = data;
