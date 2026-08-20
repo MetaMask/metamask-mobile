@@ -32,10 +32,6 @@ const ProHub = () => {
     navigation.navigate(Routes.PRO_HUB.MEMBERSHIP);
   }, [navigation]);
 
-  const handleExplorePress = useCallback(() => {
-    // TODO: navigate to benefits / ProSubscription flow
-  }, []);
-
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
@@ -45,7 +41,7 @@ const ProHub = () => {
       {/* Header row */}
       <HeaderBase
         testID={ProHubTestIds.HEADER_ROOT}
-        twClassName="pl-4 pr-3"
+        twClassName="px-4"
         startAccessory={
           <ButtonIcon
             iconName={IconName.ArrowLeft}
@@ -65,7 +61,7 @@ const ProHub = () => {
       />
 
       {/* Content */}
-      <Box twClassName="flex-1 px-4 pt-6 gap-y-2">
+      <Box twClassName="flex-1 px-4 pt-2 gap-y-2">
         <Text
           variant={TextVariant.DisplayMd}
           fontWeight={FontWeight.Bold}
@@ -85,15 +81,6 @@ const ProHub = () => {
 
       {/* Action buttons */}
       <Box twClassName="px-4 pb-2 gap-y-4">
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          onPress={handleExplorePress}
-          isFullWidth
-          testID={ProHubTestIds.EXPLORE_BUTTON}
-        >
-          {strings('pro_hub.explore_benefits')}
-        </Button>
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
