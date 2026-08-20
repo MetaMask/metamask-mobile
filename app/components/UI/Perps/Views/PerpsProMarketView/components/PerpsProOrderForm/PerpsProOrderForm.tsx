@@ -29,7 +29,7 @@ import {
   isLimitExecutionOrderType,
   isTriggerOrderType,
 } from '@metamask/perps-controller';
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   InputAccessoryView,
   Keyboard,
@@ -37,6 +37,7 @@ import {
   Pressable,
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
+import { useHaptics } from '../../../../../../../util/haptics';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
@@ -367,11 +368,78 @@ const PerpsProOrderForm = ({
   isPlaceOrderLoading = false,
   onPlaceOrderPress,
 }: PerpsProOrderFormProps) => {
+  const { playSelection } = useHaptics();
   const isLong = direction === 'long';
   const showsTriggerPrice = isTriggerOrderType(orderType);
   const showsLimitPrice = isLimitExecutionOrderType(orderType);
   const showsTpSl = !reduceOnly && !showsTriggerPrice;
   const orderTypeTitle = strings(`perps.order.type.${orderType}.title`);
+  const summaryOnSlippagePress = summary.onSlippagePress;
+
+  const handleDirectionChange = useCallback(
+    (value: string) => {
+      const nextDirection = value as PerpsProOrderDirection;
+      if (nextDirection === direction) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      onDirectionChange(nextDirection);
+    },
+    [direction, onDirectionChange, playSelection],
+  );
+
+  const handleMarginModePress = useCallback(() => {
+    if (!onMarginModePress) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    onMarginModePress();
+  }, [onMarginModePress, playSelection]);
+
+  const handleLeveragePress = useCallback(() => {
+    if (!onLeveragePress) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    onLeveragePress();
+  }, [onLeveragePress, playSelection]);
+
+  const handleSlippagePress = useCallback(() => {
+    if (!summaryOnSlippagePress) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    summaryOnSlippagePress();
+  }, [playSelection, summaryOnSlippagePress]);
+
+  const handleOrderTypeButtonPress = useCallback(() => {
+    playSelection().catch(() => undefined);
+    onOrderTypeButtonPress();
+  }, [onOrderTypeButtonPress, playSelection]);
+
+  const handleUseMidPricePress = useCallback(() => {
+    if (!onUseMidPricePress) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    onUseMidPricePress();
+  }, [onUseMidPricePress, playSelection]);
+
+  const handleReduceOnlyChange = useCallback(
+    (value: boolean) => {
+      playSelection().catch(() => undefined);
+      onReduceOnlyChange(value);
+    },
+    [onReduceOnlyChange, playSelection],
+  );
+
+  const handleExpandOrderBook = useCallback(() => {
+    if (!onExpandOrderBook) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    onExpandOrderBook();
+  }, [onExpandOrderBook, playSelection]);
 
   return (
     <>
@@ -388,9 +456,7 @@ const PerpsProOrderForm = ({
           >
             <SegmentedControl
               value={direction}
-              onChange={(value) =>
-                onDirectionChange(value as PerpsProOrderDirection)
-              }
+              onChange={handleDirectionChange}
               isFullWidth
               twClassName="flex-1"
               size={ButtonBaseSize.Sm}
@@ -434,7 +500,7 @@ const PerpsProOrderForm = ({
                 iconName={IconName.Book}
                 accessibilityLabel={strings('perps.order_book.expand')}
                 size={ButtonIconSize.Md}
-                onPress={onExpandOrderBook}
+                onPress={handleExpandOrderBook}
                 testID={PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON}
               />
             ) : null}
@@ -445,7 +511,7 @@ const PerpsProOrderForm = ({
           >
             <ButtonBase
               size={ButtonBaseSize.Sm}
-              onPress={onMarginModePress}
+              onPress={handleMarginModePress}
               isDisabled={!onMarginModePress}
               twClassName="h-8 rounded-lg bg-muted px-2"
               testID={ids.MARGIN_MODE_BUTTON}
@@ -454,7 +520,7 @@ const PerpsProOrderForm = ({
             </ButtonBase>
             <ButtonBase
               size={ButtonBaseSize.Sm}
-              onPress={onLeveragePress}
+              onPress={handleLeveragePress}
               isDisabled={!onLeveragePress}
               twClassName="rounded-lg bg-muted px-2"
               testID={ids.LEVERAGE_BUTTON}
@@ -467,7 +533,7 @@ const PerpsProOrderForm = ({
             twClassName="overflow-hidden rounded-xl border border-muted bg-muted"
           >
             <ButtonBase
-              onPress={onOrderTypeButtonPress}
+              onPress={handleOrderTypeButtonPress}
               twClassName="h-12 w-full bg-transparent px-3"
               contentWrapperProps={{ twClassName: 'w-full justify-between' }}
               textProps={{ variant: TextVariant.BodySm }}
@@ -540,7 +606,7 @@ const PerpsProOrderForm = ({
                 style: { marginLeft: 0, flex: 1 },
               }}
               isSelected={reduceOnly}
-              onChange={onReduceOnlyChange}
+              onChange={handleReduceOnlyChange}
               testID={ids.REDUCE_ONLY}
               twClassName="w-full flex-row-reverse justify-between"
             />
@@ -569,7 +635,12 @@ const PerpsProOrderForm = ({
             {placeOrderLabel}
           </ButtonSemantic>
         </Box>
-        <OrderSummary {...summary} />
+        <OrderSummary
+          {...summary}
+          onSlippagePress={
+            summaryOnSlippagePress ? handleSlippagePress : undefined
+          }
+        />
       </Box>
       {Platform.OS === 'ios' ? (
         <>
