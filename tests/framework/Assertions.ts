@@ -102,36 +102,13 @@ export default class Assertions {
       description = `element contains text "${text}"`,
     } = options;
 
-    if (FrameworkDetector.isAppium()) {
-      const el = await asPlaywrightElement(elem as EncapsulatedElementType);
-      return Utilities.executeWithRetry(
-        async () => {
-          const actual = ((await el.textContent()) ?? '').trim();
-          if (!actual.includes(text)) {
-            throw new Error(
-              `Expected text containing "${text}" but got "${actual}"`,
-            );
-          }
-        },
-        {
-          timeout,
-          description: `Assert ${description}`,
-        },
-      );
-    }
-
+    const el = await asPlaywrightElement(elem as EncapsulatedElementType);
     return Utilities.executeWithRetry(
       async () => {
-        const el = await (elem as WebElement);
-        const actualText = await el.getText();
-        const normalizedText = actualText
-          .replace(/\s+/g, ' ')
-          .trim()
-          .toLowerCase();
-        const expectedText = text.toLowerCase();
-        if (!normalizedText.includes(expectedText)) {
+        const actual = ((await el.textContent()) ?? '').trim();
+        if (!actual.includes(text)) {
           throw new Error(
-            `Expected text containing "${text}" but got "${actualText}"`,
+            `Expected text containing "${text}" but got "${actual}"`,
           );
         }
       },
