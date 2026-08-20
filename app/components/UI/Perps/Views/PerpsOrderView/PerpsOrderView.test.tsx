@@ -253,7 +253,6 @@ jest.mock('../../hooks', () => ({
     handleMaxAmount: jest.fn(),
     optimizeOrderAmount: jest.fn(),
     maxPossibleAmount: 1000,
-    effectiveMaxSlippageBps: 300,
     balanceForValidation: 1000,
     calculations: {
       marginRequired: 11,
@@ -1101,7 +1100,6 @@ describe('PerpsOrderView', () => {
       handleMinAmount: jest.fn(),
       optimizeOrderAmount: jest.fn(),
       maxPossibleAmount: 1000,
-      effectiveMaxSlippageBps: 300,
       balanceForValidation: 1000,
       calculations: {
         marginRequired: '11',
@@ -1553,7 +1551,6 @@ describe('PerpsOrderView', () => {
     handleMinAmount: jest.fn(),
     optimizeOrderAmount: jest.fn(),
     maxPossibleAmount: 1000,
-    effectiveMaxSlippageBps: 300,
     balanceForValidation: 1000,
     ...overrides,
   });
@@ -4892,7 +4889,6 @@ describe('PerpsOrderView', () => {
       });
       (usePerpsOrderContext as jest.Mock).mockReturnValue({
         ...defaultMockHooks.usePerpsOrderContext,
-        effectiveMaxSlippageBps: 300,
       });
       mockUseIsPerpsBalanceSelected.mockReturnValue(true);
 

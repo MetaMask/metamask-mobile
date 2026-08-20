@@ -12,7 +12,6 @@ import { usePerpsLivePrices } from './stream/usePerpsLivePrices';
 import { usePerpsLivePositions } from './stream/usePerpsLivePositions';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { TRADING_DEFAULTS, type Position } from '@metamask/perps-controller';
-import { PERPS_TRIGGER_MARKET_DEFAULT_BPS } from '../constants/slippageConfig';
 import {
   PerpsStreamProvider,
   PerpsStreamManager,
@@ -708,16 +707,32 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.direction).toBe('short');
     });
 
-    it('updates asset', () => {
+    it('updates asset and clears asset-specific price drafts', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
       });
+
+      act(() => {
+        result.current.setLimitPrice('50000');
+        result.current.setTriggerPrice('51000');
+        result.current.commitLimitPrice('50000');
+        result.current.commitTriggerPrice('51000');
+      });
+
+      expect(result.current.orderForm.limitPrice).toBe('50000');
+      expect(result.current.triggerPrice).toBe('51000');
+      expect(result.current.hasBlurredLimitPrice).toBe(true);
+      expect(result.current.hasBlurredTriggerPrice).toBe(true);
 
       act(() => {
         result.current.setAsset('SOL');
       });
 
       expect(result.current.orderForm.asset).toBe('SOL');
+      expect(result.current.orderForm.limitPrice).toBeUndefined();
+      expect(result.current.triggerPrice).toBeUndefined();
+      expect(result.current.hasBlurredLimitPrice).toBe(false);
+      expect(result.current.hasBlurredTriggerPrice).toBe(false);
     });
 
     it('updates take profit price', () => {
@@ -1100,10 +1115,6 @@ describe('usePerpsOrderForm', () => {
       });
       const triggerMarketMax = result.current.maxPossibleAmount;
 
-      expect(result.current.effectiveMaxSlippageBps).toBe(
-        PERPS_TRIGGER_MARKET_DEFAULT_BPS,
-      );
-
       act(() => {
         result.current.setOrderType('market');
       });
@@ -1128,13 +1139,11 @@ describe('usePerpsOrderForm', () => {
       });
 
       const maxAtThreePercent = result.current.maxPossibleAmount;
-      expect(result.current.effectiveMaxSlippageBps).toBe(300);
 
       act(() => {
         store.dispatch({ type: SET_MAX_SLIPPAGE, payload: 1000 });
       });
 
-      expect(result.current.effectiveMaxSlippageBps).toBe(1000);
       expect(result.current.maxPossibleAmount).toBeLessThan(maxAtThreePercent);
     });
   });

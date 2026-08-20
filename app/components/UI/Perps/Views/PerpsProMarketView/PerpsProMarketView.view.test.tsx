@@ -470,6 +470,66 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
+    'shows required trigger guidance before blur and disables Place order',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true);
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
+
+      await waitFor(
+        () => {
+          expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+            strings('perps.order.validation.please_set_a_trigger_price'),
+          );
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  itForPlatforms(
+    'shows required limit guidance before blur and disables Place order',
+    async () => {
+      renderProMarketWithTriggeredOrdersFlag(true);
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
+      await screen.findByTestId(ids.LIMIT_PRICE_INPUT);
+      fireEvent.changeText(triggerInput, '2600');
+
+      await waitFor(
+        () => {
+          expect(screen.getByTestId(ids.PRICE_CARD_MESSAGE)).toHaveTextContent(
+            strings('perps.order.validation.limit_price_required'),
+          );
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  itForPlatforms(
     'submits a stop-limit order with triggerPrice and limit price',
     async () => {
       const validateOrder = Engine.context.PerpsController

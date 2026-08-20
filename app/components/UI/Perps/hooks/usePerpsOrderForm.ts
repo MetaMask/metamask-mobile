@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   TRADING_DEFAULTS,
+  DECIMAL_PRECISION_CONFIG,
   OrderType,
   getMaxAllowedAmount,
   isLimitExecutionOrderType,
@@ -68,8 +69,6 @@ export interface UsePerpsOrderFormReturn {
    * the open position notional). Pass `null` to restore the margin-based cap.
    */
   setMaxPossibleAmountOverride: (amount: number | null) => void;
-  /** Effective max slippage for the current order type. */
-  effectiveMaxSlippageBps: number;
   /** Balance to use for validation and UI (Perps balance or selected token amount in USD when paying with custom token) */
   balanceForValidation: number;
 }
@@ -167,7 +166,8 @@ export function usePerpsOrderForm(
     const tempMaxAmount = getMaxAllowedAmount({
       spendableBalance: balanceForMax,
       assetPrice: Number.parseFloat(currentPrice.price),
-      assetSzDecimals: marketData?.szDecimals ?? 6,
+      assetSzDecimals:
+        marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
       leverage: defaultLeverage, // Use default leverage for initial calculation
     });
 
@@ -241,7 +241,8 @@ export function usePerpsOrderForm(
   // correctly reflects the max order size at the user-specified price
   const marginBasedMaxPossibleAmount = useMemo(() => {
     const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
-    const sizeDecimals = marketData?.szDecimals ?? 6;
+    const sizeDecimals =
+      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
     const canonicalLimitPrice = canonicalizeOrderPrice(
       orderForm.limitPrice,
       sizeDecimals,
@@ -282,7 +283,8 @@ export function usePerpsOrderForm(
     return getMaxAllowedAmount({
       spendableBalance: balanceForMax,
       assetPrice: effectiveAssetPrice,
-      assetSzDecimals: marketData?.szDecimals ?? 6,
+      assetSzDecimals:
+        marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
       leverage: orderForm.leverage,
     });
   }, [
@@ -400,6 +402,8 @@ export function usePerpsOrderForm(
     setOrderForm((prev) => ({ ...prev, direction }));
   }, []);
 
+  // Asset-specific price drafts and their blur-validation state must not carry
+  // across markets.
   const setAsset = useCallback((asset: string) => {
     setOrderForm((prev) => ({
       ...prev,
@@ -517,7 +521,6 @@ export function usePerpsOrderForm(
       handleMinAmount,
       maxPossibleAmount,
       setMaxPossibleAmountOverride,
-      effectiveMaxSlippageBps,
       balanceForValidation: balanceForMax,
     }),
     [
@@ -542,7 +545,6 @@ export function usePerpsOrderForm(
       handleMinAmount,
       maxPossibleAmount,
       setMaxPossibleAmountOverride,
-      effectiveMaxSlippageBps,
       balanceForMax,
     ],
   );

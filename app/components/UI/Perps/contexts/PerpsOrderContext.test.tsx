@@ -50,7 +50,6 @@ describe('PerpsOrderContext', () => {
     handleMinAmount: jest.fn(),
     maxPossibleAmount: 1000,
     setMaxPossibleAmountOverride: jest.fn(),
-    effectiveMaxSlippageBps: 300,
     balanceForValidation: 1000,
   };
 

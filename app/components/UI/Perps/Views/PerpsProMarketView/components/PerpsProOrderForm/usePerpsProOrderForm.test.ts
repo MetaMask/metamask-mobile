@@ -1273,7 +1273,7 @@ describe('usePerpsProOrderForm', () => {
     });
 
     it.each(['stop_limit', 'take_profit_limit'] as const)(
-      'shows a required limit error for %s after the limit price blurs',
+      'shows a required limit error for %s before the limit price blurs',
       (orderType) => {
         mockOrderForm.type = orderType;
         mockOrderForm.limitPrice = undefined;
@@ -1285,7 +1285,10 @@ describe('usePerpsProOrderForm', () => {
         ];
         const { result, rerender } = renderProForm();
 
-        expect(result.current.priceCardMessage).toBeUndefined();
+        expect(result.current.priceCardMessage).toEqual({
+          severity: 'error',
+          message: 'Please set a limit price for limit orders',
+        });
 
         act(() => {
           result.current.onLimitPriceBlur();
@@ -1298,6 +1301,22 @@ describe('usePerpsProOrderForm', () => {
         });
       },
     );
+
+    it('shows a required trigger error before the trigger price blurs', () => {
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = undefined;
+      mockValidation.isValid = false;
+      mockValidation.fieldIssues = [
+        { field: 'triggerPrice', issue: { code: 'required' } },
+      ];
+      const { result } = renderProForm();
+
+      expect(result.current.priceCardMessage).toEqual({
+        severity: 'error',
+        message: 'Please set a trigger price',
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
 
     it.each([
       {

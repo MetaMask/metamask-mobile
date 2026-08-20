@@ -1346,7 +1346,10 @@ export const usePerpsProOrderForm = ({
     const triggerIssue = fieldIssues.find(
       (fieldIssue) => fieldIssue.field === 'triggerPrice',
     );
-    if (hasBlurredTriggerPrice && triggerIssue?.field === 'triggerPrice') {
+    if (
+      triggerIssue?.issue.code === 'required' ||
+      (hasBlurredTriggerPrice && triggerIssue?.field === 'triggerPrice')
+    ) {
       return {
         severity: 'error' as const,
         message: getOrderFormFieldIssueMessage(triggerIssue),
@@ -1356,7 +1359,10 @@ export const usePerpsProOrderForm = ({
     const limitIssue = fieldIssues.find(
       (fieldIssue) => fieldIssue.field === 'limitPrice',
     );
-    if (hasBlurredLimitPrice && limitIssue?.field === 'limitPrice') {
+    if (
+      limitIssue?.issue.code === 'required' ||
+      (hasBlurredLimitPrice && limitIssue?.field === 'limitPrice')
+    ) {
       return {
         severity: 'error' as const,
         message: getOrderFormFieldIssueMessage(limitIssue),
