@@ -48,6 +48,22 @@ describe('PickerAccount', () => {
       expect(getByText(customAccountName)).toBeOnTheScreen();
     });
 
+    it('truncates long account names to a single shrinking line', () => {
+      const longAccountName =
+        "Account Fun fun fun fun it's so fun and so long that it overflows";
+
+      const { getByTestId } = render(
+        <PickerAccount {...defaultProps} accountName={longAccountName} />,
+      );
+
+      const accountNameLabel = getByTestId(
+        WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
+      );
+
+      expect(accountNameLabel).toHaveProp('numberOfLines', 1);
+      expect(accountNameLabel).toHaveStyle({ flexShrink: 1, minWidth: 0 });
+    });
+
     it('should render correctly with snapshot', () => {
       const { toJSON } = render(<PickerAccount {...defaultProps} />);
       expect(toJSON()).toBeDefined();

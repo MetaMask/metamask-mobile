@@ -110,6 +110,44 @@ describe('WalletHeader', () => {
     );
   });
 
+  it('keeps header action buttons visible when the account name is very long', () => {
+    const { getByTestId } = renderWithProvider(
+      <WalletHeader
+        {...defaultProps}
+        displayName="Account Fun fun fun fun it's so fun and so long that it overflows"
+      />,
+    );
+
+    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON),
+    ).toBeOnTheScreen();
+    expect(getByTestId(WalletViewSelectorsIDs.CARD_BUTTON)).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
+    ).toHaveProp('numberOfLines', 1);
+  });
+
+  it('lets the account picker shrink below its name width so action buttons stay on screen', () => {
+    const { getByTestId } = renderWithProvider(
+      <WalletHeader {...defaultProps} />,
+    );
+
+    const accountPicker = getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON);
+
+    expect(accountPicker.parent).toHaveStyle({
+      flex: 1,
+      minWidth: 0,
+      overflow: 'hidden',
+    });
+  });
+
   describe('when the Money account is visible', () => {
     it('shows the activity button and hides the card button', () => {
       const { getByTestId, queryByTestId } = renderWithProvider(
