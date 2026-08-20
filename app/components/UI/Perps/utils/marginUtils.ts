@@ -36,7 +36,33 @@ export interface EstimateLiquidationPriceParams {
   positionSize: number;
   currentLiquidationPrice: number;
   maxLeverage: number;
+  /** Resulting size after a resize; defaults to `positionSize`. */
+  newPositionSize?: number;
+  currentEntryPrice?: number;
+  newEntryPrice?: number;
 }
+
+export interface EstimateIsolatedLiquidationPriceFromEntryParams {
+  isLong: boolean;
+  entryPrice: number;
+  margin: number;
+  positionSize: number;
+  maxLeverage: number;
+}
+
+const getIsolatedLiquidationAdjustment = (
+  isLong: boolean,
+  maxLeverage: number,
+): { directionMultiplier: number; adjustmentFactor: number } => {
+  const side = isLong ? 1 : -1;
+  const maintenanceMarginRate =
+    Number.isFinite(maxLeverage) && maxLeverage > 0 ? 1 / (2 * maxLeverage) : 0;
+  const denominator = 1 - maintenanceMarginRate * side;
+  return {
+    directionMultiplier: isLong ? -1 : 1,
+    adjustmentFactor: Math.abs(denominator) < 0.0001 ? 1 : denominator,
+  };
+};
 
 /**
  * Assess liquidation risk after margin removal
@@ -167,24 +193,58 @@ export function calculateMaxRemovableMargin(
 }
 
 /**
- * Estimate liquidation price after margin change using anchored + delta approach.
+ * Isolated liquidation from entry, margin, and size (closed form).
  *
- * Core formula:
- * newLiqPrice = currentLiqPrice + (direction × marginDelta / positionSize) / adjustmentFactor
+ * liq = (entry + direction × margin/size) / adjustmentFactor
+ * where direction is -1 for long and +1 for short, and
+ * adjustmentFactor = 1 - (maintenanceMarginRate × side).
  *
- * - direction: -1 for long (adding margin moves liq down), +1 for short (adding margin moves liq up)
- * - adjustmentFactor: accounts for maintenance margin's effect on liquidation dynamics
+ * Use this for a brand-new isolated position (including a flip leftover).
+ * Same-side resizes should use {@link estimateLiquidationPrice} so the live
+ * liquidation (funding, extra isolated margin) stays the anchor.
+ */
+export function estimateIsolatedLiquidationPriceFromEntry(
+  params: EstimateIsolatedLiquidationPriceFromEntryParams,
+): number {
+  const { isLong, entryPrice, margin, positionSize, maxLeverage } = params;
+
+  if (
+    !Number.isFinite(entryPrice) ||
+    entryPrice <= 0 ||
+    !Number.isFinite(margin) ||
+    margin <= 0 ||
+    !Number.isFinite(positionSize) ||
+    positionSize <= 0
+  ) {
+    return 0;
+  }
+
+  const { directionMultiplier, adjustmentFactor } =
+    getIsolatedLiquidationAdjustment(isLong, maxLeverage);
+
+  return Math.max(
+    0,
+    (entryPrice + directionMultiplier * (margin / positionSize)) /
+      adjustmentFactor,
+  );
+}
+
+/**
+ * Estimate liquidation price after a same-side isolated margin/size/entry change.
  *
- * Hyperliquid-specific:
- * adjustmentFactor = 1 - (maintenanceMarginRate × side)
- * where maintenanceMarginRate = 1/(2 × maxLeverage)
+ * Isolated closed form: liq = (entry + direction × margin/size) / adjustmentFactor
+ * Differencing that and anchoring to the live liquidation:
  *
- * This anchors to the provider's authoritative liquidation price rather than recalculating
- * from scratch, avoiding protocol-specific edge cases we might miss.
+ * newLiq = currentLiq + (entryDelta + direction × Δ(margin/size)) / adjustmentFactor
+ *
+ * - direction: -1 for long, +1 for short
+ * - adjustmentFactor: 1 - (maintenanceMarginRate × side)
+ * - maintenanceMarginRate: 1/(2 × maxLeverage)
+ *
+ * When size and entry are omitted, this reduces to the original margin-only
+ * formula used by adjust-margin.
  *
  * See: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/margin-and-pnl
- *
- * Future: Could abstract adjustmentFactor as a provider-supplied parameter for multi-provider support.
  */
 export function estimateLiquidationPrice(
   params: EstimateLiquidationPriceParams,
@@ -196,14 +256,18 @@ export function estimateLiquidationPrice(
     positionSize,
     currentLiquidationPrice,
     maxLeverage,
+    newPositionSize = positionSize,
+    currentEntryPrice,
+    newEntryPrice,
   } = params;
 
-  // Return current price if no change or invalid inputs
   if (
     !Number.isFinite(newMargin) ||
     newMargin <= 0 ||
     !Number.isFinite(positionSize) ||
     positionSize <= 0 ||
+    !Number.isFinite(newPositionSize) ||
+    newPositionSize <= 0 ||
     !Number.isFinite(currentLiquidationPrice) ||
     currentLiquidationPrice <= 0 ||
     !Number.isFinite(currentMargin) ||
@@ -212,24 +276,30 @@ export function estimateLiquidationPrice(
     return currentLiquidationPrice;
   }
 
-  const marginDelta = newMargin - currentMargin;
-  if (!Number.isFinite(marginDelta)) {
+  const currentMarginPerSize = currentMargin / positionSize;
+  const newMarginPerSize = newMargin / newPositionSize;
+  if (
+    !Number.isFinite(currentMarginPerSize) ||
+    !Number.isFinite(newMarginPerSize)
+  ) {
     return currentLiquidationPrice;
   }
 
-  const side = isLong ? 1 : -1;
-  const maintenanceMarginRate =
-    Number.isFinite(maxLeverage) && maxLeverage > 0 ? 1 / (2 * maxLeverage) : 0;
-  const denominator = 1 - maintenanceMarginRate * side;
-  const safeDenominator = Math.abs(denominator) < 0.0001 ? 1 : denominator;
+  const hasEntryChange =
+    typeof currentEntryPrice === 'number' &&
+    currentEntryPrice > 0 &&
+    typeof newEntryPrice === 'number' &&
+    newEntryPrice > 0;
+  const entryDelta = hasEntryChange ? newEntryPrice - currentEntryPrice : 0;
 
-  // For long: adding margin moves liquidation price down (safer)
-  // For short: adding margin moves liquidation price up (safer)
-  const directionMultiplier = isLong ? -1 : 1;
+  const { directionMultiplier, adjustmentFactor } =
+    getIsolatedLiquidationAdjustment(isLong, maxLeverage);
+  const marginPerSizeDelta = newMarginPerSize - currentMarginPerSize;
 
-  const estimatedLiquidationPrice =
+  return Math.max(
+    0,
     currentLiquidationPrice +
-    (directionMultiplier * marginDelta) / positionSize / safeDenominator;
-
-  return Math.max(0, estimatedLiquidationPrice);
+      (entryDelta + directionMultiplier * marginPerSizeDelta) /
+        adjustmentFactor,
+  );
 }

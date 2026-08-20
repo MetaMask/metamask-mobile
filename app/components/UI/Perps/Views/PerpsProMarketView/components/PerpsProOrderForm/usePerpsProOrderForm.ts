@@ -66,6 +66,7 @@ import {
   getReduceOnlyMaxUsdAmount,
 } from '../../../../utils/orderSizing';
 import { willFlipPosition } from '../../../../utils/orderUtils';
+import { getModifiedPositionPreview } from '../../../../utils/positionModifyPreview';
 import {
   validateReduceOnlyOrder,
   getReduceOnlyPositionError,
@@ -523,6 +524,30 @@ export const usePerpsProOrderForm = ({
     ],
   );
 
+  const positionModifyPreview = useMemo(
+    () =>
+      getModifiedPositionPreview({
+        position: currentMarketPosition,
+        orderDirection: orderForm.direction,
+        orderSize: Number.parseFloat(positionSize),
+        orderMargin: Number.parseFloat(marginRequired ?? ''),
+        orderPrice: effectivePrice,
+        reduceOnly,
+        maxLeverage,
+        orderFees: estimatedFees,
+      }),
+    [
+      currentMarketPosition,
+      orderForm.direction,
+      positionSize,
+      marginRequired,
+      effectivePrice,
+      reduceOnly,
+      maxLeverage,
+      estimatedFees,
+    ],
+  );
+
   const liquidationPriceParams = useMemo(
     () => ({
       entryPrice: effectivePrice,
@@ -533,6 +558,17 @@ export const usePerpsProOrderForm = ({
     [effectivePrice, orderForm.leverage, orderForm.direction, orderForm.asset],
   );
   const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
+
+  const resultingLiquidationPriceDisplay = useMemo(() => {
+    if (
+      !positionModifyPreview.isModifying ||
+      positionModifyPreview.kind === 'full_close' ||
+      positionModifyPreview.newLiquidationPrice <= 0
+    ) {
+      return undefined;
+    }
+    return String(positionModifyPreview.newLiquidationPrice);
+  }, [positionModifyPreview]);
 
   const existingPositionLeverageForValidation =
     currentMarketPosition?.leverage?.value;
@@ -588,7 +624,7 @@ export const usePerpsProOrderForm = ({
     direction: orderForm.direction,
     takeProfitPrice: orderForm.takeProfitPrice,
     stopLossPrice: orderForm.stopLossPrice,
-    liquidationPrice,
+    liquidationPrice: resultingLiquidationPriceDisplay ?? liquidationPrice,
     marketPrice: assetData.price,
   });
 
@@ -1054,16 +1090,46 @@ export const usePerpsProOrderForm = ({
               value: bpsToPercent(maxSlippageBps),
             });
     }
+    const formatMargin = (value: number | string) =>
+      formatPerpsFiat(value, { ranges: PRICE_RANGES_MINIMAL_VIEW });
+    const formatLiquidation = (value: number | string) =>
+      formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL });
+    const formatBeforeAfter = (before: string, after: string) =>
+      strings('perps.pro_order_form.before_after', { before, after });
+
+    const orderMarginDisplay =
+      marginRequired !== undefined && marginRequired !== null
+        ? formatMargin(marginRequired)
+        : PERPS_CONSTANTS.FallbackDataDisplay;
+    const orderLiquidationDisplay = hasValidAmount
+      ? formatLiquidation(liquidationPrice)
+      : PERPS_CONSTANTS.FallbackDataDisplay;
+
+    let margin = orderMarginDisplay;
+    let liquidationPriceDisplay = orderLiquidationDisplay;
+    if (positionModifyPreview.isModifying) {
+      const afterMargin = hasValidAmount
+        ? formatMargin(positionModifyPreview.newMargin)
+        : PERPS_CONSTANTS.FallbackDataDisplay;
+      const afterLiquidation =
+        hasValidAmount &&
+        positionModifyPreview.kind !== 'full_close' &&
+        positionModifyPreview.newLiquidationPrice > 0
+          ? formatLiquidation(positionModifyPreview.newLiquidationPrice)
+          : PERPS_CONSTANTS.FallbackDataDisplay;
+      margin = formatBeforeAfter(
+        formatMargin(positionModifyPreview.currentMargin),
+        afterMargin,
+      );
+      liquidationPriceDisplay = formatBeforeAfter(
+        formatLiquidation(positionModifyPreview.currentLiquidationPrice),
+        afterLiquidation,
+      );
+    }
+
     return {
-      margin:
-        marginRequired !== undefined && marginRequired !== null
-          ? formatPerpsFiat(marginRequired, {
-              ranges: PRICE_RANGES_MINIMAL_VIEW,
-            })
-          : PERPS_CONSTANTS.FallbackDataDisplay,
-      liquidationPrice: hasValidAmount
-        ? formatPerpsFiat(liquidationPrice, { ranges: PRICE_RANGES_UNIVERSAL })
-        : PERPS_CONSTANTS.FallbackDataDisplay,
+      margin,
+      liquidationPrice: liquidationPriceDisplay,
       slippage,
       onSlippagePress: isMarketOrder ? onSlippagePress : undefined,
       fee: hasValidAmount ? estimatedFees : undefined,
@@ -1082,6 +1148,7 @@ export const usePerpsProOrderForm = ({
     undiscountedEstimatedFees,
     feeResults.feeDiscountPercentage,
     onSlippagePress,
+    positionModifyPreview,
   ]);
 
   const isPlaceOrderDisabled =

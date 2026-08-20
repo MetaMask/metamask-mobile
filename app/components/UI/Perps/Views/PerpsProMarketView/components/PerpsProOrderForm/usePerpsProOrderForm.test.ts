@@ -80,6 +80,9 @@ const mockValidation = {
 let mockExistingPosition: {
   leverage?: { type?: string; value?: number };
   size?: string;
+  marginUsed?: string;
+  liquidationPrice?: string;
+  entryPrice?: string;
 } | null = null;
 
 let mockIsAtCap = false;
@@ -293,6 +296,53 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
+    it('shows margin and liquidation as before → after when increasing a position', () => {
+      mockExistingPosition = {
+        size: '1',
+        marginUsed: '1000',
+        liquidationPrice: '48000',
+        entryPrice: '50000',
+        leverage: { type: 'isolated', value: 5 },
+      };
+
+      const { result } = renderProForm();
+
+      expect(result.current.summary.margin).toMatch(/→/);
+      expect(result.current.summary.margin).toMatch(/\$1,000/);
+      expect(result.current.summary.liquidationPrice).toMatch(/→/);
+      expect(result.current.summary.liquidationPrice).toMatch(/\$48/);
+    });
+
+    it('shows margin and liquidation as before → after when reducing a position', () => {
+      mockExistingPosition = {
+        size: '1',
+        marginUsed: '1000',
+        liquidationPrice: '48000',
+        entryPrice: '50000',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockOrderForm.direction = 'short';
+
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+
+      expect(result.current.summary.margin).toMatch(/→/);
+      expect(result.current.summary.margin).toMatch(/\$1,000/);
+      expect(result.current.summary.liquidationPrice).toMatch(
+        /\$48[,.]000.*→.*\$48[,.]000/,
+      );
+    });
+
+    it('keeps single-value margin and liquidation when there is no open position', () => {
+      const { result } = renderProForm();
+
+      expect(result.current.summary.margin).not.toMatch(/→/);
+      expect(result.current.summary.liquidationPrice).not.toMatch(/→/);
     });
   });
 

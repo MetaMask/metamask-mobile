@@ -1,6 +1,7 @@
 import {
   assessMarginRemovalRisk,
   calculateMaxRemovableMargin,
+  estimateIsolatedLiquidationPriceFromEntry,
   estimateLiquidationPrice,
 } from './marginUtils';
 
@@ -465,6 +466,95 @@ describe('marginUtils', () => {
       });
 
       expect(result).toBe(0);
+    });
+
+    it('keeps liquidation unchanged when margin scales with size', () => {
+      const result = estimateLiquidationPrice({
+        isLong: true,
+        currentMargin: 5000,
+        newMargin: 3000,
+        positionSize: 0.5,
+        newPositionSize: 0.3,
+        currentLiquidationPrice: 80000,
+        maxLeverage: 20,
+        currentEntryPrice: 100000,
+        newEntryPrice: 100000,
+      });
+
+      expect(result).toBe(80000);
+    });
+
+    it('applies entry and margin-per-size deltas when increasing a long', () => {
+      // maxLeverage=50 => mmr=0.01 => adj=0.99
+      // entryDelta = 3636.3636..., Δ(m/s) = -72.7272...
+      // newLiq = 48000 + (3636.3636 + 72.7272) / 0.99
+      const result = estimateLiquidationPrice({
+        isLong: true,
+        currentMargin: 1000,
+        newMargin: 1020,
+        positionSize: 1,
+        newPositionSize: 1.1,
+        currentLiquidationPrice: 48000,
+        maxLeverage: 50,
+        currentEntryPrice: 50000,
+        newEntryPrice: (1 * 50000 + 0.1 * 90000) / 1.1,
+      });
+
+      expect(result).toBeCloseTo(51746.56, 1);
+    });
+
+    it('returns currentLiquidationPrice when newPositionSize is invalid', () => {
+      expect(
+        estimateLiquidationPrice({
+          isLong: true,
+          currentMargin: 5000,
+          newMargin: 6000,
+          positionSize: 0.5,
+          newPositionSize: 0,
+          currentLiquidationPrice: 80000,
+          maxLeverage: 20,
+        }),
+      ).toBe(80000);
+    });
+  });
+
+  describe('estimateIsolatedLiquidationPriceFromEntry', () => {
+    it('computes isolated long liquidation from entry', () => {
+      // (50000 - 1000/1) / 0.99 = 49494.949...
+      const result = estimateIsolatedLiquidationPriceFromEntry({
+        isLong: true,
+        entryPrice: 50000,
+        margin: 1000,
+        positionSize: 1,
+        maxLeverage: 50,
+      });
+
+      expect(result).toBeCloseTo(49494.95, 1);
+    });
+
+    it('computes isolated short liquidation from entry', () => {
+      // leftover short: (90000 + 10/0.5) / 1.01 = 89128.71
+      const result = estimateIsolatedLiquidationPriceFromEntry({
+        isLong: false,
+        entryPrice: 90000,
+        margin: 10,
+        positionSize: 0.5,
+        maxLeverage: 50,
+      });
+
+      expect(result).toBeCloseTo(89128.71, 1);
+    });
+
+    it('returns 0 when inputs are invalid', () => {
+      expect(
+        estimateIsolatedLiquidationPriceFromEntry({
+          isLong: true,
+          entryPrice: 0,
+          margin: 1000,
+          positionSize: 1,
+          maxLeverage: 50,
+        }),
+      ).toBe(0);
     });
   });
 });

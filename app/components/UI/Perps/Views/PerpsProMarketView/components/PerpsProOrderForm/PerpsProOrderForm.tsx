@@ -150,8 +150,13 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
   ) : null;
 
 const summaryRowClassName = 'h-5 px-0';
+const summaryLiquidationRowClassName = 'min-h-5 h-auto px-0';
 const summaryFeesRowClassName = 'min-h-6 h-auto px-0';
 const summaryRowStyle = { paddingHorizontal: 0 } as const;
+const summaryLiquidationValueTextProps = {
+  ...summaryValueTextProps,
+  numberOfLines: 2,
+};
 
 interface SlippageValueProps {
   value: string;
@@ -208,8 +213,8 @@ const OrderSummary = ({
       keyLabel={strings('perps.pro_order_form.est_liquidation')}
       value={liquidationPrice}
       keyTextProps={summaryKeyTextProps}
-      valueTextProps={summaryValueTextProps}
-      twClassName={summaryRowClassName}
+      valueTextProps={summaryLiquidationValueTextProps}
+      twClassName={summaryLiquidationRowClassName}
       style={summaryRowStyle}
       testID={ids.SUMMARY_LIQUIDATION}
     />
