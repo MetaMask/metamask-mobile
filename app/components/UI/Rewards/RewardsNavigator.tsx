@@ -6,6 +6,7 @@ import { slideFromRightNativeOptions } from '../../../constants/navigation/clear
 import OnboardingNavigator from './OnboardingNavigator';
 import RewardsDashboard from './Views/RewardsDashboard';
 import ReferralRewardsView from './Views/RewardsReferralView';
+import ReferralRewardsPerformanceView from './Views/RewardsReferralPerformanceView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
 import RewardsVipSplashView from './Views/RewardsVipSplashView';
 import RewardsVipView from './Views/RewardsVipView';
@@ -181,6 +182,11 @@ const RewardsNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.REFERRAL_REWARDS_VIEW}
         component={ReferralRewardsView}
+      />
+      <Stack.Screen
+        name={Routes.REFERRAL_REWARDS_PERFORMANCE_VIEW}
+        component={ReferralRewardsPerformanceView}
+        options={slideFromRightNativeOptions}
       />
       <Stack.Screen
         name={Routes.REWARDS_SETTINGS_VIEW}
