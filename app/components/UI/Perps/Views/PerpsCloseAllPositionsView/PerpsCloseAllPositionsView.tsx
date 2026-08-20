@@ -47,12 +47,15 @@ interface PerpsCloseAllPositionsViewProps {
   onClose?: () => void;
   /** When provided, only these positions are shown and closed. */
   positions?: Position[];
+  /** Drops "all" from the title, which would misdescribe a filtered subset. */
+  isFiltered?: boolean;
 }
 
 const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   sheetRef: externalSheetRef,
   onClose: onExternalClose,
   positions: propPositions,
+  isFiltered = false,
 }) => {
   const theme = useTheme();
   const styles = createStyles(theme);
@@ -239,19 +242,28 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     [handleKeepButtonPress, isClosing],
   );
 
+  const closeCount = positions?.length ?? 0;
+
   const primaryButtonProps = useMemo(
     () => ({
       children: isClosing
         ? strings('perps.close_all_modal.closing')
-        : strings('perps.close_all_modal.close_all'),
+        : strings('perps.close_all_modal.close_count', { count: closeCount }),
       onPress: handleCloseAll,
       size: ButtonSize.Lg,
       isDisabled: isClosing,
       isDanger: true,
       testID: PerpsCloseAllPositionsViewSelectorsIDs.CLOSE_ALL_BUTTON,
     }),
-    [handleCloseAll, isClosing],
+    [closeCount, handleCloseAll, isClosing],
   );
+
+  const title = isFiltered
+    ? strings('perps.close_all_modal.title_filtered')
+    : strings('perps.close_all_modal.title');
+  const description = strings('perps.close_all_modal.description', {
+    count: closeCount,
+  });
 
   const goBack = externalSheetRef ? undefined : navigation.goBack;
   const onClose = externalSheetRef ? onExternalClose : undefined;
@@ -269,7 +281,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
           onClose={handleClose}
           testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
         >
-          {strings('perps.close_all_modal.title')}
+          {title}
         </BottomSheetHeader>
         <Box paddingHorizontal={4}>
           <View style={styles.loadingContainer}>
@@ -296,7 +308,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
           onClose={handleClose}
           testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
         >
-          {strings('perps.close_all_modal.title')}
+          {title}
         </BottomSheetHeader>
         <Box paddingHorizontal={4}>
           <View style={styles.emptyContainer}>
@@ -324,7 +336,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         onClose={handleClose}
         testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
       >
-        {strings('perps.close_all_modal.title')}
+        {title}
       </BottomSheetHeader>
 
       <Box twClassName="py-2">
@@ -335,7 +347,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             style={styles.description}
             testID={PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION}
           >
-            {strings('perps.close_all_modal.description')}
+            {description}
           </Text>
         </Box>
 
