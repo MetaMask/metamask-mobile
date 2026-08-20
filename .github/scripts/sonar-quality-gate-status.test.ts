@@ -246,6 +246,35 @@ describe('shouldSkipQualityGate', () => {
       log.mock.calls.some((call) => String(call[0]).includes('Proceeding')),
     ).toBe(true);
   });
+
+  it('retries a thrown network error then proceeds without failing the job', async () => {
+    const fetchImpl = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('network down'))
+      .mockRejectedValueOnce(new Error('network still down'));
+    const sleepImpl = jest.fn().mockResolvedValue(undefined);
+    const log = jest.fn();
+
+    const skip = await shouldSkipQualityGate({
+      repo: 'MetaMask/metamask-mobile',
+      issueNumber: '1',
+      githubToken: 'token',
+      fetchImpl,
+      sleepImpl,
+      log,
+      labelMaxAttempts: 2,
+      labelRetryBaseMs: 1,
+    });
+
+    expect(skip).toBe(false);
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(
+      log.mock.calls.some((call) => String(call[0]).includes('network down')),
+    ).toBe(true);
+    expect(
+      log.mock.calls.some((call) => String(call[0]).includes('Proceeding')),
+    ).toBe(true);
+  });
 });
 
 describe('checkQualityGate', () => {

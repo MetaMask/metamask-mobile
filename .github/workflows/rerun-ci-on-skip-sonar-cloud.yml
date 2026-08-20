@@ -1,8 +1,8 @@
 name: Rerun failed CI on skip-sonar-cloud
 
-# skip-sonar-cloud is read live by the quality-gate job, so a label added while
-# CI is still running is picked up automatically. Once that job has already
-# failed, re-run only the failed jobs instead of making authors retry by hand.
+# skip-sonar-cloud is read live by the quality-gate job while that job is still
+# running. If the gate already failed (common while E2E keeps the workflow open),
+# this workflow cancels the run if needed and re-runs failed jobs.
 
 on:
   pull_request:

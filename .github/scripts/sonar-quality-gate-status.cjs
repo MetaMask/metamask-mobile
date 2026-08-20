@@ -180,15 +180,22 @@ function decidePrLevelQualityGatePoll(input) {
  * @returns {Promise<{ httpStatus: number, json: unknown, raw: string }>}
  */
 async function fetchJson(url, init, fetchImpl) {
-  const response = await fetchImpl(url, init);
-  const raw = await response.text();
-  let json = null;
   try {
-    json = raw ? JSON.parse(raw) : null;
-  } catch {
-    json = null;
+    const response = await fetchImpl(url, init);
+    const raw = await response.text();
+    let json = null;
+    try {
+      json = raw ? JSON.parse(raw) : null;
+    } catch {
+      json = null;
+    }
+    return { httpStatus: response.status, json, raw };
+  } catch (error) {
+    // Match the previous curl `|| true` behavior: transport failures must not
+    // abort the required quality-gate job. Callers treat httpStatus 0 as retry.
+    const message = error instanceof Error ? error.message : String(error);
+    return { httpStatus: 0, json: null, raw: message };
   }
-  return { httpStatus: response.status, json, raw };
 }
 
 /**
