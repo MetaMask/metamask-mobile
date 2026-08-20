@@ -16,7 +16,7 @@ import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomS
 import {
   DappServer,
   DappVariants,
-  PlaywrightGestures,
+  Gestures,
   TestDapps,
   sleep,
 } from '../../framework/index.js';
@@ -133,7 +133,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM account switching'), () => {
         // Wait here to make sure UI is visible before attempted interaction
         await sleep(1000);
         // We're only using Android for now
-        await PlaywrightGestures.activateApp(currentDeviceDetails);
+        await Gestures.activateApp(currentDeviceDetails);
         await unlockIfLockScreenVisible();
 
         // Change selected account to Account 3 in MetaMask
