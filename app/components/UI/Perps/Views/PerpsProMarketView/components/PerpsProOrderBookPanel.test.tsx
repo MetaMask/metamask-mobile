@@ -7,11 +7,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import type { OrderBookData } from '../../../hooks/stream/usePerpsLiveOrderBook';
-import {
-  ImpactMoment,
-  playImpact,
-  playSelection,
-} from '../../../../../../util/haptics';
+import { playSelection } from '../../../../../../util/haptics';
 
 const mockUsePerpsLiveOrderBook = jest.fn();
 const mockReconnect = jest.fn();
@@ -297,7 +293,7 @@ describe('PerpsProOrderBookPanel', () => {
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON),
     );
     expect(onCollapse).toHaveBeenCalledTimes(1);
-    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
   it('plays selection when the settings icon opens the config sheet', () => {

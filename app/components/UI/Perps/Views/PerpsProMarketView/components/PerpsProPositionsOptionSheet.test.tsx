@@ -3,7 +3,11 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { Text } from '@metamask/design-system-react-native';
 import PerpsProPositionsOptionSheet from './PerpsProPositionsOptionSheet';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
-import { playSelection } from '../../../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../../util/haptics';
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -63,7 +67,9 @@ describe('PerpsProPositionsOptionSheet', () => {
 
     expect(mockOnApply).toHaveBeenCalled();
     expect(mockOnClose).toHaveBeenCalled();
-    expect(playSelection).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    expect(playSelection).not.toHaveBeenCalled();
   });
 
   it('plays selection when Clear is pressed', () => {

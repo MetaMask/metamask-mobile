@@ -1118,9 +1118,11 @@ describe('PerpsMarketDetailsView', () => {
     expect(mockSetPerpsMode).not.toHaveBeenCalled();
     await act(async () => {
       jest.advanceTimersByTime(GLOW_TOTAL_MS);
+      await Promise.resolve();
     });
 
     expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Pro);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.PERPS.MODALS.ROOT,
       expect.objectContaining({
@@ -1148,10 +1150,12 @@ describe('PerpsMarketDetailsView', () => {
     expect(mockSetPerpsMode).not.toHaveBeenCalled();
     await act(async () => {
       jest.advanceTimersByTime(GLOW_TOTAL_MS);
+      await Promise.resolve();
     });
 
     expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Lite);
     expect(mockReset).not.toHaveBeenCalled();
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
   });
 
   it('opens the mode chooser from the pill when the chooser has not been completed', async () => {
@@ -1172,6 +1176,7 @@ describe('PerpsMarketDetailsView', () => {
 
     await act(async () => {
       jest.advanceTimersByTime(GLOW_TOTAL_MS);
+      await Promise.resolve();
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
@@ -1182,6 +1187,7 @@ describe('PerpsMarketDetailsView', () => {
       },
     });
     expect(mockSetPerpsMode).not.toHaveBeenCalled();
+    expect(playImpact).not.toHaveBeenCalled();
   });
 
   it('does not show the active-mode pill when the Pro mode flag is disabled', () => {

@@ -119,24 +119,23 @@ const PerpsMarketHeader = ({
   mode,
   onModeChange,
   enableHaptics = false,
+  enableModeHaptics = false,
   scrollY,
   priceSectionHeight,
   currentPrice: currentPriceOverride,
 }: PerpsMarketHeaderProps) => {
   const { playImpact, playSelection } = useHaptics();
+  const shouldEnableModeHaptics = enableModeHaptics || enableHaptics;
   const fallbackScrollY = useSharedValue(0);
   const fallbackPriceSectionHeight = useSharedValue(0);
   const scrollYSv = scrollY ?? fallbackScrollY;
   const priceSectionHeightSv = priceSectionHeight ?? fallbackPriceSectionHeight;
 
   const handleBackPress = useCallback(() => {
-    if (!onBackPress) {
-      return;
-    }
     if (enableHaptics) {
       playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
     }
-    onBackPress();
+    onBackPress?.();
   }, [enableHaptics, onBackPress, playImpact]);
 
   const handleIdentityPress = useCallback(() => {
@@ -150,23 +149,17 @@ const PerpsMarketHeader = ({
   }, [enableHaptics, onIdentityPress, playImpact]);
 
   const handleWalletPress = useCallback(() => {
-    if (!onWalletPress) {
-      return;
-    }
     if (enableHaptics) {
       playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
     }
-    onWalletPress();
+    onWalletPress?.();
   }, [enableHaptics, onWalletPress, playImpact]);
 
   const handleFavoritePress = useCallback(() => {
-    if (!onFavoritePress) {
-      return;
-    }
     if (enableHaptics) {
       playSelection().catch(() => undefined);
     }
-    onFavoritePress();
+    onFavoritePress?.();
   }, [enableHaptics, onFavoritePress, playSelection]);
 
   const compactProgress = useSharedValue(0);
@@ -299,7 +292,7 @@ const PerpsMarketHeader = ({
               mode={mode}
               variant="active"
               onChange={onModeChange}
-              enableHaptics={enableHaptics}
+              enableHaptics={shouldEnableModeHaptics}
               source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
             />
           </Box>

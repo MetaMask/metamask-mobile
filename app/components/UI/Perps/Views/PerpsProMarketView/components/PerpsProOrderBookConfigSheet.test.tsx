@@ -5,7 +5,11 @@ import PerpsProOrderBookConfigSheet from './PerpsProOrderBookConfigSheet';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
-import { playSelection } from '../../../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../../util/haptics';
 
 const mockOnOpenBottomSheet = jest.fn();
 const mockOnCloseBottomSheet = jest.fn();
@@ -185,8 +189,10 @@ describe('PerpsProOrderBookConfigSheet', () => {
       grouping: 10,
     });
     expect(onClose).toHaveBeenCalled();
-    // Three changed chip picks + save.
-    expect(playSelection).toHaveBeenCalledTimes(4);
+    // Three changed chip picks + the primary save commit.
+    expect(playSelection).toHaveBeenCalledTimes(3);
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
   });
 
   it('does not play a haptic when an already-selected chip is pressed', () => {
@@ -205,6 +211,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
 
     expect(onApply).not.toHaveBeenCalled();
     expect(playSelection).not.toHaveBeenCalled();
+    expect(playImpact).not.toHaveBeenCalled();
   });
 
   it('closes via the header close control', () => {

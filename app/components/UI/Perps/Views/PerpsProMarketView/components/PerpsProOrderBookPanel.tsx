@@ -28,7 +28,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../../locales/i18n';
-import { ImpactMoment, useHaptics } from '../../../../../../util/haptics';
+import { useHaptics } from '../../../../../../util/haptics';
 import { useTheme } from '../../../../../../util/theme';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
@@ -386,7 +386,7 @@ const PerpsProOrderBookPanel = ({
   const testID = PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL;
   const displaySymbol = getPerpsDisplaySymbol(symbol);
   const { colors } = useTheme();
-  const { playImpact, playSelection } = useHaptics();
+  const { playSelection } = useHaptics();
   const buyColor = colors.success.default;
   const sellColor = colors.error.default;
 
@@ -399,9 +399,9 @@ const PerpsProOrderBookPanel = ({
     if (!onCollapse) {
       return;
     }
-    playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+    playSelection().catch(() => undefined);
     onCollapse();
-  }, [onCollapse, playImpact]);
+  }, [onCollapse, playSelection]);
 
   const handleOpenConfig = useCallback(() => {
     playSelection().catch(() => undefined);

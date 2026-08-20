@@ -2,7 +2,11 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import PerpsProPositionsSortSheet from './PerpsProPositionsSortSheet';
 import { DEFAULT_PRO_POSITION_SORT } from '../utils/proPositionSort';
-import { playSelection } from '../../../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../../util/haptics';
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -89,7 +93,9 @@ describe('PerpsProPositionsSortSheet', () => {
       direction: 'asc',
     });
     expect(mockOnClose).toHaveBeenCalled();
-    expect(playSelection).toHaveBeenCalledTimes(2);
+    expect(playSelection).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
   });
 
   it('selects a new field with high-to-low default when pressing another option', () => {
@@ -112,7 +118,9 @@ describe('PerpsProPositionsSortSheet', () => {
       field: 'unrealizedPnl',
       direction: 'desc',
     });
-    expect(playSelection).toHaveBeenCalledTimes(2);
+    expect(playSelection).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
   });
 
   it('plays selection when Clear resets the sort', () => {

@@ -37,7 +37,7 @@ import {
   Pressable,
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import { ImpactMoment, useHaptics } from '../../../../../../../util/haptics';
+import { useHaptics } from '../../../../../../../util/haptics';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
@@ -368,7 +368,7 @@ const PerpsProOrderForm = ({
   isPlaceOrderLoading = false,
   onPlaceOrderPress,
 }: PerpsProOrderFormProps) => {
-  const { playImpact, playSelection } = useHaptics();
+  const { playSelection } = useHaptics();
   const isLong = direction === 'long';
   const showsTriggerPrice = isTriggerOrderType(orderType);
   const showsLimitPrice = isLimitExecutionOrderType(orderType);
@@ -437,9 +437,9 @@ const PerpsProOrderForm = ({
     if (!onExpandOrderBook) {
       return;
     }
-    playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+    playSelection().catch(() => undefined);
     onExpandOrderBook();
-  }, [onExpandOrderBook, playImpact]);
+  }, [onExpandOrderBook, playSelection]);
 
   return (
     <>

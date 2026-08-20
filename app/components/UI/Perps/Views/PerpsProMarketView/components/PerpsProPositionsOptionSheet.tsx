@@ -8,7 +8,7 @@ import {
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import PerpsProModalPortal from './PerpsProModalPortal';
-import { useHaptics } from '../../../../../../util/haptics';
+import { ImpactMoment, useHaptics } from '../../../../../../util/haptics';
 
 export interface PerpsProPositionsOptionSheetProps {
   isVisible: boolean;
@@ -34,7 +34,7 @@ const PerpsProPositionsOptionSheet = ({
   testID = 'perps-pro-positions-option-sheet',
   children,
 }: PerpsProPositionsOptionSheetProps) => {
-  const { playSelection } = useHaptics();
+  const { playImpact, playSelection } = useHaptics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const wasVisibleRef = useRef(false);
 
@@ -55,10 +55,10 @@ const PerpsProPositionsOptionSheet = ({
   }, [onClose]);
 
   const handleApply = useCallback(() => {
-    playSelection().catch(() => undefined);
+    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     onApply();
     handleClose();
-  }, [handleClose, onApply, playSelection]);
+  }, [handleClose, onApply, playImpact]);
 
   const handleClear = useCallback(() => {
     if (!onClear) {

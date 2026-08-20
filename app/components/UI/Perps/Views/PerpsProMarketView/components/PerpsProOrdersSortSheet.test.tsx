@@ -1,7 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import { DEFAULT_PRO_ORDER_SORT } from '../utils/proOrderSort';
-import { playSelection } from '../../../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../../util/haptics';
 import PerpsProOrdersSortSheet from './PerpsProOrdersSortSheet';
 
 jest.mock('../../../../../../util/haptics');
@@ -68,6 +72,8 @@ describe('PerpsProOrdersSortSheet', () => {
       direction: 'desc',
     });
     expect(mockOnClose).toHaveBeenCalled();
-    expect(playSelection).toHaveBeenCalledTimes(2);
+    expect(playSelection).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
   });
 });

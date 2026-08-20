@@ -101,7 +101,7 @@ const ModeLabel = ({ children, isPro, isMask = false }: ModeLabelProps) => {
 interface PerpsModeSwitchPillProps {
   currentModeLabel: string;
   isPro: boolean;
-  onSwitchRequest: () => void;
+  onSwitchRequest: () => void | Promise<boolean | void>;
   enableHaptics?: boolean;
   accessibilityLabel: string;
   accessibilityHint: string;
@@ -146,13 +146,19 @@ const PerpsModeSwitchPill = ({
     opacity: overlayOpacity.value,
   }));
 
+  const handleModeSwitch = useCallback(() => {
+    Promise.resolve(onSwitchRequest())
+      .then((applied) => {
+        if (applied !== false && enableHaptics) {
+          playImpact(ImpactMoment.TabChange).catch(() => undefined);
+        }
+      })
+      .catch(() => undefined);
+  }, [enableHaptics, onSwitchRequest, playImpact]);
+
   const handlePress = useCallback(() => {
     if (timerRef.current) {
       return;
-    }
-
-    if (enableHaptics) {
-      playImpact(ImpactMoment.TabChange).catch(() => undefined);
     }
 
     setIsShimmering(true);
@@ -170,15 +176,9 @@ const PerpsModeSwitchPill = ({
     timerRef.current = setTimeout(() => {
       timerRef.current = null;
       setIsShimmering(false);
-      onSwitchRequest();
+      handleModeSwitch();
     }, GLOW_TOTAL_MS);
-  }, [
-    enableHaptics,
-    onSwitchRequest,
-    overlayOpacity,
-    playImpact,
-    sweepProgress,
-  ]);
+  }, [handleModeSwitch, overlayOpacity, sweepProgress]);
 
   const gradient = (
     <LinearGradient

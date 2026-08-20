@@ -19,7 +19,7 @@ import React, {
 } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { useHaptics } from '../../../../../../util/haptics';
+import { ImpactMoment, useHaptics } from '../../../../../../util/haptics';
 import { useTheme } from '../../../../../../util/theme';
 import type { Colors } from '../../../../../../util/theme/models';
 import {
@@ -138,7 +138,7 @@ const PerpsProOrderBookConfigSheet = ({
   onClose,
   testID = 'perps-pro-order-book-config-sheet',
 }: PerpsProOrderBookConfigSheetProps) => {
-  const { playSelection } = useHaptics();
+  const { playImpact, playSelection } = useHaptics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const wasVisibleRef = useRef(false);
   const [draftCurrency, setDraftCurrency] =
@@ -203,7 +203,7 @@ const PerpsProOrderBookConfigSheet = ({
     if (draftGrouping === null) {
       return;
     }
-    playSelection().catch(() => undefined);
+    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     onApply({
       currency: draftCurrency,
       metric: draftMetric,
@@ -216,7 +216,7 @@ const PerpsProOrderBookConfigSheet = ({
     draftGrouping,
     onApply,
     handleClose,
-    playSelection,
+    playImpact,
   ]);
 
   const primaryButtonProps = useMemo(

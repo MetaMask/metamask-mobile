@@ -610,7 +610,7 @@ describe('PerpsHomeView', () => {
     expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
-  it('renders the active-mode pill in the header when the Pro mode flag is enabled', () => {
+  it('enables mode-toggle haptics for the Lite mode header', () => {
     // Arrange
     mockUseSelector.mockImplementation(
       (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
@@ -629,7 +629,7 @@ describe('PerpsHomeView', () => {
     ).toBeOnTheScreen();
     expect(mockPerpsModeToggle).toHaveBeenCalledWith({
       variant: 'active',
-      enableHaptics: false,
+      enableHaptics: true,
     });
   });
 

@@ -48,10 +48,10 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
   const { playImpact } = useHaptics();
 
   const handleChange = useCallback(
-    async (value: string) => {
+    async (value: string): Promise<boolean> => {
       const nextMode = value as PerpsMode;
       if (nextMode === mode) {
-        return;
+        return false;
       }
 
       // Defer analytics until the parent confirms the mode was applied.
@@ -59,11 +59,11 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
       // switching — otherwise we would count dismissals as mode switches.
       const applied = await onChange?.(nextMode);
       if (applied === false) {
-        return;
+        return false;
       }
 
-      // Active pill fires TabChange immediately on press; the delayed
-      // onSwitchRequest path must not double-fire after the shimmer.
+      // The active pill fires TabChange after its delayed switch request
+      // confirms the mode was applied; the default variant fires here.
       if (enableHaptics && variant !== 'active') {
         playImpact(ImpactMoment.TabChange).catch(() => undefined);
       }
@@ -74,6 +74,7 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
         [PERPS_MODE_ANALYTICS_PROPERTY]: nextMode,
         ...(source ? { [PERPS_EVENT_PROPERTY.SOURCE]: source } : {}),
       });
+      return true;
     },
     [enableHaptics, mode, onChange, playImpact, source, track, variant],
   );

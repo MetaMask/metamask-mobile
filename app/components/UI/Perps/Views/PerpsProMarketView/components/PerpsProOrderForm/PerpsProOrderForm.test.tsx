@@ -729,7 +729,7 @@ describe('PerpsProOrderForm', () => {
       );
 
       expect(onExpandOrderBook).toHaveBeenCalledTimes(1);
-      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+      expect(playSelection).toHaveBeenCalledTimes(1);
     });
   });
 

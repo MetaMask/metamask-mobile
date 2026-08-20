@@ -56,8 +56,8 @@ export interface PerpsModeToggleProps {
   source?: string;
 
   /**
-   * When true, fires selection haptics on a meaningful mode change.
-   * Defaults off so Lite entry points stay silent.
+   * When true, fires the medium TabChange haptic on a meaningful mode change.
+   * Defaults off for callers that do not opt into mode feedback.
    */
   enableHaptics?: boolean;
 

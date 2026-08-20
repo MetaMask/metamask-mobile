@@ -1533,6 +1533,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         mode={isPerpsProModeEnabled ? perpsMode : undefined}
         onModeChange={isPerpsProModeEnabled ? handlePerpsModeChange : undefined}
         enableHaptics={perpsMode === PerpsMode.Pro}
+        enableModeHaptics={isPerpsProModeEnabled}
         scrollY={scrollYShared}
         priceSectionHeight={titleSectionHeightSv}
         currentPrice={syncedChartCurrentPrice}

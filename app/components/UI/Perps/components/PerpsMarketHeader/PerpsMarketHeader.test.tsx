@@ -247,7 +247,7 @@ describe('PerpsMarketHeader', () => {
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
 
-  it('plays TabChange immediately on mode-pill press when haptics are enabled', () => {
+  it('plays TabChange after an accepted mode-pill switch', async () => {
     jest.useFakeTimers();
     const onModeChange = jest.fn();
     const { getByTestId } = renderHeader({
@@ -257,15 +257,45 @@ describe('PerpsMarketHeader', () => {
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
 
-    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
+    expect(playImpact).not.toHaveBeenCalled();
     expect(onModeChange).not.toHaveBeenCalled();
 
-    act(() => {
+    await act(async () => {
       jest.advanceTimersByTime(GLOW_TOTAL_MS);
+      await Promise.resolve();
     });
 
     expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Lite);
     expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
+  });
+
+  it('keeps other Lite header actions silent when mode haptics are enabled', async () => {
+    jest.useFakeTimers();
+    const onBackPress = jest.fn();
+    const onModeChange = jest.fn();
+    const { getByTestId } = renderHeader({
+      mode: PerpsMode.Lite,
+      onBackPress,
+      onModeChange,
+      enableModeHaptics: true,
+    });
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON),
+    );
+    expect(playImpact).not.toHaveBeenCalled();
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
+
+    await act(async () => {
+      jest.advanceTimersByTime(GLOW_TOTAL_MS);
+      await Promise.resolve();
+    });
+
+    expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Pro);
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
   });
 
   it('renders the filled star when the market is favorited', () => {
