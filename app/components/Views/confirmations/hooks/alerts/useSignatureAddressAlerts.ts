@@ -21,7 +21,7 @@ import { useSignatureRequest } from '../signatures/useSignatureRequest';
 /**
  * Generate trust-signal alerts for the address fields of a typed-data signature.
  */
-export function useSignatureAddressAlerts(): Alert[] {
+export function useSignatureTrustSignalAlerts(): Alert[] {
   const signatureRequest = useSignatureRequest();
   const isSecurityAlertsEnabled = useSelector(selectIsSecurityAlertsEnabled);
 
@@ -95,32 +95,37 @@ export function useSignatureAddressAlerts(): Alert[] {
       return alerts;
     }
 
+    const baseAlert = {
+      field: RowAlertKey.InteractingWith,
+      isBlocking: false as const,
+    };
+
     trustSignals.forEach(({ state }, index) => {
       const address = signatureAddresses[index];
+      const shortAddress = renderShortAddress(address);
+      const fieldLabel = fields[address];
 
       if (state === TrustSignalDisplayState.Malicious) {
         alerts.push({
+          ...baseAlert,
           key: `${AlertKeys.SignatureAddressTrustSignalMalicious}_${address}`,
-          field: RowAlertKey.InteractingWith,
           severity: Severity.Danger,
           message: strings(
             'alert_system.signature_address_scan.malicious.message',
-            { field: fields[address], address: renderShortAddress(address) },
+            { field: fieldLabel, address: shortAddress },
           ),
           title: strings('alert_system.signature_address_scan.malicious.title'),
-          isBlocking: false,
         });
       } else if (state === TrustSignalDisplayState.Warning) {
         alerts.push({
+          ...baseAlert,
           key: `${AlertKeys.SignatureAddressTrustSignalWarning}_${address}`,
-          field: RowAlertKey.InteractingWith,
           severity: Severity.Warning,
           message: strings(
             'alert_system.signature_address_scan.warning.message',
-            { field: fields[address], address: renderShortAddress(address) },
+            { field: fieldLabel, address: shortAddress },
           ),
           title: strings('alert_system.signature_address_scan.warning.title'),
-          isBlocking: false,
         });
       }
     });

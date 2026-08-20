@@ -25,11 +25,11 @@ import { useAddressPoisoningAlert } from './useAddressPoisoningAlert';
 import { useTokenContractAlert } from './useTokenContractAlert';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 import { useMMPayHardwareAccountAlert } from './useMMPayHardwareAccountAlert';
-import { useSignatureAddressAlerts } from './useSignatureAddressAlerts';
+import { useSignatureTrustSignalAlerts } from './useSignatureAddressAlerts';
 
 function useSignatureAlerts(): Alert[] {
   const domainMismatchAlerts = useDomainMismatchAlerts();
-  const signatureAddressAlerts = useSignatureAddressAlerts();
+  const signatureAddressAlerts = useSignatureTrustSignalAlerts();
 
   return useMemo(
     () => [...domainMismatchAlerts, ...signatureAddressAlerts],

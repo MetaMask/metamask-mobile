@@ -9,7 +9,7 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Severity } from '../../types/alerts';
 import { TrustSignalDisplayState } from '../../types/trustSignals';
-import { useSignatureAddressAlerts } from './useSignatureAddressAlerts';
+import { useSignatureTrustSignalAlerts } from './useSignatureAddressAlerts';
 import { useSignatureRequest } from '../signatures/useSignatureRequest';
 import { useAddressTrustSignals } from '../useAddressTrustSignals';
 import { parseTypedDataMessage } from '../../../../../lib/address-scanning/address-scan-util';
@@ -86,7 +86,7 @@ describe('useSignatureAddressAlerts (mobile)', () => {
     mockParseTypedDataMessage.mockReturnValue(SIMPLE_TYPED_DATA);
 
     const { result } = renderHookWithProvider(
-      () => useSignatureAddressAlerts(),
+      () => useSignatureTrustSignalAlerts(),
       {
         state: {
           engine: {
@@ -106,7 +106,7 @@ describe('useSignatureAddressAlerts (mobile)', () => {
     mockUseSignatureRequest.mockReturnValue(undefined);
 
     const { result } = renderHookWithProvider(
-      () => useSignatureAddressAlerts(),
+      () => useSignatureTrustSignalAlerts(),
       enabledState,
     );
 
@@ -121,7 +121,7 @@ describe('useSignatureAddressAlerts (mobile)', () => {
     } as unknown as SignatureRequest);
 
     const { result } = renderHookWithProvider(
-      () => useSignatureAddressAlerts(),
+      () => useSignatureTrustSignalAlerts(),
       enabledState,
     );
 
@@ -135,7 +135,7 @@ describe('useSignatureAddressAlerts (mobile)', () => {
     );
 
     const { result } = renderHookWithProvider(
-      () => useSignatureAddressAlerts(),
+      () => useSignatureTrustSignalAlerts(),
       enabledState,
     );
 
@@ -150,7 +150,7 @@ describe('useSignatureAddressAlerts (mobile)', () => {
     mockParseTypedDataMessage.mockReturnValue(null);
 
     const { result } = renderHookWithProvider(
-      () => useSignatureAddressAlerts(),
+      () => useSignatureTrustSignalAlerts(),
       enabledState,
     );
 
@@ -167,7 +167,7 @@ describe('useSignatureAddressAlerts (mobile)', () => {
     mockParseTypedDataMessage.mockReturnValue(typedData);
 
     const { result } = renderHookWithProvider(
-      () => useSignatureAddressAlerts(),
+      () => useSignatureTrustSignalAlerts(),
       enabledState,
     );
 
@@ -184,7 +184,7 @@ describe('useSignatureAddressAlerts (mobile)', () => {
     ]);
 
     const { result } = renderHookWithProvider(
-      () => useSignatureAddressAlerts(),
+      () => useSignatureTrustSignalAlerts(),
       enabledState,
     );
 
@@ -210,7 +210,7 @@ describe('useSignatureAddressAlerts (mobile)', () => {
     ]);
 
     const { result } = renderHookWithProvider(
-      () => useSignatureAddressAlerts(),
+      () => useSignatureTrustSignalAlerts(),
       enabledState,
     );
 
@@ -232,7 +232,7 @@ describe('useSignatureAddressAlerts (mobile)', () => {
     ]);
 
     const { result } = renderHookWithProvider(
-      () => useSignatureAddressAlerts(),
+      () => useSignatureTrustSignalAlerts(),
       enabledState,
     );
 
@@ -249,7 +249,7 @@ describe('useSignatureAddressAlerts (mobile)', () => {
     mockParseTypedDataMessage.mockReturnValue(typedData);
 
     const { result } = renderHookWithProvider(
-      () => useSignatureAddressAlerts(),
+      () => useSignatureTrustSignalAlerts(),
       enabledState,
     );
 
@@ -280,7 +280,7 @@ describe('useSignatureAddressAlerts (mobile)', () => {
     );
 
     const { result } = renderHookWithProvider(
-      () => useSignatureAddressAlerts(),
+      () => useSignatureTrustSignalAlerts(),
       enabledState,
     );
 
@@ -308,7 +308,7 @@ describe('useSignatureAddressAlerts (mobile)', () => {
       { state: TrustSignalDisplayState.Unknown, label: null },
     ]);
 
-    renderHookWithProvider(() => useSignatureAddressAlerts(), enabledState);
+    renderHookWithProvider(() => useSignatureTrustSignalAlerts(), enabledState);
 
     expect(mockUseAddressTrustSignals).toHaveBeenCalledWith([
       { address: MALICIOUS_ADDRESS, chainId: CHAIN_ID },
