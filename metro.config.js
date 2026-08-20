@@ -184,6 +184,17 @@ module.exports = function (baseConfig) {
               'node:buffer': '@craftzdog/react-native-buffer',
             },
             resolveRequest: (context, moduleName, platform) => {
+              if (moduleName.startsWith('#app/')) {
+                return context.resolveRequest(
+                  context,
+                  path.resolve(
+                    __dirname,
+                    'app',
+                    moduleName.slice('#app/'.length),
+                  ),
+                  platform,
+                );
+              }
               // MYXProvider is intentionally excluded from @metamask/perps-controller's
               // published dist (extension-only). The dynamic import() uses webpackIgnore
               // but babel's dynamicImportToRequire rewrites it to require(), causing Metro
