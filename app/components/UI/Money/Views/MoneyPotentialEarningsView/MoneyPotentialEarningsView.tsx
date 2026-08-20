@@ -32,7 +32,6 @@ import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
-import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
 import PotentialEarningsTokenRow from '../../components/MoneyPotentialEarnings/PotentialEarningsTokenRow';
 import { isPositiveNumber } from '../../utils/number';
@@ -41,6 +40,7 @@ import { MoneyPotentialEarningsViewTestIds } from './MoneyPotentialEarningsView.
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
+import type { MoneyDepositAsset } from '../../selectors/depositTokens';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -130,7 +130,7 @@ const MoneyPotentialEarningsView = () => {
   }, [eligibleTokens, initiateDeposit, trackTokenButtonClicked]);
 
   const handleTokenButtonPress = useCallback(
-    (token: AssetType, tokenIndex: number) => async () => {
+    (token: MoneyDepositAsset, tokenIndex: number) => async () => {
       try {
         trackTokenButtonClicked({
           button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -161,7 +161,7 @@ const MoneyPotentialEarningsView = () => {
   );
 
   const handleTokenCardPress = useCallback(
-    (token: AssetType, tokenIndex: number) => async () => {
+    (token: MoneyDepositAsset, tokenIndex: number) => async () => {
       try {
         trackTokenSurfaceClicked({
           component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
@@ -249,7 +249,7 @@ const MoneyPotentialEarningsView = () => {
   );
 
   const renderTokenRow = useCallback(
-    ({ item, index }: { item: AssetType; index: number }) => (
+    ({ item, index }: { item: MoneyDepositAsset; index: number }) => (
       <PotentialEarningsTokenRow
         token={item}
         hasSubsidizedFee={isNoFeeToken(item)}

@@ -8,7 +8,10 @@ import {
   createMobileClientConfig,
   getTerminalApiUrl,
 } from './mobileInfrastructure';
-import { TERMINAL_API_URLS } from '../constants/terminalApi';
+import {
+  resolveTerminalGlobalSnapshotUrl,
+  TERMINAL_API_URLS,
+} from '../constants/terminalApi';
 import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../util/analytics/analytics', () => ({
@@ -460,7 +463,7 @@ describe('getTerminalApiUrl', () => {
   });
 });
 
-describe('createMobileInfrastructure - terminalApiUrl', () => {
+describe('createMobileInfrastructure - terminalApi', () => {
   let savedEnv: string | undefined;
   let savedBuildType: string | undefined;
 
@@ -482,28 +485,74 @@ describe('createMobileInfrastructure - terminalApiUrl', () => {
     }
   });
 
-  it('includes terminalApiUrl in the returned infrastructure', () => {
+  it('includes the production market endpoint in one Terminal config', () => {
     process.env.METAMASK_ENVIRONMENT = 'production';
     process.env.METAMASK_BUILD_TYPE = 'main';
     const infra = createMobileInfrastructure();
-    expect(infra.terminalApiUrl).toBe(TERMINAL_API_URLS.PRD);
+    expect(infra.terminalApi).toEqual({
+      marketDataUrl: TERMINAL_API_URLS.PRD,
+      globalSnapshotUrl: 'https://terminal.api.cx.metamask.io/v2/perpetuals',
+    });
   });
 
-  it('terminalApiUrl is the full endpoint including /v1/perpetuals path', () => {
-    process.env.METAMASK_ENVIRONMENT = 'production';
-    process.env.METAMASK_BUILD_TYPE = 'main';
-    const infra = createMobileInfrastructure();
-    expect(infra.terminalApiUrl).toBe(
-      'https://terminal.api.cx.metamask.io/v1/perpetuals',
-    );
-  });
-
-  it('dev terminalApiUrl is the full endpoint including /v1/perpetuals path', () => {
+  it('uses the full development and UAT endpoints', () => {
     process.env.METAMASK_ENVIRONMENT = 'dev';
     delete process.env.METAMASK_BUILD_TYPE;
     const infra = createMobileInfrastructure();
-    expect(infra.terminalApiUrl).toBe(
+    expect(infra.terminalApi?.marketDataUrl).toBe(
       'https://terminal.dev-api.cx.metamask.io/v1/perpetuals',
     );
+    expect(infra.terminalApi?.globalSnapshotUrl).toBe(
+      'https://terminal.dev-api.cx.metamask.io/v2/perpetuals',
+    );
+
+    process.env.METAMASK_ENVIRONMENT = 'exp';
+    process.env.METAMASK_BUILD_TYPE = 'beta';
+    expect(createMobileInfrastructure().terminalApi).toEqual({
+      marketDataUrl: TERMINAL_API_URLS.UAT,
+      globalSnapshotUrl:
+        'https://terminal.uat-api.cx.metamask.io/v2/perpetuals',
+    });
+  });
+});
+
+describe('resolveTerminalGlobalSnapshotUrl', () => {
+  it('returns a trimmed explicit endpoint only for a dev bundle in dev', () => {
+    expect(
+      resolveTerminalGlobalSnapshotUrl({
+        isDevBundle: true,
+        environment: 'dev',
+        endpoint: '  http://127.0.0.1:9332/v2/perpetuals/global-snapshot  ',
+        marketDataUrl: TERMINAL_API_URLS.DEV,
+      }),
+    ).toBe('http://127.0.0.1:9332/v2/perpetuals/global-snapshot');
+
+    expect(
+      resolveTerminalGlobalSnapshotUrl({
+        isDevBundle: true,
+        environment: 'production',
+        endpoint: 'http://127.0.0.1:9332/v2/perpetuals/global-snapshot',
+        marketDataUrl: TERMINAL_API_URLS.PRD,
+      }),
+    ).toBe('https://terminal.api.cx.metamask.io/v2/perpetuals');
+    expect(
+      resolveTerminalGlobalSnapshotUrl({
+        isDevBundle: false,
+        environment: 'dev',
+        endpoint: 'http://127.0.0.1:9332/v2/perpetuals/global-snapshot',
+        marketDataUrl: TERMINAL_API_URLS.DEV,
+      }),
+    ).toBe('https://terminal.dev-api.cx.metamask.io/v2/perpetuals');
+  });
+
+  it('derives the deployed endpoint when the dev override is blank', () => {
+    expect(
+      resolveTerminalGlobalSnapshotUrl({
+        isDevBundle: true,
+        environment: 'dev',
+        endpoint: '   ',
+        marketDataUrl: TERMINAL_API_URLS.DEV,
+      }),
+    ).toBe('https://terminal.dev-api.cx.metamask.io/v2/perpetuals');
   });
 });

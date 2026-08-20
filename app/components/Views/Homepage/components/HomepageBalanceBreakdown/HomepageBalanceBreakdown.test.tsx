@@ -186,7 +186,7 @@ describe('HomepageBalanceBreakdown', () => {
   });
 
   it('renders the aggregate hero and rows in screenshot order', () => {
-    const { getByTestId, getAllByRole } = render(
+    const { getByTestId, getAllByRole, queryByTestId } = render(
       <HomepageBalanceBreakdown layout="icons" />,
     );
 
@@ -236,6 +236,9 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.ICON('defi')),
     ).toHaveTextContent('%');
     expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.ARROW('money')),
+    ).not.toBeOnTheScreen();
+    expect(
       getByTestId(HomepageBalanceBreakdownTestIds.HERO).props
         .accessibilityLabel,
     ).toContain('USD 50.00');
@@ -257,6 +260,23 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('perps')).props
         .accessibilityLabel,
     ).toBe('Perps, USD 10.00, 20%');
+  });
+
+  it('renders a right arrow on every icon row when enabled', () => {
+    const { getByTestId } = render(
+      <HomepageBalanceBreakdown layout="icons" showRowArrows />,
+    );
+
+    (['money', 'tokens', 'perps', 'predict', 'defi'] as const).forEach(
+      (key) => {
+        expect(
+          getByTestId(HomepageBalanceBreakdownTestIds.ARROW(key)).props.name,
+        ).toBe('ArrowRight');
+        expect(
+          getByTestId(HomepageBalanceBreakdownTestIds.ICON(key)),
+        ).toBeOnTheScreen();
+      },
+    );
   });
 
   it('localizes allocation percentages and APY numbers', () => {

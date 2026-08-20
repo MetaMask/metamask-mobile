@@ -9,7 +9,7 @@ on:
         description: Runner provider forwarded from the caller
         required: false
         type: string
-        default: current
+        default: namespace
       ios_build_run_id:
         description: Optional GitHub Actions run id that has main-e2e-MetaMask.app
         required: false
@@ -24,7 +24,7 @@ on:
         options:
           - current
           - namespace
-        default: current
+        default: namespace
       ios_build_run_id:
         description: Optional GitHub Actions run id that has main-e2e-MetaMask.app (else latest successful build on main)
         required: false

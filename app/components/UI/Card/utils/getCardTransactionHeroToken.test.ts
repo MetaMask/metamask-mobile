@@ -56,7 +56,7 @@ describe('getCardTransactionHeroToken', () => {
         fundingSources: [
           {
             currency: 'veda',
-            address: '0xabc',
+            walletAddress: '0xabc',
             chainId: 'eip155:143',
           },
         ],
@@ -66,17 +66,26 @@ describe('getCardTransactionHeroToken', () => {
     expect(result.symbol).toBe(MONEY_ACCOUNT_DISPLAY_SYMBOL);
   });
 
-  it('returns funding token symbol when address and chainId are present', () => {
+  it('returns the resolved funding token when currency is present', () => {
     const result = getCardTransactionHeroToken(
       createTransaction({
         fundingSources: [
           {
             currency: 'usdc',
-            address: '0xusdc',
+            walletAddress: '0xwallet',
             chainId: 'eip155:59144',
           },
         ],
       }),
+      {
+        address: '0xusdc',
+        caipChainId: 'eip155:59144',
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
+        fundingStatus: 'enabled',
+        spendableBalance: '10',
+      } as never,
     );
 
     expect(result.symbol).toBe('USDC');
@@ -95,7 +104,7 @@ describe('getCardTransactionHeroToken', () => {
     expect(result.symbol).toBe(MONEY_ACCOUNT_DISPLAY_SYMBOL);
   });
 
-  it('returns the fallback token when funding has currency but no address or chain', () => {
+  it('returns the fallback token when funding has currency but no resolved token', () => {
     const result = getCardTransactionHeroToken(
       createTransaction({
         fundingSources: [{ currency: 'eure' }],
@@ -114,7 +123,7 @@ describe('getCardTransactionHeroToken', () => {
     expect(result.symbol).toBe('USDC');
   });
 
-  it('uppercases funding currency when there is no address, chain, or fallback', () => {
+  it('uppercases funding currency when there is no resolved token or fallback', () => {
     const result = getCardTransactionHeroToken(
       createTransaction({
         fundingSources: [{ currency: 'eure' }],
