@@ -3,7 +3,9 @@ import { Linking, ScrollView, Share } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import FileShare from 'react-native-share';
 import ReferralRevenueShareDashboard, {
+  PrototypeExistingUserInviteHost,
   setClaimingEnabled,
+  setInvitedExistingUserVisible,
 } from './ReferralRevenueShareDashboard';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import {
@@ -93,6 +95,15 @@ const renderDashboard = (mode?: 'overview' | 'performance') =>
     </ToastContext.Provider>,
   );
 
+const renderExistingUserInvite = () => {
+  setInvitedExistingUserVisible(true);
+  render(
+    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+      <PrototypeExistingUserInviteHost />
+    </ToastContext.Provider>,
+  );
+};
+
 const flushInvitedNewUserDismiss = () => {
   act(() => {
     jest.advanceTimersByTime(350);
@@ -115,6 +126,7 @@ describe('ReferralRevenueShareDashboard', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     setClaimingEnabled(false);
+    setInvitedExistingUserVisible(false);
   });
 
   afterEach(() => {
@@ -310,7 +322,15 @@ describe('ReferralRevenueShareDashboard', () => {
 
       fireEvent.press(screen.getByTestId('accept-invited-new-user-button'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.WALLET.HOME,
+        params: {
+          screen: Routes.WALLET.TAB_STACK_FLOW,
+          params: {
+            screen: Routes.WALLET_VIEW,
+          },
+        },
+      });
 
       flushInvitedNewUserDismiss();
 
@@ -319,7 +339,7 @@ describe('ReferralRevenueShareDashboard', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('opens the invited existing user sheet when that scenario is selected', () => {
+    it('navigates to the rewards tab when Invited existing user is selected', () => {
       renderDashboard();
 
       fireEvent.press(
@@ -328,11 +348,22 @@ describe('ReferralRevenueShareDashboard', () => {
 
       expect(screen.queryByText('Prototype Scenarios')).not.toBeOnTheScreen();
       expect(
+        screen.queryByTestId('invited-existing-user-sheet'),
+      ).not.toBeOnTheScreen();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.REWARDS_VIEW,
+        params: {
+          screen: Routes.REWARDS_DASHBOARD,
+        },
+      });
+    });
+
+    it('shows the existing user invite sheet on the rewards host', () => {
+      renderExistingUserInvite();
+
+      expect(
         screen.getByTestId('invited-existing-user-sheet'),
       ).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId('invited-new-user-screen'),
-      ).not.toBeOnTheScreen();
       expect(screen.getByText("You're invited")).toBeOnTheScreen();
       expect(
         screen.getByText(/Someone shared an invite with you/),
@@ -355,11 +386,7 @@ describe('ReferralRevenueShareDashboard', () => {
     });
 
     it('requires accept or decline on the invited existing user sheet', () => {
-      renderDashboard();
-
-      fireEvent.press(
-        screen.getByTestId('prototype-scenario-invited-existing-user'),
-      );
+      renderExistingUserInvite();
 
       expect(
         screen.queryByTestId('close-invited-existing-user-button'),
@@ -373,10 +400,7 @@ describe('ReferralRevenueShareDashboard', () => {
     });
 
     it('keeps the referral code field reserved height when edit is pressed', () => {
-      renderDashboard();
-      fireEvent.press(
-        screen.getByTestId('prototype-scenario-invited-existing-user'),
-      );
+      renderExistingUserInvite();
       const codeField = screen.getByTestId('referral-invite-code-field');
 
       fireEvent(codeField, 'layout', {
@@ -393,10 +417,7 @@ describe('ReferralRevenueShareDashboard', () => {
     });
 
     it('edits the referral code on the invited existing user sheet after edit is pressed', () => {
-      renderDashboard();
-      fireEvent.press(
-        screen.getByTestId('prototype-scenario-invited-existing-user'),
-      );
+      renderExistingUserInvite();
 
       fireEvent.press(screen.getByTestId('edit-referral-code-button'));
       fireEvent.changeText(
@@ -415,10 +436,7 @@ describe('ReferralRevenueShareDashboard', () => {
     });
 
     it('shows a cancel action when the referral code field becomes editable', () => {
-      renderDashboard();
-      fireEvent.press(
-        screen.getByTestId('prototype-scenario-invited-existing-user'),
-      );
+      renderExistingUserInvite();
 
       fireEvent.press(screen.getByTestId('edit-referral-code-button'));
 
@@ -431,10 +449,7 @@ describe('ReferralRevenueShareDashboard', () => {
     });
 
     it('restores the uneditable referral code when cancel is pressed', () => {
-      renderDashboard();
-      fireEvent.press(
-        screen.getByTestId('prototype-scenario-invited-existing-user'),
-      );
+      renderExistingUserInvite();
       fireEvent.press(screen.getByTestId('edit-referral-code-button'));
       fireEvent.changeText(
         screen.getByTestId('invited-existing-user-referral-code-input'),
@@ -453,10 +468,7 @@ describe('ReferralRevenueShareDashboard', () => {
     });
 
     it('restores the original referral code when the field is cleared and left empty', () => {
-      renderDashboard();
-      fireEvent.press(
-        screen.getByTestId('prototype-scenario-invited-existing-user'),
-      );
+      renderExistingUserInvite();
       fireEvent.press(screen.getByTestId('edit-referral-code-button'));
       fireEvent.changeText(
         screen.getByTestId('invited-existing-user-referral-code-input'),
@@ -472,10 +484,7 @@ describe('ReferralRevenueShareDashboard', () => {
     });
 
     it('shows a success check after a 6 character referral code is entered', () => {
-      renderDashboard();
-      fireEvent.press(
-        screen.getByTestId('prototype-scenario-invited-existing-user'),
-      );
+      renderExistingUserInvite();
       fireEvent.press(screen.getByTestId('edit-referral-code-button'));
 
       fireEvent.changeText(
@@ -492,10 +501,7 @@ describe('ReferralRevenueShareDashboard', () => {
     });
 
     it('dismisses the invited existing user sheet when decline is pressed', () => {
-      renderDashboard();
-      fireEvent.press(
-        screen.getByTestId('prototype-scenario-invited-existing-user'),
-      );
+      renderExistingUserInvite();
 
       fireEvent.press(
         screen.getByTestId('decline-invited-existing-user-button'),
@@ -507,10 +513,7 @@ describe('ReferralRevenueShareDashboard', () => {
     });
 
     it('dismisses the invited existing user sheet when accept is pressed', () => {
-      renderDashboard();
-      fireEvent.press(
-        screen.getByTestId('prototype-scenario-invited-existing-user'),
-      );
+      renderExistingUserInvite();
 
       fireEvent.press(
         screen.getByTestId('accept-invited-existing-user-button'),
@@ -539,7 +542,15 @@ describe('ReferralRevenueShareDashboard', () => {
 
       fireEvent.press(screen.getByTestId('prototype-scenario-ineligible-user'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.WALLET.HOME,
+        params: {
+          screen: Routes.WALLET.TAB_STACK_FLOW,
+          params: {
+            screen: Routes.WALLET_VIEW,
+          },
+        },
+      });
       expect(mockShowToast).not.toHaveBeenCalled();
 
       act(() => {
