@@ -127,6 +127,10 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+// `strings` is mocked to the identity above, so the sub-minute age label
+// renders as its translation key rather than "Just now".
+const JUST_NOW_LABEL = /social_leaderboard\.feed\.just_now/;
+
 const mockTrack = jest.fn();
 jest.mock('../analytics', () => {
   const actual = jest.requireActual('../analytics');
@@ -481,13 +485,17 @@ describe('FeedView', () => {
     }
   });
 
+  // The age has to straddle the one-minute boundary for this to prove anything:
+  // every sub-minute value renders "Just now", so a refresh that stayed inside
+  // that range would assert the same label before and after and would pass even
+  // if the clock were ignored entirely.
   it('updates the relative timestamp on pull-to-refresh when the payload is unchanged', async () => {
     jest.useFakeTimers();
     const t0 = 1_700_000_000_000;
     jest.setSystemTime(t0);
     const unchangedItem: FeedItem = {
       ...spotItem,
-      timestamp: t0 - 29_000,
+      timestamp: t0 - 55_000,
     };
     const sections: FeedSection[] = [
       { dateLabel: 'Today', data: [unchangedItem] },
@@ -501,7 +509,7 @@ describe('FeedView', () => {
     try {
       const { rerender } = renderWithProvider(<FeedView />);
 
-      expect(screen.getByText(/29s/)).toBeOnTheScreen();
+      expect(screen.getByText(JUST_NOW_LABEL)).toBeOnTheScreen();
 
       const list = screen.getByTestId(FeedViewSelectorsIDs.LIST);
       await act(async () => {
@@ -525,8 +533,8 @@ describe('FeedView', () => {
         rerender(<FeedView />);
       });
 
-      expect(screen.getByText(/39s/)).toBeOnTheScreen();
-      expect(screen.queryByText(/29s/)).not.toBeOnTheScreen();
+      expect(screen.getByText(/1m/)).toBeOnTheScreen();
+      expect(screen.queryByText(JUST_NOW_LABEL)).not.toBeOnTheScreen();
     } finally {
       jest.useRealTimers();
     }
@@ -534,9 +542,8 @@ describe('FeedView', () => {
 
   // The pager mounts both tabs, so FeedView can sit mounted with a disabled
   // query for a long time before the Feed tab is opened and the first fetch
-  // lands. Reading the clock at mount would understate every age by that gap
-  // (and clamp anything traded after mount to `0s`), so ages are formatted
-  // against the fetch instant instead.
+  // lands. Reading the clock at mount would understate every age by that gap,
+  // so ages are formatted against the fetch instant instead.
   it('formats ages against the fetch instant, not the mount instant', () => {
     jest.useFakeTimers();
     const fetchedAt = 1_700_000_000_000;
@@ -553,7 +560,7 @@ describe('FeedView', () => {
     try {
       renderWithProvider(<FeedView />);
 
-      expect(screen.getByText(/29s/)).toBeOnTheScreen();
+      expect(screen.getByText(JUST_NOW_LABEL)).toBeOnTheScreen();
       expect(screen.queryByText(/10m/)).not.toBeOnTheScreen();
     } finally {
       jest.useRealTimers();
