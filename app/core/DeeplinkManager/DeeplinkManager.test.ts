@@ -175,6 +175,7 @@ describe('DeeplinkManager', () => {
 
     it('starts on parse and ends at the handler_finished seam when handled', async () => {
       mockParseDeeplink.mockResolvedValueOnce(true);
+      mockStartProcessed.mockReturnValueOnce(42);
 
       await deeplinkManager.parse(url, { origin });
 
@@ -183,8 +184,15 @@ describe('DeeplinkManager', () => {
         source: 'parse',
         appStartType: 'warm',
       });
+      // The owning token is threaded into parseDeeplink (for the detached
+      // universal-link settle) and into the end call, so neither can touch a
+      // later run's span.
+      expect(mockParseDeeplink).toHaveBeenCalledWith(
+        expect.objectContaining({ processedTraceToken: 42 }),
+      );
       expect(mockEndProcessed).toHaveBeenCalledWith({
         seam: 'handler_finished',
+        traceToken: 42,
       });
       expect(mockCancelProcessed).not.toHaveBeenCalled();
     });
@@ -203,10 +211,14 @@ describe('DeeplinkManager', () => {
 
     it('cancels as rejected when parse does not handle the link', async () => {
       mockParseDeeplink.mockResolvedValueOnce(false);
+      mockStartProcessed.mockReturnValueOnce(42);
 
       await deeplinkManager.parse(url, { origin });
 
-      expect(mockCancelProcessed).toHaveBeenCalledWith({ reason: 'rejected' });
+      expect(mockCancelProcessed).toHaveBeenCalledWith({
+        reason: 'rejected',
+        traceToken: 42,
+      });
       expect(mockEndProcessed).not.toHaveBeenCalled();
     });
 
@@ -244,19 +256,25 @@ describe('DeeplinkManager', () => {
 
     it('cancels as rejected when resolve is declined at the interstitial', async () => {
       mockParseDeeplink.mockResolvedValueOnce(false);
+      mockStartProcessed.mockReturnValueOnce(42);
 
       await deeplinkManager.resolve(url, { origin });
 
-      expect(mockCancelProcessed).toHaveBeenCalledWith({ reason: 'rejected' });
+      expect(mockCancelProcessed).toHaveBeenCalledWith({
+        reason: 'rejected',
+        traceToken: 42,
+      });
     });
 
     it('cancels as unresolved when resolve yields no intent', async () => {
       mockParseDeeplink.mockResolvedValueOnce(null);
+      mockStartProcessed.mockReturnValueOnce(42);
 
       await deeplinkManager.resolve(url, { origin });
 
       expect(mockCancelProcessed).toHaveBeenCalledWith({
         reason: 'unresolved',
+        traceToken: 42,
       });
     });
   });

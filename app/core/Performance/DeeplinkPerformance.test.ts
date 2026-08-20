@@ -203,6 +203,68 @@ describe('DeeplinkPerformance', () => {
 
       expect(retry).not.toBeNull();
     });
+
+    it('ignores an end carrying another run’s token', () => {
+      const firstToken = startDeeplinkProcessedTrace({
+        url: TRENDING_URL,
+        source: 'parse',
+        appStartType: 'warm',
+      });
+      endDeeplinkProcessedTrace({ seam: 'handler_finished' });
+      startDeeplinkProcessedTrace({
+        url: 'metamask://swap',
+        source: 'parse',
+        appStartType: 'warm',
+      });
+      mockEndTrace.mockClear();
+
+      // e.g. run 1's detached universal-link flow finishing late must not
+      // close run 2's span.
+      endDeeplinkProcessedTrace({
+        seam: 'handler_finished',
+        traceToken: firstToken,
+      });
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('ignores an end with a null token — the caller does not own the span', () => {
+      startDeeplinkProcessedTrace({
+        url: TRENDING_URL,
+        source: 'parse',
+        appStartType: 'warm',
+      });
+      mockEndTrace.mockClear();
+
+      endDeeplinkProcessedTrace({
+        seam: 'handler_finished',
+        traceToken: null,
+      });
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('ignores a cancel carrying another run’s token', () => {
+      const firstToken = startDeeplinkProcessedTrace({
+        url: TRENDING_URL,
+        source: 'parse',
+        appStartType: 'warm',
+      });
+      endDeeplinkProcessedTrace({ seam: 'handler_finished' });
+      startDeeplinkProcessedTrace({
+        url: 'metamask://swap',
+        source: 'parse',
+        appStartType: 'warm',
+      });
+      mockEndTrace.mockClear();
+
+      cancelDeeplinkProcessedTrace({
+        reason: 'rejected',
+        traceToken: firstToken,
+      });
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
   });
 
   describe('interstitial split', () => {
@@ -412,6 +474,149 @@ describe('DeeplinkPerformance', () => {
       });
 
       expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('settles a known target that is already focused when Processed ends', () => {
+      // The app was on Wallet before the deeplink arrived, so navigating to
+      // Wallet commits no state change — Processed ending is the only signal.
+      handleDeeplinkNavigationStateChange({
+        focusedRouteNames: ['HomeNav', 'Wallet'],
+      });
+      startDeeplinkNavigatedTrace({
+        url: 'https://link.metamask.io/home',
+        source: 'intake',
+        appStartType: 'warm',
+      });
+      resolveDeeplinkNavigatedTarget({ targetRoute: 'Wallet' });
+      startDeeplinkProcessedTrace({
+        url: 'https://link.metamask.io/home',
+        source: 'parse',
+        appStartType: 'warm',
+      });
+      mockEndTrace.mockClear();
+
+      endDeeplinkProcessedTrace({ seam: 'handler_finished' });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.DeeplinkNavigated,
+        data: {
+          success: true,
+          nav_target: 'known',
+          target_route: 'Wallet',
+          focused_route: 'Wallet',
+          already_focused: true,
+        },
+      });
+    });
+
+    it('does not settle a known target that is not focused when Processed ends', () => {
+      handleDeeplinkNavigationStateChange({
+        focusedRouteNames: ['HomeNav', 'BrowserTabHome'],
+      });
+      startDeeplinkNavigatedTrace({
+        url: 'https://link.metamask.io/home',
+        source: 'intake',
+        appStartType: 'warm',
+      });
+      resolveDeeplinkNavigatedTarget({ targetRoute: 'Wallet' });
+      startDeeplinkProcessedTrace({
+        url: 'https://link.metamask.io/home',
+        source: 'parse',
+        appStartType: 'warm',
+      });
+      mockEndTrace.mockClear();
+
+      endDeeplinkProcessedTrace({ seam: 'handler_finished' });
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({ name: TraceName.DeeplinkNavigated }),
+      );
+
+      // The real navigation commit still closes it.
+      handleDeeplinkNavigationStateChange({
+        focusedRouteNames: ['HomeNav', 'Wallet'],
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.DeeplinkNavigated,
+          data: expect.objectContaining({ nav_target: 'known' }),
+        }),
+      );
+    });
+
+    it('does not settle an inferred span at Processed end — a route change is required', () => {
+      handleDeeplinkNavigationStateChange({
+        focusedRouteNames: ['HomeNav', 'Wallet'],
+      });
+      startDeeplinkNavigatedTrace({
+        url: 'https://link.metamask.io/home',
+        source: 'intake',
+        appStartType: 'warm',
+      });
+      startDeeplinkProcessedTrace({
+        url: 'https://link.metamask.io/home',
+        source: 'parse',
+        appStartType: 'warm',
+      });
+      mockEndTrace.mockClear();
+
+      endDeeplinkProcessedTrace({ seam: 'handler_finished' });
+
+      expect(mockEndTrace).not.toHaveBeenCalledWith(
+        expect.objectContaining({ name: TraceName.DeeplinkNavigated }),
+      );
+    });
+
+    it('settles gated home end-to-end: after_gate close also closes Navigated', () => {
+      // Bug 3 regression: warm `home` opened while Home is focused. The
+      // after_gate segment must close at handler finish and take the
+      // Navigated span with it, leaving no state to leak into the next run.
+      handleDeeplinkNavigationStateChange({
+        focusedRouteNames: ['HomeNav', 'Wallet'],
+      });
+      startDeeplinkNavigatedTrace({
+        url: 'https://link.metamask.io/home',
+        source: 'intake',
+        appStartType: 'warm',
+      });
+      startDeeplinkProcessedTrace({
+        url: 'https://link.metamask.io/home',
+        source: 'parse',
+        appStartType: 'warm',
+      });
+      markDeeplinkInterstitialShown();
+      markDeeplinkInterstitialContinued();
+      resolveDeeplinkNavigatedTarget({ targetRoute: 'Wallet' });
+      mockEndTrace.mockClear();
+
+      endDeeplinkProcessedTrace({ seam: 'handler_finished' });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.DeeplinkProcessed,
+          data: expect.objectContaining({ segment: 'after_gate' }),
+        }),
+      );
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.DeeplinkNavigated,
+          data: expect.objectContaining({ already_focused: true }),
+        }),
+      );
+      // Both guards released — the next run starts clean.
+      expect(
+        startDeeplinkProcessedTrace({
+          url: 'https://link.metamask.io/home',
+          source: 'parse',
+          appStartType: 'warm',
+        }),
+      ).not.toBeNull();
+      expect(
+        startDeeplinkNavigatedTrace({
+          url: 'https://link.metamask.io/home',
+          source: 'intake',
+          appStartType: 'warm',
+        }),
+      ).not.toBeNull();
     });
 
     it('infers the end from the first commit after Processed closed', () => {
