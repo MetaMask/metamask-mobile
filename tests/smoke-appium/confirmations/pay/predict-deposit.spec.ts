@@ -83,7 +83,7 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Predict deposit'), () => {
 
           await PredictMarketList.tapBackButton();
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
-          await TabBarComponent.tapActivity();
+          await WalletView.tapActivityButton();
 
           await ActivitiesView.tapTypeFilterChip();
           await ActivitiesView.tapTypeFilterOption('predictions');
