@@ -37,14 +37,14 @@ export const trackForcedReset = (
 };
 
 /**
- * Tracks whether a valid vault backup was found when the user tapped
- * "Forgot password?", i.e. whether they were routed to RestoreWallet
- * instead of straight to the destructive DeleteWalletModal. "Forgot
- * password?" taps themselves are already tracked via
- * MetaMetricsEvents.FORGOT_PASSWORD_CLICKED.
+ * Tracks whether Forgot password routed the user to RestoreWallet
+ * instead of DeleteWalletModal. Restore is only offered for SRP wallets
+ * after a failed unlock whose submitted password still decrypts the
+ * on-device vault backup. "Forgot password?" taps themselves are already
+ * tracked via MetaMetricsEvents.FORGOT_PASSWORD_CLICKED.
  *
- * @param backupOffered - Whether a valid vault backup was found and the
- * user was routed to RestoreWallet instead of straight to DeleteWalletModal.
+ * @param backupOffered - Whether the user was routed to RestoreWallet
+ * instead of straight to DeleteWalletModal.
  */
 export const trackForgotPasswordBackupOffered = (
   backupOffered: boolean,

@@ -105,6 +105,25 @@ import {
   startHomepageReadyTrace,
   type HomepageReadyTraceToken,
 } from '../../../core/Performance/HomepageReady';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+
+/**
+ * Returns true if `candidatePassword` decrypts the on-device vault backup.
+ * Does not unlock the live wallet or contact the seedless server.
+ */
+const canDecryptVaultBackup = async (
+  candidatePassword: string,
+): Promise<boolean> => {
+  const backupResult = await getVaultFromBackup();
+  if (!backupResult.vault) {
+    return false;
+  }
+  const vaultSeed = await parseVaultValue(
+    candidatePassword,
+    backupResult.vault,
+  );
+  return Boolean(vaultSeed);
+};
 
 interface LoginRouteParams {
   locked: boolean;
@@ -119,6 +138,10 @@ interface LoginProps {
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const fieldRef = useRef<TextInput | null>(null);
+  // Last password actually submitted to unlockWallet. Forgot password must
+  // not treat unsubmitted field text as validated (and must not be a quieter
+  // offline decrypt oracle than Unlock).
+  const lastSubmittedPasswordRef = useRef('');
 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -309,6 +332,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const unlockWithPassword = useCallback(async () => {
     if (loading) return;
 
+    lastSubmittedPasswordRef.current = password;
     fieldRef.current?.clear();
     setPassword('');
     setLoading(true);
@@ -339,6 +363,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
               captureSentryError: true,
             });
           await unlockWallet({ password });
+          lastSubmittedPasswordRef.current = '';
           if (isSeedlessPasswordOutdated) {
             const authData = await getAuthType();
             if (
@@ -424,17 +449,61 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       saveOnboardingEvent,
     );
 
-    // If the currently-entered password can decrypt a vault backup, the
-    // on-device vault is likely stale/corrupted rather than the password
-    // being genuinely forgotten — offer a restore instead of a destructive
-    // reset. Falls through to the destructive reset on any failure.
+    // Only reuse a password that was actually submitted to unlock. Typed-but-
+    // unsubmitted field text is not validated, and must not be used as an
+    // offline decrypt oracle. Never unlock the seedless/server vault here.
+    const submittedPassword = lastSubmittedPasswordRef.current;
+    lastSubmittedPasswordRef.current = '';
+
     try {
-      if (password) {
-        const backupResult = await getVaultFromBackup();
-        const vaultSeed =
-          backupResult.vault &&
-          (await parseVaultValue(password, backupResult.vault));
-        if (vaultSeed) {
+      const isSeedlessLogin = selectSeedlessOnboardingLoginFlow(
+        ReduxService.store.getState(),
+      );
+
+      if (isSeedlessLogin) {
+        const isPasswordOutdated = await checkIsSeedlessPasswordOutdated({
+          skipCache: true,
+          captureSentryError: true,
+        });
+
+        let localBackupDecrypts = false;
+        if (submittedPassword) {
+          try {
+            localBackupDecrypts =
+              await canDecryptVaultBackup(submittedPassword);
+          } catch (e: unknown) {
+            Logger.error(
+              e as Error,
+              'Login/ toggleWarningModal: seedless vault backup check failed',
+            );
+          }
+        }
+
+        if (isPasswordOutdated || localBackupDecrypts) {
+          Logger.error(
+            new Error(
+              'Forgot password: seedless local vault may be out of sync with server',
+            ),
+            {
+              tags: {
+                feature: 'account_access',
+              },
+              context: {
+                name: 'ForgotPasswordSeedlessDesync',
+                data: {
+                  password_outdated: isPasswordOutdated,
+                  local_backup_decrypts: localBackupDecrypts,
+                  unlock_attempted: Boolean(submittedPassword),
+                },
+              },
+            },
+          );
+        }
+      } else if (submittedPassword) {
+        // SRP: if the last failed unlock password still opens the on-device
+        // backup, the live vault is likely stale — offer restore, not delete.
+        const backupDecrypts = await canDecryptVaultBackup(submittedPassword);
+        if (backupDecrypts) {
           trackForgotPasswordBackupOffered(true);
           navigation.dispatch(
             StackActions.replace(
