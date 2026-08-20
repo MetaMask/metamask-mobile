@@ -226,15 +226,15 @@ function tokenFromQuoteAsset(
  * Unified swaps store their token metadata in the bridge/swaps quote, not on the
  * legacy TransactionMeta fields, so on-device resolution (`sourceTokenSymbol` /
  * `swapMetaData` / native fallback) can miss a leg — most visibly a native
- * destination — leaving the row as `swapIncomplete` (empty "You received", no
- * fees, no "Swap again") until the indexer backfills a full copy. Prefer the
+ * destination — leaving the row as a `swap` with an empty received amount
+ * until the indexer backfills a full copy. Prefer the
  * quote (symbol always, amount/decimals/assetId when present) so the row resolves
  * to a complete swap immediately and reactively; fall back to the legacy
  * on-device fields for older SwapsController transactions with no bridge quote.
  *
  * Exported for the per-asset activity lists, which would otherwise re-derive
- * this and drift — an asset page that skips it renders every unified swap as
- * `swapIncomplete`.
+ * this and drift — an asset page that skips it would miss destination tokens
+ * on unified swaps.
  */
 export function getSwapTokenEnrichment(
   tx: TransactionMeta,

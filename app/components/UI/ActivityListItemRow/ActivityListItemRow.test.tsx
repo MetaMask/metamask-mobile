@@ -454,6 +454,16 @@ const makeItem = (
   } as unknown as ActivityListItem;
 };
 
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.mocked(selectCurrentCurrency).mockReturnValue('usd');
+  jest.mocked(selectConversionRateByChainId).mockReturnValue(2500);
+  jest.mocked(selectUSDConversionRateByChainId).mockReturnValue(2500);
+  jest.mocked(selectContractExchangeRatesByChainId).mockReturnValue({
+    [LINEA_MUSD_ADDRESS]: { price: 0.0004 },
+  } as unknown as ReturnType<typeof selectContractExchangeRatesByChainId>);
+});
+
 // ---------------------------------------------------------------------------
 // Row content tests — mirrors extension ActivityRow title/subtitle/amount split
 // ---------------------------------------------------------------------------
@@ -2037,7 +2047,6 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'send',
   'receive',
   'swap',
-  'swapIncomplete',
   'bridge',
   'buy',
   'rampBuy',
@@ -2099,7 +2108,6 @@ const EXPECTED_TITLES = {
   send: strings('transactions.sent'),
   receive: strings('transactions.received'),
   swap: 'Swapped',
-  swapIncomplete: 'Swapped',
   bridge: 'Bridged',
   buy: 'Bought',
   rampBuy: 'Bought',

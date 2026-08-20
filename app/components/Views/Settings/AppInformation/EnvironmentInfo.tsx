@@ -8,7 +8,7 @@ import {
   updateId,
   checkAutomatically,
 } from 'expo-updates';
-import { OTA_RC_AUTO_COMMIT, OTA_VERSION } from '../../../../constants/ota';
+import { OTA_VERSION } from '../../../../constants/ota';
 import {
   getFeatureFlagAppDistribution,
   getFeatureFlagAppEnvironment,
@@ -69,11 +69,6 @@ export const EnvironmentInfo = ({
             {`OTA Update status: ${otaUpdateMessage}`}
           </Text>
           <Text style={styles.branchInfo}>{`OTA Version: ${OTA_VERSION}`}</Text>
-          {OTA_RC_AUTO_COMMIT ? (
-            <Text style={styles.branchInfo}>
-              {`Auto RC OTA commit: ${OTA_RC_AUTO_COMMIT}`}
-            </Text>
-          ) : null}
         </>
       ) : null}
       {preinstalledSnaps.map((snap) => (
