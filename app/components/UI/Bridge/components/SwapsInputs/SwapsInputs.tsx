@@ -35,10 +35,6 @@ interface SwapsInputsProps {
   sourceTokenAreaTestID: string;
   destTokenAreaTestID: string;
   sourceAmountTypeToggleTestID: string;
-  /**
-   * Recurring dest only. Limit must leave this unset so dest still shows
-   * the quoted amount, loading skeleton, and fiat.
-   */
   hideDestAmount?: boolean;
   destAmountReplacementLabelTestID?: string;
 }
