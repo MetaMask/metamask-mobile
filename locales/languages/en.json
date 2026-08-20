@@ -7470,6 +7470,62 @@
     "error_description": "Installation of {{snap}} failed."
   },
   "earn": {
+    "strategy_selection": {
+      "title": "Choose how to earn",
+      "subtitle": "Choose an earning strategy for your {{asset}}.",
+      "tags": {
+        "recommended": "Recommended",
+        "low_risk": "Low risk",
+        "medium_risk": "Medium risk",
+        "high_risk": "High risk"
+      },
+      "strategies": {
+        "money": {
+          "title": "6.2% APY",
+          "subtitle": "Money account",
+          "tertiary_text": "Variable yield · auto-earning"
+        },
+        "lending": {
+          "title": "2.1% APR",
+          "subtitle": "Lend {{asset}}",
+          "tertiary_text": "Variable yield"
+        },
+        "pooled_staking": {
+          "title": "Variable APY",
+          "subtitle": "Stake {{asset}}",
+          "tertiary_text": "Pooled staking · variable yield"
+        },
+        "trx_staking": {
+          "title": "Variable APY",
+          "subtitle": "Stake {{asset}}",
+          "tertiary_text": "TRON staking · variable yield"
+        }
+      },
+      "info_rows": {
+        "money_account": {
+          "row_1": "Unlock {{percentage}}% APY — auto-earning, compounding yield",
+          "row_2": "Full liquidity, no lockups — trade or withdraw anytime",
+          "row_3": "Secured in mUSD, a 1:1 dollar-backed stablecoin you can send across your MetaMask wallets"
+        },
+        "lending": {
+          "row_1": "Earn variable interest by lending stablecoins through the Aave protocol.",
+          "row_2": "Withdraw your funds at any time, subject to available market liquidity.",
+          "row_3": "Rates can change with market demand, and smart contract risks apply."
+        },
+        "pooled_staking": {
+          "row_1": "Earn variable staking rewards on your ETH.",
+          "row_2": "Your ETH is pooled with other MetaMask users.",
+          "row_3": "Staking rewards and withdrawal times can vary."
+        },
+        "trx_staking": {
+          "row_1": "Earn variable rewards by staking TRX.",
+          "row_2": "Staked TRX supports the TRON network.",
+          "row_3": "Staking rewards and withdrawal times can vary."
+        }
+      },
+      "get_started": "Get started",
+      "learn_more": "Learn more"
+    },
     "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
     "percentage_bonus": "{{percentage}}% bonus",
@@ -7638,6 +7694,21 @@
       "tooltip_close": "Close"
     },
     "your_stablecoins": "Your stablecoins"
+  },
+  "earn_module": {
+    "new_tag": "New",
+    "money_account": "Money account",
+    "get_started": "Get started",
+    "rate_apy": "{{percentage}}% APY",
+    "rate_apr": "{{percentage}}% APR",
+    "get_rate_apy": "Get {{percentage}}% APY",
+    "get_rate_apr": "Get {{percentage}}% APR",
+    "rate_unavailable": "Rate unavailable",
+    "balance_unavailable": "Balance unavailable",
+    "asset_unavailable": "Asset unavailable",
+    "assets_unavailable": "Some earning opportunities couldn’t be loaded.",
+    "retry": "Retry",
+    "view_more": "View more"
   },
   "money": {
     "title": "Money",
@@ -10864,6 +10935,7 @@
       "import_nfts": "Import NFTs",
       "import_nfts_description": "Easily add your collectibles",
       "view_more": "View more",
+      "earn": "Earn",
       "more": {
         "title": "More",
         "import_token": "Import a token",

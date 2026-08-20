@@ -77,7 +77,9 @@ const EarningsContent = ({ asset, lendingAction }: EarningsProps) => {
   const isStablecoinLending =
     experienceType === EARN_EXPERIENCES.STABLECOIN_LENDING;
   const isPooledStaking = experienceType === EARN_EXPERIENCES.POOLED_STAKING;
-  const shouldMaskEarnings = isStablecoinLending || isPooledStaking;
+  const isTrxStaking = experienceType === EARN_EXPERIENCES.TRX_STAKING;
+  const shouldMaskEarnings =
+    isStablecoinLending || isPooledStaking || isTrxStaking;
 
   const {
     annualRewardRate,
