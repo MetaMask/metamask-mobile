@@ -160,12 +160,12 @@ describe('usePerpsHomepageLoadingSession', () => {
     expect(startPerpsLoadingSession).not.toHaveBeenCalled();
   });
 
-  it('starts when a surface mounted while inactive becomes active', () => {
+  it('seeds identity when a surface mounted while inactive becomes active', () => {
     Object.defineProperty(AppState, 'currentState', {
       configurable: true,
       value: 'inactive',
     });
-    renderHook(() => usePerpsHomepageLoadingSession());
+    const { rerender } = renderHook(() => usePerpsHomepageLoadingSession());
     expect(startPerpsLoadingSession).not.toHaveBeenCalled();
 
     act(() => appStateListener?.('active'));
@@ -176,6 +176,14 @@ describe('usePerpsHomepageLoadingSession', () => {
       surface: 'homepage',
       identity: expect.any(Object),
     });
+
+    jest.mocked(startPerpsLoadingSession).mockClear();
+    address = '0xdef';
+    rerender(undefined);
+
+    expect(startPerpsLoadingSession).toHaveBeenCalledWith(
+      expect.objectContaining({ lifecycle: 'account_switch' }),
+    );
   });
 
   it('restarts for account and provider context changes', () => {

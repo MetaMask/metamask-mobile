@@ -149,6 +149,9 @@ export function usePerpsHomepageLoadingSession(): PerpsHomepageLoadingSession {
       if (nextState === 'active' && previousState !== 'active') {
         const previousIdentity = previousIdentityRef.current;
         const currentIdentity = identityRef.current;
+        if (!previousIdentity) {
+          previousIdentityRef.current = currentIdentity;
+        }
         if (
           previousIdentity &&
           !identitiesMatch(previousIdentity, currentIdentity)
