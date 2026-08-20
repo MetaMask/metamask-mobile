@@ -84,15 +84,13 @@ describe('neobankEvents', () => {
 
   describe('resolveNeobankDemoCustomerId', () => {
     it('prefers the persisted moonpay customer id', () => {
-      expect(
-        resolveNeobankDemoCustomerId('real-customer', 'looked-up'),
-      ).toBe('real-customer');
+      expect(resolveNeobankDemoCustomerId('real-customer', 'looked-up')).toBe(
+        'real-customer',
+      );
     });
 
     it('prefers the looked-up id when moonpayCustomerId is unset', () => {
-      expect(resolveNeobankDemoCustomerId(null, 'looked-up')).toBe(
-        'looked-up',
-      );
+      expect(resolveNeobankDemoCustomerId(null, 'looked-up')).toBe('looked-up');
     });
 
     // The `NEOBANK_DEMO_CUSTOMER_ID` env override is inlined by Babel's

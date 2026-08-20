@@ -27,9 +27,7 @@ const RECONNECT_DELAY_MS = 3_000;
  * renders UI success without calling `submitMoneyAccountVaultDeposit`.
  */
 export function useNeobankSandboxDepositEvents(): void {
-  const neobankEnabled = useSelector(
-    selectMoneyMovementBrazilNeobankEnabled,
-  );
+  const neobankEnabled = useSelector(selectMoneyMovementBrazilNeobankEnabled);
   const kycState = useSelector(selectKycControllerState);
   const handledEventIds = useRef(new Set<string>());
   const [lookedUpCustomerId, setLookedUpCustomerId] = useState<
@@ -135,9 +133,7 @@ export function useNeobankSandboxDepositEvents(): void {
           iconName: IconName.Confirmation,
           labelOptions: [
             {
-              label: strings(
-                'virtual_bank_account.deposit_demo.success_toast',
-              ),
+              label: strings('virtual_bank_account.deposit_demo.success_toast'),
               isBold: true,
             },
           ],
