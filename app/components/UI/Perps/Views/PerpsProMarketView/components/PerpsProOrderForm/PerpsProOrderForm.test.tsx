@@ -164,29 +164,48 @@ describe('PerpsProOrderForm', () => {
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
     });
 
-    it('renders trigger and limit price inputs for stop-limit orders', () => {
-      renderForm({
-        orderType: 'stop_limit',
-        triggerPrice: '91000',
-        onUseMidPricePress: jest.fn(),
-      });
+    it.each([
+      { orderType: 'stop_limit' as const, title: 'Stop limit' },
+      { orderType: 'take_profit_limit' as const, title: 'Take limit' },
+    ])(
+      'renders trigger and limit price inputs with Mid for $orderType orders',
+      ({ orderType, title }) => {
+        const onUseMidPricePress = jest.fn();
 
-      expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
-      expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
-      expect(screen.queryByTestId(ids.MID_PRICE_BUTTON)).not.toBeOnTheScreen();
-      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
-        'Stop limit',
-      );
-    });
+        renderForm({
+          orderType,
+          triggerPrice: '91000',
+          onUseMidPricePress,
+        });
 
-    it('renders trigger price and omits limit price for stop-market orders', () => {
-      renderForm({ orderType: 'stop_market' });
+        expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
+        expect(screen.getByTestId(ids.LIMIT_PRICE_INPUT)).toBeOnTheScreen();
+        expect(screen.getByTestId(ids.MID_PRICE_BUTTON)).toBeOnTheScreen();
+        expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+          title,
+        );
 
-      expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
-      expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
-      expect(screen.queryByTestId(ids.MID_PRICE_BUTTON)).not.toBeOnTheScreen();
-      expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
-    });
+        fireEvent.press(screen.getByTestId(ids.MID_PRICE_BUTTON));
+
+        expect(onUseMidPricePress).toHaveBeenCalledTimes(1);
+      },
+    );
+
+    it.each(['stop_market', 'take_profit_market'] as const)(
+      'renders trigger price and omits limit price for %s orders',
+      (orderType) => {
+        renderForm({ orderType });
+
+        expect(screen.getByTestId(ids.TRIGGER_PRICE_INPUT)).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(ids.LIMIT_PRICE_INPUT),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(ids.MID_PRICE_BUTTON),
+        ).not.toBeOnTheScreen();
+        expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+      },
+    );
 
     it('hides TP/SL for take-profit order types', () => {
       renderForm({
