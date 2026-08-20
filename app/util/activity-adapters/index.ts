@@ -1,7 +1,7 @@
 /**
  * Activity adapters for MetaMask Mobile.
- * Core transaction mappers come from `@metamask/client-utils`; mobile-only
- * adapters (perps/predict/ramp) and UI helpers remain local until shared.
+ * Core transaction mappers and activity types come from `@metamask/client-utils`;
+ * mobile-only adapters (perps/predict/ramp) and UI helpers remain local.
  */
 export type {
   ActivityFee,
