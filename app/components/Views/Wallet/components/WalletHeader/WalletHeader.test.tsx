@@ -139,9 +139,9 @@ describe('WalletHeader', () => {
       <WalletHeader {...defaultProps} />,
     );
 
-    const accountPicker = getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON);
-
-    expect(accountPicker.parent).toHaveStyle({
+    expect(
+      getByTestId(WalletViewSelectorsIDs.ACCOUNT_PICKER_CONTAINER),
+    ).toHaveStyle({
       flex: 1,
       minWidth: 0,
       overflow: 'hidden',

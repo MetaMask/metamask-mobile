@@ -21,6 +21,7 @@ export const WalletViewSelectorsIDs = {
   NAVBAR_NETWORK_TEXT: 'open-networks-text',
   NFT_TAB_CONTAINER: 'collectible-contracts',
   ACCOUNT_ICON: 'account-picker',
+  ACCOUNT_PICKER_CONTAINER: 'wallet-header-account-picker-container',
   ACCOUNT_NAME_LABEL_INPUT: 'account-label-text-input',
   ACCOUNT_NAME_LABEL_TEXT: 'account-label',
   TOKENS_CONTAINER: 'tokens',

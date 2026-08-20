@@ -164,7 +164,10 @@ const WalletHeader = ({
           version did. The picker wrapper must flex and allow shrinking
           below the account name's intrinsic width (`minWidth: 0`) so
           long names truncate instead of pushing action buttons off-screen. */}
-      <View style={accountPickerContainerStyle}>
+      <View
+        style={accountPickerContainerStyle}
+        testID={WalletViewSelectorsIDs.ACCOUNT_PICKER_CONTAINER}
+      >
         <PickerAccount
           accountName={displayName}
           onPress={handleAccountPickerPress}
