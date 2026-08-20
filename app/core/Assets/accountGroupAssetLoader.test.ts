@@ -1,6 +1,7 @@
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../Engine';
 import {
+  ACCOUNT_GROUP_ASSET_FETCH_TIMEOUT_MS,
   isAccountGroupAssetLoadPending,
   loadAccountGroupAssets,
   resetAccountGroupAssetLoaderForTests,
@@ -10,11 +11,6 @@ import {
 jest.mock('../Engine', () => ({
   context: {
     AssetsController: { getAssets: jest.fn() },
-    AccountTrackerController: { refreshAddresses: jest.fn() },
-    TokenBalancesController: { updateBalances: jest.fn() },
-    TokenDetectionController: { detectTokens: jest.fn() },
-    MultichainBalancesController: { updateBalance: jest.fn() },
-    NetworkController: { findNetworkClientIdByChainId: jest.fn() },
   },
 }));
 
@@ -34,24 +30,11 @@ const mockedEngine = jest.mocked(Engine);
 const assetsController = mockedEngine.context.AssetsController as unknown as {
   getAssets: jest.Mock;
 };
-const accountTrackerController = mockedEngine.context
-  .AccountTrackerController as unknown as { refreshAddresses: jest.Mock };
-const tokenBalancesController = mockedEngine.context
-  .TokenBalancesController as unknown as { updateBalances: jest.Mock };
-const tokenDetectionController = mockedEngine.context
-  .TokenDetectionController as unknown as { detectTokens: jest.Mock };
-const multichainBalancesController = mockedEngine.context
-  .MultichainBalancesController as unknown as { updateBalance: jest.Mock };
-const networkController = mockedEngine.context.NetworkController as unknown as {
-  findNetworkClientIdByChainId: jest.Mock;
-};
 
 function buildParams(overrides = {}) {
   return {
     groups: [{ accountGroupId: GROUP_ID, accounts: [EVM_ACCOUNT] }],
     caipChainIds: ['eip155:1' as const],
-    evmChainIds: ['0x1' as const],
-    isAssetsUnifyStateEnabled: true,
     ...overrides,
   };
 }
@@ -62,14 +45,9 @@ describe('accountGroupAssetLoader', () => {
     resetAccountGroupAssetLoaderForTests();
 
     assetsController.getAssets.mockResolvedValue({});
-    accountTrackerController.refreshAddresses.mockResolvedValue(undefined);
-    tokenBalancesController.updateBalances.mockResolvedValue(undefined);
-    tokenDetectionController.detectTokens.mockResolvedValue(undefined);
-    multichainBalancesController.updateBalance.mockResolvedValue(undefined);
-    networkController.findNetworkClientIdByChainId.mockReturnValue('mainnet');
   });
 
-  describe('unified assets state', () => {
+  describe('fetching', () => {
     it('fetches assets for the requested account group', async () => {
       await loadAccountGroupAssets(buildParams());
 
@@ -215,70 +193,6 @@ describe('accountGroupAssetLoader', () => {
     });
   });
 
-  describe('legacy assets state', () => {
-    const legacyParams = () =>
-      buildParams({
-        groups: [
-          {
-            accountGroupId: GROUP_ID,
-            accounts: [EVM_ACCOUNT, SOLANA_ACCOUNT],
-          },
-        ],
-        isAssetsUnifyStateEnabled: false,
-      });
-
-    it('refreshes native balances for the override addresses', async () => {
-      await loadAccountGroupAssets(legacyParams());
-
-      expect(accountTrackerController.refreshAddresses).toHaveBeenCalledWith({
-        networkClientIds: ['mainnet'],
-        addresses: ['0xabc'],
-      });
-    });
-
-    it('queries all accounts so the override account is not skipped', async () => {
-      await loadAccountGroupAssets(legacyParams());
-
-      expect(tokenBalancesController.updateBalances).toHaveBeenCalledWith({
-        chainIds: ['0x1'],
-        queryAllAccounts: true,
-      });
-    });
-
-    it('detects tokens for the override address', async () => {
-      await loadAccountGroupAssets(legacyParams());
-
-      expect(tokenDetectionController.detectTokens).toHaveBeenCalledWith({
-        chainIds: ['0x1'],
-        selectedAddress: '0xabc',
-      });
-    });
-
-    it('updates balances for non-EVM accounts in the group', async () => {
-      await loadAccountGroupAssets(legacyParams());
-
-      expect(multichainBalancesController.updateBalance).toHaveBeenCalledWith(
-        'solana-account-id',
-      );
-    });
-
-    it('does not use the unified controller', async () => {
-      await loadAccountGroupAssets(legacyParams());
-
-      expect(assetsController.getAssets).not.toHaveBeenCalled();
-    });
-
-    it('skips unconfigured chains', async () => {
-      networkController.findNetworkClientIdByChainId.mockImplementation(() => {
-        throw new Error('not configured');
-      });
-
-      await loadAccountGroupAssets(legacyParams());
-
-      expect(accountTrackerController.refreshAddresses).not.toHaveBeenCalled();
-    });
-  });
-
   describe('pending state', () => {
     it('reports pending while a fetch is in flight and notifies subscribers', async () => {
       let resolveFetch: () => void = () => undefined;
@@ -329,6 +243,76 @@ describe('accountGroupAssetLoader', () => {
       await loadAccountGroupAssets(buildParams());
 
       expect(listener).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('timeout', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('clears the loading state once the fetch outlives the cap', async () => {
+      assetsController.getAssets.mockReturnValue(new Promise(() => undefined));
+
+      loadAccountGroupAssets(buildParams());
+
+      expect(isAccountGroupAssetLoadPending(GROUP_ID)).toBe(true);
+
+      jest.advanceTimersByTime(ACCOUNT_GROUP_ASSET_FETCH_TIMEOUT_MS);
+
+      expect(isAccountGroupAssetLoadPending(GROUP_ID)).toBe(false);
+    });
+
+    it('does not retry a timed-out group while its fetch is still running', async () => {
+      assetsController.getAssets.mockReturnValue(new Promise(() => undefined));
+
+      loadAccountGroupAssets(buildParams());
+      jest.advanceTimersByTime(ACCOUNT_GROUP_ASSET_FETCH_TIMEOUT_MS);
+
+      // A second attempt must not start a concurrent fetch that could commit
+      // overlapping results for the same group.
+      await loadAccountGroupAssets(buildParams());
+
+      expect(assetsController.getAssets).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not raise an unhandled rejection when a timed-out fetch later fails', async () => {
+      let rejectFetch: (error: Error) => void = () => undefined;
+      assetsController.getAssets.mockReturnValue(
+        new Promise((_resolve, reject) => {
+          rejectFetch = reject;
+        }),
+      );
+
+      const promise = loadAccountGroupAssets(buildParams());
+      jest.advanceTimersByTime(ACCOUNT_GROUP_ASSET_FETCH_TIMEOUT_MS);
+
+      rejectFetch(new Error('boom'));
+
+      await expect(promise).resolves.toBeUndefined();
+    });
+
+    it('allows a retry once a timed-out fetch has settled as a failure', async () => {
+      let rejectFetch: (error: Error) => void = () => undefined;
+      assetsController.getAssets.mockReturnValueOnce(
+        new Promise((_resolve, reject) => {
+          rejectFetch = reject;
+        }),
+      );
+
+      const promise = loadAccountGroupAssets(buildParams());
+      jest.advanceTimersByTime(ACCOUNT_GROUP_ASSET_FETCH_TIMEOUT_MS);
+      rejectFetch(new Error('boom'));
+      await promise;
+
+      assetsController.getAssets.mockResolvedValue({});
+      await loadAccountGroupAssets(buildParams());
+
+      expect(assetsController.getAssets).toHaveBeenCalledTimes(2);
     });
   });
 });

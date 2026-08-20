@@ -7,7 +7,6 @@ import {
   ViewStyle,
 } from 'react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import type { ViewToken } from '@shopify/flash-list';
 import { AccountId } from '@metamask/accounts-controller';
 import { EthScope } from '@metamask/keyring-api';
 import { useSelector } from 'react-redux';
@@ -30,11 +29,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList';
-import {
-  AccountSection,
-  FlattenedMultichainAccountListItem,
-} from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
-import { useLoadAccountGroupAssets } from '../../../../hooks/useAccountGroupAssets/useLoadAccountGroupAssets';
+import { AccountSection } from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
@@ -152,27 +147,6 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
     return internalAccountId ? accountToGroupMap[internalAccountId] : undefined;
   }, [selectedAddress, internalAccountsById, accountToGroupMap]);
 
-  // Balances are only fetched automatically for the selected account group, so
-  // rows for accounts the user has never activated would otherwise render a
-  // misleading blank amount. Load them as they scroll into view, which keeps
-  // request volume proportional to what is actually on screen.
-  const loadAccountGroupAssets = useLoadAccountGroupAssets();
-
-  const handleViewableItemsChanged = useCallback(
-    ({
-      viewableItems,
-    }: {
-      viewableItems: ViewToken<FlattenedMultichainAccountListItem>[];
-    }) => {
-      const groupIds = viewableItems
-        .filter((token) => token.isViewable && token.item?.type === 'cell')
-        .map((token) => (token.item as { data: AccountGroupObject }).data.id);
-
-      loadAccountGroupAssets(groupIds);
-    },
-    [loadAccountGroupAssets],
-  );
-
   const accountName = selectedAccountGroup?.metadata?.name;
 
   const displayLabel = useMemo(() => {
@@ -264,7 +238,6 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
                 onSelectAccount={handleSelectAccount}
                 accountSections={filteredAccountSections}
                 hideAccountCellMenu
-                onViewableItemsChanged={handleViewableItemsChanged}
               />
             </View>
           </BottomSheet>

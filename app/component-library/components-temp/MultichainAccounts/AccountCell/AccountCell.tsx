@@ -16,7 +16,6 @@ import {
   IconSize,
   SensitiveText,
   SensitiveTextLength,
-  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -39,7 +38,6 @@ import {
 } from '../../../../selectors/multichainAccounts/accounts';
 import { RootState } from '../../../../reducers';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
-import { useIsAccountGroupAssetLoadPending } from '../../../../components/hooks/useAccountGroupAssets/useIsAccountGroupAssetLoadPending';
 import { createAccountGroupDetailsNavigationDetails } from '../../../../components/Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { getNetworkImageSource } from '../../../../util/networks';
@@ -75,7 +73,6 @@ const BalanceEndContainer = ({
 }: BalanceEndContainerProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation<AppNavigationProp>();
-  const isBalanceLoading = useIsAccountGroupAssetLoadPending(accountGroup.id);
 
   const handleMenuPress = useCallback(() => {
     navigateWithDetails(
@@ -107,29 +104,20 @@ const BalanceEndContainer = ({
     <>
       <TouchableOpacity onPress={onSelectAccount}>
         <View style={styles.balanceContainer}>
-          {/* Three distinct states, previously all collapsed into a blank:
-              - load in flight for a never-fetched group -> skeleton;
-              - settled zero -> a real "$0.00" (a funded-looking blank row is
-                worse than an explicit zero);
-              - no currency / unformattable -> nothing. */}
-          {isBalanceLoading && !totalBalance ? (
-            <Skeleton
-              height={18}
-              width={64}
-              testID={AccountCellIds.BALANCE_SKELETON}
-            />
-          ) : (
-            <SensitiveText
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextDefault}
-              fontWeight={FontWeight.Medium}
-              length={SensitiveTextLength.Long}
-              isHidden={privacyMode && Boolean(displayBalance)}
-              testID={AccountCellIds.BALANCE}
-            >
-              {displayBalance ?? null}
-            </SensitiveText>
-          )}
+          {/* A settled zero renders a real "$0.00" rather than a blank: an
+              empty amount reads as "still loading" and is easily mistaken for a
+              funded account. Only an unformattable balance (no currency yet)
+              renders nothing. */}
+          <SensitiveText
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextDefault}
+            fontWeight={FontWeight.Medium}
+            length={SensitiveTextLength.Long}
+            isHidden={privacyMode && Boolean(displayBalance)}
+            testID={AccountCellIds.BALANCE}
+          >
+            {displayBalance ?? null}
+          </SensitiveText>
           {networkImageSource && (
             <AvatarNetwork
               size={AvatarNetworkSize.Xs}

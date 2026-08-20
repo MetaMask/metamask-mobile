@@ -68,8 +68,6 @@ jest.mock('react-native', () => {
   };
 });
 
-const mockLoadAccountGroupAssets = jest.fn();
-
 const mockInternalAccountsById = {
   'account-1': {
     address: '0xAccount1Address',
@@ -121,13 +119,6 @@ jest.mock('../../../../../selectors/settings', () => ({
   selectAvatarAccountType: jest.fn(),
 }));
 
-// Asset loading for the rendered rows is covered by useLoadAccountGroupAssets'
-// own tests; stubbed here so this suite stays free of store dependencies.
-jest.mock(
-  '../../../../hooks/useAccountGroupAssets/useLoadAccountGroupAssets',
-  () => ({ useLoadAccountGroupAssets: () => mockLoadAccountGroupAssets }),
-);
-
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => {
     const { selectInternalAccountsById } = jest.requireMock(
@@ -157,7 +148,6 @@ jest.mock(
     return ({
       onSelectAccount,
       accountSections,
-      onViewableItemsChanged,
     }: {
       onSelectAccount?: (accountGroup: {
         id: string;
@@ -171,26 +161,8 @@ jest.mock(
       showFooter?: boolean;
 
       hideAccountCellMenu?: boolean;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onViewableItemsChanged?: (info: any) => void;
     }) => (
       <View testID="account-selector-list">
-        {/* Lets tests drive the real viewability handler with a synthetic
-            payload, standing in for FlashList's scroll callback. */}
-        <TouchableOpacity
-          testID="simulate-viewable-items"
-          onPress={() =>
-            onViewableItemsChanged?.({
-              viewableItems: (accountSections ?? []).flatMap((section) =>
-                section.data.map((group) => ({
-                  isViewable: true,
-                  item: { type: 'cell', data: group },
-                })),
-              ),
-              changed: [],
-            })
-          }
-        />
         {accountSections?.flatMap((section) =>
           section.data.map((group) => (
             <TouchableOpacity
@@ -401,78 +373,6 @@ describe('AccountSelector', () => {
     fireEvent.press(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL));
 
     expect(getByText('Custom sheet title')).toBeOnTheScreen();
-  });
-
-  describe('loading balances for visible rows', () => {
-    it('requests assets for the account groups scrolled into view', () => {
-      const { getByTestId } = render(
-        <AccountSelector onAccountSelected={mockOnAccountSelected} />,
-      );
-
-      fireEvent.press(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL));
-      fireEvent.press(getByTestId('simulate-viewable-items'));
-
-      expect(mockLoadAccountGroupAssets).toHaveBeenCalledWith(['group-1']);
-    });
-
-    it('does not request assets before the sheet is opened', () => {
-      render(<AccountSelector onAccountSelected={mockOnAccountSelected} />);
-
-      expect(mockLoadAccountGroupAssets).not.toHaveBeenCalled();
-    });
-
-    it('batches every visible group into one request', () => {
-      const { useSelector } = jest.requireMock('react-redux');
-      const { selectAccountGroupsByWallet, selectAccountToGroupMap } =
-        jest.requireMock(
-          '../../../../../selectors/multichainAccounts/accountTreeController',
-        );
-      const { selectInternalAccountsById } = jest.requireMock(
-        '../../../../../selectors/accountsController',
-      );
-      const { selectAvatarAccountType } = jest.requireMock(
-        '../../../../../selectors/settings',
-      );
-
-      useSelector.mockImplementation(
-        (selector: (...args: unknown[]) => unknown) => {
-          if (selector === selectInternalAccountsById)
-            return mockInternalAccountsById;
-          if (selector === selectAccountGroupsByWallet)
-            return [
-              ...mockAccountGroupsByWallet,
-              {
-                title: 'Wallet 2',
-                wallet: { id: 'wallet-2' },
-                data: [
-                  {
-                    id: 'group-2',
-                    accounts: ['account-2'],
-                    metadata: { name: 'Account 2' },
-                  },
-                ],
-              },
-            ];
-          if (selector === selectAccountToGroupMap)
-            return mockAccountToGroupMap;
-          if (selector === selectAvatarAccountType) return 'HD Key Tree';
-          return undefined;
-        },
-      );
-
-      const { getByTestId } = render(
-        <AccountSelector onAccountSelected={mockOnAccountSelected} />,
-      );
-
-      fireEvent.press(getByTestId(ACCOUNT_SELECTOR_TEST_IDS.PILL));
-      fireEvent.press(getByTestId('simulate-viewable-items'));
-
-      expect(mockLoadAccountGroupAssets).toHaveBeenCalledTimes(1);
-      expect(mockLoadAccountGroupAssets).toHaveBeenCalledWith([
-        'group-1',
-        'group-2',
-      ]);
-    });
   });
 });
 
