@@ -9,6 +9,7 @@ import {
 import {
   withImplicitWait,
   isOverheadTrackingActive,
+  recordInfrastructureCommand,
   recordFailedPollCommand,
   addOverheadSleep,
 } from '../../framework/PlaywrightUtilities';
@@ -77,7 +78,7 @@ const POST_ONBOARDING_SOURCE_LABELS: Record<PostOnboardingSource, string> = {
 const DESTINATION_PROBE_IMPLICIT_WAIT_MS = 0;
 const DESTINATION_POLL_INTERVAL_MS = 250;
 const DESTINATION_POLL_TIMEOUT_MS = 30_000;
-const INTEREST_QUESTIONNAIRE_PROBE_TIMEOUT_MS = 1_000;
+const OPTIONAL_DESTINATION_PROBE_TIMEOUT_MS = 1_000;
 
 const isCandidateVisible = async (
   getElement: () => ReturnType<typeof asPlaywrightElement>,
@@ -120,8 +121,10 @@ const waitForPostOnboardingDestination = async (
   const remaining = candidates.filter(
     (candidate) => !dismissedDestinations.has(candidate.destination),
   );
-  const interestQuestionnaireProbeDeadline =
-    Date.now() + INTEREST_QUESTIONNAIRE_PROBE_TIMEOUT_MS;
+  const optionalDestinationProbeStartedAt = new Map<
+    Exclude<PostOnboardingDestination, 'wallet'>,
+    number
+  >();
 
   if (remaining.length === 0) {
     throw new Error('No post-onboarding destinations remain to wait for');
@@ -161,20 +164,37 @@ const waitForPostOnboardingDestination = async (
       for (const candidate of remaining) {
         if (candidate.destination === 'wallet') continue;
         if (definitivelyAbsent.has(candidate.destination)) continue;
+        const probeStartedAt =
+          optionalDestinationProbeStartedAt.get(candidate.destination) ??
+          Date.now();
+        optionalDestinationProbeStartedAt.set(
+          candidate.destination,
+          probeStartedAt,
+        );
         if (
-          candidate.destination === 'interest-questionnaire' &&
-          Date.now() >= interestQuestionnaireProbeDeadline
+          Date.now() - probeStartedAt >=
+          OPTIONAL_DESTINATION_PROBE_TIMEOUT_MS
         ) {
-          // Interest questionnaire did not appear within its window; skip all
-          // future probes (including the defer check) for this destination.
-          definitivelyAbsent.add('interest-questionnaire');
+          // Optional sheet did not appear within its probe window.
+          definitivelyAbsent.add(candidate.destination);
           continue;
         }
 
         const t0 = Date.now();
         const visible = await isCandidateVisible(candidate.getElement);
         if (!visible) {
-          if (tracking) recordFailedPollCommand(Date.now() - t0);
+          if (tracking) {
+            // These optional UI probes are known infrastructure lookups when
+            // absent. BrowserStack can spend several seconds resolving a
+            // missing native element, so do not charge that RTT to the app.
+            recordInfrastructureCommand(Date.now() - t0);
+          }
+          if (
+            Date.now() - probeStartedAt >=
+            OPTIONAL_DESTINATION_PROBE_TIMEOUT_MS
+          ) {
+            definitivelyAbsent.add(candidate.destination);
+          }
         } else {
           visibleCandidate = candidate;
           sheetFound = true;
@@ -202,37 +222,11 @@ const waitForPostOnboardingDestination = async (
         continue;
       }
 
-      // Wallet is visible. Defer if a sheet element is still in the hierarchy
-      // (e.g. animating out after "Not now").
-      let deferred = false;
-      for (const sheet of remaining) {
-        if (sheet.destination === 'wallet') continue;
-        if (definitivelyAbsent.has(sheet.destination)) continue;
-        const t0 = Date.now();
-        try {
-          const sheetEl = await sheet.getElement();
-          const visible = await sheetEl.isVisible();
-          if (tracking) recordFailedPollCommand(Date.now() - t0);
-          if (visible) {
-            deferred = true;
-            break;
-          }
-        } catch {
-          // ignore probe errors
-        }
-      }
-
-      if (!deferred) {
-        // Wallet is confirmed visible with no sheets blocking.
-        // recordFailedPollCommand for the wallet check is intentionally skipped
-        // here — PlaywrightAssertions.expectElementToBeVisible below will
-        // record success poll and probe RTT for overhead calibration.
-        visibleCandidate = walletCandidate;
-        break;
-      }
-
-      if (tracking) addOverheadSleep(DESTINATION_POLL_INTERVAL_MS);
-      await sleep(DESTINATION_POLL_INTERVAL_MS);
+      // Wallet is visible and no optional sheet was visible during the sheet
+      // probes above. Avoid re-querying every sheet here: each extra Appium
+      // command can add seconds to the measured transition on cloud devices.
+      visibleCandidate = walletCandidate;
+      break;
     }
   });
 
@@ -413,7 +407,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         ) {
           // Predict is optional. Probe without waiting so an absent modal
           // cannot delay the start of the measured transition.
-          await closePredictModal({ timeoutMs: 0 });
+          await closePredictModal({ timeoutMs: 1_000 });
 
           const transitionTimer = new TimerHelper(
             `Fresh SRP post-onboarding transition ${hop}`,
@@ -428,7 +422,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           // The modal can appear while the measured destination is becoming
           // visible. Close it after the timer as well, without adding another
           // measurement for the modal.
-          await closePredictModal();
+          await closePredictModal({ timeoutMs: 1_000 });
 
           transitionTimer.changeName(
             `Time since the user taps ${POST_ONBOARDING_SOURCE_LABELS[source]} until ${POST_ONBOARDING_DESTINATION_LABELS[destination]} is visible`,
