@@ -156,8 +156,12 @@ describe('useActivityDetailsItem', () => {
     expect(result.current).toBe(api);
   });
 
-  it('prefers the API swap over a local swapIncomplete (destination unresolved on-device)', () => {
-    const local = makeItem({ type: 'swapIncomplete', hash: '0xswap' });
+  it('prefers the API swap over a local swap whose destination is unresolved on-device', () => {
+    const local = makeItem({
+      type: 'swap',
+      hash: '0xswap',
+      data: { sourceToken: { direction: 'out', symbol: 'ETH' } },
+    });
     const api = makeItem({ type: 'swap', hash: '0xswap' });
     setSources({ local: [local], confirmed: [api] });
 
@@ -165,8 +169,12 @@ describe('useActivityDetailsItem', () => {
     expect(result.current).toBe(api);
   });
 
-  it('falls back to the local swapIncomplete when there is no API copy', () => {
-    const local = makeItem({ type: 'swapIncomplete', hash: '0xonly' });
+  it('falls back to the local swap when there is no API copy', () => {
+    const local = makeItem({
+      type: 'swap',
+      hash: '0xonly',
+      data: { sourceToken: { direction: 'out', symbol: 'ETH' } },
+    });
     setSources({ local: [local] });
 
     const { result } = renderHook(() => useActivityDetailsItem('0xonly'));
