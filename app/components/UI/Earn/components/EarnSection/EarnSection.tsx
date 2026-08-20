@@ -10,9 +10,6 @@ import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  BadgeNetwork,
-  BadgeWrapper,
-  BadgeWrapperPosition,
   BannerAlert,
   BannerAlertSeverity,
   Box,
@@ -29,11 +26,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { getNetworkImageSource } from '../../../../../util/networks';
 import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
 import { strings } from '../../../../../../locales/i18n';
-import type { TokenI } from '../../../Tokens/types';
-import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import EarnSectionAssetCard from '../EarnSectionAssetCard';
 import EarnSectionCard from '../EarnSectionCard';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -44,6 +38,7 @@ import useHomeViewedEvent, {
 import { useSectionPerformance } from '../../../../Views/Homepage/hooks/useSectionPerformance';
 import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
 import { useNavigation } from '@react-navigation/native';
+import EarnAssetIcon from '../EarnAssetIcon/EarnAssetIcon';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
 import { truncateNumber } from '../../utils';
 import {
@@ -63,6 +58,8 @@ import { isEarnAssetBalanceBelowMinDepositAmount } from '../../utils/earnAssets/
 import Routes from '../../../../../constants/navigation/Routes';
 import { RefreshConfig } from '../../../../Views/TrendingView/hooks/useExploreRefresh';
 import { useFeedRefresh } from '../../../../Views/TrendingView/hooks/useFeedRefresh';
+// TODO: Use in this file after rebasing
+import { getEarnAssetRateText } from '../../utils/earnSection/getEarnAssetRateText';
 
 interface EarnSectionHomeAnalytics {
   sectionIndex: number;
@@ -76,27 +73,6 @@ export interface EarnSectionProps {
   refresh?: RefreshConfig;
   enabled?: boolean;
 }
-
-const renderEarnAssetIcon = (token: TokenI) => {
-  const networkImageSource = token.chainId
-    ? getNetworkImageSource({ chainId: token.chainId })
-    : undefined;
-
-  return (
-    <BadgeWrapper
-      position={BadgeWrapperPosition.BottomRight}
-      badge={
-        <BadgeNetwork
-          name={token.chainId ?? ''}
-          src={networkImageSource}
-          twClassName="rounded-1"
-        />
-      }
-    >
-      <AssetLogo asset={token} />
-    </BadgeWrapper>
-  );
-};
 
 const renderAssetCardSkeleton = (key: string) => (
   <EarnSectionCard key={key} testID={key}>
@@ -354,7 +330,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           return (
             <EarnSectionAssetCard
               key={slot.key}
-              icon={renderEarnAssetIcon(earnAssetToToken(asset))}
+              icon={<EarnAssetIcon token={earnAssetToToken(asset)} />}
               tag={
                 hasSubsidizedFee ? (
                   <EarnNoFeeTag

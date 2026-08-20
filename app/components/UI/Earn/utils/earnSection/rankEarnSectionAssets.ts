@@ -79,17 +79,15 @@ const compareByKey = (
 ) => first.assetId.localeCompare(second.assetId);
 
 /**
- * Projects the CAIP-19-deduplicated catalogue produced by buildEarnAssets into
- * fixed homepage slots. Held assets rank before discovery assets, and missing
- * assets are padded so the section always renders five slots by default.
+ * Enriches and sorts all earn assets held-first, then by highest rate.
+ * Returns every asset without padding or truncation.
  *
  * Rates are compared as displayed numeric percentages; APR and APY values are
  * not normalized to a common yield type.
  */
-export const rankEarnSectionAssets = (
+export const rankEarnAssets = (
   assets: readonly EarnAsset[],
-  limit = EARN_SECTION_ASSET_LIMIT,
-): EarnSectionAssetSlot[] => {
+): EarnSectionRankedAsset[] => {
   const rankedAssets = assets.map(
     (asset): EarnSectionRankedAsset => ({
       ...asset,
@@ -108,6 +106,7 @@ export const rankEarnSectionAssets = (
           getEarnAssetFiatNumber(second),
         ) || compareByKey(first, second),
     );
+
   const unheld = rankedAssets
     .filter((asset) => !hasEarnAssetBalance(asset))
     .sort(
@@ -118,13 +117,21 @@ export const rankEarnSectionAssets = (
         ) || compareByKey(first, second),
     );
 
-  const slots: EarnSectionAssetSlot[] = [...held, ...unheld]
+  return [...held, ...unheld];
+};
+
+/**
+ * Projects the CAIP-19-deduplicated catalogue produced by buildEarnAssets into
+ * fixed homepage slots. Held assets rank before discovery assets, and missing
+ * assets are padded so the section always renders five slots by default.
+ */
+export const rankEarnSectionAssets = (
+  assets: readonly EarnAsset[],
+  limit = EARN_SECTION_ASSET_LIMIT,
+): EarnSectionAssetSlot[] => {
+  const slots: EarnSectionAssetSlot[] = rankEarnAssets(assets)
     .slice(0, limit)
-    .map((asset) => ({
-      kind: 'asset',
-      key: asset.assetId,
-      asset,
-    }));
+    .map((asset) => ({ kind: 'asset' as const, key: asset.assetId, asset }));
 
   while (slots.length < limit) {
     slots.push({
