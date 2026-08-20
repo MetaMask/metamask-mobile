@@ -26,6 +26,9 @@ const mockUseMoneyAssetOverviewCtas = jest.fn();
 jest.mock('../../Money/hooks/useMoneyAssetOverviewCtas', () => ({
   useMoneyAssetOverviewCtas: () => mockUseMoneyAssetOverviewCtas(),
 }));
+jest.mock('../../../Views/Homepage/hooks/useHomepagePhosphorBoldIcons', () => ({
+  useHomepagePhosphorBoldIcons: jest.fn(),
+}));
 
 jest.mock('../../Money/components/MoneyAssetOverviewBalanceCta', () => ({
   MoneyAssetOverviewBalanceCta: () => null,

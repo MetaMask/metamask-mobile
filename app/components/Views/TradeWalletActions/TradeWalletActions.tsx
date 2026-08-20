@@ -12,7 +12,6 @@ import {
   Pressable,
   StyleSheet,
   View,
-  type ViewStyle,
   useWindowDimensions,
 } from 'react-native';
 import Animated, {
@@ -92,13 +91,11 @@ import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { useHomepagePhosphorBoldIcons } from '../Homepage/hooks/useHomepagePhosphorBoldIcons';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
-
-const batchSellIconStyle = {
-  transform: [{ rotate: '180deg' }],
-} satisfies ViewStyle;
 
 export interface TradeWalletActionsParams {
   onDismiss?: () => void;
@@ -112,6 +109,7 @@ export interface TradeWalletActionsParams {
 }
 
 function TradeWalletActions() {
+  useHomepagePhosphorBoldIcons();
   const { navigate } = useNavigation();
   const { onDismiss, buttonLayout } = useParams<TradeWalletActionsParams>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
@@ -371,9 +369,6 @@ function TradeWalletActions() {
           }
           description={strings('asset_overview.batch_sell_description')}
           iconName={IconName.Merge}
-          iconProps={{
-            style: batchSellIconStyle,
-          }}
           onPress={onBatchSell}
           testID={WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON}
           isDisabled={!isSwapsEnabled}

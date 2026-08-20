@@ -1,9 +1,17 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { useHomepagePhosphorBoldIcons } from '../../../../Views/Homepage/hooks/useHomepagePhosphorBoldIcons';
 import PerpsMarketDetailsRouter from './PerpsMarketDetailsRouter';
 import { usePerpsProModeEnabled } from './usePerpsProModeEnabled';
 
 jest.mock('./usePerpsProModeEnabled');
+
+jest.mock(
+  '../../../../Views/Homepage/hooks/useHomepagePhosphorBoldIcons',
+  () => ({
+    useHomepagePhosphorBoldIcons: jest.fn(),
+  }),
+);
 
 const mockSafeAreaMount = jest.fn();
 
@@ -44,6 +52,14 @@ const mockUsePerpsProModeEnabled = jest.mocked(usePerpsProModeEnabled);
 describe('PerpsMarketDetailsRouter', () => {
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('applies Phosphor icons while the market details screen is focused', () => {
+    mockUsePerpsProModeEnabled.mockReturnValue(true);
+
+    render(<PerpsMarketDetailsRouter />);
+
+    expect(useHomepagePhosphorBoldIcons).toHaveBeenCalled();
   });
 
   it('renders PerpsProMarketView when Pro mode is enabled', () => {

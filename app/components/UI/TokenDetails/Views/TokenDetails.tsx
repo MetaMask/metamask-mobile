@@ -74,6 +74,7 @@ import { useMoneyAssetOverviewCtas } from '../../Money/hooks/useMoneyAssetOvervi
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
+import { useHomepagePhosphorBoldIcons } from '../../../Views/Homepage/hooks/useHomepagePhosphorBoldIcons';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -189,6 +190,7 @@ const TokenDetails: React.FC<{
   onCtaClicked,
   onPerpsMarketResolved,
 }) => {
+  useHomepagePhosphorBoldIcons();
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   useAddNetworkIfMissingQuery({ chainId: token.chainId });

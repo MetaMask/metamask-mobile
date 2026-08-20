@@ -54,11 +54,13 @@ import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradi
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
 import VipIcon from '../../../../images/rewards/vip.svg';
 import Engine from '../../../../core/Engine';
+import { useHomepagePhosphorBoldIcons } from '../../../Views/Homepage/hooks/useHomepagePhosphorBoldIcons';
 
 const VIP_UNLOCK_TAP_COUNT = 5;
 const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
 
 const RewardsDashboard: React.FC = () => {
+  useHomepagePhosphorBoldIcons();
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();

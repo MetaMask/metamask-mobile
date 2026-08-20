@@ -17,6 +17,13 @@ export const ICON_BY_TAB_BAR_ICON_KEY: IconByTabBarIconKey = {
   [TabBarIconKey.Money]: IconName.Musd,
 };
 
+export const FILLED_ICON_BY_TAB_BAR_ICON_KEY: Partial<IconByTabBarIconKey> = {
+  [TabBarIconKey.Wallet]: IconName.HomeFilled,
+  [TabBarIconKey.Activity]: IconName.ClockFilled,
+  [TabBarIconKey.Rewards]: IconName.MetamaskFoxFilled,
+  [TabBarIconKey.Money]: IconName.MusdFilled,
+};
+
 export const LABEL_BY_TAB_BAR_ICON_KEY = {
   [TabBarIconKey.Wallet]: 'bottom_nav.home',
   [TabBarIconKey.Browser]: 'bottom_nav.browser',

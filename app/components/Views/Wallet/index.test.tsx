@@ -179,6 +179,10 @@ jest.mock('../../../hooks', () => ({
 
 const mockHomepageDiscoveryPills = jest.fn();
 const mockHomepageActionButtonsGrid = jest.fn();
+jest.mock('../Homepage/hooks/useHomepagePhosphorBoldIcons', () => ({
+  useHomepagePhosphorBoldIcons: jest.fn(),
+}));
+
 jest.mock('../Homepage/components/HomepageDiscoveryPills', () => {
   const React = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
