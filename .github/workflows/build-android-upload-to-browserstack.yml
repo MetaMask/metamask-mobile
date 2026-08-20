@@ -914,12 +914,12 @@ jobs:
       - name: Upload APKs to Sauce Labs
         id: sauce-upload
         env:
-          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+          SAUCE_USERNAME: oauth-javier.vera-857be
           SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
         run: |
           set -euo pipefail
-          if [ -z "${SAUCE_USERNAME:-}" ] || [ -z "${SAUCE_ACCESS_KEY:-}" ]; then
-            echo "::error::SAUCE_USERNAME and SAUCE_ACCESS_KEY secrets are required"
+          if [ -z "${SAUCE_ACCESS_KEY:-}" ]; then
+            echo "::error::SAUCE_ACCESS_KEY secret is required"
             exit 1
           fi
           upload() {

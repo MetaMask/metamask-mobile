@@ -36,8 +36,6 @@ on:
         type: string
         default: test
     secrets:
-      SAUCE_USERNAME:
-        required: false
       SAUCE_ACCESS_KEY:
         required: true
       MM_TEST_ACCOUNT_SRP:
@@ -105,7 +103,7 @@ jobs:
             exit 1
           fi
           {
-            echo "SAUCE_USERNAME=${{ secrets.SAUCE_USERNAME }}"
+            echo "SAUCE_USERNAME=oauth-javier.vera-857be"
             echo "SAUCE_ACCESS_KEY=${{ secrets.SAUCE_ACCESS_KEY }}"
             echo "SAUCE_ANDROID_APP_URL=$sauce_app_url"
             echo "SAUCE_ANDROID_ONBOARDING_APP_URL=$sauce_app_url"
@@ -136,10 +134,6 @@ jobs:
             echo "DISABLE_VIDEO_DOWNLOAD=true"
             echo "DISABLE_NETWORK_LOGS=true"
           } >> "$GITHUB_ENV"
-          if [ -z "${{ secrets.SAUCE_USERNAME }}" ]; then
-            echo "::error::SAUCE_USERNAME secret is required for Sauce Labs lanes"
-            exit 1
-          fi
 
       - name: Run Sauce Labs tests
         continue-on-error: true
