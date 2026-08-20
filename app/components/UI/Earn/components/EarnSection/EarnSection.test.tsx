@@ -227,6 +227,23 @@ describe('EarnSection', () => {
     ).toBeOnTheScreen();
   });
 
+  it('navigates both Earn section view-all actions to the market list', () => {
+    mockSectionResult({ hasMoreAssets: true });
+
+    render(<EarnSection {...exploreEarnSectionProps} />);
+
+    fireEvent.press(screen.getByTestId('homepage-section-title-earn'));
+    fireEvent.press(screen.getByTestId('earn-section-view-more-card'));
+
+    expect(navigate).toHaveBeenCalledTimes(2);
+    expect(navigate).toHaveBeenNthCalledWith(1, Routes.EARN.ROOT, {
+      screen: Routes.EARN.MARKET_LIST,
+    });
+    expect(navigate).toHaveBeenNthCalledWith(2, Routes.EARN.ROOT, {
+      screen: Routes.EARN.MARKET_LIST,
+    });
+  });
+
   it('disables Homepage telemetry for shared Explore rendering', () => {
     renderEarnSection();
 

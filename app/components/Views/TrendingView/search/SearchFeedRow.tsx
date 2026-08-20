@@ -14,6 +14,8 @@ import type { SearchFeedId } from './useExploreSearch';
 import TapView from './TapView';
 import { trackExploreSearchEvent, type SearchFeedPill } from './analytics';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
+import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
+import EarnSearchRow from './EarnSearchRow';
 
 interface SearchFeedRowProps {
   feedId: SearchFeedId;
@@ -38,6 +40,8 @@ export const getItemId = (feedId: SearchFeedId, item: unknown): string => {
       return (item as PredictMarketType).id ?? '';
     case 'sites':
       return (item as SiteData).url ?? '';
+    case 'earn':
+      return (item as EarnSearchItem).id;
   }
 };
 
@@ -92,6 +96,8 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
         return <PredictionSearchRowItem market={item as PredictMarketType} />;
       case 'sites':
         return <SiteRowItem site={item as SiteData} />;
+      case 'earn':
+        return <EarnSearchRow item={item as EarnSearchItem} />;
     }
   })();
 
@@ -109,6 +115,7 @@ export const SearchFeedSkeleton: React.FC<{ feedId: SearchFeedId }> = ({
     case 'tokens':
     case 'stocks':
     case 'perps':
+    case 'earn':
     default:
       return <TrendingTokensSkeleton />;
   }

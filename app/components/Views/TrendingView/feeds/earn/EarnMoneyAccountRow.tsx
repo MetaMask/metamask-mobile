@@ -11,7 +11,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import MoneyBalanceIcon from '../../../../../../images/money-balance.svg';
+import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
 import { truncateNumber } from '../../../../UI/Earn/utils';
 import EarnNewTag from '../../../../UI/Earn/components/EarnNewTag';
 import type { EarnMoneyAccountSearchItem } from './earnSearchTypes';

@@ -210,12 +210,11 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       enabled: homepageTelemetryEnabled,
     });
 
-    const handleHeaderPress = () => {
-      // eslint-disable-next-line no-alert
-      alert(
-        'Under construction 🚧 - Implement when adding Earn Section to Explore search page',
-      );
-    };
+    const handleViewAll = useCallback(() => {
+      navigation.navigate(Routes.EARN.ROOT, {
+        screen: Routes.EARN.MARKET_LIST,
+      });
+    }, [navigation]);
 
     const handleAssetCardPress = useCallback(
       (asset: EarnAsset) => {
@@ -245,13 +244,6 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       },
       [navigation, tokenDetailsSource],
     );
-
-    const handleViewMoreCardPress = () => {
-      // eslint-disable-next-line no-alert
-      alert(
-        'Under construction 🚧 - Implement when adding Earn Section to Explore search page',
-      );
-    };
 
     const moneyAccountCardSecondaryText = useMemo(() => {
       if (isOnboardingRedirectNeeded && moneyAccountBalanceRaw === '0') {
@@ -361,7 +353,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           <SectionHeader
             title={strings('homepage.sections.earn')}
             isInteractive
-            onPress={handleHeaderPress}
+            onPress={handleViewAll}
             testID={homepageSectionTitleTestId(HomeSectionNames.EARN)}
           />
           {hasError && (
@@ -434,7 +426,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
             {!isLoading && hasMoreAssets && (
               <EarnSectionCard
                 testID="earn-section-view-more-card"
-                onPress={handleViewMoreCardPress}
+                onPress={handleViewAll}
               >
                 <Box
                   alignItems={BoxAlignItems.Center}

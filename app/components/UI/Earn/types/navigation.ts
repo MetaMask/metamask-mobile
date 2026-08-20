@@ -16,6 +16,7 @@ import type {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EarnScreensStackParamList = {
+  EarnMarketList: undefined;
   EarnLendingDepositConfirmation: LendingDepositConfirmationParams | undefined;
   EarnLendingWithdrawalConfirmation:
     | LendingWithdrawalConfirmationParams

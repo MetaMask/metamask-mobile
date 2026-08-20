@@ -1,17 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
+import { selectExploreEarnSectionEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
 import { strings } from '../../../../../locales/i18n';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import { useSitesFeed } from '../feeds/sites/useSitesFeed';
+import { useEarnSearchFeed } from '../feeds/earn/useEarnSearchFeed';
 
 /** Feeds that participate in the omni-search across the Explore page. */
 export type SearchFeedId =
   | 'tokens'
   | 'perps'
+  | 'earn'
   | 'stocks'
   | 'predictions'
   | 'sites';
@@ -45,6 +48,7 @@ export const useExploreSearch = (
 
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isExploreEarnEnabled = useSelector(selectExploreEarnSectionEnabledFlag);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query), DEBOUNCE_MS);
@@ -61,6 +65,9 @@ export const useExploreSearch = (
     query: debouncedQuery,
   });
   const sites = useSitesFeed({ query: debouncedQuery });
+  const earn = useEarnSearchFeed({
+    query: debouncedQuery,
+  });
 
   return useMemo<ExploreSearchResult>(() => {
     const sections: SearchFeedSection[] = [
@@ -84,6 +91,17 @@ export const useExploreSearch = (
         title: strings('trending.search_tabs.perps'),
         items: perps.data.map((d) => d.market),
         isLoading: isDebouncing || perps.isLoading,
+      });
+    }
+
+    if (isExploreEarnEnabled) {
+      sections.push({
+        feedId: 'earn',
+        // TODO: Replace with string from trending.search_tabs.earn
+        title: strings('homepage.sections.earn'),
+        items: earn.data,
+        isLoading: isDebouncing || earn.isLoading,
+        total: earn.data.length,
       });
     }
 
@@ -124,6 +142,7 @@ export const useExploreSearch = (
   }, [
     isDebouncing,
     isPerpsEnabled,
+    isExploreEarnEnabled,
     exposePagination,
     tokens.data,
     tokens.isLoading,
@@ -147,5 +166,7 @@ export const useExploreSearch = (
     predictions.total,
     sites.data,
     sites.isLoading,
+    earn.data,
+    earn.isLoading,
   ]);
 };
