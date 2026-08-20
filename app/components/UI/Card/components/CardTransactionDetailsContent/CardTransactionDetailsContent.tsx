@@ -7,9 +7,11 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   HeaderStandard,
   IconName,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -74,7 +76,10 @@ const CardTransactionDetailsContent = ({
         backButtonProps={{ testID: 'card-transaction-details-back-button' }}
         includesTopInset
       />
-      <ScrollView contentContainerStyle={tw.style('pb-8')}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={tw.style('pb-8')}
+      >
         <Box twClassName="px-4">
           <Box twClassName="gap-3">
             <Box twClassName="gap-1">
@@ -148,11 +153,16 @@ const CardTransactionDetailsContent = ({
             ) : null}
 
             {declineReason ? (
-              <TransactionDetailsRow
-                label={strings('card.transactions.decline_reason')}
-              >
+              <Box twClassName="gap-1">
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('card.transactions.decline_reason')}
+                </Text>
                 <Text color={TextColor.TextAlternative}>{declineReason}</Text>
-              </TransactionDetailsRow>
+              </Box>
             ) : null}
 
             {footer}
@@ -173,16 +183,13 @@ const CardTransactionDetailsContent = ({
             ) : null}
 
             {onReportPress ? (
-              <Box twClassName="w-full pt-2">
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
+              <Box twClassName="w-full items-center pt-2">
+                <TextButton
                   onPress={onReportPress}
-                  isFullWidth
                   testID="card-transaction-details-report-button"
                 >
                   {strings('card.transactions.report_cta')}
-                </Button>
+                </TextButton>
               </Box>
             ) : null}
           </Box>
