@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import BigNumber from 'bignumber.js';
 import MoneyAccountSweepstakesCampaignOverview, {
   MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS,
 } from './MoneyAccountSweepstakesCampaignOverview';
@@ -9,6 +10,7 @@ import {
   type MoneyAccountSweepstakesStatsMeDto,
 } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 import { createMoneyAccountSweepstakesLocalizedText } from './testUtils';
+import useMoneyAccountBalance from '../../../../Money/hooks/useMoneyAccountBalance';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
@@ -23,11 +25,7 @@ jest.mock('../../../utils/formatUtils', () => ({
 
 jest.mock('../../../../Money/hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
-  default: jest.fn(() => ({
-    totalFiatFormatted: '$1,250.00',
-    lastKnownTotalFiatFormatted: undefined,
-    isBalanceLoading: false,
-  })),
+  default: jest.fn(),
 }));
 
 jest.mock('../../RewardsErrorBanner', () => {
@@ -53,6 +51,26 @@ jest.mock('../../RewardsErrorBanner', () => {
       ),
   };
 });
+
+const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
+
+const mockMoneyAccountBalance = ({
+  totalFiatFormatted = '$1,250.00',
+  lastKnownTotalFiatFormatted,
+  isBalanceLoading = false,
+  tokenTotal = new BigNumber(1250),
+}: {
+  totalFiatFormatted?: string;
+  lastKnownTotalFiatFormatted?: string;
+  isBalanceLoading?: boolean;
+  tokenTotal?: BigNumber;
+} = {}) =>
+  mockUseMoneyAccountBalance.mockReturnValue({
+    totalFiatFormatted,
+    lastKnownTotalFiatFormatted,
+    isBalanceLoading,
+    tokenTotal,
+  } as ReturnType<typeof useMoneyAccountBalance>);
 
 const localizedText = createMoneyAccountSweepstakesLocalizedText();
 
@@ -84,6 +102,10 @@ const stats: MoneyAccountSweepstakesStatsMeDto = {
 };
 
 describe('MoneyAccountSweepstakesCampaignOverview', () => {
+  beforeEach(() => {
+    mockMoneyAccountBalance();
+  });
+
   it('uses qualifying deposits for the balance display and qualification shortfall', () => {
     const { getByText, queryByText } = render(
       <MoneyAccountSweepstakesCampaignOverview
@@ -181,5 +203,52 @@ describe('MoneyAccountSweepstakesCampaignOverview', () => {
     ).toBeOnTheScreen();
     expect(getByText('Balance')).toBeOnTheScreen();
     expect(getByText('$1,250.00')).toBeOnTheScreen();
+  });
+
+  it('hides the Money Account balance row when the balance is zero', () => {
+    mockMoneyAccountBalance({
+      totalFiatFormatted: '$0.00',
+      tokenTotal: new BigNumber(0),
+    });
+
+    const { queryByTestId, queryByText } = render(
+      <MoneyAccountSweepstakesCampaignOverview
+        campaign={campaign}
+        localizedText={localizedText}
+        isParticipating
+        stats={stats}
+      />,
+    );
+
+    expect(
+      queryByTestId(
+        MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.MONEY_ACCOUNT_BALANCE_ROW,
+      ),
+    ).toBeNull();
+    expect(queryByText('Balance')).toBeNull();
+    expect(queryByText('$0.00')).toBeNull();
+  });
+
+  it('keeps the Money Account balance row while the balance is still unknown', () => {
+    mockMoneyAccountBalance({
+      totalFiatFormatted: undefined,
+      isBalanceLoading: true,
+      tokenTotal: undefined,
+    });
+
+    const { getByTestId } = render(
+      <MoneyAccountSweepstakesCampaignOverview
+        campaign={campaign}
+        localizedText={localizedText}
+        isParticipating
+        stats={stats}
+      />,
+    );
+
+    expect(
+      getByTestId(
+        MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.MONEY_ACCOUNT_BALANCE_ROW,
+      ),
+    ).toBeOnTheScreen();
   });
 });

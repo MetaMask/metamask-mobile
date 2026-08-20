@@ -58,8 +58,12 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
 }) => {
   const tw = useTailwind();
   const backgroundImageUrl = campaign.image?.lightModeUrl;
-  const { totalFiatFormatted, lastKnownTotalFiatFormatted, isBalanceLoading } =
-    useMoneyAccountBalance();
+  const {
+    totalFiatFormatted,
+    lastKnownTotalFiatFormatted,
+    isBalanceLoading,
+    tokenTotal,
+  } = useMoneyAccountBalance();
 
   if (isParticipating) {
     const showStatsLoading = isStatsLoading && !stats;
@@ -97,7 +101,7 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
           }
         >
           <Box
-            twClassName="gap-3 rounded-xl bg-muted p-4"
+            twClassName="gap-3 rounded-xl border border-border-muted bg-muted p-4"
             testID={
               MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.STATS_LOADING
             }
@@ -147,6 +151,10 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
       isBalanceLoading &&
       totalFiatFormatted === undefined &&
       lastKnownTotalFiatFormatted === undefined;
+    // An undefined tokenTotal means the balance is still unknown (loading or
+    // fetch error), so keep the row to show the skeleton / last known value.
+    const showMoneyAccountBalanceRow =
+      tokenTotal === undefined || tokenTotal.isGreaterThan(0);
 
     return (
       <Box
@@ -154,7 +162,7 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
         testID={MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.CONTAINER}
       >
         <Box
-          twClassName="gap-3 rounded-xl bg-muted p-4"
+          twClassName="gap-3 rounded-xl border border-border-muted bg-muted p-4"
           testID={
             MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.BALANCE_HEADER
           }
@@ -210,33 +218,37 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
               {qualificationMessage}
             </Text>
           )}
-          <Box twClassName="border-t border-border-muted" />
-          <Box
-            alignItems={BoxAlignItems.Center}
-            flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Between}
-            testID={
-              MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.MONEY_ACCOUNT_BALANCE_ROW
-            }
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {localizedText.balanceTitle}
-            </Text>
-            {showMoneyAccountBalanceSkeleton ? (
-              <Skeleton style={tw.style('h-5 w-20 rounded-md')} />
-            ) : (
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
+          {showMoneyAccountBalanceRow && (
+            <>
+              <Box twClassName="border-t border-border-muted" />
+              <Box
+                alignItems={BoxAlignItems.Center}
+                flexDirection={BoxFlexDirection.Row}
+                justifyContent={BoxJustifyContent.Between}
+                testID={
+                  MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.MONEY_ACCOUNT_BALANCE_ROW
+                }
               >
-                {moneyAccountBalanceDisplay}
-              </Text>
-            )}
-          </Box>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                >
+                  {localizedText.balanceTitle}
+                </Text>
+                {showMoneyAccountBalanceSkeleton ? (
+                  <Skeleton style={tw.style('h-5 w-20 rounded-md')} />
+                ) : (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextDefault}
+                  >
+                    {moneyAccountBalanceDisplay}
+                  </Text>
+                )}
+              </Box>
+            </>
+          )}
           {children}
         </Box>
       </Box>
