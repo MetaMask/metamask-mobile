@@ -157,9 +157,6 @@ export const useCryptoUpDownChartData = (
   const variant = getVariant(recurrence);
   const eventStartTime = getEventStartTime(market.endDate, recurrence);
   const durationSecs = RECURRENCE_TO_DURATION_SECS[recurrence] ?? 300;
-  const chartWindowSecs = twapWindowSeconds
-    ? durationSecs
-    : LIVE_CHART_WINDOW_SECS;
   const marketEndDateMs = market.endDate
     ? new Date(market.endDate).getTime()
     : undefined;
@@ -334,7 +331,7 @@ export const useCryptoUpDownChartData = (
           !lastPoint || timeSecs > lastPoint.time
             ? [...points, point]
             : mergeLivelinePoints(points, [point]);
-        return trimLivePoints(nextPoints, timeSecs, chartWindowSecs * 2);
+        return trimLivePoints(nextPoints, timeSecs);
       });
       if (liveLoadingRef.current) {
         liveLoadingRef.current = false;
@@ -346,7 +343,7 @@ export const useCryptoUpDownChartData = (
         setFrozenMarketId(currentMarketId);
       }
     },
-    [chartWindowSecs, markLiveStreamFresh, twapWindowSeconds],
+    [markLiveStreamFresh, twapWindowSeconds],
   );
 
   useEffect(
@@ -517,7 +514,7 @@ export const useCryptoUpDownChartData = (
   const newestLivePointTime = currentSourceLivePoints.at(-1)?.time;
   const liveWindowStartSecs =
     typeof newestLivePointTime === 'number'
-      ? newestLivePointTime - chartWindowSecs
+      ? newestLivePointTime - LIVE_CHART_WINDOW_SECS
       : undefined;
   const liveWindowPointCount =
     typeof liveWindowStartSecs === 'number' &&
@@ -630,7 +627,7 @@ export const useCryptoUpDownChartData = (
           ? !hasLiveObservation
           : !hasRenderableChartData,
       isLive,
-      window: chartWindowSecs,
+      window: LIVE_CHART_WINDOW_SECS,
       connectionError: isLive ? connectionError : false,
     };
   }

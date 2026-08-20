@@ -1,6 +1,6 @@
 # Appium Smoke E2E Tests
 
-Appium smoke is the **primary** mobile E2E path (Playwright + Appium). Specs live under `tests/smoke-appium/`. Detox smoke and `wdio/` have been removed (MMQA-2230).
+Appium smoke is the **primary** mobile E2E path (Playwright + Appium). Specs live under `tests/smoke-appium/`. Detox smoke and `wdio/` have been removed.
 
 |                         | Appium smoke                                           |
 | ----------------------- | ------------------------------------------------------ |

@@ -454,6 +454,16 @@ const makeItem = (
   } as unknown as ActivityListItem;
 };
 
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.mocked(selectCurrentCurrency).mockReturnValue('usd');
+  jest.mocked(selectConversionRateByChainId).mockReturnValue(2500);
+  jest.mocked(selectUSDConversionRateByChainId).mockReturnValue(2500);
+  jest.mocked(selectContractExchangeRatesByChainId).mockReturnValue({
+    [LINEA_MUSD_ADDRESS]: { price: 0.0004 },
+  } as unknown as ReturnType<typeof selectContractExchangeRatesByChainId>);
+});
+
 // ---------------------------------------------------------------------------
 // Row content tests — mirrors extension ActivityRow title/subtitle/amount split
 // ---------------------------------------------------------------------------
@@ -1816,14 +1826,22 @@ describe('ActivityListItemRow — display currency conversion', () => {
   const mockConversionRate = jest.mocked(selectConversionRateByChainId);
   const mockUsdConversionRate = jest.mocked(selectUSDConversionRateByChainId);
 
-  // These selector mocks use persistent return values (clearAllMocks does not
-  // reset them), so restore the suite-wide defaults (USD, equal rates) after
-  // each test to keep overrides from leaking.
-  afterEach(() => {
-    jest.clearAllMocks();
+  const restoreSelectorDefaults = () => {
     mockCurrency.mockReturnValue('usd');
     mockConversionRate.mockReturnValue(2500);
     mockUsdConversionRate.mockReturnValue(2500);
+  };
+
+  // Persistent mockReturnValue is not cleared by clearAllMocks. beforeEach
+  // isolates tests in this suite; afterEach restores defaults so later
+  // suites (amount display, ERC-20 fiat) are not left on EUR / missing rates.
+  beforeEach(() => {
+    jest.clearAllMocks();
+    restoreSelectorDefaults();
+  });
+
+  afterEach(() => {
+    restoreSelectorDefaults();
   });
 
   const makeFundingFee = (hash: string, amount: string): ActivityListItem =>
@@ -1991,8 +2009,8 @@ describe('ActivityListItemRow — ERC-20 fiat address casing (TMCU-937)', () => 
     >;
 
   // This mock uses a persistent return value (clearAllMocks does not reset it),
-  // so restore the suite default (lowercased mUSD key) after each test.
-  afterEach(() => {
+  // so set the suite default (lowercased mUSD key) before each test.
+  beforeEach(() => {
     jest.clearAllMocks();
     mockContractExchangeRates.mockReturnValue(ratesFor(LINEA_MUSD_ADDRESS));
   });
@@ -2032,7 +2050,9 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'swapIncomplete',
   'bridge',
   'buy',
+  'rampBuy',
   'sell',
+  'rampSell',
   'claim',
   'claimMusdBonus',
   'deposit',
@@ -2092,7 +2112,9 @@ const EXPECTED_TITLES = {
   swapIncomplete: 'Swapped',
   bridge: 'Bridged',
   buy: 'Bought',
+  rampBuy: 'Bought',
   sell: 'Sold',
+  rampSell: 'Sold',
   claim: 'Claimed',
   claimMusdBonus: strings('transactions.activity_claim_musd_bonus'),
   deposit: 'Deposited',

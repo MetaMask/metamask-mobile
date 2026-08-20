@@ -116,6 +116,16 @@ describe('TransactionDetailsAccountRow', () => {
     ).toBeOnTheScreen();
   });
 
+  it('hides network badge when network image is missing', () => {
+    useNetworkInfoMock.mockReturnValue({});
+
+    const { queryByTestId } = render();
+
+    expect(
+      queryByTestId('transaction-details-account-network-badge'),
+    ).not.toBeOnTheScreen();
+  });
+
   it('renders "From" row with money account label for moneyAccountWithdraw', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {

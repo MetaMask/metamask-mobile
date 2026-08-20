@@ -64,6 +64,13 @@ import {
 } from '../../../../components/UI/Bridge/hooks/useRWAToken';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
 import { selectAnalyticsEnabled } from '../../../../selectors/analyticsController';
+import {
+  DEFAULT_RECURRING_EVERY_VALUE,
+  initialRecurringState,
+  validateRecurringSchedule,
+  type RecurringIntervalUnit,
+  type RecurringState,
+} from '../../../../components/UI/Bridge/utils/recurringSchedule';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -118,6 +125,7 @@ export interface BridgeState {
   >;
   batchSellDestToken: BridgeToken | undefined;
   batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>;
+  recurring: RecurringState;
 }
 
 export const initialState: BridgeState = {
@@ -150,6 +158,7 @@ export const initialState: BridgeState = {
   batchSellSourceTokenAmounts: {},
   batchSellDestToken: undefined,
   batchSellSlippages: {},
+  recurring: initialRecurringState,
 };
 
 const name = 'bridge';
@@ -209,6 +218,19 @@ const slice = createSlice({
     setDestAmount: (state, action: PayloadAction<string | undefined>) => {
       state.destAmount = action.payload;
     },
+    setRecurringEveryValue: (state, action: PayloadAction<string>) => {
+      state.recurring.everyValue = action.payload;
+    },
+    setRecurringRepeatCount: (state, action: PayloadAction<string>) => {
+      state.recurring.repeatCount = action.payload;
+    },
+    setRecurringEveryUnit: (
+      state,
+      action: PayloadAction<RecurringIntervalUnit>,
+    ) => {
+      state.recurring.everyUnit = action.payload;
+      state.recurring.everyValue = DEFAULT_RECURRING_EVERY_VALUE;
+    },
     setSelectedSourceChainIds: (
       state,
       action: PayloadAction<(Hex | CaipChainId)[]>,
@@ -229,6 +251,12 @@ const slice = createSlice({
       state.destAmount = undefined;
       state.isMaxSourceAmount = false;
       state.selectedQuoteRequestId = undefined;
+    },
+    resetBridgeDestToken: (state) => {
+      state.destToken = undefined;
+      state.selectedDestChainId = undefined;
+      state.isDestTokenManuallySet = false;
+      clearSlippageState(state);
     },
     incrementBridgeBalanceRefreshKey: (state) => {
       state.balanceRefreshKey += 1;
@@ -425,6 +453,31 @@ export const selectDestAmount = createSelector(
   (bridgeState) => bridgeState.destAmount,
 );
 
+export const selectRecurring = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.recurring ?? initialRecurringState,
+);
+
+export const selectRecurringEveryValue = createSelector(
+  selectRecurring,
+  (recurring) => recurring.everyValue,
+);
+
+export const selectRecurringEveryUnit = createSelector(
+  selectRecurring,
+  (recurring) => recurring.everyUnit,
+);
+
+export const selectRecurringRepeatCount = createSelector(
+  selectRecurring,
+  (recurring) => recurring.repeatCount,
+);
+
+export const selectRecurringScheduleValidation = createSelector(
+  selectRecurring,
+  validateRecurringSchedule,
+);
+
 export const selectIsMaxSourceAmount = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isMaxSourceAmount ?? false,
@@ -584,13 +637,29 @@ const isAllowedBridgeChainId = (caipChainId: string): boolean => {
  * Selector that returns chainRanking from feature flags filtered by
  * ALLOWED_BRIDGE_CHAIN_IDS. This ensures chains added to the remote flag
  * in the future won't be surfaced by older app versions that lack support.
+ *
+ * When `enabledChainIds` is provided, it fully replaces the
+ * ALLOWED_BRIDGE_CHAIN_IDS filter: only chains present in `enabledChainIds`
+ * are returned. Callers that pass this argument must pass a stable
+ * (e.g. module-level) array reference to avoid busting memoization.
  */
 export const selectAllowedChainRanking = createSelector(
   selectBridgeFeatureFlags,
-  (bridgeFeatureFlags) =>
-    (bridgeFeatureFlags.chainRanking ?? []).filter((chain) =>
+  (_state: RootState, enabledChainIds?: CaipChainId[]) => enabledChainIds,
+  (bridgeFeatureFlags, enabledChainIds) => {
+    const chainRanking = bridgeFeatureFlags.chainRanking ?? [];
+
+    if (enabledChainIds) {
+      const enabledChainIdsSet = new Set(enabledChainIds);
+      return chainRanking.filter((chain) =>
+        enabledChainIdsSet.has(chain.chainId),
+      );
+    }
+
+    return chainRanking.filter((chain) =>
       isAllowedBridgeChainId(chain.chainId),
-    ),
+    );
+  },
 );
 
 /**
@@ -601,7 +670,12 @@ export const selectAllowedChainRanking = createSelector(
  * const isBridgeEnabledSource = getIsBridgeEnabledSource(chainId);
  */
 export const selectIsBridgeEnabledSourceFactory = createSelector(
-  selectAllowedChainRanking,
+  // Called with only `state`: selectIsBridgeEnabledSourceFactory is itself
+  // used as an input selector to selectIsBridgeEnabledSource, which is
+  // invoked with a `chainId` second argument. Reselect forwards outer
+  // arguments to input selectors, so without this wrapper that chainId
+  // would leak into selectAllowedChainRanking's `enabledChainIds` param.
+  (state: RootState) => selectAllowedChainRanking(state),
   (allowedChains) => (chainId: Hex | CaipChainId) => {
     const caipChainId = formatChainIdToCaip(chainId);
     return allowedChains.some((chain) => chain.chainId === caipChainId);
@@ -634,7 +708,10 @@ export const selectTopAssetsFromFeatureFlags = createSelector(
  * TODO The MultichainNetworkConfiguration.chainId type is wrong. It can be both Hex or CaipChainId.
  */
 export const selectEnabledSourceChains = createSelector(
-  selectAllowedChainRanking,
+  // Called with only `state` for the same reason as
+  // selectIsBridgeEnabledSourceFactory above: guards against any outer
+  // selector args leaking into selectAllowedChainRanking's `enabledChainIds`.
+  (state: RootState) => selectAllowedChainRanking(state),
   selectNetworkConfigurations,
   (allowedChainRanking, networkConfigurations) => {
     const allowedCaipIds = new Set(allowedChainRanking.map((c) => c.chainId));
@@ -1093,8 +1170,12 @@ export const {
   setSourceAmount,
   setSourceAmountAsMax,
   setDestAmount,
+  setRecurringEveryValue,
+  setRecurringRepeatCount,
+  setRecurringEveryUnit,
   resetBridgeState,
   resetBridgeTokenInputs,
+  resetBridgeDestToken,
   incrementBridgeBalanceRefreshKey,
   setSourceToken,
   setDestToken,
