@@ -191,16 +191,31 @@ class TabBarComponent {
         // opened from the wallet-header clock button (`wallet-activity-button`).
         // When Money is off, that header button is hidden and the Activity tab
         // is the only entry point. Prefer whichever control is present.
-        try {
-          await Gestures.waitAndTap(this.tabBarActivityButton, {
-            timeout: 2000,
-            elemDescription: 'Tab Bar - Activity Button',
-          });
-        } catch {
-          await Gestures.waitAndTap(WalletView.activityButton, {
-            timeout: 2000,
-            elemDescription: 'Wallet Activity button',
-          });
+        //
+        // If a prior attempt already navigated but the title was not ready yet,
+        // neither entry point is on screen — skip / swallow taps and wait for
+        // the title so executeWithRetry can succeed once Activity is visible.
+        const alreadyOnActivity = await Utilities.isElementVisible(
+          ActivitiesView.title,
+          500,
+        );
+        if (!alreadyOnActivity) {
+          try {
+            await Gestures.waitAndTap(this.tabBarActivityButton, {
+              timeout: 2000,
+              elemDescription: 'Tab Bar - Activity Button',
+            });
+          } catch {
+            try {
+              await Gestures.waitAndTap(WalletView.activityButton, {
+                timeout: 2000,
+                elemDescription: 'Wallet Activity button',
+              });
+            } catch {
+              // Both entry points missing — likely already on Activity from a
+              // prior attempt; fall through to the title assertion below.
+            }
+          }
         }
         await Assertions.expectElementToBeVisible(ActivitiesView.title, {
           description: 'Activity View Title',
