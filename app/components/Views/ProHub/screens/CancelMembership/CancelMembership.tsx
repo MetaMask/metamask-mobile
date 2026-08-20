@@ -5,8 +5,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { CancelMembershipTestIds } from './CancelMembership.testIds';
-import CancelSurveyStep from './CancelSurveyStep';
-import CancelSuccessStep from './CancelSuccessStep';
+import CancelSurveyStep from './components/CancelSurveyStep';
+import CancelSuccessStep from './components/CancelSuccessStep';
 
 type CancelStep = 'survey' | 'success';
 

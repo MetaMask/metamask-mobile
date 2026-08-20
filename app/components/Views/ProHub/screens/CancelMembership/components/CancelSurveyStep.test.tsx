@@ -5,12 +5,12 @@ import {
   CancelMembershipTestIds,
   getCancelReasonCheckmarkTestId,
   getCancelReasonTestId,
-} from './CancelMembership.testIds';
+} from '../CancelMembership.testIds';
 import {
   CANCEL_REASONS,
   MOCK_CANCEL_STATS,
-} from './CancelMembership.constants';
-import { strings } from '../../../../../../locales/i18n';
+} from '../CancelMembership.constants';
+import { strings } from '../../../../../../../locales/i18n';
 
 // ─── Tailwind ─────────────────────────────────────────────────────────────────
 

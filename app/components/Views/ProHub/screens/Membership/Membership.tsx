@@ -247,7 +247,7 @@ const Membership = () => {
         </Text>
 
         {/* ── Stats ─────────────────────────────────────────────────────── */}
-        <Box twClassName="gap-y-4" testID={MembershipTestIds.STATS_SECTION}>
+        <Box twClassName="gap-y-6" testID={MembershipTestIds.STATS_SECTION}>
           <InfoRow
             label={strings('pro_hub.membership.plan')}
             value={MOCK_MEMBERSHIP_STATS.plan}
@@ -373,7 +373,7 @@ const Membership = () => {
         {/* ── Manage ───────────────────────────────────────────────────────── */}
         <Box
           testID={MembershipTestIds.MANAGE_SECTION}
-          twClassName="flex flex-col gap-y-4"
+          twClassName="flex flex-col gap-y-6"
         >
           <Text
             variant={TextVariant.HeadingMd}

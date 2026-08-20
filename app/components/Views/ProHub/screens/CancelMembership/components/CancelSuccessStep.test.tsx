@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import CancelSuccessStep from './CancelSuccessStep';
-import { CancelMembershipTestIds } from './CancelMembership.testIds';
-import { MOCK_CANCELLATION_END_DATE } from './CancelMembership.constants';
-import { strings } from '../../../../../../locales/i18n';
+import { CancelMembershipTestIds } from '../CancelMembership.testIds';
+import { MOCK_CANCELLATION_END_DATE } from '../CancelMembership.constants';
+import { strings } from '../../../../../../../locales/i18n';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

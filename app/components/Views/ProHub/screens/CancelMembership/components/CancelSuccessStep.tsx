@@ -13,9 +13,9 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
-import { CancelMembershipTestIds } from './CancelMembership.testIds';
-import { MOCK_CANCELLATION_END_DATE } from './CancelMembership.constants';
+import { strings } from '../../../../../../../locales/i18n';
+import { CancelMembershipTestIds } from '../CancelMembership.testIds';
+import { MOCK_CANCELLATION_END_DATE } from '../CancelMembership.constants';
 
 export interface CancelSuccessStepProps {
   onDone: () => void;
