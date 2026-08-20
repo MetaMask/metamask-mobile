@@ -1,3 +1,4 @@
+import type { PredictFeedId } from '../types';
 import {
   FEED_SCREENS,
   NFL_FEED_SCREEN_ID,
@@ -24,8 +25,16 @@ describe('feedScreens', () => {
     const definition = {
       title: 'Sports',
       tabs: [
-        { id: 'games', label: 'Games', feedId: 'nfl-games' },
-        { id: 'props', label: 'Props', feedId: 'nfl-props' },
+        {
+          id: 'games',
+          label: 'Games',
+          feedId: 'nfl-games' as PredictFeedId,
+        },
+        {
+          id: 'props',
+          label: 'Props',
+          feedId: 'nfl-props' as PredictFeedId,
+        },
       ],
     } as const;
 
