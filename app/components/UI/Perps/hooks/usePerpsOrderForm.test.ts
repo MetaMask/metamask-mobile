@@ -2,6 +2,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+import type { AnyAction } from 'redux';
 import { renderHook, act } from '@testing-library/react-native';
 import { usePerpsOrderForm } from './usePerpsOrderForm';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
@@ -72,21 +73,51 @@ const createMockStreamManager = (): PerpsStreamManager => {
   return mockStreamManager;
 };
 
-// Test wrapper with Redux Provider using configureStore pattern
-const createWrapper = () => {
-  const mockStore = configureStore({
+const SET_MAX_SLIPPAGE = 'test/setMaxSlippage';
+
+interface TestEngineState {
+  backgroundState: {
+    PerpsController: {
+      maxSlippageBps?: number;
+    };
+  };
+}
+
+const createPerpsStore = (maxSlippageBps?: number) =>
+  configureStore({
     reducer: {
       engine: (
-        state = {
+        state: TestEngineState | undefined,
+        action: AnyAction,
+      ): TestEngineState => {
+        const currentState = state ?? {
           backgroundState: {
-            PerpsController: {},
+            PerpsController:
+              maxSlippageBps === undefined ? {} : { maxSlippageBps },
           },
-        },
-      ) => state,
+        };
+
+        if (
+          action.type !== SET_MAX_SLIPPAGE ||
+          typeof action.payload !== 'number'
+        ) {
+          return currentState;
+        }
+
+        return {
+          ...currentState,
+          backgroundState: {
+            ...currentState.backgroundState,
+            PerpsController: { maxSlippageBps: action.payload },
+          },
+        };
+      },
     },
   });
 
-  return function TestWrapper({ children }: { children: React.ReactNode }) {
+// Test wrapper with Redux Provider using configureStore pattern
+const createWrapper = (mockStore = createPerpsStore()) =>
+  function TestWrapper({ children }: { children: React.ReactNode }) {
     const streamProvider = React.createElement(PerpsStreamProvider, {
       testStreamManager: createMockStreamManager(),
       children,
@@ -97,7 +128,6 @@ const createWrapper = () => {
       children: streamProvider,
     });
   };
-};
 
 // Helper to create mock positions
 const createMockPosition = (
@@ -1080,6 +1110,32 @@ describe('usePerpsOrderForm', () => {
       const marketMax = result.current.maxPossibleAmount;
 
       expect(triggerMarketMax).toBeLessThan(marketMax);
+    });
+
+    it('recalculates trigger-market sizing after max slippage state changes', () => {
+      const store = createPerpsStore(300);
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'BTC',
+            initialType: 'stop_market',
+          }),
+        { wrapper: createWrapper(store) },
+      );
+
+      act(() => {
+        result.current.setTriggerPrice('90000');
+      });
+
+      const maxAtThreePercent = result.current.maxPossibleAmount;
+      expect(result.current.effectiveMaxSlippageBps).toBe(300);
+
+      act(() => {
+        store.dispatch({ type: SET_MAX_SLIPPAGE, payload: 1000 });
+      });
+
+      expect(result.current.effectiveMaxSlippageBps).toBe(1000);
+      expect(result.current.maxPossibleAmount).toBeLessThan(maxAtThreePercent);
     });
   });
 
