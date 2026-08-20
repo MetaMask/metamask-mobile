@@ -19,7 +19,6 @@ import OndoCampaignDetailsView from './Views/OndoCampaignDetailsView';
 import OndoCampaignWinningView from './Views/OndoCampaignWinningView';
 import SeasonOneCampaignDetailsView from './Views/SeasonOneCampaignDetailsView';
 import CampaignMechanicsView from './Views/CampaignMechanicsView';
-import MusdCalculatorView from './Views/MusdCalculatorView';
 import OndoLeaderboardView from './Views/OndoLeaderboardView';
 import OndoCampaignRwaSelectorView from './Views/OndoCampaignRwaSelectorView';
 import OndoCampaignPortfolioView from './Views/OndoCampaignPortfolioView';
@@ -33,6 +32,8 @@ import PredictThePitchCampaignWinningView from './Views/PredictThePitchCampaignW
 import PredictThePitchCampaignLeaderboardView from './Views/PredictThePitchCampaignLeaderboardView';
 import PredictThePitchCampaignPortfolioView from './Views/PredictThePitchCampaignPortfolioView';
 import PredictThePitchCampaignStatsView from './Views/PredictThePitchCampaignStatsView';
+import MoneyAccountSweepstakesCampaignDetailsView from './Views/MoneyAccountSweepstakesCampaignDetailsView';
+import MoneyAccountSweepstakesCampaignWinningView from './Views/MoneyAccountSweepstakesCampaignWinningView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
@@ -247,10 +248,6 @@ const RewardsNavigator: React.FC = () => {
         component={CampaignMechanicsView}
       />
       <Stack.Screen
-        name={Routes.REWARDS_MUSD_CALCULATOR_VIEW}
-        component={MusdCalculatorView}
-      />
-      <Stack.Screen
         name={Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD}
         component={OndoLeaderboardView}
       />
@@ -305,6 +302,16 @@ const RewardsNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_WINNING_VIEW}
         component={PredictThePitchCampaignWinningView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW}
+        component={MoneyAccountSweepstakesCampaignDetailsView}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_WINNING_VIEW}
+        component={MoneyAccountSweepstakesCampaignWinningView}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

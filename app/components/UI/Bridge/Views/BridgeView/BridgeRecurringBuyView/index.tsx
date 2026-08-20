@@ -28,6 +28,7 @@ import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { createStyles } from '../orderViewShell.styles';
 import { useRecurringBuyKeypad } from './useRecurringBuyKeypad';
 import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
+import { RECURRING_MOCK_OPEN_ORDERS_TAB } from './BridgeRecurringBuyView.mockOpenOrders';
 
 interface BridgeRecurringBuyViewContentProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -129,7 +130,11 @@ const BridgeRecurringBuyViewContent = ({
             onDismissKeypad={dismissInputAndKeypad}
           />
 
-          <OrdersTabs openOrders={{ items: [] }} history={{ items: [] }} />
+          <OrdersTabs
+            enabledChainIds={enabledChainIds}
+            openOrders={RECURRING_MOCK_OPEN_ORDERS_TAB}
+            history={{ items: [] }}
+          />
         </ScrollView>
 
         <SwapsKeypad

@@ -1,8 +1,4 @@
 import React, { useMemo } from 'react';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import InfoRow from '../../UI/info-row';
 import { strings } from '../../../../../../../locales/i18n';
 import { View } from 'react-native';
@@ -16,6 +12,11 @@ import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTr
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 export interface ReceiveRowProps {
   /** The user's input amount in USD */
@@ -78,8 +79,8 @@ export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
         rowVariant={InfoRowVariant.Small}
       >
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
           testID={ConfirmationRowComponentIDs.RECEIVE}
         >
           {receiveUsd}
