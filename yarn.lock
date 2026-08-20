@@ -7584,6 +7584,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@material-symbols/svg-400@npm:0.46.0":
+  version: 0.46.0
+  resolution: "@material-symbols/svg-400@npm:0.46.0"
+  checksum: 10/0c53432bd36a6c8865541ed727c07ea219511627e271c7e48305e4666331ea32b01318ca54c470d937c6f60e0c6b1465b5edd0d11936d52f94cafbf37331e937
+  languageName: node
+  linkType: hard
+
 "@metamask/7715-permission-types@npm:^1.0.0":
   version: 1.0.0
   resolution: "@metamask/7715-permission-types@npm:1.0.0"
@@ -8414,7 +8421,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-twrnc-preset@npm:^0.9.0":
+"@metamask/design-system-twrnc-preset@npm:0.9.0":
   version: 0.9.0
   resolution: "@metamask/design-system-twrnc-preset@npm:0.9.0"
   dependencies:
@@ -8423,6 +8430,18 @@ __metadata:
     "@metamask/design-tokens": ^9.0.0
     react: ">=18.2.0"
   checksum: 10/a44866db23e9376f95aca80bb4ad21742a1a0c086dfa72cad422fc82178a3bbf0b848ef1a84ec03c36a1d7f54b8138e49c65a63d31a9c8bf9a32a2acff3680c7
+  languageName: node
+  linkType: hard
+
+"@metamask/design-system-twrnc-preset@patch:@metamask/design-system-twrnc-preset@npm%3A0.9.0#~/.yarn/patches/@metamask-design-system-twrnc-preset-npm-0.9.0-de8b8d7867.patch":
+  version: 0.9.0
+  resolution: "@metamask/design-system-twrnc-preset@patch:@metamask/design-system-twrnc-preset@npm%3A0.9.0#~/.yarn/patches/@metamask-design-system-twrnc-preset-npm-0.9.0-de8b8d7867.patch::version=0.9.0&hash=7ef57c"
+  dependencies:
+    twrnc: "npm:^4.5.1"
+  peerDependencies:
+    "@metamask/design-tokens": ^9.0.0
+    react: ">=18.2.0"
+  checksum: 10/c14ce6966d498bcb4e1895e2497a1a36ecbae787b0183aa9e58c0f24fbe32dedca63676865efe7e2f9a23a354eb7b8b5bc0904576aa8e7f562045ddbbb28ad02
   languageName: node
   linkType: hard
 
@@ -35387,6 +35406,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lucide-react-native@npm:1.31.0":
+  version: 1.31.0
+  resolution: "lucide-react-native@npm:1.31.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-native: "*"
+    react-native-svg: ^12.0.0 || ^13.0.0 || ^14.0.0 || ^15.0.0
+  checksum: 10/cbd53c1ca75f70d8f3051815741818e9a55b3497f7e526e0b7caa1e56f24fb5f178f1be65cbf8830849ba9721877d1f75b948398aff108e70d92c8c23f63b0af
+  languageName: node
+  linkType: hard
+
 "luxon@npm:^3.2.1, luxon@npm:^3.5.0":
   version: 3.5.0
   resolution: "luxon@npm:3.5.0"
@@ -35713,6 +35743,7 @@ __metadata:
     "@ledgerhq/device-transport-kit-react-native-ble": "npm:^1.3.0"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
+    "@material-symbols/svg-400": "npm:0.46.0"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^2.0.0"
     "@metamask/account-tree-controller": "npm:^7.5.0"
@@ -35749,7 +35780,7 @@ __metadata:
     "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
     "@metamask/design-system-react-native": "npm:^0.40.0"
-    "@metamask/design-system-twrnc-preset": "npm:^0.9.0"
+    "@metamask/design-system-twrnc-preset": "patch:@metamask/design-system-twrnc-preset@npm%3A0.9.0#~/.yarn/patches/@metamask-design-system-twrnc-preset-npm-0.9.0-de8b8d7867.patch"
     "@metamask/design-tokens": "npm:^9.0.0"
     "@metamask/device-mcp": "npm:^0.3.0"
     "@metamask/earn-controller": "npm:^12.2.5"
@@ -36059,6 +36090,7 @@ __metadata:
     liveline: "npm:0.0.7"
     lodash: "npm:4.18.1"
     lottie-react-native: "npm:~7.3.8"
+    lucide-react-native: "npm:1.31.0"
     luxon: "npm:^3.5.0"
     mockttp: "npm:^3.15.2"
     multihashes: "npm:0.4.14"
@@ -36070,6 +36102,7 @@ __metadata:
     patch-package: "npm:^6.2.2"
     path: "npm:0.12.7"
     pbkdf2: "npm:3.1.3"
+    phosphor-react-native: "npm:3.0.6"
     pify: "npm:6.1.0"
     prettier: "npm:^3.6.2"
     prettier-2: "npm:prettier@^2.8.8"
@@ -38835,6 +38868,17 @@ __metadata:
   version: 2.1.0
   resolution: "performance-now@npm:2.1.0"
   checksum: 10/534e641aa8f7cba160f0afec0599b6cecefbb516a2e837b512be0adbe6c1da5550e89c78059c7fabc5c9ffdf6627edabe23eb7c518c4500067a898fa65c2b550
+  languageName: node
+  linkType: hard
+
+"phosphor-react-native@npm:3.0.6":
+  version: 3.0.6
+  resolution: "phosphor-react-native@npm:3.0.6"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-svg: "*"
+  checksum: 10/380fb275f7ff3982a6ec0503b6980bf9b1afed2bb1395041b9c9af6668536b699ce224126e3ea94a2027be78b7a0551a13489cf380e032265cde66a644a8cdf5
   languageName: node
   linkType: hard
 

@@ -16,6 +16,8 @@ import styleSheet from './DeveloperOptions.styles';
 import SentryTest from './SentryTest';
 import HapticsDeveloperOptionsSection from './HapticsDeveloperOptionsSection';
 import IdentityDeveloperOptionsSection from './IdentityDeveloperOptionsSection';
+// ICON LAB — temporary. Remove with the icon experiment.
+import IconLabDeveloperOptionsSection from './IconLabDeveloperOptionsSection';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
 import SampleFeatureDevSettingsEntryPoint from '../../../../features/SampleFeature/components/views/SampleFeatureDevSettingsEntryPoint/SampleFeatureDevSettingsEntryPoint';
 ///: END:ONLY_INCLUDE_IF
@@ -82,6 +84,8 @@ const DeveloperOptions = () => {
       />
       <ScrollView contentContainerStyle={styles.contentContainer}>
         <SentryTest />
+        {/* ICON LAB — temporary section for the icon-library experiment. */}
+        <IconLabDeveloperOptionsSection />
         {
           ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
         }

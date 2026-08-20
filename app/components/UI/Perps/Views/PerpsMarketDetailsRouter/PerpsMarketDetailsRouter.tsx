@@ -3,6 +3,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import PerpsMarketDetailsView from '../PerpsMarketDetailsView';
 import PerpsProMarketView from '../PerpsProMarketView';
+import { useHomepageLucideIcons } from '../../../../Views/Homepage/hooks/useHomepageLucideIcons';
 import { usePerpsProModeEnabled } from './usePerpsProModeEnabled';
 
 const SAFE_AREA_EDGES: Edge[] = ['top', 'bottom', 'left', 'right'];
@@ -23,6 +24,7 @@ const SAFE_AREA_EDGES: Edge[] = ['top', 'bottom', 'left', 'right'];
  * insets already applied.
  */
 const PerpsMarketDetailsRouter: React.FC = () => {
+  useHomepageLucideIcons();
   const tw = useTailwind();
   const isProModeEnabled = usePerpsProModeEnabled();
 

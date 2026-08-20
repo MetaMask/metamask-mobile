@@ -79,6 +79,10 @@ const mockMoneyFormatUsd = moneyFormatUsd as jest.MockedFunction<
 >;
 let mockRouteParams: { entryPoint?: string } | undefined;
 
+jest.mock('../../../../Views/Homepage/hooks/useHomepageLucideIcons', () => ({
+  useHomepageLucideIcons: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {

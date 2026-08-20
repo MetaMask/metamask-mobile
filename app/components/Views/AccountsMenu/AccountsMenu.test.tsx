@@ -14,6 +14,8 @@ import {
 } from '../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): Icon Lab is the temporary icon-set host
+import { useHomepageLucideIcons } from '../Homepage/hooks/useHomepageLucideIcons';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -112,6 +114,10 @@ const mockGetBetaSupportUrl = jest.fn();
 jest.mock('./AccountsMenu.utils', () => ({
   getBetaSupportUrl: () => mockGetBetaSupportUrl(),
 }));
+
+jest.mock('../Homepage/hooks/useHomepageLucideIcons', () => ({
+  useHomepageLucideIcons: jest.fn(),
+}));
 describe('AccountsMenu', () => {
   let mockAlert: jest.SpyInstance;
 
@@ -157,6 +163,12 @@ describe('AccountsMenu', () => {
     expect(
       getByTestId(AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID),
     ).toBeOnTheScreen();
+  });
+
+  it('applies Lucide icons while the accounts menu is focused', () => {
+    render(<AccountsMenu />);
+
+    expect(useHomepageLucideIcons).toHaveBeenCalled();
   });
 
   it('render MANAGE section header', () => {

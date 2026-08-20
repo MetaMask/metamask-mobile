@@ -15,6 +15,8 @@ import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { strings } from '../../../../../locales/i18n';
 import { AddressListIds } from './AddressList.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): Icon Lab is the temporary icon-set host
+import { useHomepageLucideIcons } from '../../Homepage/hooks/useHomepageLucideIcons';
 
 const ACCOUNT_WALLET_ID = 'entropy:wallet-id-1' as AccountWalletId;
 const ACCOUNT_GROUP_ID = 'entropy:wallet-id-1/1' as AccountGroupId;
@@ -64,6 +66,10 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 
 jest.mock('../../../../core/ClipboardManager', () => ({
   setString: jest.fn(),
+}));
+
+jest.mock('../../Homepage/hooks/useHomepageLucideIcons', () => ({
+  useHomepageLucideIcons: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -199,6 +205,12 @@ describe('AddressList', () => {
       groupId: ACCOUNT_GROUP_ID,
       source: 'copy_button',
     });
+  });
+
+  it('applies Lucide icons while the address list is focused', () => {
+    renderWithAddressList();
+
+    expect(useHomepageLucideIcons).toHaveBeenCalled();
   });
 
   it('renders correctly with list of addresses from a specific account group', () => {

@@ -170,6 +170,9 @@ jest.mock('../hooks/useGeoRewardsMetadata', () => ({
 jest.mock('../hooks/useReferralDetails', () => ({
   useReferralDetails: jest.fn(),
 }));
+jest.mock('../../../Views/Homepage/hooks/useHomepageLucideIcons', () => ({
+  useHomepageLucideIcons: jest.fn(),
+}));
 
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({

@@ -14,10 +14,16 @@ import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import Routes from '../../../constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter enum; route-isolation backlog
 import { ActivityTypeFilter } from '../ActivityScreen/types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): Icon Lab is the temporary icon-set host
+import { useHomepageLucideIcons } from '../Homepage/hooks/useHomepageLucideIcons';
 
 let mockMoneyAccountEnabled = false;
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: jest.fn(() => mockMoneyAccountEnabled),
+}));
+
+jest.mock('../Homepage/hooks/useHomepageLucideIcons', () => ({
+  useHomepageLucideIcons: jest.fn(),
 }));
 
 // Mock the Perps feature flag selector - will be controlled per test
@@ -312,6 +318,12 @@ describe('ActivityView', () => {
   afterEach(() => {
     cleanup();
     backHandlerSpy.mockRestore();
+  });
+
+  it('applies Lucide icons while the activity screen is focused', () => {
+    renderComponent(mockInitialState);
+
+    expect(useHomepageLucideIcons).toHaveBeenCalled();
   });
 
   describe('Network Manager Integration', () => {

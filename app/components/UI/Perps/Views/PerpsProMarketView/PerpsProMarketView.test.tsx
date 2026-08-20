@@ -158,6 +158,10 @@ const mockBalanceBottomSheet = jest.fn(
     ) : null,
 );
 
+jest.mock('../../../../Views/Homepage/hooks/useHomepageLucideIcons', () => ({
+  useHomepageLucideIcons: jest.fn(),
+}));
+
 jest.mock('./components/PerpsProChartPanel', () => ({
   __esModule: true,
   default: (props: MockChartPanelProps) => mockPerpsProChartPanel(props),

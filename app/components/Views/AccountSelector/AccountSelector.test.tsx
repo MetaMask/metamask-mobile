@@ -12,6 +12,8 @@ import {
   AccountSelectorProps,
   AccountSelectorScreens,
 } from './AccountSelector.types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): Icon Lab is the temporary icon-set host
+import { useHomepageLucideIcons } from '../Homepage/hooks/useHomepageLucideIcons';
 import {
   createMockAccountGroup,
   createMockEntropyWallet,
@@ -95,6 +97,10 @@ jest.mock('@react-navigation/native', () => ({
     dispatch: mockDispatch,
     isFocused: jest.fn(() => true),
   }),
+}));
+
+jest.mock('../Homepage/hooks/useHomepageLucideIcons', () => ({
+  useHomepageLucideIcons: jest.fn(),
 }));
 
 // Mock whenEngineReady
@@ -196,6 +202,17 @@ describe('AccountSelector', () => {
   });
 
   describe('Rendering', () => {
+    it('applies Lucide icons while the account selector is focused', () => {
+      renderScreen(
+        AccountSelectorWrapper,
+        { name: Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR },
+        { state: mockState },
+        mockRoute.params,
+      );
+
+      expect(useHomepageLucideIcons).toHaveBeenCalled();
+    });
+
     it('renders the component with account list', () => {
       renderScreen(
         AccountSelectorWrapper,

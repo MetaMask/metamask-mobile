@@ -1,9 +1,14 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import PerpsMarketDetailsRouter from './PerpsMarketDetailsRouter';
+import { useHomepageLucideIcons } from '../../../../Views/Homepage/hooks/useHomepageLucideIcons';
 import { usePerpsProModeEnabled } from './usePerpsProModeEnabled';
 
 jest.mock('./usePerpsProModeEnabled');
+
+jest.mock('../../../../Views/Homepage/hooks/useHomepageLucideIcons', () => ({
+  useHomepageLucideIcons: jest.fn(),
+}));
 
 const mockSafeAreaMount = jest.fn();
 
@@ -44,6 +49,14 @@ const mockUsePerpsProModeEnabled = jest.mocked(usePerpsProModeEnabled);
 describe('PerpsMarketDetailsRouter', () => {
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('applies Lucide icons while the market details screen is focused', () => {
+    mockUsePerpsProModeEnabled.mockReturnValue(true);
+
+    render(<PerpsMarketDetailsRouter />);
+
+    expect(useHomepageLucideIcons).toHaveBeenCalled();
   });
 
   it('renders PerpsProMarketView when Pro mode is enabled', () => {

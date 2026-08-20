@@ -32,6 +32,8 @@ import {
   getAddressListViewedAccountType,
   trackAddressListViewed,
 } from '../../../../util/analytics/addressListViewedTracking';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): Icon Lab is the temporary icon-set host
+import { useHomepageLucideIcons } from '../../Homepage/hooks/useHomepageLucideIcons';
 
 export const createAddressListNavigationDetails =
   createNavigationDetails<AddressListProps>(
@@ -44,6 +46,7 @@ export const createAddressListNavigationDetails =
  * @returns {JSX.Element} The rendered component.
  */
 export const AddressList = () => {
+  useHomepageLucideIcons();
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();

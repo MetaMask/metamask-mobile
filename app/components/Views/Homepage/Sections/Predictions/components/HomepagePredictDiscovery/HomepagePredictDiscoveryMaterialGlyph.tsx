@@ -1,24 +1,21 @@
 import React from 'react';
-// DS `Icon` / component-library `Icon` do not expose these Material ligatures (see glyph map).
-// eslint-disable-next-line @typescript-eslint/no-deprecated -- intentional until DS adds glyphs
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { View } from 'react-native';
+import { Bitcoin, Goal, Trophy } from 'lucide-react-native';
 import { useTheme } from '../../../../../../../util/theme';
 
-/**
- * Exact Material Icons ligatures from `react-native-vector-icons` glyph map.
- * The design-system `Icon` (and deprecated component-library `Icon`) only expose
- * a fixed SVG set — they do not accept arbitrary Material font names, so this
- * component uses the deprecated `MaterialIcons` font path declared in
- * `app/declarations/index.d.ts` until those glyphs exist in the DS.
- */
-const MATERIAL_ICON_NAME = {
-  currencyBitcoin: 'currency-bitcoin',
-  emojiEvents: 'emoji-events',
-  sportsSoccer: 'sports-soccer',
-} as const;
-
 export type HomepagePredictDiscoveryMaterialGlyphName =
-  keyof typeof MATERIAL_ICON_NAME;
+  | 'currencyBitcoin'
+  | 'emojiEvents'
+  | 'sportsSoccer';
+
+const LUCIDE_GLYPH: Record<
+  HomepagePredictDiscoveryMaterialGlyphName,
+  typeof Bitcoin
+> = {
+  currencyBitcoin: Bitcoin,
+  emojiEvents: Trophy,
+  sportsSoccer: Goal,
+};
 
 interface HomepagePredictDiscoveryMaterialGlyphProps {
   name: HomepagePredictDiscoveryMaterialGlyphName;
@@ -29,23 +26,22 @@ interface HomepagePredictDiscoveryMaterialGlyphProps {
 }
 
 /**
- * Decorative Material Icons row glyph via deprecated vector-icons font.
+ * Decorative Lucide 1.5-stroke glyph for Predict discovery rows.
  */
 const HomepagePredictDiscoveryMaterialGlyph: React.FC<
   HomepagePredictDiscoveryMaterialGlyphProps
 > = ({ name, size = 22, color: colorProp }) => {
   const { colors } = useTheme();
   const color = colorProp ?? colors.icon.default;
+  const Glyph = LUCIDE_GLYPH[name];
 
   return (
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- MaterialIcons font (deprecated path)
-    <MaterialIcons
-      name={MATERIAL_ICON_NAME[name]}
-      size={size}
-      color={color}
+    <View
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-    />
+    >
+      <Glyph size={size} color={color} strokeWidth={1.5} fill="none" />
+    </View>
   );
 };
 
