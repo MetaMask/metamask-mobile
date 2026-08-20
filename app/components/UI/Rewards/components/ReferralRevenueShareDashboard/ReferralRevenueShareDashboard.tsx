@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useRef, useState } from 'react';
 import {
   Image,
   Linking,
@@ -31,12 +31,18 @@ import {
   IconColor,
   IconName,
   IconSize,
+  SectionHeader,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ClipboardManager from '../../../../../core/ClipboardManager';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
+import { strings } from '../../../../../../locales/i18n';
 import referralShareHero from '../../../../../images/rewards/referral-share-hero.png';
 import MoneyEarnings from '../../../Money/components/MoneyEarnings';
 
@@ -420,6 +426,36 @@ const ReferralQrCodeSheet = ({
   );
 };
 
+const ClaimAmountHero = ({
+  label,
+  amount,
+  caption,
+}: {
+  label: string;
+  amount: string;
+  caption: string;
+}) => (
+  <Box twClassName="items-center py-2 gap-1">
+    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+      {label}
+    </Text>
+    <Text variant={TextVariant.DisplayMd} fontWeight={FontWeight.Bold}>
+      {amount}
+    </Text>
+    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+      {caption}
+    </Text>
+  </Box>
+);
+
+type ClaimStep = 'eligibility' | 'review' | 'submitted';
+
+const CLAIM_STEP_TITLE: Record<ClaimStep, string> = {
+  eligibility: 'Claim earnings',
+  review: 'Review claim',
+  submitted: 'Claim submitted',
+};
+
 const ClaimEarningsSheet = ({
   visible,
   onClose,
@@ -429,34 +465,88 @@ const ClaimEarningsSheet = ({
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { width: windowWidth } = useWindowDimensions();
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const { entering, exiting } = createSheetPushAnimations(1, windowWidth);
+  const [step, setStep] = useState<ClaimStep>('eligibility');
+  const [navDirection, setNavDirection] = useState<1 | -1>(1);
+  const [hasPushed, setHasPushed] = useState(false);
+  const [wasVisible, setWasVisible] = useState(visible);
+  const { entering, exiting } = createSheetPushAnimations(
+    navDirection,
+    windowWidth,
+  );
 
-  useEffect(() => {
+  if (visible !== wasVisible) {
+    setWasVisible(visible);
     if (visible) {
-      setIsSubmitted(false);
+      setStep('eligibility');
+      setNavDirection(1);
+      setHasPushed(false);
     }
-  }, [visible]);
+  }
 
   const handleClose = () => {
-    bottomSheetRef.current?.onCloseBottomSheet();
+    bottomSheetRef.current?.onCloseBottomSheet(onClose);
   };
+
+  const goToStep = (nextStep: ClaimStep, direction: 1 | -1) => {
+    setNavDirection(direction);
+    setHasPushed(true);
+    setStep(nextStep);
+  };
+
+  const primaryButtonProps =
+    step === 'submitted'
+      ? {
+          children: 'Done',
+          onPress: handleClose,
+          size: ButtonSize.Lg,
+          testID: 'close-referral-claim-button',
+        }
+      : step === 'review'
+        ? {
+            children: 'Confirm claim',
+            onPress: () => goToStep('submitted', 1),
+            size: ButtonSize.Lg,
+            testID: 'submit-referral-claim-button',
+          }
+        : {
+            children: 'Continue',
+            onPress: () => goToStep('review', 1),
+            size: ButtonSize.Lg,
+            testID: 'confirm-referral-claim-button',
+          };
+
+  if (!visible) {
+    return null;
+  }
 
   return (
     <Modal visible={visible} transparent animationType="none">
       <BottomSheet ref={bottomSheetRef} onClose={onClose}>
         <Box twClassName="overflow-hidden">
           <Animated.View
-            key={isSubmitted ? 'submitted' : 'claim'}
-            entering={entering}
-            exiting={exiting}
+            key={step}
+            entering={hasPushed ? entering : undefined}
+            exiting={hasPushed ? exiting : undefined}
           >
-            <BottomSheetHeader onClose={handleClose}>
-              {isSubmitted ? 'Claim submitted' : 'Claim earnings'}
+            <BottomSheetHeader
+              onClose={handleClose}
+              onBack={
+                step === 'review'
+                  ? () => goToStep('eligibility', -1)
+                  : undefined
+              }
+              backButtonProps={
+                step === 'review'
+                  ? { testID: 'claim-review-back-button' }
+                  : undefined
+              }
+              closeButtonProps={{ testID: 'close-claim-sheet-button' }}
+            >
+              {CLAIM_STEP_TITLE[step]}
             </BottomSheetHeader>
 
             <Box twClassName="px-4 pb-4 gap-5">
-              {isSubmitted ? (
+              {step === 'submitted' ? (
                 <Box twClassName="items-center py-4 gap-3">
                   <Icon
                     name={IconName.Confirmation}
@@ -478,28 +568,15 @@ const ClaimEarningsSheet = ({
                     status from Earnings.
                   </Text>
                 </Box>
-              ) : (
+              ) : null}
+
+              {step === 'eligibility' ? (
                 <>
-                  <Box twClassName="items-center py-2 gap-1">
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      Available to claim
-                    </Text>
-                    <Text
-                      variant={TextVariant.DisplayMd}
-                      fontWeight={FontWeight.Bold}
-                    >
-                      $2,410.00
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      Paid in mUSD
-                    </Text>
-                  </Box>
+                  <ClaimAmountHero
+                    label="Available to claim"
+                    amount="$2,410.00"
+                    caption="Paid in mUSD"
+                  />
 
                   <Box twClassName="rounded-xl bg-section px-4">
                     <StatusRow
@@ -518,18 +595,35 @@ const ClaimEarningsSheet = ({
                     will be shown before the claim is finalized.
                   </Text>
                 </>
-              )}
+              ) : null}
+
+              {step === 'review' ? (
+                <>
+                  <ClaimAmountHero
+                    label="You'll receive"
+                    amount="$2,410.00"
+                    caption="Paid in mUSD"
+                  />
+                  <Box>
+                    <PayoutDetailRow
+                      label="Destination"
+                      value="Money Account"
+                    />
+                    <PayoutDetailRow label="Gross" value="$2,410.00" />
+                    <PayoutDetailRow label="Withholding" value="$0.00" />
+                    <PayoutDetailRow label="Fee" value="$0.00" />
+                    <PayoutDetailRow label="Network" value="Ethereum" />
+                    <PayoutDetailRow
+                      label="Expected delivery"
+                      value="1–2 business days"
+                    />
+                  </Box>
+                </>
+              ) : null}
             </Box>
 
             <BottomSheetFooter
-              primaryButtonProps={{
-                children: isSubmitted ? 'Done' : 'Continue',
-                onPress: isSubmitted ? handleClose : () => setIsSubmitted(true),
-                size: ButtonSize.Lg,
-                testID: isSubmitted
-                  ? 'close-referral-claim-button'
-                  : 'confirm-referral-claim-button',
-              }}
+              primaryButtonProps={primaryButtonProps}
               twClassName="px-4"
             />
           </Animated.View>
@@ -551,6 +645,7 @@ const ReferralRevenueShareDashboard = ({
   onQrCodeClose?: () => void;
 }) => {
   const tw = useTailwind();
+  const { toastRef } = useContext(ToastContext);
   const [isCodeCopied, setIsCodeCopied] = useState(false);
   // Vanity codes are assigned via backend/support workflows; not user-editable.
   const referralCode = CREATOR_REFERRAL_CODE;
@@ -563,6 +658,16 @@ const ReferralRevenueShareDashboard = ({
   const copyReferralCode = async () => {
     await ClipboardManager.setString(referralCode);
     setIsCodeCopied(true);
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Plain,
+      hasNoTimeout: false,
+      labelOptions: [
+        {
+          label: strings('rewards.referral.referral_code_copied'),
+          isBold: true,
+        },
+      ],
+    });
     setTimeout(() => setIsCodeCopied(false), 2000);
   };
 
@@ -633,9 +738,7 @@ const ReferralRevenueShareDashboard = ({
                     }
                     size={ButtonIconSize.Sm}
                     iconProps={{
-                      color: isCodeCopied
-                        ? IconColor.SuccessDefault
-                        : IconColor.IconAlternative,
+                      color: IconColor.IconAlternative,
                     }}
                   />
                 </Box>
@@ -732,24 +835,14 @@ const ReferralRevenueShareDashboard = ({
             <Box twClassName="h-px bg-border-muted -mx-4" />
 
             <Box twClassName="px-1 gap-4">
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Between}
-              >
-                <Text
-                  variant={TextVariant.HeadingSm}
-                  fontWeight={FontWeight.Bold}
-                >
-                  Code performance
-                </Text>
+              <SectionHeader title="Code performance" twClassName="px-0 py-0">
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
                 >
-                  Last 30 days · Updated daily
+                  Last 30 days • Updated daily
                 </Text>
-              </Box>
+              </SectionHeader>
 
               <Box twClassName="gap-0.5">
                 <Text
@@ -809,12 +902,7 @@ const ReferralRevenueShareDashboard = ({
             <Box twClassName="h-px bg-border-muted -mx-4" />
 
             <Box twClassName="px-1 gap-3">
-              <Text
-                variant={TextVariant.HeadingSm}
-                fontWeight={FontWeight.Bold}
-              >
-                Recent payout
-              </Text>
+              <SectionHeader title="Recent payout" twClassName="px-0 py-0" />
               <Pressable
                 onPress={() => setPayoutDetailsVisible(true)}
                 accessibilityRole="button"
