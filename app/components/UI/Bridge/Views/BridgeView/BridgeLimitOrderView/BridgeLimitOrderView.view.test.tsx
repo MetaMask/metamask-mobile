@@ -17,7 +17,7 @@ async function openLimitTab(renderResult: ReturnType<typeof renderBridgeView>) {
 }
 
 describeForPlatforms('BridgeLimitOrderView', () => {
-  it('shows history empty copy after pressing the History tab', async () => {
+  it('shows filled and expired history rows after pressing the History tab', async () => {
     const renderResult = renderBridgeView();
 
     await openLimitTab(renderResult);
@@ -33,12 +33,7 @@ describeForPlatforms('BridgeLimitOrderView', () => {
     ).toBeOnTheScreen();
     expect(
       renderResult.getByText(
-        strings('bridge.limit.filled_at', { date: 'Mar 12' }),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      renderResult.getByText(
-        strings('bridge.limit.expired_after', { duration: 'X' }),
+        strings('bridge.limit.expiry', { timeLeft: '4d left' }),
       ),
     ).toBeOnTheScreen();
 
@@ -48,10 +43,32 @@ describeForPlatforms('BridgeLimitOrderView', () => {
 
     await waitFor(() => {
       expect(
-        renderResult.getByText(strings('bridge.orders.empty.history')),
-      ).toBeOnTheScreen();
+        renderResult.queryByText(strings('bridge.limit.not_enough_gas')),
+      ).toBeNull();
     });
-    expect(renderResult.queryAllByText(pair)).toHaveLength(0);
-    expect(renderResult.queryByText(strings('bridge.all_networks'))).toBeNull();
+    expect(
+      renderResult.queryByText(
+        strings('bridge.limit.expiry', { timeLeft: '4d left' }),
+      ),
+    ).toBeNull();
+    expect(
+      renderResult.queryByText(strings('bridge.orders.empty.history')),
+    ).toBeNull();
+    expect(
+      renderResult.getByText(strings('bridge.all_networks')),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.getByText(strings('bridge.limit.filled')),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.getByText(strings('bridge.limit.expired')),
+    ).toBeOnTheScreen();
+    expect(renderResult.getByText('+0.325 USDC')).toBeOnTheScreen();
+    expect(
+      renderResult.getByText(
+        strings('bridge.limit.limit_price', { symbol: 'USDC' }),
+      ),
+    ).toBeOnTheScreen();
+    expect(renderResult.getAllByText(pair)).toHaveLength(2);
   });
 });

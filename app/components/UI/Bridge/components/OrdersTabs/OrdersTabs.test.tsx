@@ -69,8 +69,8 @@ describe('OrdersTabs', () => {
     expect(getByText(strings('bridge.orders.empty.history'))).toBeOnTheScreen();
     expect(queryByText(strings('bridge.orders.empty.open_orders'))).toBeNull();
     expect(
-      queryByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
-    ).toBeNull();
+      getByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
+    ).toHaveTextContent(strings('bridge.all_networks'));
   });
 
   it('opens the swaps network picker when the All networks filter is pressed', () => {

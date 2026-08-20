@@ -211,17 +211,15 @@ function OrdersTabs<TOpen, THistory>({
         testID={OrdersTabsSelectorsIDs.TABS_BAR}
       />
       <Box twClassName="mx-4 flex-1 gap-4 py-4">
+        <OrdersNetworkFilter enabledChainIds={enabledChainIds} />
         {selectedTab === OrdersTabKey.OpenOrders ? (
-          <>
-            <OrdersNetworkFilter enabledChainIds={enabledChainIds} />
-            <OrdersTabPanel
-              items={openOrders.items}
-              renderItem={openOrders.renderItem}
-              keyExtractor={openOrders.keyExtractor}
-              getItemChainId={openOrders.getItemChainId}
-              emptyDescription={strings('bridge.orders.empty.open_orders')}
-            />
-          </>
+          <OrdersTabPanel
+            items={openOrders.items}
+            renderItem={openOrders.renderItem}
+            keyExtractor={openOrders.keyExtractor}
+            getItemChainId={openOrders.getItemChainId}
+            emptyDescription={strings('bridge.orders.empty.open_orders')}
+          />
         ) : (
           <OrdersTabPanel
             items={history.items}
