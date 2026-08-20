@@ -87,6 +87,27 @@ const buildReferralLink = (code: string) =>
 const IOS_SHEET_PUSH_DURATION = 350;
 const HOME_TAB_TOAST_DELAY_MS = 350;
 
+const navigateToHomeTab = (navigation: AppNavigationProp) => {
+  navigation.navigate(Routes.HOME_TABS, {
+    screen: Routes.WALLET.HOME,
+    params: {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
+    },
+  });
+};
+
+const navigateToRewardsTab = (navigation: AppNavigationProp) => {
+  navigation.navigate(Routes.HOME_TABS, {
+    screen: Routes.REWARDS_VIEW,
+    params: {
+      screen: Routes.REWARDS_DASHBOARD,
+    },
+  });
+};
+
 const createSheetPushAnimations = (direction: 1 | -1, width: number) => {
   const easing = Easing.bezier(0.32, 0.72, 0, 1);
   return {
@@ -779,6 +800,28 @@ const useClaimingEnabled = () =>
     () => isClaimingEnabledStore,
   );
 
+type InviteSheetListener = () => void;
+let isInvitedExistingUserVisibleStore = false;
+const invitedExistingUserListeners = new Set<InviteSheetListener>();
+
+const setInvitedExistingUserVisible = (value: boolean) => {
+  isInvitedExistingUserVisibleStore = value;
+  invitedExistingUserListeners.forEach((listener) => listener());
+};
+
+const subscribeToInvitedExistingUserVisible = (
+  listener: InviteSheetListener,
+) => {
+  invitedExistingUserListeners.add(listener);
+  return () => invitedExistingUserListeners.delete(listener);
+};
+
+const useInvitedExistingUserVisible = () =>
+  useSyncExternalStore(
+    subscribeToInvitedExistingUserVisible,
+    () => isInvitedExistingUserVisibleStore,
+  );
+
 const PrototypeScenariosSheet = ({
   visible,
   selectedScenarioId,
@@ -832,7 +875,7 @@ const PrototypeScenariosSheet = ({
               />
               {scenario.id === 'onboarded-kol' ? (
                 <>
-                  <Box twClassName="pl-4 pr-2 pt-3 pb-3">
+                  <Box twClassName="pl-4 pr-2 pt-3 pb-6">
                     <Switch
                       isOn={isClaimingEnabled}
                       onValueChange={setClaimingEnabled}
@@ -1263,6 +1306,37 @@ const InvitedExistingUserSheet = ({
   );
 };
 
+const PrototypeExistingUserInviteHost = () => {
+  const { toastRef } = useContext(ToastContext);
+  const { colors } = useTheme();
+  const visible = useInvitedExistingUserVisible();
+
+  const close = () => setInvitedExistingUserVisible(false);
+
+  return (
+    <InvitedExistingUserSheet
+      visible={visible}
+      onClose={close}
+      onAccept={() => {
+        close();
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconNameLegacy.Confirmation,
+          iconColor: colors.success.default,
+          backgroundColor: 'transparent',
+          hasNoTimeout: false,
+          labelOptions: [
+            {
+              label: 'Referral accepted',
+              isBold: true,
+            },
+          ],
+        });
+      }}
+    />
+  );
+};
+
 const ReferralRevenueShareDashboard = ({
   mode = 'overview',
   onEarningsPress,
@@ -1291,8 +1365,6 @@ const ReferralRevenueShareDashboard = ({
   const [selectedScenarioId, setSelectedScenarioId] =
     useState<PrototypeScenarioId>('onboarded-kol');
   const [isInvitedNewUserVisible, setIsInvitedNewUserVisible] = useState(false);
-  const [isInvitedExistingUserVisible, setIsInvitedExistingUserVisible] =
-    useState(false);
   const isClaimingEnabled = useClaimingEnabled();
   const dashboardScrollRef = useRef<ScrollView>(null);
 
@@ -1301,9 +1373,12 @@ const ReferralRevenueShareDashboard = ({
     setSelectedScenarioId(id);
     setIsScenarioSheetVisible(false);
     setIsInvitedNewUserVisible(id === 'invited-new-user');
-    setIsInvitedExistingUserVisible(id === 'invited-existing-user');
+    setInvitedExistingUserVisible(id === 'invited-existing-user');
+    if (id === 'invited-existing-user') {
+      navigateToRewardsTab(navigation);
+    }
     if (id === 'ineligible-user') {
-      navigation.navigate(Routes.WALLET.HOME);
+      navigateToHomeTab(navigation);
       setTimeout(() => {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -1323,23 +1398,6 @@ const ReferralRevenueShareDashboard = ({
         });
       }, HOME_TAB_TOAST_DELAY_MS);
     }
-  };
-
-  const handleAcceptExistingUserInvite = () => {
-    setIsInvitedExistingUserVisible(false);
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconNameLegacy.Confirmation,
-      iconColor: colors.success.default,
-      backgroundColor: 'transparent',
-      hasNoTimeout: false,
-      labelOptions: [
-        {
-          label: 'Referral accepted',
-          isBold: true,
-        },
-      ],
-    });
   };
 
   const copyReferralCode = async () => {
@@ -1380,7 +1438,7 @@ const ReferralRevenueShareDashboard = ({
       >
         {!showPerformance ? (
           <>
-            <Box twClassName="items-center px-4 pt-2 gap-3">
+            <Box twClassName="items-center px-4 -mt-2 gap-5">
               <Image
                 source={referralShareHero}
                 resizeMode="contain"
@@ -1715,17 +1773,16 @@ const ReferralRevenueShareDashboard = ({
       <InvitedNewUserScreen
         visible={isInvitedNewUserVisible}
         onClose={() => setIsInvitedNewUserVisible(false)}
-        onAccept={() => navigation.navigate(Routes.WALLET.HOME)}
-      />
-      <InvitedExistingUserSheet
-        visible={isInvitedExistingUserVisible}
-        onClose={() => setIsInvitedExistingUserVisible(false)}
-        onAccept={handleAcceptExistingUserInvite}
+        onAccept={() => navigateToHomeTab(navigation)}
       />
     </Box>
   );
 };
 
 // Exported for tests to reset the shared prototype toggle between cases.
-export { setClaimingEnabled };
+export {
+  setClaimingEnabled,
+  setInvitedExistingUserVisible,
+  PrototypeExistingUserInviteHost,
+};
 export default ReferralRevenueShareDashboard;
