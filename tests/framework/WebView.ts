@@ -37,6 +37,16 @@ export type { AndroidWebViewScrollOptions, AndroidWebViewTapOptions };
  */
 export default class WebView {
   /**
+   * Run `action` in the page's WEBVIEW context, then always restore NATIVE_APP.
+   */
+  static async withWebViewAction(
+    pageUrl: string,
+    action: () => Promise<void>,
+  ): Promise<void> {
+    await PlaywrightWebMatchers.withWebViewAction(pageUrl, action);
+  }
+
+  /**
    * iOS Appium / Detox only. Android Appium never reaches this — public
    * methods route to native UiAutomator first.
    */
@@ -50,7 +60,7 @@ export default class WebView {
           'pageUrl is required for Appium WebView context actions',
         );
       }
-      await PlaywrightWebMatchers.withWebViewAction(pageUrl, action);
+      await this.withWebViewAction(pageUrl, action);
       return;
     }
 

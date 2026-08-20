@@ -12,26 +12,19 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Image as ExpoImage } from 'expo-image';
-import BigNumber from 'bignumber.js';
-import I18n, { strings } from '../../../../../../../locales/i18n';
-import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
 import { useTheme } from '../../../../../../util/theme';
 import type {
-  PredictEntityId,
   PredictEvent,
   PredictGame,
-  PredictGameStatus,
   PredictMarket,
   PredictOutcome,
-  PredictTeam,
 } from '../../../types';
 import { EventCard } from './EventCard';
-import { formatAskPrice } from './formatAskPrice';
-import { formatMultiplier } from './formatMultiplier';
-import { getAskPricePercent } from './getAskPricePercent';
-import { parsePredictDecimal } from './parsePredictDecimal';
-
-type GameSelection = 'away' | 'home';
+import {
+  createGameCardProjection,
+  type GameCardProjection,
+  type GameSelection,
+} from './createGameCardProjection';
 
 type OrderHandler = (
   event: PredictEvent,
@@ -39,22 +32,10 @@ type OrderHandler = (
   outcome: PredictOutcome,
 ) => void;
 
-interface TeamQuote {
-  market: PredictMarket;
-  outcome: PredictOutcome;
-}
-
-interface StatusLine {
-  label: string;
-  metadata: string;
-}
-
 interface GameCardContextValue {
   event: PredictEvent;
   game: PredictGame;
-  quotes: Record<GameSelection, TeamQuote | undefined>;
-  statusLines: Record<'compact' | 'featured', StatusLine>;
-  representedMarketIds: ReadonlySet<PredictEntityId>;
+  projection: GameCardProjection;
   actions: {
     openEvent: () => void;
     order?: OrderHandler;
@@ -78,82 +59,9 @@ const useTeam = (selection: GameSelection) => {
   const value = useGameCard();
   return {
     ...value,
-    team: selection === 'away' ? value.game.awayTeam : value.game.homeTeam,
-    quote: value.quotes[selection],
+    ...value.projection.teams[selection],
     fallbackColor: value.colors[selection],
   };
-};
-
-const STATUS_KEYS: Record<PredictGameStatus, string> = {
-  scheduled: 'scheduled',
-  in_progress: 'live',
-  delayed: 'delayed',
-  suspended: 'suspended',
-  postponed: 'postponed',
-  completed: 'final',
-  canceled: 'canceled',
-};
-
-const getDisplayAbbreviation = (team: PredictTeam) =>
-  (team.abbreviation ?? team.name.slice(0, 3)).toUpperCase();
-
-const getTeamQuote = (
-  event: PredictEvent,
-  selection: GameSelection,
-): TeamQuote | undefined => {
-  const matches = event.markets.flatMap((market) =>
-    market.outcomes
-      .filter((outcome) => outcome.gameSelection === selection)
-      .map((outcome) => ({ market, outcome })),
-  );
-
-  return matches.length === 1 ? matches[0] : undefined;
-};
-
-const getStatusLabel = (status: PredictGameStatus) =>
-  strings(`predict.game_status.${STATUS_KEYS[status]}`);
-
-const getStatusLine = (
-  game: PredictGame,
-  startsAt: string | undefined,
-  variant: 'compact' | 'featured',
-): StatusLine => {
-  if (game.status === 'scheduled') {
-    if (!startsAt) {
-      return { label: getStatusLabel(game.status), metadata: '' };
-    }
-
-    const date = new Date(startsAt);
-    if (variant === 'featured') {
-      return {
-        label: getIntlDateTimeFormatter(I18n.locale, {
-          weekday: 'long',
-          month: 'long',
-          day: 'numeric',
-        }).format(date),
-        metadata: getIntlDateTimeFormatter(I18n.locale, {
-          hour: 'numeric',
-          minute: '2-digit',
-        }).format(date),
-      };
-    }
-
-    const day = getIntlDateTimeFormatter(I18n.locale, {
-      month: 'long',
-      day: 'numeric',
-    }).format(date);
-    const time = getIntlDateTimeFormatter(I18n.locale, {
-      hour: 'numeric',
-      minute: '2-digit',
-    }).format(date);
-    return { label: `${day} · ${time}`, metadata: '' };
-  }
-
-  const metadata = ['in_progress', 'delayed', 'suspended'].includes(game.status)
-    ? [game.period, game.clock].filter(Boolean).join(' · ')
-    : '';
-
-  return { label: getStatusLabel(game.status), metadata };
 };
 
 interface ProviderProps {
@@ -172,42 +80,26 @@ const Provider = ({
   onOrder,
 }: ProviderProps) => {
   const { colors } = useTheme();
-  const value = useMemo<GameCardContextValue>(() => {
-    const quotes = {
-      away: getTeamQuote(event, 'away'),
-      home: getTeamQuote(event, 'home'),
-    };
-    const representedMarketIds = new Set<PredictEntityId>();
-
-    for (const quote of Object.values(quotes)) {
-      if (quote && formatAskPrice(quote.outcome.askPrice)) {
-        representedMarketIds.add(quote.market.id);
-      }
-    }
-
-    return {
+  const value = useMemo<GameCardContextValue>(
+    () => ({
       event,
       game,
-      quotes,
-      representedMarketIds,
-      statusLines: {
-        compact: getStatusLine(game, event.startsAt, 'compact'),
-        featured: getStatusLine(game, event.startsAt, 'featured'),
-      },
+      projection: createGameCardProjection(event, game),
       actions: { openEvent: onPress, order: onOrder },
       colors: {
         away: colors.info.default,
         home: colors.success.default,
       },
-    };
-  }, [
-    colors.info.default,
-    colors.success.default,
-    event,
-    game,
-    onOrder,
-    onPress,
-  ]);
+    }),
+    [
+      colors.info.default,
+      colors.success.default,
+      event,
+      game,
+      onOrder,
+      onPress,
+    ],
+  );
 
   return (
     <GameCardContext.Provider value={value}>
@@ -223,7 +115,7 @@ const TeamLogo = ({
   selection: GameSelection;
   size?: 'small' | 'large';
 }) => {
-  const { event, team } = useTeam(selection);
+  const { event, team, abbreviation } = useTeam(selection);
   const tw = useTailwind();
   const [failed, setFailed] = useState(false);
   const showImage = team.logoUrl && !failed;
@@ -251,7 +143,7 @@ const TeamLogo = ({
           fontWeight={FontWeight.Medium}
           testID={`predict-next-game-logo-fallback-${event.id}-${selection}`}
         >
-          {getDisplayAbbreviation(team)}
+          {abbreviation}
         </Text>
       )}
     </Box>
@@ -259,8 +151,8 @@ const TeamLogo = ({
 };
 
 const StatusContent = ({ variant }: { variant: 'compact' | 'featured' }) => {
-  const { event, game, statusLines } = useGameCard();
-  const line = statusLines[variant];
+  const { event, game, projection } = useGameCard();
+  const line = projection.status[variant];
   const featured = variant === 'featured';
 
   return (
@@ -303,10 +195,9 @@ const CompactStatus = () => <StatusContent variant="compact" />;
 const FeaturedStatus = () => <StatusContent variant="featured" />;
 
 const CompactTeamRow = ({ selection }: { selection: GameSelection }) => {
-  const { event, game, team, quote, fallbackColor } = useTeam(selection);
+  const { event, game, team, percent, multiplier, fallbackColor } =
+    useTeam(selection);
   const score = game.score?.[selection];
-  const percent = getAskPricePercent(quote?.outcome.askPrice);
-  const multiplier = formatMultiplier(quote?.outcome.askPrice);
   const color = team.primaryColor ?? fallbackColor;
 
   return (
@@ -399,20 +290,12 @@ const Matchup = ({ children }: { children: React.ReactNode }) => {
 };
 
 const ProbabilityBar = () => {
-  const { event, game, quotes, colors } = useGameCard();
-  const away = parsePredictDecimal(quotes.away?.outcome.askPrice);
-  const home = parsePredictDecimal(quotes.home?.outcome.askPrice);
+  const { event, game, projection, colors } = useGameCard();
+  const awayWidth = projection.awayProbabilityPercent;
 
-  if (!away || !home) {
+  if (awayWidth === undefined) {
     return null;
   }
-
-  const total = away.plus(home);
-  if (total.lte(0)) {
-    return null;
-  }
-
-  const awayWidth = away.div(total).times(new BigNumber(100)).toNumber();
 
   return (
     <Box
@@ -439,14 +322,21 @@ const ProbabilityBar = () => {
 
 const Quote = ({ selection }: { selection: GameSelection }) => {
   const { colors: themeColors } = useTheme();
-  const { event, team, quote, actions, fallbackColor } = useTeam(selection);
-  const formattedPrice = formatAskPrice(quote?.outcome.askPrice);
+  const {
+    event,
+    team,
+    quote,
+    abbreviation,
+    formattedPrice,
+    canOrder,
+    actions,
+    fallbackColor,
+  } = useTeam(selection);
 
   if (!quote) {
     return null;
   }
 
-  const abbreviation = getDisplayAbbreviation(team);
   const label = formattedPrice
     ? `${abbreviation} · ${formattedPrice}`
     : abbreviation;
@@ -467,7 +357,7 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
     );
   }
 
-  if (quote.market.status !== 'active') {
+  if (!canOrder) {
     return (
       <Box
         testID={testID}
@@ -505,9 +395,9 @@ const Quote = ({ selection }: { selection: GameSelection }) => {
 };
 
 const Actions = () => {
-  const { quotes } = useGameCard();
+  const { projection } = useGameCard();
   const selections = (['away', 'home'] as const).filter(
-    (selection) => quotes[selection],
+    (selection) => projection.teams[selection].quote,
   );
 
   return selections.length ? (
@@ -522,12 +412,13 @@ const Actions = () => {
 };
 
 const Footer = ({ children }: { children: React.ReactNode }) => {
-  const { event, representedMarketIds } = useGameCard();
-  const hiddenCount = event.markets.filter(
-    (market) => !representedMarketIds.has(market.id),
-  ).length;
+  const { event, projection } = useGameCard();
 
-  if (!event.sports?.competition?.label && !event.volume && !hiddenCount) {
+  if (
+    !event.sports?.competition?.label &&
+    !event.volume &&
+    !projection.hiddenMarketCount
+  ) {
     return null;
   }
 
@@ -551,14 +442,11 @@ const Competition = () => {
 };
 
 const MoreMarkets = () => {
-  const { event, representedMarketIds, actions } = useGameCard();
-  const count = event.markets.filter(
-    (market) => !representedMarketIds.has(market.id),
-  ).length;
+  const { event, projection, actions } = useGameCard();
 
   return (
     <EventCard.MoreMarkets
-      count={count}
+      count={projection.hiddenMarketCount}
       onPress={actions.openEvent}
       testID={`predict-next-event-more-${event.id}`}
     />

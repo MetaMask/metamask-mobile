@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import PlaywrightWebMatchers from '../../../framework/PlaywrightWebMatchers.js';
+import WebView from '../../../framework/WebView.js';
 import { getDriver } from '../../../framework/PlaywrightUtilities.js';
 import { sleep } from '../../../framework/Utilities.js';
 import { getAppiumServerUrl } from '../../../framework/services/appium/AppiumServer.js';
@@ -207,7 +207,7 @@ export async function fireEthereumRequest(
 ): Promise<string> {
   const generatedKey = uuid();
 
-  await PlaywrightWebMatchers.withWebViewAction(pageUrl, async () => {
+  await WebView.withWebViewAction(pageUrl, async () => {
     await waitForEthereumProvider(timeoutMs);
     await executeInCurrentContext(
       `var g=${JSON.stringify(generatedKey)};var m=${JSON.stringify(
@@ -232,7 +232,7 @@ export async function pollEthereumResponse(
 ): Promise<EthereumRpcResponse> {
   let response: EthereumRpcResponse | undefined;
 
-  await PlaywrightWebMatchers.withWebViewAction(pageUrl, async () => {
+  await WebView.withWebViewAction(pageUrl, async () => {
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
       await sleep(POLL_INTERVAL_MS);

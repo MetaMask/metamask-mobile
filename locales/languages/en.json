@@ -39,19 +39,12 @@
       "alert_details": "Alert details"
     },
     "confirm_modal": {
-      "title": "High risk request",
+      "title": "High-risk request",
       "checkbox_label": "I have acknowledged the alert and still want to proceed",
       "review_alerts": "Review all alerts",
       "message": "We suggest you reject this request. If you continue, you might put your assets at risk.",
-      "title_blockaid": "Your assets may be at risk",
-      "blockaid": {
-        "message": "If you confirm this request, you could lose your assets. We recommend that you cancel this request.",
-        "message1": "If you confirm this request, you’re allowing a scammer to withdraw and spend your assets. You won’t get them back.",
-        "message2": "You’re sending your assets to a scammer. If you continue, you’ll lose those assets.",
-        "message3": "If you continue, all the assets you’ve listed on OpenSea could be at risk.",
-        "message4": "If you continue, all the assets you’ve listed on Blur could be at risk.",
-        "message5": "You’re interacting with a malicious site. If you continue, you will lose your assets."
-      }
+      "blockaid_message": "Security partners found high-risk signals in this {{requestType}}. If you continue, your funds can't be recovered.",
+      "blockaid_message_with_amount": "Security partners found high-risk signals in this {{requestType}}. If you continue, your {{amount}} can't be recovered."
     },
     "inline_alert_label": "Alert",
     "review_alerts": "Review alerts",
@@ -191,21 +184,30 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",
-    "blur_farming_description": "If you approve this request, someone can steal your assets listed on Blur.",
-    "deceptive_request_title": "This is a deceptive request",
-    "failed_title": "Request may not be safe",
-    "failed_description": "Because of an error, this request was not verified by the security provider. Proceed with caution.",
-    "malicious_domain_description": "You're interacting with a malicious domain. If you approve this request, you might lose your assets.",
-    "other_description": "If you approve this request, you might lose your assets.",
-    "raw_signature_farming_description": "If you approve this request, you might lose your assets.",
-    "seaport_farming_description": "If you approve this request, someone can steal your assets listed on OpenSea.",
+    "high_risk_approval_title": "High-risk approval",
+    "high_risk_transfer_title": "High-risk transfer",
+    "high_risk_signature_title": "High-risk signature",
+    "site_flagged_unsafe_title": "Site flagged as unsafe",
+    "risk_signals_detected_title": "Risk signals detected",
+    "failed_title": "Security check unavailable",
+    "approval_farming_description": "You're giving an address flagged by security partners permission to move your assets.",
+    "marketplace_farming_description": "You're giving an address flagged by security partners permission to move your assets listed on {{marketplace}}.",
+    "transfer_farming_description": "You're sending assets to an address flagged by security partners. If this is a scam, your funds can't be recovered.",
+    "transfer_farming_description_with_amount": "You're sending assets to an address flagged by security partners. If this is a scam, your {{amount}} can't be recovered.",
+    "malicious_domain_description": "Security partners flag this site as malicious. If this is a scam, your funds can't be recovered.",
+    "malicious_domain_description_with_amount": "Security partners flag this site as malicious. If this is a scam, your {{amount}} can't be recovered.",
+    "high_risk_signature_description": "Security partners flag this signature as high risk. Signing could authorize actions with your assets without your permission.",
+    "other_description": "Security partners found risk signals in this request. Review before continuing.",
+    "failed_description": "We couldn't complete this safety check. Continue only if you trust the site and addresses involved.",
+    "request_type": {
+      "approval": "approval",
+      "transfer": "transfer",
+      "signature": "signature",
+      "request": "request"
+    },
     "see_details": "See details",
     "does_not_look_right": "Something doesn’t look right?",
     "report_an_issue": "Report an issue",
-    "suspicious_request_title": "This is a suspicious request",
-    "trade_order_farming_description": "If you approve this request, you might lose your assets.",
-    "transfer_farming_description": "If you approve this request, a third party known for scams will take all your assets.",
     "before_you_proceed": "Before you proceed",
     "enable_blockaid_alerts": "To enable this feature we need to set up some security alert. This page will need to stay open while its being set up. This will take less than a minute to complete.",
     "enable_blockaid_alerts_description": "This page will need to stay open while security alerts are being set up. This process will take less than a minute to complete.",
@@ -7639,7 +7641,6 @@
   },
   "money": {
     "title": "Money",
-    "get_pro": "Get Pro",
     "your_balance": "Your balance",
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
@@ -8489,6 +8490,48 @@
       "market": "Market",
       "limit": "Limit",
       "recurring": "Recurring"
+    },
+    "orders": {
+      "tabs": {
+        "open_orders": "Open orders",
+        "history": "History"
+      },
+      "empty": {
+        "open_orders": "Open orders appear here",
+        "history": "Order history appears here"
+      }
+    },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price",
+      "not_enough_gas": "Not enough gas",
+      "filled": "Filled",
+      "filled_at": "Filled at {{date}}",
+      "expired": "Expired",
+      "expired_after": "Expired after {{duration}}"
+    },
+    "recurring": {
+      "every": "Every",
+      "repeat": "Repeat",
+      "times": "times",
+      "confirm": "Confirm",
+      "unit": {
+        "minute": "minute",
+        "hour": "hour",
+        "day": "day",
+        "week": "week"
+      },
+      "unit_option": {
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day",
+        "week": "Week"
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled",
+      "filled": "Filled"
     },
     "continue": "Continue",
     "confirm_bridge": "Bridge",
@@ -10892,7 +10935,41 @@
     "title": "MetaMask Pro",
     "subtitle": "Your Pro membership",
     "manage": "Manage subscription",
-    "explore_benefits": "Explore benefits"
+    "explore_benefits": "Explore benefits",
+    "membership": {
+      "title": "Your membership",
+      "plan": "Membership",
+      "earned_this_month": "Earned this month",
+      "saved_this_month": "Saved this month",
+      "payment_details": "Payment details",
+      "total": "Total",
+      "paying_with": "Paying with",
+      "renews_on": "Renews on",
+      "manage": "Manage",
+      "contact_support": "Contact support",
+      "cancel_membership": "Cancel membership",
+      "earned_info": {
+        "title": "Earned this month",
+        "description": "The amount you earned in APY and mUSD back as a Pro member."
+      },
+      "saved_info": {
+        "title": "Saved this month",
+        "description": "The amount you saved as a Pro member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
+      }
+    },
+    "cancel_membership": {
+      "title": "Why are you canceling?",
+      "subtitle": "Survey is optional.",
+      "earned_as_member": "Earned as a member",
+      "membership_cost": "Membership cost",
+      "reason_issue": "I have an issue with my membership",
+      "reason_no_value": "Not getting enough value",
+      "reason_no_benefits": "I don't need the benefits",
+      "reason_support": "Unhappy with customer support",
+      "reason_other": "Other",
+      "keep_membership": "Keep membership",
+      "cancel": "Cancel"
+    }
   },
   "pro_subscription": {
     "title": "Earn more with Pro",
