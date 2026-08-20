@@ -48,11 +48,7 @@ export const PERPS_ORDER_KINDS = [
 export type PerpsOrderKind = (typeof PERPS_ORDER_KINDS)[number];
 
 /** @deprecated Interim all callsites are migrated to use client-utils */
-type MobileOnlyActivityKind =
-  | 'stake'
-  | 'unstake'
-  | 'swapIncomplete'
-  | PerpsOrderKind;
+type MobileOnlyActivityKind = 'stake' | 'unstake' | PerpsOrderKind;
 
 export type ActivityKind = ClientUtilsActivityKind | MobileOnlyActivityKind;
 
@@ -102,12 +98,6 @@ type MobileOnlyActivityItem =
       }
     >
   | MobileActivityData<
-      'swapIncomplete',
-      {
-        sourceToken?: TokenAmount;
-      }
-    >
-  | MobileActivityData<
       | 'sell'
       | 'contractDeployment'
       | 'smartAccountUpgrade'
@@ -153,7 +143,6 @@ type WithMobileTokenAmount<T> = T extends ClientUtilsTokenAmount
 
 interface MobileDataExtras {
   fees?: ActivityFee[];
-  transactionType?: string;
 }
 
 type WithMobileDataTokens<T> = T extends { data: infer D }
