@@ -4,12 +4,12 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { strings } from '../../../../../../../locales/i18n';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
 import { TransactionDetailsSelectorIDs } from '../TransactionDetailsModal.testIds';
+import { Text } from '@metamask/design-system-react-native';
 import { ACTIVITY_FIAT_FRACTION_DIGITS } from '../../../constants/confirmations';
 
 export function TransactionDetailsBridgeFeeRow() {

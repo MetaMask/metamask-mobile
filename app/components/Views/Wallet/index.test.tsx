@@ -125,9 +125,12 @@ jest.mock('../../../hooks', () => ({
         variant: {
           layout:
             mockBalanceBreakdownVariantName === 'icons' ||
-            mockBalanceBreakdownVariantName === 'allocation'
-              ? mockBalanceBreakdownVariantName
-              : null,
+            mockBalanceBreakdownVariantName === 'iconsWithArrows'
+              ? 'icons'
+              : mockBalanceBreakdownVariantName === 'allocation'
+                ? 'allocation'
+                : null,
+          showRowArrows: mockBalanceBreakdownVariantName === 'iconsWithArrows',
         },
         isActive: mockBalanceBreakdownVariantName !== 'unresolved',
       };
@@ -1961,30 +1964,39 @@ describe('Homepage balance breakdown ABC test', () => {
   });
 
   it.each([
-    ['icons', 'icons'],
-    ['allocation', 'allocation'],
-  ])('maps %s assignment to the %s layout', (variantName, layout) => {
-    mockBalanceBreakdownVariantName = variantName;
+    { variantName: 'icons', layout: 'icons', showRowArrows: false },
+    {
+      variantName: 'iconsWithArrows',
+      layout: 'icons',
+      showRowArrows: true,
+    },
+    { variantName: 'allocation', layout: 'allocation', showRowArrows: false },
+  ] as const)(
+    'maps $variantName assignment to the $layout layout',
+    ({ variantName, layout, showRowArrows }) => {
+      mockBalanceBreakdownVariantName = variantName;
 
-    render(Wallet);
+      render(Wallet);
 
-    expect(mockHomepage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        balanceBreakdownSectionProps: expect.objectContaining({
-          children: expect.anything(),
-          hideRows: false,
-          layout,
-          transactionActiveAbTests: [
-            {
-              key: 'homeTMCU1209AbtestHomepageBalanceBreakdown',
-              value: variantName,
-              key_value_pair: `homeTMCU1209AbtestHomepageBalanceBreakdown=${variantName}`,
-            },
-          ],
+      expect(mockHomepage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          balanceBreakdownSectionProps: expect.objectContaining({
+            children: expect.anything(),
+            hideRows: false,
+            layout,
+            showRowArrows,
+            transactionActiveAbTests: [
+              {
+                key: 'homeTMCU1209AbtestHomepageBalanceBreakdown',
+                value: variantName,
+                key_value_pair: `homeTMCU1209AbtestHomepageBalanceBreakdown=${variantName}`,
+              },
+            ],
+          }),
         }),
-      }),
-    );
-  });
+      );
+    },
+  );
 
   it('does not reserve banner spacing when treatment banners are hidden', () => {
     mockBalanceBreakdownVariantName = 'icons';

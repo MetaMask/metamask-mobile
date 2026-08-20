@@ -17,7 +17,6 @@ const transactionKeys = {
   list: (
     providerId: string | null,
     providerUserId: string,
-    searchQuery: string,
     fromDate?: number,
     toDate?: number,
   ) =>
@@ -25,7 +24,6 @@ const transactionKeys = {
       ...transactionKeys.all(),
       providerId,
       providerUserId,
-      searchQuery,
       fromDate,
       toDate,
     ] as const,

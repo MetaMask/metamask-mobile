@@ -17,6 +17,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 
 export const GLOW_TOTAL_MS = 680;
 const GLOW_SWEEP_MS = 630;
@@ -103,7 +104,8 @@ const ModeLabel = ({ children, isPro, isMask = false }: ModeLabelProps) => {
 interface PerpsModeSwitchPillProps {
   currentModeLabel: string;
   isPro: boolean;
-  onSwitchRequest: () => void;
+  onSwitchRequest: () => void | Promise<boolean | void>;
+  enableHaptics?: boolean;
   accessibilityLabel: string;
   accessibilityHint: string;
   testID: string;
@@ -113,11 +115,13 @@ const PerpsModeSwitchPill = ({
   currentModeLabel,
   isPro,
   onSwitchRequest,
+  enableHaptics = false,
   accessibilityLabel,
   accessibilityHint,
   testID,
 }: PerpsModeSwitchPillProps) => {
   const tw = useTailwind();
+  const { playImpact } = useHaptics();
   const [width, setWidth] = useState(0);
   const [isShimmering, setIsShimmering] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -145,6 +149,16 @@ const PerpsModeSwitchPill = ({
     opacity: overlayOpacity.value,
   }));
 
+  const handleModeSwitch = useCallback(() => {
+    Promise.resolve(onSwitchRequest())
+      .then((applied) => {
+        if (applied !== false && enableHaptics) {
+          playImpact(ImpactMoment.TabChange).catch(() => undefined);
+        }
+      })
+      .catch(() => undefined);
+  }, [enableHaptics, onSwitchRequest, playImpact]);
+
   const handlePress = useCallback(() => {
     if (timerRef.current) {
       return;
@@ -167,8 +181,8 @@ const PerpsModeSwitchPill = ({
       setIsShimmering(false);
     }, GLOW_TOTAL_MS);
 
-    onSwitchRequest();
-  }, [onSwitchRequest, overlayOpacity, sweepProgress]);
+    handleModeSwitch();
+  }, [handleModeSwitch, overlayOpacity, sweepProgress]);
 
   const gradient = (
     <LinearGradient

@@ -41,6 +41,23 @@ async function openEveryKeypad(
   });
 }
 
+async function openAmountKeypad(
+  renderResult: ReturnType<typeof renderBridgeView>,
+) {
+  fireEvent(
+    renderResult.getByTestId(
+      BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_INPUT,
+    ),
+    'pressIn',
+  );
+
+  await waitFor(() => {
+    expect(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    ).toBeOnTheScreen();
+  });
+}
+
 describeForPlatforms('BridgeRecurringBuyView', () => {
   it('shows default every 1 hour and repeat 10 after opening the recurring tab', async () => {
     const renderResult = renderBridgeView();
@@ -449,13 +466,107 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).not.toHaveStyle({ color: errorColor });
   });
 
-  it('shows history empty copy after pressing the History tab', async () => {
+  describe('swap inputs', () => {
+    it('renders the source and destination token areas above the schedule fields', async () => {
+      const renderResult = renderBridgeView();
+
+      await openRecurringTab(renderResult);
+
+      expect(
+        renderResult.getByTestId(
+          BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_AREA,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        renderResult.getByTestId(
+          BridgeViewSelectorsIDs.RECURRING_DEST_TOKEN_AREA,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the keypad with the amount quick picks when the source amount is pressed', async () => {
+      const renderResult = renderBridgeView();
+
+      await openRecurringTab(renderResult);
+      await openAmountKeypad(renderResult);
+
+      expect(renderResult.getByText('25%')).toBeOnTheScreen();
+    });
+
+    it('reuses the same keypad for the every field, hiding the amount quick picks', async () => {
+      const renderResult = renderBridgeView();
+
+      await openRecurringTab(renderResult);
+      await openAmountKeypad(renderResult);
+      expect(renderResult.getByText('25%')).toBeOnTheScreen();
+
+      fireEvent(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
+        ),
+        'pressIn',
+      );
+
+      await waitFor(() => {
+        expect(renderResult.queryByText('25%')).not.toBeOnTheScreen();
+      });
+      expect(
+        renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(renderResult.getByTestId('keypad-key-2'));
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(
+            RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
+          ),
+        ).toHaveDisplayValue('12');
+      });
+    });
+
+    it('returns the keypad to the amount after the schedule was edited', async () => {
+      const renderResult = renderBridgeView();
+
+      await openRecurringTab(renderResult);
+      await openEveryKeypad(renderResult);
+      expect(renderResult.queryByText('25%')).not.toBeOnTheScreen();
+
+      await openAmountKeypad(renderResult);
+
+      expect(renderResult.getByText('25%')).toBeOnTheScreen();
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT,
+        ),
+      ).toHaveDisplayValue('1');
+    });
+  });
+
+  it('shows a filled history row after pressing the History tab', async () => {
     const renderResult = renderBridgeView();
 
     await openRecurringTab(renderResult);
 
+    const pair = strings('bridge.recurring.pair', {
+      source: 'ETH',
+      dest: 'USDC',
+    });
+    const scheduleSummary = strings('bridge.recurring.schedule_summary', {
+      interval: '1 day',
+      count: '5',
+    });
+
+    expect(renderResult.getAllByText(pair)).toHaveLength(2);
     expect(
-      renderResult.getByText(strings('bridge.orders.empty.open_orders')),
+      renderResult.getByText(strings('bridge.all_networks')),
+    ).toBeOnTheScreen();
+    expect(renderResult.getByText(scheduleSummary)).toBeOnTheScreen();
+    expect(
+      renderResult.getByText(strings('bridge.recurring.filled')),
     ).toBeOnTheScreen();
 
     fireEvent.press(
@@ -463,12 +574,21 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     );
 
     await waitFor(() => {
-      expect(
-        renderResult.getByText(strings('bridge.orders.empty.history')),
-      ).toBeOnTheScreen();
+      expect(renderResult.queryByText(scheduleSummary)).toBeNull();
     });
     expect(
-      renderResult.queryByText(strings('bridge.orders.empty.open_orders')),
+      renderResult.queryByText(strings('bridge.orders.empty.history')),
     ).toBeNull();
+    expect(
+      renderResult.getByText(strings('bridge.all_networks')),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.getAllByText(strings('bridge.tabs.recurring')).length,
+    ).toBeGreaterThan(0);
+    expect(
+      renderResult.getByText(strings('bridge.recurring.filled')),
+    ).toBeOnTheScreen();
+    expect(renderResult.getByText('+0.325 USDC')).toBeOnTheScreen();
+    expect(renderResult.getAllByText(pair)).toHaveLength(1);
   });
 });

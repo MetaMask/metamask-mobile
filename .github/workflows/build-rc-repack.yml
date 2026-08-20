@@ -1,0 +1,526 @@
+##############################################################################################
+#
+# Auto RC repack build (reusable)
+#
+# Fast path for build-rc-auto.yml. Instead of compiling natively, this reuses the signed
+# IPA/APK from an earlier auto RC run whose @expo/fingerprint hash matches this commit,
+# swaps in a freshly bundled JS layer with @expo/repack-app, patches the build number, and
+# re-signs. The result is uploaded under the same artifact names build.yml uses, so
+# upload-to-testflight.yml and the next donor lookup work unchanged.
+#
+# The caller only routes here when a donor exists AND the release PR carries the
+# 'repack-rc-enabled' label. Everything else takes auto-rc-ota-build-core.yml as before.
+#
+# Inputs and outputs deliberately mirror auto-rc-ota-build-core.yml so the two are
+# interchangeable from the caller's point of view.
+#
+##############################################################################################
+name: Auto RC Repack Build
+
+on:
+  workflow_call:
+    inputs:
+      platform:
+        description: 'Target platform (android or ios)'
+        required: true
+        type: string
+      source_branch:
+        description: 'Branch, tag, or SHA whose JS is bundled into the reused artifact'
+        required: true
+        type: string
+      donor_run_id:
+        description: 'Workflow run id holding the native artifact to reuse; from find-reusable-build'
+        required: true
+        type: string
+      build_number:
+        description: 'Build number from generate-build-version.yml, patched into the reused artifact'
+        required: true
+        type: string
+      build_name:
+        description: >-
+          builds.yml build name (artifact names, env, secrets and signing come from it).
+          Must be a build whose github_environment is `build-rc`, since a job environment
+          cannot be resolved from a step output.
+        required: false
+        type: string
+        default: main-rc
+      environment:
+        description: 'Build environment / track passed to upload-to-testflight (e.g. rc)'
+        required: false
+        type: string
+        default: 'rc'
+      distribute_external:
+        description: 'Whether to distribute the iOS build to external TestFlight testers'
+        required: false
+        type: boolean
+        default: true
+    outputs:
+      semantic_version:
+        description: 'package.json version at the repacked commit'
+        value: ${{ jobs.repack.outputs.semantic_version }}
+      ios_version_code:
+        description: 'iOS build number written into the repacked IPA (empty for Android)'
+        value: ${{ jobs.repack.outputs.ios_version_code }}
+      android_version_code:
+        description: 'Android version code written into the repacked APK (empty for iOS)'
+        value: ${{ jobs.repack.outputs.android_version_code }}
+
+permissions:
+  contents: read
+  actions: read # cross-run artifact download from the donor run
+  id-token: write # AWS OIDC for signing certificates and the TestFlight upload
+
+jobs:
+  repack:
+    name: Repack ${{ inputs.platform }}
+    timeout-minutes: 60
+    # Same runner selection as build.yml: iOS needs macOS for codesign/fastlane, Android
+    # needs the image that ships the Android SDK (aapt2, apksigner) and a JDK for apktool.
+    runs-on: >-
+      ${{
+        ((inputs.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_ANDROID) ||
+         vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-build' || 'namespace-profile-metamask-android-build') ||
+        (inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg')
+      }}
+    # github_environment of main-rc in builds.yml; see the build_name input.
+    environment: build-rc
+    env:
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_ANDROID) ||
+          vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
+      ARTIFACT_NAME: ${{ inputs.platform == 'ios' && format('ios-ipa-{0}', inputs.build_name) || format('android-apk-{0}', inputs.build_name) }}
+    outputs:
+      semantic_version: ${{ steps.meta.outputs.semantic_version }}
+      ios_version_code: ${{ steps.meta.outputs.ios_version_code }}
+      android_version_code: ${{ steps.meta.outputs.android_version_code }}
+      built_commit_sha: ${{ steps.meta.outputs.built_commit_sha }}
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          fetch-depth: 1
+          ref: ${{ inputs.source_branch }}
+      - uses: actions/checkout@v4
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        with:
+          fetch-depth: 1
+          ref: ${{ inputs.source_branch }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
+
+      # Install before setup, as every other CI job here does: `yarn install` writes the
+      # node_modules state file, without which `yarn <script>` cannot resolve anything
+      # ("Couldn't find the node_modules state file"). build.yml gets this from its
+      # setup-dependencies job; this workflow has no such job, so it installs inline.
+      - name: Install dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+
+      # JS-only setup: no pods, no Gradle. Same flags the BrowserStack repack path uses.
+      - name: Setup project with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn setup:github-ci --no-build-ios --no-build-android
+
+      - name: Setup Java (Android)
+        if: inputs.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set Android environment variables
+        if: inputs.platform == 'android'
+        run: |
+          {
+            echo "ANDROID_HOME=/opt/android-sdk"
+            echo "ANDROID_SDK_ROOT=/opt/android-sdk"
+          } >> "$GITHUB_ENV"
+
+      - name: Setup Ruby (iOS)
+        if: inputs.platform == 'ios'
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
+        with:
+          ruby-version: '3.2.9'
+          working-directory: ios
+          bundler-cache: true
+
+      # @expo/repack-app re-signs by spawning a bare `fastlane` in a scratch directory, so
+      # the pinned bundle has to be reachable under that name from any working directory.
+      - name: Expose bundled fastlane on PATH (iOS)
+        if: inputs.platform == 'ios'
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          cat > "$RUNNER_TEMP/bin/fastlane" <<EOF
+          #!/usr/bin/env bash
+          set -euo pipefail
+          export BUNDLE_GEMFILE="$GITHUB_WORKSPACE/ios/Gemfile"
+          exec bundle exec fastlane "\$@"
+          EOF
+          chmod +x "$RUNNER_TEMP/bin/fastlane"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      - name: Verify fastlane is callable (iOS)
+        if: inputs.platform == 'ios'
+        run: fastlane --version
+
+      - name: Download donor artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: donor
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.donor_run_id }}
+
+      # The output keeps the donor's filename so the published artifact is
+      # indistinguishable from a native build's for anything downstream.
+      - name: Locate donor artifact
+        id: donor
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          DONOR_RUN_ID: ${{ inputs.donor_run_id }}
+        run: |
+          set -euo pipefail
+          EXT=$([ "$PLATFORM" = "ios" ] && echo ipa || echo apk)
+          FILE=$(find donor -name "*.$EXT" -type f | head -1)
+          if [ -z "$FILE" ]; then
+            echo "::error::No .$EXT found in the artifact from run $DONOR_RUN_ID"
+            exit 1
+          fi
+          NAME=$(basename "$FILE")
+          mkdir -p repacked
+          {
+            echo "path=$PWD/$FILE"
+            echo "name=$NAME"
+            echo "output=$PWD/repacked/$NAME"
+          } >> "$GITHUB_OUTPUT"
+          echo "Donor artifact: $FILE ($(du -h "$FILE" | cut -f1)) from run $DONOR_RUN_ID"
+
+      - name: Read release version
+        id: version
+        run: |
+          SEMVER=$(node -p "require('./package.json').version")
+          echo "semver=$SEMVER" >> "$GITHUB_OUTPUT"
+          echo "Release version: $SEMVER"
+
+      # Also asserts the donor belongs to this release train — a fingerprint match alone
+      # would not catch a donor carrying a different marketing version.
+      - name: Patch build number into donor IPA
+        if: inputs.platform == 'ios'
+        env:
+          DONOR: ${{ steps.donor.outputs.path }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          SEMVER: ${{ steps.version.outputs.semver }}
+        run: bash scripts/repack-build-version.sh ios-patch "$DONOR" "$BUILD_NUMBER" "$SEMVER" "$RUNNER_TEMP/ipa-extras"
+
+      - name: Patch version code into donor APK
+        if: inputs.platform == 'android'
+        env:
+          DONOR: ${{ steps.donor.outputs.path }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          SEMVER: ${{ steps.version.outputs.semver }}
+        run: bash scripts/repack-build-version.sh android-patch "$DONOR" "$RUNNER_TEMP/patched.apk" "$BUILD_NUMBER" "$SEMVER"
+
+      - name: Load build config
+        id: config
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
+        run: |
+          node -e "
+          const yaml = require('js-yaml');
+          const fs = require('fs');
+          const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
+          const build = config.builds[process.env.BUILD_NAME];
+          if (!build) { throw new Error('Unknown build name: ' + process.env.BUILD_NAME); }
+          const signing = build.signing || {};
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing.aws_role || '') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing.aws_secret || '') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing.android_keystore_path || '') + '\n');
+          "
+
+      # METAMASK_ENVIRONMENT matters beyond feature flags here: app.config.js picks the OTA
+      # code-signing certificate from it, and repack regenerates EXConstants.bundle/app.config
+      # and Expo.plist from the Expo config.
+      - name: Apply build config
+        run: |
+          eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
+          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
+          node scripts/apply-build-config.js ${{ inputs.build_name }} --write-build-env || true
+
+      - name: Validate secrets
+        env:
+          CONFIG_SECRETS: ${{ steps.config.outputs.secrets_json }}
+          SECRETS_JSON: ${{ toJSON(secrets) }}
+        run: node scripts/validate-secrets-from-config.js
+
+      # Writes GITHUB_ENV, so the values land in the Repack step below (a later step),
+      # exactly as build.yml feeds them to build.sh.
+      - name: Set secrets
+        env:
+          CONFIG_SECRETS: ${{ steps.config.outputs.secrets_json }}
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+        run: node scripts/set-secrets-from-config.js
+
+      - name: Configure signing certificates
+        uses: ./.github/actions/configure-signing
+        with:
+          aws-role-to-assume: ${{ steps.config.outputs.signing_aws_role }}
+          aws-region: 'us-east-2'
+          platform: ${{ inputs.platform }}
+          aws-secret-name: ${{ steps.config.outputs.signing_aws_secret }}
+          android-keystore-path: ${{ steps.config.outputs.signing_android_keystore_path }}
+
+      # Read the identity out of the keychain rather than hardcoding a certificate name,
+      # so a certificate rotation does not silently break the repack path.
+      - name: Resolve iOS signing identity
+        if: inputs.platform == 'ios'
+        run: |
+          set -euo pipefail
+          KEYCHAIN="$RUNNER_TEMP/app-signing.keychain-db"
+          IDENTITIES=$(security find-identity -v -p codesigning "$KEYCHAIN")
+          echo "$IDENTITIES"
+          IDENTITY=$(echo "$IDENTITIES" | sed -n 's/.*"\(Apple Distribution[^"]*\)".*/\1/p' | head -1)
+          if [ -z "$IDENTITY" ]; then
+            IDENTITY=$(echo "$IDENTITIES" | sed -n 's/.*"\(iPhone Distribution[^"]*\)".*/\1/p' | head -1)
+          fi
+          if [ -z "$IDENTITY" ]; then
+            echo "::error::No distribution signing identity in the keychain; cannot re-sign the IPA."
+            exit 1
+          fi
+          echo "Signing identity: $IDENTITY"
+          {
+            echo "RESIGN_SIGNING_IDENTITY=$IDENTITY"
+            echo "RESIGN_PROVISIONING_PROFILE=$RUNNER_TEMP/build_pp.mobileprovision"
+            echo "RESIGN_KEYCHAIN_PATH=$KEYCHAIN"
+          } >> "$GITHUB_ENV"
+
+      - name: Repack iOS IPA
+        if: inputs.platform == 'ios'
+        timeout-minutes: 40
+        env:
+          CI: 'true'
+          GITHUB_CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          METRO_MAX_WORKERS: '6'
+          REPACK_SOURCE_IPA: ${{ steps.donor.outputs.path }}
+          REPACK_OUTPUT_IPA: ${{ steps.donor.outputs.output }}
+          REPACK_SOURCEMAP_PATH: sourcemaps/ios/index.js.map
+        run: yarn build:repack:ios
+
+      # Swapping the JS bundle invalidates the donor's signature, so the IPA has to be
+      # re-signed. This is a separate step rather than @expo/repack-app's own signing because
+      # that path takes entitlements from the provisioning profile, which carries every
+      # capability the App ID allows — including development-only iCloud keys that App Store
+      # Connect rejects. The lane re-signs with the entitlements already in the donor binary.
+      - name: Re-sign repacked IPA
+        if: inputs.platform == 'ios'
+        working-directory: ios
+        env:
+          OUTPUT: ${{ steps.donor.outputs.output }}
+        run: |
+          set -euo pipefail
+          bundle exec fastlane ios resign_repacked_ipa \
+            ipa_path:"$OUTPUT" \
+            signing_identity:"$RESIGN_SIGNING_IDENTITY" \
+            provisioning_profile:"$RESIGN_PROVISIONING_PROFILE" \
+            keychain_path:"$RESIGN_KEYCHAIN_PATH"
+
+      - name: Repack Android APK
+        if: inputs.platform == 'android'
+        timeout-minutes: 40
+        env:
+          CI: 'true'
+          GITHUB_CI: 'true'
+          NODE_OPTIONS: '--max-old-space-size=8192'
+          METRO_MAX_WORKERS: '6'
+          REPACK_SOURCE_APK: ${{ runner.temp }}/patched.apk
+          REPACK_OUTPUT_APK: ${{ runner.temp }}/repacked-intermediate.apk
+          REPACK_FINAL_APK: ${{ steps.donor.outputs.output }}
+          REPACK_SOURCEMAP_PATH: sourcemaps/android/index.android.bundle.map
+          REPACK_ANDROID_KEYSTORE_PATH: android/keystores/${{ steps.config.outputs.signing_android_keystore_path }}
+        run: |
+          set -euo pipefail
+          # configure-signing exports the RC signer's variables verbatim (the same names
+          # android/app/build.gradle reads for signingConfigs.mainRc); map them onto the
+          # signer-agnostic names scripts/repack.js expects.
+          if [ -z "${BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD:-}" ] || [ -z "${BITRISEIO_ANDROID_RC_KEYSTORE_ALIAS:-}" ]; then
+            echo "::error::RC keystore credentials missing; the signer secret did not expose BITRISEIO_ANDROID_RC_KEYSTORE_*."
+            exit 1
+          fi
+          export REPACK_ANDROID_KEYSTORE_PASSWORD="$BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD"
+          export REPACK_ANDROID_KEYSTORE_ALIAS="$BITRISEIO_ANDROID_RC_KEYSTORE_ALIAS"
+          export REPACK_ANDROID_KEY_PASSWORD="$BITRISEIO_ANDROID_RC_KEYSTORE_PRIVATE_KEY_PASSWORD"
+          yarn build:repack:android
+
+      # SwiftSupport and friends live outside the signed bundle, so this must happen after
+      # repack (which rebuilds the archive from Payload/ only) and cannot disturb signing.
+      - name: Restore non-Payload IPA entries
+        if: inputs.platform == 'ios'
+        env:
+          OUTPUT: ${{ steps.donor.outputs.output }}
+        run: bash scripts/repack-build-version.sh ios-restore-extras "$OUTPUT" "$RUNNER_TEMP/ipa-extras"
+
+      - name: Verify repacked IPA
+        if: inputs.platform == 'ios'
+        env:
+          OUTPUT: ${{ steps.donor.outputs.output }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          SEMVER: ${{ steps.version.outputs.semver }}
+        run: bash scripts/repack-build-version.sh ios-verify "$OUTPUT" "$BUILD_NUMBER" "$SEMVER"
+
+      - name: Verify repacked APK
+        if: inputs.platform == 'android'
+        env:
+          OUTPUT: ${{ steps.donor.outputs.output }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          SEMVER: ${{ steps.version.outputs.semver }}
+        run: bash scripts/repack-build-version.sh android-verify "$OUTPUT" "$BUILD_NUMBER" "$SEMVER"
+
+      # The JS in the shipped artifact is not the JS the donor's sourcemaps describe, so
+      # without this RC crash reports would be symbolicated against the donor's bundle.
+      # Release and dist must match what the native build reports: iOS uses
+      # <bundle id>@<marketing version>+<build number> with dist=<build number>
+      # (scripts/ios/bundle-js-and-sentry-upload.sh), and the Sentry Gradle plugin uses the
+      # same shape on Android.
+      - name: Upload sourcemaps to Sentry
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          OUTPUT: ${{ steps.donor.outputs.output }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          SEMVER: ${{ steps.version.outputs.semver }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${MM_SENTRY_AUTH_TOKEN:-}" ]; then
+            echo "::warning::MM_SENTRY_AUTH_TOKEN is not set; skipping sourcemap upload. RC crash reports will not be symbolicated for this build."
+            exit 0
+          fi
+          sed -i'' -e "s|auth.token.*|auth.token=${MM_SENTRY_AUTH_TOKEN}|" sentry.properties
+          export SENTRY_PROPERTIES="$PWD/sentry.properties"
+
+          UPLOAD_DIR="$RUNNER_TEMP/sentry-upload"
+          mkdir -p "$UPLOAD_DIR"
+
+          # Take the bundle from the shipped artifact rather than a repack intermediate, so
+          # the uploaded pair is provably the one inside the binary.
+          if [ "$PLATFORM" = "ios" ]; then
+            APP_ID=$(bash scripts/repack-build-version.sh ios-app-id "$OUTPUT")
+            unzip -qo "$OUTPUT" 'Payload/*.app/*.jsbundle' -d "$UPLOAD_DIR/extract"
+            BUNDLE=$(find "$UPLOAD_DIR/extract" -name '*.jsbundle' -type f | head -1)
+            if [ -z "$BUNDLE" ]; then
+              echo "::error::No .jsbundle inside the repacked IPA"
+              exit 1
+            fi
+            mv "$BUNDLE" "$UPLOAD_DIR/main.jsbundle"
+            rm -rf "$UPLOAD_DIR/extract"
+            cp sourcemaps/ios/index.js.map "$UPLOAD_DIR/main.jsbundle.map"
+          else
+            APP_ID=$(bash scripts/repack-build-version.sh android-app-id "$OUTPUT")
+            unzip -p "$OUTPUT" assets/index.android.bundle > "$UPLOAD_DIR/index.android.bundle"
+            cp sourcemaps/android/index.android.bundle.map "$UPLOAD_DIR/index.android.bundle.map"
+          fi
+
+          SENTRY_DIST="$BUILD_NUMBER"
+          SENTRY_RELEASE="${APP_ID}@${SEMVER}+${SENTRY_DIST}"
+          echo "Sentry release: $SENTRY_RELEASE (dist $SENTRY_DIST)"
+
+          node_modules/@sentry/cli/bin/sentry-cli sourcemaps upload \
+            --release "$SENTRY_RELEASE" \
+            --dist "$SENTRY_DIST" \
+            "$UPLOAD_DIR"
+
+      # Suffixed, unlike the IPA/APK below. actions/upload-artifact@v4 rejects a duplicate
+      # name within a run, and a repack that fails here falls back to a native build in the
+      # same run — which uploads build.yml's own copies of these two. The suffix keeps them
+      # from colliding. `build-env-main-rc-*` still matches the pattern post-rc-build-comment
+      # downloads, and build-announce reads the platform off the directory name.
+      - name: Upload sourcemaps
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.platform }}-sourcemaps-${{ inputs.build_name }}-repack
+          path: sourcemaps/${{ inputs.platform }}
+          if-no-files-found: warn
+
+      - name: Upload build environment JSON
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-env-${{ inputs.build_name }}-${{ inputs.platform }}-repack
+          path: build-env.json
+          if-no-files-found: warn
+
+      # Cannot be suffixed: upload-to-testflight.yml and the next run's donor lookup both
+      # find it by this exact name. Published last so a failure earlier in the job leaves
+      # nothing for the native fallback to collide with; if it does get published and the
+      # job fails later, purge-partial-repack-artifacts in the caller clears it.
+      - name: Upload repacked artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ steps.donor.outputs.output }}
+          if-no-files-found: error
+
+      # Reported from the inputs rather than the checked-out tree: set-build-version.sh is
+      # never run here, so the tree still holds the previous build number while the shipped
+      # artifact holds this one.
+      - name: Emit build metadata
+        id: meta
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          SEMVER: ${{ steps.version.outputs.semver }}
+        run: |
+          {
+            echo "semantic_version=$SEMVER"
+            echo "built_commit_sha=$(git rev-parse HEAD)"
+            echo "ios_version_code=$([ "$PLATFORM" = "ios" ] && echo "$BUILD_NUMBER" || echo '')"
+            echo "android_version_code=$([ "$PLATFORM" = "android" ] && echo "$BUILD_NUMBER" || echo '')"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Summarize repack
+        env:
+          PLATFORM: ${{ inputs.platform }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          SEMVER: ${{ steps.version.outputs.semver }}
+          DONOR_RUN_ID: ${{ inputs.donor_run_id }}
+        run: |
+          {
+            echo "### ♻️ Repacked ${PLATFORM} RC build"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| **Version** | \`${SEMVER}\` |"
+            echo "| **Build number** | \`${BUILD_NUMBER}\` |"
+            echo "| **JS from** | \`${GITHUB_SHA}\` |"
+            echo "| **Native from** | [run ${DONOR_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${DONOR_RUN_ID}) |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  upload-ios-testflight:
+    name: Upload iOS to TestFlight
+    needs: [repack]
+    if: ${{ inputs.platform == 'ios' }}
+    uses: ./.github/workflows/upload-to-testflight.yml
+    with:
+      environment: ${{ inputs.environment }}
+      source_branch: ${{ inputs.source_branch }}
+      build_name: ${{ inputs.build_name }}
+      build_commit_sha: ${{ needs.repack.outputs.built_commit_sha }}
+      build_version: ${{ needs.repack.outputs.semantic_version }}
+      build_number: ${{ needs.repack.outputs.ios_version_code }}
+      distribute_external: ${{ inputs.distribute_external }}
+    secrets: inherit

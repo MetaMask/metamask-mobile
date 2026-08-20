@@ -122,7 +122,7 @@ describe('AddressElement', () => {
       },
     );
 
-    expect(getByTestId('network-avatar-image')).toBeOnTheScreen();
+    expect(getByTestId('address-element-network-badge')).toBeOnTheScreen();
   });
 
   it('does not render network badge when network image source is missing', () => {
@@ -132,6 +132,8 @@ describe('AddressElement', () => {
     });
 
     expect(getByTestId('address-element')).toBeOnTheScreen();
-    expect(queryByTestId('badgenetwork')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId('address-element-network-badge'),
+    ).not.toBeOnTheScreen();
   });
 });

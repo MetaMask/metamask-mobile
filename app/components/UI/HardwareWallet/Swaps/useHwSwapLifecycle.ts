@@ -78,7 +78,7 @@ interface UseHwSwapLifecycleInputs {
   /** Imperative device-readiness gate from `useHardwareWallet()`. Forwarded to submit. */
   ensureDeviceReady?: (deviceId?: string | null) => Promise<boolean>;
   /** Sets the pending operation address so the provider can derive the wallet type for device connection. Forwarded to submit. */
-  setPendingOperationAddress?: (address: string | null) => void;
+  setPendingOperationAddress: (address: string | null) => void;
   /** True when the active wallet is a QR hardware wallet. Disables BLE connection monitoring (QR has no persistent transport). */
   isQrHardwareWallet?: boolean;
 }
