@@ -71,7 +71,7 @@ const BenefitDetails = ({ onClose, details }: BenefitDetailsProps) => {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            twClassName="mb-4"
+            twClassName="mb-4 self-start border-b-2 border-dotted border-border-default"
             onPress={handleLearnMorePress}
             accessibilityRole="link"
           >

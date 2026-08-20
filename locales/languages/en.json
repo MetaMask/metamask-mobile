@@ -10954,13 +10954,13 @@
       "reason_support": "Unhappy with customer support",
       "reason_other": "Other",
       "keep_membership": "Keep membership",
-      "cancel": "Cancel"
-    },
-    "cancellation_success": {
-      "title": "Plan canceled",
-      "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
-      "description_suffix": ".",
-      "done": "Done"
+      "cancel": "Cancel",
+      "success": {
+        "title": "Plan canceled",
+        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
+        "description_suffix": ".",
+        "done": "Done"
+      }
     }
   },
   "pro_subscription": {
