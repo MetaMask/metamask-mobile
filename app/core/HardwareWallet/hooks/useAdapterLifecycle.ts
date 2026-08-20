@@ -47,26 +47,35 @@ export const useAdapterLifecycle = ({
   const [isTransportAvailable, setIsTransportAvailable] = useState(false);
   const previousTransportAvailableRef = useRef<boolean | null>(null);
   const transportCleanupRef = useRef<(() => void) | null>(null);
+  const handleDeviceEventRef = useRef(handleDeviceEvent);
+  const handleErrorRef = useRef(handleError);
+  const updateConnectionStateRef = useRef(updateConnectionState);
+  handleDeviceEventRef.current = handleDeviceEvent;
+  handleErrorRef.current = handleError;
+  updateConnectionStateRef.current = updateConnectionState;
 
   const createAdapterWithCallbacks = useCallback(
     (targetType: HardwareWalletType) =>
       createAdapter(targetType, {
         onDisconnect: (error) => {
           if (error) {
-            handleError(error);
+            handleErrorRef.current(error);
           } else {
-            updateConnectionState({ status: ConnectionStatus.Disconnected });
+            updateConnectionStateRef.current({
+              status: ConnectionStatus.Disconnected,
+            });
           }
         },
-        onDeviceEvent: handleDeviceEvent,
+        onDeviceEvent: (payload) => handleDeviceEventRef.current(payload),
       }),
-    [handleDeviceEvent, handleError, updateConnectionState],
+    [],
   );
 
   const initializeAdapter = useCallback(
     (adapter: ReturnType<typeof createAdapter>): void => {
       transportCleanupRef.current?.();
       transportCleanupRef.current = null;
+      previousTransportAvailableRef.current = null;
 
       adapterRef.current = adapter;
 
@@ -84,32 +93,37 @@ export const useAdapterLifecycle = ({
         setIsTransportAvailable(true);
       }
     },
-    // Stable ref (adapterRef) — not needed as a dep
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- adapterRef is a stable ref
     [],
   );
 
   useEffect(() => {
-    if (adapterRef.current) {
-      adapterRef.current.disconnect().catch(() => {
+    const currentAdapter = adapterRef.current;
+    if (currentAdapter?.walletType === walletType) {
+      return;
+    }
+
+    if (currentAdapter) {
+      currentAdapter.disconnect().catch(() => {
         // Ignore disconnect errors during cleanup
       });
       adapterRef.current = null;
     }
-
-    previousTransportAvailableRef.current = null;
 
     const adapter = walletType
       ? createAdapterWithCallbacks(walletType)
       : createAdapter(null, {
           // eslint-disable-next-line no-empty-function
           onDisconnect: () => {},
-          onDeviceEvent: handleDeviceEvent,
+          onDeviceEvent: (payload) => handleDeviceEventRef.current(payload),
         });
 
     initializeAdapter(adapter);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- adapterRef is a stable ref
+  }, [walletType, createAdapterWithCallbacks, initializeAdapter]);
 
-    return () => {
+  useEffect(
+    () => () => {
       transportCleanupRef.current?.();
       transportCleanupRef.current = null;
       if (adapterRef.current) {
@@ -118,15 +132,10 @@ export const useAdapterLifecycle = ({
         });
         adapterRef.current = null;
       }
-    };
-    // Stable ref (adapterRef) — not needed as a dep
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    walletType,
-    handleDeviceEvent,
-    createAdapterWithCallbacks,
-    initializeAdapter,
-  ]);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- adapterRef is a stable ref
+    [],
+  );
 
   return {
     isTransportAvailable,
