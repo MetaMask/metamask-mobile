@@ -138,7 +138,7 @@ describe('useHomepageSparklines', () => {
     );
   });
 
-  it('keeps the last fallback data when a refresh returns no candles', async () => {
+  it('keeps the last fallback data and only replaces it on explicit refresh', async () => {
     let callback: ((candleData: CandleData) => void) | undefined;
     mockSubscribe.mockImplementation(
       (params: { callback: (candleData: CandleData) => void }) => {
@@ -175,6 +175,18 @@ describe('useHomepageSparklines', () => {
         interval: CandlePeriod.FifteenMinutes,
         candles: makeCandles(10, 200),
       });
+    });
+    expect(result.current.sparklines.BTC?.[0]).toBe(100);
+
+    mockPrewarmCandles.mockImplementationOnce(async () => {
+      callback?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.FifteenMinutes,
+        candles: makeCandles(10, 200),
+      });
+    });
+    await act(async () => {
+      await result.current.refresh();
     });
     expect(result.current.sparklines.BTC?.[0]).toBe(200);
     expect(mockSubscribe).toHaveBeenCalledTimes(1);

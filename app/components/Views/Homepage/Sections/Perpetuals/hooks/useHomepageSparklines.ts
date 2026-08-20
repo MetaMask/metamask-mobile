@@ -62,6 +62,7 @@ export function useHomepageSparklines(
     Record<string, number[]>
   >({});
   const fallbackDataRef = useRef<Record<string, number[]>>({});
+  const refreshingSymbolsRef = useRef(new Set<string>());
   const flushScheduledRef = useRef(false);
 
   const trendSparklines = useMemo(() => {
@@ -112,6 +113,12 @@ export function useHomepageSparklines(
           if (!candleData?.candles || candleData.candles.length === 0) {
             return;
           }
+          if (
+            fallbackDataRef.current[symbol] &&
+            !refreshingSymbolsRef.current.has(symbol)
+          ) {
+            return;
+          }
           if (candleData.candles.length < 2) return;
 
           const closes = extractCandleCloses(candleData);
@@ -139,10 +146,11 @@ export function useHomepageSparklines(
 
   const refresh = useCallback(async () => {
     if (!fallbackSymbolsKey) return;
-    await Promise.all(
-      fallbackSymbolsKey
-        .split(',')
-        .map((symbol) =>
+    const symbols = fallbackSymbolsKey.split(',');
+    symbols.forEach((symbol) => refreshingSymbolsRef.current.add(symbol));
+    try {
+      await Promise.all(
+        symbols.map((symbol) =>
           stream.candles.prewarmCandles(
             symbol,
             CandlePeriod.FifteenMinutes,
@@ -150,7 +158,10 @@ export function useHomepageSparklines(
             true,
           ),
         ),
-    );
+      );
+    } finally {
+      symbols.forEach((symbol) => refreshingSymbolsRef.current.delete(symbol));
+    }
   }, [fallbackSymbolsKey, stream]);
 
   return useMemo(() => ({ refresh, sparklines }), [refresh, sparklines]);

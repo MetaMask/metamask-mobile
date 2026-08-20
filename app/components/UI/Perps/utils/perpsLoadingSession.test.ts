@@ -11,6 +11,7 @@ import {
 import {
   cancelPerpsLoadingSession,
   finishPerpsLoadingSession,
+  createPerpsLoadingSessionIdentity,
   getActivePerpsLoadingSessionContext,
   preparePerpsLoadingSession,
   recordPerpsControllerConstructedAt,
@@ -19,6 +20,7 @@ import {
   resetPerpsLoadingSessionForTesting,
   setPerpsLoadingSessionLifecycle,
   startPerpsLoadingSession,
+  subscribeToPerpsLoadingSession,
 } from './perpsLoadingSession';
 
 jest.mock('uuid', () => ({
@@ -354,6 +356,7 @@ describe('perpsLoadingSession', () => {
     });
 
     it('buffers values observed before the parent session effect starts', () => {
+      preparePerpsLoadingSession();
       recordPerpsLoadingSessionValuesReady('markets', 'provider', 4);
       recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 0);
 
@@ -367,9 +370,8 @@ describe('perpsLoadingSession', () => {
     });
 
     it('preserves initial values when the Homepage prepares the pending session', () => {
-      recordPerpsLoadingSessionValuesReady('markets', 'provider', 4);
-
       preparePerpsLoadingSession();
+      recordPerpsLoadingSessionValuesReady('markets', 'provider', 4);
       startPerpsLoadingSession();
 
       expect(setMeasurement).toHaveBeenCalledWith(
@@ -390,6 +392,64 @@ describe('perpsLoadingSession', () => {
       jest.clearAllMocks();
 
       recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 1);
+      preparePerpsLoadingSession();
+      startPerpsLoadingSession();
+
+      expect(setMeasurement).not.toHaveBeenCalledWith(
+        expect.anything(),
+        'positions_live_ms',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('ignores stale user-stream generations while accepting global price ticks', () => {
+      const oldIdentity = createPerpsLoadingSessionIdentity({
+        address: '0xold',
+        hip3ConfigVersion: 1,
+        network: 'mainnet',
+        provider: 'hyperliquid',
+      });
+      const currentIdentity = createPerpsLoadingSessionIdentity({
+        address: '0xcurrent',
+        hip3ConfigVersion: 1,
+        network: 'mainnet',
+        provider: 'hyperliquid',
+      });
+      startPerpsLoadingSession({ identity: currentIdentity });
+
+      recordPerpsLoadingSessionValuesReady(
+        'positions',
+        'fresh_socket',
+        1,
+        {},
+        oldIdentity,
+      );
+      recordPerpsLoadingSessionValuesReady(
+        'prices',
+        'fresh_socket',
+        4,
+        {},
+        oldIdentity,
+      );
+
+      expect(setMeasurement).not.toHaveBeenCalledWith(
+        expect.anything(),
+        'positions_live_ms',
+        expect.anything(),
+        expect.anything(),
+      );
+      expect(setMeasurement).toHaveBeenCalledWith(
+        expect.anything(),
+        'prices_live_ms',
+        expect.anything(),
+        'millisecond',
+      );
+    });
+
+    it('does not buffer live ticks before the Homepage prepares a session', () => {
+      recordPerpsLoadingSessionValuesReady('positions', 'fresh_socket', 1);
+
       preparePerpsLoadingSession();
       startPerpsLoadingSession();
 
@@ -519,6 +579,24 @@ describe('perpsLoadingSession', () => {
       );
       expect(getActivePerpsLoadingSessionContext()).toBeNull();
       dateNow.mockRestore();
+      jest.useRealTimers();
+    });
+
+    it('notifies subscribers when a session times out', () => {
+      jest.useFakeTimers();
+      const listener = jest.fn();
+      const unsubscribe = subscribeToPerpsLoadingSession(listener);
+      startPerpsLoadingSession();
+
+      jest.advanceTimersByTime(90_000);
+
+      expect(listener).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          type: 'timed_out',
+          context: expect.objectContaining({ id: 'session-id-1' }),
+        }),
+      );
+      unsubscribe();
       jest.useRealTimers();
     });
 

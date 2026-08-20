@@ -10,10 +10,12 @@ import { selectPerpsSelectedAccountAddress } from '../../../../../UI/Perps/selec
 import { getPerpsLifecycleContext } from '../../../../../UI/Perps/utils/perpsLifecycleContext';
 import {
   cancelPerpsLoadingSession,
+  createPerpsLoadingSessionIdentity,
   getActivePerpsLoadingSessionContext,
   preparePerpsLoadingSession,
   resolvePerpsLoadingLifecycle,
   startPerpsLoadingSession,
+  subscribeToPerpsLoadingSession,
   type PerpsLoadingLifecycle,
   type PerpsLoadingSessionContext,
 } from '../../../../../UI/Perps/utils/perpsLoadingSession';
@@ -43,6 +45,18 @@ function identitiesMatch(
   );
 }
 
+function lifecycleForIdentityChange(
+  previous: PerpsContextIdentity,
+  current: PerpsContextIdentity,
+): PerpsLoadingLifecycle {
+  const accountOnlyChanged =
+    previous.address !== current.address &&
+    previous.network === current.network &&
+    previous.provider === current.provider &&
+    previous.hip3ConfigVersion === current.hip3ConfigVersion;
+  return accountOnlyChanged ? 'account_switch' : 'network_switch';
+}
+
 export function usePerpsHomepageLoadingSession(): PerpsHomepageLoadingSession {
   const address = useSelector(selectPerpsSelectedAccountAddress);
   const network = useSelector(selectPerpsNetwork);
@@ -62,15 +76,17 @@ export function usePerpsHomepageLoadingSession(): PerpsHomepageLoadingSession {
   }
 
   const previousIdentityRef = useRef<PerpsContextIdentity | null>(null);
+  const identityRef = useRef(identity);
+  identityRef.current = identity;
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
   const wasBackgroundedRef = useRef(AppState.currentState === 'background');
   const hasOwnedSessionRef = useRef(
     getActivePerpsLoadingSessionContext() !== null,
   );
-  const [sessionState, setSessionState] = useState({
-    ready: getActivePerpsLoadingSessionContext() !== null,
-    revision: 0,
-  });
+  const [sessionContext, setSessionContext] =
+    useState<PerpsLoadingSessionContext | null>(() =>
+      getActivePerpsLoadingSessionContext(),
+    );
 
   const beginSession = useCallback((lifecycle: PerpsLoadingLifecycle) => {
     preparePerpsLoadingSession();
@@ -78,22 +94,35 @@ export function usePerpsHomepageLoadingSession(): PerpsHomepageLoadingSession {
       lifecycle,
       restart: getActivePerpsLoadingSessionContext() !== null,
       surface: 'homepage',
+      identity: createPerpsLoadingSessionIdentity(identityRef.current),
     });
     hasOwnedSessionRef.current = true;
-    setSessionState((current) => ({
-      ready: true,
-      revision: current.revision + 1,
-    }));
   }, []);
+
+  useEffect(
+    () =>
+      subscribeToPerpsLoadingSession((update) => {
+        if (update.type === 'cancelled' || update.type === 'timed_out') {
+          hasOwnedSessionRef.current = false;
+          setSessionContext((current) =>
+            current?.id && current.id !== update.context.id ? current : null,
+          );
+          return;
+        }
+        hasOwnedSessionRef.current = true;
+        setSessionContext(update.context);
+      }),
+    [],
+  );
 
   useEffect(() => {
     const previousIdentity = previousIdentityRef.current;
-    previousIdentityRef.current = identity;
 
     if (appStateRef.current !== 'active') {
       return;
     }
     if (!previousIdentity) {
+      previousIdentityRef.current = identity;
       beginSession(proposedLifecycle);
       return;
     }
@@ -101,13 +130,9 @@ export function usePerpsHomepageLoadingSession(): PerpsHomepageLoadingSession {
       return;
     }
 
-    const accountOnlyChanged =
-      previousIdentity.address !== identity.address &&
-      previousIdentity.network === identity.network &&
-      previousIdentity.provider === identity.provider &&
-      previousIdentity.hip3ConfigVersion === identity.hip3ConfigVersion;
+    previousIdentityRef.current = identity;
     cancelPerpsLoadingSession('context_changed');
-    beginSession(accountOnlyChanged ? 'account_switch' : 'network_switch');
+    beginSession(lifecycleForIdentityChange(previousIdentity, identity));
   }, [beginSession, identity, proposedLifecycle]);
 
   useEffect(() => {
@@ -119,13 +144,23 @@ export function usePerpsHomepageLoadingSession(): PerpsHomepageLoadingSession {
         wasBackgroundedRef.current = true;
         cancelPerpsLoadingSession('app_backgrounded');
         hasOwnedSessionRef.current = false;
-        setSessionState((current) => ({
-          ready: false,
-          revision: current.revision + 1,
-        }));
         return;
       }
       if (nextState === 'active' && previousState !== 'active') {
+        const previousIdentity = previousIdentityRef.current;
+        const currentIdentity = identityRef.current;
+        if (
+          previousIdentity &&
+          !identitiesMatch(previousIdentity, currentIdentity)
+        ) {
+          previousIdentityRef.current = currentIdentity;
+          wasBackgroundedRef.current = false;
+          cancelPerpsLoadingSession('context_changed');
+          beginSession(
+            lifecycleForIdentityChange(previousIdentity, currentIdentity),
+          );
+          return;
+        }
         if (!wasBackgroundedRef.current && hasOwnedSessionRef.current) {
           return;
         }
@@ -139,11 +174,18 @@ export function usePerpsHomepageLoadingSession(): PerpsHomepageLoadingSession {
     return () => subscription.remove();
   }, [beginSession, proposedLifecycle]);
 
-  useEffect(() => () => cancelPerpsLoadingSession('surface_unmounted'), []);
+  useEffect(
+    () => () => {
+      cancelPerpsLoadingSession('surface_unmounted');
+      hasOwnedSessionRef.current = false;
+      previousIdentityRef.current = null;
+    },
+    [],
+  );
 
   return {
     proposedLifecycle,
-    sessionContext: getActivePerpsLoadingSessionContext(),
-    sessionReady: sessionState.ready,
+    sessionContext,
+    sessionReady: sessionContext !== null,
   };
 }

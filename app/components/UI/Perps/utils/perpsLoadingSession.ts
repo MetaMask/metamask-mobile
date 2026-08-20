@@ -53,6 +53,11 @@ interface StartPerpsLoadingSessionOptions {
   lifecycle?: PerpsLoadingLifecycle;
   surface?: PerpsLoadingSurface;
   restart?: boolean;
+  identity?: PerpsLoadingSessionIdentity;
+}
+export interface PerpsLoadingSessionIdentity {
+  marketKey: string;
+  userKey: string;
 }
 export interface PerpsLoadingSessionContext {
   id: string;
@@ -66,6 +71,39 @@ export type PerpsLoadingSessionCancellationReason =
   | 'context_changed'
   | 'session_restarted'
   | 'surface_unmounted';
+
+export type PerpsLoadingSessionUpdate =
+  | {
+      type: 'started' | 'milestone' | 'lifecycle';
+      context: PerpsLoadingSessionContext;
+    }
+  | { type: 'finished'; context: PerpsLoadingSessionContext }
+  | {
+      type: 'cancelled' | 'timed_out';
+      context: PerpsLoadingSessionContext;
+    };
+
+export function createPerpsLoadingSessionIdentity({
+  address,
+  hip3ConfigVersion,
+  network,
+  provider,
+}: {
+  address?: string;
+  hip3ConfigVersion: number;
+  network: 'mainnet' | 'testnet';
+  provider?: string;
+}): PerpsLoadingSessionIdentity {
+  const marketKey = JSON.stringify([
+    provider ?? '',
+    network,
+    hip3ConfigVersion,
+  ]);
+  return {
+    marketKey,
+    userKey: JSON.stringify([marketKey, address?.toLowerCase() ?? '']),
+  };
+}
 
 export function resolvePerpsLoadingLifecycle(
   context: 'cold_process' | 'warm' | 'background_resume',
@@ -101,11 +139,13 @@ type Milestone = keyof typeof MILESTONE_MEASUREMENTS;
 type CacheStream = 'positions' | 'orders' | 'account';
 
 let activeSessionId: string | null = null;
+let activeSessionIdentity: PerpsLoadingSessionIdentity | null = null;
 let activeLifecycle: PerpsLoadingLifecycle = 'cold_no_cache';
 let sessionStartedAtMs: number | null = null;
 let controllerConstructedAtMs: number | null = null;
 const recordedMilestones = new Set<Milestone>();
 const cacheObservedBySource = new Map<PerpsLoadingSource, Set<CacheStream>>();
+const sessionListeners = new Set<(update: PerpsLoadingSessionUpdate) => void>();
 let marketsReadySource: PerpsLoadingSource | null = null;
 let accountCacheSource: PerpsLoadingSource | null = null;
 let pendingFinishData: Record<string, string | number | boolean> | null = null;
@@ -115,11 +155,23 @@ let preSessionEvents: {
   source: PerpsLoadingSource;
   itemCount: number;
   detail: Record<string, number>;
+  identity?: PerpsLoadingSessionIdentity;
   recordedAtMs: number;
 }[] = [];
 let preSessionFinishData: Record<string, string | number | boolean> | null =
   null;
-let preSessionBufferArmed = true;
+let preSessionBufferArmed = false;
+
+function notifySessionListeners(update: PerpsLoadingSessionUpdate): void {
+  sessionListeners.forEach((listener) => listener(update));
+}
+
+export function subscribeToPerpsLoadingSession(
+  listener: (update: PerpsLoadingSessionUpdate) => void,
+): () => void {
+  sessionListeners.add(listener);
+  return () => sessionListeners.delete(listener);
+}
 
 export function preparePerpsLoadingSession(): void {
   if (activeSessionId) {
@@ -145,6 +197,7 @@ export function startPerpsLoadingSession(
 
   const sessionId = uuidv4();
   activeSessionId = sessionId;
+  activeSessionIdentity = options.identity ?? null;
   activeLifecycle = options.lifecycle ?? 'cold_no_cache';
   const now = performance.now();
   sessionStartedAtMs = now;
@@ -182,6 +235,11 @@ export function startPerpsLoadingSession(
       controllerConstructedAtMs,
       'millisecond',
     );
+  }
+
+  const startedContext = getActivePerpsLoadingSessionContext();
+  if (startedContext) {
+    notifySessionListeners({ type: 'started', context: startedContext });
   }
 
   sessionTimeout = setTimeout(() => {
@@ -235,24 +293,79 @@ export function recordPerpsLoadingSessionValuesReady(
   source: PerpsLoadingSource,
   itemCount: number,
   detail: Record<string, number> = {},
+  identity?: PerpsLoadingSessionIdentity,
 ): void {
-  const recordedAtMs = performance.now();
   if (!activeSessionId || sessionStartedAtMs === null) {
     if (!preSessionBufferArmed) {
       return;
     }
+    const recordedAtMs = performance.now();
     preSessionEvents.push({
       stream,
       source,
       itemCount,
       detail,
+      identity,
       recordedAtMs,
     });
     preSessionEvents = preSessionEvents.slice(-20);
     return;
   }
 
-  recordValuesReady({ stream, source, itemCount, detail, recordedAtMs });
+  if (
+    isRecordedMilestone(stream, source, itemCount) ||
+    !matchesActiveSessionIdentity(stream, identity)
+  ) {
+    return;
+  }
+
+  recordValuesReady({
+    stream,
+    source,
+    itemCount,
+    detail,
+    identity,
+    recordedAtMs: performance.now(),
+  });
+}
+
+function isRecordedMilestone(
+  stream: PerpsLoadingStream,
+  source: PerpsLoadingSource,
+  itemCount: number,
+): boolean {
+  if (stream === 'markets') {
+    return itemCount <= 0 || recordedMilestones.has('markets_ready');
+  }
+  if (source === 'fresh_socket') {
+    if ((stream === 'account' || stream === 'prices') && itemCount <= 0) {
+      return true;
+    }
+    const milestone = `${stream}_live` as Milestone;
+    return recordedMilestones.has(milestone);
+  }
+  if (recordedMilestones.has('account_cache_ready')) {
+    return true;
+  }
+  if (stream === 'account' && itemCount <= 0) {
+    return true;
+  }
+  return cacheObservedBySource.get(source)?.has(stream as CacheStream) ?? false;
+}
+
+function matchesActiveSessionIdentity(
+  stream: PerpsLoadingStream,
+  identity?: PerpsLoadingSessionIdentity,
+): boolean {
+  if (!activeSessionIdentity) {
+    return true;
+  }
+  if (!identity) {
+    return false;
+  }
+  return stream === 'markets' || stream === 'prices'
+    ? identity.marketKey === activeSessionIdentity.marketKey
+    : identity.userKey === activeSessionIdentity.userKey;
 }
 
 function recordValuesReady({
@@ -260,15 +373,21 @@ function recordValuesReady({
   source,
   itemCount,
   detail,
+  identity,
   recordedAtMs,
 }: {
   stream: PerpsLoadingStream;
   source: PerpsLoadingSource;
   itemCount: number;
   detail: Record<string, number>;
+  identity?: PerpsLoadingSessionIdentity;
   recordedAtMs: number;
 }): void {
-  if (!activeSessionId || sessionStartedAtMs === null) {
+  if (
+    !activeSessionId ||
+    sessionStartedAtMs === null ||
+    !matchesActiveSessionIdentity(stream, identity)
+  ) {
     return;
   }
 
@@ -321,6 +440,11 @@ function recordValuesReady({
       ...detail,
     })}`,
   );
+
+  const milestoneContext = getActivePerpsLoadingSessionContext();
+  if (milestoneContext) {
+    notifySessionListeners({ type: 'milestone', context: milestoneContext });
+  }
 
   tryFinishPendingSession();
 }
@@ -391,6 +515,10 @@ export function setPerpsLoadingSessionLifecycle(
     { name: TraceName.PerpsLoadingSession, id: activeSessionId },
     { lifecycle },
   );
+  const lifecycleContext = getActivePerpsLoadingSessionContext();
+  if (lifecycleContext) {
+    notifySessionListeners({ type: 'lifecycle', context: lifecycleContext });
+  }
 }
 
 export function getActivePerpsLoadingSessionTraceData():
@@ -406,6 +534,9 @@ function endActiveLoadingSession(
   if (!activeSessionId) {
     return;
   }
+  const endedContext = getActivePerpsLoadingSessionContext();
+  const updateType =
+    data.failure_stage === 'loading_session_timeout' ? 'timed_out' : 'finished';
   endTrace({
     name: TraceName.PerpsLoadingSession,
     id: activeSessionId,
@@ -417,6 +548,9 @@ function endActiveLoadingSession(
     },
   });
   resetActiveLoadingSession();
+  if (endedContext) {
+    notifySessionListeners({ type: updateType, context: endedContext });
+  }
 }
 
 function resetActiveLoadingSession(): void {
@@ -425,6 +559,7 @@ function resetActiveLoadingSession(): void {
     sessionTimeout = null;
   }
   activeSessionId = null;
+  activeSessionIdentity = null;
   activeLifecycle = 'cold_no_cache';
   sessionStartedAtMs = null;
   recordedMilestones.clear();
@@ -443,6 +578,7 @@ export function cancelPerpsLoadingSession(
   if (!activeSessionId) {
     return;
   }
+  const cancelledContext = getActivePerpsLoadingSessionContext();
   endTrace({
     name: TraceName.PerpsLoadingSession,
     id: activeSessionId,
@@ -452,6 +588,9 @@ export function cancelPerpsLoadingSession(
     },
   });
   resetActiveLoadingSession();
+  if (cancelledContext) {
+    notifySessionListeners({ type: 'cancelled', context: cancelledContext });
+  }
 }
 
 function requiresLiveAccount(
@@ -508,6 +647,7 @@ export function finishPerpsLoadingSession(
 
 export function resetPerpsLoadingSessionForTesting(): void {
   activeSessionId = null;
+  activeSessionIdentity = null;
   activeLifecycle = 'cold_no_cache';
   sessionStartedAtMs = null;
   controllerConstructedAtMs = null;
@@ -522,5 +662,5 @@ export function resetPerpsLoadingSessionForTesting(): void {
   }
   preSessionEvents = [];
   preSessionFinishData = null;
-  preSessionBufferArmed = true;
+  preSessionBufferArmed = false;
 }

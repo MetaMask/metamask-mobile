@@ -125,7 +125,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     ReturnType<typeof setTimeout>
   >();
   private connectRetryCounts = new Map<string, number>();
-  private readonly prewarmRequests = new Set<string>();
+  private readonly prewarmRequests = new Map<string, Promise<void>>();
   private prewarmGeneration = 0;
   private static readonly MAX_CONNECT_RETRIES = 50;
   // Upper bound on cached candles per cacheKey. Matches fetchHistoricalCandles
@@ -750,7 +750,15 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     if (!force && cachedData && CandleStreamChannel.isCacheFresh(cachedData)) {
       return;
     }
-    if (this.prewarmRequests.has(requestKey)) {
+    const pendingRequest = this.prewarmRequests.get(requestKey);
+    if (pendingRequest) {
+      await pendingRequest;
+      if (force && generation === this.prewarmGeneration) {
+        if (this.prewarmRequests.get(requestKey) === pendingRequest) {
+          this.prewarmRequests.delete(requestKey);
+        }
+        await this.prewarmCandles(symbol, interval, duration, true);
+      }
       return;
     }
 
@@ -758,43 +766,50 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     const limit = Math.min(Math.max(dynamicLimit, 50), 500);
     const endTime = Date.now();
 
-    this.prewarmRequests.add(requestKey);
-    try {
-      const candleData =
-        await Engine.context.PerpsController.fetchHistoricalCandles({
+    const request = (async () => {
+      try {
+        const candleData =
+          await Engine.context.PerpsController.fetchHistoricalCandles({
+            symbol,
+            interval,
+            limit,
+            endTime,
+          });
+
+        if (generation !== this.prewarmGeneration) {
+          return;
+        }
+
+        if (!candleData?.candles.length) {
+          return;
+        }
+
+        const warmedData = CandleStreamChannel.mergeCandleData(
+          cachedData,
+          candleData,
+        );
+
+        this.cache.set(cacheKey, warmedData);
+        this.notifySubscribers(cacheKey, warmedData);
+      } catch (error) {
+        if (isAbortError(error)) {
+          throw error;
+        }
+
+        DevLogger.log('CandleStreamChannel: Failed to prewarm candles', {
           symbol,
           interval,
-          limit,
-          endTime,
+          error: error instanceof Error ? error.message : String(error),
         });
-
-      if (generation !== this.prewarmGeneration) {
-        return;
       }
-
-      if (!candleData?.candles.length) {
-        return;
-      }
-
-      const warmedData = CandleStreamChannel.mergeCandleData(
-        cachedData,
-        candleData,
-      );
-
-      this.cache.set(cacheKey, warmedData);
-      this.notifySubscribers(cacheKey, warmedData);
-    } catch (error) {
-      if (isAbortError(error)) {
-        throw error;
-      }
-
-      DevLogger.log('CandleStreamChannel: Failed to prewarm candles', {
-        symbol,
-        interval,
-        error: error instanceof Error ? error.message : String(error),
-      });
+    })();
+    this.prewarmRequests.set(requestKey, request);
+    try {
+      await request;
     } finally {
-      this.prewarmRequests.delete(requestKey);
+      if (this.prewarmRequests.get(requestKey) === request) {
+        this.prewarmRequests.delete(requestKey);
+      }
     }
   }
 

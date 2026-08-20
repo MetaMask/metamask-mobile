@@ -15,6 +15,13 @@ import {
 } from '../../../../../UI/Perps/utils/perpsLoadingSession';
 import { usePerpsHomepageLoadingSession } from './usePerpsHomepageLoadingSession';
 
+let mockSessionListener:
+  | ((update: {
+      type: 'started' | 'finished' | 'cancelled' | 'timed_out';
+      context: PerpsLoadingSessionContext;
+    }) => void)
+  | undefined;
+
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
 jest.mock('../../../../../UI/Perps/selectors/featureFlags', () => ({
   selectHip3ConfigVersion: jest.fn(),
@@ -31,10 +38,20 @@ jest.mock('../../../../../UI/Perps/utils/perpsLifecycleContext', () => ({
 }));
 jest.mock('../../../../../UI/Perps/utils/perpsLoadingSession', () => ({
   cancelPerpsLoadingSession: jest.fn(),
+  createPerpsLoadingSessionIdentity: jest.fn(
+    ({ address, hip3ConfigVersion, network, provider }) => ({
+      marketKey: `${provider}|${network}|${hip3ConfigVersion}`,
+      userKey: `${provider}|${network}|${hip3ConfigVersion}|${address ?? ''}`,
+    }),
+  ),
   getActivePerpsLoadingSessionContext: jest.fn(),
   preparePerpsLoadingSession: jest.fn(),
   resolvePerpsLoadingLifecycle: jest.fn(() => 'cold_no_cache'),
   startPerpsLoadingSession: jest.fn(),
+  subscribeToPerpsLoadingSession: jest.fn((listener) => {
+    mockSessionListener = listener;
+    return jest.fn();
+  }),
 }));
 
 describe('usePerpsHomepageLoadingSession', () => {
@@ -53,6 +70,7 @@ describe('usePerpsHomepageLoadingSession', () => {
     hip3ConfigVersion = 1;
     activeContext = null;
     appStateListener = undefined;
+    mockSessionListener = undefined;
     Object.defineProperty(AppState, 'currentState', {
       configurable: true,
       value: 'active',
@@ -80,10 +98,18 @@ describe('usePerpsHomepageLoadingSession', () => {
         accountSource: 'unknown',
         lifecycle: options?.lifecycle ?? 'cold_no_cache',
       };
+      mockSessionListener?.({ type: 'started', context: activeContext });
       return activeContext.id;
     });
     jest.mocked(cancelPerpsLoadingSession).mockImplementation(() => {
+      const cancelledContext = activeContext;
       activeContext = null;
+      if (cancelledContext) {
+        mockSessionListener?.({
+          type: 'cancelled',
+          context: cancelledContext,
+        });
+      }
     });
   });
 
@@ -98,6 +124,7 @@ describe('usePerpsHomepageLoadingSession', () => {
       lifecycle: 'cold_no_cache',
       restart: false,
       surface: 'homepage',
+      identity: expect.any(Object),
     });
     expect(result.current.sessionReady).toBe(true);
 
@@ -117,6 +144,7 @@ describe('usePerpsHomepageLoadingSession', () => {
       lifecycle: 'background_short',
       restart: false,
       surface: 'homepage',
+      identity: expect.any(Object),
     });
   });
 
@@ -146,6 +174,7 @@ describe('usePerpsHomepageLoadingSession', () => {
       lifecycle: 'cold_no_cache',
       restart: false,
       surface: 'homepage',
+      identity: expect.any(Object),
     });
   });
 
@@ -159,6 +188,7 @@ describe('usePerpsHomepageLoadingSession', () => {
       lifecycle: 'account_switch',
       restart: false,
       surface: 'homepage',
+      identity: expect.any(Object),
     });
 
     provider = 'myx';
@@ -167,6 +197,56 @@ describe('usePerpsHomepageLoadingSession', () => {
       lifecycle: 'network_switch',
       restart: false,
       surface: 'homepage',
+      identity: expect.any(Object),
     });
+  });
+
+  it('applies an identity change that lands while inactive', () => {
+    const { rerender } = renderHook(() => usePerpsHomepageLoadingSession());
+    jest.mocked(startPerpsLoadingSession).mockClear();
+
+    act(() => appStateListener?.('inactive'));
+    address = '0xdef';
+    rerender(undefined);
+    act(() => appStateListener?.('active'));
+
+    expect(startPerpsLoadingSession).toHaveBeenCalledWith(
+      expect.objectContaining({ lifecycle: 'account_switch' }),
+    );
+  });
+
+  it('clears a timed-out session without waiting for another render', () => {
+    const { result } = renderHook(() => usePerpsHomepageLoadingSession());
+    const timedOutContext = activeContext;
+
+    act(() => {
+      if (timedOutContext) {
+        mockSessionListener?.({
+          type: 'timed_out',
+          context: timedOutContext,
+        });
+      }
+    });
+
+    expect(result.current.sessionReady).toBe(false);
+    expect(result.current.sessionContext).toBeNull();
+  });
+
+  it('retains the completed generation for Homepage TTC and DFD correlation', () => {
+    const { result } = renderHook(() => usePerpsHomepageLoadingSession());
+    const finishedContext = activeContext;
+
+    act(() => {
+      if (finishedContext) {
+        activeContext = null;
+        mockSessionListener?.({
+          type: 'finished',
+          context: finishedContext,
+        });
+      }
+    });
+
+    expect(result.current.sessionReady).toBe(true);
+    expect(result.current.sessionContext?.id).toBe('session-id');
   });
 });
