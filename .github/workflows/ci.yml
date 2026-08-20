@@ -438,9 +438,75 @@ jobs:
         run: yarn setup:github-ci --no-build-android
 
       - name: Generate iOS bundle
-        run: yarn gen-bundle:ios
+        run: |
+          # INFRA-3891 (TEMPORARY INSTRUMENTATION, remove once the fix is chosen).
+          # This step is intermittently SIGKILLed (exit 137) on the 8x16 Linux profile
+          # and the logs carry no memory data, so sample every 5s into a file that
+          # survives the kill. Same 'resmon' idiom as eas-update-platform.yml.
+          MEM_LOG=/tmp/infra-3891-mem.log
+          {
+            echo "nproc=$(nproc)"
+            echo "availableParallelism=$(node -p 'require("os").availableParallelism()')"
+            echo "metroMaxWorkers=$(node -p 'const os = require("os"); Math.ceil(Math.max(2, os.availableParallelism() * Math.min(1, os.totalmem() / (64 * 1024 * 1024 * 1024))))')"
+            echo "NODE_OPTIONS(step)=${NODE_OPTIONS:-<unset>}"
+            grep -E '^(MemTotal|MemAvailable|SwapTotal)' /proc/meminfo
+            SWAP_DEVS="$(swapon --show --noheadings || true)"
+            echo "swapon=${SWAP_DEVS:-none}"
+            for CG in memory.max memory.high memory.peak; do
+              if [ -r "/sys/fs/cgroup/${CG}" ]; then
+                echo "cgroup ${CG}=$(cat "/sys/fs/cgroup/${CG}")"
+              fi
+            done
+          } 2>&1 | tee -a "${MEM_LOG}"
+
+          monitor_resources() {
+            while true; do
+              MEM="$(free -m | awk '/^Mem:/ { printf "mem=%s/%sMB", $3, $2 } /^Swap:/ { printf " swap=%s/%sMB", $3, $2 }')"
+              LOAD="$(cut -d' ' -f1-3 /proc/loadavg)"
+              TOP="$(ps -eo rss=,comm= | sort -rn | head -3 | awk '{ printf "%s=%dMB ", $2, $1 / 1024 }')"
+              CGCUR="-"
+              if [ -r /sys/fs/cgroup/memory.current ]; then
+                CGCUR="$(( $(cat /sys/fs/cgroup/memory.current) / 1048576 ))MB"
+              fi
+              echo "[resmon $(date -u +%H:%M:%S)] ${MEM} cgroup=${CGCUR} load=${LOAD} top=[${TOP}]" | tee -a "${MEM_LOG}"
+              sleep 5
+            done
+          }
+          monitor_resources &
+          MONITOR_PID=$!
+          trap 'kill "${MONITOR_PID}" 2>/dev/null || true' EXIT
+
+          yarn gen-bundle:ios
         env:
           NODE_OPTIONS: --max_old_space_size=12288
+
+      # INFRA-3891 (TEMPORARY INSTRUMENTATION, remove once the fix is chosen).
+      # Runs after a SIGKILL too, so the peak that preceded the kill is reported.
+      - name: Bundle step memory report
+        if: ${{ always() }}
+        run: |
+          MEM_LOG=/tmp/infra-3891-mem.log
+          if [ ! -s "${MEM_LOG}" ]; then
+            echo "No memory samples captured."
+            exit 0
+          fi
+          PEAK="$(grep '\[resmon' "${MEM_LOG}" | awk -F'mem=' '{ split($2, a, "/"); if (a[1] + 0 > max) { max = a[1] + 0; line = $0 } } END { print line }')"
+          {
+            echo "### INFRA-3891: bundle step memory profile"
+            echo
+            echo '```'
+            grep -v '\[resmon' "${MEM_LOG}"
+            echo "samples=$(grep -c '\[resmon' "${MEM_LOG}")"
+            echo "peak: ${PEAK}"
+            for CG in memory.peak memory.events; do
+              if [ -r "/sys/fs/cgroup/${CG}" ]; then
+                echo "cgroup ${CG}: $(tr '\n' ' ' < "/sys/fs/cgroup/${CG}")"
+              fi
+            done
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"
+          echo "--- last 30 samples ---"
+          tail -30 "${MEM_LOG}"
 
       - name: Check bundle size
         if: github.event_name == 'pull_request'
