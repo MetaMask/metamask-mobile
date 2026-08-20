@@ -234,10 +234,10 @@ export const PredictFeedScreen = () => {
 
   const handleOpenEvent = useCallback(
     (event: PredictEvent) =>
-      navigation.navigate(PredictNextRoutes.EVENT_DETAIL, {
+      navigation.navigate(PredictNextRoutes.EVENT, {
         venueId: event.venueId,
         eventId: event.id,
-        title: event.title,
+        titleSnapshot: event.title,
       }),
     [navigation],
   );
