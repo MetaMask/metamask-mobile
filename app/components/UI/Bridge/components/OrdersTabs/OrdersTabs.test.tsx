@@ -83,7 +83,7 @@ describe('OrdersTabs', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-      params: { enabledChainIds: undefined },
+      params: { enabledChainIds: undefined, filterTarget: 'orders' },
     });
   });
 
@@ -100,7 +100,7 @@ describe('OrdersTabs', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-      params: { enabledChainIds },
+      params: { enabledChainIds, filterTarget: 'orders' },
     });
   });
 
@@ -150,7 +150,7 @@ describe('OrdersTabs', () => {
         ...initialState,
         bridge: {
           ...initialState.bridge,
-          tokenSelectorNetworkFilter: formatChainIdToCaip('0xa'),
+          ordersNetworkFilter: formatChainIdToCaip('0xa'),
         },
       },
     );
@@ -169,7 +169,7 @@ describe('OrdersTabs', () => {
         ...initialState,
         bridge: {
           ...initialState.bridge,
-          tokenSelectorNetworkFilter: formatChainIdToCaip('0xa'),
+          ordersNetworkFilter: formatChainIdToCaip('0xa'),
         },
       },
     );

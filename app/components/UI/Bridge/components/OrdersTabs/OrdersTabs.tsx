@@ -31,7 +31,7 @@ import type { RootState } from '../../../../../reducers';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import {
   selectAllowedChainRanking,
-  selectTokenSelectorNetworkFilter,
+  selectOrdersNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import { OrdersEmptyState } from './OrdersEmptyState';
 import { OrdersTabsSelectorsIDs } from './OrdersTabs.testIds';
@@ -63,7 +63,7 @@ function OrdersNetworkFilter({
   enabledChainIds?: CaipChainId[];
 }) {
   const navigation = useNavigation<AppNavigationProp>();
-  const selectedChainId = useSelector(selectTokenSelectorNetworkFilter);
+  const selectedChainId = useSelector(selectOrdersNetworkFilter);
   const chainRanking = useSelector((state: RootState) =>
     selectAllowedChainRanking(state, enabledChainIds),
   );
@@ -76,7 +76,7 @@ function OrdersNetworkFilter({
   const handlePress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-      params: { enabledChainIds },
+      params: { enabledChainIds, filterTarget: 'orders' },
     });
   }, [enabledChainIds, navigation]);
 
@@ -128,7 +128,7 @@ function OrdersTabPanel<T>({
   emptyDescription: string;
 }) {
   const tw = useTailwind();
-  const selectedChainId = useSelector(selectTokenSelectorNetworkFilter);
+  const selectedChainId = useSelector(selectOrdersNetworkFilter);
 
   const filteredItems = useMemo(
     () =>
