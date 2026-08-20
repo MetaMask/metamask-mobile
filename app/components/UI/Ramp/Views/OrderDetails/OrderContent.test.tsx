@@ -28,6 +28,10 @@ jest.mock('../../../../../util/networks', () => ({
   })),
 }));
 
+const mockGetNetworkImageSource = jest.requireMock(
+  '../../../../../util/networks',
+).getNetworkImageSource as jest.Mock;
+
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
 }));
@@ -353,6 +357,99 @@ describe('OrderContent', () => {
       screen.getByTestId('ramps-order-details-token-amount'),
     ).toHaveTextContent('... ETH');
     expect(screen.getAllByText('...')).toHaveLength(2);
+  });
+
+  describe('token icon and network badge', () => {
+    // The V2 orders API is inconsistent about `network`: the declared type is
+    // `{ chainId, name }` but providers such as Sardine return a bare decimal
+    // string. The provider `iconUrl` is equally unreliable, pointing at a
+    // per-environment host that only resolves in production.
+    const usdcAssetId =
+      'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+    const usdcCdnUrl =
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png';
+
+    function makeUsdcOrder(overrides: Partial<RampsOrder>): RampsOrder {
+      return {
+        ...mockOrder,
+        cryptoCurrency: {
+          symbol: 'USDC',
+          decimals: 6,
+          assetId: usdcAssetId,
+          chainId: 'eip155:1',
+          iconUrl:
+            'https://dev-static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b8.png',
+        },
+        ...overrides,
+      };
+    }
+
+    it('resolves the network badge when network is a bare decimal string', () => {
+      renderOrder(
+        makeUsdcOrder({ network: '1' as unknown as RampsOrder['network'] }),
+      );
+
+      expect(mockGetNetworkImageSource).toHaveBeenCalledWith({
+        chainId: 'eip155:1',
+      });
+    });
+
+    it('falls back to cryptoCurrency.chainId when network is missing', () => {
+      renderOrder(
+        makeUsdcOrder({
+          network: undefined as unknown as RampsOrder['network'],
+        }),
+      );
+
+      expect(mockGetNetworkImageSource).toHaveBeenCalledWith({
+        chainId: 'eip155:1',
+      });
+    });
+
+    it('prefers the bundled icon over the provider iconUrl for a known symbol', () => {
+      renderOrder(
+        makeUsdcOrder({ network: '1' as unknown as RampsOrder['network'] }),
+      );
+
+      // `imageIcons` carries a bundled USDC asset, so no remote url is used.
+      expect(JSON.stringify(screen.toJSON())).not.toContain(
+        'dev-static.cx.metamask.io',
+      );
+    });
+
+    it('renders the token icon from the asset id CDN for an unbundled symbol', () => {
+      renderOrder(
+        makeUsdcOrder({
+          network: '1' as unknown as RampsOrder['network'],
+          cryptoCurrency: {
+            symbol: 'CROSSMINTTEST',
+            decimals: 6,
+            assetId: usdcAssetId,
+            iconUrl:
+              'https://dev-static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b8.png',
+          },
+        }),
+      );
+
+      const tree = JSON.stringify(screen.toJSON());
+      expect(tree).toContain(usdcCdnUrl);
+      expect(tree).not.toContain('dev-static.cx.metamask.io');
+    });
+
+    it('falls back to the provider iconUrl when the order has no asset id', () => {
+      renderOrder(
+        makeUsdcOrder({
+          cryptoCurrency: {
+            symbol: 'XYZ',
+            iconUrl: 'https://provider.example/xyz.png',
+          },
+        }),
+      );
+
+      expect(JSON.stringify(screen.toJSON())).toContain(
+        'https://provider.example/xyz.png',
+      );
+    });
   });
 
   it('does not render info row when statusDescription is absent', () => {
