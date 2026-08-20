@@ -833,5 +833,6 @@ export const initialState = {
     isSelectingToken: false,
     tokenSelectorNetworkFilter: undefined,
     recurring: initialRecurringState,
+    ordersNetworkFilter: undefined,
   },
 };

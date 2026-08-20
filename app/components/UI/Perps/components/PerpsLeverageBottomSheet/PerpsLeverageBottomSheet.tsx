@@ -65,6 +65,7 @@ interface PerpsLeverageBottomSheetProps {
   limitPrice?: string;
   triggerPrice?: string;
   orderType?: OrderType;
+  enableConfirmHaptics?: boolean;
 }
 
 interface LeverageSliderEntry {
@@ -96,6 +97,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   limitPrice,
   triggerPrice,
   orderType = 'market',
+  enableConfirmHaptics = false,
 }) => {
   const styles = createStyles();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -408,9 +410,13 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       `Confirming leverage: ${tempLeverage}, method: ${inputMethod}`,
     );
 
+    if (enableConfirmHaptics) {
+      playSelection().catch(() => undefined);
+    }
     onConfirm(tempLeverage, inputMethod);
     onClose();
   }, [
+    enableConfirmHaptics,
     handleSliderDragCancel,
     inputMethod,
     isDragging,

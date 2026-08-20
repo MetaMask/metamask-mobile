@@ -8,7 +8,7 @@
  *   createMockHyperLiquidProvider,
  *   createMockEngineContext,
  *   setupMockDiscountSuccess
- * } from '../__mocks__';
+ * } from '../__mocks__/perpsMocks';
  * ```
  */
 

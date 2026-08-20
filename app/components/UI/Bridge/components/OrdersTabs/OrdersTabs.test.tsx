@@ -69,8 +69,8 @@ describe('OrdersTabs', () => {
     expect(getByText(strings('bridge.orders.empty.history'))).toBeOnTheScreen();
     expect(queryByText(strings('bridge.orders.empty.open_orders'))).toBeNull();
     expect(
-      queryByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
-    ).toBeNull();
+      getByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
+    ).toHaveTextContent(strings('bridge.all_networks'));
   });
 
   it('opens the swaps network picker when the All networks filter is pressed', () => {
@@ -83,7 +83,7 @@ describe('OrdersTabs', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-      params: { enabledChainIds: undefined },
+      params: { enabledChainIds: undefined, filterTarget: 'orders' },
     });
   });
 
@@ -100,7 +100,7 @@ describe('OrdersTabs', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-      params: { enabledChainIds },
+      params: { enabledChainIds, filterTarget: 'orders' },
     });
   });
 
@@ -150,7 +150,7 @@ describe('OrdersTabs', () => {
         ...initialState,
         bridge: {
           ...initialState.bridge,
-          tokenSelectorNetworkFilter: formatChainIdToCaip('0xa'),
+          ordersNetworkFilter: formatChainIdToCaip('0xa'),
         },
       },
     );
@@ -169,7 +169,7 @@ describe('OrdersTabs', () => {
         ...initialState,
         bridge: {
           ...initialState.bridge,
-          tokenSelectorNetworkFilter: formatChainIdToCaip('0xa'),
+          ordersNetworkFilter: formatChainIdToCaip('0xa'),
         },
       },
     );

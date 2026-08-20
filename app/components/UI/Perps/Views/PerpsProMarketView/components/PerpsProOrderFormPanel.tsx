@@ -246,6 +246,7 @@ const PerpsProOrderFormPanel = ({
             limitPrice={limitPrice}
             triggerPrice={triggerPrice}
             orderType={orderType}
+            enableConfirmHaptics
           />
         </PerpsProModalPortal>
       )}

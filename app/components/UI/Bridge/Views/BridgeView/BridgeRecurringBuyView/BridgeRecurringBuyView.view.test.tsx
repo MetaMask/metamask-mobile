@@ -546,7 +546,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     });
   });
 
-  it('shows history empty copy after pressing the History tab', async () => {
+  it('shows a filled history row after pressing the History tab', async () => {
     const renderResult = renderBridgeView();
 
     await openRecurringTab(renderResult);
@@ -555,19 +555,16 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       source: 'ETH',
       dest: 'USDC',
     });
+    const scheduleSummary = strings('bridge.recurring.schedule_summary', {
+      interval: '1 day',
+      count: '5',
+    });
 
     expect(renderResult.getAllByText(pair)).toHaveLength(2);
     expect(
       renderResult.getByText(strings('bridge.all_networks')),
     ).toBeOnTheScreen();
-    expect(
-      renderResult.getByText(
-        strings('bridge.recurring.schedule_summary', {
-          interval: '1 day',
-          count: '5',
-        }),
-      ),
-    ).toBeOnTheScreen();
+    expect(renderResult.getByText(scheduleSummary)).toBeOnTheScreen();
     expect(
       renderResult.getByText(strings('bridge.recurring.filled')),
     ).toBeOnTheScreen();
@@ -577,11 +574,21 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     );
 
     await waitFor(() => {
-      expect(
-        renderResult.getByText(strings('bridge.orders.empty.history')),
-      ).toBeOnTheScreen();
+      expect(renderResult.queryByText(scheduleSummary)).toBeNull();
     });
-    expect(renderResult.queryAllByText(pair)).toHaveLength(0);
-    expect(renderResult.queryByText(strings('bridge.all_networks'))).toBeNull();
+    expect(
+      renderResult.queryByText(strings('bridge.orders.empty.history')),
+    ).toBeNull();
+    expect(
+      renderResult.getByText(strings('bridge.all_networks')),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.getAllByText(strings('bridge.tabs.recurring')).length,
+    ).toBeGreaterThan(0);
+    expect(
+      renderResult.getByText(strings('bridge.recurring.filled')),
+    ).toBeOnTheScreen();
+    expect(renderResult.getByText('+0.325 USDC')).toBeOnTheScreen();
+    expect(renderResult.getAllByText(pair)).toHaveLength(1);
   });
 });
