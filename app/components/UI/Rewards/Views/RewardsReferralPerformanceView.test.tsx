@@ -60,7 +60,7 @@ describe('RewardsReferralPerformanceView', () => {
   it('navigates back from the header back button', () => {
     const { getByTestId } = render(<RewardsReferralPerformanceView />);
 
-    fireEvent.press(getByTestId('performance-header-back-button'));
+    fireEvent.press(getByTestId('header-back-button'));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
