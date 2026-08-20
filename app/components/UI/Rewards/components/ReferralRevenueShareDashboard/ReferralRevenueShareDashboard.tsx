@@ -1,4 +1,9 @@
-import React, { useContext, useRef, useState } from 'react';
+import React, {
+  useContext,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import {
   Image,
   Linking,
@@ -10,6 +15,7 @@ import {
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import FileShare from 'react-native-share';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 import {
   Box,
@@ -27,21 +33,33 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  HeaderStandard,
   Icon,
   IconColor,
   IconName,
   IconSize,
+  ListItemSelect,
   SectionHeader,
+  Switch,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ClipboardManager from '../../../../../core/ClipboardManager';
+import { useTheme } from '../../../../../util/theme';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
+import { IconName as IconNameLegacy } from '../../../../../component-library/components/Icons/Icon';
+import {
+  TextColor as TextColorLegacy,
+  TextVariant as TextVariantLegacy,
+} from '../../../../../component-library/components/Texts/Text';
+import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { strings } from '../../../../../../locales/i18n';
 import referralShareHero from '../../../../../images/rewards/referral-share-hero.png';
 import MoneyEarnings from '../../../Money/components/MoneyEarnings';
@@ -456,6 +474,41 @@ const CLAIM_STEP_TITLE: Record<ClaimStep, string> = {
   submitted: 'Claim submitted',
 };
 
+const CLAIM_REVIEW_DETAIL_ROWS: {
+  label: string;
+  value: string;
+  tooltip?: { title: string; content: string };
+}[] = [
+  { label: 'Destination', value: 'Money Account' },
+  { label: 'Gross', value: '$2,410.00' },
+  {
+    label: 'Withholding',
+    value: '$0.00',
+    tooltip: {
+      title: 'Withholding',
+      content:
+        'Amounts held back from this payout before it is sent, such as tax withholding.',
+    },
+  },
+  {
+    label: 'Fee',
+    value: '$0.00',
+    tooltip: {
+      title: 'Fee',
+      content: 'A processing fee deducted from this claim.',
+    },
+  },
+  { label: 'Network', value: 'Ethereum' },
+  {
+    label: 'Expected delivery',
+    value: '1–2 business days',
+    tooltip: {
+      title: 'Expected delivery',
+      content: 'Typical time for mUSD to arrive after you confirm this claim.',
+    },
+  },
+];
+
 const ClaimEarningsSheet = ({
   visible,
   onClose,
@@ -604,19 +657,33 @@ const ClaimEarningsSheet = ({
                     amount="$2,410.00"
                     caption="Paid in mUSD"
                   />
-                  <Box>
-                    <PayoutDetailRow
-                      label="Destination"
-                      value="Money Account"
-                    />
-                    <PayoutDetailRow label="Gross" value="$2,410.00" />
-                    <PayoutDetailRow label="Withholding" value="$0.00" />
-                    <PayoutDetailRow label="Fee" value="$0.00" />
-                    <PayoutDetailRow label="Network" value="Ethereum" />
-                    <PayoutDetailRow
-                      label="Expected delivery"
-                      value="1–2 business days"
-                    />
+                  <Box gap={3}>
+                    {CLAIM_REVIEW_DETAIL_ROWS.map((row) => (
+                      <KeyValueRow
+                        key={row.label}
+                        field={{
+                          label: {
+                            text: row.label,
+                            variant: TextVariantLegacy.BodyMD,
+                            color: TextColorLegacy.Alternative,
+                          },
+                          tooltip: row.tooltip
+                            ? {
+                                title: row.tooltip.title,
+                                content: row.tooltip.content,
+                                iconName: IconNameLegacy.Info,
+                              }
+                            : undefined,
+                        }}
+                        value={{
+                          label: {
+                            text: row.value,
+                            variant: TextVariantLegacy.BodyMD,
+                            color: TextColorLegacy.Default,
+                          },
+                        }}
+                      />
+                    ))}
                   </Box>
                 </>
               ) : null}
@@ -629,6 +696,173 @@ const ClaimEarningsSheet = ({
           </Animated.View>
         </Box>
       </BottomSheet>
+    </Modal>
+  );
+};
+
+type PrototypeScenarioId = 'onboarded-kol' | 'new-user-invite';
+
+interface PrototypeScenario {
+  id: PrototypeScenarioId;
+  title: string;
+  description?: string;
+  isAvailable: boolean;
+}
+
+const PROTOTYPE_SCENARIOS: PrototypeScenario[] = [
+  {
+    id: 'onboarded-kol',
+    title: 'Onboarded KOL',
+    description:
+      'An approved creator sharing their referral code and tracking earnings.',
+    isAvailable: true,
+  },
+  {
+    id: 'new-user-invite',
+    title: 'New user receiving invite',
+    description: 'A brand-new user opening an invite from a KOL.',
+    isAvailable: true,
+  },
+];
+
+// Shared across every mounted ReferralRevenueShareDashboard instance (overview
+// and performance screens are separate navigator routes/mounts), so the
+// prototype toggle keeps its value as you navigate between them.
+type ClaimingToggleListener = () => void;
+let isClaimingEnabledStore = false;
+const claimingToggleListeners = new Set<ClaimingToggleListener>();
+
+const setClaimingEnabled = (value: boolean) => {
+  isClaimingEnabledStore = value;
+  claimingToggleListeners.forEach((listener) => listener());
+};
+
+const subscribeToClaimingEnabled = (listener: ClaimingToggleListener) => {
+  claimingToggleListeners.add(listener);
+  return () => claimingToggleListeners.delete(listener);
+};
+
+const useClaimingEnabled = () =>
+  useSyncExternalStore(
+    subscribeToClaimingEnabled,
+    () => isClaimingEnabledStore,
+  );
+
+const PrototypeScenariosSheet = ({
+  visible,
+  selectedScenarioId,
+  onSelectScenario,
+  onClose,
+}: {
+  visible: boolean;
+  selectedScenarioId: PrototypeScenarioId;
+  onSelectScenario: (id: PrototypeScenarioId) => void;
+  onClose: () => void;
+}) => {
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const { colors, brandColors } = useTheme();
+  const isClaimingEnabled = useClaimingEnabled();
+
+  if (!visible) {
+    return null;
+  }
+
+  return (
+    <Modal visible transparent animationType="none">
+      <BottomSheet ref={bottomSheetRef} onClose={onClose}>
+        <BottomSheetHeader
+          onClose={() => bottomSheetRef.current?.onCloseBottomSheet()}
+        >
+          Prototype Scenarios
+        </BottomSheetHeader>
+        <Box twClassName="px-4 pb-6 gap-1">
+          {PROTOTYPE_SCENARIOS.map((scenario) => (
+            <React.Fragment key={scenario.id}>
+              <ListItemSelect
+                title={scenario.title}
+                description={scenario.description}
+                titleEndAccessory={
+                  !scenario.isAvailable ? (
+                    <Tag severity={TagSeverity.Neutral}>Coming soon</Tag>
+                  ) : undefined
+                }
+                isSelected={scenario.id === selectedScenarioId}
+                showSelectedIcon
+                disabled={!scenario.isAvailable}
+                onPress={() =>
+                  scenario.isAvailable && onSelectScenario(scenario.id)
+                }
+                testID={`prototype-scenario-${scenario.id}`}
+                accessibilityRole="radio"
+                accessibilityState={{
+                  selected: scenario.id === selectedScenarioId,
+                  disabled: !scenario.isAvailable,
+                }}
+              />
+              {scenario.id === 'onboarded-kol' ? (
+                <Box twClassName="pl-4 pr-2 pb-3">
+                  <Switch
+                    isOn={isClaimingEnabled}
+                    onValueChange={setClaimingEnabled}
+                    label="Enable Claiming"
+                    trackColor={{
+                      true: colors.primary.default,
+                      false: colors.border.muted,
+                    }}
+                    thumbColor={brandColors.white}
+                    ios_backgroundColor={colors.border.muted}
+                    testID="enable-claiming-toggle"
+                  />
+                </Box>
+              ) : null}
+            </React.Fragment>
+          ))}
+        </Box>
+      </BottomSheet>
+    </Modal>
+  );
+};
+
+const NewUserInviteScreen = ({
+  visible,
+  onClose,
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) => {
+  const tw = useTailwind();
+
+  if (!visible) {
+    return null;
+  }
+
+  return (
+    <Modal visible animationType="slide" onRequestClose={onClose}>
+      <SafeAreaView
+        style={tw.style('flex-1 bg-default')}
+        edges={{ bottom: 'additive' }}
+      >
+        <HeaderStandard
+          onClose={onClose}
+          includesTopInset
+          twClassName="bg-default"
+          closeButtonProps={{ testID: 'close-new-user-invite-button' }}
+        />
+        <Box twClassName="flex-1 px-4">
+          {/* Placeholder — invite content to be mocked next */}
+        </Box>
+        <Box twClassName="px-4 pb-6">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={onClose}
+            testID="accept-invite-button"
+          >
+            Accept invite
+          </Button>
+        </Box>
+      </SafeAreaView>
     </Modal>
   );
 };
@@ -654,6 +888,20 @@ const ReferralRevenueShareDashboard = ({
   const [earningsStatusInfo, setEarningsStatusInfo] =
     useState<EarningsStatus | null>(null);
   const showPerformance = mode === 'performance';
+  const [isScenarioSheetVisible, setIsScenarioSheetVisible] =
+    useState(!showPerformance);
+  const [selectedScenarioId, setSelectedScenarioId] =
+    useState<PrototypeScenarioId>('onboarded-kol');
+  const [isNewUserInviteVisible, setIsNewUserInviteVisible] = useState(false);
+  const isClaimingEnabled = useClaimingEnabled();
+
+  const selectScenario = (id: PrototypeScenarioId) => {
+    setSelectedScenarioId(id);
+    setIsScenarioSheetVisible(false);
+    if (id === 'new-user-invite') {
+      setIsNewUserInviteVisible(true);
+    }
+  };
 
   const copyReferralCode = async () => {
     await ClipboardManager.setString(referralCode);
@@ -805,6 +1053,17 @@ const ReferralRevenueShareDashboard = ({
                 secondaryLabel="Pending"
                 onPress={onEarningsPress}
               />
+              <Box alignItems={BoxAlignItems.Center} twClassName="mt-[48px]">
+                <Button
+                  variant={ButtonVariant.Secondary}
+                  onPress={() => setIsScenarioSheetVisible(true)}
+                  accessibilityLabel="Open prototype scenarios"
+                  testID="open-prototype-scenarios-button"
+                  twClassName="self-center"
+                >
+                  Prototype scenarios
+                </Button>
+              </Box>
             </Box>
           </>
         ) : (
@@ -970,7 +1229,7 @@ const ReferralRevenueShareDashboard = ({
             Compensation disclosure required when sharing.
           </Text>
         </Box>
-      ) : (
+      ) : isClaimingEnabled ? (
         <Box twClassName="px-4 pt-3 pb-5 border-t border-muted bg-default">
           <Button
             variant={ButtonVariant.Primary}
@@ -982,7 +1241,7 @@ const ReferralRevenueShareDashboard = ({
             Claim $2,410.00
           </Button>
         </Box>
-      )}
+      ) : null}
 
       {isQrCodeVisible ? (
         <ReferralQrCodeSheet
@@ -1003,8 +1262,20 @@ const ReferralRevenueShareDashboard = ({
         visible={payoutDetailsVisible}
         onClose={() => setPayoutDetailsVisible(false)}
       />
+      <PrototypeScenariosSheet
+        visible={isScenarioSheetVisible}
+        selectedScenarioId={selectedScenarioId}
+        onSelectScenario={selectScenario}
+        onClose={() => setIsScenarioSheetVisible(false)}
+      />
+      <NewUserInviteScreen
+        visible={isNewUserInviteVisible}
+        onClose={() => setIsNewUserInviteVisible(false)}
+      />
     </Box>
   );
 };
 
+// Exported for tests to reset the shared prototype toggle between cases.
+export { setClaimingEnabled };
 export default ReferralRevenueShareDashboard;

@@ -2,7 +2,9 @@ import React from 'react';
 import { Linking, Share } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import FileShare from 'react-native-share';
-import ReferralRevenueShareDashboard from './ReferralRevenueShareDashboard';
+import ReferralRevenueShareDashboard, {
+  setClaimingEnabled,
+} from './ReferralRevenueShareDashboard';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import {
   ToastContext,
@@ -50,6 +52,16 @@ jest.mock('react-native-share', () => ({
 
 jest.mock('../../../../../images/rewards/referral-share-hero.png', () => 1);
 
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: () => ({
+      navigate: jest.fn(),
+    }),
+  };
+});
+
 jest.mock('../../../Money/components/MoneyEarnings', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -76,6 +88,7 @@ const renderDashboard = (mode?: 'overview' | 'performance') =>
   );
 
 const openClaimSheet = () => {
+  setClaimingEnabled(true);
   renderDashboard('performance');
   fireEvent.press(screen.getByTestId('referral-claim-button'));
 };
@@ -89,6 +102,7 @@ describe('ReferralRevenueShareDashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    setClaimingEnabled(false);
   });
 
   afterEach(() => {
@@ -141,6 +155,139 @@ describe('ReferralRevenueShareDashboard', () => {
     expect(screen.getByTestId('copy-referral-code-button')).toBeOnTheScreen();
   });
 
+  describe('prototype scenarios', () => {
+    it('auto-opens the prototype scenarios sheet in overview mode', () => {
+      renderDashboard();
+
+      expect(screen.getByText('Prototype Scenarios')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('prototype-scenario-onboarded-kol'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('prototype-scenario-new-user-invite'),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not auto-open the prototype scenarios sheet in performance mode', () => {
+      renderDashboard('performance');
+
+      expect(screen.queryByText('Prototype Scenarios')).not.toBeOnTheScreen();
+    });
+
+    it('closes the sheet when Onboarded KOL is selected', () => {
+      renderDashboard();
+
+      fireEvent.press(screen.getByTestId('prototype-scenario-onboarded-kol'));
+
+      expect(screen.queryByText('Prototype Scenarios')).not.toBeOnTheScreen();
+    });
+
+    it('opens the new user invite screen when that scenario is selected', () => {
+      renderDashboard();
+
+      fireEvent.press(screen.getByTestId('prototype-scenario-new-user-invite'));
+
+      expect(screen.queryByText('Prototype Scenarios')).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('close-new-user-invite-button'),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId('accept-invite-button')).toBeOnTheScreen();
+    });
+
+    it('dismisses the new user invite screen when the close button is pressed', () => {
+      renderDashboard();
+      fireEvent.press(screen.getByTestId('prototype-scenario-new-user-invite'));
+
+      fireEvent.press(screen.getByTestId('close-new-user-invite-button'));
+
+      expect(
+        screen.queryByTestId('accept-invite-button'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('dismisses the new user invite screen when accept invite is pressed', () => {
+      renderDashboard();
+      fireEvent.press(screen.getByTestId('prototype-scenario-new-user-invite'));
+
+      fireEvent.press(screen.getByTestId('accept-invite-button'));
+
+      expect(
+        screen.queryByTestId('accept-invite-button'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('reopens the sheet when the scenarios button is pressed', () => {
+      renderDashboard();
+      fireEvent.press(screen.getByTestId('prototype-scenario-onboarded-kol'));
+      expect(screen.queryByText('Prototype Scenarios')).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId('open-prototype-scenarios-button'));
+
+      expect(screen.getByText('Prototype Scenarios')).toBeOnTheScreen();
+    });
+
+    describe('enable claiming toggle', () => {
+      it('shows the toggle under the Onboarded KOL scenario', () => {
+        renderDashboard();
+
+        expect(screen.getByTestId('enable-claiming-toggle')).toBeOnTheScreen();
+      });
+
+      it('hides the claim footer on the earnings screen by default', () => {
+        renderDashboard('performance');
+
+        expect(
+          screen.queryByTestId('referral-claim-button'),
+        ).not.toBeOnTheScreen();
+      });
+
+      it('shows the claim footer on the earnings screen once claiming is enabled via the toggle', () => {
+        const { unmount } = renderDashboard();
+
+        act(() => {
+          fireEvent(
+            screen.getByTestId('enable-claiming-toggle'),
+            'onValueChange',
+            true,
+          );
+        });
+        unmount();
+
+        renderDashboard('performance');
+
+        expect(screen.getByTestId('referral-claim-button')).toBeOnTheScreen();
+      });
+
+      it('hides the claim footer again after the toggle is switched off', () => {
+        const { unmount: unmountFirst } = renderDashboard();
+        act(() => {
+          fireEvent(
+            screen.getByTestId('enable-claiming-toggle'),
+            'onValueChange',
+            true,
+          );
+        });
+        unmountFirst();
+
+        const { unmount: unmountSecond } = renderDashboard();
+        act(() => {
+          fireEvent(
+            screen.getByTestId('enable-claiming-toggle'),
+            'onValueChange',
+            false,
+          );
+        });
+        unmountSecond();
+
+        renderDashboard('performance');
+
+        expect(
+          screen.queryByTestId('referral-claim-button'),
+        ).not.toBeOnTheScreen();
+      });
+    });
+  });
+
   describe('claim review', () => {
     it('shows gross-to-net review after continue is pressed', () => {
       openClaimReview();
@@ -150,6 +297,16 @@ describe('ReferralRevenueShareDashboard', () => {
       expect(screen.getByText('Gross')).toBeOnTheScreen();
       expect(screen.getByText('Money Account')).toBeOnTheScreen();
       expect(screen.getByText('1–2 business days')).toBeOnTheScreen();
+    });
+
+    it('shows info tooltips on withholding, fee, and expected delivery', () => {
+      openClaimReview();
+
+      expect(screen.getByLabelText('Withholding tooltip')).toBeOnTheScreen();
+      expect(screen.getByLabelText('Fee tooltip')).toBeOnTheScreen();
+      expect(
+        screen.getByLabelText('Expected delivery tooltip'),
+      ).toBeOnTheScreen();
     });
 
     it('shows claim submitted after confirm claim is pressed', () => {
