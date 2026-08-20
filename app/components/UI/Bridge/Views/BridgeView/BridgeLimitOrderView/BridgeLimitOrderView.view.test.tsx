@@ -71,4 +71,17 @@ describeForPlatforms('BridgeLimitOrderView', () => {
     ).toBeOnTheScreen();
     expect(renderResult.getAllByText(pair)).toHaveLength(2);
   });
+
+  it('keeps the dest amount input and does not show Recurring You get copy', async () => {
+    const renderResult = renderBridgeView();
+
+    await openLimitTab(renderResult);
+
+    expect(
+      renderResult.getByTestId(BridgeViewSelectorsIDs.LIMIT_DEST_TOKEN_INPUT),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.queryByText(strings('bridge.recurring.you_get')),
+    ).not.toBeOnTheScreen();
+  });
 });

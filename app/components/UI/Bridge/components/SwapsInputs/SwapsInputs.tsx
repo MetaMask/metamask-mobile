@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import type { CaipChainId } from '@metamask/utils';
+import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import {
@@ -34,6 +35,12 @@ interface SwapsInputsProps {
   sourceTokenAreaTestID: string;
   destTokenAreaTestID: string;
   sourceAmountTypeToggleTestID: string;
+  /**
+   * Recurring dest only. Limit must leave this unset so dest still shows
+   * the quoted amount, loading skeleton, and fiat.
+   */
+  hideDestAmount?: boolean;
+  destAmountReplacementLabelTestID?: string;
 }
 
 export const SwapsInputs = ({
@@ -55,6 +62,8 @@ export const SwapsInputs = ({
   sourceTokenAreaTestID,
   destTokenAreaTestID,
   sourceAmountTypeToggleTestID,
+  hideDestAmount = false,
+  destAmountReplacementLabelTestID,
 }: SwapsInputsProps) => {
   const { styles } = useStyles(createStyles);
 
@@ -97,9 +106,14 @@ export const SwapsInputs = ({
           />
         </Box>
         <FLipQuoteButton onPress={onFlipPress} disabled={isFlipDisabled} />
-        <Box style={styles.tokenCard}>
+        <Box
+          style={[
+            styles.tokenCard,
+            hideDestAmount ? styles.compactDestTokenCard : undefined,
+          ]}
+        >
           <TokenInputArea
-            amount={destTokenAmount}
+            amount={hideDestAmount ? undefined : destTokenAmount}
             token={destToken}
             networkImageSource={
               destToken
@@ -110,8 +124,17 @@ export const SwapsInputs = ({
             tokenType={TokenInputAreaType.Destination}
             onInputPress={onDestInputPress}
             onTokenPress={onDestTokenPress}
-            isLoading={!destTokenAmount && isDestAmountLoading}
-            showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
+            isLoading={
+              hideDestAmount ? false : !destTokenAmount && isDestAmountLoading
+            }
+            showFiatAmountAsPrimary={
+              hideDestAmount ? false : sourceAmountInput.isFiatMode
+            }
+            hideAmount={hideDestAmount}
+            amountReplacementLabel={
+              hideDestAmount ? strings('bridge.recurring.you_get') : undefined
+            }
+            amountReplacementLabelTestID={destAmountReplacementLabelTestID}
             enabledChainIds={enabledChainIds}
             excludeRwaTokens
             hideFiatValueWhenUnpriced
