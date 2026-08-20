@@ -5,7 +5,7 @@ The two out-of-the-box animation libraries available in MetaMask mobile are [Lot
 This guide provides a high-level overview of the animation libraries, including how to use them in the mobile app and how to troubleshoot common issues.
 
 - [Lottie](#lottie)
-- [Rive](#rive) (Experimental)
+- [Rive](#rive)
 
 ## Lottie
 
@@ -63,35 +63,9 @@ Rive is a design and animation application for building interactive, real-time m
 
 The app uses the Nitro-based runtime, [`@rive-app/react-native`](https://github.com/rive-app/rive-nitro-react-native) (the legacy `rive-react-native` package was replaced in the Rive Nitro migration).
 
-### Usage
+For the repository-specific workflow, API examples, data binding, testing,
+performance guidance, fallbacks, and troubleshooting, see
+[Working with Rive animations](../../app/animations/README.md).
 
-Read more on the React Native documentation for Rive [here](https://rive.app/docs/runtimes/react-native/react-native).
-
-Declarative — load a bundled `.riv` with `useRiveFile` and render a `RiveView`:
-
-```tsx
-import { RiveView, useRiveFile } from '@rive-app/react-native';
-
-function App() {
-  const { riveFile } = useRiveFile(MyAnimation); // a bundled .riv asset
-
-  return (
-    riveFile && <RiveView file={riveFile} stateMachineName="avatar" autoPlay />
-  );
-}
-```
-
-Imperative inputs: pass `useRive()`'s `setHybridRef` to `<RiveView hybridRef={...}>`, wait for `riveViewRef` to become non-null (the Nitro equivalent of the legacy `onPlay` signal), then fire inputs with `riveRef.current?.triggerInput('Start')` / `setBooleanInputValue(...)`. See `app/components/UI/FoxLoader/FoxLoader.tsx`.
-
-Data binding: for `.riv` files authored with view models, bind an instance with `useViewModelInstance(riveFile, { artboardName, async: true })`, pass it to `<RiveView dataBind={instance}>`, and use the property hooks (`useRiveString`, `useRiveNumber`, `useRiveBoolean`, `useRiveTrigger`). See `app/components/UI/Money/Views/MoneyOnboardingView/MoneyOnboardingView.tsx`.
-
-### Testing
-
-Jest maps `@rive-app/react-native` to `app/__mocks__/rive-app-react-native.tsx` (see `moduleNameMapper` in `jest.config.js`). The mock renders plain `View`s and exposes helpers (`__mockRiveTriggerInput`, `__getLastRiveViewMethods`, `__getRivePropertySetter`, `__fireRiveTrigger`, `__resetRiveMocks`) for asserting trigger/property interactions.
-
-### Troubleshooting
-
-App crashes or `onError` fires when accessing an animation, state machine, or input?
-
-- Ensure that the artboard, state machine, view-model property, or input name exists in the Rive file (`strings file.riv | grep <name>` is a quick sanity check).
-- Note the Nitro runtime has no `onStateChanged` or `animationName` prop — drive behavior through state machine inputs, view-model triggers, or timers.
+Do not copy examples for the legacy `rive-react-native` package; its component,
+refs, callbacks, and data-binding APIs are incompatible with the Nitro runtime.
