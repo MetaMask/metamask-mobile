@@ -1,15 +1,8 @@
-/* eslint-disable @metamask/design-tokens/color-no-hex */
-/**
- * Perps Pro golds. The accent is not part of the shared design-token palette,
- * so these values are hardcoded from Figma:
- *
- * - chooser sheet: node 11623-26935
- * - header switch pill: nodes 11623-26982 (Lite) and 11623-27029 (Pro)
- */
+import { colors } from '../../../../styles/common';
 
-const GOLD_DEEP = '#946500';
-const GOLD_BRIGHT = '#CF8D00';
-const GOLD_PALE = '#DDC598';
+const GOLD_DEEP = colors.perpsProGoldDeep;
+const GOLD_BRIGHT = colors.perpsProGoldBright;
+const GOLD_PALE = colors.perpsProGoldPale;
 
 /** Pro switch pill border. */
 export const PERPS_PRO_GOLD = GOLD_BRIGHT;
@@ -48,10 +41,10 @@ export const PERPS_PRO_CANDLESTICK_LIGHT = GOLD_DEEP;
 export const PERPS_PRO_CANDLESTICK_DARK = GOLD_PALE;
 
 /** `GOLD_BRIGHT` at 16% — chooser icon tile, light theme. */
-export const PERPS_PRO_ICON_TILE_LIGHT = '#CF8D0029';
+export const PERPS_PRO_ICON_TILE_LIGHT = `${GOLD_BRIGHT}29`;
 
 /** `GOLD_PALE` at 12% — chooser icon tile, dark theme. */
-export const PERPS_PRO_ICON_TILE_DARK = '#DDC5981F';
+export const PERPS_PRO_ICON_TILE_DARK = `${GOLD_PALE}1F`;
 
 export const getPerpsProChooserIconColors = (isDark: boolean) => ({
   candlestick: isDark

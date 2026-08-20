@@ -34,6 +34,11 @@ export const colors = {
   transakCheckoutDark: '#1a1a1a',
   moonpayCheckoutDark: '#131416',
   banxaCheckoutDark: '#0D0D0F',
+  // Perps Pro golds — not in the shared design-token palette. Sourced from
+  // Figma (chooser 11623-26935; header pills 11623-26982 / 11623-27029).
+  perpsProGoldDeep: '#946500',
+  perpsProGoldBright: '#CF8D00',
+  perpsProGoldPale: '#DDC598',
 };
 
 export const onboardingCarouselColors: Record<
