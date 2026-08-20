@@ -531,20 +531,17 @@ describe('ActivityListItemRow — row content', () => {
         direction: 'out',
       },
     });
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
 
-    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe('To: ');
-    expect(
-      getByTestId('activity-subtitle-account-name-0xabc').props.children,
-    ).toBe('ETH DeFi');
-    expect(
-      getByTestId('activity-subtitle-account-avatar-0xabc'),
-    ).toBeOnTheScreen();
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'To: ETH DeFi',
+    );
+    expect(queryByTestId('activity-subtitle-account-avatar-0xabc')).toBeNull();
   });
 
-  it('renders the account name and avatar for a non-EVM (Solana) owned counterparty', () => {
+  it('renders the account name for a non-EVM (Solana) owned counterparty', () => {
     const item = makeItem({
       type: 'send',
       status: 'success',
@@ -559,14 +556,9 @@ describe('ActivityListItemRow — row content', () => {
       <ActivityListItemRow item={item} index={0} />,
     );
 
-    expect(
-      getByTestId('activity-subtitle-account-name-0xabc').props.children,
-    ).toBe('Solana');
-    // The non-hex address is passed straight through to the avatar (no
-    // checksumming), so the multichain row renders without error.
-    expect(
-      getByTestId(`avatar-account-${OWNED_SOLANA_ADDRESS}`),
-    ).toBeOnTheScreen();
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      'To: Solana',
+    );
   });
 
   it('renders the account name in the subtitle when receiving from an owned account', () => {
@@ -580,19 +572,14 @@ describe('ActivityListItemRow — row content', () => {
         direction: 'in',
       },
     });
-    const { getByTestId } = render(
+    const { getByTestId, queryByTestId } = render(
       <ActivityListItemRow item={item} index={0} />,
     );
 
     expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
-      'From: ',
+      'From: ETH DeFi',
     );
-    expect(
-      getByTestId('activity-subtitle-account-name-0xabc').props.children,
-    ).toBe('ETH DeFi');
-    expect(
-      getByTestId('activity-subtitle-account-avatar-0xabc'),
-    ).toBeOnTheScreen();
+    expect(queryByTestId('activity-subtitle-account-avatar-0xabc')).toBeNull();
   });
 
   it('shows "Send cancelled" and hides the amount for a cancelled send', () => {
@@ -2047,7 +2034,6 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'send',
   'receive',
   'swap',
-  'swapIncomplete',
   'bridge',
   'buy',
   'rampBuy',
@@ -2109,7 +2095,6 @@ const EXPECTED_TITLES = {
   send: strings('transactions.sent'),
   receive: strings('transactions.received'),
   swap: 'Swapped',
-  swapIncomplete: 'Swapped',
   bridge: 'Bridged',
   buy: 'Bought',
   rampBuy: 'Bought',
