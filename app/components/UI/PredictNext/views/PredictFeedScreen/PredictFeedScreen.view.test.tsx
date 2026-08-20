@@ -291,6 +291,27 @@ describe('PredictFeedScreen', () => {
     expect(messengerCall.mock.calls).toHaveLength(3);
   });
 
+  it('keeps the loaded Feed when the selected tab is pressed again', async () => {
+    configureFeeds({ [NFL_GAMES_FEED_ID]: [gameEvent] });
+    const view = renderPredictFeedScreen({
+      venueId: KALSHI_VENUE_ID,
+      feedScreenId: NFL_FEED_SCREEN_ID,
+    });
+    await view.findByTestId(
+      PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
+    );
+
+    fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.tab('games')));
+
+    expect(
+      view.getByTestId(PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id)),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictFeedScreenTestIds.LOADING),
+    ).not.toBeOnTheScreen();
+    expect(messengerCall).toHaveBeenCalledTimes(1);
+  });
+
   it('shows loading and then renders the loaded Events', async () => {
     let resolveFeed: (value: unknown) => void = () => undefined;
     messengerCall.mockImplementation(
