@@ -46,6 +46,11 @@ has_performance_type_tag() {
 
 found=0
 while IFS= read -r -d '' file; do
+  # Temporary single-spec experiment for TestMu settings caps.
+  # Remove this filter after the fresh-srp timing comparison.
+  if [[ "$BUILD_TYPE" == "onboarding" && "$file" != *'/fresh-srp-wallet-creation.spec.ts' ]]; then
+    continue
+  fi
   if has_performance_type_tag "$file"; then
     printf '%s\n' "$file"
     found=$((found + 1))
