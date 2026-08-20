@@ -107,10 +107,7 @@ import {
 } from '../../../core/Performance/HomepageReady';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
-/**
- * Returns true if `candidatePassword` decrypts the on-device vault backup.
- * Does not unlock the live wallet or contact the seedless server.
- */
+/** Returns true if `candidatePassword` decrypts the on-device vault backup. */
 const canDecryptVaultBackup = async (
   candidatePassword: string,
 ): Promise<boolean> => {
@@ -138,9 +135,6 @@ interface LoginProps {
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const fieldRef = useRef<TextInput | null>(null);
-  // Last password actually submitted to unlockWallet. Forgot password must
-  // not treat unsubmitted field text as validated (and must not be a quieter
-  // offline decrypt oracle than Unlock).
   const lastSubmittedPasswordRef = useRef('');
 
   const [password, setPassword] = useState('');
@@ -449,9 +443,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       saveOnboardingEvent,
     );
 
-    // Only reuse a password that was actually submitted to unlock. Typed-but-
-    // unsubmitted field text is not validated, and must not be used as an
-    // offline decrypt oracle. Never unlock the seedless/server vault here.
+    // Use the last submitted password.
     const submittedPassword = lastSubmittedPasswordRef.current;
     lastSubmittedPasswordRef.current = '';
 
@@ -500,8 +492,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           );
         }
       } else if (submittedPassword) {
-        // SRP: if the last failed unlock password still opens the on-device
-        // backup, the live vault is likely stale — offer restore, not delete.
         const backupDecrypts = await canDecryptVaultBackup(submittedPassword);
         if (backupDecrypts) {
           trackForgotPasswordBackupOffered(true);
