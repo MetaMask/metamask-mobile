@@ -15,18 +15,23 @@ import {
 } from '../../../utils/value';
 import { TokenI } from '../../../../Tokens/types';
 import StakingCta from '../StakingCta/StakingCta';
+import StakingButtons from '../StakingButtons/StakingButtons';
+import { Box } from '@metamask/design-system-react-native';
 
 export interface StakingDiscoveryProps {
   asset: TokenI;
 }
 
+/**
+ * Ethereum pooled-staking empty state displayed when user has no staked position.
+ */
 const StakingDiscoveryContent = ({ asset }: StakingDiscoveryProps) => {
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
   const { isStakingSupportedChain } = useStakingChainByChainId(
     asset.chainId as Hex,
   );
   const decimalChainId = getDecimalChainId(asset.chainId);
-  const { hasStakedPositions, isLoadingPooledStakesData } =
+  const { hasStakedPositions, isLoadingPooledStakesData, hasEthToUnstake } =
     usePooledStakes(decimalChainId);
   const { vaultApyAverages, isLoadingVaultApyAverages } =
     useVaultApyAverages(decimalChainId);
@@ -42,14 +47,21 @@ const StakingDiscoveryContent = ({ asset }: StakingDiscoveryProps) => {
   }
 
   return (
-    <StakingCta
-      chainId={asset.chainId as Hex}
-      estimatedRewardRate={formatPercent(vaultApyAverages.oneWeek, {
-        inputFormat: CommonPercentageInputUnits.PERCENTAGE,
-        outputFormat: PercentageOutputFormat.PERCENT_SIGN,
-        fixed: 1,
-      })}
-    />
+    <Box twClassName="py-4">
+      <StakingCta
+        chainId={asset.chainId as Hex}
+        estimatedRewardRate={formatPercent(vaultApyAverages.oneWeek, {
+          inputFormat: CommonPercentageInputUnits.PERCENTAGE,
+          outputFormat: PercentageOutputFormat.PERCENT_SIGN,
+          fixed: 1,
+        })}
+      />
+      <StakingButtons
+        asset={asset}
+        hasStakedPositions={hasStakedPositions}
+        hasEthToUnstake={hasEthToUnstake}
+      />
+    </Box>
   );
 };
 

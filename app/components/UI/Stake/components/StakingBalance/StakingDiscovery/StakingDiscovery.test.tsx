@@ -38,6 +38,27 @@ jest.mock('../StakingCta/StakingCta', () => ({
   },
 }));
 
+jest.mock('../StakingButtons/StakingButtons', () => ({
+  __esModule: true,
+  default: ({ hasStakedPositions }: { hasStakedPositions: boolean }) => {
+    const { Button: MockButton } = jest.requireActual(
+      '@metamask/design-system-react-native',
+    );
+
+    return (
+      <MockButton
+        testID={
+          hasStakedPositions
+            ? 'staking-discovery-stake-more-button'
+            : 'stake-more-button'
+        }
+      >
+        Stake
+      </MockButton>
+    );
+  },
+}));
+
 jest.mock('../../../sdk/stakeSdkProvider', () => ({
   StakeSDKProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
@@ -92,6 +113,12 @@ describe('StakingDiscovery', () => {
     const { getByTestId } = render();
 
     expect(getByTestId('staking-discovery-cta')).toBeOnTheScreen();
+  });
+
+  it('renders stake button for native ETH without a pooled position', () => {
+    const { getByTestId } = render();
+
+    expect(getByTestId('stake-more-button')).toBeOnTheScreen();
   });
 
   it('hides discovery CTA when a pooled position exists', () => {

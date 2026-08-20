@@ -4,75 +4,37 @@ import BN4 from 'bnjs4';
 import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { useSelector } from 'react-redux';
-import { strings } from '../../../../../../locales/i18n';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import { RootState } from '../../../../../reducers';
-import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
-import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { getTimeDifferenceFromNow } from '../../../../../util/date';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import AssetElement from '../../../AssetElement';
-import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
-import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import type { TokenI } from '../../../Tokens/types';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
-import useBalance from '../../hooks/useBalance';
 import usePooledStakes from '../../hooks/usePooledStakes';
 import { useStakingChainByChainId } from '../../hooks/useStakingChain';
-import useVaultApyAverages from '../../hooks/useVaultApyAverages';
 import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
-import {
-  CommonPercentageInputUnits,
-  fixDisplayAmount,
-  formatPercent,
-  PercentageOutputFormat,
-} from '../../utils/value';
-import styleSheet from './StakingBalance.styles';
+import { fixDisplayAmount } from '../../utils/value';
+import styleSheet from './StakingOverview.styles';
 import ClaimBanner from './StakingBanners/ClaimBanner/ClaimBanner';
 import UnstakingBanner from './StakingBanners/UnstakeBanner/UnstakeBanner';
 import StakingButtons from './StakingButtons/StakingButtons';
-import StakingCta from './StakingCta/StakingCta';
 import { filterExitRequests } from './utils';
-import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
-import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
-import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import StakingEarnings from '../StakingEarnings';
 import { useTheme } from '../../../../../util/theme';
 
-export interface StakingBalanceProps {
+export interface StakingOverviewProps {
   asset: TokenI;
 }
 
-const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
+const StakingOverviewContent = ({ asset }: StakingOverviewProps) => {
   const theme = useTheme();
 
   const [
     hasSentViewingStakingRewardsMetric,
     setHasSentViewingStakingRewardsMetric,
   ] = useState(false);
-
-  const networkConfigurationByChainId = useSelector((state: RootState) =>
-    selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
-  );
-
-  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
-  const privacyMode = useSelector(selectPrivacyMode);
 
   const { styles } = useStyles(styleSheet, { theme });
 
@@ -90,16 +52,6 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     hasEthToUnstake,
     isLoadingPooledStakesData,
   } = usePooledStakes(decimalChainId);
-
-  const { vaultApyAverages, isLoadingVaultApyAverages } =
-    useVaultApyAverages(decimalChainId);
-
-  const {
-    formattedStakedBalanceETH: stakedBalanceETH,
-    formattedStakedBalanceFiat: stakedBalanceFiat,
-  } = useBalance(asset.chainId as Hex);
-
-  const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
   const { unstakingRequests, claimableRequests } = useMemo(() => {
     const exitRequests = pooledStakesData?.exitRequests ?? [];
@@ -184,19 +136,6 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           />
         )}
 
-        {!hasStakedPositions &&
-          !isLoadingVaultApyAverages &&
-          isPooledStakingEnabled && (
-            <StakingCta
-              chainId={asset.chainId as Hex}
-              estimatedRewardRate={formatPercent(vaultApyAverages.oneWeek, {
-                inputFormat: CommonPercentageInputUnits.PERCENTAGE,
-                outputFormat: PercentageOutputFormat.PERCENT_SIGN,
-                fixed: 1,
-              })}
-            />
-          )}
-
         <StakingButtons
           asset={asset}
           style={
@@ -212,52 +151,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   };
 
   return (
-    <View testID="staking-balance-container">
-      {hasEthToUnstake && !isLoadingPooledStakesData && (
-        <AssetElement
-          asset={asset}
-          balance={stakedBalanceFiat}
-          privacyMode={privacyMode}
-          hideSecondaryBalanceInPrivacyMode={false}
-          secondaryBalanceElement={
-            <PercentageChange value={pricePercentChange1d ?? 0} />
-          }
-        >
-          <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            style={styles.badgeWrapper}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={NetworkBadgeSource(asset.chainId as Hex)}
-                name={networkConfigurationByChainId?.name}
-              />
-            }
-          >
-            <NetworkAssetLogo
-              chainId={asset.chainId as Hex}
-              style={styles.ethLogo}
-              ticker={asset.symbol}
-              big={false}
-              biggest={false}
-              testID={'staking-balance-asset-logo'}
-            />
-          </BadgeWrapper>
-          <View style={styles.balances}>
-            <Text variant={TextVariant.BodyMD} testID="staked-ethereum-label">
-              {strings('stake.staked_ethereum')}
-            </Text>
-            <SensitiveText
-              variant={TextVariant.BodySM}
-              style={styles.tokenAmount}
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Short}
-            >
-              {stakedBalanceETH}
-            </SensitiveText>
-          </View>
-        </AssetElement>
-      )}
+    <View testID="staking-overview-container">
       <View style={styles.container}>{renderStakingContent()}</View>
       <View style={styles.stakingEarnings}>
         <StakingEarnings asset={asset} />
@@ -266,10 +160,11 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   );
 };
 
-export const StakingBalance = ({ asset }: StakingBalanceProps) => (
-  <StakeSDKProvider>
-    <StakingBalanceContent asset={asset} />
-  </StakeSDKProvider>
-);
+export const StakingOverview = ({ asset }: StakingOverviewProps) =>
+  asset.isStaked ? (
+    <StakeSDKProvider>
+      <StakingOverviewContent asset={asset} />
+    </StakeSDKProvider>
+  ) : null;
 
-export default StakingBalance;
+export default StakingOverview;
