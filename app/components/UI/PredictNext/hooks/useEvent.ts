@@ -6,10 +6,7 @@ import {
 import type { PredictEntityId, PredictVenueId } from '../types';
 
 /** Reads one Event from a Venue. */
-export const useEventDetail = (
-  venueId: PredictVenueId,
-  eventId: PredictEntityId,
-) =>
+export const useEvent = (venueId: PredictVenueId, eventId: PredictEntityId) =>
   useQuery<GetEventResult>({
     queryKey: marketDataQueries.getEvent(venueId, eventId).queryKey,
   });
