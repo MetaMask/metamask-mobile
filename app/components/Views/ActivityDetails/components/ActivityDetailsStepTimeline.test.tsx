@@ -41,18 +41,22 @@ describe('ActivityDetailsStepTimeline', () => {
     { label: 'Add funds', status: 'upcoming' },
   ];
 
-  it('marks whichever step failed with the cross, and no other step', () => {
+  it('marks whichever step failed with the cross', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
       <ActivityDetailsStepTimeline steps={steps} title="Steps" />,
     );
 
-    expect(getByTestId(getActivityDetailsStepFailureTestId(1))).toBeDefined();
+    expect(
+      getByTestId(getActivityDetailsStepFailureTestId(1)),
+    ).toBeOnTheScreen();
     [0, 2, 3].forEach((index) =>
-      expect(queryByTestId(getActivityDetailsStepFailureTestId(index))).toBeNull(),
+      expect(
+        queryByTestId(getActivityDetailsStepFailureTestId(index)),
+      ).not.toBeOnTheScreen(),
     );
   });
 
-  it('marks every failed step when more than one leg failed', () => {
+  it('marks each failed step when more than one leg failed', () => {
     const { getByTestId } = renderWithProvider(
       <ActivityDetailsStepTimeline
         steps={[
@@ -64,8 +68,12 @@ describe('ActivityDetailsStepTimeline', () => {
       />,
     );
 
-    expect(getByTestId(getActivityDetailsStepFailureTestId(0))).toBeDefined();
-    expect(getByTestId(getActivityDetailsStepFailureTestId(2))).toBeDefined();
+    expect(
+      getByTestId(getActivityDetailsStepFailureTestId(0)),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(getActivityDetailsStepFailureTestId(2)),
+    ).toBeOnTheScreen();
   });
 
   describe('failure sheet', () => {
@@ -85,7 +93,7 @@ describe('ActivityDetailsStepTimeline', () => {
 
       expect(
         queryByTestId(ActivityDetailsSelectorsIDs.STEP_FAILURE_SHEET),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
 
       fireEvent.press(getByTestId(getActivityDetailsStepTestId(1)));
 
@@ -117,11 +125,69 @@ describe('ActivityDetailsStepTimeline', () => {
 
       expect(
         queryByTestId(ActivityDetailsSelectorsIDs.STEP_FAILURE_SHEET),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.WEBVIEW.MAIN,
         expect.anything(),
       );
+    });
+
+    it('shows the updated message when the classification changes while open', () => {
+      const { getByTestId, rerender } = renderWithProvider(
+        <ActivityDetailsStepTimeline steps={withMessage} title="Steps" />,
+      );
+
+      fireEvent.press(getByTestId(getActivityDetailsStepTestId(1)));
+
+      rerender(
+        <ActivityDetailsStepTimeline
+          steps={[
+            withMessage[0],
+            { ...withMessage[1], failureMessage: 'Funds are on Arbitrum.' },
+          ]}
+          title="Steps"
+        />,
+      );
+
+      expect(
+        getByTestId(ActivityDetailsSelectorsIDs.STEP_FAILURE_MESSAGE).props
+          .children,
+      ).toBe('Funds are on Arbitrum.');
+    });
+
+    it('links the failed leg from the sheet when the step carries its own target', () => {
+      jest
+        .mocked(useActivityBlockExplorer)
+        .mockImplementation((_chainId, hash) =>
+          hash
+            ? { url: `https://scan.example/tx/${hash}`, title: 'Scan' }
+            : undefined,
+        );
+
+      const { getByTestId } = renderWithProvider(
+        <ActivityDetailsStepTimeline
+          explorerTarget={{ chainId: 'eip155:42161', hash: '0xparent' }}
+          steps={[
+            {
+              label: 'Bridge funds',
+              status: 'failed',
+              failureMessage: 'The bridge did not complete.',
+              failureExplorerTarget: { chainId: 'eip155:1', hash: '0xleg' },
+            },
+          ]}
+          title="Steps"
+        />,
+      );
+
+      fireEvent.press(getByTestId(getActivityDetailsStepTestId(0)));
+      fireEvent.press(
+        getByTestId(ActivityDetailsSelectorsIDs.BLOCK_EXPLORER_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: { url: 'https://scan.example/tx/0xleg', title: 'Scan' },
+      });
     });
 
     it('leaves non-failed rows alone', () => {
@@ -133,7 +199,7 @@ describe('ActivityDetailsStepTimeline', () => {
 
       expect(
         queryByTestId(ActivityDetailsSelectorsIDs.STEP_FAILURE_SHEET),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
     });
 
     it('does nothing on a failed row with no message and no explorer link', () => {
@@ -148,7 +214,7 @@ describe('ActivityDetailsStepTimeline', () => {
 
       expect(
         queryByTestId(ActivityDetailsSelectorsIDs.STEP_FAILURE_SHEET),
-      ).toBeNull();
+      ).not.toBeOnTheScreen();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
@@ -159,8 +225,10 @@ describe('ActivityDetailsStepTimeline', () => {
     );
 
     steps.forEach((step, index) => {
-      expect(getByText(step.label)).toBeDefined();
-      expect(getByTestId(getActivityDetailsStepTestId(index))).toBeDefined();
+      expect(getByText(step.label)).toBeOnTheScreen();
+      expect(
+        getByTestId(getActivityDetailsStepTestId(index)),
+      ).toBeOnTheScreen();
     });
   });
 });

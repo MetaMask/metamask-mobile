@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { shallowEqual, useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
 import { StatusTypes } from '@metamask/bridge-controller';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import {
+  hasTransactionType,
   TransactionStatus,
   TransactionType,
   type TransactionMeta,
@@ -12,13 +13,13 @@ import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { strings } from '../../../../../locales/i18n';
 import type { RootState } from '../../../../reducers';
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
-import {
-  selectTransactionMetadataByHash,
-  selectTransactionMetadataById,
-  selectTransactionsByIds,
-} from '../../../../selectors/transactionController';
+import { selectTransactionsByIds } from '../../../../selectors/transactionController';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared Pay constants; route-isolation backlog
+import { ACTIVITY_FIAT_FRACTION_DIGITS, RELAY_DEPOSIT_TYPES } from '../../confirmations/constants/confirmations';
 import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { useActivityLocalTransaction } from './useActivityLocalTransaction';
+import type { ActivityDetailsStepExplorerTarget } from '../components/ActivityDetailsStepTimeline';
 
 /** Pay records its fiat values in USD, not the user's display currency. */
 const PAY_FIAT_CURRENCY = 'usd';
@@ -38,12 +39,15 @@ export type PayFundsFailureShape =
   | 'approvalFailed'
   /** Never broadcast, so nothing left the wallet. */
   | 'notSubmitted'
+  /** The user cancelled the deposit: nothing was deposited. */
+  | 'cancelled'
   /** Failed, but state does not say how. */
   | 'unknown';
 
 export interface PayFundsFailure {
   shape: PayFundsFailureShape;
   message: string;
+  explorerTarget?: ActivityDetailsStepExplorerTarget;
 }
 
 /**
@@ -53,6 +57,7 @@ export interface PayFundsFailure {
 export interface PayFundsDestination {
   network: string;
   symbol: string;
+  assetAddress: string;
 }
 
 const FAILED_STATUSES: TransactionStatus[] = [
@@ -60,101 +65,81 @@ const FAILED_STATUSES: TransactionStatus[] = [
   TransactionStatus.dropped,
 ];
 
-const BRIDGE_LEG_TYPES = [
-  TransactionType.relayDeposit,
-  TransactionType.perpsRelayDeposit,
-  TransactionType.predictRelayDeposit,
-];
-
 const NO_LEGS: TransactionMeta[] = [];
-
+const NO_LEG_IDS: string[] = [];
 const NO_BRIDGE_HISTORY: Record<string, BridgeHistoryItem> = {};
-
-/**
- * The local transaction behind a row. A local row's own copy can be a snapshot
- * stashed at navigation time, so the live one is re-read by id first.
- * Provider-backed rows are matched on hash instead, scoped to the row's chain —
- * the resolution {@link useActivityPayMetadata} also uses.
- */
-function useLocalTransaction(
-  item: ActivityListItem,
-): TransactionMeta | undefined {
-  const snapshot =
-    item.raw?.type === 'localTransaction'
-      ? item.raw.data.primaryTransaction
-      : undefined;
-  const { hash, chainId } = item;
-
-  const live = useSelector((state: RootState) =>
-    snapshot?.id
-      ? selectTransactionMetadataById(state, snapshot.id)
-      : undefined,
-  );
-
-  const byHash = useSelector((state: RootState) => {
-    if (snapshot) {
-      return undefined;
-    }
-
-    const meta = selectTransactionMetadataByHash(state, hash);
-    return meta && toEvmCaipChainId(meta.chainId) === chainId
-      ? meta
-      : undefined;
-  });
-
-  return live ?? snapshot ?? byHash;
-}
 
 function hasFailed(tx: TransactionMeta | undefined): boolean {
   return Boolean(tx && FAILED_STATUSES.includes(tx.status));
 }
 
-function isBridgeLeg(tx: TransactionMeta): boolean {
-  return Boolean(tx.type && BRIDGE_LEG_TYPES.includes(tx.type));
+/** Whether a COMPLETE bridge entry actually landed on the expected asset. */
+function landedOnDestination(
+  entry: BridgeHistoryItem | undefined,
+  destination: PayFundsDestination,
+): boolean {
+  const destAddress = entry?.quote?.destAsset?.address;
+  return Boolean(
+    destAddress &&
+      destAddress.toLowerCase() === destination.assetAddress.toLowerCase(),
+  );
 }
 
 /**
  * Classifies a failed funding row. Order matters: the earliest leg that broke is
  * the most specific explanation, so approval is checked before the bridge, and
  * the bridge before the deposit.
+ *
+ * Returns the culprit leg when the failure lives on one, so the sheet can link
+ * that leg's transaction rather than the parent's.
  */
 function classify({
   parent,
   legs,
-  bridgeStatusByLegId,
+  legIds,
+  bridgeHistory,
+  destination,
 }: {
   parent: TransactionMeta;
   legs: TransactionMeta[];
-  bridgeStatusByLegId: Map<string, string | undefined>;
-}): PayFundsFailureShape {
-  const approvalFailed = legs.some(
+  legIds: string[];
+  bridgeHistory: Record<string, BridgeHistoryItem>;
+  destination: PayFundsDestination;
+}): { shape: PayFundsFailureShape; leg?: TransactionMeta } {
+  const failedApproval = legs.find(
     (leg) => leg.type === TransactionType.tokenMethodApprove && hasFailed(leg),
   );
-  if (approvalFailed) {
-    return 'approvalFailed';
+  if (failedApproval) {
+    return { shape: 'approvalFailed', leg: failedApproval };
   }
 
-  const bridgeFailed = legs.some(
-    (leg) =>
-      (isBridgeLeg(leg) && hasFailed(leg)) ||
-      bridgeStatusByLegId.get(leg.id) === StatusTypes.FAILED,
+  const failedBridge = legs.find(
+    (leg) => hasTransactionType(leg, RELAY_DEPOSIT_TYPES) && hasFailed(leg),
   );
-  if (bridgeFailed) {
-    return 'bridgeFailed';
+  const offChainFailedLegId = legIds.find(
+    (id) => bridgeHistory[id]?.status?.status === StatusTypes.FAILED,
+  );
+  if (failedBridge || offChainFailedLegId) {
+    return {
+      shape: 'bridgeFailed',
+      leg: failedBridge ?? legs.find((leg) => leg.id === offChainFailedLegId),
+    };
   }
 
-  const bridgeLanded = legs.some(
-    (leg) => bridgeStatusByLegId.get(leg.id) === StatusTypes.COMPLETE,
+  const bridgeLanded = legIds.some(
+    (id) =>
+      bridgeHistory[id]?.status?.status === StatusTypes.COMPLETE &&
+      landedOnDestination(bridgeHistory[id], destination),
   );
   if (bridgeLanded) {
-    return 'bridgedNotDeposited';
+    return { shape: 'bridgedNotDeposited' };
   }
 
   if (!parent.hash) {
-    return 'notSubmitted';
+    return { shape: 'notSubmitted' };
   }
 
-  return 'unknown';
+  return { shape: 'unknown' };
 }
 
 /**
@@ -184,6 +169,8 @@ function getMessage(
       return strings('activity_details.failure.approval_failed');
     case 'notSubmitted':
       return strings('activity_details.failure.not_submitted');
+    case 'cancelled':
+      return strings('activity_details.failure.cancelled');
     case 'unknown':
     default:
       return strings('activity_details.failure.unknown');
@@ -196,44 +183,68 @@ function getMessage(
  *
  * @param item - The activity row being shown.
  * @param options.destination - Where the bridge leg lands, named in the
- * bridged-not-deposited sentence.
- * @param options.payTotalFiat - Pay's USD total, so that sentence can say how
- * much is waiting there.
- * @returns The failure, or `undefined` when the row did not fail.
+ * bridged-not-deposited sentence and required of the bridge entry.
+ * @param options.payTargetFiat - Pay's USD target amount, so that sentence can
+ * say how much is waiting there.
+ * @param options.skip - Callers rendering non-deposit rows set this; the copy
+ * is deposit-worded, so withdrawals must not receive it.
+ * @returns The failure, or `undefined` when the row did not fail or is skipped.
  */
 export function usePayFundsFailure(
   item: ActivityListItem,
   {
     destination,
-    payTotalFiat,
-  }: { destination: PayFundsDestination; payTotalFiat?: string },
+    payTargetFiat,
+    skip = false,
+  }: {
+    destination: PayFundsDestination;
+    payTargetFiat?: string;
+    skip?: boolean;
+  },
 ): PayFundsFailure | undefined {
-  const parent = useLocalTransaction(item);
-  const formatFiat = useFiatFormatter({ currency: PAY_FIAT_CURRENCY });
-  const totalFiat = payTotalFiat
-    ? formatFiat(new BigNumber(payTotalFiat))
-    : undefined;
+  const enabled = !skip;
+  const parent = useActivityLocalTransaction(item, enabled);
+  const formatFiat = useFiatFormatter({
+    currency: PAY_FIAT_CURRENCY,
+    fractionDigits: ACTIVITY_FIAT_FRACTION_DIGITS,
+  });
+
+  const rowFailed =
+    enabled &&
+    (item.status === 'failed' ||
+      item.status === 'cancelled' ||
+      hasFailed(parent));
 
   const legIds = useMemo(
-    () => parent?.requiredTransactionIds ?? [],
-    [parent?.requiredTransactionIds],
+    () =>
+      rowFailed ? (parent?.requiredTransactionIds ?? NO_LEG_IDS) : NO_LEG_IDS,
+    [rowFailed, parent?.requiredTransactionIds],
   );
 
-  const legs = useSelector((state: RootState) =>
-    legIds.length ? selectTransactionsByIds(state, legIds) : NO_LEGS,
+  const legs = useSelector(
+    (state: RootState) =>
+      legIds.length ? selectTransactionsByIds(state, legIds) : NO_LEGS,
+    shallowEqual,
   );
 
-  // Bridge history is keyed by leg id, so it says nothing about a row with no
-  // legs. Skipping it then also keeps this hook off the account-group selector
-  // chain for rows that cannot use it.
   const bridgeHistory = useSelector((state: RootState) =>
-    legs.length ? selectBridgeHistoryForAccount(state) : NO_BRIDGE_HISTORY,
+    legIds.length ? selectBridgeHistoryForAccount(state) : NO_BRIDGE_HISTORY,
   );
+
+  const targetAmount = payTargetFiat ? new BigNumber(payTargetFiat) : undefined;
+  const totalFiat =
+    rowFailed && targetAmount?.isFinite() && targetAmount.gt(0)
+      ? formatFiat(targetAmount)
+      : undefined;
 
   return useMemo(() => {
-    const isFailedRow = item.status === 'failed' || hasFailed(parent);
-    if (!isFailedRow) {
+    if (!rowFailed) {
       return undefined;
+    }
+
+    if (item.status === 'cancelled') {
+      const shape: PayFundsFailureShape = 'cancelled';
+      return { shape, message: getMessage(shape, destination, totalFiat) };
     }
 
     if (!parent) {
@@ -241,12 +252,32 @@ export function usePayFundsFailure(
       return { shape, message: getMessage(shape, destination, totalFiat) };
     }
 
-    const bridgeStatusByLegId = new Map(
-      legs.map((leg) => [leg.id, bridgeHistory[leg.id]?.status?.status]),
-    );
+    const { shape, leg } = classify({
+      parent,
+      legs,
+      legIds,
+      bridgeHistory,
+      destination,
+    });
 
-    const shape = classify({ parent, legs, bridgeStatusByLegId });
+    const explorerTarget =
+      leg?.hash && leg.chainId
+        ? { chainId: toEvmCaipChainId(leg.chainId), hash: leg.hash }
+        : undefined;
 
-    return { shape, message: getMessage(shape, destination, totalFiat) };
-  }, [bridgeHistory, destination, item.status, legs, parent, totalFiat]);
+    return {
+      shape,
+      message: getMessage(shape, destination, totalFiat),
+      ...(explorerTarget ? { explorerTarget } : {}),
+    };
+  }, [
+    bridgeHistory,
+    destination,
+    item.status,
+    legIds,
+    legs,
+    parent,
+    rowFailed,
+    totalFiat,
+  ]);
 }

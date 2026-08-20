@@ -53,22 +53,40 @@ describe('PredictDetails.utils', () => {
       expect(steps[0].subtext).toBeDefined();
     });
 
-    it('marks the terminal step failed on failure', () => {
+    it('marks the terminal step failed when nothing was classified', () => {
       const steps = getPredictFundsSteps('failed', TS);
       expect(steps[0].status).toBe('completed');
       expect(steps[1].status).toBe('failed');
       expect(steps[1].subtext).toBe(strings('transaction.failed'));
     });
 
-    it('attaches the failure message to the failed step only', () => {
-      const steps = getPredictFundsSteps('failed', TS, 'Bridge did not land');
+    it('places a bridge failure on the bridge step', () => {
+      const steps = getPredictFundsSteps('failed', TS, {
+        shape: 'bridgeFailed',
+        message: 'Bridge did not land',
+      });
 
-      expect(steps[1].failureMessage).toBe('Bridge did not land');
-      expect(steps[0].failureMessage).toBeUndefined();
+      expect(steps[0].status).toBe('failed');
+      expect(steps[0].failureMessage).toBe('Bridge did not land');
+      expect(steps[1].status).toBe('upcoming');
+      expect(steps[1].subtext).toBeUndefined();
+    });
+
+    it('places a deposit failure on the terminal step', () => {
+      const steps = getPredictFundsSteps('failed', TS, {
+        shape: 'bridgedNotDeposited',
+        message: 'Funds are on Polygon',
+      });
+
+      expect(steps[0].status).toBe('completed');
+      expect(steps[1].status).toBe('failed');
+      expect(steps[1].failureMessage).toBe('Funds are on Polygon');
     });
 
     it('leaves the failure message unset when none was classified', () => {
-      expect(getPredictFundsSteps('failed', TS)[1].failureMessage).toBeUndefined();
+      const steps = getPredictFundsSteps('failed', TS);
+
+      expect(steps[1].failureMessage).toBeUndefined();
     });
 
     it('marks the terminal step pending otherwise', () => {

@@ -43,6 +43,7 @@ export interface ActivityDetailsStep {
   subtext?: string;
   status: ActivityDetailsStepStatus;
   failureMessage?: string;
+  failureExplorerTarget?: ActivityDetailsStepExplorerTarget;
 }
 
 export interface ActivityDetailsStepExplorerTarget {
@@ -106,11 +107,15 @@ export function ActivityDetailsStepTimeline({
     explorerTarget?.hash,
   );
   const openExplorer = useOpenExplorer(explorerLink);
-  const [failureShown, setFailureShown] = React.useState<string | undefined>();
+  const [failureIndex, setFailureIndex] = React.useState<number | undefined>();
   const dismissFailure = React.useCallback(
-    () => setFailureShown(undefined),
+    () => setFailureIndex(undefined),
     [],
   );
+  const shownFailureStep =
+    failureIndex !== undefined && steps[failureIndex]?.status === 'failed'
+      ? steps[failureIndex]
+      : undefined;
 
   return (
     <ActivityDetailSection>
@@ -132,9 +137,7 @@ export function ActivityDetailsStepTimeline({
               key={`${step.label}-${index}`}
               disabled={!failureMessage && !explorerLink}
               onPress={
-                failureMessage
-                  ? () => setFailureShown(failureMessage)
-                  : openExplorer
+                failureMessage ? () => setFailureIndex(index) : openExplorer
               }
               testID={getActivityDetailsStepTestId(index)}
             >
@@ -188,11 +191,15 @@ export function ActivityDetailsStepTimeline({
           );
         })}
       </Box>
-      {failureShown ? (
+      {shownFailureStep?.failureMessage ? (
         <ActivityDetailsStepFailureSheet
-          chainId={explorerTarget?.chainId}
-          hash={explorerTarget?.hash}
-          message={failureShown}
+          chainId={
+            (shownFailureStep.failureExplorerTarget ?? explorerTarget)?.chainId
+          }
+          hash={
+            (shownFailureStep.failureExplorerTarget ?? explorerTarget)?.hash
+          }
+          message={shownFailureStep.failureMessage}
           onClose={dismissFailure}
         />
       ) : null}

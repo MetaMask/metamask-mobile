@@ -53,41 +53,38 @@ describe('ActivityDetailsPerpsStepTimeline', () => {
   it.each([
     ['deposit' as const, 3],
     ['withdrawal' as const, 2],
-  ])(
-    'marks the failed %s step with the cross and leaves the rest as dots',
-    (type, failedIndex) => {
-      const { getByTestId, queryByTestId } = renderWithProvider(
-        <ActivityDetailsPerpsStepTimeline
-          explorerTarget={{ chainId: 'eip155:42161', hash: '0xdeposit' }}
-          status="failed"
-          timestamp={1_765_361_640_000}
-          type={type}
-        />,
-      );
-
-      expect(
-        getByTestId(getActivityDetailsStepFailureTestId(failedIndex)),
-      ).toBeDefined();
-
-      for (let index = 0; index < failedIndex; index += 1) {
-        expect(
-          queryByTestId(getActivityDetailsStepFailureTestId(index)),
-        ).toBeNull();
-      }
-    },
-  );
-
-  it('keeps the failed step row linked to the block explorer', () => {
-    const { getByTestId } = renderWithProvider(
+  ])('marks the failed %s step with the cross', (type, failedIndex) => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
       <ActivityDetailsPerpsStepTimeline
         explorerTarget={{ chainId: 'eip155:42161', hash: '0xdeposit' }}
         status="failed"
         timestamp={1_765_361_640_000}
-        type="deposit"
+        type={type}
       />,
     );
 
-    fireEvent.press(getByTestId(getActivityDetailsStepTestId(3)));
+    expect(
+      getByTestId(getActivityDetailsStepFailureTestId(failedIndex)),
+    ).toBeOnTheScreen();
+
+    for (let index = 0; index < failedIndex; index += 1) {
+      expect(
+        queryByTestId(getActivityDetailsStepFailureTestId(index)),
+      ).not.toBeOnTheScreen();
+    }
+  });
+
+  it('keeps a failed withdrawal step linked to the block explorer', () => {
+    const { getByTestId } = renderWithProvider(
+      <ActivityDetailsPerpsStepTimeline
+        explorerTarget={{ chainId: 'eip155:42161', hash: '0xwithdraw' }}
+        status="failed"
+        timestamp={1_765_361_640_000}
+        type="withdrawal"
+      />,
+    );
+
+    fireEvent.press(getByTestId(getActivityDetailsStepTestId(2)));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
@@ -96,6 +93,57 @@ describe('ActivityDetailsPerpsStepTimeline', () => {
         title: 'Arbiscan',
       },
     });
+  });
+
+  it.each([
+    ['approvalFailed' as const, 0],
+    ['bridgeFailed' as const, 1],
+    ['bridgedNotDeposited' as const, 3],
+    ['notSubmitted' as const, 0],
+  ])('places the cross on the step %s names', (shape, expectedIndex) => {
+    const { getByTestId, queryByTestId, queryByText } = renderWithProvider(
+      <ActivityDetailsPerpsStepTimeline
+        explorerTarget={{ chainId: 'eip155:42161', hash: '0xdeposit' }}
+        failure={{ shape, message: 'Something specific happened.' }}
+        status="failed"
+        timestamp={1_765_361_640_000}
+        type="deposit"
+      />,
+    );
+
+    expect(
+      getByTestId(getActivityDetailsStepFailureTestId(expectedIndex)),
+    ).toBeOnTheScreen();
+    [0, 1, 2, 3]
+      .filter((index) => index !== expectedIndex)
+      .forEach((index) =>
+        expect(
+          queryByTestId(getActivityDetailsStepFailureTestId(index)),
+        ).not.toBeOnTheScreen(),
+      );
+    if (expectedIndex === 0) {
+      // No step completed, so no fabricated completion timestamps render.
+      expect(queryByText(/2025|2026/)).not.toBeOnTheScreen();
+    }
+  });
+
+  it('opens the sheet with the classified message from the failed step', () => {
+    const { getByTestId } = renderWithProvider(
+      <ActivityDetailsPerpsStepTimeline
+        explorerTarget={{ chainId: 'eip155:42161', hash: '0xdeposit' }}
+        failure={{
+          shape: 'bridgeFailed',
+          message: 'The bridge did not complete.',
+        }}
+        status="failed"
+        timestamp={1_765_361_640_000}
+        type="deposit"
+      />,
+    );
+
+    fireEvent.press(getByTestId(getActivityDetailsStepTestId(1)));
+
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('does not render step explorer icons when no explorer link is available', () => {
@@ -109,6 +157,8 @@ describe('ActivityDetailsPerpsStepTimeline', () => {
       />,
     );
 
-    expect(queryByTestId(getActivityDetailsStepIconTestId(0))).toBeNull();
+    expect(
+      queryByTestId(getActivityDetailsStepIconTestId(0)),
+    ).not.toBeOnTheScreen();
   });
 });

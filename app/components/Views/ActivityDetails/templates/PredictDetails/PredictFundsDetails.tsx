@@ -17,6 +17,8 @@ import {
   useFormatActivityTokenAmount,
 } from '../../components';
 import { usePayFundsFailure } from '../../hooks/usePayFundsFailure';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared Pay constants; route-isolation backlog
+import { POLYGON_USDCE } from '../../../confirmations/constants/predict';
 import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
 import {
   getPredictFundsCtaLabel,
@@ -29,7 +31,11 @@ import {
 } from './PredictDetails.utils';
 import { useOpenPredictHome } from './useOpenPredictHome';
 
-const PREDICT_FUNDS_DESTINATION = { network: 'Polygon', symbol: 'USDC.e' };
+const PREDICT_FUNDS_DESTINATION = {
+  network: 'Polygon',
+  symbol: POLYGON_USDCE.symbol,
+  assetAddress: POLYGON_USDCE.address,
+};
 
 function PredictFundsMetadata({
   item,
@@ -75,14 +81,16 @@ export function PredictFundsDetails({
   const pay = useActivityPayFiat(item);
   const failure = usePayFundsFailure(item, {
     destination: PREDICT_FUNDS_DESTINATION,
-    payTotalFiat: pay?.totalFiat,
+    payTargetFiat: pay?.targetFiat,
+    skip: !isDeposit,
   });
 
   const steps =
     isDeposit && item.status !== 'cancelled'
-      ? getPredictFundsSteps(item.status, item.timestamp, failure?.message)
+      ? getPredictFundsSteps(item.status, item.timestamp, failure)
       : undefined;
-  const completedCount = item.status === 'success' ? 2 : 1;
+  const completedCount =
+    steps?.filter((step) => step.status === 'completed').length ?? 0;
   const showPaySection = isDeposit && Boolean(pay);
   const showDetails = showPaySection || Boolean(steps);
 

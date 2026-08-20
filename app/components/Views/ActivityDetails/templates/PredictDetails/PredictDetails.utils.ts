@@ -5,6 +5,7 @@ import {
   getPredictFundsStepLabels,
 } from './PredictDetails.types';
 import type { ActivityDetailsStep } from '../../components';
+import type { PayFundsFailure } from '../../hooks/usePayFundsFailure';
 
 const POLYMARKET_BASE_URL = 'https://polymarket.com';
 
@@ -24,10 +25,20 @@ export function getPolymarketActivityUrl(activity?: {
     : POLYMARKET_BASE_URL;
 }
 
+const PREDICT_FAILED_STEP_BY_SHAPE: Partial<
+  Record<PayFundsFailure['shape'], number>
+> = {
+  approvalFailed: 0,
+  notSubmitted: 0,
+  cancelled: 0,
+  bridgeFailed: 0,
+  bridgedNotDeposited: 1,
+};
+
 export function getPredictFundsSteps(
   status: ActivityListItem['status'],
   timestamp: number,
-  failureMessage?: string,
+  failure?: PayFundsFailure,
 ): ActivityDetailsStep[] {
   const labels = getPredictFundsStepLabels();
   const completedTimestamp = formatPredictDate(timestamp);
@@ -40,19 +51,32 @@ export function getPredictFundsSteps(
     }));
   }
 
-  return labels.map((label, index) => {
-    const isTerminal = index === labels.length - 1;
-    if (!isTerminal) {
-      return { label, subtext: completedTimestamp, status: 'completed' };
-    }
+  const failedIndex =
+    status === 'failed'
+      ? (PREDICT_FAILED_STEP_BY_SHAPE[failure?.shape ?? 'unknown'] ??
+        labels.length - 1)
+      : undefined;
 
-    if (status === 'failed') {
+  return labels.map((label, index) => {
+    if (index === failedIndex) {
       return {
         label,
         subtext: strings('transaction.failed'),
         status: 'failed',
-        failureMessage,
+        failureMessage: failure?.message,
+        failureExplorerTarget: failure?.explorerTarget,
       };
+    }
+
+    if (failedIndex !== undefined) {
+      return index < failedIndex
+        ? { label, subtext: completedTimestamp, status: 'completed' }
+        : { label, status: 'upcoming' };
+    }
+
+    const isTerminal = index === labels.length - 1;
+    if (!isTerminal) {
+      return { label, subtext: completedTimestamp, status: 'completed' };
     }
 
     return {
@@ -77,7 +101,7 @@ export function getPredictFundsStepTitle(
   if (status === 'failed') {
     return strings('predict.transactions.steps.title_failed', {
       completed: completedCount,
-      failed: totalSteps - completedCount,
+      failed: 1,
     });
   }
 
