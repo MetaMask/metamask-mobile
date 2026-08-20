@@ -6,12 +6,17 @@ import {
   preferLocalOrApiActivityItem,
 } from '../../../../util/activity-adapters';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list's data sources; route-isolation backlog */
 import { useLocalActivityItems } from '../../ActivityList/hooks/useLocalActivityItems';
 import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
+import {
+  findBridgeHistoryItemBySrcTxHash,
+  useBridgeHistoryItemBySrcTxHash,
+} from '../../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 
 /**
  * Re-resolves a single {@link ActivityListItem} by its transaction identifier
@@ -159,6 +164,8 @@ export function useActivityDetailsItem(
   const nonEvmState = useSelector(
     selectNonEvmTransactionsForSelectedAccountGroup,
   );
+  const accounts = useSelector(selectSelectedAccountGroupInternalAccounts);
+  const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
 
   const confirmedEvmItems = useMemo<ActivityListItem[]>(
     () => evmTransactions?.pages.flatMap((page) => page.data) ?? [],
@@ -166,8 +173,16 @@ export function useActivityDetailsItem(
   );
 
   const nonEvmItems = useMemo<ActivityListItem[]>(
-    () => mapNonEvmTransactions(nonEvmState?.transactions ?? []),
-    [nonEvmState?.transactions],
+    () =>
+      mapNonEvmTransactions(
+        nonEvmState?.transactions ?? [],
+        (txId) =>
+          findBridgeHistoryItemBySrcTxHash(bridgeHistoryItemsBySrcTxHash, txId),
+        (transaction) =>
+          accounts.find((account) => account.id === transaction.account)
+            ?.address,
+      ),
+    [nonEvmState?.transactions, bridgeHistoryItemsBySrcTxHash, accounts],
   );
 
   const chainedLocalItems = useMemo(

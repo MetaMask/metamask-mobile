@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
+import { useSelector } from 'react-redux';
 import {
   mapRampOrder,
   type ActivityListItem,
@@ -9,6 +10,7 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { useActivityDetailsItem } from './useActivityDetailsItem';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): mirrors the resolver hook's data sources; route-isolation backlog */
 import { useLocalActivityItems } from '../../ActivityList/hooks/useLocalActivityItems';
@@ -18,13 +20,19 @@ import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformation
 /* eslint-enable import-x/no-restricted-paths */
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => ({ transactions: [] })),
+  useSelector: jest.fn(),
 }));
 jest.mock('../../ActivityList/hooks/useLocalActivityItems');
 jest.mock('../../ActivityList/hooks/useRampActivityItems');
 jest.mock('../../ActivityList/useTransactionsQuery');
 jest.mock('../../ActivityList/helpers/transformations', () => ({
   mapNonEvmTransactions: jest.fn(() => []),
+}));
+jest.mock('../../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash', () => ({
+  useBridgeHistoryItemBySrcTxHash: jest.fn(() => ({
+    bridgeHistoryItemsBySrcTxHash: {},
+  })),
+  findBridgeHistoryItemBySrcTxHash: jest.fn(),
 }));
 
 const useLocalActivityItemsMock = jest.mocked(useLocalActivityItems);
@@ -82,7 +90,15 @@ function setSources({
 }
 
 describe('useActivityDetailsItem', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(useSelector).mockImplementation((selector) => {
+      if (selector === selectSelectedAccountGroupInternalAccounts) {
+        return [];
+      }
+      return { transactions: [] };
+    });
+  });
 
   it('returns undefined when no identifier is provided', () => {
     setSources({});
@@ -104,6 +120,31 @@ describe('useActivityDetailsItem', () => {
 
     const { result } = renderHook(() => useActivityDetailsItem('0xsol'));
     expect(result.current).toBe(nonEvm);
+  });
+
+  it('forwards bridge history and subject address into non-EVM mapping', () => {
+    const transaction = { id: 'sol-tx', account: 'account-1' };
+    const subjectAddress = 'So11111111111111111111111111111111111111112';
+    jest.mocked(useSelector).mockImplementation((selector) => {
+      if (selector === selectSelectedAccountGroupInternalAccounts) {
+        return [{ id: 'account-1', address: subjectAddress }];
+      }
+      return { transactions: [transaction] };
+    });
+    mapNonEvmTransactionsMock.mockReturnValue([
+      makeItem({ type: 'receive', hash: 'sol-tx' }),
+    ]);
+
+    renderHook(() => useActivityDetailsItem('sol-tx'));
+
+    expect(mapNonEvmTransactionsMock).toHaveBeenCalledWith(
+      [transaction],
+      expect.any(Function),
+      expect.any(Function),
+    );
+    const getSubjectAddress = mapNonEvmTransactionsMock.mock
+      .calls[0][2] as (tx: { account: string }) => string | undefined;
+    expect(getSubjectAddress(transaction)).toBe(subjectAddress);
   });
 
   it('prefers the API item over a generic local contractInteraction', () => {
