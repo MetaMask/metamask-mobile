@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     overflow: 'visible',
   },
   labelActive: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
   },
