@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -16,6 +16,7 @@ const CancelMembership = () => {
   const tw = useTailwind();
   const [step, setStep] = useState<CancelStep>('survey');
   const [selectedReasonId, setSelectedReasonId] = useState<string | null>(null);
+  const isNavigatingRef = useRef(false);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -34,6 +35,8 @@ const CancelMembership = () => {
   }, []);
 
   const handleDone = useCallback(() => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
     navigation.navigate(Routes.PRO_HUB.ROOT, {
       source: 'pro_subscription_cancellation_success',
     });
@@ -53,6 +56,7 @@ const CancelMembership = () => {
       return undefined;
     }
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
+      if (isNavigatingRef.current) return;
       e.preventDefault();
       handleDone();
     });
