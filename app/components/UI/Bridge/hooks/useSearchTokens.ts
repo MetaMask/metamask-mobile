@@ -21,6 +21,8 @@ interface SearchTokensResponse {
   };
 }
 
+type SearchTraceResult = 'success' | 'error';
+
 interface UseSearchTokensParams {
   chainIds: CaipChainId[];
   includeAssets: IncludeAsset[];
@@ -36,6 +38,21 @@ interface UseSearchTokensResult {
   debouncedSearch: ReturnType<typeof debounce>;
   resetSearch: () => void;
 }
+
+const getBucket = (
+  value: number,
+  thresholds: readonly number[],
+  labels: readonly string[],
+): string => {
+  const index = thresholds.findIndex((threshold) => value <= threshold);
+  return labels[index === -1 ? labels.length - 1 : index];
+};
+
+const getQueryLengthBucket = (length: number): string =>
+  getBucket(length, [2, 5, 10], ['0-2', '3-5', '6-10', '11+']);
+
+const getResultCountBucket = (count: number): string =>
+  getBucket(count, [0, 5, 20], ['0', '1-5', '6-20', '21+']);
 
 /**
  * Custom hook to search tokens via the Bridge API
@@ -107,6 +124,8 @@ export const useSearchTokens = ({
       }
 
       let traceId: string | undefined;
+      let traceResult: SearchTraceResult = 'success';
+      let resultCount = 0;
 
       try {
         const requestBody: {
@@ -127,11 +146,16 @@ export const useSearchTokens = ({
           requestBody.includeAssets = includeAssetsRef.current;
         }
 
-        traceId = isPagination ? undefined : uuidv4();
-        if (traceId) {
+        if (!isPagination) {
+          traceId = uuidv4();
           trace({
             name: TraceName.SwapTokenSearch,
             id: traceId,
+            data: {
+              chain_scope:
+                chainIdsRef.current.length > 1 ? 'multi_chain' : 'single_chain',
+              query_length_bucket: getQueryLengthBucket(query.trim().length),
+            },
             startTime: Date.now(),
           });
         }
@@ -161,6 +185,7 @@ export const useSearchTokens = ({
         const searchResultData: PopularToken[] = Array.isArray(searchData.data)
           ? searchData.data
           : [];
+        resultCount = searchResultData.length;
 
         // Store the cursor for pagination if there's a next page
         setSearchCursor(
@@ -180,6 +205,7 @@ export const useSearchTokens = ({
           setSearchResults(searchResultData);
         }
       } catch (error) {
+        traceResult = 'error';
         console.error('Error searching tokens:', error);
         // Reset search state on error only if it's not a pagination request
         if (!isPagination) {
@@ -191,6 +217,10 @@ export const useSearchTokens = ({
             name: TraceName.SwapTokenSearch,
             id: traceId,
             timestamp: Date.now(),
+            data: {
+              result: traceResult,
+              result_count_bucket: getResultCountBucket(resultCount),
+            },
           });
         }
 
@@ -201,7 +231,7 @@ export const useSearchTokens = ({
         }
       }
     },
-    [resetSearch, bearerToken],
+    [bearerToken, resetSearch],
   );
 
   // Create debounced search function

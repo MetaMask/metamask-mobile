@@ -154,14 +154,14 @@ describe('useBridgeQuoteRequest', () => {
       state: testState,
     });
 
-    await act(async () => {
-      await result.current();
+    act(() => {
+      result.current();
       jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
     expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
   });
 
-  it('starts the quote trace after the debounce delay', async () => {
+  it('starts the quote trace before the debounce delay', async () => {
     const testState = createBridgeTestState();
 
     const { result } = renderHookWithProvider(() => useBridgeQuoteRequest(), {
@@ -170,20 +170,23 @@ describe('useBridgeQuoteRequest', () => {
 
     act(() => {
       result.current();
-      jest.advanceTimersByTime(DEBOUNCE_WAIT - 1);
-    });
-
-    expect(mockTrace).not.toHaveBeenCalled();
-
-    await act(async () => {
-      jest.advanceTimersByTime(1);
     });
 
     expect(mockTrace).toHaveBeenCalledWith({
       name: TraceName.SwapQuoteFetch,
-      data: { isRefresh: false },
+      data: expect.objectContaining({
+        isRefresh: false,
+        request_id: expect.any(String),
+      }),
+      id: expect.any(String),
       startTime: expect.any(Number),
     });
+
+    await act(async () => {
+      jest.advanceTimersByTime(DEBOUNCE_WAIT);
+    });
+
+    expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
   });
 
   it('marks manually requested quote refreshes in the quote trace', async () => {
@@ -193,14 +196,18 @@ describe('useBridgeQuoteRequest', () => {
       state: testState,
     });
 
-    await act(async () => {
+    act(() => {
       result.current({ isRefresh: true });
       jest.advanceTimersByTime(DEBOUNCE_WAIT);
     });
 
     expect(mockTrace).toHaveBeenCalledWith({
       name: TraceName.SwapQuoteFetch,
-      data: { isRefresh: true },
+      data: expect.objectContaining({
+        isRefresh: true,
+        request_id: expect.any(String),
+      }),
+      id: expect.any(String),
       startTime: expect.any(Number),
     });
   });
@@ -224,8 +231,9 @@ describe('useBridgeQuoteRequest', () => {
 
     expect(mockEndTrace).toHaveBeenCalledWith({
       name: TraceName.SwapQuoteFetch,
+      id: expect.any(String),
       timestamp: expect.any(Number),
-      data: { success: false },
+      data: { result: 'error' },
     });
   });
 

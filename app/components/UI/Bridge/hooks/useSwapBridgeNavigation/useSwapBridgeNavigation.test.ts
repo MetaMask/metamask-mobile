@@ -132,6 +132,10 @@ jest.mock('../../utils/tokenUtils', () => ({
   getNativeSourceToken: jest.fn(),
 }));
 
+jest.mock('../../utils/swapBridgePageLoadTrace', () => ({
+  startSwapBridgePageLoadTrace: jest.fn((params: object) => params),
+}));
+
 const mockFetchPopularTokens = jest.fn().mockResolvedValue(undefined);
 jest.mock('../useFetchPopularTokens', () => ({
   useFetchPopularTokens: jest.fn(
