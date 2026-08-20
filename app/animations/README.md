@@ -9,6 +9,31 @@ A `.riv` file is a binary runtime export. Author and inspect it in the
 [Rive Editor](https://rive.app/), then export it with **Publish** or
 **Export > For runtime**. Do not try to edit the exported file as text.
 
+## At a glance
+
+> **Use `rive-react-native`, not `@rive-app/react-native`.** The repository
+> currently uses Rive's legacy React Native runtime, so examples from the latest
+> upstream documentation are not directly compatible.
+
+- Import bundled `.riv` files statically; shared assets belong in
+  `app/animations/`, while feature-owned assets should follow their neighboring
+  convention.
+- Prefer View Model data binding for new integrations. Keep runtime-facing
+  artboard, state machine, input, trigger, and binding names together in code.
+- Always provide a non-Rive fallback for essential content and handle native
+  errors, Reduce Motion, timeouts, and detached refs.
+- Jest validates the React component contract only. It cannot inspect the
+  binary, render the animation, or verify runtime-facing names.
+- Validate every changed `.riv` file in the Rive Editor and on both iOS and
+  Android before merging.
+
+Jump to [adding or updating a file](#add-or-update-a-file),
+[rendering a bundled file](#render-a-bundled-file),
+[data binding](#use-data-binding),
+[fallbacks](#error-handling-and-fallbacks),
+[unit tests](#unit-tests), or the
+[manual test checklist](#manual-test-checklist).
+
 ## Runtime used by this repository
 
 MetaMask Mobile currently uses the legacy `rive-react-native` package. Rive's
