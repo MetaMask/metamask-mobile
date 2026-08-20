@@ -1,11 +1,13 @@
 import React from 'react';
-import { fireEvent, act, screen } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import OrderContent from './OrderContent';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
 import Clipboard from '@react-native-clipboard/clipboard';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
+import imageIcons from '../../../../../images/image-icons';
+import { AVATARTOKEN_IMAGE_TESTID } from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken.constants';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 
 type RampsOrderWithPaymentDetails = RampsOrder & {
@@ -22,7 +24,10 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate, goBack: jest.fn() }),
 }));
 
+// Only `getNetworkImageSource` is stubbed: `toRampsOrderCaipChainId` resolves
+// decimal chain ids through the real `getDecimalChainId` from this module.
 jest.mock('../../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../../util/networks'),
   getNetworkImageSource: jest.fn(() => ({
     uri: 'https://example.com/eth.png',
   })),
@@ -135,12 +140,10 @@ describe('OrderContent', () => {
     renderOrder(mockOrder);
     fireEvent.press(screen.getByText('View on Transak'));
 
-    await act(async () => {
-      // wait for async InAppBrowser calls
-    });
-
-    expect(InAppBrowser.open).toHaveBeenCalledWith(
-      'https://transak.com/order/abc',
+    await waitFor(() =>
+      expect(InAppBrowser.open).toHaveBeenCalledWith(
+        'https://transak.com/order/abc',
+      ),
     );
   });
 
@@ -150,13 +153,11 @@ describe('OrderContent', () => {
     renderOrder(mockOrder);
     fireEvent.press(screen.getByText('View on Transak'));
 
-    await act(async () => {
-      // wait for async calls
-    });
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'Webview',
-      expect.objectContaining({ screen: 'SimpleWebview' }),
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Webview',
+        expect.objectContaining({ screen: 'SimpleWebview' }),
+      ),
     );
   });
 
@@ -361,94 +362,116 @@ describe('OrderContent', () => {
 
   describe('token icon and network badge', () => {
     // The V2 orders API is inconsistent about `network`: the declared type is
-    // `{ chainId, name }` but providers such as Sardine return a bare decimal
-    // string. The provider `iconUrl` is equally unreliable, pointing at a
-    // per-environment host that only resolves in production.
-    const usdcAssetId =
+    // `{ chainId, name }`, but providers such as Sardine send a bare decimal
+    // string and Coinbase sends an unparseable network name. The provider
+    // `iconUrl` is equally unreliable, pointing at a per-environment host that
+    // only resolves in production.
+    //
+    // Each chain-id case below puts a different chain on every resolver source
+    // (network -> cryptoCurrency.chainId -> assetId), so a test can only pass
+    // when the branch it names is the one that produced the value.
+    const OPTIMISM_CAIP = 'eip155:10';
+    const mainnetAssetId =
       'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
-    const usdcCdnUrl =
+    const mainnetCdnUrl =
       'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png';
+    const providerIconUrl =
+      'https://dev-static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b8.png';
 
-    function makeUsdcOrder(overrides: Partial<RampsOrder>): RampsOrder {
-      return {
+    function renderChainOrder(network: unknown, chainId?: string) {
+      renderOrder({
         ...mockOrder,
+        network: network as RampsOrder['network'],
         cryptoCurrency: {
           symbol: 'USDC',
           decimals: 6,
-          assetId: usdcAssetId,
-          chainId: 'eip155:1',
-          iconUrl:
-            'https://dev-static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b8.png',
+          assetId: mainnetAssetId,
+          chainId,
+          iconUrl: providerIconUrl,
         },
-        ...overrides,
-      };
+      });
     }
 
+    it('resolves the network badge from the network object', () => {
+      renderChainOrder({ chainId: '0x89', name: 'Polygon' }, OPTIMISM_CAIP);
+
+      expect(mockGetNetworkImageSource).toHaveBeenCalledWith({
+        chainId: 'eip155:137',
+      });
+    });
+
     it('resolves the network badge when network is a bare decimal string', () => {
-      renderOrder(
-        makeUsdcOrder({ network: '1' as unknown as RampsOrder['network'] }),
-      );
+      renderChainOrder('137', OPTIMISM_CAIP);
+
+      expect(mockGetNetworkImageSource).toHaveBeenCalledWith({
+        chainId: 'eip155:137',
+      });
+    });
+
+    it('falls back to cryptoCurrency.chainId when network is an unparseable name', () => {
+      renderChainOrder('ethereum', OPTIMISM_CAIP);
+
+      expect(mockGetNetworkImageSource).toHaveBeenCalledWith({
+        chainId: OPTIMISM_CAIP,
+      });
+    });
+
+    it('falls back to the asset id when network and chainId are missing', () => {
+      renderChainOrder(undefined, undefined);
 
       expect(mockGetNetworkImageSource).toHaveBeenCalledWith({
         chainId: 'eip155:1',
       });
     });
 
-    it('falls back to cryptoCurrency.chainId when network is missing', () => {
-      renderOrder(
-        makeUsdcOrder({
-          network: undefined as unknown as RampsOrder['network'],
-        }),
-      );
-
-      expect(mockGetNetworkImageSource).toHaveBeenCalledWith({
-        chainId: 'eip155:1',
+    it('renders no network badge when no source yields a chain id', () => {
+      renderOrder({
+        ...mockOrder,
+        network: undefined as unknown as RampsOrder['network'],
+        cryptoCurrency: { symbol: 'USDC', iconUrl: providerIconUrl },
       });
+
+      expect(mockGetNetworkImageSource).not.toHaveBeenCalled();
     });
 
-    it('prefers the bundled icon over the provider iconUrl for a known symbol', () => {
-      renderOrder(
-        makeUsdcOrder({ network: '1' as unknown as RampsOrder['network'] }),
-      );
+    it('prefers the bundled icon over the asset id CDN url for a known symbol', () => {
+      renderChainOrder('1', 'eip155:1');
 
-      // `imageIcons` carries a bundled USDC asset, so no remote url is used.
-      expect(JSON.stringify(screen.toJSON())).not.toContain(
-        'dev-static.cx.metamask.io',
+      // `imageIcons` carries a bundled USDC asset, so neither remote url is used.
+      expect(screen.getByTestId(AVATARTOKEN_IMAGE_TESTID).props.source).toBe(
+        imageIcons.USDC,
       );
     });
 
     it('renders the token icon from the asset id CDN for an unbundled symbol', () => {
-      renderOrder(
-        makeUsdcOrder({
-          network: '1' as unknown as RampsOrder['network'],
-          cryptoCurrency: {
-            symbol: 'CROSSMINTTEST',
-            decimals: 6,
-            assetId: usdcAssetId,
-            iconUrl:
-              'https://dev-static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b8.png',
-          },
-        }),
-      );
+      renderOrder({
+        ...mockOrder,
+        cryptoCurrency: {
+          symbol: 'CROSSMINTTEST',
+          decimals: 6,
+          assetId: mainnetAssetId,
+          chainId: 'eip155:1',
+          iconUrl: providerIconUrl,
+        },
+      });
 
-      const tree = JSON.stringify(screen.toJSON());
-      expect(tree).toContain(usdcCdnUrl);
-      expect(tree).not.toContain('dev-static.cx.metamask.io');
+      expect(
+        screen.getByTestId(AVATARTOKEN_IMAGE_TESTID).props.source,
+      ).toStrictEqual({ uri: mainnetCdnUrl });
     });
 
     it('falls back to the provider iconUrl when the order has no asset id', () => {
-      renderOrder(
-        makeUsdcOrder({
-          cryptoCurrency: {
-            symbol: 'XYZ',
-            iconUrl: 'https://provider.example/xyz.png',
-          },
-        }),
-      );
+      renderOrder({
+        ...mockOrder,
+        cryptoCurrency: {
+          symbol: 'XYZ',
+          iconUrl: 'https://provider.example/xyz.png',
+        },
+      });
 
-      expect(JSON.stringify(screen.toJSON())).toContain(
-        'https://provider.example/xyz.png',
-      );
+      expect(
+        screen.getByTestId(AVATARTOKEN_IMAGE_TESTID).props.source,
+      ).toStrictEqual({ uri: 'https://provider.example/xyz.png' });
     });
   });
 
