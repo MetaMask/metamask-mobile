@@ -1741,6 +1741,26 @@ jobs:
         env:
           HAVE_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      # report-task.txt identifies this scan's Compute Engine task. The quality-gate
+      # job polls that task (and its analysisId) instead of the PR-level endpoint,
+      # which otherwise keeps serving the previous analysis for this PR number.
+      - name: Upload Sonar scanner metadata (Namespace)
+        if: ${{ always() && env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        continue-on-error: true
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: sonar-report-task
+          path: .scannerwork/report-task.txt
+          retention-days: 1
+      - name: Upload Sonar scanner metadata (current)
+        if: ${{ always() && env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonar-report-task
+          path: .scannerwork/report-task.txt
+          if-no-files-found: ignore
+          retention-days: 1
       - name: Require clean working directory
         shell: bash
         run: |
@@ -1778,12 +1798,23 @@ jobs:
       contents: read
       issues: read
       pull-requests: read
+      actions: read
     steps:
-      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+      # This job only curls GitHub and SonarCloud; a full repo checkout is unused.
+      - name: Download Sonar scanner metadata (Namespace)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-      - name: Checkout code
-        uses: actions/checkout@v6
+        continue-on-error: true
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: sonar-report-task
+          path: .scannerwork
+      - name: Download Sonar scanner metadata (current)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: sonar-report-task
+          path: .scannerwork
       - name: SonarCloud Quality Gate Status
         id: sonar-status
         env:
@@ -1804,12 +1835,26 @@ jobs:
             exit 1
           fi
 
-          # Bypass step if skip-sonar-cloud label is found. The `type == "array"`
-          # guard keeps a GitHub error payload (rate limit, 403) from aborting the
-          # job: an unreadable label list must not decide the quality gate.
-          LABELS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/labels" | \
-            jq -r 'if type == "array" then .[].name else empty end' 2>/dev/null || true)
+          # Bypass if skip-sonar-cloud is present. Retry the labels API: a single
+          # rate-limit/403 payload used to abort jq (exit 5) and, after that was
+          # guarded, would look like "no labels" and skip the bypass.
+          LABELS=""
+          for attempt in $(seq 1 5); do
+            LABELS_RAW=$(curl -sS -w "\n%{http_code}" \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/labels" || true)
+            HTTP_CODE=$(printf '%s\n' "$LABELS_RAW" | tail -n1)
+            BODY=$(printf '%s\n' "$LABELS_RAW" | sed '$d')
+            if [[ "$HTTP_CODE" == "200" ]] && jq -e 'type == "array"' >/dev/null 2>&1 <<< "$BODY"; then
+              LABELS=$(jq -r '.[].name' <<< "$BODY")
+              break
+            fi
+            echo "Labels API HTTP ${HTTP_CODE:-unknown} (attempt $attempt/5) did not return a label array."
+            if [[ $attempt -lt 5 ]]; then
+              sleep $((attempt * 2))
+            fi
+          done
 
           if grep -qx 'skip-sonar-cloud' <<< "$LABELS"; then
             echo "skip-sonar-cloud label found. Skipping SonarCloud Quality Gate check."
@@ -1817,18 +1862,82 @@ jobs:
           fi
 
           PROJECT_KEY="MetaMask_metamask-mobile"
-
-          # Poll until SonarCloud has finished ingesting the analysis. OK is final,
-          # but ERROR is only trusted once it survives several polls: right after the
-          # scan the API still serves the previous analysis for this PR number, so an
-          # immediate ERROR is frequently stale and flips to OK within ~2 minutes.
           MAX_ATTEMPTS=20
           SLEEP_INTERVAL=15
+
+          # Prefer this scan's Compute Engine task (report-task.txt) so we never
+          # accept a stale previous analysis for the same PR number.
+          REPORT_TASK=""
+          for candidate in .scannerwork/report-task.txt report-task.txt; do
+            if [[ -f "$candidate" ]]; then
+              REPORT_TASK="$candidate"
+              break
+            fi
+          done
+
+          if [[ -n "$REPORT_TASK" ]]; then
+            CE_TASK_URL=$(sed -n 's/^ceTaskUrl=//p' "$REPORT_TASK" | tr -d '\r')
+            if [[ -z "$CE_TASK_URL" ]]; then
+              echo "report-task.txt is missing ceTaskUrl; falling back to PR-level polling."
+            else
+              echo "Waiting for SonarCloud CE task: $CE_TASK_URL"
+              for i in $(seq 1 $MAX_ATTEMPTS); do
+                RESPONSE=$(curl -sS -u "$SONAR_TOKEN:" "$CE_TASK_URL" || true)
+                echo "SonarCloud CE task (attempt $i/$MAX_ATTEMPTS): $RESPONSE"
+                CE_STATUS=$(echo "$RESPONSE" | jq -r '.task.status // empty' 2>/dev/null || true)
+
+                if [[ "$CE_STATUS" == "SUCCESS" ]]; then
+                  ANALYSIS_ID=$(echo "$RESPONSE" | jq -r '.task.analysisId // empty' 2>/dev/null || true)
+                  if [[ -z "$ANALYSIS_ID" ]]; then
+                    echo "CE task succeeded but analysisId is missing."
+                    exit 1
+                  fi
+                  STATUS=""
+                  for qg_attempt in $(seq 1 3); do
+                    QG_RESPONSE=$(curl -sS -u "$SONAR_TOKEN:" \
+                      "https://sonarcloud.io/api/qualitygates/project_status?analysisId=$ANALYSIS_ID" || true)
+                    echo "Quality gate for analysis $ANALYSIS_ID (attempt $qg_attempt/3): $QG_RESPONSE"
+                    STATUS=$(echo "$QG_RESPONSE" | jq -r '.projectStatus.status // empty' 2>/dev/null || true)
+                    if [[ "$STATUS" == "OK" || "$STATUS" == "ERROR" ]]; then
+                      break
+                    fi
+                    if [[ $qg_attempt -lt 3 ]]; then
+                      sleep 5
+                    fi
+                  done
+                  if [[ "$STATUS" == "OK" ]]; then
+                    echo "Quality Gate passed."
+                    exit 0
+                  fi
+                  echo "Quality Gate failed."
+                  exit 1
+                elif [[ "$CE_STATUS" == "FAILED" || "$CE_STATUS" == "CANCELED" ]]; then
+                  echo "SonarCloud analysis task $CE_STATUS."
+                  exit 1
+                fi
+
+                echo "Analysis not finished (CE status: '${CE_STATUS:-empty}'). Retrying in ${SLEEP_INTERVAL}s..."
+                if [[ $i -lt $MAX_ATTEMPTS ]]; then
+                  sleep "$SLEEP_INTERVAL"
+                fi
+              done
+
+              echo "Could not determine Quality Gate status after $MAX_ATTEMPTS CE-task attempts."
+              exit 1
+            fi
+          else
+            echo "No report-task.txt artifact; falling back to PR-level quality-gate polling."
+          fi
+
+          # Fallback: poll until SonarCloud has finished ingesting the analysis.
+          # OK is final, but ERROR is only trusted once it survives several polls:
+          # right after the scan the PR endpoint frequently still serves the
+          # previous analysis for this PR number.
           ERROR_STREAK=0
           ERROR_STREAK_TO_FAIL=8
           for i in $(seq 1 $MAX_ATTEMPTS); do
-            RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
-              "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
+            RESPONSE=$(curl -sS -u "$SONAR_TOKEN:" \
+              "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER" || true)
             echo "SonarCloud API Response (attempt $i/$MAX_ATTEMPTS): $RESPONSE"
             STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status // empty' 2>/dev/null || true)
 
