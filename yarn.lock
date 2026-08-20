@@ -3493,7 +3493,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@exodus/bitcoin-wallet-standard@npm:^0.0.0":
+"@exodus/bitcoin-wallet-standard@npm:0.0.0":
   version: 0.0.0
   resolution: "@exodus/bitcoin-wallet-standard@npm:0.0.0"
   dependencies:
@@ -8048,17 +8048,15 @@ __metadata:
   linkType: hard
 
 "@metamask/bitcoin-wallet-standard@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@metamask/bitcoin-wallet-standard@npm:1.0.0"
+  version: 1.1.0
+  resolution: "@metamask/bitcoin-wallet-standard@npm:1.1.0"
   dependencies:
-    "@exodus/bitcoin-wallet-standard": "npm:^0.0.0"
-    "@metamask/multichain-api-client": "npm:^0.11.0"
-    "@wallet-standard/base": "npm:^1.1.0"
-    "@wallet-standard/features": "npm:^1.1.0"
-    "@wallet-standard/wallet": "npm:^1.1.0"
-    bs58: "npm:^6.0.0"
-    jsontokens: "npm:^4.0.1"
-  checksum: 10/c0484f16aa4e290a47eab7b6a17afd08028a7b1d3d684b17114865b39f53120ef587aa854567659f5fac520bd2b1a5acf0d88e5528a73ea957e2399a2cb05f03
+    "@exodus/bitcoin-wallet-standard": "npm:0.0.0"
+    "@metamask/multichain-api-client": "npm:0.12.0"
+    "@wallet-standard/base": "npm:1.1.0"
+    "@wallet-standard/features": "npm:1.1.0"
+    "@wallet-standard/wallet": "npm:1.1.0"
+  checksum: 10/d0d381259c0342e3c7993c773cbc99f42235678c2a3aa8522b8a1521b57092904940a8a4bd55158926e07f9f79588b6d29124b58d023d757e62bfee0adc4399a
   languageName: node
   linkType: hard
 
@@ -9368,6 +9366,13 @@ __metadata:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
   checksum: 10/43f554ee1e58d9700b7f5d47b3e194262d8f8192a6298f177fc29c670efc0c3f659f40b4fbedcfeb9a14b894e5d7d2b59c051d9222a899648e1923f362d83bd5
+  languageName: node
+  linkType: hard
+
+"@metamask/multichain-api-client@npm:0.12.0":
+  version: 0.12.0
+  resolution: "@metamask/multichain-api-client@npm:0.12.0"
+  checksum: 10/79f7b2e53cae25fb825a825650b98bbedf4d700b82b87a4df90c7e5ae62eb1aa8d3089fcdeaa66b104d737fe1ade93f202eae1b2599346599fccbc62d046a5fa
   languageName: node
   linkType: hard
 
@@ -20732,7 +20737,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wallet-standard/base@npm:^1.0.1, @wallet-standard/base@npm:^1.1.0":
+"@wallet-standard/base@npm:1.1.0, @wallet-standard/base@npm:^1.0.1, @wallet-standard/base@npm:^1.1.0":
   version: 1.1.0
   resolution: "@wallet-standard/base@npm:1.1.0"
   checksum: 10/11dbb8ed80566265916ab193ad5eab1585d55996781a88039d2bc4480428b1e778901b2dcff3e688dcac7de45e8a9272026f37f07f1e75168caff581906c5079
@@ -20764,7 +20769,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wallet-standard/features@npm:^1.0.3, @wallet-standard/features@npm:^1.1.0":
+"@wallet-standard/features@npm:1.1.0, @wallet-standard/features@npm:^1.0.3, @wallet-standard/features@npm:^1.1.0":
   version: 1.1.0
   resolution: "@wallet-standard/features@npm:1.1.0"
   dependencies:
@@ -20773,7 +20778,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wallet-standard/wallet@npm:^1.1.0":
+"@wallet-standard/wallet@npm:1.1.0, @wallet-standard/wallet@npm:^1.1.0":
   version: 1.1.0
   resolution: "@wallet-standard/wallet@npm:1.1.0"
   dependencies:
@@ -34299,7 +34304,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsontokens@npm:4.0.1, jsontokens@npm:^4.0.1":
+"jsontokens@npm:4.0.1":
   version: 4.0.1
   resolution: "jsontokens@npm:4.0.1"
   dependencies:
@@ -42397,12 +42402,12 @@ __metadata:
   linkType: hard
 
 "rive-react-native@npm:^9.8.0":
-  version: 9.8.3
-  resolution: "rive-react-native@npm:9.8.3"
+  version: 9.8.5
+  resolution: "rive-react-native@npm:9.8.5"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/b646d50dfa235965f7c28e0fc036a0f606469e54039ae89330124d2bc1bb7af5313e7c833cab826015ad9c5ae2e0c36ef60f15ae08fb8d564567d3b2f46ccd44
+  checksum: 10/67b47eb920405ed5e1bff4b28e819c86801bf51330feefdfea475992817fd92313837ea890528f097c510cc72ab85a6ba0490f9fa99f6bb18850ce5ba740d147
   languageName: node
   linkType: hard
 
