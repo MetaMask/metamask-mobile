@@ -3,6 +3,11 @@
 //
 
 #import <React/RCTBridgeModule.h>
+// RCTSetCustomNSURLSessionConfigurationProvider — used by E2ENativeAppProxy
+// (METAMASK_E2E builds only) to point RN's shared NSURLSession at the host
+// mock proxy. Harmless in production: E2ENativeAppProxy is an empty stub
+// when METAMASK_E2E is unset.
+#import <React/RCTHTTPRequestHandler.h>
 #import <NitroFetch/NitroAutoPrefetcher.h>
 
 // Firebase Messaging — exposes FIRMessaging to Swift (see AppDelegate.swift willPresent).

@@ -8,7 +8,10 @@ import {
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
 } from './Constants.ts';
-import { ACCOUNT_ACTIVITY_WS } from '../websocket/constants.ts';
+import {
+  ACCOUNT_ACTIVITY_WS,
+  SOLANA_INFURA_WS,
+} from '../websocket/constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
 
 jest.mock('./logger.ts', () => ({
@@ -470,6 +473,7 @@ describe('PortManager', () => {
         ResourceType.GANACHE,
         ResourceType.ANVIL,
         ResourceType.ACCOUNT_ACTIVITY_WS,
+        ResourceType.SOLANA_INFURA_WS,
       ];
 
       const allocatedPorts: Map<ResourceType, number> = new Map();
@@ -698,6 +702,7 @@ describe('PortManager', () => {
           [ResourceType.ANVIL, DEFAULT_ANVIL_PORT],
           [ResourceType.DAPP_SERVER, FALLBACK_DAPP_SERVER_PORT],
           [ResourceType.ACCOUNT_ACTIVITY_WS, ACCOUNT_ACTIVITY_WS.fallbackPort],
+          [ResourceType.SOLANA_INFURA_WS, SOLANA_INFURA_WS.fallbackPort],
         ]);
 
         for (const [resourceType, expectedPort] of expectedPorts.entries()) {
@@ -706,6 +711,23 @@ describe('PortManager', () => {
           expect(allocation.resourceType).toBe(resourceType);
         }
       });
+    });
+  });
+
+  describe('Solana Infura WS fallback port isolation', () => {
+    // MMConnect browser playground hardcodes localhost:8090. Fixture dapp
+    // HTTP translation also claims 8085–8184. Keep Solana outside both.
+    const MMCONNECT_PLAYGROUND_PORT = 8090;
+    const DAPP_FALLBACK_BAND_END = FALLBACK_DAPP_SERVER_PORT + 100;
+
+    it('does not collide with MMConnect playground or fixture dapp ports', () => {
+      expect(SOLANA_INFURA_WS.fallbackPort).not.toBe(MMCONNECT_PLAYGROUND_PORT);
+      expect(SOLANA_INFURA_WS.fallbackPort).not.toBe(
+        ACCOUNT_ACTIVITY_WS.fallbackPort,
+      );
+      expect(SOLANA_INFURA_WS.fallbackPort).toBeGreaterThanOrEqual(
+        DAPP_FALLBACK_BAND_END,
+      );
     });
   });
 });

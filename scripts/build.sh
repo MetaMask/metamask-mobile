@@ -332,9 +332,19 @@ generateIosBinary() {
 
 	echo "exportOptionsPlist: $exportOptionsPlist"
 	echo "Generating archive packages for $scheme in $configuration configuration"
+
+	# E2E builds compile in the native device-proxy support (E2ENativeAppProxy),
+	# which is excluded from all other binaries via the METAMASK_E2E Swift
+	# compilation condition.
+	local -a swiftConditionOverrides=()
+	if [ "$METAMASK_ENVIRONMENT" = "e2e" ]; then
+		swiftConditionOverrides=("SWIFT_ACTIVE_COMPILATION_CONDITIONS=\$(inherited) METAMASK_E2E")
+		echo "Enabling METAMASK_E2E Swift compilation condition for E2E build"
+	fi
+
 	if [ "$IS_SIM_BUILD" = "true" ]; then
     	echo "Binary build type: Simulator"
-		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build
+		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build "${swiftConditionOverrides[@]}"
 	fi
 	
 	if [ "$IS_DEVICE_BUILD" = "true" ] || [ "$IS_SIM_BUILD" != "true" ]; then
@@ -353,7 +363,7 @@ generateIosBinary() {
 			echo "Overriding signing: using development certificate and profile for Release archive"
 		fi
 
-		xcodebuild -workspace MetaMask.xcworkspace -scheme "$scheme" -configuration "$configuration" archive -archivePath "build/$scheme.xcarchive" -destination generic/platform=ios "${archiveOverrides[@]}"
+		xcodebuild -workspace MetaMask.xcworkspace -scheme "$scheme" -configuration "$configuration" archive -archivePath "build/$scheme.xcarchive" -destination generic/platform=ios "${archiveOverrides[@]}" "${swiftConditionOverrides[@]}"
 		echo "Generating ipa for $scheme"
 		xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
 	fi
@@ -384,6 +394,13 @@ generateAndroidBinary() {
 	local gradleLoggingFlags=""
 	# Optional Gradle init script used by Namespace remote build cache trials.
 	local -a gradleInitScriptArg=()
+	# E2E marker property — lets build.gradle assert that METAMASK_ENVIRONMENT
+	# actually reached the Gradle process (guards the E2E network security
+	# config swap against stale daemons / lost exports).
+	local metamaskE2EPropArg=""
+	if [ "$METAMASK_ENVIRONMENT" = "e2e" ]; then
+		metamaskE2EPropArg="-PmetamaskE2E=true"
+	fi
 
 	# Check if configuration is valid
 	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] ; then
@@ -431,7 +448,7 @@ generateAndroidBinary() {
 
 	# Generate Android APKs
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
-	./gradlew "${gradleInitScriptArg[@]}" $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg $gradleLoggingFlags $exUpdatesArgs
+	./gradlew "${gradleInitScriptArg[@]}" $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg $gradleLoggingFlags $exUpdatesArgs $metamaskE2EPropArg
 
 	# Only build the AAB for production (Play Store distribution).
 	# All non-prod environments (rc, beta, exp, test, e2e, dev) skip the AAB to
