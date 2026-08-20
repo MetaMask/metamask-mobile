@@ -8501,6 +8501,16 @@
         "history": "Order history appears here"
       }
     },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price",
+      "not_enough_gas": "Not enough gas",
+      "filled": "Filled",
+      "filled_at": "Filled at {{date}}",
+      "expired": "Expired",
+      "expired_after": "Expired after {{duration}}"
+    },
     "recurring": {
       "every": "Every",
       "repeat": "Repeat",
@@ -8517,7 +8527,11 @@
         "hour": "Hour",
         "day": "Day",
         "week": "Week"
-      }
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled",
+      "filled": "Filled"
     },
     "continue": "Continue",
     "confirm_bridge": "Bridge",
