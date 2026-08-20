@@ -23,6 +23,7 @@ import { TransactionDetailDivider } from '../../../../Views/confirmations/compon
 import { TransactionDetailsRow } from '../../../../Views/confirmations/components/activity/transaction-details-row/transaction-details-row';
 import CopyButton from '../../../../Views/confirmations/components/UI/copy-button/copy-button';
 import { strings } from '../../../../../../locales/i18n';
+import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
 import type { CardTransactionHeroToken } from '../../utils/getCardTransactionHeroToken';
 
 export interface CardTransactionDetailsContentProps {
@@ -85,12 +86,21 @@ const CardTransactionDetailsContent = ({
             <Box twClassName="gap-1">
               <Text color={TextColor.TextAlternative}>{heroCopy}</Text>
               <Box twClassName="flex-row items-center gap-3">
-                <AvatarToken
-                  name={heroToken.symbol}
-                  src={heroToken.iconSource as ImageOrSvgSrc}
-                  size={AvatarTokenSize.Md}
-                  testID={heroIconTestID}
-                />
+                {heroToken.isMoneyAccount ? (
+                  <MoneyBalanceIcon
+                    width={32}
+                    height={32}
+                    name="money-balance"
+                    testID={heroIconTestID}
+                  />
+                ) : (
+                  <AvatarToken
+                    name={heroToken.symbol}
+                    src={heroToken.iconSource as ImageOrSvgSrc}
+                    size={AvatarTokenSize.Md}
+                    testID={heroIconTestID}
+                  />
+                )}
                 <Text variant={TextVariant.DisplayMd} color={amountColor}>
                   {primaryAmount}
                 </Text>
