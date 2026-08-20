@@ -1,7 +1,4 @@
-import {
-  trackForcedReset,
-  trackForgotPasswordBackupOffered,
-} from './accountAccessTracking';
+import { trackForcedReset } from './accountAccessTracking';
 import { UnlockWalletErrorType } from '../../core/Authentication/types';
 import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { analytics } from './analytics';
@@ -70,39 +67,6 @@ describe('accountAccessTracking', () => {
       expect(mockedLogger.error).toHaveBeenCalledWith(
         expect.any(Error),
         'Error tracking account access forced reset event - analytics tracking failed',
-      );
-    });
-  });
-
-  describe('trackForgotPasswordBackupOffered', () => {
-    it('tracks whether a backup restore was offered', () => {
-      trackForgotPasswordBackupOffered(true);
-
-      expect(
-        mockedAnalyticsEventBuilder.createEventBuilder,
-      ).toHaveBeenCalledWith(
-        MetaMetricsEvents.ACCOUNT_ACCESS_FORGOT_PASSWORD_BACKUP_OFFERED,
-      );
-      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
-        backup_offered: true,
-      });
-      expect(mockedAnalytics.trackEvent).toHaveBeenCalledWith({
-        event: 'test',
-      });
-    });
-
-    it('logs error and does not throw when trackEvent fails', () => {
-      mockedAnalytics.trackEvent.mockImplementation(() => {
-        throw new Error('Tracking failed');
-      });
-
-      expect(() => {
-        trackForgotPasswordBackupOffered(false);
-      }).not.toThrow();
-
-      expect(mockedLogger.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        'Error tracking forgot password backup offered event - analytics tracking failed',
       );
     });
   });

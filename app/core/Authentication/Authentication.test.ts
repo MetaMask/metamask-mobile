@@ -366,7 +366,6 @@ jest.mock('../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
 
 jest.mock('../../util/analytics/accountAccessTracking', () => ({
   trackForcedReset: jest.fn(),
-  trackForgotPasswordBackupOffered: jest.fn(),
 }));
 
 const mockTrace = jest.fn();

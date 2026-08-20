@@ -55,7 +55,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { LoginViewSelectors } from './LoginView.testIds';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
-import { trackForgotPasswordBackupOffered } from '../../../util/analytics/accountAccessTracking';
 import { downloadStateLogs } from '../../../util/logs';
 import {
   trace,
@@ -136,6 +135,7 @@ interface LoginProps {
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const fieldRef = useRef<TextInput | null>(null);
   const lastSubmittedPasswordRef = useRef('');
+  const isProcessingForgotPassword = useRef(false);
 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -438,6 +438,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   }, [unlockWallet, loading, handleLoginError]);
 
   const toggleWarningModal = async () => {
+    if (isProcessingForgotPassword.current) {
+      return;
+    }
+    isProcessingForgotPassword.current = true;
+
     trackOnboarding(
       MetaMetricsEvents.FORGOT_PASSWORD_CLICKED,
       saveOnboardingEvent,
@@ -494,15 +499,23 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       } else if (submittedPassword) {
         const backupDecrypts = await canDecryptVaultBackup(submittedPassword);
         if (backupDecrypts) {
-          trackForgotPasswordBackupOffered(true);
-          navigation.dispatch(
-            StackActions.replace(
-              ...createRestoreWalletNavDetailsNested({
-                previousScreen: Routes.ONBOARDING.LOGIN,
-              }),
+          Logger.error(
+            new Error(
+              'Forgot password: submitted password decrypts on-device vault backup',
             ),
+            {
+              tags: {
+                feature: 'account_access',
+              },
+              context: {
+                name: 'ForgotPasswordVaultMismatch',
+                data: {
+                  local_backup_decrypts: true,
+                  unlock_attempted: true,
+                },
+              },
+            },
           );
-          return;
         }
       }
     } catch (e: unknown) {
@@ -510,12 +523,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         e as Error,
         'Login/ toggleWarningModal: vault backup check failed',
       );
+    } finally {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      isProcessingForgotPassword.current = false;
     }
-
-    trackForgotPasswordBackupOffered(false);
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.DELETE_WALLET,
-    });
   };
 
   const handleDownloadStateLogs = () => {

@@ -539,7 +539,6 @@ enum EVENT_NAME {
 
   // Account access diagnostics
   ACCOUNT_ACCESS_FORCED_RESET = 'Account Access Forced Reset',
-  ACCOUNT_ACCESS_FORGOT_PASSWORD_BACKUP_OFFERED = 'Account Access Forgot Password Backup Offered',
 
   // Login screen
   LOGIN_SCREEN_VIEWED = 'Login Screen Viewed',
@@ -1506,9 +1505,6 @@ const events = {
   // Account access diagnostics
   ACCOUNT_ACCESS_FORCED_RESET: generateOpt(
     EVENT_NAME.ACCOUNT_ACCESS_FORCED_RESET,
-  ),
-  ACCOUNT_ACCESS_FORGOT_PASSWORD_BACKUP_OFFERED: generateOpt(
-    EVENT_NAME.ACCOUNT_ACCESS_FORGOT_PASSWORD_BACKUP_OFFERED,
   ),
 
   // Login screen

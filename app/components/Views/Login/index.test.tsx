@@ -41,7 +41,6 @@ import {
 } from './loginPerformanceTags';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { trackVaultCorruption } from '../../../util/analytics/vaultCorruptionTracking';
-import { trackForgotPasswordBackupOffered } from '../../../util/analytics/accountAccessTracking';
 import { downloadStateLogs } from '../../../util/logs';
 import { getVaultFromBackup } from '../../../core/BackupVault';
 import { parseVaultValue } from '../../../util/validators';
@@ -312,10 +311,6 @@ jest.mock('../../../util/analytics/vaultCorruptionTracking', () => ({
   trackVaultCorruption: jest.fn(),
 }));
 
-jest.mock('../../../util/analytics/accountAccessTracking', () => ({
-  trackForgotPasswordBackupOffered: jest.fn(),
-}));
-
 jest.mock('../../../util/logs', () => ({
   downloadStateLogs: jest.fn(),
 }));
@@ -361,9 +356,6 @@ describe('Login', () => {
   const mockTrackErrorAsAnalytics =
     trackErrorAsAnalytics as jest.MockedFunction<typeof trackErrorAsAnalytics>;
   const mockTrackVaultCorruption = jest.mocked(trackVaultCorruption);
-  const mockTrackForgotPasswordBackupOffered = jest.mocked(
-    trackForgotPasswordBackupOffered,
-  );
   const mockDownloadStateLogs = jest.mocked(downloadStateLogs);
   const mockGetVaultFromBackup = jest.mocked(getVaultFromBackup);
   const mockParseVaultValue = jest.mocked(parseVaultValue);
@@ -1694,7 +1686,42 @@ describe('Login', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.DELETE_WALLET,
       });
-      expect(mockTrackForgotPasswordBackupOffered).toHaveBeenCalledWith(false);
+    });
+
+    it('navigates to the delete-wallet modal once when reset wallet is pressed twice', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
+      let resolveBackup: (value: { success: boolean; vault: string }) => void =
+        () => undefined;
+      mockGetVaultFromBackup.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveBackup = resolve;
+          }),
+      );
+      mockParseVaultValue.mockResolvedValueOnce('mock-seed');
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const resetWallet = getByTestId(LoginViewSelectors.RESET_WALLET);
+      await act(async () => {
+        fireEvent.press(resetWallet);
+        fireEvent.press(resetWallet);
+        resolveBackup({ success: true, vault: 'mock-vault' });
+      });
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      expect(mockReplace).not.toHaveBeenCalled();
     });
 
     it('does not decrypt the vault backup when password was typed but never submitted', async () => {
@@ -1713,10 +1740,9 @@ describe('Login', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.DELETE_WALLET,
       });
-      expect(mockTrackForgotPasswordBackupOffered).toHaveBeenCalledWith(false);
     });
 
-    it('offers a restore when the last failed unlock password decrypts a vault backup', async () => {
+    it('reports Sentry when the last failed unlock password decrypts a vault backup', async () => {
       mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
       mockGetVaultFromBackup.mockResolvedValueOnce({
         success: true,
@@ -1737,20 +1763,29 @@ describe('Login', () => {
         fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
       });
 
-      expect(mockReplace).toHaveBeenCalledWith(
+      expect(mockReplace).not.toHaveBeenCalledWith(
         Routes.VAULT_RECOVERY.RESTORE_WALLET,
+        expect.anything(),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      expect(mockLogger.error).toHaveBeenCalledWith(
         expect.objectContaining({
-          params: {
-            previousScreen: Routes.ONBOARDING.LOGIN,
+          message:
+            'Forgot password: submitted password decrypts on-device vault backup',
+        }),
+        expect.objectContaining({
+          tags: { feature: 'account_access' },
+          context: {
+            name: 'ForgotPasswordVaultMismatch',
+            data: {
+              local_backup_decrypts: true,
+              unlock_attempted: true,
+            },
           },
-          screen: Routes.VAULT_RECOVERY.RESTORE_WALLET,
         }),
       );
-      expect(mockNavigate).not.toHaveBeenCalledWith(
-        Routes.MODAL.ROOT_MODAL_FLOW,
-        { screen: Routes.MODAL.DELETE_WALLET },
-      );
-      expect(mockTrackForgotPasswordBackupOffered).toHaveBeenCalledWith(true);
     });
 
     it('falls through to the destructive reset when the last failed unlock password does not decrypt the backup', async () => {
@@ -1777,7 +1812,13 @@ describe('Login', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.DELETE_WALLET,
       });
-      expect(mockTrackForgotPasswordBackupOffered).toHaveBeenCalledWith(false);
+      expect(mockLogger.error).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'Forgot password: submitted password decrypts on-device vault backup',
+        }),
+        expect.anything(),
+      );
     });
 
     it('falls through to the destructive reset when the backup check throws after a failed unlock', async () => {
@@ -1800,7 +1841,6 @@ describe('Login', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.DELETE_WALLET,
       });
-      expect(mockTrackForgotPasswordBackupOffered).toHaveBeenCalledWith(false);
     });
 
     it('reports Sentry when seedless password is outdated on forgot password', async () => {

@@ -35,31 +35,3 @@ export const trackForcedReset = (
     );
   }
 };
-
-/**
- * Tracks whether Forgot password routed the user to RestoreWallet
- * instead of DeleteWalletModal.
- *
- * @param backupOffered - Whether the user was routed to RestoreWallet.
- */
-export const trackForgotPasswordBackupOffered = (
-  backupOffered: boolean,
-): void => {
-  try {
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.ACCOUNT_ACCESS_FORGOT_PASSWORD_BACKUP_OFFERED,
-      )
-        .addProperties({
-          backup_offered: backupOffered,
-        })
-        .build(),
-    );
-  } catch (error) {
-    // Never throw from analytics tracking - log and continue
-    Logger.error(
-      error as Error,
-      'Error tracking forgot password backup offered event - analytics tracking failed',
-    );
-  }
-};
