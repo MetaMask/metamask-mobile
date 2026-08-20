@@ -71,6 +71,22 @@ on:
         type: string
         default: ''
 
+      enable_browserstack:
+        description: 'Run BrowserStack performance lanes'
+        required: false
+        type: boolean
+        default: true
+      enable_saucelabs:
+        description: 'Run Sauce Labs private-device performance lanes'
+        required: false
+        type: boolean
+        default: false
+      enable_saucelabs_cloud:
+        description: 'Run Sauce Labs cloud-device performance lanes'
+        required: false
+        type: boolean
+        default: false
+
 permissions:
   contents: write
   id-token: write
@@ -271,8 +287,15 @@ jobs:
       !cancelled() &&
       needs.prepare.result == 'success' &&
       needs.prepare.outputs.run_tests == 'true' &&
-      !inputs.browserstack_app_url_android_onboarding &&
-      !inputs.browserstack_app_url_android_imported_wallet
+      (
+        inputs.enable_saucelabs == true ||
+        inputs.enable_saucelabs_cloud == true ||
+        (
+          inputs.enable_browserstack != false &&
+          !inputs.browserstack_app_url_android_onboarding &&
+          !inputs.browserstack_app_url_android_imported_wallet
+        )
+      )
     with:
       branch_name: ${{ inputs.branch_name }}
       source_ref: ${{ inputs.source_ref }}
@@ -283,6 +306,7 @@ jobs:
       # unset; passing a blank value into this boolean workflow_call input makes
       # the reusable Android build job fail to start.
       main_branch_only: ${{ inputs.reuse_main_builds == true && inputs.build_variant == 'e2e' }}
+      enable_saucelabs: ${{ inputs.enable_saucelabs == true || inputs.enable_saucelabs_cloud == true }}
     secrets: inherit
 
   # =============================================================================
@@ -295,6 +319,7 @@ jobs:
     needs: [prepare, trigger-android-dual-versions]
     if: >-
       always() && !failure() && !cancelled() &&
+      inputs.enable_browserstack != false &&
       needs.prepare.outputs.run_tests == 'true' &&
       (
         needs.trigger-android-dual-versions.result == 'skipped' ||
@@ -323,7 +348,7 @@ jobs:
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
       - prepare
-    if: always() && !failure() && !cancelled() && needs.prepare.outputs.run_tests == 'true' && inputs.browserstack_app_url_ios_onboarding != ''
+    if: always() && !failure() && !cancelled() && inputs.enable_browserstack != false && needs.prepare.outputs.run_tests == 'true' && inputs.browserstack_app_url_ios_onboarding != ''
     with:
       platform: ios
       build_type: onboarding
@@ -347,6 +372,7 @@ jobs:
     needs: [prepare, trigger-android-dual-versions]
     if: >-
       always() && !cancelled() &&
+      inputs.enable_browserstack != false &&
       needs.prepare.outputs.run_tests == 'true' &&
       (
         needs.trigger-android-dual-versions.result == 'skipped' ||
@@ -374,7 +400,7 @@ jobs:
     uses: ./.github/workflows/performance-test-runner.yml
     needs:
       - prepare
-    if: always() && !cancelled() && needs.prepare.outputs.run_tests == 'true' && inputs.browserstack_app_url_ios_imported_wallet != ''
+    if: always() && !cancelled() && inputs.enable_browserstack != false && needs.prepare.outputs.run_tests == 'true' && inputs.browserstack_app_url_ios_imported_wallet != ''
     with:
       platform: ios
       build_type: imported-wallet
@@ -388,6 +414,95 @@ jobs:
       grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
     secrets: inherit
 
+
+  # =============================================================================
+  # SAUCE LABS PRIVATE / CLOUD LANES
+  # =============================================================================
+
+  run-android-onboarding-tests-saucelabs:
+    name: '[Sauce Labs] Performance Test Android (Onboarding)'
+    uses: ./.github/workflows/performance-test-runner-saucelabs.yml
+    needs: [prepare, trigger-android-dual-versions]
+    if: >-
+      always() && !failure() && !cancelled() &&
+      inputs.enable_saucelabs == true &&
+      needs.prepare.outputs.run_tests == 'true' &&
+      needs.trigger-android-dual-versions.result == 'success' &&
+      needs.trigger-android-dual-versions.outputs.without-srp-sauce-url != ''
+    with:
+      platform: android
+      build_type: onboarding
+      sauce_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-sauce-url }}
+      device_mode: private
+      branch_name: ${{ inputs.branch_name }}
+      sauce_build_name: ${{ needs.prepare.outputs.android_build_name }}-SauceLabs
+      grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
+    secrets: inherit
+
+  run-android-onboarding-tests-saucelabs-cloud:
+    name: '[Sauce Labs Cloud] Performance Test Android (Onboarding)'
+    uses: ./.github/workflows/performance-test-runner-saucelabs.yml
+    needs: [prepare, trigger-android-dual-versions]
+    if: >-
+      always() && !failure() && !cancelled() &&
+      inputs.enable_saucelabs_cloud == true &&
+      needs.prepare.outputs.run_tests == 'true' &&
+      needs.trigger-android-dual-versions.result == 'success' &&
+      needs.trigger-android-dual-versions.outputs.without-srp-sauce-url != ''
+    with:
+      platform: android
+      build_type: onboarding
+      sauce_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-sauce-url }}
+      device_mode: cloud
+      branch_name: ${{ inputs.branch_name }}
+      sauce_build_name: ${{ needs.prepare.outputs.android_build_name }}-SauceLabs-Cloud
+      grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
+    secrets: inherit
+
+  run-android-imported-wallet-tests-saucelabs:
+    name: '[Sauce Labs] Performance Test Android (Imported Wallet)'
+    uses: ./.github/workflows/performance-test-runner-saucelabs.yml
+    needs: [prepare, trigger-android-dual-versions]
+    if: >-
+      always() && !cancelled() &&
+      inputs.enable_saucelabs == true &&
+      needs.prepare.outputs.run_tests == 'true' &&
+      needs.trigger-android-dual-versions.result == 'success' &&
+      needs.trigger-android-dual-versions.outputs.with-srp-sauce-url != ''
+    with:
+      platform: android
+      build_type: imported-wallet
+      sauce_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-sauce-url }}
+      device_mode: private
+      branch_name: ${{ inputs.branch_name }}
+      sauce_build_name: ${{ needs.prepare.outputs.android_build_name }}-SauceLabs
+      grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
+    secrets: inherit
+
+  run-android-imported-wallet-tests-saucelabs-cloud:
+    name: '[Sauce Labs Cloud] Performance Test Android (Imported Wallet)'
+    uses: ./.github/workflows/performance-test-runner-saucelabs.yml
+    needs: [prepare, trigger-android-dual-versions]
+    if: >-
+      always() && !cancelled() &&
+      inputs.enable_saucelabs_cloud == true &&
+      needs.prepare.outputs.run_tests == 'true' &&
+      needs.trigger-android-dual-versions.result == 'success' &&
+      needs.trigger-android-dual-versions.outputs.with-srp-sauce-url != ''
+    with:
+      platform: android
+      build_type: imported-wallet
+      sauce_app_url: ${{ needs.trigger-android-dual-versions.outputs.with-srp-sauce-url }}
+      device_mode: cloud
+      branch_name: ${{ inputs.branch_name }}
+      sauce_build_name: ${{ needs.prepare.outputs.android_build_name }}-SauceLabs-Cloud
+      grep_tags: ${{ needs.prepare.outputs.grep_pattern }}
+      sentry_target: ${{ inputs.sentry_target || 'test' }}
+    secrets: inherit
+
   aggregate-results:
     name: Aggregate All Test Results
     runs-on: ubuntu-latest
@@ -398,6 +513,10 @@ jobs:
         run-android-onboarding-tests,
         run-ios-imported-wallet-tests,
         run-ios-onboarding-tests,
+        run-android-onboarding-tests-saucelabs,
+        run-android-onboarding-tests-saucelabs-cloud,
+        run-android-imported-wallet-tests-saucelabs,
+        run-android-imported-wallet-tests-saucelabs-cloud,
       ]
     if: always() && needs.prepare.outputs.run_tests == 'true'
     steps:

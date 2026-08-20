@@ -28,33 +28,30 @@ on:
         description: 'BrowserStack Android Onboarding App URL (bs://...)'
         required: false
         type: string
-      browserstack_app_url_ios_onboarding:
-        description: 'BrowserStack iOS Onboarding App URL (bs://...)'
-        required: false
-        type: string
       browserstack_app_url_android_imported_wallet:
         description: 'BrowserStack Android Imported Wallet App URL (bs://...)'
         required: false
         type: string
-      browserstack_app_url_ios_imported_wallet:
-        description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
-        required: false
-        type: string
-      performance_tags:
-        description: 'JSON array of performance tags. Blank runs all; [] skips all.'
-        required: false
-        type: string
-        default: ''
       reuse_main_builds:
         description: 'For e2e only, reuse and upload the latest Android APKs from main CI'
         required: false
         type: boolean
         default: false
-      source_fingerprint:
-        description: 'Optional @expo/fingerprint hash for Android app reuse'
+      enable_browserstack:
+        description: 'Run BrowserStack performance lanes'
         required: false
-        type: string
-        default: ''
+        type: boolean
+        default: true
+      enable_saucelabs:
+        description: 'Run Sauce Labs private devices (Pixel 7 POC49/POC05, 2 workers)'
+        required: false
+        type: boolean
+        default: false
+      enable_saucelabs_cloud:
+        description: 'Run Sauce Labs cloud devices (Google Pixel.*, 2 workers)'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -64,9 +61,17 @@ permissions:
   statuses: write
 
 concurrency:
-  # Manual runs are isolated by ref and variant so they do not block the
-  # scheduled cadence.
-  group: performance-e2e-trigger-${{ github.event_name == 'schedule' && github.event.schedule || github.ref }}-${{ github.event_name == 'schedule' && 'scheduled' || inputs.build_variant }}
+  # Manual runs are isolated by run id so they do not block the scheduled cadence.
+  group: >-
+    ${{
+      github.event_name == 'workflow_dispatch' &&
+      format('performance-e2e-manual-{0}', github.run_id) ||
+      format(
+        'performance-e2e-trigger-{0}-{1}',
+        github.ref,
+        github.event.schedule || 'scheduled'
+      )
+    }}
   cancel-in-progress: false
 
 jobs:
@@ -79,6 +84,9 @@ jobs:
       source_ref: main
       build_variant: e2e
       sentry_target: test
+      enable_browserstack: true
+      enable_saucelabs: false
+      enable_saucelabs_cloud: false
     secrets: inherit
 
   manual:
@@ -91,10 +99,9 @@ jobs:
       build_variant: ${{ inputs.build_variant }}
       sentry_target: ${{ inputs.sentry_target }}
       browserstack_app_url_android_onboarding: ${{ inputs.browserstack_app_url_android_onboarding }}
-      browserstack_app_url_ios_onboarding: ${{ inputs.browserstack_app_url_ios_onboarding }}
       browserstack_app_url_android_imported_wallet: ${{ inputs.browserstack_app_url_android_imported_wallet }}
-      browserstack_app_url_ios_imported_wallet: ${{ inputs.browserstack_app_url_ios_imported_wallet }}
-      performance_tags: ${{ inputs.performance_tags }}
       reuse_main_builds: ${{ inputs.build_variant == 'e2e' && inputs.reuse_main_builds }}
-      source_fingerprint: ${{ inputs.source_fingerprint }}
+      enable_browserstack: ${{ inputs.enable_browserstack }}
+      enable_saucelabs: ${{ inputs.enable_saucelabs }}
+      enable_saucelabs_cloud: ${{ inputs.enable_saucelabs_cloud }}
     secrets: inherit
