@@ -7,8 +7,8 @@ import { onNavigationReady } from '../../../actions/navigation';
 import NavigationService from '../../../core/NavigationService';
 import {
   DefaultTheme,
-  NavigationContainer,
   NavigationContainerRef,
+  NavigationState,
   ParamListBase,
 } from '@react-navigation/native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
@@ -55,14 +55,73 @@ jest.mock('../../../core/Performance/DeeplinkPerformance', () => ({
   handleDeeplinkNavigationStateChange: jest.fn(),
 }));
 
+const mockCapturedNavContainerProps: {
+  onStateChange?: (state?: NavigationState) => void;
+  theme?: typeof DefaultTheme;
+} = {};
+
+jest.mock('@react-navigation/native', () => {
+  const ReactActual = jest.requireActual('react') as typeof import('react');
+  const actual = jest.requireActual(
+    '@react-navigation/native',
+  ) as typeof import('@react-navigation/native');
+
+  const NavigationContainer = ReactActual.forwardRef(
+    (
+      props: {
+        children?: ReactActual.ReactNode;
+        onReady?: () => void;
+        onStateChange?: (state?: NavigationState) => void;
+        theme?: typeof actual.DefaultTheme;
+      },
+      ref: ReactActual.ForwardedRef<{ navigate: jest.Mock }>,
+    ) => {
+      mockCapturedNavContainerProps.onStateChange = props.onStateChange;
+      mockCapturedNavContainerProps.theme = props.theme;
+
+      if (typeof ref === 'function') {
+        ref({ navigate: jest.fn() });
+      }
+
+      props.onReady?.();
+
+      return props.children ?? null;
+    },
+  );
+  NavigationContainer.displayName = 'NavigationContainer';
+
+  return {
+    ...actual,
+    NavigationContainer,
+  };
+});
+
+jest.mock('@react-navigation/native-stack', () => {
+  const ReactActual = jest.requireActual('react') as typeof import('react');
+
+  return {
+    createNativeStackNavigator: () => ({
+      Navigator: ({ children }: { children?: ReactActual.ReactNode }) =>
+        children ?? null,
+      Screen: ({
+        children,
+      }: {
+        children?: ReactActual.ReactNode | (() => ReactActual.ReactNode);
+      }) => (typeof children === 'function' ? children() : (children ?? null)),
+    }),
+  };
+});
+
 describe('NavigationProvider', () => {
   const mockDispatch = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCapturedNavContainerProps.onStateChange = undefined;
+    mockCapturedNavContainerProps.theme = undefined;
     NavigationService.navigation =
       undefined as unknown as NavigationContainerRef<ParamListBase>;
-    (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    jest.mocked(useDispatch).mockReturnValue(mockDispatch);
   });
 
   it('renders children correctly', () => {
@@ -73,10 +132,10 @@ describe('NavigationProvider', () => {
       </NavigationProvider>,
     );
 
-    expect(getByText(testMessage)).toBeTruthy();
+    expect(getByText(testMessage)).toBeOnTheScreen();
   });
 
-  it('dispatches navigation ready action when ready', async () => {
+  it('dispatches navigation ready action when ready', () => {
     render(
       <NavigationProvider>
         <View />
@@ -121,15 +180,13 @@ describe('NavigationProvider', () => {
   });
 
   it('uses DefaultTheme with a transparent background', () => {
-    const { UNSAFE_getByType } = render(
+    render(
       <NavigationProvider>
         <View />
       </NavigationProvider>,
     );
 
-    const container = UNSAFE_getByType(NavigationContainer);
-
-    expect(container.props.theme).toEqual({
+    expect(mockCapturedNavContainerProps.theme).toEqual({
       ...DefaultTheme,
       colors: {
         ...DefaultTheme.colors,
@@ -139,14 +196,13 @@ describe('NavigationProvider', () => {
   });
 
   it('reports the focused route chain to Deeplink Navigated on every state change', () => {
-    const { UNSAFE_getByType } = render(
+    render(
       <NavigationProvider>
         <View />
       </NavigationProvider>,
     );
 
-    const container = UNSAFE_getByType(NavigationContainer);
-    container.props.onStateChange?.({
+    mockCapturedNavContainerProps.onStateChange?.({
       index: 0,
       routes: [
         {
@@ -157,7 +213,7 @@ describe('NavigationProvider', () => {
           },
         },
       ],
-    });
+    } as NavigationState);
 
     expect(handleDeeplinkNavigationStateChange).toHaveBeenCalledWith({
       focusedRouteNames: ['HomeNav', 'TrendingView'],
@@ -165,28 +221,26 @@ describe('NavigationProvider', () => {
   });
 
   it('ignores an undefined navigation state', () => {
-    const { UNSAFE_getByType } = render(
+    render(
       <NavigationProvider>
         <View />
       </NavigationProvider>,
     );
 
-    const container = UNSAFE_getByType(NavigationContainer);
-    container.props.onStateChange?.(undefined);
+    mockCapturedNavContainerProps.onStateChange?.(undefined);
 
     expect(handleDeeplinkNavigationStateChange).not.toHaveBeenCalled();
   });
 
   it('Measures performance trace order when navigation provider is initialized', () => {
-    // Track calls in array to test for correct order
     const traceCalls: { functionName: string; name: string }[] = [];
     const mockTraceCall =
       (functionName: string) =>
       ({ name }: { name: string }) => {
         traceCalls.push({ functionName, name });
       };
-    (trace as jest.Mock).mockImplementation(mockTraceCall('trace'));
-    (endTrace as jest.Mock).mockImplementation(mockTraceCall('endTrace'));
+    jest.mocked(trace).mockImplementation(mockTraceCall('trace'));
+    jest.mocked(endTrace).mockImplementation(mockTraceCall('endTrace'));
 
     render(
       <NavigationProvider>

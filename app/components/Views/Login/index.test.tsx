@@ -405,9 +405,29 @@ describe('Login', () => {
     jest.clearAllTimers();
     jest.useRealTimers();
     Alert.alert = originalAlert;
+    jest.restoreAllMocks();
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation(mockRunAfterInteractions);
     const mockStore = createMockReduxStore();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
   });
+
+  const waitForPasswordInput = async () => {
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+      ).toBeOnTheScreen();
+    });
+  };
+
+  const waitForDeviceAuthIcon = async () => {
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+      ).toBeOnTheScreen();
+    });
+  };
 
   it('renders matching snapshot', () => {
     renderWithProvider(<Login />);
@@ -490,13 +510,9 @@ describe('Login', () => {
         },
         isLoading: false,
       });
-      const { getByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-      expect(
-        getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
-      ).toBeOnTheScreen();
+      renderWithProvider(<Login />);
+
+      await waitForDeviceAuthIcon();
     });
 
     it('shows button when capabilities allow BIOMETRIC', async () => {
@@ -520,9 +536,9 @@ describe('Login', () => {
         params: { locked: true, oauthLoginSuccess: false },
       });
       const { queryByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
+
+      await waitForPasswordInput();
+
       expect(
         queryByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
       ).toBeNull();
@@ -537,9 +553,9 @@ describe('Login', () => {
         isLoading: false,
       });
       const { queryByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
+
+      await waitForPasswordInput();
+
       expect(
         queryByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
       ).toBeNull();
@@ -655,9 +671,7 @@ describe('Login', () => {
 
       const { getByTestId } = renderWithProvider(<Login />);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
 
       const biometryButton = getByTestId(
         LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -682,9 +696,7 @@ describe('Login', () => {
 
       const { getByTestId } = renderWithProvider(<Login />);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
 
       const biometryButton = getByTestId(
         LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -866,10 +878,7 @@ describe('Login', () => {
 
       const { getByTestId } = renderWithProvider(<Login />);
 
-      // Wait for mount effects that call getAuthType
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
+      await waitForPasswordInput();
       const getAuthTypeCallCountAfterMount = mockGetAuthType.mock.calls.length;
 
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -1253,9 +1262,7 @@ describe('Login', () => {
       mockUnlockWallet.mockResolvedValueOnce(true);
 
       const { getByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
 
       const biometryButton = getByTestId(
         LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -1278,9 +1285,7 @@ describe('Login', () => {
       );
 
       const { getByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
 
       const biometryButton = getByTestId(
         LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -1301,9 +1306,7 @@ describe('Login', () => {
         );
 
         const { getByTestId } = renderWithProvider(<Login />);
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
-        });
+        await waitForDeviceAuthIcon();
 
         const biometryButton = getByTestId(
           LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -1311,8 +1314,8 @@ describe('Login', () => {
         await act(async () => {
           fireEvent.press(biometryButton);
         });
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
 
         expect(
@@ -1331,9 +1334,7 @@ describe('Login', () => {
         );
 
         const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
-        });
+        await waitForDeviceAuthIcon();
         mockLogger.error.mockClear();
 
         const biometryButton = getByTestId(
@@ -1342,8 +1343,8 @@ describe('Login', () => {
         await act(async () => {
           fireEvent.press(biometryButton);
         });
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
 
         expect(
@@ -1363,9 +1364,7 @@ describe('Login', () => {
         );
 
         const { getByTestId, getByText } = renderWithProvider(<Login />);
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
-        });
+        await waitForDeviceAuthIcon();
         mockLogger.error.mockClear();
 
         const biometryButton = getByTestId(
@@ -1394,9 +1393,7 @@ describe('Login', () => {
         );
 
         const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
-        });
+        await waitForDeviceAuthIcon();
         mockLogger.error.mockClear();
 
         const biometryButton = getByTestId(
@@ -1405,8 +1402,8 @@ describe('Login', () => {
         await act(async () => {
           fireEvent.press(biometryButton);
         });
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
 
         expect(
@@ -1439,9 +1436,7 @@ describe('Login', () => {
 
         const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
 
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        });
+        await waitForPasswordInput();
         mockLogger.error.mockClear();
 
         const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -1450,10 +1445,11 @@ describe('Login', () => {
         fireEvent(passwordInput, 'submitEditing');
 
         await waitFor(() => {
-          expect(
-            queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
-          ).not.toBeOnTheScreen();
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
+        expect(
+          queryByTestId(LoginViewSelectors.PASSWORD_ERROR),
+        ).not.toBeOnTheScreen();
         expect(mockLogger.error).not.toHaveBeenCalled();
       } finally {
         jest.useFakeTimers();
@@ -1481,17 +1477,15 @@ describe('Login', () => {
 
         const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
 
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        });
+        await waitForPasswordInput();
         mockLogger.error.mockClear();
 
         const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
         fireEvent.changeText(passwordInput, 'valid-password123');
         fireEvent(passwordInput, 'submitEditing');
 
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
 
         expect(mockLogger.error).not.toHaveBeenCalled();
@@ -1524,17 +1518,15 @@ describe('Login', () => {
 
         const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
 
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        });
+        await waitForPasswordInput();
         mockLogger.error.mockClear();
 
         const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
         fireEvent.changeText(passwordInput, 'valid-password123');
         fireEvent(passwordInput, 'submitEditing');
 
-        await act(async () => {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        await waitFor(() => {
+          expect(mockUnlockWallet).toHaveBeenCalled();
         });
 
         expect(mockLogger.error).not.toHaveBeenCalled();
@@ -1603,9 +1595,7 @@ describe('Login', () => {
       mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
 
       const { getByTestId } = renderWithProvider(<Login />);
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
+      await waitForPasswordInput();
       const getAuthTypeCallCountAfterMount = mockGetAuthType.mock.calls.length;
 
       const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
@@ -1883,9 +1873,7 @@ describe('Login', () => {
 
       const { getByTestId } = renderWithProvider(<Login />);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
 
       const biometryButton = getByTestId(
         LoginViewSelectors.DEVICE_AUTHENTICATION_ICON,
@@ -1959,9 +1947,7 @@ describe('Login', () => {
       mockUnlockWallet.mockRejectedValueOnce(new Error('Biometric failed'));
       const { getByTestId } = renderWithProvider(<Login />);
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      });
+      await waitForDeviceAuthIcon();
       await act(async () => {
         fireEvent.press(
           getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),

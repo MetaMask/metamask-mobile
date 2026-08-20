@@ -90,6 +90,10 @@ describe('handleEthereumUrl', () => {
     );
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('alerts and throws on invalid URL', () => {
     const spyAlert = jest.spyOn(Alert, 'alert');
 
