@@ -1,84 +1,80 @@
 import QuickCrypto from 'react-native-quick-crypto';
-import {
-  ACTIONS,
-  PROTOCOLS,
-  PREFIXES,
-} from '../../../../../constants/deeplinks';
-import AppConstants from '../../../../AppConstants';
-import SDKConnect from '../../../../SDKConnect/SDKConnect';
-import DevLogger from '../../../../SDKConnect/utils/DevLogger';
-import WC2Manager from '../../../../WalletConnect/WalletConnectV2';
-import { DeeplinkManager } from '../../../DeeplinkManager';
-import extractURLParams from '../../../utils/extractURLParams';
+import { ACTIONS, PROTOCOLS, PREFIXES } from '../../../../constants/deeplinks';
+import AppConstants from '../../../AppConstants';
+import SDKConnect from '../../../SDKConnect/SDKConnect';
+import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import WC2Manager from '../../../WalletConnect/WalletConnectV2';
+import { DeeplinkManager } from '../../DeeplinkManager';
+import extractURLParams from '../../utils/extractURLParams';
 import handleUniversalLink from '../handleUniversalLink';
-import handleDeepLinkModalDisplay from '../handleDeepLinkModalDisplay';
-import handleBrowserUrl from '../handleBrowserUrl';
-import { createDappDeeplinkIntent } from '../handleDappUrl';
-import { DeepLinkModalLinkType } from '../../../../../components/UI/DeepLinkModal';
+import handleDeepLinkModalDisplay from '../../utils/handleDeepLinkModalDisplay';
+import handleBrowserUrl from '../intent/handleBrowserUrl';
+import { createDappDeeplinkIntent } from '../intent/handleDappUrl';
+import { DeepLinkModalLinkType } from '../../../../components/UI/DeepLinkModal';
 import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
-import Logger from '../../../../../util/Logger';
-import handleRampReturnUrl from '../handleRampReturnUrl';
-import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
-import { handleSocialLeaderboardUrl } from '../handleSocialLeaderboardUrl';
-import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
-import { handleWhatsHappeningUrl } from '../handleWhatsHappeningUrl';
-import { handleSwapUrl } from '../handleSwapUrl';
-import { handleBatchSellUrl } from '../handleBatchSellUrl';
-import { handleAssetUrl } from '../handleAssetUrl';
-import { handlePrivacyUrl } from '../handlePrivacyUrl';
+import Logger from '../../../../util/Logger';
+import handleRampReturnUrl from '../legacy/handleRampReturnUrl';
+import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
+import { handleSocialLeaderboardUrl } from '../legacy/handleSocialLeaderboardUrl';
+import { handleSocialTraderPositionUrl } from '../legacy/handleSocialTraderPositionUrl';
+import { handleWhatsHappeningUrl } from '../legacy/handleWhatsHappeningUrl';
+import { handleSwapUrl } from '../intent/handleSwapUrl';
+import { handleBatchSellUrl } from '../legacy/handleBatchSellUrl';
+import { handleAssetUrl } from '../legacy/handleAssetUrl';
+import { handlePrivacyUrl } from '../legacy/handlePrivacyUrl';
 import {
   createRewardsDeeplinkIntent,
   handleRewardsUrl,
-} from '../handleRewardsUrl';
-import type { DeeplinkIntent } from '../../../types/DeeplinkIntent';
+} from '../intent/handleRewardsUrl';
+import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 // eslint-disable-next-line import-x/no-namespace
-import * as signatureUtils from '../../../utils/verifySignature';
+import * as signatureUtils from '../../utils/verifySignature';
 import {
   SignatureStatus,
   InterstitialState,
   DeepLinkRoute,
   type DeepLinkAnalyticsContext,
-} from '../../../types/deepLinkAnalytics.types';
+} from '../../types/deepLinkAnalytics.types';
 // eslint-disable-next-line import-x/no-namespace
-import * as deepLinkTypes from '../../../types/deepLink.types';
+import * as deepLinkTypes from '../../types/deepLink.types';
 
 jest.mock('../handleMetaMaskDeeplink');
-jest.mock('../../../../SDKConnect/handlers/handleDeeplink');
-jest.mock('../../../../AppConstants');
-jest.mock('../../../../SDKConnect/SDKConnect');
-jest.mock('../../../../WalletConnect/WalletConnectV2');
-jest.mock('../../../../NativeModules', () => ({
+jest.mock('../../../SDKConnect/handlers/handleDeeplink');
+jest.mock('../../../AppConstants');
+jest.mock('../../../SDKConnect/SDKConnect');
+jest.mock('../../../WalletConnect/WalletConnectV2');
+jest.mock('../../../NativeModules', () => ({
   Minimizer: {
     goBack: jest.fn(),
   },
 }));
-jest.mock('../handleDeepLinkModalDisplay');
-jest.mock('../handleRampUrl');
-jest.mock('../handleRampReturnUrl');
-jest.mock('../handleHomeUrl');
-jest.mock('../handleSwapUrl');
-jest.mock('../handleBatchSellUrl');
-jest.mock('../handleAssetUrl');
-jest.mock('../handlePrivacyUrl');
-jest.mock('../handleBrowserUrl');
-jest.mock('../handleDappUrl', () => {
-  const actual = jest.requireActual('../handleDappUrl');
+jest.mock('../../utils/handleDeepLinkModalDisplay');
+jest.mock('../legacy/handleRampUrl');
+jest.mock('../legacy/handleRampReturnUrl');
+jest.mock('../legacy/handleHomeUrl');
+jest.mock('../intent/handleSwapUrl');
+jest.mock('../legacy/handleBatchSellUrl');
+jest.mock('../legacy/handleAssetUrl');
+jest.mock('../legacy/handlePrivacyUrl');
+jest.mock('../intent/handleBrowserUrl');
+jest.mock('../intent/handleDappUrl', () => {
+  const actual = jest.requireActual('../intent/handleDappUrl');
   return {
     __esModule: true,
     ...actual,
     createDappDeeplinkIntent: jest.fn(),
   };
 });
-jest.mock('../handleCreateAccountUrl');
-jest.mock('../handlePerpsUrl');
-jest.mock('../handleRewardsUrl');
-jest.mock('../handlePredictUrl');
-jest.mock('../handleFastOnboarding');
-jest.mock('../handleTrendingUrl');
-jest.mock('../handleWhatsHappeningUrl');
-jest.mock('../handleSocialLeaderboardUrl');
-jest.mock('../handleSocialTraderPositionUrl');
-jest.mock('../../../../redux', () => ({
+jest.mock('../legacy/handleCreateAccountUrl');
+jest.mock('../intent/handlePerpsUrl');
+jest.mock('../intent/handleRewardsUrl');
+jest.mock('../intent/handlePredictUrl');
+jest.mock('../legacy/handleFastOnboarding');
+jest.mock('../intent/handleTrendingUrl');
+jest.mock('../legacy/handleWhatsHappeningUrl');
+jest.mock('../legacy/handleSocialLeaderboardUrl');
+jest.mock('../legacy/handleSocialTraderPositionUrl');
+jest.mock('../../../redux', () => ({
   __esModule: true,
   default: {
     store: {
@@ -99,12 +95,12 @@ jest.mock('react-native-quick-crypto', () => ({
     },
   },
 }));
-jest.mock('../../../../../util/analytics/analytics', () => ({
+jest.mock('../../../../util/analytics/analytics', () => ({
   analytics: {
     trackEvent: jest.fn(),
   },
 }));
-jest.mock('../../../util/deeplinks/deepLinkAnalytics', () => ({
+jest.mock('../../util/deeplinks/deepLinkAnalytics', () => ({
   createDeepLinkUsedEventBuilder: jest.fn(() =>
     Promise.resolve({
       addProperties: jest.fn().mockReturnThis(),
@@ -197,7 +193,7 @@ describe('handleUniversalLink', () => {
       const {
         createDeepLinkUsedEventBuilder: mockCreateBuilder,
         mapSupportedActionToRoute: mockMapRoute,
-      } = jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
+      } = jest.requireMock('../../util/deeplinks/deepLinkAnalytics') as {
         createDeepLinkUsedEventBuilder: jest.Mock;
         mapSupportedActionToRoute: jest.Mock;
       };
@@ -237,7 +233,7 @@ describe('handleUniversalLink', () => {
       const {
         createDeepLinkUsedEventBuilder: mockCreateBuilder,
         mapSupportedActionToRoute: mockMapRoute,
-      } = jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
+      } = jest.requireMock('../../util/deeplinks/deepLinkAnalytics') as {
         createDeepLinkUsedEventBuilder: jest.Mock;
         mapSupportedActionToRoute: jest.Mock;
       };
@@ -276,7 +272,7 @@ describe('handleUniversalLink', () => {
       const {
         createDeepLinkUsedEventBuilder: mockCreateBuilder,
         mapSupportedActionToRoute: mockMapRoute,
-      } = jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
+      } = jest.requireMock('../../util/deeplinks/deepLinkAnalytics') as {
         createDeepLinkUsedEventBuilder: jest.Mock;
         mapSupportedActionToRoute: jest.Mock;
       };
@@ -315,7 +311,7 @@ describe('handleUniversalLink', () => {
       const {
         createDeepLinkUsedEventBuilder: mockCreateBuilder,
         mapSupportedActionToRoute: mockMapRoute,
-      } = jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
+      } = jest.requireMock('../../util/deeplinks/deepLinkAnalytics') as {
         createDeepLinkUsedEventBuilder: jest.Mock;
         mapSupportedActionToRoute: jest.Mock;
       };
@@ -2611,12 +2607,12 @@ describe('handleUniversalLink', () => {
       (context: DeepLinkAnalyticsContext) => Promise<MockEventBuilder>
     >;
     const { analytics } = jest.requireMock(
-      '../../../../../util/analytics/analytics',
+      '../../../../util/analytics/analytics',
     );
     const { createDeepLinkUsedEventBuilder } = jest.requireMock(
-      '../../../util/deeplinks/deepLinkAnalytics',
+      '../../util/deeplinks/deepLinkAnalytics',
     );
-    const ReduxService = jest.requireMock('../../../../redux') as {
+    const ReduxService = jest.requireMock('../../../redux') as {
       default: {
         store: {
           getState: jest.Mock;
