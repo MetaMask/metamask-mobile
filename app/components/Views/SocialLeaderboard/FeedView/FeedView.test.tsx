@@ -99,6 +99,8 @@ const buildResult = (
     loadMore: mockLoadMore,
     error: null,
     refresh: mockRefresh,
+    // Undefined by default so rows fall back to their own render-time clock.
+    dataUpdatedAt: undefined,
     ...overrides,
   };
 };
@@ -487,17 +489,19 @@ describe('FeedView', () => {
       ...spotItem,
       timestamp: t0 - 29_000,
     };
+    const sections: FeedSection[] = [
+      { dateLabel: 'Today', data: [unchangedItem] },
+    ];
     mockFeedResult = buildResult({
       items: [unchangedItem],
-      sections: [{ dateLabel: 'Today', data: [unchangedItem] }],
+      sections,
+      dataUpdatedAt: t0,
     });
 
     try {
-      renderWithProvider(<FeedView />);
+      const { rerender } = renderWithProvider(<FeedView />);
 
       expect(screen.getByText(/29s/)).toBeOnTheScreen();
-
-      jest.setSystemTime(t0 + 10_000);
 
       const list = screen.getByTestId(FeedViewSelectorsIDs.LIST);
       await act(async () => {
@@ -507,9 +511,50 @@ describe('FeedView', () => {
       });
 
       expect(mockRefresh).toHaveBeenCalledTimes(1);
-      // 10s wall-clock wait plus the 1s min-duration spinner inside handleRefresh.
-      expect(screen.getByText(/40s/)).toBeOnTheScreen();
+
+      // The refetch resolved 10s later with the same payload, so React Query's
+      // structural sharing keeps `data` identical and only `dataUpdatedAt`
+      // moves. That change is what re-renders the feed in the real app.
+      jest.setSystemTime(t0 + 10_000);
+      mockFeedResult = buildResult({
+        items: [unchangedItem],
+        sections,
+        dataUpdatedAt: t0 + 10_000,
+      });
+      await act(async () => {
+        rerender(<FeedView />);
+      });
+
+      expect(screen.getByText(/39s/)).toBeOnTheScreen();
       expect(screen.queryByText(/29s/)).not.toBeOnTheScreen();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  // The pager mounts both tabs, so FeedView can sit mounted with a disabled
+  // query for a long time before the Feed tab is opened and the first fetch
+  // lands. Reading the clock at mount would understate every age by that gap
+  // (and clamp anything traded after mount to `0s`), so ages are formatted
+  // against the fetch instant instead.
+  it('formats ages against the fetch instant, not the mount instant', () => {
+    jest.useFakeTimers();
+    const fetchedAt = 1_700_000_000_000;
+    const item: FeedItem = { ...spotItem, timestamp: fetchedAt - 29_000 };
+    // Ten minutes of drift between whenever this component mounted and the
+    // paint we are asserting on.
+    jest.setSystemTime(fetchedAt + 600_000);
+    mockFeedResult = buildResult({
+      items: [item],
+      sections: [{ dateLabel: 'Today', data: [item] }],
+      dataUpdatedAt: fetchedAt,
+    });
+
+    try {
+      renderWithProvider(<FeedView />);
+
+      expect(screen.getByText(/29s/)).toBeOnTheScreen();
+      expect(screen.queryByText(/10m/)).not.toBeOnTheScreen();
     } finally {
       jest.useRealTimers();
     }

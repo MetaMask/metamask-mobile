@@ -192,9 +192,6 @@ const FeedView: React.FC<FeedViewProps> = ({
   }, [isActive, source, audience, typeFilter, track]);
 
   const [refreshing, setRefreshing] = useState(false);
-  // Bumped after pull-to-refresh so relative timestamps recompute even when
-  // the feed payload (and therefore memoized row props) is unchanged.
-  const [now, setNow] = useState(() => Date.now());
 
   const {
     sections,
@@ -206,6 +203,12 @@ const FeedView: React.FC<FeedViewProps> = ({
     loadMore,
     error,
     refresh,
+    // Doubles as the clock for relative timestamps and as the signal that busts
+    // the memoized rows. Sourcing it from the fetch (rather than from mount or
+    // from a render-time `Date.now()`) keeps ages consistent with the snapshot
+    // on screen and makes them recompute after a refetch that returned an
+    // unchanged payload.
+    dataUpdatedAt,
   } = useTraderFeed({ audience, typeFilter, enabled: isActive });
 
   // Report spot availability up to the parent so it can mount the Buy Action
@@ -243,7 +246,6 @@ const FeedView: React.FC<FeedViewProps> = ({
         }),
       );
     } finally {
-      setNow(Date.now());
       setRefreshing(false);
     }
   }, [refresh]);
@@ -377,10 +379,10 @@ const FeedView: React.FC<FeedViewProps> = ({
         onTradePress={handleTradePress}
         onPositionPress={handlePositionPress}
         onTraderPress={handleTraderPress}
-        now={now}
+        now={dataUpdatedAt}
       />
     ),
-    [handleTradePress, handlePositionPress, handleTraderPress, now],
+    [handleTradePress, handlePositionPress, handleTraderPress, dataUpdatedAt],
   );
 
   const renderSectionHeader = useCallback(
@@ -546,7 +548,7 @@ const FeedView: React.FC<FeedViewProps> = ({
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         contentContainerStyle={tw.style('pb-6 flex-grow')}
-        extraData={now}
+        extraData={dataUpdatedAt}
         refreshControl={refreshControl}
         testID={FeedViewSelectorsIDs.LIST}
       />
@@ -565,7 +567,7 @@ const FeedView: React.FC<FeedViewProps> = ({
     filterRow,
     onScroll,
     tw,
-    now,
+    dataUpdatedAt,
   ]);
 
   return (
