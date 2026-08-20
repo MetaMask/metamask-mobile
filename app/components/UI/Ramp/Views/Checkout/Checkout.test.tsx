@@ -250,7 +250,8 @@ const mockShouldStartLoadWithRequest = jest.requireMock(
 const mockUseRampSDK = jest.requireMock('../../Aggregator/sdk')
   .useRampSDK as jest.Mock;
 const mockUuidV4 = jest.requireMock('uuid').v4 as jest.Mock;
-const mockUseDispatch = jest.requireMock('react-redux').useDispatch as jest.Mock;
+const mockUseDispatch = jest.requireMock('react-redux')
+  .useDispatch as jest.Mock;
 const mockProtectWalletModalVisible = jest.requireMock(
   '../../../../../actions/user',
 ).protectWalletModalVisible as jest.Mock;
