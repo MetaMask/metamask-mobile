@@ -1,5 +1,6 @@
 import React, {
   useContext,
+  useEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -11,6 +12,7 @@ import {
   Pressable,
   ScrollView,
   Share,
+  TextInput,
   useWindowDimensions,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
@@ -38,18 +40,24 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Label,
   ListItemSelect,
   SectionHeader,
   Switch,
   Tag,
   TagSeverity,
   Text,
+  TextButton,
   TextColor,
+  TextField,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useNavigation } from '@react-navigation/native';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 import { useTheme } from '../../../../../util/theme';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   ToastContext,
   ToastVariants,
@@ -65,6 +73,7 @@ import referralShareHero from '../../../../../images/rewards/referral-share-hero
 import MoneyEarnings from '../../../Money/components/MoneyEarnings';
 
 const CREATOR_REFERRAL_CODE = '8F3A21';
+const REFERRAL_CODE_LENGTH = 6;
 // Placeholder program values — configured by the backend in production.
 const REFERRER_REVENUE_SHARE_RATE = '25%';
 const REFERRED_USER_CASHBACK_RATE = '10%';
@@ -700,7 +709,11 @@ const ClaimEarningsSheet = ({
   );
 };
 
-type PrototypeScenarioId = 'onboarded-kol' | 'new-user-invite';
+type PrototypeScenarioId =
+  | 'onboarded-kol'
+  | 'invited-new-user'
+  | 'invited-existing-user'
+  | 'ineligible-user';
 
 interface PrototypeScenario {
   id: PrototypeScenarioId;
@@ -713,14 +726,27 @@ const PROTOTYPE_SCENARIOS: PrototypeScenario[] = [
   {
     id: 'onboarded-kol',
     title: 'Onboarded KOL',
-    description:
-      'An approved creator sharing their referral code and tracking earnings.',
+    description: 'An approved user that can share their code.',
     isAvailable: true,
   },
   {
-    id: 'new-user-invite',
-    title: 'New user receiving invite',
-    description: 'A brand-new user opening an invite from a KOL.',
+    id: 'invited-new-user',
+    title: 'Invited new user',
+    description:
+      'A new user opening an invite URL. This screen is visible as an onboarding step.',
+    isAvailable: true,
+  },
+  {
+    id: 'invited-existing-user',
+    title: 'Invited existing user',
+    description:
+      'An existing user opening an invite URL. This sheet opens on top of the destination.',
+    isAvailable: true,
+  },
+  {
+    id: 'ineligible-user',
+    title: 'Ineligible user',
+    description: 'A user who cannot use this referral.',
     isAvailable: true,
   },
 ];
@@ -800,20 +826,26 @@ const PrototypeScenariosSheet = ({
                 }}
               />
               {scenario.id === 'onboarded-kol' ? (
-                <Box twClassName="pl-4 pr-2 pb-3">
-                  <Switch
-                    isOn={isClaimingEnabled}
-                    onValueChange={setClaimingEnabled}
-                    label="Enable Claiming"
-                    trackColor={{
-                      true: colors.primary.default,
-                      false: colors.border.muted,
-                    }}
-                    thumbColor={brandColors.white}
-                    ios_backgroundColor={colors.border.muted}
-                    testID="enable-claiming-toggle"
-                  />
-                </Box>
+                <>
+                  <Box twClassName="pl-4 pr-2 pt-3 pb-3">
+                    <Switch
+                      isOn={isClaimingEnabled}
+                      onValueChange={setClaimingEnabled}
+                      label="Enable Claiming"
+                      trackColor={{
+                        true: colors.primary.default,
+                        false: colors.border.muted,
+                      }}
+                      thumbColor={brandColors.white}
+                      ios_backgroundColor={colors.border.muted}
+                      testID="enable-claiming-toggle"
+                    />
+                  </Box>
+                  <Box twClassName="h-px bg-border-muted -mx-4 mb-1" />
+                </>
+              ) : null}
+              {scenario.id === 'invited-existing-user' ? (
+                <Box twClassName="h-px bg-border-muted -mx-4 mb-1" />
               ) : null}
             </React.Fragment>
           ))}
@@ -823,7 +855,179 @@ const PrototypeScenariosSheet = ({
   );
 };
 
-const NewUserInviteScreen = ({
+const ReferralInviteCodeField = ({
+  referralCode,
+  onChangeReferralCode,
+  codeInputTestID,
+}: {
+  referralCode: string;
+  onChangeReferralCode: (value: string) => void;
+  codeInputTestID: string;
+}) => {
+  const inputRef = useRef<TextInput>(null);
+  const codeAtEditStartRef = useRef(referralCode);
+  const [isEditingCode, setIsEditingCode] = useState(false);
+  const [hasEditedCode, setHasEditedCode] = useState(false);
+  const isCompleteEditedCode =
+    isEditingCode &&
+    hasEditedCode &&
+    referralCode.length === REFERRAL_CODE_LENGTH;
+
+  useEffect(() => {
+    if (isEditingCode) {
+      inputRef.current?.focus();
+    }
+  }, [isEditingCode]);
+
+  const handleBeginEditing = () => {
+    codeAtEditStartRef.current = referralCode;
+    setHasEditedCode(false);
+    setIsEditingCode(true);
+  };
+
+  const handleChangeReferralCode = (value: string) => {
+    setHasEditedCode(true);
+    onChangeReferralCode(value.toUpperCase().slice(0, REFERRAL_CODE_LENGTH));
+  };
+
+  const handleCancelEditing = () => {
+    onChangeReferralCode(codeAtEditStartRef.current);
+    setHasEditedCode(false);
+    setIsEditingCode(false);
+  };
+
+  const handleBlurReferralCode = () => {
+    if (referralCode.length > 0) {
+      return;
+    }
+
+    onChangeReferralCode(codeAtEditStartRef.current);
+    setHasEditedCode(false);
+    setIsEditingCode(false);
+  };
+
+  if (!isEditingCode) {
+    return (
+      <Box gap={1}>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          Referral code
+        </Text>
+        <Text
+          variant={TextVariant.DisplayMd}
+          fontWeight={FontWeight.Bold}
+          testID={codeInputTestID}
+        >
+          {referralCode}
+        </Text>
+        <TextButton
+          variant={TextVariant.BodySm}
+          onPress={handleBeginEditing}
+          testID="edit-referral-code-button"
+          accessibilityRole="button"
+        >
+          Use a different code
+        </TextButton>
+      </Box>
+    );
+  }
+
+  return (
+    <Box gap={1}>
+      <Label fontWeight={FontWeight.Medium}>Referral code</Label>
+      <TextField
+        value={referralCode}
+        onChangeText={handleChangeReferralCode}
+        onBlur={handleBlurReferralCode}
+        inputRef={inputRef}
+        endAccessory={
+          isCompleteEditedCode ? (
+            <Icon
+              name={IconName.Check}
+              size={IconSize.Md}
+              color={IconColor.SuccessDefault}
+              testID="referral-code-complete-icon"
+              accessibilityLabel="Referral code complete"
+            />
+          ) : (
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              onPress={handleCancelEditing}
+              testID="cancel-referral-code-button"
+              accessibilityRole="button"
+            >
+              Cancel
+            </Text>
+          )
+        }
+        inputProps={{
+          autoCapitalize: 'characters',
+          autoCorrect: false,
+          autoComplete: 'off',
+          maxLength: REFERRAL_CODE_LENGTH,
+          accessibilityLabel: 'Referral code',
+        }}
+        testID={codeInputTestID}
+      />
+    </Box>
+  );
+};
+
+const ReferralInviteBody = ({
+  referralCode,
+  onChangeReferralCode,
+  codeInputTestID,
+  includeOnboardingHeader = false,
+}: {
+  referralCode: string;
+  onChangeReferralCode: (value: string) => void;
+  codeInputTestID: string;
+  includeOnboardingHeader?: boolean;
+}) => (
+  <>
+    {includeOnboardingHeader ? (
+      <Box twClassName="gap-y-1">
+        <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
+          {"You've been referred"}
+        </Text>
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {
+            "Tap Accept to confirm. You won't be enrolled just by opening this link."
+          }
+        </Text>
+      </Box>
+    ) : (
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {
+          "You've been referred. Tap Accept to confirm. You won't be enrolled just by opening this link."
+        }
+      </Text>
+    )}
+    <ReferralInviteCodeField
+      referralCode={referralCode}
+      onChangeReferralCode={onChangeReferralCode}
+      codeInputTestID={codeInputTestID}
+    />
+  </>
+);
+
+const ReferralInviteDisclosure = ({
+  twClassName,
+}: {
+  twClassName?: string;
+}) => (
+  <Text
+    variant={TextVariant.BodySm}
+    color={TextColor.TextAlternative}
+    twClassName={twClassName}
+  >
+    This is an affiliate relationship. The referrer may receive compensation
+    from eligible Perps and Swaps fees.
+  </Text>
+);
+
+const InvitedNewUserScreen = ({
   visible,
   onClose,
 }: {
@@ -831,38 +1035,186 @@ const NewUserInviteScreen = ({
   onClose: () => void;
 }) => {
   const tw = useTailwind();
+  const { width: windowWidth } = useWindowDimensions();
+  const [referralCode, setReferralCode] = useState(CREATOR_REFERRAL_CODE);
+  const [isContentVisible, setIsContentVisible] = useState(visible);
+  const [isDismissing, setIsDismissing] = useState(false);
+  const [exitsToLeft, setExitsToLeft] = useState(true);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  const easing = Easing.bezier(0.32, 0.72, 0, 1);
+  const entering = new Keyframe({
+    0: { transform: [{ translateX: windowWidth }] },
+    100: { transform: [{ translateX: 0 }], easing },
+  }).duration(IOS_SHEET_PUSH_DURATION);
+  const exiting = new Keyframe({
+    0: { transform: [{ translateX: 0 }] },
+    100: {
+      transform: [{ translateX: exitsToLeft ? -windowWidth : windowWidth }],
+      easing,
+    },
+  }).duration(IOS_SHEET_PUSH_DURATION);
+
+  if (visible && !isContentVisible && !isDismissing) {
+    setIsContentVisible(true);
+  }
+
+  useEffect(() => {
+    if (!isDismissing) {
+      return undefined;
+    }
+
+    setIsContentVisible(false);
+    const timeout = setTimeout(() => {
+      onCloseRef.current();
+      setIsDismissing(false);
+    }, IOS_SHEET_PUSH_DURATION);
+
+    return () => clearTimeout(timeout);
+  }, [isDismissing]);
+
+  const dismiss = (toLeft: boolean) => {
+    if (isDismissing) {
+      return;
+    }
+    setExitsToLeft(toLeft);
+    setIsDismissing(true);
+  };
+
+  if (!visible && !isContentVisible) {
+    return null;
+  }
+
+  return (
+    <Modal
+      visible={visible || isDismissing}
+      transparent
+      animationType="none"
+      onRequestClose={() => dismiss(false)}
+      testID="invited-new-user-screen"
+    >
+      {isContentVisible ? (
+        <Animated.View
+          entering={entering}
+          exiting={exiting}
+          style={tw.style('flex-1 bg-default')}
+        >
+          <SafeAreaView
+            edges={{ bottom: 'additive' }}
+            style={tw.style('flex-1 bg-default')}
+          >
+            <HeaderStandard
+              includesTopInset
+              onBack={() => dismiss(false)}
+              backButtonProps={{
+                testID: 'invited-new-user-back-button',
+              }}
+            />
+            <ScrollView
+              style={tw.style('flex-1')}
+              contentContainerStyle={tw.style('px-4 gap-4')}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <ReferralInviteBody
+                referralCode={referralCode}
+                onChangeReferralCode={setReferralCode}
+                codeInputTestID="invited-new-user-referral-code-input"
+                includeOnboardingHeader
+              />
+            </ScrollView>
+            <Box twClassName="px-4">
+              <ReferralInviteDisclosure twClassName="mb-4" />
+              <Box twClassName="py-2">
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  twClassName="w-full"
+                  onPress={() => dismiss(true)}
+                  testID="accept-invited-new-user-button"
+                >
+                  Accept
+                </Button>
+              </Box>
+              <Box alignItems={BoxAlignItems.Center} twClassName="py-4">
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                  onPress={() => dismiss(false)}
+                  testID="decline-invited-new-user-button"
+                  accessibilityRole="button"
+                >
+                  Decline
+                </Text>
+              </Box>
+            </Box>
+          </SafeAreaView>
+        </Animated.View>
+      ) : null}
+    </Modal>
+  );
+};
+
+const InvitedExistingUserSheet = ({
+  visible,
+  onClose,
+  onAccept,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  onAccept: () => void;
+}) => {
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const [referralCode, setReferralCode] = useState(CREATOR_REFERRAL_CODE);
 
   if (!visible) {
     return null;
   }
 
+  const handleDecline = () => {
+    bottomSheetRef.current?.onCloseBottomSheet(onClose);
+  };
+
+  const handleAccept = () => {
+    bottomSheetRef.current?.onCloseBottomSheet(onAccept);
+  };
+
   return (
-    <Modal visible animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView
-        style={tw.style('flex-1 bg-default')}
-        edges={{ bottom: 'additive' }}
+    <Modal visible transparent animationType="none">
+      <BottomSheet
+        ref={bottomSheetRef}
+        onClose={onClose}
+        isInteractable={false}
+        testID="invited-existing-user-sheet"
       >
-        <HeaderStandard
-          onClose={onClose}
-          includesTopInset
-          twClassName="bg-default"
-          closeButtonProps={{ testID: 'close-new-user-invite-button' }}
+        <BottomSheetHeader>Referral invite</BottomSheetHeader>
+        <Box twClassName="px-4 pb-6 gap-4">
+          <ReferralInviteBody
+            referralCode={referralCode}
+            onChangeReferralCode={setReferralCode}
+            codeInputTestID="invited-existing-user-referral-code-input"
+          />
+          <ReferralInviteDisclosure />
+        </Box>
+        <BottomSheetFooter
+          buttonsAlignment={ButtonsAlignment.Horizontal}
+          secondaryButtonProps={{
+            children: 'Decline',
+            onPress: handleDecline,
+            size: ButtonSize.Lg,
+            testID: 'decline-invited-existing-user-button',
+          }}
+          primaryButtonProps={{
+            children: 'Accept',
+            onPress: handleAccept,
+            size: ButtonSize.Lg,
+            testID: 'accept-invited-existing-user-button',
+          }}
+          twClassName="px-4"
         />
-        <Box twClassName="flex-1 px-4">
-          {/* Placeholder — invite content to be mocked next */}
-        </Box>
-        <Box twClassName="px-4 pb-6">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={onClose}
-            testID="accept-invite-button"
-          >
-            Accept invite
-          </Button>
-        </Box>
-      </SafeAreaView>
+      </BottomSheet>
     </Modal>
   );
 };
@@ -879,7 +1231,9 @@ const ReferralRevenueShareDashboard = ({
   onQrCodeClose?: () => void;
 }) => {
   const tw = useTailwind();
+  const navigation = useNavigation<AppNavigationProp>();
   const { toastRef } = useContext(ToastContext);
+  const { colors } = useTheme();
   const [isCodeCopied, setIsCodeCopied] = useState(false);
   // Vanity codes are assigned via backend/support workflows; not user-editable.
   const referralCode = CREATOR_REFERRAL_CODE;
@@ -892,15 +1246,47 @@ const ReferralRevenueShareDashboard = ({
     useState(!showPerformance);
   const [selectedScenarioId, setSelectedScenarioId] =
     useState<PrototypeScenarioId>('onboarded-kol');
-  const [isNewUserInviteVisible, setIsNewUserInviteVisible] = useState(false);
+  const [isInvitedNewUserVisible, setIsInvitedNewUserVisible] = useState(false);
+  const [isInvitedExistingUserVisible, setIsInvitedExistingUserVisible] =
+    useState(false);
   const isClaimingEnabled = useClaimingEnabled();
 
   const selectScenario = (id: PrototypeScenarioId) => {
     setSelectedScenarioId(id);
     setIsScenarioSheetVisible(false);
-    if (id === 'new-user-invite') {
-      setIsNewUserInviteVisible(true);
+    setIsInvitedNewUserVisible(id === 'invited-new-user');
+    setIsInvitedExistingUserVisible(id === 'invited-existing-user');
+    if (id === 'ineligible-user') {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: IconNameLegacy.Info,
+        hasNoTimeout: false,
+        labelOptions: [
+          {
+            label: "This referral isn't available",
+            isBold: true,
+          },
+        ],
+      });
+      navigation.navigate(Routes.WALLET.HOME);
     }
+  };
+
+  const handleAcceptExistingUserInvite = () => {
+    setIsInvitedExistingUserVisible(false);
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconNameLegacy.Confirmation,
+      iconColor: colors.success.default,
+      backgroundColor: 'transparent',
+      hasNoTimeout: false,
+      labelOptions: [
+        {
+          label: 'Referral accepted',
+          isBold: true,
+        },
+      ],
+    });
   };
 
   const copyReferralCode = async () => {
@@ -1268,9 +1654,14 @@ const ReferralRevenueShareDashboard = ({
         onSelectScenario={selectScenario}
         onClose={() => setIsScenarioSheetVisible(false)}
       />
-      <NewUserInviteScreen
-        visible={isNewUserInviteVisible}
-        onClose={() => setIsNewUserInviteVisible(false)}
+      <InvitedNewUserScreen
+        visible={isInvitedNewUserVisible}
+        onClose={() => setIsInvitedNewUserVisible(false)}
+      />
+      <InvitedExistingUserSheet
+        visible={isInvitedExistingUserVisible}
+        onClose={() => setIsInvitedExistingUserVisible(false)}
+        onAccept={handleAcceptExistingUserInvite}
       />
     </Box>
   );

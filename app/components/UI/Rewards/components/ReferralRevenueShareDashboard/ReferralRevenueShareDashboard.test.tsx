@@ -10,6 +10,10 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import Routes from '../../../../../constants/navigation/Routes';
+
+const mockNavigate = jest.fn();
 
 jest.mock('../../../../../core/ClipboardManager', () => ({
   setString: jest.fn().mockResolvedValue(undefined),
@@ -20,11 +24,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  Theme: { Light: 'light', Dark: 'dark' },
   useTailwind: () => {
     const tw = (..._args: unknown[]) => ({});
     tw.style = jest.fn(() => ({}));
     return tw;
   },
+  useTheme: () => 'light',
 }));
 
 jest.mock('react-native-qrcode-svg', () => {
@@ -57,7 +63,7 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actual,
     useNavigation: () => ({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
     }),
   };
 });
@@ -86,6 +92,12 @@ const renderDashboard = (mode?: 'overview' | 'performance') =>
       <ReferralRevenueShareDashboard mode={mode} />
     </ToastContext.Provider>,
   );
+
+const flushInvitedNewUserDismiss = () => {
+  act(() => {
+    jest.advanceTimersByTime(350);
+  });
+};
 
 const openClaimSheet = () => {
   setClaimingEnabled(true);
@@ -164,7 +176,13 @@ describe('ReferralRevenueShareDashboard', () => {
         screen.getByTestId('prototype-scenario-onboarded-kol'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId('prototype-scenario-new-user-invite'),
+        screen.getByTestId('prototype-scenario-invited-new-user'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('prototype-scenario-invited-existing-user'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('prototype-scenario-ineligible-user'),
       ).toBeOnTheScreen();
     });
 
@@ -182,38 +200,309 @@ describe('ReferralRevenueShareDashboard', () => {
       expect(screen.queryByText('Prototype Scenarios')).not.toBeOnTheScreen();
     });
 
-    it('opens the new user invite screen when that scenario is selected', () => {
+    it('opens the invited new user full-page screen when that scenario is selected', () => {
       renderDashboard();
 
-      fireEvent.press(screen.getByTestId('prototype-scenario-new-user-invite'));
+      fireEvent.press(
+        screen.getByTestId('prototype-scenario-invited-new-user'),
+      );
+
+      expect(screen.queryByText('Prototype Scenarios')).not.toBeOnTheScreen();
+      expect(screen.getByTestId('invited-new-user-screen')).toBeOnTheScreen();
+      expect(screen.getByText("You've been referred")).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('invited-existing-user-sheet'),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByText(/Tap Accept to confirm/)).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('invited-new-user-referral-code-input'),
+      ).toHaveTextContent(/8F3A21/);
+      expect(screen.getByTestId('edit-referral-code-button')).toBeOnTheScreen();
+      expect(screen.getByText('Use a different code')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('invited-new-user-back-button'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByLabelText('Referral invite illustration'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('decline-invited-new-user-button'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('accept-invited-new-user-button'),
+      ).toBeOnTheScreen();
+    });
+
+    it('edits the referral code on the invited new user screen after edit is pressed', () => {
+      renderDashboard();
+      fireEvent.press(
+        screen.getByTestId('prototype-scenario-invited-new-user'),
+      );
+
+      fireEvent.press(screen.getByTestId('edit-referral-code-button'));
+      fireEvent.changeText(
+        screen.getByTestId('invited-new-user-referral-code-input'),
+        'ab12cd',
+      );
+
+      expect(screen.getByDisplayValue('AB12CD')).toBeOnTheScreen();
+      expect(screen.getByDisplayValue('AB12CD')).toHaveProp('editable', true);
+      expect(
+        screen.queryByTestId('edit-referral-code-button'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('dismisses the invited new user screen when the back button is pressed', () => {
+      renderDashboard();
+      fireEvent.press(
+        screen.getByTestId('prototype-scenario-invited-new-user'),
+      );
+
+      fireEvent.press(screen.getByTestId('invited-new-user-back-button'));
+      flushInvitedNewUserDismiss();
+
+      expect(
+        screen.queryByTestId('invited-new-user-screen'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('dismisses the invited new user screen when decline is pressed', () => {
+      renderDashboard();
+      fireEvent.press(
+        screen.getByTestId('prototype-scenario-invited-new-user'),
+      );
+
+      fireEvent.press(screen.getByTestId('decline-invited-new-user-button'));
+      flushInvitedNewUserDismiss();
+
+      expect(
+        screen.queryByTestId('invited-new-user-screen'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('dismisses the invited new user screen when accept is pressed', () => {
+      renderDashboard();
+      fireEvent.press(
+        screen.getByTestId('prototype-scenario-invited-new-user'),
+      );
+
+      fireEvent.press(screen.getByTestId('accept-invited-new-user-button'));
+      flushInvitedNewUserDismiss();
+
+      expect(
+        screen.queryByTestId('invited-new-user-screen'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the invited existing user sheet when that scenario is selected', () => {
+      renderDashboard();
+
+      fireEvent.press(
+        screen.getByTestId('prototype-scenario-invited-existing-user'),
+      );
 
       expect(screen.queryByText('Prototype Scenarios')).not.toBeOnTheScreen();
       expect(
-        screen.getByTestId('close-new-user-invite-button'),
+        screen.getByTestId('invited-existing-user-sheet'),
       ).toBeOnTheScreen();
-      expect(screen.getByTestId('accept-invite-button')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('invited-new-user-screen'),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByText('Referral invite')).toBeOnTheScreen();
+      expect(screen.getByText(/Tap Accept to confirm/)).toBeOnTheScreen();
+      expect(
+        screen.queryByLabelText('Referral invite illustration'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('invited-existing-user-referral-code-input'),
+      ).toHaveTextContent(/8F3A21/);
+      expect(screen.getByTestId('edit-referral-code-button')).toBeOnTheScreen();
+      expect(screen.getByText('Use a different code')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('decline-invited-existing-user-button'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('accept-invited-existing-user-button'),
+      ).toBeOnTheScreen();
     });
 
-    it('dismisses the new user invite screen when the close button is pressed', () => {
+    it('requires accept or decline on the invited existing user sheet', () => {
       renderDashboard();
-      fireEvent.press(screen.getByTestId('prototype-scenario-new-user-invite'));
 
-      fireEvent.press(screen.getByTestId('close-new-user-invite-button'));
+      fireEvent.press(
+        screen.getByTestId('prototype-scenario-invited-existing-user'),
+      );
 
       expect(
-        screen.queryByTestId('accept-invite-button'),
+        screen.queryByTestId('close-invited-existing-user-button'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('decline-invited-existing-user-button'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('accept-invited-existing-user-button'),
+      ).toBeOnTheScreen();
+    });
+
+    it('edits the referral code on the invited existing user sheet after edit is pressed', () => {
+      renderDashboard();
+      fireEvent.press(
+        screen.getByTestId('prototype-scenario-invited-existing-user'),
+      );
+
+      fireEvent.press(screen.getByTestId('edit-referral-code-button'));
+      fireEvent.changeText(
+        screen.getByTestId('invited-existing-user-referral-code-input'),
+        'ab12cd',
+      );
+
+      expect(screen.getByDisplayValue('AB12CD')).toBeOnTheScreen();
+      expect(screen.getByDisplayValue('AB12CD')).toHaveProp('editable', true);
+      expect(
+        screen.queryByTestId('edit-referral-code-button'),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId('referral-code-complete-icon'),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows a cancel action when the referral code field becomes editable', () => {
+      renderDashboard();
+      fireEvent.press(
+        screen.getByTestId('prototype-scenario-invited-existing-user'),
+      );
+
+      fireEvent.press(screen.getByTestId('edit-referral-code-button'));
+
+      expect(
+        screen.getByTestId('cancel-referral-code-button'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('referral-code-complete-icon'),
       ).not.toBeOnTheScreen();
     });
 
-    it('dismisses the new user invite screen when accept invite is pressed', () => {
+    it('restores the uneditable referral code when cancel is pressed', () => {
       renderDashboard();
-      fireEvent.press(screen.getByTestId('prototype-scenario-new-user-invite'));
+      fireEvent.press(
+        screen.getByTestId('prototype-scenario-invited-existing-user'),
+      );
+      fireEvent.press(screen.getByTestId('edit-referral-code-button'));
+      fireEvent.changeText(
+        screen.getByTestId('invited-existing-user-referral-code-input'),
+        'ab',
+      );
 
-      fireEvent.press(screen.getByTestId('accept-invite-button'));
+      fireEvent.press(screen.getByTestId('cancel-referral-code-button'));
 
       expect(
-        screen.queryByTestId('accept-invite-button'),
+        screen.getByTestId('invited-existing-user-referral-code-input'),
+      ).toHaveTextContent(/8F3A21/);
+      expect(screen.getByTestId('edit-referral-code-button')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('cancel-referral-code-button'),
       ).not.toBeOnTheScreen();
+    });
+
+    it('restores the original referral code when the field is cleared and left empty', () => {
+      renderDashboard();
+      fireEvent.press(
+        screen.getByTestId('prototype-scenario-invited-existing-user'),
+      );
+      fireEvent.press(screen.getByTestId('edit-referral-code-button'));
+      fireEvent.changeText(
+        screen.getByTestId('invited-existing-user-referral-code-input'),
+        '',
+      );
+
+      fireEvent(screen.getByDisplayValue(''), 'blur');
+
+      expect(
+        screen.getByTestId('invited-existing-user-referral-code-input'),
+      ).toHaveTextContent(/8F3A21/);
+      expect(screen.getByTestId('edit-referral-code-button')).toBeOnTheScreen();
+    });
+
+    it('shows a success check after a 6 character referral code is entered', () => {
+      renderDashboard();
+      fireEvent.press(
+        screen.getByTestId('prototype-scenario-invited-existing-user'),
+      );
+      fireEvent.press(screen.getByTestId('edit-referral-code-button'));
+
+      fireEvent.changeText(
+        screen.getByTestId('invited-existing-user-referral-code-input'),
+        'xy98zt',
+      );
+
+      expect(
+        screen.getByTestId('referral-code-complete-icon'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('cancel-referral-code-button'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('dismisses the invited existing user sheet when decline is pressed', () => {
+      renderDashboard();
+      fireEvent.press(
+        screen.getByTestId('prototype-scenario-invited-existing-user'),
+      );
+
+      fireEvent.press(
+        screen.getByTestId('decline-invited-existing-user-button'),
+      );
+
+      expect(
+        screen.queryByTestId('invited-existing-user-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('dismisses the invited existing user sheet when accept is pressed', () => {
+      renderDashboard();
+      fireEvent.press(
+        screen.getByTestId('prototype-scenario-invited-existing-user'),
+      );
+
+      fireEvent.press(
+        screen.getByTestId('accept-invited-existing-user-button'),
+      );
+
+      expect(
+        screen.queryByTestId('invited-existing-user-sheet'),
+      ).not.toBeOnTheScreen();
+      expect(mockShowToast).toHaveBeenCalledWith({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Confirmation,
+        iconColor: expect.any(String),
+        backgroundColor: 'transparent',
+        hasNoTimeout: false,
+        labelOptions: [
+          {
+            label: 'Referral accepted',
+            isBold: true,
+          },
+        ],
+      });
+    });
+
+    it('navigates home and shows an unavailable toast when Ineligible user is selected', () => {
+      renderDashboard();
+
+      fireEvent.press(screen.getByTestId('prototype-scenario-ineligible-user'));
+
+      expect(mockShowToast).toHaveBeenCalledWith({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Info,
+        hasNoTimeout: false,
+        labelOptions: [
+          {
+            label: "This referral isn't available",
+            isBold: true,
+          },
+        ],
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
     it('reopens the sheet when the scenarios button is pressed', () => {
