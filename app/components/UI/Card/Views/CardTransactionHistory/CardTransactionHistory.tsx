@@ -140,10 +140,10 @@ const CardTransactionHistory = () => {
   );
 
   const handleEndReached = useCallback(() => {
-    if (hasMore && !isLoadingMore) {
+    if (hasMore && !isLoadingMore && !error) {
       loadMore();
     }
-  }, [hasMore, isLoadingMore, loadMore]);
+  }, [error, hasMore, isLoadingMore, loadMore]);
 
   const listFooter = isLoadingMore ? (
     <Box twClassName="items-center py-4">

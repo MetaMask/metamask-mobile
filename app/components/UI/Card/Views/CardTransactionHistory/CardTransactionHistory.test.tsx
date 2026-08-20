@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, SectionList } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import {
   CardTransactionStatus,
@@ -160,6 +160,21 @@ describe('CardTransactionHistory', () => {
     fireEvent.press(getByTestId('card-transaction-history-load-more-retry'));
 
     expect(mockLoadMore).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not auto-load more while a later-page error is showing', () => {
+    mockTransactions({
+      items: [createTransaction()],
+      hasMore: true,
+      error: new Error('failed'),
+    });
+
+    const { UNSAFE_getByType } = render(<CardTransactionHistory />);
+    const list = UNSAFE_getByType(SectionList);
+
+    fireEvent(list, 'onEndReached');
+
+    expect(mockLoadMore).not.toHaveBeenCalled();
   });
 
   it('shows a spinner instead of the load-more error while fetching the next page', () => {
