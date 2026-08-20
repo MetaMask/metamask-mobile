@@ -29,6 +29,10 @@ describe('VbaVerifyIdentity', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders the container and continue button', () => {
     const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
 

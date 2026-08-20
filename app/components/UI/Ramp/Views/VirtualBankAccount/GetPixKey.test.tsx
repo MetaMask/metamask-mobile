@@ -43,6 +43,10 @@ describe('GetPixKey', () => {
     });
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders the title, benefits, and agree and continue button', () => {
     const { getByText, getByTestId } = renderWithProvider(<GetPixKey />);
 
