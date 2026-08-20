@@ -4399,12 +4399,11 @@ describe('CardController — data pass-throughs', () => {
 
       const result = await controller.listTransactions({
         cursor: 'cursor-0',
-        searchQuery: 'uber',
       });
 
       expect(result).toStrictEqual(page);
       expect(mockList).toHaveBeenCalledWith(
-        { cursor: 'cursor-0', searchQuery: 'uber' },
+        { cursor: 'cursor-0' },
         mockTokenSet,
       );
     });
@@ -4424,6 +4423,76 @@ describe('CardController — data pass-throughs', () => {
       const { controller } = buildAuthenticatedController(provider);
 
       await expect(controller.listTransactions()).rejects.toThrow(
+        'Transaction history not supported',
+      );
+    });
+  });
+
+  describe('getCardTransaction', () => {
+    it('delegates to provider.getTransaction when available', async () => {
+      const details = {
+        id: 'tx-1',
+        providerId: 'baanx',
+        cardFirstSix: '123456',
+      };
+      const mockGetTransaction = jest.fn().mockResolvedValue(details);
+      const provider = buildMockProvider({
+        getTransaction: mockGetTransaction,
+        listTransactions: jest.fn(),
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      const result = await controller.getCardTransaction('tx-1');
+
+      expect(result).toStrictEqual(details);
+      expect(mockGetTransaction).toHaveBeenCalledWith('tx-1', mockTokenSet);
+      expect(provider.listTransactions).not.toHaveBeenCalled();
+    });
+
+    it('falls back to listTransactions when getTransaction is unavailable', async () => {
+      const match = { id: 'tx-2', providerId: 'baanx' };
+      const mockList = jest.fn().mockResolvedValue({
+        items: [{ id: 'tx-1' }, match],
+      });
+      const provider = buildMockProvider({
+        getTransaction: undefined,
+        listTransactions: mockList,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      const result = await controller.getCardTransaction('tx-2');
+
+      expect(result).toStrictEqual(match);
+      expect(mockList).toHaveBeenCalledWith({ limit: 50 }, mockTokenSet);
+    });
+
+    it('throws NotFound when the transaction is missing from the list fallback', async () => {
+      const mockList = jest.fn().mockResolvedValue({
+        items: [{ id: 'tx-other' }],
+      });
+      const provider = buildMockProvider({
+        getTransaction: undefined,
+        listTransactions: mockList,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(controller.getCardTransaction('tx-missing')).rejects.toEqual(
+        expect.objectContaining({
+          code: CardProviderErrorCode.NotFound,
+          message: 'Transaction not found: tx-missing',
+          statusCode: 404,
+        }),
+      );
+    });
+
+    it('propagates listTransactions unsupported errors from the fallback path', async () => {
+      const provider = buildMockProvider({
+        getTransaction: undefined,
+        listTransactions: undefined,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(controller.getCardTransaction('tx-1')).rejects.toThrow(
         'Transaction history not supported',
       );
     });
