@@ -47,6 +47,7 @@ import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { trackSocialLoginFailed } from './socialLoginAnalytics';
+import { getOAuthBackgroundAnalyticsProperties } from './oauthLifecycleTracking';
 import ReduxService from '../redux';
 import { setSeedlessOnboarding } from '../../actions/onboarding';
 import Device from '../../util/device';
@@ -429,6 +430,7 @@ export class OAuthService {
       account_type: getSocialAccountType(authConnection, isRehydration),
       surface: isRehydration ? 'rehydration' : 'onboarding',
       elapsed_ms: elapsedMs,
+      ...getOAuthBackgroundAnalyticsProperties(),
     };
 
     analytics.trackEvent(

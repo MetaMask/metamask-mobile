@@ -3,6 +3,7 @@ import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { OAuthError, OAuthErrorType } from './error';
+import { getOAuthBackgroundAnalyticsProperties } from './oauthLifecycleTracking';
 
 export type SocialLoginFailureErrorCategory =
   | 'provider_login'
@@ -62,6 +63,7 @@ export function trackSocialLoginFailed({
         ...(oauthErrorCode !== undefined && {
           oauth_error_code: oauthErrorCode,
         }),
+        ...getOAuthBackgroundAnalyticsProperties(),
       })
       .build(),
   );
