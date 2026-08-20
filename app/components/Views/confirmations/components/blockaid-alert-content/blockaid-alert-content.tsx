@@ -3,7 +3,11 @@ import { Linking, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { deflate } from 'react-native-gzip';
 import type { Hex } from '@metamask/utils';
-import { TextButton, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Text,
+  TextButton,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import AppConstants from '../../../../../core/AppConstants';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
@@ -12,11 +16,9 @@ import {
   FALSE_POSITIVE_REPORT_BASE_URL,
   UTM_SOURCE,
 } from '../../../../../constants/urls';
-import { DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT } from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase/BannerBase.constants';
 import Accordion, {
   AccordionHeaderHorizontalAlignment,
 } from '../../../../../component-library/components/Accordions/Accordion';
-import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { FALSE_POSITIVE_REPOST_LINE_TEST_ID } from '../../components/blockaid-banner/BlockaidBanner.constants';
 import { getBlockaidBannerDescription } from '../../components/blockaid-banner/BlockaidBanner.utils';
@@ -92,7 +94,7 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
 
   return (
     <>
-      <Text variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}>
+      <Text variant={TextVariant.BodySm}>
         {getBlockaidBannerDescription(
           securityAlertResponse.reason as Reason,
           sendingFiatTotal,
@@ -113,7 +115,7 @@ const BlockaidAlertContent: React.FC<BlockaidAlertContentProps> = ({
         </View>
         <View style={styles.attributionBase}>
           <Text
-            variant={DEFAULT_BANNERBASE_DESCRIPTION_TEXTVARIANT}
+            variant={TextVariant.BodySm}
             data-testid={FALSE_POSITIVE_REPOST_LINE_TEST_ID}
           >
             {strings('blockaid_banner.does_not_look_right')}
