@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { Pressable, Text } from 'react-native';
 import PerpsProCompactInput from './PerpsProCompactInput';
 
 // Mock Input to expose a spyable `focus` via its forwarded ref, mirroring the
@@ -48,6 +49,96 @@ describe('PerpsProCompactInput', () => {
     render(<PerpsProCompactInput {...defaultProps} />);
 
     expect(mockInputFocus).not.toHaveBeenCalled();
+  });
+
+  describe('onFieldPress', () => {
+    it('reports a tap that the input consumes before any wrapper sees it', () => {
+      const onFieldPress = jest.fn();
+      render(
+        <PerpsProCompactInput {...defaultProps} onFieldPress={onFieldPress} />,
+      );
+
+      // Re-tapping an already-focused input fires no focus event, so press-in on
+      // the input itself is the only signal available.
+      fireEvent(screen.getByTestId(defaultProps.testID), 'pressIn');
+
+      expect(onFieldPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports a label tap, which focuses the input indirectly', () => {
+      const onFieldPress = jest.fn();
+      render(
+        <PerpsProCompactInput {...defaultProps} onFieldPress={onFieldPress} />,
+      );
+
+      fireEvent.press(screen.getByText(defaultProps.label));
+
+      expect(mockInputFocus).toHaveBeenCalledTimes(1);
+      expect(onFieldPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('still focuses on label press when no handler is supplied', () => {
+      render(<PerpsProCompactInput {...defaultProps} />);
+
+      fireEvent.press(screen.getByText(defaultProps.label));
+
+      expect(mockInputFocus).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports taps on the inline variant, which has no label to press', () => {
+      const onFieldPress = jest.fn();
+      render(
+        <PerpsProCompactInput
+          {...defaultProps}
+          variant="inline"
+          onFieldPress={onFieldPress}
+        />,
+      );
+
+      fireEvent(screen.getByTestId(defaultProps.testID), 'pressIn');
+
+      expect(onFieldPress).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('inline field press target', () => {
+    it('focuses from a tap anywhere in the row, not just the ~20px of text', () => {
+      const onFieldPress = jest.fn();
+      render(
+        <PerpsProCompactInput
+          {...defaultProps}
+          variant="inline"
+          onFieldPress={onFieldPress}
+        />,
+      );
+
+      // Without this target, a tap in the row's dead space is unhandled and the
+      // enclosing ScrollView dismisses the keyboard instead.
+      fireEvent.press(screen.getByTestId(`${defaultProps.testID}-field`));
+
+      expect(mockInputFocus).toHaveBeenCalledTimes(1);
+      expect(onFieldPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the end accessory outside the press target so its own press wins', () => {
+      const onAccessoryPress = jest.fn();
+      render(
+        <PerpsProCompactInput
+          {...defaultProps}
+          variant="inline"
+          endAccessory={
+            <Pressable testID="mid-price" onPress={onAccessoryPress}>
+              <Text>Mid</Text>
+            </Pressable>
+          }
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId('mid-price'));
+
+      expect(onAccessoryPress).toHaveBeenCalledTimes(1);
+      expect(mockInputFocus).not.toHaveBeenCalled();
+    });
   });
 
   it('uses the custom keyboard accessory without requesting a native Done key', () => {

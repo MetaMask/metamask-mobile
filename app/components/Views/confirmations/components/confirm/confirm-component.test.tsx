@@ -229,7 +229,7 @@ describe('Confirm', () => {
     expect(getAllByText('Message')).toHaveLength(2);
     expect(getByText('Hi, Alice!')).toBeDefined();
     expect(getAllByRole('button')).toHaveLength(2);
-    expect(queryByText('This is a deceptive request')).toBeNull();
+    expect(queryByText('Risk signals detected')).toBeNull();
   });
 
   it('renders information for staking deposit', async () => {

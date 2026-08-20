@@ -20,6 +20,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import {
   endTrace,
   trace,
+  getTraceContext,
   TraceName,
   TraceOperation,
 } from '../../../util/trace';
@@ -92,7 +93,6 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
     type = 'not_exist',
     accountName,
     oauthLoginSuccess,
-    onboardingTraceCtx,
     provider,
   } = route?.params ?? {};
 
@@ -139,11 +139,15 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
         ? TraceName.OnboardingNewSocialAccountExists
         : TraceName.OnboardingExistingSocialAccountNotFound;
 
+    // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+    const journeyCtx = getTraceContext({
+      name: TraceName.OnboardingJourneyOverall,
+    });
     trace({
       name: traceName,
       op: TraceOperation.OnboardingUserJourney,
       tags: getTraceTags(store.getState()),
-      parentContext: onboardingTraceCtx,
+      parentContext: journeyCtx,
     });
 
     track(
@@ -156,7 +160,7 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
     return () => {
       endTrace({ name: traceName });
     };
-  }, [accountType, onboardingTraceCtx, type, track]);
+  }, [accountType, type, track]);
 
   const navigateNextScreen = (
     targetRoute: string,
@@ -167,6 +171,10 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
       type === 'found'
         ? TraceName.OnboardingExistingSocialLogin
         : TraceName.OnboardingNewSocialCreateWallet;
+    // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+    const journeyCtx = getTraceContext({
+      name: TraceName.OnboardingJourneyOverall,
+    });
     trace({
       name: nextScenarioTraceName,
       op: TraceOperation.OnboardingUserJourney,
@@ -174,14 +182,13 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
         ...getTraceTags(store.getState()),
         source: 'account_status_redirect',
       },
-      parentContext: onboardingTraceCtx,
+      parentContext: journeyCtx,
     });
 
     navigation.dispatch(
       StackActions.replace(targetRoute, {
         [PREVIOUS_SCREEN]: previousScreen,
         oauthLoginSuccess,
-        onboardingTraceCtx,
         provider,
       }),
     );

@@ -16,6 +16,10 @@ export interface RiveRef {
   play: jest.Mock;
   pause: jest.Mock;
   stop: jest.Mock;
+  trigger: jest.Mock;
+  setNumber: jest.Mock;
+  /** Non-null by default: data-bound consumers skip dispatch when it is null. */
+  viewTag: jest.Mock;
 }
 
 interface MockedMethods {
@@ -25,6 +29,9 @@ interface MockedMethods {
   play?: jest.Mock;
   pause?: jest.Mock;
   stop?: jest.Mock;
+  trigger?: jest.Mock;
+  setNumber?: jest.Mock;
+  viewTag?: jest.Mock;
 }
 
 type MockRiveProps = ViewProps & {
@@ -48,6 +55,9 @@ const createMockedMethods = (overrides?: MockedMethods): RiveRef => ({
   play: jest.fn(),
   pause: jest.fn(),
   stop: jest.fn(),
+  trigger: jest.fn(),
+  setNumber: jest.fn(),
+  viewTag: jest.fn(() => 1),
   ...overrides,
 });
 
@@ -96,6 +106,9 @@ const Fit = {
 const Alignment = {
   Center: 'center',
 } as const;
+
+/** Data-binding config; consumers only pass it straight to `<Rive>`. */
+export const AutoBind = jest.fn((autoBind: boolean) => ({ autoBind }));
 
 /** Mirrors `RNRiveErrorType` from rive-react-native for module-level error classification. */
 export const RNRiveErrorType = {

@@ -54,7 +54,7 @@
 
 ### Gestures facade (canonical)
 
-Use `Gestures`, `Assertions`, and the common `Matchers` methods (`getElementByID`, `getElementByText`, `getElementByLabel`) from `tests/framework`. Do **not** import `UnifiedGestures`, `FrameworkDetector`, `encapsulated` / `encapsulatedAction`, or `Playwright*` dual-framework APIs in new page objects or specs — ESLint freezes those (MMQA-2230; see [tests/AGENTS.md](../tests/AGENTS.md)).
+Use `Gestures`, `Assertions`, and the common `Matchers` methods (`getElementByID`, `getElementByText`, `getElementByLabel`) from `tests/framework`. Prefer those over `UnifiedGestures`, `FrameworkDetector`, `encapsulated` / `encapsulatedAction`, or `Playwright*` dual-framework APIs in page objects and specs (see [tests/AGENTS.md](../tests/AGENTS.md)).
 
 ```
 Page object calls Gestures.waitAndTap(elem)

@@ -57,7 +57,14 @@ export function getDisplaySignPrefix(
 export function getHumanReadableTokenAmount(
   token: TokenAmount,
 ): string | undefined {
-  if (!token.amount) {
+  if (
+    token.amount === undefined ||
+    token.amount === null ||
+    token.amount === ''
+  ) {
+    if (token.symbol || token.assetId) {
+      return '0';
+    }
     return undefined;
   }
 

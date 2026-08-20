@@ -59,11 +59,8 @@ import {
   CardEntryPoint,
   CardScreens,
 } from '../../../Card/util/metrics';
-import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
-import {
-  selectMoneyEarningSectionEnabledFlag,
-  selectMoneyEnableMoneyAccountFlag,
-} from '../../selectors/featureFlags';
+import { selectMoneyEarningSectionEnabledFlag } from '../../selectors/featureFlags';
+import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -130,6 +127,21 @@ jest.mock('../../components/MoneyNextBestActionParallax', () => ({
 jest.mock('../../components/MoneyCardTiltAnimation', () => ({
   __esModule: true,
   default: () => null,
+}));
+
+jest.mock('../../../Card/hooks/useCardTransactionIndex', () => ({
+  useCardTransactionIndex: () => ({
+    bySettlementHash: new Map(),
+    declined: [],
+    oldestFetchedTime: Number.NEGATIVE_INFINITY,
+    isFetching: false,
+    isSettling: false,
+    isError: false,
+  }),
+}));
+
+jest.mock('../../../Card/hooks/useCardCapabilities', () => ({
+  useCardCapabilities: () => null,
 }));
 
 jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
@@ -235,15 +247,13 @@ jest.mock('../../../../../selectors/cardController', () => ({
   selectIsMoneyAccountDelegatedForCard: jest.fn(() => false),
 }));
 
-jest.mock('../../selectors/eligibility', () => ({
-  ...jest.requireActual('../../selectors/eligibility'),
-  selectIsMoneyAccountGeoEligible: jest.fn(() => true),
-}));
-
 jest.mock('../../selectors/featureFlags', () => ({
   ...jest.requireActual('../../selectors/featureFlags'),
   selectMoneyEarningSectionEnabledFlag: jest.fn(() => true),
-  selectMoneyEnableMoneyAccountFlag: jest.fn(() => true),
+}));
+
+jest.mock('../../selectors/visibility', () => ({
+  selectIsMoneyAccountVisible: jest.fn(() => true),
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
@@ -327,11 +337,8 @@ const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 const mockSelectHasMetalCard = jest.mocked(selectHasMetalCard);
 const mockSelectCardHomeDataStatus = jest.mocked(selectCardHomeDataStatus);
 const mockSelectIsCardStateResolved = jest.mocked(selectIsCardStateResolved);
-const mockSelectIsMoneyAccountGeoEligible = jest.mocked(
-  selectIsMoneyAccountGeoEligible,
-);
-const mockSelectMoneyEnableMoneyAccountFlag = jest.mocked(
-  selectMoneyEnableMoneyAccountFlag,
+const mockSelectIsMoneyAccountVisible = jest.mocked(
+  selectIsMoneyAccountVisible,
 );
 const mockSelectMoneyEarningSectionEnabledFlag = jest.mocked(
   selectMoneyEarningSectionEnabledFlag,
@@ -507,8 +514,7 @@ describe('MoneyHomeView', () => {
     mockSelectHasMetalCard.mockReturnValue(false);
     mockSelectCardHomeDataStatus.mockReturnValue('idle');
     mockSelectIsCardStateResolved.mockReturnValue(true);
-    mockSelectIsMoneyAccountGeoEligible.mockReturnValue(true);
-    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+    mockSelectIsMoneyAccountVisible.mockReturnValue(true);
     mockSelectMoneyEarningSectionEnabledFlag.mockReturnValue(true);
 
     mockOpenLinkCardSheet.mockReset();
@@ -1439,14 +1445,30 @@ describe('MoneyHomeView', () => {
     });
   });
 
-  it('does not track the MetaMask Card impression while card home data is unsettled (idle status)', () => {
+  it('does not track the MetaMask Card impression while the card state is unsettled', () => {
     mockSelectCardHomeDataStatus.mockReturnValue('idle');
+    mockSelectIsCardStateResolved.mockReturnValue(false);
 
     renderWithProvider(<MoneyHomeView />);
 
     expect(mockAddProperties).not.toHaveBeenCalledWith(
       expect.objectContaining({
         entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+      }),
+    );
+  });
+
+  it('tracks the MetaMask Card impression for a user with no card, whose data is never fetched', () => {
+    mockSelectCardHomeDataStatus.mockReturnValue('idle');
+    mockSelectIsCardStateResolved.mockReturnValue(true);
+
+    renderWithProvider(<MoneyHomeView />);
+
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
+        mode: 'upsell',
+        card_state: 'non_cardholder',
       }),
     );
   });
@@ -2718,7 +2740,7 @@ describe('MoneyHomeView', () => {
 
     it('hides the upsell MetaMask Card when the Money account is not visible', () => {
       mockSelectIsCardholder.mockReturnValue(false);
-      mockSelectIsMoneyAccountGeoEligible.mockReturnValue(false);
+      mockSelectIsMoneyAccountVisible.mockReturnValue(false);
 
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -2729,7 +2751,7 @@ describe('MoneyHomeView', () => {
 
     it('hides the verifying MetaMask Card when the Money account is not visible', () => {
       mockSelectIsCardholder.mockReturnValue(false);
-      mockSelectIsMoneyAccountGeoEligible.mockReturnValue(false);
+      mockSelectIsMoneyAccountVisible.mockReturnValue(false);
       mockUseMoneyAccountCardLinkage.mockReturnValue({
         hasMoneyAccountRequirements: true,
         hasMoneyAccountBaseRequirements: true,
