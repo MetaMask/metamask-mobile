@@ -146,9 +146,11 @@ export async function detectOAuthProcessRestart(): Promise<{
 
   await StorageWrapper.removeItem(OAUTH_IN_PROGRESS);
 
+  // Persisted OAUTH_IN_PROGRESS after JS memory wipe means the process died
+  // after leaving the foreground (Android kill). Treat that as a background.
   const analyticsProperties: OAuthBackgroundAnalyticsProperties = {
-    had_background_during_oauth: false,
-    background_count: 0,
+    had_background_during_oauth: true,
+    background_count: 1,
     time_in_background_ms: 0,
     resume_outcome: OAUTH_RESUME_OUTCOME.PROCESS_RESTARTED,
   };

@@ -482,7 +482,7 @@ describe('OAuth login service', () => {
     expect(mockAuthenticate).toHaveBeenCalledTimes(0);
   });
 
-  it('SOCIAL_LOGIN_FAILED uses new-user account_type when not rehydrating', async () => {
+  it('tracks SOCIAL_LOGIN_FAILED with new-user account_type when not rehydrating', async () => {
     const loginHandler = mockCreateLoginHandler();
     mockLoginHandlerResponse.mockImplementation(() => {
       throw new OAuthError('Login error', OAuthErrorType.LoginError);
@@ -503,6 +503,30 @@ describe('OAuth login service', () => {
         }),
       }),
     );
+  });
+
+  it('does not track Social Login Failed for Android Google One Tap errors that fall back to browser', async () => {
+    const originalPlatform = Platform.OS;
+    Platform.OS = 'android';
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError(
+        'No credential',
+        OAuthErrorType.GoogleLoginNoCredential,
+      );
+    });
+
+    await expect(
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
+    ).rejects.toMatchObject({ code: OAuthErrorType.GoogleLoginNoCredential });
+
+    expect(analytics.trackEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Social Login Failed',
+      }),
+    );
+
+    Platform.OS = originalPlatform;
   });
 
   it('SOCIAL_LOGIN_FAILED uses existing-user account_type when rehydrating', async () => {

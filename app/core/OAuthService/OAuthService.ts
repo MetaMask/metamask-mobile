@@ -46,7 +46,10 @@ import {
 import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
-import { trackSocialLoginFailed } from './socialLoginAnalytics';
+import {
+  shouldAttemptAndroidGoogleBrowserFallback,
+  trackSocialLoginFailed,
+} from './socialLoginAnalytics';
 import {
   getOAuthBackgroundAnalyticsProperties,
   OAUTH_RESUME_OUTCOME,
@@ -491,7 +494,14 @@ export class OAuthService {
           authConnection: loginHandler.authConnection,
           elapsedMs: Date.now() - providerLoginStartedAt,
         });
-      } else {
+      } else if (
+        !shouldAttemptAndroidGoogleBrowserFallback(
+          error,
+          loginHandler.authConnection,
+        )
+      ) {
+        // One Tap errors that retry in the browser must not emit Failed; the
+        // fallback attempt owns the terminal Completed / Failed / Dismissed.
         trackSocialLoginFailed({
           authConnection: loginHandler.authConnection,
           isRehydration: this.localState.userClickedRehydration,

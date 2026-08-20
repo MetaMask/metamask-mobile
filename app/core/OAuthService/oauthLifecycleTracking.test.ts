@@ -98,9 +98,12 @@ describe('oauthLifecycleTracking', () => {
 
     expect(result.detected).toBe(true);
     expect(result.authConnection).toBe('google');
-    expect(result.analyticsProperties?.resume_outcome).toBe(
-      OAUTH_RESUME_OUTCOME.PROCESS_RESTARTED,
-    );
+    expect(result.analyticsProperties).toEqual({
+      had_background_during_oauth: true,
+      background_count: 1,
+      time_in_background_ms: 0,
+      resume_outcome: OAUTH_RESUME_OUTCOME.PROCESS_RESTARTED,
+    });
     expect(StorageWrapper.removeItem).toHaveBeenCalledWith(OAUTH_IN_PROGRESS);
   });
 

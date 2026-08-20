@@ -3846,6 +3846,7 @@ describe('Onboarding', () => {
     });
 
     it('does not reset background duration when iOS resumes through inactive', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
       mockOAuthService.handleOAuthLogin.mockReturnValue(
         new Promise(() => {
           // Never settles while the user is in the provider browser.
@@ -3859,14 +3860,15 @@ describe('Onboarding', () => {
       });
 
       await waitFor(() => {
-        expect(mockTrace).toHaveBeenCalledWith(
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
-            name: TraceName.OnboardingSocialLoginAttempt,
+            name: MetaMetricsEvents.SOCIAL_LOGIN_STARTED.category,
           }),
         );
       });
 
       jest.useFakeTimers();
+      mockAnalytics.trackEvent.mockClear();
       dispatchAppStateChange('background');
       act(() => {
         jest.advanceTimersByTime(5_000);
@@ -3879,9 +3881,32 @@ describe('Onboarding', () => {
         background_count: 1,
         time_in_background_ms: 5_000,
       });
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_BACKGROUNDED.category,
+          properties: expect.objectContaining({
+            auth_connection: 'google',
+            had_background_during_oauth: false,
+            background_count: 0,
+          }),
+        }),
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_RESUMED.category,
+          properties: expect.objectContaining({
+            auth_connection: 'google',
+            had_background_during_oauth: true,
+            background_count: 1,
+            time_in_background_ms: 5_000,
+          }),
+        }),
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledTimes(2);
     });
 
     it('keeps OAuth lifecycle tracking during Android Google browser fallback', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
       const originalPlatform = Platform.OS;
       Platform.OS = 'android';
 
@@ -3909,8 +3934,14 @@ describe('Onboarding', () => {
       });
 
       expect(isOAuthLifecycleInProgress()).toBe(true);
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STARTED.category,
+        }),
+      );
 
       jest.useFakeTimers();
+      mockAnalytics.trackEvent.mockClear();
       dispatchAppStateChange('background');
       act(() => {
         jest.advanceTimersByTime(2_000);
@@ -3922,8 +3953,69 @@ describe('Onboarding', () => {
         background_count: 1,
         time_in_background_ms: 2_000,
       });
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_BACKGROUNDED.category,
+          properties: expect.objectContaining({
+            had_background_during_oauth: false,
+          }),
+        }),
+      );
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_RESUMED.category,
+          properties: expect.objectContaining({
+            had_background_during_oauth: true,
+            time_in_background_ms: 2_000,
+          }),
+        }),
+      );
 
       Platform.OS = originalPlatform;
+    });
+
+    it('tracks Social Login Abandoned after the grace period without resetting OAuth UI state', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      mockOAuthService.handleOAuthLogin.mockReturnValue(
+        new Promise(() => {
+          // Never settles: user abandoned the flow in the external browser.
+        }),
+      );
+
+      const { googleLogin } = await openSheetAndGetGoogleLogin();
+
+      await act(async () => {
+        void googleLogin(true);
+      });
+
+      await waitFor(() => {
+        expect(mockTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.OnboardingSocialLoginAttempt,
+          }),
+        );
+      });
+
+      jest.useFakeTimers();
+      mockAnalytics.trackEvent.mockClear();
+      dispatchAppStateChange('background');
+      dispatchAppStateChange('active');
+
+      act(() => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: MetaMetricsEvents.SOCIAL_LOGIN_ABANDONED.category,
+          properties: expect.objectContaining({
+            auth_connection: 'google',
+            resume_outcome: 'abandoned',
+            had_background_during_oauth: true,
+          }),
+        }),
+      );
+      expect(mockOAuthService.resetOauthState).not.toHaveBeenCalled();
     });
 
     it('cancels the abandonment countdown when OAuth returns to the background', async () => {

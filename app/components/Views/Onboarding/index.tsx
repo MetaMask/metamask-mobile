@@ -95,6 +95,7 @@ import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
 import {
   isPreOAuthSocialLoginFailure,
+  shouldAttemptAndroidGoogleBrowserFallback,
   trackSocialLoginFailed,
 } from '../../../core/OAuthService/socialLoginAnalytics';
 import {
@@ -190,33 +191,6 @@ function getSocialCtaId(provider: string): OnboardingCtaId {
   return (
     SOCIAL_CTA_IDS[provider as AuthConnection] ??
     OnboardingCtaIds.SOCIAL_LOGIN_GOOGLE
-  );
-}
-
-const ANDROID_GOOGLE_BROWSER_FALLBACK_ERROR_CODES: ReadonlySet<OAuthErrorType> =
-  new Set([
-    OAuthErrorType.GoogleLoginNoCredential,
-    OAuthErrorType.GoogleLoginNoMatchingCredential,
-    OAuthErrorType.GoogleLoginUserDisabledOneTapFeature,
-    OAuthErrorType.GoogleLoginOneTapFailure,
-    OAuthErrorType.GoogleLoginNoProviderDependencies,
-    OAuthErrorType.UnknownError,
-  ]);
-
-/**
- * Android Google One Tap failures retry in the system browser. Lifecycle must
- * stay open across that retry so background/resume analytics attach to the
- * attempt that actually leaves the app.
- */
-function shouldAttemptAndroidGoogleBrowserFallback(
-  error: unknown,
-  socialConnectionType: string,
-): boolean {
-  return (
-    Platform.OS === 'android' &&
-    socialConnectionType === AuthConnection.Google &&
-    error instanceof OAuthError &&
-    ANDROID_GOOGLE_BROWSER_FALLBACK_ERROR_CODES.has(error.code)
   );
 }
 
@@ -1557,6 +1531,9 @@ const Onboarding = () => {
                 ...backgroundProperties,
               });
             }
+            // Analytics + Sentry only: leave loading / OAuth local state to the
+            // existing success and error paths so an in-flight handleOAuthLogin
+            // can still complete after the grace window.
             finalizeOAuthLifecycle(OAUTH_RESUME_OUTCOME.ABANDONED).catch(
               (error) => {
                 Logger.error(
@@ -1565,8 +1542,6 @@ const Onboarding = () => {
                 );
               },
             );
-            unsetLoading();
-            OAuthLoginService.resetOauthState();
           }
         }, OAUTH_TRACE_ABANDONMENT_GRACE_MS);
       }
@@ -1578,12 +1553,7 @@ const Onboarding = () => {
         abandonmentTimerRef.current = null;
       }
     };
-  }, [
-    endSocialLoginAttemptTrace,
-    finalizeInFlightOAuthTraces,
-    track,
-    unsetLoading,
-  ]);
+  }, [endSocialLoginAttemptTrace, finalizeInFlightOAuthTraces, track]);
 
   useEffect(() => {
     updateNavBar();
