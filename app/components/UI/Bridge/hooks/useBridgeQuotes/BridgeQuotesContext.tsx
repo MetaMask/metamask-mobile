@@ -1,13 +1,21 @@
-import React, { createContext, useContext } from 'react';
-import { useBridgeQuoteRequest, type UseBridgeQuotesParams } from './index';
+import React, { createContext, useContext, useMemo } from 'react';
+import {
+  useQuoteRequest,
+  useQuoteData,
+  type UseQuoteRequestParams,
+  type UseQuoteDataParams,
+} from './index';
 
-type BridgeQuotesContextValue = ReturnType<typeof useQuoteRequest>;
+type BridgeQuotesContextValue = ReturnType<typeof useQuoteRequest> &
+  ReturnType<typeof useQuoteData>;
 
 const BridgeQuotesContext = createContext<BridgeQuotesContextValue | null>(
   null,
 );
 
-interface BridgeQuotesProviderProps extends UseBridgeQuotesParams {
+interface BridgeQuotesProviderProps
+  extends UseQuoteRequestParams,
+    UseQuoteDataParams {
   children: React.ReactNode;
 }
 
@@ -16,8 +24,12 @@ export function BridgeQuotesProvider({
   ...params
 }: BridgeQuotesProviderProps) {
   const requestData = useQuoteRequest(params);
+  const quoteData = useQuoteData(params);
 
-  const value = useMemo(() => requestData, [requestData]);
+  const value = useMemo(
+    () => ({ ...requestData, ...quoteData }),
+    [requestData, quoteData],
+  );
 
   return (
     <BridgeQuotesContext.Provider value={value}>

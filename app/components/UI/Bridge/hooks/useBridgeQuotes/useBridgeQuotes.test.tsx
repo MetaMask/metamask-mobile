@@ -15,6 +15,8 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { TraceName } from '../../../../../util/trace';
+import { runQuoteDataCases } from '../useBridgeQuoteData/runQuoteDataCases';
+import type { BigNumber } from 'ethers';
 
 const mockDispatch = jest.fn();
 
@@ -69,6 +71,37 @@ jest.mock('../../../../../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  ...jest.requireActual('../../../../../core/redux/slices/bridge'),
+  selectSourceToken: jest.fn(),
+  selectSourceAmount: jest.fn(),
+  selectDestToken: jest.fn(),
+  selectSlippage: jest.fn(),
+  selectDestAddress: jest.fn(),
+  selectSelectedDestChainId: jest.fn(),
+  selectBridgeControllerState: jest.fn().mockReturnValue({}),
+  selectQuoteStreamComplete: jest.fn(),
+  selectIsSolanaSwap: jest.fn(),
+  selectIsSolanaToNonSolana: jest.fn(),
+  selectSelectedQuoteRequestId: jest.fn(),
+  selectIsSubmittingTx: jest.fn(),
+  selectBridgeFeatureFlags: jest.fn(),
+  selectBridgeQuotes: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('../../../../../selectors/bridge', () => ({
+  ...jest.requireActual('../../../../../selectors/bridge'),
+  selectSourceWalletAddress: jest.fn(),
+  selectGasIncludedQuoteParams: jest.fn().mockReturnValue({}),
+  selectBatchSellSourceWalletAddress: jest.fn(),
+  selectValidDestInternalAccountIds: jest.fn(),
+  selectIsGasIncluded7702BridgeEnabled: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: () => 'USD',
+}));
+
 const mockDebounceMs = 300;
 
 const Wrapper = ({
@@ -109,6 +142,23 @@ runQuoteRequestCases({
   debounceMs: mockDebounceMs,
   renderHook: (options) =>
     renderHook(() => useBridgeQuotes().debouncedUpdateQuoteParams, {
+      wrapper: ({ children }) => {
+        return (
+          <Wrapper
+            latestSourceAtomicBalance={options?.latestSourceAtomicBalance}
+          >
+            {children}
+          </Wrapper>
+        );
+      },
+    }),
+});
+
+runQuoteDataCases({
+  name: 'useQuoteData',
+  mockDispatch,
+  renderHook: (options) =>
+    renderHook(() => useBridgeQuotes(), {
       wrapper: ({ children }) => {
         return (
           <Wrapper
