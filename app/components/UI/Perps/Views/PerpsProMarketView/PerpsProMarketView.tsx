@@ -97,21 +97,26 @@ const PerpsProOrderBookColumn = ({
 
   const handleSelectPrice = useCallback(
     (price: string) => {
+      // Book prices come from the venue already on a valid tick, so canonicalize
+      // only once the asset's precision is known. `canonicalizeOrderPrice` falls
+      // back to a default `szDecimals` when it is not, which can round a valid
+      // price onto an invalid tick and then commit it.
+      const selectedPrice =
+        marketData?.szDecimals === undefined
+          ? price
+          : canonicalizeOrderPrice(price, marketData.szDecimals);
+
       if (isTriggerOrderType(orderForm.type)) {
         if (isLimitExecutionOrderType(orderForm.type)) {
-          commitLimitPrice(
-            canonicalizeOrderPrice(price, marketData?.szDecimals),
-          );
+          commitLimitPrice(selectedPrice);
           return;
         }
-        commitTriggerPrice(
-          canonicalizeOrderPrice(price, marketData?.szDecimals),
-        );
+        commitTriggerPrice(selectedPrice);
         return;
       }
 
       setOrderType('limit');
-      commitLimitPrice(canonicalizeOrderPrice(price, marketData?.szDecimals));
+      commitLimitPrice(selectedPrice);
     },
     [
       commitLimitPrice,

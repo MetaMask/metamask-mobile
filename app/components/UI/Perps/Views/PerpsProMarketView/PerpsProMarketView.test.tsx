@@ -300,6 +300,33 @@ jest.mock('../../hooks/stream/usePerpsLiveOrderBook', () => ({
   usePerpsLiveOrderBook: (params: unknown) => mockUsePerpsLiveOrderBook(params),
 }));
 
+const buildLiveBook = (bidPrice: string): OrderBookData => ({
+  bids: [
+    {
+      price: bidPrice,
+      size: '1.5',
+      total: '1.5',
+      notional: '134925',
+      totalNotional: '134925',
+    },
+  ],
+  asks: [],
+  spread: '100',
+  spreadPercentage: '0.11',
+  midPrice: '90000',
+  lastUpdated: 1700000000000,
+  maxTotal: '1.5',
+});
+
+let mockSzDecimals: number | undefined;
+jest.mock('../../hooks/usePerpsMarketData', () => ({
+  usePerpsMarketData: () => ({
+    marketData: { szDecimals: mockSzDecimals },
+    isLoading: false,
+    error: null,
+  }),
+}));
+
 jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
   usePerpsOrderBookGrouping: jest.fn(() => ({
     savedGrouping: undefined,
@@ -406,6 +433,7 @@ describe('PerpsProMarketView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockOrderFormType = 'market';
+    mockSzDecimals = undefined;
     mockRouteParams = {
       market: {
         symbol: 'BTC',
@@ -1017,5 +1045,49 @@ describe('PerpsProMarketView', () => {
     expect(mockCommitTriggerPrice).toHaveBeenCalledWith('89950');
     expect(mockSetTriggerPrice).not.toHaveBeenCalled();
     expect(mockCommitLimitPrice).not.toHaveBeenCalled();
+  });
+  it('commits a book price unchanged while the asset precision is unknown', () => {
+    // szDecimals arrives asynchronously. Canonicalizing against the fallback
+    // precision rounds a sub-dollar book price to 0, which would then be
+    // committed as the limit price.
+    mockSzDecimals = undefined;
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: buildLiveBook('0.0682341'),
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: jest.fn(),
+    }));
+
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+      ),
+    );
+
+    expect(mockCommitLimitPrice).toHaveBeenCalledWith('0.0682341');
+  });
+
+  it('canonicalizes a book price once the asset precision is known', () => {
+    mockSzDecimals = 2;
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: buildLiveBook('0.0682341'),
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: jest.fn(),
+    }));
+
+    const { getByTestId } = renderView();
+
+    fireEvent.press(
+      getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+      ),
+    );
+
+    expect(mockCommitLimitPrice).toHaveBeenCalledWith('0.0682');
   });
 });
