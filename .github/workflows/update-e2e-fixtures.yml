@@ -29,7 +29,7 @@ on:
         options:
           - current
           - namespace
-        default: current
+        default: namespace
 
 jobs:
   # ── issue_comment dispatcher ──────────────────────────────────────────
@@ -180,7 +180,6 @@ jobs:
     name: Export & update fixtures
     needs: [is-fork-pull-request, prepare]
     if: ${{ needs.prepare.result == 'success' && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
-    # Appium fixture update uses Cirrus macOS (current), same as appium-smoke-tests-ios.
     runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ios-e2e' || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe", "low-priority"]')) }}
     timeout-minutes: 60
 
@@ -209,8 +208,15 @@ jobs:
       YARN_ENABLE_GLOBAL_CACHE: 'true'
 
     steps:
+      - name: Checkout (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        with:
+          ref: ${{ needs.prepare.outputs.BRANCH }}
+
       - name: Checkout
         uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
         with:
           ref: ${{ needs.prepare.outputs.BRANCH }}
 
@@ -230,9 +236,34 @@ jobs:
           install-foundry: 'true'
           skip-pod-install: 'true'
           install-applesimutils: 'false'
-          runner_provider: current
+          runner_provider: ${{ inputs.runner_provider }}
 
-      - name: Download iOS app artifact from CI
+      - name: Download iOS app artifact from CI (Namespace)
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        id: download-ios-app-namespace
+        continue-on-error: true
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: main-e2e-MetaMask.app
+          path: artifacts/main-e2e-MetaMask.app
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ needs.prepare.outputs.RUN_ID }}
+
+      - name: Clear any partial iOS app before the fallback download
+        if: >-
+          ${{
+            inputs.runner_provider == 'namespace' &&
+            steps.download-ios-app-namespace.outcome != 'success'
+          }}
+        shell: bash
+        run: rm -rf artifacts/main-e2e-MetaMask.app
+
+      - name: Download iOS app artifact from CI (GitHub — build may be on Cirrus)
+        if: >-
+          ${{
+            inputs.runner_provider != 'namespace' ||
+            steps.download-ios-app-namespace.outcome != 'success'
+          }}
         run: |
           RUN_ID="${{ needs.prepare.outputs.RUN_ID }}"
           ARTIFACT_NAME="main-e2e-MetaMask.app"

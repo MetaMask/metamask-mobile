@@ -9,6 +9,7 @@ interface RawBridgeLimitOrderFeatureFlagValue extends Record<string, Json> {
 
 interface RawBridgeRecurringBuyFeatureFlagValue extends Record<string, Json> {
   enabled: boolean;
+  enabledChainIds: CaipChainId[];
 }
 
 /**
