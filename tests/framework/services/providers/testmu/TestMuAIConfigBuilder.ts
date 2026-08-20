@@ -108,7 +108,6 @@ export class TestMuAIConfigBuilder {
       'appium:animationCoolOffTimeout': 0,
       'appium:reduceMotion': true,
       'appium:customSnapshotTimeout': 15,
-      // Temporary TestMu experiment: settings-form idle timeout + snapshot depth.
       'appium:settings[waitForIdleTimeout]': 0,
       'appium:settings[snapshotMaxDepth]': 62,
       'appium:disableWindowAnimation': true,
