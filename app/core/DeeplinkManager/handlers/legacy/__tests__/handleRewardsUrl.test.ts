@@ -154,6 +154,16 @@ describe('handleRewardsUrl', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
     });
 
+    it('dispatches pending deeplink and navigates to rewards view with campaign=predict-the-pitch param', async () => {
+      await handleRewardsUrl({ rewardsPath: '?campaign=predict-the-pitch' });
+
+      expect(setPendingDeeplink).toHaveBeenCalledWith({
+        page: undefined,
+        campaign: 'predict-the-pitch',
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
+    });
+
     it('dispatches pending deeplink and navigates to rewards view with page=musd param', async () => {
       await handleRewardsUrl({ rewardsPath: '?page=musd' });
 

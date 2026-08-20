@@ -1,28 +1,28 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 import {
-  Text,
-  TextVariant,
-  TextColor,
-  Button,
-  ButtonVariant,
-  ButtonBaseSize,
   BottomSheet,
-  BottomSheetRef,
   BottomSheetHeader,
+  BottomSheetRef,
+  Button,
+  ButtonBaseSize,
+  ButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
-
 import styleSheet from './UnsupportedStateModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
-
 import { createStateSelectorModalNavigationDetails } from '../StateSelectorModal';
 import { useRampsUserRegion } from '../../../hooks/useRampsUserRegion';
 
@@ -40,7 +40,7 @@ export const createUnsupportedStateModalNavigationDetails =
 
 function UnsupportedStateModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { userRegion } = useRampsUserRegion();
   const { stateCode, stateName, onStateSelect } =
     useParams<UnsupportedStateModalParams>();
@@ -56,8 +56,9 @@ function UnsupportedStateModal() {
 
   const handleSelectDifferentState = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigation.navigate(
-        ...createStateSelectorModalNavigationDetails({
+      navigateWithDetails(
+        navigation,
+        createStateSelectorModalNavigationDetails({
           selectedState: stateCode,
           onStateSelect,
         }),

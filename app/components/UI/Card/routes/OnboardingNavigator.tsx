@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  createStackNavigator,
-  StackNavigationOptions,
-} from '@react-navigation/stack';
+  createNativeStackNavigator,
+  NativeStackNavigationOptions,
+} from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import SignUp from '../components/Onboarding/SignUp';
 import ConfirmEmail from '../components/Onboarding/ConfirmEmail';
@@ -10,6 +10,8 @@ import SetPhoneNumber from '../components/Onboarding/SetPhoneNumber';
 import ConfirmPhoneNumber from '../components/Onboarding/ConfirmPhoneNumber';
 import VerifyIdentity from '../components/Onboarding/VerifyIdentity';
 import VerifyingVeriffKYC from '../components/Onboarding/VerifyingVeriffKYC';
+import ImmersveKYCProcessing from '../components/Onboarding/ImmersveKYCProcessing';
+import ImmersveFundingApproval from '../components/Onboarding/ImmersveFundingApproval';
 import KYCFailed from '../components/Onboarding/KYCFailed';
 import KYCPending from '../components/Onboarding/KYCPending';
 import PersonalDetails from '../components/Onboarding/PersonalDetails';
@@ -19,6 +21,7 @@ import { useSelector } from 'react-redux';
 import { useCardSDK } from '../sdk';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import { ActivityIndicator } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
@@ -27,10 +30,10 @@ import { CardUserPhase } from '../types';
 import Complete from '../components/Onboarding/Complete';
 import LockManagerService from '../../../../core/LockManagerService';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 // All onboarding screens render HeaderStandard in-screen via OnboardingStep.
-const onboardingScreenOptions: StackNavigationOptions = {
+const onboardingScreenOptions: NativeStackNavigationOptions = {
   headerShown: false,
   gestureEnabled: false,
 };
@@ -48,7 +51,7 @@ const OnboardingNavigator: React.FC = () => {
   const [isFetchingUserData, setIsFetchingUserData] = useState(
     () => !!onboardingId && !user,
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
       RouteProp<
@@ -257,6 +260,14 @@ const OnboardingNavigator: React.FC = () => {
       <Stack.Screen
         name={Routes.CARD.ONBOARDING.KYC_PENDING}
         component={KYCPending}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.KYC_PROCESSING}
+        component={ImmersveKYCProcessing}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ONBOARDING.FUNDING_APPROVAL}
+        component={ImmersveFundingApproval}
       />
     </Stack.Navigator>
   );

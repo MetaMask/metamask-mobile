@@ -1,12 +1,12 @@
 import {
-  Box,
+  BottomSheet,
   BottomSheetHeader,
+  BottomSheetRef,
+  Box,
   Button,
   ButtonVariant,
   Text,
   TextVariant,
-  BottomSheet,
-  BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useRef } from 'react';
 import { Alert, Modal, View } from 'react-native';

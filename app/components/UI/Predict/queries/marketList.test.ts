@@ -1,0 +1,294 @@
+import {
+  PREDICT_MARKET_LIST_PAGE_SIZE,
+  normalizeMarketListParams,
+  predictMarketListKeys,
+  predictMarketListOptions,
+} from './marketList';
+import type { PredictMarketListResponse } from '../types';
+
+const mockListMarkets = jest.fn();
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      listMarkets: (...args: unknown[]) => mockListMarkets(...args),
+    },
+  },
+}));
+
+describe('marketList query', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('normalizeMarketListParams', () => {
+    it('defaults limit to the page size and drops absent fields', () => {
+      expect(normalizeMarketListParams()).toEqual({
+        queryParams: undefined,
+        tags: undefined,
+        tagSlugs: undefined,
+        excludedTags: undefined,
+        series: undefined,
+        order: undefined,
+        status: undefined,
+        live: undefined,
+        startTimeMinMinutesAgo: undefined,
+        search: undefined,
+        customQueryParams: undefined,
+        limit: PREDICT_MARKET_LIST_PAGE_SIZE,
+      });
+    });
+
+    it('sorts tags, tagSlugs, excludedTags and series so array order does not affect the result', () => {
+      expect(
+        normalizeMarketListParams({
+          tags: ['b', 'a'],
+          tagSlugs: ['nfl', 'nba'],
+          excludedTags: ['200', '100'],
+          series: ['2', '1'],
+        }),
+      ).toEqual(
+        expect.objectContaining({
+          tags: ['a', 'b'],
+          tagSlugs: ['nba', 'nfl'],
+          excludedTags: ['100', '200'],
+          series: ['1', '2'],
+        }),
+      );
+    });
+
+    it('produces distinct keys for different tagSlugs (no chip cache collision)', () => {
+      const nba = predictMarketListKeys.list(
+        normalizeMarketListParams({ tagSlugs: ['nba'] }),
+      );
+      const nfl = predictMarketListKeys.list(
+        normalizeMarketListParams({ tagSlugs: ['nfl'] }),
+      );
+
+      expect(nba).not.toEqual(nfl);
+    });
+
+    it('produces distinct keys for different lower-bound params', () => {
+      const withoutStartTimeMin = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          tags: ['100639'],
+          tagSlugs: ['soccer'],
+          order: 'start_time',
+        }),
+      );
+      const withStartTimeMin = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          tags: ['100639'],
+          tagSlugs: ['soccer'],
+          order: 'start_time',
+          startTimeMinMinutesAgo: 30,
+        }),
+      );
+
+      expect(withStartTimeMin).not.toEqual(withoutStartTimeMin);
+    });
+
+    it('produces distinct keys for raw query params', () => {
+      const generated = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          tagSlugs: ['soccer'],
+        }),
+      );
+      const raw = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          queryParams: 'tag_slug=soccer&order=startTime',
+        }),
+      );
+
+      expect(raw).not.toEqual(generated);
+    });
+
+    it('canonicalizes raw query params for stable keys', () => {
+      const first = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          queryParams: '?tag_slug=soccer&order=startTime',
+        }),
+      );
+      const second = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          queryParams: ' order=startTime&tag_slug=soccer ',
+        }),
+      );
+
+      expect(first).toEqual(second);
+    });
+
+    it('produces distinct keys for excluded tags', () => {
+      const props = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          tagSlugs: ['soccer'],
+          excludedTags: ['100639'],
+        }),
+      );
+      const allSoccer = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          tagSlugs: ['soccer'],
+        }),
+      );
+
+      expect(props).not.toEqual(allSoccer);
+    });
+
+    it('trims search and treats blank/whitespace as absent', () => {
+      expect(normalizeMarketListParams({ search: '  brazil  ' }).search).toBe(
+        'brazil',
+      );
+      expect(
+        normalizeMarketListParams({ search: '   ' }).search,
+      ).toBeUndefined();
+      expect(normalizeMarketListParams({ search: '' }).search).toBeUndefined();
+    });
+
+    it('collapses live:false to undefined (only live:true is meaningful)', () => {
+      expect(normalizeMarketListParams({ live: false }).live).toBeUndefined();
+      expect(normalizeMarketListParams({}).live).toBeUndefined();
+      expect(normalizeMarketListParams({ live: true }).live).toBe(true);
+    });
+
+    it('trims custom query params and treats blank content as absent', () => {
+      expect(
+        normalizeMarketListParams({
+          customQueryParams: '  tag_slug=tennis  ',
+        }).customQueryParams,
+      ).toBe('tag_slug=tennis');
+      expect(
+        normalizeMarketListParams({ customQueryParams: '   ' })
+          .customQueryParams,
+      ).toBeUndefined();
+    });
+
+    it('preserves live:false in raw query mode to avoid live-phase cache collisions', () => {
+      const liveOnly = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          queryParams: 'tag_slug=soccer&live=true',
+        }),
+      );
+      const regularPhase = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          queryParams: 'tag_slug=soccer&live=true',
+          live: false,
+        }),
+      );
+
+      expect(regularPhase).not.toEqual(liveOnly);
+      expect(regularPhase[2].live).toBe(false);
+    });
+  });
+
+  describe('predictMarketListKeys', () => {
+    it('produces a stable key regardless of param object key order', () => {
+      const keyA = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          order: 'volume24hr',
+          status: 'open',
+          tags: ['a', 'b'],
+          limit: 20,
+        }),
+      );
+      const keyB = predictMarketListKeys.list(
+        normalizeMarketListParams({
+          limit: 20,
+          tags: ['b', 'a'],
+          status: 'open',
+          order: 'volume24hr',
+        }),
+      );
+
+      expect(keyA).toEqual(keyB);
+    });
+
+    it('treats equivalent empty/falsy inputs as the same key', () => {
+      const explicit = predictMarketListKeys.list(
+        normalizeMarketListParams({ search: '  ', live: false }),
+      );
+      const absent = predictMarketListKeys.list(normalizeMarketListParams({}));
+
+      expect(explicit).toEqual(absent);
+    });
+
+    it('produces a different key when a meaningful value changes', () => {
+      const open = predictMarketListKeys.list(
+        normalizeMarketListParams({ status: 'open' }),
+      );
+      const closed = predictMarketListKeys.list(
+        normalizeMarketListParams({ status: 'closed' }),
+      );
+
+      expect(open).not.toEqual(closed);
+    });
+
+    it('produces a different key when the remote query changes', () => {
+      const tennis = predictMarketListKeys.list(
+        normalizeMarketListParams({ customQueryParams: 'tag_slug=tennis' }),
+      );
+      const football = predictMarketListKeys.list(
+        normalizeMarketListParams({ customQueryParams: 'tag_slug=football' }),
+      );
+
+      expect(tennis).not.toEqual(football);
+    });
+
+    it('is namespaced under predict/marketList', () => {
+      const key = predictMarketListKeys.list(normalizeMarketListParams({}));
+      expect(key[0]).toBe('predict');
+      expect(key[1]).toBe('marketList');
+    });
+  });
+
+  describe('predictMarketListOptions', () => {
+    it('exposes a key derived from the normalized params', () => {
+      const options = predictMarketListOptions({ tags: ['b', 'a'] });
+      expect(options.queryKey).toEqual(
+        predictMarketListKeys.list(
+          normalizeMarketListParams({ tags: ['b', 'a'] }),
+        ),
+      );
+    });
+
+    it('calls listMarkets with the page cursor on first page (null)', async () => {
+      const response: PredictMarketListResponse = {
+        markets: [],
+        nextCursor: 'cursor-1',
+      };
+      mockListMarkets.mockResolvedValueOnce(response);
+
+      const options = predictMarketListOptions({ order: 'volume24hr' });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await options.queryFn({ pageParam: undefined } as any);
+
+      expect(result).toBe(response);
+      expect(mockListMarkets).toHaveBeenCalledWith({
+        order: 'volume24hr',
+        afterCursor: null,
+      });
+    });
+
+    it('passes the cursor through as afterCursor on subsequent pages', async () => {
+      mockListMarkets.mockResolvedValueOnce({ markets: [], nextCursor: null });
+
+      const options = predictMarketListOptions({ order: 'volume24hr' });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await options.queryFn({ pageParam: 'cursor-1' } as any);
+
+      expect(mockListMarkets).toHaveBeenCalledWith({
+        order: 'volume24hr',
+        afterCursor: 'cursor-1',
+      });
+    });
+
+    it('getNextPageParam returns nextCursor, then undefined when null', () => {
+      const options = predictMarketListOptions({});
+      expect(
+        options.getNextPageParam({ markets: [], nextCursor: 'cursor-2' }),
+      ).toBe('cursor-2');
+      expect(
+        options.getNextPageParam({ markets: [], nextCursor: null }),
+      ).toBeUndefined();
+      expect(options.getNextPageParam({ markets: [] })).toBeUndefined();
+    });
+  });
+});

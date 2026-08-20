@@ -18,8 +18,9 @@ import {
   createMockInternalAccountsFromGroups,
   createMockState,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
+import { AvatarAccountVariant } from '@metamask/design-system-react-native';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { endTrace, TraceName } from '../../../../util/trace';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -45,6 +46,18 @@ const internalAccounts = createMockInternalAccountsFromGroups(groups);
 const baseState = createMockState([mockWallet], internalAccounts);
 
 let mockRouteParams = { accountGroup: mockAccountGroup };
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  return {
+    ...actual,
+    AvatarAccount: ({ testID }: { testID?: string }) =>
+      ReactActual.createElement(View, { testID }),
+  };
+});
 
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => {
   const actual = jest.requireActual(
@@ -74,6 +87,12 @@ jest.mock('../../../../util/address', () => ({
   isHardwareAccount: jest.fn(),
   toFormattedAddress: jest.fn((address) => address),
   areAddressesEqual: jest.fn((addr1, addr2) => addr1 === addr2),
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  endTrace: jest.fn(),
+  trace: jest.fn(),
 }));
 
 const mockNetworkControllerState = {
@@ -128,7 +147,7 @@ describe('AccountGroupDetails', () => {
   const mockState = {
     ...baseState,
     settings: {
-      avatarAccountType: AvatarAccountType.Maskicon,
+      avatarAccountType: AvatarAccountVariant.Maskicon,
     },
     user: {
       seedphraseBackedUp: false,
@@ -350,7 +369,41 @@ describe('AccountGroupDetails', () => {
     expect(mockNavigate).toHaveBeenCalledWith(expect.any(String), {
       groupId: mockAccountGroup.id,
       title: `Addresses / ${mockAccountGroup.metadata.name}`,
+      source: 'account_details',
       onLoad: expect.any(Function),
+    });
+  });
+
+  it('ends the address list trace when the Address List onLoad callback is invoked', () => {
+    const { getByTestId } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
+
+    const networksLink = getByTestId(AccountDetailsIds.NETWORKS_LINK);
+    fireEvent.press(networksLink);
+
+    const navigationParams = mockNavigate.mock.calls[0][1];
+    navigationParams.onLoad();
+
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.ShowAccountAddressList,
+    });
+  });
+
+  it('ends the address list trace if navigating to Address List throws', () => {
+    const navigationError = new Error('navigation failed');
+    mockNavigate.mockImplementationOnce(() => {
+      throw navigationError;
+    });
+    const { getByTestId } = renderWithProvider(<AccountGroupDetails />, {
+      state: mockState,
+    });
+
+    const networksLink = getByTestId(AccountDetailsIds.NETWORKS_LINK);
+
+    expect(() => fireEvent.press(networksLink)).toThrow(navigationError);
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.ShowAccountAddressList,
     });
   });
 

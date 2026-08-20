@@ -19,8 +19,21 @@ import { stripHexPrefix } from '../address';
 import { formatSubscriptNotation } from './subscriptNotation';
 
 type EthereumUnit = keyof typeof unitMap;
-type CurrencyCode = keyof typeof currencySymbols;
 type SignedHex = `0x${string}` | `-0x${string}`;
+
+const currencySymbolByCode = currencySymbols as Record<string, string>;
+
+function currencySymbol(currencyCode: string | undefined): string | undefined {
+  return currencyCode ? currencySymbolByCode[currencyCode] : undefined;
+}
+
+function currencySymbolIgnoreCase(
+  currencyCode: string | undefined,
+): string | undefined {
+  return (
+    currencySymbol(currencyCode) ?? currencySymbol(currencyCode?.toLowerCase())
+  );
+}
 
 const MAX_DECIMALS_FOR_TOKENS = 36;
 // File-scoped subclass with 36 d.p. — does not mutate the shared BigNumber global default (20 d.p.)
@@ -342,15 +355,16 @@ export function renderFromTokenMinimalUnit(
 export function renderFiatAddition(
   transferFiat: number,
   feeFiat: number,
-  currentCurrency: CurrencyCode,
+  currentCurrency: string,
   decimalsToShow = 5,
 ): string {
   const formattedSum = renderSmallNumber(
     transferFiat + feeFiat,
     decimalsToShow,
   );
-  if (currencySymbols[currentCurrency]) {
-    return `${currencySymbols[currentCurrency]}${formattedSum}`;
+  const symbol = currencySymbol(currentCurrency);
+  if (symbol) {
+    return `${symbol}${formattedSum}`;
   }
   return `${formattedSum} ${currentCurrency}`;
 }
@@ -533,6 +547,29 @@ export const isNumberScientificNotationWhenString = (
 };
 
 /**
+ * Converts a numeric string that may be in scientific notation (e.g. "1e+21")
+ * to a plain decimal string suitable for BigInt parsing, without going through
+ * a JS float (which loses precision beyond 2^53).
+ *
+ * @param value - Numeric string, potentially in scientific notation.
+ * @returns Plain decimal string.
+ */
+export const toDecimalString = (value: string): string => {
+  if (!/e/i.test(value)) return value;
+
+  const [mantissa, rawExp] = value.toLowerCase().split('e');
+  const exponent = parseInt(rawExp, 10);
+
+  if (isNaN(exponent) || exponent < 0) return value;
+
+  const [intPart, decPart = ''] = mantissa.split('.');
+  const digits = intPart + decPart;
+  const totalShift = intPart.length + exponent;
+
+  return digits.padEnd(totalShift, '0').slice(0, totalShift);
+};
+
+/**
  * Converts some unit to wei
  *
  * @param {number|string|bigint} value - Value to convert
@@ -599,7 +636,7 @@ export function renderToGwei(
 export function weiToFiat(
   wei: number | bigint,
   conversionRate: number | null,
-  currencyCode: CurrencyCode,
+  currencyCode: string,
 ) {
   if (!conversionRate) return undefined;
   if (typeof wei === 'number' && !Number.isFinite(wei)) {
@@ -623,7 +660,7 @@ export function weiToFiat(
  */
 export function addCurrencySymbol(
   amountInput: number | string,
-  currencyCode: CurrencyCode,
+  currencyCode: string,
   extendDecimals = false,
   useSubscriptNotation = false,
 ) {
@@ -636,10 +673,7 @@ export function addCurrencySymbol(
     const formatted = formatSubscriptNotation(absNum);
 
     if (formatted) {
-      const symbol =
-        currencySymbols[currencyCode] ||
-        currencySymbols[currencyCode?.toLowerCase() as CurrencyCode] ||
-        '';
+      const symbol = currencySymbolIgnoreCase(currencyCode);
 
       return symbol
         ? `${prefix}${symbol}${formatted}`
@@ -686,14 +720,9 @@ export function addCurrencySymbol(
     ? amountString.slice(1) // Remove the first character if it's a '-'
     : amountString;
 
-  if (currencySymbols[currencyCode]) {
-    return `${prefix}${currencySymbols[currencyCode]}${absAmountStr}`;
-  }
-
-  const lowercaseCurrencyCode = currencyCode?.toLowerCase() as CurrencyCode;
-
-  if (currencySymbols[lowercaseCurrencyCode]) {
-    return `${prefix}${currencySymbols[lowercaseCurrencyCode]}${absAmountStr}`;
+  const symbol = currencySymbolIgnoreCase(currencyCode);
+  if (symbol) {
+    return `${prefix}${symbol}${absAmountStr}`;
   }
 
   return `${prefix}${absAmountStr} ${currencyCode}`;
@@ -814,8 +843,8 @@ export function fastSplit(valueInput: string | number, divider = '.') {
 export function balanceToFiat(
   balance: number | string | bigint,
   conversionRate: number | null | undefined,
-  exchangeRate: number,
-  currencyCode: CurrencyCode,
+  exchangeRate: number | undefined,
+  currencyCode: string,
 ): string | undefined {
   if (
     balance === undefined ||
@@ -855,11 +884,8 @@ export function balanceToFiatNumber(
   );
 }
 
-export function getCurrencySymbol(currencyCode: CurrencyCode) {
-  if (currencySymbols[currencyCode]) {
-    return `${currencySymbols[currencyCode]}`;
-  }
-  return currencyCode;
+export function getCurrencySymbol(currencyCode: string) {
+  return currencySymbol(currencyCode) ?? currencyCode;
 }
 
 /**
@@ -872,18 +898,19 @@ export function getCurrencySymbol(currencyCode: CurrencyCode) {
  */
 export function renderFiat(
   value: number | string,
-  currencyCode: CurrencyCode,
+  currencyCode: string,
   decimalsToShow: number = 5,
 ) {
   const num = Number(value);
   const fiatFixed = isNaN(num)
     ? 0
     : parseFloat(roundToDecimalString(num, decimalsToShow));
-  if (currencySymbols[currencyCode]) {
+  const symbol = currencySymbol(currencyCode);
+  if (symbol) {
     const isNegative = fiatFixed < 0;
     const absValue = Math.abs(fiatFixed);
     const sign = isNegative ? '-' : '';
-    return `${sign}${currencySymbols[currencyCode]}${absValue}`;
+    return `${sign}${symbol}${absValue}`;
   }
   return `${fiatFixed} ${currencyCode.toUpperCase()}`;
 }
@@ -948,10 +975,10 @@ const converter = ({
   value: number | string | bigint | BigNumber;
   fromNumericBase: NumericBase;
   fromDenomination: NormalizedDenomination;
-  fromCurrency?: CurrencyCode | null;
+  fromCurrency?: string | null;
   toNumericBase: NumericBase;
   toDenomination: SpecifiedDenomination;
-  toCurrency?: CurrencyCode | null;
+  toCurrency?: string | null;
   numberOfDecimals?: number;
   conversionRate?: number;
   invertConversionRate?: boolean;
@@ -1015,8 +1042,8 @@ export const conversionUtil = (
     conversionRate,
     invertConversionRate,
   }: {
-    fromCurrency?: CurrencyCode | null;
-    toCurrency?: CurrencyCode | null;
+    fromCurrency?: string | null;
+    toCurrency?: string | null;
     fromNumericBase: NumericBase;
     toNumericBase: NumericBase;
     fromDenomination: NormalizedDenomination;

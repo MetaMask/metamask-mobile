@@ -4,16 +4,8 @@ import { useDeFiPositionsForHomepage } from './useDeFiPositionsForHomepage';
 const mockSelectDefiPositionsByChainIds = jest.fn();
 
 jest.mock('../../../../../../selectors/defiPositionsController', () => ({
-  selectDefiPositionsByChainIds: (_state: unknown, _chainIds: unknown) =>
+  makeSelectDefiPositionsByChainIds: (_chainIds: unknown) => () =>
     mockSelectDefiPositionsByChainIds(),
-}));
-
-jest.mock('../../../../../../selectors/networkEnablementController', () => ({
-  selectEVMEnabledNetworks: () => [],
-}));
-
-jest.mock('../../../../../../selectors/featureFlagController/homepage', () => ({
-  selectHomepageSectionsV1Enabled: () => false,
 }));
 
 jest.mock(

@@ -2,7 +2,6 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import ExistingUserSheet from './ExistingUserSheet';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { strings } from '../../../../../../locales/i18n';
 import { ExistingUserSheetSelectorsIDs } from './ExistingUserSheet.testIds';
 
 jest.mock(
@@ -37,25 +36,11 @@ describe('ExistingUserSheet', () => {
   });
 
   it('renders title, body, consent card and buttons when visible', () => {
-    const { getByText, getByTestId } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <ExistingUserSheet {...defaultProps} />,
     );
-    expect(
-      getByText(strings('notifications.push_onboarding.existing_user.title')),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('notifications.push_onboarding.existing_user.body')),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(
-        strings('notifications.push_onboarding.existing_user.card_title'),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(
-        strings('notifications.push_onboarding.existing_user.card_description'),
-      ),
-    ).toBeOnTheScreen();
+    expect(getByTestId(ExistingUserSheetSelectorsIDs.TITLE)).toBeOnTheScreen();
+    expect(getByTestId(ExistingUserSheetSelectorsIDs.BODY)).toBeOnTheScreen();
     expect(
       getByTestId(ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM),
     ).toBeOnTheScreen();

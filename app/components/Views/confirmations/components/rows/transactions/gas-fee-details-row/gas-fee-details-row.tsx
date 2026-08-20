@@ -11,11 +11,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../../component-library/components/Icons/Icon';
-import {
-  TextColor,
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
-import Text from '../../../../../../../component-library/components/Texts/Text/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
@@ -45,25 +40,34 @@ import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import TagColored, {
   TagColor,
 } from '../../../../../../../component-library/components-temp/TagColored';
+import { TextVariant as LegacyTextVariant } from '../../../../../../../component-library/components/Texts/Text';
 import { shouldApplyGasFeeSponsorship } from '../../../../utils/transaction';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
-const PaidByMetaMask = () => (
-  <TagColored
-    color={TagColor.Success}
-    labelProps={{
-      variant: TextVariant.BodySM,
-      style: {
-        textTransform: 'none',
-        textAlign: 'center',
-        bottom: 1,
-        fontWeight: 'normal',
-      },
-      testID: 'paid-by-metamask',
-    }}
-  >
-    {strings('transactions.paid_by_metamask')}
-  </TagColored>
-);
+const PaidByMetaMask = () => {
+  const { styles } = useStyles(styleSheet, {});
+  return (
+    <TagColored
+      color={TagColor.Success}
+      style={styles.paidByMetaMask}
+      labelProps={{
+        variant: LegacyTextVariant.BodySM,
+        style: {
+          textTransform: 'none',
+          textAlign: 'center',
+          fontWeight: 'normal',
+        },
+        testID: 'paid-by-metamask',
+      }}
+    >
+      {strings('transactions.paid_by_metamask')}
+    </TagColored>
+  );
+};
 
 const SkeletonEstimationInfo = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -351,8 +355,8 @@ const GasFeesDetailsRow = ({
             <View style={styles.gasFeeTokenContainer}>
               <Text
                 data-testid="gas-fee-token-fee"
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
                 style={styles.gasFeeTokenText}
               >
                 {showGasFeeTokenInfo

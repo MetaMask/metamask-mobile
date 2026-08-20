@@ -1,35 +1,21 @@
 import { OnboardingSuccessSelectorIDs } from '../../../app/components/Views/OnboardingSuccess/OnboardingSuccess.testIds';
 import Matchers from '../../framework/Matchers';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
+import Gestures from '../../framework/Gestures';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class OnboardingSuccessView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(OnboardingSuccessSelectorIDs.CONTAINER_ID);
   }
 
   get doneButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(OnboardingSuccessSelectorIDs.DONE_BUTTON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          OnboardingSuccessSelectorIDs.DONE_BUTTON,
-          {
-            exact: true,
-          },
-        ),
-    });
+    return Matchers.getElementByID(OnboardingSuccessSelectorIDs.DONE_BUTTON);
   }
 
   async tapDone(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.doneButton, {
-      description: 'Onboarding Success Done Button',
+    await Gestures.waitAndTap(this.doneButton, {
+      elemDescription: 'Onboarding Success Done Button',
+      timeout: 15_000,
     });
   }
 }

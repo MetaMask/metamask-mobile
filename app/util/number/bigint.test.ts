@@ -37,6 +37,7 @@ import {
   safeBigIntToHex,
   safeNumberToBigInt,
   toBigInt,
+  toDecimalString,
   toGwei,
   toHexadecimal,
   toTokenMinimalUnit,
@@ -44,6 +45,14 @@ import {
   weiToFiat,
   weiToFiatNumber,
 } from './bigint';
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+afterEach(() => {
+  jest.resetAllMocks();
+});
 
 describe('Number utils :: bigIntToHex', () => {
   it('bigIntToHex', () => {
@@ -779,7 +788,7 @@ describe('Number utils :: addCurrencySymbol with useSubscriptNotation', () => {
   });
 
   it('formats very small amount for non-symbol currency', () => {
-    expect(addCurrencySymbol(0.00000614, 'xyz' as never, false, true)).toEqual(
+    expect(addCurrencySymbol(0.00000614, 'xyz', false, true)).toEqual(
       '0.0₅614 xyz',
     );
   });
@@ -829,13 +838,7 @@ describe('Number utils :: renderFiatAddition', () => {
     expect(renderFiatAddition(1.123456, 0, 'usd', 3)).toEqual('$1.123');
   });
   it('falls back to currency code suffix for unknown currencies', () => {
-    expect(
-      renderFiatAddition(
-        10,
-        5,
-        'xyz' as Parameters<typeof renderFiatAddition>[2],
-      ),
-    ).toEqual('15 xyz');
+    expect(renderFiatAddition(10, 5, 'xyz')).toEqual('15 xyz');
   });
   it('handles zero values', () => {
     expect(renderFiatAddition(0, 0, 'usd')).toEqual('$0');
@@ -1063,6 +1066,21 @@ describe('Number utils :: isNumberScientificNotationWhenString', () => {
     expect(isNumberScientificNotationWhenString('1.337e21' as any)).toEqual(
       false,
     );
+  });
+});
+
+describe('Number utils :: toDecimalString', () => {
+  it.each([
+    ['1e+21', '1000000000000000000000'],
+    ['1.234e+17', '123400000000000000'],
+    ['1.4e+18', '1400000000000000000'],
+    ['1.6e+21', '1600000000000000000000'],
+    ['4.2e+17', '420000000000000000'],
+    ['1000000', '1000000'],
+    // Verifies no float precision loss — Number() would corrupt this to 10000000000000000000000
+    ['9999999999999999999999', '9999999999999999999999'],
+  ])('converts %s to %s', (input, expected) => {
+    expect(toDecimalString(input)).toEqual(expected);
   });
 });
 

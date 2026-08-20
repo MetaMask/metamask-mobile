@@ -14,7 +14,8 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { isDrawCapableLeague } from '../../constants/sports';
+import { usePredictGame } from '../../hooks/usePredictGame';
+import { isDrawCapableMarket } from '../../utils/sports';
 import { formatVolume } from '../../utils/format';
 import { PredictActionButtons } from '../PredictActionButtons';
 import { PredictGameDetailsFooterProps } from './PredictGameDetailsFooter.types';
@@ -35,17 +36,17 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
   testID = PREDICT_GAME_DETAILS_FOOTER,
 }) => {
   const insets = useSafeAreaInsets();
+  const { game } = usePredictGame(market, { live: false });
   const formattedVolume = useMemo(
     () => formatVolume(market.volume ?? 0),
     [market.volume],
   );
 
-  const isMarketClosed =
-    market.status !== 'open' || market.game?.status === 'ended';
+  const isMarketClosed = market.status !== 'open' || game?.status === 'ended';
   const hasClaimableWinnings = claimableAmount > 0;
   const showClaimButton = hasClaimableWinnings && onClaimPress;
   const labelKey =
-    market.game?.league && isDrawCapableLeague(market.game.league)
+    game && isDrawCapableMarket({ game, outcomes: market.outcomes })
       ? 'predict.game_details_footer.make_your_prediction'
       : 'predict.game_details_footer.pick_a_winner';
 

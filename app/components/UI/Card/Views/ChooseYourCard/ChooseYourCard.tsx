@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   useWindowDimensions,
   NativeSyntheticEvent,
@@ -27,7 +28,12 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
+import {
+  useCardHeaderHandlers,
+  type CardHeaderMode,
+} from '../../hooks/useCardHeaderHandlers';
 import { strings } from '../../../../../../locales/i18n';
 import Icon, {
   IconName,
@@ -37,7 +43,8 @@ import Icon, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { ChooseYourCardSelectors } from './ChooseYourCard.testIds';
 import { CardType, CardStatus } from '../../types';
 import CardImage from '../../components/CardImage/CardImage';
@@ -63,7 +70,7 @@ const ItemSeparator = ({ width }: { width: number }) => (
 );
 
 const ChooseYourCard = () => {
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const tw = useTailwind();
   const { width: screenWidth } = useWindowDimensions();
@@ -75,6 +82,10 @@ const ChooseYourCard = () => {
   const { flow = 'onboarding', shippingAddress } =
     useParams<ChooseYourCardParams>();
   const isUpgradeFlow = flow === 'upgrade';
+  // 'onboarding' is the linear sign-up flow; no header chrome there.
+  // 'upgrade' / 'home' are user-initiated entries, so show a back button.
+  const headerMode: CardHeaderMode = flow === 'onboarding' ? 'none' : 'back';
+  const headerHandlers = useCardHeaderHandlers(headerMode);
 
   // Arrow bounce animation for swipe indicator
   useEffect(() => {
@@ -163,10 +174,12 @@ const ChooseYourCard = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.CHOOSE_YOUR_CARD,
-          flow,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.CHOOSE_YOUR_CARD,
+            flow,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder, flow]);
@@ -234,11 +247,13 @@ const ChooseYourCard = () => {
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.CHOOSE_CARD_CONTINUE,
-          card_type: selectedCard.id,
-          flow,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.CHOOSE_CARD_CONTINUE,
+            card_type: selectedCard.id,
+            flow,
+          }),
+        )
         .build(),
     );
 
@@ -366,9 +381,16 @@ const ChooseYourCard = () => {
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
-      edges={['bottom']}
+      edges={headerMode === 'none' ? ['top', 'bottom'] : ['bottom']}
       testID={ChooseYourCardSelectors.CONTAINER}
     >
+      {headerMode !== 'none' && (
+        <HeaderStandard
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
+        />
+      )}
       <Box twClassName="flex-1">
         <Box twClassName="px-4 py-4">
           <Text

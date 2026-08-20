@@ -29,13 +29,27 @@ const actButtonPress = async (elem: ReactTestInstance) => {
   }
 };
 
-describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
+describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
   beforeEach(() => {
     setupTrendingApiFetchMock(mockTrendingTokensData);
   });
 
   afterEach(() => {
     clearTrendingApiMocks();
+  });
+
+  it('prefills the search input when initialQuery route param is provided', async () => {
+    const { findByTestId, getByDisplayValue } =
+      renderExploreSearchScreenWithRoutes({
+        initialParams: { initialQuery: 'ethereum' },
+      });
+
+    expect(getByDisplayValue('ethereum')).toBeOnTheScreen();
+
+    const allPill = await findByTestId(
+      ExploreSearchScreenSelectorsIDs.PILL_ALL,
+    );
+    expect(allPill).toBeOnTheScreen();
   });
 
   it('pill row is visible after typing a search query', async () => {
@@ -201,10 +215,29 @@ describeForPlatforms('ExploreSearchScreen V2 - Component Tests', () => {
     );
   });
 
+  it('holds back the keyboard and the results subtree until the screen transition settles', async () => {
+    const { getByTestId, queryByTestId, findByTestId } =
+      renderExploreSearchScreenWithRoutes();
+
+    const searchInput = getByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+    );
+
+    expect(searchInput.props.autoFocus).toBe(false);
+    expect(queryByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL)).toBeNull();
+
+    // Once settled, the input takes focus and the results mount.
+    await findByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
+    expect(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT).props
+        .autoFocus,
+    ).toBe(true);
+  });
+
   it('"All" pill is selected by default and pill row is present on mount', async () => {
     const { getByTestId } = renderExploreSearchScreenWithRoutes();
 
-    // The pill row is mounted immediately when V2 is enabled — it does not require
+    // The pill row is mounted immediately — it does not require
     // a search query. The "All" pill must be selected (active) by default.
     await waitFor(() => {
       const allPill = getByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);

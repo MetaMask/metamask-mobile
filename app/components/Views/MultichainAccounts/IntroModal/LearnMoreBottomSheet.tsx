@@ -1,19 +1,20 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import {
-  Text,
-  ButtonIcon,
-  Checkbox,
-  TextVariant,
-  IconName,
-  TextColor,
-  Button,
-  ButtonVariant,
-  ButtonBaseSize,
   BottomSheet,
+  Button,
+  ButtonBaseSize,
+  ButtonIcon,
+  ButtonVariant,
+  Checkbox,
+  IconName,
+  Text,
+  TextColor,
+  TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './LearnMoreBottomSheet.styles';
@@ -33,7 +34,7 @@ const LearnMoreBottomSheet: React.FC<LearnMoreBottomSheetProps> = ({
   const { styles } = useStyles(styleSheet, { theme: useTheme() });
   const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
 
   const isBasicFunctionalityEnabled = useSelector(

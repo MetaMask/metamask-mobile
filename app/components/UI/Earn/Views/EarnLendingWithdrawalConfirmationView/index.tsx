@@ -5,6 +5,7 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { ethers } from 'ethers';
 import { capitalize } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -12,9 +13,7 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import KeyValueRow, {
-  TooltipSizes,
-} from '../../../../../component-library/components-temp/KeyValueRow';
+import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import Badge, {
   BadgeVariant,
@@ -22,7 +21,7 @@ import Badge, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import Routes from '../../../../../constants/navigation/Routes';
+import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import {
   IMetaMetricsEvent,
   MetaMetricsEvents,
@@ -75,7 +74,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const { params } = useRoute<EarnWithdrawalConfirmationViewProps['route']>();
 
@@ -318,7 +317,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
           });
           // There is variance in when navigation can be called across chains
           setTimeout(() => {
-            navigation.navigate(Routes.TRANSACTIONS_VIEW);
+            navigateToActivityAfterConfirmation(navigation);
           }, 0);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
@@ -485,7 +484,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                   tooltip: {
                     title: strings('earn.withdrawal_time'),
                     content: strings('earn.tooltip_content.withdrawal_time'),
-                    size: TooltipSizes.Sm,
                   },
                 }}
                 value={{
@@ -528,7 +526,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                   tooltip: {
                     title: strings('earn.protocol'),
                     content: strings('earn.tooltip_content.protocol'),
-                    size: TooltipSizes.Sm,
                   },
                 }}
                 value={{
@@ -631,7 +628,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
                           </View>
                         </View>
                       ),
-                      size: TooltipSizes.Sm,
                     },
                   }}
                   value={{

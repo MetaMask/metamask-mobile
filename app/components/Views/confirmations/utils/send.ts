@@ -30,12 +30,14 @@ import { BNToHex, hexToBN, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
+import { SendStackScreen } from '../hooks/send/useSendScreenNavigation';
 
 export enum ChainType {
   EVM = 'evm',
   SOLANA = 'solana',
   BITCOIN = 'bitcoin',
   TRON = 'tron',
+  STELLAR = 'stellar',
 }
 
 export interface PredefinedRecipient {
@@ -83,7 +85,7 @@ export function isValidPositiveNumericString(str: string) {
  * @param params.asset - Optional preselected asset (token or NFT) to send. When provided, skips the asset selection screen.
  * @param params.predefinedRecipient - Optional recipient with chain information. Should be an object containing:
  * - `address`: The recipient's address string
- * - `chainType`: One of 'evm', 'solana', 'bitcoin', or 'tron'
+ * - `chainType`: One of 'evm', 'solana', 'bitcoin', or 'tron' or 'stellar'
  *
  * @remarks
  * The predefinedRecipient is passed through navigation params and can be used by downstream screens
@@ -109,7 +111,7 @@ export const handleSendPageNavigation = (
 ) => {
   const { location, asset, predefinedRecipient } = params;
   captureSendStartedEvent(location);
-  let screen = Routes.SEND.ASSET;
+  let screen: SendStackScreen = Routes.SEND.ASSET;
   if (asset) {
     if (asset.standard === TokenStandard.ERC721) {
       screen = Routes.SEND.RECIPIENT;
@@ -308,6 +310,7 @@ export const submitEvmTransaction = async ({
 
   await addTransaction(trxnParams, {
     origin: MMM_ORIGIN,
+    isInternal: true,
     networkClientId,
     type: transactionType,
     securityAlertResponse,

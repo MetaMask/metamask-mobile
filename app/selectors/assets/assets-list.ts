@@ -1,61 +1,63 @@
+import type { AccountGroupId } from '@metamask/account-api';
 import {
+  AccountGroupAssets,
   Asset,
+  AssetListState,
   selectAllAssets as _selectAllAssets,
   selectAssetsBySelectedAccountGroup as _selectAssetsBySelectedAccountGroup,
   getNativeTokenAddress,
-  AssetListState,
-  AccountGroupAssets,
 } from '@metamask/assets-controllers';
-import type { AccountGroupId } from '@metamask/account-api';
+import { toHex } from '@metamask/controller-utils';
 import {
   MULTICHAIN_NETWORK_DECIMAL_PLACES,
   toEvmCaipChainId,
 } from '@metamask/multichain-network-controller';
-import { toHex } from '@metamask/controller-utils';
-import { CaipChainId, Hex, hexToBigInt, isCaipChainId } from '@metamask/utils';
+import { CaipChainId, Hex, isCaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
 
 import I18n from '../../../locales/i18n';
+import { getLocaleLanguageCode } from '../../components/hooks/useFormatters';
 import { TokenI } from '../../components/UI/Tokens/types';
+import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
+import { KnownCaip19Id } from '../../core/Multichain/constants';
+import { isTronSpecialAsset } from '../../core/Multichain/utils';
 import { RootState } from '../../reducers';
 import { formatWithThreshold } from '../../util/assets';
-import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
-import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
-import { selectTokenSortConfig } from '../preferencesController';
-import { selectHideZeroBalanceTokens } from '../settings';
-import { createDeepEqualSelector } from '../util';
-import { fromWei, hexToBN, weiToFiatNumber } from '../../util/number';
+import {
+  fromWei,
+  hexToBigInt,
+  weiToFiatNumber,
+} from '../../util/number/bigint';
+import { safeParseBigNumber } from '../../util/number/bignumber';
+import { selectSelectedInternalAccountAddress } from '../accountsController';
+import { selectAccountsByChainId } from '../accountTrackerController';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../currencyRateController';
-import { safeParseBigNumber } from '../../util/number/bignumber';
-import { selectAccountsByChainId } from '../accountTrackerController';
-import {
-  TRON_SPECIAL_ASSET_SYMBOLS,
-  TRON_SPECIAL_ASSET_SYMBOLS_SET,
-  TronSpecialAssetSymbol,
-} from '../../core/Multichain/constants';
-import { isTronSpecialAsset } from '../../core/Multichain/utils';
-import { sortAssetsWithPriority } from '../../components/UI/Tokens/util/sortAssetsWithPriority';
-import { selectAllTokens } from '../tokensController';
-import { selectSelectedInternalAccountAddress } from '../accountsController';
 import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
-import { getLocaleLanguageCode } from '../../components/hooks/useFormatters';
+import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
+import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
+import { selectTokenSortConfig } from '../preferencesController';
+import { selectHideZeroBalanceTokens } from '../settings';
+import { selectAllTokens } from '../tokensController';
+import { createDeepEqualSelector } from '../util';
 import {
-  getMultichainAssetsRatesControllerConversionRates,
-  getTokenRatesControllerMarketData,
+  getAccountTrackerControllerAccountsByChainId,
   getCurrencyRateControllerCurrencyRates,
   getCurrencyRateControllerCurrentCurrency,
-  getTokensControllerAllTokens,
-  getTokensControllerAllIgnoredTokens,
-  getAccountTrackerControllerAccountsByChainId,
-  getTokenBalancesControllerTokenBalances,
-  getMultiChainBalancesControllerBalances,
   getMultiChainAssetsControllerAccountsAssets,
   getMultiChainAssetsControllerAllIgnoredAssets,
   getMultiChainAssetsControllerAssetsMetadata,
+  getMultiChainBalancesControllerBalances,
+  getMultichainAssetsRatesControllerConversionRates,
+  getTokenBalancesControllerTokenBalances,
+  getTokenRatesControllerMarketData,
+  getTokensControllerAllIgnoredTokens,
+  getTokensControllerAllTokens,
 } from './assets-migration';
+import { isAssetSupportActivation } from '../stellar/stellar-assets';
+import { filterExcludedAssets } from '../../enablement/assets/networks-customization';
 
 /**
  * Structured map of Tron special assets for efficient access.
@@ -87,6 +89,53 @@ export interface TronSpecialAssetsMap {
   /** TRX in lock period (unstaked but waiting for lock period to end) */
   trxInLockPeriod: Asset | undefined;
 }
+
+type TronSpecialAssetKey = Exclude<
+  keyof TronSpecialAssetsMap,
+  'totalStakedTrx'
+>;
+
+/**
+ * Maps each Tron special-asset CAIP-19 ID to its semantic key in
+ * {@link TronSpecialAssetsMap}. Network-specific IDs collapse to the same key.
+ */
+const TRON_SPECIAL_ASSET_KEYS = {
+  [KnownCaip19Id.EnergyMainnet]: 'energy',
+  [KnownCaip19Id.EnergyNile]: 'energy',
+  [KnownCaip19Id.EnergyShasta]: 'energy',
+
+  [KnownCaip19Id.BandwidthMainnet]: 'bandwidth',
+  [KnownCaip19Id.BandwidthNile]: 'bandwidth',
+  [KnownCaip19Id.BandwidthShasta]: 'bandwidth',
+
+  [KnownCaip19Id.MaximumEnergyMainnet]: 'maxEnergy',
+  [KnownCaip19Id.MaximumEnergyNile]: 'maxEnergy',
+  [KnownCaip19Id.MaximumEnergyShasta]: 'maxEnergy',
+
+  [KnownCaip19Id.MaximumBandwidthMainnet]: 'maxBandwidth',
+  [KnownCaip19Id.MaximumBandwidthNile]: 'maxBandwidth',
+  [KnownCaip19Id.MaximumBandwidthShasta]: 'maxBandwidth',
+
+  [KnownCaip19Id.TrxStakedForEnergyMainnet]: 'stakedTrxForEnergy',
+  [KnownCaip19Id.TrxStakedForEnergyNile]: 'stakedTrxForEnergy',
+  [KnownCaip19Id.TrxStakedForEnergyShasta]: 'stakedTrxForEnergy',
+
+  [KnownCaip19Id.TrxStakedForBandwidthMainnet]: 'stakedTrxForBandwidth',
+  [KnownCaip19Id.TrxStakedForBandwidthNile]: 'stakedTrxForBandwidth',
+  [KnownCaip19Id.TrxStakedForBandwidthShasta]: 'stakedTrxForBandwidth',
+
+  [KnownCaip19Id.TrxReadyForWithdrawalMainnet]: 'trxReadyForWithdrawal',
+  [KnownCaip19Id.TrxReadyForWithdrawalNile]: 'trxReadyForWithdrawal',
+  [KnownCaip19Id.TrxReadyForWithdrawalShasta]: 'trxReadyForWithdrawal',
+
+  [KnownCaip19Id.TrxStakingRewardsMainnet]: 'trxStakingRewards',
+  [KnownCaip19Id.TrxStakingRewardsNile]: 'trxStakingRewards',
+  [KnownCaip19Id.TrxStakingRewardsShasta]: 'trxStakingRewards',
+
+  [KnownCaip19Id.TrxInLockPeriodMainnet]: 'trxInLockPeriod',
+  [KnownCaip19Id.TrxInLockPeriodNile]: 'trxInLockPeriod',
+  [KnownCaip19Id.TrxInLockPeriodShasta]: 'trxInLockPeriod',
+} as const satisfies Record<KnownCaip19Id, TronSpecialAssetKey>;
 
 /**
  * Empty constant to avoid creating new objects on each call when no Tron networks are enabled.
@@ -156,34 +205,24 @@ function callSelectAssetsBySelectedAccountGroup(
 
 export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
   getStateForAssetSelector,
-  (assetsState) => callSelectAssetsBySelectedAccountGroup(assetsState),
+  (assetsState) =>
+    filterExcludedAssets(callSelectAssetsBySelectedAccountGroup(assetsState)),
 );
 
 /**
  * Cheap boolean check: does the selected account group hold any
- * non-excluded positive-fiat-balance asset
+ * positive-fiat-balance asset.
+ *
+ * A held asset is itself a valid swap source (it can be swapped away), so the
+ * currently-viewed token is intentionally counted. This drives the Token
+ * Details footer's Swap / QuickBuy visibility and the Buy on-ramp fallback.
  */
 export const selectHasEligibleSwapSource = createSelector(
-  [
-    selectAssetsBySelectedAccountGroup,
-    (_state: RootState, excludedChainId: string | undefined) => excludedChainId,
-    (
-      _state: RootState,
-      _excludedChainId: string | undefined,
-      excludedAddress: string | undefined,
-    ) => excludedAddress,
-  ],
-  (assetsByChain, excludedChainId, excludedAddress): boolean => {
+  [selectAssetsBySelectedAccountGroup],
+  (assetsByChain): boolean => {
     for (const chainAssets of Object.values(assetsByChain)) {
       for (const asset of chainAssets) {
-        if ((asset.fiat?.balance ?? 0) <= 0) continue;
-
-        const isExcludedToken =
-          asset.chainId === excludedChainId &&
-          excludedAddress !== undefined &&
-          asset.assetId.toLowerCase() === excludedAddress.toLowerCase();
-
-        if (!isExcludedToken) {
+        if ((asset.fiat?.balance ?? 0) > 0) {
           return true;
         }
       }
@@ -262,7 +301,7 @@ const selectStakedAssets = createDeepEqualSelector(
               currencyRates[nativeCurrency]?.conversionRate;
 
             const fiatBalance = conversionRate
-              ? weiToFiatNumber(hexToBN(stakedBalance), conversionRate)
+              ? weiToFiatNumber(hexToBigInt(stakedBalance), conversionRate)
               : undefined;
 
             const account = Object.values(internalAccounts).find(
@@ -286,7 +325,7 @@ const selectStakedAssets = createDeepEqualSelector(
               accountId: account.id,
               decimals: nativeToken.decimals,
               rawBalance: stakedBalance,
-              balance: fromWei(stakedBalance),
+              balance: fromWei(hexToBigInt(stakedBalance)),
               fiat: fiatBalance
                 ? {
                     balance: Number(fiatBalance),
@@ -347,7 +386,8 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
         .filter(([networkId]) => enabledNetworks.includes(networkId))
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
-            if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isTronSpecialAsset(asset.assetId)) return false;
+            if (isAssetSupportActivation(asset.assetId)) return true;
             if (
               hideZeroBalance &&
               !asset.isNative &&
@@ -471,9 +511,7 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIds =
       const filteredAssets = Object.entries(bip44Assets)
         .filter(([networkId]) => allowedIds.has(networkId))
         .flatMap(([_, chainAssets]) =>
-          chainAssets.filter(
-            (asset) => !isTronSpecialAsset(asset.chainId, asset.symbol),
-          ),
+          chainAssets.filter((asset) => !isTronSpecialAsset(asset.assetId)),
         );
       return mergeStakedSortAndDedupeAssets(
         filteredAssets,
@@ -501,7 +539,8 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
         .filter(([networkId]) => allowedIds.has(networkId))
         .flatMap(([_, chainAssets]) =>
           chainAssets.filter((asset) => {
-            if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
+            if (isTronSpecialAsset(asset.assetId)) return false;
+            if (isAssetSupportActivation(asset.assetId)) return true;
             if (hideZeroBalance && parseFloat(asset.balance ?? '0') === 0)
               return false;
             return true;
@@ -514,6 +553,13 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
       );
     },
   );
+
+export const makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
+  (chainIds: string[]) => (state: RootState) =>
+    selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance(
+      state,
+      chainIds,
+    );
 
 // TODO BIP44 - Remove this selector and instead pass down the asset from the token list to the list item to avoid unnecessary re-renders
 export const selectAsset = createSelector(
@@ -684,38 +730,12 @@ export const selectTronSpecialAssetsBySelectedAccountGroup =
         if (!enabledTronNetworksSet.has(networkId)) continue;
 
         for (const asset of chainAssets) {
-          const symbol = asset.symbol?.toLowerCase() as TronSpecialAssetSymbol;
-          if (!TRON_SPECIAL_ASSET_SYMBOLS_SET.has(symbol)) continue;
-
-          switch (symbol) {
-            case TRON_SPECIAL_ASSET_SYMBOLS.ENERGY:
-              specialAssetsMap.energy = asset;
-              break;
-            case TRON_SPECIAL_ASSET_SYMBOLS.BANDWIDTH:
-              specialAssetsMap.bandwidth = asset;
-              break;
-            case TRON_SPECIAL_ASSET_SYMBOLS.MAX_ENERGY:
-              specialAssetsMap.maxEnergy = asset;
-              break;
-            case TRON_SPECIAL_ASSET_SYMBOLS.MAX_BANDWIDTH:
-              specialAssetsMap.maxBandwidth = asset;
-              break;
-            case TRON_SPECIAL_ASSET_SYMBOLS.STRX_ENERGY:
-              specialAssetsMap.stakedTrxForEnergy = asset;
-              break;
-            case TRON_SPECIAL_ASSET_SYMBOLS.STRX_BANDWIDTH:
-              specialAssetsMap.stakedTrxForBandwidth = asset;
-              break;
-            case TRON_SPECIAL_ASSET_SYMBOLS.TRX_READY_FOR_WITHDRAWAL:
-              specialAssetsMap.trxReadyForWithdrawal = asset;
-              break;
-            case TRON_SPECIAL_ASSET_SYMBOLS.TRX_STAKING_REWARDS:
-              specialAssetsMap.trxStakingRewards = asset;
-              break;
-            case TRON_SPECIAL_ASSET_SYMBOLS.TRX_IN_LOCK_PERIOD:
-              specialAssetsMap.trxInLockPeriod = asset;
-              break;
+          if (!Object.hasOwn(TRON_SPECIAL_ASSET_KEYS, asset.assetId)) {
+            continue;
           }
+
+          const key = TRON_SPECIAL_ASSET_KEYS[asset.assetId as KnownCaip19Id];
+          specialAssetsMap[key] = asset;
         }
       }
 

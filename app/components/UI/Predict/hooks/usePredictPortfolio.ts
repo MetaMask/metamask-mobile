@@ -35,6 +35,7 @@ export interface PredictPortfolioModel {
   isClaimPending: boolean;
   isDepositPending: boolean;
   isLoading: boolean;
+  isOpenPositionsLoading: boolean;
   isPositionsLoading: boolean;
   isRefreshing: boolean;
   openPositionCount: number;
@@ -53,6 +54,11 @@ export interface PredictPortfolioModel {
   withdrawTransaction: ReturnType<
     typeof usePredictWithdraw
   >['withdrawTransaction'];
+}
+
+interface UsePredictPortfolioOptions {
+  enabled?: boolean;
+  livePriceUpdates?: boolean;
 }
 
 const getPositionsPnl = (positions: PredictPosition[]) => {
@@ -74,20 +80,27 @@ const getPositionsPnl = (positions: PredictPosition[]) => {
   };
 };
 
-export function usePredictPortfolio(): PredictPortfolioModel {
+export function usePredictPortfolio({
+  enabled = true,
+  livePriceUpdates = true,
+}: UsePredictPortfolioOptions = {}): PredictPortfolioModel {
   const {
     data: availableBalance = 0,
     isLoading: isBalanceLoading,
     isRefetching: isBalanceRefetching,
     error: balanceError,
     refetch: refetchBalance,
-  } = usePredictBalance();
+  } = usePredictBalance({ enabled });
 
   const activePositionsQuery = usePredictPositions({
     claimable: false,
-    livePriceUpdates: true,
+    enabled,
+    livePriceUpdates,
   });
-  const claimablePositionsQuery = usePredictPositions({ claimable: true });
+  const claimablePositionsQuery = usePredictPositions({
+    claimable: true,
+    enabled,
+  });
 
   const activePositions = activePositionsQuery.data ?? EMPTY_POSITIONS;
   const claimablePositions = claimablePositionsQuery.data ?? EMPTY_POSITIONS;
@@ -104,7 +117,8 @@ export function usePredictPortfolio(): PredictPortfolioModel {
     () =>
       claimablePositions.filter(
         (position) =>
-          position.status === PredictPositionStatus.WON &&
+          (position.status === PredictPositionStatus.WON ||
+            position.status === PredictPositionStatus.REDEEMABLE) &&
           position.currentValue > 0,
       ),
     [claimablePositions],
@@ -126,7 +140,7 @@ export function usePredictPortfolio(): PredictPortfolioModel {
   const { withdraw, withdrawTransaction } = usePredictWithdraw();
 
   const accountStateQuery = usePredictAccountState({
-    enabled: portfolioValue > 0,
+    enabled: enabled && portfolioValue > 0,
   });
   const refetchAccountState = accountStateQuery.refetch;
   const totalUnrealizedPnl = useMemo(
@@ -143,8 +157,9 @@ export function usePredictPortfolio(): PredictPortfolioModel {
   const openPositionCount = openPositions.length;
   const claimablePositionCount = actionableClaimablePositions.length;
   const positionsBadgeCount = openPositionCount + claimablePositionCount;
+  const isOpenPositionsLoading = activePositionsQuery.isLoading;
   const isPositionsLoading =
-    activePositionsQuery.isLoading || claimablePositionsQuery.isLoading;
+    isOpenPositionsLoading || claimablePositionsQuery.isLoading;
   const showUnrealizedPnl =
     Math.abs(totalUnrealizedPnlAmount) >= PNL_DISPLAY_THRESHOLD;
 
@@ -184,6 +199,7 @@ export function usePredictPortfolio(): PredictPortfolioModel {
     isClaimPending,
     isDepositPending,
     isLoading: isBalanceLoading || isPositionsLoading,
+    isOpenPositionsLoading,
     isPositionsLoading,
     isRefreshing:
       isBalanceRefetching ||

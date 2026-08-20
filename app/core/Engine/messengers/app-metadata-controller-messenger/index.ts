@@ -4,25 +4,23 @@ import {
   MessengerEvents,
 } from '@metamask/messenger';
 import { AppMetadataControllerMessenger } from '@metamask/app-metadata-controller';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
+import { RootMessenger } from '../../types';
 
 /**
  * Get the AppMetadataControllerMessenger for the AppMetadataController.
  *
- * @param rootExtendedMessenger - The root extended messenger.
+ * @param rootMessenger - The root messenger.
  * @returns The AppMetadataControllerMessenger.
  */
 export function getAppMetadataControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
-): AppMetadataControllerMessenger {
-  const messenger = new Messenger<
-    'AppMetadataController',
+  rootMessenger: RootMessenger<
     MessengerActions<AppMetadataControllerMessenger>,
-    MessengerEvents<AppMetadataControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<AppMetadataControllerMessenger>
+  >,
+): AppMetadataControllerMessenger {
+  const messenger: AppMetadataControllerMessenger = new Messenger({
     namespace: 'AppMetadataController',
-    parent: rootExtendedMessenger,
+    parent: rootMessenger,
   });
   return messenger;
 }

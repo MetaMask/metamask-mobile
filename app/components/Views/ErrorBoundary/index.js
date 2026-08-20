@@ -7,11 +7,11 @@ import {
   Alert,
   Modal,
   KeyboardAvoidingView,
-  DevSettings,
   TextInput,
   ScrollView,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import { reloadAppAsync } from 'expo';
 import { lastEventId as getLatestSentryId } from '@sentry/react-native';
 import {
   captureSentryFeedback,
@@ -37,10 +37,15 @@ import Text, {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import AppConstants from '../../../core/AppConstants';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import {
+  confirmSupportConsent,
+  navigateToSupportConsent,
+  rejectSupportConsent,
+} from '../../../util/support';
+import StandaloneSupportConsentModal from '../../UI/SupportConsentSheet/StandaloneSupportConsentModal';
 import { useSelector } from 'react-redux';
-import { isTest } from '../../../util/test/utils';
+import { isTestEnvironment } from '../../../util/test/utils';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -139,6 +144,7 @@ export const Fallback = (props) => {
   const styles = createStyles(colors);
   const [modalVisible, setModalVisible] = React.useState(false);
   const [feedback, setFeedback] = React.useState('');
+  const [isConsentModalVisible, setConsentModalVisible] = React.useState(false);
   const isOnboardingError = Boolean(props.onboardingErrorConfig);
   const isDataCollectionForMarketingEnabled = useSelector(
     (state) => state.security.dataCollectionForMarketing,
@@ -150,10 +156,35 @@ export const Fallback = (props) => {
     setModalVisible((visible) => !visible);
     setFeedback('');
   };
-  const handleContactSupport = () =>
-    Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
+  // Delegate to the class-level openTicket instead of calling the
+  // useSupportConsent hook here: this fallback can render at the root boundary,
+  // which sits outside NavigationProvider, so navigation hooks would throw.
+  // Without a navigation prop, openTicket can't show the (navigation-based)
+  // consent sheet either, so fall back to the standalone, navigation-free
+  // modal instead of skipping consent altogether.
+  const handleContactSupport = () => {
+    if (props.navigation) {
+      props.openTicket?.();
+      return;
+    }
+    setConsentModalVisible(true);
+  };
 
-  const handleTryAgain = () => DevSettings.reload();
+  const handleConfirmStandaloneConsent = () => {
+    setConsentModalVisible(false);
+    confirmSupportConsent((url) => Linking.openURL(url), METAMASK_SUPPORT_URL);
+  };
+
+  const handleRejectStandaloneConsent = () => {
+    setConsentModalVisible(false);
+    rejectSupportConsent((url) => Linking.openURL(url), METAMASK_SUPPORT_URL);
+  };
+
+  const handleTryAgain = () => {
+    reloadAppAsync('Error boundary Try again').catch((error) => {
+      Logger.log(error, 'Error reloading app after Try again pressed');
+    });
+  };
 
   const handleSubmit = () => {
     toggleModal();
@@ -162,9 +193,12 @@ export const Fallback = (props) => {
   };
 
   const forceSentryReport = async (error) => {
+    // Resolve the view outside the try: the React Compiler cannot yet optimize
+    // "value blocks" (optional chaining / logical expressions) inside try/catch.
+    const view = props.onboardingErrorConfig?.view || 'Unknown';
     try {
       await captureExceptionForced(error, {
-        view: props.onboardingErrorConfig?.view || 'Unknown',
+        view,
         context: 'ErrorBoundary forced report',
       });
     } catch (sentryError) {
@@ -245,7 +279,7 @@ export const Fallback = (props) => {
         />
       )}
 
-      {isTest && !isOnboardingError && (
+      {isTestEnvironment && !isOnboardingError && (
         <Text
           onPress={props.showExportSeedphrase}
           variant={TextVariant.BodyMD}
@@ -379,6 +413,13 @@ export const Fallback = (props) => {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <StandaloneSupportConsentModal
+        visible={isConsentModalVisible}
+        onConfirm={handleConfirmStandaloneConsent}
+        onReject={handleRejectStandaloneConsent}
+        onDismiss={() => setConsentModalVisible(false)}
+      />
     </View>
   );
 };
@@ -387,6 +428,8 @@ Fallback.propTypes = {
   errorMessage: PropTypes.string,
   showExportSeedphrase: PropTypes.func,
   copyErrorToClipboard: PropTypes.func,
+  openTicket: PropTypes.func,
+  navigation: PropTypes.object,
   sentryId: PropTypes.string,
   onboardingErrorConfig: PropTypes.shape({
     navigation: PropTypes.object,
@@ -446,10 +489,6 @@ class ErrorBoundary extends Component {
     });
   }
 
-  resetError = () => {
-    this.setState({ error: null });
-  };
-
   showExportSeedphrase = () => {
     this.setState({ backupSeedphrase: true });
   };
@@ -474,8 +513,17 @@ class ErrorBoundary extends Component {
   };
 
   openTicket = () => {
-    const url = METAMASK_SUPPORT_URL;
-    Linking.openURL(url);
+    const navigation = this.props.navigation;
+    if (!navigation) {
+      Linking.openURL(METAMASK_SUPPORT_URL);
+      return;
+    }
+
+    navigateToSupportConsent(
+      navigation,
+      (url) => Linking.openURL(url),
+      METAMASK_SUPPORT_URL,
+    );
   };
 
   renderWithSafeArea = (children) => {
@@ -506,10 +554,10 @@ class ErrorBoundary extends Component {
         ? this.renderWithSafeArea(
             <Fallback
               errorMessage={this.getErrorMessage()}
-              resetError={this.resetError}
               showExportSeedphrase={this.showExportSeedphrase}
               copyErrorToClipboard={this.copyErrorToClipboard}
               openTicket={this.openTicket}
+              navigation={this.props.navigation}
               sentryId={this.state.sentryId}
               onboardingErrorConfig={onboardingErrorConfig}
             />,

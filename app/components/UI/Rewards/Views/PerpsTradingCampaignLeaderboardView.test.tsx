@@ -147,9 +147,11 @@ const mockUseGetParticipant =
 
 const basePosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 4,
+  totalParticipants: 50,
   pnl: 1000,
-  notionalVolume: 10_000,
-  qualified: true,
+  volume: 10_000,
+  eligible: true,
+  minVolumeForEligibility: 25_000,
   neighbors: [],
   computedAt: '2025-01-01T00:00:00.000Z',
 };
@@ -158,8 +160,9 @@ const leaderboardHookDefaults = {
   leaderboard: {
     campaignId: CAMPAIGN_ID,
     computedAt: '2025-01-01T00:00:00.000Z',
-    entries: [{ rank: 1, referralCode: 'A', pnl: 1, qualified: true }],
+    entries: [{ rank: 1, referralCode: 'A', pnl: 1, volume: 30_000 }],
     totalParticipants: 50,
+    minVolumeForEligibility: 25_000,
   },
   isLoading: false,
   hasError: false,
@@ -260,6 +263,125 @@ describe('PerpsTradingCampaignLeaderboardView', () => {
         isLoading: false,
       }),
     );
+  });
+
+  it('does not render the stats header when opted in without a position', () => {
+    mockUseGetParticipant.mockReturnValue({
+      status: { optedIn: true, participantCount: 10 },
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
+
+    const { queryByTestId } = render(<PerpsTradingCampaignLeaderboardView />);
+
+    expect(queryByTestId('perps-lb-stats-header-mock')).toBeNull();
+    expect(mockUseGetPosition).toHaveBeenCalledWith(CAMPAIGN_ID);
+  });
+
+  it('does not render the stats header or user leaderboard position when rank is invalid', () => {
+    mockUseGetParticipant.mockReturnValue({
+      status: { optedIn: true, participantCount: 10 },
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetPosition.mockReturnValue({
+      position: {
+        ...basePosition,
+        rank: null,
+        neighbors: null,
+        volume: 0,
+      } as unknown as PerpsTradingCampaignLeaderboardPositionDto,
+      isLoading: false,
+      hasError: false,
+      hasFetched: true,
+      refetch: jest.fn(),
+    });
+
+    const { queryByTestId } = render(<PerpsTradingCampaignLeaderboardView />);
+
+    expect(queryByTestId('perps-lb-stats-header-mock')).toBeNull();
+    expect(mockPerpsLeaderboard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userPosition: null,
+      }),
+    );
+  });
+
+  it('does not render the stats header when opted in with rank but zero notional volume', () => {
+    mockUseGetParticipant.mockReturnValue({
+      status: { optedIn: true, participantCount: 10 },
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetPosition.mockReturnValue({
+      position: {
+        ...basePosition,
+        volume: 0,
+      },
+      isLoading: false,
+      hasError: false,
+      hasFetched: true,
+      refetch: jest.fn(),
+    });
+
+    const { queryByTestId } = render(<PerpsTradingCampaignLeaderboardView />);
+
+    expect(queryByTestId('perps-lb-stats-header-mock')).toBeNull();
+    expect(mockPerpsLeaderboard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userPosition: { rank: basePosition.rank, neighbors: [] },
+      }),
+    );
+  });
+
+  it('passes isCampaignComplete to the stats header and leaderboard when campaign ended', () => {
+    const completedCampaign = {
+      ...mockCampaign,
+      startDate: '2024-01-01T00:00:00Z',
+      endDate: '2025-01-01T00:00:00Z',
+    };
+    mockUseSelector.mockImplementation((selector: (s: unknown) => unknown) =>
+      selector({
+        rewards: {
+          referralCode: 'REFCODE99',
+          campaigns: [completedCampaign],
+        },
+      }),
+    );
+    mockUseGetParticipant.mockReturnValue({
+      status: { optedIn: true, participantCount: 10 },
+      isLoading: false,
+      hasError: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetPosition.mockReturnValue({
+      position: basePosition,
+      isLoading: false,
+      hasError: false,
+      hasFetched: true,
+      refetch: jest.fn(),
+    });
+
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2025-08-15T12:00:00.000Z'));
+
+    render(<PerpsTradingCampaignLeaderboardView />);
+
+    expect(mockPerpsStatsHeader).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isCampaignComplete: true,
+      }),
+    );
+    expect(mockPerpsLeaderboard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isCampaignComplete: true,
+      }),
+    );
+
+    jest.useRealTimers();
   });
 
   it('passes leaderboard data and user position to PerpsTradingCampaignLeaderboard', () => {

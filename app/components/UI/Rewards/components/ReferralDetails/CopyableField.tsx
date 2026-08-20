@@ -18,6 +18,7 @@ interface CopyableFieldProps {
   value?: string | null;
   onCopy?: () => void;
   valueLoading?: boolean;
+  trailingAccessory?: React.ReactNode;
 }
 
 const CopyableField: React.FC<CopyableFieldProps> = ({
@@ -25,6 +26,7 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
   value,
   onCopy,
   valueLoading,
+  trailingAccessory,
 }) => {
   const [isCopied, setIsCopied] = useState(false);
 
@@ -63,6 +65,9 @@ const CopyableField: React.FC<CopyableFieldProps> = ({
             </Text>
           )}
         </Box>
+        {trailingAccessory ? (
+          <Box twClassName="ml-2">{trailingAccessory}</Box>
+        ) : null}
         <ButtonIcon
           iconName={isCopied ? IconName.Confirmation : IconName.Copy}
           size={ButtonIconSize.Md}

@@ -7,14 +7,12 @@ import { RootMessenger } from '../types';
 import { PhishingControllerMessenger } from '@metamask/phishing-controller';
 
 export function getPhishingControllerMessenger(
-  rootMessenger: RootMessenger,
-): PhishingControllerMessenger {
-  const messenger = new Messenger<
-    'PhishingController',
+  rootMessenger: RootMessenger<
     MessengerActions<PhishingControllerMessenger>,
-    MessengerEvents<PhishingControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<PhishingControllerMessenger>
+  >,
+): PhishingControllerMessenger {
+  const messenger: PhishingControllerMessenger = new Messenger({
     namespace: 'PhishingController',
     parent: rootMessenger,
   });

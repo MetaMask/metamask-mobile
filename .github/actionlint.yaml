@@ -20,6 +20,16 @@ self-hosted-runner:
     - "namespace-profile-metamask-android-build"
     - "namespace-profile-metamask-ios-build"
     - "namespace-profile-metamask-ios-e2e"
+    # Bitrise Build Hub (INFRA-3679). bitrise_pool_name:<role-label> — value matches Build Hub runner label.
+    - "bitrise_pool_name:bitrise-metamask-ios-build"
+    - "bitrise_pool_name:bitrise-metamask-ios-e2e"
+    # Bitrise machine_type labels (INFRA-3679 — pool + machine_type AND routing)
+    - "machine_type:g2.mac.m2pro.12c-28g"
+    - "machine_type:g2.mac.m2pro.6c-14g"
+    - "machine_type:g2.mac.m4.10c-28g"
+    - "machine_type:g2.mac.m4.5c-14g"
+    - "machine_type:g2.mac.m4pro.7c-27g"
+    - "machine_type:g2.mac.m4pro.14c-54g"
 
 # Configuration variables in array of strings defined in your repository or
 # organization. `null` means disabling configuration variables check.

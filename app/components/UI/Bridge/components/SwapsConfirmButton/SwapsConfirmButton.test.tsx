@@ -20,16 +20,27 @@ import { RootState } from '../../../../../reducers';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { BigNumber } from 'ethers';
 import Engine from '../../../../../core/Engine';
-import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
+import {
+  setSlippage,
+  setSlippageUserOverride,
+  setSourceAmount,
+} from '../../../../../core/redux/slices/bridge';
 import {
   ChainId,
   MetaMetricsSwapsEventSource,
+  formatChainIdToCaip,
 } from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
-import { SecurityDataType } from '../../types';
+import { SecurityDataType, BridgeViewMode } from '../../types';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
-
+import { ButtonVariant, TextColor } from '@metamask/design-system-react-native';
+import {
+  SWAPS_CTA_BUTTON_COLOR_AB_KEY,
+  SwapsCtaButtonColorVariant,
+} from './abTestConfig';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
+import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../../util/theme';
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
   '../../../../../multichain-accounts/controllers/account-tree-controller',
@@ -81,12 +92,27 @@ jest.mock('../../../../../selectors/bridge', () => ({
 
 // Mock hasMinimumRequiredVersion so that selectBridgeFeatureFlags does not call
 // compareVersions (which requires a real app version string unavailable in tests).
-jest.mock(
-  '../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
-  () => ({
-    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
-  }),
-);
+jest.mock('../../../../../util/remoteFeatureFlag', () => ({
+  hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../../HardwareWallet/Swaps/useHwConnectionMonitoring', () => ({
+  useHwConnectionMonitoring: jest.fn(() => ({
+    isDisconnectedRef: { current: false },
+    resetHandledError: jest.fn(),
+  })),
+}));
+
+jest.mock('../../../HardwareWallet/Swaps/hooks/useHwQrState', () => ({
+  useHwQrState: jest.fn(() => ({
+    isReadingQrSignature: false,
+    setIsReadingQrSignature: jest.fn(),
+    isQrHardwareWallet: false,
+    showInlineQrSigning: false,
+    handleQrSignatureCancel: jest.fn(),
+    pendingScanRequest: undefined,
+  })),
+}));
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -132,19 +158,27 @@ const mockActiveQuote = {
   ...mockQuoteWithMetadata,
   quote: {
     ...mockQuoteWithMetadata.quote,
-    srcTokenAmount: '1000000000000000000', // calcTokenValue('1.0', 18)
+    src: {
+      ...mockQuoteWithMetadata.quote.src,
+      amount: '1000000000000000000', // calcTokenValue('1.0', 18)
+    },
   },
 };
 
 const mockBtcQuoteWithUnavailableNetworkFee = {
   ...mockActiveQuote,
+  chainId: formatChainIdToCaip(ChainId.BTC),
   quote: {
     ...mockActiveQuote.quote,
-    srcChainId: ChainId.BTC,
-  },
-  totalNetworkFee: {
-    ...mockActiveQuote.totalNetworkFee,
-    amount: '0',
+    feeData: {
+      ...mockActiveQuote.quote.feeData,
+      network: [
+        {
+          ...(mockActiveQuote.quote.feeData?.network?.[0] ?? {}),
+          normalizedAmount: '0',
+        },
+      ],
+    },
   },
 };
 
@@ -286,6 +320,33 @@ const mockState: DeepPartial<RootState> = {
   },
 };
 
+function createAbTestState(
+  variantName?: SwapsCtaButtonColorVariant,
+  bridgeViewMode = BridgeViewMode.Unified,
+): DeepPartial<RootState> {
+  return {
+    ...mockState,
+    engine: {
+      ...mockState.engine,
+      backgroundState: {
+        ...mockState.engine?.backgroundState,
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            bridgeConfigV2: defaultBridgeConfigV2,
+            ...(variantName && {
+              [SWAPS_CTA_BUTTON_COLOR_AB_KEY]: { name: variantName },
+            }),
+          },
+        },
+      },
+    },
+    bridge: {
+      ...mockState.bridge,
+      bridgeViewMode,
+    },
+  };
+}
+
 describe('SwapsConfirmButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -302,7 +363,122 @@ describe('SwapsConfirmButton', () => {
     jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
     jest.mocked(useInsufficientNativeReserveError).mockReturnValue(undefined);
     jest.mocked(useHasSufficientGas).mockReturnValue(true);
-    mockSubmitBridgeTx.mockResolvedValue({ success: true });
+    mockSubmitBridgeTx.mockResolvedValue({
+      id: 'tx-meta-id',
+      hash: '0xabc',
+      status: 'submitted',
+    });
+  });
+
+  describe('CTA color A/B test', () => {
+    it('uses Primary when the CTA experiment is unresolved', () => {
+      const { UNSAFE_getByProps } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state: createAbTestState() },
+      );
+
+      const button = UNSAFE_getByProps({
+        variant: ButtonVariant.Primary,
+      });
+
+      expect(button.props.variant).toBe(ButtonVariant.Primary);
+      expect(button.props.twClassName).toBeUndefined();
+      expect(button.props.textProps).toBeUndefined();
+    });
+
+    it('uses Primary for the control assignment', () => {
+      const { UNSAFE_getByProps } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: createAbTestState(SwapsCtaButtonColorVariant.Control),
+        },
+      );
+
+      const button = UNSAFE_getByProps({
+        variant: ButtonVariant.Primary,
+      });
+
+      expect(button.props.variant).toBe(ButtonVariant.Primary);
+      expect(button.props.twClassName).toBeUndefined();
+      expect(button.props.textProps).toBeUndefined();
+    });
+
+    it('uses the success color for the treatment assignment', () => {
+      const { UNSAFE_getByProps } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: createAbTestState(SwapsCtaButtonColorVariant.Treatment),
+        },
+      );
+
+      const button = UNSAFE_getByProps({
+        variant: ButtonVariant.Primary,
+      });
+
+      expect(button.props.twClassName).toBe(`bg-[${LIGHT_MODE_SUCCESS_GREEN}]`);
+      expect(button.props.textProps).toEqual({
+        color: TextColor.SuccessInverse,
+      });
+    });
+
+    it('uses the success color outside Unified mode for treatment', () => {
+      const { UNSAFE_getByProps } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: createAbTestState(
+            SwapsCtaButtonColorVariant.Treatment,
+            BridgeViewMode.Swap,
+          ),
+        },
+      );
+
+      const button = UNSAFE_getByProps({
+        variant: ButtonVariant.Primary,
+      });
+
+      expect(button.props.twClassName).toBe(`bg-[${LIGHT_MODE_SUCCESS_GREEN}]`);
+    });
+
+    it('preserves existing transaction attribution when submitting treatment', async () => {
+      const existingAssignment = createActiveABTestAssignment(
+        'existingExperiment',
+        'control',
+      );
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+          transactionActiveAbTests={[existingAssignment]}
+        />,
+        {
+          state: createAbTestState(SwapsCtaButtonColorVariant.Treatment),
+        },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+      });
+
+      await waitFor(() => {
+        expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
+          quoteResponse: mockActiveQuote,
+          location: MetaMetricsSwapsEventSource.MainView,
+          transactionActiveAbTests: [existingAssignment],
+        });
+      });
+    });
   });
 
   describe('Button Label', () => {
@@ -900,6 +1076,107 @@ describe('SwapsConfirmButton', () => {
       expect(button.props.accessibilityState?.disabled).toBe(false);
       expect(getByText(strings('bridge.confirm_swap'))).toBeTruthy();
     });
+
+    it('shows loading when user slippage changes before quote refresh starts', () => {
+      const { getByTestId, store } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      act(() => {
+        store.dispatch(setSlippageUserOverride('3.5'));
+      });
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(button.props.accessibilityState?.busy).toBe(true);
+    });
+
+    it('enables confirmation after the custom-slippage quote settles', () => {
+      const customSlippageQuote = {
+        ...mockActiveQuote,
+        quote: {
+          ...mockActiveQuote.quote,
+          slippage: 3.5,
+        },
+      };
+      let quoteData = {
+        ...mockUseBridgeQuoteData,
+        activeQuote: mockActiveQuote,
+        isLoading: false,
+      };
+      jest
+        .mocked(useBridgeQuoteData as unknown as jest.Mock)
+        .mockImplementation(() => quoteData);
+      const state = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          slippage: '3.5',
+          isSlippageUserOverride: true,
+        },
+      };
+      const { getByTestId, rerender } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        { state },
+      );
+      quoteData = {
+        ...quoteData,
+        isLoading: true,
+      };
+      rerender(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+      );
+      quoteData = {
+        ...quoteData,
+        activeQuote: customSlippageQuote,
+        isLoading: false,
+      };
+
+      rerender(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+      );
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+          .accessibilityState?.disabled,
+      ).toBe(false);
+    });
+
+    it('keeps confirmation enabled when the backend hydrates slippage', () => {
+      const { getByTestId, store } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: mockState,
+        },
+      );
+
+      act(() => {
+        store.dispatch(setSlippage('0.5'));
+      });
+
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+          .accessibilityState?.disabled,
+      ).toBe(false);
+    });
   });
 
   describe('Quote Expired (needsNewQuote)', () => {
@@ -1002,7 +1279,7 @@ describe('SwapsConfirmButton', () => {
       });
 
       expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
-      expect(mockUpdateQuoteParams).toHaveBeenCalled();
+      expect(mockUpdateQuoteParams).toHaveBeenCalledWith({ isRefresh: true });
       // Should NOT call submitBridgeTx
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
@@ -1097,7 +1374,7 @@ describe('SwapsConfirmButton', () => {
   });
 
   describe('handleContinue', () => {
-    it('submits transaction and navigates to transactions view', async () => {
+    it('submits transaction and opens the post-trade bottom sheet', async () => {
       const { getByTestId } = renderWithProvider(
         <SwapsConfirmButton
           latestSourceBalance={mockLatestSourceBalance}
@@ -1119,7 +1396,12 @@ describe('SwapsConfirmButton', () => {
             quoteResponse: mockActiveQuote,
             location: 'Main View',
           });
-          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.BRIDGE.MODALS.ROOT,
+            expect.objectContaining({
+              screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+            }),
+          );
         });
       });
     });
@@ -1178,7 +1460,6 @@ describe('SwapsConfirmButton', () => {
             quoteResponse: solanaActiveQuote,
             location: 'Main View',
           });
-          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
       });
     });
@@ -1208,8 +1489,12 @@ describe('SwapsConfirmButton', () => {
             'Error submitting bridge tx',
             expect.any(Error),
           );
-          // Should still navigate after error (in finally block)
-          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.BRIDGE.MODALS.ROOT,
+            expect.objectContaining({
+              screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+            }),
+          );
         });
       });
 
@@ -1419,7 +1704,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: '0.90' }, // well above danger threshold
+              priceData: { priceImpact: { amount: '0.90' } }, // well above danger threshold
             },
           },
         }));
@@ -1580,7 +1865,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: '0.30' }, // 0.30 > danger threshold 0.25
+              priceData: { priceImpact: { amount: '0.30' } }, // 0.30 > danger threshold 0.25
             },
           },
           formattedQuoteData: {
@@ -1620,7 +1905,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: '0.30' }, // 0.30 > danger threshold 0.25
+              priceData: { priceImpact: { amount: '0.30' } }, // 0.30 > danger threshold 0.25
             },
           },
           formattedQuoteData: {
@@ -1654,7 +1939,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: '0.25' }, // exactly at the danger threshold 0.25
+              priceData: { priceImpact: { amount: '0.25' } }, // exactly at the danger threshold 0.25
             },
           },
           formattedQuoteData: {
@@ -1695,7 +1980,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: '0.10' }, // 0.10 < danger threshold 0.25
+              priceData: { priceImpact: { amount: '0.10' } }, // 0.10 < danger threshold 0.25
             },
           },
           formattedQuoteData: {
@@ -1718,7 +2003,6 @@ describe('SwapsConfirmButton', () => {
 
       await waitFor(() => {
         expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
       });
     });
 
@@ -1731,7 +2015,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: undefined },
+              priceData: { priceImpact: { amount: undefined } },
             },
           },
           formattedQuoteData: {
@@ -1771,7 +2055,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: 'NaN' },
+              priceData: { priceImpact: { amount: 'NaN' } },
             },
           },
           formattedQuoteData: {
@@ -1794,10 +2078,6 @@ describe('SwapsConfirmButton', () => {
 
       await waitFor(() => {
         expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).not.toHaveBeenCalledWith(
-          Routes.BRIDGE.MODALS.ROOT,
-          expect.anything(),
-        );
       });
     });
 
@@ -1810,7 +2090,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: '0.30' }, // 0.30 > danger threshold 0.25
+              priceData: { priceImpact: { amount: '0.30' } }, // 0.30 > danger threshold 0.25
             },
           },
           formattedQuoteData: {
@@ -1853,7 +2133,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: '0.25' }, // 0.25 >= 0.25 → modal shown
+              priceData: { priceImpact: { amount: '0.25' } }, // 0.25 >= 0.25 → modal shown
             },
           },
           formattedQuoteData: {
@@ -1914,7 +2194,7 @@ describe('SwapsConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: '0.22' }, // 0.22 < AppConstants fallback 0.25 → no modal shown
+              priceData: { priceImpact: { amount: '0.22' } }, // 0.22 < AppConstants fallback 0.25 → no modal shown
             },
           },
           formattedQuoteData: {
@@ -1937,10 +2217,6 @@ describe('SwapsConfirmButton', () => {
 
       await waitFor(() => {
         expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).not.toHaveBeenCalledWith(
-          Routes.BRIDGE.MODALS.ROOT,
-          expect.anything(),
-        );
       });
     });
   });

@@ -1,67 +1,83 @@
-import { AddAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/AddAccountActions/AddAccountBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import UnifiedGestures from '../../framework/UnifiedGestures';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import Assertions from '../../framework/Assertions';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+
+const SHEET_READY_TIMEOUT_MS = 30_000;
+
+const AddAccountBottomSheetSelectorsIDs = {
+  IMPORT_ACCOUNT_BUTTON: 'add-account-import-account',
+  IMPORT_SRP_BUTTON: 'add-account-srp-account',
+};
 
 class AddAccountBottomSheet {
-  get importAccountButton(): DetoxElement {
+  get importAccountButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
     );
   }
 
-  get createEthereumAccountButton(): DetoxElement {
-    return Matchers.getElementByID(
-      AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
-    );
-  }
-
-  get createSolanaAccountButton(): DetoxElement {
-    return Matchers.getElementByID(
-      AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
-    );
+  get backButton(): EncapsulatedElementType {
+    return Matchers.getElementByID('add-wallet-back-button');
   }
 
   get importSrpButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
-          { exact: true },
-        ),
+    return Matchers.getElementByID(
+      AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
+    );
+  }
+
+  async waitForImportSrpOption(
+    options: { description?: string; timeout?: number } = {},
+  ): Promise<void> {
+    const timeout = options.timeout ?? SHEET_READY_TIMEOUT_MS;
+    const description =
+      options.description ??
+      'Import SRP option should be visible in add account sheet';
+
+    await Assertions.expectElementToBeVisible(this.importSrpButton, {
+      description,
+      timeout,
+    });
+  }
+
+  async waitForImportAccountOption(
+    options: { description?: string; timeout?: number } = {},
+  ): Promise<void> {
+    const timeout = options.timeout ?? SHEET_READY_TIMEOUT_MS;
+    const description =
+      options.description ??
+      'Import account option should be visible in add account sheet';
+
+    await Assertions.expectElementToBeVisible(this.importAccountButton, {
+      description,
+      timeout,
     });
   }
 
   async tapImportAccount(): Promise<void> {
     await Gestures.waitAndTap(this.importAccountButton, {
       elemDescription: 'Import Account button',
-    });
-  }
-
-  async tapCreateEthereumAccount(): Promise<void> {
-    await Gestures.waitAndTap(this.createEthereumAccountButton, {
-      elemDescription: 'Create New Ethereum Account button',
+      timeout: 20_000,
+      checkForDisplayed: true,
+      checkEnabled: true,
+      waitForInteractive: true,
     });
   }
 
   async tapImportSrp(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.importSrpButton, {
-      description: 'Import SRP button',
+    await Gestures.waitAndTap(this.importSrpButton, {
+      elemDescription: 'Import SRP button',
+      timeout: 20_000,
+      checkForDisplayed: true,
+      checkEnabled: true,
+      waitForInteractive: true,
     });
   }
 
-  async tapAddSolanaAccount(): Promise<void> {
-    await Gestures.waitAndTap(this.createSolanaAccountButton, {
-      elemDescription: 'Add Solana Account button',
+  async tapBackToWalletView(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Back button',
     });
   }
 }

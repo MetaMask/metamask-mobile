@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
 import { createUIQueryClient } from '@metamask/react-data-query';
@@ -119,7 +119,7 @@ export function renderScreenWithRoutes(
   providerValues?: ProviderValues,
   initialParams?: Record<string, unknown>,
 ) {
-  const Stack = createStackNavigator();
+  const Stack = createNativeStackNavigator();
 
   const DefaultRouteProbe =
     (routeName: string): React.FC =>

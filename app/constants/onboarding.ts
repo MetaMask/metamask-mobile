@@ -27,6 +27,15 @@ export enum AccountType {
   ImportedTelegram = 'imported_telegram',
 }
 
+/**
+ * High-level onboarding path for Sentry journey filtering.
+ * Attached to Onboarding - Overall Journey as `onboarding.method`.
+ */
+export enum OnboardingMethod {
+  Social = 'social',
+  Srp = 'srp',
+}
+
 export const WalletCreationErrorCtaType = {
   Retry: 'retry',
   SendErrorReport: 'send_error_report',
@@ -69,6 +78,7 @@ export enum ONBOARDING_SUCCESS_FLOW {
   BACKED_UP_SRP = 'backedUpSRP',
   NO_BACKED_UP_SRP = 'noBackedUpSRP',
   IMPORT_FROM_SEED_PHRASE = 'importFromSeedPhrase',
+  SEEDLESS_ONBOARDING = 'seedlessOnboarding',
   SETTINGS_BACKUP = 'settingsBackup',
   REMINDER_BACKUP = 'reminderBackup',
 }

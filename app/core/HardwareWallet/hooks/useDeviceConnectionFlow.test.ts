@@ -27,6 +27,8 @@ const createMockAdapter = (overrides = {}) => ({
   ensurePermissions: jest.fn().mockResolvedValue(true),
   reset: jest.fn(),
   isFlowComplete: jest.fn().mockReturnValue(false),
+  onTransportStateChange: jest.fn(() => jest.fn()),
+  destroy: jest.fn(),
   ...overrides,
 });
 
@@ -620,7 +622,11 @@ describe('useDeviceConnectionFlow', () => {
     });
 
     it('connects and runs readiness check', async () => {
-      const mockAdapter = createMockAdapter();
+      // Report "not ready" so the pending promise stays unresolved; otherwise
+      // connect() treats the already-resolved flow as cancelled and bails early.
+      const mockAdapter = createMockAdapter({
+        ensureDeviceReady: jest.fn().mockResolvedValue(false),
+      });
       const refs = createMockRefs();
       refs.adapterRef.current = mockAdapter;
       const options = createDefaultOptions({ refs });

@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import OnboardingSheet from '.';
@@ -38,7 +38,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 function OnboardingSheetScreen() {
   return <OnboardingSheet />;

@@ -11,6 +11,11 @@ import {
   KeyringControllerUnlockEvent,
 } from '@metamask/keyring-controller';
 import {
+  RemoteFeatureFlagControllerGetStateAction,
+  RemoteFeatureFlagControllerState,
+} from '@metamask/remote-feature-flag-controller';
+import { ControllerStateChangeEvent } from '@metamask/base-controller';
+import {
   getMoneyAccountUpgradeControllerMessenger,
   getMoneyAccountUpgradeControllerInitMessenger,
 } from './money-account-upgrade-controller-messenger';
@@ -18,9 +23,14 @@ import {
 type RootMessenger = Messenger<
   MockAnyNamespace,
   | MessengerActions<MoneyAccountUpgradeControllerMessenger>
-  | KeyringControllerGetStateAction,
+  | KeyringControllerGetStateAction
+  | RemoteFeatureFlagControllerGetStateAction,
   | MessengerEvents<MoneyAccountUpgradeControllerMessenger>
   | KeyringControllerUnlockEvent
+  | ControllerStateChangeEvent<
+      'RemoteFeatureFlagController',
+      RemoteFeatureFlagControllerState
+    >
 >;
 
 function getRootMessenger(): RootMessenger {

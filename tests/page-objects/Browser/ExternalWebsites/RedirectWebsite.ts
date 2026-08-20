@@ -1,21 +1,32 @@
-import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds';
-import Matchers from '../../../framework/Matchers';
+import ChromeCdpHelpers from '../../../framework/ChromeCdpHelpers';
+import PlaywrightContextHelpers from '../../../framework/PlaywrightContextHelpers';
 
 class RedirectWebsite {
   /**
-   * On Android we can't redirect to HTTP websites because this protocol is prohibited (error is net::ERR_CLEARTEXT_NOT_PERMITTED).
-   * On iOS HTTP website will be open and redirect itself to HTTPS version.
+   * Runs `window.location.href = targetUrl` in the page at `pageUrl`.
+   * The fixture server's serve-handler cleanUrls rewrites `/redirect.html?…`
+   * to `/redirect` and drops the query, so the target cannot come from the
+   * page — the test passes it in.
+   *
+   * @param pageUrl - URL used to select the WebView/CDP target (no query).
+   * @param targetUrl - Cross-origin URL to assign to `location.href`.
    */
-  async tapRedirectButton(): Promise<void> {
-    const redirectButtonXpath =
-      device.getPlatform() === 'android'
-        ? "//button[@id='redirect_button_https']"
-        : "//button[@id='redirect_button_http']";
-    const redirectButton = await Matchers.getElementByXPath(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      redirectButtonXpath,
+  async redirectToTarget(pageUrl: string, targetUrl: string): Promise<void> {
+    const result = await ChromeCdpHelpers.evaluateInWebView<string>(
+      pageUrl,
+      `(() => {
+        window.location.href = ${JSON.stringify(targetUrl)};
+        return 'ok';
+      })()`,
     );
-    await redirectButton.tap(); // Click button to redirect to portfolio.metamask.io website
+
+    if (result !== 'ok') {
+      throw new Error(
+        `RedirectWebsite.redirectToTarget failed (${result ?? 'null'}) from ${pageUrl} to ${targetUrl}`,
+      );
+    }
+
+    await PlaywrightContextHelpers.switchToNativeContext();
   }
 }
 

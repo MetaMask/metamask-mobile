@@ -117,6 +117,7 @@ function buildMusdConversionTx(params: {
     networkClientId: string;
     origin: typeof ORIGIN_METAMASK;
     type: TransactionType.musdConversion;
+    isInternal: true;
   };
 } {
   const { chainId, fromAddress, recipientAddress, amountHex, networkClientId } =
@@ -142,6 +143,7 @@ function buildMusdConversionTx(params: {
       networkClientId,
       origin: ORIGIN_METAMASK,
       type: TransactionType.musdConversion,
+      isInternal: true,
     },
   };
 }

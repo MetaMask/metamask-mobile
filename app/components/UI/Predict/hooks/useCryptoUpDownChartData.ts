@@ -15,9 +15,39 @@ import type { LivelinePoint } from '../../Charts/LivelineChart/LivelineChart.typ
 const EMPTY_DATA: LivelinePoint[] = [];
 const LIVE_CHART_WINDOW_SECS = 30;
 const LIVE_CHART_RETENTION_SECS = LIVE_CHART_WINDOW_SECS * 2;
-const LIVE_CHART_MAX_POINTS = LIVE_CHART_RETENTION_SECS * 60;
+const LIVE_CHART_MAX_POINTS_PER_SEC = 60;
 const CURRENT_TIMESTAMP_TOLERANCE_SECS = 5;
 const MIN_LIVE_POINT_DELTA_SECS = 0.001;
+const LIVE_STREAM_STALE_TIMEOUT_MS = LIVE_CHART_WINDOW_SECS * 1000;
+const TWAP_STREAM_STALE_TIMEOUT_MS = 120000;
+const CONNECTION_ERROR_TIMEOUT_MS = 12000;
+
+// Circuit breaker for the historical-candle poll. When the endpoint is
+// unreachable we don't want to keep hammering it every 10s indefinitely, so the
+// interval backs off as consecutive failures accumulate and eventually stops.
+// React Query resets `fetchFailureCount` to 0 on the first successful fetch,
+// which automatically restores the normal cadence once the endpoint recovers.
+const POLL_INTERVAL_MS = 10000;
+const POLL_BACKOFF_30S_MS = 30000;
+const POLL_BACKOFF_60S_MS = 60000;
+const POLL_BACKOFF_30S_THRESHOLD = 3; // 3rd consecutive failure -> 30s
+const POLL_BACKOFF_60S_THRESHOLD = 5; // 5th consecutive failure -> 60s
+const POLL_DISABLE_THRESHOLD = 7; // 7th consecutive failure -> stop polling
+
+export const getHistoricalPollInterval = (
+  fetchFailureCount: number,
+): number | false => {
+  if (fetchFailureCount >= POLL_DISABLE_THRESHOLD) {
+    return false;
+  }
+  if (fetchFailureCount >= POLL_BACKOFF_60S_THRESHOLD) {
+    return POLL_BACKOFF_60S_MS;
+  }
+  if (fetchFailureCount >= POLL_BACKOFF_30S_THRESHOLD) {
+    return POLL_BACKOFF_30S_MS;
+  }
+  return POLL_INTERVAL_MS;
+};
 
 const mergeLivelinePoints = (
   historicalData: LivelinePoint[],
@@ -41,15 +71,27 @@ const mergeLivelinePoints = (
 const trimLivePoints = (
   points: LivelinePoint[],
   latestTime: number,
+  retentionSeconds = LIVE_CHART_RETENTION_SECS,
 ): LivelinePoint[] => {
-  const cutoff = latestTime - LIVE_CHART_RETENTION_SECS;
+  const cutoff = latestTime - retentionSeconds;
+  const maxPoints = retentionSeconds * LIVE_CHART_MAX_POINTS_PER_SEC;
+
+  // Fast path: nothing to trim — return the same reference to avoid an O(n)
+  // copy on every live tick.
+  if (
+    points.length <= maxPoints &&
+    (points.length === 0 || points[0].time >= cutoff)
+  ) {
+    return points;
+  }
+
   const retainedPoints = points.filter((point) => point.time >= cutoff);
 
-  if (retainedPoints.length <= LIVE_CHART_MAX_POINTS) {
+  if (retainedPoints.length <= maxPoints) {
     return retainedPoints;
   }
 
-  return retainedPoints.slice(-LIVE_CHART_MAX_POINTS);
+  return retainedPoints.slice(-maxPoints);
 };
 
 const getLivePointTime = (
@@ -83,6 +125,12 @@ export interface UseCryptoUpDownChartDataResult {
   loading: boolean;
   isLive: boolean;
   window: number;
+  /**
+   * True when a live market has produced no renderable data for a sustained
+   * grace period (upstream data outage). The UI should show a connection-error
+   * state instead of an indefinite loading spinner.
+   */
+  connectionError: boolean;
 }
 
 interface UseCryptoUpDownChartDataOptions {
@@ -104,6 +152,7 @@ export const useCryptoUpDownChartData = (
   const preserveHistoricalDataAcrossMarket =
     !liveUpdatesEnabled && Boolean(options.historicalWindow);
   const symbol = getCryptoSymbol(market);
+  const twapWindowSeconds = market.twapWindowSeconds;
   const recurrence = market.series.recurrence;
   const variant = getVariant(recurrence);
   const eventStartTime = getEventStartTime(market.endDate, recurrence);
@@ -124,6 +173,14 @@ export const useCryptoUpDownChartData = (
   const hasFrozenLiveData = frozenMarketId === market.id;
   const [liveLoading, setLiveLoading] = useState(true);
   const liveLoadingRef = useRef(true);
+  const [liveStreamStale, setLiveStreamStale] = useState(true);
+  const staleTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  const [connectionError, setConnectionError] = useState(false);
+  const connectionErrorTimerRef = useRef<
+    ReturnType<typeof setTimeout> | undefined
+  >(undefined);
   const [liveValue, setLiveValue] = useState(0);
   const [livePoints, setLivePoints] = useState<LivelinePoint[]>(EMPTY_DATA);
   const stableHistoricalDataRef = useRef<LivelinePoint[]>(EMPTY_DATA);
@@ -139,8 +196,12 @@ export const useCryptoUpDownChartData = (
   enabledRef.current = enabled;
 
   const prevMarketIdRef = useRef(market.id);
+  const previousTwapWindowRef = useRef(twapWindowSeconds);
+  const hasPriceSourceChanged =
+    previousTwapWindowRef.current !== twapWindowSeconds;
   const isCurrentMarket = prevMarketIdRef.current === market.id;
   const pendingFrozenMarketIdRef = useRef<string | undefined>(undefined);
+  const latestLiveObservationRef = useRef<number | undefined>(undefined);
   const pendingFrozenSyncRef = useRef(false);
   if (enabled && !isCurrentMarket) {
     const isNextMarketAlreadyExpired =
@@ -154,8 +215,12 @@ export const useCryptoUpDownChartData = (
     frozenMarketIdRef.current = nextFrozenMarketId;
     pendingFrozenMarketIdRef.current = nextFrozenMarketId;
     pendingFrozenSyncRef.current = true;
-    // Intentionally do NOT reset livePoints / historical refs here — preserving
-    // them across rollover is what keeps the chart drawing continuously.
+    if (hasPriceSourceChanged) {
+      liveLoadingRef.current = true;
+      stableHistoricalDataRef.current = EMPTY_DATA;
+      fallbackStartPointRef.current = EMPTY_DATA;
+      frozenRef.current = false;
+    }
   }
 
   useEffect(() => {
@@ -166,6 +231,21 @@ export const useCryptoUpDownChartData = (
     pendingFrozenSyncRef.current = false;
     setFrozenMarketId(pendingFrozenMarketIdRef.current);
   }, [enabled, market.id]);
+
+  useEffect(() => {
+    latestLiveObservationRef.current = undefined;
+    if (previousTwapWindowRef.current === twapWindowSeconds) {
+      return;
+    }
+    previousTwapWindowRef.current = twapWindowSeconds;
+    stableHistoricalDataRef.current = EMPTY_DATA;
+    fallbackStartPointRef.current = EMPTY_DATA;
+    setLiveStreamStale(true);
+    liveLoadingRef.current = true;
+    setLiveLoading(true);
+    setLiveValue(0);
+    setLivePoints(EMPTY_DATA);
+  }, [market.id, twapWindowSeconds]);
 
   const hasExpiredLiveData =
     isCurrentMarket && !isLiveByEndDate && livePoints.length > 0;
@@ -181,46 +261,99 @@ export const useCryptoUpDownChartData = (
     setFrozenMarketId(market.id);
   }, [enabled, frozenMarketId, hasExpiredLiveData, market.id]);
 
-  const handleLiveUpdate = useCallback((update: CryptoPriceUpdate) => {
-    if (!enabledRef.current) return;
-    const { id: liveMarketId, liveEndDateMs: currentLiveEndDateMs } =
-      liveMarketRef.current;
-    const currentMarketId = marketIdRef.current;
-    if (
-      liveMarketId !== currentMarketId ||
-      prevMarketIdRef.current !== currentMarketId
-    ) {
-      return;
+  const markLiveStreamFresh = useCallback(() => {
+    setLiveStreamStale(false);
+    if (staleTimerRef.current) {
+      clearTimeout(staleTimerRef.current);
     }
+    staleTimerRef.current = setTimeout(
+      () => {
+        setLiveStreamStale(true);
+      },
+      twapWindowSeconds
+        ? TWAP_STREAM_STALE_TIMEOUT_MS
+        : LIVE_STREAM_STALE_TIMEOUT_MS,
+    );
+  }, [twapWindowSeconds]);
 
-    const shouldFreezeAfterUpdate =
-      typeof currentLiveEndDateMs === 'number' &&
-      Date.now() >= currentLiveEndDateMs;
+  const handleLiveUpdate = useCallback(
+    (update: CryptoPriceUpdate) => {
+      if (!enabledRef.current) return;
+      const { id: liveMarketId, liveEndDateMs: currentLiveEndDateMs } =
+        liveMarketRef.current;
+      const currentMarketId = marketIdRef.current;
+      if (
+        liveMarketId !== currentMarketId ||
+        prevMarketIdRef.current !== currentMarketId
+      ) {
+        return;
+      }
 
-    if (frozenRef.current && frozenMarketIdRef.current === currentMarketId) {
-      return;
-    }
+      const shouldFreezeAfterUpdate =
+        typeof currentLiveEndDateMs === 'number' &&
+        Date.now() >= currentLiveEndDateMs;
 
-    setLiveValue(update.price);
-    setLivePoints((points) => {
-      const timeSecs = getLivePointTime(update.timestamp, points.at(-1)?.time);
-      const point: LivelinePoint = {
-        time: timeSecs,
-        value: update.price,
-      };
-      const nextPoints = mergeLivelinePoints(points, [point]);
-      return trimLivePoints(nextPoints, timeSecs);
-    });
-    if (liveLoadingRef.current) {
-      liveLoadingRef.current = false;
-      setLiveLoading(false);
-    }
-    if (shouldFreezeAfterUpdate) {
-      frozenRef.current = true;
-      frozenMarketIdRef.current = currentMarketId;
-      setFrozenMarketId(currentMarketId);
-    }
-  }, []);
+      if (frozenRef.current && frozenMarketIdRef.current === currentMarketId) {
+        return;
+      }
+
+      const observationTime = toTimestampSeconds(update.timestamp);
+      if (
+        !Number.isFinite(observationTime) ||
+        (twapWindowSeconds !== undefined &&
+          typeof latestLiveObservationRef.current === 'number' &&
+          observationTime <= latestLiveObservationRef.current)
+      ) {
+        return;
+      }
+      if (
+        typeof currentLiveEndDateMs === 'number' &&
+        observationTime * 1000 > currentLiveEndDateMs
+      ) {
+        return;
+      }
+      if (twapWindowSeconds !== undefined) {
+        latestLiveObservationRef.current = observationTime;
+      }
+
+      markLiveStreamFresh();
+      setLiveValue(update.price);
+      setLivePoints((points) => {
+        const lastPoint = points.at(-1);
+        const timeSecs = getLivePointTime(update.timestamp, lastPoint?.time);
+        const point: LivelinePoint = {
+          time: timeSecs,
+          value: update.price,
+        };
+        // Fast path: live ticks almost always arrive in order, so append
+        // instead of re-building (Map + sort) the whole array on every tick.
+        const nextPoints =
+          !lastPoint || timeSecs > lastPoint.time
+            ? [...points, point]
+            : mergeLivelinePoints(points, [point]);
+        return trimLivePoints(nextPoints, timeSecs);
+      });
+      if (liveLoadingRef.current) {
+        liveLoadingRef.current = false;
+        setLiveLoading(false);
+      }
+      if (shouldFreezeAfterUpdate) {
+        frozenRef.current = true;
+        frozenMarketIdRef.current = currentMarketId;
+        setFrozenMarketId(currentMarketId);
+      }
+    },
+    [markLiveStreamFresh, twapWindowSeconds],
+  );
+
+  useEffect(
+    () => () => {
+      if (staleTimerRef.current) {
+        clearTimeout(staleTimerRef.current);
+      }
+    },
+    [],
+  );
 
   const isLive = isLiveByEndDate && !hasFrozenLiveData;
   const shouldStreamLive = isLive && liveUpdatesEnabled;
@@ -228,7 +361,21 @@ export const useCryptoUpDownChartData = (
   const wsSymbol =
     enabled && shouldStreamLive && symbol ? `${symbol.toLowerCase()}/usd` : '';
 
-  useLiveCryptoPrices(wsSymbol, handleLiveUpdate);
+  // The live-data WebSocket streams real-time ticks while healthy, so the HTTP
+  // query only needs its initial historical baseline in that case. Interval
+  // polling is gated on `liveStreamStale` (see `refetchInterval` below) rather
+  // than this hook's `isConnected` flag: `isConnected` latches true on the first
+  // tick and never flips back on a silent RTDS drop, whereas `liveStreamStale`
+  // flips back to true when ticks stop arriving — correctly resuming HTTP
+  // polling as a fallback.
+  const liveSubscriptionArgs: [
+    string,
+    typeof handleLiveUpdate,
+    twapWindowSeconds?: typeof twapWindowSeconds,
+  ] = twapWindowSeconds
+    ? [wsSymbol, handleLiveUpdate, twapWindowSeconds]
+    : [wsSymbol, handleLiveUpdate];
+  useLiveCryptoPrices(...liveSubscriptionArgs);
 
   const historyStartDate =
     options.historicalWindow?.startDate ?? eventStartTime;
@@ -237,6 +384,23 @@ export const useCryptoUpDownChartData = (
     ? options.historicalWindow.endDate
     : liveHistoryEndDate;
 
+  // Counts consecutive failed historical-poll cycles. React Query's
+  // `fetchFailureCount` only counts retries *within a single fetch* and resets
+  // to 0 at the start of every fetch, so it cannot drive a backoff across
+  // separate interval polls. We track the count ourselves: increment on each
+  // settled error and reset on the next successful fetch (and on market change).
+  const consecutivePollFailuresRef = useRef(0);
+
+  // A fresh live stream is a recovery signal: reset the polling circuit breaker
+  // so that if the socket later drops (stream goes stale again), HTTP polling
+  // resumes from the base cadence instead of staying latched at the disabled
+  // threshold.
+  useEffect(() => {
+    if (!liveStreamStale) {
+      consecutivePollFailuresRef.current = 0;
+    }
+  }, [liveStreamStale]);
+
   const historicalQuery = useQuery({
     ...predictQueries.cryptoPriceHistory.options({
       symbol: symbol ?? '',
@@ -244,22 +408,43 @@ export const useCryptoUpDownChartData = (
       variant,
       endDate: historyEndDate,
     }),
-    enabled: enabled && !!symbol && !!historyStartDate,
+    enabled: enabled && !twapWindowSeconds && !!symbol && !!historyStartDate,
     keepPreviousData: true,
     staleTime: shouldStreamLive ? 1000 : Infinity,
     refetchOnMount: shouldStreamLive || !liveUpdatesEnabled ? 'always' : false,
-    refetchInterval: shouldStreamLive ? 10000 : false,
+    onError: () => {
+      consecutivePollFailuresRef.current += 1;
+    },
+    onSuccess: () => {
+      consecutivePollFailuresRef.current = 0;
+    },
+    // Only poll while streaming live AND the live stream is not currently
+    // delivering fresh ticks (`liveStreamStale`). `refetchOnMount` still seeds
+    // the historical baseline once; while the socket streams real-time ticks the
+    // interval poll is redundant, but it resumes automatically if ticks stop.
+    // When polling is active, the interval backs off (and ultimately stops) as
+    // consecutive failures accumulate so an unreachable endpoint is not hit
+    // every 10s indefinitely.
+    refetchInterval: () =>
+      shouldStreamLive && liveStreamStale
+        ? getHistoricalPollInterval(consecutivePollFailuresRef.current)
+        : false,
   });
 
-  const historicalData = historicalQuery.data ?? EMPTY_DATA;
+  const historicalData =
+    twapWindowSeconds === undefined && !hasPriceSourceChanged
+      ? (historicalQuery.data ?? EMPTY_DATA)
+      : EMPTY_DATA;
   const hasUsableHistoricalData = preserveHistoricalDataAcrossMarket
     ? historicalData.length >= 2
     : historicalData.length > 0;
-  const stableHistoricalData = hasUsableHistoricalData
-    ? historicalData
-    : stableHistoricalDataRef.current;
+  const stableHistoricalData = hasPriceSourceChanged
+    ? EMPTY_DATA
+    : hasUsableHistoricalData
+      ? historicalData
+      : stableHistoricalDataRef.current;
   const historicalValue =
-    historicalQuery.data?.at(-1)?.value ?? stableHistoricalData.at(-1)?.value;
+    historicalData.at(-1)?.value ?? stableHistoricalData.at(-1)?.value;
 
   useEffect(() => {
     if (!enabled) return;
@@ -294,7 +479,10 @@ export const useCryptoUpDownChartData = (
     }
   }, [enabled, fallbackStartPoint]);
 
-  const firstLivePointTime = livePoints[0]?.time;
+  const currentSourceLivePoints = hasPriceSourceChanged
+    ? EMPTY_DATA
+    : livePoints;
+  const firstLivePointTime = currentSourceLivePoints[0]?.time;
   const livePointOffsetFromEventStart =
     typeof firstLivePointTime === 'number' &&
     typeof eventStartTimeSecs === 'number'
@@ -306,12 +494,41 @@ export const useCryptoUpDownChartData = (
     livePointOffsetFromEventStart <= 90;
   const shouldUseFallbackStartPoint =
     stableHistoricalData.length > 0 || firstLivePointIsNearEventStart;
-  const baseHistoricalData = mergeLivelinePoints(
-    shouldUseFallbackStartPoint ? stableFallbackStartPoint : EMPTY_DATA,
-    stableHistoricalData,
+  const chartData = useMemo(
+    () =>
+      mergeLivelinePoints(
+        mergeLivelinePoints(
+          shouldUseFallbackStartPoint ? stableFallbackStartPoint : EMPTY_DATA,
+          stableHistoricalData,
+        ),
+        currentSourceLivePoints,
+      ),
+    [
+      currentSourceLivePoints,
+      shouldUseFallbackStartPoint,
+      stableFallbackStartPoint,
+      stableHistoricalData,
+    ],
   );
-  const chartData = mergeLivelinePoints(baseHistoricalData, livePoints);
   const hasRenderableChartData = chartData.length >= 2;
+  const newestLivePointTime = currentSourceLivePoints.at(-1)?.time;
+  const liveWindowStartSecs =
+    typeof newestLivePointTime === 'number'
+      ? newestLivePointTime - LIVE_CHART_WINDOW_SECS
+      : undefined;
+  const liveWindowPointCount =
+    typeof liveWindowStartSecs === 'number' &&
+    typeof newestLivePointTime === 'number'
+      ? chartData.reduce(
+          (count, point) =>
+            point.time >= liveWindowStartSecs &&
+            point.time <= newestLivePointTime
+              ? count + 1
+              : count,
+          0,
+        )
+      : 0;
+  const hasRenderableLiveWindow = liveWindowPointCount >= 2;
   const displayedLiveValue =
     liveLoadingRef.current && typeof historicalValue === 'number'
       ? historicalValue
@@ -329,6 +546,48 @@ export const useCryptoUpDownChartData = (
     }
   }, [enabled, historicalValue, isCurrentMarket, isLive]);
 
+  useEffect(() => {
+    if (connectionErrorTimerRef.current) {
+      clearTimeout(connectionErrorTimerRef.current);
+      connectionErrorTimerRef.current = undefined;
+    }
+    setConnectionError(false);
+    consecutivePollFailuresRef.current = 0;
+  }, [market.id, twapWindowSeconds]);
+
+  const hasLiveObservation = currentSourceLivePoints.length > 0;
+  const isAwaitingLiveData =
+    enabled &&
+    isLive &&
+    (twapWindowSeconds
+      ? !hasLiveObservation || liveStreamStale
+      : !hasRenderableLiveWindow || liveStreamStale);
+  useEffect(() => {
+    if (!isAwaitingLiveData) {
+      if (connectionErrorTimerRef.current) {
+        clearTimeout(connectionErrorTimerRef.current);
+        connectionErrorTimerRef.current = undefined;
+      }
+      setConnectionError(false);
+      return undefined;
+    }
+
+    if (connectionErrorTimerRef.current) {
+      return undefined;
+    }
+    connectionErrorTimerRef.current = setTimeout(() => {
+      setConnectionError(true);
+    }, CONNECTION_ERROR_TIMEOUT_MS);
+
+    return () => {
+      if (connectionErrorTimerRef.current) {
+        clearTimeout(connectionErrorTimerRef.current);
+        connectionErrorTimerRef.current = undefined;
+      }
+    };
+    // Market and source changes restart the grace window.
+  }, [isAwaitingLiveData, market.id, twapWindowSeconds]);
+
   if (!enabled) {
     return {
       data: EMPTY_DATA,
@@ -336,6 +595,7 @@ export const useCryptoUpDownChartData = (
       loading: false,
       isLive: false,
       window: durationSecs,
+      connectionError: false,
     };
   }
 
@@ -346,6 +606,7 @@ export const useCryptoUpDownChartData = (
       loading: historicalQuery.isFetching && stableHistoricalData.length === 0,
       isLive: false,
       window: durationSecs,
+      connectionError: false,
     };
   }
 
@@ -353,9 +614,21 @@ export const useCryptoUpDownChartData = (
     return {
       data: chartData,
       value: displayedLiveValue,
-      loading: isLive && (!symbol || !hasRenderableChartData),
+      // While live, treat a stalled stream (no recent tick) as loading so the
+      // chart shows the spinner instead of a blank canvas once the last point
+      // scrolls out of the live window. Frozen/expired data only "loads" when
+      // there is genuinely nothing renderable.
+      loading: isLive
+        ? !symbol ||
+          (twapWindowSeconds
+            ? !hasLiveObservation || liveStreamStale
+            : !hasRenderableLiveWindow || liveStreamStale)
+        : twapWindowSeconds
+          ? !hasLiveObservation
+          : !hasRenderableChartData,
       isLive,
       window: LIVE_CHART_WINDOW_SECS,
+      connectionError: isLive ? connectionError : false,
     };
   }
 
@@ -365,5 +638,6 @@ export const useCryptoUpDownChartData = (
     loading: historicalQuery.isFetching,
     isLive: false,
     window: durationSecs,
+    connectionError: false,
   };
 };

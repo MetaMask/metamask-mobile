@@ -21,10 +21,6 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
-jest.mock('../../../UI/Navbar', () => ({
-  getNavigationOptionsTitle: jest.fn(() => ({})),
-}));
-
 jest.mock('../../../../constants/navigation/Routes', () => ({
   MODAL: {
     ROOT_MODAL_FLOW: 'ROOT_MODAL_FLOW',
@@ -47,24 +43,21 @@ jest.mock('./SDKSessionItem', () => {
 });
 
 const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 
 import { useSelector } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import SDKSessionsManager from './SDKSessionsManager';
 import Routes from '../../../../constants/navigation/Routes';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
+import { SDKSelectorsIDs } from '../SDK.testIds';
 
 describe('SDKSessionsManager', () => {
-  const mockNavigation = {
-    setOptions: mockSetOptions,
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
 
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
+      goBack: mockGoBack,
     });
 
     (useRoute as jest.Mock).mockReturnValue({
@@ -80,10 +73,7 @@ describe('SDKSessionsManager', () => {
         v2Connections: {},
       });
 
-      const { getByText } = render(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        <SDKSessionsManager navigation={mockNavigation as any} />,
-      );
+      const { getByText } = render(<SDKSessionsManager />);
 
       expect(getByText('sdk.no_connections')).toBeTruthy();
       expect(getByText('sdk.no_connections_desc')).toBeTruthy();
@@ -102,10 +92,7 @@ describe('SDKSessionsManager', () => {
         },
       });
 
-      const { getByTestId, getByText } = render(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        <SDKSessionsManager navigation={mockNavigation as any} />,
-      );
+      const { getByTestId, getByText } = render(<SDKSessionsManager />);
 
       expect(getByTestId('sdk-session-conn1')).toBeTruthy();
       expect(getByTestId('sdk-session-dapp1')).toBeTruthy();
@@ -113,23 +100,19 @@ describe('SDKSessionsManager', () => {
       expect(getByText('sdk.disconnect_all')).toBeTruthy();
     });
 
-    it('sets navigation options on mount', () => {
+    it('renders HeaderStandard with title and back button', () => {
       (useSelector as jest.Mock).mockReturnValue({
         connections: {},
         dappConnections: {},
         v2Connections: {},
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      render(<SDKSessionsManager navigation={mockNavigation as any} />);
+      const { getByTestId } = render(<SDKSessionsManager />);
 
-      expect(mockSetOptions).toHaveBeenCalled();
-      expect(getNavigationOptionsTitle).toHaveBeenCalledWith(
-        'app_settings.manage_sdk_connections_title',
-        mockNavigation,
-        false,
-        expect.anything(),
-      );
+      expect(getByTestId(SDKSelectorsIDs.SESSION_MANAGER_HEADER)).toBeTruthy();
+      expect(
+        getByTestId(SDKSelectorsIDs.SESSION_MANAGER_BACK_BUTTON),
+      ).toBeTruthy();
     });
   });
 
@@ -143,10 +126,7 @@ describe('SDKSessionsManager', () => {
         v2Connections: {},
       });
 
-      const { getByText } = render(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        <SDKSessionsManager navigation={mockNavigation as any} />,
-      );
+      const { getByText } = render(<SDKSessionsManager />);
 
       const disconnectAllButton = getByText('sdk.disconnect_all');
       fireEvent.press(disconnectAllButton);
@@ -168,8 +148,7 @@ describe('SDKSessionsManager', () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
       const SDKSessionItem = require('./SDKSessionItem').default;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      render(<SDKSessionsManager navigation={mockNavigation as any} />);
+      render(<SDKSessionsManager />);
 
       expect(SDKSessionItem).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -198,8 +177,7 @@ describe('SDKSessionsManager', () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
       const SDKSessionItem = require('./SDKSessionItem').default;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      render(<SDKSessionsManager navigation={mockNavigation as any} />);
+      render(<SDKSessionsManager />);
 
       expect(SDKSessionItem).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -225,10 +203,7 @@ describe('SDKSessionsManager', () => {
         },
       });
 
-      const { getByTestId } = render(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        <SDKSessionsManager navigation={mockNavigation as any} />,
-      );
+      const { getByTestId } = render(<SDKSessionsManager />);
 
       // Verify some connections are rendered
       expect(getByTestId('sdk-session-conn1')).toBeTruthy();

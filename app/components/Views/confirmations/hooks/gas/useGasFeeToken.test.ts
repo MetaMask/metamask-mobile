@@ -135,6 +135,7 @@ describe('useGasFeeToken', () => {
       maxFeePerGas: GAS_FEE_TOKEN_MOCK.maxFeePerGas,
       maxPriorityFeePerGas: GAS_FEE_TOKEN_MOCK.maxPriorityFeePerGas,
       to: GAS_FEE_TOKEN_MOCK.tokenAddress,
+      type: 'gas_payment',
     });
   });
 
@@ -151,6 +152,7 @@ describe('useGasFeeToken', () => {
       maxPriorityFeePerGas: GAS_FEE_TOKEN_MOCK.maxPriorityFeePerGas,
       to: GAS_FEE_TOKEN_MOCK.recipient,
       value: GAS_FEE_TOKEN_MOCK.amount,
+      type: 'gas_payment',
     });
   });
 

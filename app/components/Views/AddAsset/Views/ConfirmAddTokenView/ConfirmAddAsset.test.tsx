@@ -4,7 +4,12 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
-import { userEvent } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  userEvent,
+  waitFor,
+} from '@testing-library/react-native';
 import { RootState } from '../../../../../reducers';
 import { mockNetworkState } from '../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -14,8 +19,10 @@ import {
   TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.constants';
 import Routes from '../../../../../constants/navigation/Routes';
+import Logger from '../../../../../util/Logger';
+import { strings } from '../../../../../../locales/i18n';
+import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
 
-const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockAddTokenList = jest.fn().mockResolvedValue(undefined);
@@ -26,7 +33,6 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: mockSetOptions,
       goBack: mockGoBack,
     }),
   };
@@ -37,6 +43,26 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useRoute: jest.fn(),
   createNavigationDetails: jest.fn(),
 }));
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
+
+const mockAddNetworkIfMissing = jest.fn().mockResolvedValue(null);
+
+jest.mock(
+  '../../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing',
+  () => ({
+    useAddNetworkIfMissingMutation: () => ({
+      mutateAsync: mockAddNetworkIfMissing,
+    }),
+  }),
+);
+
+const mockLoggerError = Logger.error as jest.Mock;
 
 const DEFAULT_ASSET = {
   address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
@@ -82,6 +108,7 @@ const setupParams = (
 describe('ConfirmAddAsset', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAddNetworkIfMissing.mockResolvedValue(null);
     setupParams();
   });
 
@@ -116,6 +143,16 @@ describe('ConfirmAddAsset', () => {
     expect(getByText('USDC')).toBeOnTheScreen();
   });
 
+  it('calls goBack when HeaderStandard back button is pressed', async () => {
+    const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    await userEvent.press(getByTestId('button-icon'));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   it('calls goBack when back button is pressed', async () => {
     const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
@@ -127,7 +164,7 @@ describe('ConfirmAddAsset', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('calls addTokenList and navigates to wallet when import button is pressed', async () => {
+  it('adds missing networks then imports tokens when import button is pressed', async () => {
     const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
     });
@@ -137,13 +174,138 @@ describe('ConfirmAddAsset', () => {
     );
     await userEvent.press(importButton);
 
+    expect(mockAddNetworkIfMissing).toHaveBeenCalledTimes(1);
+    expect(mockAddNetworkIfMissing).toHaveBeenCalledWith('0x1');
     expect(mockAddTokenList).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
+    expect(mockAddNetworkIfMissing.mock.invocationCallOrder[0]).toBeLessThan(
+      mockAddTokenList.mock.invocationCallOrder[0],
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
+  });
+
+  it('adds a missing network once per unique chain when importing multiple tokens', async () => {
+    const sameChainAsset = {
+      ...DEFAULT_ASSET,
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      symbol: 'USDC',
+      name: 'USD Coin',
+    };
+    const otherChainAsset = {
+      ...DEFAULT_ASSET,
+      address: '0xb31f66aa3c1e785363f0875a1b74e27b85fd66c7',
+      symbol: 'WAVAX',
+      name: 'Wrapped AVAX',
+      chainId: '0xa86a',
+    };
+    setupParams({
+      selectedAsset: [DEFAULT_ASSET, sameChainAsset, otherChainAsset],
     });
+
+    const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    await userEvent.press(
+      getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT),
+    );
+
+    expect(mockAddNetworkIfMissing).toHaveBeenCalledTimes(2);
+    expect(mockAddNetworkIfMissing).toHaveBeenNthCalledWith(1, '0x1');
+    expect(mockAddNetworkIfMissing).toHaveBeenNthCalledWith(2, '0xa86a');
+    expect(mockAddTokenList).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not import tokens when adding a missing network fails', async () => {
+    mockAddNetworkIfMissing.mockRejectedValueOnce(
+      new Error('Failed to add network'),
+    );
+
+    const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT));
+
+    await waitFor(() => {
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        'ConfirmAddAsset: failed to import tokens',
+      );
+    });
+
+    expect(mockAddTokenList).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.WALLET.TOKENS_FULL_VIEW,
+    );
+    expect(
+      getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT),
+    ).toBeEnabled();
+  });
+
+  it('shows loading feedback and prevents duplicate import presses', async () => {
+    let resolveImport: () => void = jest.fn();
+    const pendingImport = new Promise<void>((resolve) => {
+      resolveImport = resolve;
+    });
+    const addTokenList = jest.fn(() => pendingImport);
+    setupParams({ addTokenList });
+
+    const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT));
+
+    await waitFor(() => {
+      expect(addTokenList).toHaveBeenCalledTimes(1);
+    });
+
+    await waitFor(() => {
+      expect(
+        getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT),
+      ).toBeDisabled();
+      expect(getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON)).toBeDisabled();
+    });
+
+    fireEvent.press(getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT));
+    expect(addTokenList).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveImport();
+      await pendingImport;
+    });
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
+    });
+  });
+
+  it('resets loading state and logs when import fails', async () => {
+    const addTokenList = jest
+      .fn()
+      .mockRejectedValue(new Error('Import failed'));
+    setupParams({ addTokenList });
+
+    const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    fireEvent.press(getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT));
+
+    await waitFor(() => {
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        'ConfirmAddAsset: failed to import tokens',
+      );
+    });
+
+    expect(
+      getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT),
+    ).toBeEnabled();
+    expect(getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON)).toBeEnabled();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.WALLET.TOKENS_FULL_VIEW,
+    );
   });
 
   it('renders without crashing when asset has no image', () => {
@@ -165,11 +327,22 @@ describe('ConfirmAddAsset', () => {
     expect(getByText('USDT')).toBeOnTheScreen();
   });
 
-  it('sets navigation bar options on mount', () => {
-    renderWithProvider(<ConfirmAddAsset />, {
+  it('renders HeaderStandard with the add asset title', () => {
+    const { getByText } = renderWithProvider(<ConfirmAddAsset />, {
       state: mockInitialState,
     });
 
-    expect(mockSetOptions).toHaveBeenCalledTimes(1);
+    expect(getByText(strings('add_asset.title'))).toBeOnTheScreen();
+  });
+
+  it('renders SafeAreaView with left, right, and bottom edges only', () => {
+    const { getByTestId } = renderWithProvider(<ConfirmAddAsset />, {
+      state: mockInitialState,
+    });
+
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET).props
+        .edges,
+    ).toEqual(['left', 'right', 'bottom']);
   });
 });

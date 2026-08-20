@@ -1,6 +1,5 @@
 import { createSelector } from 'reselect';
 import {
-  selectLocalOverrides,
   selectRawFeatureFlags,
   selectRemoteFeatureFlags,
 } from '../../../../../selectors/featureFlagController';
@@ -8,10 +7,24 @@ import {
   VersionGatedFeatureFlag,
   validatedVersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
-import { PredictHotTabFlag } from '../../types/flags';
-import { DEFAULT_HOT_TAB_FLAG } from '../../constants/flags';
+import {
+  PredictFeedBannerConfig,
+  PredictFeedCarouselConfig,
+  PredictHotTabFlag,
+} from '../../types/flags';
+import {
+  DEFAULT_HOT_TAB_FLAG,
+  DEFAULT_PREDICT_FEED_BANNER_FLAG,
+  DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+} from '../../constants/flags';
 import { unwrapRemoteFeatureFlag } from '../../utils/flags';
 import { resolvePredictFeatureFlags } from '../../utils/resolvePredictFeatureFlags';
+import {
+  parse,
+  PredictFeedBannerSchema,
+  PredictFeedCarouselSchema,
+} from '../../schemas';
+import { isAllowedPredictDeeplink } from '../../utils/isAllowedPredictDeeplink';
 
 /**
  * Selector for Predict trading feature enablement
@@ -32,19 +45,6 @@ export const selectPredictEnabledFlag = createSelector(
 
     // Default to `true` if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
-  },
-);
-
-export const selectPredictGtmOnboardingModalEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_PREDICT_GTM_MODAL_ENABLED === 'true';
-    const remoteFlag = unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
-      remoteFeatureFlags?.predictGtmOnboardingModalEnabled,
-    );
-
-    // Fallback to local flag if remote flag is not available
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
 
@@ -117,14 +117,17 @@ export const selectPredictHotTabFlag = createSelector(
 
 export const selectPredictFeatureFlags = createSelector(
   selectRawFeatureFlags,
-  selectLocalOverrides,
-  (remoteFeatureFlags, localOverrides) =>
-    resolvePredictFeatureFlags({ remoteFeatureFlags, localOverrides }),
+  (remoteFeatureFlags) => resolvePredictFeatureFlags({ remoteFeatureFlags }),
 );
 
 export const selectExtendedSportsMarketsLeagues = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.extendedSportsMarketsLeagues,
+);
+
+export const selectNonRegTimeSportsMarketTypes = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.nonRegTimeSportsMarketTypes,
 );
 
 export const selectPredictFeeCollectionFlag = createSelector(
@@ -147,40 +150,29 @@ export const selectPredictUpDownEnabledFlag = createSelector(
   (flags) => flags.predictUpDownEnabled,
 );
 
-export const selectPredictHomepageDiscoveryNbaChampionEnabledFlag =
-  createSelector(
-    selectPredictFeatureFlags,
-    (flags) => flags.predictHomepageDiscoveryNbaChampionEnabled,
-  );
-
-export const selectPredictWorldCupConfig = createSelector(
+export const selectPredictSportsFeedConfig = createSelector(
   selectPredictFeatureFlags,
-  (flags) => flags.predictWorldCup,
+  (flags) => flags.predictSportsFeed,
 );
 
-export const selectPredictWorldCupEnabledFlag = createSelector(
-  selectPredictWorldCupConfig,
-  (config) => config.enabled,
-);
-
-export const selectPredictWorldCupMainFeedBannerEnabledFlag = createSelector(
-  selectPredictWorldCupConfig,
-  (config) => config.enabled && config.showMainFeedBanner,
-);
-
-export const selectPredictWorldCupMainFeedTabEnabledFlag = createSelector(
-  selectPredictWorldCupConfig,
-  (config) => config.enabled && config.showMainFeedTab,
-);
-
-export const selectPredictWorldCupScreenEnabledFlag = createSelector(
-  selectPredictWorldCupConfig,
-  (config) => config.enabled && config.showWorldCupScreen,
+export const selectPredictWimbledonTabFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictWimbledonTab,
 );
 
 export const selectPredictPortfolioEnabledFlag = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.predictPortfolioEnabled,
+);
+
+export const selectPredictHomeRedesignEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictHomeRedesignEnabled,
+);
+
+export const selectPredictSportCardLivePricesEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictSportCardLivePricesEnabled,
 );
 
 export const selectPredictFeaturedCarouselEnabledFlag = createSelector(
@@ -191,6 +183,76 @@ export const selectPredictFeaturedCarouselEnabledFlag = createSelector(
         remoteFeatureFlags?.predictTabFeaturedCarousel,
       ),
     ) ?? false,
+);
+
+export const selectPredictFeedBannerConfig = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): PredictFeedBannerConfig => {
+    const parsedFlag = parse(
+      unwrapRemoteFeatureFlag<PredictFeedBannerConfig>(
+        remoteFeatureFlags?.predictFeedBanner,
+      ),
+      PredictFeedBannerSchema,
+      DEFAULT_PREDICT_FEED_BANNER_FLAG,
+    );
+
+    if (
+      !validatedVersionGatedFeatureFlag(parsedFlag) ||
+      !parsedFlag.id.trim() ||
+      !parsedFlag.title.trim() ||
+      !parsedFlag.description.trim()
+    ) {
+      return DEFAULT_PREDICT_FEED_BANNER_FLAG;
+    }
+
+    return parsedFlag;
+  },
+);
+
+export const selectPredictFeedCarouselConfig = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): PredictFeedCarouselConfig => {
+    const parsedFlag = parse(
+      unwrapRemoteFeatureFlag<PredictFeedCarouselConfig>(
+        remoteFeatureFlags?.predictFeedCarousel,
+      ),
+      PredictFeedCarouselSchema,
+      DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+    );
+
+    if (
+      parsedFlag.mode !== 'custom' ||
+      !validatedVersionGatedFeatureFlag(parsedFlag)
+    ) {
+      return DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
+    }
+
+    const title = parsedFlag.title?.trim() || undefined;
+    const deeplink = parsedFlag.deeplink?.trim() || undefined;
+
+    if (deeplink && !isAllowedPredictDeeplink(deeplink)) {
+      return DEFAULT_PREDICT_FEED_CAROUSEL_FLAG;
+    }
+
+    return {
+      ...parsedFlag,
+      title,
+      deeplink,
+      contentSource: {
+        ...parsedFlag.contentSource,
+        queryParams: parsedFlag.contentSource.queryParams
+          .trim()
+          .replace(/^\?/, ''),
+        excludedMarketIds: [
+          ...new Set(
+            parsedFlag.contentSource.excludedMarketIds
+              .map((id) => id.trim())
+              .filter(Boolean),
+          ),
+        ],
+      },
+    };
+  },
 );
 
 /**

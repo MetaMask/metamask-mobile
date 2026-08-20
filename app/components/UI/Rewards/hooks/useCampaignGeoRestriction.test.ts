@@ -228,4 +228,34 @@ describe('useCampaignGeoRestriction', () => {
       expect(result.current.isGeoRestricted).toBe(false);
     });
   });
+
+  describe('with isFeatureGeoRestricted', () => {
+    it('returns isGeoRestricted=true when the feature is geo-restricted', () => {
+      const { result } = renderHook(() =>
+        useCampaignGeoRestriction(buildCampaign(), undefined, true),
+      );
+      expect(result.current.isGeoRestricted).toBe(true);
+    });
+
+    it('returns isGeoLoading=false when feature is geo-restricted, even while campaign geo is loading', () => {
+      mockGeoStatus = 'loading';
+      setupSelectors();
+      const { result } = renderHook(() =>
+        useCampaignGeoRestriction(buildCampaign(), undefined, true),
+      );
+      expect(result.current.isGeoLoading).toBe(false);
+      expect(result.current.isGeoRestricted).toBe(true);
+    });
+
+    it('falls through to campaign geo checks when isFeatureGeoRestricted is false', () => {
+      const { result } = renderHook(() =>
+        useCampaignGeoRestriction(
+          buildCampaign({ excludedRegions: [] }),
+          undefined,
+          false,
+        ),
+      );
+      expect(result.current.isGeoRestricted).toBe(false);
+    });
+  });
 });

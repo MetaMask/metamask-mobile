@@ -347,6 +347,16 @@ export class E2EControllerOverrides {
     coin: string;
   }): Promise<OrderResult> {
     const result = this.mockService.mockCancelOrder(params.orderId);
+    try {
+      (this.controller as ControllerWithUpdate).update(
+        (state: PerpsControllerState) => {
+          state.lastUpdateTimestamp = Date.now();
+          state.lastError = null;
+        },
+      );
+    } catch (e) {
+      console.error('E2E Mock: cancelOrder — controller.update() failed:', e);
+    }
     return result;
   }
 
@@ -405,9 +415,9 @@ export class E2EControllerOverrides {
   // Mock orders subscription
   subscribeToOrders(params: { callback: (data: Order[]) => void }): () => void {
     console.log('E2E Mock: Intercepted subscribeToOrders');
-    const mockOrders = this.mockService.getMockOrders();
-    setTimeout(() => params.callback(mockOrders), 0);
-    return () => undefined;
+    this.mockService.registerOrderCallback(params.callback);
+    setTimeout(() => params.callback(this.mockService.getMockOrders()), 0);
+    return () => this.mockService.unregisterOrderCallback(params.callback);
   }
 
   // Mock order fills subscription
@@ -628,6 +638,24 @@ export function buildE2EMockStreamManagerPlain(): Record<
             .filter(([, price]) => price),
         );
         setTimeout(() => params.callback(filteredPrices), 0);
+        return () => undefined;
+      },
+    },
+    /**
+     * Focused single-symbol price channel (production FocusedPriceStreamChannel).
+     * `usePerpsLiveFocusedPrice` calls `focusedPrice.subscribeToSymbol` on mount
+     * for detail/ticket/order-book screens; omitting it made those screens throw
+     * `TypeError: undefined is not a function` right after tapping a market row,
+     * which surfaced as "market row not found" in Detox/Appium perps flows.
+     */
+    focusedPrice: {
+      getSnapshot: (): PriceUpdate | undefined | null => null,
+      clearCache: (): void => undefined,
+      subscribeToSymbol: (params: {
+        symbol: string;
+        callback: (update: PriceUpdate | undefined) => void;
+      }) => {
+        setTimeout(() => params.callback(mockPrices[params.symbol]), 0);
         return () => undefined;
       },
     },

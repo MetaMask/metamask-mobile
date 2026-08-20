@@ -129,14 +129,10 @@ searchDirs:
   - .github/
 
 models:
-  default: azure/grok-4-fast-reasoning
-  escalation: anthropic/claude-sonnet-4-6
-  escalationThreshold: 2
-
   escalationPatterns:                                                                                                                                                                         
     - 'confirm|transaction|swap|bridge|send'                                                                                                                                                
     - 'predict|perp|trade|stake|exchange'
-    - 'keyring|vault|seed|mnemonic|private.?key'                                                                                                                                              
+    - 'seed|mnemonic|private.?key'                                                                                                                                              
     - 'auth|permission|access.?control|role'
 
 

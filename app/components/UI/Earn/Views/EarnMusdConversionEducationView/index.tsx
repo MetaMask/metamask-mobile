@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   BoxFlexDirection,
@@ -46,12 +46,13 @@ import {
 import { useMusdConversionFlowData } from '../../hooks/useMusdConversionFlowData';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../Ramp/constants/rampsBuyCufTags';
 import { RampIntent } from '../../../Ramp/types';
 import { EARN_TEST_IDS } from '../../constants/testIds';
 import { MusdNavigationTarget } from '../../types/musd.types';
 import { toChecksumAddress } from '../../../../../util/address';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
-import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
+import { MONEY_HUB_EVENTS_CONSTANTS } from '../../../Money/constants/moneyHubEvents';
 import { selectMoneyHubEnabledFlag } from '../../../Money/selectors/featureFlags';
 
 const styles = StyleSheet.create({
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
   },
 });
 
-interface EarnMusdConversionEducationViewRouteParams {
+export interface EarnMusdConversionEducationViewRouteParams {
   /**
    * Indicates if this navigation originated from a deeplink
    * When true, the component determines routing based on user state
@@ -122,8 +123,7 @@ const EarnMusdConversionEducationView = () => {
     conversionTokens,
   } = useMusdConversionFlowData();
 
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const colorScheme = useColorScheme();
 
@@ -201,7 +201,7 @@ const EarnMusdConversionEducationView = () => {
 
   const { BUTTON_TYPES, EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } =
     MUSD_EVENTS_CONSTANTS;
-  const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_EVENTS_CONSTANTS;
+  const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_HUB_EVENTS_CONSTANTS;
 
   const submitScreenViewedEvent = useCallback(() => {
     trackEvent(
@@ -297,7 +297,14 @@ const EarnMusdConversionEducationView = () => {
         if (navigation.canGoBack()) {
           navigation.goBack();
         }
-        navigation.navigate(returnTo.screen, returnTo.params);
+        // `returnTo` is a dynamic navigation target (route name + params are
+        // resolved at runtime), so it can't be checked against the strict
+        // route map. Cast to a generic navigate signature for this call.
+        const navigateToDynamicRoute = navigation.navigate as unknown as (
+          screen: string,
+          params?: Record<string, unknown>,
+        ) => void;
+        navigateToDynamicRoute(returnTo.screen, returnTo.params);
         return;
       }
 
@@ -319,7 +326,7 @@ const EarnMusdConversionEducationView = () => {
           const rampIntent: RampIntent = {
             assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[chainId],
           };
-          goToBuy(rampIntent);
+          goToBuy(rampIntent, { surface: RAMPS_BUY_CUF_SURFACE.DEEP_LINK });
           return;
         }
 

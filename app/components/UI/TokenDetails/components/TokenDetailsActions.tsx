@@ -1,6 +1,7 @@
 import React, { useRef, useCallback, useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useStyles } from '../../../../component-library/hooks';
 import MainActionButton from '../../../../component-library/components-temp/MainActionButton';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
@@ -11,6 +12,7 @@ import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 import Routes from '../../../../constants/navigation/Routes';
 import { TokenI } from '../../Tokens/types';
+import { TokenDetailsAction } from '../constants/constants';
 
 // Height of MainActionButton: paddingVertical (16 * 2) + Icon (24px) + label marginTop (2) + label lineHeight (~16)
 const SKELETON_BUTTON_HEIGHT = 74;
@@ -47,6 +49,7 @@ export interface TokenDetailsActionsProps {
   isLoading?: boolean;
   /** Optional ref to receive a callback that resets the navigation lock. Used when Long/Short show a modal instead of navigating (e.g. geo block). */
   resetNavigationLockRef?: React.MutableRefObject<(() => void) | null>;
+  onActionTapped?: (action: TokenDetailsAction) => void;
 }
 
 /**
@@ -83,10 +86,11 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
   onReceive,
   isLoading = false,
   resetNavigationLockRef,
+  onActionTapped,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const canSignTransactions = useSelector(selectCanSignTransactions);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { navigate } = navigation;
 
   // Prevent rapid navigation clicks - locks all buttons during navigation
@@ -145,11 +149,13 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
 
   const handleSendPress = useCallback(() => {
     withNavigationLock(onSend);
-  }, [withNavigationLock, onSend]);
+    onActionTapped?.(TokenDetailsAction.Send);
+  }, [withNavigationLock, onSend, onActionTapped]);
 
   const handleReceivePress = useCallback(() => {
     withNavigationLock(onReceive);
-  }, [withNavigationLock, onReceive]);
+    onActionTapped?.(TokenDetailsAction.Receive);
+  }, [withNavigationLock, onReceive, onActionTapped]);
 
   const handleMorePress = useCallback(() => {
     withNavigationLock(() => {
@@ -163,9 +169,11 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
           asset: token,
           onBuy,
           onReceive,
+          onActionTapped,
         },
       });
     });
+    onActionTapped?.(TokenDetailsAction.MoreOpened);
   }, [
     withNavigationLock,
     navigate,
@@ -176,6 +184,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
     token,
     onBuy,
     onReceive,
+    onActionTapped,
   ]);
 
   // Determine which buttons to display based on perps market and balance
@@ -215,7 +224,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
       if (hasBalance) {
         actionButtons.push({
           key: 'send',
-          iconName: IconName.Send,
+          iconName: IconName.Arrow2UpRight,
           label: strings('asset_overview.send_button'),
           onPress: handleSendPress,
           isDisabled: !canSignTransactions,
@@ -246,7 +255,7 @@ export const TokenDetailsActions: React.FC<TokenDetailsActionsProps> = ({
       if (hasBalance) {
         actionButtons.push({
           key: 'send',
-          iconName: IconName.Send,
+          iconName: IconName.Arrow2UpRight,
           label: strings('asset_overview.send_button'),
           onPress: handleSendPress,
           isDisabled: !canSignTransactions,

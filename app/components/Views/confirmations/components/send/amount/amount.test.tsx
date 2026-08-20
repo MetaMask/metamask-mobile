@@ -28,6 +28,14 @@ jest.mock('../../../context/send-context', () => ({
 
 jest.mock('../../../hooks/send/useCurrencyConversions');
 
+jest.mock('../../../hooks/send/useSendNavbar', () => ({
+  useSendNavbar: () => ({
+    Amount: { header: () => null },
+    Asset: { header: () => null },
+    Recipient: { header: () => null },
+  }),
+}));
+
 jest.mock('../../../hooks/send/useRouteParams', () => ({
   useRouteParams: jest.fn().mockReturnValue({ isLoading: false }),
 }));

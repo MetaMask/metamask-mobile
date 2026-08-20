@@ -69,6 +69,7 @@ export class HtmlReportGenerator {
       .map(
         (test) => `
       <h2>${test.testName}</h2>
+      ${this.generateSessionCreationRow(test)}
       <table>
         <tr>
           <th>Steps</th>
@@ -88,6 +89,15 @@ export class HtmlReportGenerator {
       ${test.qualityGates ? this.qualityGatesReportFormatter.generateHtmlSection(test.qualityGates as unknown as Parameters<QualityGatesReportFormatter['generateHtmlSection']>[0]) : ''}`,
       )
       .join('');
+  }
+
+  private generateSessionCreationRow(test: MetricsEntry): string {
+    if (test.sessionCreationDurationMs === undefined) return '';
+    const seconds = (test.sessionCreationDurationMs / 1000).toFixed(2);
+    return `<div style="background-color: #fff8e1; border-left: 4px solid #ffa000; padding: 10px 15px; margin-bottom: 12px; border-radius: 4px; font-size: 14px;">
+      <strong>BrowserStack Session Creation:</strong> ${test.sessionCreationDurationMs} ms (${seconds} s)
+      <span style="color: #888; margin-left: 8px;">— infrastructure overhead, not included in total</span>
+    </div>`;
   }
 
   private generateStepRows(test: MetricsEntry): string {

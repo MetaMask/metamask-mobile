@@ -15,6 +15,7 @@ import {
   useRoute,
   RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
   BoxAlignItems,
@@ -39,8 +40,8 @@ import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
 import OndoAccountPickerSheet from '../components/Campaigns/OndoAccountPickerSheet';
 import OndoCampaignCTA from '../components/Campaigns/OndoCampaignCTA';
+import OndoCampaignEndedStats from '../components/Campaigns/OndoCampaignEndedStats';
 import OndoNotEligibleSheet from '../components/Campaigns/OndoNotEligibleSheet';
-import CampaignEndedStats from '../components/Campaigns/CampaignEndedStats';
 import OndoCampaignStatsSummary from '../components/Campaigns/OndoCampaignStatsSummary';
 import OndoPrizePool from '../components/Campaigns/OndoPrizePool';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
@@ -57,7 +58,8 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   CampaignType,
-  OndoCampaignHowItWorks,
+  type CampaignHowItWorks as CampaignHowItWorksData,
+  type OndoHoldingDetails,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import {
   buildLeaderboardUserPosition,
@@ -86,7 +88,7 @@ export function resetOndoCampaignDetailsSessionAutoNavigationForTests(): void {
 
 const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<OndoCampaignDetailsRouteParams, 'CampaignDetails'>>();
   // campaignId may be absent when arriving via a deeplink (no ID in the URL).
@@ -237,7 +239,7 @@ const OndoCampaignDetailsView: React.FC = () => {
       campaign &&
       getCampaignStatus(campaign) === 'active'
         ? getTierMinNetDeposit(
-            campaign.details?.tiers,
+            (campaign.details as OndoHoldingDetails | null | undefined)?.tiers,
             leaderboardPosition.projectedTier,
           )
         : null,
@@ -353,7 +355,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                   <Box twClassName="p-4">
                     <CampaignHowItWorks
                       howItWorks={
-                        campaign.details?.howItWorks as OndoCampaignHowItWorks
+                        campaign.details?.howItWorks as CampaignHowItWorksData
                       }
                     />
                   </Box>
@@ -362,7 +364,7 @@ const OndoCampaignDetailsView: React.FC = () => {
 
               {showCampaignEndedStats && (
                 <Box twClassName="p-4">
-                  <CampaignEndedStats
+                  <OndoCampaignEndedStats
                     leaderboard={leaderboard}
                     totalUsdDeposited={deposits?.totalUsdDeposited ?? null}
                     isLeaderboardLoading={isLeaderboardLoading}
@@ -483,7 +485,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                   <Box twClassName="my-1 border-b border-border-muted" />
                   <Box twClassName="p-4">
                     <Text variant={TextVariant.HeadingMd} twClassName="mb-1">
-                      {strings('rewards.ondo_campaign_prize_pool.title')}
+                      {strings('rewards.campaign_prize_pool.title')}
                     </Text>
                     <OndoPrizePool
                       totalUsdDeposited={deposits?.totalUsdDeposited ?? null}

@@ -2,8 +2,9 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import NewUserSheet from './NewUserSheet';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { strings } from '../../../../../../locales/i18n';
 import { NewUserSheetSelectorsIDs } from './NewUserSheet.testIds';
+
+const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
@@ -13,7 +14,7 @@ jest.mock(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ({ children }: any, ref: any) => {
         MockReact.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: (callback?: () => void) => callback?.(),
+          onCloseBottomSheet: mockOnCloseBottomSheet,
         }));
         return children;
       },
@@ -51,44 +52,56 @@ describe('NewUserSheet', () => {
   });
 
   it('renders title, body and buttons when visible', () => {
-    const { getByText, getByTestId } = renderWithProvider(
-      <NewUserSheet {...defaultProps} />,
+    const { getByTestId, getByText } = renderWithProvider(
+      <NewUserSheet {...defaultProps} yesLabel="Turn on notifications" />,
     );
-    expect(
-      getByText(strings('notifications.push_onboarding.new_user.title')),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('notifications.push_onboarding.new_user.body')),
-    ).toBeOnTheScreen();
+    expect(getByTestId(NewUserSheetSelectorsIDs.TITLE)).toBeOnTheScreen();
+    expect(getByTestId(NewUserSheetSelectorsIDs.BODY)).toBeOnTheScreen();
     expect(getByTestId(NewUserSheetSelectorsIDs.BUTTON_YES)).toBeOnTheScreen();
     expect(
       getByTestId(NewUserSheetSelectorsIDs.BUTTON_NOT_NOW),
     ).toBeOnTheScreen();
+    expect(getByText('Turn on notifications')).toBeOnTheScreen();
   });
 
-  it('renders both preview notification cards', () => {
+  it('renders custom notification-preview content', () => {
     const { getByText } = renderWithProvider(
+      <NewUserSheet
+        {...defaultProps}
+        previewTitle="Transaction request"
+        previewMessage="Your agent needs approval on a new limit."
+        previewTimestamp="now"
+      />,
+    );
+
+    expect(getByText('Transaction request')).toBeOnTheScreen();
+    expect(
+      getByText('Your agent needs approval on a new limit.'),
+    ).toBeOnTheScreen();
+    expect(getByText('now')).toBeOnTheScreen();
+  });
+
+  it('closes when the close button is pressed', () => {
+    const { getAllByRole } = renderWithProvider(
       <NewUserSheet {...defaultProps} />,
     );
-    expect(
-      getByText(
-        strings('notifications.push_onboarding.new_user.preview_card_1.title'),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(
-        strings('notifications.push_onboarding.new_user.preview_card_2.title'),
-      ),
-    ).toBeOnTheScreen();
+
+    fireEvent.press(getAllByRole('button')[0]);
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onYes when Yes is pressed', () => {
+  it('closes the sheet before calling onYes when Yes is pressed', () => {
     const mockOnYes = jest.fn();
     const { getByTestId } = renderWithProvider(
       <NewUserSheet {...defaultProps} onYes={mockOnYes} />,
     );
     fireEvent.press(getByTestId(NewUserSheetSelectorsIDs.BUTTON_YES));
     expect(mockOnYes).toHaveBeenCalledTimes(1);
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockOnCloseBottomSheet.mock.invocationCallOrder[0]).toBeLessThan(
+      mockOnYes.mock.invocationCallOrder[0],
+    );
   });
 
   it('calls onNotNow when Not now is pressed', () => {
@@ -98,5 +111,9 @@ describe('NewUserSheet', () => {
     );
     fireEvent.press(getByTestId(NewUserSheetSelectorsIDs.BUTTON_NOT_NOW));
     expect(mockOnNotNow).toHaveBeenCalledTimes(1);
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockOnCloseBottomSheet.mock.invocationCallOrder[0]).toBeLessThan(
+      mockOnNotNow.mock.invocationCallOrder[0],
+    );
   });
 });

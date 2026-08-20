@@ -1,9 +1,5 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 import { createStyles } from './PerpsFeesDisplay.styles';
 import { useTheme } from '../../../../../util/theme';
@@ -11,6 +7,12 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 interface PerpsFeesDisplayProps {
   /**
@@ -33,6 +35,9 @@ interface PerpsFeesDisplayProps {
   placeholder?: string;
   testID?: string;
   variant?: TextVariant;
+  /** Main fee value color. Defaults to `TextAlternative` for legacy screens. */
+  color?: TextColor;
+  fontWeight?: FontWeight;
 }
 
 const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
@@ -41,7 +46,9 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
   originalFee,
   placeholder = '--',
   testID,
-  variant = TextVariant.BodyMD,
+  variant = TextVariant.BodyMd,
+  color = TextColor.TextAlternative,
+  fontWeight,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -70,11 +77,15 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
 
   return (
     <View style={styles.feeRowContent}>
-      {showVipBadge ? <RewardsVipBadge /> : null}
+      {showVipBadge ? (
+        <View style={styles.vipBadgeContainer}>
+          <RewardsVipBadge />
+        </View>
+      ) : null}
       {originalFeeText !== undefined ? (
         <Text
           variant={variant}
-          color={TextColor.Alternative}
+          color={TextColor.TextAlternative}
           // eslint-disable-next-line react-native/no-inline-styles
           style={{ textDecorationLine: 'line-through' }}
           testID={testID ? `${testID}-original` : undefined}
@@ -82,7 +93,12 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
           {originalFeeText}
         </Text>
       ) : null}
-      <Text variant={variant} color={TextColor.Alternative} testID={testID}>
+      <Text
+        variant={variant}
+        color={color}
+        fontWeight={fontWeight}
+        testID={testID}
+      >
         {feeText}
       </Text>
     </View>

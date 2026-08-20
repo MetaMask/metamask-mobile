@@ -13,9 +13,9 @@ import Modal from 'react-native-modal';
 import IconCheck from 'react-native-vector-icons/MaterialCommunityIcons';
 import Device from '../../../util/device';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import PickerBase from '../../../component-library/components/Pickers/PickerBase';
 import {
+  HeaderStandard,
   FontWeight,
   Text as DesignSystemText,
   TextColor,
@@ -23,8 +23,10 @@ import {
 } from '@metamask/design-system-react-native';
 
 const ROW_HEIGHT = 35;
-const createStyles = (colors) =>
-  StyleSheet.create({
+const createStyles = (theme) => {
+  const { colors } = theme;
+
+  return StyleSheet.create({
     pickerTrigger: {
       backgroundColor: colors.background.muted,
       padding: 0,
@@ -44,11 +46,13 @@ const createStyles = (colors) =>
       padding: 60,
     },
     modalView: {
-      backgroundColor: colors.background.default,
+      backgroundColor: theme.colors.background.elevated1,
       justifyContent: 'center',
       alignItems: 'center',
       borderRadius: 10,
       maxHeight: Device.getDeviceHeight() - 120, // Subtract top and bottom padding
+      borderWidth: 1,
+      borderColor: colors.border.alternative,
     },
     list: {
       width: '100%',
@@ -75,6 +79,7 @@ const createStyles = (colors) =>
       paddingBottom: 10,
     },
   });
+};
 
 export default class SelectComponent extends PureComponent {
   static propTypes = {
@@ -153,8 +158,9 @@ export default class SelectComponent extends PureComponent {
   };
 
   renderDropdownSelector = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
+    const theme = this.context || mockTheme;
+    const { colors } = theme;
+    const styles = createStyles(theme);
 
     return (
       <View style={baseStyles.flexGrow}>
@@ -183,7 +189,7 @@ export default class SelectComponent extends PureComponent {
           backdropOpacity={1}
         >
           <View style={styles.modalView}>
-            <HeaderCompactStandard
+            <HeaderStandard
               title={this.props.label}
               onClose={this.hidePicker}
             />

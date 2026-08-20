@@ -1,28 +1,64 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
+import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
+import { EncapsulatedElementType, type ScrollContainer } from '../../framework';
 
 class SnapSettingsView {
-  get enabledToggle(): DetoxElement {
+  get enabledToggle(): EncapsulatedElementType {
     return Matchers.getElementByID('snap-details-switch');
   }
 
-  get removeButton(): DetoxElement {
+  get removeButton(): EncapsulatedElementType {
     return Matchers.getElementByID('snap-settings-remove-button');
   }
 
-  get snapDetailsScrollViewMatcher(): Promise<DetoxMatcher> {
-    return Matchers.getIdentifier('snap-settings-scrollview');
+  get snapDetailsScrollViewMatcher(): ScrollContainer {
+    return Matchers.scrollContainer('snap-settings-scrollview');
   }
 
-  get backButton(): DetoxElement {
-    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+  get backButton(): EncapsulatedElementType {
+    return Matchers.getElementByID('snap-settings-back-button');
   }
 
-  async toggleEnable(): Promise<void> {
-    await Gestures.tap(this.enabledToggle, {
-      elemDescription: 'Snap Settings - Toggle Button',
-    });
+  get listBackButton(): EncapsulatedElementType {
+    return Matchers.getElementByID('snaps-settings-list-back-button');
+  }
+
+  /**
+   * Ensure the Snap details enable Switch is in the requested state.
+   * Re-taps with fresh queries until the native value matches (Appium iOS
+   * Switch taps can report success without flipping `value`).
+   */
+  async setEnabled(enabled: boolean): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        if ((await Assertions.isToggleOn(this.enabledToggle)) === enabled) {
+          return;
+        }
+
+        await Gestures.waitAndTap(this.enabledToggle, {
+          elemDescription: `Snap Settings - Toggle to ${enabled ? 'on' : 'off'}`,
+        });
+
+        if (enabled) {
+          await Assertions.expectToggleToBeOn(this.enabledToggle, {
+            timeout: 5_000,
+            description: 'Snap details switch should be on',
+          });
+          return;
+        }
+
+        await Assertions.expectToggleToBeOff(this.enabledToggle, {
+          timeout: 5_000,
+          description: 'Snap details switch should be off',
+        });
+      },
+      {
+        timeout: 20_000,
+        description: `Snap details switch ${enabled ? 'on' : 'off'}`,
+      },
+    );
   }
 
   async selectSnap(name: string): Promise<void> {
@@ -43,8 +79,14 @@ class SnapSettingsView {
   }
 
   async tapBackButton(): Promise<void> {
-    await Gestures.tapAtIndex(this.backButton, 0, {
+    await Gestures.tap(this.backButton, {
       elemDescription: 'Snap Settings - Back Button',
+    });
+  }
+
+  async tapListBackButton(): Promise<void> {
+    await Gestures.tap(this.listBackButton, {
+      elemDescription: 'Snaps List - Back Button',
     });
   }
 }

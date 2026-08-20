@@ -1,9 +1,12 @@
 import React from 'react';
 import { ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
 import {
   Box,
+  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -15,41 +18,54 @@ import AppConstants from '../../../../core/AppConstants';
 import SettingsDrawer from '../../../UI/SettingsDrawer';
 
 const DefaultSettings = () => {
-  useOnboardingHeader(strings('default_settings.default_settings'));
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const handleLink = () => {
     Linking.openURL(AppConstants.URLS.PRIVACY_BEST_PRACTICES);
   };
 
   return (
-    <ScrollView style={tw.style('flex-1')}>
-      <Box twClassName="px-4">
-        <Text variant={TextVariant.BodyMd}>
-          {strings('default_settings.description')}
-          <Text color={TextColor.InfoDefault} onPress={handleLink}>
-            {' '}
-            {strings('default_settings.learn_more_about_privacy')}
+    <SafeAreaView
+      edges={['left', 'right', 'bottom']}
+      style={tw.style('flex-1 bg-default')}
+    >
+      <HeaderStandard
+        includesTopInset
+        title={strings('default_settings.default_settings')}
+        onBack={() => navigation.goBack()}
+      />
+      <ScrollView style={tw.style('flex-1')}>
+        <Box twClassName="px-4">
+          <Text variant={TextVariant.BodyMd}>
+            {strings('default_settings.description')}
+            <Text color={TextColor.InfoDefault} onPress={handleLink}>
+              {' '}
+              {strings('default_settings.learn_more_about_privacy')}
+            </Text>
           </Text>
-        </Text>
-      </Box>
-      <SettingsDrawer
-        title={strings('default_settings.drawer_general_title')}
-        description={strings('default_settings.drawer_general_title_desc')}
-        onPress={() => navigation.navigate(Routes.ONBOARDING.GENERAL_SETTINGS)}
-      />
-      <SettingsDrawer
-        title={strings('default_settings.drawer_assets_title')}
-        description={strings('default_settings.drawer_assets_desc')}
-        onPress={() => navigation.navigate(Routes.ONBOARDING.ASSETS_SETTINGS)}
-      />
-      <SettingsDrawer
-        title={strings('default_settings.drawer_security_title')}
-        description={strings('default_settings.drawer_security_desc')}
-        onPress={() => navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS)}
-      />
-    </ScrollView>
+        </Box>
+        <SettingsDrawer
+          title={strings('default_settings.drawer_general_title')}
+          description={strings('default_settings.drawer_general_title_desc')}
+          onPress={() =>
+            navigation.navigate(Routes.ONBOARDING.GENERAL_SETTINGS)
+          }
+        />
+        <SettingsDrawer
+          title={strings('default_settings.drawer_assets_title')}
+          description={strings('default_settings.drawer_assets_desc')}
+          onPress={() => navigation.navigate(Routes.ONBOARDING.ASSETS_SETTINGS)}
+        />
+        <SettingsDrawer
+          title={strings('default_settings.drawer_security_title')}
+          description={strings('default_settings.drawer_security_desc')}
+          onPress={() =>
+            navigation.navigate(Routes.ONBOARDING.SECURITY_SETTINGS)
+          }
+        />
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

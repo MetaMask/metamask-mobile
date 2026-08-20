@@ -7,13 +7,14 @@ import {
 } from '@metamask/analytics-controller';
 import { createPlatformAdapter } from './platform-adapter';
 import { createPlatformAdapter as createE2EPlatformAdapter } from './platform-adapter-e2e';
-import { isE2E } from '../../../../util/test/utils';
+import { hasTestOverrides } from '../../../../util/test/utils';
 import { getBrazePlugin } from '../../../Braze';
 import type { AnalyticsControllerInitMessenger } from '../../messengers/analytics-controller-messenger';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import { analytics } from '../../../../util/analytics/analytics';
+import AppVersionSegmentPlugin from '../../../../util/analytics/appVersionSegmentPlugin';
 import { getAccountCompositionTraits } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import Logger from '../../../../util/Logger';
 
@@ -63,21 +64,32 @@ export const analyticsControllerInit: MessengerClientInitFunction<
 
   const state: AnalyticsControllerState = {
     optedIn: persistedAnalyticsState?.optedIn ?? defaultState.optedIn,
+    consentDecisionMade:
+      persistedAnalyticsState?.consentDecisionMade ??
+      defaultState.consentDecisionMade,
     analyticsId,
   };
 
-  const platformAdapter = isE2E
+  const platformAdapter = hasTestOverrides
     ? createE2EPlatformAdapter()
-    : createPlatformAdapter([getBrazePlugin()]);
+    : createPlatformAdapter([getBrazePlugin(), new AppVersionSegmentPlugin()]);
 
   const controller = new AnalyticsController({
     messenger: controllerMessenger,
     state,
     platformAdapter,
     isAnonymousEventsFeatureEnabled: true,
+    // Geolocation enrichment is intentionally disabled. With this off, the
+    // controller never calls `GeolocationController:getGeolocationData`, so that
+    // action does not need to be delegated to the analytics messenger.
+    isGeolocationEnabled: false,
   });
 
-  controller.init();
+  // `AnalyticsController.init` is asynchronous as of `@metamask/analytics-controller@2`.
+  // We intentionally don't block controller initialization on it; log any failure.
+  controller.init().catch((error) => {
+    Logger.error(error as Error, 'analyticsControllerInit: Error initializing');
+  });
 
   let lastCompositionFingerprint = '';
   initMessenger.subscribe(

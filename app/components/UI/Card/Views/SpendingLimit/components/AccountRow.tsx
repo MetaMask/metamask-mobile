@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 import {
   Box,
   Text,
@@ -8,16 +8,16 @@ import {
   IconName,
   IconSize,
   IconColor,
+  AvatarAccount,
+  AvatarBaseSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
-import AvatarAccount, {
-  AvatarAccountType,
-} from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import musdAssetIcon from '../../../../../../images/musd-icon-2x.png';
+import MoneyBalanceIcon from '../../../../../../images/money-balance.svg';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { SpendingLimitSelectors } from '../SpendingLimit.testIds';
+import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar';
+import { getAvatarAccountVariant } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 
 export interface AccountRowProps {
   isMoneyAccountLocked: boolean;
@@ -53,11 +53,7 @@ const MoneyAccountChip = ({ showChevron }: { showChevron: boolean }) => {
       twClassName="flex-row items-center gap-2 shrink min-w-0"
       testID={SpendingLimitSelectors.ACCOUNT_ROW_MONEY_ACCOUNT}
     >
-      <Image
-        source={musdAssetIcon}
-        style={tw.style('w-6 h-6 rounded-full')}
-        resizeMode="contain"
-      />
+      <MoneyBalanceIcon width={24} height={24} name="money-balance" />
       <Text
         variant={TextVariant.BodyMd}
         twClassName="text-text-default font-medium self-center shrink"
@@ -82,9 +78,9 @@ const RegularAccountChip = ({
   return (
     <Box twClassName="flex-row items-center gap-2 shrink min-w-0">
       <AvatarAccount
-        type={avatarAccountType}
-        accountAddress={selectedAccount.address}
-        size={AvatarSize.Xs}
+        address={selectedAccount.address}
+        variant={getAvatarAccountVariant(avatarAccountType)}
+        size={AvatarBaseSize.Sm}
       />
       <Text
         variant={TextVariant.BodyMd}

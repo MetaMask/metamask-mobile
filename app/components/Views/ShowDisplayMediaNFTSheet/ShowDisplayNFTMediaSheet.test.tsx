@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 
@@ -39,7 +39,7 @@ jest.mocked(useAnalytics).mockReturnValue(
   }),
 );
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 describe('ShowNftSheet', () => {
   beforeEach(() => {

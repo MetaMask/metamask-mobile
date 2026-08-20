@@ -6,10 +6,16 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictMarketSportCardWrapper from './PredictMarketSportCardWrapper';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictMarket } from '../../hooks/usePredictMarket';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import { Recurrence, PredictMarket as PredictMarketType } from '../../types';
 
 jest.mock('../../hooks/usePredictMarket');
 const mockUsePredictMarket = jest.mocked(usePredictMarket);
+
+jest.mock('../../hooks/usePredictGame');
+const mockUsePredictGame = usePredictGame as jest.MockedFunction<
+  typeof usePredictGame
+>;
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -43,8 +49,11 @@ jest.mock('../../hooks/usePredictActionGuard', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useLiveGameUpdates', () => ({
-  useLiveGameUpdates: () => ({ gameUpdate: null }),
+const mockGetLivePrice = jest.fn();
+jest.mock('../../hooks/useLiveMarketPrices', () => ({
+  useLiveMarketPrices: jest.fn(() => ({
+    getPrice: mockGetLivePrice,
+  })),
 }));
 
 jest.mock('../../constants/sportLeagueConfigs', () => ({
@@ -121,16 +130,18 @@ const initialState = {
 describe('PredictMarketSportCardWrapper', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetLivePrice.mockReturnValue(undefined);
+    mockUsePredictGame.mockImplementation((market) => ({
+      game: market?.game,
+      isConnected: false,
+      lastUpdateTime: null,
+    }));
     mockUsePredictMarket.mockReturnValue({
       data: null,
       isLoading: false,
       error: null,
       refetch: jest.fn(),
     } as unknown as ReturnType<typeof usePredictMarket>);
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks();
   });
 
   describe('loading state', () => {

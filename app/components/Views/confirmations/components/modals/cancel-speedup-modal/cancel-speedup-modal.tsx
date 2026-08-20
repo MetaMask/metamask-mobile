@@ -11,16 +11,13 @@ import { Hex } from '@metamask/utils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
-import BottomSheet, {
+import {
+  BottomSheet,
+  BottomSheetFooter,
+  BottomSheetHeader,
   BottomSheetRef,
-} from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetFooter from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import { ButtonsAlignment } from '../../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.types';
-import {
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
-import {
+  ButtonsAlignment,
   Icon,
   IconColor,
   IconName,
@@ -29,7 +26,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { Box } from '../../../../../../components/UI/Box/Box';
 import {
   AlignItems,
@@ -50,8 +46,6 @@ import { GasSpeed } from '../../gas/gas-speed';
 import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
 import InfoSection from '../../UI/info-row/info-section';
 import InfoRow from '../../UI/info-row/info-row';
-import styleSheet from './cancel-speedup-modal.styles';
-import { useStyles } from '../../../../../hooks/useStyles';
 
 const NetworkFeeRow = ({
   fiat,
@@ -169,7 +163,6 @@ export function CancelSpeedupModal({
 }: CancelSpeedupModalProps) {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
-  const { styles } = useStyles(styleSheet, {});
   const { colors } = useTheme();
   const [gasModalVisible, setGasModalVisible] = useState(false);
 
@@ -262,16 +255,6 @@ export function CancelSpeedupModal({
 
   const chainId = (tx?.chainId ?? '') as Hex;
 
-  const buttons = [
-    {
-      variant: ButtonVariants.Primary,
-      label: strings('transaction.confirm'),
-      size: ButtonSize.Lg,
-      onPress: handleConfirm,
-      isDisabled: effectiveConfirmDisabled,
-    },
-  ];
-
   return (
     <Modal
       isVisible={isVisible}
@@ -284,13 +267,8 @@ export function CancelSpeedupModal({
       onBackdropPress={onClose}
       onBackButtonPress={onClose}
     >
-      <BottomSheet
-        ref={bottomSheetRef}
-        shouldNavigateBack={false}
-        onClose={onClose}
-        style={styles.bottomSheetDialogSheet}
-      >
-        <HeaderCompactStandard title={title} onClose={close} />
+      <BottomSheet ref={bottomSheetRef} onClose={onClose}>
+        <BottomSheetHeader onClose={close}>{title}</BottomSheetHeader>
         <Box style={tw.style('px-3')}>
           <Box gap={4}>
             <InfoSection>
@@ -307,7 +285,12 @@ export function CancelSpeedupModal({
           </Box>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Vertical}
-            buttonPropsArray={buttons}
+            primaryButtonProps={{
+              children: strings('transaction.confirm'),
+              size: ButtonSize.Lg,
+              onPress: handleConfirm,
+              isDisabled: effectiveConfirmDisabled,
+            }}
             style={tw.style('px-0')}
           />
         </Box>

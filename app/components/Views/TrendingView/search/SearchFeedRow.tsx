@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from 'react';
+import { Box } from '@metamask/design-system-react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
@@ -12,6 +13,7 @@ import SiteSkeleton from '../../../UI/Sites/components/SiteSkeleton/SiteSkeleton
 import type { SearchFeedId } from './useExploreSearch';
 import TapView from './TapView';
 import { trackExploreSearchEvent, type SearchFeedPill } from './analytics';
+import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 
 interface SearchFeedRowProps {
   feedId: SearchFeedId;
@@ -19,21 +21,11 @@ interface SearchFeedRowProps {
   index: number;
   searchQuery: string;
   tabName: SearchFeedPill;
+  resultCount?: number;
+  onQuickTrade?: (token: TrendingAsset) => void;
 }
 
-const renderRow = (feedId: SearchFeedId, item: unknown, index: number) => {
-  switch (feedId) {
-    case 'tokens':
-    case 'stocks':
-      return <TokenSearchRowItem token={item as TrendingAsset} index={index} />;
-    case 'perps':
-      return <PerpsRowItem market={item as PerpsMarketData} />;
-    case 'predictions':
-      return <PredictionSearchRowItem market={item as PredictMarketType} />;
-    case 'sites':
-      return <SiteRowItem site={item as SiteData} />;
-  }
-};
+export const PERPS_ROW_WRAPPER_TEST_ID = 'search-feed-row-perps-wrapper';
 
 export const getItemId = (feedId: SearchFeedId, item: unknown): string => {
   switch (feedId) {
@@ -56,9 +48,13 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
   index,
   searchQuery,
   tabName,
+  resultCount,
+  onQuickTrade,
 }) => {
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
+  const resultCountRef = useRef(resultCount);
+  resultCountRef.current = resultCount;
 
   const handleTap = useCallback(() => {
     trackExploreSearchEvent({
@@ -68,10 +64,38 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
       tab_name: tabName,
       item_clicked: getItemId(feedId, item),
       position: index,
+      result_count: resultCountRef.current,
     });
   }, [feedId, tabName, item, index]);
 
-  return <TapView onTap={handleTap}>{renderRow(feedId, item, index)}</TapView>;
+  const row = (() => {
+    switch (feedId) {
+      case 'tokens':
+      case 'stocks':
+        return (
+          <TokenSearchRowItem
+            token={item as TrendingAsset}
+            index={index}
+            tokenDetailsSource={TokenDetailsSource.ExploreSearch}
+            onQuickTrade={onQuickTrade}
+          />
+        );
+      case 'perps':
+        // ListItem owns its own px-4 for the pressed state, so cancel the list
+        // container's px-4 to avoid indenting perps rows an extra 16px.
+        return (
+          <Box twClassName="-mx-4" testID={PERPS_ROW_WRAPPER_TEST_ID}>
+            <PerpsRowItem market={item as PerpsMarketData} />
+          </Box>
+        );
+      case 'predictions':
+        return <PredictionSearchRowItem market={item as PredictMarketType} />;
+      case 'sites':
+        return <SiteRowItem site={item as SiteData} />;
+    }
+  })();
+
+  return <TapView onTap={handleTap}>{row}</TapView>;
 };
 
 /** Skeleton row appropriate for a given feed. */

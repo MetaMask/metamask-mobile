@@ -57,6 +57,31 @@ describe('polymarket protocol transport', () => {
     );
   });
 
+  it('adds JSON content type for CLOB order upload body', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: jest.fn().mockResolvedValue({
+        success: true,
+      }),
+    });
+
+    await submitProtocolClobOrder({
+      protocol: POLYMARKET_V2_PROTOCOL,
+      headers,
+      clobOrder,
+    });
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://predict.api.cx.metamask.io/order',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json',
+        }),
+      }),
+    );
+  });
+
   it('normalizes relay errors into the existing result shape', async () => {
     mockFetch.mockRejectedValue(new Error('boom'));
 

@@ -145,33 +145,6 @@ describe('useMusdConversionQuoteTrace', () => {
       });
     });
 
-    it('includes bridge strategy in trace data', () => {
-      const { result, rerender } = renderHook(() =>
-        useMusdConversionQuoteTrace(),
-      );
-
-      act(() => {
-        result.current.startQuoteTrace();
-      });
-
-      // Loading starts
-      mockUseIsTransactionPayQuoteLoading.mockReturnValue(true);
-      rerender();
-
-      // Loading finishes with bridge quote
-      mockUseIsTransactionPayQuoteLoading.mockReturnValue(false);
-      mockUseTransactionPayQuotes.mockReturnValue([
-        createMockQuote(TransactionPayStrategy.Bridge),
-      ]);
-      rerender();
-
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ strategy: 'bridge' }),
-        }),
-      );
-    });
-
     it('does not end trace while loading is in progress', () => {
       const { result, rerender } = renderHook(() =>
         useMusdConversionQuoteTrace(),

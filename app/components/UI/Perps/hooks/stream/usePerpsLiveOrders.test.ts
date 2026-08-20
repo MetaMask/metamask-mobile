@@ -3,6 +3,11 @@ import React from 'react';
 import { usePerpsLiveOrders } from './index';
 import { type Order } from '@metamask/perps-controller';
 
+let mockSelectedAddress = '0x1111111111111111111111111111111111111111';
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => mockSelectedAddress),
+}));
+
 // Mock Engine for lazy isInitialLoading check
 let mockCachedUserData: {
   positions: unknown[];
@@ -52,6 +57,7 @@ describe('usePerpsLiveOrders', () => {
     jest.useFakeTimers();
     mockCachedUserData = null;
     mockChannelOrdersSnapshot = undefined;
+    mockSelectedAddress = '0x1111111111111111111111111111111111111111';
   });
 
   afterEach(() => {
@@ -212,7 +218,7 @@ describe('usePerpsLiveOrders', () => {
       return jest.fn();
     });
 
-    const { result } = renderHook(() => usePerpsLiveOrders());
+    const { result, rerender } = renderHook(() => usePerpsLiveOrders());
 
     // First: receive real orders (simulate loaded state)
     act(() => {
@@ -223,6 +229,10 @@ describe('usePerpsLiveOrders', () => {
       expect(result.current.isInitialLoading).toBe(false);
       expect(result.current.orders).toEqual([mockOrder]);
     });
+
+    mockSelectedAddress = '0x2222222222222222222222222222222222222222';
+    rerender(undefined);
+    expect(result.current).toEqual({ orders: [], isInitialLoading: true });
 
     // Account switch: receive null (clearCache)
     act(() => {
@@ -432,6 +442,44 @@ describe('usePerpsLiveOrders', () => {
     await waitFor(() => {
       expect(result.current.orders).toHaveLength(1);
       expect(result.current.orders[0].orderId).toBe('regular-order');
+    });
+  });
+
+  it('hides reduce-only trigger TP/SL orders but keeps non-trigger limit closes when hideTpSl is enabled', async () => {
+    let capturedCallback: (orders: Order[]) => void = jest.fn();
+    mockSubscribe.mockImplementation((params) => {
+      capturedCallback = params.callback;
+      return jest.fn();
+    });
+
+    const { result } = renderHook(() => usePerpsLiveOrders({ hideTpSl: true }));
+
+    const orders: Order[] = [
+      {
+        ...mockOrder,
+        orderId: 'limit-close',
+        reduceOnly: true,
+        isTrigger: false,
+        detailedOrderType: 'Limit',
+      } as Order,
+      {
+        ...mockOrder,
+        orderId: 'trigger-tpsl',
+        reduceOnly: true,
+        isTrigger: true,
+        detailedOrderType: 'Limit',
+      } as Order,
+    ];
+
+    act(() => {
+      capturedCallback(orders);
+    });
+
+    // The reduce-only limit close stays visible; the reduce-only trigger TP/SL
+    // order is hidden even though its detailedOrderType is not a TP/SL type.
+    await waitFor(() => {
+      expect(result.current.orders).toHaveLength(1);
+      expect(result.current.orders[0].orderId).toBe('limit-close');
     });
   });
 });

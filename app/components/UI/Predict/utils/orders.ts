@@ -13,15 +13,23 @@ export function generateOrderId(): string {
 }
 
 export function calculateMaxBetAmount(
-  amount: number,
-  totalFeePercentage: number,
+  availableBalance: number,
+  preview?: OrderPreview | null,
 ): number {
-  if (totalFeePercentage === 0) {
-    return amount;
+  if (!Number.isFinite(availableBalance) || availableBalance <= 0) {
+    return 0;
   }
-  const maxBetAmount = amount * (1 - totalFeePercentage / 100);
-  // Round to 4 decimals (same as calculateFees in polymarket/utils.ts)
-  return Math.round(maxBetAmount * 10000) / 10000;
+
+  const fees = preview?.fees;
+  const serviceFeeRate = Math.max(fees?.totalFeePercentage ?? 0, 0) / 100;
+  const previewStake = preview?.maxAmountSpent ?? 0;
+  const marketFeeRate =
+    previewStake > 0 ? Math.max(fees?.marketFee ?? 0, 0) / previewStake : 0;
+  const maxBetAmount = availableBalance / (1 + serviceFeeRate + marketFeeRate);
+
+  // The keypad accepts cents, so floor rather than round to avoid exceeding
+  // the wallet balance after fees are added back to the stake.
+  return roundDownToCents(maxBetAmount);
 }
 
 export function roundUpToCents(amount: number): number {
@@ -32,6 +40,16 @@ export function roundUpToCents(amount: number): number {
   const amountInCents = amount * CENTS_PER_UNIT;
 
   return Math.ceil(amountInCents - CENT_ROUNDING_TOLERANCE) / CENTS_PER_UNIT;
+}
+
+export function roundDownToCents(amount: number): number {
+  if (!Number.isFinite(amount)) {
+    return 0;
+  }
+
+  const amountInCents = amount * CENTS_PER_UNIT;
+
+  return Math.floor(amountInCents + CENT_ROUNDING_TOLERANCE) / CENTS_PER_UNIT;
 }
 
 export function roundToFiveDecimals(amount: number): number {
@@ -48,6 +66,20 @@ export function getPredictMarketFee(fees?: PredictFees): number {
 
 export function getPredictExchangeFee(fees?: PredictFees): number {
   return (fees?.providerFee ?? 0) + getPredictMarketFee(fees);
+}
+
+export function getPredictSellNetProceeds(
+  preview?: OrderPreview | null,
+): number {
+  if (!preview) {
+    return 0;
+  }
+  const fees = preview.fees;
+  return roundDownToCents(
+    preview.minAmountReceived -
+      (fees?.metamaskFee ?? 0) -
+      getPredictExchangeFee(fees),
+  );
 }
 
 export function getPredictBuyAllInCost(preview?: OrderPreview | null): number {

@@ -40,6 +40,10 @@ function runHook({ requests }: { requests: TokenFiatRateRequest[] }) {
               },
             },
           },
+          AssetsController: {
+            ...backgroundState.AssetsController,
+            selectedCurrency: 'usd',
+          },
           NetworkController: {
             networkConfigurationsByChainId: {
               [CHAIN_ID_1_MOCK]: {
@@ -93,7 +97,7 @@ describe('useTokenFiatRates', () => {
     ]);
   });
 
-  it('returns conversion rate only if token price not found', () => {
+  it('returns undefined if token price not found', () => {
     const result = runHook({
       requests: [
         {
@@ -103,7 +107,7 @@ describe('useTokenFiatRates', () => {
       ],
     });
 
-    expect(result).toEqual([CONVERSION_RATE_1_MOCK]);
+    expect(result).toEqual([undefined]);
   });
 
   it('returns fixed exchange rate for stablecoin when currency is USD', () => {

@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 import { useTheme } from '../../../../util/theme';
 import { getScreenDimensions } from '../../../../util/onboarding';
-import { isE2E } from '../../../../util/test/utils';
+import { hasTestOverrides } from '../../../../util/test/utils';
 import {
   Box,
   BoxAlignItems,
@@ -27,7 +27,7 @@ const OnboardingSuccessEndAnimation: React.FC<
   const { screenWidth, screenHeight, animationHeight } = getScreenDimensions();
 
   useEffect(() => {
-    if (isE2E) return;
+    if (hasTestOverrides) return;
     const timeoutId = setTimeout(() => {
       if (riveRef.current) {
         try {
@@ -58,7 +58,7 @@ const OnboardingSuccessEndAnimation: React.FC<
         justifyContent={BoxJustifyContent.Center}
         twClassName="flex-1"
       >
-        {!isE2E && (
+        {!hasTestOverrides && (
           <Rive
             ref={riveRef}
             source={onboardingLoaderEndAnimation}

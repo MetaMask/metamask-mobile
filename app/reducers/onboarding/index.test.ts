@@ -13,6 +13,7 @@ import {
   RESET_WALLET_HOME_ONBOARDING_STEPS,
   SET_WALLET_HOME_ONBOARDING_STEPS_STEP,
   SUPPRESS_WALLET_HOME_ONBOARDING_STEPS,
+  MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 import { AccountType } from '../../constants/onboarding';
@@ -30,6 +31,7 @@ describe('onboardingReducer', () => {
       suppressedReason: null,
       stepIndex: 0,
     },
+    pushNotificationOsPromptRequested: false,
   };
 
   it('returns the initial state when no action is provided', () => {
@@ -54,7 +56,7 @@ describe('onboardingReducer', () => {
     expect(state.events).toEqual([]);
   });
 
-  it('handle the SET_COMPLETED_ONBOARDING action', () => {
+  it('handles the SET_COMPLETED_ONBOARDING action', () => {
     const action = {
       type: SET_COMPLETED_ONBOARDING,
       completedOnboarding: true,
@@ -241,5 +243,33 @@ describe('onboardingReducer', () => {
     );
     expect(state.walletHomeOnboardingStepsEligible).toBe(true);
     expect(state.walletHomeOnboardingSkipInitialBalanceWait).toBe(false);
+  });
+
+  describe('MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED', () => {
+    it('records that the OS push permission request happened', () => {
+      const state = onboardingReducer(initialState, {
+        type: MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED,
+      });
+
+      expect(state.pushNotificationOsPromptRequested).toBe(true);
+    });
+
+    it('stays true when dispatched again', () => {
+      const state = onboardingReducer(
+        { ...initialState, pushNotificationOsPromptRequested: true },
+        { type: MARK_PUSH_NOTIFICATION_OS_PROMPT_REQUESTED },
+      );
+
+      expect(state.pushNotificationOsPromptRequested).toBe(true);
+    });
+
+    it('is cleared by CLEAR_ONBOARDING so a fresh wallet sees the notifications step again', () => {
+      const state = onboardingReducer(
+        { ...initialState, pushNotificationOsPromptRequested: true },
+        { type: CLEAR_ONBOARDING },
+      );
+
+      expect(state.pushNotificationOsPromptRequested).toBe(false);
+    });
   });
 });

@@ -5,27 +5,39 @@ import {
 import {
   DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
   DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
-  DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+  DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
-import { filterSupportedLeagues } from '../constants/sports';
+import {
+  DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
+  filterSupportedLeagues,
+} from '../constants/sports';
+import {
+  normalizeEnabledSportsMarketTypes,
+  normalizeSportsMarketTypes,
+} from '../providers/polymarket/outcomeGrouping';
 import {
   parse,
   PredictFeeCollectionSchema,
-  PredictWorldCupSchema,
+  PredictHiddenMarketsSchema,
+  PredictSportsFeedSchema,
+  PredictWimbledonTabSchema,
 } from '../schemas';
 import {
   PredictExtendedSportsMarketsFlag,
   PredictFeatureFlags,
+  PredictHiddenMarketsFlag,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
+  PredictWimbledonTabFlag,
 } from '../types/flags';
 import { unwrapRemoteFeatureFlag } from './flags';
 
 export interface RawFeatureFlags {
   remoteFeatureFlags?: Record<string, unknown>;
-  localOverrides?: Record<string, unknown>;
 }
 
 function resolveVersionGatedBooleanFlag(
@@ -41,7 +53,9 @@ function resolveVersionGatedBooleanFlag(
 
 /**
  * Resolves the Predict feature flags used by both the controller and selectors.
- * Local overrides take precedence over remote values when both are present.
+ *
+ * Reads the effective flag values from `remoteFeatureFlags`, which already has
+ * `localOverrides` applied, so the dev override screen still works.
  *
  * @param rawState - Raw RemoteFeatureFlagController state slices used by Predict.
  * @returns The normalized Predict feature flag set.
@@ -51,7 +65,6 @@ export function resolvePredictFeatureFlags(
 ): PredictFeatureFlags {
   const flags = {
     ...(rawState.remoteFeatureFlags ?? {}),
-    ...(rawState.localOverrides ?? {}),
   };
 
   const liveSportsFlag =
@@ -73,6 +86,23 @@ export function resolvePredictFeatureFlags(
       ? rawMarketHighlightsFlag
       : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
 
+  const rawHiddenMarketsFlag =
+    unwrapRemoteFeatureFlag<PredictHiddenMarketsFlag>(
+      flags.predictHiddenMarkets,
+    );
+  const parsedHiddenMarketsFlag = rawHiddenMarketsFlag
+    ? parse(
+        rawHiddenMarketsFlag,
+        PredictHiddenMarketsSchema,
+        DEFAULT_HIDDEN_MARKETS_FLAG,
+      )
+    : DEFAULT_HIDDEN_MARKETS_FLAG;
+  const hiddenMarketsFlag =
+    rawHiddenMarketsFlag &&
+    validatedVersionGatedFeatureFlag(parsedHiddenMarketsFlag)
+      ? parsedHiddenMarketsFlag
+      : DEFAULT_HIDDEN_MARKETS_FLAG;
+
   const feeCollection = parse(
     unwrapRemoteFeatureFlag<PredictFeatureFlags['feeCollection']>(
       flags.predictFeeCollection,
@@ -85,11 +115,26 @@ export function resolvePredictFeatureFlags(
     unwrapRemoteFeatureFlag<PredictExtendedSportsMarketsFlag>(
       flags.predictExtendedSportsMarkets,
     ) ?? DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG;
-  const extendedSportsMarketsLeagues = validatedVersionGatedFeatureFlag(
-    extendedSportsFlag,
-  )
+  const extendedSportsMarketsEnabled =
+    validatedVersionGatedFeatureFlag(extendedSportsFlag);
+  const extendedSportsMarketsLeagues = extendedSportsMarketsEnabled
     ? filterSupportedLeagues(extendedSportsFlag.leagues ?? [])
     : [];
+  const enabledSportsMarketTypes = extendedSportsMarketsEnabled
+    ? normalizeEnabledSportsMarketTypes(
+        extendedSportsFlag.enabledSportsMarketTypes,
+      )
+    : [];
+  const hasNonRegTimeSportsMarketTypes = Object.prototype.hasOwnProperty.call(
+    extendedSportsFlag,
+    'nonRegTimeSportsMarketTypes',
+  );
+  const nonRegTimeSportsMarketTypes =
+    extendedSportsMarketsEnabled && hasNonRegTimeSportsMarketTypes
+      ? normalizeSportsMarketTypes(
+          extendedSportsFlag.nonRegTimeSportsMarketTypes,
+        )
+      : normalizeSportsMarketTypes(DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES);
   const fakOrdersEnabled = resolveVersionGatedBooleanFlag(
     flags.predictFakOrders,
   );
@@ -102,34 +147,51 @@ export function resolvePredictFeatureFlags(
   const predictPortfolioEnabled = resolveVersionGatedBooleanFlag(
     flags.predictPortfolio,
   );
-  const predictHomepageDiscoveryNbaChampionEnabled =
-    resolveVersionGatedBooleanFlag(
-      flags.predictHomepageDiscoveryNbaChampionEnabled,
-      true,
-    );
-  const parsedPredictWorldCup = parse(
-    unwrapRemoteFeatureFlag<PredictFeatureFlags['predictWorldCup']>(
-      flags.predictWorldCup,
-    ),
-    PredictWorldCupSchema,
-    DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  const predictHomeRedesignEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictHomeRedesign,
   );
-  const predictWorldCup = validatedVersionGatedFeatureFlag(
-    parsedPredictWorldCup,
+  const predictSportCardLivePricesEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictSportCardLivePrices,
+    true,
+  );
+  const parsedPredictSportsFeed = parse(
+    unwrapRemoteFeatureFlag<PredictFeatureFlags['predictSportsFeed']>(
+      flags.predictSportsFeed,
+    ),
+    PredictSportsFeedSchema,
+    DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+  );
+  const predictSportsFeed = validatedVersionGatedFeatureFlag(
+    parsedPredictSportsFeed,
   )
-    ? parsedPredictWorldCup
-    : DEFAULT_PREDICT_WORLD_CUP_FLAG;
+    ? parsedPredictSportsFeed
+    : DEFAULT_PREDICT_SPORTS_FEED_FLAG;
+  const parsedPredictWimbledonTab = parse(
+    unwrapRemoteFeatureFlag<PredictWimbledonTabFlag>(flags.predictWimbledon),
+    PredictWimbledonTabSchema,
+    DEFAULT_WIMBLEDON_TAB_FLAG,
+  );
+  const predictWimbledonTab = validatedVersionGatedFeatureFlag(
+    parsedPredictWimbledonTab,
+  )
+    ? parsedPredictWimbledonTab
+    : DEFAULT_WIMBLEDON_TAB_FLAG;
 
   return {
     feeCollection,
     liveSportsLeagues,
     extendedSportsMarketsLeagues,
+    enabledSportsMarketTypes,
+    nonRegTimeSportsMarketTypes,
     marketHighlightsFlag,
+    hiddenMarketsFlag,
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
     predictUpDownEnabled,
     predictPortfolioEnabled,
-    predictHomepageDiscoveryNbaChampionEnabled,
-    predictWorldCup,
+    predictHomeRedesignEnabled,
+    predictSportCardLivePricesEnabled,
+    predictSportsFeed,
+    predictWimbledonTab,
   };
 }

@@ -1,15 +1,9 @@
 # Pressable
 
 A design-system `Pressable` that replaces `TouchableOpacity` across the
-app. Instead of dimming the entire subtree on press, it layers the
-semi-transparent `background.pressed` token on top of the caller's
-resting style. The component never owns a resting background — that
-stays the parent's responsibility — so the overlay composites correctly
-over any surface (`default`, `section`, `error.default`, etc.).
-
-This matches the pressed-state model used elsewhere in the design
-system (e.g. `Button` tertiary variant in
-`@metamask/design-system-react-native`).
+app. The component supports two visual feedback modes via the `variant`
+prop, so the same primitive covers both the broad case (subtree dim) and
+the list-row case (backdrop highlight) without per-call-site guesswork.
 
 ## Exports
 
@@ -21,40 +15,71 @@ system (e.g. `Button` tertiary variant in
 
 ## Props
 
-The default export's props are exactly RN `PressableProps`. `PressableGH`
-takes RNGH's `PressableProps`. The only behavioural differences vs. the
-underlying primitive are:
+The default export's props are RN `PressableProps` plus a `variant`
+field. `PressableGH` takes RNGH's `PressableProps` plus the same
+`variant`. Behavioural differences vs. the underlying primitive:
 
 - `accessibilityRole` defaults to `'button'` (preserves the implicit
   role `TouchableOpacity` provided).
-- On press, the component appends `{ backgroundColor: colors.background.pressed }`
-  to the caller's style.
+- `variant` (defaults to `'default'`) controls press feedback.
+
+### `variant`
+
+Use the `PressableVariant` enum-like const (matches the MMDS pattern used by
+`TextVariant`, `ButtonVariants`, etc.) — don't pass raw string literals.
+
+| Value                        | Behaviour                                                                          | When to use                                                                                                             |
+| ---------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `PressableVariant.Default`   | Lowers caller subtree opacity to `0.7` on press.                                   | The general case: buttons, icon affordances, inline tappable elements, anywhere `TouchableOpacity` was previously used. |
+| `PressableVariant.Highlight` | Composites `colors.background.pressed` over the caller's resting surface on press. | List rows, settings rows, sheet rows — surfaces where a backdrop highlight is the established design pattern.           |
+| `PressableVariant.None`      | Applies no visual feedback.                                                        | Only when the caller renders its own press-state styling internally (e.g. `useState(pressed)` toggling its own bg).     |
+
+The `Default` variant mirrors the familiar `TouchableOpacity` model and
+is the safe choice when migrating any existing call site. The
+`Highlight` variant is an opt-in for list-context surfaces, and is the
+recommended choice anywhere the DS list-item treatment applies.
 
 ## Usage
 
 ```tsx
-import Pressable from 'app/component-library/components-temp/Pressable';
+import Pressable, {
+  PressableVariant,
+} from 'app/component-library/components-temp/Pressable';
 
+// Default: opacity dim — no need to pass `variant` explicitly
 <Pressable onPress={onPress} style={styles.row}>
   <Text>Action</Text>
+</Pressable>;
+
+// List-row highlight
+<Pressable
+  variant={PressableVariant.Highlight}
+  onPress={onPress}
+  style={styles.row}
+>
+  <Text>Item</Text>
 </Pressable>;
 ```
 
 Inside a `react-native-gesture-handler` scroll/list tree:
 
 ```tsx
-import { PressableGH } from 'app/component-library/components-temp/Pressable';
+import {
+  PressableGH,
+  PressableVariant,
+} from 'app/component-library/components-temp/Pressable';
 
-<PressableGH onPress={onPress} style={styles.row}>
+<PressableGH
+  variant={PressableVariant.Highlight}
+  onPress={onPress}
+  style={styles.row}
+>
   ...
 </PressableGH>;
 ```
 
 ## Migration notes
 
-- The parent container should own the resting `backgroundColor`, not
-  the `Pressable`. The pressed overlay composites against whatever
-  surface is behind the Pressable.
 - Replacing `TouchableOpacity` with `activeOpacity={1}` → just use
   `Pressable`. A transparent overlay over a transparent surface is a
   visual no-op, so no explicit "no feedback" prop is needed.
@@ -67,3 +92,6 @@ import { PressableGH } from 'app/component-library/components-temp/Pressable';
   that open a detail screen → `"link"` or none; backdrops / dismiss
   overlays → none). Pass `accessibilityRole` explicitly so screen
   readers don't announce "button".
+- When using `variant="highlight"`, the parent container should own the
+  resting `backgroundColor`, not the `Pressable`. The pressed overlay
+  composites against whatever surface is behind the Pressable.

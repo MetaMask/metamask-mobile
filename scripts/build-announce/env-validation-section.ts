@@ -95,16 +95,17 @@ export function buildEnvValidationSection(
 
   lines.push('\n**Build Flags:**\n');
   lines.push(`- Build Name: \`${result.buildName}\``);
-  lines.push(`- IS_TEST: \`${result.extractedValues.IS_TEST ?? 'false'}\``);
+  lines.push(`- HAS_TEST_OVERRIDES: \`${result.extractedValues.HAS_TEST_OVERRIDES ?? 'false'}\``);
 
   const rampDevBuild = result.extractedValues.RAMP_DEV_BUILD;
   if (rampDevBuild) {
     lines.push(`- RAMP_DEV_BUILD: \`${rampDevBuild}\``);
   }
 
-  const bridgeDevApis = result.extractedValues.BRIDGE_USE_DEV_APIS;
-  if (bridgeDevApis) {
-    lines.push(`- BRIDGE_USE_DEV_APIS: \`${bridgeDevApis}\``);
+  const bridgeCustomBaseUrl =
+    result.extractedValues.BRIDGE_USE_CUSTOM_BASE_URL;
+  if (bridgeCustomBaseUrl) {
+    lines.push(`- BRIDGE_USE_CUSTOM_BASE_URL: \`${bridgeCustomBaseUrl}\``);
   }
 
   lines.push('\n</details>\n');

@@ -32,6 +32,7 @@ import PaymentMethodIcon from '../../../Aggregator/components/PaymentMethodIcon'
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useTheme } from '../../../../../../util/theme';
 import { providerSupportsAsset } from '../../../utils/providerSupportsAsset';
+import { getProviderLimitMessage } from '../../../utils/getProviderLimitMessage';
 
 const SKELETON_ROW_COUNT = 5;
 const SKELETON_NAME_WIDTH = 120;
@@ -44,6 +45,7 @@ const styles = StyleSheet.create({
 
 interface ProviderSelectionProps {
   providers?: Provider[];
+  amount?: number;
   quotes: QuotesResponse | null;
   quotesLoading: boolean;
   quotesError: string | null;
@@ -148,6 +150,7 @@ function getProviderTag(
 
 const ProviderSelection: React.FC<ProviderSelectionProps> = ({
   providers: providersOverride,
+  amount = 0,
   quotes,
   quotesLoading,
   quotesError,
@@ -291,7 +294,17 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
         !isUnavailable && displayQuotes
           ? getProviderTag(provider.id, matchedQuote, ordersProviders)
           : null;
-      const subtitle = isUnavailable ? providerError : tag;
+      const subtitle = isUnavailable
+        ? (getProviderLimitMessage({
+            provider,
+            fiatCurrency: currency,
+            paymentMethodId: selectedPaymentMethod?.id,
+            amount,
+            currency,
+            formatCurrency,
+            backendError: providerError,
+          }) ?? strings('fiat_on_ramp.quote_unavailable'))
+        : tag;
 
       return (
         <ListItemSelect
@@ -331,6 +344,7 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     },
     [
       quotes,
+      amount,
       symbol,
       currency,
       selectedProvider,

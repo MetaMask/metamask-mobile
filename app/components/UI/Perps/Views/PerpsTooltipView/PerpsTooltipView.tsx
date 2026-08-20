@@ -1,28 +1,29 @@
 import React, { useRef, useCallback } from 'react';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
   Box,
   ButtonSize,
+  Text,
+  TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import { tooltipContentRegistry } from '../../components/PerpsBottomSheetTooltip/content/contentRegistry';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../Perps.testIds';
 
-interface PerpsTooltipViewRouteParams {
+export interface PerpsTooltipViewRouteParams {
   contentKey: PerpsTooltipContentKey;
   data?: Record<string, unknown>;
 }
 
 const PerpsTooltipView: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<Record<string, PerpsTooltipViewRouteParams>, string>>();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -52,7 +53,7 @@ const PerpsTooltipView: React.FC = () => {
     }
 
     return (
-      <Text variant={TextVariant.BodyMD}>
+      <Text variant={TextVariant.BodyMd}>
         {strings(`perps.tooltips.${contentKey}.content`)}
       </Text>
     );
@@ -70,7 +71,7 @@ const PerpsTooltipView: React.FC = () => {
     >
       {!hasCustomHeader && (
         <BottomSheetHeader testID="perps-tooltip-bottom-sheet-header">
-          <Text variant={TextVariant.HeadingMD}>{title}</Text>
+          <Text variant={TextVariant.HeadingMd}>{title}</Text>
         </BottomSheetHeader>
       )}
       <Box paddingHorizontal={4}>{renderContent()}</Box>

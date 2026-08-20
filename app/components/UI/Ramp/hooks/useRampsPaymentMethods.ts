@@ -59,8 +59,8 @@ export interface UseRampsPaymentMethodsResult {
  * Hook to get payment methods via React Query.
  *
  * The query fires only when a provider is selected (provider change is the
- * sole trigger). Token and fiat are passed to the API call but are NOT part
- * of the query key, so changing them does not cause a refetch.
+ * sole trigger). Token is passed to the API call but is NOT part of the query
+ * key, so changing it does not cause a refetch.
  *
  * @returns Payment methods state.
  */
@@ -70,16 +70,11 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   const { selected: selectedToken } = useSelector(selectTokens);
   const userRegion = useSelector(selectUserRegion);
 
-  const queryEnabled = Boolean(
-    userRegion?.regionCode &&
-      userRegion?.country?.currency &&
-      selectedProvider?.id,
-  );
+  const queryEnabled = Boolean(userRegion?.regionCode && selectedProvider?.id);
 
   const paymentMethodsQuery = useQuery({
     ...rampsQueries.paymentMethods.options({
       regionCode: userRegion?.regionCode ?? '',
-      fiat: userRegion?.country?.currency ?? '',
       assetId: normalizeAssetIdForApi(selectedToken?.assetId),
       providerId: selectedProvider?.id ?? '',
     }),

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
+import { DepositCryptoCurrency } from '../../types/legacyDeposit';
 
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {

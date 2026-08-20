@@ -1,4 +1,9 @@
 import TimerStore from './TimerStore';
+import {
+  clampInfraSubtractionMs,
+  startOverheadTracking,
+  stopOverheadTracking,
+} from './PlaywrightUtilities';
 
 /** Platform-specific threshold values in milliseconds. */
 export interface PlatformThreshold {
@@ -15,6 +20,7 @@ const THRESHOLD_MARGIN = 0.1; // 10% margin
 class TimerHelper {
   private _id: string;
   private _baseThreshold: number | null;
+  private readonly _platform?: 'android' | 'ios';
 
   /**
    * Creates a new TimerHelper and registers a timer in the store.
@@ -28,6 +34,7 @@ class TimerHelper {
     currentPlatform?: 'android' | 'ios',
   ) {
     this._id = id;
+    this._platform = currentPlatform;
     this._baseThreshold = this._resolveThreshold(threshold, currentPlatform);
     TimerStore.createTimer(this.id);
   }
@@ -117,12 +124,58 @@ class TimerHelper {
   }
 
   /**
-   * Measures the execution time of an async action.
-   * Starts the timer before the action and stops it after completion (or failure).
+   * Measures the execution time of an async action and subtracts Appium
+   * infrastructure overhead (poll RTTs capped to the post-detect probe) on both
+   * Android and iOS. See {@link measureWithOverhead}.
+   *
+   * Use {@link measureRaw} if you need wall-clock without overhead subtraction.
+   *
    * @param action - Async function to measure
    * @returns This TimerHelper instance for chaining
    */
   async measure(action: () => Promise<void>): Promise<TimerHelper> {
+    return this.measureWithOverhead(action);
+  }
+
+  /**
+   * Measurement path that subtracts Appium overhead from the recorded duration.
+   *
+   * Infra is capped so poll sleeps (and at least 1ms) remain in app time —
+   * timers must not collapse to 0ms after a real wait.
+   *
+   * @param action - Async function to measure
+   * @returns This TimerHelper instance for chaining
+   */
+  async measureWithOverhead(action: () => Promise<void>): Promise<TimerHelper> {
+    startOverheadTracking();
+    this.start();
+    try {
+      await action();
+    } finally {
+      this.stop();
+    }
+    const wallClockMs = this.getDuration() ?? 0;
+    const { infraMs: rawInfraMs, sleepMs } = stopOverheadTracking();
+    const infraMs = clampInfraSubtractionMs(wallClockMs, rawInfraMs, sleepMs);
+    if (infraMs > 0) {
+      this.subtractOverhead(infraMs);
+    }
+    const appMs = this.getDuration() ?? 0;
+    console.log(
+      `⏱️ Timer "${this.id}": wall-clock=${wallClockMs}ms, infra=${Math.round(infraMs)}ms, app=${appMs}ms`,
+    );
+    return this;
+  }
+
+  /**
+   * Wall-clock measurement with no Appium overhead subtraction.
+   *
+   * Prefer {@link measure} for performance specs.
+   *
+   * @param action - Async function to measure
+   * @returns This TimerHelper instance for chaining
+   */
+  async measureRaw(action: () => Promise<void>): Promise<TimerHelper> {
     this.start();
     try {
       await action();
@@ -148,6 +201,21 @@ class TimerHelper {
   /** Returns whether this timer has a threshold defined. */
   hasThreshold(): boolean {
     return this._baseThreshold !== null;
+  }
+
+  /**
+   * Subtracts a measured overhead (e.g. Appium roundtrip) from the recorded duration.
+   * Useful to isolate real app performance from test framework latency.
+   * @param overheadMs - Overhead in milliseconds to subtract
+   */
+  subtractOverhead(overheadMs: number): void {
+    const timer = TimerStore.getTimer(this.id);
+    if (timer.duration === null) {
+      throw new Error(
+        `Timer "${this.id}" has no duration yet. Call stop() first.`,
+      );
+    }
+    timer.duration = Math.max(0, timer.duration - overheadMs);
   }
 
   /** The unique identifier for this timer. */

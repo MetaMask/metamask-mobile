@@ -767,6 +767,7 @@ describe('useCardDelegation', () => {
         MetaMetricsEvents.CARD_DELEGATION_PROCESS_STARTED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         token_symbol: params.currency,
         token_chain_id: params.network,
         delegation_type: 'limited',
@@ -1031,6 +1032,7 @@ describe('useCardDelegation', () => {
         {
           networkClientId: mockNetworkClientId,
           origin: TransactionTypes.MMM_CARD,
+          isInternal: true,
           type: TransactionType.tokenMethodApprove,
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
           requireApproval: true,

@@ -6,17 +6,21 @@ import React, {
   useState,
 } from 'react';
 import {
-  Image,
+  Pressable,
   RefreshControl,
   ScrollView,
   useWindowDimensions,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
   BoxFlexDirection,
   FontWeight,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -51,22 +55,26 @@ import PredictCryptoUpDownPositions from '../PredictCryptoUpDownPositions';
 import { usePredictSeriesPositions } from '../../hooks/usePredictSeriesPositions';
 import PredictMarketDetailsActions from '../../views/PredictMarketDetails/components/PredictMarketDetailsActions';
 import { useOpenOutcomes } from '../../views/PredictMarketDetails/hooks/useOpenOutcomes';
+import { strings } from '../../../../../../locales/i18n';
+import { usePredictBottomSheet } from '../../hooks/usePredictBottomSheet';
+import PredictCryptoTwapInfoSheet from './PredictCryptoTwapInfoSheet';
 
 // Chart sizing tuned for the Figma layout: without positions, the chart
 // occupies roughly the middle half of the viewport. When positions exist, the
 // chart shrinks so the first position row remains visible above the sticky
 // action buttons.
 const CHART_HEIGHT_MIN_WITH_POSITIONS = 280;
-const CHART_HEIGHT_MAX_WITH_POSITIONS = 380;
+const CHART_HEIGHT_MAX_WITH_POSITIONS = 430;
 const CHART_HEIGHT_MIN_NO_POSITIONS = 420;
 const CHART_HEIGHT_MAX_NO_POSITIONS = 560;
-const CHART_HEIGHT_RATIO_WITH_POSITIONS = 0.4;
+const CHART_HEIGHT_RATIO_WITH_POSITIONS = 0.44;
 const CHART_HEIGHT_RATIO_NO_POSITIONS = 0.55;
 const MARKET_ROLLOVER_TIMEOUT_MAX_MS = 2_147_483_647;
 const NOOP = () => undefined;
 const DEFAULT_CRYPTO_ACCENT_COLOR = 'rgb(245, 158, 11)';
 const CRYPTO_SYMBOL_TO_ACCENT_COLOR: Record<string, string> = {
   BTC: 'rgb(247, 147, 26)',
+  ETH: 'rgb(94, 109, 183)', // #5E6DB7
 };
 
 const splitCurrency = (
@@ -133,6 +141,16 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const previousMarketIdRef = useRef(market.id);
   const marketRef = useRef(market);
   const [currentPrice, setCurrentPrice] = useState<number>();
+  const {
+    sheetRef: twapInfoSheetRef,
+    isVisible: isTwapInfoSheetVisible,
+    handleSheetClosed: handleTwapInfoSheetClosed,
+    getRefHandlers: getTwapInfoSheetRefHandlers,
+  } = usePredictBottomSheet();
+  const twapInfoSheetHandlers = useMemo(
+    () => getTwapInfoSheetRefHandlers(),
+    [getTwapInfoSheetRefHandlers],
+  );
   marketRef.current = market;
 
   const { handleSharePress } = usePredictShare({
@@ -254,6 +272,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       eventStartTime: targetPriceEventStartTime ?? '',
       variant: getVariant(selectedMarket.series.recurrence),
       endDate: selectedMarket.endDate ?? '',
+      twapWindowSeconds: selectedMarket.twapWindowSeconds,
       enabled:
         !!targetPriceSymbol &&
         !!targetPriceEventStartTime &&
@@ -280,18 +299,20 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       ? (live as PredictMarketWithSeries)
       : { ...live, series: market.series };
   }, [currentSeriesMarkets, market.series, selectedMarket]);
+  const chartTargetPrice =
+    liveMarketForChart.id === selectedMarket.id ||
+    liveMarketForChart.twapWindowSeconds === selectedMarket.twapWindowSeconds
+      ? validatedTargetPrice
+      : undefined;
   const isSelectedMarketLive = liveMarketForChart.id === selectedMarket.id;
 
-  const {
-    openOutcomes: selectedOpenOutcomes,
-    yesPercentage: selectedYesPercentage,
-  } = useOpenOutcomes({
+  const { openOutcomes: selectedOpenOutcomes } = useOpenOutcomes({
     market: selectedMarket,
   });
   const canClaim = Boolean(onClaimPress && hasPositivePnl);
   const shouldRenderActions = Boolean(onBetPress || canClaim);
 
-  const handleCurrentPriceChange = useCallback((value: number) => {
+  const handleCurrentPriceChange = useCallback((value: number | undefined) => {
     setCurrentPrice(value);
   }, []);
 
@@ -352,6 +373,15 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
       series: nextMarket.series ?? market.series,
     }),
     [market.series],
+  );
+
+  // Stable reference so the memoized TimeSlotPicker doesn't re-render on
+  // every live price tick of this screen.
+  const handleMarketSelected = useCallback(
+    (nextMarket: PredictMarket) => {
+      setSelectedMarket(attachSeries(nextMarket));
+    },
+    [attachSeries],
   );
 
   const getNextSelectedMarket = useCallback(
@@ -469,6 +499,33 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
   const currentPriceAccentColor =
     CRYPTO_SYMBOL_TO_ACCENT_COLOR[targetPriceSymbol ?? ''] ??
     DEFAULT_CRYPTO_ACCENT_COLOR;
+  const twapWindowSeconds = selectedMarket.twapWindowSeconds;
+  const bottomAccessory = twapWindowSeconds ? (
+    <Box flexDirection={BoxFlexDirection.Row} twClassName="items-center gap-1">
+      <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
+      >
+        {subtitle}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={strings(
+          'predict.crypto_up_down.twap_info.accessibility_label',
+        )}
+        hitSlop={8}
+        onPress={twapInfoSheetHandlers.onOpenBottomSheet}
+        testID={PredictCryptoUpDownDetailsSelectorsIDs.TWAP_INFO_BUTTON}
+      >
+        <Icon
+          name={IconName.Info}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+        />
+      </Pressable>
+    </Box>
+  ) : undefined;
 
   return (
     <SafeAreaView
@@ -513,7 +570,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
                   <Image
                     source={{ uri: selectedMarket.image }}
                     style={tw.style('w-full h-full')}
-                    resizeMode="cover"
+                    contentFit="cover"
                   />
                 ) : (
                   <Box twClassName="w-full h-full bg-muted" />
@@ -521,7 +578,8 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
               </Box>
             }
             title={title}
-            bottomLabel={subtitle}
+            bottomLabel={twapWindowSeconds ? undefined : subtitle}
+            bottomAccessory={bottomAccessory}
             twClassName="px-4 pt-1 pb-3"
           />
         </Box>
@@ -529,12 +587,12 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         <TimeSlotPicker
           markets={visibleSlotMarkets}
           selectedMarketId={selectedMarket.id}
-          onMarketSelected={(m) => setSelectedMarket(attachSeries(m))}
+          onMarketSelected={handleMarketSelected}
         />
 
         <Box
           flexDirection={BoxFlexDirection.Row}
-          twClassName="px-4 pt-5 gap-4"
+          twClassName="px-4 pt-3 gap-4"
           testID={PredictCryptoUpDownDetailsSelectorsIDs.PRICE_SUMMARY}
         >
           <Box twClassName="flex-1">
@@ -621,7 +679,7 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
         <Box twClassName="px-4 pt-1">
           <PredictCryptoUpDownChart
             market={liveMarketForChart}
-            targetPrice={validatedTargetPrice}
+            targetPrice={chartTargetPrice}
             onCurrentPriceChange={handleCurrentPriceChange}
             color={currentPriceAccentColor}
             height={chartAreaHeight}
@@ -645,14 +703,22 @@ const PredictCryptoUpDownDetails: React.FC<PredictCryptoUpDownDetailsProps> = ({
             isMarketLoading={isMarketLoading}
             market={selectedMarket}
             openOutcomes={selectedOpenOutcomes}
-            yesPercentage={selectedYesPercentage}
             onClaimPress={onClaimPress ?? NOOP}
             onBuyPress={handleBuyPress}
             isClaimPending={isClaimPending}
-            showPayoutEstimate
           />
         </Box>
       )}
+      {isTwapInfoSheetVisible && twapWindowSeconds && targetPriceSymbol ? (
+        <Box testID={PredictCryptoUpDownDetailsSelectorsIDs.TWAP_INFO_SHEET}>
+          <PredictCryptoTwapInfoSheet
+            ref={twapInfoSheetRef}
+            windowSeconds={twapWindowSeconds}
+            symbol={targetPriceSymbol}
+            onClose={handleTwapInfoSheetClosed}
+          />
+        </Box>
+      ) : null}
     </SafeAreaView>
   );
 };

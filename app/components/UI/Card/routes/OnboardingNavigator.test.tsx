@@ -53,11 +53,11 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock @react-navigation/stack
-jest.mock('@react-navigation/stack', () => {
+// Mock @react-navigation/native-stack
+jest.mock('@react-navigation/native-stack', () => {
   const { View } = jest.requireActual('react-native');
   return {
-    createStackNavigator: () => ({
+    createNativeStackNavigator: () => ({
       Navigator: ({
         children,
         ...props
@@ -106,6 +106,14 @@ jest.mock('../components/Onboarding/VerifyIdentity', () => 'VerifyIdentity');
 jest.mock(
   '../components/Onboarding/VerifyingVeriffKYC',
   () => 'VerifyingVeriffKYC',
+);
+jest.mock(
+  '../components/Onboarding/ImmersveKYCProcessing',
+  () => 'ImmersveKYCProcessing',
+);
+jest.mock(
+  '../components/Onboarding/ImmersveFundingApproval',
+  () => 'ImmersveFundingApproval',
 );
 jest.mock('../components/Onboarding/KYCFailed', () => 'KYCFailed');
 jest.mock('../components/Onboarding/KYCPending', () => 'KYCPending');

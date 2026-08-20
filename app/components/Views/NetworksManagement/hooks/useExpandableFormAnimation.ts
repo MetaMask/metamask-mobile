@@ -1,10 +1,13 @@
-import { useRef, useCallback, useEffect, useMemo } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
+import { type LayoutChangeEvent } from 'react-native';
 import {
-  Animated,
   Easing,
-  type LayoutChangeEvent,
-  type ViewStyle,
-} from 'react-native';
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 const DEFAULT_DURATION = 280;
 const DEFAULT_EASING = Easing.out(Easing.cubic);
@@ -16,9 +19,9 @@ interface UseExpandableFormAnimationOptions {
 }
 
 /**
- * Drives a height + opacity expand/collapse animation that participates in
- * Yoga layout (useNativeDriver: false) so parent containers (e.g. BottomSheet)
- * resize smoothly.
+ * Drives a height + opacity expand/collapse animation on the UI thread via
+ * Reanimated so parent containers (e.g. BottomSheet) resize smoothly without
+ * JS-thread Yoga layout work each frame.
  *
  * Returns pre-built animated styles for the expandable content wrapper and an
  * optional "toggle button" that crossfades out as the content grows in.
@@ -29,46 +32,25 @@ export function useExpandableFormAnimation(
 ) {
   const { duration = DEFAULT_DURATION, easing = DEFAULT_EASING } = options;
 
-  const heightAnim = useRef(new Animated.Value(0)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
+  const heightSv = useSharedValue(0);
+  const opacitySv = useSharedValue(0);
   const measuredHeight = useRef(0);
 
   const expand = useCallback(
     (target: number) => {
-      Animated.parallel([
-        Animated.timing(heightAnim, {
-          toValue: target,
-          duration,
-          easing,
-          useNativeDriver: false,
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 1,
-          duration,
-          easing,
-          useNativeDriver: false,
-        }),
-      ]).start();
+      heightSv.value = withTiming(target, { duration, easing });
+      opacitySv.value = withTiming(1, { duration, easing });
     },
-    [heightAnim, opacityAnim, duration, easing],
+    [heightSv, opacitySv, duration, easing],
   );
 
   const collapse = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(heightAnim, {
-        toValue: 0,
-        duration,
-        easing,
-        useNativeDriver: false,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 0,
-        duration: duration * 0.5,
-        easing,
-        useNativeDriver: false,
-      }),
-    ]).start();
-  }, [heightAnim, opacityAnim, duration, easing]);
+    heightSv.value = withTiming(0, { duration, easing });
+    opacitySv.value = withTiming(0, {
+      duration: duration * 0.5,
+      easing,
+    });
+  }, [heightSv, opacitySv, duration, easing]);
 
   useEffect(() => {
     if (isExpanded && measuredHeight.current > 0) {
@@ -91,31 +73,27 @@ export function useExpandableFormAnimation(
     [isExpanded, expand],
   );
 
-  const contentWrapperStyle: Animated.WithAnimatedObject<ViewStyle> = useMemo(
-    () => ({
-      overflow: 'hidden' as const,
-      height: heightAnim,
-      opacity: opacityAnim,
-    }),
-    [heightAnim, opacityAnim],
-  );
+  const contentWrapperStyle = useAnimatedStyle(() => ({
+    overflow: 'hidden' as const,
+    height: heightSv.value,
+    opacity: opacitySv.value,
+  }));
 
-  const toggleButtonStyle: Animated.WithAnimatedObject<ViewStyle> = useMemo(
-    () => ({
-      overflow: 'hidden' as const,
-      opacity: opacityAnim.interpolate({
-        inputRange: [0, 0.4],
-        outputRange: [1, 0],
-        extrapolate: 'clamp',
-      }),
-      maxHeight: opacityAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: [COLLAPSED_BUTTON_HEIGHT, 0],
-        extrapolate: 'clamp',
-      }),
-    }),
-    [opacityAnim],
-  );
+  const toggleButtonStyle = useAnimatedStyle(() => ({
+    overflow: 'hidden' as const,
+    opacity: interpolate(
+      opacitySv.value,
+      [0, 0.4],
+      [1, 0],
+      Extrapolation.CLAMP,
+    ),
+    maxHeight: interpolate(
+      opacitySv.value,
+      [0, 1],
+      [COLLAPSED_BUTTON_HEIGHT, 0],
+      Extrapolation.CLAMP,
+    ),
+  }));
 
   return {
     onContentLayout,

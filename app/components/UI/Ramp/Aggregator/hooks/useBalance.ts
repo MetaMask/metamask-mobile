@@ -1,23 +1,25 @@
 import { useSelector } from 'react-redux';
 import { NATIVE_ADDRESS } from '../../../../../constants/on-ramp';
+import { RootState } from '../../../../../reducers';
 import { selectAccountsByChainId } from '../../../../../selectors/accountTrackerController';
 import {
-  selectConversionRate,
+  selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../../selectors/currencyRateController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectContractBalancesPerChainId } from '../../../../../selectors/tokenBalancesController';
-import { selectContractExchangeRates } from '../../../../../selectors/tokenRatesController';
+import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { safeToChecksumAddress } from '../../../../../util/address';
 import {
   balanceToFiat,
-  hexToBN,
+  hexToBigInt,
   renderFromTokenMinimalUnit,
   renderFromWei,
   weiToFiat,
-} from '../../../../../util/number';
+} from '../../../../../util/number/bigint';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
+import { getEvmHexChainId } from '../utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainBalances } from '../../../../../selectors/multichain';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -49,9 +51,21 @@ export default function useBalance(asset?: Asset) {
     selectSelectedInternalAccountByScope,
   );
 
-  const conversionRate = useSelector(selectConversionRate);
+  // Conversion and exchange rates must be read for the asset's own chain, not
+  // the globally selected network, otherwise the fiat balance is computed with
+  // the wrong native-currency rate (e.g. an ETH rate applied to a BNB balance).
+  const assetEvmChainId = getEvmHexChainId(asset?.chainId);
+  const conversionRate = useSelector((state: RootState) =>
+    assetEvmChainId
+      ? selectConversionRateByChainId(state, assetEvmChainId)
+      : undefined,
+  );
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const tokenExchangeRates = useSelector(selectContractExchangeRates);
+  const tokenExchangeRates = useSelector((state: RootState) =>
+    assetEvmChainId
+      ? selectContractExchangeRatesByChainId(state, assetEvmChainId)
+      : undefined,
+  );
   const balancesPerChainId = useSelector(selectContractBalancesPerChainId);
 
   if (!asset || (!asset.address && !asset.assetId) || !selectedAddress) {
@@ -87,15 +101,15 @@ export default function useBalance(asset?: Asset) {
       return defaultReturn;
     }
 
-    balance = renderFromWei(
-      accountsByChainId[hexChainId][selectedAddress]?.balance,
-    );
+    const accountBalance =
+      accountsByChainId[hexChainId][selectedAddress]?.balance;
 
-    balanceBN = hexToBN(
-      accountsByChainId[hexChainId][selectedAddress]?.balance,
-    );
+    balance = renderFromWei(accountBalance);
 
-    balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);
+    // Legacy hexToBN(undefined) returned BN(0); preserve that for missing balances.
+    balanceBN = hexToBigInt(accountBalance ?? '0x0');
+
+    balanceFiat = weiToFiat(balanceBN, conversionRate ?? null, currentCurrency);
   } else if (asset.address) {
     const assetAddress = safeToChecksumAddress(asset.address);
     const exchangeRate = tokenExchangeRates?.[assetAddress as Hex]?.price;
@@ -117,7 +131,7 @@ export default function useBalance(asset?: Asset) {
     );
     balanceBN =
       assetAddress && chainBalances && assetAddress in chainBalances
-        ? hexToBN(chainBalances[assetAddress])
+        ? hexToBigInt(chainBalances[assetAddress])
         : null;
   }
 

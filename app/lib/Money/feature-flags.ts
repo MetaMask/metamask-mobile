@@ -3,6 +3,8 @@ import {
   VersionGatedFeatureFlag,
 } from '../../util/remoteFeatureFlag';
 
+export const MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME = 'moneyEnableMoneyAccount';
+
 /**
  * Checks if the Money account feature is enabled based on
  * environment variables and remote feature flags.
@@ -13,9 +15,9 @@ import {
 export function isMoneyAccountEnabled(
   remoteFeatureFlags: Record<string, unknown> | undefined,
 ): boolean {
-  const localFlag = process.env.MM_MONEY_ENABLE_MONEY_ACCOUNT === 'true';
-  const remoteFlag =
-    remoteFeatureFlags?.moneyEnableMoneyAccount as VersionGatedFeatureFlag;
+  const remoteFlag = remoteFeatureFlags?.[
+    MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME
+  ] as VersionGatedFeatureFlag;
 
-  return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
 }

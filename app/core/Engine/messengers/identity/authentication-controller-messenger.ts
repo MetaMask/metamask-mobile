@@ -16,19 +16,21 @@ const name = 'AuthenticationController';
  * @returns The AuthenticationControllerMessenger.
  */
 export function getAuthenticationControllerMessenger(
-  rootMessenger: RootMessenger,
-): AuthenticationControllerMessenger {
-  const messenger = new Messenger<
-    typeof name,
+  rootMessenger: RootMessenger<
     MessengerActions<AuthenticationControllerMessenger>,
-    MessengerEvents<AuthenticationControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<AuthenticationControllerMessenger>
+  >,
+): AuthenticationControllerMessenger {
+  const messenger: AuthenticationControllerMessenger = new Messenger({
     namespace: name,
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['KeyringController:getState', 'SnapController:handleRequest'],
+    actions: [
+      'KeyringController:getState',
+      'SeedlessOnboardingController:getState',
+      'SnapController:handleRequest',
+    ],
     events: ['KeyringController:lock', 'KeyringController:unlock'],
     messenger,
   });

@@ -10,9 +10,9 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  useCardOnboardingNavigationHandlers,
-  type CardOnboardingHeaderMode,
-} from '../../hooks/useCardOnboardingNavigationHandlers';
+  useCardHeaderHandlers,
+  type CardHeaderMode,
+} from '../../hooks/useCardHeaderHandlers';
 
 interface OnboardingStepProps {
   title: string;
@@ -29,7 +29,13 @@ interface OnboardingStepProps {
    * Controls the in-screen header rendered via HeaderStandard.
    * Navigator headers are hidden; onboarding screens own their header chrome.
    */
-  headerMode?: CardOnboardingHeaderMode;
+  headerMode?: CardHeaderMode;
+  /**
+   * Optional override for the back header action when `headerMode` is `"back"`.
+   * Use for multi-step screens that share one route (back should change local
+   * step state instead of calling `navigation.goBack()`).
+   */
+  onBackPress?: () => void;
 }
 
 const OnboardingStep = ({
@@ -39,9 +45,14 @@ const OnboardingStep = ({
   actions,
   stickyActions = false,
   headerMode = 'none',
+  onBackPress,
 }: OnboardingStepProps) => {
   const tw = useTailwind();
-  const headerHandlers = useCardOnboardingNavigationHandlers(headerMode);
+  const headerHandlers = useCardHeaderHandlers(headerMode);
+  const resolvedHeaderHandlers =
+    headerMode === 'back' && onBackPress
+      ? { ...headerHandlers, onBack: onBackPress }
+      : headerHandlers;
 
   const renderHeader = () => {
     if (headerMode === 'none') {
@@ -52,7 +63,7 @@ const OnboardingStep = ({
       <HeaderStandard
         includesTopInset
         twClassName="bg-background-default"
-        {...headerHandlers}
+        {...resolvedHeaderHandlers}
       />
     );
   };

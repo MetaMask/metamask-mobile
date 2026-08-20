@@ -9,17 +9,27 @@ import {
 import { rewardsControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import { selectRewardsFirstPredictOnUsEnabled } from '../../../../selectors/featureFlagController/rewardsFirstPredictOnUs';
 import { isVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 
 jest.mock('./RewardsController');
 jest.mock('../../../../selectors/settings');
+jest.mock('../../../../selectors/featureFlagController/vipProgram');
+jest.mock(
+  '../../../../selectors/featureFlagController/rewardsFirstPredictOnUs',
+);
 jest.mock('../../../../util/remoteFeatureFlag');
 
 describe('rewardsControllerInit', () => {
   const rewardsControllerClassMock = jest.mocked(RewardsController);
   const selectBasicFunctionalityEnabledMock = jest.mocked(
     selectBasicFunctionalityEnabled,
+  );
+  const selectVipProgramEnabledMock = jest.mocked(selectVipProgramEnabled);
+  const selectRewardsFirstPredictOnUsEnabledMock = jest.mocked(
+    selectRewardsFirstPredictOnUsEnabled,
   );
   const isVersionGatedFeatureFlagMock = jest.mocked(isVersionGatedFeatureFlag);
 
@@ -72,6 +82,8 @@ describe('rewardsControllerInit', () => {
 
     // Default mock return values
     selectBasicFunctionalityEnabledMock.mockReturnValue(true);
+    selectVipProgramEnabledMock.mockReturnValue(true);
+    selectRewardsFirstPredictOnUsEnabledMock.mockReturnValue(true);
     isVersionGatedFeatureFlagMock.mockReturnValue(false);
   });
 
@@ -133,6 +145,58 @@ describe('rewardsControllerInit', () => {
       const constructorArgs = rewardsControllerClassMock.mock.calls[0][0];
       const isDisabledFn = constructorArgs.isDisabled as () => boolean;
       expect(isDisabledFn()).toBe(true);
+    });
+  });
+
+  describe('isVipDisabled function', () => {
+    it('returns false when the VIP program is enabled', () => {
+      selectVipProgramEnabledMock.mockReturnValue(true);
+
+      rewardsControllerInit(initRequestMock);
+
+      const constructorArgs = rewardsControllerClassMock.mock.calls[0][0];
+      const isVipDisabledFn = constructorArgs.isVipDisabled as () => boolean;
+      expect(isVipDisabledFn()).toBe(false);
+      expect(selectVipProgramEnabledMock).toHaveBeenCalledWith(
+        initRequestMock.getState(),
+      );
+    });
+
+    it('returns true when the VIP program is disabled', () => {
+      selectVipProgramEnabledMock.mockReturnValue(false);
+
+      rewardsControllerInit(initRequestMock);
+
+      const constructorArgs = rewardsControllerClassMock.mock.calls[0][0];
+      const isVipDisabledFn = constructorArgs.isVipDisabled as () => boolean;
+      expect(isVipDisabledFn()).toBe(true);
+    });
+  });
+
+  describe('isFirstPredictOnUsDisabled function', () => {
+    it('returns false when First Predict On Us is enabled', () => {
+      selectRewardsFirstPredictOnUsEnabledMock.mockReturnValue(true);
+
+      rewardsControllerInit(initRequestMock);
+
+      const constructorArgs = rewardsControllerClassMock.mock.calls[0][0];
+      const isFirstPredictOnUsDisabledFn =
+        constructorArgs.isFirstPredictOnUsDisabled as () => boolean;
+      expect(isFirstPredictOnUsDisabledFn()).toBe(false);
+      expect(selectRewardsFirstPredictOnUsEnabledMock).toHaveBeenCalledWith(
+        initRequestMock.getState(),
+      );
+    });
+
+    it('returns true when First Predict On Us is disabled', () => {
+      selectRewardsFirstPredictOnUsEnabledMock.mockReturnValue(false);
+
+      rewardsControllerInit(initRequestMock);
+
+      const constructorArgs = rewardsControllerClassMock.mock.calls[0][0];
+      const isFirstPredictOnUsDisabledFn =
+        constructorArgs.isFirstPredictOnUsDisabled as () => boolean;
+      expect(isFirstPredictOnUsDisabledFn()).toBe(true);
     });
   });
 });

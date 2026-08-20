@@ -1,6 +1,6 @@
 import { createProjectLogger } from '@metamask/utils';
 
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import {
   JsonMap,
   IMetaMetricsEvent,
@@ -37,7 +37,7 @@ export function generateEvent({
   properties?: JsonMap;
   sensitiveProperties?: JsonMap;
 }) {
-  return MetricsEventBuilder.createEventBuilder(metametricsEvent)
+  return AnalyticsEventBuilder.createEventBuilder(metametricsEvent)
     .addProperties(properties ?? {})
     .addSensitiveProperties(sensitiveProperties ?? {})
     .build();

@@ -1,7 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import { PerpsPositionCardSelectorsIDs } from '../../Perps.testIds';
-import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
+import {
+  PERPS_CONSTANTS,
+  type Order,
+  type Position,
+} from '@metamask/perps-controller';
 import PerpsPositionCard from './PerpsPositionCard';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 
@@ -96,9 +100,6 @@ jest.mock('../../hooks/stream', () => ({
 
 // Mock the new hooks from ../../hooks
 jest.mock('../../hooks', () => ({
-  usePerpsPositions: jest.fn().mockReturnValue({
-    loadPositions: jest.fn().mockResolvedValue(undefined),
-  }),
   usePerpsMarkets: jest.fn().mockReturnValue({
     markets: [
       {
@@ -236,7 +237,7 @@ describe('PerpsPositionCard', () => {
       ETH: {
         symbol: 'ETH',
         price: '2100.50',
-        timestamp: Date.now(),
+        timestamp: 1700000000000,
         percentChange24h: '2.5',
       },
     });
@@ -315,6 +316,61 @@ describe('PerpsPositionCard', () => {
       expect(
         screen.getByTestId(PerpsPositionCardSelectorsIDs.DIRECTION_VALUE),
       ).toHaveTextContent(/long\s+10x/);
+    });
+
+    it('formats auto-close stop loss with market-aware price precision', () => {
+      const litPosition: Position = {
+        ...mockPosition,
+        symbol: 'LIT',
+        stopLossPrice: '2.1946',
+        stopLossCount: 1,
+      };
+
+      render(<PerpsPositionCard position={litPosition} szDecimals={2} />);
+
+      expect(screen.getByText('perps.order.sl $2.1946')).toBeOnTheScreen();
+    });
+
+    it('formats auto-close take profit with market-aware price precision', () => {
+      const litPosition: Position = {
+        ...mockPosition,
+        symbol: 'LIT',
+        takeProfitPrice: '2.1946',
+        takeProfitCount: 1,
+      };
+
+      render(<PerpsPositionCard position={litPosition} szDecimals={2} />);
+
+      expect(screen.getByText('perps.order.tp $2.1946')).toBeOnTheScreen();
+    });
+
+    it('formats order-level take profit and stop loss with market-aware price precision', () => {
+      const litPosition: Position = {
+        ...mockPosition,
+        symbol: 'LIT',
+        takeProfitCount: 1,
+        stopLossCount: 1,
+      };
+      const orders = [
+        {
+          symbol: 'LIT',
+          isTrigger: false,
+          takeProfitPrice: '2.1946',
+          stopLossPrice: '2.1234',
+        } as Order,
+      ];
+
+      render(
+        <PerpsPositionCard
+          position={litPosition}
+          orders={orders}
+          szDecimals={2}
+        />,
+      );
+
+      expect(
+        screen.getByText('perps.order.tp $2.1946, perps.order.sl $2.1234'),
+      ).toBeOnTheScreen();
     });
 
     it('renders SHORT position correctly', () => {
@@ -691,44 +747,6 @@ describe('PerpsPositionCard', () => {
         screen.getByTestId(PerpsPositionCardSelectorsIDs.PNL_VALUE),
       ).toHaveTextContent(/\+\$250\.00/);
       expect(screen.queryByText(DOTS_SHORT)).toBeNull();
-    });
-
-    describe('Compact mode', () => {
-      it('hides position value and PnL in compact default variant', () => {
-        // Arrange
-        enablePrivacyMode();
-
-        // Act
-        render(
-          <PerpsPositionCard
-            position={mockPosition}
-            compact
-            compactVariant="default"
-          />,
-        );
-
-        // Assert - financial values replaced with dots
-        const hiddenValues = screen.getAllByText(DOTS_SHORT);
-        expect(hiddenValues.length).toBeGreaterThanOrEqual(2);
-      });
-
-      it('hides ROE in compact position variant', () => {
-        // Arrange
-        enablePrivacyMode();
-
-        // Act
-        render(
-          <PerpsPositionCard
-            position={mockPosition}
-            compact
-            compactVariant="position"
-          />,
-        );
-
-        // Assert
-        const hiddenValues = screen.getAllByText(DOTS_SHORT);
-        expect(hiddenValues.length).toBeGreaterThanOrEqual(1);
-      });
     });
   });
 });

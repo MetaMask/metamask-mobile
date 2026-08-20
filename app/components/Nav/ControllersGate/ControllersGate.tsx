@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { StyleSheet, Animated } from 'react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { StyleSheet, Animated, useAnimatedValue } from 'react-native';
 import { ControllersGateProps } from './types';
 import { useSelector } from 'react-redux';
 import { selectAppServicesReady } from '../../../reducers/user/selectors';
@@ -18,7 +18,7 @@ const ControllersGate: React.FC<ControllersGateProps> = ({
   const appServicesReady = useSelector(selectAppServicesReady);
   const [loaderDone, setLoaderDone] = useState(false);
   const [animationDone, setAnimationDone] = useState(false);
-  const loaderOpacity = useRef(new Animated.Value(1)).current;
+  const loaderOpacity = useAnimatedValue(1);
 
   const fadeOutLoader = useCallback(() => {
     Animated.timing(loaderOpacity, {

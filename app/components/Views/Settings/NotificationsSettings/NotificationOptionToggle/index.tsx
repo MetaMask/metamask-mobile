@@ -1,9 +1,8 @@
-import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Switch, View } from 'react-native';
+import React, { useCallback } from 'react';
+import { Switch, View } from 'react-native';
 import { createStyles } from './styles';
 import { useTheme } from '../../../../../util/theme';
 import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
-import { useAccountNotificationsToggle } from '../../../../../util/notifications/hooks/useSwitchNotifications';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import AccountCell from '../../../../../component-library/components-temp/MultichainAccounts/AccountCell';
 
@@ -18,43 +17,12 @@ export const NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID = (
 
 interface NotificationOptionsToggleProps {
   item: AccountGroupObject;
-  evmAddress?: string;
   icon: AvatarAccountType;
   testId?: string;
   disabledSwitch?: boolean;
-  isLoading?: boolean;
   isEnabled: boolean;
-  refetchNotificationAccounts: () => Promise<void>;
+  onToggle: (nextValue: boolean) => void;
   testID: string;
-}
-
-export function useUpdateAccountSetting(
-  address: string | undefined,
-  refetchAccountSettings: () => Promise<void>,
-) {
-  const { onToggle, error } = useAccountNotificationsToggle();
-
-  // Local states
-  const [loading, setLoading] = useState(false);
-
-  const toggleAccount = useCallback(
-    async (state: boolean) => {
-      if (!address) {
-        return;
-      }
-      setLoading(true);
-      try {
-        await onToggle([address], state);
-        await refetchAccountSettings();
-      } catch {
-        // Do nothing (we don't need to propagate this)
-      }
-      setLoading(false);
-    },
-    [address, onToggle, refetchAccountSettings],
-  );
-
-  return { toggleAccount, loading, error };
 }
 
 /**
@@ -63,28 +31,22 @@ export function useUpdateAccountSetting(
  */
 const NotificationOptionToggle = ({
   item,
-  evmAddress,
   icon,
   isEnabled,
   disabledSwitch,
-  isLoading,
-  refetchNotificationAccounts,
+  onToggle,
   testID,
 }: NotificationOptionsToggleProps) => {
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles();
 
-  const { toggleAccount, loading: isUpdatingAccount } = useUpdateAccountSetting(
-    evmAddress,
-    refetchNotificationAccounts,
+  const handleToggleAccountNotifications = useCallback(
+    (nextValue: boolean) => {
+      onToggle(nextValue);
+    },
+    [onToggle],
   );
-
-  const loading = isLoading || isUpdatingAccount;
-
-  const handleToggleAccountNotifications = useCallback(async () => {
-    await toggleAccount(!isEnabled);
-  }, [isEnabled, toggleAccount]);
 
   return (
     <View testID={NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID(testID)}>
@@ -92,25 +54,19 @@ const NotificationOptionToggle = ({
         accountGroup={item}
         avatarAccountType={icon}
         endContainer={
-          loading ? (
-            <ActivityIndicator
-              testID={NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID(testID)}
-            />
-          ) : (
-            <Switch
-              style={styles.switch}
-              value={isEnabled}
-              onChange={handleToggleAccountNotifications}
-              trackColor={{
-                true: colors.primary.default,
-                false: colors.border.muted,
-              }}
-              thumbColor={theme.brandColors.white}
-              disabled={disabledSwitch}
-              ios_backgroundColor={colors.border.muted}
-              testID={testID}
-            />
-          )
+          <Switch
+            style={styles.switch}
+            value={isEnabled}
+            onValueChange={handleToggleAccountNotifications}
+            trackColor={{
+              true: colors.primary.default,
+              false: colors.border.muted,
+            }}
+            thumbColor={theme.brandColors.white}
+            disabled={disabledSwitch}
+            ios_backgroundColor={colors.border.muted}
+            testID={testID}
+          />
         }
       />
     </View>

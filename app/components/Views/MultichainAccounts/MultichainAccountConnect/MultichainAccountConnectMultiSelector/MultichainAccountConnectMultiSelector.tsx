@@ -21,21 +21,20 @@ import HelpText, {
 // Internal dependencies.
 import { AccountGroupId } from '@metamask/account-api';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { ConnectAccountBottomSheetSelectorsIDs } from '../../../AccountConnect/ConnectAccountBottomSheet.testIds';
+import { ConnectAccountBottomSheetSelectorsIDs } from '../../../MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { AccountListBottomSheetSelectorsIDs } from '../../../AccountSelector/AccountListBottomSheet.testIds';
 import styleSheet from './MultichainAccountConnectMultiSelector.styles';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { ConnectedAccountsSelectorsIDs } from '../../../AccountConnect/ConnectedAccountModal.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import { USER_INTENT } from '../../../../../constants/permissions';
 import { ConnectionProps } from '../../../../../core/SDKConnect/Connection';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
 import { AccountGroupWithInternalAccounts } from '../../../../../selectors/multichainAccounts/accounts.type';
 import { selectAccountGroups } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 interface MultichainAccountConnectMultiSelectorProps {
   accountGroups: AccountGroupWithInternalAccounts[];
@@ -62,8 +61,16 @@ const MultichainAccountConnectMultiSelector = ({
   hostname,
   connection,
 }: MultichainAccountConnectMultiSelectorProps) => {
+  const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { isRenderedAsBottomSheet });
-  const navigation = useNavigation();
+  const safeAreaContainerStyle = useMemo(
+    () => [
+      styles.safeArea,
+      { paddingTop: insets.top, paddingBottom: insets.bottom },
+    ],
+    [styles.safeArea, insets.top, insets.bottom],
+  );
+  const navigation = useNavigation<AppNavigationProp>();
   const [selectedAccountGroupIdsSet, setSelectedAccountGroupIdsSet] = useState<
     Set<AccountGroupId>
   >(() => new Set());
@@ -166,7 +173,7 @@ const MultichainAccountConnectMultiSelector = ({
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={safeAreaContainerStyle}>
       <View style={styles.container}>
         <SheetHeader
           title={screenTitle || strings('accounts.connect_accounts_title')}
@@ -191,7 +198,7 @@ const MultichainAccountConnectMultiSelector = ({
         )}
         <View style={styles.body}>{renderCtaButtons()}</View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

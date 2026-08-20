@@ -1,17 +1,17 @@
 import { NativeModules, Platform } from 'react-native';
-import { isQa, isRc } from '../util/test/utils';
+import { isE2EOrExpEnvironment, isRc } from '../util/test/utils';
 
 const isAndroid = Platform.OS === 'android';
 
 export default {
   forbid:
-    isQa || isRc
+    isE2EOrExpEnvironment || isRc
       ? () => true
       : isAndroid
         ? NativeModules.PreventScreenshot.forbid
         : () => true,
   allow:
-    isQa || isRc
+    isE2EOrExpEnvironment || isRc
       ? () => true
       : isAndroid
         ? NativeModules.PreventScreenshot.allow

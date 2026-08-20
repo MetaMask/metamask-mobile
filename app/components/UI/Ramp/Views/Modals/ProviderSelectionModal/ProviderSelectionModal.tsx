@@ -8,6 +8,7 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   createNavigationDetails,
   useParams,
@@ -48,7 +49,7 @@ function ProviderSelectionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, { screenHeight });
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const {
     amount: routeAmount,
     assetId: paramAssetId,
@@ -140,7 +141,7 @@ function ProviderSelectionModal() {
     (hasPendingAction?: boolean) => {
       if (!hasPendingAction && skipQuotes) {
         navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-          screen: Routes.RAMP.TOKEN_SELECTION,
+          screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
         });
       }
     },
@@ -184,6 +185,7 @@ function ProviderSelectionModal() {
       <View style={styles.container}>
         <ProviderSelection
           providers={displayProviders}
+          amount={amount}
           quotes={quotes}
           quotesLoading={quotesLoading}
           quotesError={

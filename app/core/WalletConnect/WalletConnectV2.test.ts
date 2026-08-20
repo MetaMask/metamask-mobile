@@ -7,6 +7,7 @@ import { IWalletKit } from '@reown/walletkit';
 import WalletConnect2Session from './WalletConnect2Session';
 // eslint-disable-next-line import-x/no-namespace
 import * as wcUtils from './wc-utils';
+import { getPermittedCaipChainIds } from '../Permissions';
 import Engine from '../Engine';
 import { SessionTypes } from '@walletconnect/types';
 import { Core } from '@walletconnect/core';
@@ -116,6 +117,10 @@ jest.mock('@reown/walletkit', () => {
 });
 
 jest.mock('../Engine', () => ({
+  controllerMessenger: {
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
   context: {
     AccountsController: {
       getSelectedAccount: jest.fn().mockReturnValue({
@@ -172,7 +177,7 @@ jest.mock('../Permissions', () => ({
   getPermittedAccounts: jest
     .fn()
     .mockReturnValue(['0x1234567890abcdef1234567890abcdef12345678']),
-  getPermittedChains: jest.fn().mockResolvedValue(['eip155:1']),
+  getPermittedCaipChainIds: jest.fn().mockResolvedValue(['eip155:1']),
   updatePermittedChains: jest.fn(),
 }));
 
@@ -184,6 +189,10 @@ jest.mock('../../selectors/networkController', () => ({
     ticker: 'ETH',
   }),
   selectEvmNetworkConfigurationsByChainId: jest.fn().mockReturnValue({}),
+  selectNetworkConfigurationsByCaipChainId: jest.fn().mockReturnValue({
+    'eip155:1': { name: 'Ethereum Mainnet' },
+    'eip155:137': { name: 'Polygon' },
+  }),
   selectSelectedNetworkClientId: jest.fn().mockReturnValue('mainnet'),
   selectNetworkClientId: jest.fn().mockReturnValue('mainnet'),
   selectRpcUrl: jest.fn().mockReturnValue('https://mainnet.infura.io/v3/123'),
@@ -270,6 +279,9 @@ describe('WC2Manager', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    // Spies on real modules (StorageWrapper, wcUtils, store, ...) would
+    // otherwise leak into later tests in this single-describe file.
+    jest.restoreAllMocks();
     // Reset WC2Manager singleton state
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (WC2Manager as any).instance = undefined;
@@ -985,6 +997,188 @@ describe('WC2Manager', () => {
         id: 1,
         reason: expect.any(Object),
       });
+    });
+
+    it('approves a Tron-only proposal with the namespace built by the multichain adapter', async () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'test-topic',
+        pairingTopic: 'test-pairing',
+        peer: {
+          metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
+        },
+      });
+
+      const tronAddress = 'TWzeSXq3pVMFRkBNzGzkbmd5DQYwTtCFGS';
+      const tronCaipAccount = `tron:728126428:${tronAddress}`;
+
+      const getPermittedCaipChainIdsMock =
+        getPermittedCaipChainIds as unknown as jest.Mock;
+      const originalgetPermittedCaipChainIdsImpl =
+        getPermittedCaipChainIdsMock.getMockImplementation();
+      getPermittedCaipChainIdsMock.mockResolvedValue(['tron:728126428']);
+
+      const permissionController = Engine.context
+        .PermissionController as unknown as { getCaveat: jest.Mock };
+      const originalGetCaveatImpl =
+        permissionController.getCaveat.getMockImplementation();
+      permissionController.getCaveat.mockImplementation(
+        (_origin: string, permissionName: string) => {
+          if (permissionName === 'endowment:caip25') {
+            return {
+              type: 'authorizedScopes',
+              value: {
+                requiredScopes: {},
+                optionalScopes: {
+                  'tron:728126428': {
+                    accounts: [tronCaipAccount],
+                  },
+                },
+                sessionProperties: {},
+                isMultichainOrigin: false,
+              },
+            };
+          }
+          return null;
+        },
+      );
+
+      const getScopedPermissionsMock =
+        wcUtils.getScopedPermissions as jest.Mock;
+      getScopedPermissionsMock.mockResolvedValueOnce({});
+
+      const tronProposal = {
+        id: 42,
+        params: {
+          id: 42,
+          pairingTopic: 'tron-pairing',
+          proposer: {
+            publicKey: 'tron-public-key',
+            metadata: {
+              name: 'Tron Dapp',
+              description: 'Tron Dapp',
+              url: 'https://tron.example.com',
+              icons: ['https://tron.example.com/icon.png'],
+            },
+          },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
+          requiredNamespaces: {},
+          optionalNamespaces: {
+            tron: {
+              chains: ['tron:0x2b6653dc'],
+              methods: ['tron_signTransaction', 'tron_signMessage'],
+              events: [],
+            },
+          },
+        },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'https://tron.example.com',
+            validation: 'VALID' as const,
+            origin: 'https://tron.example.com',
+          },
+        },
+      };
+
+      await manager.onSessionProposal(tronProposal);
+
+      expect(mockApproveSession).toHaveBeenCalledTimes(1);
+      const approveCall = mockApproveSession.mock.calls[0][0];
+
+      expect(Object.keys(approveCall.namespaces)).toEqual(['tron']);
+
+      expect(approveCall.namespaces.tron).toEqual({
+        chains: ['tron:0x2b6653dc'],
+        methods: ['tron_signTransaction', 'tron_signMessage'],
+        events: [],
+        accounts: [`tron:0x2b6653dc:${tronAddress}`],
+      });
+
+      expect(approveCall.sessionProperties).toEqual({
+        tron_method_version: 'v1',
+      });
+
+      if (originalgetPermittedCaipChainIdsImpl) {
+        getPermittedCaipChainIdsMock.mockImplementation(
+          originalgetPermittedCaipChainIdsImpl,
+        );
+      } else {
+        getPermittedCaipChainIdsMock.mockResolvedValue(['eip155:1']);
+      }
+      if (originalGetCaveatImpl) {
+        permissionController.getCaveat.mockImplementation(
+          originalGetCaveatImpl,
+        );
+      }
+    });
+
+    it('seeds requested eip155 chains into the permission request when a proposal mixes eip155 with an adapter namespace (Tron)', async () => {
+      // Regression test for WPN-1704: a proposal with both eip155 and tron
+      // used to raise a permission request whose only chain scopes were
+      // Tron's, so the approval UI pre-selected Tron only and eip155 settled
+      // with no accounts.
+      mockApproveSession.mockResolvedValue({
+        topic: 'test-topic',
+        pairingTopic: 'mixed-pairing',
+        peer: {
+          metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
+        },
+      });
+
+      const mixedProposal = {
+        id: 43,
+        params: {
+          id: 43,
+          pairingTopic: 'mixed-pairing',
+          proposer: {
+            publicKey: 'mixed-public-key',
+            metadata: {
+              name: 'Multichain Dapp',
+              description: 'Multichain Dapp',
+              url: 'https://multichain.example.com',
+              icons: ['https://multichain.example.com/icon.png'],
+            },
+          },
+          expiryTimestamp: Date.now() + 300000,
+          relays: [{ protocol: 'irn' }],
+          requiredNamespaces: {},
+          optionalNamespaces: {
+            eip155: {
+              chains: ['eip155:1', 'eip155:137'],
+              methods: ['eth_sendTransaction', 'personal_sign'],
+              events: ['chainChanged', 'accountsChanged'],
+            },
+            tron: {
+              chains: ['tron:0x2b6653dc'],
+              methods: ['tron_signTransaction', 'tron_signMessage'],
+              events: [],
+            },
+          },
+        },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'https://multichain.example.com',
+            validation: 'VALID' as const,
+            origin: 'https://multichain.example.com',
+          },
+        },
+      };
+
+      await manager.onSessionProposal(mixedProposal);
+
+      const requestPermissionsMock = Engine.context.PermissionController
+        .requestPermissions as jest.Mock;
+      expect(requestPermissionsMock).toHaveBeenCalledTimes(1);
+
+      const requestedCaveatValue =
+        requestPermissionsMock.mock.calls[0][1]['endowment:caip25'].caveats[0]
+          .value;
+
+      // Both the requested eip155 chains and the Tron adapter scope must be
+      // present so the approval UI pre-selects EVM and Tron together.
+      expect(Object.keys(requestedCaveatValue.optionalScopes)).toEqual(
+        expect.arrayContaining(['eip155:1', 'eip155:137', 'tron:728126428']),
+      );
     });
 
     it('logs "invalid wallet status" error to console on session proposal with invalid wallet status', async () => {
@@ -1900,11 +2094,34 @@ describe('WC2Manager', () => {
       expect(wc2MetadataCalls.length).toBeGreaterThan(0);
 
       const metadata = wc2MetadataCalls[0][0].metadata;
+      expect(metadata.id).toBe('verify-test-pairing');
       expect(metadata.verifyContext).toEqual({
         isScam: true,
         validation: 'INVALID',
         verifiedOrigin: 'https://malicious-site.com',
       });
+    });
+
+    it('stores pairing topic as wc2Metadata id for permission-origin matching', async () => {
+      mockApproveSession.mockResolvedValue({
+        topic: 'pairing-id-topic',
+        pairingTopic: 'verify-test-pairing',
+        peer: {
+          metadata: {
+            url: 'https://example.com',
+            name: 'Verify Test App',
+            icons: [],
+          },
+        },
+      });
+
+      await manager.onSessionProposal(createProposal());
+
+      const metadataCall = dispatchSpy.mock.calls.find(
+        (call: any) => call[0]?.type === ActionType.WC2_METADATA,
+      );
+
+      expect(metadataCall?.[0]?.metadata?.id).toBe('verify-test-pairing');
     });
 
     it('dispatches verifyContext with isScam false for verified dapps', async () => {

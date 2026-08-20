@@ -69,6 +69,22 @@ export class PlaywrightElement {
   }
 
   /**
+   * Detox-compatible alias for textContent (used by WebView page objects).
+   */
+  @boxedStep
+  async getText(): Promise<string> {
+    return this.textContent();
+  }
+
+  /**
+   * Scroll element into view inside a WebView (Detox scrollToView equivalent).
+   */
+  @boxedStep
+  async scrollToView(): Promise<void> {
+    await this.elem.scrollIntoView();
+  }
+
+  /**
    * Check if elem is visible (Playwright-style)
    * Maps to WebdriverIO's isDisplayed()
    */
@@ -84,6 +100,14 @@ export class PlaywrightElement {
   @boxedStep
   async isEnabled(): Promise<boolean> {
     return await this.elem.isEnabled();
+  }
+
+  /**
+   * Check if elem is displayed and enabled (WebdriverIO isClickable).
+   */
+  @boxedStep
+  async isClickable(): Promise<boolean> {
+    return await this.elem.isClickable();
   }
 
   /**
@@ -133,6 +157,14 @@ export class PlaywrightElement {
     visibilityProperty?: boolean;
     reverse?: boolean;
   }): Promise<void> {
+    if (!this.elem) {
+      if (options?.reverse) {
+        return;
+      }
+      throw new Error(
+        'An element could not be located on the page using the given search parameters.',
+      );
+    }
     await this.elem.waitForDisplayed(options);
   }
 

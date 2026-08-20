@@ -2,21 +2,26 @@ import { StakeViewSelectors } from '../../selectors/Stake/StakeView.selectors.js
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Utilities from '../../framework/Utilities';
+import {
+  Assertions,
+  EncapsulatedElementType,
+  PlatformDetector,
+} from '../../framework';
 
 class StakeView {
-  get stakeContainer(): DetoxElement {
+  get stakeContainer(): EncapsulatedElementType {
     return Matchers.getElementByText(StakeViewSelectors.STAKE_CONTAINER);
   }
 
-  get unstakeContainer(): DetoxElement {
+  get unstakeContainer(): EncapsulatedElementType {
     return Matchers.getElementByText(StakeViewSelectors.UNSTAKE_CONTAINER);
   }
 
-  get reviewButton(): DetoxElement {
+  get reviewButton(): EncapsulatedElementType {
     return Matchers.getElementByText(StakeViewSelectors.REVIEW_BUTTON);
   }
 
-  get confirmButton(): DetoxElement {
+  get confirmButton(): EncapsulatedElementType {
     return Matchers.getElementByText(StakeViewSelectors.CONFIRM);
   }
 
@@ -26,10 +31,24 @@ class StakeView {
   }
 
   async enterAmount(amount: string): Promise<void> {
-    for (const digit of amount) {
-      const button = Matchers.getElementByText(digit);
-      await Gestures.waitAndTap(button, {
+    // Text match for "1"/"0" hits balances; use keypad testIDs.
+    // iOS: accessibility-id matching for these keys is unreliable — use name XPath
+    // (same pattern as QuoteView.enterAmount / RedesignedSendView.enterAmountViaNumpad).
+    const isAndroid = PlatformDetector.isAndroid();
+    for (const digit of amount.split('')) {
+      const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
+      const el = isAndroid
+        ? Matchers.getElementByID(keyName)
+        : Matchers.getElementByNativeXPath(`//*[contains(@name,'${keyName}')]`);
+      await Assertions.expectElementToBeVisible(el, {
+        timeout: 10000,
+        description: `Keypad digit ${digit} should be visible`,
+      });
+      await Gestures.waitAndTap(el, {
         elemDescription: `Digit ${digit} in Stake Amount`,
+        checkForDisplayed: true,
+        checkEnabled: true,
+        delay: 500,
       });
     }
   }

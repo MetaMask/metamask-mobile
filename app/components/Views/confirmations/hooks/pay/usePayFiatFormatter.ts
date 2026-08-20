@@ -1,6 +1,10 @@
+import { hasTransactionType } from '@metamask/transaction-controller';
+
 import { useTransactionDetails } from '../activity/useTransactionDetails';
-import { hasTransactionType } from '../../utils/transaction';
-import { USER_CURRENCY_TYPES } from '../../constants/confirmations';
+import {
+  ACTIVITY_FIAT_FRACTION_DIGITS,
+  USER_CURRENCY_TYPES,
+} from '../../constants/confirmations';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 
 /**
@@ -12,8 +16,13 @@ import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFi
  * @returns A fiat formatter function
  */
 export function usePayFiatFormatter() {
-  const formatFiatUsd = useFiatFormatter({ currency: 'usd' });
-  const formatFiatUser = useFiatFormatter();
+  const formatFiatUsd = useFiatFormatter({
+    currency: 'usd',
+    fractionDigits: ACTIVITY_FIAT_FRACTION_DIGITS,
+  });
+  const formatFiatUser = useFiatFormatter({
+    fractionDigits: ACTIVITY_FIAT_FRACTION_DIGITS,
+  });
   const { transactionMeta } = useTransactionDetails();
 
   const useUserCurrency = hasTransactionType(

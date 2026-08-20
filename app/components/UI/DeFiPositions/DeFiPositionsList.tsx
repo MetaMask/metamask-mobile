@@ -13,6 +13,7 @@ import {
   selectDeFiPositionsByAddress,
   selectDefiPositionsByEnabledNetworks,
 } from '../../../selectors/defiPositionsController';
+import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
 import styleSheet from './DeFiPositionsList.styles';
 import { GroupedDeFiPositions } from '@metamask/assets-controllers';
 import {
@@ -41,14 +42,17 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import Engine from '../../../core/Engine';
 import { useTheme } from '../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import DeFiPositionsListV2 from '../Assets/DeFiPositions/components/DeFiPositionsListV2';
 
 export interface DeFiPositionsListProps {
   tabLabel: string;
   isFullView?: boolean;
+  analyticsSource?: string;
 }
 
-const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
+const DeFiPositionsListV1: React.FC<DeFiPositionsListProps> = ({
   isFullView = false,
+  analyticsSource,
 }) => {
   const { styles } = useStyles(styleSheet, undefined);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -155,10 +159,17 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
           location: 'homepage',
           is_empty: formattedDeFiPositions.length === 0,
           screen_type: 'defi',
+          ...(analyticsSource ? { source: analyticsSource } : {}),
         })
         .build(),
     );
-  }, [isFullView, formattedDeFiPositions, trackEvent, createEventBuilder]);
+  }, [
+    isFullView,
+    formattedDeFiPositions,
+    analyticsSource,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   if (!formattedDeFiPositions) {
     if (formattedDeFiPositions === undefined) {
@@ -226,6 +237,25 @@ const DeFiPositionsList: React.FC<DeFiPositionsListProps> = ({
         {listBody}
       </ConditionalScrollView>
     </View>
+  );
+};
+
+/**
+ * DeFiPositionsList - homepage / full-view list of DeFi positions.
+ *
+ * Feature-flag switch: renders the V2 implementation when the V2 flag is on,
+ * otherwise the (unchanged) V1 implementation.
+ */
+const DeFiPositionsList: React.FC<DeFiPositionsListProps> = (props) => {
+  const isV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
+
+  return isV2Enabled ? (
+    <DeFiPositionsListV2
+      isFullView={props.isFullView ?? false}
+      analyticsSource={props.analyticsSource}
+    />
+  ) : (
+    <DeFiPositionsListV1 {...props} />
   );
 };
 

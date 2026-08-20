@@ -3,7 +3,8 @@ import { fireEvent } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import AccountStatus from '.';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { createMockEventBuilder } from '../../../util/test/analyticsMock';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { strings } from '../../../../locales/i18n';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -29,7 +30,6 @@ let mockRouteParams:
       type?: string;
       accountName?: string;
       oauthLoginSuccess?: boolean;
-      onboardingTraceCtx?: unknown;
       provider?: string;
     }
   | undefined = {};
@@ -54,12 +54,22 @@ jest.mock('../../../util/theme', () => {
   };
 });
 
+jest.mock('../../../util/trace', () => ({
+  ...jest.requireActual('../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  getTraceContext: jest.fn().mockReturnValue({
+    _name: 'OnboardingJourneyOverall',
+    _id: 'mock-trace-id',
+  }),
+}));
+
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
   jest.fn(),
 );
 
-jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
-  MetricsEventBuilder: {
+jest.mock('../../../util/analytics/AnalyticsEventBuilder', () => ({
+  AnalyticsEventBuilder: {
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn(),
@@ -68,14 +78,19 @@ jest.mock('../../../core/Analytics/MetricsEventBuilder', () => ({
 }));
 
 const getMockEventBuilder = () => {
-  const mockBuild = jest.fn();
-  const mockAddProperties = jest.fn().mockReturnThis();
-  const mockCreateEventBuilder = jest.fn(() => ({
-    addProperties: mockAddProperties,
-    build: mockBuild,
-  }));
-  (MetricsEventBuilder.createEventBuilder as jest.Mock).mockImplementation(
-    mockCreateEventBuilder,
+  const eventBuilder = createMockEventBuilder();
+  jest
+    .mocked(AnalyticsEventBuilder.createEventBuilder)
+    .mockImplementation(
+      () =>
+        eventBuilder as unknown as ReturnType<
+          typeof AnalyticsEventBuilder.createEventBuilder
+        >,
+    );
+  const mockBuild = eventBuilder.build;
+  const mockAddProperties = eventBuilder.addProperties;
+  const mockCreateEventBuilder = jest.mocked(
+    AnalyticsEventBuilder.createEventBuilder,
   );
   return { mockBuild, mockAddProperties, mockCreateEventBuilder };
 };

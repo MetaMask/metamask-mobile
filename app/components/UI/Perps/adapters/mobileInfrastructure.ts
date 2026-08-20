@@ -45,6 +45,27 @@ import {
 } from '../utils/formatUtils';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
+import {
+  getTerminalGlobalSnapshotUrl,
+  resolveTerminalApiUrl,
+} from '../constants/terminalApi';
+
+/**
+ * Resolves the Terminal API base URL based on build environment.
+ *
+ * Mapping:
+ * - dev / test / e2e → DEV (takes priority over beta build type)
+ * - beta build type (non-dev envs) → UAT
+ * - production / rc → PRD
+ * - all other environments (local, undefined, etc.) → UAT
+ */
+export function getTerminalApiUrl(): string {
+  return resolveTerminalApiUrl(
+    process.env.METAMASK_ENVIRONMENT,
+    process.env.METAMASK_BUILD_TYPE,
+  );
+}
+
 /**
  * Type conversion helper - isolated cast for platform bridge.
  * PerpsTraceName values are string literals that match TraceName enum values.
@@ -203,6 +224,11 @@ export function createMobileClientConfig(): PerpsControllerConfig {
  * Controller access uses messenger pattern (messenger.call()).
  */
 export function createMobileInfrastructure(): PerpsPlatformDependencies {
+  const terminalMarketDataUrl = getTerminalApiUrl();
+  const terminalGlobalSnapshotUrl = getTerminalGlobalSnapshotUrl(
+    terminalMarketDataUrl,
+  );
+
   return {
     // === Observability (stateless utilities) ===
     logger: {
@@ -298,6 +324,13 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
         StorageWrapper.setItem(key, value),
       removeItem: (key: string) =>
         StorageWrapper.removeItem(key).then(() => undefined),
+    },
+
+    // v1 remains available for legacy metadata enrichment; v2 provides the
+    // atomic bootstrap snapshot. Both routes use the same environment host.
+    terminalApi: {
+      marketDataUrl: terminalMarketDataUrl,
+      globalSnapshotUrl: terminalGlobalSnapshotUrl,
     },
 
     // === Rewards (DI — no RewardsController in Core yet) ===

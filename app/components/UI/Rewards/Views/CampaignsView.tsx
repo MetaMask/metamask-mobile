@@ -2,6 +2,7 @@ import React from 'react';
 import { ActivityIndicator } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import {
   Box,
@@ -22,6 +23,7 @@ import CampaignsGroup from '../components/Campaigns/CampaignsGroup';
 import { strings } from '../../../../../locales/i18n';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
+import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
 
 /**
  * CampaignsView displays all campaigns organized by status:
@@ -31,11 +33,12 @@ import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradi
  */
 const CampaignsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { categorizedCampaigns, isLoading, hasError, fetchCampaigns } =
     useRewardCampaigns();
   useOndoOutcomeToast();
   usePerpsTradingCampaignEndedOutcomeToast();
+  useGetPredictThePitchOutcomeToast();
 
   useTrackRewardsPageView({ page_type: 'campaigns_overview' });
 

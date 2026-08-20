@@ -120,6 +120,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity } = jest.requireActual('react-native');
 
   return {
+    HeaderStandard: () => null,
     Box: ({
       children,
       ...props
@@ -256,6 +257,7 @@ describe('ChooseYourCard', () => {
         MetaMetricsEvents.CARD_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.CHOOSE_YOUR_CARD,
         flow: 'onboarding',
       });
@@ -271,6 +273,7 @@ describe('ChooseYourCard', () => {
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         action: CardActions.CHOOSE_CARD_CONTINUE,
         card_type: CardType.VIRTUAL,
         flow: 'onboarding',

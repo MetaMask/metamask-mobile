@@ -31,12 +31,43 @@ We keep Appium’s reset flags **mild** in [`EmulatorConfigBuilder`](../framewor
 
 > **Note:** `noReset: true` for the **Appium session** still means the driver is not asked to wipe app data on its own. After `globalSetup`’s explicit uninstall+install, the app is freshly installed for that run.
 
+## Session reuse (local emulator)
+
+Playwright Appium runs on emulator/simulator **reuse one WDIO session per worker** by default (`APPIUM_SESSION_REUSE`). Between tests, `withFixtures({ restartDevice: true })` soft-reloads the app (clear data + launch + fixture bootstrap) without `deleteSession`.
+
+- **Disable reuse:** `APPIUM_SESSION_REUSE=false`
+- **BrowserStack:** reuse is always off
+- Details: [appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md#session-reuse-and-soft-reload)
+
 ## Android device targeting
 
 For Android, the adb serial is resolved from `use.device.name` (AVD name) or `use.device.udid` — see [`resolveAndroidAdbUdid`](../framework/services/providers/emulator/android/resolveAndroidAdbUdid.ts) and the `EmulatorConfig` JSDoc in [`types.ts`](../framework/types.ts).
+
+## iOS device targeting
+
+For iOS, using the DeviceName as `iPhone 16 Pro` can become problematic if different XCode versions are installed locally so the device UDID can be used along with the device name.
+
+Example:
+
+```
+use: {
+    platform: Platform.IOS,
+    device: {
+        provider: ProviderName.SIMULATOR,
+        osVersion: '26.2',
+        name: 'iPhone 16 Pro',
+        udid: '<DEVICE_UDID>'
+    }
+}
+```
+
+Get available Simulators:
+`$ xcrun simctl list devices available`
 
 ## Related code
 
 - [`reinstallLocalBuildFromPath`](../framework/services/providers/emulator/reinstallLocalBuildFromPath.ts) — `adb` / `simctl` install helpers.
 - `EmulatorProvider.globalSetup` — path check, then reinstall when `buildPath` is set; or `isAppInstalled()` when unset.
 - `EmulatorProvider.getDriver` / `EmulatorConfigBuilder.build` — capabilities including `appium:app` when `buildPath` is set.
+- Worker session reuse — [`sessionReuse.ts`](../framework/fixtures/playwright/sessionReuse.ts), [`driver.fixture.ts`](../framework/fixtures/playwright/driver.fixture.ts).
+- Soft reload — [`softReloadApp.ts`](../framework/services/appium/softReloadApp.ts).

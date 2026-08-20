@@ -85,4 +85,22 @@ describe('PerpsController Messenger', () => {
       }),
     );
   });
+
+  it('delegates AUS notification-preference actions to the perps controller messenger', () => {
+    const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
+    const delegateSpy = jest.spyOn(baseControllerMessenger, 'delegate');
+
+    getPerpsControllerMessenger(baseControllerMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'AuthenticatedUserStorageService:getNotificationPreferences',
+          'AuthenticatedUserStorageService:putNotificationPreferences',
+        ]),
+      }),
+    );
+  });
 });

@@ -20,6 +20,7 @@ import AvatarAccount, {
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { useLinkAccountGroup } from '../../hooks/useLinkAccountGroup';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RewardSettingsAccountGroupListFlatListItem } from './types';
 import { useSelector } from 'react-redux';
@@ -60,7 +61,7 @@ const RewardSettingsAccountGroup: React.FC<RewardSettingsAccountGroupProps> = ({
   });
 
   const { linkAccountGroup, isLoading } = useLinkAccountGroup();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isBulkLinkRunning = useSelector(selectBulkLinkIsRunning);
 
   // Inline handlers for each account group

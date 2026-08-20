@@ -9,7 +9,7 @@ jest.mock('react-redux', () => ({
 jest.mock(
   '../../../../../hooks/useNetworkEnablement/useNetworkEnablement',
   () => ({
-    useNetworkEnablement: () => ({ popularNetworks: [] }),
+    useNetworkEnablement: () => ({ popularNetworks: ['eip155:1'] }),
   }),
 );
 
@@ -28,21 +28,19 @@ const createMockNft = (
 });
 
 /**
- * Hook calls useSelector 3 times: selectedAccountGroupInternalAccounts,
- * selectHomepageSectionsV1Enabled, then multichainCollectiblesByEnabledNetworksSelector result.
+ * Hook calls useSelector twice: selectedAccountGroupInternalAccounts,
+ * then multichainCollectiblesByEnabledNetworksSelector result.
  */
 const mockSelectors = (
   nftsByChain: Record<string, unknown[]>,
   overrides?: {
     selectedGroupAccounts?: { address: string }[];
-    isHomepageSectionsV1Enabled?: boolean;
   },
 ) => {
   let callCount = 0;
   mockUseSelector.mockImplementation(() => {
     callCount += 1;
     if (callCount === 1) return overrides?.selectedGroupAccounts ?? [];
-    if (callCount === 2) return overrides?.isHomepageSectionsV1Enabled ?? false;
     return nftsByChain;
   });
 };
@@ -129,27 +127,6 @@ describe('useOwnedNfts', () => {
     expect(result.current).toContainEqual(chain1Nfts[0]);
     expect(result.current).toContainEqual(chain1Nfts[1]);
     expect(result.current).toContainEqual(chain2Nfts[0]);
-  });
-
-  it('returns owned NFTs when homepage sections V1 is enabled', () => {
-    const ownedNft = createMockNft('0x123', '1', true);
-    mockSelectors({ '0x1': [ownedNft] }, { isHomepageSectionsV1Enabled: true });
-
-    const { result } = renderHook(() => useOwnedNfts());
-
-    expect(result.current).toEqual([ownedNft]);
-  });
-
-  it('returns owned NFTs when homepage sections V1 is disabled', () => {
-    const ownedNft = createMockNft('0x123', '1', true);
-    mockSelectors(
-      { '0x1': [ownedNft] },
-      { isHomepageSectionsV1Enabled: false },
-    );
-
-    const { result } = renderHook(() => useOwnedNfts());
-
-    expect(result.current).toEqual([ownedNft]);
   });
 
   it('uses selected group accounts when provided for addressesOverride', () => {

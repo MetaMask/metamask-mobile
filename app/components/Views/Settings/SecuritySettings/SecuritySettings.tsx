@@ -1,20 +1,26 @@
 /* eslint-disable react/prop-types */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Switch, ScrollView, View, Keyboard, Linking } from 'react-native';
+import {
+  Switch,
+  ScrollView,
+  View,
+  Keyboard,
+  Linking,
+  InteractionManager,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import { clearHistory } from '../../../../actions/browser';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { SEED_PHRASE_HINTS } from '../../../../constants/storage';
 import HintModal from '../../../UI/HintModal';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { trackExternalLinkClicked } from '../../../../util/analytics/externalLinkTracking';
 import {
   ClearCookiesSection,
   DeleteMetaMetricsData,
@@ -32,12 +38,14 @@ import { SecurityPrivacyViewSelectorsIDs } from './SecurityPrivacyView.testIds';
 import createStyles from './SecuritySettings.styles';
 import { SecuritySettingsParams } from './SecuritySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { CLEAR_BROWSER_HISTORY_SECTION } from './SecuritySettings.constants';
 import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
   FontWeight,
   Text,
   TextColor,
@@ -51,6 +59,7 @@ import { TextVariant as LibraryTextVariant } from '../../../../component-library
 import BasicFunctionalityComponent from '../../../UI/BasicFunctionality/BasicFunctionality';
 import Routes from '../../../../constants/navigation/Routes';
 import MetaMetricsAndDataCollectionSection from './Sections/MetaMetricsAndDataCollectionSection/MetaMetricsAndDataCollectionSection';
+import TopTradersSection from './Sections/TopTradersSection';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { RootState } from '../../../../reducers';
@@ -70,7 +79,7 @@ const Settings: React.FC = () => {
     styles,
     theme: { colors, brandColors },
   } = useStyles(createStyles, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<SecuritySettingsParams>();
   const dispatch = useDispatch();
   const [browserHistoryModalVisible, setBrowserHistoryModalVisible] =
@@ -82,7 +91,8 @@ const Settings: React.FC = () => {
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );
   const scrollViewRef = useRef<ScrollView>(null);
-  const detectNftComponentRef = useRef<View>(null);
+  const metaMetricsSectionRef = useRef<View>(null);
+  const dataCollectionSectionRef = useRef<View>(null);
   const {
     disableNotifications,
     loading: disableNotificationsLoading,
@@ -151,37 +161,34 @@ const Settings: React.FC = () => {
     isNotificationEnabled,
   ]);
 
-  const scrollToDetectNFTs = useCallback(() => {
-    if (detectNftComponentRef.current) {
-      detectNftComponentRef.current?.measureLayout(
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        scrollViewRef.current as any,
-        (_, y) => {
-          scrollViewRef.current?.scrollTo({
-            y,
-            animated: true,
-          });
-        },
-        () => null,
-      );
-    }
-  }, []);
+  const scrollToSection = useCallback(() => {
+    const scrollHost = scrollViewRef.current?.getNativeScrollRef();
+    if (!scrollHost) return;
 
-  const waitForRenderDetectNftComponentRef = useCallback(async () => {
-    if (params?.scrollToDetectNFTs) {
-      // Add a delay to ensure the component is fully rendered
-      await new Promise((resolve) => setTimeout(resolve, 0));
+    const sectionRef =
+      params?.scrollToSection === 'data-collection'
+        ? dataCollectionSectionRef
+        : metaMetricsSectionRef;
 
-      // Scroll to the desired position
-      scrollToDetectNFTs();
-    }
-  }, [scrollToDetectNFTs, params?.scrollToDetectNFTs]);
+    sectionRef.current?.measureLayout(
+      scrollHost,
+      (_, y) => {
+        scrollViewRef.current?.scrollTo({
+          y,
+          animated: true,
+        });
+      },
+      () => null,
+    );
+  }, [params?.scrollToSection]);
 
   useFocusEffect(
     useCallback(() => {
-      waitForRenderDetectNftComponentRef();
-    }, [waitForRenderDetectNftComponentRef]),
+      if (!params?.scrollToSection) return;
+
+      const task = InteractionManager.runAfterInteractions(scrollToSection);
+      return () => task.cancel();
+    }, [scrollToSection, params?.scrollToSection]),
   );
 
   const toggleHint = () => {
@@ -301,15 +308,11 @@ const Settings: React.FC = () => {
             labelTextVariant={LibraryTextVariant.BodySMMedium}
             onPress={() => {
               Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
-              trackEvent(
-                createEventBuilder(MetaMetricsEvents.EXTERNAL_LINK_CLICKED)
-                  .addProperties({
-                    location: 'app_settings',
-                    text: strings('app_settings.simulation_details_learn_more'),
-                    url_domain: SIMULATION_DETALS_ARTICLE_URL,
-                  })
-                  .build(),
-              );
+              trackExternalLinkClicked(trackEvent, createEventBuilder, {
+                location: 'app_settings',
+                text: strings('app_settings.simulation_details_learn_more'),
+                url_domain: SIMULATION_DETALS_ARTICLE_URL,
+              });
             }}
             label={strings('app_settings.simulation_details_learn_more')}
           />
@@ -350,7 +353,8 @@ const Settings: React.FC = () => {
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
-      <HeaderCompactStandard
+      <HeaderStandard
+        testID="header"
         title={strings('app_settings.security_title')}
         onBack={() => navigation.goBack()}
         includesTopInset
@@ -402,18 +406,18 @@ const Settings: React.FC = () => {
             {strings('app_settings.token_nft_ens_subheading')}
           </Text>
           <DisplayNFTMediaSettings />
-          {isMainnet && (
-            <View ref={detectNftComponentRef}>
-              <AutoDetectNFTSettings />
-            </View>
-          )}
+          {isMainnet && <AutoDetectNFTSettings />}
           <IPFSGatewaySettings />
           <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
             {strings('app_settings.analytics_subheading')}
           </Text>
-          <MetaMetricsAndDataCollectionSection />
+          <MetaMetricsAndDataCollectionSection
+            metaMetricsRef={metaMetricsSectionRef}
+            dataCollectionRef={dataCollectionSectionRef}
+          />
           <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
           <DeleteWalletData />
+          <TopTradersSection />
           {renderHint()}
         </View>
       </ScrollView>

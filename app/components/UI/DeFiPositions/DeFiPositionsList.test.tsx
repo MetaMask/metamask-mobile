@@ -22,6 +22,20 @@ jest.mock('../../../selectors/defiPositionsController', () => ({
   selectDefiPositionsByEnabledNetworks: jest.fn(),
 }));
 
+jest.mock('../../../selectors/deFiPositionsV2SectionEnabled', () => ({
+  selectDeFiPositionsV2SectionEnabled: jest.fn(() => false),
+}));
+
+jest.mock('../Assets/DeFiPositions/hooks/useDeFiPositionsV2', () => ({
+  useDeFiPositionsV2: jest.fn(() => ({
+    positions: [],
+    isLoading: false,
+    isError: false,
+    hasFetched: false,
+    refresh: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -31,6 +45,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockDeFiExecutePoll = jest.fn().mockResolvedValue(undefined);
+const mockFetchDeFiPositions = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -45,6 +60,10 @@ jest.mock('../../../core/Engine', () => ({
     },
     DeFiPositionsController: {
       _executePoll: (...args: unknown[]) => mockDeFiExecutePoll(...args),
+    },
+    DeFiPositionsControllerV2: {
+      fetchDeFiPositions: (...args: unknown[]) =>
+        mockFetchDeFiPositions(...args),
     },
   },
 }));
@@ -592,7 +611,6 @@ describe('DeFiPositionsList', () => {
             addSensitiveProperties: jest.fn().mockReturnThis(),
             removeProperties: jest.fn().mockReturnThis(),
             removeSensitiveProperties: jest.fn().mockReturnThis(),
-            setSaveDataRecording: jest.fn().mockReturnThis(),
             build: jest.fn(),
           }),
         }),
@@ -614,6 +632,26 @@ describe('DeFiPositionsList', () => {
           location: 'homepage',
           is_empty: false,
           screen_type: 'defi',
+        }),
+      );
+    });
+
+    it('attributes Position Screen Viewed to the homepage balance breakdown', async () => {
+      const { findByTestId } = renderWithProvider(
+        <DeFiPositionsList
+          tabLabel="DeFi"
+          isFullView
+          analyticsSource="homescreen_balance_breakdown"
+        />,
+        { state: mockInitialState },
+      );
+
+      await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_LIST);
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          screen_type: 'defi',
+          source: 'homescreen_balance_breakdown',
         }),
       );
     });

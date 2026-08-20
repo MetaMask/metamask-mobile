@@ -5,8 +5,8 @@ const createStyles = (colors: Theme['colors']) =>
   StyleSheet.create({
     container: {
       alignItems: 'center',
-      paddingTop: 48,
-      paddingHorizontal: 24,
+      paddingTop: 32,
+      paddingHorizontal: 8,
     },
     label: {
       marginBottom: 8,

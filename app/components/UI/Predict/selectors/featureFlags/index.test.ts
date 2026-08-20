@@ -1,22 +1,23 @@
+import type { Json } from '@metamask/utils';
 import {
   selectExtendedSportsMarketsLeagues,
   selectPredictBottomSheetEnabledFlag,
   selectPredictEnabledFlag,
+  selectPredictFeedBannerConfig,
+  selectPredictFeedCarouselConfig,
   selectPredictFakOrdersEnabledFlag,
   selectPredictFeaturedCarouselEnabledFlag,
   selectPredictFeatureFlags,
   selectPredictFeeCollectionFlag,
-  selectPredictGtmOnboardingModalEnabledFlag,
   selectPredictHomeFeaturedVariant,
-  selectPredictHomepageDiscoveryNbaChampionEnabledFlag,
+  selectPredictHomeRedesignEnabledFlag,
   selectPredictHotTabFlag,
   selectPredictPortfolioEnabledFlag,
+  selectPredictSportCardLivePricesEnabledFlag,
+  selectPredictSportsFeedConfig,
   selectPredictUpDownEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
-  selectPredictWorldCupConfig,
-  selectPredictWorldCupMainFeedBannerEnabledFlag,
-  selectPredictWorldCupMainFeedTabEnabledFlag,
-  selectPredictWorldCupScreenEnabledFlag,
+  selectPredictWimbledonTabFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import {
@@ -29,7 +30,16 @@ import {
 } from '../../../../../util/remoteFeatureFlag';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag';
-import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../constants/flags';
+import {
+  DEFAULT_PREDICT_FEED_BANNER_FLAG,
+  DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+  DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+  DEFAULT_WIMBLEDON_TAB_FLAG,
+} from '../../constants/flags';
+import {
+  PredictFeedBannerPosition,
+  PredictFeedBannerSeverity,
+} from '../../constants/feedBanner';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -539,6 +549,89 @@ describe('Predict Feature Flag Selectors', () => {
     });
   });
 
+  describe('selectPredictWimbledonTabFlag', () => {
+    it('returns default flag when remote flag is missing', () => {
+      expect(selectPredictWimbledonTabFlag(mockedEmptyFlagsState)).toEqual(
+        DEFAULT_WIMBLEDON_TAB_FLAG,
+      );
+    });
+
+    it('returns enabled flag with default query params when remote query params are omitted', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const stateWithWimbledonTabFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictWimbledon: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(selectPredictWimbledonTabFlag(stateWithWimbledonTabFlag)).toEqual({
+        ...DEFAULT_WIMBLEDON_TAB_FLAG,
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+    });
+
+    it('returns enabled flag with remote query params when provided', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const stateWithWimbledonTabFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictWimbledon: {
+                  enabled: true,
+                  queryParams: 'tag_slug=wimbledon&order=volume24hr',
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(selectPredictWimbledonTabFlag(stateWithWimbledonTabFlag)).toEqual({
+        enabled: true,
+        queryParams: 'tag_slug=wimbledon&order=volume24hr',
+        minimumVersion: '1.0.0',
+      });
+    });
+
+    it('returns default flag when query params are invalid', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const stateWithInvalidQueryParams = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictWimbledon: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                  queryParams: 12345,
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(
+        selectPredictWimbledonTabFlag(stateWithInvalidQueryParams),
+      ).toEqual(DEFAULT_WIMBLEDON_TAB_FLAG);
+    });
+  });
+
   describe('predictTradingEnabled remote feature flag validation', () => {
     const validRemoteFlag: VersionGatedFeatureFlag = {
       enabled: true,
@@ -1011,54 +1104,6 @@ describe('Predict Feature Flag Selectors', () => {
     });
   });
 
-  describe('selectPredictGtmOnboardingModalEnabledFlag', () => {
-    it('returns version-gated flag value when remote flag is set', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
-      const stateWithRemoteFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictGtmOnboardingModalEnabled: {
-                  enabled: true,
-                  minimumVersion: '1.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result =
-        selectPredictGtmOnboardingModalEnabledFlag(stateWithRemoteFlag);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when env var not set and no remote flag', () => {
-      delete process.env.MM_PREDICT_GTM_MODAL_ENABLED;
-      const stateWithoutRemoteFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictGtmOnboardingModalEnabled: null,
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPredictGtmOnboardingModalEnabledFlag(
-        stateWithoutRemoteFlag,
-      );
-
-      expect(result).toBe(false);
-    });
-  });
-
   describe('selectPredictHomeFeaturedVariant', () => {
     it('returns carousel by default', () => {
       const result = selectPredictHomeFeaturedVariant(mockedEmptyFlagsState);
@@ -1461,42 +1506,45 @@ describe('Predict Feature Flag Selectors', () => {
     });
   });
 
-  describe('selectPredictWorldCupConfig', () => {
-    it('returns default disabled config when flag is missing', () => {
-      expect(selectPredictWorldCupConfig(mockedEmptyFlagsState)).toEqual(
-        DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  describe('selectPredictSportsFeedConfig', () => {
+    it('returns bundled sports config when flag is missing', () => {
+      expect(selectPredictSportsFeedConfig(mockedEmptyFlagsState)).toEqual(
+        DEFAULT_PREDICT_SPORTS_FEED_FLAG,
       );
-      expect(
-        selectPredictWorldCupMainFeedBannerEnabledFlag(mockedEmptyFlagsState),
-      ).toBe(false);
-      expect(
-        selectPredictWorldCupMainFeedTabEnabledFlag(mockedEmptyFlagsState),
-      ).toBe(false);
-      expect(
-        selectPredictWorldCupScreenEnabledFlag(mockedEmptyFlagsState),
-      ).toBe(false);
-      expect(
-        selectPredictHomepageDiscoveryNbaChampionEnabledFlag(
-          mockedEmptyFlagsState,
-        ),
-      ).toBe(true);
     });
 
-    it('returns normalized config and gated booleans when enabled', () => {
+    it('returns remote sports config when enabled and version requirement is met', () => {
       mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const remoteSportsFeed = {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        tabs: [
+          {
+            id: 'soccer',
+            titleKey: 'predict.feed.tabs.soccer',
+            tagSlug: 'soccer',
+            chips: [
+              {
+                id: 'games',
+                kind: 'games',
+                titleKey: 'predict.feed.filters.games',
+              },
+              {
+                id: 'mls',
+                kind: 'tag',
+                titleKey: 'predict.feed.filters.mls',
+                tagSlug: 'mls',
+              },
+            ],
+          },
+        ],
+      };
       const state = {
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                predictWorldCup: {
-                  enabled: true,
-                  minimumVersion: '1.0.0',
-                  showMainFeedBanner: true,
-                  showMainFeedTab: true,
-                  showWorldCupScreen: true,
-                  stages: [{ key: 'final', eventIds: ['10'] }],
-                },
+                predictSportsFeed: JSON.parse(JSON.stringify(remoteSportsFeed)),
               },
               cacheTimestamp: 0,
             },
@@ -1504,33 +1552,20 @@ describe('Predict Feature Flag Selectors', () => {
         },
       };
 
-      expect(selectPredictWorldCupConfig(state)).toEqual({
-        ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
-        enabled: true,
-        minimumVersion: '1.0.0',
-        showMainFeedBanner: true,
-        showMainFeedTab: true,
-        showWorldCupScreen: true,
-        stages: [{ key: 'final', eventIds: ['10'] }],
-      });
-      expect(selectPredictWorldCupMainFeedBannerEnabledFlag(state)).toBe(true);
-      expect(selectPredictWorldCupMainFeedTabEnabledFlag(state)).toBe(true);
-      expect(selectPredictWorldCupScreenEnabledFlag(state)).toBe(true);
+      expect(selectPredictSportsFeedConfig(state)).toEqual(remoteSportsFeed);
     });
 
-    it('returns default config when version requirement is not met', () => {
+    it('returns bundled sports config when version requirement is not met', () => {
       mockHasMinimumRequiredVersion.mockReturnValue(false);
       const state = {
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                predictWorldCup: {
+                predictSportsFeed: {
                   enabled: true,
                   minimumVersion: '99.0.0',
-                  showMainFeedBanner: true,
-                  showMainFeedTab: true,
-                  showWorldCupScreen: true,
+                  tabs: [],
                 },
               },
               cacheTimestamp: 0,
@@ -1539,8 +1574,8 @@ describe('Predict Feature Flag Selectors', () => {
         },
       };
 
-      expect(selectPredictWorldCupConfig(state)).toEqual(
-        DEFAULT_PREDICT_WORLD_CUP_FLAG,
+      expect(selectPredictSportsFeedConfig(state)).toEqual(
+        DEFAULT_PREDICT_SPORTS_FEED_FLAG,
       );
     });
   });
@@ -1665,15 +1700,46 @@ describe('Predict Feature Flag Selectors', () => {
     });
   });
 
-  describe('selectPredictHomepageDiscoveryNbaChampionEnabledFlag', () => {
-    it('returns false when the remote flag is disabled', () => {
+  describe('selectPredictHomeRedesignEnabledFlag', () => {
+    it('returns false when flag is missing', () => {
+      const result = selectPredictHomeRedesignEnabledFlag(
+        mockedEmptyFlagsState,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when flag is enabled and version requirement is met', () => {
       mockHasMinimumRequiredVersion.mockReturnValue(true);
       const state = {
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                predictHomepageDiscoveryNbaChampionEnabled: {
+                predictHomeRedesign: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHomeRedesignEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when flag is disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeRedesign: {
                   enabled: false,
                   minimumVersion: '1.0.0',
                 },
@@ -1684,9 +1750,104 @@ describe('Predict Feature Flag Selectors', () => {
         },
       };
 
-      expect(selectPredictHomepageDiscoveryNbaChampionEnabledFlag(state)).toBe(
-        false,
-      );
+      const result = selectPredictHomeRedesignEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when flag is malformed', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeRedesign: {
+                  enabled: 'true',
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHomeRedesignEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when app version is below minimum required', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeRedesign: {
+                  enabled: true,
+                  minimumVersion: '99.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHomeRedesignEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when minimumVersion is the default empty string', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeRedesign: {
+                  enabled: true,
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHomeRedesignEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPredictSportCardLivePricesEnabledFlag', () => {
+    it('defaults to true when the remote flag is missing', () => {
+      expect(
+        selectPredictSportCardLivePricesEnabledFlag(mockedEmptyFlagsState),
+      ).toBe(true);
+    });
+
+    it('returns false when the remote flag is disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictSportCardLivePrices: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(selectPredictSportCardLivePricesEnabledFlag(state)).toBe(false);
     });
   });
 
@@ -1766,6 +1927,177 @@ describe('Predict Feature Flag Selectors', () => {
       const result = selectPredictFeaturedCarouselEnabledFlag(state);
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPredictFeedBannerConfig', () => {
+    const validFlag = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+      id: 'predict-message-1',
+      title: 'Predict update',
+      description: 'Scheduled maintenance begins soon.',
+      position: PredictFeedBannerPosition.AfterBalance,
+      severity: PredictFeedBannerSeverity.Info,
+      dismissible: true,
+    };
+    const createState = (predictFeedBanner: Json) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: { predictFeedBanner },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('returns a valid enabled banner config', () => {
+      const result = selectPredictFeedBannerConfig(createState(validFlag));
+
+      expect(result).toStrictEqual(validFlag);
+    });
+
+    it('unwraps a threshold flag value', () => {
+      const result = selectPredictFeedBannerConfig(
+        createState({ name: 'treatment', value: validFlag }),
+      );
+
+      expect(result).toStrictEqual(validFlag);
+    });
+
+    it('returns the disabled default when the flag is disabled', () => {
+      const result = selectPredictFeedBannerConfig(
+        createState({ ...validFlag, enabled: false }),
+      );
+
+      expect(result).toBe(DEFAULT_PREDICT_FEED_BANNER_FLAG);
+    });
+
+    it('returns the disabled default for malformed content', () => {
+      const result = selectPredictFeedBannerConfig(
+        createState({ ...validFlag, title: '' }),
+      );
+
+      expect(result).toBe(DEFAULT_PREDICT_FEED_BANNER_FLAG);
+    });
+
+    it('returns the disabled default when the version requirement is not met', () => {
+      const result = selectPredictFeedBannerConfig(
+        createState({ ...validFlag, minimumVersion: '99.0.0' }),
+      );
+
+      expect(result).toBe(DEFAULT_PREDICT_FEED_BANNER_FLAG);
+    });
+  });
+
+  describe('selectPredictFeedCarouselConfig', () => {
+    const validFlag = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+      mode: 'custom',
+      title: '  Wimbledon  ',
+      deeplink: '  https://link.metamask.io/predict?feed=sports&tab=tennis  ',
+      contentSource: {
+        composition: 'query-results',
+        queryParams: '  ?tag_slug=tennis&order=volume24hr  ',
+        excludedMarketIds: [' market-1 ', 'market-1', ' ', 'market-2'],
+      },
+    };
+    const createState = (predictFeedCarousel: Json) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: { predictFeedCarousel },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('returns a normalized custom carousel config', () => {
+      const result = selectPredictFeedCarouselConfig(createState(validFlag));
+
+      expect(result).toStrictEqual({
+        ...validFlag,
+        title: 'Wimbledon',
+        deeplink: 'https://link.metamask.io/predict?feed=sports&tab=tennis',
+        contentSource: {
+          composition: 'query-results',
+          queryParams: 'tag_slug=tennis&order=volume24hr',
+          excludedMarketIds: ['market-1', 'market-2'],
+        },
+      });
+    });
+
+    it('accepts custom mode without a deeplink', () => {
+      const { deeplink: _deeplink, ...flagWithoutDeeplink } = validFlag;
+
+      const result = selectPredictFeedCarouselConfig(
+        createState(flagWithoutDeeplink),
+      );
+
+      expect(result.mode).toBe('custom');
+      expect(result.deeplink).toBeUndefined();
+    });
+
+    it.each([undefined, '   '])(
+      'accepts custom mode with title %p',
+      (title) => {
+        const { title: _title, ...flagWithoutTitle } = validFlag;
+        const flag =
+          title === undefined ? flagWithoutTitle : { ...validFlag, title };
+        const result = selectPredictFeedCarouselConfig(createState(flag));
+
+        expect(result.mode).toBe('custom');
+        expect(result.title).toBeUndefined();
+      },
+    );
+
+    it('unwraps a threshold flag value', () => {
+      const result = selectPredictFeedCarouselConfig(
+        createState({ name: 'treatment', value: validFlag }),
+      );
+
+      expect(result.mode).toBe('custom');
+      expect(result.title).toBe('Wimbledon');
+    });
+
+    it('returns live mode when the flag is absent', () => {
+      const result = selectPredictFeedCarouselConfig(createState(null));
+
+      expect(result).toBe(DEFAULT_PREDICT_FEED_CAROUSEL_FLAG);
+    });
+
+    it.each([
+      { ...validFlag, enabled: false },
+      { ...validFlag, mode: 'live' },
+      { ...validFlag, deeplink: 'https://example.com/predict' },
+      { ...validFlag, deeplink: 'metamask://connect?channelId=test' },
+      {
+        ...validFlag,
+        contentSource: {
+          ...validFlag.contentSource,
+          composition: 'automatic',
+        },
+      },
+      {
+        ...validFlag,
+        contentSource: { ...validFlag.contentSource, queryParams: 123 },
+      },
+      {
+        ...validFlag,
+        contentSource: {
+          ...validFlag.contentSource,
+          excludedMarketIds: ['market-1', 2],
+        },
+      },
+      { ...validFlag, minimumVersion: 'not-semver' },
+      { ...validFlag, minimumVersion: '99.0.0' },
+    ])('returns live mode for unavailable or malformed config %#', (flag) => {
+      const result = selectPredictFeedCarouselConfig(createState(flag));
+
+      expect(result).toBe(DEFAULT_PREDICT_FEED_CAROUSEL_FLAG);
     });
   });
 });

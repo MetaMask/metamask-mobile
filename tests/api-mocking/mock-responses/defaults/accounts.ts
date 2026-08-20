@@ -1385,6 +1385,16 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
     },
     {
       urlEndpoint:
+        /^https:\/\/accounts\.api\.cx\.metamask\.io\/v5\/multiaccount\/balances\?.*$/,
+      responseCode: 200,
+      response: {
+        count: 0,
+        balances: [],
+        unprocessedNetworks: [],
+      },
+    },
+    {
+      urlEndpoint:
         /^https:\/\/accounts\.api\.cx\.metamask\.io\/v\d+\/accounts\/\/.*$/,
       responseCode: 400,
       response: {

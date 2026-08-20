@@ -3,10 +3,14 @@ import {
   TransactionMeta,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
+import {
+  selectBatchSellHistoryItemsForTxHash,
+  selectBridgeHistoryForAccount,
+} from '../../../selectors/bridgeStatusController';
 import { Transaction } from '@metamask/keyring-api';
 import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
-import { equalsIgnoreCase } from '../../string';
+import { findBridgeHistoryItem } from '../findBridgeHistoryItem';
+import { FeatureId } from '@metamask/bridge-controller';
 
 export const FINAL_NON_CONFIRMED_STATUSES = [
   TransactionStatus.failed,
@@ -31,40 +35,31 @@ export interface UseBridgeTxHistoryDataProps {
 export function useBridgeTxHistoryData({
   evmTxMeta,
   multiChainTx,
-}: UseBridgeTxHistoryDataProps) {
+}: UseBridgeTxHistoryDataProps): {
+  bridgeTxHistoryItem: BridgeHistoryItem | undefined;
+  batchSellHistoryItems?: BridgeHistoryItem[];
+  is7702Batch?: boolean;
+  batchTotalDestAmount?: number;
+  isBridgeComplete: boolean | null;
+} {
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+  const { historyItems } = useSelector((state: unknown) =>
+    selectBatchSellHistoryItemsForTxHash(state, evmTxMeta?.hash),
+  );
 
   let bridgeHistoryItem: BridgeHistoryItem | undefined;
   if (evmTxMeta) {
-    const srcTxMetaId = evmTxMeta?.id;
-    bridgeHistoryItem = srcTxMetaId ? bridgeHistory[srcTxMetaId] : undefined;
-
-    // If not found, try to find by actionId (history items can be keyed by actionId)
-    if (!bridgeHistoryItem && evmTxMeta.actionId) {
-      bridgeHistoryItem = bridgeHistory[evmTxMeta.actionId];
-    }
-
-    // If not found, try to find by originalTransactionId for intent transactions
-    if (!bridgeHistoryItem && srcTxMetaId) {
-      const matchingEntry = Object.entries(bridgeHistory).find(
-        ([, historyItem]) =>
-          (historyItem as { originalTransactionId?: string })
-            .originalTransactionId === srcTxMetaId,
-      );
-      bridgeHistoryItem = matchingEntry ? matchingEntry[1] : undefined;
-    }
-
-    // Fallback for API-normalized transactions whose id differs from txMetaId
-    if (!bridgeHistoryItem && evmTxMeta.hash) {
-      bridgeHistoryItem = Object.values(bridgeHistory).find((item) =>
-        equalsIgnoreCase(item.status.srcChain.txHash, evmTxMeta.hash),
-      );
-    }
+    bridgeHistoryItem = findBridgeHistoryItem({
+      bridgeHistory,
+      transactionMetaId: evmTxMeta.id,
+      transactionActionId: evmTxMeta.actionId,
+      transactionHash: evmTxMeta.hash,
+    });
   } else if (multiChainTx) {
-    const srcTxHash = multiChainTx?.id;
-    bridgeHistoryItem = Object.values(bridgeHistory).find((item) =>
-      equalsIgnoreCase(item.status.srcChain.txHash, srcTxHash),
-    );
+    bridgeHistoryItem = findBridgeHistoryItem({
+      bridgeHistory,
+      transactionHash: multiChainTx.id,
+    });
   }
 
   // By complete, this means BOTH source and dest tx are confirmed
@@ -77,6 +72,14 @@ export function useBridgeTxHistoryData({
 
   return {
     bridgeTxHistoryItem: bridgeHistoryItem,
+    batchSellHistoryItems: historyItems,
+    is7702Batch:
+      bridgeHistoryItem?.featureId === FeatureId.BATCH_SELL &&
+      (evmTxMeta?.nestedTransactions?.length ?? 0) > 1,
+    batchTotalDestAmount: historyItems?.reduce(
+      (acc, item) => acc + parseFloat(item.quote.destTokenAmount),
+      0,
+    ),
     isBridgeComplete,
   };
 }

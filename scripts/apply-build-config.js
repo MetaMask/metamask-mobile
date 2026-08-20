@@ -120,17 +120,19 @@ function writeBuildEnvJson(buildName) {
     'REWARDS_API_URL',
     'MM_PORTFOLIO_URL',
     'RAMPS_ENVIRONMENT',
-    'IS_TEST',
+    'HAS_TEST_OVERRIDES',
     // Additional env vars for full environment info
     'PORTFOLIO_API_URL',
     'SECURITY_ALERTS_API_URL',
     'DECODING_API_URL',
+    'PRICE_ALERTS_API_URL',
+    'COMPLIANCE_API_URL',
     'AUTH_SERVICE_URL',
     'DIGEST_API_URL',
     'SOCIAL_API_URL',
     'BAANX_API_URL',
     'RAMP_DEV_BUILD',
-    'BRIDGE_USE_DEV_APIS',
+    'BRIDGE_USE_CUSTOM_BASE_URL',
     'RAMP_INTERNAL_BUILD',
   ];
 

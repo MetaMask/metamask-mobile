@@ -7,6 +7,7 @@ import { initialStateWallet } from '../../../../../../tests/component-view/prese
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TokenStandard } from '../../types/token';
+import { AddressScanResultType } from '../../types/trustSignals';
 import { HardwareWalletProvider } from '../../../../../core/HardwareWallet/HardwareWalletProvider';
 import {
   getNftRowTestId,
@@ -41,6 +42,25 @@ const EVM_NATIVE_ETH_ASSET_SEND_FIVE = {
 
 const VALID_EVM_RECIPIENT = '0x0000000000000000000000000000000000000002';
 const TOKEN_CONTRACT_ADDRESS = '0x0000000000000000000000000000000000000003';
+const buildTrustedAddressScanOverrides = (...addresses: string[]) =>
+  ({
+    engine: {
+      backgroundState: {
+        PhishingController: {
+          addressScanCache: Object.fromEntries(
+            addresses.map((address) => [
+              `0x1:${address.toLowerCase()}`,
+              {
+                data: {
+                  result_type: AddressScanResultType.Trusted,
+                },
+              },
+            ]),
+          ),
+        },
+      },
+    },
+  }) as unknown as Record<string, unknown>;
 
 /** Mainnet USDC (6 decimals), high balance — mirrors smoke ERC-20 send E2E fixture. */
 const EVM_USDC_ASSET = {
@@ -198,6 +218,7 @@ describeForPlatforms('Send', () => {
     it('ETH: Amount → Continue → Recipient, valid address enables Review', async () => {
       const state = initialStateWallet()
         .withOverrides(sendViewOverrides)
+        .withOverrides(buildTrustedAddressScanOverrides(VALID_EVM_RECIPIENT))
         .build();
 
       const { getByTestId, getByRole, findByTestId } = renderScreenWithRoutes(
@@ -241,6 +262,7 @@ describeForPlatforms('Send', () => {
     it('Native ETH: digit 5 submits and opens transfer confirmation route', async () => {
       const state = initialStateWallet()
         .withOverrides(sendViewOverrides)
+        .withOverrides(buildTrustedAddressScanOverrides(VALID_EVM_RECIPIENT))
         .build();
 
       const engineMock = jest.requireMock(
@@ -309,6 +331,7 @@ describeForPlatforms('Send', () => {
     it('ERC-20 USDC: 50% submits and opens transfer confirmation route', async () => {
       const state = initialStateWallet()
         .withOverrides(sendViewOverrides)
+        .withOverrides(buildTrustedAddressScanOverrides(VALID_EVM_RECIPIENT))
         .build();
 
       const engineMock = jest.requireMock(
@@ -476,6 +499,8 @@ describeForPlatforms('Send', () => {
 
       const state = initialStateWallet()
         .withOverrides(sendViewOverrides)
+        // Keep this test focused on the token-contract alert path.
+        .withOverrides(buildTrustedAddressScanOverrides(TOKEN_CONTRACT_ADDRESS))
         .build();
 
       const { findByTestId, queryByTestId } = renderScreenWithRoutes(

@@ -28,22 +28,44 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       paddingBottom: 16, // Consistent bottom padding
     },
 
+    // Keeps the fullscreen button fixed while the price row shrinks
+    marketSummaryFullscreenButton: {
+      flexShrink: 0,
+    },
+
     // Container for error state
     container: {
       flex: 1,
       backgroundColor: theme.colors.background.default,
     },
     section: {
+      paddingHorizontal: 16,
+    },
+    chromeBlock: {
       paddingVertical: 16,
       paddingHorizontal: 16,
     },
-    sectionTitle: {
-      marginBottom: 12,
+    positionsOrdersContainer: {
+      paddingHorizontal: 16,
     },
     chartSection: {
       paddingTop: 0,
       marginTop: 16,
       position: 'relative',
+    },
+    chartTouchContainer: {
+      width: '100%',
+      position: 'relative',
+    },
+    // Invisible strip over the chart's left edge. iOS starts its back swipe
+    // from screen-left, which otherwise steals horizontal chart gestures.
+    chartEdgeGuard: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 15,
+      zIndex: 10,
     },
     tabsSection: {
       paddingVertical: 8,

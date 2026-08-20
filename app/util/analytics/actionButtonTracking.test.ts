@@ -6,16 +6,14 @@ import {
   ActionButtonProperties,
 } from './actionButtonTracking';
 import { MetaMetricsEvents } from '../../core/Analytics';
-import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from './AnalyticsEventBuilder';
 import { ITrackingEvent } from './analytics.types';
 
 // Mock dependencies
 jest.mock('../../core/Analytics');
-jest.mock('../../core/Analytics/MetricsEventBuilder');
+jest.mock('./AnalyticsEventBuilder');
 
-const mockedMetricsEventBuilder = MetricsEventBuilder as jest.Mocked<
-  typeof MetricsEventBuilder
->;
+const mockedAnalyticsEventBuilder = jest.mocked(AnalyticsEventBuilder);
 
 describe('actionButtonTracking', () => {
   // Mock functions
@@ -27,10 +25,10 @@ describe('actionButtonTracking', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Setup MetricsEventBuilder mock
-    mockedMetricsEventBuilder.createEventBuilder.mockReturnValue(
+    // Setup AnalyticsEventBuilder mock
+    mockedAnalyticsEventBuilder.createEventBuilder.mockReturnValue(
       mockCreateEventBuilder as unknown as ReturnType<
-        typeof MetricsEventBuilder.createEventBuilder
+        typeof AnalyticsEventBuilder.createEventBuilder
       >,
     );
     mockCreateEventBuilder.mockReturnValue({
@@ -45,12 +43,11 @@ describe('actionButtonTracking', () => {
       name: 'test',
       properties: {},
       sensitiveProperties: {},
-      saveDataRecording: false,
       isOptIn: false,
       isEnabled: true,
       isAnonymous: false,
       hasProperties: true,
-    } as ITrackingEvent);
+    });
   });
 
   describe('ActionButtonType enum', () => {
@@ -60,18 +57,33 @@ describe('actionButtonTracking', () => {
       expect(ActionButtonType.SWAP).toBe('swap');
       expect(ActionButtonType.SEND).toBe('send');
       expect(ActionButtonType.RECEIVE).toBe('receive');
+      expect(ActionButtonType.SELL).toBe('sell');
+      expect(ActionButtonType.PERPS).toBe('perps');
+      expect(ActionButtonType.PREDICT).toBe('predict');
+      expect(ActionButtonType.BATCH_SWAP).toBe('batch_swap');
+      expect(ActionButtonType.TRADERS).toBe('traders');
     });
 
     it('covers all action button types', () => {
       // Given: all expected action types
-      const expectedTypes = ['buy', 'swap', 'send', 'receive'];
+      const expectedTypes = [
+        'buy',
+        'swap',
+        'send',
+        'receive',
+        'sell',
+        'perps',
+        'predict',
+        'batch_swap',
+        'traders',
+      ];
 
       // When: checking enum values
       const actualTypes = Object.values(ActionButtonType);
 
       // Then: should match expected types
       expect(actualTypes).toEqual(expect.arrayContaining(expectedTypes));
-      expect(actualTypes).toHaveLength(4);
+      expect(actualTypes).toHaveLength(9);
     });
   });
 
@@ -111,19 +123,20 @@ describe('actionButtonTracking', () => {
       expect(ActionPosition.SECOND_POSITION).toBe(1);
       expect(ActionPosition.THIRD_POSITION).toBe(2);
       expect(ActionPosition.FOURTH_POSITION).toBe(3);
+      expect(ActionPosition.FIFTH_POSITION).toBe(4);
+      expect(ActionPosition.SIXTH_POSITION).toBe(5);
+      expect(ActionPosition.SEVENTH_POSITION).toBe(6);
+      expect(ActionPosition.EIGHTH_POSITION).toBe(7);
     });
 
-    it('has corresponding ActionButtonType values', () => {
-      // Given/When/Then: position values should correspond to button type values
-      expect(ActionPosition.FIRST_POSITION).toBe(0);
-      expect(ActionPosition.SECOND_POSITION).toBe(1);
-      expect(ActionPosition.THIRD_POSITION).toBe(2);
-      expect(ActionPosition.FOURTH_POSITION).toBe(3);
-      // Verify ActionButtonType has corresponding string values
-      expect(ActionButtonType.BUY).toBe('buy');
-      expect(ActionButtonType.SWAP).toBe('swap');
-      expect(ActionButtonType.SEND).toBe('send');
-      expect(ActionButtonType.RECEIVE).toBe('receive');
+    it('covers eight positions for homepage grid AB tests', () => {
+      // Given/When: checking enum values
+      const actualPositions = Object.values(ActionPosition).filter(
+        (value) => typeof value === 'number',
+      );
+
+      // Then: should include positions 0–7
+      expect(actualPositions).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
     });
   });
 
@@ -184,7 +197,6 @@ describe('actionButtonTracking', () => {
         name: 'test',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         isOptIn: false,
         isEnabled: true,
         isAnonymous: false,

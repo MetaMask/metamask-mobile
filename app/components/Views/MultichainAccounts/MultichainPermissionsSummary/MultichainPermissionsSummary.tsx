@@ -1,8 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import StyledButton from '../../../UI/StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -49,10 +51,8 @@ import {
   selectProviderConfig,
 } from '../../../../selectors/networkController';
 import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { PermissionSummaryBottomSheetSelectorsIDs } from '../../AccountConnect/PermissionSummaryBottomSheet.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
+import { PermissionSummaryBottomSheetSelectorsIDs } from '../../MultichainAccounts/shared/PermissionSummaryBottomSheet.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
@@ -62,9 +62,7 @@ import Badge, {
 } from '../../../../component-library/components/Badges/Badge';
 import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { endTrace, trace, TraceName } from '../../../../util/trace';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
+import { NetworkAvatarProps } from '../../MultichainAccounts/shared/AccountConnect.types';
 import MultichainAccountsConnectedList from '../MultichainAccountsConnectedList/MultichainAccountsConnectedList';
 import { AccountGroupId } from '@metamask/account-api';
 import { selectAccountGroups } from '../../../../selectors/multichainAccounts/accountTreeController';
@@ -130,10 +128,18 @@ const MultichainPermissionsSummary = ({
   showPermissionsOnly = false,
   isMaliciousDapp = false,
 }: MultichainPermissionsSummaryProps) => {
+  const insets = useSafeAreaInsets();
   const nonTabView = showAccountsOnly || showPermissionsOnly;
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const safeAreaContainerStyle = useMemo(
+    () => [
+      styles.safeArea,
+      { paddingTop: insets.top, paddingBottom: insets.bottom },
+    ],
+    [styles.safeArea, insets.top, insets.bottom],
+  );
+  const navigation = useNavigation<AppNavigationProp>();
   const { navigate } = navigation;
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectEvmChainId);
@@ -257,17 +263,21 @@ const MultichainPermissionsSummary = ({
             iconName={IconName.Info}
             iconColor={IconColor.Default}
             onPress={() => {
-              navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-                screen: Routes.SHEET.CONNECTION_DETAILS,
-                params: {
-                  hostInfo: {
-                    metadata: {
-                      origin: hostname,
+              // Keep hostInfo at runtime; escape hatch avoids UX-owned param type.
+              navigateWithDetails(navigation, [
+                Routes.MODAL.ROOT_MODAL_FLOW,
+                {
+                  screen: Routes.SHEET.CONNECTION_DETAILS,
+                  params: {
+                    hostInfo: {
+                      metadata: {
+                        origin: hostname,
+                      },
                     },
+                    connectionDateTime: new Date().getTime(),
                   },
-                  connectionDateTime: new Date().getTime(),
                 },
-              });
+              ]);
             }}
             testID={SDKSelectorsIDs.CONNECTION_DETAILS_BUTTON}
           />
@@ -303,7 +313,6 @@ const MultichainPermissionsSummary = ({
   }, [onRevokeAll, hostname, navigation]);
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
-    trace({ name: TraceName.DisconnectAllAccountPermissions });
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
@@ -315,7 +324,6 @@ const MultichainPermissionsSummary = ({
         onRevokeAll: onRevokeAllHandler,
       },
     });
-    endTrace({ name: TraceName.DisconnectAllAccountPermissions });
   }, [onRevokeAllHandler, hostname, navigate]);
 
   const getNetworkLabel = useCallback(() => {
@@ -574,7 +582,7 @@ const MultichainPermissionsSummary = ({
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={safeAreaContainerStyle}>
       <View style={styles.mainContainer}>
         <View style={styles.contentContainer}>
           {renderHeader()}
@@ -704,7 +712,7 @@ const MultichainPermissionsSummary = ({
           )}
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

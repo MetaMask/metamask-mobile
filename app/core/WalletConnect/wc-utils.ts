@@ -1,5 +1,12 @@
+import type { Caip25CaveatValue } from '@metamask/chain-agnostic-permission';
 import { rpcErrors } from '@metamask/rpc-errors';
-import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
+import {
+  CaipAccountId,
+  CaipChainId,
+  Hex,
+  KnownCaipNamespace,
+  parseCaipChainId,
+} from '@metamask/utils';
 import {
   NavigationContainerRef,
   ParamListBase,
@@ -9,16 +16,21 @@ import { parseRelayParams } from '@walletconnect/utils';
 import qs from 'qs';
 import Routes from '../../../app/constants/navigation/Routes';
 import { store } from '../../../app/store';
+import type { WC2Metadata } from '../../actions/sdk/state';
 import {
+  selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
   selectNetworkConfigurations,
   selectNetworkConfigurationsByCaipChainId,
 } from '../../selectors/networkController';
-import { getPermittedAccounts, getPermittedChains } from '../Permissions';
+import { getPermittedAccounts, getPermittedCaipChainIds } from '../Permissions';
 import { findExistingNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
 import { WalletKitTypes } from '@reown/walletkit';
+import { EVM_APPROVED_METHODS, EVM_METHODS_TO_REDIRECT } from './wc-config';
+import type { NamespaceConfig, ProposalParamsLight } from './multichain/types';
+import { enrichCaveatValueForNamespace } from './multichain/utils';
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -211,89 +223,85 @@ export const waitForNetworkModalOnboarding = async ({
   }
 };
 
-export const getApprovedSessionMethods = (): string[] => {
-  const allEIP155Methods = [
-    // Standard JSON-RPC methods
-    'eth_sendTransaction',
-    'eth_sign',
-    'eth_signTransaction',
-    'eth_signTypedData',
-    'eth_signTypedData_v3',
-    'eth_signTypedData_v4',
-    'personal_sign',
-    'eth_sendRawTransaction',
-    'eth_accounts',
-    'eth_getBalance',
-    'eth_call',
-    'eth_estimateGas',
-    'eth_blockNumber',
-    'eth_getCode',
-    'eth_getTransactionCount',
-    'eth_getTransactionReceipt',
-    'eth_getTransactionByHash',
-    'eth_getBlockByHash',
-    'eth_getBlockByNumber',
-    'net_version',
-    'eth_chainId',
-    'eth_requestAccounts',
-
-    // MetaMask specific methods
-    'wallet_addEthereumChain',
-    'wallet_switchEthereumChain',
-    'wallet_getPermissions',
-    'wallet_requestPermissions',
-    'wallet_watchAsset',
-    'wallet_scanQRCode',
-
-    // EIP-5792 methods
-    'wallet_sendCalls',
-    'wallet_getCallsStatus',
-    'wallet_getCapabilities',
-  ];
-
-  // TODO: extract from the permissions controller when implemented
-  return allEIP155Methods;
-};
-
 export const getScopedPermissions = async ({
   channelId,
 }: {
   channelId: string;
 }) => {
+  const permittedChains = await getPermittedCaipChainIds(channelId);
+  const evmChains = permittedChains.filter((chain) =>
+    chain.startsWith(`${KnownCaipNamespace.Eip155}:`),
+  );
+
+  if (evmChains.length === 0) {
+    DevLogger.log(`WC::getScopedPermissions no permitted EVM chains found`);
+    return {};
+  }
+
+  const namespaces: Record<string, NamespaceConfig> = {};
+  // EIP155 namespace
   const approvedAccounts = getPermittedAccounts(channelId);
-  const chains = await getPermittedChains(channelId);
+  if (!Array.isArray(approvedAccounts)) {
+    throw rpcErrors.internal({
+      message: `WalletConnect permissions are in an unexpected format: approved accounts must be an array.`,
+    });
+  }
 
-  DevLogger.log(
-    `WC::getScopedPermissions for ${channelId}, found accounts:`,
-    approvedAccounts,
-  );
-
-  DevLogger.log(
-    `WC::getScopedPermissions for ${channelId}, found chains:`,
-    chains,
-  );
-
-  // Create properly formatted account strings for each chain and account
-  const accountsPerChains = chains.flatMap((chain) =>
-    Array.isArray(approvedAccounts)
-      ? approvedAccounts.map((account) => `${chain}:${account}`)
-      : [],
-  );
-
-  const scopedPermissions = {
-    chains,
-    methods: getApprovedSessionMethods(),
+  namespaces[KnownCaipNamespace.Eip155] = {
+    chains: evmChains,
+    methods: EVM_APPROVED_METHODS,
     events: ['chainChanged', 'accountsChanged'],
-    accounts: accountsPerChains,
+    accounts: evmChains.flatMap((chain) =>
+      approvedAccounts.map((account) => `${chain}:${account}` as CaipAccountId),
+    ),
   };
 
-  DevLogger.log(
-    `WC::getScopedPermissions final permissions`,
-    scopedPermissions,
+  return namespaces;
+};
+
+/**
+ * Seed the EVM (eip155) chains a WalletConnect proposal requested into the
+ * CAIP-25 caveat value before the permission request is raised, mirroring
+ * what non-EVM adapters do via `enrichCaveatValue`.
+ *
+ * Without this, a proposal combining eip155 with a namespace that has an
+ * adapter (e.g. Tron) produces a permission request whose only chain scopes
+ * are the adapter's, so the approval UI pre-selects only that namespace and
+ * leaves EVM networks unchecked.
+ *
+ * Only chains the wallet has a network configuration for are carried
+ * through; if the proposal requested eip155 chains but none are configured,
+ * we fall back to the wallet's currently selected EVM chain. Proposals that
+ * do not reference any eip155 chain are returned unchanged.
+ *
+ * Should be removed when we'll create a specific adapter for Eip155 chains.
+ */
+export const enrichCaveatValueForEip155 = ({
+  proposal,
+  caveatValue,
+}: {
+  proposal: ProposalParamsLight;
+  caveatValue: Caip25CaveatValue;
+}): Caip25CaveatValue => {
+  const state = store.getState();
+  const configuredCaipChainIds = Object.keys(
+    selectNetworkConfigurationsByCaipChainId(state),
+  ) as CaipChainId[];
+  const supportedEvmScopes = new Set<CaipChainId>(
+    configuredCaipChainIds.filter((caipChainId) =>
+      caipChainId.startsWith(`${KnownCaipNamespace.Eip155}:`),
+    ),
   );
-  return {
-    [KnownCaipNamespace.Eip155]: scopedPermissions,
-  };
+  const walletChainIdDecimal = parseInt(selectEvmChainId(state), 16);
+
+  return enrichCaveatValueForNamespace({
+    proposal,
+    caveatValue,
+    namespace: KnownCaipNamespace.Eip155,
+    supportedScopes: supportedEvmScopes,
+    fallbackScope:
+      `${KnownCaipNamespace.Eip155}:${walletChainIdDecimal}` as CaipChainId,
+  });
 };
 
 export const isSwitchingChainRequest = (
@@ -387,7 +395,7 @@ export const hasPermissionsToSwitchChainRequest = async (
     });
   }
 
-  const permittedChains = await getPermittedChains(channelId);
+  const permittedChains = await getPermittedCaipChainIds(channelId);
   const isAllowedChainId = permittedChains.includes(caip2ChainId);
   DevLogger.log(`WC::checkWCPermissions permittedChains: ${permittedChains}`);
 
@@ -427,3 +435,52 @@ export const getUnverifiedRequestOrigin = (
   }
   return defaultOrigin;
 };
+
+/**
+ * Determine whether a WalletConnect request method should trigger a deeplink redirect for EIP155 chains.
+ */
+export const isEIP155RedirectMethodForChain = ({
+  scope,
+  method,
+}: {
+  scope: CaipChainId;
+  method: string;
+}): boolean => {
+  if (scope.startsWith(`${KnownCaipNamespace.Eip155}:`)) {
+    return EVM_METHODS_TO_REDIRECT.includes(method);
+  }
+  return false;
+};
+
+/**
+ * Whether this CAIP namespace belongs to EIP-155 chains or not.
+ *
+ * Should be removed when we'll create a specific adapter for Eip155 chains.
+ */
+export const isEIP155NameSpace = (namespace: string): boolean =>
+  namespace === KnownCaipNamespace.Eip155;
+
+/**
+ * Whether this CAIP chain id belongs to an EIP-155 chain or not.
+ *
+ * Should be removed when we'll create a specific adapter for Eip155 chains.
+ */
+export const isEIP155Scope = (scope: CaipChainId): boolean => {
+  const { namespace } = parseCaipChainId(scope);
+  return isEIP155NameSpace(namespace);
+};
+
+/**
+ * Whether a permission-request origin belongs to the active WalletConnect flow.
+ *
+ * `wc2Metadata.id` stores the WC pairing topic (permission origin), not the
+ * dapp URL. Stale metadata must not classify unrelated in-app browser requests
+ * as WalletConnect.
+ */
+export const isWalletConnectPermissionOrigin = (
+  origin: string,
+  wc2Metadata?: Partial<WC2Metadata>,
+): boolean =>
+  Boolean(
+    wc2Metadata?.id && wc2Metadata.id.length > 0 && origin === wc2Metadata.id,
+  );

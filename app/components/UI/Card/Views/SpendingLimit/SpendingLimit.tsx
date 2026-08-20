@@ -1,6 +1,13 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
@@ -14,13 +21,22 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
+import {
+  useCardHeaderHandlers,
+  type CardHeaderMode,
+} from '../../hooks/useCardHeaderHandlers';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
+import {
+  selectCardHomeDataStatus,
+  selectIsCardStateResolved,
+} from '../../../../../selectors/cardController';
 import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import { CardFundingToken } from '../../types';
 import useSpendingLimit from '../../hooks/useSpendingLimit';
@@ -29,10 +45,13 @@ import useSpendingLimitData from '../../hooks/useSpendingLimitData';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 import { LINEA_CAIP_CHAIN_ID } from '../../util/buildTokenList';
+import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
 import AccountRow from './components/AccountRow';
 import TokenRow from './components/TokenRow';
 import SpendAndEarnPromoCard from './components/SpendAndEarnPromoCard';
 import { SpendingLimitSelectors } from './SpendingLimit.testIds';
+
+const ONBOARDING_LOAD_TIMEOUT_MS = 30_000;
 
 interface SpendingLimitRouteParams {
   flow?: 'manage' | 'enable' | 'onboarding' | 'enable_card';
@@ -52,34 +71,85 @@ interface SpendingLimitProps {
  * Supports three flows: onboarding, enable, and manage.
  */
 const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const tw = useTailwind();
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const accountGroupName = useAccountGroupName();
+  const isCardStateResolved = useSelector(selectIsCardStateResolved);
+  const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
 
   const flow = route?.params?.flow || 'manage';
   const isOnboardingFlow = flow === 'onboarding';
+  // Onboarding flow: linear sign-up, exit resets the stack to Card Home.
+  // Other flows: standard back navigation.
+  const headerMode: CardHeaderMode = isOnboardingFlow
+    ? 'close-reset-home'
+    : 'back';
+  const headerHandlers = useCardHeaderHandlers(headerMode);
   const selectedTokenFromRoute = route?.params?.selectedToken;
   const {
     primaryToken,
     availableTokens: homeAvailableTokens,
     data: cardHomeData,
+    refetch: refetchCardHomeData,
   } = useCardHomeData();
   const {
     availableTokens: hookAvailableTokens,
     delegationSettings: hookDelegationSettings,
-    isLoading: isLoadingHookData,
     error: hookError,
     fetchData: fetchHookData,
   } = useSpendingLimitData();
 
+  const [loadTimedOut, setLoadTimedOut] = useState(false);
+  const [fallbackStatus, setFallbackStatus] = useState<
+    'idle' | 'pending' | 'settled'
+  >('idle');
+  const isMountedRef = useRef(true);
+  const fallbackRequestIdRef = useRef(0);
+
+  useEffect(
+    () => () => {
+      isMountedRef.current = false;
+    },
+    [],
+  );
+
+  const homeDelegationSettings = cardHomeData?.delegationSettings ?? null;
+  const cardHomeSettled =
+    cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
+  // Card home data is only trusted once its fetch settles, so a stale pre-auth
+  // payload cannot be mistaken for the authenticated one.
+  const hasDelegationSettings =
+    (cardHomeSettled && homeDelegationSettings !== null) ||
+    hookDelegationSettings !== null;
+  const needsFallbackFetch =
+    homeDelegationSettings === null && (cardHomeSettled || isCardStateResolved);
+
+  const runFallbackFetch = useCallback(() => {
+    const requestId = ++fallbackRequestIdRef.current;
+    setFallbackStatus('pending');
+    fetchHookData()
+      .catch(() => undefined)
+      .finally(() => {
+        if (
+          isMountedRef.current &&
+          fallbackRequestIdRef.current === requestId
+        ) {
+          setFallbackStatus('settled');
+        }
+      });
+  }, [fetchHookData]);
+
+  // Fallback only after card home settles without delegation settings.
+  // Idle guard keeps this from re-firing when fetchHookData identity changes.
   useEffect(() => {
-    if (isOnboardingFlow && homeAvailableTokens.length === 0) {
-      fetchHookData();
-    }
-  }, [isOnboardingFlow, homeAvailableTokens.length, fetchHookData]);
+    if (!isOnboardingFlow) return;
+    if (!needsFallbackFetch) return;
+    if (fallbackStatus !== 'idle') return;
+    runFallbackFetch();
+  }, [isOnboardingFlow, needsFallbackFetch, fallbackStatus, runFallbackFetch]);
 
   const allTokens =
     homeAvailableTokens.length > 0
@@ -88,8 +158,43 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         ? hookAvailableTokens
         : [];
   const delegationSettings =
-    cardHomeData?.delegationSettings ??
+    homeDelegationSettings ??
     (isOnboardingFlow ? hookDelegationSettings : null);
+
+  // Waiting while card home is unsettled, or while the fallback it triggers runs.
+  const isLoadInFlight =
+    isOnboardingFlow &&
+    !hasDelegationSettings &&
+    (!needsFallbackFetch || fallbackStatus !== 'settled');
+
+  // loadTimedOut is in the deps so Retry can start a fresh timer, but a fired
+  // timeout must not schedule another one or the error UI would unlatch.
+  useEffect(() => {
+    if (!isLoadInFlight) {
+      setLoadTimedOut(false);
+      return;
+    }
+    if (loadTimedOut) return;
+    const timer = setTimeout(() => {
+      setLoadTimedOut(true);
+    }, ONBOARDING_LOAD_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [isLoadInFlight, loadTimedOut]);
+
+  const isOnboardingError =
+    isOnboardingFlow &&
+    !hasDelegationSettings &&
+    (loadTimedOut ||
+      Boolean(hookError) ||
+      (needsFallbackFetch && fallbackStatus === 'settled'));
+  const isOnboardingPending = isLoadInFlight && !isOnboardingError;
+
+  const handleRetry = useCallback(() => {
+    fallbackRequestIdRef.current += 1;
+    setLoadTimedOut(false);
+    setFallbackStatus('idle');
+    refetchCardHomeData();
+  }, [refetchCardHomeData]);
 
   const {
     selectedToken,
@@ -107,11 +212,8 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     isMoneyAccountLocked,
     canShowMoneyAccountCta,
     selectMoneyAccountAsSource,
-    moneyAccountTotalFiatFormatted,
-    isMoneyAccountBalanceLoading,
-    canLinkMoneyAccount,
     moneyAccountApyPercent,
-    hasMetalCard,
+    shouldBlockNavigation,
   } = useSpendingLimit({
     flow,
     initialToken: selectedTokenFromRoute,
@@ -121,18 +223,13 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     routeParams: route?.params as Record<string, unknown> | undefined,
   });
 
-  const isLoadingRef = useRef(isLoading);
-  useEffect(() => {
-    isLoadingRef.current = isLoading;
-  }, [isLoading]);
-
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (!isLoadingRef.current) return;
+      if (!shouldBlockNavigation()) return;
       e.preventDefault();
     });
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, shouldBlockNavigation]);
 
   const tokenLabel = useMemo(() => {
     if (!selectedToken) return '';
@@ -156,27 +253,17 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     return customLimit || '0';
   }, [limitType, customLimit]);
 
-  const moneyAccountTokenDisplayLabel = useMemo(() => {
-    const symbol = strings(
-      'card.card_spending_limit.money_account_token_symbol',
-    );
-    if (moneyAccountTotalFiatFormatted) {
-      return `${symbol} (${moneyAccountTotalFiatFormatted})`;
-    }
-    return symbol;
-  }, [moneyAccountTotalFiatFormatted]);
-
-  const shouldWaitForMoneyAccountBalance =
-    (flow === 'onboarding' || flow === 'enable_card') && canLinkMoneyAccount;
-  if (
-    (isOnboardingFlow && isLoadingHookData) ||
-    (shouldWaitForMoneyAccountBalance && isMoneyAccountBalanceLoading)
-  ) {
+  if (isOnboardingPending) {
     return (
       <SafeAreaView
         style={tw.style('flex-1 bg-background-default')}
         edges={['bottom']}
       >
+        <HeaderStandard
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
+        />
         <Box twClassName="flex-1 justify-center items-center px-6">
           <ActivityIndicator
             testID={SpendingLimitSelectors.LOADING_INDICATOR}
@@ -194,14 +281,21 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     );
   }
 
-  // Error state for onboarding
-  if (isOnboardingFlow && hookError && !delegationSettings) {
+  if (isOnboardingError) {
     return (
       <SafeAreaView
         style={tw.style('flex-1 bg-background-default')}
         edges={['bottom']}
       >
-        <Box twClassName="flex-1 justify-center items-center px-6">
+        <HeaderStandard
+          includesTopInset
+          twClassName="bg-background-default"
+          {...headerHandlers}
+        />
+        <Box
+          twClassName="flex-1 justify-center items-center px-6"
+          testID={SpendingLimitSelectors.ERROR_CONTAINER}
+        >
           <Icon
             name={IconName.Danger}
             size={IconSize.Xl}
@@ -217,8 +311,9 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Md}
-              onPress={fetchHookData}
+              onPress={handleRetry}
               isFullWidth
+              testID={SpendingLimitSelectors.RETRY_BUTTON}
             >
               {strings('card.card_spending_limit.retry')}
             </Button>
@@ -241,6 +336,11 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
       style={tw.style('flex-1 bg-background-default')}
       edges={['bottom']}
     >
+      <HeaderStandard
+        includesTopInset
+        twClassName="bg-background-default"
+        {...headerHandlers}
+      />
       <KeyboardAwareScrollView
         style={tw.style('flex-1 px-4')}
         showsVerticalScrollIndicator={false}
@@ -281,7 +381,6 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
             selectedToken={selectedToken}
             tokenIconUrl={tokenIconUrl}
             tokenLabel={tokenLabel}
-            moneyAccountTokenDisplayLabel={moneyAccountTokenDisplayLabel}
             onPress={handleOtherSelect}
           />
 
@@ -320,8 +419,12 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         {canShowMoneyAccountCta && (
           <SpendAndEarnPromoCard
             apyPercent={moneyAccountApyPercent}
-            cashbackPercent={hasMetalCard ? 3 : 1}
             onPress={selectMoneyAccountAsSource}
+            analytics={{
+              screen: CardScreens.SPENDING_LIMIT,
+              entrypoint: CardEntryPoint.SPENDING_LIMIT_SPEND_AND_EARN_PROMO,
+              flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+            }}
           />
         )}
 
@@ -349,7 +452,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
                 onPress={submit}
                 isFullWidth
                 isDisabled={!isValid || isLoading}
-                isLoading={isLoading}
+                isLoading={isLoading && !isMoneyAccountSource}
               >
                 {strings('card.card_spending_limit.confirm_new_limit')}
               </Button>

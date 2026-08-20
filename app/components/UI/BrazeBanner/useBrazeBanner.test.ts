@@ -217,6 +217,19 @@ describe('useBrazeBanner', () => {
     expect(result.current.status).toBe('empty');
   });
 
+  it('ignores the first valid banner when it arrives after the startup window', () => {
+    const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+    act(() => {
+      jest.advanceTimersByTime(SKELETON_TIMEOUT_MS);
+    });
+
+    fireBannerEvent([makeBanner()]);
+
+    expect(result.current.status).toBe('empty');
+    expect(result.current.banner).toBeNull();
+  });
+
   it('stays in loading when event arrives with no matching banner (timeout handles empty path)', () => {
     const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
@@ -267,18 +280,27 @@ describe('useBrazeBanner', () => {
     expect(result.current.status).toBe('visible');
   });
 
-  it('ignores subsequent events once a banner is visible (same banner re-emitted)', () => {
+  it('ignores subsequent events once a banner is visible when trackingId is unchanged', () => {
     const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
-    const banner = makeBanner();
 
-    fireBannerEvent([banner]);
+    fireBannerEvent([
+      makeBanner({ trackingId: 'tracking-1', body: 'Original body' }),
+    ]);
     expect(result.current.status).toBe('visible');
+    expect(result.current.body).toBe('Original body');
 
-    fireBannerEvent([banner]);
+    fireBannerEvent([
+      makeBanner({
+        trackingId: 'tracking-1',
+        bannerName: 'different-campaign',
+        body: 'Changed body',
+      }),
+    ]);
     expect(result.current.status).toBe('visible');
+    expect(result.current.body).toBe('Original body');
   });
 
-  it('does not swap a visible banner when a different banner arrives in a later event', () => {
+  it('swaps a visible banner when a different trackingId arrives in a later event', () => {
     const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
     fireBannerEvent([
@@ -300,8 +322,26 @@ describe('useBrazeBanner', () => {
       }),
     ]);
 
-    expect(result.current.body).toBe('First body');
-    expect(result.current.bannerName).toBe('campaign-1');
+    expect(result.current.body).toBe('Second body');
+    expect(result.current.bannerName).toBe('campaign-2');
+  });
+
+  it('keeps a visible banner when a later control banner arrives', () => {
+    const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+    fireBannerEvent([makeBanner({ body: 'Original body' })]);
+    expect(result.current.status).toBe('visible');
+    expect(result.current.body).toBe('Original body');
+
+    fireBannerEvent([
+      {
+        ...makeBanner({ trackingId: 'tracking-control', body: 'Control body' }),
+        isControl: true,
+      },
+    ]);
+
+    expect(result.current.status).toBe('visible');
+    expect(result.current.body).toBe('Original body');
   });
 
   it('transitions to dismissed when dismiss() is called', () => {
@@ -392,6 +432,32 @@ describe('useBrazeBanner', () => {
     await waitFor(() => expect(result.current.status).toBe('visible'));
   });
 
+  it('accepts a warm-cache banner even when the native probe resolves after the startup window', async () => {
+    let resolveCachedBanner: (
+      banner: ReturnType<typeof makeBanner>,
+    ) => void = () => undefined;
+    mockGetBannerForPlacement.mockReturnValue(
+      new Promise((resolve) => {
+        resolveCachedBanner = resolve;
+      }),
+    );
+    const cachedBanner = makeBanner({ body: 'Cached body' });
+
+    const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+    act(() => {
+      jest.advanceTimersByTime(SKELETON_TIMEOUT_MS);
+    });
+    expect(result.current.status).toBe('empty');
+
+    await act(async () => {
+      resolveCachedBanner(cachedBanner);
+    });
+
+    expect(result.current.status).toBe('visible');
+    expect(result.current.body).toBe('Cached body');
+  });
+
   it('removes the listener subscription on unmount', () => {
     const mockRemove = jest.fn();
     (Braze.addListener as jest.Mock).mockReturnValueOnce({
@@ -448,8 +514,8 @@ describe('useBrazeBanner', () => {
 
       fireBannerEvent([makeBanner({ bannerName: 'new-campaign' })]);
 
-      // A second event after the banner is visible is ignored entirely;
-      // the null dispatch should still only have happened once on first accept.
+      // A later event can replace the visible banner, but the null dispatch
+      // should still only happen once on first accept.
       fireBannerEvent([
         makeBanner({ trackingId: 'tracking-2', bannerName: 'new-campaign' }),
       ]);
@@ -495,18 +561,29 @@ describe('useBrazeBanner', () => {
       expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
     });
 
-    it('does not swap a visible banner when the foreground refresh triggers a new event', () => {
+    it('swaps a visible banner when the foreground refresh returns a different trackingId', () => {
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
 
-      fireBannerEvent([makeBanner({ body: 'Original body' })]);
+      fireBannerEvent([
+        makeBanner({
+          trackingId: 'tracking-1',
+          bannerName: 'campaign-1',
+          body: 'Original body',
+        }),
+      ]);
       expect(result.current.status).toBe('visible');
 
       // Simulate foreground → SDK fires a new bannerCardsUpdated event
       fireAppStateChange('active');
-      fireBannerEvent([makeBanner({ body: 'Refreshed body' })]);
+      fireBannerEvent([
+        makeBanner({
+          trackingId: 'tracking-2',
+          bannerName: 'campaign-2',
+          body: 'Refreshed body',
+        }),
+      ]);
 
-      // shownRef prevents the visible banner from being replaced
-      expect(result.current.body).toBe('Original body');
+      expect(result.current.body).toBe('Refreshed body');
     });
 
     it('removes the AppState subscription on unmount', () => {

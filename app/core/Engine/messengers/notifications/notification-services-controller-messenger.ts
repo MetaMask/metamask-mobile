@@ -1,5 +1,5 @@
 import type { NotificationServicesControllerMessenger } from '@metamask/notification-services-controller/notification-services';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
+import { RootMessenger } from '../../types';
 import {
   Messenger,
   MessengerActions,
@@ -7,18 +7,16 @@ import {
 } from '@metamask/messenger';
 
 export function getNotificationServicesControllerMessenger(
-  baseControllerMessenger: RootExtendedMessenger,
-): NotificationServicesControllerMessenger {
-  const messenger = new Messenger<
-    'NotificationServicesController',
+  rootMessenger: RootMessenger<
     MessengerActions<NotificationServicesControllerMessenger>,
-    MessengerEvents<NotificationServicesControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<NotificationServicesControllerMessenger>
+  >,
+): NotificationServicesControllerMessenger {
+  const messenger: NotificationServicesControllerMessenger = new Messenger({
     namespace: 'NotificationServicesController',
-    parent: baseControllerMessenger,
+    parent: rootMessenger,
   });
-  baseControllerMessenger.delegate({
+  rootMessenger.delegate({
     actions: [
       // Keyring Actions
       'KeyringController:getState',

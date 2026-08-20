@@ -1,4 +1,5 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
 import { View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -13,7 +14,7 @@ export const STAKE_EARNINGS_HISTORY_VIEW_BACK_BUTTON_TEST_ID =
   'stake-earnings-history-header-back-button';
 
 const StakeEarningsHistoryView = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<StakeEarningsHistoryViewRouteParams>();
   const { styles } = useStyles(styleSheet, {});
   const { asset } = route.params;

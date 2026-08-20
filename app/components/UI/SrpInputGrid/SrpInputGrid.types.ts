@@ -54,4 +54,11 @@ export interface SrpInputGridProps {
    * @default true
    */
   autoFocus?: boolean;
+
+  /**
+   * Whether to include the default top margin (`mt-2`) on the root container.
+   * Set to `false` when the parent owns spacing above the grid (avoids gap/margin stacking).
+   * @default true
+   */
+  includeTopMargin?: boolean;
 }

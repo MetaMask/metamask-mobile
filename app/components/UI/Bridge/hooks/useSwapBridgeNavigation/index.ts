@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { useSelector, useDispatch } from 'react-redux';
@@ -7,6 +8,7 @@ import { BridgeToken, BridgeViewMode } from '../../types';
 import {
   formatChainIdToHex,
   getNativeAssetForChainId,
+  isNativeAddress,
   isNonEvmChainId,
   MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
@@ -42,6 +44,18 @@ import { areAddressesEqual } from '../../../../../util/address';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import { useFetchPopularTokens } from '../useFetchPopularTokens';
+import {
+  ARC_HEX_CHAIN_ID,
+  ARC_USDC_BRIDGE_TOKEN,
+} from '../../../../../enablement/assets/arc';
+
+/**
+ * Allows to manually set the default Swap token when clicking on the Swap CTA from
+ * native token page. If unset, `getNativeAssetForChainId` of bridge-controller is used.
+ */
+const NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN: { [key: string]: BridgeToken } = {
+  [ARC_HEX_CHAIN_ID]: ARC_USDC_BRIDGE_TOKEN,
+};
 
 /**
  * When navigating to the Asset view from trending tokens list, we add a property
@@ -64,6 +78,7 @@ export interface BridgeRouteParams {
   sourceAmount?: string;
   location: MetaMetricsSwapsEventSource;
   scrollToTopOnNav?: boolean;
+  autoFocusSourceAmountInput?: boolean;
   /**
    * Homepage / explicit flow `active_ab_tests` carried on the route and bound
    * to transactions when the user submits (not stored in Redux).
@@ -76,6 +91,8 @@ export enum SwapBridgeNavigationLocation {
   TokenView = MetaMetricsSwapsEventSource.TokenView,
   Rewards = 'Rewards',
   TrendingExplore = MetaMetricsSwapsEventSource.TrendingExplore,
+  FollowTradingTokenScreen = MetaMetricsSwapsEventSource.FollowTradingTokenScreen,
+  FollowTradingFeedScreen = MetaMetricsSwapsEventSource.FollowTradingFeedScreen,
 }
 
 /**
@@ -100,6 +117,10 @@ export const toMetaMetricsSwapsEventSource = (
       return MetaMetricsSwapsEventSource.TokenView;
     case SwapBridgeNavigationLocation.TrendingExplore:
       return MetaMetricsSwapsEventSource.TrendingExplore;
+    case SwapBridgeNavigationLocation.FollowTradingTokenScreen:
+      return MetaMetricsSwapsEventSource.FollowTradingTokenScreen;
+    case SwapBridgeNavigationLocation.FollowTradingFeedScreen:
+      return MetaMetricsSwapsEventSource.FollowTradingFeedScreen;
     default:
       return MetaMetricsSwapsEventSource.MainView;
   }
@@ -121,6 +142,7 @@ export const useSwapBridgeNavigation = ({
   transactionActiveAbTests,
   skipLocationUpdate = false,
   swapButtonEventLocationOverride,
+  skipActionButtonClickTracking = false,
 }: {
   location: SwapBridgeNavigationLocation;
   sourcePage: string;
@@ -147,8 +169,13 @@ export const useSwapBridgeNavigation = ({
   swapButtonEventLocationOverride?:
     | ActionLocation
     | SwapBridgeNavigationLocation;
+  /**
+   * When true, skip consolidated ACTION_BUTTON_CLICKED from this hook so the
+   * caller can emit it with the correct location / position (e.g. homepage grid).
+   */
+  skipActionButtonClickTracking?: boolean;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const getIsBridgeEnabledSource = useSelector(
@@ -250,6 +277,15 @@ export const useSwapBridgeNavigation = ({
         ? candidateSourceToken
         : undefined;
 
+      // Doing this manual override last to ensure it is not overriden by the previous overrides.
+      if (
+        isNativeAddress(sourceToken?.address) &&
+        NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN[effectiveSourceChainId]
+      ) {
+        sourceToken =
+          NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN[effectiveSourceChainId];
+      }
+
       if (!sourceToken) {
         // fallback to ETH on mainnet
         sourceToken = getNativeSourceToken(EthScope.Mainnet);
@@ -267,11 +303,13 @@ export const useSwapBridgeNavigation = ({
         : undefined;
 
       let destTokenToSet: BridgeToken | undefined;
+      let isExplicitDestTokenSelection = false;
       if (
         validDestTokenBase &&
         !areAddressesEqual(sourceToken.address, validDestTokenBase.address)
       ) {
         destTokenToSet = validDestTokenBase;
+        isExplicitDestTokenSelection = true;
       } else {
         const defaultDestToken = getDefaultDestToken(sourceToken.chainId);
         if (
@@ -310,12 +348,19 @@ export const useSwapBridgeNavigation = ({
         Engine.context.BridgeController.setLocation(mappedLocation);
       }
 
+      const shouldAutoFocusSourceAmountInput = Boolean(
+        effectiveSourceTokenBase || effectiveDestTokenBase,
+      );
+
       const params: BridgeRouteParams = {
         sourceToken,
         sourcePage,
         bridgeViewMode,
         location: mappedLocation,
         ...(scrollToTopOnNav && { scrollToTopOnNav: true }),
+        ...(shouldAutoFocusSourceAmountInput && {
+          autoFocusSourceAmountInput: true,
+        }),
         ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
       };
 
@@ -330,7 +375,7 @@ export const useSwapBridgeNavigation = ({
         params,
       });
 
-      dispatch(setIsDestTokenManuallySet(false));
+      dispatch(setIsDestTokenManuallySet(isExplicitDestTokenSelection));
       dispatch(setAbTestContext(abTestContext));
       dispatch(setSourceToken(sourceToken));
       if (destTokenToSet) {
@@ -338,20 +383,26 @@ export const useSwapBridgeNavigation = ({
       }
 
       // Track Swap button click with new consolidated event
-      const isFromNavbar = location === SwapBridgeNavigationLocation.MainView;
-      const actionButtonProps = {
-        action_name: ActionButtonType.SWAP,
-        // Omit action_position for navbar to avoid confusion with main action buttons
-        ...(isFromNavbar
-          ? {}
-          : { action_position: ActionPosition.SECOND_POSITION }),
-        button_label: buttonLabel ?? strings('asset_overview.swap'),
-        location: isFromNavbar
-          ? ActionLocation.NAVBAR
-          : ActionLocation.ASSET_DETAILS,
-      };
+      if (!skipActionButtonClickTracking) {
+        const isFromNavbar = location === SwapBridgeNavigationLocation.MainView;
+        const actionButtonProps = {
+          action_name: ActionButtonType.SWAP,
+          // Omit action_position for navbar to avoid confusion with main action buttons
+          ...(isFromNavbar
+            ? {}
+            : { action_position: ActionPosition.SECOND_POSITION }),
+          button_label: buttonLabel ?? strings('asset_overview.swap'),
+          location: isFromNavbar
+            ? ActionLocation.NAVBAR
+            : ActionLocation.ASSET_DETAILS,
+        };
 
-      trackActionButtonClick(trackEvent, createEventBuilder, actionButtonProps);
+        trackActionButtonClick(
+          trackEvent,
+          createEventBuilder,
+          actionButtonProps,
+        );
+      }
 
       const swapEventProperties = {
         location:
@@ -389,6 +440,7 @@ export const useSwapBridgeNavigation = ({
       getIsBridgeEnabledSource,
       skipLocationUpdate,
       swapButtonEventLocationOverride,
+      skipActionButtonClickTracking,
       transactionActiveAbTests,
       isBasicFunctionalityEnabled,
       prefetchPopularTokens,

@@ -103,19 +103,12 @@ jest.mock('../../../../hooks/useThunkDispatch', () => ({
   default: () => jest.fn(),
 }));
 
-jest.mock('../../Deposit/utils', () => ({
+jest.mock('../../utils/depositUtils', () => ({
   hasDepositOrderField: (data: unknown, field: string) => {
     if (!data || typeof data !== 'object') return false;
     return field in (data as Record<string, unknown>);
   },
   generateThemeParameters: jest.fn(() => ({})),
-}));
-
-jest.mock('../../Deposit/orderProcessor', () => ({
-  depositOrderToFiatOrder: jest.fn((order) => ({
-    ...order,
-    orderType: 'BUY',
-  })),
 }));
 
 jest.mock(
@@ -130,7 +123,7 @@ jest.mock(
   },
 );
 
-jest.mock('../../Deposit/components/BankDetailRow', () => {
+jest.mock('../../components/BankDetailRow', () => {
   const { createElement } = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return {
@@ -434,6 +427,12 @@ describe('V2BankDetails', () => {
     await waitFor(() => {
       expect(mockConfirmPayment).toHaveBeenCalledWith('test-order-id', 'pm-1');
     });
+
+    // TRAM-3696: terminal confirmed event carries the provider order id.
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      'RAMPS_TRANSACTION_CONFIRMED',
+      expect.objectContaining({ provider_order_id: 'test-order-id' }),
+    );
   });
 
   it('handles cancel order button press', async () => {

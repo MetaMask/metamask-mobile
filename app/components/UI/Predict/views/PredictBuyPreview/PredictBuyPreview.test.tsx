@@ -111,6 +111,21 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
   }),
 }));
 
+jest.mock('../../hooks/usePredictMaxBetAmount', () => ({
+  usePredictMaxBetAmount: ({
+    availableBalance,
+    preview,
+  }: {
+    availableBalance: number;
+    preview?: unknown;
+  }) => ({
+    maxBetAmount: jest
+      .requireActual('../../utils/orders')
+      .calculateMaxBetAmount(availableBalance, preview),
+    isLoading: false,
+  }),
+}));
+
 // Mock usePredictBalance hook
 let mockBalance = 1000;
 let mockBalanceLoading = false;
@@ -231,14 +246,6 @@ const mockRoute: RouteProp<PredictNavigationParamList, 'PredictBuyPreview'> = {
   },
 };
 
-let mockBeforeRemoveCallback: (() => void) | null = null;
-const mockAddListener = jest.fn((event: string, cb: () => void) => {
-  if (event === 'beforeRemove') {
-    mockBeforeRemoveCallback = cb;
-  }
-  return jest.fn();
-});
-
 const mockNavigation: NavigationProp<PredictNavigationParamList> = {
   goBack: mockGoBack,
   dispatch: mockDispatch,
@@ -246,7 +253,7 @@ const mockNavigation: NavigationProp<PredictNavigationParamList> = {
   reset: jest.fn(),
   setParams: jest.fn(),
   setOptions: jest.fn(),
-  addListener: mockAddListener,
+  addListener: jest.fn(),
   removeListener: jest.fn(),
   canGoBack: jest.fn(),
   isFocused: jest.fn(),
@@ -262,14 +269,6 @@ const initialState = {
 };
 
 describe('PredictBuyPreview', () => {
-  beforeAll(() => {
-    jest.useFakeTimers();
-  });
-
-  afterAll(() => {
-    jest.useRealTimers();
-  });
-
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -295,8 +294,6 @@ describe('PredictBuyPreview', () => {
     mockEstimatedPoints = null;
     mockRewardsError = false;
 
-    mockBeforeRemoveCallback = null;
-
     // Setup default mocks
     mockUseNavigation.mockReturnValue(mockNavigation);
     mockUseRoute.mockReturnValue(mockRoute);
@@ -318,6 +315,29 @@ describe('PredictBuyPreview', () => {
       expect(screen.getByText('Yes at 50¢')).toBeOnTheScreen();
       expect(screen.getByText('To win')).toBeOnTheScreen();
       expect(screen.getByText('$120.00')).toBeOnTheScreen();
+    });
+
+    it('tracks the initiated buy event using the ask (buyPrice), not the mid', () => {
+      const Engine = jest.requireMock('../../../../../core/Engine');
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          // Wide spread: mid 0.63 but ask 0.92.
+          outcomeToken: {
+            id: 'outcome-token-789',
+            title: 'Yes',
+            price: 0.63,
+            buyPrice: 0.92,
+          },
+        },
+      });
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      expect(
+        Engine.context.PredictController.trackPredictOrderEvent,
+      ).toHaveBeenCalledWith(expect.objectContaining({ sharePrice: 0.92 }));
     });
 
     it('displays disclaimer text when done button is pressed', () => {
@@ -579,7 +599,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $1,000.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $961.53')).toBeOnTheScreen();
     });
 
     it('hides balance text while balance is loading', () => {
@@ -596,7 +616,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $1,234.56')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $1,187.07')).toBeOnTheScreen();
     });
 
     it('displays zero balance as $0.00', () => {
@@ -614,7 +634,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $999,999.99')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $961,538.45')).toBeOnTheScreen();
     });
   });
 
@@ -636,7 +656,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText(/Available:.*\$1\.50/)).toBeOnTheScreen();
+      expect(screen.getByText(/Available:.*\$1\.44/)).toBeOnTheScreen();
     });
 
     it('hides insufficient funds error when balance is loading', () => {
@@ -680,7 +700,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $0.50')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $0.48')).toBeOnTheScreen();
       expect(
         screen.queryByText('Minimum amount is $1.00'),
       ).not.toBeOnTheScreen();
@@ -693,8 +713,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      // maxBetAmount with 4% fee = 2 * 0.96 = 1.92
-      expect(screen.getByText('Available: $2.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $1.92')).toBeOnTheScreen();
     });
 
     it('calculates max bet amount correctly with fees', () => {
@@ -704,8 +723,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      // maxBetAmount = 10 * (1 - 4/100) = 9.6
-      expect(screen.getByText('Available: $10.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $9.61')).toBeOnTheScreen();
     });
 
     it('validates minimum bet with fees included', () => {
@@ -715,7 +733,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $10.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $9.61')).toBeOnTheScreen();
     });
   });
 
@@ -809,7 +827,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText(/Available:.*\$100\.00/)).toBeOnTheScreen();
+      expect(screen.getByText(/Available:.*\$96\.15/)).toBeOnTheScreen();
       expect(screen.getByText('$20')).toBeOnTheScreen();
       expect(screen.getByText('$50')).toBeOnTheScreen();
       expect(screen.getByText('$100')).toBeOnTheScreen();
@@ -851,7 +869,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText(/Available:.*\$1\.40/)).toBeOnTheScreen();
+      expect(screen.getByText(/Available:.*\$1\.34/)).toBeOnTheScreen();
     });
 
     it('formats very large balance with commas and two decimals', () => {
@@ -860,7 +878,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $999,999,999.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $961,538,460.57')).toBeOnTheScreen();
     });
 
     it('renders component with custom fees', () => {
@@ -871,7 +889,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText(/Available:.*\$100\.00/)).toBeOnTheScreen();
+      expect(screen.getByText(/Available:.*\$96\.15/)).toBeOnTheScreen();
     });
   });
 
@@ -1024,7 +1042,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $1.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $0.96')).toBeOnTheScreen();
     });
 
     it('calculates minimum bet with fees when fee percentage is provided', () => {
@@ -1034,7 +1052,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $1.05')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $1.00')).toBeOnTheScreen();
     });
 
     it('displays correct available balance with fee adjustment', () => {
@@ -1045,8 +1063,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      // maxBetAmount = 5 * 0.96 = 4.8, shown as Available
-      expect(screen.getByText('Available: $5.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $4.80')).toBeOnTheScreen();
     });
 
     it('handles large fee percentages correctly', () => {
@@ -1056,8 +1073,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      // maxBetAmount = 10 * 0.5 = 5
-      expect(screen.getByText('Available: $10.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $6.66')).toBeOnTheScreen();
     });
   });
 
@@ -1099,8 +1115,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      // maxBetAmount = 10 * 0.96 = 9.6 (> MINIMUM_BET of 1)
-      expect(screen.getByText('Available: $10.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $9.61')).toBeOnTheScreen();
     });
 
     it('returns null when balance is loading', () => {
@@ -1177,7 +1192,7 @@ describe('PredictBuyPreview', () => {
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
       // Component renders successfully with low balance
-      expect(screen.getByText('Available: $1.03')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $0.99')).toBeOnTheScreen();
     });
 
     it('renders when balance equals minimumBetWithFees', () => {
@@ -1189,7 +1204,7 @@ describe('PredictBuyPreview', () => {
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
       // Component renders successfully
-      expect(screen.getByText('Available: $1.04')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $1.00')).toBeOnTheScreen();
     });
 
     it('handles very small fee percentages in minimumBetFees calculation', () => {
@@ -1551,7 +1566,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      // maxBetAmount = calculateMaxBetAmount(50, 0) = 50
+      // A preview with no fee rate leaves the full balance available.
       expect(screen.getByText('Available: $50.00')).toBeOnTheScreen();
     });
 
@@ -1661,7 +1676,7 @@ describe('PredictBuyPreview', () => {
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
       expect(screen.getByText('Done')).toBeOnTheScreen();
-      expect(screen.getByText('Available: $100.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $94.33')).toBeOnTheScreen();
     });
 
     it('renders correctly with different balance scenarios', () => {
@@ -1683,7 +1698,7 @@ describe('PredictBuyPreview', () => {
 
       rerender(<PredictBuyPreview />);
 
-      expect(screen.getByText('Available: $0.50')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $0.48')).toBeOnTheScreen();
     });
 
     it('tests canPlaceBet with minimumBetWithFees comparison explicitly', () => {
@@ -2085,6 +2100,47 @@ describe('PredictBuyPreview', () => {
       // Separator should not be present when groupItemTitle is empty
       expect(screen.getByText('Yes at 50¢')).toBeOnTheScreen();
     });
+
+    it('renders provider-normalized moneyline team picks', () => {
+      const moneylineMarket: PredictMarket = {
+        ...mockMarket,
+        title: 'Korea Republic vs. Czechia',
+        outcomes: [
+          {
+            ...mockMarket.outcomes[0],
+            title: 'Korea Republic vs. Czechia',
+            groupItemTitle: 'Korea Republic',
+            image: 'https://example.com/korea.png',
+            sportsMarketType: 'moneyline',
+            tokens: [
+              {
+                id: 'outcome-token-789',
+                title: 'Yes',
+                shortTitle: 'KOR',
+                price: 0.5,
+              },
+            ],
+          },
+        ],
+      };
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          market: moneylineMarket,
+          outcome: moneylineMarket.outcomes[0],
+          outcomeToken: moneylineMarket.outcomes[0].tokens[0],
+        },
+      });
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      expect(screen.getByText('Korea Republic')).toBeOnTheScreen();
+      expect(screen.getByText('Yes at 50¢')).toBeOnTheScreen();
+      expect(screen.queryByText('Korea Republic at 50¢')).not.toBeOnTheScreen();
+    });
   });
 
   describe('outcome token color', () => {
@@ -2185,6 +2241,33 @@ describe('PredictBuyPreview', () => {
       ).toBeOnTheScreen();
     });
 
+    it('tracks initiated trade transaction with explore entry point', () => {
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+        },
+      });
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const trackPredictOrderEvent =
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        require('../../../../../core/Engine').context.PredictController
+          .trackPredictOrderEvent;
+
+      expect(trackPredictOrderEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          analyticsProperties: expect.objectContaining({
+            entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+          }),
+        }),
+      );
+    });
+
     it('handles undefined entryPoint with fallback', () => {
       const routeWithoutEntryPoint = {
         ...mockRoute,
@@ -2279,7 +2362,7 @@ describe('PredictBuyPreview', () => {
         state: initialState,
       });
 
-      expect(screen.getByText('Available: $1,000.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $961.53')).toBeOnTheScreen();
     });
 
     it('displays to-win amount in sheet mode', () => {
@@ -2435,7 +2518,7 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      expect(screen.getByText('Available: $10.00')).toBeOnTheScreen();
+      expect(screen.getByText('Available: $9.61')).toBeOnTheScreen();
       expect(screen.queryByText(/Not enough funds/)).not.toBeOnTheScreen();
     });
 
@@ -2546,7 +2629,7 @@ describe('PredictBuyPreview', () => {
     });
   });
 
-  describe('beforeRemove dismiss tracking (screen mode)', () => {
+  describe('dismiss tracking in screen mode', () => {
     const trackBetslipDismissed =
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('../../../../../core/Engine').context.PredictController
@@ -2555,96 +2638,9 @@ describe('PredictBuyPreview', () => {
     beforeEach(() => {
       predictBuyPreviewDismissedViaBackRef.current = false;
       predictBuyPreviewOrderInitiatedRef.current = false;
-      mockUseRoute.mockReturnValue({
-        ...mockRoute,
-        params: { ...mockRoute.params, trackSwipeDismiss: true },
-      });
     });
 
-    it('registers a beforeRemove listener in screen mode', () => {
-      renderWithProvider(<PredictBuyPreview />, { state: initialState });
-
-      expect(mockAddListener).toHaveBeenCalledWith(
-        'beforeRemove',
-        expect.any(Function),
-      );
-    });
-
-    it('tracks swipe dismissal via beforeRemove when back ref is false', () => {
-      renderWithProvider(<PredictBuyPreview />, { state: initialState });
-
-      predictBuyPreviewDismissedViaBackRef.current = false;
-      mockBeforeRemoveCallback?.();
-
-      expect(trackBetslipDismissed).toHaveBeenCalledWith(
-        expect.objectContaining({
-          dismissalMethod: PredictDismissalMethod.SWIPE,
-        }),
-      );
-    });
-
-    it('tracks back-button dismissal via beforeRemove when back ref is true', () => {
-      renderWithProvider(<PredictBuyPreview />, { state: initialState });
-
-      predictBuyPreviewDismissedViaBackRef.current = true;
-      mockBeforeRemoveCallback?.();
-
-      expect(trackBetslipDismissed).toHaveBeenCalledWith(
-        expect.objectContaining({
-          dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
-        }),
-      );
-    });
-
-    it('does not track dismissal when order was initiated', () => {
-      renderWithProvider(<PredictBuyPreview />, { state: initialState });
-
-      predictBuyPreviewOrderInitiatedRef.current = true;
-      mockBeforeRemoveCallback?.();
-
-      expect(trackBetslipDismissed).not.toHaveBeenCalled();
-    });
-
-    it('resets dismissedViaBackRef on mount so a previous back-button session does not bleed into next swipe', () => {
-      // Simulate a stale true value left over from a previous session
-      predictBuyPreviewDismissedViaBackRef.current = true;
-
-      renderWithProvider(<PredictBuyPreview />, { state: initialState });
-
-      // ref should be cleared on mount — swipe dismissal must not be misclassified
-      mockBeforeRemoveCallback?.();
-
-      expect(trackBetslipDismissed).toHaveBeenCalledWith(
-        expect.objectContaining({
-          dismissalMethod: PredictDismissalMethod.SWIPE,
-        }),
-      );
-    });
-
-    it('does not call trackBetslipDismissed directly on back-button press when trackSwipeDismiss is true (beforeRemove owns tracking)', () => {
-      // trackSwipeDismiss=true is already set by beforeEach via mockRoute override
-      renderWithProvider(<PredictBuyPreview />, { state: initialState });
-      trackBetslipDismissed.mockClear();
-
-      fireEvent.press(screen.getByTestId('back-button'));
-
-      // The direct call must be skipped — beforeRemove will fire it once goBack() resolves
-      expect(trackBetslipDismissed).not.toHaveBeenCalled();
-      // The ref must be set so beforeRemove classifies it as BACK_BUTTON
-      expect(predictBuyPreviewDismissedViaBackRef.current).toBe(true);
-    });
-
-    it('does not register a beforeRemove listener when trackSwipeDismiss is absent (pre-existing flagless path)', () => {
-      mockUseRoute.mockReturnValue(mockRoute);
-
-      renderWithProvider(<PredictBuyPreview />, { state: initialState });
-
-      mockBeforeRemoveCallback?.();
-
-      expect(trackBetslipDismissed).not.toHaveBeenCalled();
-    });
-
-    it('does not track back-button dismissal when order was already initiated (flagless screen mode)', () => {
+    it('does not track back-button dismissal when order was already initiated', () => {
       mockUseRoute.mockReturnValue(mockRoute);
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
@@ -2658,7 +2654,7 @@ describe('PredictBuyPreview', () => {
       expect(trackBetslipDismissed).not.toHaveBeenCalled();
     });
 
-    it('tracks back-button dismissal when no order was initiated (flagless screen mode)', () => {
+    it('tracks back-button dismissal when no order was initiated', () => {
       mockUseRoute.mockReturnValue(mockRoute);
       predictBuyPreviewOrderInitiatedRef.current = false;
       trackBetslipDismissed.mockClear();
@@ -2672,45 +2668,6 @@ describe('PredictBuyPreview', () => {
           dismissalMethod: PredictDismissalMethod.BACK_BUTTON,
         }),
       );
-    });
-
-    it('does not fire trackBetslipDismissed when beforeRemove fires after a successful order (StackActions.pop)', () => {
-      // Simulate a successful order: result arrives, component dispatches pop,
-      // beforeRemove fires — the orderInitiated gate must suppress the event.
-      mockPlaceOrderResult = {
-        success: true,
-        response: { transactionHash: '0xabc' },
-      };
-
-      const { rerender } = renderWithProvider(<PredictBuyPreview />, {
-        state: initialState,
-      });
-
-      // Rerender to trigger the result useEffect which sets orderInitiatedRef and dispatches pop
-      rerender(<PredictBuyPreview />);
-
-      // Simulate navigation stack removing the screen (the pop that was dispatched)
-      mockBeforeRemoveCallback?.();
-
-      expect(trackBetslipDismissed).not.toHaveBeenCalled();
-    });
-
-    it('does not fire trackBetslipDismissed when beforeRemove fires after Place Bet is pressed (onPlaceBet sets orderInitiatedRef synchronously)', () => {
-      // This test drives the full UI path: the user enters an amount, presses
-      // Place Bet (which sets orderInitiatedRef = true synchronously before
-      // awaiting placeOrder), and then beforeRemove fires while the order is
-      // still in-flight. The gate must suppress the dismissal event.
-      renderWithProvider(<PredictBuyPreview />, { state: initialState });
-
-      fireEvent.press(screen.getByText('$20'));
-      fireEvent.press(screen.getByText('Done'));
-      fireEvent.press(
-        screen.getByTestId('predict-buy-preview-place-bet-button'),
-      );
-
-      mockBeforeRemoveCallback?.();
-
-      expect(trackBetslipDismissed).not.toHaveBeenCalled();
     });
   });
 });

@@ -7,7 +7,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import MultichainTransactionListItem from '../MultichainTransactionListItem';
 import Routes from '../../../constants/navigation/Routes';
 import {
-  TRANSACTION_DETAIL_EVENTS,
+  ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
 } from '../../../core/Analytics/events/transactions';
 
@@ -211,6 +211,25 @@ describe('MultichainTransactionListItem', () => {
     expect(getByText('-0.00001 SOL')).toBeTruthy();
   });
 
+  it('renders correctly for an Interaction transaction without a base fee', () => {
+    const interactionTransaction = {
+      ...mockTransaction,
+      type: TransactionType.Unknown,
+      fees: [],
+    };
+
+    const { getByText, queryByText } = renderWithProvider(
+      <MultichainTransactionListItem
+        transaction={interactionTransaction}
+        chainId={SolScope.Mainnet}
+        navigation={mockNavigation as unknown as NavigationProp<ParamListBase>}
+      />,
+    );
+
+    expect(getByText('transactions.interaction')).toBeTruthy();
+    expect(queryByText('undefined undefined')).toBeNull();
+  });
+
   it('navigates to transaction details sheet when pressed', () => {
     const { getByTestId } = renderWithProvider(
       <MultichainTransactionListItem
@@ -246,8 +265,108 @@ describe('MultichainTransactionListItem', () => {
     expect(getByTestId('transaction-status-tx-123')).toBeTruthy();
   });
 
+  describe('TokenApprove transactions', () => {
+    const createApproveTransaction = (amount: string): Transaction => ({
+      ...mockTransaction,
+      type: TransactionType.TokenApprove,
+      from: [
+        {
+          address: '7RoSF9fUNf1XgRYsb7Qh4SoVkRmirHzZVELGNiNQzZNV',
+          asset: {
+            amount,
+            unit: 'USDT',
+            fungible: true,
+            type: 'solana:mainnet/token:USDT' as const,
+          },
+        },
+      ],
+      to: [
+        {
+          address: '5FHwkrdxD5AKmYrGNQYV66qPt3YxmkBzMJ8youBGNFAY',
+          asset: {
+            amount,
+            unit: 'USDT',
+            fungible: true,
+            type: 'solana:mainnet/token:USDT' as const,
+          },
+        },
+      ],
+    });
+
+    it('renders "confirm.unlimited USDT" for an unlimited token approval', () => {
+      const transaction = createApproveTransaction(
+        '115792089237316195423570985008687907853269984665640564039457584007913129.639935',
+      );
+
+      const { getByText } = renderWithProvider(
+        <MultichainTransactionListItem
+          transaction={transaction}
+          chainId={SolScope.Mainnet}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+        />,
+      );
+
+      expect(getByText('confirm.unlimited USDT')).toBeOnTheScreen();
+    });
+
+    it('renders the approve title with token unit', () => {
+      const transaction = createApproveTransaction('100');
+
+      const { getByText } = renderWithProvider(
+        <MultichainTransactionListItem
+          transaction={transaction}
+          chainId={SolScope.Mainnet}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+        />,
+      );
+
+      expect(
+        getByText('transactions.tx_review_approve USDT'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders formatted amount for a bounded token approval', () => {
+      const transaction = createApproveTransaction('100');
+
+      const { getByText } = renderWithProvider(
+        <MultichainTransactionListItem
+          transaction={transaction}
+          chainId={SolScope.Mainnet}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+        />,
+      );
+
+      expect(getByText('100 USDT')).toBeOnTheScreen();
+    });
+
+    it('renders amount from from when to has no fungible movement', () => {
+      const transaction: Transaction = {
+        ...createApproveTransaction('200'),
+        to: [],
+      };
+
+      const { getByText } = renderWithProvider(
+        <MultichainTransactionListItem
+          transaction={transaction}
+          chainId={SolScope.Mainnet}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+        />,
+      );
+
+      expect(getByText('200 USDT')).toBeOnTheScreen();
+    });
+  });
+
   describe('analytics tracking', () => {
-    it('tracks Transaction Detail List Item Clicked with default home location', () => {
+    it('tracks Activity Details Opened with default home location', () => {
       const { getByTestId } = renderWithProvider(
         <MultichainTransactionListItem
           transaction={mockTransaction}
@@ -261,7 +380,7 @@ describe('MultichainTransactionListItem', () => {
       fireEvent.press(getByTestId('transaction-item-0'));
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+        ACTIVITY_DETAIL_EVENTS.OPENED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         transaction_type: 'send',

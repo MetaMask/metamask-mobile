@@ -3,6 +3,7 @@ import { screen, fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import { renderWithProviders, createMockDispatch } from '../testUtils';
 import OnboardingMainStep from '../OnboardingMainStep';
+import { StackActions } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   REWARDS_ONBOARD_TERMS_URL,
@@ -17,9 +18,11 @@ import {
   selectOnboardingReferralCode,
 } from '../../../../../../reducers/rewards/selectors';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectVipProgramEnabled } from '../../../../../../selectors/featureFlagController/vipProgram';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockNavigationDispatch = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -29,6 +32,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      dispatch: mockNavigationDispatch,
     }),
     useFocusEffect: (effect: () => void | (() => void)) => {
       ReactActual.useEffect(() => {
@@ -210,6 +214,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       onChangeText?: (text: string) => void;
       placeholder?: string;
       isDisabled?: boolean;
+      endAccessory?: React.ReactNode;
       inputProps?: { testID?: string; [key: string]: unknown };
       [key: string]: unknown;
     }) => {
@@ -226,6 +231,7 @@ jest.mock('@metamask/design-system-react-native', () => {
           placeholder: props.placeholder,
           editable: !props.isDisabled,
         }),
+        props.endAccessory ?? null,
       );
     },
   };
@@ -280,6 +286,7 @@ const mockUseValidateReferralCode = {
   isValid: false,
   isUnknownError: false,
   validateCode: jest.fn(),
+  isVipReferralCode: false,
 };
 
 jest.mock('../../../hooks/useValidateReferralCode', () => ({
@@ -313,6 +320,16 @@ jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
 jest.mock('../../../../../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
 }));
+
+jest.mock('../../RewardsVipReferralTag/RewardsVipReferralTag', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, { testID: 'rewards-vip-referral-tag' }),
+  };
+});
 
 jest.mock('../OnboardingStep', () => {
   const ReactActual = jest.requireActual('react');
@@ -383,6 +400,7 @@ const defaultSelectorMap = new Map<unknown, unknown>([
   [selectOptinAllowedForGeoError, false],
   [selectOnboardingReferralCode, null],
   [selectSelectedAccountGroupInternalAccounts, [{ address: '0x123' }]],
+  [selectVipProgramEnabled, true],
 ]);
 
 function setupSelectors(overrides: Map<unknown, unknown> = new Map()) {
@@ -406,6 +424,7 @@ describe('OnboardingMainStep', () => {
     mockUseValidateReferralCode.isValidating = false;
     mockUseValidateReferralCode.isValid = false;
     mockUseValidateReferralCode.isUnknownError = false;
+    mockUseValidateReferralCode.isVipReferralCode = false;
     mockRewardsLegalDisclaimer.mockClear();
     setupSelectors();
   });
@@ -674,6 +693,55 @@ describe('OnboardingMainStep', () => {
         ),
       ).toBeNull();
     });
+
+    it('shows VIP tag when referral code is valid and VIP', () => {
+      mockUseValidateReferralCode.referralCode = 'VIPCODE';
+      mockUseValidateReferralCode.isValid = true;
+      mockUseValidateReferralCode.isVipReferralCode = true;
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(screen.getByTestId('rewards-vip-referral-tag')).toBeDefined();
+    });
+
+    it('does not show VIP tag when the VIP program flag is off, even for a valid VIP code', () => {
+      mockUseValidateReferralCode.referralCode = 'VIPCODE';
+      mockUseValidateReferralCode.isValid = true;
+      mockUseValidateReferralCode.isVipReferralCode = true;
+      setupSelectors(new Map([[selectVipProgramEnabled, false]]));
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(screen.queryByTestId('rewards-vip-referral-tag')).toBeNull();
+    });
+
+    it('does not show VIP tag when referral code is valid but not VIP', () => {
+      mockUseValidateReferralCode.referralCode = 'ABCDEF';
+      mockUseValidateReferralCode.isValid = true;
+      mockUseValidateReferralCode.isVipReferralCode = false;
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(screen.queryByTestId('rewards-vip-referral-tag')).toBeNull();
+    });
+
+    it('does not show VIP tag when referral code is invalid', () => {
+      mockUseValidateReferralCode.referralCode = 'BADCODE';
+      mockUseValidateReferralCode.isValid = false;
+      mockUseValidateReferralCode.isVipReferralCode = false;
+
+      renderWithProviders(<OnboardingMainStep />);
+
+      fireEvent.press(screen.getAllByTestId('referral-prompt')[0]);
+
+      expect(screen.queryByTestId('rewards-vip-referral-tag')).toBeNull();
+    });
   });
 
   describe('legal disclaimer', () => {
@@ -713,18 +781,22 @@ describe('OnboardingMainStep', () => {
     });
   });
 
-  describe('auto-redirect to dashboard', () => {
-    it('navigates to dashboard when subscriptionId exists on focus', () => {
+  describe('post-opt-in transition', () => {
+    it('replaces onboarding with dashboard when subscriptionId exists on focus', () => {
       setupSelectors(new Map([[selectRewardsSubscriptionId, 'sub-123']]));
 
       renderWithProviders(<OnboardingMainStep />);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
+      expect(mockNavigationDispatch).toHaveBeenCalledWith(
+        StackActions.replace(Routes.REWARDS_DASHBOARD),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
     });
 
     it('does not navigate when subscriptionId does not exist', () => {
       renderWithProviders(<OnboardingMainStep />);
 
+      expect(mockNavigationDispatch).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
     });
   });

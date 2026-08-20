@@ -19,6 +19,7 @@ import {
   CodefiTokenPricesServiceV2,
   ContractMarketData,
   fetchTokenContractExchangeRates,
+  type MarketDataDetails,
 } from '@metamask/assets-controllers';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { toAssetId } from '../hooks/useAssetMetadata/utils';
@@ -93,7 +94,12 @@ export const calcUsdAmountFromFiat = ({
   const fallbackEvmCurrencyEntry = Object.values(
     evmMultiChainCurrencyRates ?? {},
   ).find((entry) => entry?.conversionRate && entry?.usdConversionRate);
-  const currencyEntry = evmChainCurrencyEntry ?? fallbackEvmCurrencyEntry;
+  const currencyEntry =
+    evmChainCurrencyEntry?.conversionRate &&
+    evmChainCurrencyEntry?.usdConversionRate
+      ? evmChainCurrencyEntry
+      : fallbackEvmCurrencyEntry;
+
   return convertFiatToUsd(
     tokenFiatValue,
     currencyEntry?.conversionRate,
@@ -259,20 +265,24 @@ export const getDisplayCurrencyValue = ({
 };
 
 /**
- * Fetches the exchange rates for the tokens against the current currency
+ * Fetches the exchange rates for the tokens against the current currency.
  * @param chainId - The chainId of the tokens
  * @param currency - The currency to fetch the exchange rates in
+ * @param options - Optional settings
+ * @param options.includeMarketData - When true, returns full MarketDataDetails
+ * per token instead of just the price number.
  * @param tokenAddresses - The addresses of the tokens to fetch the exchange rates for
- * @returns Exchange rate for the tokens against the current currency
+ * @returns Exchange rates (or full market data) for the tokens
  */
 export const fetchTokenExchangeRates = async (
   chainId: Hex | CaipChainId,
   currency: string,
+  options?: { includeMarketData?: boolean },
   ...tokenAddresses: string[]
 ) => {
-  try {
-    let exchangeRates: Record<string, number | undefined> = {};
+  const withMarketData = options?.includeMarketData === true;
 
+  try {
     // Non-EVM
     if (isNonEvmChainId(chainId) && isCaipChainId(chainId)) {
       const queryParams = new URLSearchParams({
@@ -285,17 +295,20 @@ export const fetchTokenExchangeRates = async (
       const url = `https://price.api.cx.metamask.io/v3/spot-prices?${queryParams}`;
       const tokenV3PriceResponse = (await handleFetch(url)) as Record<
         string,
-        { price: number }
+        MarketDataDetails
       >;
 
-      exchangeRates = Object.entries(tokenV3PriceResponse).reduce(
+      if (withMarketData) {
+        return tokenV3PriceResponse;
+      }
+
+      return Object.entries(tokenV3PriceResponse).reduce(
         (acc, [k, curr]) => {
           acc[k] = curr.price;
           return acc;
         },
         {} as Record<string, number>,
       );
-      return exchangeRates;
     }
 
     // EVM chains
@@ -306,12 +319,23 @@ export const fetchTokenExchangeRates = async (
       return {};
     }
 
-    exchangeRates = await fetchTokenContractExchangeRates({
+    if (withMarketData) {
+      const marketData = await fetchTokenContractExchangeRates({
+        tokenPricesService: new CodefiTokenPricesServiceV2(),
+        nativeCurrency: currency,
+        tokenAddresses: checksumAddresses as Hex[],
+        chainId: formatChainIdToHex(chainId),
+        includeMarketData: true,
+      });
+      return marketData;
+    }
+
+    const exchangeRates = (await fetchTokenContractExchangeRates({
       tokenPricesService: new CodefiTokenPricesServiceV2(),
       nativeCurrency: currency,
       tokenAddresses: checksumAddresses as Hex[],
       chainId: formatChainIdToHex(chainId),
-    });
+    })) as Record<string, number | undefined>;
 
     return Object.keys(exchangeRates).reduce(
       (acc: Record<string, number | undefined>, address) => {
@@ -325,29 +349,35 @@ export const fetchTokenExchangeRates = async (
   }
 };
 
-// This fetches the exchange rate for a token in a given currency. This is only called when the exchange
-// rate is not available in the TokenRatesController, which happens when the selected token has not been
-// imported into the wallet
+/**
+ * Fetches the exchange rate for a single token. Only called when the rate is
+ * not available in the TokenRatesController (i.e. token is not imported).
+ * When includeMarketData is true, returns full MarketDataDetails instead of
+ * just the price number.
+ */
 export const getTokenExchangeRate = async (request: {
   chainId: Hex | CaipChainId;
   tokenAddress: string;
   currency: string;
+  includeMarketData?: boolean;
 }) => {
-  const { chainId, tokenAddress, currency } = request;
-  const exchangeRates = await fetchTokenExchangeRates(
+  const { chainId, tokenAddress, currency, includeMarketData } = request;
+
+  const result = (await fetchTokenExchangeRates(
     chainId,
     currency,
+    { includeMarketData },
     tokenAddress,
-  );
+  )) as Record<string, number | MarketDataDetails | undefined>;
+
   const assetId = toAssetId(tokenAddress, formatChainIdToCaip(chainId));
   if (isNonEvmChainId(chainId) && assetId) {
-    return exchangeRates?.[assetId];
+    return result?.[assetId];
   }
-  // The exchange rate can be checksummed or not, so we need to check both
-  const exchangeRate =
-    exchangeRates?.[toChecksumHexAddress(tokenAddress)] ??
-    exchangeRates?.[tokenAddress.toLowerCase()];
-  return exchangeRate;
+  return (
+    result?.[toChecksumHexAddress(tokenAddress)] ??
+    result?.[tokenAddress.toLowerCase()]
+  );
 };
 
 /**

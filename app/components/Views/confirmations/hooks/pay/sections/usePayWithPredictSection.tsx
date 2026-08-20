@@ -1,51 +1,47 @@
 import React, { useCallback, useMemo } from 'react';
-import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { BigNumber } from 'bignumber.js';
 import {
   Button,
   ButtonSize,
   ButtonVariant,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
-import { POLYGON_PUSD } from '../../../constants/predict';
-import { PREDICT_BALANCE_CHAIN_ID } from '../../../../../UI/Predict/constants/transactions';
 import { usePredictBalance } from '../../../../../UI/Predict/hooks/usePredictBalance';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
-import { selectSingleTokenByAddressAndChainId } from '../../../../../../selectors/tokensController';
-import { RootState } from '../../../../../../reducers';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import {
   PayWithRowConfig,
   PayWithSectionConfig,
 } from '../../../components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet.types';
-import { hasTransactionType } from '../../../utils/transaction';
 import { dismissActivePreviewSheet } from '../../../../../UI/Predict/contexts';
 import useApprovalRequest from '../../useApprovalRequest';
+import { PayWithBottomSheetIDs } from '../../../ConfirmationView.testIds';
 
-export const PAY_WITH_PREDICT_SECTION_TEST_ID = 'pay-with-section-predict';
+export const PAY_WITH_PREDICT_SECTION_TEST_ID =
+  PayWithBottomSheetIDs.PREDICT_SECTION;
 export const PAY_WITH_PREDICT_BALANCE_ROW_TEST_ID =
-  'pay-with-predict-section-balance-row';
+  PayWithBottomSheetIDs.PREDICT_BALANCE_ROW;
 
 export function usePayWithPredictSection(): PayWithSectionConfig | null {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const transactionMeta = useTransactionMetadataRequest();
   const { onReject } = useApprovalRequest();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const { data: predictBalance = 0 } = usePredictBalance();
   const { resetSelectedPaymentToken, isPredictBalanceSelected } =
     usePredictPaymentToken();
-  const pusdToken = useSelector((state: RootState) =>
-    selectSingleTokenByAddressAndChainId(
-      state,
-      POLYGON_PUSD.address,
-      PREDICT_BALANCE_CHAIN_ID,
-    ),
-  );
 
   const isPredictDepositAndOrder = hasTransactionType(transactionMeta, [
     TransactionType.predictDepositAndOrder,
@@ -77,11 +73,12 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
 
     const row: PayWithRowConfig = {
       id: 'predict-balance',
-      icon: React.createElement(Image, {
-        source: { uri: pusdToken?.image ?? '' },
-        style: { width: 24, height: 24 },
+      icon: React.createElement(Icon, {
+        name: IconName.Predictions,
+        size: IconSize.Md,
+        color: IconColor.IconAlternative,
       }),
-      title: strings('confirm.pay_with_bottom_sheet.predict_account'),
+      title: strings('confirm.pay_with_bottom_sheet.predict_balance'),
       subtitle: strings('confirm.pay_with_bottom_sheet.available_balance', {
         balance,
       }),
@@ -111,6 +108,5 @@ export function usePayWithPredictSection(): PayWithSectionConfig | null {
     handleSelect,
     isPredictBalanceSelected,
     isPredictDepositAndOrder,
-    pusdToken,
   ]);
 }

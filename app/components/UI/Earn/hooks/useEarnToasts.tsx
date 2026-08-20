@@ -4,7 +4,6 @@ import {
   type HapticNotificationMoment,
 } from '../../../../util/haptics';
 import React, { useCallback, useContext, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import Icon, {
   IconName,
@@ -19,6 +18,7 @@ import {
 import { useAppThemeFromContext } from '../../../../util/theme';
 import {
   Spinner,
+  IconColor,
   IconSize as ReactNativeDsIconSize,
   Text,
   TextColor,
@@ -66,7 +66,7 @@ interface EarnToastLabelOptions {
 const getEarnToastLabels = ({
   primary,
   secondary,
-  primaryIsBold = false,
+  primaryIsBold = true,
 }: EarnToastLabelOptions) => {
   const labels = [
     {
@@ -94,12 +94,6 @@ const getEarnToastLabels = ({
 const EARN_TOASTS_DEFAULT_OPTIONS: Partial<EarnToastOptions> = {
   hasNoTimeout: false,
 };
-
-const toastStyles = StyleSheet.create({
-  iconWrapper: {
-    marginRight: 16,
-  },
-});
 
 const useEarnToasts = (): {
   showToast: (config: EarnToastOptions) => void;
@@ -130,13 +124,11 @@ const useEarnToasts = (): {
         iconColor: theme.colors.success.default,
         hapticsType: NotificationMoment.Success,
         startAccessory: (
-          <View style={toastStyles.iconWrapper}>
-            <Icon
-              name={IconName.Confirmation}
-              color={theme.colors.success.default}
-              size={IconSize.Lg}
-            />
-          </View>
+          <Icon
+            name={IconName.Confirmation}
+            color={theme.colors.success.default}
+            size={IconSize.Lg}
+          />
         ),
       },
       inProgress: {
@@ -146,9 +138,10 @@ const useEarnToasts = (): {
         hapticsType: NotificationMoment.Warning,
         hasNoTimeout: true,
         startAccessory: (
-          <View style={toastStyles.iconWrapper}>
-            <Spinner spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }} />
-          </View>
+          <Spinner
+            color={IconColor.IconDefault}
+            spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
+          />
         ),
       },
       error: {
@@ -158,13 +151,11 @@ const useEarnToasts = (): {
         iconColor: theme.colors.error.default,
         hapticsType: NotificationMoment.Error,
         startAccessory: (
-          <View style={toastStyles.iconWrapper}>
-            <Icon
-              name={IconName.CircleX}
-              color={theme.colors.error.default}
-              size={IconSize.Lg}
-            />
-          </View>
+          <Icon
+            name={IconName.CircleX}
+            color={theme.colors.error.default}
+            size={IconSize.Lg}
+          />
         ),
       },
     }),
@@ -245,7 +236,6 @@ const useEarnToasts = (): {
           ...earnBaseToastOptions.error,
           labelOptions: getEarnToastLabels({
             primary: strings('stake.tron.unstaked_banner.error'),
-            primaryIsBold: true,
             ...(errors.length > 0 && {
               secondary: (
                 <Text

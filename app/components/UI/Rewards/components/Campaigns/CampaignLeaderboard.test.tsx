@@ -69,6 +69,19 @@ describe('CampaignLeaderboardEntryRow', () => {
     expect(isPositivePrimaryMetric).toHaveBeenCalledWith(baseEntry);
   });
 
+  it('keeps long ranks on one line', () => {
+    const { getByText } = render(
+      <CampaignLeaderboardEntryRow
+        entry={{ ...baseEntry, rank: 10551 }}
+        formatPrimaryMetric={() => '+12.5%'}
+        isPositivePrimaryMetric={() => true}
+      />,
+    );
+
+    const rank = getByText('10551');
+    expect(rank.props.numberOfLines).toBe(1);
+  });
+
   it('shows crown based only on showCrown', () => {
     const { UNSAFE_queryAllByType } = render(
       <CampaignLeaderboardEntryRow

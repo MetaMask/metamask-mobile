@@ -15,6 +15,8 @@ import {
   VIP_GOLD_TEXT_DEFAULT,
   VIP_GOLD_TEXT_MUTED,
 } from './Vip.constants';
+import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
 
 export const VIP_FEE_TILE_TEST_IDS = {
   CONTAINER: 'vip-fee-tile',
@@ -24,6 +26,8 @@ export const VIP_FEE_TILE_TEST_IDS = {
 } as const;
 
 export const VIP_FEE_TILE_WIDTH = 168;
+
+const vipGoldTextMutedStyle = { color: VIP_GOLD_TEXT_MUTED };
 
 interface VipFeeTileProps {
   label: string;
@@ -40,6 +44,13 @@ const VipFeeTile: React.FC<VipFeeTileProps> = ({
   nextTierLabel,
   testID,
 }) => {
+  const { themeAppearance } = useTheme();
+  const mutedTextStyle =
+    themeAppearance === AppThemeKey.dark ? vipGoldTextMutedStyle : undefined;
+  const mutedTextColor =
+    themeAppearance === AppThemeKey.dark
+      ? undefined
+      : TextColor.TextAlternative;
   const displayValue =
     unit === '%' && currentBps !== undefined
       ? formatNumber(currentBps / 100, 2)
@@ -92,9 +103,9 @@ const VipFeeTile: React.FC<VipFeeTileProps> = ({
         >
           <Text
             variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
+            color={mutedTextColor}
             testID={VIP_FEE_TILE_TEST_IDS.NEXT}
-            style={{ color: VIP_GOLD_TEXT_MUTED }}
+            style={mutedTextStyle}
           >
             {nextTierLabel}
           </Text>

@@ -14,7 +14,6 @@ export interface AnalyticsTrackingEvent {
   readonly name: string;
   properties: AnalyticsEventProperties;
   sensitiveProperties: AnalyticsEventProperties;
-  saveDataRecording: boolean;
   get isAnonymous(): boolean;
   get hasProperties(): boolean;
 }
@@ -58,14 +57,6 @@ interface AnalyticsEventBuilderInterface {
   ) => AnalyticsEventBuilderInterface;
 
   /**
-   * Set the saveDataRecording flag
-   * @param saveDataRecording - Whether to save data recording (default is false)
-   */
-  setSaveDataRecording: (
-    saveDataRecording: boolean,
-  ) => AnalyticsEventBuilderInterface;
-
-  /**
    * Build the event
    * @returns The constructed AnalyticsTrackingEvent
    */
@@ -83,7 +74,6 @@ const createAnalyticsEvent = (name: string): AnalyticsTrackingEvent => {
     name,
     properties: {},
     sensitiveProperties: {},
-    saveDataRecording: false,
     get isAnonymous(): boolean {
       return (
         this.sensitiveProperties &&
@@ -182,11 +172,6 @@ const createBuilderFromEvent = (
       return createBuilderFromEvent(event);
     },
 
-    setSaveDataRecording: (saveDataRecording: boolean) => {
-      event.saveDataRecording = saveDataRecording;
-      return createBuilderFromEvent(event);
-    },
-
     build: () => event,
   });
 
@@ -200,7 +185,7 @@ const createBuilderFromEvent = (
  * via messenger. The builder handles the structure needed for proper event tracking,
  * including support for anonymous events (via sensitive properties).
  *
- * Accepts the same event types as MetricsEventBuilder for easier migration:
+ * Accepts event types:
  * - string: Event name directly
  * - IMetaMetricsEvent: Legacy event with category property
  * - ITrackingEvent: New event type with name property
@@ -240,7 +225,6 @@ const createEventBuilder = (
     'name' in eventOrName &&
     'properties' in eventOrName &&
     'sensitiveProperties' in eventOrName &&
-    'saveDataRecording' in eventOrName &&
     !('category' in eventOrName)
   ) {
     const existingEvent = eventOrName as AnalyticsTrackingEvent;
@@ -251,7 +235,6 @@ const createEventBuilder = (
       name: eventName,
       properties: existingEvent.properties,
       sensitiveProperties: existingEvent.sensitiveProperties,
-      saveDataRecording: existingEvent.saveDataRecording,
       get isAnonymous(): boolean {
         return (
           this.sensitiveProperties &&

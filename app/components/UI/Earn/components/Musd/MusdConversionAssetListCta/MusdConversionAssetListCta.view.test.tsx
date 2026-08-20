@@ -10,7 +10,6 @@ import { initialState as initialFiatOrdersState } from '../../../../../../reduce
 
 const fiatOrdersNoFetch = {
   ...initialFiatOrdersState,
-  rampRoutingDecision: null,
 };
 
 // Version-gated flags require { enabled, minimumVersion } so validatedVersionGatedFeatureFlag returns a boolean instead of undefined (env fallback).

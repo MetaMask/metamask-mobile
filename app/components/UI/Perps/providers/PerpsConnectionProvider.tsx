@@ -9,7 +9,7 @@ import React, {
 import { addBreadcrumb } from '@sentry/react-native';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
-import { isE2E } from '../../../../util/test/utils';
+import { hasTestOverrides } from '../../../../util/test/utils';
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
 import {
   PERPS_CONSTANTS,
@@ -34,6 +34,8 @@ export const PerpsConnectionContext =
 
 interface PerpsConnectionProviderProps {
   children: React.ReactNode;
+  /** Whether connection-state polling is active. */
+  isEnabled?: boolean;
   isFullScreen?: boolean;
   /** When true, silently renders children instead of showing the error view on connection failure. */
   suppressErrorView?: boolean;
@@ -47,7 +49,12 @@ interface PerpsConnectionProviderProps {
  */
 export const PerpsConnectionProvider: React.FC<
   PerpsConnectionProviderProps
-> = ({ children, isFullScreen = false, suppressErrorView = false }) => {
+> = ({
+  children,
+  isEnabled = true,
+  isFullScreen = false,
+  suppressErrorView = false,
+}) => {
   const [connectionState, setConnectionState] = useState(() =>
     PerpsConnectionManager.getConnectionState(),
   );
@@ -57,8 +64,12 @@ export const PerpsConnectionProvider: React.FC<
 
   // Poll connection state to sync with singleton
   useEffect(() => {
+    if (!isEnabled) {
+      return;
+    }
+
     // Skip polling in E2E mode to prevent timer interference
-    if (isE2E) {
+    if (hasTestOverrides) {
       // Set mock connected state for E2E
       setConnectionState({
         isConnected: true,
@@ -97,10 +108,10 @@ export const PerpsConnectionProvider: React.FC<
         clearInterval(pollIntervalRef.current);
       }
     };
-  }, []);
+  }, [isEnabled]);
 
   useEffect(() => {
-    if (isE2E || suppressErrorView) {
+    if (!isEnabled || hasTestOverrides || suppressErrorView) {
       return;
     }
 
@@ -140,6 +151,7 @@ export const PerpsConnectionProvider: React.FC<
     connectionState.isConnecting,
     connectionState.isDisconnecting,
     connectionState.isInGracePeriod,
+    isEnabled,
     suppressErrorView,
   ]);
 

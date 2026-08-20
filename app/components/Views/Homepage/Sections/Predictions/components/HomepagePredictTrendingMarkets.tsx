@@ -1,10 +1,10 @@
 import React from 'react';
 import type { PredictMarket } from '../../../../../UI/Predict/types';
 import type { TransactionActiveAbTestEntry } from '../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import type { UseHomepagePredictTaggedMarketsResult } from '../hooks/useHomepagePredictTaggedMarkets';
+import type { UseHomepagePredictMarketSlotsResult } from '../hooks/useHomepagePredictMarketSlots';
 import type { PredictionsTrendingHeaderTestId } from '../predictionsSectionTypes';
 import type { PredictEmptyStateCtaName } from '../../../abTestConfig';
-import HomepagePredictWorldCupDiscovery from './HomepagePredictWorldCupDiscovery';
+import HomepagePredictDiscovery from './HomepagePredictDiscovery';
 import HomepagePredictTrendingCarousel from './HomepagePredictTrendingCarousel';
 
 export interface HomepagePredictTrendingMarketsProps {
@@ -17,10 +17,8 @@ export interface HomepagePredictTrendingMarketsProps {
   isLoadingMarkets: boolean;
   markets: PredictMarket[];
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
-  /** Required when `discoveryLayout` is `list` (World Cup discovery rail). */
-  worldCupHomepage?: UseHomepagePredictTaggedMarketsResult;
-  /** Required when `discoveryLayout` is `list` (NBA champion event, separate from World Cup tag). */
-  nbaChampionHomepage?: UseHomepagePredictTaggedMarketsResult;
+  /** Required when `discoveryLayout` is `list`. */
+  marketSlots?: UseHomepagePredictMarketSlotsResult;
   emptyStateTransactionActiveAbTests?: TransactionActiveAbTestEntry[];
   onEmptyStateTreatmentCtaClick?: (
     ctaName: PredictEmptyStateCtaName,
@@ -36,8 +34,7 @@ const HomepagePredictTrendingMarkets = ({
   isLoadingMarkets,
   markets,
   transactionActiveAbTests,
-  worldCupHomepage,
-  nbaChampionHomepage,
+  marketSlots,
   emptyStateTransactionActiveAbTests,
   onEmptyStateTreatmentCtaClick,
 }: HomepagePredictTrendingMarketsProps) => {
@@ -54,17 +51,16 @@ const HomepagePredictTrendingMarkets = ({
     );
   }
 
-  if (!worldCupHomepage || !nbaChampionHomepage) {
+  if (!marketSlots) {
     return null;
   }
 
   return (
-    <HomepagePredictWorldCupDiscovery
+    <HomepagePredictDiscovery
       title={title}
       onViewAll={onViewAll}
       headerTestIdKey={headerTestIdKey}
-      worldCup={worldCupHomepage}
-      nbaChampion={nbaChampionHomepage}
+      marketSlots={marketSlots}
       transactionActiveAbTests={emptyStateTransactionActiveAbTests}
       onTreatmentCtaClick={onEmptyStateTreatmentCtaClick}
     />

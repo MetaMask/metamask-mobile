@@ -84,6 +84,7 @@ describe('cashbackWithdrawEstimationOptions', () => {
       wei: '4648201084656',
       eth: '0.000004648201084656',
       price: '0.00892136699188968037536',
+      network: 'linea',
     };
     mockGetCashbackWithdrawEstimation.mockResolvedValue(mockEstimation);
 

@@ -3,6 +3,9 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  Button,
+  ButtonBaseSize,
+  ButtonVariant,
   Icon,
   IconColor,
   IconName,
@@ -12,12 +15,18 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
-export type PredictBuyErrorBannerVariant = 'price_changed' | 'order_failed';
+export type PredictBuyErrorBannerVariant =
+  | 'price_changed'
+  | 'order_failed'
+  | 'payment_failed';
 
 interface PredictBuyErrorBannerProps {
   variant: PredictBuyErrorBannerVariant;
   title: string;
   description: string;
+  actionLabel?: string;
+  onActionPress?: () => void;
+  actionTestID?: string;
   testID?: string;
 }
 
@@ -42,21 +51,35 @@ const VARIANT_STYLES: Record<
     iconColor: IconColor.ErrorDefault,
     titleColor: TextColor.ErrorDefault,
   },
+  payment_failed: {
+    containerClass: 'bg-error-muted',
+    iconName: IconName.Danger,
+    iconColor: IconColor.ErrorDefault,
+    titleColor: TextColor.ErrorDefault,
+  },
 };
 
 const PredictBuyErrorBanner = ({
   variant,
   title,
   description,
+  actionLabel,
+  onActionPress,
+  actionTestID,
   testID,
 }: PredictBuyErrorBannerProps) => {
   const styles = VARIANT_STYLES[variant];
+  const showAction = Boolean(actionLabel && onActionPress);
 
   return (
+    // `-mt-1` (-4px) trims the 24px gap left by the preceding PredictFeeSummary
+    // (`pb-6`) down to 20px so it matches this banner's own `mb-5` (20px) gap to
+    // the action button, keeping the banner evenly spaced. If PredictFeeSummary's
+    // bottom padding changes, revisit this offset.
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Start}
-      twClassName={`mb-5 p-3 rounded-lg gap-3 ${styles.containerClass}`}
+      twClassName={`-mt-1 mb-5 p-3 rounded-lg gap-3 ${styles.containerClass}`}
       testID={testID}
     >
       <Icon
@@ -65,7 +88,7 @@ const PredictBuyErrorBanner = ({
         size={IconSize.Md}
         testID={`${testID ?? 'predict-buy-error-banner'}-icon`}
       />
-      <Box twClassName="flex-1 min-w-0">
+      <Box twClassName="flex-1 min-w-0 gap-2">
         <Text
           variant={TextVariant.BodyMd}
           color={styles.titleColor}
@@ -81,6 +104,19 @@ const PredictBuyErrorBanner = ({
         >
           {description}
         </Text>
+        {showAction && (
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonBaseSize.Sm}
+            onPress={onActionPress}
+            twClassName="self-start"
+            testID={
+              actionTestID ?? `${testID ?? 'predict-buy-error-banner'}-action`
+            }
+          >
+            {actionLabel}
+          </Button>
+        )}
       </Box>
     </Box>
   );

@@ -145,7 +145,6 @@ describe('ProtectYourWalletModal', () => {
           expect.objectContaining({
             name: 'Wallet Security Reminder Engaged',
             properties: { source: 'Modal', wallet_protection_required: false },
-            saveDataRecording: false,
             sensitiveProperties: {},
           }),
         );

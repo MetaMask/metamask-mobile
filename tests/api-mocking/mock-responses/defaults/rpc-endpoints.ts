@@ -34,7 +34,7 @@ export const DEFAULT_RPC_ENDPOINT_MOCKS: MockEventsObject = {
       },
     },
     {
-      urlEndpoint: 'https://mainnet.era.zksync.io/',
+      urlEndpoint: 'https://rpc.linea.build',
       responseCode: 200,
       response: {
         jsonrpc: '2.0',

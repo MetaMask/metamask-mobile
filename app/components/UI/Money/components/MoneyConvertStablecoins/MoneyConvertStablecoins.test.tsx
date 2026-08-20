@@ -13,10 +13,10 @@ import {
 } from '../../../Earn/selectors/musdConversionStatus';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events/musdEvents';
-import { MONEY_EVENTS_CONSTANTS } from '../../constants/moneyEvents';
+import { MONEY_HUB_EVENTS_CONSTANTS } from '../../constants/moneyHubEvents';
 
 const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
-const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_EVENTS_CONSTANTS;
+const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_HUB_EVENTS_CONSTANTS;
 
 const TEST_LOCATION = MONEY_EVENT_LOCATIONS.MONEY_HUB;
 

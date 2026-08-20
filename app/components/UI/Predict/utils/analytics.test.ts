@@ -1,4 +1,9 @@
-import { parseAnalyticsProperties } from './analytics';
+import {
+  classifyPredictBuyFailure,
+  mapClaimFailureReason,
+  parseAnalyticsProperties,
+  sanitizePredictFailureReason,
+} from './analytics';
 import {
   Recurrence,
   type PredictMarket,
@@ -17,6 +22,27 @@ jest.mock('../constants/eventNames', () => ({
     MARKET_TYPE: {
       BINARY: 'binary',
       MULTI_OUTCOME: 'multi-outcome',
+    },
+    CLAIM_FAILURE_REASON: {
+      PENDING_RESOLUTION: 'pending_resolution',
+      INSUFFICIENT_GAS: 'insufficient_gas',
+      NETWORK_ERROR: 'network_error',
+      USER_REJECTED: 'user_rejected',
+      UNKNOWN: 'unknown',
+    },
+    FAILURE_STAGE: {
+      SWAP: 'swap',
+      ORDER: 'order',
+    },
+    FAILURE_CATEGORY: {
+      GAS_LIMIT: 'gas_limit',
+      INSUFFICIENT_BALANCE: 'insufficient_balance',
+      NOT_ELIGIBLE: 'not_eligible',
+      NO_MATCH: 'no_match',
+      RELAYER: 'relayer',
+      NETWORK: 'network',
+      USER_REJECTED: 'user_rejected',
+      OTHER: 'other',
     },
   },
 }));
@@ -193,6 +219,53 @@ describe('parseAnalyticsProperties', () => {
       const result = parseAnalyticsProperties(market, outcomeToken, undefined);
 
       expect(result.entryPoint).toBe('predict_feed');
+    });
+  });
+
+  describe('with feed tab and screen context', () => {
+    it('includes predictFeedTab and predictScreen when provided', () => {
+      const market = createMockMarket();
+      const outcomeToken = createMockOutcomeToken();
+
+      const result = parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        'predict_feed',
+        'sports',
+        'predict_positions_screen',
+      );
+
+      expect(result.predictFeedTab).toBe('sports');
+      expect(result.predictScreen).toBe('predict_positions_screen');
+    });
+
+    it('includes only predictFeedTab when screen is omitted', () => {
+      const market = createMockMarket();
+      const outcomeToken = createMockOutcomeToken();
+
+      const result = parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        'predict_feed',
+        'trending',
+      );
+
+      expect(result.predictFeedTab).toBe('trending');
+      expect(result).not.toHaveProperty('predictScreen');
+    });
+
+    it('omits both properties when not provided', () => {
+      const market = createMockMarket();
+      const outcomeToken = createMockOutcomeToken();
+
+      const result = parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        'predict_feed',
+      );
+
+      expect(result).not.toHaveProperty('predictFeedTab');
+      expect(result).not.toHaveProperty('predictScreen');
     });
   });
 
@@ -421,6 +494,135 @@ describe('parseAnalyticsProperties', () => {
       );
 
       expect(result.sharePrice).toBe(0);
+    });
+  });
+
+  describe('share price source (buy side)', () => {
+    it('tracks the ask (buyPrice) as sharePrice when present, not the mid', () => {
+      const market = createMockMarket();
+      // Wide spread: mid 0.63, ask 0.92 -> analytics must record the ask.
+      const outcomeToken = createMockOutcomeToken({
+        price: 0.63,
+        buyPrice: 0.92,
+      });
+
+      const result = parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        'predict_feed',
+      );
+
+      expect(result.sharePrice).toBe(0.92);
+    });
+
+    it('falls back to the mid price when buyPrice is absent', () => {
+      const market = createMockMarket();
+      const outcomeToken = createMockOutcomeToken({ price: 0.63 });
+
+      const result = parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        'predict_feed',
+      );
+
+      expect(result.sharePrice).toBe(0.63);
+    });
+  });
+
+  describe('mapClaimFailureReason', () => {
+    it.each([
+      ['PREDICT_MARKET_PENDING_RESOLUTION', 'pending_resolution'],
+      ['Market is pending resolution', 'pending_resolution'],
+      ['No claimable positions found', 'pending_resolution'],
+      ['Tried to claim but no positions were won', 'pending_resolution'],
+      ['User denied transaction signature', 'user_rejected'],
+      ['User rejected the request', 'user_rejected'],
+      ['insufficient funds for gas', 'insufficient_gas'],
+      ['out of gas', 'insufficient_gas'],
+      ['network request failed', 'network_error'],
+      ['Request timed out', 'network_error'],
+      ['failed to fetch', 'network_error'],
+      ['Something unexpected happened', 'unknown'],
+    ])('maps "%s" to "%s"', (message, expected) => {
+      expect(mapClaimFailureReason(new Error(message))).toBe(expected);
+    });
+
+    it('accepts a raw string message', () => {
+      expect(mapClaimFailureReason('out of gas')).toBe('insufficient_gas');
+    });
+
+    it('returns unknown for undefined or non-error values', () => {
+      expect(mapClaimFailureReason(undefined)).toBe('unknown');
+      expect(mapClaimFailureReason({ some: 'object' })).toBe('unknown');
+    });
+  });
+
+  describe('classifyPredictBuyFailure', () => {
+    it.each([
+      ['RPC transaction gas limit too high', 'gas_limit'],
+      ['insufficient balance for bet', 'insufficient_balance'],
+      ['PREDICT_NOT_ELIGIBLE', 'not_eligible'],
+      ['PREDICT_BUY_ORDER_NOT_FULLY_FILLED', 'no_match'],
+      ['Polymarket relayer unavailable', 'relayer'],
+      ['Network request timed out', 'network'],
+      ['User rejected the request', 'user_rejected'],
+      ['Unexpected provider error', 'other'],
+    ])('maps "%s" to "%s"', (message, expected) => {
+      const result = classifyPredictBuyFailure(new Error(message), 'order');
+
+      expect(result.failureCategory).toBe(expected);
+    });
+
+    it('marks no-match failures as retryable', () => {
+      const result = classifyPredictBuyFailure(
+        new Error('PREDICT_BUY_ORDER_NOT_FULLY_FILLED'),
+        'order',
+      );
+
+      expect(result.isRetryable).toBe(true);
+      expect(result.isUserRejected).toBe(false);
+    });
+
+    it('marks provider rejection code as user rejected', () => {
+      const result = classifyPredictBuyFailure(
+        { code: 4001, message: 'Request rejected' },
+        'swap',
+      );
+
+      expect(result.failureCategory).toBe('user_rejected');
+      expect(result.isUserRejected).toBe(true);
+    });
+  });
+
+  describe('sanitizePredictFailureReason', () => {
+    it('removes HTML and limits output to 255 characters', () => {
+      const result = sanitizePredictFailureReason(
+        `<html>${'failure '.repeat(80)}</html>`,
+      );
+
+      expect(result).not.toContain('<html>');
+      expect(result).toHaveLength(255);
+    });
+
+    it('extracts a message from a JSON error without sending the full payload', () => {
+      const result = sanitizePredictFailureReason(
+        JSON.stringify({
+          message: 'Relayer request failed',
+          response: { privatePayload: 'do-not-send' },
+        }),
+      );
+
+      expect(result).toBe('Relayer request failed');
+    });
+
+    it('redacts addresses, URLs, and credentials', () => {
+      const result = sanitizePredictFailureReason(
+        'Request https://rpc.example/path failed for 0x1111111111111111111111111111111111111111 token=secret',
+      );
+
+      expect(result).toBe(
+        'Request [redacted] failed for [redacted] token=[redacted]',
+      );
     });
   });
 });

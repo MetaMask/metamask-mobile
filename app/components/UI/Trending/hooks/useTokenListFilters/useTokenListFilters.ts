@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -11,7 +11,7 @@ import {
 import type { TrendingFilterContext } from '../../components/TrendingTokensList/TrendingTokensList';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import { useNetworkName } from '../useNetworkName/useNetworkName';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 
 interface UseTokenListFiltersOptions {
   /**
@@ -19,6 +19,10 @@ interface UseTokenListFiltersOptions {
    * When provided, the time filter is static and no time bottom sheet is shown.
    */
   timeOption?: TimeOption;
+  /**
+   * Initial network filter applied when the view opens.
+   */
+  initialNetwork?: CaipChainId[] | null;
 }
 
 export interface TokenListFilters {
@@ -71,14 +75,13 @@ export interface TokenListFilters {
 export const useTokenListFilters = (
   options: UseTokenListFiltersOptions = {},
 ): TokenListFilters => {
-  const { timeOption } = options;
+  const { timeOption, initialNetwork = null } = options;
 
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, undefined | object>>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
   const [selectedNetwork, setSelectedNetwork] = useState<CaipChainId[] | null>(
-    null,
+    initialNetwork,
   );
   const [selectedPriceChangeOption, setSelectedPriceChangeOption] = useState<
     PriceChangeOption | undefined

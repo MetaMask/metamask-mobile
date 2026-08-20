@@ -3,8 +3,6 @@ import cardReducer, {
   CardSliceState,
   resetCardState,
   initialState,
-  setHasViewedCardButton,
-  selectHasViewedCardButton,
   setOnboardingId,
   setContactVerificationId,
   setConsentSetId,
@@ -15,61 +13,54 @@ import cardReducer, {
   setPendingMoneyAccountCardLink,
   selectPendingMoneyAccountCardLink,
 } from '.';
+import { CardEntryPoint } from '../../../../components/UI/Card/util/metrics';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const CARD_STATE_MOCK: CardSliceState = {
   isDaimoDemo: false,
-  hasViewedCardButton: true,
   onboarding: {
     onboardingId: null,
     contactVerificationId: null,
     consentSetId: null,
+    immersveFundingSourceId: null,
   },
-  pendingMoneyAccountCardLink: false,
+  pendingMoneyAccountCardLink: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+  cardArrivalAnimationSeen: false,
+  cardArrivalPreviewRequested: false,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   isDaimoDemo: false,
-  hasViewedCardButton: false,
   onboarding: {
     onboardingId: null,
     contactVerificationId: null,
     consentSetId: null,
+    immersveFundingSourceId: null,
   },
-  pendingMoneyAccountCardLink: false,
+  pendingMoneyAccountCardLink: null,
+  cardArrivalAnimationSeen: false,
+  cardArrivalPreviewRequested: false,
 };
 
 describe('Card Selectors', () => {
-  describe('selectHasViewedCardButton', () => {
-    it('returns false by default from initial state', () => {
-      const mockRootState = { card: initialState } as unknown as RootState;
-      expect(selectHasViewedCardButton(mockRootState)).toBe(false);
-    });
-
-    it('returns true when hasViewedCardButton is true', () => {
-      const stateWithFlag: CardSliceState = {
-        ...initialState,
-        hasViewedCardButton: true,
-      };
-      const mockRootState = { card: stateWithFlag } as unknown as RootState;
-      expect(selectHasViewedCardButton(mockRootState)).toBe(true);
-    });
-  });
-
   describe('selectPendingMoneyAccountCardLink', () => {
-    it('returns false by default from initial state', () => {
+    it('returns null by default from initial state', () => {
       const mockRootState = { card: initialState } as unknown as RootState;
-      expect(selectPendingMoneyAccountCardLink(mockRootState)).toBe(false);
+      expect(selectPendingMoneyAccountCardLink(mockRootState)).toBe(null);
     });
 
-    it('returns true when pendingMoneyAccountCardLink is true', () => {
-      const stateWithFlag: CardSliceState = {
+    it('returns the pending Money Account Card link entrypoint', () => {
+      const stateWithEntryPoint: CardSliceState = {
         ...initialState,
-        pendingMoneyAccountCardLink: true,
+        pendingMoneyAccountCardLink: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
       };
-      const mockRootState = { card: stateWithFlag } as unknown as RootState;
-      expect(selectPendingMoneyAccountCardLink(mockRootState)).toBe(true);
+      const mockRootState = {
+        card: stateWithEntryPoint,
+      } as unknown as RootState;
+      expect(selectPendingMoneyAccountCardLink(mockRootState)).toBe(
+        CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+      );
     });
   });
 
@@ -149,13 +140,15 @@ describe('Card Reducer', () => {
     it('should reset card state', () => {
       const currentState: CardSliceState = {
         isDaimoDemo: false,
-        hasViewedCardButton: true,
         onboarding: {
           onboardingId: null,
           contactVerificationId: null,
           consentSetId: null,
+          immersveFundingSourceId: null,
         },
-        pendingMoneyAccountCardLink: true,
+        pendingMoneyAccountCardLink: CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+        cardArrivalAnimationSeen: true,
+        cardArrivalPreviewRequested: false,
       };
 
       const state = cardReducer(currentState, resetCardState());
@@ -164,40 +157,30 @@ describe('Card Reducer', () => {
     });
 
     describe('setPendingMoneyAccountCardLink', () => {
-      it('sets pendingMoneyAccountCardLink to true', () => {
+      it('stores the entrypoint for post-auth sheet resume', () => {
         const state = cardReducer(
           initialState,
-          setPendingMoneyAccountCardLink(true),
+          setPendingMoneyAccountCardLink(
+            CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+          ),
         );
-        expect(state.pendingMoneyAccountCardLink).toBe(true);
+
+        expect(state.pendingMoneyAccountCardLink).toBe(
+          CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
+        );
       });
 
-      it('sets pendingMoneyAccountCardLink back to false', () => {
+      it('clears pending state when set to null', () => {
         const current: CardSliceState = {
           ...initialState,
-          pendingMoneyAccountCardLink: true,
+          pendingMoneyAccountCardLink:
+            CardEntryPoint.MONEY_HOME_ONBOARDING_CARD,
         };
         const state = cardReducer(
           current,
-          setPendingMoneyAccountCardLink(false),
+          setPendingMoneyAccountCardLink(null),
         );
-        expect(state.pendingMoneyAccountCardLink).toBe(false);
-      });
-    });
-
-    describe('setHasViewedCardButton', () => {
-      it('should set hasViewedCardButton to true', () => {
-        const state = cardReducer(initialState, setHasViewedCardButton(true));
-        expect(state.hasViewedCardButton).toBe(true);
-      });
-
-      it('should set hasViewedCardButton to false when previously true', () => {
-        const current: CardSliceState = {
-          ...initialState,
-          hasViewedCardButton: true,
-        };
-        const state = cardReducer(current, setHasViewedCardButton(false));
-        expect(state.hasViewedCardButton).toBe(false);
+        expect(state.pendingMoneyAccountCardLink).toBeNull();
       });
     });
 
@@ -329,6 +312,7 @@ describe('Card Reducer', () => {
               onboardingId: 'test-id',
               contactVerificationId: 'verification-123',
               consentSetId: 'consent-456',
+              immersveFundingSourceId: 'fs-456',
             },
           };
           const state = cardReducer(current, resetOnboardingState());
@@ -336,6 +320,7 @@ describe('Card Reducer', () => {
             onboardingId: null,
             contactVerificationId: null,
             consentSetId: null,
+            immersveFundingSourceId: null,
           });
         });
 
@@ -345,6 +330,7 @@ describe('Card Reducer', () => {
             onboardingId: null,
             contactVerificationId: null,
             consentSetId: null,
+            immersveFundingSourceId: null,
           });
         });
       });

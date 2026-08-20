@@ -46,7 +46,7 @@ describe('BatchSellNetworkFeeInfoModal', () => {
       getByTestId(BatchSellNetworkFeeInfoModalSelectorsIDs.DESCRIPTION),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('bridge.network_fee_info_content')),
+      getByText(strings('bridge.batch_sell_network_fee_info_content')),
     ).toBeOnTheScreen();
   });
 
@@ -61,22 +61,14 @@ describe('BatchSellNetworkFeeInfoModal', () => {
   });
 
   it('restores the source modal when the back button is pressed', () => {
-    const sourceModal = {
-      screen: 'BatchSellFinalReviewModal',
-      params: {
-        networkFee: '1.20 USDC',
-      },
-    };
+    const sourceModal = { screen: 'BatchSellFinalReviewModal' } as const;
     const { getByTestId } = renderModal({ sourceModal });
 
     fireEvent.press(
       getByTestId(BatchSellNetworkFeeInfoModalSelectorsIDs.BACK_BUTTON),
     );
 
-    expect(mockReplace).toHaveBeenCalledWith(
-      sourceModal.screen,
-      sourceModal.params,
-    );
+    expect(mockReplace).toHaveBeenCalledWith(sourceModal.screen);
   });
 
   it('does not render a back button without a source modal', () => {

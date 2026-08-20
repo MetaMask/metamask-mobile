@@ -28,6 +28,7 @@ import {
   selectInternalAccountsByScope,
   selectInternalAccountByAddresses,
   selectEvmAddress,
+  selectOrderedInternalAccountsByLastSelected,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -135,6 +136,24 @@ describe('Accounts Controller Selectors', () => {
       expect(mockedCaptureException.mock.calls[0][0].message).toBe(
         errorMessage,
       );
+    });
+
+    it('does not throw an error if the selected account ID is empty', () => {
+      const result = selectSelectedInternalAccount({
+        engine: {
+          backgroundState: {
+            AccountsController: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+              internalAccounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+                selectedAccount: '',
+              },
+            },
+          },
+        },
+      } as RootState);
+      expect(result).toBeUndefined();
+      expect(mockedCaptureException).not.toHaveBeenCalled();
     });
   });
   describe('selectInternalAccounts', () => {
@@ -735,9 +754,14 @@ describe('selectSelectedInternalAccountId', () => {
     const internalAccount = arrangeAccount();
     const state = getStateWithAccount(internalAccount);
     const result1 = selectSelectedInternalAccountId(state);
+    const recomputationsAfterFirstCall =
+      selectSelectedInternalAccountId.recomputations();
     const result2 = selectSelectedInternalAccountId(state);
     expect(result1).toBe(result2);
-    expect(selectSelectedInternalAccountId.recomputations()).toBe(1);
+    // A subsequent call with the same state must not trigger a recomputation.
+    expect(selectSelectedInternalAccountId.recomputations()).toBe(
+      recomputationsAfterFirstCall,
+    );
   });
 });
 
@@ -766,6 +790,24 @@ describe('selectInternalEvmAccounts', () => {
 
     expect(result).toHaveLength(4);
   });
+
+  it('returns the same reference when EVM accounts are unchanged', () => {
+    const mockAccountsController =
+      MOCK_GENERATED_ACCOUNTS_CONTROLLER_REVERSED();
+    const state = {
+      engine: {
+        backgroundState: {
+          KeyringController: MOCK_KEYRING_CONTROLLER,
+          AccountsController: mockAccountsController,
+        },
+      },
+    } as RootState;
+
+    const result1 = selectInternalEvmAccounts(state);
+    const result2 = selectInternalEvmAccounts(state);
+
+    expect(result1).toBe(result2);
+  });
 });
 
 describe('selectEvmAddress', () => {
@@ -783,6 +825,49 @@ describe('selectEvmAddress', () => {
     const result = selectEvmAddress(state);
 
     expect(result).toBeUndefined();
+  });
+});
+
+describe('selectOrderedInternalAccountsByLastSelected', () => {
+  const makeState = (lastSelectedMap: Record<string, number>) =>
+    ({
+      engine: {
+        backgroundState: {
+          KeyringController: MOCK_KEYRING_CONTROLLER,
+          AccountsController: {
+            internalAccounts: {
+              accounts: Object.fromEntries(
+                Object.entries(lastSelectedMap).map(([address, ts]) => {
+                  const account = createMockInternalAccount(address, address);
+                  account.metadata.lastSelected = ts;
+                  return [account.id, account];
+                }),
+              ),
+              selectedAccount: '',
+            },
+            accountIdByAddress: {},
+          },
+        },
+      },
+    }) as RootState;
+
+  it('sorts accounts by lastSelected descending', () => {
+    const state = makeState({ '0xaaa': 100, '0xbbb': 300, '0xccc': 200 });
+
+    const result = selectOrderedInternalAccountsByLastSelected(state);
+
+    expect(result[0].metadata.lastSelected).toBe(300);
+    expect(result[1].metadata.lastSelected).toBe(200);
+    expect(result[2].metadata.lastSelected).toBe(100);
+  });
+
+  it('returns the same reference when accounts are unchanged', () => {
+    const state = makeState({ '0xaaa': 100, '0xbbb': 200 });
+
+    const result1 = selectOrderedInternalAccountsByLastSelected(state);
+    const result2 = selectOrderedInternalAccountsByLastSelected(state);
+
+    expect(result1).toBe(result2);
   });
 });
 

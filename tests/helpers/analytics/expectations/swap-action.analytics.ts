@@ -26,7 +26,7 @@ const quotesRequestedProperties: Record<
   chain_id_destination: 'string',
   token_address_source: 'string',
   token_address_destination: 'string',
-  slippage_limit: 'number',
+  // Omitted while client slippage is Auto/unset; present after a numeric override.
   swap_type: 'string',
   custom_slippage: 'boolean',
   is_hardware_wallet: 'boolean',
@@ -102,7 +102,11 @@ const completedProperties: Record<
  *
  * Note: these expectations are run against events captured during the first swap only.
  * The `validate` callback handles the Input Changed events which require advanced checks
- * (count = 12 with custom slippage; chain_source, token_destination, slippage).
+ * (count = 9 without client default / custom slippage; chain_source, token_destination).
+ *
+ * Slippage `INPUT_CHANGED` is not emitted until the user sets a numeric override:
+ * there is no client-side default slippage, and swap-action smoke does not open the
+ * slippage modal until https://github.com/MetaMask/metamask-mobile/issues/29615 is fixed.
  */
 export const swapActionExpectations: AnalyticsExpectations = {
   eventNames: expectedEventNames,
@@ -126,7 +130,8 @@ export const swapActionExpectations: AnalyticsExpectations = {
   validate: async ({ events }) => {
     const inputChanged = filterEvents(events, INPUT_CHANGED);
 
-    await Assertions.checkIfArrayHasLength(inputChanged, 12);
+    // 9 with Auto/unset slippage (no client default InputChanged); was 11/12 before.
+    await Assertions.checkIfArrayHasLength(inputChanged, 9);
 
     for (const event of inputChanged) {
       await Assertions.checkIfValueIsDefined(event.properties.input);
@@ -145,10 +150,11 @@ export const swapActionExpectations: AnalyticsExpectations = {
         `Expected input=token_destination in Input Changed events. Found: ${inputs.join(', ')}`,
       );
     }
-    if (!inputs.includes('slippage')) {
-      throw new Error(
-        `Expected input=slippage in Input Changed events. Found: ${inputs.join(', ')}`,
-      );
-    }
+    // Re-enable when swap-action smoke sets custom slippage again (bug #29615).
+    // if (!inputs.includes('slippage')) {
+    //   throw new Error(
+    //     `Expected input=slippage in Input Changed events. Found: ${inputs.join(', ')}`,
+    //   );
+    // }
   },
 };

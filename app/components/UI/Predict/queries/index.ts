@@ -8,11 +8,21 @@ import {
   predictFeaturedCarouselKeys,
   predictFeaturedCarouselOptions,
 } from './featuredCarousel';
+import {
+  predictFilterOptionsKeys,
+  predictFilterOptionsOptions,
+} from './filterOptions';
+import { predictGameKeys } from './game';
 import { predictMarketKeys, predictMarketOptions } from './market';
+import { predictMarketListKeys, predictMarketListOptions } from './marketList';
 import {
   predictOrderPreviewKeys,
   predictOrderPreviewOptions,
 } from './orderPreview';
+import {
+  predictMaxBuyOrderPreviewKeys,
+  predictMaxBuyOrderPreviewOptions,
+} from './maxBuyOrderPreview';
 import { predictPositionsKeys, predictPositionsOptions } from './positions';
 import {
   predictCryptoPriceHistoryKeys,
@@ -31,7 +41,6 @@ import {
   predictUnrealizedPnLKeys,
   predictUnrealizedPnLOptions,
 } from './unrealizedPnL';
-import { predictWorldCupKeys, predictWorldCupOptions } from './worldCup';
 
 export const predictQueries = {
   accountState: {
@@ -54,9 +63,24 @@ export const predictQueries = {
     keys: predictFeaturedCarouselKeys,
     options: predictFeaturedCarouselOptions,
   },
+  filterOptions: {
+    keys: predictFilterOptionsKeys,
+    options: predictFilterOptionsOptions,
+  },
+  game: {
+    keys: predictGameKeys,
+  },
   market: {
     keys: predictMarketKeys,
     options: predictMarketOptions,
+  },
+  marketList: {
+    keys: predictMarketListKeys,
+    options: predictMarketListOptions,
+  },
+  maxBuyOrderPreview: {
+    keys: predictMaxBuyOrderPreviewKeys,
+    options: predictMaxBuyOrderPreviewOptions,
   },
   orderPreview: {
     keys: predictOrderPreviewKeys,
@@ -81,9 +105,5 @@ export const predictQueries = {
   unrealizedPnL: {
     keys: predictUnrealizedPnLKeys,
     options: predictUnrealizedPnLOptions,
-  },
-  worldCup: {
-    keys: predictWorldCupKeys,
-    options: predictWorldCupOptions,
   },
 };

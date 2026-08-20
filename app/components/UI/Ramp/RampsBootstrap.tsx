@@ -1,15 +1,14 @@
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import useRampsSmartRouting from './hooks/useRampsSmartRouting';
 import useRampsProviders from './hooks/useRampsProviders';
 import useRampsPaymentMethods from './hooks/useRampsPaymentMethods';
 import { selectUserRegion } from '../../../selectors/rampsController';
 import Engine from '../../../core/Engine';
 
 /**
- * Ramps app bootstrap: runs smart routing, controller hydration, and provider
- * auto-selection as soon as the app mounts so that by the time the user taps
- * Buy, region, providers, tokens, and selected provider are ready.
+ * Ramps app bootstrap: runs controller hydration and provider auto-selection
+ * as soon as the app mounts so that by the time the user taps Buy, region,
+ * providers, tokens, and selected provider are ready.
  *
  * Geolocation is handled by GeolocationController during Engine startup, so
  * this bootstrap no longer performs geolocation detection itself.
@@ -21,7 +20,6 @@ import Engine from '../../../core/Engine';
  * ready when the user enters the buy flow.
  */
 function RampsBootstrap(): null {
-  useRampsSmartRouting();
   useRampsProviders({ enableSideEffects: true });
   useRampsPaymentMethods();
 

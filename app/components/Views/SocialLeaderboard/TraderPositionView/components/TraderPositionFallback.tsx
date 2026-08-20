@@ -10,11 +10,11 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useAssetFromTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import type { RootStackParamList } from '../../../../../core/NavigationService/types';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 import errorStateLight from '../../../../../images/error-state-no-connection-light.png';
@@ -34,7 +34,7 @@ const TraderPositionFallback: React.FC<TraderPositionFallbackProps> = ({
   traderId,
   traderName,
 }) => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const noConnectionImage = useAssetFromTheme(errorStateLight, errorStateDark);
 

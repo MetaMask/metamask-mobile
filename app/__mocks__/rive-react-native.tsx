@@ -1,4 +1,9 @@
-import React, { forwardRef, useImperativeHandle, useEffect } from 'react';
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useEffect,
+  useMemo,
+} from 'react';
 import { View, ViewProps } from 'react-native';
 
 /** Shared so tests can assert `fireState` across Rive remounts when props change. */
@@ -11,6 +16,10 @@ export interface RiveRef {
   play: jest.Mock;
   pause: jest.Mock;
   stop: jest.Mock;
+  trigger: jest.Mock;
+  setNumber: jest.Mock;
+  /** Non-null by default: data-bound consumers skip dispatch when it is null. */
+  viewTag: jest.Mock;
 }
 
 interface MockedMethods {
@@ -20,6 +29,9 @@ interface MockedMethods {
   play?: jest.Mock;
   pause?: jest.Mock;
   stop?: jest.Mock;
+  trigger?: jest.Mock;
+  setNumber?: jest.Mock;
+  viewTag?: jest.Mock;
 }
 
 type MockRiveProps = ViewProps & {
@@ -31,6 +43,7 @@ type MockRiveProps = ViewProps & {
   autoplay?: boolean;
   stateMachineName?: string;
   onPlay?: () => void;
+  onError?: (error: unknown) => void;
 };
 
 const DEFAULT_TEST_ID = 'mock-rive-animation';
@@ -42,6 +55,9 @@ const createMockedMethods = (overrides?: MockedMethods): RiveRef => ({
   play: jest.fn(),
   pause: jest.fn(),
   stop: jest.fn(),
+  trigger: jest.fn(),
+  setNumber: jest.fn(),
+  viewTag: jest.fn(() => 1),
   ...overrides,
 });
 
@@ -52,8 +68,18 @@ const updateLastMockedMethods = (methods: RiveRef) => {
 };
 
 const RiveMock = forwardRef<RiveRef, MockRiveProps>(
-  ({ testID = DEFAULT_TEST_ID, mockedMethods, onPlay, ...viewProps }, ref) => {
-    const methods = createMockedMethods(mockedMethods);
+  (
+    { testID = DEFAULT_TEST_ID, mockedMethods, onPlay, onError, ...viewProps },
+    ref,
+  ) => {
+    const methods = useMemo(
+      () =>
+        ({
+          ...createMockedMethods(mockedMethods),
+          onError,
+        }) as RiveRef,
+      [mockedMethods, onError],
+    );
     updateLastMockedMethods(methods);
 
     useImperativeHandle(ref, () => methods, [methods]);
@@ -65,7 +91,9 @@ const RiveMock = forwardRef<RiveRef, MockRiveProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    return <View testID={testID} {...viewProps} />;
+    return (
+      <View testID={testID} {...({ onPlay } as ViewProps)} {...viewProps} />
+    );
   },
 );
 
@@ -77,6 +105,24 @@ const Fit = {
 
 const Alignment = {
   Center: 'center',
+} as const;
+
+/** Data-binding config; consumers only pass it straight to `<Rive>`. */
+export const AutoBind = jest.fn((autoBind: boolean) => ({ autoBind }));
+
+/** Mirrors `RNRiveErrorType` from rive-react-native for module-level error classification. */
+export const RNRiveErrorType = {
+  FileNotFound: 'FileNotFound',
+  UnsupportedRuntimeVersion: 'UnsupportedRuntimeVersion',
+  IncorrectRiveFileUrl: 'IncorrectRiveFileUrl',
+  IncorrectAnimationName: 'IncorrectAnimationName',
+  MalformedFile: 'MalformedFile',
+  IncorrectArtboardName: 'IncorrectArtboardName',
+  IncorrectStateMachineName: 'IncorrectStateMachineName',
+  IncorrectStateMachineInput: 'IncorrectStateMachineInput',
+  TextRunNotFoundError: 'TextRunNotFoundError',
+  DataBindingError: 'DataBindingError',
+  UnusedReferencedAssetError: 'UnusedReferencedAssetError',
 } as const;
 
 export const __getLastMockedMethods = (): RiveRef | undefined =>

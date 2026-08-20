@@ -90,6 +90,28 @@ describe('useNetworkFilter', () => {
     expect(result.current.filteredTokensByNetwork).toHaveLength(3);
   });
 
+  it('includes testnet tokens when filter is set to "all"', () => {
+    const sepoliaToken = {
+      chainId: '0xaa36a7',
+      address: '0xsep',
+      symbol: 'SepoliaETH',
+      name: 'Sepolia Ether',
+      aggregators: [],
+      decimals: 18,
+      image: '',
+      balance: '1',
+      logo: undefined,
+      isETH: true,
+    } as unknown as AssetType;
+
+    const { result } = renderHook(() =>
+      useNetworkFilter([...mockTokens, sepoliaToken], mockNetworks),
+    );
+
+    expect(result.current.selectedNetworkFilter).toBe(NETWORK_FILTER_ALL);
+    expect(result.current.filteredTokensByNetwork).toContain(sepoliaToken);
+  });
+
   it('filters tokens by selected network', () => {
     const { result } = renderHook(() =>
       useNetworkFilter(mockTokens, mockNetworks),

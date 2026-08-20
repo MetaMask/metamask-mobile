@@ -1,6 +1,12 @@
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
-import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+  TraceContext,
+} from '../../util/trace';
 import { whenEngineReady } from '../../util/analytics/whenEngineReady';
 import { isE2EMockOAuth } from '../../util/environment';
 
@@ -40,7 +46,14 @@ import {
 import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
-import { trackSocialLoginFailed } from './socialLoginAnalytics';
+import {
+  shouldAttemptAndroidGoogleBrowserFallback,
+  trackSocialLoginFailed,
+} from './socialLoginAnalytics';
+import {
+  getOAuthBackgroundAnalyticsProperties,
+  OAUTH_RESUME_OUTCOME,
+} from './oauthLifecycleTracking';
 import ReduxService from '../redux';
 import { setSeedlessOnboarding } from '../../actions/onboarding';
 import Device from '../../util/device';
@@ -255,11 +268,28 @@ export class OAuthService {
   #handleOAuthLoginProductionPath = async (
     loginHandler: BaseLoginHandler,
     web3AuthNetwork: Web3AuthNetwork,
+    parentTraceContext?: TraceContext,
   ): Promise<HandleOAuthLoginResult> => {
     try {
       let data: AuthResponse, handleCodeFlowResult: HandleOAuthLoginResult;
 
-      const result = await this.#executeProviderLogin(loginHandler);
+      // Node details are independent of the OAuth result and are required by
+      // SeedlessOnboardingController.authenticate(). Start loading them while
+      // the user completes provider login and the auth-token exchange.
+      const preloadToprfNodeDetailsPromise = whenEngineReady()
+        .then(() =>
+          Engine.context.SeedlessOnboardingController.preloadToprfNodeDetails(),
+        )
+        .catch((error) => {
+          Logger.log(error as Error, {
+            message: 'Failed to preload TOPRF node details',
+          });
+        });
+
+      const result = await this.#executeProviderLogin(
+        loginHandler,
+        parentTraceContext,
+      );
       const authConnection = loginHandler.authConnection;
 
       Logger.log('handleOAuthLogin: before getAuthToken');
@@ -270,6 +300,7 @@ export class OAuthService {
           trace({
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
             op: TraceOperation.OnboardingSecurityOp,
+            parentContext: parentTraceContext,
           });
           data = await loginHandler.getAuthTokens(
             { ...result, web3AuthNetwork },
@@ -287,6 +318,7 @@ export class OAuthService {
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
             op: TraceOperation.OnboardingError,
             tags: { errorMessage },
+            parentContext: parentTraceContext,
           });
           endTrace({
             name: TraceName.OnboardingOAuthBYOAServerGetAuthTokensError,
@@ -316,9 +348,14 @@ export class OAuthService {
 
         let seedlessAuthSuccess = false;
         try {
+          // Wait for the original preload request before authenticating so a
+          // cold cache does not issue a duplicate node-details request.
+          await preloadToprfNodeDetailsPromise;
+
           trace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticate,
             op: TraceOperation.OnboardingSecurityOp,
+            parentContext: parentTraceContext,
           });
           handleCodeFlowResult = await this.handleSeedlessAuthenticate(
             data,
@@ -334,6 +371,7 @@ export class OAuthService {
             name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
             op: TraceOperation.OnboardingError,
             tags: { errorMessage },
+            parentContext: parentTraceContext,
           });
           endTrace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticateError,
@@ -398,6 +436,7 @@ export class OAuthService {
       account_type: getSocialAccountType(authConnection, isRehydration),
       surface: isRehydration ? 'rehydration' : 'onboarding',
       elapsed_ms: elapsedMs,
+      ...getOAuthBackgroundAnalyticsProperties(OAUTH_RESUME_OUTCOME.DISMISSED),
     };
 
     analytics.trackEvent(
@@ -411,6 +450,7 @@ export class OAuthService {
 
   #executeProviderLogin = async (
     loginHandler: BaseLoginHandler,
+    parentTraceContext?: TraceContext,
   ): Promise<LoginHandlerResult> => {
     let providerLoginSuccess = false;
     const providerLoginStartedAt = Date.now();
@@ -418,6 +458,7 @@ export class OAuthService {
       trace({
         name: TraceName.OnboardingOAuthProviderLogin,
         op: TraceOperation.OnboardingSecurityOp,
+        parentContext: parentTraceContext,
       });
       const loginResult = await loginHandler.login();
       if (!loginResult) {
@@ -443,6 +484,7 @@ export class OAuthService {
           name: TraceName.OnboardingOAuthProviderLoginError,
           op: TraceOperation.OnboardingError,
           tags: { errorMessage },
+          parentContext: parentTraceContext,
         });
         endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
       }
@@ -452,7 +494,14 @@ export class OAuthService {
           authConnection: loginHandler.authConnection,
           elapsedMs: Date.now() - providerLoginStartedAt,
         });
-      } else {
+      } else if (
+        !shouldAttemptAndroidGoogleBrowserFallback(
+          error,
+          loginHandler.authConnection,
+        )
+      ) {
+        // One Tap errors that retry in the browser must not emit Failed; the
+        // fallback attempt owns the terminal Completed / Failed / Dismissed.
         trackSocialLoginFailed({
           authConnection: loginHandler.authConnection,
           isRehydration: this.localState.userClickedRehydration,
@@ -482,6 +531,11 @@ export class OAuthService {
   handleOAuthLogin = async (
     loginHandler: BaseLoginHandler,
     userClickedRehydration: boolean,
+    // Optional onboarding trace context supplied by the UI. When present, the
+    // provider-login / get-auth-tokens / seedless-authenticate spans nest under
+    // it (the social-login attempt) instead of surfacing as disconnected root
+    // transactions in Sentry. Omitted by callers outside onboarding.
+    parentTraceContext?: TraceContext,
   ): Promise<HandleOAuthLoginResult> => {
     const web3AuthNetwork = this.config.web3AuthNetwork;
 
@@ -501,6 +555,7 @@ export class OAuthService {
     return await this.#handleOAuthLoginProductionPath(
       loginHandler,
       web3AuthNetwork,
+      parentTraceContext,
     );
   };
 
@@ -531,31 +586,33 @@ export class OAuthService {
     });
   };
 
-  private getAccessToken = (): string | undefined =>
-    Engine.context.SeedlessOnboardingController.state?.accessToken;
-
-  updateMarketingOptInStatus = async (
-    marketingOptIn: boolean,
-  ): Promise<void> => {
-    const accessToken = this.getAccessToken();
+  private async getValidAccessToken(): Promise<string> {
+    await whenEngineReady();
+    const accessToken =
+      await Engine.context.SeedlessOnboardingController.getAccessToken();
 
     if (!accessToken) {
       throw new Error('No access token found. User must be authenticated.');
     }
 
+    return accessToken;
+  }
+
+  updateMarketingOptInStatus = async (
+    marketingOptIn: boolean,
+  ): Promise<void> => {
+    const accessToken = await this.getValidAccessToken();
     const requestBody: MarketingOptInRequest = {
       opt_in_status: marketingOptIn,
     };
 
     const url = `${this.config.authServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
-    const headers = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    };
-
     const response = await fetch(url, {
       method: 'POST',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
       body: JSON.stringify(requestBody),
     });
 
@@ -570,21 +627,14 @@ export class OAuthService {
   };
 
   getMarketingOptInStatus = async (): Promise<MarketingOptInResponse> => {
-    const accessToken = this.getAccessToken();
-
-    if (!accessToken) {
-      throw new Error('No access token found. User must be authenticated.');
-    }
-
+    const accessToken = await this.getValidAccessToken();
     const url = `${this.config.authServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
-    const headers = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    };
-
     const response = await fetch(url, {
       method: 'GET',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
 
     if (!response.ok) {

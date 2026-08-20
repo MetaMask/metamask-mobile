@@ -16,7 +16,7 @@ describe('marketingAttribution sagas', () => {
         .silentRun(50);
     });
 
-    it('does not put clearAttribution when marketing data collection is enabled', async () => {
+    it('does nothing when marketing data collection is enabled', async () => {
       await expectSaga(watchMarketingAttributionOnConsentChange)
         .dispatch(setDataCollectionForMarketing(true))
         .not.put(clearAttribution())

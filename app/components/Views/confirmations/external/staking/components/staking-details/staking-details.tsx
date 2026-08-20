@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { strings } from '../../../../../../../../locales/i18n';
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
-import Text from '../../../../../../../component-library/components/Texts/Text';
+import { Text } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { useStakingDetails } from '../../hooks/useStakingDetails';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';

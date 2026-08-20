@@ -9,10 +9,19 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';
 import { TransactionSummaryLine } from './transaction-summary-line';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { configureUseAnalyticsExternalLinkMock } from '../../../../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../../../../util/analytics/AnalyticsEventBuilder';
 
 const mockNavigate = jest.fn();
+const trackEventMock = jest.fn();
 
 jest.mock('../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl');
+
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -60,6 +69,8 @@ describe('TransactionSummaryLine', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
+    configureUseAnalyticsExternalLinkMock(trackEventMock);
+
     useMultichainBlockExplorerTxUrlMock.mockReturnValue({
       explorerTxUrl: 'https://explorer.example',
       explorerName: 'Explorer',
@@ -92,6 +103,17 @@ describe('TransactionSummaryLine', () => {
 
     fireEvent.press(getByTestId('block-explorer-button'));
 
+    expect(trackEventMock).toHaveBeenCalledWith(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.EXTERNAL_LINK_CLICKED,
+      )
+        .addProperties({
+          location: 'transaction_details_summary',
+          text: 'Explorer',
+          url_domain: 'explorer.example',
+        })
+        .build(),
+    );
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
       screen: Routes.WEBVIEW.SIMPLE,
       params: {

@@ -1,5 +1,6 @@
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -66,7 +67,7 @@ export const SDKSessionItem = ({
   const styles = createStyles(colors, typography, safeAreaInsets);
   const [sessionName, setSessionName] = useState('');
   const [icon, setIcon] = useState<string>();
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const [permittedAccountsAddresses, setPermittedAccountsAddresses] = useState<
     string[]
   >([]);

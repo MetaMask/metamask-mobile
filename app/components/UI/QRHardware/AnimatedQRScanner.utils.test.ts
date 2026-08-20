@@ -3,7 +3,10 @@ import {
   type QRHardwareScanError,
   QRHardwareScanErrorType,
 } from '../../../core/HardwareWallet/errors';
-import { isSameScanError } from './AnimatedQRScanner.utils';
+import {
+  buildQrHardwareWalletErrorAnalyticsProperties,
+  isSameScanError,
+} from './AnimatedQRScanner.utils';
 
 function makeScanError(
   overrides: {
@@ -84,4 +87,50 @@ describe('isSameScanError', () => {
       ).toBe(false);
     },
   );
+});
+
+describe('buildQrHardwareWalletErrorAnalyticsProperties', () => {
+  it('includes received_ur_type only for wrong UR type errors', () => {
+    expect(
+      buildQrHardwareWalletErrorAnalyticsProperties({
+        error: 'Wrong QR',
+        error_category: QRHardwareScanErrorType.WrongURType,
+        is_ur_format: true,
+        received_ur_type: SUPPORTED_UR_TYPE.ETH_SIGNATURE,
+      }),
+    ).toEqual({
+      error: 'Wrong QR',
+      error_category: QRHardwareScanErrorType.WrongURType,
+      is_ur_format: true,
+      received_ur_type: SUPPORTED_UR_TYPE.ETH_SIGNATURE,
+    });
+
+    expect(
+      buildQrHardwareWalletErrorAnalyticsProperties({
+        error: 'Decode failed',
+        error_category: QRHardwareScanErrorType.URDecodeError,
+        is_ur_format: true,
+        received_ur_type: SUPPORTED_UR_TYPE.ETH_SIGNATURE,
+      }),
+    ).toEqual({
+      error: 'Decode failed',
+      error_category: QRHardwareScanErrorType.URDecodeError,
+      is_ur_format: true,
+    });
+  });
+
+  it('falls back to an empty received_ur_type for wrong UR type errors', () => {
+    expect(
+      buildQrHardwareWalletErrorAnalyticsProperties({
+        error: 'Wrong QR',
+        error_category: QRHardwareScanErrorType.WrongURType,
+        is_ur_format: true,
+      }),
+    ).toEqual({
+      error: 'Wrong QR',
+      error_category: QRHardwareScanErrorType.WrongURType,
+      is_ur_format: true,
+      received_ur_type: '',
+    });
+  });
 });

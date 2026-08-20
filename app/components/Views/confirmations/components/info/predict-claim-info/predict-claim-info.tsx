@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   PredictClaimAmount,
   PredictClaimAmountSkeleton,
@@ -10,7 +10,6 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
-import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './predict-claim-info.styles';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
@@ -18,11 +17,12 @@ import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmat
 export function PredictClaimInfo() {
   useModalNavbar();
   usePredictClaimConfirmationMetrics();
-  useClearConfirmationOnBackSwipe();
+
+  const rejectConfirmation = useClearConfirmationOnBackSwipe();
 
   return (
     <>
-      <BackButton />
+      <BackButton onReject={rejectConfirmation} />
       <PredictClaimBackground />
       <PredictClaimAmount />
     </>
@@ -41,15 +41,18 @@ export function PredictClaimInfoSkeleton() {
 /**
  * Intentionally not using navigation header as `headerTransparent` not rendering buttons on Android.
  */
-function BackButton() {
+function BackButton({ onReject }: { onReject: () => void }) {
   const { styles } = useStyles(styleSheet, {});
-  const { onReject } = useConfirmActions();
+
+  const handleReject = useCallback(() => {
+    onReject();
+  }, [onReject]);
 
   return (
     <ButtonIcon
       size={ButtonIconSizes.Lg}
       iconName={IconName.Close}
-      onPress={() => onReject()}
+      onPress={handleReject}
       style={styles.backButton}
     />
   );

@@ -10,6 +10,7 @@ import {
   validateSolanaAddress,
   validateBitcoinAddress,
   validateTronAddress,
+  validateStellarAddress,
 } from '../../utils/send-address-validations';
 import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
@@ -24,8 +25,13 @@ interface ValidationResult {
 
 export const useToAddressValidation = () => {
   const { asset, chainId, to } = useSendContext();
-  const { isEvmSendType, isSolanaSendType, isBitcoinSendType, isTronSendType } =
-    useSendType();
+  const {
+    isEvmSendType,
+    isSolanaSendType,
+    isBitcoinSendType,
+    isTronSendType,
+    isStellarSendType,
+  } = useSendType();
   const { validateName } = useNameValidation();
   const [result, setResult] = useState<ValidationResult>({});
   const [loading, setLoading] = useState(false);
@@ -45,10 +51,9 @@ export const useToAddressValidation = () => {
         return {};
       }
 
-      if (
-        isEvmSendType &&
-        isValidHexAddress(toAddress, { mixedCaseUseChecksum: true })
-      ) {
+      // Accept any valid 20-byte hex address regardless of case (parity with
+      // Extension); EIP-55 checksum casing is not enforced for recipients.
+      if (isEvmSendType && isValidHexAddress(toAddress)) {
         return await validateHexAddress(
           toAddress,
           chainId as Hex,
@@ -68,6 +73,10 @@ export const useToAddressValidation = () => {
         return validateTronAddress(toAddress);
       }
 
+      if (isStellarSendType) {
+        return validateStellarAddress(toAddress);
+      }
+
       if (isENS(toAddress)) {
         return await validateName(chainId, toAddress);
       }
@@ -83,6 +92,7 @@ export const useToAddressValidation = () => {
       isSolanaSendType,
       isBitcoinSendType,
       isTronSendType,
+      isStellarSendType,
       validateName,
     ],
   );

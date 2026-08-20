@@ -3,6 +3,7 @@ import {
   hasMinimumRequiredVersion,
   validatedVersionGatedFeatureFlag,
   isVersionGatedFeatureFlag,
+  parseBlockedCountriesEnv,
   VersionGatedFeatureFlag,
 } from '.';
 
@@ -16,6 +17,52 @@ jest.mock(
     isRemoteFeatureFlagOverrideActivated: false,
   }),
 );
+
+describe('parseBlockedCountriesEnv', () => {
+  it('returns empty array for undefined input', () => {
+    expect(parseBlockedCountriesEnv(undefined)).toEqual([]);
+  });
+
+  it('returns empty array for empty string', () => {
+    expect(parseBlockedCountriesEnv('')).toEqual([]);
+  });
+
+  it('returns empty array for whitespace-only string', () => {
+    expect(parseBlockedCountriesEnv('   ')).toEqual([]);
+  });
+
+  it('parses single country code', () => {
+    expect(parseBlockedCountriesEnv('GB')).toEqual(['GB']);
+  });
+
+  it('parses comma-separated country codes', () => {
+    expect(parseBlockedCountriesEnv('GB,US,FR')).toEqual(['GB', 'US', 'FR']);
+  });
+
+  it('trims whitespace around country codes', () => {
+    expect(parseBlockedCountriesEnv('GB , US , FR')).toEqual([
+      'GB',
+      'US',
+      'FR',
+    ]);
+  });
+
+  it('converts country codes to uppercase', () => {
+    expect(parseBlockedCountriesEnv('gb,us,fr')).toEqual(['GB', 'US', 'FR']);
+  });
+
+  it('filters out empty entries', () => {
+    expect(parseBlockedCountriesEnv('GB,,US,')).toEqual(['GB', 'US']);
+  });
+
+  it('handles mixed case and whitespace', () => {
+    expect(parseBlockedCountriesEnv(' gb , Us, FR ')).toEqual([
+      'GB',
+      'US',
+      'FR',
+    ]);
+  });
+});
 
 describe('isVersionGatedFeatureFlag', () => {
   it('returns true for valid VersionGatedFeatureFlag', () => {

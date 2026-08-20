@@ -56,7 +56,7 @@ const fixtureProfile = {
     profileId: 'trader-1',
     address: '0xabc',
     allAddresses: ['0xabc'],
-    name: 'dutchiono',
+    name: 'trader1',
     imageUrl: 'https://example.com/avatar.png',
   },
   stats: {
@@ -100,6 +100,14 @@ describe('useTraderProfile', () => {
 
       expect(mockUseQuery).toHaveBeenCalledWith(
         expect.objectContaining({ enabled: true }),
+      );
+    });
+
+    it('uses refetchOnMount always so cached prefetch data refreshes in the background', () => {
+      renderHook(() => useTraderProfile('trader-1'));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ refetchOnMount: 'always' }),
       );
     });
 

@@ -17,62 +17,6 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const mockReact = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    const MockBottomSheet = mockReact.forwardRef(
-      (
-        { children, onClose }: { children: unknown; onClose?: () => void },
-        _ref: unknown,
-      ) =>
-        mockReact.createElement(
-          View,
-          { testID: 'bottom-sheet', onTouchEnd: onClose },
-          children,
-        ),
-    );
-    MockBottomSheet.displayName = 'MockBottomSheet';
-    return {
-      __esModule: true,
-      default: MockBottomSheet,
-    };
-  },
-);
-
-jest.mock(
-  '../../../../../../component-library/components/BottomSheets/BottomSheetFooter',
-  () => {
-    const mockReact = jest.requireActual('react');
-    const { View, Pressable, Text } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: ({
-        buttonPropsArray,
-      }: {
-        buttonPropsArray: {
-          label: string;
-          onPress: () => void;
-          testID?: string;
-        }[];
-      }) =>
-        mockReact.createElement(
-          View,
-          { testID: 'bottom-sheet-footer' },
-          buttonPropsArray.map(
-            (btn: { label: string; onPress: () => void; testID?: string }) =>
-              mockReact.createElement(
-                Pressable,
-                { key: btn.label, testID: btn.testID, onPress: btn.onPress },
-                mockReact.createElement(Text, null, btn.label),
-              ),
-          ),
-        ),
-    };
-  },
-);
-
 const singleAlert: SendAlert[] = [
   {
     key: 'tokenContract',

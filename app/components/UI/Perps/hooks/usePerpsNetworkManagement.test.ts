@@ -210,7 +210,7 @@ describe('usePerpsNetworkManagement', () => {
           nativeCurrency: 'ETH',
           rpcEndpoints: [
             {
-              url: 'https://arbitrum-mainnet.infura.io/v3/undefined',
+              url: 'https://arbitrum-mainnet.infura.io/v3/fake-infura-project-id',
               name: 'Arbitrum One',
               type: RpcEndpointType.Custom,
             },
@@ -240,7 +240,7 @@ describe('usePerpsNetworkManagement', () => {
           nativeCurrency: 'ETH',
           rpcEndpoints: [
             {
-              url: 'https://arbitrum-sepolia.infura.io/v3/undefined',
+              url: 'https://arbitrum-sepolia.infura.io/v3/fake-infura-project-id',
               name: 'Arbitrum Sepolia',
               type: RpcEndpointType.Custom,
             },
@@ -271,7 +271,7 @@ describe('usePerpsNetworkManagement', () => {
           nativeCurrency: 'ETH',
           rpcEndpoints: [
             {
-              url: 'https://arbitrum-mainnet.infura.io/v3/undefined',
+              url: 'https://arbitrum-mainnet.infura.io/v3/fake-infura-project-id',
               name: 'Arbitrum One',
               type: RpcEndpointType.Custom,
             },

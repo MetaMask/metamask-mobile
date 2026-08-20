@@ -295,18 +295,20 @@ describe('Remote Feature Flags Helper', () => {
       const response = callArgs.response as Record<string, unknown>[];
       expect(Array.isArray(response)).toBe(true);
       expect(response.length).toBeGreaterThan(0);
-      expect(response).toContainEqual({ addBitcoinAccountDummyFlag: false });
+      const firstEntry = response[0];
+      expect(typeof firstEntry).toBe('object');
+      expect(Object.keys(firstEntry as object).length).toBe(1);
     });
 
     it('applies flag overrides to both distributions', async () => {
       await setupRemoteFeatureFlagsMock(mockServer, {
-        addBitcoinAccountDummyFlag: true,
+        testOverrideFlag: true,
       });
 
       expect(mockSetupMockRequest).toHaveBeenCalledTimes(6);
       const callArgs = mockSetupMockRequest.mock.calls[0][1];
       expect(callArgs.response).toContainEqual({
-        addBitcoinAccountDummyFlag: true,
+        testOverrideFlag: true,
       });
     });
 
@@ -358,7 +360,9 @@ describe('Remote Feature Flags Helper', () => {
       const response = result.response as Record<string, unknown>[];
       expect(Array.isArray(response)).toBe(true);
       expect(response.length).toBeGreaterThan(0);
-      expect(response).toContainEqual({ addBitcoinAccountDummyFlag: false });
+      const firstEntry = response[0];
+      expect(typeof firstEntry).toBe('object');
+      expect(Object.keys(firstEntry as object).length).toBe(1);
     });
 
     it('passes through undefined values in overrides', () => {
@@ -382,7 +386,6 @@ describe('Remote Feature Flags Helper', () => {
       const response = result.response as Record<string, unknown>[];
       expect(response.length).toBe(baselineCount + 1);
       expect(response).toContainEqual({ newFlag: true });
-      expect(response).toContainEqual({ addBitcoinAccountDummyFlag: false });
     });
 
     it('passes through function values in overrides', () => {

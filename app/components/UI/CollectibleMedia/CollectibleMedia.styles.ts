@@ -82,6 +82,9 @@ const styleSheet = (params: {
     imageFallBackShowText: {
       alignSelf: 'center',
     },
+    noFlex: {
+      flex: 0,
+    },
   });
 };
 

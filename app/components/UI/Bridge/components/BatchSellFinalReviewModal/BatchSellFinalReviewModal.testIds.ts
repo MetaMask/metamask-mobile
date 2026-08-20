@@ -6,6 +6,8 @@ export const BatchSellFinalReviewModalSelectorsIDs = {
   SOURCE_TOKEN_AVATAR: 'batch-sell-final-review-source-token-avatar',
   NETWORK_FEE_ROW: 'batch-sell-final-review-network-fee-row',
   NETWORK_FEE_INFO_BUTTON: 'batch-sell-final-review-network-fee-info-button',
+  NETWORK_FEE_VALUES_SKELETON:
+    'batch-sell-final-review-network-fee-values-skeleton',
   SELL_ALL_BUTTON: 'batch-sell-final-review-sell-all-button',
   METAMASK_FEE_DISCLOSURE: 'batch-sell-final-review-metamask-fee-disclosure',
 };

@@ -22,12 +22,18 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import Engine from '../../../core/Engine';
 import {
   type TransactionMeta,
+  TransactionStatus,
+  TransactionType,
   GasFeeEstimateType,
   GasFeeEstimateLevel,
   type GasFeeEstimates,
 } from '@metamask/transaction-controller';
 import { LedgerReplacementTxTypes } from '../../UI/LedgerModals/LedgerTransactionModal';
-import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
+import {
+  createQRSigningTransactionModalNavDetails,
+  QRSignMode,
+} from '../../UI/QRHardware/QRSigningTransactionModal';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 
 const mockNavigate = jest.fn();
 
@@ -46,9 +52,19 @@ jest.mock('../../../util/conversions', () => ({
   decGWEIToHexWEI: jest.fn(),
 }));
 
-jest.mock('../../../util/number', () => ({
+jest.mock('../../../util/number/bigint', () => ({
   addHexPrefix: jest.fn(),
 }));
+
+const mockGetGasValuesForReplacement = jest.fn();
+jest.mock('../../../util/confirmation/gas', () => {
+  const actual = jest.requireActual('../../../util/confirmation/gas');
+  return {
+    ...actual,
+    getGasValuesForReplacement: (...args: unknown[]) =>
+      mockGetGasValuesForReplacement(...args),
+  };
+});
 
 jest.mock('../../../util/transaction-controller', () => ({
   speedUpTransaction: jest.fn(),
@@ -63,6 +79,10 @@ jest.mock('../../UI/QRHardware/QRSigningTransactionModal', () => ({
   createQRSigningTransactionModalNavDetails: jest
     .fn()
     .mockReturnValue(['QRSigningModal', {}]),
+  QRSignMode: {
+    SpeedUp: 'speedup',
+    Cancel: 'cancel',
+  },
 }));
 
 jest.mock('@metamask/rpc-errors', () => ({
@@ -94,7 +114,9 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     TransactionController: {
       stopTransaction: jest.fn(),
-      getTransactions: jest.fn(() => []),
+      state: {
+        transactions: [],
+      },
     },
     ApprovalController: {
       acceptRequest: jest.fn(),
@@ -108,7 +130,7 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 import { decGWEIToHexWEI } from '../../../util/conversions';
-import { addHexPrefix } from '../../../util/number';
+import { addHexPrefix } from '../../../util/number/bigint';
 import {
   speedUpTransaction as speedUpTx,
   getPreviousGasFromController,
@@ -139,6 +161,69 @@ const renderUnifiedTxActions = () =>
     wrapper: TxActionsTestWrapper,
   });
 
+const SPEED_UP_GAS = {
+  maxFeePerGas: '0xff',
+  maxPriorityFeePerGas: '0xee',
+};
+
+function createDisconnectError(): Error {
+  return Object.assign(new Error('DisconnectedDevice'), {
+    name: 'DisconnectedDevice',
+  });
+}
+
+function createSubmittedTransaction(
+  id: string,
+  overrides: Partial<TransactionMeta> = {},
+): TransactionMeta {
+  return {
+    id,
+    type: TransactionType.simpleSend,
+    status: TransactionStatus.submitted,
+    chainId: '0x1',
+    txParams: { from: SELECTED_ADDRESS, nonce: '0x1' },
+    ...overrides,
+  } as TransactionMeta;
+}
+
+function mockExecutePropagatingOnError(): void {
+  mockExecuteHardwareWalletOperation.mockImplementationOnce(
+    async ({ execute, onError, showHardwareWalletError, onRejected }) => {
+      try {
+        await execute();
+        return true;
+      } catch (error) {
+        const handled = (await onError?.(error)) ?? false;
+        if (!handled) {
+          showHardwareWalletError(error);
+        }
+        await onRejected?.();
+        return false;
+      }
+    },
+  );
+}
+
+function getShowHardwareWalletErrorMock(): jest.Mock {
+  return (
+    mockExecuteHardwareWalletOperation.mock.calls[0][0] as {
+      showHardwareWalletError: jest.Mock;
+    }
+  ).showHardwareWalletError;
+}
+
+async function runLedgerSpeedUp(txId: string): Promise<jest.Mock> {
+  const { result } = renderUnifiedTxActions();
+  const tx = { id: txId } as unknown as TransactionMeta;
+
+  act(() => result.current.onSpeedUpAction(true, tx));
+  await act(async () => {
+    await result.current.speedUpTransaction(SPEED_UP_GAS);
+  });
+
+  return getShowHardwareWalletErrorMock();
+}
+
 describe('useUnifiedTxActions', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
@@ -147,7 +232,7 @@ describe('useUnifiedTxActions', () => {
   interface EngineContextMock {
     TransactionController: {
       stopTransaction: jest.Mock;
-      getTransactions: jest.Mock;
+      state: { transactions: TransactionMeta[] };
     };
     ApprovalController: { acceptRequest: jest.Mock; rejectRequest: jest.Mock };
   }
@@ -157,7 +242,11 @@ describe('useUnifiedTxActions', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-    engineContext.TransactionController.getTransactions = jest.fn(() => []);
+    mockGetGasValuesForReplacement.mockImplementation(
+      jest.requireActual('../../../util/confirmation/gas')
+        .getGasValuesForReplacement,
+    );
+    engineContext.TransactionController.state.transactions = [];
     mockShowToast.mockClear();
 
     (createQRSigningTransactionModalNavDetails as jest.Mock).mockReturnValue([
@@ -371,6 +460,29 @@ describe('useUnifiedTxActions', () => {
       expect(result.current.existingTx).toBe(tx);
     });
 
+    it('shows toast when gas value computation fails', async () => {
+      mockGetGasValuesForReplacement.mockImplementationOnce(() => {
+        throw new Error('gas computation failed');
+      });
+
+      const { result } = renderUnifiedTxActions();
+      const tx = { id: 'gas-fail' } as unknown as TransactionMeta;
+
+      act(() => result.current.onSpeedUpAction(true, tx));
+      await act(async () => {
+        await result.current.speedUpTransaction();
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          descriptionOptions: {
+            description: 'gas computation failed',
+          },
+        }),
+      );
+      expect(result.current.speedUpIsOpen).toBe(false);
+    });
+
     it('uses GasFeeController estimates when type is missing', async () => {
       mockUseSelector.mockImplementation((selector: unknown) => {
         if (selector === (selectGasFeeEstimates as unknown)) {
@@ -578,6 +690,7 @@ describe('useUnifiedTxActions', () => {
         showAwaitingConfirmation: expect.any(Function),
         hideAwaitingConfirmation: expect.any(Function),
         showHardwareWalletError: expect.any(Function),
+        onError: expect.any(Function),
         execute: expect.any(Function),
         onRejected: expect.any(Function),
       });
@@ -604,6 +717,7 @@ describe('useUnifiedTxActions', () => {
         showAwaitingConfirmation: expect.any(Function),
         hideAwaitingConfirmation: expect.any(Function),
         showHardwareWalletError: expect.any(Function),
+        onError: expect.any(Function),
         execute: expect.any(Function),
         onRejected: expect.any(Function),
       });
@@ -831,6 +945,59 @@ describe('useUnifiedTxActions', () => {
           expect(result.current.speedUpTxId).toBeNull();
           expect(result.current.existingTx).toBeNull();
         });
+
+        it('does not show the hardware wallet error sheet when speed-up rejects after a same-nonce replacement was submitted', async () => {
+          const originalId = 'ledger-speedup-submitted';
+          engineContext.TransactionController.state.transactions = [
+            createSubmittedTransaction(originalId),
+            createSubmittedTransaction('ledger-speedup-retry', {
+              type: TransactionType.retry,
+              hash: '0xabc',
+            }),
+          ];
+          (speedUpTx as jest.Mock).mockRejectedValueOnce(
+            createDisconnectError(),
+          );
+          mockExecutePropagatingOnError();
+
+          const showHardwareWalletError = await runLedgerSpeedUp(originalId);
+
+          expect(showHardwareWalletError).not.toHaveBeenCalled();
+        });
+
+        it('shows the hardware wallet error sheet when speed-up rejects and no replacement exists', async () => {
+          const originalId = 'ledger-speedup-no-replacement';
+          engineContext.TransactionController.state.transactions = [
+            createSubmittedTransaction(originalId),
+          ];
+          (speedUpTx as jest.Mock).mockRejectedValueOnce(
+            createDisconnectError(),
+          );
+          mockExecutePropagatingOnError();
+
+          const showHardwareWalletError = await runLedgerSpeedUp(originalId);
+
+          expect(showHardwareWalletError).toHaveBeenCalled();
+        });
+
+        it('shows the hardware wallet error sheet when speed-up rejects with a user rejection after a same-nonce replacement was submitted', async () => {
+          const originalId = 'ledger-speedup-real-error';
+          engineContext.TransactionController.state.transactions = [
+            createSubmittedTransaction(originalId),
+            createSubmittedTransaction('ledger-speedup-retry', {
+              type: TransactionType.retry,
+              hash: '0xabc',
+            }),
+          ];
+          (speedUpTx as jest.Mock).mockRejectedValueOnce(
+            new Error('User rejected'),
+          );
+          mockExecutePropagatingOnError();
+
+          const showHardwareWalletError = await runLedgerSpeedUp(originalId);
+
+          expect(showHardwareWalletError).toHaveBeenCalled();
+        });
       });
 
       describe('cancelTransaction with Ledger account', () => {
@@ -1000,6 +1167,73 @@ describe('useUnifiedTxActions', () => {
           expect(result.current.cancelIsOpen).toBe(false);
           expect(result.current.cancelTxId).toBeNull();
           expect(result.current.existingTx).toBeNull();
+        });
+      });
+
+      describe('QR hardware account transactions', () => {
+        beforeEach(() => {
+          (isHardwareAccount as jest.Mock).mockImplementation(
+            (_address: string, keyringTypes?: string[]) =>
+              Boolean(keyringTypes?.includes(ExtendedKeyringTypes.qr)),
+          );
+        });
+
+        afterEach(() => {
+          (isHardwareAccount as jest.Mock).mockReturnValue(false);
+        });
+
+        it('passes speed-up transaction id to QR signing modal and closes gas modal', async () => {
+          const { result } = renderUnifiedTxActions();
+          const tx = { id: 'qr-speedup-1' } as unknown as TransactionMeta;
+
+          act(() => result.current.onSpeedUpAction(true, tx));
+          await act(async () => {
+            await result.current.speedUpTransaction({
+              maxFeePerGas: '0xaa',
+              maxPriorityFeePerGas: '0xbb',
+            });
+          });
+
+          expect(
+            createQRSigningTransactionModalNavDetails,
+          ).toHaveBeenCalledWith(
+            expect.objectContaining({
+              transactionId: 'qr-speedup-1',
+              signMode: QRSignMode.SpeedUp,
+            }),
+          );
+          expect(mockNavigate).toHaveBeenCalledWith('QRSigningModal', {});
+          expect(result.current.speedUpIsOpen).toBe(false);
+          expect(result.current.speedUpTxId).toBeNull();
+          expect(speedUpTx).not.toHaveBeenCalled();
+        });
+
+        it('passes cancel transaction id to QR signing modal and closes gas modal', async () => {
+          const { result } = renderUnifiedTxActions();
+          const tx = { id: 'qr-cancel-1' } as unknown as TransactionMeta;
+
+          act(() => result.current.onCancelAction(true, tx));
+          await act(async () => {
+            await result.current.cancelTransaction({
+              maxFeePerGas: '0x11',
+              maxPriorityFeePerGas: '0x22',
+            });
+          });
+
+          expect(
+            createQRSigningTransactionModalNavDetails,
+          ).toHaveBeenCalledWith(
+            expect.objectContaining({
+              transactionId: 'qr-cancel-1',
+              signMode: QRSignMode.Cancel,
+            }),
+          );
+          expect(mockNavigate).toHaveBeenCalledWith('QRSigningModal', {});
+          expect(result.current.cancelIsOpen).toBe(false);
+          expect(result.current.cancelTxId).toBeNull();
+          expect(
+            engineContext.TransactionController.stopTransaction,
+          ).not.toHaveBeenCalled();
         });
       });
     });

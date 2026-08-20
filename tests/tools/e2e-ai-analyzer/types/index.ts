@@ -233,13 +233,17 @@ export interface AnalysisContext {
 }
 
 /**
- * A hard rule that overrides AI analysis and forces all tests to run.
- * If `check` returns a non-null string, it becomes the reason for running all tests.
+ * A hard rule that overrides AI analysis and returns a deterministic result.
+ * If `check` returns non-null, AI analysis is skipped and the result is used directly.
+ * Rules may return all tests (conservative) or a targeted subset.
  */
 export interface HardRule {
   name: string;
   description: string;
-  check: (changedFiles: string[], context: AnalysisContext) => string | null;
+  check: (
+    changedFiles: string[],
+    context: AnalysisContext,
+  ) => SelectTagsAnalysis | null;
 }
 
 export interface ParsedArgs {

@@ -13,6 +13,59 @@
 default_platform(:ios)
 
 platform :ios do
+  # Re-sign an IPA whose contents changed after it was built — the auto RC repack path swaps
+  # a fresh JS bundle into a previous run's signed IPA, which invalidates the signature.
+  #
+  # `use_app_entitlements` is the point of this lane. fastlane's resign otherwise takes
+  # entitlements from the provisioning profile, and a profile enumerates every capability the
+  # App ID is allowed, including development-only keys such as
+  # `com.apple.developer.icloud-container-development-container-identifiers`. App Store
+  # Connect rejects an upload carrying those with "Invalid Code Signing Entitlements" (409).
+  # Xcode signs against MetaMask.entitlements, not the profile, so reading the entitlements
+  # back out of the donor binary reproduces exactly what a native build ships.
+  desc "Re-sign an existing IPA, preserving the entitlements it was built with"
+  lane :resign_repacked_ipa do |options|
+    ipa_path = options[:ipa_path]
+    signing_identity = options[:signing_identity]
+    provisioning_profile = options[:provisioning_profile]
+    keychain_path = options[:keychain_path]
+
+    if ipa_path.nil? || ipa_path.to_s.empty?
+      UI.user_error!("You must provide an ipa_path using ipa_path: '/path/to/app.ipa'")
+    end
+
+    unless File.exist?(ipa_path)
+      UI.user_error!("IPA file not found at: #{ipa_path}")
+    end
+
+    if signing_identity.nil? || signing_identity.to_s.empty?
+      UI.user_error!("You must provide a signing_identity")
+    end
+
+    if provisioning_profile.nil? || provisioning_profile.to_s.empty?
+      UI.user_error!("You must provide a provisioning_profile")
+    end
+
+    unless File.exist?(provisioning_profile)
+      UI.user_error!("Provisioning profile not found at: #{provisioning_profile}")
+    end
+
+    resign_options = {
+      ipa: ipa_path,
+      signing_identity: signing_identity,
+      provisioning_profile: provisioning_profile,
+      use_app_entitlements: true
+    }
+
+    unless keychain_path.nil? || keychain_path.to_s.empty?
+      resign_options[:keychain_path] = keychain_path
+    end
+
+    UI.message("Re-signing #{ipa_path} as '#{signing_identity}' with the app's own entitlements")
+
+    resign(resign_options)
+  end
+
   # Upload existing IPA to TestFlight (for use in CI/CD)
   desc "Upload existing IPA to TestFlight for MetaMask main app"
   lane :upload_to_testflight_only do |options|
@@ -101,7 +154,7 @@ platform :ios do
     testflight_options = {
       api_key: api_key,
       ipa: ipa_path,
-      reject_build_waiting_for_review: true,
+      reject_build_waiting_for_review: false,
       distribute_external: distribute_external,
       groups: groups,
       notify_external_testers: notify_external_testers,
@@ -116,6 +169,20 @@ platform :ios do
       testflight_options[:skip_submission] = true
     end
 
-    upload_to_testflight(testflight_options)
+    begin
+      upload_to_testflight(testflight_options)
+    rescue => e
+      # When distribute_external is true, Apple only allows one build "Waiting for Review"
+      # per external group at a time. If the previous build is still pending review, the
+      # submission will fail. We treat this as a non-fatal warning so the build is still
+      # uploaded (internal testers can use it) and the in-review build is not cancelled.
+      if distribute_external && e.message.to_s =~ /waiting.for.review|another.build|submission.already|in review/i
+        UI.important("⚠️  External distribution skipped: a build is already waiting for Apple review.")
+        UI.important("   The uploaded build is available to internal testers.")
+        UI.important("   The in-review build will not be cancelled and should complete review normally.")
+      else
+        raise e
+      end
+    end
   end
 end

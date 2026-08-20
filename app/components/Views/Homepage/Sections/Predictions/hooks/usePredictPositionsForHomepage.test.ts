@@ -1,6 +1,9 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { usePredictPositionsForHomepage } from './usePredictPositionsForHomepage';
-import type { PredictPosition } from '../../../../../UI/Predict/types';
+import {
+  PredictPositionStatus,
+  type PredictPosition,
+} from '../../../../../UI/Predict/types';
 
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockUsePredictPositions = jest.fn();
@@ -35,6 +38,7 @@ const createMockPosition = (id: string, currentValue = 12): PredictPosition =>
     icon: `https://example.com/icon-${id}.png`,
     initialValue: 10,
     currentValue,
+    status: PredictPositionStatus.WON,
     size: 15,
     percentPnl: 20,
   }) as unknown as PredictPosition;
@@ -140,7 +144,7 @@ describe('usePredictPositionsForHomepage', () => {
       expect(result.current.totalClaimableValue).toBe(0);
     });
 
-    it('computes totalClaimableValue as sum of currentValue when claimable is true', () => {
+    it('computes totalClaimableValue as sum of actionable currentValue when claimable is true', () => {
       mockUsePredictPositionsReturn.data = [
         createMockPosition('c1', 5),
         createMockPosition('c2', 10),
@@ -152,6 +156,21 @@ describe('usePredictPositionsForHomepage', () => {
       );
 
       expect(result.current.totalClaimableValue).toBe(18);
+    });
+
+    it('returns totalClaimableValue 0 for lost-only claimable positions', () => {
+      mockUsePredictPositionsReturn.data = [
+        {
+          ...createMockPosition('lost', 25),
+          status: PredictPositionStatus.LOST,
+        },
+      ];
+
+      const { result } = renderHook(() =>
+        usePredictPositionsForHomepage({ claimable: true }),
+      );
+
+      expect(result.current.totalClaimableValue).toBe(0);
     });
 
     it('returns totalClaimableValue 0 when claimable is false', () => {

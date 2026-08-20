@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { useNavigation, NavigationAction } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import Engine from '../../../../../core/Engine';
 import { useCamera } from './useCamera';
@@ -42,7 +43,7 @@ export const QRHardwareContext = createContext<QRHardwareContextType>({
 export const QRHardwareContextProvider: React.FC<{
   children: ReactElement[] | ReactElement;
 }> = ({ children }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { isSigningQRObject, pendingScanRequest } = useQRHardwareAwareness();
   const { cameraError, hasCameraPermission } = useCamera(isSigningQRObject);
   const [scannerVisible, setScannerVisible] = useState(false);

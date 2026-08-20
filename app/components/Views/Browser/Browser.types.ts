@@ -11,6 +11,8 @@ export interface BrowserParams {
   fromBenefit?: boolean;
   fromCard?: boolean;
   fromWhatsHappening?: boolean;
+  fromMarketInsights?: boolean;
+  fromMoney?: boolean;
   linkType?: string;
   url?: string;
 }

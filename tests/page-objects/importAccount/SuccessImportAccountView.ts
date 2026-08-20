@@ -1,15 +1,19 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { SuccessImportAccountIDs } from '../../../app/components/Views/ImportPrivateKeySuccess/SuccessImportAccount.testIds';
-import WalletView from '../wallet/WalletView';
-import { asDetoxElement, Utilities } from '../../framework';
+import {
+  EncapsulatedElementType,
+  Assertions,
+  getDriver,
+} from '../../framework';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class SuccessImportAccountView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(SuccessImportAccountIDs.CONTAINER);
   }
 
-  get closeButton(): DetoxElement {
+  get closeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SuccessImportAccountIDs.CLOSE_BUTTON);
   }
 
@@ -17,27 +21,29 @@ class SuccessImportAccountView {
    * Closes the success import account modal.
    *
    * On iOS, taps the close button and waits for the modal to disappear.
-   * On Android, uses device back button and tap as a workaround since
+   * On Android, uses device back button as a workaround since
    * the close button doesn't properly dismiss the modal.
    *
    * @returns A promise that resolves when the modal is closed
    */
   async tapCloseButton(): Promise<void> {
-    if (device.getPlatform() === 'ios') {
+    if (PlatformDetector.isIOS()) {
       await Gestures.waitAndTap(this.closeButton, {
         elemDescription: 'Close button',
         waitForElementToDisappear: true,
       });
       return;
     }
-    // On Android, tapping the close button does not close the modal
-    // Workaround to dismiss the success modal
-    await device.pressBack();
-    await device.tap();
-    await Utilities.waitForElementToBeVisible(
-      asDetoxElement(WalletView.container),
-    );
-    await WalletView.tapIdenticon();
+
+    const drv = getDriver();
+    if (!drv) {
+      throw new Error('Driver is not available');
+    }
+    await drv.back();
+    await Assertions.expectElementToNotBeVisible(this.closeButton, {
+      description: 'Success Import Account modal',
+      timeout: 15_000,
+    });
   }
 }
 

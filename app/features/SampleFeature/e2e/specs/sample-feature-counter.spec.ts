@@ -1,12 +1,12 @@
 'use strict';
 import SampleFeatureView from '../pages/SampleFeatureView';
-import { RegressionSampleFeature } from '../../../../../tests/tags';
+import { SampleFeature } from '../../../../../tests/tags';
 import FixtureBuilder from '../../../../../tests/framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../../../tests/framework/fixtures/FixtureHelper';
 import { navigateToSampleFeature } from '../utils';
 import Assertions from '../../../../../tests/framework/Assertions';
 
-describe(RegressionSampleFeature('Sample Feature Counter'), () => {
+describe(SampleFeature('Sample Feature Counter'), () => {
   it('displays counter feature', async () => {
     await withFixtures(
       {

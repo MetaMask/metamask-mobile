@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
-import { Text, PanResponder } from 'react-native';
+import { Text, PanResponder, Platform } from 'react-native';
 import OnboardingStep from '../OnboardingStep';
 import { renderWithProviders } from '../testUtils';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
@@ -100,6 +100,19 @@ jest.mock('react-native', () => {
         },
       }),
     },
+  };
+});
+
+jest.mock('react-native-keyboard-aware-scroll-view', () => {
+  const ReactActual = jest.requireActual('react');
+  const { ScrollView } = jest.requireActual('react-native');
+  return {
+    KeyboardAwareScrollView: ({
+      children,
+      ...props
+    }: {
+      children?: React.ReactNode;
+    }) => ReactActual.createElement(ScrollView, props, children),
   };
 });
 
@@ -717,6 +730,47 @@ describe('edge cases and prop variations', () => {
     expect(
       screen.getByText('mocked_rewards.onboarding.step_confirm'),
     ).toBeDefined();
+  });
+});
+
+describe('KeyboardAwareScrollView configuration', () => {
+  let originalPlatform: string;
+
+  beforeEach(() => {
+    originalPlatform = Platform.OS;
+  });
+
+  afterEach(() => {
+    Object.defineProperty(Platform, 'OS', {
+      value: originalPlatform,
+      writable: true,
+    });
+  });
+
+  it('enables Android keyboard avoidance with extra scroll height', () => {
+    Object.defineProperty(Platform, 'OS', {
+      value: 'android',
+      writable: true,
+    });
+
+    const { UNSAFE_root } = renderWithProviders(
+      <OnboardingStep {...defaultProps} />,
+    );
+
+    const scrollView = UNSAFE_root.findByProps({ enableOnAndroid: true });
+    expect(scrollView.props.extraScrollHeight).toBe(120);
+    expect(scrollView.props.enableAutomaticScroll).toBe(true);
+  });
+
+  it('uses smaller extra scroll height on iOS', () => {
+    Object.defineProperty(Platform, 'OS', { value: 'ios', writable: true });
+
+    const { UNSAFE_root } = renderWithProviders(
+      <OnboardingStep {...defaultProps} />,
+    );
+
+    const scrollView = UNSAFE_root.findByProps({ enableOnAndroid: true });
+    expect(scrollView.props.extraScrollHeight).toBe(20);
   });
 });
 

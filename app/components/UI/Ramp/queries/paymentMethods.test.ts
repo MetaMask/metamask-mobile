@@ -16,7 +16,6 @@ describe('rampsPaymentMethodsOptions', () => {
   it('builds query options with provider-scoped key and 5min staleTime', () => {
     const opts = rampsPaymentMethodsOptions({
       regionCode: 'us',
-      fiat: 'usd',
       assetId: 'eip155:1/slip44:60',
       providerId: '/providers/transak',
     });

@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import TopTraderCard from './TopTraderCard';
@@ -9,10 +10,11 @@ const baseTrader: TopTrader = {
   address: '0x0000000000000000000000000000000000000001',
   rank: 1,
   overallRank: 1,
-  username: 'sniperliquid',
+  username: 'alpha.eth',
   avatarUri: 'https://example.com/avatar.png',
   percentageChange: 43,
   pnlValue: 963146.8,
+  winRatePercent: 92,
   pnlPerChain: { base: 963146.8 },
   isFollowing: false,
 };
@@ -25,13 +27,12 @@ describe('TopTraderCard', () => {
     jest.clearAllMocks();
   });
 
-  it('renders username and 30D PnL', () => {
+  it('renders username and PnL', () => {
     renderWithProvider(
       <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
-    expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
-    expect(screen.getByText('+$963K')).toBeOnTheScreen();
-    expect(screen.getByText(/30D/)).toBeOnTheScreen();
+    expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
+    expect(screen.getByText('+$963.1K')).toBeOnTheScreen();
   });
 
   it('does not display ROI percentage on the card', () => {
@@ -66,7 +67,7 @@ describe('TopTraderCard', () => {
     expect(screen.getByTestId('top-trader-avatar-trader-1')).toBeOnTheScreen();
   });
 
-  it('renders fallback AvatarBase when avatarUri is absent', () => {
+  it('renders Maskicon fallback when avatarUri is absent', () => {
     const traderNoAvatar = { ...baseTrader, avatarUri: undefined };
     renderWithProvider(
       <TopTraderCard
@@ -74,7 +75,10 @@ describe('TopTraderCard', () => {
         onFollowPress={mockOnFollowPress}
       />,
     );
-    expect(screen.getByText('S')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`top-trader-card-${traderNoAvatar.id}`),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('S')).toBeNull();
   });
 
   it('shows Follow when not following', () => {
@@ -114,13 +118,23 @@ describe('TopTraderCard', () => {
       />,
     );
 
-    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+    fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
 
-    expect(mockOnTraderPress).toHaveBeenCalledWith(
-      'trader-1',
-      'sniperliquid',
-      1,
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 1);
+  });
+
+  it('calls onTraderPress when the card pressable area is tapped', () => {
+    renderWithProvider(
+      <TopTraderCard
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+        onTraderPress={mockOnTraderPress}
+      />,
     );
+
+    fireEvent.press(screen.getByText('+$963.1K'));
+
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 1);
   });
 
   it('forwards trader.overallRank (not the filtered rank) to onTraderPress so the profile podium gates on true top-3 traders', () => {
@@ -137,13 +151,9 @@ describe('TopTraderCard', () => {
       />,
     );
 
-    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+    fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
 
-    expect(mockOnTraderPress).toHaveBeenCalledWith(
-      'trader-1',
-      'sniperliquid',
-      50,
-    );
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 50);
   });
 
   it('does not call onTraderPress when the prop is not provided', () => {
@@ -151,7 +161,7 @@ describe('TopTraderCard', () => {
       <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
 
-    fireEvent.press(screen.getByTestId('top-trader-card-pressable-trader-1'));
+    fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
 
     expect(mockOnTraderPress).not.toHaveBeenCalled();
   });
@@ -171,6 +181,44 @@ describe('TopTraderCard', () => {
     expect(mockOnTraderPress).not.toHaveBeenCalled();
   });
 
+  // The whole card is a single Pressable whose `style` render-prop swaps the
+  // background between pressed / not-pressed. getByTestId returns the resolved
+  // host View, so climb to the Pressable that owns the style *function* and
+  // invoke it for each state to compare the resolved backgroundColor.
+  const cardBackgroundColor = (pressed: boolean) => {
+    let node = screen.getByTestId('top-trader-card-trader-1') as {
+      props: { style?: unknown };
+      parent: unknown;
+    } | null;
+    while (node && typeof node.props?.style !== 'function') {
+      node = node.parent as typeof node;
+    }
+    const styleFn = node?.props.style as (state: {
+      pressed: boolean;
+    }) => StyleProp<ViewStyle>;
+    return StyleSheet.flatten(styleFn({ pressed })).backgroundColor;
+  };
+
+  it('applies a pressed background to the whole card when pressed', () => {
+    renderWithProvider(
+      <TopTraderCard
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+        onTraderPress={mockOnTraderPress}
+      />,
+    );
+
+    expect(cardBackgroundColor(true)).not.toBe(cardBackgroundColor(false));
+  });
+
+  it('does not apply the pressed background when the card is not interactive', () => {
+    renderWithProvider(
+      <TopTraderCard trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+    );
+
+    expect(cardBackgroundColor(true)).toBe(cardBackgroundColor(false));
+  });
+
   it('displays negative PnL values with correct sign', () => {
     const negativeTrader: TopTrader = {
       ...baseTrader,
@@ -183,6 +231,6 @@ describe('TopTraderCard', () => {
         onFollowPress={mockOnFollowPress}
       />,
     );
-    expect(screen.getByText('-$500')).toBeOnTheScreen();
+    expect(screen.getByText('-$500.00')).toBeOnTheScreen();
   });
 });

@@ -7,6 +7,8 @@ export const PREDICT_BALANCE_CHAIN_ID = '0x89' as Hex;
 
 export const MINIMUM_BET = 1; // $1 minimum bet
 
+export const PREDICT_ACTIVITY_PAGE_SIZE = 20;
+
 // Keeps the CTA locked long enough for the payment selector to close and the
 // new quote-loading state to arrive, while avoiding a laggy return to the buy
 // sheet after normal blur/focus navigation.

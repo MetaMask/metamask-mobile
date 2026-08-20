@@ -7,10 +7,9 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  FontWeight,
-  Icon,
-  IconName,
-  IconSize,
+  SectionHeader,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -18,11 +17,12 @@ import {
 import type { Article, MarketInsightsSource } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
 import type { WhatsHappeningSourceValue } from '../../../UI/WhatsHappening/constants';
+import { useTradablePerpsMarketSymbols } from '../../../UI/WhatsHappening/hooks';
+import { isRelatedAssetTradable } from '../../../UI/WhatsHappening/util/tradableAssets';
 import { strings } from '../../../../../locales/i18n';
 import {
   getImpactLabel,
-  getImpactBackgroundClass,
-  getImpactTextColor,
+  getImpactTagSeverity,
 } from '../../../UI/WhatsHappening/util/impact';
 import {
   formatRelativeTime,
@@ -31,8 +31,7 @@ import {
 import SourceLogoGroup from '../../../UI/MarketInsights/components/SourceLogoGroup';
 import PerpsRow from './PerpsRow';
 import { useWhatsHappeningAssetPrices } from '../hooks/useWhatsHappeningAssetPrices';
-import { useTheme } from '../../../../util/theme';
-import { AppThemeKey } from '../../../../util/theme/models';
+import { colorWithOpacity } from '../../../../util/colors';
 
 interface WhatsHappeningExpandedCardProps {
   item: WhatsHappeningItem;
@@ -47,7 +46,6 @@ interface WhatsHappeningExpandedCardProps {
    * than the card's positioning context.
    */
   onSourcesPress?: (articles: Article[]) => void;
-  onAIDisclaimerPress?: () => void;
 }
 
 const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
@@ -57,15 +55,11 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   cardHeight,
   source,
   onSourcesPress,
-  onAIDisclaimerPress,
 }) => {
   const tw = useTailwind();
-  const { themeAppearance, colors } = useTheme();
-  const isDarkMode = themeAppearance === AppThemeKey.dark;
 
   const impactLabel = getImpactLabel(item.impact);
-  const impactBgClass = getImpactBackgroundClass(item.impact);
-  const impactTextColor = getImpactTextColor(item.impact);
+  const impactSeverity = getImpactTagSeverity(item.impact);
 
   const uniqueSources = useMemo(() => {
     const sources: MarketInsightsSource[] = item.articles.map((article) => ({
@@ -88,183 +82,89 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
     [item.date],
   );
 
+  const { tradableSymbols } = useTradablePerpsMarketSymbols();
+
+  const tradableRelatedAssets = useMemo(
+    () =>
+      item.relatedAssets.filter((a) =>
+        isRelatedAssetTradable(a, tradableSymbols),
+      ),
+    [item.relatedAssets, tradableSymbols],
+  );
+
   const { perpsPriceBySymbol } = useWhatsHappeningAssetPrices(
-    item.relatedAssets,
+    tradableRelatedAssets,
   );
 
   const scrollBottomFadeColors = useMemo((): string[] => {
-    if (isDarkMode) {
-      return ['transparent', 'rgba(0,0,0,0.25)'];
-    }
-    const endColor =
-      tw.color('bg-background-muted') ??
-      tw.color('bg-default') ??
-      colors.background.muted;
-    return ['transparent', endColor];
-  }, [tw, isDarkMode, colors.background.muted]);
-
-  const aiPillContainerClass = isDarkMode
-    ? 'bg-icon-default rounded px-1.5 py-1 self-start border border-transparent'
-    : 'bg-default rounded px-1.5 py-1 self-start border border-text-default';
-  const aiPillForegroundClass = isDarkMode
-    ? 'text-icon-inverse'
-    : 'text-icon-default';
+    const sectionColor =
+      tw.color('bg-section') ?? tw.color('bg-default') ?? 'transparent';
+    return [colorWithOpacity(sectionColor, 0), sectionColor];
+  }, [tw]);
 
   return (
     <Box style={{ width: cardWidth, height: cardHeight }}>
       {/* Card surface */}
       <Box
         flexDirection={BoxFlexDirection.Column}
-        twClassName="rounded-2xl bg-background-muted overflow-hidden flex-1 mt-4"
+        twClassName="rounded-2xl bg-section overflow-hidden flex-1 mt-4"
       >
         {/* Scroll region with a persistent bottom fade hinting at more content */}
         <Box
           flexDirection={BoxFlexDirection.Column}
-          twClassName="relative flex-1 min-h-0"
+          twClassName="relative flex-1 min-h-0 bg-section"
         >
           <ScrollView
             showsVerticalScrollIndicator={false}
-            style={tw.style('flex-1')}
-            contentContainerStyle={tw.style('pt-7 px-5 pb-5 gap-4')}
+            style={tw.style('flex-1 bg-section')}
+            contentContainerStyle={tw.style('pt-6 pb-5')}
           >
-            {/* Tag row: AI pill + impact badge */}
-            {item.impact && (
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                gap={2}
-                twClassName="flex-wrap"
-              >
-                <Pressable
-                  onPress={onAIDisclaimerPress}
-                  disabled={!onAIDisclaimerPress}
-                  accessibilityRole="button"
-                  accessibilityLabel={strings(
-                    'market_insights.disclaimer_modal.title',
-                  )}
-                  hitSlop={8}
-                  testID="whats-happening-ai-disclaimer-button"
-                >
-                  {({ pressed }) => (
-                    <Box
-                      flexDirection={BoxFlexDirection.Row}
-                      alignItems={BoxAlignItems.Center}
-                      gap={1}
-                      twClassName={`${aiPillContainerClass}${
-                        pressed ? ' opacity-60' : ''
-                      }`}
-                    >
-                      <Icon
-                        name={IconName.Sparkle}
-                        size={IconSize.Md}
-                        twClassName={aiPillForegroundClass}
-                      />
-                      <Text
-                        variant={TextVariant.BodySm}
-                        fontWeight={FontWeight.Medium}
-                        twClassName={aiPillForegroundClass}
-                      >
-                        {strings('whats_happening.ai')}
-                      </Text>
-                    </Box>
-                  )}
-                </Pressable>
-
+            <Box gap={3} twClassName="px-4">
+              {(item.impact || item.isOutdated) && (
                 <Box
-                  twClassName={`${impactBgClass} rounded px-2 py-1 self-start border border-transparent`}
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={2}
+                  twClassName="flex-wrap"
                 >
-                  <Text variant={TextVariant.BodySm} color={impactTextColor}>
-                    {impactLabel}
-                  </Text>
+                  {item.impact ? (
+                    <Tag severity={impactSeverity}>{impactLabel}</Tag>
+                  ) : null}
+
+                  {item.isOutdated ? (
+                    <Tag severity={TagSeverity.Warning}>
+                      {strings('whats_happening.outdated')}
+                    </Tag>
+                  ) : null}
                 </Box>
-              </Box>
-            )}
+              )}
 
-            {/* Title */}
-            <Text
-              variant={TextVariant.HeadingMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-            >
-              {item.title}
-            </Text>
+              <Text
+                variant={TextVariant.HeadingLg}
+                color={TextColor.TextDefault}
+              >
+                {item.title}
+              </Text>
 
-            {/* Description + sources */}
-            {(item.description || uniqueSources.length > 0) && (
-              <Box>
-                {item.description && (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                  >
-                    {item.description}
-                  </Text>
-                )}
-
-                {uniqueSources.length > 0 && (
-                  <Pressable
-                    onPress={() => onSourcesPress?.(item.articles)}
-                    accessibilityRole="button"
-                  >
-                    {({ pressed }) => (
-                      <Box
-                        flexDirection={BoxFlexDirection.Row}
-                        alignItems={BoxAlignItems.Center}
-                        justifyContent={BoxJustifyContent.Between}
-                        gap={2}
-                        twClassName={
-                          pressed ? 'pt-2 pb-4 opacity-60' : 'pt-2 pb-4'
-                        }
-                      >
-                        <Box
-                          flexDirection={BoxFlexDirection.Row}
-                          alignItems={BoxAlignItems.Center}
-                          gap={2}
-                          twClassName="flex-shrink"
-                        >
-                          <SourceLogoGroup sources={uniqueSources} />
-                          {sourceLabel ? (
-                            <Text
-                              variant={TextVariant.BodySm}
-                              color={TextColor.TextAlternative}
-                              numberOfLines={1}
-                            >
-                              {sourceLabel}
-                            </Text>
-                          ) : null}
-                        </Box>
-
-                        {formattedDate ? (
-                          <Text
-                            variant={TextVariant.BodySm}
-                            color={TextColor.TextAlternative}
-                            numberOfLines={1}
-                            twClassName="shrink-0"
-                          >
-                            {formattedDate}
-                          </Text>
-                        ) : null}
-                      </Box>
-                    )}
-                  </Pressable>
-                )}
-              </Box>
-            )}
-
-            {/* Related assets section */}
-            {item.relatedAssets.length > 0 && (
-              <Box gap={1}>
+              {item.description ? (
                 <Text
-                  variant={TextVariant.HeadingSm}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
                 >
-                  {strings('homepage.sections.related_assets')}
+                  {item.description}
                 </Text>
+              ) : null}
+            </Box>
 
-                {item.relatedAssets.map((asset) => (
+            {tradableRelatedAssets.length > 0 && (
+              <Box twClassName="mt-4">
+                <SectionHeader
+                  title={strings('homepage.sections.related_assets')}
+                />
+
+                {tradableRelatedAssets.map((asset, index) => (
                   <PerpsRow
-                    key={asset.sourceAssetId}
+                    key={`${asset.symbol}-${index}`}
                     asset={asset}
                     item={item}
                     cardIndex={cardIndex}
@@ -282,6 +182,55 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
             style={tw.style('absolute left-0 right-0 bottom-0 h-10')}
           />
         </Box>
+
+        {/* Sticky source / timestamp footer */}
+        {uniqueSources.length > 0 && (
+          <Pressable
+            onPress={() => onSourcesPress?.(item.articles)}
+            accessibilityRole="button"
+          >
+            {({ pressed }) => (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                gap={2}
+                twClassName={`px-4 py-3 bg-section border-t border-muted${
+                  pressed ? ' opacity-60' : ''
+                }`}
+              >
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  gap={2}
+                  twClassName="flex-shrink"
+                >
+                  <SourceLogoGroup sources={uniqueSources} />
+                  {sourceLabel ? (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                      numberOfLines={1}
+                    >
+                      {sourceLabel}
+                    </Text>
+                  ) : null}
+                </Box>
+
+                {formattedDate ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    numberOfLines={1}
+                    twClassName="shrink-0"
+                  >
+                    {formattedDate}
+                  </Text>
+                ) : null}
+              </Box>
+            )}
+          </Pressable>
+        )}
       </Box>
     </Box>
   );

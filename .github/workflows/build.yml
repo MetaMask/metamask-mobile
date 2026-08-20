@@ -13,12 +13,18 @@ on:
         description: 'Branch, tag, or SHA to build'
         required: true
         type: string
+      version:
+        description: >-
+          Optional semver (e.g. 7.43.0) to apply inline on each runner via set-semvar-version.sh
+          without committing or pushing. Used by post-release-cut-testflight to stamp an x+2
+          version onto a main checkout without creating an ephemeral branch.
+        required: false
+        type: string
+        default: ''
       build_number:
         description: >-
           Optional (workflow_call only). From generate-build-version.yml. When non-empty, each matrix
-          build runner applies scripts/set-build-version.sh locally before building. Omit when
-          source_branch already contains the desired build number (e.g. commit-hash from
-          commit-build-version.yml).
+          build runner applies scripts/set-build-version.sh locally before building.
         required: false
         type: string
         default: ''
@@ -28,10 +34,12 @@ on:
         type: boolean
         default: false
       runner_provider:
-        description: Runner provider forwarded from the caller
+        description: >-
+          Runner provider forwarded from the caller. Leave empty to defer to the repo
+          NAMESPACE_RUNNER_* Actions variables (see .github/CONTRIBUTING.md).
         required: false
         type: string
-        default: current
+        default: ''
     outputs:
       build_name:
         description: 'build_name input passed to this workflow'
@@ -75,6 +83,7 @@ on:
           - main-e2e
           - main-exp
           - main-dev
+          - main-dev-testflight
           - main-dev-expo
           - flask-prod
           - flask-test
@@ -90,13 +99,14 @@ on:
         type: boolean
         default: false
       runner_provider:
-        description: Runner provider for this manual trial run
-        required: true
+        description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
+        required: false
         type: choice
         options:
-          - current
+          - inherit
           - namespace
-        default: current
+          - current
+        default: inherit
 
 permissions:
   contents: read
@@ -106,7 +116,20 @@ jobs:
   # Load config
   prepare:
     if: ${{ always() && !failure() && !cancelled() }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
       secrets_json: ${{ steps.config.outputs.secrets_json }}
@@ -116,23 +139,42 @@ jobs:
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
       script_name: ${{ steps.config.outputs.script_name }}
       checkout_ref_for_setup: ${{ inputs.source_branch }}
+      should_cache: ${{ startsWith(github.ref_name, 'release/') || github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         with:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
       - uses: actions/checkout@v4
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 1
           ref: ${{ inputs.source_branch }}
+      - name: Configure Namespace cache
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
-          cache: 'yarn'
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - run: yarn install --immutable
+
+      - name: Apply version override locally
+        if: ${{ inputs.version != '' }}
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          bash scripts/set-semvar-version.sh "$VERSION"
+          echo "Version bumped locally to $VERSION (no commit)"
+
       - run: node scripts/validate-build-config.js
 
       - name: Load config
@@ -169,8 +211,9 @@ jobs:
       checkout-submodules: true
       platform: ${{ matrix.platform }}
       build_name: ${{ inputs.build_name }}
-      use-tarball: true
-      upload-artifact: true
+      use-cache: ${{ needs.prepare.outputs.should_cache == 'true' }}
+      use-tarball: ${{ needs.prepare.outputs.should_cache != 'true' }}
+      upload-artifact: ${{ needs.prepare.outputs.should_cache != 'true' }}
       artifact-name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
       artifact-retention-days: 1
       runner_provider: ${{ inputs.runner_provider }}
@@ -183,23 +226,57 @@ jobs:
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
-    # Android: Cirrus lg (large) runner for 8GB Gradle heap; iOS: Cirrus macOS Tahoe (has Xcode 26.x)
-    runs-on: ${{ inputs.runner_provider == 'namespace' && (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build' || 'namespace-profile-metamask-android-build') || (matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg') }}
+    # Namespace: per-platform build profiles. Cirrus fallback: lg (large) runner for the
+    # 8GB Gradle heap on Android, macOS Tahoe for iOS (has Xcode 26.x).
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
+         vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build' || 'namespace-profile-metamask-android-build') ||
+        (matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg')
+      }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     env:
-      GRADLE_USER_HOME: /home/admin/_work/.gradle
-      CACHE_GENERATION: v1
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
+          vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
+      # Namespace runners use the standard runner home; Cirrus images run as `admin`.
+      # Cannot reference RESOLVED_RUNNER_PROVIDER: env entries in the same block are
+      # not visible to each other.
+      GRADLE_USER_HOME: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+           (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
+           vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+          '/home/runner/_work/.gradle' || '/home/admin/_work/.gradle'
+        }}
+      # Must match setup-node-modules.yml's CACHE_GENERATION; the two compose the same cache key.
+      CACHE_GENERATION: v2
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         with:
           ref: ${{ inputs.source_branch }}
           submodules: recursive
       - uses: actions/checkout@v4
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           ref: ${{ inputs.source_branch }}
           submodules: recursive
+
+      - name: Apply version override locally
+        if: ${{ inputs.version != '' }}
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          bash scripts/set-semvar-version.sh "$VERSION"
+          echo "Version bumped locally to $VERSION (no commit)"
 
       - name: Apply build number locally
         if: ${{ inputs.build_number != '' }}
@@ -213,22 +290,61 @@ jobs:
           ./scripts/set-build-version.sh "$BUILD_NUMBER"
           echo "Bump applied locally (no commit). Build number: $BUILD_NUMBER"
 
-      # Node first so we can download/extract/verify; no yarn install here (we use the tarball to avoid running install in this job).
+      # Node first so we can download/extract/verify; no yarn install here.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
 
+      # release/* branches and manual workflow_dispatch: restore node_modules from GitHub Actions cache (fast, no artifact download).
+      - name: Compute node_modules cache key
+        id: cache-key
+        if: ${{ needs.prepare.outputs.should_cache == 'true' }}
+        run: |
+          NODE_VERSION=$(node --version | sed 's/v//')
+          KEY="node-modules-${{ env.CACHE_GENERATION }}-${{ inputs.build_name }}-${{ matrix.platform }}-${RUNNER_OS}-${NODE_VERSION}-${{ hashFiles('yarn.lock', 'patches/**', 'scripts/inpage-bridge/**', 'scripts/build-inpage-bridge.sh') }}"
+          echo "key=${KEY}" >> "$GITHUB_OUTPUT"
+          echo "Cache key: ${KEY}"
+
+      - name: Restore node_modules cache
+        if: ${{ needs.prepare.outputs.should_cache == 'true' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            app/util/termsOfUse/termsOfUseContent.ts
+            app/core/InpageBridgeWeb3.js
+            scripts/inpage-bridge/dist
+          key: ${{ steps.cache-key.outputs.key }}
+          fail-on-cache-miss: true
+
+      # All other branches: download tarball artifact from setup-dependencies job.
       - name: Download node_modules tarball
+        if: ${{ needs.prepare.outputs.should_cache != 'true' }}
         uses: actions/download-artifact@v4
         with:
           name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
 
+      - name: Ensure zstd is available
+        if: ${{ needs.prepare.outputs.should_cache != 'true' }}
+        shell: bash
+        run: |
+          if command -v zstd >/dev/null 2>&1; then
+            echo "✅ zstd present: $(zstd --version)"
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            echo "Installing zstd via Homebrew..."
+            brew install zstd
+          else
+            echo "Installing zstd via apt..."
+            sudo apt-get update -qq && sudo apt-get install -y -qq zstd
+          fi
+
       - name: Extract tarball (preserves symlinks)
+        if: ${{ needs.prepare.outputs.should_cache != 'true' }}
         run: |
           echo "📦 Extracting tarball..."
-          tar -xzf node-modules-${{ matrix.platform }}.tar.gz
-          rm node-modules-${{ matrix.platform }}.tar.gz
+          tar --use-compress-program 'zstd -d' -xf node-modules-${{ matrix.platform }}.tar.zst
+          rm node-modules-${{ matrix.platform }}.tar.zst
           echo "✅ Tarball extracted"
 
       - name: Verify artifacts and symlinks
@@ -236,6 +352,12 @@ jobs:
           echo "✅ Verifying artifacts..."
           if [ ! -d "node_modules" ]; then
             echo "❌ node_modules not found"
+            exit 1
+          fi
+          # A symlink here means the cache/tarball stored a stub instead of the real tree,
+          # which breaks Xcode subprojects that resolve paths relative to $(SRCROOT).
+          if [ -L "node_modules" ]; then
+            echo "❌ node_modules is a symlink to $(readlink node_modules), not a real directory"
             exit 1
           fi
           if [ ! -f "app/core/InpageBridgeWeb3.js" ]; then
@@ -265,7 +387,7 @@ jobs:
 
           echo "✅ All artifacts verified with working symlinks!"
 
-      # iOS only: Ruby + CocoaPods + Xcode (no yarn install; node_modules from tarball). Signing is in Configure signing certificates below.
+      # iOS only: Ruby + CocoaPods + Xcode (no yarn install; node_modules from cache). Signing is in Configure signing certificates below.
       - name: Setup Ruby (iOS)
         if: matrix.platform == 'ios'
         uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
@@ -449,14 +571,37 @@ jobs:
           max_attempts: 2
           retry_wait_seconds: 60
           command: |
+            # AGP can leave a partial ndk/<version> directory after a failed
+            # download (corrupt zip → "Error on ZipFile unknown archive"). The
+            # next attempt then fails immediately with CXX1101 (missing
+            # source.properties) instead of re-downloading. Clear incomplete
+            # installs and SDK temp zips before each attempt — same pattern as
+            # .github/actions/setup-e2e-env for system images.
+            if [ "${{ matrix.platform }}" = "android" ]; then
+              SDK_ROOT="${ANDROID_SDK_ROOT:-/opt/android-sdk}"
+              NDK_ROOT="$SDK_ROOT/ndk"
+              if [ -d "$NDK_ROOT" ]; then
+                for ndk_dir in "$NDK_ROOT"/*; do
+                  if [ -d "$ndk_dir" ] && [ ! -f "$ndk_dir/source.properties" ]; then
+                    echo "Removing incomplete NDK install: $ndk_dir"
+                    rm -rf "$ndk_dir"
+                  fi
+                done
+              fi
+              if [ -d "$SDK_ROOT/.temp" ]; then
+                echo "Clearing Android SDK temp downloads under $SDK_ROOT/.temp"
+                find "$SDK_ROOT/.temp" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + || true
+              fi
+            fi
             export NODE_OPTIONS='--max-old-space-size=4096'
             export METRO_MAX_WORKERS='4'
             SCRIPT_BASE="${{ needs.prepare.outputs.script_name }}"
             SCRIPT_NAME="build:${{ matrix.platform }}:${SCRIPT_BASE//-/:}"
             yarn "$SCRIPT_NAME"
 
-      # Prod Play–shaped Android: lint merged prodRelease manifest, then validate the AAB produced above (bundletool).
-      # Skips e2e (no AAB) and Debug dev builds. Mirrors former ci.yml android-play-store-manifest-check without a second bundle.
+      # Android Play Store checks: Gradle lint (all main release builds) + bundletool AAB validation (production only).
+      # The lint + Slack report run for every main release build so RC gets Slack feedback.
+      # bundletool cache is gated on production because non-prod builds don't produce an AAB.
       - name: Cache bundletool (Android Play bundle validation)
         id: bundletool-cache-play-check
         if: >-
@@ -464,7 +609,7 @@ jobs:
           matrix.platform == 'android' &&
           env.CONFIGURATION != 'Debug' &&
           env.METAMASK_BUILD_TYPE == 'main' &&
-          env.METAMASK_ENVIRONMENT != 'e2e'
+          env.METAMASK_ENVIRONMENT == 'production'
         uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/bundletool-all.jar
@@ -475,8 +620,7 @@ jobs:
           success() &&
           matrix.platform == 'android' &&
           env.CONFIGURATION != 'Debug' &&
-          env.METAMASK_BUILD_TYPE == 'main' &&
-          env.METAMASK_ENVIRONMENT != 'e2e'
+          env.METAMASK_BUILD_TYPE == 'main'
         env:
           SENTRY_DISABLE_AUTO_UPLOAD: true
         run: node scripts/android-play-store-check-slack.mjs
@@ -487,8 +631,7 @@ jobs:
           matrix.platform == 'android' &&
           inputs.build_name == 'main-rc' &&
           env.CONFIGURATION != 'Debug' &&
-          env.METAMASK_BUILD_TYPE == 'main' &&
-          env.METAMASK_ENVIRONMENT != 'e2e'
+          env.METAMASK_BUILD_TYPE == 'main'
         uses: actions/upload-artifact@v4
         with:
           name: android-play-store-check-slack
@@ -562,7 +705,11 @@ jobs:
           if-no-files-found: error
 
       - name: Upload Android AAB
-        if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug' && steps.rename.outputs.android_aab_path != ''
+        if: >-
+          matrix.platform == 'android' &&
+          env.CONFIGURATION != 'Debug' &&
+          env.METAMASK_ENVIRONMENT == 'production' &&
+          steps.rename.outputs.android_aab_path != ''
         uses: actions/upload-artifact@v4
         with:
           name: android-aab-${{ inputs.build_name }}
@@ -590,7 +737,20 @@ jobs:
     name: Emit build metadata
     needs: [prepare, build]
     if: ${{ !failure() && !cancelled() && needs.prepare.result == 'success' && needs.build.result == 'success' }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux' || 'ubuntu-latest' }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
     outputs:
       checkout_ref: ${{ steps.meta.outputs.checkout_ref }}
       built_commit_sha: ${{ steps.meta.outputs.built_commit_sha }}
@@ -599,15 +759,23 @@ jobs:
       ios_version_code: ${{ steps.meta.outputs.ios_version_code }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         with:
           fetch-depth: 1
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
       - uses: actions/checkout@v4
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         with:
           fetch-depth: 1
           ref: ${{ needs.prepare.outputs.checkout_ref_for_setup }}
+
+      - name: Apply version override locally
+        if: ${{ inputs.version != '' }}
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          bash scripts/set-semvar-version.sh "$VERSION"
+          echo "Version bumped locally to $VERSION (no commit)"
 
       - name: Apply build number locally
         if: ${{ inputs.build_number != '' }}

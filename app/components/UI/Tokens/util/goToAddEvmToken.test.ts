@@ -1,8 +1,7 @@
 import { goToAddEvmToken } from './goToAddEvmToken';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../../../../core/NavigationService/types';
+import { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 jest.mock('../../../../core/Analytics', () => ({
   MetaMetricsEvents: {
@@ -27,8 +26,7 @@ describe('goToAddEvmToken', () => {
   );
 
   const mockProps = {
-    navigation:
-      mockNavigation as unknown as StackNavigationProp<RootStackParamList>,
+    navigation: mockNavigation as unknown as AppNavigationProp,
     trackEvent: mockTrackEvent,
     createEventBuilder:
       mockCreateEventBuilder as unknown as typeof AnalyticsEventBuilder.createEventBuilder,

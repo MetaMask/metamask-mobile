@@ -20,10 +20,16 @@ export interface TopTrader {
   username: string;
   /** Profile avatar URL. */
   avatarUri?: string;
-  /** ROI percentage over 30 days (e.g. 96.2 for +96.2%). */
+  /** ROI percentage over the requested window (e.g. 96.2 for +96.2%). */
   percentageChange: number;
-  /** Absolute PnL over 30 days in USD (raw number, formatted by the UI). */
+  /** Absolute PnL over the requested window in USD (formatted by the UI). */
   pnlValue: number;
+  /**
+   * Share of winning trades over the requested window, as a whole percent
+   * (e.g. 92 for 92%) to match `percentageChange`. The API reports it as a
+   * 0–1 fraction. `null` when the window has no win-rate data.
+   */
+  winRatePercent: number | null;
   /** PnL broken down by chain. Used for client-side chain filtering. */
   pnlPerChain: Record<string, number>;
   /** Whether the current user is following this trader. */

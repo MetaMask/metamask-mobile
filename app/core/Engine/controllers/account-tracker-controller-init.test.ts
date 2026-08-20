@@ -9,12 +9,11 @@ import {
   AccountTrackerControllerMessenger,
 } from '@metamask/assets-controllers';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
+import { selectAssetsAccountApiBalancesEnabled } from '../../../selectors/featureFlagController/assetsAccountApiBalances';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectIsControllerDeprecated } from '../../../selectors/featureFlagController/assetsUnifyState';
 
 jest.mock('@metamask/assets-controllers');
-
-jest.mock('../../../selectors/featureFlagController/homepage', () => ({
-  selectHomepageSectionsV1Enabled: jest.fn().mockReturnValue(false),
-}));
 
 jest.mock(
   '../../../selectors/featureFlagController/assetsAccountApiBalances',
@@ -25,6 +24,16 @@ jest.mock(
 
 jest.mock('../../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../../selectors/featureFlagController/assetsUnifyState', () => ({
+  selectIsControllerDeprecated: jest
+    .fn()
+    .mockReturnValue(jest.fn().mockReturnValue(false)),
+}));
+
+jest.mock('../../../store', () => ({
+  store: { getState: jest.fn().mockReturnValue({}) },
 }));
 
 function getInitRequestMock(): jest.Mocked<
@@ -48,61 +57,39 @@ function getInitRequestMock(): jest.Mocked<
       };
     }
 
-    throw new Error(`Controller "${name}" not found.`);
+    throw new Error(`Unexpected messenger client: ${name}`);
   });
 
   return requestMock;
 }
 
-describe('AccountTrackerControllerInit', () => {
-  it('initializes the controller', () => {
-    const { controller } = accountTrackerControllerInit(getInitRequestMock());
-    expect(controller).toBeInstanceOf(AccountTrackerController);
+describe('accountTrackerControllerInit', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
   it('passes the proper arguments to the controller including isHomepageSectionsV1Enabled', () => {
     accountTrackerControllerInit(getInitRequestMock());
 
     const controllerMock = jest.mocked(AccountTrackerController);
-    expect(controllerMock).toHaveBeenCalledWith({
-      messenger: expect.any(Object),
-      state: { accountsByChainId: {} },
-      includeStakedAssets: true,
-      getStakedBalanceForChain: expect.any(Function),
-      accountsApiChainIds: expect.any(Function),
-      allowExternalServices: expect.any(Function),
-      isHomepageSectionsV1Enabled: expect.any(Function),
-    });
+    expect(controllerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        includeStakedAssets: true,
+        getStakedBalanceForChain: expect.any(Function),
+        accountsApiChainIds: expect.any(Function),
+        allowExternalServices: expect.any(Function),
+        isHomepageSectionsV1Enabled: expect.any(Function),
+        isDeprecated: expect.any(Function),
+      }),
+    );
   });
 
   describe('isHomepageSectionsV1Enabled', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('returns false when feature flag is off', () => {
-      const { selectHomepageSectionsV1Enabled } = jest.requireMock(
-        '../../../selectors/featureFlagController/homepage',
-      );
-      selectHomepageSectionsV1Enabled.mockReturnValue(false);
-
-      accountTrackerControllerInit(getInitRequestMock());
-
-      const controllerMock = jest.mocked(AccountTrackerController);
-      const { isHomepageSectionsV1Enabled } = controllerMock.mock
-        .calls[0][0] as {
-        isHomepageSectionsV1Enabled: () => boolean;
-      };
-
-      expect(isHomepageSectionsV1Enabled()).toBe(false);
-    });
-
-    it('returns true when feature flag is on', () => {
-      const { selectHomepageSectionsV1Enabled } = jest.requireMock(
-        '../../../selectors/featureFlagController/homepage',
-      );
-      selectHomepageSectionsV1Enabled.mockReturnValue(true);
-
+    it('always returns true now that homepage sections UI is permanent', () => {
       accountTrackerControllerInit(getInitRequestMock());
 
       const controllerMock = jest.mocked(AccountTrackerController);
@@ -112,6 +99,77 @@ describe('AccountTrackerControllerInit', () => {
       };
 
       expect(isHomepageSectionsV1Enabled()).toBe(true);
+    });
+  });
+
+  it('reads account-api chain IDs from state', () => {
+    accountTrackerControllerInit(getInitRequestMock());
+
+    const controllerMock = jest.mocked(AccountTrackerController);
+    const { accountsApiChainIds } = controllerMock.mock.calls[0][0] as {
+      accountsApiChainIds: () => `0x${string}`[];
+    };
+
+    jest.mocked(selectAssetsAccountApiBalancesEnabled).mockReturnValue(['0x1']);
+
+    expect(accountsApiChainIds()).toEqual(['0x1']);
+    expect(selectAssetsAccountApiBalancesEnabled).toHaveBeenCalled();
+  });
+
+  it('reads external services availability from settings state', () => {
+    accountTrackerControllerInit(getInitRequestMock());
+
+    const controllerMock = jest.mocked(AccountTrackerController);
+    const { allowExternalServices } = controllerMock.mock.calls[0][0] as {
+      allowExternalServices: () => boolean;
+    };
+
+    jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+
+    expect(allowExternalServices()).toBe(false);
+    expect(selectBasicFunctionalityEnabled).toHaveBeenCalled();
+  });
+
+  describe('isDeprecated', () => {
+    it('returns false when AccountTrackerController is not deprecated', () => {
+      jest
+        .mocked(selectIsControllerDeprecated)
+        .mockReturnValue(
+          jest.fn().mockReturnValue(false) as unknown as ReturnType<
+            typeof selectIsControllerDeprecated
+          >,
+        );
+
+      accountTrackerControllerInit(getInitRequestMock());
+
+      const controllerMock = jest.mocked(AccountTrackerController);
+      const { isDeprecated } = controllerMock.mock.calls[0][0] as {
+        isDeprecated: () => boolean;
+      };
+
+      expect(isDeprecated()).toBe(false);
+      expect(selectIsControllerDeprecated).toHaveBeenCalledWith(
+        'AccountTrackerController',
+      );
+    });
+
+    it('returns true when AccountTrackerController is deprecated', () => {
+      jest
+        .mocked(selectIsControllerDeprecated)
+        .mockReturnValue(
+          jest.fn().mockReturnValue(true) as unknown as ReturnType<
+            typeof selectIsControllerDeprecated
+          >,
+        );
+
+      accountTrackerControllerInit(getInitRequestMock());
+
+      const controllerMock = jest.mocked(AccountTrackerController);
+      const { isDeprecated } = controllerMock.mock.calls[0][0] as {
+        isDeprecated: () => boolean;
+      };
+
+      expect(isDeprecated()).toBe(true);
     });
   });
 });

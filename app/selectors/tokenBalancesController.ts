@@ -108,3 +108,26 @@ export const selectAddressHasTokenBalances = createDeepEqualSelector(
     return false;
   },
 );
+
+export const selectHasAnyNonZeroTokenBalance = createDeepEqualSelector(
+  [getTokenBalancesControllerTokenBalances, selectShowFiatInTestnets],
+  (tokenBalances, showFiatInTestNets): boolean => {
+    for (const addressChainTokens of Object.values(tokenBalances)) {
+      for (const [chainId, chainToken] of Object.entries(addressChainTokens)) {
+        if (isTestNet(chainId) && !showFiatInTestNets) {
+          continue;
+        }
+
+        const hexBalances = Object.values(chainToken ?? {});
+        if (
+          hexBalances.some((hexBalance) => hexBalance && hexBalance !== '0x0')
+        ) {
+          return true;
+        }
+      }
+    }
+
+    // Exhausted all tokens across every account address
+    return false;
+  },
+);

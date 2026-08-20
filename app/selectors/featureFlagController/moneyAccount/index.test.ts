@@ -2,8 +2,23 @@ import {
   selectMoneyAccountDepositEnabledFlag,
   selectMoneyAccountWithdrawEnabledFlag,
   selectMoneyAccountVaultConfig,
+  selectMoneyAccountDepositQuotePipelineEnabled,
+  selectMoneyOnboardingStepperAnimationEnabled,
+  MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY,
+  MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY,
   DEV_VAULT_CONFIG,
 } from './index';
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('99.0.0'),
+}));
+
+jest.mock(
+  '../../../core/Engine/controllers/remote-feature-flag-controller',
+  () => ({
+    isRemoteFeatureFlagOverrideActivated: false,
+  }),
+);
 
 describe('Money Account feature flag selectors', () => {
   describe('selectMoneyAccountDepositEnabledFlag', () => {
@@ -75,6 +90,129 @@ describe('Money Account feature flag selectors', () => {
       const result = selectMoneyAccountWithdrawEnabledFlag.resultFunc({
         moneyAccount: {},
       });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectMoneyAccountDepositQuotePipelineEnabled', () => {
+    const originalLocalOverride =
+      process.env.MM_MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_ENABLED;
+
+    afterEach(() => {
+      if (originalLocalOverride === undefined) {
+        delete process.env.MM_MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_ENABLED;
+      } else {
+        process.env.MM_MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_ENABLED =
+          originalLocalOverride;
+      }
+    });
+
+    it('uses the dedicated remote flag key', () => {
+      expect(MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY).toBe(
+        'moneyAccountDepositQuotePipeline',
+      );
+    });
+
+    it('returns true when enabled and the minimum version passes', () => {
+      const result = selectMoneyAccountDepositQuotePipelineEnabled.resultFunc({
+        [MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '0.0.0',
+        },
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the flag is disabled', () => {
+      const result = selectMoneyAccountDepositQuotePipelineEnabled.resultFunc({
+        [MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY]: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the minimum version requirement fails', () => {
+      const result = selectMoneyAccountDepositQuotePipelineEnabled.resultFunc({
+        [MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '999.0.0',
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('uses the local environment override when enabled', () => {
+      process.env.MM_MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_ENABLED = 'true';
+
+      expect(selectMoneyAccountDepositQuotePipelineEnabled.resultFunc({})).toBe(
+        true,
+      );
+    });
+
+    it('defaults to false when the flag is absent or malformed', () => {
+      process.env.MM_MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_ENABLED = 'false';
+
+      expect(selectMoneyAccountDepositQuotePipelineEnabled.resultFunc({})).toBe(
+        false,
+      );
+      expect(
+        selectMoneyAccountDepositQuotePipelineEnabled.resultFunc({
+          [MONEY_ACCOUNT_DEPOSIT_QUOTE_PIPELINE_FLAG_KEY]: true,
+        }),
+      ).toBe(false);
+    });
+  });
+
+  describe('selectMoneyOnboardingStepperAnimationEnabled', () => {
+    it('exposes the client-config flag key for registry alignment', () => {
+      expect(MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY).toBe(
+        'moneyEnableOnboardingStepperAnimation',
+      );
+    });
+
+    it('returns true when enabled and the minimum version passes', () => {
+      const result = selectMoneyOnboardingStepperAnimationEnabled.resultFunc({
+        [MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '0.0.0',
+        },
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when enabled is false', () => {
+      const result = selectMoneyOnboardingStepperAnimationEnabled.resultFunc({
+        [MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY]: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the minimum version requirement fails', () => {
+      const result = selectMoneyOnboardingStepperAnimationEnabled.resultFunc({
+        [MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '999.0.0',
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the flag is absent (safe default)', () => {
+      const result = selectMoneyOnboardingStepperAnimationEnabled.resultFunc(
+        {},
+      );
 
       expect(result).toBe(false);
     });

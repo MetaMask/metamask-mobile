@@ -4,12 +4,14 @@ import { render } from '@testing-library/react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { ARBITRUM_USDC, PERPS_CURRENCY } from '../../../constants/perps';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import { useDefaultPaySelectedSection } from '../../../hooks/pay/useDefaultPaySelectedSection';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import useNavbar from '../../../hooks/ui/useNavbar';
 import { CustomAmountInfo } from '../custom-amount-info';
 import { PerpsWithdrawInfo } from './perps-withdraw-info';
 
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
+jest.mock('../../../hooks/pay/useDefaultPaySelectedSection');
 jest.mock('../../../hooks/ui/useNavbar');
 jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../custom-amount-info', () => ({
@@ -81,12 +83,9 @@ describe('PerpsWithdrawInfo', () => {
     );
   });
 
-  it('passes hasExtraBottomPadding=true to CustomAmountInfo to clear the Android gesture bar', () => {
+  it('calls useDefaultPaySelectedSection', () => {
     render(<PerpsWithdrawInfo />);
 
-    expect(mockCustomAmountInfo).toHaveBeenCalledWith(
-      expect.objectContaining({ hasExtraBottomPadding: true }),
-      undefined,
-    );
+    expect(useDefaultPaySelectedSection).toHaveBeenCalled();
   });
 });

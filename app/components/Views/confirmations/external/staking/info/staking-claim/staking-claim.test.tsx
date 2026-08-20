@@ -119,6 +119,9 @@ describe('StakingClaim', () => {
       onReject: mockOnReject,
       addBackButton: false,
       theme: expect.any(Object),
+      mmPayRequestInProgressNavHandler: expect.objectContaining({
+        current: false,
+      }),
     });
   });
 

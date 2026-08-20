@@ -81,7 +81,12 @@ export function CampaignLeaderboardEntryRow<
         alignItems={BoxAlignItems.Center}
         twClassName="gap-3"
       >
-        <Text variant={TextVariant.BodyMd} color={textColor} twClassName="w-8">
+        <Text
+          variant={TextVariant.BodyMd}
+          color={textColor}
+          twClassName="min-w-8 shrink-0"
+          numberOfLines={1}
+        >
           {String(entry.rank).padStart(2, '0')}
         </Text>
         <Box twClassName="flex-row items-center gap-1">

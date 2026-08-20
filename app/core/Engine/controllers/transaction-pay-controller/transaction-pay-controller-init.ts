@@ -5,8 +5,12 @@ import {
   TransactionPayControllerMessenger,
 } from '@metamask/transaction-pay-controller';
 import { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
+import { getAmountData } from './amount-data-callback';
 import { getDelegationTransaction } from '../../../../util/transactions/delegation';
+import { getPaymentOverrideData } from './paymentoverride-callback';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
+import { resolveSourceAmount } from './resolve-source-amount-callback';
+import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
 
 export const TransactionPayControllerInit: MessengerClientInitFunction<
   TransactionPayController,
@@ -17,10 +21,15 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
 
   try {
     const transactionPayController = new TransactionPayController({
-      getDelegationTransaction: ({ transaction }) =>
-        getDelegationTransaction(initMessenger, transaction),
+      getAmountData,
+      getDelegationTransaction: ({ transaction, isSubsidized }) =>
+        getDelegationTransaction(initMessenger, transaction, isSubsidized),
+      fiatOptions: getTransactionPayFiatTestOptions(),
+      getPaymentOverrideData: (paymentOverrideRequest) =>
+        getPaymentOverrideData(paymentOverrideRequest, initMessenger),
       messenger: controllerMessenger,
       polymarket: createPolymarketCallbacks(initMessenger),
+      resolveSourceAmount,
       state: persistedState.TransactionPayController,
     });
 

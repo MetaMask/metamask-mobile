@@ -7,6 +7,11 @@ import type { MultichainTransactionDisplayData } from '../../hooks/useMultichain
 import type { Transaction } from '@metamask/keyring-api';
 import Routes from '../../../constants/navigation/Routes';
 
+jest.mock('../../../util/analytics/externalLinkTracking', () => ({
+  ...jest.requireActual('../../../util/analytics/externalLinkTracking'),
+  trackBlockExplorerLinkClicked: jest.fn(),
+}));
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 const mockNavigate = jest.fn();
 const mockOnCloseBottomSheet = jest.fn();
 const mockUseRoute = jest.fn();
@@ -80,6 +85,7 @@ jest.mock('../../../util/date', () => ({
 const mockDisplayData: MultichainTransactionDisplayData = {
   title: 'Send ETH',
   isRedeposit: false,
+  isUnlimitedApproval: false,
   from: {
     address: '0xabc123def456abc123def456abc123def456abc1',
     amount: '0.5',
@@ -147,6 +153,28 @@ describe('MultichainTransactionDetailsSheet', () => {
     const { getByText } = renderSheet();
     expect(getByText('Amount')).toBeOnTheScreen();
     expect(getByText('0.5 ETH')).toBeOnTheScreen();
+  });
+
+  it('renders "Unlimited" in the amount row for unlimited token approvals', () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        displayData: {
+          ...mockDisplayData,
+          isUnlimitedApproval: true,
+          to: {
+            ...mockDisplayData.to,
+            amount: '115792089237316200000000000000000',
+            unit: 'USDT',
+          },
+        },
+        transaction: mockTransaction,
+      },
+    });
+
+    const { getByText, queryByText } = renderSheet();
+
+    expect(getByText('Unlimited USDT')).toBeOnTheScreen();
+    expect(queryByText('115792089237316200000000000000000 USDT')).toBeNull();
   });
 
   it('renders the network fee row', () => {
@@ -254,5 +282,13 @@ describe('MultichainTransactionDetailsSheet', () => {
         url: `https://explorer.example.com/tx/${mockTransaction.id}?chain=${mockTransaction.chain}`,
       },
     });
+    expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      expect.objectContaining({
+        location: 'transaction_details_modal',
+        text: 'View details',
+      }),
+    );
   });
 });

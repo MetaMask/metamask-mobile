@@ -6,7 +6,6 @@ import {
   MessengerClientName,
   MessengerClientInitRequest,
 } from '../types';
-import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import {
   CodefiTokenPricesServiceV2,
   TokenListService,
@@ -33,7 +32,6 @@ export function buildMessengerClientInitRequestMock(
     analyticsId: '59710bcf-06cc-4247-9386-12425e7fc905',
     getState: jest.fn(),
     initMessenger: jest.fn() as unknown as void,
-    qrKeyringScanner: jest.fn() as unknown as QrKeyringDeferredPromiseBridge,
     removeAccount: jest.fn(),
     persistedState: {},
   };

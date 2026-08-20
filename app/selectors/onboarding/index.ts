@@ -1,10 +1,6 @@
 import { RootState } from '../../reducers';
 import { createSelector } from 'reselect';
 import { WALLET_HOME_ONBOARDING_STEPS_INITIAL } from '../../constants/walletHomeOnboardingSteps';
-import {
-  selectHomepageSectionsV1Enabled,
-  selectWalletHomeOnboardingStepsEnabled,
-} from '../featureFlagController/homepage';
 
 const selectOnboarding = (state: RootState) => state.onboarding;
 
@@ -49,15 +45,14 @@ export const selectWalletHomeOnboardingSteps = createSelector(
     WALLET_HOME_ONBOARDING_STEPS_INITIAL,
 );
 
+export const selectPushNotificationOsPromptRequested = createSelector(
+  selectOnboarding,
+  (onboardingState) =>
+    onboardingState?.pushNotificationOsPromptRequested === true,
+);
+
 export const selectShouldShowWalletHomeOnboardingSteps = createSelector(
   selectWalletHomeOnboardingStepsEligible,
   selectWalletHomeOnboardingSteps,
   (eligible, steps) => eligible && steps?.suppressedReason === null,
 );
-
-export const selectWalletHomeOnboardingFlowVisible = (
-  state: RootState,
-): boolean =>
-  selectHomepageSectionsV1Enabled(state) &&
-  selectWalletHomeOnboardingStepsEnabled(state) &&
-  selectShouldShowWalletHomeOnboardingSteps(state);

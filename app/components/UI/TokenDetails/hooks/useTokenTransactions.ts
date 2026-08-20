@@ -9,7 +9,7 @@ import {
   TX_SUBMITTED,
   TX_UNAPPROVED,
 } from '../../../../constants/transaction';
-import FIRST_PARTY_CONTRACT_NAMES from '../../../../constants/first-party-contracts';
+import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../constants/bridge';
 import { selectTokens } from '../../../../selectors/tokensController';
 import { sortTransactions } from '../../../../util/activity';
 import {
@@ -18,10 +18,12 @@ import {
 } from '../../../../util/address';
 import { addAccountTimeFlagFilter } from '../../../../util/transactions';
 import { store } from '../../../../store';
-import {
-  selectSwapsTransactions,
-  selectTransactions,
-} from '../../../../selectors/transactionController';
+import { selectTransactions } from '../../../../selectors/transactionController';
+import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
+import { findBridgeHistoryItem } from '../../../../util/bridge/findBridgeHistoryItem';
+import { getMaybeHexChainId } from '../../../../util/bridge';
+import { selectIsActivityRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
+import { TransactionType } from '@metamask/transaction-controller';
 import { TOKEN_CATEGORY_HASH } from '../../../UI/TransactionElement/utils';
 import { isMusdClaimForCurrentView } from '../../Earn/utils/musd';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
@@ -35,7 +37,6 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { TokenI } from '../../Tokens/types';
-import { updateIncomingTransactions } from '../../../../util/transaction-controller';
 import { RootState } from '../../../../reducers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain';
@@ -77,8 +78,55 @@ export interface UseTokenTransactionsResult {
   conversionRate: number;
   currentCurrency: string;
   isNonEvmAsset: boolean;
+  bridgeArrivalTxs: Transaction[];
   onRefresh: () => Promise<void>;
 }
+
+/** Types that move two different assets, so they belong on both token pages. */
+const SWAP_LIKE_TRANSACTION_TYPES: string[] = [
+  TransactionType.swap,
+  TransactionType.swapAndSend,
+  TransactionType.bridge,
+];
+
+/**
+ * Both legs of a swap/bridge, by address and by symbol.
+ *
+ * Unified swaps keep token metadata in the bridge quote; older SwapsController
+ * txs recorded symbols only. Prefer `addresses` — `symbols` can match an
+ * impostor token.
+ */
+export const getSwapLegTokenIdentifiers = (
+  tx: Transaction,
+  bridgeHistoryItem?: { quote?: Record<string, Transaction> },
+): { addresses: string[]; symbols: string[] } => {
+  const quote = bridgeHistoryItem?.quote;
+
+  const normalize = (values: (string | undefined)[]) => [
+    ...new Set(
+      values
+        .filter((value): value is string => Boolean(value))
+        .map((value) => value.toLowerCase()),
+    ),
+  ];
+
+  return {
+    addresses: normalize([
+      quote?.srcAsset?.address,
+      quote?.destAsset?.address,
+      tx.sourceTokenAddress,
+      tx.destinationTokenAddress,
+    ]),
+    symbols: normalize([
+      quote?.srcAsset?.symbol,
+      quote?.destAsset?.symbol,
+      tx.sourceTokenSymbol,
+      tx.destinationTokenSymbol,
+      tx.swapMetaData?.token_from,
+      tx.swapMetaData?.token_to,
+    ]),
+  };
+};
 
 // Cache for non-EVM transactions
 // eslint-disable-next-line import-x/no-mutable-exports
@@ -121,7 +169,10 @@ export const useTokenTransactions = (
   // Selectors
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const evmTransactions = useSelector(selectTransactions);
-  const swapsTransactions = useSelector(selectSwapsTransactions);
+  const isActivityRedesignEnabled = useSelector(
+    selectIsActivityRedesignEnabled,
+  );
+  const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
   const tokens = useSelector(selectTokens);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -155,7 +206,13 @@ export const useTokenTransactions = (
 
   // Get all transactions (EVM or non-EVM)
   const allTransactions = useMemo(() => {
-    let transactions = evmTransactions;
+    // Redesign Activity hides gas_payment siblings and shows the fee on the
+    // primary row; keep token-details lists in sync when that flag is on.
+    let transactions = isActivityRedesignEnabled
+      ? evmTransactions.filter(
+          (tx: Transaction) => tx.type !== TransactionType.gasPayment,
+        )
+      : evmTransactions;
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     if (asset.chainId && isNonEvmChainId(asset.chainId)) {
@@ -183,34 +240,20 @@ export const useTokenTransactions = (
         filteredTransactions = txs;
 
         if (isNativeAsset) {
+          const nativeAssetId =
+            AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
+              asset.chainId as SupportedCaipChainId
+            ]?.nativeCurrency;
+
           filteredTransactions = txs.filter((tx: Transaction) => {
             const txData = (tx.from || []).concat(tx.to || []);
 
-            if (!txData || txData.length === 0) {
-              return false;
-            }
-
-            const participantsWithAssets = txData.filter(
+            return txData.some(
               (participant: { asset?: { type?: string } }) =>
-                participant.asset && typeof participant.asset === 'object',
+                participant.asset &&
+                typeof participant.asset === 'object' &&
+                participant.asset.type === nativeAssetId,
             );
-
-            if (participantsWithAssets.length === 0) {
-              return false;
-            }
-
-            const allParticipantsAreNative = participantsWithAssets.every(
-              (participant: { asset: { type: string } }) => {
-                const assetId = participant.asset.type;
-                const chainIdKey = asset.chainId as SupportedCaipChainId;
-                return (
-                  AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[chainIdKey]
-                    ?.nativeCurrency === assetId
-                );
-              },
-            );
-
-            return allParticipantsAreNative;
           });
         } else if (assetAddress || assetSymbol) {
           filteredTransactions = txs.filter((tx: Transaction) => {
@@ -259,6 +302,7 @@ export const useTokenTransactions = (
     return transactions;
   }, [
     evmTransactions,
+    isActivityRedesignEnabled,
     asset.chainId,
     asset.address,
     asset.symbol,
@@ -268,6 +312,70 @@ export const useTokenTransactions = (
     nonEvmTransactionsData,
     ///: END:ONLY_INCLUDE_IF
   ]);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  /**
+   * EVM bridge transactions arriving at this non-EVM asset.
+   *
+   * A bridge's only local tx is on the source chain, and this page's list is
+   * keyring txs from its own chain — so the receiving leg would never show.
+   * `isBridgeArrivalForCurrentToken` does the same job for EVM pages; it can't
+   * be reused here because it compares hex chain ids.
+   */
+  const bridgeArrivalTxs = useMemo(() => {
+    if (!isNonEvmAsset || !asset.chainId) {
+      return [] as Transaction[];
+    }
+
+    const nativeAssetId =
+      AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
+        asset.chainId as SupportedCaipChainId
+      ]?.nativeCurrency;
+    const assetAddress = asset.address?.toLowerCase();
+    const isNativeAsset = asset.isNative || asset.isETH;
+
+    return evmTransactions.filter((tx: Transaction) => {
+      if (tx.type !== TransactionType.bridge || tx.status === TX_UNAPPROVED) {
+        return false;
+      }
+
+      const quote = findBridgeHistoryItem({
+        bridgeHistory,
+        transactionMetaId: tx.id,
+        transactionActionId: tx.actionId,
+        transactionHash: tx.hash,
+      })?.quote;
+
+      if (quote?.destChainId === undefined || quote.destChainId === null) {
+        return false;
+      }
+
+      if (formatChainIdToCaip(quote.destChainId) !== asset.chainId) {
+        return false;
+      }
+
+      const destAssetId = quote.destAsset?.assetId?.toLowerCase();
+
+      if (isNativeAsset) {
+        return Boolean(
+          nativeAssetId && destAssetId === nativeAssetId.toLowerCase(),
+        );
+      }
+
+      return Boolean(
+        assetAddress && destAssetId && destAssetId.includes(assetAddress),
+      );
+    });
+  }, [
+    asset.address,
+    asset.chainId,
+    asset.isETH,
+    asset.isNative,
+    bridgeHistory,
+    evmTransactions,
+    isNonEvmAsset,
+  ]);
+  ///: END:ONLY_INCLUDE_IF
 
   // Wrapper for shared mUSD claim detection utility
   const checkIsMusdClaimForCurrentView = useCallback(
@@ -282,6 +390,90 @@ export const useTokenTransactions = (
     [chainId, navAddress, navSymbol, selectedAddress],
   );
 
+  /**
+   * Did a swap/bridge move this page's token on either leg?
+   *
+   * Legs come from the bridge quote, looked up the same way the Activity screen
+   * looks it up so both surfaces agree on which entry belongs to a tx.
+   */
+  const isSwapLegForCurrentToken = useCallback(
+    (tx: Transaction) => {
+      if (!SWAP_LIKE_TRANSACTION_TYPES.includes(tx.type)) {
+        return false;
+      }
+
+      const bridgeHistoryItem = findBridgeHistoryItem({
+        bridgeHistory,
+        transactionMetaId: tx.id,
+        transactionActionId: tx.actionId,
+        transactionHash: tx.hash,
+      });
+
+      const { addresses, symbols } = getSwapLegTokenIdentifiers(
+        tx,
+        bridgeHistoryItem,
+      );
+
+      if (addresses.length > 0) {
+        return Boolean(navAddress) && addresses.includes(navAddress);
+      }
+
+      // No addresses anywhere — legacy tx with symbols only.
+      return Boolean(navSymbol) && symbols.includes(navSymbol);
+    },
+    [bridgeHistory, navAddress, navSymbol],
+  );
+
+  /**
+   * Whether a bridge *arrives* at this page's token.
+   *
+   * A cross-chain bridge is one local transaction, on the source chain — the
+   * destination transfer is the relayer's, so this device has nothing on the
+   * receiving chain to match. Without this the destination page never shows the
+   * incoming leg, even though its balance went up. Mirrors the Activity screen,
+   * which includes a bridge whose `destChainId` is among the enabled chains.
+   *
+   * Checked ahead of the `chainId === tx.chainId` gate, which is what drops it.
+   */
+  const isBridgeArrivalForCurrentToken = useCallback(
+    (tx: Transaction) => {
+      if (tx.type !== TransactionType.bridge || tx.status === TX_UNAPPROVED) {
+        return false;
+      }
+
+      const quote = findBridgeHistoryItem({
+        bridgeHistory,
+        transactionMetaId: tx.id,
+        transactionActionId: tx.actionId,
+        transactionHash: tx.hash,
+      })?.quote;
+
+      if (quote?.destChainId === undefined || quote.destChainId === null) {
+        return false;
+      }
+
+      // Quotes carry EVM chain ids as numbers; `getMaybeHexChainId` also
+      // returns undefined for a non-EVM destination, which can't match here.
+      const destChainId = getMaybeHexChainId(String(quote.destChainId));
+
+      if (
+        !destChainId ||
+        destChainId.toLowerCase() !== chainId?.toLowerCase()
+      ) {
+        return false;
+      }
+
+      const destAddress = quote.destAsset?.address?.toLowerCase();
+      const isNativeDestination =
+        !destAddress || destAddress === NATIVE_SWAPS_TOKEN_ADDRESS;
+
+      return asset.isNative || asset.isETH
+        ? isNativeDestination
+        : Boolean(navAddress) && destAddress === navAddress;
+    },
+    [asset.isETH, asset.isNative, bridgeHistory, chainId, navAddress],
+  );
+
   // ETH filter - for native token transactions
   const ethFilter = useCallback(
     (tx: Transaction) => {
@@ -294,6 +486,10 @@ export const useTokenTransactions = (
       } = tx;
 
       if (checkIsMusdClaimForCurrentView(tx)) {
+        return true;
+      }
+
+      if (isBridgeArrivalForCurrentToken(tx)) {
         return true;
       }
 
@@ -319,7 +515,13 @@ export const useTokenTransactions = (
       }
       return false;
     },
-    [chainId, checkIsMusdClaimForCurrentView, selectedAddress, tokens],
+    [
+      chainId,
+      checkIsMusdClaimForCurrentView,
+      isBridgeArrivalForCurrentToken,
+      selectedAddress,
+      tokens,
+    ],
   );
 
   // Non-ETH filter - for token transactions
@@ -336,6 +538,10 @@ export const useTokenTransactions = (
         return true;
       }
 
+      if (isBridgeArrivalForCurrentToken(tx)) {
+        return true;
+      }
+
       if (
         (areAddressesEqual(from ?? '', selectedAddress ?? '') ||
           areAddressesEqual(to ?? '', selectedAddress ?? '')) &&
@@ -349,27 +555,17 @@ export const useTokenTransactions = (
             navAddress === transferInformation.contractAddress.toLowerCase()
           );
         }
-        if (
-          swapsTransactions[tx.id] &&
-          (to?.toLowerCase() ===
-            FIRST_PARTY_CONTRACT_NAMES.Swaps?.[chainId]?.toLowerCase() ||
-            to?.toLowerCase() === navAddress)
-        ) {
-          const { destinationToken, sourceToken } = swapsTransactions[tx.id];
-          return (
-            destinationToken.address === navAddress ||
-            sourceToken.address === navAddress
-          );
-        }
+        return isSwapLegForCurrentToken(tx);
       }
       return false;
     },
     [
       chainId,
       checkIsMusdClaimForCurrentView,
+      isBridgeArrivalForCurrentToken,
+      isSwapLegForCurrentToken,
       navAddress,
       selectedAddress,
-      swapsTransactions,
     ],
   );
 
@@ -548,7 +744,6 @@ export const useTokenTransactions = (
   // Refresh handler
   const onRefresh = useCallback(async () => {
     setTxState((prev) => ({ ...prev, refreshing: true }));
-    await updateIncomingTransactions();
     setTxState((prev) => ({ ...prev, refreshing: false }));
   }, []);
 
@@ -581,6 +776,7 @@ export const useTokenTransactions = (
     conversionRate: conversionRate ?? 0,
     currentCurrency,
     isNonEvmAsset,
+    bridgeArrivalTxs,
     onRefresh,
   };
 };

@@ -1,5 +1,5 @@
 import { OHLCVServiceMessenger } from '@metamask/core-backend';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
+import { RootMessenger } from '../../types';
 import {
   Messenger,
   MessengerActions,
@@ -10,22 +10,20 @@ import {
  * Get a messenger for the OHLCV service. This is scoped to the
  * actions and events that the OHLCV service is allowed to handle.
  *
- * @param rootExtendedMessenger - The root extended messenger.
+ * @param rootMessenger - The root messenger.
  * @returns The OHLCVServiceMessenger.
  */
 export function getOHLCVServiceMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
-): OHLCVServiceMessenger {
-  const messenger = new Messenger<
-    'OHLCVService',
+  rootMessenger: RootMessenger<
     MessengerActions<OHLCVServiceMessenger>,
-    MessengerEvents<OHLCVServiceMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<OHLCVServiceMessenger>
+  >,
+): OHLCVServiceMessenger {
+  const messenger: OHLCVServiceMessenger = new Messenger({
     namespace: 'OHLCVService',
-    parent: rootExtendedMessenger,
+    parent: rootMessenger,
   });
-  rootExtendedMessenger.delegate({
+  rootMessenger.delegate({
     actions: [
       'BackendWebSocketService:connect',
       'BackendWebSocketService:forceReconnection',

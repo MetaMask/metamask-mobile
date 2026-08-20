@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { ImageBackground, Pressable, useColorScheme } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   Box,
@@ -26,6 +27,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipantStatus';
 import { useCampaignReminderActions } from '../../hooks/useCampaignReminderActions';
+import { navigateToRewardsRoute } from '../../utils';
 
 interface CampaignTileProps {
   campaign: CampaignDto;
@@ -43,6 +45,7 @@ interface CampaignTileProps {
  * - ONDO_HOLDING: navigates to Ondo campaign details
  * - SEASON_1: navigates to season one campaign details
  * - PERPS_TRADING: navigates to Perps Trading campaign details
+ * - PREDICT_THE_PITCH: navigates to Predict The Pitch campaign details
  * - Unsupported types: non-interactive unless onPress is provided
  * - With onPress: executes custom handler regardless of type
  */
@@ -50,7 +53,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
   const tw = useTailwind();
   const colorScheme = useColorScheme();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const {
     status: campaignStatus,
@@ -62,7 +65,8 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
     useGetCampaignParticipantStatus(
       campaignStatus === 'active' &&
         (campaign.type === CampaignType.ONDO_HOLDING ||
-          campaign.type === CampaignType.PERPS_TRADING)
+          campaign.type === CampaignType.PERPS_TRADING ||
+          campaign.type === CampaignType.PREDICT_THE_PITCH)
         ? campaign.id
         : undefined,
     );
@@ -101,26 +105,49 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
       onPress();
     } else if (campaign.type === CampaignType.ONDO_HOLDING) {
       if (shouldShowTour) {
-        navigation.navigate(Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
+        navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
           campaignId: campaign.id,
         });
       } else {
-        navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
-          campaignId: campaign.id,
-        });
+        navigateToRewardsRoute(
+          navigation,
+          Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+          {
+            campaignId: campaign.id,
+          },
+        );
       }
     } else if (campaign.type === CampaignType.SEASON_1) {
-      navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW, {
-        campaignId: campaign.id,
-      });
+      navigateToRewardsRoute(
+        navigation,
+        Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
+        {
+          campaignId: campaign.id,
+        },
+      );
     } else if (campaign.type === CampaignType.PERPS_TRADING) {
       if (shouldShowTour) {
-        navigation.navigate(Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
+        navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
           campaignId: campaign.id,
         });
       } else {
-        navigation.navigate(
+        navigateToRewardsRoute(
+          navigation,
           Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+          {
+            campaignId: campaign.id,
+          },
+        );
+      }
+    } else if (campaign.type === CampaignType.PREDICT_THE_PITCH) {
+      if (shouldShowTour) {
+        navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
+          campaignId: campaign.id,
+        });
+      } else {
+        navigateToRewardsRoute(
+          navigation,
+          Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
           {
             campaignId: campaign.id,
           },

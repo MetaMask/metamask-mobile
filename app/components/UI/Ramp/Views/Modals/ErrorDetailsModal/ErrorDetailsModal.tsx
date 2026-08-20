@@ -1,22 +1,22 @@
 import React, { useCallback, useRef } from 'react';
 import { View, ScrollView, useWindowDimensions } from 'react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
-import { useNavigation, type ParamListBase } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
+import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  type BottomSheetRef,
-  Text,
-  TextVariant,
-  TextColor,
   Button,
-  ButtonVariant,
   ButtonBaseSize,
+  ButtonVariant,
   HeaderStandard,
   Icon,
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
+  Text,
+  TextColor,
+  TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import {
@@ -44,7 +44,7 @@ export const createErrorDetailsModalNavDetails =
 
 function ErrorDetailsModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,

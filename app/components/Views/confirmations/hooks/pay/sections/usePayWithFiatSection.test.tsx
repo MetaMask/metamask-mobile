@@ -106,7 +106,6 @@ describe('usePayWithFiatSection', () => {
       title: 'Credit Card',
       subtitle: '~3 min',
       isSelected: false,
-      isLastUsed: false,
       trailingElement: 'none',
       testID: 'pay-with-fiat-debit-credit-card-row',
     });
@@ -214,12 +213,12 @@ describe('usePayWithFiatSection', () => {
     expect(ACTION_MOCK).not.toHaveBeenCalled();
   });
 
-  it('hardcodes isLastUsed to false (deferred to Ticket 9)', () => {
+  it('does not render any tag on fiat rows', () => {
     useFiatPaymentHighlightedActionsMock.mockReturnValue([CARD_ITEM_MOCK]);
 
     const { result } = renderHook(() => usePayWithFiatSection());
 
-    expect(result.current?.rows[0].isLastUsed).toBe(false);
+    expect(result.current?.rows[0].tagRenderers).toBeUndefined();
   });
 
   it('returns a stable section reference across renders when inputs do not change', () => {

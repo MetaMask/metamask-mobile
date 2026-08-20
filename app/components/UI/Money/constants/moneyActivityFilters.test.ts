@@ -1,16 +1,22 @@
 import {
+  CHAIN_IDS,
   type TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
+import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import {
   getMoneyActivityDateKeyUtc,
   isMoneyActivityDeposit,
   isMoneyActivityTransaction,
   isMoneyActivityTransfer,
+  isMusdErc20Transfer,
 } from './moneyActivityFilters';
 
-const MOCK_CHAIN: Hex = '0x1';
+const MOCK_CHAIN: Hex = CHAIN_IDS.MONAD;
+const OTHER_ERC20: Hex = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+// A MetaMask Pay token of mUSD on Monad marks a Perps/Predict ↔ Money transfer.
+const MUSD_ON_MONAD = { tokenAddress: MUSD_TOKEN_ADDRESS, chainId: MOCK_CHAIN };
 
 function tx(overrides: Partial<TransactionMeta>): TransactionMeta {
   return {
@@ -19,6 +25,17 @@ function tx(overrides: Partial<TransactionMeta>): TransactionMeta {
     time: Date.UTC(2025, 3, 10, 12, 0, 0),
     ...overrides,
   } as TransactionMeta;
+}
+
+function transferInfo(
+  contractAddress: Hex,
+): NonNullable<TransactionMeta['transferInformation']> {
+  return {
+    amount: '1000000',
+    decimals: 6,
+    symbol: 'mUSD',
+    contractAddress,
+  };
 }
 
 describe('moneyActivityFilters', () => {
@@ -66,6 +83,53 @@ describe('moneyActivityFilters', () => {
         false,
       );
     });
+
+    it('returns true for an mUSD tokenMethodTransfer', () => {
+      expect(
+        isMoneyActivityDeposit(
+          tx({
+            type: TransactionType.tokenMethodTransfer,
+            transferInformation: transferInfo(MUSD_TOKEN_ADDRESS),
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false for a non-mUSD tokenMethodTransfer', () => {
+      expect(
+        isMoneyActivityDeposit(
+          tx({
+            type: TransactionType.tokenMethodTransfer,
+            transferInformation: transferInfo(OTHER_ERC20),
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns true for a Perps/Predict withdraw landing in the Money account (inflow)', () => {
+      expect(
+        isMoneyActivityDeposit(
+          tx({
+            type: TransactionType.batch,
+            nestedTransactions: [
+              { type: TransactionType.predictWithdraw } as TransactionMeta,
+            ],
+            metamaskPay: MUSD_ON_MONAD,
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false for a Perps/Predict deposit (outflow, not a deposit into Money)', () => {
+      expect(
+        isMoneyActivityDeposit(
+          tx({
+            type: TransactionType.perpsDeposit,
+            metamaskPay: MUSD_ON_MONAD,
+          }),
+        ),
+      ).toBe(false);
+    });
   });
 
   describe('isMoneyActivityTransfer', () => {
@@ -99,6 +163,134 @@ describe('moneyActivityFilters', () => {
           tx({ type: TransactionType.moneyAccountDeposit }),
         ),
       ).toBe(false);
+    });
+
+    it('returns false for an mUSD tokenMethodTransfer (now a deposit)', () => {
+      expect(
+        isMoneyActivityTransfer(
+          tx({
+            type: TransactionType.tokenMethodTransfer,
+            transferInformation: transferInfo(MUSD_TOKEN_ADDRESS),
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns true for a Perps/Predict deposit funded from the Money account (outflow)', () => {
+      expect(
+        isMoneyActivityTransfer(
+          tx({
+            type: TransactionType.perpsDeposit,
+            metamaskPay: MUSD_ON_MONAD,
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false for a Perps/Predict withdraw (inflow, bucketed as a deposit)', () => {
+      expect(
+        isMoneyActivityTransfer(
+          tx({
+            type: TransactionType.batch,
+            nestedTransactions: [
+              { type: TransactionType.predictWithdraw } as TransactionMeta,
+            ],
+            metamaskPay: MUSD_ON_MONAD,
+          }),
+        ),
+      ).toBe(false);
+    });
+  });
+
+  describe('isMusdErc20Transfer', () => {
+    it('returns true for tokenMethodTransfer with mUSD contract', () => {
+      expect(
+        isMusdErc20Transfer(
+          tx({
+            type: TransactionType.tokenMethodTransfer,
+            transferInformation: transferInfo(MUSD_TOKEN_ADDRESS),
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns true for tokenMethodTransferFrom with mUSD contract', () => {
+      expect(
+        isMusdErc20Transfer(
+          tx({
+            type: TransactionType.tokenMethodTransferFrom,
+            transferInformation: transferInfo(MUSD_TOKEN_ADDRESS),
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false when contract address is a different ERC-20', () => {
+      expect(
+        isMusdErc20Transfer(
+          tx({
+            type: TransactionType.tokenMethodTransfer,
+            transferInformation: transferInfo(OTHER_ERC20),
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false for non-ERC-20-transfer types', () => {
+      expect(
+        isMusdErc20Transfer(
+          tx({
+            type: TransactionType.moneyAccountWithdraw,
+            transferInformation: transferInfo(MUSD_TOKEN_ADDRESS),
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns true when transferInformation is missing but txParams.to is mUSD', () => {
+      expect(
+        isMusdErc20Transfer(
+          tx({
+            type: TransactionType.tokenMethodTransfer,
+            txParams: { to: MUSD_TOKEN_ADDRESS } as never,
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false when both transferInformation and txParams.to are missing', () => {
+      expect(
+        isMusdErc20Transfer(tx({ type: TransactionType.tokenMethodTransfer })),
+      ).toBe(false);
+    });
+
+    it('returns false on chains where mUSD exists but the Money Account does not (Mainnet/Linea/BSC) — ticket AC excludes non-Monad', () => {
+      const nonMoneyChains: Hex[] = [
+        CHAIN_IDS.MAINNET,
+        CHAIN_IDS.LINEA_MAINNET,
+        CHAIN_IDS.BSC,
+        '0x89', // Polygon — mUSD not deployed at all
+      ];
+      for (const chainId of nonMoneyChains) {
+        expect(
+          isMusdErc20Transfer(
+            tx({
+              chainId,
+              type: TransactionType.tokenMethodTransfer,
+              transferInformation: transferInfo(MUSD_TOKEN_ADDRESS),
+            }),
+          ),
+        ).toBe(false);
+        expect(
+          isMusdErc20Transfer(
+            tx({
+              chainId,
+              type: TransactionType.tokenMethodTransfer,
+              txParams: { to: MUSD_TOKEN_ADDRESS } as never,
+            }),
+          ),
+        ).toBe(false);
+      }
     });
   });
 

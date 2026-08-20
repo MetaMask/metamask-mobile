@@ -1,3 +1,5 @@
+import { PR_TEMPLATE_SECTIONS } from './pr-template-checks';
+
 interface Template {
   titles: string[];
 }
@@ -35,17 +37,6 @@ const bugReportIssueTemplateTitles = [
   '### Severity',
 ];
 
-// Titles of PR template
-const prTemplateTitles = [
-  '## **Description**',
-  '## **Changelog**',
-  '## **Related issues**',
-  '## **Manual testing steps**',
-  '## **Screenshots/Recordings**',
-  '## **Pre-merge author checklist**',
-  '## **Pre-merge reviewer checklist**',
-];
-
 export const templates = new Map<TemplateType, Template>([
   [
     TemplateType.GeneralIssue,
@@ -62,7 +53,7 @@ export const templates = new Map<TemplateType, Template>([
   [
     TemplateType.PullRequest,
     {
-      titles: prTemplateTitles,
+      titles: PR_TEMPLATE_SECTIONS,
     },
   ],
 ]);

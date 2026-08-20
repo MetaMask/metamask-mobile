@@ -9,13 +9,14 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useTokenAmount } from '../useTokenAmount';
-import { hasTransactionType } from '../../utils/transaction';
 import {
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
+import { getTotalPayFeesUsd } from '../../utils/transaction-pay';
 import type { RootState } from '../../../../../reducers';
 
 export function useInsufficientPerpsBalanceAlert({
@@ -55,21 +56,14 @@ export function useInsufficientPerpsBalanceAlert({
       return true;
     }
 
-    // On the confirmation screen (not while typing), check if fees
-    // exceed the withdraw amount — user would receive nothing.
-    // Skipped during input because totals may be stale.
+    // Skip during input — totals may be stale.
     if (
       !isPendingInput &&
       hasQuotes &&
       totals?.fees &&
       new BigNumber(amountHuman).isGreaterThan(0)
     ) {
-      const totalFees = new BigNumber(totals.fees.provider?.usd ?? 0)
-        .plus(totals.fees.sourceNetwork?.estimate?.usd ?? 0)
-        .plus(totals.fees.targetNetwork?.usd ?? 0)
-        .plus(totals.fees.metaMask?.usd ?? 0);
-
-      if (totalFees.isGreaterThanOrEqualTo(amountHuman)) {
+      if (getTotalPayFeesUsd(totals.fees).isGreaterThanOrEqualTo(amountHuman)) {
         return true;
       }
     }
@@ -93,7 +87,10 @@ export function useInsufficientPerpsBalanceAlert({
       {
         key: AlertKeys.InsufficientPerpsBalance,
         field: RowAlertKey.Amount,
-        message: strings('alert_system.insufficient_pay_token_balance.message'),
+        title: strings('alert_system.insufficient_pay_token_balance.message'),
+        message: strings(
+          'alert_system.insufficient_pay_method_balance.message',
+        ),
         severity: Severity.Danger,
         isBlocking: true,
       },

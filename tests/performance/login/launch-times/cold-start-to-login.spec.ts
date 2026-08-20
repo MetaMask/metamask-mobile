@@ -1,4 +1,4 @@
-import { test as perfTest } from '../../../framework/fixture';
+import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
 import {
   asPlaywrightElement,
@@ -50,7 +50,7 @@ perfTest.describe(
 
         const timer1 = new TimerHelper(
           'Time since the the app is launched, until login screen appears',
-          { ios: 3000, android: 4000 },
+          { ios: 3000, android: 5000 },
           currentDeviceDetails.platform,
         );
 

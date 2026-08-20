@@ -7,6 +7,7 @@ import { sortTrendingTokens } from '../../utils/sortTrendingTokens';
 import {
   PriceChangeOption,
   SortDirection,
+  TimeOption,
 } from '../../components/TrendingTokensBottomSheet';
 import { isEqual } from 'lodash';
 
@@ -39,9 +40,11 @@ export const useTrendingSearch = (opts?: {
   enableDebounce?: boolean;
   includeMarketData?: boolean;
   includeStocks?: boolean;
+  filterLowQuality?: boolean;
   sortTrendingTokensOptions?: {
     option: PriceChangeOption;
     direction: SortDirection;
+    timeOption?: TimeOption;
   };
 }) => {
   const {
@@ -51,6 +54,7 @@ export const useTrendingSearch = (opts?: {
     enableDebounce = true,
     includeMarketData = true,
     includeStocks = false,
+    filterLowQuality = false,
     sortTrendingTokensOptions = {
       option: PriceChangeOption.PriceChange,
       direction: SortDirection.Descending,
@@ -91,6 +95,7 @@ export const useTrendingSearch = (opts?: {
   } = useTrendingRequest({
     sort: sortBy,
     chainIds: chainIds ?? undefined,
+    filterLowQuality,
   });
 
   const data = useMemo(() => {
@@ -99,6 +104,7 @@ export const useTrendingSearch = (opts?: {
         trendingResults,
         sortTrendingTokensOptions.option,
         sortTrendingTokensOptions.direction,
+        sortTrendingTokensOptions.timeOption,
       );
     }
 

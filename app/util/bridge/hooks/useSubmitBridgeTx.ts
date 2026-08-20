@@ -5,11 +5,12 @@ import type {
 } from '@metamask/bridge-controller';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
-import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import {
   selectAbTestContext,
+  selectBridgeControllerState,
   selectDestToken,
+  selectIsGasIncludedSTXSendBundleSupported,
 } from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
 import {
@@ -21,11 +22,18 @@ import {
   TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
 } from '../../../components/UI/Bridge/components/TokenSelectorItem.abTestConfig';
 import {
+  SWAPS_CTA_BUTTON_COLOR_AB_KEY,
+  SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
+  SWAPS_CTA_BUTTON_COLOR_VARIANTS,
+} from '../../../components/UI/Bridge/components/SwapsConfirmButton/abTestConfig';
+import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
-  STICKY_FOOTER_SWAP_LABEL_AB_KEY,
-  STICKY_FOOTER_SWAP_LABEL_VARIANTS,
 } from '../../../components/UI/TokenDetails/components/abTestConfig';
+import {
+  CHAIN_VALUE_ORDER_AB_KEY,
+  CHAIN_VALUE_ORDER_VARIANTS,
+} from '../../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 import { useMemo } from 'react';
 
 import {
@@ -51,9 +59,10 @@ function mergeTransactionActiveAbTests(
 }
 
 export default function useSubmitBridgeTx() {
-  const stxEnabled = useSelector(selectShouldUseSmartTransaction);
+  const stxEnabled = useSelector(selectIsGasIncludedSTXSendBundleSupported);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destToken = useSelector(selectDestToken);
+  const bridgeControllerState = useSelector(selectBridgeControllerState);
   const abTestContext = useSelector(selectAbTestContext);
   const { variantName: numpadVariantName, isActive: isNumpadAbActive } =
     useABTest(NUMPAD_QUICK_ACTIONS_AB_KEY, NUMPAD_QUICK_ACTIONS_VARIANTS);
@@ -65,16 +74,21 @@ export default function useSubmitBridgeTx() {
     TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
   );
   const {
-    variantName: stickyFooterVariantName,
-    isActive: isStickyFooterAbActive,
-  } = useABTest(
-    STICKY_FOOTER_SWAP_LABEL_AB_KEY,
-    STICKY_FOOTER_SWAP_LABEL_VARIANTS,
-  );
-  const {
     variantName: ambientColorVariantName,
     isActive: isAmbientColorAbActive,
   } = useABTest(AMBIENT_PRICE_COLOR_AB_KEY, AMBIENT_PRICE_COLOR_VARIANTS);
+  const {
+    variantName: ctaButtonColorVariantName,
+    isActive: isCtaButtonColorAbActive,
+  } = useABTest(
+    SWAPS_CTA_BUTTON_COLOR_AB_KEY,
+    SWAPS_CTA_BUTTON_COLOR_VARIANTS,
+    SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
+  );
+  const {
+    variantName: chainValueOrderVariantName,
+    isActive: isChainValueOrderAbActive,
+  } = useABTest(CHAIN_VALUE_ORDER_AB_KEY, CHAIN_VALUE_ORDER_VARIANTS);
 
   const abTests = abTestContext?.assetsASSETS2493AbtestTokenDetailsLayout
     ? {
@@ -103,20 +117,29 @@ export default function useSubmitBridgeTx() {
       );
     }
 
-    if (isStickyFooterAbActive) {
-      tests.push(
-        createActiveABTestAssignment(
-          STICKY_FOOTER_SWAP_LABEL_AB_KEY,
-          stickyFooterVariantName,
-        ),
-      );
-    }
-
     if (isAmbientColorAbActive) {
       tests.push(
         createActiveABTestAssignment(
           AMBIENT_PRICE_COLOR_AB_KEY,
           ambientColorVariantName,
+        ),
+      );
+    }
+
+    if (isCtaButtonColorAbActive) {
+      tests.push(
+        createActiveABTestAssignment(
+          SWAPS_CTA_BUTTON_COLOR_AB_KEY,
+          ctaButtonColorVariantName,
+        ),
+      );
+    }
+
+    if (isChainValueOrderAbActive) {
+      tests.push(
+        createActiveABTestAssignment(
+          CHAIN_VALUE_ORDER_AB_KEY,
+          chainValueOrderVariantName,
         ),
       );
     }
@@ -127,10 +150,12 @@ export default function useSubmitBridgeTx() {
     numpadVariantName,
     isTokenSelectorAbActive,
     tokenSelectorVariantName,
-    isStickyFooterAbActive,
-    stickyFooterVariantName,
     isAmbientColorAbActive,
     ambientColorVariantName,
+    isCtaButtonColorAbActive,
+    ctaButtonColorVariantName,
+    isChainValueOrderAbActive,
+    chainValueOrderVariantName,
   ]);
 
   const submitBridgeTx = async ({
@@ -141,7 +166,7 @@ export default function useSubmitBridgeTx() {
     quoteResponse: QuoteResponse & QuoteMetadata;
     /** The entry point from which the user initiated the swap or bridge */
     location?: MetaMetricsSwapsEventSource;
-    /** Route-carried tests (e.g. homepage trending sections) merged at submit time */
+    /** Route-carried A/B assignments merged at submit time. */
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   }) => {
     if (!walletAddress) {
@@ -153,10 +178,11 @@ export default function useSubmitBridgeTx() {
       transactionActiveAbTestsFromRoute,
     );
     const tokenSecurityTypeDestination = destToken?.securityData?.type ?? null;
+    const inputPrimaryDenomination =
+      bridgeControllerState?.inputPrimaryDenomination ?? 'token_amount';
     return await withPendingTransactionActiveAbTests(
       mergedActiveAbTests,
       async () => {
-        // check whether quoteResponse is an intent transaction
         if (quoteResponse.quote.intent) {
           return await Engine.context.BridgeStatusController.submitIntent({
             quoteResponse,
@@ -165,20 +191,20 @@ export default function useSubmitBridgeTx() {
             abTests,
             activeAbTests: mergedActiveAbTests,
             tokenSecurityTypeDestination,
+            inputPrimaryDenomination,
           });
         }
         return await Engine.context.BridgeStatusController.submitTx(
           walletAddress,
-          {
-            ...quoteResponse,
-            approval: quoteResponse.approval ?? undefined,
-          },
+          quoteResponse,
           stxEnabled,
           undefined, // quotesReceivedContext
           location,
           abTests,
           mergedActiveAbTests,
           tokenSecurityTypeDestination,
+          undefined, // batchSellTrades
+          inputPrimaryDenomination,
         );
       },
     );
