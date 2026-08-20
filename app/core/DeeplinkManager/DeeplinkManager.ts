@@ -27,6 +27,7 @@ import {
   cancelDeeplinkProcessedTrace,
   type DeeplinkPerfAppStartType,
 } from '../Performance/DeeplinkPerformance';
+import { getUnlockDeeplinkAppStartType } from '../Performance/unlockDeeplinkTraces';
 
 // `false` means the deeplink was handled but intentionally rejected, for
 // example when the user dismisses the interstitial during startup resolution.
@@ -100,7 +101,7 @@ export class DeeplinkManager {
   ): Promise<boolean> {
     startDeeplinkProcessedTrace({
       url,
-      source: 'intake',
+      source: 'parse',
       appStartType,
     });
     const result = await parseDeeplink({
@@ -112,9 +113,8 @@ export class DeeplinkManager {
     });
 
     const handled = typeof result === 'boolean' ? result : Boolean(result);
+
     if (handled) {
-      // No-op when an intent handler already ended the span at the
-      // `pre_navigate` seam inside executeDeeplinkIntent.
       endDeeplinkProcessedTrace({ seam: 'handler_finished' });
     } else {
       cancelDeeplinkProcessedTrace({ reason: 'rejected' });
@@ -126,17 +126,19 @@ export class DeeplinkManager {
     url: string,
     {
       origin,
+      appStartType = getUnlockDeeplinkAppStartType(),
     }: {
       origin: string;
+      appStartType?: DeeplinkPerfAppStartType;
     },
   ): Promise<DeeplinkResolveResult> {
-    // Resolve mode only runs on the cold startup path. On success the span
-    // stays open past this return — executeStartupDeeplinkIntent ends it at
-    // the `pre_navigate` seam, after `intent.prepare()`.
+    // On success the span stays open past this return —
+    // executeStartupDeeplinkIntent ends it at the `pre_navigate` seam,
+    // after `intent.prepare()`.
     startDeeplinkProcessedTrace({
       url,
-      source: 'unlock',
-      appStartType: 'cold',
+      source: 'resolve',
+      appStartType,
     });
     const result = await parseDeeplink({
       deeplinkManager: this,
@@ -313,6 +315,7 @@ export default {
     url: string,
     args: {
       origin: string;
+      appStartType?: DeeplinkPerfAppStartType;
     },
   ) => DeeplinkManager.getInstance().resolve(url, args),
   setDeeplink: (url: string) => DeeplinkManager.getInstance().setDeeplink(url),
