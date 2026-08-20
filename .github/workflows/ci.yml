@@ -54,7 +54,14 @@ on:
         type: string
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
+  # Scheduled runs must not share the main-branch SHA group. A schedule that
+  # takes longer than the hourly cadence would otherwise replace the previous
+  # pending run when the next schedule is created.
+  group: >-
+    ${{ github.workflow }}-${{
+      github.event_name == 'schedule' && github.run_id ||
+      (github.ref == 'refs/heads/main' && github.sha || github.ref)
+    }}
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
 jobs:

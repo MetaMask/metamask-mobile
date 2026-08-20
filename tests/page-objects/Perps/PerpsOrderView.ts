@@ -70,7 +70,7 @@ class PerpsOrderView {
 
   async tapPlaceOrderButton(): Promise<void> {
     await Utilities.waitForReadyState(this.placeOrderButton, {
-      checkStability: false,
+      checkStability: true,
       timeout: 8000,
       elemDescription: 'Place order button',
     });
@@ -161,6 +161,9 @@ class PerpsOrderView {
   }
 
   getKeypadKey(key: string): EncapsulatedElementType {
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByID(`keypad-key-${key}`);
+    }
     return Matchers.getElementByText(key);
   }
 
@@ -205,8 +208,8 @@ class PerpsOrderView {
     });
     await Gestures.waitAndTap(this.amountValue, {
       elemDescription: 'Open amount keypad by tapping amount label',
-      checkEnabled: false,
-      checkVisibility: false,
+      checkEnabled: true,
+      checkVisibility: true,
     });
     await Gestures.waitAndTap(this.keypadDeleteButton, {
       checkForDisplayed: true,
@@ -424,7 +427,7 @@ class PerpsOrderView {
     const leverageSelector = `${leverageX}x`;
     const optionEl = PlatformDetector.isAndroid()
       ? Matchers.getElementByNativeXPath(
-          `//android.view.ViewGroup[@content-desc="${leverageSelector}"]`,
+          `//*[@content-desc="${leverageSelector}"]`,
         )
       : Matchers.getElementByID(`quick-select-button-${leverageSelector}`);
     await Gestures.waitAndTap(optionEl, {

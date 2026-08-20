@@ -44,6 +44,10 @@ _Avoid_: Venue Account, sub-wallet
 A product-owned, ordered selection of Events for a navigation surface. A Feed may represent a Category, curated collection, or supported filter combination.
 _Avoid_: Venue series, raw Event query, client-side category
 
+**Feed Screen**:
+A product navigation surface that presents one or more related Feeds. Each selectable tab on a Feed Screen identifies one Feed; the first tab is the default when no tab is requested.
+_Avoid_: Feed, Competition screen, backend Feed hierarchy
+
 **Event**:
 A grouping of one or more related binary Markets from exactly one Venue Event, such as "2026 NBA Finals" or "Will ETH hit $5k?". An Event may have one Category and one Series.
 _Avoid_: Market, PredictMarket, composite Venue Events
@@ -236,6 +240,7 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - Account Setup can change Account Readiness from setup-required to ready.
 - Account Readiness is distinct from Balance and Venue Status; a Predict User can be ready with zero Balance, or funded while a Venue is unavailable.
 - A Feed contains zero or more Events and owns their membership, ordering, and pagination semantics.
+- A Feed Screen contains one or more ordered tabs, and each tab identifies exactly one Feed.
 - Each Event maps to exactly one Venue Event and contains one or more Markets; Predict never combines Markets from multiple Venue Events into one Event.
 - Each Event may have one primary Category and one Series.
 - A Category is product-owned and is distinct from Venue tags and future Topics.
