@@ -2106,30 +2106,44 @@ describe('PerpsOrderView', () => {
       // The button component exists when placing (it shows loading state)
     });
 
-    it('disables button when order validation is validating', async () => {
-      // Mock validating order state
+    it('shows loading state while order validation is pending', async () => {
+      // Arrange
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: true,
         errors: [],
         isValidating: true,
       });
 
-      // Ensure order execution is not placing
+      const mockPlaceOrder = jest.fn();
       (usePerpsOrderExecution as jest.Mock).mockReturnValue({
-        placeOrder: jest.fn(),
+        placeOrder: mockPlaceOrder,
         isPlacing: false,
       });
 
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      // Act
+      const { rerender } = render(<PerpsOrderView />, {
+        wrapper: TestWrapper,
+      });
 
-      // Button should render with test ID
       const placeOrderButton = await screen.findByTestId(
         PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
       );
-      expect(placeOrderButton).toBeDefined();
+      // Assert
+      expect(placeOrderButton).toBeOnTheScreen();
+      expect(placeOrderButton).toBeDisabled();
+      expect(placeOrderButton.props.accessibilityState).toEqual(
+        expect.objectContaining({ busy: true, disabled: true }),
+      );
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
 
-      // The button should be disabled when validation is in progress
-      // (Implementation may vary, but the main functionality works if text is found)
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: true,
+        errors: [],
+        isValidating: false,
+      });
+      rerender(<PerpsOrderView />);
+
+      expect(placeOrderButton).toBeEnabled();
     });
 
     it('enables button when validation passes and not placing order', async () => {
@@ -4783,6 +4797,10 @@ describe('PerpsOrderView', () => {
       });
     });
 
+    afterEach(() => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+    });
+
     it('blocks placeOrder when estimated slippage exceeds the configured cap', async () => {
       const mockPlaceOrder = jest.fn().mockResolvedValue({ success: true });
       (usePerpsOrderExecution as jest.Mock).mockImplementation(() => ({
@@ -4854,6 +4872,42 @@ describe('PerpsOrderView', () => {
       // the configured cap must NOT reach the order execution path. (The toast
       // copy and event payload are verified separately by the slippage recipe and the `eventNames` constants tests.)
       expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+
+    it('submits with the refreshed Lite slippage cap', async () => {
+      const mockExecuteOrder = jest
+        .fn()
+        .mockResolvedValue({ success: false, error: 'test' });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: mockExecuteOrder,
+        isPlacing: false,
+      });
+      (usePerpsMaxSlippage as jest.Mock).mockReturnValue({
+        maxSlippageBps: 100,
+        maxSlippageSource: 'user_configured',
+        setMaxSlippage: jest.fn(),
+      });
+      (usePerpsOrderContext as jest.Mock).mockReturnValue({
+        ...defaultMockHooks.usePerpsOrderContext,
+      });
+      mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(placeOrderButton);
+      });
+
+      await waitFor(() => {
+        expect(mockExecuteOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            maxSlippageBps: 100,
+          }),
+        );
+      });
     });
   });
 
