@@ -10,7 +10,10 @@ import {
 } from '@metamask/perps-controller';
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
-import type { PerpsLoadingSessionContext } from '../../../../UI/Perps/utils/perpsLoadingSession';
+import type {
+  PerpsLoadingLifecycle,
+  PerpsLoadingSessionContext,
+} from '../../../../UI/Perps/utils/perpsLoadingSession';
 
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
@@ -38,8 +41,15 @@ jest.mock('../../../../UI/Perps/utils/perpsLoadingSession', () => ({
   resolvePerpsMarketSource: () => 'provider',
 }));
 
-const mockUsePerpsHomepageLoadingSession = jest.fn(() => ({
-  proposedLifecycle: 'cold_no_cache' as const,
+const mockUsePerpsHomepageLoadingSession = jest.fn<
+  {
+    proposedLifecycle: PerpsLoadingLifecycle;
+    sessionContext: PerpsLoadingSessionContext | null;
+    sessionReady: boolean;
+  },
+  []
+>(() => ({
+  proposedLifecycle: 'cold_no_cache',
   sessionContext: mockGetActivePerpsLoadingSessionContext(),
   sessionReady: true,
 }));

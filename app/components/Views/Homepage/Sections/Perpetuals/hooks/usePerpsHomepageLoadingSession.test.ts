@@ -78,7 +78,7 @@ describe('usePerpsHomepageLoadingSession', () => {
         id: 'session-id',
         marketSource: 'unknown',
         accountSource: 'unknown',
-        lifecycle: options.lifecycle ?? 'cold_no_cache',
+        lifecycle: options?.lifecycle ?? 'cold_no_cache',
       };
       return activeContext.id;
     });
