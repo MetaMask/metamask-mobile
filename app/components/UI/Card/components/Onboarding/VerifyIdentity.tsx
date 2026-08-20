@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Image } from 'react-native';
+import { Image, type LayoutChangeEvent } from 'react-native';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import VeriffSdk, { type VeriffBranding } from '@veriff/react-native-sdk';
@@ -33,17 +33,13 @@ import { brandColor } from '@metamask/design-tokens';
 import useRegions from '../../hooks/useRegions';
 
 /**
- * The KYC fingerprint PNG is 2096² with artwork whose visual center sits
- * ~5% right and ~2.5% down of the frame. Display it in a fixed square and
- * nudge opposite that offset so it reads as centered on screen.
+ * The KYC fingerprint PNG is 2096². Artwork visual center sits 105.5px right
+ * and 53.5px down of the frame. Keep the original flex-fill `contain` size and
+ * shift opposite that offset so it reads as centered.
  */
-const VERIFY_IDENTITY_ILLUSTRATION_SIZE = 240;
-const VERIFY_IDENTITY_ILLUSTRATION_NUDGE_X = -Math.round(
-  VERIFY_IDENTITY_ILLUSTRATION_SIZE * (105.5 / 2096),
-);
-const VERIFY_IDENTITY_ILLUSTRATION_NUDGE_Y = -Math.round(
-  VERIFY_IDENTITY_ILLUSTRATION_SIZE * (53.5 / 2096),
-);
+const VERIFY_IDENTITY_ASSET_SIZE = 2096;
+const VERIFY_IDENTITY_CONTENT_OFFSET_X = 105.5;
+const VERIFY_IDENTITY_CONTENT_OFFSET_Y = 53.5;
 
 const VerifyIdentity = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -52,6 +48,46 @@ const VerifyIdentity = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { userCountry: selectedCountry } = useRegions();
   const [isLaunchingVeriff, setIsLaunchingVeriff] = useState(false);
+  const [illustrationLayout, setIllustrationLayout] = useState({
+    width: 0,
+    height: 0,
+  });
+
+  const illustrationNudgeStyle = useMemo(() => {
+    const displayedSize = Math.min(
+      illustrationLayout.width,
+      illustrationLayout.height,
+    );
+    if (displayedSize === 0) {
+      return undefined;
+    }
+
+    return {
+      transform: [
+        {
+          translateX: -Math.round(
+            (displayedSize * VERIFY_IDENTITY_CONTENT_OFFSET_X) /
+              VERIFY_IDENTITY_ASSET_SIZE,
+          ),
+        },
+        {
+          translateY: -Math.round(
+            (displayedSize * VERIFY_IDENTITY_CONTENT_OFFSET_Y) /
+              VERIFY_IDENTITY_ASSET_SIZE,
+          ),
+        },
+      ],
+    };
+  }, [illustrationLayout]);
+
+  const handleIllustrationLayout = useCallback((event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    setIllustrationLayout((current) =>
+      current.width === width && current.height === height
+        ? current
+        : { width, height },
+    );
+  }, []);
 
   const veriffBranding: VeriffBranding = useMemo(
     () => ({
@@ -183,14 +219,8 @@ const VerifyIdentity = () => {
           source={MM_CARD_VERIFY_IDENTITY}
           resizeMode="contain"
           testID="verify-identity-illustration"
-          style={tw.style({
-            width: VERIFY_IDENTITY_ILLUSTRATION_SIZE,
-            height: VERIFY_IDENTITY_ILLUSTRATION_SIZE,
-            transform: [
-              { translateX: VERIFY_IDENTITY_ILLUSTRATION_NUDGE_X },
-              { translateY: VERIFY_IDENTITY_ILLUSTRATION_NUDGE_Y },
-            ],
-          })}
+          onLayout={handleIllustrationLayout}
+          style={tw.style('w-full h-full', illustrationNudgeStyle)}
         />
       </Box>
       <Box twClassName="flex flex-row gap-3">
