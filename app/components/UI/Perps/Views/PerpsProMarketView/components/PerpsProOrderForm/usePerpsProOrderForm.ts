@@ -1501,7 +1501,7 @@ export const usePerpsProOrderForm = ({
     notices,
     summary,
     isPlaceOrderDisabled,
-    isPlaceOrderLoading: isPlacing,
+    isPlaceOrderLoading: isPlacing || orderValidation.isValidating,
     onPlaceOrderPress,
     // Leverage sheet
     isLeverageVisible,

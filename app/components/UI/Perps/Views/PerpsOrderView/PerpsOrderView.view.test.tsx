@@ -197,7 +197,7 @@ describe('PerpsOrderView', () => {
     await waitForDeferredOrderData();
   });
 
-  it('keeps Place Order enabled during validation after a live price update', async () => {
+  it('shows loading while validation is pending after a live price update', async () => {
     const validateOrder = Engine.context.PerpsController
       .validateOrder as jest.Mock;
     let resolvePendingValidation:
@@ -243,10 +243,11 @@ describe('PerpsOrderView', () => {
     await new Promise<void>((resolve) => setTimeout(resolve, 1100));
     emitEthPrice(stream, '2', '2501');
 
-    fireEvent.press(placeOrderButton);
-
     expect(placeOrderButton).toBeOnTheScreen();
-    expect(placeOrderButton).toBeEnabled();
+    expect(placeOrderButton).toBeDisabled();
+    expect(placeOrderButton.props.accessibilityState).toEqual(
+      expect.objectContaining({ busy: true, disabled: true }),
+    );
     expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
 
     await act(async () => {
@@ -254,6 +255,10 @@ describe('PerpsOrderView', () => {
       await pendingValidation;
     });
     validateOrder.mockResolvedValue({ isValid: true });
+
+    await waitFor(() => {
+      expect(placeOrderButton).toBeEnabled();
+    });
   });
 
   it('switches to limit order, accepts the Mid preset, and routes to TP/SL setup', async () => {

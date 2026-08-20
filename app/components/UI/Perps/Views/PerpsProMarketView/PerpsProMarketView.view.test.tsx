@@ -218,7 +218,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'keeps Place Order enabled during validation after a live price update',
+    'shows loading while validation is pending after a live price update',
     async () => {
       const validateOrder = Engine.context.PerpsController
         .validateOrder as jest.Mock;
@@ -247,10 +247,13 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       await new Promise<void>((resolve) => setTimeout(resolve, 1100));
       emitEthPrice(stream);
 
-      fireEvent.press(placeOrderButton);
-
-      expect(placeOrderButton).toBeOnTheScreen();
-      expect(placeOrderButton).toBeEnabled();
+      await waitFor(() => {
+        expect(placeOrderButton).toBeOnTheScreen();
+        expect(placeOrderButton).toBeDisabled();
+        expect(placeOrderButton.props.accessibilityState).toEqual(
+          expect.objectContaining({ busy: true, disabled: true }),
+        );
+      });
       expect(placeOrder).not.toHaveBeenCalled();
 
       await act(async () => {
@@ -258,6 +261,10 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         await pendingValidation;
       });
       validateOrder.mockResolvedValue({ isValid: true });
+
+      await waitFor(() => {
+        expect(placeOrderButton).toBeEnabled();
+      });
     },
   );
 

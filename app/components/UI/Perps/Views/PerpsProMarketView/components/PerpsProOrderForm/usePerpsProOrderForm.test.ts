@@ -806,10 +806,10 @@ describe('usePerpsProOrderForm', () => {
       expect(validationError).toHaveBeenCalledWith('Bad order');
     });
 
-    it('blocks submit while validation is pending', async () => {
+    it('blocks submit and exposes loading while validation is pending', async () => {
       // Arrange
       mockValidation.isValidating = true;
-      const { result } = renderProForm();
+      const { result, rerender } = renderProForm();
 
       // Act
       await act(async () => {
@@ -818,8 +818,14 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(result.current.isPlaceOrderDisabled).toBe(false);
+      expect(result.current.isPlaceOrderLoading).toBe(true);
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(validationError).not.toHaveBeenCalled();
+
+      mockValidation.isValidating = false;
+      rerender(undefined);
+
+      expect(result.current.isPlaceOrderLoading).toBe(false);
     });
 
     it('navigates to the cross-margin warning and aborts', async () => {
