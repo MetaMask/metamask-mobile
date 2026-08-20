@@ -16,6 +16,7 @@ import { GLOW_TOTAL_MS } from '../../components/PerpsModeToggle/PerpsModeSwitchP
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import { Linking, Platform } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectPerpsAdvancedChartEnabledFlag,
@@ -38,6 +39,8 @@ import {
 const mockPerpsAdvancedChartMount = jest.fn();
 const mockPerpsAdvancedChartUnmount = jest.fn();
 const mockTradingViewResetToDefault = jest.fn();
+
+jest.mock('../../../../../util/haptics');
 
 jest.mock('react-native-modal', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -1115,9 +1118,11 @@ describe('PerpsMarketDetailsView', () => {
     expect(mockSetPerpsMode).not.toHaveBeenCalled();
     await act(async () => {
       jest.advanceTimersByTime(GLOW_TOTAL_MS);
+      await Promise.resolve();
     });
 
     expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Pro);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.PERPS.MODALS.ROOT,
       expect.objectContaining({
@@ -1145,10 +1150,12 @@ describe('PerpsMarketDetailsView', () => {
     expect(mockSetPerpsMode).not.toHaveBeenCalled();
     await act(async () => {
       jest.advanceTimersByTime(GLOW_TOTAL_MS);
+      await Promise.resolve();
     });
 
     expect(mockSetPerpsMode).toHaveBeenCalledWith(PerpsMode.Lite);
     expect(mockReset).not.toHaveBeenCalled();
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
   });
 
   it('opens the mode chooser from the pill when the chooser has not been completed', async () => {
@@ -1169,6 +1176,7 @@ describe('PerpsMarketDetailsView', () => {
 
     await act(async () => {
       jest.advanceTimersByTime(GLOW_TOTAL_MS);
+      await Promise.resolve();
     });
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
@@ -1179,6 +1187,7 @@ describe('PerpsMarketDetailsView', () => {
       },
     });
     expect(mockSetPerpsMode).not.toHaveBeenCalled();
+    expect(playImpact).not.toHaveBeenCalled();
   });
 
   it('does not show the active-mode pill when the Pro mode flag is disabled', () => {
@@ -3917,7 +3926,32 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(mockNavigateToMarketListFromHeader).toHaveBeenCalledWith({
         source: 'perp_asset_screen',
+        enableHaptics: false,
       });
+      expect(playImpact).not.toHaveBeenCalled();
+    });
+
+    it('enables market list haptics in Pro mode', () => {
+      mockPerpsModeValue = PerpsMode.Pro;
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      fireEvent.press(
+        getByTestId(PerpsMarketHeaderSelectorsIDs.MARKET_LIST_BUTTON),
+      );
+
+      expect(mockNavigateToMarketListFromHeader).toHaveBeenCalledWith({
+        source: 'perp_asset_screen',
+        enableHaptics: true,
+      });
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
     });
 
     it('tracks the market list button click with the correct analytics values', () => {

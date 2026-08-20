@@ -11,12 +11,10 @@ import {
   ButtonSize,
   ButtonsAlignment,
   IconName,
+  Text,
   TextButton,
-  TextVariant as DesignSystemTextVariant,
-} from '@metamask/design-system-react-native';
-import Text, {
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import AppConstants from '../../../../../core/AppConstants';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
@@ -251,19 +249,19 @@ export const Footer = () => {
       {isStakingConfirmationBool && (
         <View style={styles.bottomTextContainer}>
           <View style={styles.bottomTextContainerLine}>
-            <Text variant={TextVariant.BodySM}>
+            <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part1')}
             </Text>
             <TextButton
               testID={ConfirmationFooterSelectorIDs.STAKING_TERMS_OF_USE_BUTTON}
-              variant={DesignSystemTextVariant.BodySm}
+              variant={TextVariant.BodySm}
               onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
             >
               {strings('confirm.staking_footer.terms_of_use')}
             </TextButton>
           </View>
           <View style={styles.bottomTextContainerLine}>
-            <Text variant={TextVariant.BodySM}>
+            <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part2')}
               {'\n'}
             </Text>
@@ -271,14 +269,14 @@ export const Footer = () => {
               testID={
                 ConfirmationFooterSelectorIDs.STAKING_RISK_DISCLOSURE_BUTTON
               }
-              variant={DesignSystemTextVariant.BodySm}
+              variant={TextVariant.BodySm}
               onPress={() =>
                 Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
               }
             >
               {strings('confirm.staking_footer.risk_disclosure')}
             </TextButton>
-            <Text variant={TextVariant.BodySM}>
+            <Text variant={TextVariant.BodySm}>
               {strings('confirm.staking_footer.part3')}
             </Text>
           </View>

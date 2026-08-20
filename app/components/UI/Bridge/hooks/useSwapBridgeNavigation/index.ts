@@ -370,10 +370,14 @@ export const useSwapBridgeNavigation = ({
       }
       // Navigate before Redux bridge updates so the Wallet tab does not repaint from slice
       // dispatches while still visible (e.g. checklist trade primary → swaps).
-      navigation.navigate(Routes.BRIDGE.ROOT, {
-        screen: Routes.BRIDGE.BRIDGE_VIEW,
-        params,
-      });
+      navigation.navigate(
+        Routes.BRIDGE.ROOT,
+        {
+          screen: Routes.BRIDGE.BRIDGE_VIEW,
+          params,
+        },
+        { pop: true },
+      );
 
       dispatch(setIsDestTokenManuallySet(isExplicitDestTokenSelection));
       dispatch(setAbTestContext(abTestContext));
