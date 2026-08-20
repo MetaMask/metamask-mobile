@@ -752,7 +752,13 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     }
     const pendingRequest = this.prewarmRequests.get(requestKey);
     if (pendingRequest) {
-      await pendingRequest;
+      try {
+        await pendingRequest;
+      } catch {
+        if (!force || generation !== this.prewarmGeneration) {
+          return;
+        }
+      }
       if (force && generation === this.prewarmGeneration) {
         if (this.prewarmRequests.get(requestKey) === pendingRequest) {
           this.prewarmRequests.delete(requestKey);

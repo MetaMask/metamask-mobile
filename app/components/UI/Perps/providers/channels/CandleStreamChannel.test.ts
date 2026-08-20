@@ -1388,6 +1388,36 @@ describe('CandleStreamChannel', () => {
       expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(2);
     });
 
+    it('retries a forced refresh after the in-flight request aborts', async () => {
+      let rejectFetch: (reason: Error) => void = () => undefined;
+      mockFetchHistoricalCandles
+        .mockReturnValueOnce(
+          new Promise((_, reject) => {
+            rejectFetch = reject;
+          }),
+        )
+        .mockResolvedValueOnce(mockCandleData);
+
+      const firstPrewarm = channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+      );
+      const forcedRefresh = channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneWeek,
+        true,
+      );
+      const abortError = new Error('aborted');
+      abortError.name = 'AbortError';
+      rejectFetch(abortError);
+
+      await expect(firstPrewarm).rejects.toThrow('aborted');
+      await expect(forcedRefresh).resolves.toBeUndefined();
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(2);
+    });
+
     it('does not cache or notify subscribers when prewarm returns empty candles', async () => {
       const subscriber = jest.fn();
       mockSubscribeToCandles.mockReturnValue(jest.fn());
