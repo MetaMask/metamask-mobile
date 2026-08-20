@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { TextVariant } from '@metamask/design-system-react-native';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
+import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
 import PerpsProSizeInput, {
   type PerpsProSizeInputProps,
 } from './PerpsProSizeInput';
@@ -94,6 +95,7 @@ describe('PerpsProSizeInput', () => {
 
     expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
       'inputAccessoryViewID',
+      getPerpsProInputAccessoryID(ids.SIZE_INPUT),
     );
     expect(screen.getByTestId(ids.SIZE_INPUT)).not.toHaveProp('returnKeyType');
     expect(screen.getByTestId(ids.SIZE_INPUT)).not.toHaveProp(

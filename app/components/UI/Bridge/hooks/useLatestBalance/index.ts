@@ -119,7 +119,7 @@ export const useLatestBalance = (token: {
   const handleFetchEvmAtomicBalance = useCallback(async () => {
     if (
       token.address &&
-      token.decimals &&
+      token.decimals !== undefined &&
       chainId &&
       !isCaipChainId(chainId) &&
       selectedAddress &&
@@ -145,8 +145,7 @@ export const useLatestBalance = (token: {
           token.address,
           chainId,
         );
-
-        if (atomicBalance && token.decimals) {
+        if (atomicBalance && token.decimals !== undefined) {
           setBalanceIfChanged({
             displayBalance: formatUnits(atomicBalance, token.decimals),
             atomicBalance,
@@ -177,7 +176,7 @@ export const useLatestBalance = (token: {
   const handleNonEvmAtomicBalance = useCallback(async () => {
     if (
       token.address &&
-      token.decimals &&
+      token.decimals !== undefined &&
       chainId &&
       isNonEvmChainId(chainId) &&
       selectedAddress
@@ -188,7 +187,7 @@ export const useLatestBalance = (token: {
           nonEvmToken.chainId === chainId,
       )?.balance;
 
-      if (displayBalance && token.decimals) {
+      if (displayBalance && token.decimals !== undefined) {
         setBalanceIfChanged({
           displayBalance,
           atomicBalance: parseUnits(displayBalance, token.decimals),
@@ -251,7 +250,7 @@ export const useLatestBalance = (token: {
   }, [token.balance, token.decimals]);
 
   const latestBalance = useMemo(() => {
-    if (!token.address || !token.decimals) {
+    if (!token.address || token.decimals === undefined) {
       return undefined;
     }
 

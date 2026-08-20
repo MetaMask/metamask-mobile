@@ -1,18 +1,19 @@
 import type {
-  FetchEventsParams,
+  FetchFeedParams,
   PredictEntityId,
   PredictEvent,
+  PredictFeed,
+  PredictFeedId,
   PredictQueryDescriptor,
   PredictVenueId,
   PredictVenueStatus,
-  PaginatedResult,
 } from '../types';
 
 export const MARKET_DATA_VENUE_STATUS_STALE_TIME = 60_000;
-export const MARKET_DATA_EVENTS_STALE_TIME = 60_000;
+export const MARKET_DATA_FEED_STALE_TIME = 60_000;
 export const MARKET_DATA_EVENT_STALE_TIME = 60_000;
 
-export type EventListParams = Omit<FetchEventsParams, 'cursor'>;
+export type FeedParams = Omit<FetchFeedParams, 'cursor'>;
 
 export interface MarketDataQueries {
   /** Builds the Venue Status query descriptor. */
@@ -21,11 +22,17 @@ export interface MarketDataQueries {
   ): PredictQueryDescriptor<
     ['PredictMarketDataService:getVenueStatus', PredictVenueId]
   >;
-  getEvents(
+  getFeed(
     venueId: PredictVenueId,
-    params: EventListParams,
+    feedId: PredictFeedId,
+    params: FeedParams,
   ): PredictQueryDescriptor<
-    ['PredictMarketDataService:getEvents', PredictVenueId, EventListParams]
+    [
+      'PredictMarketDataService:getFeed',
+      PredictVenueId,
+      PredictFeedId,
+      FeedParams,
+    ]
   >;
   getEvent(
     venueId: PredictVenueId,
@@ -36,7 +43,7 @@ export interface MarketDataQueries {
 }
 
 export type GetVenueStatusResult = PredictVenueStatus;
-export type GetEventsResult = PaginatedResult<PredictEvent>;
+export type GetFeedResult = PredictFeed;
 export type GetEventResult = PredictEvent;
 
 export const marketDataQueries: MarketDataQueries = {
@@ -46,10 +53,10 @@ export const marketDataQueries: MarketDataQueries = {
     staleTime: MARKET_DATA_VENUE_STATUS_STALE_TIME,
     scope: 'venue',
   }),
-  getEvents: (venueId, params) => ({
-    queryKey: ['PredictMarketDataService:getEvents', venueId, params],
-    family: ['PredictMarketDataService:getEvents', venueId],
-    staleTime: MARKET_DATA_EVENTS_STALE_TIME,
+  getFeed: (venueId, feedId, params) => ({
+    queryKey: ['PredictMarketDataService:getFeed', venueId, feedId, params],
+    family: ['PredictMarketDataService:getFeed', venueId, feedId],
+    staleTime: MARKET_DATA_FEED_STALE_TIME,
     scope: 'venue',
   }),
   getEvent: (venueId, eventId) => ({

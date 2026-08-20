@@ -6,7 +6,12 @@ import {
   TextVariant,
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
-import { TimeDuration, type PerpsMarketData } from '@metamask/perps-controller';
+import {
+  isLimitExecutionOrderType,
+  isTriggerOrderType,
+  TimeDuration,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -42,6 +47,7 @@ import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
+import { usePerpsSyncedChartPrice } from '../../hooks/usePerpsSyncedChartPrice';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
@@ -63,6 +69,7 @@ import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
 import { createStyles } from './PerpsProMarketView.styles';
+import { canonicalizeOrderPrice } from '../../utils/triggerOrderValidation';
 
 interface PerpsProOrderBookColumnProps {
   symbol: string;
@@ -74,29 +81,45 @@ interface PerpsProOrderBookColumnProps {
  * Order-book column bridged to the shared order-form state (TAT-3643).
  *
  * Rendered inside `PerpsOrderProvider` (owned by `PerpsProMarketView`) so a
- * bid/ask row tap can flip the form to a Limit order and prefill the tapped
- * price — the two setters live in `PerpsOrderContext`, which the sibling order
- * book cannot otherwise reach. Wiring both at once has no existing analog
- * (`onUseMidPricePress` only sets price and assumes the form is already Limit).
+ * bid/ask row tap can prefill the semantic price field for the selected type
+ * without changing a trigger placement to plain Limit.
  */
 const PerpsProOrderBookColumn = ({
   symbol,
   marketPrice,
   onCollapse,
 }: PerpsProOrderBookColumnProps) => {
-  const { setLimitPrice, setOrderType } = usePerpsOrderContext();
+  const { orderForm, commitLimitPrice, setOrderType, commitTriggerPrice } =
+    usePerpsOrderContext();
   // Drives the ladder's price precision and base-size decimals — without it
   // every price falls back to magnitude-based formatting.
   const { marketData } = usePerpsMarketData({ asset: symbol });
 
   const handleSelectPrice = useCallback(
     (price: string) => {
-      // Force Limit first (no-op when already Limit) so the prefilled price is
-      // always shown in the limit-price input, regardless of the prior type.
+      if (isTriggerOrderType(orderForm.type)) {
+        if (isLimitExecutionOrderType(orderForm.type)) {
+          commitLimitPrice(
+            canonicalizeOrderPrice(price, marketData?.szDecimals),
+          );
+          return;
+        }
+        commitTriggerPrice(
+          canonicalizeOrderPrice(price, marketData?.szDecimals),
+        );
+        return;
+      }
+
       setOrderType('limit');
-      setLimitPrice(price);
+      commitLimitPrice(canonicalizeOrderPrice(price, marketData?.szDecimals));
     },
-    [setOrderType, setLimitPrice],
+    [
+      commitLimitPrice,
+      commitTriggerPrice,
+      marketData?.szDecimals,
+      orderForm.type,
+      setOrderType,
+    ],
   );
 
   return (
@@ -203,6 +226,16 @@ const PerpsProMarketView = () => {
     setTitleSectionHeight(PRICE_SECTION_HEIGHT);
   }, [setTitleSectionHeight]);
 
+  const handleRequestScrollBy = useCallback(
+    (delta: number) => {
+      scrollViewRef.current?.scrollTo({
+        y: scrollY.get() + delta,
+        animated: true,
+      });
+    },
+    [scrollY],
+  );
+
   const selectedCandlePeriod = useSelector(
     selectPerpsChartPreferredCandlePeriod,
   );
@@ -217,6 +250,15 @@ const PerpsProMarketView = () => {
     useState(false);
 
   const [isBalanceSheetVisible, setIsBalanceSheetVisible] = useState(false);
+
+  // Same parent-owned merge as Lite: last candle close, overridden by the
+  // Advanced Chart latest-bar close while that chart is reporting.
+  const { syncedChartCurrentPrice, setAdvancedChartCurrentPrice } =
+    usePerpsSyncedChartPrice({
+      symbol: market?.symbol || '',
+      interval: selectedCandlePeriod,
+      isAdvancedChartEnabled,
+    });
 
   const handleWalletPress = useCallback(() => {
     setIsBalanceSheetVisible(true);
@@ -328,6 +370,7 @@ const PerpsProMarketView = () => {
         onModeChange={handlePerpsModeChange}
         scrollY={scrollY}
         priceSectionHeight={titleSectionHeightSv}
+        currentPrice={syncedChartCurrentPrice}
       />
       <Animated.ScrollView
         ref={scrollViewRef}
@@ -348,6 +391,8 @@ const PerpsProMarketView = () => {
           onCandlePeriodChange={handleCandlePeriodChange}
           onMorePress={() => setIsMoreCandlePeriodsVisible(true)}
           onChartError={handleChartError}
+          currentPrice={syncedChartCurrentPrice}
+          onLatestPriceChange={setAdvancedChartCurrentPrice}
         />
         {/* The chart's own height (`PerpsProChartPanel`) animates when
             expanded/collapsed above this point — wrap everything that would
@@ -383,6 +428,8 @@ const PerpsProMarketView = () => {
                   market={market as PerpsMarketData}
                   isOrderBookCollapsed={isOrderBookCollapsed}
                   onExpandOrderBook={handleExpandOrderBook}
+                  onRequestScrollBy={handleRequestScrollBy}
+                  scrollViewRef={scrollViewRef}
                 />
               }
               orderBook={

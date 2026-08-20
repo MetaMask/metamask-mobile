@@ -47,4 +47,11 @@ export interface PerpsMarketHeaderProps {
    * (e.g. `PRICE_SECTION_HEIGHT` from `PerpsMarketSummary`).
    */
   priceSectionHeight?: SharedValue<number>;
+  /**
+   * Chart-synced price for the compact header (shown after scrolling past
+   * the summary). Pass the same `syncedChartCurrentPrice` given to
+   * `PerpsMarketSummary` so the header and chart prices match. When omitted,
+   * falls back to the live mid-price stream.
+   */
+  currentPrice?: number;
 }

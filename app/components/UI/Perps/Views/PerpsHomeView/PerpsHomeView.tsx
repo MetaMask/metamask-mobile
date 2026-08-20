@@ -130,6 +130,7 @@ import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsProducts from '../../components/PerpsProducts';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 import PerpsRecentlyAddedSection from '../../components/PerpsRecentlyAddedSection';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import {
   isPerpsTopMoversSectionVisible,
   usePerpsTopMovers,
@@ -1235,12 +1236,14 @@ const PerpsHomeView = () => {
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
         <View>
           <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={closeEligibilityModal}
-              contentKey={'geo_block'}
-              testID={'perps-home-geo-block-tooltip'}
-            />
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={closeEligibilityModal}
+                contentKey={'geo_block'}
+                testID={'perps-home-geo-block-tooltip'}
+              />
+            </ModalSafeAreaProvider>
           </Modal>
         </View>
       )}
@@ -1249,12 +1252,14 @@ const PerpsHomeView = () => {
       {isCloseAllGeoBlockVisible && (
         <View>
           <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={() => setIsCloseAllGeoBlockVisible(false)}
-              contentKey={'geo_block'}
-              testID={'perps-home-close-all-geo-block-tooltip'}
-            />
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={() => setIsCloseAllGeoBlockVisible(false)}
+                contentKey={'geo_block'}
+                testID={'perps-home-close-all-geo-block-tooltip'}
+              />
+            </ModalSafeAreaProvider>
           </Modal>
         </View>
       )}
