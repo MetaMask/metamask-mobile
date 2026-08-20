@@ -1137,12 +1137,10 @@ export const usePerpsProOrderForm = ({
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_OPENED,
       [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: bpsToPercent(
-        resolvedMaxSlippageBps,
-      ),
+      [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: bpsToPercent(maxSlippageBps),
       [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]: maxSlippageSource,
     });
-  }, [track, orderForm.asset, resolvedMaxSlippageBps, maxSlippageSource]);
+  }, [track, orderForm.asset, maxSlippageBps, maxSlippageSource]);
 
   const onOrderTypeSelect = useCallback(
     (type: OrderType) => {
@@ -1516,7 +1514,7 @@ export const usePerpsProOrderForm = ({
     closeLeverage: () => setIsLeverageVisible(false),
     // Slippage sheet
     isSlippageVisible,
-    maxSlippageBps: resolvedMaxSlippageBps,
+    maxSlippageBps,
     onSlippageSave,
     closeSlippage: () => setIsSlippageVisible(false),
     // Order type sheet

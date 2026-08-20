@@ -1101,6 +1101,38 @@ describe('usePerpsProOrderForm', () => {
       });
     });
 
+    it('exposes persisted slippage for trigger-market settings', () => {
+      mockMaxSlippageBps = 300;
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = '91000';
+      const { result } = renderProForm();
+
+      expect(result.current.maxSlippageBps).toBe(300);
+      expect(result.current.summary.slippage).toContain('Max: 10%');
+    });
+
+    it('tracks persisted slippage when trigger-market settings open', () => {
+      mockMaxSlippageBps = 300;
+      mockOrderForm.type = 'stop_market';
+      mockContextValue.triggerPrice = '91000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.summary.onSlippagePress?.();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SLIPPAGE_CONFIG_OPENED,
+          [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_PCT]: 3,
+          [PERPS_EVENT_PROPERTY.MAX_SLIPPAGE_SOURCE]:
+            PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.DEFAULT,
+        }),
+      );
+    });
+
     it('preserves an explicit trigger-market slippage setting', async () => {
       mockMaxSlippageBps = 300;
       mockMaxSlippageSource = 'user_configured';
