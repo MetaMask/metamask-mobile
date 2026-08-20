@@ -250,6 +250,13 @@ const mockShouldStartLoadWithRequest = jest.requireMock(
 const mockUseRampSDK = jest.requireMock('../../Aggregator/sdk')
   .useRampSDK as jest.Mock;
 const mockUuidV4 = jest.requireMock('uuid').v4 as jest.Mock;
+const mockUseDispatch = jest.requireMock('react-redux').useDispatch as jest.Mock;
+const mockProtectWalletModalVisible = jest.requireMock(
+  '../../../../../actions/user',
+).protectWalletModalVisible as jest.Mock;
+const mockCreateNavigationDetails = jest.requireMock(
+  '../../../../../util/navigation/navUtils',
+).createNavigationDetails as jest.Mock;
 
 const mockUseParams = jest.requireMock(
   '../../../../../util/navigation/navUtils',
@@ -283,6 +290,8 @@ describe('Checkout', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
+    (Date.now as unknown as jest.Mock).mockReturnValue(123);
     capturedOnNavigationStateChange = undefined;
     mockGetRampCallbackBaseUrl.mockReturnValue(
       'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
@@ -290,6 +299,16 @@ describe('Checkout', () => {
     mockShouldStartLoadWithRequest.mockReturnValue(true);
     mockUseRampSDK.mockReturnValue(null);
     mockUuidV4.mockReturnValue('mock-uuid-xyz');
+    mockUseDispatch.mockReturnValue(mockDispatch);
+    mockProtectWalletModalVisible.mockReturnValue({
+      type: 'PROTECT_WALLET_MODAL_VISIBLE',
+    });
+    mockCreateNavigationDetails.mockImplementation(
+      (_root: string, screen: string) => ({
+        name: screen,
+        params: {},
+      }),
+    );
     mockUseParams.mockReturnValue({
       url: 'https://provider.example.com/checkout',
       providerName: 'Test Provider',
@@ -321,10 +340,6 @@ describe('Checkout', () => {
         setOptions: mockHeadlessEntrySetOptions,
       }),
     }));
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks();
   });
 
   describe('handleNavigationStateChange (callback flow)', () => {

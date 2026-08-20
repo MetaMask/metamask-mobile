@@ -238,6 +238,8 @@ async function invoke(
 describe('useContinueWithQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
+    (Date.now as unknown as jest.Mock).mockReturnValue(123);
     mockUseRampAccountAddress.mockReturnValue(
       '0x1234567890123456789012345678901234567890',
     );
@@ -266,10 +268,6 @@ describe('useContinueWithQuote', () => {
     (useSelector as jest.Mock).mockImplementation((selector) =>
       typeof selector === 'function' ? selector() : undefined,
     );
-  });
-
-  afterEach(() => {
-    jest.resetAllMocks();
   });
 
   describe('continueWithQuote: native provider', () => {
