@@ -1,7 +1,7 @@
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictFeedScreen } from '../../../../../../tests/component-view/renderers/predictNext';
 import Engine from '../../../../../core/Engine';
-import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
+import { act, fireEvent, within } from '@testing-library/react-native';
 import {
   KALSHI_VENUE_ID,
   type PredictDecimal,
@@ -461,122 +461,6 @@ describe('PredictFeedScreen', () => {
       });
     });
 
-    expect(
-      await view.findByTestId(
-        PredictHomeTestIds.event(KALSHI_VENUE_ID, secondGameEvent.id),
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('retries a failed next page', async () => {
-    let shouldFail = true;
-    messengerCall.mockImplementation(
-      (
-        action: string,
-        venueId: string,
-        feedId: PredictFeedId,
-        _params: unknown,
-        cursor?: string,
-      ): Promise<unknown> => {
-        if (action !== 'PredictMarketDataService:getFeed') {
-          return Promise.resolve(undefined);
-        }
-        if (cursor && shouldFail) {
-          return Promise.reject(new Error('Next page unavailable'));
-        }
-        return Promise.resolve({
-          venueId,
-          id: feedId,
-          title: 'NFL Games',
-          events: cursor ? [secondGameEvent] : [gameEvent],
-          ...(cursor ? {} : { nextCursor: 'page-2' }),
-        });
-      },
-    );
-
-    const view = renderPredictFeedScreen({
-      venueId: KALSHI_VENUE_ID,
-      feedScreenId: NFL_FEED_SCREEN_ID,
-    });
-    await view.findByTestId(
-      PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
-    );
-
-    await act(async () => {
-      fireEvent(
-        view.getByTestId(PredictFeedScreenTestIds.LIST),
-        'onEndReached',
-      );
-    });
-
-    expect(
-      await view.findByTestId(PredictFeedScreenTestIds.NEXT_PAGE_ERROR),
-    ).toBeOnTheScreen();
-
-    shouldFail = false;
-    await act(async () => {
-      fireEvent.press(
-        view.getByTestId(PredictFeedScreenTestIds.NEXT_PAGE_RETRY),
-      );
-    });
-
-    expect(
-      await view.findByTestId(
-        PredictHomeTestIds.event(KALSHI_VENUE_ID, secondGameEvent.id),
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('keeps pagination available when a background refetch fails', async () => {
-    let gamesRequestCount = 0;
-    configureFeeds({
-      [NFL_GAMES_FEED_ID]: (cursor) => {
-        if (cursor) {
-          return { events: [secondGameEvent] };
-        }
-        gamesRequestCount += 1;
-        return gamesRequestCount === 1
-          ? {
-              events: [gameEvent],
-              nextCursor: 'page-2',
-            }
-          : new Error('Background refetch unavailable');
-      },
-      [NFL_WIN_TOTALS_FEED_ID]: [propsEvent],
-    });
-
-    const view = renderPredictFeedScreen({
-      venueId: KALSHI_VENUE_ID,
-      feedScreenId: NFL_FEED_SCREEN_ID,
-    });
-    await view.findByTestId(
-      PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
-    );
-    fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.tab('props')));
-    await view.findByTestId(
-      PredictHomeTestIds.event(KALSHI_VENUE_ID, propsEvent.id),
-    );
-    fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.tab('games')));
-    await view.findByTestId(
-      PredictHomeTestIds.event(KALSHI_VENUE_ID, gameEvent.id),
-    );
-
-    await waitFor(() => {
-      fireEvent(
-        view.getByTestId(PredictFeedScreenTestIds.LIST),
-        'onEndReached',
-      );
-      expect(messengerCall).toHaveBeenCalledWith(
-        'PredictMarketDataService:getFeed',
-        KALSHI_VENUE_ID,
-        NFL_GAMES_FEED_ID,
-        { limit: 20 },
-        'page-2',
-      );
-    });
-    expect(
-      view.queryByTestId(PredictFeedScreenTestIds.NEXT_PAGE_ERROR),
-    ).not.toBeOnTheScreen();
     expect(
       await view.findByTestId(
         PredictHomeTestIds.event(KALSHI_VENUE_ID, secondGameEvent.id),

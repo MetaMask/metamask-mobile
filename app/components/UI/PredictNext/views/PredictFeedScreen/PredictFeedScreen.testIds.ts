@@ -10,6 +10,4 @@ export const PredictFeedScreenTestIds = {
   RETRY: 'predict-next-feed-screen-retry',
   EMPTY: 'predict-next-feed-screen-empty',
   NEXT_PAGE_LOADING: 'predict-next-feed-screen-next-page-loading',
-  NEXT_PAGE_ERROR: 'predict-next-feed-screen-next-page-error',
-  NEXT_PAGE_RETRY: 'predict-next-feed-screen-next-page-retry',
 } as const;
