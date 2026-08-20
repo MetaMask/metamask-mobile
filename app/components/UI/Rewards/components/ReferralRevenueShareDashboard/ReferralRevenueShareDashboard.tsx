@@ -8,6 +8,7 @@ import React, {
 import {
   Image,
   Linking,
+  type LayoutChangeEvent,
   Modal,
   Pressable,
   ScrollView,
@@ -868,6 +869,7 @@ const ReferralInviteCodeField = ({
   const codeAtEditStartRef = useRef(referralCode);
   const [isEditingCode, setIsEditingCode] = useState(false);
   const [hasEditedCode, setHasEditedCode] = useState(false);
+  const [displayHeight, setDisplayHeight] = useState<number | undefined>();
   const isCompleteEditedCode =
     isEditingCode &&
     hasEditedCode &&
@@ -906,70 +908,91 @@ const ReferralInviteCodeField = ({
     setIsEditingCode(false);
   };
 
-  if (!isEditingCode) {
-    return (
-      <Box gap={1}>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          Referral code
-        </Text>
-        <Text
-          variant={TextVariant.DisplayMd}
-          fontWeight={FontWeight.Bold}
-          testID={codeInputTestID}
-        >
-          {referralCode}
-        </Text>
-        <TextButton
-          variant={TextVariant.BodySm}
-          onPress={handleBeginEditing}
-          testID="edit-referral-code-button"
-          accessibilityRole="button"
-        >
-          Use a different code
-        </TextButton>
-      </Box>
+  const handleDisplayLayout = (event: LayoutChangeEvent) => {
+    if (isEditingCode) {
+      return;
+    }
+
+    const nextHeight = Math.round(event.nativeEvent.layout.height);
+    setDisplayHeight((current) =>
+      current === nextHeight ? current : nextHeight,
     );
-  }
+  };
 
   return (
-    <Box gap={1}>
-      <Label fontWeight={FontWeight.Medium}>Referral code</Label>
-      <TextField
-        value={referralCode}
-        onChangeText={handleChangeReferralCode}
-        onBlur={handleBlurReferralCode}
-        inputRef={inputRef}
-        endAccessory={
-          isCompleteEditedCode ? (
-            <Icon
-              name={IconName.Check}
-              size={IconSize.Md}
-              color={IconColor.SuccessDefault}
-              testID="referral-code-complete-icon"
-              accessibilityLabel="Referral code complete"
-            />
-          ) : (
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              onPress={handleCancelEditing}
-              testID="cancel-referral-code-button"
-              accessibilityRole="button"
-            >
-              Cancel
-            </Text>
-          )
-        }
-        inputProps={{
-          autoCapitalize: 'characters',
-          autoCorrect: false,
-          autoComplete: 'off',
-          maxLength: REFERRAL_CODE_LENGTH,
-          accessibilityLabel: 'Referral code',
-        }}
-        testID={codeInputTestID}
-      />
+    <Box
+      gap={1}
+      twClassName="justify-start"
+      onLayout={handleDisplayLayout}
+      style={
+        isEditingCode && displayHeight
+          ? { minHeight: displayHeight }
+          : undefined
+      }
+      testID="referral-invite-code-field"
+    >
+      {isEditingCode ? (
+        <>
+          <Label fontWeight={FontWeight.Medium}>Referral code</Label>
+          <TextField
+            value={referralCode}
+            onChangeText={handleChangeReferralCode}
+            onBlur={handleBlurReferralCode}
+            inputRef={inputRef}
+            endAccessory={
+              isCompleteEditedCode ? (
+                <Icon
+                  name={IconName.Check}
+                  size={IconSize.Md}
+                  color={IconColor.SuccessDefault}
+                  testID="referral-code-complete-icon"
+                  accessibilityLabel="Referral code complete"
+                />
+              ) : (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextAlternative}
+                  onPress={handleCancelEditing}
+                  testID="cancel-referral-code-button"
+                  accessibilityRole="button"
+                >
+                  Cancel
+                </Text>
+              )
+            }
+            inputProps={{
+              autoCapitalize: 'characters',
+              autoCorrect: false,
+              autoComplete: 'off',
+              maxLength: REFERRAL_CODE_LENGTH,
+              accessibilityLabel: 'Referral code',
+            }}
+            testID={codeInputTestID}
+          />
+        </>
+      ) : (
+        <>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            Referral code
+          </Text>
+          <Text
+            variant={TextVariant.DisplayMd}
+            fontWeight={FontWeight.Bold}
+            testID={codeInputTestID}
+          >
+            {referralCode}
+          </Text>
+          <TextButton
+            variant={TextVariant.BodySm}
+            onPress={handleBeginEditing}
+            testID="edit-referral-code-button"
+            accessibilityRole="button"
+          >
+            Use a different code
+          </TextButton>
+        </>
+      )}
     </Box>
   );
 };
