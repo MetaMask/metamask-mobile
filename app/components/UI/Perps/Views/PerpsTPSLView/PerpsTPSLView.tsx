@@ -490,6 +490,10 @@ const PerpsTPSLView: React.FC = () => {
   }, [focusedInput]);
 
   const handleConfirm = useCallback(async () => {
+    if (!hasChanges || !isValid || isUpdating) {
+      return;
+    }
+
     if (focusedInput) {
       dismissKeypad();
     }
@@ -556,6 +560,9 @@ const PerpsTPSLView: React.FC = () => {
     effectiveEntryPrice,
     enableHaptics,
     playImpact,
+    hasChanges,
+    isValid,
+    isUpdating,
   ]);
 
   const confirmDisabled = !hasChanges || !isValid || isUpdating;

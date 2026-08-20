@@ -630,6 +630,42 @@ describe('PerpsTPSLView', () => {
       expect(mockOnConfirm).toHaveBeenCalled();
     });
 
+    it.each([
+      {
+        state: 'there are no changes',
+        validation: { isValid: true, hasChanges: false },
+      },
+      {
+        state: 'the form is invalid',
+        validation: { isValid: false, hasChanges: true },
+      },
+    ])(
+      'does not confirm or play PrimaryCTA when $state',
+      async ({ validation }) => {
+        const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
+        mockRouteParams = {
+          ...defaultRouteParams,
+          onConfirm: mockOnConfirm,
+          enableHaptics: true,
+        };
+        renderView({
+          validation: {
+            ...defaultMockReturn.validation,
+            ...validation,
+          },
+        });
+
+        await act(async () => {
+          fireEvent.press(
+            screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+          );
+        });
+
+        expect(playImpact).not.toHaveBeenCalled();
+        expect(mockOnConfirm).not.toHaveBeenCalled();
+      },
+    );
+
     it('calls onConfirm with hook values when Set button pressed', async () => {
       const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
       mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
