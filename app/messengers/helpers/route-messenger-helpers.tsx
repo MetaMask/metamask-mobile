@@ -17,10 +17,10 @@ export type ValidateElements<
   Elements extends readonly string[],
   AllowedElements extends string,
 > = {
-    [K in keyof Elements]: Elements[K] extends AllowedElements
+  [K in keyof Elements]: Elements[K] extends AllowedElements
     ? Elements[K]
     : AllowedElements;
-  };
+};
 
 /**
  * Helper function to define the allowed capabilities for a route messenger.
@@ -117,7 +117,10 @@ export function withRouteMessenger<
     >,
   ) {
     return (
-      <RouteMessengerProvider path={props.route.name} capabilities={capabilities}>
+      <RouteMessengerProvider
+        path={props.route.name}
+        capabilities={capabilities}
+      >
         <Component {...props} />
       </RouteMessengerProvider>
     );
