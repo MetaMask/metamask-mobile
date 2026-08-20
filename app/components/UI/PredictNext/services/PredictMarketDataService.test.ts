@@ -11,7 +11,9 @@ import { PREDICT_NEXT_FEATURE_NAME } from '../constants';
 import { PredictError, PredictErrorCode } from '../errors';
 import {
   KALSHI_VENUE_ID,
+  type PredictEntityId,
   type PredictFeedId,
+  type PredictTimestamp,
   type PredictVenueId,
 } from '../types';
 import {
@@ -48,9 +50,11 @@ const createMarketData = (): jest.Mocked<VenueMarketDataAdapter> => ({
   fetchVenueStatus: jest.fn(),
   fetchFeed: jest.fn(),
   fetchEvent: jest.fn(),
+  fetchMarketHistory: jest.fn(),
 });
 
 const feedId = 'sports-football-nfl-games' as PredictFeedId;
+const marketId = 'market-1' as PredictEntityId;
 
 describe('PredictMarketDataService', () => {
   const services: PredictMarketDataService[] = [];
@@ -123,6 +127,45 @@ describe('PredictMarketDataService', () => {
     const result = await service.getFeed(KALSHI_VENUE_ID, feedId, {});
 
     expect(result.nextCursor).toBeUndefined();
+  });
+
+  it('forwards Market history cancellation to the adapter', async () => {
+    const marketData = createMarketData();
+    marketData.fetchMarketHistory.mockResolvedValue({
+      venueId: KALSHI_VENUE_ID,
+      marketId,
+      range: 'LIVE',
+      observedAt: '2026-08-07T12:00:00Z' as PredictTimestamp,
+      points: [],
+    });
+    const service = buildService(marketData);
+    const signal = new AbortController().signal;
+
+    await service.getMarketHistory(KALSHI_VENUE_ID, marketId, 'LIVE', {
+      signal,
+    });
+
+    expect(marketData.fetchMarketHistory).toHaveBeenCalledWith(
+      marketId,
+      'LIVE',
+      { signal },
+    );
+  });
+
+  it('rejects unsupported Market history Venues before invoking the adapter', async () => {
+    const marketData = createMarketData();
+    const service = buildService(marketData);
+
+    const result = service.getMarketHistory(
+      'other' as PredictVenueId,
+      marketId,
+      '1D',
+    );
+
+    await expect(result).rejects.toThrow(
+      'This prediction venue is not supported.',
+    );
+    expect(marketData.fetchMarketHistory).not.toHaveBeenCalled();
   });
 
   it('retries transient errors twice after the initial attempt', async () => {

@@ -7,6 +7,45 @@ import { PredictEventDetailTestIds } from '../PredictEventDetail/PredictEventDet
 import type { PredictEvent, PredictTimestamp } from '../../types';
 import { PredictEventValues } from '../../../Predict/constants/eventNames';
 
+const firstMarket: PredictEvent['markets'][number] = {
+  id: 'market-1' as PredictEvent['markets'][number]['id'],
+  question: 'Candidate A wins',
+  status: 'active',
+  outcomes: [
+    {
+      id: 'yes-1' as PredictEvent['markets'][number]['outcomes'][number]['id'],
+      side: 'yes',
+      label: 'Yes',
+      askPrice:
+        '0.42' as PredictEvent['markets'][number]['outcomes'][number]['askPrice'],
+    },
+    {
+      id: 'no-1' as PredictEvent['markets'][number]['outcomes'][number]['id'],
+      side: 'no',
+      label: 'No',
+      askPrice:
+        '0.58' as PredictEvent['markets'][number]['outcomes'][number]['askPrice'],
+    },
+  ],
+};
+
+const secondMarket: PredictEvent['markets'][number] = {
+  ...firstMarket,
+  id: 'market-2' as PredictEvent['markets'][number]['id'],
+  question: 'Candidate B wins',
+  outcomes: [
+    {
+      ...firstMarket.outcomes[0],
+      id: 'yes-2' as PredictEvent['markets'][number]['outcomes'][number]['id'],
+      label: 'Candidate B',
+    },
+    {
+      ...firstMarket.outcomes[1],
+      id: 'no-2' as PredictEvent['markets'][number]['outcomes'][number]['id'],
+    },
+  ],
+};
+
 const event: PredictEvent = {
   venueId: 'kalshi' as PredictEvent['venueId'],
   id: 'event-1' as PredictEvent['id'],
@@ -15,30 +54,24 @@ const event: PredictEvent = {
   category: 'Politics',
   volume: '1500000',
   imageUrl: 'https://example.com/event.png',
-  markets: [
-    {
-      id: 'market-1' as PredictEvent['markets'][number]['id'],
-      question: 'Candidate A wins',
-      status: 'active',
-      outcomes: [
-        {
-          id: 'yes-1' as PredictEvent['markets'][number]['outcomes'][number]['id'],
-          side: 'yes',
-          label: 'Yes',
-          askPrice:
-            '0.42' as PredictEvent['markets'][number]['outcomes'][number]['askPrice'],
-        },
-        {
-          id: 'no-1' as PredictEvent['markets'][number]['outcomes'][number]['id'],
-          side: 'no',
-          label: 'No',
-          askPrice:
-            '0.58' as PredictEvent['markets'][number]['outcomes'][number]['askPrice'],
-        },
-      ],
-    },
-  ],
+  markets: [firstMarket],
 };
+
+const detailEvent: PredictEvent = {
+  ...event,
+  markets: [firstMarket, secondMarket],
+};
+
+const marketHistory = (marketId: string, range: string) => ({
+  venueId: 'kalshi',
+  marketId,
+  range,
+  observedAt: '2026-08-17T20:00:00Z',
+  points: [
+    { timestamp: '2026-08-17T18:00:00Z', yesPrice: '0.40', noPrice: '0.60' },
+    { timestamp: '2026-08-17T20:00:00Z', yesPrice: '0.42', noPrice: '0.58' },
+  ],
+});
 
 const gameEvent: PredictEvent = {
   ...event,
@@ -101,24 +134,34 @@ const configureQueries = (
   events: readonly PredictEvent[] = [event],
   status: 'available' | 'degraded' | 'unavailable' = 'available',
 ) => {
-  messengerCall.mockImplementation((action: string) => {
-    if (action === 'PredictMarketDataService:getVenueStatus') {
-      return Promise.resolve({
-        venueId: 'kalshi',
-        status,
-        checkedAt: '2026-01-01T00:00:00Z',
-      });
-    }
-    if (action === 'PredictMarketDataService:getFeed') {
-      return Promise.resolve({
-        venueId: 'kalshi',
-        id: 'sports-football-nfl-games',
-        title: 'NFL Games',
-        events,
-      });
-    }
-    return Promise.resolve(undefined);
-  });
+  messengerCall.mockImplementation(
+    (action: string, _venueId?: string, id?: string, range?: string) => {
+      if (action === 'PredictMarketDataService:getVenueStatus') {
+        return Promise.resolve({
+          venueId: 'kalshi',
+          status,
+          checkedAt: '2026-01-01T00:00:00Z',
+        });
+      }
+      if (action === 'PredictMarketDataService:getFeed') {
+        return Promise.resolve({
+          venueId: 'kalshi',
+          id: 'sports-football-nfl-games',
+          title: 'NFL Games',
+          events,
+        });
+      }
+      if (action === 'PredictMarketDataService:getEvent') {
+        return Promise.resolve(detailEvent);
+      }
+      if (action === 'PredictMarketDataService:getMarketHistory') {
+        return Promise.resolve(
+          marketHistory(id ?? 'market-1', range ?? 'LIVE'),
+        );
+      }
+      return Promise.resolve(undefined);
+    },
+  );
 };
 
 describe('PredictHome', () => {
@@ -266,7 +309,7 @@ describe('PredictHome', () => {
     expect(view.getByText(multiMarketEvent.title)).toBeOnTheScreen();
   });
 
-  it('opens detail and returns without fetching Event detail', async () => {
+  it('opens detail, fetches Event detail, and returns', async () => {
     const view = renderPredictNext();
     fireEvent.press(
       await view.findByTestId(
@@ -278,10 +321,22 @@ describe('PredictHome', () => {
       await view.findByTestId(PredictEventDetailTestIds.VIEW),
     ).toBeOnTheScreen();
     expect(view.getByText('Who wins the election?')).toBeOnTheScreen();
-    expect(messengerCall).not.toHaveBeenCalledWith(
-      'PredictMarketDataService:getEvent',
-      expect.anything(),
-      expect.anything(),
+    await waitFor(() =>
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getEvent',
+        event.venueId,
+        event.id,
+        undefined,
+      ),
+    );
+    await waitFor(() =>
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getMarketHistory',
+        event.venueId,
+        firstMarket.id,
+        'LIVE',
+        undefined,
+      ),
     );
 
     fireEvent.press(view.getByTestId(PredictEventDetailTestIds.BACK));

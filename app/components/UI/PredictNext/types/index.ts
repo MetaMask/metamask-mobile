@@ -68,6 +68,22 @@ export interface PredictSportsContext {
   game?: PredictGame;
 }
 
+export type PredictMarketHistoryRange = 'LIVE' | '1D' | '1W' | '1M' | '1Y';
+
+export interface PredictMarketHistoryPoint {
+  timestamp: PredictTimestamp;
+  yesPrice: PredictDecimal;
+  noPrice: PredictDecimal;
+}
+
+export interface PredictMarketHistory {
+  venueId: PredictVenueId;
+  marketId: PredictEntityId;
+  range: PredictMarketHistoryRange;
+  observedAt: PredictTimestamp;
+  points: readonly PredictMarketHistoryPoint[];
+}
+
 export interface PredictOutcome {
   id: PredictEntityId;
   side: PredictOutcomeSide;
