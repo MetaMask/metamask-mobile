@@ -126,7 +126,10 @@ import {
 import { useABTest } from '../../../../../../hooks/useABTest';
 import { selectRemoteFeatureFlags } from '../../../../../../selectors/featureFlagController';
 import type { RootState } from '../../../../../../reducers';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  MetaMetricsSwapsEventSource,
+  QuoteStreamCompleteReason,
+} from '@metamask/bridge-controller';
 import { useTrackSwapPageViewed } from '../../../hooks/useTrackSwapPageViewed/index.ts';
 import { BridgeMarketViewFooter } from './BridgeMarketViewFooter.tsx';
 import { getQuoteStreamReasonString } from './BridgeMarketView.utils';
@@ -152,6 +155,7 @@ const BridgeMarketViewContent = ({
   const [isNearBottom, setIsNearBottom] = useState(false);
 
   const { isInOffHoursTrading, isStockMarketClosed } = useStockMarketHours();
+  const wasStockMarketClosedRef = useRef(isStockMarketClosed);
 
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
@@ -461,6 +465,17 @@ const BridgeMarketViewContent = ({
     isSlippageUserOverride,
   ]);
 
+  // Quote stream errors (e.g. RWA_MARKET_UNAVAILABLE) persist until a new
+  // request. Re-fetch when the market-hours clock leaves the fully-closed
+  // window so the error does not stick until the user changes tokens.
+  useEffect(() => {
+    const wasClosed = wasStockMarketClosedRef.current;
+    wasStockMarketClosedRef.current = isStockMarketClosed;
+    if (wasClosed && !isStockMarketClosed && hasValidBridgeInputs) {
+      updateQuoteParams();
+    }
+  }, [isStockMarketClosed, hasValidBridgeInputs, updateQuoteParams]);
+
   useTrackSwapPageViewed(location);
 
   const handleSourceMaxPress = () => {
@@ -517,6 +532,14 @@ const BridgeMarketViewContent = ({
     return 'quote';
   };
   const contentMode = getContentMode();
+  const hideMarketUnavailableQuoteError =
+    isStockMarketClosed &&
+    quoteStreamComplete?.reason ===
+      QuoteStreamCompleteReason.RWA_MARKET_UNAVAILABLE;
+  const showQuoteStreamErrorBanner = Boolean(
+    quoteFetchError ||
+      (quoteStreamComplete?.reason && !hideMarketUnavailableQuoteError),
+  );
   const shouldShowDiscoveryFeed = contentMode === 'zero';
   const hasInteractiveDiscoverySurface =
     shouldShowDiscoveryFeed && discoveryFeedVariant.mode !== 'empty';
@@ -630,7 +653,7 @@ const BridgeMarketViewContent = ({
           </Box>
 
           <Box gap={3} twClassName="mx-4">
-            {quoteStreamComplete?.reason || quoteFetchError
+            {showQuoteStreamErrorBanner
               ? (() => {
                   const quoteStreamErrorBannerStyle = {
                     borderLeftWidth: 4,

@@ -55,6 +55,7 @@ import {
 } from './abTestConfig';
 import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
+import { useStockMarketHours } from '../../hooks/useStockMarketHours';
 
 const SUCCESS_TEXT_PROPS = { color: TextColor.SuccessInverse } as const;
 
@@ -101,11 +102,10 @@ export const SwapsConfirmButton = ({
     ? !!isHardwareAccount(selectedAddress)
     : false;
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
-  // Evaluated at render time. BridgeView's market-hours clock re-renders this
-  // button every minute so the disabled state stays in sync with the banners.
-  const isStockMarketClosed = useSelector((state: RootState) =>
-    selectIsStockMarketClosed(state, Date.now()),
-  );
+  // Own one-minute clock. Parent re-renders are not enough: after quotes
+  // settle the store stops updating, and a memoized button would keep the
+  // last "Market is closed" label until the user changes tokens.
+  const { isStockMarketClosed } = useStockMarketHours();
 
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
