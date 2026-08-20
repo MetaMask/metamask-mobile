@@ -28,10 +28,12 @@ jest.mock('./usePerpsNavigation', () => ({
 }));
 
 const mockSetPerpsMode = jest.fn();
-const mockPerpsModeValue = PerpsMode.Pro;
+let mockPerpsModeValue = PerpsMode.Pro;
 jest.mock('./usePerpsMode', () => ({
   usePerpsMode: jest.fn(() => ({
-    mode: mockPerpsModeValue,
+    get mode() {
+      return mockPerpsModeValue;
+    },
     setMode: mockSetPerpsMode,
   })),
 }));
@@ -80,6 +82,7 @@ describe('usePerpsProMarketHeaderActions', () => {
     jest.clearAllMocks();
     mockCanGoBack = true;
     mockIsWatchlist = false;
+    mockPerpsModeValue = PerpsMode.Pro;
     mockOpenPerpsModeSelectionIfNeeded.mockResolvedValue(false);
   });
 
@@ -142,6 +145,7 @@ describe('usePerpsProMarketHeaderActions', () => {
 
     expect(mockNavigateToMarketListFromHeader).toHaveBeenCalledWith({
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      enableHaptics: true,
     });
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.PERPS_UI_INTERACTION,
@@ -151,6 +155,23 @@ describe('usePerpsProMarketHeaderActions', () => {
         [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
       }),
     );
+  });
+
+  it('omits market-list selection haptics when the header is in Lite mode', () => {
+    mockPerpsModeValue = PerpsMode.Lite;
+
+    const { result } = renderHook(() =>
+      usePerpsProMarketHeaderActions({ symbol: 'BTC' }),
+    );
+
+    act(() => {
+      result.current.handleMarketListPress();
+    });
+
+    expect(mockNavigateToMarketListFromHeader).toHaveBeenCalledWith({
+      source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      enableHaptics: false,
+    });
   });
 
   it('no-ops market list press when symbol is missing', () => {

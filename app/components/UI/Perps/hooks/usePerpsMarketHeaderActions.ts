@@ -108,8 +108,10 @@ export const usePerpsMarketHeaderActions = ({
 
     navigateToMarketListFromHeader({
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      // Selection haptics on list rows are Pro-only; Lite stays silent.
+      enableHaptics: perpsMode === PerpsMode.Pro,
     });
-  }, [symbol, track, navigateToMarketListFromHeader]);
+  }, [symbol, track, navigateToMarketListFromHeader, perpsMode]);
 
   const handleFavoritePress = useCallback(() => {
     if (!symbol) {

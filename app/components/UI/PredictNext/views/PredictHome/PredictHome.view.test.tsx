@@ -9,7 +9,9 @@ import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen
 import type { PredictFeedId } from '../../types';
 import { PredictEventValues } from '../../../Predict/constants/eventNames';
 import {
+  NCAA_GAMES_FEED_ID,
   NCAA_FEED_SCREEN_ID,
+  NFL_GAMES_FEED_ID,
   NFL_FEED_SCREEN_ID,
 } from '../../navigation/feedScreens';
 import {
@@ -123,11 +125,19 @@ describe('PredictHome', () => {
   });
 
   it.each([
-    { feedScreenId: NFL_FEED_SCREEN_ID, selectionLabel: 'NFL' },
-    { feedScreenId: NCAA_FEED_SCREEN_ID, selectionLabel: 'NCAAF' },
+    {
+      feedScreenId: NFL_FEED_SCREEN_ID,
+      feedId: NFL_GAMES_FEED_ID,
+      selectionLabel: 'NFL',
+    },
+    {
+      feedScreenId: NCAA_FEED_SCREEN_ID,
+      feedId: NCAA_GAMES_FEED_ID,
+      selectionLabel: 'NCAAF',
+    },
   ])(
     'opens the $selectionLabel Feed Screen and returns without refetching previews',
-    async ({ feedScreenId, selectionLabel }) => {
+    async ({ feedScreenId, feedId, selectionLabel }) => {
       const view = renderPredictNext();
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
       messengerCall.mockClear();
@@ -140,14 +150,27 @@ describe('PredictHome', () => {
         await view.findByTestId(PredictFeedScreenTestIds.VIEW),
       ).toBeOnTheScreen();
       expect(view.getByText('Sports')).toBeOnTheScreen();
-      expect(view.getByText(selectionLabel)).toBeOnTheScreen();
+      expect(view.getAllByText(selectionLabel)[0]).toBeOnTheScreen();
 
       fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.BACK));
 
       expect(
         await view.findByTestId(PredictHomeTestIds.HOME),
       ).toBeOnTheScreen();
-      expect(messengerCall).not.toHaveBeenCalled();
+      expect(messengerCall).toHaveBeenCalledWith(
+        'PredictMarketDataService:getFeed',
+        'kalshi',
+        feedId,
+        { limit: 20 },
+        undefined,
+      );
+      expect(messengerCall).not.toHaveBeenCalledWith(
+        'PredictMarketDataService:getFeed',
+        'kalshi',
+        feedId,
+        { limit: 2 },
+        undefined,
+      );
     },
   );
 
@@ -180,11 +203,13 @@ describe('PredictHome', () => {
       view.getByTestId(PredictHomeTestIds.sectionLoading(NFL_FEED_SCREEN_ID)),
     ).toBeOnTheScreen();
 
-    resolveNfl({
-      venueId: 'kalshi',
-      id: 'sports-football-nfl-games',
-      title: 'NFL Games',
-      events: nflEvents,
+    await act(async () => {
+      resolveNfl({
+        venueId: 'kalshi',
+        id: 'sports-football-nfl-games',
+        title: 'NFL Games',
+        events: nflEvents,
+      });
     });
     expect(
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
@@ -208,9 +233,11 @@ describe('PredictHome', () => {
     ).not.toBeOnTheScreen();
 
     configurePredictNextFeeds();
-    fireEvent.press(
-      view.getByTestId(PredictHomeTestIds.sectionRetry(NFL_FEED_SCREEN_ID)),
-    );
+    await act(async () => {
+      fireEvent.press(
+        view.getByTestId(PredictHomeTestIds.sectionRetry(NFL_FEED_SCREEN_ID)),
+      );
+    });
     expect(
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
     ).toBeOnTheScreen();

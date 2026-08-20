@@ -21,6 +21,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
+import { useHaptics } from '../../../../../../util/haptics';
 import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
 import { usePerpsProOrdersPreferences } from '../../../hooks/usePerpsProOrdersPreferences';
 import { usePerpsProPositionsPreferences } from '../../../hooks/usePerpsProPositionsPreferences';
@@ -93,6 +94,7 @@ const PerpsProPositionsPanel = ({
   onSelectMarket,
   onHistoryPress,
 }: PerpsProPositionsPanelProps) => {
+  const { playSelection } = useHaptics();
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
   const [isTickerOnly, setIsTickerOnly] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
@@ -109,6 +111,16 @@ const PerpsProPositionsPanel = ({
     setSideFilter: setOrdersSideFilter,
     setSortConfig: setOrderSortConfig,
   } = usePerpsProOrdersPreferences();
+  const handleTickerOnlyChange = useCallback(
+    (nextIsTickerOnly: boolean) => {
+      if (nextIsTickerOnly === isTickerOnly) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setIsTickerOnly(nextIsTickerOnly);
+    },
+    [isTickerOnly, playSelection],
+  );
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000,
     useLivePnl: true,
@@ -388,7 +400,7 @@ const PerpsProPositionsPanel = ({
         ticker: displaySymbol,
       })}
       isSelected={isTickerOnly}
-      onChange={setIsTickerOnly}
+      onChange={handleTickerOnlyChange}
       testID={PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY}
     />
   );

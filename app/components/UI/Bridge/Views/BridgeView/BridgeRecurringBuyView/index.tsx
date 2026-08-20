@@ -15,7 +15,7 @@ import RecurringScheduleFields from '../../../components/RecurringScheduleFields
 import {
   HardwareWalletUnsupportedBanner,
   InsufficientNativeReserveBanner,
-  MissingPriceDataBanner,
+  MissingQuoteAndAssetsPriceDataBanner,
   QuoteErrorBanner,
   SwapsBanners,
   TokenWarningBanner,
@@ -28,6 +28,7 @@ import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { createStyles } from '../orderViewShell.styles';
 import { useRecurringBuyKeypad } from './useRecurringBuyKeypad';
 import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
+import { RECURRING_MOCK_HISTORY_TAB } from './BridgeRecurringBuyView.mockHistory';
 import { RECURRING_MOCK_OPEN_ORDERS_TAB } from './BridgeRecurringBuyView.mockOpenOrders';
 
 interface BridgeRecurringBuyViewContentProps {
@@ -121,7 +122,7 @@ const BridgeRecurringBuyViewContent = ({
             <QuoteErrorBanner />
             <TokenWarningBanner />
             <InsufficientNativeReserveBanner />
-            <MissingPriceDataBanner />
+            <MissingQuoteAndAssetsPriceDataBanner />
           </SwapsBanners>
 
           <RecurringScheduleFields
@@ -133,7 +134,7 @@ const BridgeRecurringBuyViewContent = ({
           <OrdersTabs
             enabledChainIds={enabledChainIds}
             openOrders={RECURRING_MOCK_OPEN_ORDERS_TAB}
-            history={{ items: [] }}
+            history={RECURRING_MOCK_HISTORY_TAB}
           />
         </ScrollView>
 

@@ -8,6 +8,7 @@ import {
   Box,
   FontWeight,
   ListItem,
+  ListItemProps,
   TextColor,
 } from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -25,7 +26,6 @@ function OpenOrderRow({
   titleEndAccessory,
   primaryColor = TextColor.TextDefault,
   subtitleColor = TextColor.TextAlternative,
-  subtitleFontWeight = FontWeight.Regular,
   onPress,
   testID = OpenOrderRowSelectorsIDs.CONTAINER,
 }: OpenOrderRowProps) {
@@ -63,7 +63,11 @@ function OpenOrderRow({
       </BadgeWrapper>
     ),
     title,
-    titleProps: { color: titleColor, testID: OpenOrderRowSelectorsIDs.TITLE },
+    titleProps: {
+      color: titleColor,
+      fontWeight: FontWeight.Medium,
+      testID: OpenOrderRowSelectorsIDs.TITLE,
+    },
     titleEndAccessory: titleEndAccessory ? (
       <Box testID={OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY}>
         {titleEndAccessory}
@@ -72,17 +76,21 @@ function OpenOrderRow({
     description: subtitle,
     descriptionProps: {
       color: subtitleColor,
-      fontWeight: subtitleFontWeight,
+      fontWeight: FontWeight.Medium,
       testID: OpenOrderRowSelectorsIDs.SUBTITLE,
     },
     value: primaryValue,
     valueProps: {
       color: primaryColor,
       testID: OpenOrderRowSelectorsIDs.PRIMARY,
+      fontWeight: FontWeight.Medium,
     },
     subvalue: secondaryValue,
-    subvalueProps: { testID: OpenOrderRowSelectorsIDs.SECONDARY },
-  };
+    subvalueProps: {
+      testID: OpenOrderRowSelectorsIDs.SECONDARY,
+      fontWeight: FontWeight.Medium,
+    },
+  } satisfies ListItemProps;
 
   if (onPress) {
     return (
