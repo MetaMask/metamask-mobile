@@ -633,13 +633,11 @@ async function handleUniversalLink({
       }
 
       // For public/private links, pass pageTitle and onContinue.
-      // PUBLIC always shows the modal; PRIVATE only when the user has not
-      // disabled it. When it will show, end the Processed `before_gate`
-      // segment now — the user's dwell on the modal is not app work.
       if (
         linkInstanceType === DeepLinkModalLinkType.PUBLIC ||
         !interstitialDisabled
       ) {
+        // Stop the Deeplink Processed span here; time on the modal is not app work.
         markDeeplinkInterstitialShown();
       }
       const modalParams: DeepLinkModalParams = {

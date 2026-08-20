@@ -73,10 +73,9 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
       lastHandledDeeplinkAt = now;
 
       AppStateEventProcessor.setCurrentDeeplink(uri, source);
-      // Already-unlocked links start Navigated at intake so the saga waits
-      // (SDK warm-up, navigator-ready) the user sits through are measured.
-      // On a cold start the app is still locked here — unlock submit starts
-      // the span instead, excluding the password dwell.
+      // Start the Navigated clock only if the wallet is already unlocked.
+      // If it is locked, this function returns without starting anything;
+      // the Login screen starts the clock when the user confirms unlock.
       if (ReduxService.store.getState().user.userLoggedIn) {
         startDeeplinkNavigatedTrace({
           url: uri,
@@ -84,6 +83,7 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
           appStartType: 'warm',
         });
       }
+
       if (
         ReduxService.store.getState().security.dataCollectionForMarketing ===
         true
