@@ -54,13 +54,17 @@ const createEmptySpecialAssetsMap = (): TronSpecialAssetsMap => ({
 });
 
 interface Resource {
+  assetId: string;
   symbol: string;
-  balance: number | string;
+  balance: string;
+  fiat: undefined;
 }
 
 const res = (symbol: string, balance: number | string): Resource => ({
+  assetId: symbol,
   symbol,
-  balance,
+  balance: String(balance),
+  fiat: undefined,
 });
 
 const ResourceRingMock = jest.mocked(ResourceRing);
