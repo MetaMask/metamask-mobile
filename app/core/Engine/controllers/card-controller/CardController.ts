@@ -51,6 +51,7 @@ import {
   type CashbackWithdrawEstimationResponse,
   type CashbackWithdrawParams,
   type CashbackWithdrawResponse,
+  type CardTransactionDetails,
   type CardTransactionListParams,
   type CardTransactionPage,
   type CreditWalletResponse,
@@ -2238,5 +2239,24 @@ export class CardController extends BaseController<
       );
     }
     return this.#withAuthRetry((tokens) => listTransactions(params, tokens));
+  }
+
+  async getCardTransaction(id: string): Promise<CardTransactionDetails> {
+    const provider = this.getActiveProvider();
+    const getTransaction = provider.getTransaction?.bind(provider);
+    if (getTransaction) {
+      return this.#withAuthRetry((tokens) => getTransaction(id, tokens));
+    }
+
+    const page = await this.listTransactions({ limit: 50 });
+    const match = page.items.find((tx) => tx.id === id);
+    if (!match) {
+      throw new CardProviderError(
+        CardProviderErrorCode.NotFound,
+        `Transaction not found: ${id}`,
+        404,
+      );
+    }
+    return match;
   }
 }
