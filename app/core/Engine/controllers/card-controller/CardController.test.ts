@@ -4399,12 +4399,11 @@ describe('CardController — data pass-throughs', () => {
 
       const result = await controller.listTransactions({
         cursor: 'cursor-0',
-        searchQuery: 'uber',
       });
 
       expect(result).toStrictEqual(page);
       expect(mockList).toHaveBeenCalledWith(
-        { cursor: 'cursor-0', searchQuery: 'uber' },
+        { cursor: 'cursor-0' },
         mockTokenSet,
       );
     });
