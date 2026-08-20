@@ -99,6 +99,8 @@ describe('handleDeeplink', () => {
       security: { dataCollectionForMarketing: true },
       user: { userLoggedIn: false },
     });
+    mockBuild.mockReturnValue({ event: 'mocked' });
+    mockAddProperties.mockReturnValue({ build: mockBuild });
   });
 
   it('processes valid URI and dispatch checkForDeeplink', () => {
