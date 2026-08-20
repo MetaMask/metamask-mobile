@@ -1,5 +1,6 @@
 import {
   ConfirmationRowComponentIDs,
+  PayWithBottomSheetIDs,
   TransactionPayComponentIDs,
 } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
@@ -27,6 +28,43 @@ export function getKeypadKeyTestId(key: string): string {
 class TransactionPayConfirmation {
   get bridgeTime(): EncapsulatedElementType {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.BRIDGE_TIME);
+  }
+
+  get keypad(): EncapsulatedElementType {
+    return Matchers.getElementByID(TransactionPayComponentIDs.KEYPAD);
+  }
+
+  async expectKeyboardLoaded(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.keypad, {
+      description: 'Deposit keyboard is visible',
+      timeout: 15000,
+    });
+  }
+
+  async expectPayWithRowLoaded(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.payWithRow, {
+      description: 'Pay with row should finish loading',
+      timeout: 15000,
+    });
+  }
+
+  async focusAmountInput(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.keypad, {
+      description: 'Deposit keyboard is visible before typing amount',
+    });
+    await Gestures.waitAndTap(this.keypad, {
+      elemDescription: 'Focus amount via deposit keyboard container',
+      checkEnabled: false,
+      checkVisibility: false,
+    });
+  }
+
+  async typeAmount(amount: string): Promise<void> {
+    await this.tapKeyboardAmount(amount);
+  }
+
+  async tapContinue(): Promise<void> {
+    await this.tapKeyboardContinueButton();
   }
 
   get keyboardContainer(): EncapsulatedElementType {
@@ -155,6 +193,18 @@ class TransactionPayConfirmation {
   async tapPayWithRow(): Promise<void> {
     await Gestures.waitAndTap(this.payWithRow, {
       elemDescription: 'Pay With Row',
+    });
+  }
+
+  get preferredPayTokenRow(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      PayWithBottomSheetIDs.CRYPTO_PREFERRED_TOKEN_ROW,
+    );
+  }
+
+  async tapPreferredPayToken(): Promise<void> {
+    await Gestures.waitAndTap(this.preferredPayTokenRow, {
+      elemDescription: 'Preferred pay token row',
     });
   }
 

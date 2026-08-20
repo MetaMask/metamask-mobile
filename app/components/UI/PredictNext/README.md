@@ -70,13 +70,16 @@ PredictNext has four conceptual layers:
 3. **Product services** own caching, workflow state, retry/reconciliation policy, and coordination.
 4. **Venue adapters** translate canonical operations to a Venue or the MetaMask Predict backend.
 
-These are boundaries, not a requirement to create every possible directory or module up front. See [docs/architecture.md](./docs/architecture.md).
+These are boundaries, not a requirement to create every possible directory or module up front. Product UI uses feature/domain-first ownership, while cross-feature architectural layers keep their established boundaries. See [docs/architecture.md](./docs/architecture.md) and [docs/module-structure.md](./docs/module-structure.md).
 
 ## Documentation
 
 - [`AGENTS.md`](./AGENTS.md) — instructions for coding agents and contributors.
 - [`CONTEXT.md`](./CONTEXT.md) — canonical product language.
 - [`docs/architecture.md`](./docs/architecture.md) — stable architecture boundaries and data flows.
+- [`docs/canonical-read-model-and-api.md`](./docs/canonical-read-model-and-api.md) — agreed working direction for public read types, relationships, and REST routes.
+- [`docs/ui-components.md`](./docs/ui-components.md) — composition rules for complex PredictNext UI components.
+- [`docs/module-structure.md`](./docs/module-structure.md) — directory ownership, public module APIs, and internal boundaries.
 - [`docs/venue-adapters.md`](./docs/venue-adapters.md) — capability adapter rules.
 - [`docs/remote-adapters.md`](./docs/remote-adapters.md) — remote trust and transport rules.
 - [`docs/agents/issue-tracker.md`](./docs/agents/issue-tracker.md) — Predict Jira conventions.

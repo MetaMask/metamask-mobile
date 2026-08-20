@@ -45,6 +45,7 @@ import { usePredictBuyActions } from './hooks/usePredictBuyActions';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
+import { usePredictMaxBetAmount } from '../../hooks/usePredictMaxBetAmount';
 
 import {
   selectPredictFakOrdersEnabledFlag,
@@ -156,17 +157,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     [market, outcomeToken, entryPoint, predictFeedTab, predictScreen],
   );
 
-  const { availableBalance, isBalanceLoading } =
+  const { availableBalance, isBalanceLoading, isPredictBalanceSelected } =
     usePredictBuyAvailableBalance();
-
-  const availableBalanceDisplay = useMemo(
-    () =>
-      formatPrice(availableBalance, {
-        minimumDecimals: 2,
-        maximumDecimals: 2,
-      }),
-    [availableBalance],
-  );
 
   const {
     currentValue,
@@ -210,6 +202,25 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     size: currentValue,
     autoRefreshTimeout: 1000,
   });
+
+  const { maxBetAmount, isLoading: isMaxBetAmountLoading } =
+    usePredictMaxBetAmount({
+      availableBalance,
+      marketId: market.id,
+      outcomeId: outcome.id,
+      outcomeTokenId: outcomeToken.id,
+      preview,
+      enabled: isPredictBalanceSelected,
+    });
+  const availableBalanceDisplay = useMemo(
+    () =>
+      formatPrice(maxBetAmount, {
+        minimumDecimals: 2,
+        maximumDecimals: 2,
+      }),
+    [maxBetAmount],
+  );
+  const isAvailableBalanceLoading = isBalanceLoading || isMaxBetAmountLoading;
 
   const {
     toWin,
@@ -504,7 +515,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             currentValueUSDString={currentValueUSDString}
             keypadRef={keypadRef}
             isKeypadOpen={isKeypadOpen}
-            isBalanceLoading={isBalanceLoading}
+            isBalanceLoading={isAvailableBalanceLoading}
             isBalancePulsing={isBalancePulsing}
             availableBalanceDisplay={availableBalanceDisplay}
             toWin={toWin}
@@ -529,7 +540,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
               currentValueUSDString={currentValueUSDString}
               keypadRef={keypadRef}
               isKeypadOpen={isKeypadOpen}
-              isBalanceLoading={isBalanceLoading}
+              isBalanceLoading={isAvailableBalanceLoading}
               isBalancePulsing={isBalancePulsing}
               availableBalanceDisplay={availableBalanceDisplay}
               toWin={toWin}
@@ -574,7 +585,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             <PredictPayWithRow
               disabled={isPlacingOrder || isPaymentSelectorNavigationLocked}
               variant="row"
-              availableBalance={availableBalanceDisplay}
+              availableBalance={
+                isAvailableBalanceLoading ? undefined : availableBalanceDisplay
+              }
               onPaymentSelectorOpen={lockPaymentSelectorNavigation}
             />
           )}

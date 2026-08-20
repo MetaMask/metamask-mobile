@@ -415,6 +415,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   HEADER: 'perps-market-header',
   MARKET_SUMMARY: 'perps-market-details-market-summary',
   FULLSCREEN_CHART_BUTTON: 'perps-market-details-fullscreen-chart-button',
+  CHART_EDGE_GUARD: 'perps-market-details-chart-edge-guard',
   STATISTICS_HIGH_24H: 'perps-statistics-high-24h',
   STATISTICS_LOW_24H: 'perps-statistics-low-24h',
   STATISTICS_VOLUME_24H: 'perps-statistics-volume-24h',
@@ -860,6 +861,12 @@ export const PerpsOrderTypeBottomSheetSelectorsIDs = {
   CLOSE_BUTTON: 'perps-order-type-bottom-sheet-close',
   MARKET_OPTION: 'perps-order-type-market',
   LIMIT_OPTION: 'perps-order-type-limit',
+  STOP_LIMIT_OPTION: 'perps-order-type-stop-limit',
+  STOP_MARKET_OPTION: 'perps-order-type-stop-market',
+  TAKE_PROFIT_LIMIT_OPTION: 'perps-order-type-take-profit-limit',
+  TAKE_PROFIT_MARKET_OPTION: 'perps-order-type-take-profit-market',
+  BASIC_SECTION_HEADER: 'perps-order-type-basic-section-header',
+  TRIGGERED_SECTION_HEADER: 'perps-order-type-triggered-section-header',
 } as const;
 
 export const PerpsMarginModeBottomSheetSelectorsIDs = {

@@ -118,6 +118,7 @@ import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
 import { getNeoBankServiceMessenger } from './neo-bank-service-messenger/neo-bank-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
+import { getNetworkConnectionBannerControllerMessenger } from './network-connection-banner-controller-messenger';
 import { getConfigRegistryControllerMessenger } from './config-registry-controller-messenger';
 import {
   getMultichainRoutingServiceInitMessenger,
@@ -176,6 +177,10 @@ export const MESSENGER_FACTORIES = {
   },
   ConfigRegistryController: {
     getMessenger: getConfigRegistryControllerMessenger,
+    getInitMessenger: noop,
+  },
+  NetworkConnectionBannerController: {
+    getMessenger: getNetworkConnectionBannerControllerMessenger,
     getInitMessenger: noop,
   },
   ConfigRegistryApiService: {

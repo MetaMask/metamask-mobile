@@ -278,4 +278,58 @@ export default class Matchers {
   ): Promise<PlaywrightElement> {
     return PlaywrightMatchers.getElementByXPath(xpath, options);
   }
+
+  /**
+   * Lazy native XPath — re-queries on each poll (needed when iOS FlatList /
+   * keyboard leaves a fixed $$ match displayed:false).
+   */
+  static getLazyElementByNativeXPath(
+    xpath: string,
+  ): Promise<PlaywrightElement> {
+    return PlaywrightMatchers.getLazyElementByXPath(xpath);
+  }
+
+  static getElementByIOSPredicate(
+    predicate: string,
+  ): Promise<PlaywrightElement> {
+    return PlaywrightMatchers.getElementByIOSPredicate(predicate);
+  }
+
+  static getElementByAndroidUIAutomator(
+    selector: string,
+    options?: Parameters<
+      typeof PlaywrightMatchers.getElementByAndroidUIAutomator
+    >[1],
+  ): Promise<PlaywrightElement> {
+    return PlaywrightMatchers.getElementByAndroidUIAutomator(selector, options);
+  }
+
+  /**
+   * Counts native elements matching text via a single snapshot (Appium).
+   * Returns 0 when absent so callers can fast-fail instead of polling.
+   */
+  static countElementsByText(
+    text: string,
+    exactMatch = false,
+  ): Promise<number> {
+    return PlaywrightMatchers.countElementsByText(text, exactMatch);
+  }
+
+  /**
+   * Native iOS name locator (Appium).
+   */
+  static getElementByNameiOS(
+    name: string,
+    lazy = false,
+  ): Promise<PlaywrightElement> {
+    return PlaywrightMatchers.getElementByNameiOS(name, lazy);
+  }
+
+  /**
+   * Exact text match (Appium). Prefer over getElementByText when the label
+   * must not be a substring of another control.
+   */
+  static getElementByExactText(text: string): EncapsulatedElementType {
+    return PlaywrightMatchers.getElementByText(text, true);
+  }
 }

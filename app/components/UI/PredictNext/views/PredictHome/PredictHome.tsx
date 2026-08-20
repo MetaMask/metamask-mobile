@@ -1,35 +1,86 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { FlashList, type ListRenderItemInfo } from '@shopify/flash-list';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useCallback } from 'react';
+import { ScrollView } from 'react-native';
 import {
-  Box,
-  Button,
-  ButtonVariant,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import { useEventList } from '../../hooks/useEventList';
-import { useVenueStatus } from '../../hooks/useVenueStatus';
-import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
-import { EventCardContent } from '../../components/EventCard/EventCardContent';
-import type { PredictNextStackParamList } from '../../navigation/types';
+  type RouteProp,
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
+import { useFeed } from '../../hooks/useFeed';
+import {
+  FEED_SCREENS,
+  NCAA_FEED_SCREEN_ID,
+  NFL_FEED_SCREEN_ID,
+  getFeedScreenTab,
+  type FeedScreenId,
+} from '../../navigation/feedScreens';
 import { PredictNextRoutes } from '../../navigation/routes';
+import type { PredictNextStackParamList } from '../../navigation/types';
+import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
+import Engine from '../../../../../core/Engine';
+import { TraceName } from '../../../../../util/trace';
+import { FeedPreviewSection } from './internal/FeedPreviewSection';
+import { PredictHomeTestIds } from './PredictHome.testIds';
 
-const PAGE_SIZE = 20;
+const PREVIEW_LIMIT = 2;
+const NFL_GAMES_FEED_ID = getFeedScreenTab(
+  FEED_SCREENS[NFL_FEED_SCREEN_ID],
+).feedId;
+const NCAA_GAMES_FEED_ID = getFeedScreenTab(
+  FEED_SCREENS[NCAA_FEED_SCREEN_ID],
+).feedId;
 
 export const PredictHome = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
-  const statusQuery = useVenueStatus(KALSHI_VENUE_ID);
-  const eventsQuery = useEventList(KALSHI_VENUE_ID, { limit: PAGE_SIZE });
-  const endReached = useRef(false);
-  const [paginationError, setPaginationError] = useState(false);
-  const events = useMemo(
-    () => eventsQuery.data?.pages.flatMap((page) => page.items) ?? [],
-    [eventsQuery.data],
+  const route =
+    useRoute<RouteProp<PredictNextStackParamList, 'PredictNextHome'>>();
+  const entryPoint = route.params?.entryPoint;
+  const nflQuery = useFeed(KALSHI_VENUE_ID, NFL_GAMES_FEED_ID, {
+    limit: PREVIEW_LIMIT,
+  });
+  const ncaaQuery = useFeed(KALSHI_VENUE_ID, NCAA_GAMES_FEED_ID, {
+    limit: PREVIEW_LIMIT,
+  });
+  const nflEvents =
+    nflQuery.data?.pages[0]?.events.slice(0, PREVIEW_LIMIT) ?? [];
+  const ncaaEvents =
+    ncaaQuery.data?.pages[0]?.events.slice(0, PREVIEW_LIMIT) ?? [];
+
+  usePredictNextMeasurement({
+    traceName: TraceName.PredictNextHomeView,
+    conditions: [!nflQuery.isLoading, !ncaaQuery.isLoading],
+    debugContext: {
+      nflEventCount: nflEvents.length,
+      nflError: nflQuery.isError,
+      ncaaEventCount: ncaaEvents.length,
+      ncaaError: ncaaQuery.isError,
+    },
+  });
+
+  useFocusEffect(
+    useCallback(() => {
+      Engine.context.PredictController.trackHomeViewed({ entryPoint });
+
+      return () => {
+        if (entryPoint) {
+          navigation.setParams({ entryPoint: undefined });
+        }
+      };
+    }, [entryPoint, navigation]),
   );
 
+  const openFeedScreen = useCallback(
+    (feedScreenId: FeedScreenId) =>
+      navigation.navigate(PredictNextRoutes.FEED, {
+        venueId: KALSHI_VENUE_ID,
+        feedScreenId,
+      }),
+    [navigation],
+  );
   const openEvent = useCallback(
     (event: PredictEvent) =>
       navigation.navigate(PredictNextRoutes.EVENT_DETAIL, {
@@ -39,91 +90,34 @@ export const PredictHome = () => {
       }),
     [navigation],
   );
-  const renderEvent = useCallback(
-    ({ item }: ListRenderItemInfo<PredictEvent>) => (
-      <EventCardContent event={item} onPress={() => openEvent(item)} />
-    ),
-    [openEvent],
-  );
-  const retryAll = () => {
-    statusQuery.refetch();
-    eventsQuery.refetch();
-  };
-  const loadNextPage = () => {
-    if (
-      !endReached.current &&
-      eventsQuery.hasNextPage &&
-      !eventsQuery.isFetchingNextPage
-    ) {
-      endReached.current = true;
-      eventsQuery
-        .fetchNextPage()
-        .then((result) => setPaginationError(result.isError))
-        .catch(() => setPaginationError(true))
-        .finally(() => {
-          endReached.current = false;
-        });
-    }
-  };
-
-  let blockingContent: React.ReactNode;
-  if (eventsQuery.isLoading) {
-    blockingContent = (
-      <Box testID="predict-next-loading" twClassName="gap-4 p-4">
-        <Box twClassName="h-32 rounded-xl bg-muted" />
-        <Box twClassName="h-32 rounded-xl bg-muted" />
-      </Box>
-    );
-  } else if (events.length === 0 && eventsQuery.isError) {
-    blockingContent = (
-      <Box testID="predict-next-error" twClassName="items-center gap-4 p-8">
-        <Text>Predictions could not be loaded.</Text>
-        <Button onPress={retryAll}>Retry</Button>
-      </Box>
-    );
-  } else if (events.length === 0) {
-    blockingContent = (
-      <Box testID="predict-next-empty" twClassName="items-center gap-4 p-8">
-        <Text>
-          {statusQuery.data?.status === 'unavailable'
-            ? 'Predictions are unavailable.'
-            : 'No predictions yet.'}
-        </Text>
-        {statusQuery.data?.status === 'unavailable' ? (
-          <Button onPress={retryAll}>Retry</Button>
-        ) : null}
-      </Box>
-    );
-  }
 
   return (
-    <Box twClassName="flex-1 pt-12" testID="predict-next-home">
-      <Box twClassName="px-4 pb-2">
-        <Text variant={TextVariant.HeadingLg}>Predictions</Text>
-      </Box>
-      {blockingContent ?? (
-        <FlashList
-          testID="predict-next-event-feed"
-          data={events}
-          renderItem={renderEvent}
-          keyExtractor={(event) => `${event.venueId}:${event.id}`}
-          onEndReached={loadNextPage}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={
-            eventsQuery.isFetchingNextPage ? (
-              <Text testID="predict-next-footer-loading">Loading…</Text>
-            ) : paginationError ? (
-              <Button
-                testID="predict-next-footer-retry"
-                variant={ButtonVariant.Tertiary}
-                onPress={loadNextPage}
-              >
-                Retry
-              </Button>
-            ) : null
-          }
-        />
-      )}
+    <Box twClassName="flex-1 pt-12" testID={PredictHomeTestIds.HOME}>
+      <ScrollView testID={PredictHomeTestIds.SCROLL}>
+        <Box twClassName="gap-6 px-4 pb-8">
+          <Text variant={TextVariant.HeadingLg}>Predictions</Text>
+          <FeedPreviewSection
+            feedScreenId={NFL_FEED_SCREEN_ID}
+            title={FEED_SCREENS[NFL_FEED_SCREEN_ID].selectionLabel}
+            events={nflEvents}
+            isLoading={nflQuery.isLoading}
+            isError={nflQuery.isError}
+            onOpen={() => openFeedScreen(NFL_FEED_SCREEN_ID)}
+            onOpenEvent={openEvent}
+            onRetry={() => nflQuery.refetch()}
+          />
+          <FeedPreviewSection
+            feedScreenId={NCAA_FEED_SCREEN_ID}
+            title={FEED_SCREENS[NCAA_FEED_SCREEN_ID].selectionLabel}
+            events={ncaaEvents}
+            isLoading={ncaaQuery.isLoading}
+            isError={ncaaQuery.isError}
+            onOpen={() => openFeedScreen(NCAA_FEED_SCREEN_ID)}
+            onOpenEvent={openEvent}
+            onRetry={() => ncaaQuery.refetch()}
+          />
+        </Box>
+      </ScrollView>
     </Box>
   );
 };

@@ -94,6 +94,7 @@ import type { MarketInsightsRouteParams } from '../../components/UI/MarketInsigh
 import type { MoreTokenActionsMenuParams } from '../../components/UI/TokenDetails/components/MoreTokenActionsMenu';
 import type { SecurityBadgeBottomSheetParams } from '../../components/UI/TokenDetails/components/SecurityBadgeBottomSheet';
 import type { MAPickerSheetParams } from '../../components/UI/Charts/AdvancedChart/MAPickerSheet';
+import type { FeatureNotificationsGateSheetParams } from '../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGateSheet';
 import type { AgenticCliApprovalParams } from '../../components/Views/AgenticCliApproval/types';
 import type { AgenticCliDashboardWebviewParams } from '../../components/Views/AgenticCliDashboardWebview/types';
 import type { MoneyDeeplinkModalParams } from '../../components/UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
@@ -162,7 +163,6 @@ import type {
 // Account status params
 import type { AccountStatusParams } from '../../components/Views/AccountStatus/types';
 import type { WalletCreationErrorParams } from '../../components/Views/WalletCreationError';
-import type { TraceContext } from '../../util/trace';
 
 // Add asset params
 import type { AddAssetParams } from '../../components/Views/AddAsset/AddAsset';
@@ -320,7 +320,6 @@ type SocialLoginRouteParams = AccountStatusParams & {
 /** Import SRP screen params from onboarding entry points. */
 interface ImportFromSecretRecoveryPhraseParams {
   previous_screen?: string;
-  onboardingTraceCtx?: TraceContext;
   initialStep?: number;
   qrSyncImport?: boolean;
 }
@@ -412,6 +411,7 @@ export type RootModalFlowParamList = {
   SDKConnectV2Otp: SDKConnectV2OtpModalParams;
   SDKManageConnections: SDKManageConnectionsParams | undefined;
   ExperienceEnhancer: undefined;
+  FeatureNotificationsGate: FeatureNotificationsGateSheetParams;
   DataCollection: undefined;
   SDKDisconnect: SDKDisconnectParams | undefined;
   AccountConnect: AccountConnectParams | undefined;
@@ -859,9 +859,9 @@ export type RootStackParamList = {
     | NavigatorScreenParams<WalletTabStackParamList>
     | undefined;
   WalletConnectSessionsView: undefined;
-  DeFiFullView: undefined;
+  DeFiFullView: { source?: string } | undefined;
   NftFullView: undefined;
-  TokensFullView: undefined;
+  TokensFullView: { source?: string } | undefined;
   CashTokensFullView: undefined;
   WatchlistFullView: undefined;
 
@@ -1037,6 +1037,10 @@ export type RootStackParamList = {
     | undefined;
   ConfirmationPayWithNetworkModal: undefined;
   SmartAccountOptIn: undefined;
+  ProSubscription: { source?: string; initialPlan?: string } | undefined;
+  ProHub: { source?: string } | undefined;
+  ProHubMembership: undefined;
+  ProHubCancelMembership: undefined;
 
   // Notification routes
   NotificationsView: undefined;
