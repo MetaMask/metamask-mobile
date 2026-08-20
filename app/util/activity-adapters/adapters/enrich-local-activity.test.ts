@@ -68,7 +68,7 @@ describe('local activity call-site mapping', () => {
     });
   });
 
-  it('maps incomplete swaps to swapIncomplete when the destination token is missing', () => {
+  it('keeps incomplete swaps as swap when the destination token is missing', () => {
     const item = mapLocalActivity(
       buildGroup(
         { type: TransactionType.swap },
@@ -81,7 +81,12 @@ describe('local activity call-site mapping', () => {
       ),
     );
 
-    expect(item.type).toBe('swapIncomplete');
+    expect(item.type).toBe('swap');
+    expect(item.data).toEqual(
+      expect.objectContaining({
+        sourceToken: { direction: 'out', symbol: 'ETH' },
+      }),
+    );
   });
 
   it('keeps staking deposits as stake for mobile activity kinds', () => {
