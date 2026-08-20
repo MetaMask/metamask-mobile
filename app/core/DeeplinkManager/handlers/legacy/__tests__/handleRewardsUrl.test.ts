@@ -164,6 +164,16 @@ describe('handleRewardsUrl', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
     });
 
+    it('dispatches pending deeplink and navigates to rewards view with campaign=money param', async () => {
+      await handleRewardsUrl({ rewardsPath: '?campaign=money' });
+
+      expect(setPendingDeeplink).toHaveBeenCalledWith({
+        page: undefined,
+        campaign: 'money',
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
+    });
+
     it('dispatches pending deeplink and navigates to rewards view with page=musd param', async () => {
       await handleRewardsUrl({ rewardsPath: '?page=musd' });
 
