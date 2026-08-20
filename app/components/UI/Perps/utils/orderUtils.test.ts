@@ -16,6 +16,9 @@ import {
   willFlipPosition,
   determineMakerStatus,
   isPriceOutsideDeviationBand,
+  getOrderPriceRowVisibility,
+  getValidPerpsPrice,
+  resolvePerpsTransactionOrderType,
 } from './orderUtils';
 import { Order, OrderParams } from '@metamask/perps-controller';
 import { Position } from '../hooks';
@@ -28,6 +31,52 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 }));
 
 describe('orderUtils', () => {
+  describe('transaction order price rows', () => {
+    it.each([
+      ['market', false, false],
+      ['limit', false, true],
+      ['stop_market', true, false],
+      ['stop_limit', true, true],
+      ['take_profit_market', true, false],
+      ['take_profit_limit', true, true],
+    ] as const)(
+      'maps %s to trigger-price=%s and limit-price=%s',
+      (orderType, showTriggerPrice, showLimitPrice) => {
+        const result = getOrderPriceRowVisibility(orderType);
+
+        expect(result).toEqual({ showTriggerPrice, showLimitPrice });
+      },
+    );
+
+    it('resolves a legacy stop-market transaction from its detailed order type', () => {
+      const result = resolvePerpsTransactionOrderType({
+        type: 'market',
+        detailedOrderType: 'Stop Market',
+      });
+
+      expect(result).toBe('stop_market');
+    });
+
+    it('keeps a normalized order type when transaction data provides one', () => {
+      const result = resolvePerpsTransactionOrderType({
+        type: 'market',
+        orderType: 'take_profit_limit',
+        detailedOrderType: 'Take Profit Market',
+      });
+
+      expect(result).toBe('take_profit_limit');
+    });
+
+    it.each([undefined, null, '', '0', 'not-a-price'] as const)(
+      'returns null for a missing or invalid price value %s',
+      (price) => {
+        const result = getValidPerpsPrice(price);
+
+        expect(result).toBeNull();
+      },
+    );
+  });
+
   describe('formatOrderLabel', () => {
     it('should format opening long market order', () => {
       const order: Order = {
