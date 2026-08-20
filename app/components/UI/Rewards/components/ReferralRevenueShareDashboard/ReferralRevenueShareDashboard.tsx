@@ -1438,7 +1438,7 @@ const ReferralRevenueShareDashboard = ({
       >
         {!showPerformance ? (
           <>
-            <Box twClassName="items-center px-4 -mt-2 gap-5">
+            <Box twClassName="items-center px-4 -mt-2 gap-3">
               <Image
                 source={referralShareHero}
                 resizeMode="contain"
