@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -37,6 +38,24 @@ const CancelMembership = () => {
       source: 'pro_subscription_cancellation_success',
     });
   }, [navigation]);
+
+  // On the success step, the membership is already cancelled, so Android's
+  // hardware back button must behave like "Done" instead of popping this
+  // screen and revealing a stale `Membership` screen. `gestureEnabled: false`
+  // on the navigator only blocks the iOS swipe gesture, not Android back.
+  useEffect(() => {
+    if (step !== 'success') {
+      return undefined;
+    }
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        handleDone();
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [step, handleDone]);
 
   return (
     <SafeAreaView

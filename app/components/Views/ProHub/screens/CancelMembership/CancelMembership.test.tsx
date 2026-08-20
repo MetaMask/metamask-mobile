@@ -1,4 +1,5 @@
 import React from 'react';
+import { BackHandler } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import CancelMembership from './CancelMembership';
 import { CancelMembershipTestIds } from './CancelMembership.testIds';
@@ -86,6 +87,73 @@ describe('CancelMembership', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
       source: 'pro_subscription_cancellation_success',
+    });
+  });
+
+  // ── Android hardware back button ──────────────────────────────────────────
+
+  describe('Android hardware back button', () => {
+    it('does not register a BackHandler listener on the survey step', () => {
+      const addSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      renderScreen();
+
+      expect(addSpy).not.toHaveBeenCalled();
+
+      addSpy.mockRestore();
+    });
+
+    it('registers a BackHandler listener once the success step is reached', () => {
+      const addSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      const { getByTestId } = renderScreen();
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      expect(addSpy).toHaveBeenCalledWith(
+        'hardwareBackPress',
+        expect.any(Function),
+      );
+
+      addSpy.mockRestore();
+    });
+
+    it('behaves like pressing Done (navigates to ProHub root) instead of popping the screen', () => {
+      let backPressHandler: (() => boolean) | undefined;
+      jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockImplementation((_event, handler) => {
+          backPressHandler = handler as () => boolean;
+          return { remove: jest.fn() };
+        });
+
+      const { getByTestId } = renderScreen();
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      expect(backPressHandler).toBeDefined();
+      const handled = backPressHandler?.();
+
+      expect(handled).toBe(true);
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+        source: 'pro_subscription_cancellation_success',
+      });
+
+      jest.restoreAllMocks();
+    });
+
+    it('removes the BackHandler listener on unmount so it cannot leak into other screens', () => {
+      const mockRemove = jest.fn();
+      jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockReturnValue({ remove: mockRemove });
+
+      const { getByTestId, unmount } = renderScreen();
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+      unmount();
+
+      expect(mockRemove).toHaveBeenCalled();
+
+      jest.restoreAllMocks();
     });
   });
 });
