@@ -22,6 +22,7 @@ import {
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
+import { selectNativeCurrencyByChainId } from '../../../selectors/networkController';
 import { useTokensData } from '../../hooks/useTokensData/useTokensData';
 
 const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
@@ -161,6 +162,11 @@ jest.mock('../../../selectors/tokenRatesController', () => ({
   selectTokenMarketData: jest.fn(
     (state) => state.engine.backgroundState.TokenRatesController.marketData,
   ),
+}));
+
+jest.mock('../../../selectors/networkController', () => ({
+  ...jest.requireActual('../../../selectors/networkController'),
+  selectNativeCurrencyByChainId: jest.fn(() => 'ETH'),
 }));
 
 jest.mock('../../hooks/useTokensData/useTokensData', () => ({
@@ -462,6 +468,7 @@ beforeEach(() => {
   jest.mocked(selectContractExchangeRatesByChainId).mockReturnValue({
     [LINEA_MUSD_ADDRESS]: { price: 0.0004 },
   } as unknown as ReturnType<typeof selectContractExchangeRatesByChainId>);
+  jest.mocked(selectNativeCurrencyByChainId).mockReturnValue('ETH');
 });
 
 // ---------------------------------------------------------------------------
@@ -1952,6 +1959,41 @@ describe('ActivityListItemRow — amount display', () => {
 
     expect(getByText('+30 mUSD')).toBeOnTheScreen();
     expect(queryByText('+0.00003 mUSD')).toBeNull();
+  });
+
+  it('renders fiat for native ETH without an assetId when the symbol matches the chain ticker', () => {
+    const item = makeItem({
+      status: 'success',
+      token: {
+        amount: '20970000000000',
+        decimals: 18,
+        symbol: 'ETH',
+        direction: 'out',
+      },
+    });
+
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('-0.00002097 ETH')).toBeOnTheScreen();
+    expect(getByText('-$0.05')).toBeOnTheScreen();
+  });
+
+  it('renders fiat for native ETH identified by the zero-address CAIP asset id', () => {
+    const item = makeItem({
+      status: 'success',
+      token: {
+        amount: '20970000000000',
+        decimals: 18,
+        symbol: 'ETH',
+        assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+        direction: 'out',
+      },
+    });
+
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('-0.00002097 ETH')).toBeOnTheScreen();
+    expect(getByText('-$0.05')).toBeOnTheScreen();
   });
 
   it('does not render fiat when token market data is unavailable', () => {

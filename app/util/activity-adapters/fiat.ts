@@ -117,6 +117,9 @@ export function getTokenAddressForMarketRates(
     const { assetNamespace, assetReference } = parseCaipAssetType(assetId);
 
     if (assetNamespace === 'erc20' && typeof assetReference === 'string') {
+      if (/^0x0+$/iu.test(assetReference)) {
+        return NATIVE_TOKEN_ADDRESS;
+      }
       return assetReference.toLowerCase();
     }
 
@@ -128,6 +131,29 @@ export function getTokenAddressForMarketRates(
   }
 
   return undefined;
+}
+
+export function isNativeActivityToken(
+  token: TokenAmount,
+  nativeSymbol?: string,
+): boolean {
+  if (
+    token.assetId?.includes('/slip44:') ||
+    token.assetId?.includes('/native:')
+  ) {
+    return true;
+  }
+
+  if (token.assetId) {
+    const assetId = isCaipAssetType(token.assetId) ? token.assetId : undefined;
+    return getTokenAddressForMarketRates(assetId) === NATIVE_TOKEN_ADDRESS;
+  }
+
+  return Boolean(
+    nativeSymbol &&
+      token.symbol &&
+      token.symbol.toLowerCase() === nativeSymbol.toLowerCase(),
+  );
 }
 
 export function toMarketRateLookupToken(

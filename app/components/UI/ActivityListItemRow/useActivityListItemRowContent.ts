@@ -10,6 +10,7 @@ import {
   selectCurrentCurrency,
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
+import { selectNativeCurrencyByChainId } from '../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { getFormatters, useFormatters } from '../../hooks/useFormatters';
 import { useTokensData } from '../../hooks/useTokensData/useTokensData';
@@ -32,6 +33,7 @@ import {
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
   isFailedOrCancelledTransfer,
+  isNativeActivityToken,
   isPerpsOrderKind,
   isUnlimitedApprovalAmount,
   shouldShowPlusSign,
@@ -943,12 +945,6 @@ function getHexChainId(chainId: string | undefined): Hex | undefined {
     : (`0x${parsedChainId.toString(16)}` as Hex);
 }
 
-function isNativeAsset(token: TokenAmount): boolean {
-  return Boolean(
-    token.assetId?.includes('/slip44:') || token.assetId?.includes('/native:'),
-  );
-}
-
 function getMusdMarketRateToken(
   token: TokenAmount,
   hexChainId: Hex,
@@ -1015,6 +1011,7 @@ function resolveFiatAmount({
   currentCurrency,
   formatters,
   hexChainId,
+  nativeSymbol,
   token,
   usdConversionRate,
 }: {
@@ -1026,6 +1023,7 @@ function resolveFiatAmount({
   currentCurrency: string | undefined;
   formatters: Formatters;
   hexChainId: Hex | undefined;
+  nativeSymbol: string | undefined;
   token: TokenAmount | undefined;
   usdConversionRate: number | null | undefined;
 }): string | undefined {
@@ -1038,7 +1036,7 @@ function resolveFiatAmount({
   const lookupToken =
     toMarketRateLookupToken(token, hexChainId) ??
     getMusdMarketRateToken(token, hexChainId);
-  const exchangeRate = isNativeAsset(token)
+  const exchangeRate = isNativeActivityToken(token, nativeSymbol)
     ? 1
     : lookupToken
       ? (getMarketPriceForAddress(contractExchangeRates, lookupToken.address) ??
@@ -1177,6 +1175,9 @@ export function useActivityListItemRowContent(
       ? selectUSDConversionRateByChainId(state, hexChainId)
       : undefined,
   );
+  const nativeSymbol = useSelector((state: RootState) =>
+    hexChainId ? selectNativeCurrencyByChainId(state, hexChainId) : undefined,
+  );
 
   // Spending caps: resolve the token's symbol/decimals from the tokens API by
   // its asset id (mirroring the extension's ApprovalDetails), so the row/details
@@ -1305,6 +1306,7 @@ export function useActivityListItemRowContent(
     currentCurrency,
     formatters,
     hexChainId,
+    nativeSymbol,
     token: secondaryToken,
     usdConversionRate,
   });
@@ -1319,6 +1321,7 @@ export function useActivityListItemRowContent(
         currentCurrency,
         formatters,
         hexChainId,
+        nativeSymbol,
         token: primaryToken,
         usdConversionRate,
       })
