@@ -515,7 +515,7 @@ jobs:
     if: >-
       always() &&
       !cancelled() &&
-      (inputs.enable_testmu_benchmark != false || inputs.enable_testmu_standard == true) &&
+      (inputs.enable_testmu_benchmark != false || inputs.enable_testmu_standard == true || inputs.enable_testmu_standard_cloud == true) &&
       needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
       needs.resolve-main-browserstack-urls.result == 'success' &&
       needs.resolve-main-browserstack-urls.outputs.found == 'true'
@@ -685,7 +685,7 @@ jobs:
           )
         ||
         (
-          (inputs.enable_testmu_benchmark != false || inputs.enable_testmu_standard == true) &&
+          (inputs.enable_testmu_benchmark != false || inputs.enable_testmu_standard == true || inputs.enable_testmu_standard_cloud == true) &&
           needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
           needs.upload-reused-apks-to-testmu.outputs.found != 'true'
         )
