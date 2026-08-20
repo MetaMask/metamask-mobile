@@ -14,6 +14,8 @@ PredictNext/
       internal/                # Card primitives, helpers, and private composition
 
   views/                       # Existing screens awaiting proven feature ownership
+    PredictHome/
+      projectHomeFeedViewState.ts  # Feed + Venue Status → blocking/footer view-state
   hooks/                       # Existing cross-screen React query integration
   navigation/
 

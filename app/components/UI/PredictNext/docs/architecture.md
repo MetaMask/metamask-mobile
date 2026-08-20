@@ -183,6 +183,7 @@ Credentials, bearer tokens, OTPs, raw Venue sessions, PII/KYC values, and transf
 - Reads may use bounded retry and circuit breaking.
 - Writes must not be blindly retried.
 - UI normally renders empty, unavailable, action-failed, or degraded states rather than raw transport errors.
+- Home Feed blocking and footer states are projected from Feed and Venue Status query snapshots in `views/PredictHome/projectHomeFeedViewState.ts`. The view renders that projection; it does not re-encode those rules.
 - Required security/write modules fail feature bootstrap closed; optional reads may degrade only when policy explicitly permits it.
 - Kalshi feature flags and kill switches do not replace backend authorization or eligibility enforcement.
 

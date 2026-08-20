@@ -28,11 +28,52 @@ import { PredictNextRoutes } from '../../navigation/routes';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Engine from '../../../../../core/Engine';
 import { TraceName } from '../../../../../util/trace';
+import { PredictHomeTestIds } from './PredictHome.testIds';
+import {
+  projectHomeFeedViewState,
+  shouldFetchHomeVenueStatus,
+  type HomeFeedBlockingState,
+} from './projectHomeFeedViewState';
 
 const PAGE_SIZE = 20;
 const NFL_GAMES_FEED_ID = 'sports-football-nfl-games' as PredictFeedId;
 
 const EventSeparator = () => <Box twClassName="h-3" />;
+
+const HomeFeedBlocking = ({
+  blocking,
+  onRetry,
+}: {
+  blocking: HomeFeedBlockingState;
+  onRetry: () => void;
+}) => {
+  if (blocking.kind === 'none') {
+    return null;
+  }
+
+  if (blocking.kind === 'loading') {
+    return (
+      <Box testID={PredictHomeTestIds.LOADING} twClassName="gap-4 p-4">
+        <Box twClassName="h-32 rounded-xl bg-muted" />
+        <Box twClassName="h-32 rounded-xl bg-muted" />
+      </Box>
+    );
+  }
+
+  return (
+    <Box
+      testID={
+        blocking.kind === 'action_failed'
+          ? PredictHomeTestIds.ERROR
+          : PredictHomeTestIds.EMPTY
+      }
+      twClassName="items-center gap-4 p-8"
+    >
+      <Text>{blocking.message}</Text>
+      {blocking.showRetry ? <Button onPress={onRetry}>Retry</Button> : null}
+    </Box>
+  );
+};
 
 const isAmericanFootballGameEvent = (event: PredictEvent): boolean =>
   event.sports?.sport.id === 'american-football' && Boolean(event.sports.game);
@@ -74,22 +115,49 @@ export const PredictHome = () => {
     () => eventsQuery.data?.pages.flatMap((page) => page.events) ?? [],
     [eventsQuery.data],
   );
-  const needsVenueStatus =
-    !eventsQuery.isLoading && !eventsQuery.isError && events.length === 0;
+  const needsVenueStatus = shouldFetchHomeVenueStatus({
+    isFeedLoading: eventsQuery.isLoading,
+    isFeedError: eventsQuery.isError,
+    eventCount: events.length,
+  });
   const statusQuery = useVenueStatus(KALSHI_VENUE_ID, {
     enabled: needsVenueStatus,
   });
   const endReached = useRef(false);
   const [paginationError, setPaginationError] = useState(false);
+  const viewState = useMemo(
+    () =>
+      projectHomeFeedViewState({
+        events,
+        isFeedLoading: eventsQuery.isLoading,
+        isFeedError: eventsQuery.isError,
+        feedError: eventsQuery.error,
+        isFetchingNextPage: eventsQuery.isFetchingNextPage,
+        paginationError,
+        venueStatus: statusQuery.data?.status,
+        isVenueStatusLoading: statusQuery.isLoading,
+        isVenueStatusError: statusQuery.isError,
+        venueStatusError: statusQuery.error,
+      }),
+    [
+      events,
+      eventsQuery.error,
+      eventsQuery.isError,
+      eventsQuery.isFetchingNextPage,
+      eventsQuery.isLoading,
+      paginationError,
+      statusQuery.data?.status,
+      statusQuery.error,
+      statusQuery.isError,
+      statusQuery.isLoading,
+    ],
+  );
 
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextHomeView,
-    conditions: [
-      !eventsQuery.isLoading,
-      events.length > 0 || eventsQuery.isError || !statusQuery.isLoading,
-    ],
+    conditions: [viewState.isMeasurementComplete],
     debugContext: {
-      eventCount: events.length,
+      eventCount: viewState.events.length,
       eventsError: eventsQuery.isError,
       venueStatus: statusQuery.data?.status ?? 'unknown',
     },
@@ -147,45 +215,15 @@ export const PredictHome = () => {
     }
   };
 
-  let blockingContent: React.ReactNode;
-  if (eventsQuery.isLoading) {
-    blockingContent = (
-      <Box testID="predict-next-loading" twClassName="gap-4 p-4">
-        <Box twClassName="h-32 rounded-xl bg-muted" />
-        <Box twClassName="h-32 rounded-xl bg-muted" />
-      </Box>
-    );
-  } else if (events.length === 0 && eventsQuery.isError) {
-    blockingContent = (
-      <Box testID="predict-next-error" twClassName="items-center gap-4 p-8">
-        <Text>Predictions could not be loaded.</Text>
-        <Button onPress={retryAll}>Retry</Button>
-      </Box>
-    );
-  } else if (events.length === 0) {
-    blockingContent = (
-      <Box testID="predict-next-empty" twClassName="items-center gap-4 p-8">
-        <Text>
-          {statusQuery.data?.status === 'unavailable'
-            ? 'Predictions are unavailable.'
-            : 'No predictions yet.'}
-        </Text>
-        {statusQuery.data?.status === 'unavailable' ? (
-          <Button onPress={retryAll}>Retry</Button>
-        ) : null}
-      </Box>
-    );
-  }
-
   return (
-    <Box twClassName="flex-1 pt-12" testID="predict-next-home">
+    <Box twClassName="flex-1 pt-12" testID={PredictHomeTestIds.HOME}>
       <Box twClassName="px-4 pb-2">
         <Text variant={TextVariant.HeadingLg}>Predictions</Text>
       </Box>
-      {blockingContent ?? (
+      {viewState.blocking.kind === 'none' ? (
         <FlashList
-          testID="predict-next-event-feed"
-          data={events}
+          testID={PredictHomeTestIds.FEED}
+          data={viewState.events}
           renderItem={renderEvent}
           getItemType={getEventItemType}
           keyExtractor={(event) => `${event.venueId}:${event.id}`}
@@ -194,11 +232,11 @@ export const PredictHome = () => {
           ItemSeparatorComponent={EventSeparator}
           contentContainerStyle={tw.style('px-4')}
           ListFooterComponent={
-            eventsQuery.isFetchingNextPage ? (
-              <Text testID="predict-next-footer-loading">Loading…</Text>
-            ) : paginationError ? (
+            viewState.footer === 'loading' ? (
+              <Text testID={PredictHomeTestIds.FOOTER_LOADING}>Loading…</Text>
+            ) : viewState.footer === 'retry' ? (
               <Button
-                testID="predict-next-footer-retry"
+                testID={PredictHomeTestIds.FOOTER_RETRY}
                 variant={ButtonVariant.Tertiary}
                 onPress={loadNextPage}
               >
@@ -207,6 +245,8 @@ export const PredictHome = () => {
             ) : null
           }
         />
+      ) : (
+        <HomeFeedBlocking blocking={viewState.blocking} onRetry={retryAll} />
       )}
     </Box>
   );

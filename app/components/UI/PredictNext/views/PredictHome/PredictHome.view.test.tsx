@@ -361,6 +361,39 @@ describe('PredictHome', () => {
     ).toBeOnTheScreen();
   });
 
+  it('retries after Venue Status fails on an empty Feed', async () => {
+    messengerCall.mockImplementation((action: string) => {
+      if (action === 'PredictMarketDataService:getVenueStatus') {
+        return Promise.reject(new Error('status failed'));
+      }
+      if (action === 'PredictMarketDataService:getFeed') {
+        return Promise.resolve({
+          venueId: 'kalshi',
+          id: 'sports-football-nfl-games',
+          title: 'NFL Games',
+          events: [],
+        });
+      }
+      return Promise.resolve(undefined);
+    });
+    const view = renderPredictNext();
+    const retry = await view.findByText('Retry');
+
+    expect(view.getByTestId(PredictHomeTestIds.ERROR)).toBeOnTheScreen();
+    expect(view.queryByText('No predictions yet.')).not.toBeOnTheScreen();
+
+    configureQueries([]);
+    messengerCall.mockClear();
+    fireEvent.press(retry);
+
+    expect(await view.findByText('No predictions yet.')).toBeOnTheScreen();
+    expect(
+      messengerCall.mock.calls.some(
+        (call) => call[0] === 'PredictMarketDataService:getVenueStatus',
+      ),
+    ).toBe(true);
+  });
+
   it('preserves Events and retries a failed next page from the footer', async () => {
     configureQueries();
     let eventRequest = 0;
