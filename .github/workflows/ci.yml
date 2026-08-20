@@ -449,6 +449,11 @@ jobs:
             echo "availableParallelism=$(node -p 'require("os").availableParallelism()')"
             echo "metroMaxWorkers=$(node -p 'const os = require("os"); Math.ceil(Math.max(2, os.availableParallelism() * Math.min(1, os.totalmem() / (64 * 1024 * 1024 * 1024))))')"
             echo "NODE_OPTIONS(step)=${NODE_OPTIONS:-<unset>}"
+            # Which heap ceiling actually reaches the bundler: the step env above, or the
+            # inline NODE_OPTIONS in the gen-bundle:ios script in package.json?
+            echo "heapLimit(step env)=$(node -p 'require("v8").getHeapStatistics().heap_size_limit / 1048576' 2>/dev/null || echo '?')MB"
+            echo "heapLimit(script prefix, direct node)=$(NODE_OPTIONS='--max-old-space-size=8192' node -p 'require("v8").getHeapStatistics().heap_size_limit / 1048576' 2>/dev/null || echo '?')MB"
+            echo "heapLimit(script prefix, via yarn)=$(NODE_OPTIONS='--max-old-space-size=8192' yarn node -p 'require("v8").getHeapStatistics().heap_size_limit / 1048576' 2>/dev/null | tail -1 || echo '?')MB"
             grep -E '^(MemTotal|MemAvailable|SwapTotal)' /proc/meminfo
             SWAP_DEVS="$(swapon --show --noheadings || true)"
             echo "swapon=${SWAP_DEVS:-none}"
@@ -460,7 +465,20 @@ jobs:
           } 2>&1 | tee -a "${MEM_LOG}"
 
           monitor_resources() {
+            PROBED=0
             while true; do
+              # Once the bundler is clearly the biggest process, record the heap ceiling
+              # and argv it is actually running with.
+              if [ "${PROBED}" -eq 0 ]; then
+                BIG="$(ps -eo pid=,rss= | sort -k2 -rn | head -1)"
+                BIG_PID="$(echo "${BIG}" | awk '{ print $1 }')"
+                BIG_RSS="$(echo "${BIG}" | awk '{ print $2 + 0 }')"
+                if [ "${BIG_RSS}" -gt 2000000 ] && [ -r "/proc/${BIG_PID}/environ" ]; then
+                  echo "biggest pid=${BIG_PID} argv=$(tr '\0' ' ' < "/proc/${BIG_PID}/cmdline" | cut -c1-200)" | tee -a "${MEM_LOG}"
+                  echo "biggest pid $(tr '\0' '\n' < "/proc/${BIG_PID}/environ" | grep '^NODE_OPTIONS=' || echo 'NODE_OPTIONS=<unset>')" | tee -a "${MEM_LOG}"
+                  PROBED=1
+                fi
+              fi
               MEM="$(free -m | awk '/^Mem:/ { printf "mem=%s/%sMB", $3, $2 } /^Swap:/ { printf " swap=%s/%sMB", $3, $2 }')"
               LOAD="$(cut -d' ' -f1-3 /proc/loadavg)"
               TOP="$(ps -eo rss=,comm= | sort -rn | head -3 | awk '{ printf "%s=%dMB ", $2, $1 / 1024 }')"
@@ -478,7 +496,10 @@ jobs:
 
           yarn gen-bundle:ios
         env:
-          NODE_OPTIONS: --max_old_space_size=12288
+          # INFRA-3891 (TRIAL VALUE, was 12288). The runner has ~14.6 GB usable and no
+          # swap, and a 12 GB ceiling let one bundler process reach 13.1 GB before the
+          # host killed it. 9216 leaves real headroom.
+          NODE_OPTIONS: --max_old_space_size=9216
 
       # INFRA-3891 (TEMPORARY INSTRUMENTATION, remove once the fix is chosen).
       # Runs after a SIGKILL too, so the peak that preceded the kill is reported.
