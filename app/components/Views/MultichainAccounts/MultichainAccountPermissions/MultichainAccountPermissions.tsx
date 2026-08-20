@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getPermissions } from '../../../../selectors/snaps/permissionController';
 import { RootState } from '../../../../reducers';
@@ -35,15 +35,18 @@ import { AccountGroupWithInternalAccounts } from '../../../../selectors/multicha
 import { AccountGroupId } from '@metamask/account-api';
 import { getNetworkImageSource } from '../../../../util/networks';
 import {
-  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
 import { NetworkAvatarProps } from '../../MultichainAccounts/shared/AccountConnect.types';
 import Engine from '../../../../core/Engine';
-import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
-import { ToastVariants } from '../../../../component-library/components/Toast';
+import {
+  AvatarAccount,
+  AvatarAccountSize,
+  AvatarAccountVariant,
+  toast,
+} from '@metamask/design-system-react-native';
 import { getCaip25AccountIdsFromAccountGroupAndScope } from '../../../../util/multichain/getCaip25AccountIdsFromAccountGroupAndScope';
 import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
 
@@ -72,7 +75,6 @@ export const MultichainAccountPermissions = (
   const [screen, setScreen] = useState<MultichainAccountPermissionsScreens>(
     MultichainAccountPermissionsScreens.Connected,
   );
-  const { toastRef } = useContext(ToastContext);
 
   const existingPermissionsForHost = useSelector((state: RootState) =>
     getPermissions(state, hostInfo?.metadata?.origin),
@@ -196,19 +198,19 @@ export const MultichainAccountPermissions = (
         updatedCaveatValue,
       );
 
-      const labelOptions = [
-        { label: `${strings('toast.accounts_permissions_updated')}` },
-      ];
-
-      const toastAccount = parseCaipAccountId(
-        selectedCaipAccountIds[0] ?? requestedCaipAccountIds[0],
-      ).address;
-
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Account,
-        labelOptions,
-        accountAddress: toastAccount,
-        accountAvatarType: AvatarAccountType.Maskicon,
+      toast({
+        title: strings('toast.accounts_permissions_updated'),
+        startAccessory: (
+          <AvatarAccount
+            address={
+              parseCaipAccountId(
+                selectedCaipAccountIds[0] ?? requestedCaipAccountIds[0],
+              ).address
+            }
+            size={AvatarAccountSize.Md}
+            variant={AvatarAccountVariant.Maskicon}
+          />
+        ),
         hasNoTimeout: false,
       });
 
@@ -224,7 +226,6 @@ export const MultichainAccountPermissions = (
     existingPermissionsCaip25CaveatValue,
     hostInfo?.metadata?.origin,
     requestedCaipAccountIds,
-    toastRef,
     navigation,
     selectedAccountGroupIds,
   ]);
@@ -270,11 +271,15 @@ export const MultichainAccountPermissions = (
               revokeSpecificError,
             );
           }
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Account,
-            labelOptions: [{ label: `${strings('toast.disconnected_all')}` }],
-            accountAddress: '',
-            accountAvatarType: AvatarAccountType.Maskicon,
+          toast({
+            title: strings('toast.disconnected_all'),
+            startAccessory: (
+              <AvatarAccount
+                address=""
+                size={AvatarAccountSize.Md}
+                variant={AvatarAccountVariant.Maskicon}
+              />
+            ),
             hasNoTimeout: false,
           });
         }
@@ -287,12 +292,7 @@ export const MultichainAccountPermissions = (
       // Still navigate to browser tab even if there's an error
       navigation.navigate(Routes.BROWSER.HOME);
     }
-  }, [
-    hostInfo?.metadata?.origin,
-    existingPermissionsForHost,
-    navigation,
-    toastRef,
-  ]);
+  }, [hostInfo?.metadata?.origin, existingPermissionsForHost, navigation]);
 
   const handleAccountGroupsSelected = useCallback(
     (newSelectedAccountGroupIds: AccountGroupId[]) => {

@@ -1,16 +1,11 @@
-import type { RefObject } from 'react';
-
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { resetHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
-import { ToastVariants } from '../../../../component-library/components/Toast';
-import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
-import type { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 
 export interface CompleteHwSwapSuccessParams {
   dispatch: (action: ReturnType<typeof resetHardwareWalletsSwaps>) => void;
   navigation: { navigate: (route: string) => void };
-  toastRef: RefObject<ToastRef | null> | undefined;
 }
 
 /**
@@ -24,17 +19,11 @@ export interface CompleteHwSwapSuccessParams {
 export function completeHwSwapSuccess({
   dispatch,
   navigation,
-  toastRef,
 }: CompleteHwSwapSuccessParams): void {
-  toastRef?.current?.showToast({
-    variant: ToastVariants.Icon,
-    iconName: ToastIconName.Check,
+  toast({
+    title: strings('bridge.hardware_wallet_progress.submitted_title'),
+    severity: ToastSeverity.Success,
     hasNoTimeout: false,
-    labelOptions: [
-      {
-        label: strings('bridge.hardware_wallet_progress.submitted_title'),
-      },
-    ],
   });
   dispatch(resetHardwareWalletsSwaps());
   navigation.navigate(Routes.TRANSACTIONS_VIEW);

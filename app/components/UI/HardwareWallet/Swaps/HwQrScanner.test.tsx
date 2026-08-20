@@ -1,6 +1,7 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
+import { toast } from '@metamask/design-system-react-native';
 import { HwQrScanner } from './HwQrScanner';
 import { HwQrScannerSelectorsIDs } from './HwQrScanner.testIds';
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
@@ -15,15 +16,13 @@ jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
 }));
 
-jest.mock('../../../../component-library/components/Toast', () => {
-  const R = require('react'); // eslint-disable-line @typescript-eslint/no-require-imports
-  const showToast = jest.fn();
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   return {
-    getMockShowToast: () => showToast,
-    ToastContext: R.createContext({
-      toastRef: { current: { showToast } },
+    ...actual,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
     }),
-    ToastVariants: { Icon: 'Icon' },
   };
 });
 
@@ -31,10 +30,6 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
   resetHardwareWalletsSwaps: jest.fn(() => ({
     type: 'bridge/resetHardwareWalletsSwaps',
   })),
-}));
-
-jest.mock('../../../../component-library/components/Icons/Icon', () => ({
-  IconName: { Check: 'check' },
 }));
 
 const mockTrackEvent = jest.fn();
@@ -156,13 +151,6 @@ jest.mock('uuid', () => ({
 }));
 
 const mockUseHardwareWallet = useHardwareWallet as jest.Mock;
-
-const getMockShowToast = () =>
-  (
-    jest.requireMock('../../../../component-library/components/Toast') as {
-      getMockShowToast: () => jest.Mock;
-    }
-  ).getMockShowToast();
 
 const mockScannerResult = {
   cameraDevice: { id: 'mock-camera' },
@@ -408,7 +396,7 @@ describe('HwQrScanner', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalled();
-      expect(getMockShowToast()).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('goes back on the last Bridge scan so lifecycle owns completion', () => {
@@ -429,7 +417,7 @@ describe('HwQrScanner', () => {
       });
       expect(mockSetRequestCompleted).toHaveBeenCalledTimes(1);
       expect(mockGoBack).toHaveBeenCalledTimes(1);
-      expect(getMockShowToast()).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
       expect(resetHardwareWalletsSwaps).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
@@ -448,7 +436,7 @@ describe('HwQrScanner', () => {
       });
 
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(getMockShowToast()).toHaveBeenCalled();
+      expect(toast).toHaveBeenCalled();
       expect(resetHardwareWalletsSwaps).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     });

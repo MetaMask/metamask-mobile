@@ -13,8 +13,7 @@ import {
   createMockState,
   createMockWallet,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
-import { ToastContext } from '../../../../component-library/components/Toast/Toast.context';
-import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
+import { toast } from '@metamask/design-system-react-native';
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockSetSelectedAccountGroup = jest.fn();
@@ -167,14 +166,15 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-const mockShowToast = jest.fn();
-const mockCloseToast = jest.fn();
-const mockToastRef = {
-  current: {
-    showToast: mockShowToast,
-    closeToast: mockCloseToast,
-  },
-};
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
 
 const MOCK_ACCOUNT_GROUP_1 = createMockAccountGroup(
   'keyring:test-group/group-1',
@@ -224,9 +224,7 @@ const renderMultichainAccountsConnectedList = (propOverrides = {}) => {
   const store = mockStore(state as unknown as Record<string, unknown>);
   return render(
     <Provider store={store}>
-      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-        <MultichainAccountsConnectedList {...props} />
-      </ToastContext.Provider>
+      <MultichainAccountsConnectedList {...props} />
     </Provider>,
   );
 };
@@ -479,7 +477,7 @@ describe('MultichainAccountsConnectedList', () => {
 
   describe('Toast Functionality', () => {
     beforeEach(() => {
-      mockShowToast.mockClear();
+      jest.mocked(toast).mockClear();
       mockNavigate.mockClear();
       mockSetSelectedAccountGroup.mockClear();
     });
@@ -492,20 +490,13 @@ describe('MultichainAccountsConnectedList', () => {
       const accountCell = getByText('Account 1');
       fireEvent.press(accountCell);
 
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith({
-        variant: ToastVariants.Account,
-        labelOptions: [
-          {
-            label: 'Account 1 ',
-            isBold: true,
-          },
-          { label: 'now active.' },
-        ],
-        accountAddress: 'mock-address',
-        accountAvatarType: 'MaskIcon',
-        hasNoTimeout: false,
-      });
+      expect(toast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Account 1 now active.',
+          hasNoTimeout: false,
+        }),
+      );
     });
 
     it('navigates to browser home after showing toast (not in connection flow)', () => {
@@ -534,7 +525,7 @@ describe('MultichainAccountsConnectedList', () => {
       fireEvent.press(accountCell);
 
       // Should not show toast or navigate
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
