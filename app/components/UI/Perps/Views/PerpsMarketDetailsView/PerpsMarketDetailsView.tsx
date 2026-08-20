@@ -40,6 +40,7 @@ import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import {
   CandlePeriod,
+  PerpsMode,
   TimeDuration,
   PERPS_CONSTANTS,
   type Position,
@@ -1531,7 +1532,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         isFavorite={isWatchlist}
         mode={isPerpsProModeEnabled ? perpsMode : undefined}
         onModeChange={isPerpsProModeEnabled ? handlePerpsModeChange : undefined}
-        enableHaptics
+        enableHaptics={perpsMode === PerpsMode.Pro}
         scrollY={scrollYShared}
         priceSectionHeight={titleSectionHeightSv}
         currentPrice={syncedChartCurrentPrice}

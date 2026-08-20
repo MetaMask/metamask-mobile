@@ -16,6 +16,7 @@ import { GLOW_TOTAL_MS } from '../../components/PerpsModeToggle/PerpsModeSwitchP
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import { Linking, Platform } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectPerpsAdvancedChartEnabledFlag,
@@ -38,6 +39,8 @@ import {
 const mockPerpsAdvancedChartMount = jest.fn();
 const mockPerpsAdvancedChartUnmount = jest.fn();
 const mockTradingViewResetToDefault = jest.fn();
+
+jest.mock('../../../../../util/haptics');
 
 jest.mock('react-native-modal', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -3919,6 +3922,7 @@ describe('PerpsMarketDetailsView', () => {
         source: 'perp_asset_screen',
         enableHaptics: false,
       });
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('enables market list haptics in Pro mode', () => {
@@ -3941,6 +3945,7 @@ describe('PerpsMarketDetailsView', () => {
         source: 'perp_asset_screen',
         enableHaptics: true,
       });
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
     });
 
     it('tracks the market list button click with the correct analytics values', () => {
