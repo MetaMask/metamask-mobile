@@ -85,6 +85,7 @@ const REFERRED_USER_BENEFIT_DURATION = '12 months';
 const buildReferralLink = (code: string) =>
   `https://link.metamask.io/rewards?referral=${code}`;
 const IOS_SHEET_PUSH_DURATION = 350;
+const HOME_TAB_TOAST_DELAY_MS = 350;
 
 const createSheetPushAnimations = (direction: 1 | -1, width: number) => {
   const easing = Easing.bezier(0.32, 0.72, 0, 1);
@@ -1068,9 +1069,11 @@ const ReferralInviteDisclosure = ({
 const InvitedNewUserScreen = ({
   visible,
   onClose,
+  onAccept,
 }: {
   visible: boolean;
   onClose: () => void;
+  onAccept: () => void;
 }) => {
   const tw = useTailwind();
   const { width: windowWidth } = useWindowDimensions();
@@ -1169,7 +1172,10 @@ const InvitedNewUserScreen = ({
                   variant={ButtonVariant.Primary}
                   size={ButtonSize.Lg}
                   twClassName="w-full"
-                  onPress={() => dismiss(true)}
+                  onPress={() => {
+                    onAccept();
+                    dismiss(true);
+                  }}
                   testID="accept-invited-new-user-button"
                 >
                   Accept
@@ -1288,27 +1294,34 @@ const ReferralRevenueShareDashboard = ({
   const [isInvitedExistingUserVisible, setIsInvitedExistingUserVisible] =
     useState(false);
   const isClaimingEnabled = useClaimingEnabled();
+  const dashboardScrollRef = useRef<ScrollView>(null);
 
   const selectScenario = (id: PrototypeScenarioId) => {
+    dashboardScrollRef.current?.scrollTo({ y: 0, animated: false });
     setSelectedScenarioId(id);
     setIsScenarioSheetVisible(false);
     setIsInvitedNewUserVisible(id === 'invited-new-user');
     setIsInvitedExistingUserVisible(id === 'invited-existing-user');
     if (id === 'ineligible-user') {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconNameLegacy.Warning,
-        iconColor: colors.warning.default,
-        backgroundColor: 'transparent',
-        hasNoTimeout: false,
-        labelOptions: [
-          {
-            label: "This referral isn't available",
-            isBold: true,
-          },
-        ],
-      });
       navigation.navigate(Routes.WALLET.HOME);
+      setTimeout(() => {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconNameLegacy.Danger,
+          iconColor: colors.warning.default,
+          backgroundColor: 'transparent',
+          hasNoTimeout: false,
+          labelOptions: [
+            {
+              label: 'Referral code ineligible',
+              isBold: true,
+            },
+          ],
+          descriptionOptions: {
+            description: 'This code is no longer active.',
+          },
+        });
+      }, HOME_TAB_TOAST_DELAY_MS);
     }
   };
 
@@ -1359,6 +1372,8 @@ const ReferralRevenueShareDashboard = ({
   return (
     <Box twClassName="flex-1">
       <ScrollView
+        ref={dashboardScrollRef}
+        testID="referral-dashboard-scroll"
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('p-4 pb-8 gap-6')}
         showsVerticalScrollIndicator={false}
@@ -1700,6 +1715,7 @@ const ReferralRevenueShareDashboard = ({
       <InvitedNewUserScreen
         visible={isInvitedNewUserVisible}
         onClose={() => setIsInvitedNewUserVisible(false)}
+        onAccept={() => navigation.navigate(Routes.WALLET.HOME)}
       />
       <InvitedExistingUserSheet
         visible={isInvitedExistingUserVisible}
