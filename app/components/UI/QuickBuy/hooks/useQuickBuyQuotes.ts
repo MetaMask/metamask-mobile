@@ -20,7 +20,6 @@ import { areAddressesEqual } from '../../../../util/address';
 import { calcTokenValue } from '../../../../util/transactions';
 import { analytics } from '../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
-import { selectSocialAIQuickBuyStreamQuotesEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import {
   selectBridgeFeatureFlags,
   selectDestAddress,
@@ -195,19 +194,11 @@ export function useQuickBuyQuotes({
     selectGasIncludedQuoteParams,
   );
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
-  const isStreamQuotesFlagEnabled = useSelector(
-    selectSocialAIQuickBuyStreamQuotesEnabled,
-  );
   const { track } = useSocialLeaderboardAnalytics();
 
-  // Stream quotes (surfacing each provider as it replies) only when the
-  // QuickBuy-specific `socialAIQuickBuyStreamQuotes` flag is on AND the client is
+  // Stream quotes (surfacing each provider as it replies) when the client is
   // gated on for bridge SSE — otherwise fall back to the one-shot fetch.
-  const shouldStream = useMemo(
-    () =>
-      isStreamQuotesFlagEnabled && isQuoteStreamingEnabled(bridgeFeatureFlags),
-    [isStreamQuotesFlagEnabled, bridgeFeatureFlags],
-  );
+  const shouldStream = isQuoteStreamingEnabled(bridgeFeatureFlags);
 
   const [rawQuotes, setRawQuotes] = useState<QuickBuyQuote[]>([]);
   const [isQuoteLoading, setIsQuoteLoading] = useState(false);

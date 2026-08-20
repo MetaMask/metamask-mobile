@@ -10,7 +10,7 @@ import { useStyles } from '../../../hooks/useStyles';
 import { AssetIdentifier, AssetType } from '../types';
 import { formatAmount, formatAmountMaxPrecision } from '../formatAmount';
 import styleSheet from './AmountPill.styles';
-import { TextVariant as LegacyTextVariant } from '../../../../component-library/components/Texts/Text';
+import { TextVariant } from '@metamask/design-system-react-native';
 
 interface AmountPillProperties extends ViewProps {
   asset: AssetIdentifier;
@@ -83,7 +83,7 @@ const AmountPill: React.FC<AmountPillProperties> = ({
       <TextWithTooltip
         label={strings('confirm.label.value')}
         ellipsizeMode="tail"
-        textVariant={LegacyTextVariant.BodyMD}
+        textVariant={TextVariant.BodyMd}
         text={amountParts.join(' ')}
         tooltip={tooltipParts.join(' ')}
         textStyle={styles.label}

@@ -36,17 +36,13 @@ appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
         async () => {
           await navigateFromBrowserToSnapSettings();
           await SnapSettingsView.selectSnap('Dialog Example Snap');
-          await SnapSettingsView.toggleEnable();
+          // Verify native Switch value flips before leaving settings — a bare
+          // tap can succeed on iOS without disabling the Snap.
+          await SnapSettingsView.setEnabled(false);
           await navigateFromSnapSettingsToBrowser();
 
           await TestSnaps.tapButton('sendAlertButton');
-          // Android Appium often omits/escapes quotes in alert copy; assert stable substrings.
-          await Assertions.expectTextDisplayed('dialog-example-snap', {
-            timeout: 30_000,
-          });
-          await Assertions.expectTextDisplayed('disabled', {
-            timeout: 30_000,
-          });
+          await TestSnaps.expectDisabledSnapAlert();
           await TestSnaps.dismissAlert();
         },
       );
@@ -62,7 +58,7 @@ appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
         async () => {
           await navigateFromBrowserToSnapSettings();
           await SnapSettingsView.selectSnap('Dialog Example Snap');
-          await SnapSettingsView.toggleEnable();
+          await SnapSettingsView.setEnabled(true);
           await navigateFromSnapSettingsToBrowser();
 
           await TestSnaps.tapButton('sendAlertButton');

@@ -12,8 +12,26 @@ import {
 import PerpsMarketHeader from './PerpsMarketHeader';
 import { createProMarketHeaderTestIDs } from './perpsMarketHeaderTestIds';
 import { GLOW_TOTAL_MS } from '../PerpsModeToggle/PerpsModeSwitchPill';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../util/haptics';
 
 jest.mock('../../providers/PerpsStreamManager');
+
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({
+    BTC: {
+      symbol: 'BTC',
+      price: '45000',
+      percentChange24h: '2.5',
+      timestamp: 1700000000000,
+      isTradable: true,
+    },
+  })),
+}));
+jest.mock('../../../../../util/haptics');
 
 const mockMarket: PerpsMarketData = {
   symbol: 'BTC',
@@ -45,6 +63,11 @@ const renderHeader = (
   );
 
 describe('PerpsMarketHeader', () => {
+  beforeEach(() => {
+    jest.mocked(playImpact).mockClear();
+    jest.mocked(playSelection).mockClear();
+  });
+
   afterEach(() => {
     jest.useRealTimers();
   });
@@ -105,6 +128,30 @@ describe('PerpsMarketHeader', () => {
     );
 
     expect(onBackPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays PageNavigation when back is pressed with enableHaptics', () => {
+    const onBackPress = jest.fn();
+    const { getByTestId } = renderHeader({ onBackPress, enableHaptics: true });
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON),
+    );
+
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+    expect(onBackPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not play a haptic on back press when enableHaptics is omitted', () => {
+    const onBackPress = jest.fn();
+    const { getByTestId } = renderHeader({ onBackPress });
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON),
+    );
+
+    expect(playImpact).not.toHaveBeenCalled();
+    expect(playSelection).not.toHaveBeenCalled();
   });
 
   it('omits the back button when onBackPress is not provided', () => {
@@ -170,6 +217,85 @@ describe('PerpsMarketHeader', () => {
     );
 
     expect(onFavoritePress).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays selection when favorite is pressed with enableHaptics', () => {
+    const onFavoritePress = jest.fn();
+    const { getByTestId } = renderHeader({
+      onFavoritePress,
+      enableHaptics: true,
+    });
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
+    );
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays PageNavigation when wallet is pressed with enableHaptics', () => {
+    const onWalletPress = jest.fn();
+    const { getByTestId } = renderHeader({
+      onWalletPress,
+      enableHaptics: true,
+    });
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_WALLET_BUTTON),
+    );
+
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+  });
+
+  it('plays TabChange after an accepted mode-pill switch', async () => {
+    jest.useFakeTimers();
+    const onModeChange = jest.fn();
+    const { getByTestId } = renderHeader({
+      onModeChange,
+      enableHaptics: true,
+    });
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+
+    expect(playImpact).not.toHaveBeenCalled();
+    expect(onModeChange).not.toHaveBeenCalled();
+
+    await act(async () => {
+      jest.advanceTimersByTime(GLOW_TOTAL_MS);
+      await Promise.resolve();
+    });
+
+    expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Lite);
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
+  });
+
+  it('keeps other Lite header actions silent when mode haptics are enabled', async () => {
+    jest.useFakeTimers();
+    const onBackPress = jest.fn();
+    const onModeChange = jest.fn();
+    const { getByTestId } = renderHeader({
+      mode: PerpsMode.Lite,
+      onBackPress,
+      onModeChange,
+      enableModeHaptics: true,
+    });
+
+    fireEvent.press(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_BACK_BUTTON),
+    );
+    expect(playImpact).not.toHaveBeenCalled();
+
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT));
+
+    await act(async () => {
+      jest.advanceTimersByTime(GLOW_TOTAL_MS);
+      await Promise.resolve();
+    });
+
+    expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Pro);
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
   });
 
   it('renders the filled star when the market is favorited', () => {
@@ -280,5 +406,29 @@ describe('PerpsMarketHeader', () => {
     expect(
       queryByTestId(PerpsProMarketViewSelectorsIDs.HEADER_FAVORITE_BUTTON),
     ).toBeNull();
+  });
+
+  it('displays the chart-synced currentPrice instead of the live stream price', () => {
+    const { getByTestId } = renderHeader({ currentPrice: 51000 });
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_PRICE),
+    ).toHaveTextContent('$51,000');
+  });
+
+  it('falls back to the live stream price when currentPrice is omitted', () => {
+    const { getByTestId } = renderHeader();
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_PRICE),
+    ).toHaveTextContent('$45,000');
+  });
+
+  it('displays a placeholder when the chart-synced currentPrice is 0', () => {
+    const { getByTestId } = renderHeader({ currentPrice: 0 });
+
+    expect(
+      getByTestId(PerpsProMarketViewSelectorsIDs.HEADER_PRICE),
+    ).toHaveTextContent('$---');
   });
 });

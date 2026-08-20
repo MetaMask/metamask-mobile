@@ -8,6 +8,7 @@ import {
   selectBridgeFeatureFlags,
   selectDestAddress,
   selectIsEvmNonEvmBridge,
+  selectIsGasIncludedSTXSendBundleSupported,
   selectIsNonEvmNonEvmBridge,
   selectIsNonEvmSourced,
   selectIsSolanaSourced,
@@ -22,7 +23,6 @@ import {
   selectCurrencyRates,
 } from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import {
   ImpactMoment,
   playErrorNotification,
@@ -30,6 +30,8 @@ import {
 } from '../../../../util/haptics';
 import Logger from '../../../../util/Logger';
 import { useHasSufficientGas } from '../../Bridge/hooks/useHasSufficientGas';
+import { useIsGasIncluded7702Supported } from '../../Bridge/hooks/useIsGasIncluded7702Supported';
+import { useIsGasIncludedSTXSendBundleSupported } from '../../Bridge/hooks/useIsGasIncludedSTXSendBundleSupported';
 import useIsInsufficientBalance from '../../Bridge/hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../Bridge/hooks/useLatestBalance';
 import { toAssetId } from '../../Bridge/hooks/useAssetMetadata/utils';
@@ -170,8 +172,8 @@ jest.mock('../../Bridge/hooks/useIsGasIncludedSTXSendBundleSupported', () => ({
   useIsGasIncludedSTXSendBundleSupported: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/smartTransactionsController', () => ({
-  selectShouldUseSmartTransaction: jest.fn(),
+jest.mock('../../Bridge/hooks/useIsGasIncluded7702Supported', () => ({
+  useIsGasIncluded7702Supported: jest.fn(),
 }));
 
 jest.mock('../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
@@ -219,6 +221,7 @@ jest.mock('../../../../core/redux/slices/bridge', () => ({
   selectIsSolanaSourced: jest.fn(),
   selectIsNonEvmSourced: jest.fn(),
   selectBridgeFeatureFlags: jest.fn(),
+  selectIsGasIncludedSTXSendBundleSupported: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/bridge', () => ({
@@ -452,9 +455,9 @@ const setupDefaultMocks = () => {
 
   (useIsInsufficientBalance as jest.Mock).mockReturnValue(false);
   (useHasSufficientGas as jest.Mock).mockReturnValue(true);
-  (selectShouldUseSmartTransaction as unknown as jest.Mock).mockReturnValue(
-    false,
-  );
+  (
+    selectIsGasIncludedSTXSendBundleSupported as unknown as jest.Mock
+  ).mockReturnValue(false);
   (
     Engine.context.BridgeStatusController.submitTx as jest.Mock
   ).mockResolvedValue(undefined);
@@ -3556,6 +3559,15 @@ describe('useQuickBuyController', () => {
   });
 
   describe('handleConfirm', () => {
+    it('syncs STX and 7702 gas-included flags for the source chain', () => {
+      renderHook(() => useQuickBuyController(createTarget(), jest.fn()));
+
+      expect(useIsGasIncludedSTXSendBundleSupported).toHaveBeenCalledWith(
+        '0x1',
+      );
+      expect(useIsGasIncluded7702Supported).toHaveBeenCalledWith('0x1');
+    });
+
     it('submits via BridgeStatusController.submitTx with normalised approval and stxEnabled', async () => {
       const activeQuote = {
         ...createActiveQuote(),
@@ -3578,9 +3590,9 @@ describe('useQuickBuyController', () => {
         maxRefreshCount: 5,
         refetchQuotes: jest.fn(),
       });
-      (selectShouldUseSmartTransaction as unknown as jest.Mock).mockReturnValue(
-        true,
-      );
+      (
+        selectIsGasIncludedSTXSendBundleSupported as unknown as jest.Mock
+      ).mockReturnValue(true);
 
       const onClose = jest.fn();
       const { result } = renderHook(() =>

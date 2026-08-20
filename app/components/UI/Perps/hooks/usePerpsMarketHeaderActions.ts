@@ -18,6 +18,13 @@ import { openPerpsModeSelectionIfNeeded } from '../utils/openPerpsModeSelection'
 export interface UsePerpsMarketHeaderActionsParams {
   /** Market symbol from route params; undefined when the screen is in an error state. */
   symbol?: string;
+  /**
+   * Where Back goes when there is no stack to pop.
+   * Lite uses `'home'` (Perps hub). Pro uses `'wallet'` because Pro's stack
+   * root is itself a market screen, so falling back to Home would be a no-op.
+   * @default 'wallet'
+   */
+  backFallback?: 'home' | 'wallet';
 }
 
 export interface UsePerpsMarketHeaderActionsResult {
@@ -44,10 +51,12 @@ export interface UsePerpsMarketHeaderActionsResult {
  */
 export const usePerpsMarketHeaderActions = ({
   symbol,
+  backFallback = 'wallet',
 }: UsePerpsMarketHeaderActionsParams): UsePerpsMarketHeaderActionsResult => {
   const {
     navigateBack,
     navigateToWallet,
+    navigateToHome,
     navigateToMarketListFromHeader,
     canGoBack,
   } = usePerpsNavigation();
@@ -68,13 +77,19 @@ export const usePerpsMarketHeaderActions = ({
   const handleBackPress = useCallback(() => {
     if (canGoBack) {
       navigateBack();
-    } else {
-      // No back stack (e.g. this is the Pro-mode stack root): "home" while
-      // Pro mode is active is itself a market screen, so falling back to it
-      // here would often be a no-op. Leave Perps entirely instead.
-      navigateToWallet();
+      return;
     }
-  }, [canGoBack, navigateBack, navigateToWallet]);
+
+    if (backFallback === 'home') {
+      navigateToHome(PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN);
+      return;
+    }
+
+    // No back stack (e.g. this is the Pro-mode stack root): "home" while
+    // Pro mode is active is itself a market screen, so falling back to it
+    // here would often be a no-op. Leave Perps entirely instead.
+    navigateToWallet();
+  }, [backFallback, canGoBack, navigateBack, navigateToHome, navigateToWallet]);
 
   const handleMarketListPress = useCallback(() => {
     if (!symbol) {
@@ -93,8 +108,10 @@ export const usePerpsMarketHeaderActions = ({
 
     navigateToMarketListFromHeader({
       source: PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+      // Selection haptics on list rows are Pro-only; Lite stays silent.
+      enableHaptics: perpsMode === PerpsMode.Pro,
     });
-  }, [symbol, track, navigateToMarketListFromHeader]);
+  }, [symbol, track, navigateToMarketListFromHeader, perpsMode]);
 
   const handleFavoritePress = useCallback(() => {
     if (!symbol) {

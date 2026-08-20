@@ -24,6 +24,10 @@ import {
   type ActivityExplorerLink,
 } from '../hooks/useActivityBlockExplorer';
 import { ActivityDetailSection } from './ActivityDetailsLayout';
+import {
+  getActivityDetailsStepIconTestId,
+  getActivityDetailsStepTestId,
+} from '../ActivityDetails.testIds';
 
 export type ActivityDetailsStepStatus =
   | 'completed'
@@ -114,7 +118,7 @@ export function ActivityDetailsStepTimeline({
               key={`${step.label}-${index}`}
               disabled={!explorerLink}
               onPress={openExplorer}
-              testID={`activity-details-step-${index}`}
+              testID={getActivityDetailsStepTestId(index)}
             >
               <Box twClassName="flex-row items-start gap-3">
                 <Box twClassName="items-center">
@@ -145,7 +149,7 @@ export function ActivityDetailsStepTimeline({
                     name={IconName.Export}
                     size={IconSize.Sm}
                     color={IconColor.IconAlternative}
-                    testID={`activity-details-step-${index}-icon`}
+                    testID={getActivityDetailsStepIconTestId(index)}
                   />
                 ) : null}
               </Box>

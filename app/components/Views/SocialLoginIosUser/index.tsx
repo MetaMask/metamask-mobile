@@ -43,11 +43,10 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
   const route = useRoute();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const { accountName, oauthLoginSuccess, onboardingTraceCtx, provider } =
+  const { accountName, oauthLoginSuccess, provider } =
     (route.params as {
       accountName?: string;
       oauthLoginSuccess?: boolean;
-      onboardingTraceCtx?: unknown;
       provider?: string;
     }) || {};
 
@@ -88,7 +87,6 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
       StackActions.replace(Routes.ONBOARDING.CHOOSE_PASSWORD, {
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess,
-        onboardingTraceCtx,
         accountName,
         provider,
       }),
@@ -108,7 +106,6 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
       StackActions.replace(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
-        onboardingTraceCtx,
         provider,
       }),
     );
