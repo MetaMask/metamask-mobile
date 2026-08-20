@@ -551,8 +551,25 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
 
     await openRecurringTab(renderResult);
 
+    const pair = strings('bridge.recurring.pair', {
+      source: 'ETH',
+      dest: 'USDC',
+    });
+
+    expect(renderResult.getAllByText(pair)).toHaveLength(2);
     expect(
-      renderResult.getByText(strings('bridge.orders.empty.open_orders')),
+      renderResult.getByText(strings('bridge.all_networks')),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.getByText(
+        strings('bridge.recurring.schedule_summary', {
+          interval: '1 day',
+          count: '5',
+        }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.getByText(strings('bridge.recurring.filled')),
     ).toBeOnTheScreen();
 
     fireEvent.press(
@@ -564,8 +581,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         renderResult.getByText(strings('bridge.orders.empty.history')),
       ).toBeOnTheScreen();
     });
-    expect(
-      renderResult.queryByText(strings('bridge.orders.empty.open_orders')),
-    ).toBeNull();
+    expect(renderResult.queryAllByText(pair)).toHaveLength(0);
+    expect(renderResult.queryByText(strings('bridge.all_networks'))).toBeNull();
   });
 });

@@ -4,13 +4,13 @@ import {
   Text,
   TextColor,
   TextVariant,
+  SectionHeader,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../../core/Engine';
-import SectionHeader from '../../../../../../../component-library/components-temp/SectionHeader';
 import PredictMarket from '../../../../components/PredictMarket';
 import PredictMarketSkeleton from '../../../../components/PredictMarketSkeleton';
 import { PredictEventValues } from '../../../../constants/eventNames';
@@ -57,13 +57,17 @@ const PredictTrendingSection: React.FC<PredictTrendingSectionProps> = ({
 
   return (
     <Box testID={testID}>
-      {/* "See all" navigates to the generic PredictFeedView (feedId 'trending').
-          Passing `onPress` is what renders the chevron + touchable. */}
+      {/* Same design-system SectionHeader as Live now / Popular today so the
+          trailing arrow uses the shared icon size. */}
       <SectionHeader
         testID={PREDICT_TRENDING_SECTION_TEST_IDS.HEADER}
         title={strings('predict.home.trending_title')}
+        isInteractive
         onPress={handleSeeAll}
-        twClassName="px-0 mb-2"
+        endIconProps={{
+          testID: PREDICT_TRENDING_SECTION_TEST_IDS.HEADER_CHEVRON,
+        }}
+        twClassName="px-0 pt-0 mb-1"
       />
 
       {isLoading ? (

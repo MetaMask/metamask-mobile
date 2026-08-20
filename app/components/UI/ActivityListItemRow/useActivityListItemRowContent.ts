@@ -541,6 +541,25 @@ function resolveCoreContent(
     }
     case 'swap': {
       const { sourceToken, destinationToken } = item.data;
+      const hasDestination = Boolean(destinationToken?.symbol);
+
+      if (!hasDestination) {
+        return {
+          title: statusTitle(item, {
+            success: withOptionalSymbol(
+              strings('transactions.activity_swapped'),
+              sourceToken?.symbol,
+            ),
+            pending: withOptionalSymbol(
+              strings('transactions.activity_swapping'),
+              sourceToken?.symbol,
+            ),
+            failed: strings('transactions.activity_swap_failed'),
+          }),
+          subtitle: protocolSubtitle(item),
+          primaryToken: sourceToken,
+        };
+      }
 
       return {
         title: statusTitle(item, {
@@ -553,24 +572,6 @@ function resolveCoreContent(
           protocolSubtitle(item),
         primaryToken: destinationToken,
         secondaryToken: sourceToken,
-      };
-    }
-    case 'swapIncomplete': {
-      const { sourceToken } = item.data;
-      return {
-        title: statusTitle(item, {
-          success: withOptionalSymbol(
-            strings('transactions.activity_swapped'),
-            sourceToken?.symbol,
-          ),
-          pending: withOptionalSymbol(
-            strings('transactions.activity_swapping'),
-            sourceToken?.symbol,
-          ),
-          failed: strings('transactions.activity_swap_failed'),
-        }),
-        subtitle: protocolSubtitle(item),
-        primaryToken: sourceToken,
       };
     }
     case 'wrap':

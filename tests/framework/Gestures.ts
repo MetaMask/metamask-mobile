@@ -964,6 +964,16 @@ export default class Gestures {
   }
 
   /**
+   * Screen-level swipe (no target element). Prefer Gestures.swipe when a
+   * locator exists.
+   */
+  static async swipeScreen(
+    options: Parameters<typeof PlaywrightGestures.swipe>[0],
+  ): Promise<void> {
+    await PlaywrightGestures.swipe(options);
+  }
+
+  /**
    * Dismiss soft keyboard after token search (tapOutside + iOS pills-strip tap).
    * Prefer this over typeText({ hideKeyboard: true }) for TextFieldSearch.
    */
