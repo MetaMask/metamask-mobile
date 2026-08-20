@@ -12,10 +12,12 @@ export const mockSourceToken = createMockToken({
 
 export const createBannerState = ({
   sourceAmount = '1',
+  sourceToken = mockSourceToken,
   destToken = createMockToken({ address: '0xdest', symbol: 'USDC' }),
   quoteStreamComplete,
 }: {
   sourceAmount?: string;
+  sourceToken?: BridgeToken;
   destToken?: BridgeToken;
   quoteStreamComplete?: {
     quoteCount: number;
@@ -31,7 +33,7 @@ export const createBannerState = ({
     },
     bridgeReducerOverrides: {
       sourceAmount,
-      sourceToken: mockSourceToken,
+      sourceToken,
       destToken,
     },
   });

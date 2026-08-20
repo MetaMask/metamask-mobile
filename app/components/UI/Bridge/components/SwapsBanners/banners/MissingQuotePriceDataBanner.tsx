@@ -13,7 +13,7 @@ import { useSwapsBannersContext } from '../SwapsBannersContext';
  * Tells the user the quote came back without the market price data needed to
  * work out the price impact.
  */
-export const MissingPriceDataBanner = () => {
+export const MissingQuotePriceDataBanner = () => {
   const { sourceAmount } = useSwapsBannersContext();
   const { activeQuote } = useBridgeQuoteDataContext();
 
@@ -27,7 +27,7 @@ export const MissingPriceDataBanner = () => {
     <BannerAlert
       severity={BannerAlertSeverity.Danger}
       description={strings('swaps.market_price_unavailable')}
-      testID={SwapsBannersSelectorsIDs.MISSING_PRICE}
+      testID={SwapsBannersSelectorsIDs.MISSING_QUOTE_PRICE}
     />
   );
 };

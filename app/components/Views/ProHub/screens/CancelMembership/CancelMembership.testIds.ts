@@ -1,5 +1,6 @@
 export const CancelMembershipTestIds = {
   CONTAINER: 'cancel-membership-container',
+  // ── Survey step ──────────────────────────────────────────────────────────
   BACK_BUTTON: 'cancel-membership-back-button',
   TITLE: 'cancel-membership-title',
   SUBTITLE: 'cancel-membership-subtitle',
@@ -7,6 +8,11 @@ export const CancelMembershipTestIds = {
   REASONS_LIST: 'cancel-membership-reasons-list',
   KEEP_BUTTON: 'cancel-membership-keep-button',
   CANCEL_BUTTON: 'cancel-membership-cancel-button',
+  // ── Success step ─────────────────────────────────────────────────────────
+  SUCCESS_CHECK_ICON_BOX: 'cancel-membership-success-check-icon-box',
+  SUCCESS_TITLE: 'cancel-membership-success-title',
+  SUCCESS_DESCRIPTION: 'cancel-membership-success-description',
+  SUCCESS_DONE_BUTTON: 'cancel-membership-success-done-button',
 } as const;
 
 /**
