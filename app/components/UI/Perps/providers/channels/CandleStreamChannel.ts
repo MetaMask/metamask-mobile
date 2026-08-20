@@ -741,12 +741,13 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     symbol: string,
     interval: CandlePeriod,
     duration: TimeDuration,
+    force = false,
   ): Promise<void> {
     const cacheKey = this.getCacheKey(symbol, interval);
     const cachedData = this.cache.get(cacheKey);
     const generation = this.prewarmGeneration;
     const requestKey = `${generation}:${cacheKey}`;
-    if (cachedData && CandleStreamChannel.isCacheFresh(cachedData)) {
+    if (!force && cachedData && CandleStreamChannel.isCacheFresh(cachedData)) {
       return;
     }
     if (this.prewarmRequests.has(requestKey)) {

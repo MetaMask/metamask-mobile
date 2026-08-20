@@ -145,14 +145,14 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockStartMarketDataPreload).toHaveBeenCalledTimes(1);
   });
 
-  it('starts one Perps loading session when perps is enabled', () => {
+  it('does not start a homepage loading session from the wallet root', () => {
     render(
       <PerpsAlwaysOnProvider>
         <Text>child</Text>
       </PerpsAlwaysOnProvider>,
     );
 
-    expect(startPerpsLoadingSession).toHaveBeenCalledTimes(1);
+    expect(startPerpsLoadingSession).not.toHaveBeenCalled();
   });
 
   it('does not call resumeFromForeground on mount when perps is disabled', () => {
@@ -252,11 +252,7 @@ describe('PerpsAlwaysOnProvider', () => {
       mockAppStateListener?.('active');
     });
 
-    expect(startPerpsLoadingSession).toHaveBeenLastCalledWith({
-      restart: true,
-      lifecycle: 'background_short',
-      surface: 'homepage',
-    });
+    expect(startPerpsLoadingSession).not.toHaveBeenCalled();
 
     // Should not reconnect immediately — uses a timer delay
     expect(mockResumeFromForeground).not.toHaveBeenCalled();

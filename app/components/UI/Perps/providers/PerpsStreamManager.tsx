@@ -749,13 +749,13 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
       symbols: allSymbols,
       callback: (updates: PriceUpdate[]) => {
-        recordPerpsLoadingSessionValuesReady(
-          'prices',
-          'fresh_socket',
-          updates.length,
-        );
         // Track first price data from WebSocket (only once per connection)
         if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
+          recordPerpsLoadingSessionValuesReady(
+            'prices',
+            'fresh_socket',
+            updates.length,
+          );
           const firstDataDuration =
             performance.now() - this.wsConnectionStartTime;
           DevLogger.log(
@@ -945,13 +945,13 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           symbols: this.allMarketSymbols,
           includeMarketData: false,
           callback: (updates: PriceUpdate[]) => {
-            recordPerpsLoadingSessionValuesReady(
-              'prices',
-              'fresh_socket',
-              updates.length,
-            );
             // Track first price data from WebSocket (only once per prewarm)
             if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
+              recordPerpsLoadingSessionValuesReady(
+                'prices',
+                'fresh_socket',
+                updates.length,
+              );
               const firstDataDuration =
                 performance.now() - this.wsConnectionStartTime;
               DevLogger.log(

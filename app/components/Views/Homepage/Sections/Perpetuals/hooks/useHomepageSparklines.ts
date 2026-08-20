@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   CandlePeriod,
   TimeDuration,
@@ -11,6 +11,7 @@ const SPARKLINE_TARGET_POINTS = 50;
 const SPARKLINE_CANDLE_COUNT = 96;
 
 export interface UseHomepageSparklinesResult {
+  refresh: () => Promise<void>;
   sparklines: Record<string, number[]>;
 }
 
@@ -109,15 +110,8 @@ export function useHomepageSparklines(
         duration: TimeDuration.OneDay,
         callback: (candleData: CandleData) => {
           if (!candleData?.candles || candleData.candles.length === 0) {
-            if (Object.hasOwn(fallbackDataRef.current, symbol)) {
-              const next = { ...fallbackDataRef.current };
-              Reflect.deleteProperty(next, symbol);
-              fallbackDataRef.current = next;
-              scheduleFlush();
-            }
             return;
           }
-          if (fallbackDataRef.current[symbol]) return;
           if (candleData.candles.length < 2) return;
 
           const closes = extractCandleCloses(candleData);
@@ -143,5 +137,21 @@ export function useHomepageSparklines(
     [fallbackSparklines, trendSparklines],
   );
 
-  return useMemo(() => ({ sparklines }), [sparklines]);
+  const refresh = useCallback(async () => {
+    if (!fallbackSymbolsKey) return;
+    await Promise.all(
+      fallbackSymbolsKey
+        .split(',')
+        .map((symbol) =>
+          stream.candles.prewarmCandles(
+            symbol,
+            CandlePeriod.FifteenMinutes,
+            TimeDuration.OneDay,
+            true,
+          ),
+        ),
+    );
+  }, [fallbackSymbolsKey, stream]);
+
+  return useMemo(() => ({ refresh, sparklines }), [refresh, sparklines]);
 }

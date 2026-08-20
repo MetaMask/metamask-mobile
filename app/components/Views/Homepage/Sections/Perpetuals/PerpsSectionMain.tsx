@@ -58,15 +58,11 @@ import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsFeed } from '../../../TrendingView/feeds/perps/usePerpsFeed';
 import { HOMEPAGE_THROTTLE_MS, MAX_ITEMS } from './constants';
-import { getPerpsLifecycleContext } from '../../../../UI/Perps/utils/perpsLifecycleContext';
 import {
   finishPerpsLoadingSession,
-  getActivePerpsLoadingSessionContext,
-  preparePerpsLoadingSession,
   resolvePerpsMarketSource,
-  resolvePerpsLoadingLifecycle,
-  startPerpsLoadingSession,
 } from '../../../../UI/Perps/utils/perpsLoadingSession';
+import { usePerpsHomepageLoadingSession } from './hooks/usePerpsHomepageLoadingSession';
 
 /**
  * PerpsSection — single "Perps" section on the homepage.
@@ -86,11 +82,8 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     },
     ref,
   ) => {
-    const loadingSessionPrepared = useRef(false);
-    if (!loadingSessionPrepared.current) {
-      preparePerpsLoadingSession();
-      loadingSessionPrepared.current = true;
-    }
+    const { proposedLifecycle, sessionContext, sessionReady } =
+      usePerpsHomepageLoadingSession();
     const sectionViewRef = useRef<View>(null);
     const baseTitle = strings('homepage.sections.perps');
     const usesPillsEmptyState = emptyStateContent === 'pills';
@@ -219,7 +212,8 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       () => (showTrending ? allCarouselMarkets : []),
       [allCarouselMarkets, showTrending],
     );
-    const { sparklines } = useHomepageSparklines(sparklineMarkets);
+    const { refresh: refreshSparklines, sparklines } =
+      useHomepageSparklines(sparklineMarkets);
 
     const showHomepageUnrealizedPnl =
       !showSkeleton && !pendingTrending && hasFilledPositions && !privacyMode;
@@ -249,7 +243,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             await refetchPerpsPills();
             return;
           }
-          await refreshMarkets();
+          await Promise.all([refreshMarkets(), refreshSparklines()]);
         },
       }),
       [
@@ -257,6 +251,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
         refetchPerpsPills,
         reconnectWithNewContext,
         refreshMarkets,
+        refreshSparklines,
         shouldShowPillsEmptyState,
       ],
     );
@@ -329,27 +324,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             : shouldShowPillsEmptyState
               ? 'pills'
               : 'trending';
-    const proposedLifecycle = resolvePerpsLoadingLifecycle(
-      getPerpsLifecycleContext(),
-    );
-    const [sessionReady, setSessionReady] = useState(
-      () => getActivePerpsLoadingSessionContext() !== null,
-    );
-    useEffect(() => {
-      if (getActivePerpsLoadingSessionContext() || sessionReady) {
-        if (!sessionReady) {
-          setSessionReady(true);
-        }
-        return;
-      }
-      startPerpsLoadingSession({
-        lifecycle: proposedLifecycle,
-        surface: 'homepage',
-      });
-      setSessionReady(true);
-    }, [proposedLifecycle, sessionReady]);
-
-    const sessionContext = getActivePerpsLoadingSessionContext();
     const lifecycle = sessionContext?.lifecycle ?? proposedLifecycle;
     const marketSource = resolvePerpsMarketSource(
       allCarouselMarkets.length > 0 ? allCarouselMarkets : markets,

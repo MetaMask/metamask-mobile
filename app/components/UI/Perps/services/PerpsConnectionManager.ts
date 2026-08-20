@@ -57,7 +57,6 @@ import { ensureError } from '../../../../util/errorUtils';
 import {
   getActivePerpsLoadingSessionTraceData,
   setPerpsLoadingSessionLifecycle,
-  startPerpsLoadingSession,
 } from '../utils/perpsLoadingSession';
 import { getPerpsLifecycleContext } from '../utils/perpsLifecycleContext';
 
@@ -150,20 +149,6 @@ class PerpsConnectionManagerClass {
         !hasProviderChanged &&
         !hasPerpsNetworkChanged &&
         !hasHip3Changed;
-
-      if (hasPerpsNetworkChanged) {
-        startPerpsLoadingSession({
-          restart: true,
-          lifecycle: 'network_switch',
-          surface: 'homepage',
-        });
-      } else if (hasAccountChanged) {
-        startPerpsLoadingSession({
-          restart: true,
-          lifecycle: 'account_switch',
-          surface: 'homepage',
-        });
-      }
 
       // If account, network, provider, or HIP-3 config changed and we're connected, trigger reconnection
       if (

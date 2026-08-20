@@ -61,6 +61,12 @@ export interface PerpsLoadingSessionContext {
   lifecycle: PerpsLoadingLifecycle;
 }
 
+export type PerpsLoadingSessionCancellationReason =
+  | 'app_backgrounded'
+  | 'context_changed'
+  | 'session_restarted'
+  | 'surface_unmounted';
+
 export function resolvePerpsLoadingLifecycle(
   context: 'cold_process' | 'warm' | 'background_resume',
 ): PerpsLoadingLifecycle {
@@ -134,12 +140,7 @@ export function startPerpsLoadingSession(
   }
 
   if (activeSessionId) {
-    endActiveLoadingSession({
-      success: false,
-      content_state: 'error',
-      failure_stage: 'session_restarted',
-      required_live_streams_complete: false,
-    });
+    cancelPerpsLoadingSession('session_restarted');
   }
 
   const sessionId = uuidv4();
@@ -415,6 +416,10 @@ function endActiveLoadingSession(
       ...data,
     },
   });
+  resetActiveLoadingSession();
+}
+
+function resetActiveLoadingSession(): void {
   if (sessionTimeout) {
     clearTimeout(sessionTimeout);
     sessionTimeout = null;
@@ -430,6 +435,23 @@ function endActiveLoadingSession(
   preSessionEvents = [];
   preSessionFinishData = null;
   preSessionBufferArmed = false;
+}
+
+export function cancelPerpsLoadingSession(
+  reason: PerpsLoadingSessionCancellationReason,
+): void {
+  if (!activeSessionId) {
+    return;
+  }
+  endTrace({
+    name: TraceName.PerpsLoadingSession,
+    id: activeSessionId,
+    data: {
+      cancellation_reason: reason,
+      required_live_streams_complete: false,
+    },
+  });
+  resetActiveLoadingSession();
 }
 
 function requiresLiveAccount(

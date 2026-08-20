@@ -9,6 +9,7 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 import {
+  cancelPerpsLoadingSession,
   finishPerpsLoadingSession,
   getActivePerpsLoadingSessionContext,
   preparePerpsLoadingSession,
@@ -140,6 +141,41 @@ describe('perpsLoadingSession', () => {
     expect(second).toBe(first);
     expect(trace).toHaveBeenCalledTimes(1);
     expect(DevLogger.log).toHaveBeenCalledTimes(1);
+  });
+
+  it('ends a cancelled session without reporting a success or failure', () => {
+    startPerpsLoadingSession();
+
+    cancelPerpsLoadingSession('app_backgrounded');
+
+    expect(endTrace).toHaveBeenCalledWith({
+      name: TraceName.PerpsLoadingSession,
+      id: 'session-id-1',
+      data: {
+        cancellation_reason: 'app_backgrounded',
+        required_live_streams_complete: false,
+      },
+    });
+    expect(getActivePerpsLoadingSessionContext()).toBeNull();
+  });
+
+  it('cancels rather than failing the old session on restart', () => {
+    startPerpsLoadingSession();
+
+    startPerpsLoadingSession({ restart: true });
+
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          cancellation_reason: 'session_restarted',
+        }),
+      }),
+    );
+    expect(endTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ success: false }),
+      }),
+    );
   });
 
   describe('recordPerpsLoadingSessionValuesReady', () => {

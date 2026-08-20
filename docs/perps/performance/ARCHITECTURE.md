@@ -20,12 +20,14 @@ flowchart LR
   P --> UI[UI Startup]
   P --> HR[Homepage Ready]
   AUTH[Authenticate User when required] --> HR
-  PB[Perps bootstrap start] --> GLOBAL[Global market lane]
-  PB --> CTRL[Controller and connection lane]
-  PB --> USER[User-data lane]
+  P --> CTRL[Controller construction]
+  WALLET[Wallet root mount] --> GLOBAL[Global market preload]
+  WALLET --> CONNECT[Connection lane]
+  DEMAND[Homepage Perps surface demand] --> PB[Perps bootstrap start]
+  PB --> USER[User-data consumption]
 ```
 
-`perps_bootstrap_start` is emitted when `PerpsAlwaysOnProvider` requests global, controller, and user bootstrap. It is not controller construction, Perps Home navigation, login completion, wallet readiness, or Homepage readiness. The controller may already exist from Engine setup, and global market preload may safely begin before authentication because it has no account dependency. Startup and Perps traces remain independently owned and are compared only as release/platform cohorts, not joined per event.
+`perps_bootstrap_start` is emitted when the mounted Homepage Perps surface begins a measurable loading generation. The surface owns that session through completion, context change, backgrounding, or unmount, so wallet-root and off-homepage activity cannot create false timeouts. It is not controller construction, login completion, wallet readiness, or Homepage readiness. The controller, global market preload, and connection may already be active because global data has no account dependency. Startup and Perps traces remain independently owned and are compared only as release/platform cohorts, not joined per event.
 
 ### Homepage Ready anchors
 
@@ -41,20 +43,19 @@ Only the cold cohort may label Homepage Ready as full app startup. Authenticatio
 
 ```mermaid
 flowchart TD
-  PB[Perps bootstrap start]
-  PB --> G1[Global preload]
+  G1[Global preload]
   G1 --> G2[Terminal request]
   G2 --> G3[Parse and validate]
   G3 --> G4[Core market cache accepted]
   G4 --> G5[Mobile market channel delivered]
 
-  PB --> C1[PerpsController init]
+  C1[PerpsController init]
   C1 --> C2[Provider and DEX mapping]
   C2 --> C3[Provider ready]
   C3 --> C4[WebSocket healthy]
   C4 --> C5[Persistent subscriptions ready]
 
-  PB --> U1[User identity available]
+  PB[Homepage Perps bootstrap start] --> U1[User identity available]
   U1 --> U2[Memory or disk identity checked]
   U2 --> U3[Atomic user snapshot]
   U3 --> U4[Mobile account channels delivered]
@@ -107,7 +108,7 @@ Each boundary has exactly one producer.
 | UI Startup                                    | Existing Mobile startup instrumentation                 | `UI Startup` trace                                                                                                                                    |
 | Authentication duration                       | Existing Mobile login instrumentation                   | `Authenticate User` trace                                                                                                                             |
 | Homepage ready                                | Existing Mobile Homepage instrumentation                | `Homepage Ready` trace                                                                                                                                |
-| Perps bootstrap start                         | Mobile `PerpsAlwaysOnProvider`                          | slim `Perps Loading Session` anchor and recipe marker                                                                                                 |
+| Perps bootstrap start                         | Mounted Mobile Homepage Perps surface                   | slim `Perps Loading Session` anchor and recipe marker                                                                                                 |
 | Controller constructed                        | Core constructor, using Mobile-supplied monotonic clock | Buffer construction/hydration timestamps in Core; after `perps_bootstrap_start`, write the derived offset to the explicit loading-session span handle |
 | Market/user disk hydration identity and age   | Core cache code                                         | corresponding preload trace attributes plus recipe event                                                                                              |
 | Terminal request, parse/validation, adoption  | Core Terminal market service                            | `Perps Market Data Preload` measurements only                                                                                                         |
@@ -132,6 +133,8 @@ Core-to-Mobile measurements must target an explicit trace/span handle. Ambient-s
 It must not copy startup, Terminal request/parse, preload, connection, first-data, TTC, or DFD durations. Existing traces remain authoritative for those values.
 
 `perps_session_id` is generated once per lifecycle/context generation and attached as trace data/context to reused traces for drill-down. It is never used as a dashboard group-by tag. Dashboard cohorts use bounded attributes such as release, platform, lifecycle, surface, content variant, and source.
+
+Sessions cancelled by context change, backgrounding, or surface unmount are ended with a bounded cancellation reason but no success/content outcome, and are excluded from success, error, and latency cohorts.
 
 ## Derived metrics
 
@@ -174,17 +177,17 @@ All loading-session offsets are non-negative and bootstrap-relative.
 
 ## Executable lifecycle v1
 
-| Lifecycle              | Start condition                             | Required proof                                                |
-| ---------------------- | ------------------------------------------- | ------------------------------------------------------------- |
-| `cold_no_cache`        | New process, Perps caches cleared           | Resolved surface plus bounded required-stream completion      |
-| `cold_disk_cache`      | New process, valid persisted cache retained | Identity-correct cached frame, then fresh takeover            |
-| `navigate_return`      | Surface remounted in same process           | Resident frame; fresh tick optional                           |
-| `background_short`     | Background below documented grace period    | Resident frame and connection continuity; fresh tick optional |
-| `background_reconnect` | Background beyond grace period              | Cached/LKG frame allowed, then fresh takeover                 |
-| `account_switch`       | Selected account changes                    | No prior-account frame; new identity accepted                 |
-| `network_switch`       | Perps network changes                       | No prior-network frame; new network/DEX identity accepted     |
+| Lifecycle              | Start condition                                   | Required proof                                                     |
+| ---------------------- | ------------------------------------------------- | ------------------------------------------------------------------ |
+| `cold_no_cache`        | New process, Perps caches cleared                 | Resolved surface plus bounded required-stream completion           |
+| `cold_disk_cache`      | New process, valid persisted cache retained       | Identity-correct cached frame, then fresh takeover                 |
+| `navigate_return`      | Surface remounted in same process                 | Resident frame; fresh tick optional                                |
+| `background_short`     | Background below documented grace period          | Resident frame and connection continuity; fresh tick optional      |
+| `background_reconnect` | Background beyond grace period                    | Cached/LKG frame allowed, then fresh takeover                      |
+| `account_switch`       | Selected account changes                          | No prior-account frame; new identity accepted                      |
+| `network_switch`       | Provider, Perps network, or HIP-3 context changes | No prior-context frame; new provider/network/DEX identity accepted |
 
-`provider_switch` and `network_recovery` are deferred until the recipe has explicit target-provider/offline controls. They are not v1 claims.
+A dedicated `provider_switch` cohort and `network_recovery` are deferred until the recipe has explicit target-provider/offline controls. Provider and HIP-3 changes currently use the broader `network_switch` context-generation cohort.
 
 ## Recipe and evidence rules
 

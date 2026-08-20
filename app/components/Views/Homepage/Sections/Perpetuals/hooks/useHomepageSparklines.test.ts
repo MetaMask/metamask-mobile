@@ -8,7 +8,13 @@ import {
 } from '@metamask/perps-controller';
 
 const mockSubscribe = jest.fn();
-const mockStream = { candles: { subscribe: mockSubscribe } };
+const mockPrewarmCandles = jest.fn().mockResolvedValue(undefined);
+const mockStream = {
+  candles: {
+    prewarmCandles: mockPrewarmCandles,
+    subscribe: mockSubscribe,
+  },
+};
 
 jest.mock('../../../../../UI/Perps/providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(() => mockStream),
@@ -132,7 +138,7 @@ describe('useHomepageSparklines', () => {
     );
   });
 
-  it('replaces fallback data after the candle cache is cleared', async () => {
+  it('keeps the last fallback data when a refresh returns no candles', async () => {
     let callback: ((candleData: CandleData) => void) | undefined;
     mockSubscribe.mockImplementation(
       (params: { callback: (candleData: CandleData) => void }) => {
@@ -161,7 +167,7 @@ describe('useHomepageSparklines', () => {
         candles: [],
       });
     });
-    expect(result.current.sparklines.BTC).toBeUndefined();
+    expect(result.current.sparklines.BTC?.[0]).toBe(100);
 
     await act(async () => {
       callback?.({
@@ -172,6 +178,27 @@ describe('useHomepageSparklines', () => {
     });
     expect(result.current.sparklines.BTC?.[0]).toBe(200);
     expect(mockSubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('force-refreshes only markets without trend data', async () => {
+    const { result } = renderHook(() =>
+      useHomepageSparklines([
+        makeMarket('BTC', makeTrend(10)),
+        makeMarket('ETH'),
+      ]),
+    );
+
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    expect(mockPrewarmCandles).toHaveBeenCalledTimes(1);
+    expect(mockPrewarmCandles).toHaveBeenCalledWith(
+      'ETH',
+      CandlePeriod.FifteenMinutes,
+      TimeDuration.OneDay,
+      true,
+    );
   });
 
   it('filters out unparseable trend price entries', () => {

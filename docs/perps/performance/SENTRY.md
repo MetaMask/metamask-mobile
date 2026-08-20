@@ -67,7 +67,7 @@ All measurements are non-negative bootstrap-relative offsets:
 - `orders_live_ms`
 - `prices_live_ms`
 
-The session starts at `perps_bootstrap_start`. It ends when the surface-specific resolved requirement and any lifecycle-required live streams are recorded, or at a bounded error/timeout. Homepage trending does not wait for live prices.
+The mounted Homepage Perps surface starts the session at `perps_bootstrap_start`. It ends when the surface-specific resolved requirement and any lifecycle-required live streams are recorded, or at a bounded error/timeout. Context changes, backgrounding, and unmount cancel the session without a success/content outcome. Homepage trending does not wait for live prices.
 
 ### Existing Homepage section traces
 

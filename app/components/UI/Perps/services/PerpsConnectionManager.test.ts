@@ -716,11 +716,7 @@ describe('PerpsConnectionManager', () => {
       expect(
         mockStreamManagerInstance.marketData.clearCache,
       ).not.toHaveBeenCalled();
-      expect(startPerpsLoadingSession).toHaveBeenCalledWith({
-        restart: true,
-        lifecycle: 'account_switch',
-        surface: 'homepage',
-      });
+      expect(startPerpsLoadingSession).not.toHaveBeenCalled();
     });
 
     it('detects network changes and triggers reconnection', async () => {
@@ -760,14 +756,10 @@ describe('PerpsConnectionManager', () => {
       expect(
         mockStreamManagerInstance.marketData.clearCache,
       ).toHaveBeenCalledWith();
-      expect(startPerpsLoadingSession).toHaveBeenCalledWith({
-        restart: true,
-        lifecycle: 'network_switch',
-        surface: 'homepage',
-      });
+      expect(startPerpsLoadingSession).not.toHaveBeenCalled();
     });
 
-    it('starts a new account generation while disconnected', async () => {
+    it('does not start a homepage session while disconnected', async () => {
       mockPerpsController.init.mockResolvedValue();
       await PerpsConnectionManager.connect();
       const callback = storeCallbacks[storeCallbacks.length - 1];
@@ -781,11 +773,7 @@ describe('PerpsConnectionManager', () => {
       ).mockReturnValue(() => ({ address: '0xdisconnected' }));
       callback();
 
-      expect(startPerpsLoadingSession).toHaveBeenCalledWith({
-        restart: true,
-        lifecycle: 'account_switch',
-        surface: 'homepage',
-      });
+      expect(startPerpsLoadingSession).not.toHaveBeenCalled();
       expect(
         mockStreamManagerInstance.positions.clearCache,
       ).not.toHaveBeenCalled();

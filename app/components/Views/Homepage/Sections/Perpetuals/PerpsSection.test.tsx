@@ -10,21 +10,12 @@ import {
 } from '@metamask/perps-controller';
 import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perpsController';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
-import type {
-  PerpsLoadingLifecycle,
-  PerpsLoadingSessionContext,
-} from '../../../../UI/Perps/utils/perpsLoadingSession';
+import type { PerpsLoadingSessionContext } from '../../../../UI/Perps/utils/perpsLoadingSession';
 
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
 const mockUseSectionPerformance = jest.fn((_config: unknown) => undefined);
-const mockStartPerpsLoadingSession = jest.fn(
-  (_options: unknown) => 'session-id-1',
-);
 const mockFinishPerpsLoadingSession = jest.fn((_data: unknown) => undefined);
-const mockResolvePerpsLoadingLifecycle = jest.fn<PerpsLoadingLifecycle, []>(
-  () => 'cold_no_cache',
-);
 const mockGetActivePerpsLoadingSessionContext = jest.fn<
   PerpsLoadingSessionContext | null,
   []
@@ -40,15 +31,19 @@ jest.mock('../../hooks/useSectionPerformance', () => ({
 }));
 
 jest.mock('../../../../UI/Perps/utils/perpsLoadingSession', () => ({
-  startPerpsLoadingSession: (options: unknown) =>
-    mockStartPerpsLoadingSession(options),
   finishPerpsLoadingSession: (data: unknown) =>
     mockFinishPerpsLoadingSession(data),
-  preparePerpsLoadingSession: jest.fn(),
-  getActivePerpsLoadingSessionContext: () =>
-    mockGetActivePerpsLoadingSessionContext(),
   resolvePerpsMarketSource: () => 'provider',
-  resolvePerpsLoadingLifecycle: () => mockResolvePerpsLoadingLifecycle(),
+}));
+
+const mockUsePerpsHomepageLoadingSession = jest.fn(() => ({
+  proposedLifecycle: 'cold_no_cache' as const,
+  sessionContext: mockGetActivePerpsLoadingSessionContext(),
+  sessionReady: true,
+}));
+
+jest.mock('./hooks/usePerpsHomepageLoadingSession', () => ({
+  usePerpsHomepageLoadingSession: () => mockUsePerpsHomepageLoadingSession(),
 }));
 
 const mockUseHomepagePerpsPillsEmptyTransactionActiveAbTests = jest.fn<
@@ -345,12 +340,20 @@ const spyOnUsePerpsFeed = () =>
 describe('PerpsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockResolvePerpsLoadingLifecycle.mockReturnValue('cold_no_cache');
     mockGetActivePerpsLoadingSessionContext.mockReturnValue({
       id: 'session-id-1',
       marketSource: 'provider',
       accountSource: 'memory_cache',
       lifecycle: 'cold_no_cache',
+    });
+    mockUsePerpsHomepageLoadingSession.mockImplementation(() => ({
+      proposedLifecycle: 'cold_no_cache',
+      sessionContext: mockGetActivePerpsLoadingSessionContext(),
+      sessionReady: true,
+    }));
+    mockUseHomepageSparklines.mockReturnValue({
+      refresh: jest.fn().mockResolvedValue(undefined),
+      sparklines: {},
     });
     usePerpsConnection.mockReset();
     usePerpsConnection.mockImplementation(() => ({
@@ -406,7 +409,6 @@ describe('PerpsSection', () => {
       <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(mockStartPerpsLoadingSession).not.toHaveBeenCalled();
     expect(mockUseSectionPerformance).toHaveBeenCalledWith(
       expect.objectContaining({
         tags: expect.objectContaining({
@@ -421,15 +423,24 @@ describe('PerpsSection', () => {
   });
 
   it('delays an immediately-ready TTC until session correlation exists', () => {
-    mockGetActivePerpsLoadingSessionContext.mockReturnValueOnce(null);
-
-    renderWithProvider(
+    mockUsePerpsHomepageLoadingSession.mockReturnValue({
+      proposedLifecycle: 'cold_no_cache',
+      sessionContext: null,
+      sessionReady: false,
+    });
+    const view = renderWithProvider(
       <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
     expect(mockUseSectionPerformance.mock.calls[0][0]).toEqual(
       expect.objectContaining({ contentReady: false }),
     );
+    mockUsePerpsHomepageLoadingSession.mockReturnValue({
+      proposedLifecycle: 'cold_no_cache',
+      sessionContext: mockGetActivePerpsLoadingSessionContext(),
+      sessionReady: true,
+    });
+    view.rerender(<PerpsSection sectionIndex={0} totalSectionsLoaded={1} />);
     expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
       expect.objectContaining({
         contentReady: true,
@@ -442,7 +453,7 @@ describe('PerpsSection', () => {
     const view = renderWithProvider(
       <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
-    expect(mockStartPerpsLoadingSession).not.toHaveBeenCalled();
+    expect(mockUsePerpsHomepageLoadingSession).toHaveBeenCalledTimes(1);
 
     usePerpsLivePositions.mockReturnValue({
       positions: [makePosition()],
@@ -450,20 +461,25 @@ describe('PerpsSection', () => {
     });
     view.rerender(<PerpsSection sectionIndex={0} totalSectionsLoaded={1} />);
 
-    expect(mockStartPerpsLoadingSession).not.toHaveBeenCalled();
+    expect(mockUsePerpsHomepageLoadingSession).toHaveBeenCalledTimes(2);
   });
 
-  it('does not reopen a finished session when lifecycle context changes', () => {
+  it('uses the loading-session owner lifecycle after the session finishes', () => {
     const view = renderWithProvider(
       <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
-    expect(mockStartPerpsLoadingSession).not.toHaveBeenCalled();
-
-    mockGetActivePerpsLoadingSessionContext.mockReturnValue(null);
-    mockResolvePerpsLoadingLifecycle.mockReturnValue('background_short');
+    mockUsePerpsHomepageLoadingSession.mockReturnValue({
+      proposedLifecycle: 'background_short',
+      sessionContext: null,
+      sessionReady: true,
+    });
     view.rerender(<PerpsSection sectionIndex={0} totalSectionsLoaded={1} />);
 
-    expect(mockStartPerpsLoadingSession).not.toHaveBeenCalled();
+    expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        tags: expect.objectContaining({ lifecycle: 'background_short' }),
+      }),
+    );
   });
 
   it('finishes a visible error even while loading remains true', () => {
@@ -876,6 +892,11 @@ describe('PerpsSection', () => {
 
     it('refreshes the market list on pull-to-refresh when the trending carousel is showing', async () => {
       const refresh = jest.fn().mockResolvedValue(undefined);
+      const refreshSparklines = jest.fn().mockResolvedValue(undefined);
+      mockUseHomepageSparklines.mockReturnValue({
+        refresh: refreshSparklines,
+        sparklines: {},
+      });
       usePerpsMarkets.mockReturnValue({
         markets: [
           makeTrendingMarket({ symbol: 'BTC', volumeNumber: 5000000000 }),
@@ -896,6 +917,7 @@ describe('PerpsSection', () => {
       });
 
       expect(refresh).toHaveBeenCalledTimes(1);
+      expect(refreshSparklines).toHaveBeenCalledTimes(1);
     });
 
     it('does not show trending carousel when user has positions', () => {
