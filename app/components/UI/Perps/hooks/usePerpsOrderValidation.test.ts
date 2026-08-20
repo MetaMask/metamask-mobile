@@ -832,5 +832,70 @@ describe('usePerpsOrderValidation', () => {
         }
       },
     );
+
+    it.each([
+      {
+        orderType: 'stop_limit',
+        direction: 'long',
+        triggerPrice: '51000',
+        limitPrice: '49000',
+      },
+      {
+        orderType: 'stop_limit',
+        direction: 'short',
+        triggerPrice: '49000',
+        limitPrice: '51000',
+      },
+      {
+        orderType: 'take_profit_limit',
+        direction: 'long',
+        triggerPrice: '49000',
+        limitPrice: '51000',
+      },
+      {
+        orderType: 'take_profit_limit',
+        direction: 'short',
+        triggerPrice: '51000',
+        limitPrice: '49000',
+      },
+      {
+        orderType: 'stop_limit',
+        direction: 'long',
+        triggerPrice: '51000',
+        limitPrice: '51000',
+      },
+    ] as const)(
+      'allows $direction $orderType when limit and trigger have no required relationship',
+      async ({ orderType, direction, triggerPrice, limitPrice }) => {
+        mockValidateOrder.mockResolvedValue({ isValid: true });
+
+        const { result } = renderHook(() =>
+          usePerpsOrderValidation({
+            ...defaultParams,
+            orderForm: {
+              ...defaultOrderForm,
+              type: orderType,
+              direction,
+              limitPrice,
+            },
+            triggerPrice,
+            assetPrice: 50000,
+            midPrice: 50000,
+            szDecimals: 4,
+          }),
+        );
+
+        act(() => {
+          jest.advanceTimersByTime(1000);
+        });
+
+        await fastWaitFor(() => {
+          expect(result.current.isValidating).toBe(false);
+        });
+
+        expect(result.current.isValid).toBe(true);
+        expect(result.current.fieldIssues).toEqual([]);
+      },
+    );
   });
 });

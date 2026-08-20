@@ -1292,6 +1292,61 @@ describe('usePerpsProOrderForm', () => {
         });
       },
     );
+
+    it.each([
+      {
+        orderType: 'stop_limit' as const,
+        direction: 'long' as const,
+        triggerPrice: '91000',
+        limitPrice: '92000',
+        expectedMessage:
+          'Limit price is above current price. Your order may execute as a market order.',
+      },
+      {
+        orderType: 'take_profit_limit' as const,
+        direction: 'short' as const,
+        triggerPrice: '91000',
+        limitPrice: '89000',
+        expectedMessage:
+          'Limit price is below current price. Your order may execute as a market order.',
+      },
+      {
+        orderType: 'take_profit_limit' as const,
+        direction: 'long' as const,
+        triggerPrice: '89000',
+        limitPrice: '89500',
+        expectedMessage: undefined,
+      },
+    ])(
+      'uses the normal limit marketability warning for $orderType $direction',
+      ({ orderType, direction, triggerPrice, limitPrice, expectedMessage }) => {
+        mockOrderForm.type = orderType;
+        mockOrderForm.direction = direction;
+        mockOrderForm.limitPrice = limitPrice;
+        mockContextValue.triggerPrice = triggerPrice;
+        mockValidation.isValid = true;
+        mockValidation.fieldIssues = [];
+        const { result, rerender } = renderProForm();
+
+        expect(result.current.priceCardMessage).toBeUndefined();
+        expect(result.current.isPlaceOrderDisabled).toBe(false);
+
+        act(() => {
+          result.current.onLimitPriceBlur();
+        });
+        rerender({});
+
+        if (expectedMessage) {
+          expect(result.current.priceCardMessage).toEqual({
+            severity: 'warning',
+            message: expectedMessage,
+          });
+        } else {
+          expect(result.current.priceCardMessage).toBeUndefined();
+        }
+        expect(result.current.isPlaceOrderDisabled).toBe(false);
+      },
+    );
   });
 
   describe('additional notices', () => {

@@ -236,47 +236,35 @@ describe('getLimitPriceCrossingWarning', () => {
     expect(warning).toBe('perps.order.validation.limit_price_above_warning');
   });
 
-  it('warns when a short trigger-limit is below its trigger', () => {
+  it('uses the normal limit warning for a short stop-limit below mid', () => {
     const warning = getLimitPriceCrossingWarning({
       orderType: 'stop_limit',
       direction: 'short',
       limitPrice: '2400',
       midPrice: 2500,
-      triggerPrice: '2450',
     });
 
-    expect(warning).toBe(
-      'perps.order.validation.trigger_limit_price_below_warning',
-    );
+    expect(warning).toBe('perps.order.validation.limit_price_below_warning');
   });
 
-  it('measures a trigger-limit against its trigger, not mid', () => {
-    // Valid long take-profit: trigger below mid, limit at/above trigger. The
-    // limit crosses the trigger but sits below mid, so a mid-referenced rule
-    // would stay silent here.
+  it('uses the normal limit warning for a long take-limit above mid', () => {
     const warning = getLimitPriceCrossingWarning({
       orderType: 'take_profit_limit',
       direction: 'long',
-      limitPrice: '2400',
+      limitPrice: '2600',
       midPrice: 2500,
-      triggerPrice: '2300',
     });
 
-    expect(warning).toBe(
-      'perps.order.validation.trigger_limit_price_above_warning',
-    );
+    expect(warning).toBe('perps.order.validation.limit_price_above_warning');
   });
 
-  it('stays silent when a trigger-limit rests at its trigger', () => {
-    // HyperLiquid: a limit equal to the trigger rests instead of filling, so
-    // there is no market-execution warning to give.
+  it('stays silent when a trigger-limit equals mid', () => {
     expect(
       getLimitPriceCrossingWarning({
         orderType: 'stop_limit',
         direction: 'long',
-        limitPrice: '2600',
+        limitPrice: '2500',
         midPrice: 2500,
-        triggerPrice: '2600',
       }),
     ).toBeUndefined();
   });
@@ -308,30 +296,43 @@ describe('typed order price validation', () => {
     expect(result).toBe('123.46');
   });
 
-  it('returns a blocking relationship issue when a long trigger-limit cannot fill', () => {
+  it.each(['stop_limit', 'take_profit_limit'] as const)(
+    'does not block a positive limit price relationship for %s',
+    (orderType) => {
+      const result = getLimitPriceValidationIssue({
+        orderType,
+        limitPrice: '2499',
+        szDecimals: 3,
+      });
+
+      expect(result).toBeUndefined();
+    },
+  );
+
+  it('returns a required issue when a limit price is empty', () => {
     const result = getLimitPriceValidationIssue({
       orderType: 'stop_limit',
-      direction: 'long',
-      triggerPrice: '2500',
-      limitPrice: '2499',
+      limitPrice: undefined,
       szDecimals: 3,
     });
 
-    expect(result).toEqual({
-      code: 'below_trigger',
-      requiredRelation: 'at_or_above',
-    });
-    expect(
-      getLimitPriceValidationMessage(
-        result as {
-          code: 'below_trigger';
-          requiredRelation: 'at_or_above';
-        },
-      ),
-    ).toBe('perps.order.validation.limit_price_must_be_at_or_above_trigger');
+    expect(result).toEqual({ code: 'required' });
+    expect(getLimitPriceValidationMessage({ code: 'required' })).toBe(
+      'perps.order.validation.limit_price_required',
+    );
   });
 
-  it('assigns trigger and limit issues to their owning fields', () => {
+  it('returns a positive issue when a limit price is not positive', () => {
+    const result = getLimitPriceValidationIssue({
+      orderType: 'take_profit_limit',
+      limitPrice: '0',
+      szDecimals: 3,
+    });
+
+    expect(result).toEqual({ code: 'positive' });
+  });
+
+  it('assigns a trigger issue to its owning field', () => {
     const result = getOrderFormFieldIssues({
       orderType: 'stop_limit',
       direction: 'long',
@@ -341,9 +342,6 @@ describe('typed order price validation', () => {
       szDecimals: 3,
     });
 
-    expect(result.map(({ field }) => field)).toEqual([
-      'triggerPrice',
-      'limitPrice',
-    ]);
+    expect(result.map(({ field }) => field)).toEqual(['triggerPrice']);
   });
 });

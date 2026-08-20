@@ -1372,7 +1372,6 @@ export const usePerpsProOrderForm = ({
       direction: orderForm.direction,
       limitPrice: normalizedLimitPrice,
       midPrice: assetData.price,
-      triggerPrice: normalizedTriggerPrice,
       szDecimals,
     });
     if (!warning) {
@@ -1382,7 +1381,6 @@ export const usePerpsProOrderForm = ({
     return { severity: 'warning' as const, message: warning };
   }, [
     assetData.price,
-    normalizedTriggerPrice,
     hasBlurredLimitPrice,
     hasBlurredTriggerPrice,
     orderForm.direction,

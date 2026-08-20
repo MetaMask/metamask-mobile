@@ -21,11 +21,7 @@ export type TriggerPriceValidationIssue =
 
 export type LimitPriceValidationIssue =
   | { code: 'required' }
-  | { code: 'positive' }
-  | {
-      code: 'below_trigger' | 'above_trigger';
-      requiredRelation: 'at_or_above' | 'at_or_below';
-    };
+  | { code: 'positive' };
 
 export type OrderFormFieldIssue =
   | {
@@ -52,7 +48,6 @@ export interface LimitPriceCrossingWarningInput {
   direction: 'long' | 'short';
   limitPrice: string | undefined;
   midPrice: number;
-  triggerPrice?: string;
   szDecimals?: number;
 }
 
@@ -165,22 +160,18 @@ export const getTriggerPriceValidationIssue = ({
 };
 
 /**
- * Validates the execution price for limit and trigger-limit placements.
+ * Validates the structural price input for limit and trigger-limit placements.
  *
- * @param input - Order type, direction, and candidate prices.
+ * @param input - Order type and candidate limit price.
  * @returns A typed limit-price issue, or `undefined`.
  */
 export const getLimitPriceValidationIssue = ({
   orderType,
-  direction,
   limitPrice,
-  triggerPrice,
   szDecimals,
 }: {
   orderType: OrderType;
-  direction: 'long' | 'short';
   limitPrice: string | undefined;
-  triggerPrice?: string;
   szDecimals?: number;
 }): LimitPriceValidationIssue | undefined => {
   if (!isLimitExecutionOrderType(orderType)) {
@@ -191,30 +182,6 @@ export const getLimitPriceValidationIssue = ({
   const parsedLimit = Number.parseFloat(canonicalLimit ?? '');
   if (!Number.isFinite(parsedLimit) || parsedLimit <= 0) {
     return limitPrice?.trim() ? { code: 'positive' } : { code: 'required' };
-  }
-
-  if (!isTriggerOrderType(orderType)) {
-    return undefined;
-  }
-
-  const canonicalTrigger = canonicalizeOrderPrice(triggerPrice, szDecimals);
-  const parsedTrigger = Number.parseFloat(canonicalTrigger ?? '');
-  if (!Number.isFinite(parsedTrigger) || parsedTrigger <= 0) {
-    return undefined;
-  }
-
-  if (direction === 'long' && parsedLimit < parsedTrigger) {
-    return {
-      code: 'below_trigger',
-      requiredRelation: 'at_or_above',
-    };
-  }
-
-  if (direction === 'short' && parsedLimit > parsedTrigger) {
-    return {
-      code: 'above_trigger',
-      requiredRelation: 'at_or_below',
-    };
   }
 
   return undefined;
@@ -255,9 +222,7 @@ export const getOrderFormFieldIssues = ({
 
   const limitIssue = getLimitPriceValidationIssue({
     orderType,
-    direction,
     limitPrice,
-    triggerPrice,
     szDecimals,
   });
   if (limitIssue) {
@@ -293,19 +258,10 @@ export const getTriggerPriceValidationMessage = (
  */
 export const getLimitPriceValidationMessage = (
   issue: LimitPriceValidationIssue,
-): string => {
-  if (issue.code === 'required') {
-    return strings('perps.order.validation.limit_price_required');
-  }
-  if (issue.code === 'positive') {
-    return strings('perps.errors.orderValidation.pricePositive');
-  }
-  return strings(
-    issue.requiredRelation === 'at_or_above'
-      ? 'perps.order.validation.limit_price_must_be_at_or_above_trigger'
-      : 'perps.order.validation.limit_price_must_be_at_or_below_trigger',
-  );
-};
+): string =>
+  issue.code === 'required'
+    ? strings('perps.order.validation.limit_price_required')
+    : strings('perps.errors.orderValidation.pricePositive');
 
 /**
  * Localizes any field-owned order-price issue.
@@ -324,18 +280,7 @@ export const getOrderFormFieldIssueMessage = (
  * Non-blocking warning when a limit price would cross the book and execute as a
  * market order rather than resting. Equality is not a warning.
  *
- * The reference price differs by placement because the two reach the book at
- * different moments. A plain limit reaches it immediately, so it is compared to
- * the live mid. A trigger-limit rests off-book until its trigger fires, at which
- * point the market is at the trigger — so it is compared to the trigger, and the
- * mid at placement time is irrelevant. HyperLiquid documents this directly: a
- * stop closing a long with trigger $10 and limit $10 "would rest at $10 instead
- * of filling", while limit $8 against the same trigger "is likely to fill". Do not collapse the
- * trigger branch into the mid comparison — the blocking trigger-vs-mid and
- * limit-vs-trigger rules force a valid stop-limit's price to the crossing side
- * of mid, so a mid-referenced warning would fire on every valid stop-limit.
- *
- * @param input - Order type, side, typed limit, live mid, and typed trigger.
+ * @param input - Order type, side, typed limit, and live mid.
  * @returns Localized warning copy, or `undefined`.
  */
 export const getLimitPriceCrossingWarning = ({
@@ -343,7 +288,6 @@ export const getLimitPriceCrossingWarning = ({
   direction,
   limitPrice,
   midPrice,
-  triggerPrice,
   szDecimals,
 }: LimitPriceCrossingWarningInput): string | undefined => {
   if (!isLimitExecutionOrderType(orderType)) {
@@ -353,26 +297,6 @@ export const getLimitPriceCrossingWarning = ({
   const canonicalLimit = canonicalizeOrderPrice(limitPrice, szDecimals);
   const limit = Number.parseFloat(canonicalLimit ?? '');
   if (!(limit > 0)) {
-    return undefined;
-  }
-
-  if (isTriggerOrderType(orderType)) {
-    const canonicalTrigger = canonicalizeOrderPrice(triggerPrice, szDecimals);
-    const trigger = Number.parseFloat(canonicalTrigger ?? '');
-    if (!(trigger > 0)) {
-      return undefined;
-    }
-
-    if (direction === 'long' && limit > trigger) {
-      return strings(
-        'perps.order.validation.trigger_limit_price_above_warning',
-      );
-    }
-    if (direction === 'short' && limit < trigger) {
-      return strings(
-        'perps.order.validation.trigger_limit_price_below_warning',
-      );
-    }
     return undefined;
   }
 
