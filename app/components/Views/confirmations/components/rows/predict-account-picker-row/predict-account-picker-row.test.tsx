@@ -41,6 +41,11 @@ jest.mock('../../../../../UI/Predict/utils/format', () => ({
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
+jest.mock('../../confirm/confirm-component', () => ({
+  PayWithOption: {
+    MoneyAccount: 'money_account',
+  },
+}));
 
 jest.mock('../../../../../../component-library/hooks/useStyles', () => ({
   useStyles: () => ({
