@@ -16,8 +16,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useEvent } from '../../hooks/useEvent';
+import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
+import { TraceName } from '../../../../../util/trace';
 import {
   EventLoadingHeader,
   GameEventHeader,
@@ -58,6 +60,14 @@ export const PredictEventScreen = () => {
     useRoute<RouteProp<PredictNextStackParamList, 'PredictNextEvent'>>().params;
   const query = useEvent(venueId, eventId);
   const [hasBlockingError, setHasBlockingError] = useState(false);
+  usePredictNextMeasurement({
+    traceName: TraceName.PredictNextEventView,
+    conditions: [!query.isLoading],
+    debugContext: {
+      hasEvent: Boolean(query.data),
+      error: query.isError,
+    },
+  });
   useEffect(() => {
     if (query.isError) {
       setHasBlockingError(true);
