@@ -1,4 +1,3 @@
-import { FrameworkDetector, TestFramework } from './FrameworkDetector';
 import { EncapsulatedElement } from './EncapsulatedElement';
 import Matchers from './Matchers';
 import PlaywrightMatchers from './PlaywrightMatchers';
@@ -29,9 +28,6 @@ function findPageObjectsWithEncapsulated(dir: string): string[] {
 }
 
 function getEncapsulatedGetterNames(pageObject: object): string[] {
-  FrameworkDetector.reset();
-  FrameworkDetector.setFramework(TestFramework.DETOX);
-
   const spy = jest.spyOn(EncapsulatedElement, 'create');
   const names: string[] = [];
 
@@ -52,16 +48,7 @@ function getEncapsulatedGetterNames(pageObject: object): string[] {
   }
 
   spy.mockRestore();
-  FrameworkDetector.reset();
-
   return names;
-}
-
-function atLeastOneDetoxMatcherWasCalled(): void {
-  const detoxCallCount =
-    (Matchers.getElementByID as jest.Mock).mock.calls.length +
-    (Matchers.getElementByText as jest.Mock).mock.calls.length;
-  expect(detoxCallCount).toBeGreaterThan(0);
 }
 
 function atLeastOnePlaywrightMatcherWasCalled(): void {
@@ -75,14 +62,6 @@ function atLeastOnePlaywrightMatcherWasCalled(): void {
   expect(playwrightCallCount).toBeGreaterThan(0);
 }
 
-function noPlaywrightMatcherWasCalled(): void {
-  expect(PlaywrightMatchers.getElementById).not.toHaveBeenCalled();
-  expect(PlaywrightMatchers.getElementByText).not.toHaveBeenCalled();
-  expect(PlaywrightMatchers.getElementByAccessibilityId).not.toHaveBeenCalled();
-  expect(PlaywrightMatchers.getElementByCatchAll).not.toHaveBeenCalled();
-  expect(PlaywrightMatchers.getElementByXPath).not.toHaveBeenCalled();
-}
-
 function noDetoxMatcherWasCalled(): void {
   expect(Matchers.getElementByID).not.toHaveBeenCalled();
   expect(Matchers.getElementByText).not.toHaveBeenCalled();
@@ -94,40 +73,14 @@ function describeGetters(
   getterNames: string[],
 ): void {
   describe(`${pageObjectName}`, () => {
-    describe('Detox context', () => {
-      beforeEach(() => {
-        jest.clearAllMocks();
-        FrameworkDetector.reset();
-        FrameworkDetector.setFramework(TestFramework.DETOX);
-      });
-
-      afterEach(() => FrameworkDetector.reset());
-
-      for (const name of getterNames) {
-        it(`${name} calls the Detox locator`, async () => {
-          const descriptor = Object.getOwnPropertyDescriptor(
-            Object.getPrototypeOf(pageObject),
-            name,
-          );
-          await Promise.resolve(descriptor?.get?.call(pageObject));
-
-          atLeastOneDetoxMatcherWasCalled();
-          noPlaywrightMatcherWasCalled();
-        });
-      }
-    });
-
     describe('Appium context — iOS', () => {
       beforeEach(() => {
         jest.clearAllMocks();
-        FrameworkDetector.reset();
-        FrameworkDetector.setFramework(TestFramework.APPIUM);
         resetDeviceInfo();
         setDeviceInfo('ios', { width: 390, height: 844 });
       });
 
       afterEach(() => {
-        FrameworkDetector.reset();
         resetDeviceInfo();
       });
 
@@ -148,14 +101,11 @@ function describeGetters(
     describe('Appium context — Android', () => {
       beforeEach(() => {
         jest.clearAllMocks();
-        FrameworkDetector.reset();
-        FrameworkDetector.setFramework(TestFramework.APPIUM);
         resetDeviceInfo();
         setDeviceInfo('android', { width: 400, height: 800 });
       });
 
       afterEach(() => {
-        FrameworkDetector.reset();
         resetDeviceInfo();
       });
 

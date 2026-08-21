@@ -46,6 +46,7 @@ jest.mock('../../../util/trace', () => ({
   ...jest.requireActual('../../../util/trace'),
   trace: jest.fn(),
   endTrace: jest.fn(),
+  getTraceContext: jest.fn(),
 }));
 
 jest.mock('../../../util/mnemonic', () => ({
@@ -81,6 +82,7 @@ import {
   TraceOperation,
   trace,
   endTrace,
+  getTraceContext,
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
@@ -1809,11 +1811,15 @@ describe('ChoosePassword', () => {
   describe('Tracing', () => {
     const mockTrace = trace as jest.MockedFunction<typeof trace>;
     const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+    const mockGetTraceContext = getTraceContext as jest.MockedFunction<
+      typeof getTraceContext
+    >;
 
     beforeEach(() => {
       jest.clearAllMocks();
       mockTrace.mockClear();
       mockEndTrace.mockClear();
+      mockGetTraceContext.mockClear();
     });
 
     it('starts the attempt trace on mount and ends it on unmount', async () => {
@@ -1824,14 +1830,14 @@ describe('ChoosePassword', () => {
         traceId: 'setup-attempt-trace-id',
       } as unknown as Span;
       mockTrace.mockReturnValue(mockTraceCtx);
-      mockRoute.params = {
-        ...mockRoute.params,
-        onboardingTraceCtx: mockOnboardingTraceCtx,
-      };
+      mockGetTraceContext.mockReturnValue(mockOnboardingTraceCtx);
 
       const { unmount } = renderWithProviders(<ChoosePassword />);
       await act(async () => Promise.resolve());
 
+      expect(mockGetTraceContext).toHaveBeenCalledWith({
+        name: TraceName.OnboardingJourneyOverall,
+      });
       expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.OnboardingPasswordSetupAttempt,
         op: TraceOperation.OnboardingUserJourney,
@@ -1845,7 +1851,9 @@ describe('ChoosePassword', () => {
       });
     });
 
-    it('skips journey tracing when no onboardingTraceCtx is provided', async () => {
+    it('skips journey tracing when getTraceContext returns undefined', async () => {
+      mockGetTraceContext.mockReturnValue(undefined);
+
       const { unmount } = renderWithProviders(<ChoosePassword />);
       await waitForInit();
 
@@ -1870,6 +1878,7 @@ describe('ChoosePassword', () => {
       } as unknown as Span;
       const testError = new Error('Password creation failed');
       mockTrace.mockReturnValue(undefined);
+      mockGetTraceContext.mockReturnValue(mockOnboardingTraceCtx);
 
       const mockComponentAuthenticationType = jest.spyOn(
         Authentication,
@@ -1879,7 +1888,6 @@ describe('ChoosePassword', () => {
       mockRoute.params = {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
-        onboardingTraceCtx: mockOnboardingTraceCtx,
       };
 
       const component = renderWithProviders(<ChoosePassword />);
@@ -1900,7 +1908,8 @@ describe('ChoosePassword', () => {
       });
     });
 
-    it('does not emit an error trace when no onboardingTraceCtx is provided', async () => {
+    it('does not emit an error trace when getTraceContext returns undefined', async () => {
+      mockGetTraceContext.mockReturnValue(undefined);
       const testError = new Error('Password creation failed');
       const mockComponentAuthenticationType = jest.spyOn(
         Authentication,
@@ -1931,6 +1940,7 @@ describe('ChoosePassword', () => {
         traceId: 'test-trace-id',
       } as unknown as Span;
       mockTrace.mockReturnValue(undefined);
+      mockGetTraceContext.mockReturnValue(mockOnboardingTraceCtx);
 
       const mockComponentAuthenticationType = jest.spyOn(
         Authentication,
@@ -1948,7 +1958,6 @@ describe('ChoosePassword', () => {
       mockRoute.params = {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
-        onboardingTraceCtx: mockOnboardingTraceCtx,
       };
 
       const component = renderWithProviders(<ChoosePassword />);

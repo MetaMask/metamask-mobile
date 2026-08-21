@@ -3899,6 +3899,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyEnableCardActivityEnrichment: {
+    name: 'moneyEnableCardActivityEnrichment',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyEnableMoneyAccount: {
     name: 'moneyEnableMoneyAccount',
     type: FeatureFlagType.Remote,
@@ -4794,17 +4805,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         sentinelUrl: 'https://tx-sentinel-bsc-mainnet.api.cx.metamask.io',
         gaslessBridgeWith7702Enabled: false,
       },
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  socialAIQuickBuyStreamQuotes: {
-    name: 'socialAIQuickBuyStreamQuotes',
-    type: FeatureFlagType.Remote,
-    inProd: false,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '8.2.0',
     },
     status: FeatureFlagStatus.Active,
   },

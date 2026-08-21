@@ -26,11 +26,10 @@ import { getNetworkImageSource } from '../../../../../../../util/networks';
 import {
   AvatarNetwork,
   AvatarNetworkSize,
+  Text,
+  TextVariant,
   type ImageOrSvgSrc,
 } from '@metamask/design-system-react-native';
-import Text, {
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
 
 export const InfoSectionOriginAndDetails = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -80,7 +79,7 @@ export const InfoSectionOriginAndDetails = () => {
         tooltip={strings('confirm.personal_sign_tooltip')}
       >
         {isExternalApp ? (
-          <Text variant={TextVariant.BodyMD}>
+          <Text variant={TextVariant.BodyMd}>
             {strings('confirm.label.external_app')}
           </Text>
         ) : (
@@ -98,7 +97,7 @@ export const InfoSectionOriginAndDetails = () => {
               />
             </View>
           )}
-          <Text variant={TextVariant.BodyMD}>{networkConfiguration?.name}</Text>
+          <Text variant={TextVariant.BodyMd}>{networkConfiguration?.name}</Text>
         </View>
       </InfoRow>
       {isValidAddress(verifyingContract) && (

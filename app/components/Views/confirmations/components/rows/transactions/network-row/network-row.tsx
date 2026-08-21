@@ -4,13 +4,12 @@ import { Hex } from '@metamask/utils';
 import {
   AvatarNetwork,
   AvatarNetworkSize,
+  Text,
+  TextVariant,
   type ImageOrSvgSrc,
 } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../../../locales/i18n';
-import Text, {
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
@@ -49,7 +48,7 @@ const NetworkRow = ({ chainId: chainIdProp, style }: NetworkRowProps) => {
             />
           </View>
         )}
-        <Text variant={TextVariant.BodyMD}>{networkName}</Text>
+        <Text variant={TextVariant.BodyMd}>{networkName}</Text>
       </View>
     </InfoRow>
   );

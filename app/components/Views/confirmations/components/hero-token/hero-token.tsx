@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Text, {
+import {
+  AvatarTokenSize,
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { AvatarTokenSize } from '@metamask/design-system-react-native';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
@@ -28,11 +29,11 @@ const AssetAmount = ({
   const isUnknownToken = displayName === strings('token.unknown');
 
   return (
-    <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
+    <Text style={styles.assetAmountText} variant={TextVariant.HeadingLg}>
       {amount}{' '}
       <Text
         style={isUnknownToken && styles.assetTextUnknown}
-        variant={TextVariant.HeadingLG}
+        variant={TextVariant.HeadingLg}
       >
         {displayName}
       </Text>
@@ -61,7 +62,7 @@ const HeroTokenHorizontal = ({ amountWei }: { amountWei?: string }) => {
     >
       <View style={styles.horizontalContainer}>
         <View style={styles.textColumn}>
-          <Text style={styles.label} variant={TextVariant.BodyMD}>
+          <Text style={styles.label} variant={TextVariant.BodyMd}>
             {strings('confirm.label.sending')}
           </Text>
           <View style={styles.amountIconRow}>
@@ -83,7 +84,7 @@ const HeroTokenHorizontal = ({ amountWei }: { amountWei?: string }) => {
                 />
               )}
               {fiat && (
-                <Text style={styles.fiatTextLeft} variant={TextVariant.BodyMD}>
+                <Text style={styles.fiatTextLeft} variant={TextVariant.BodyMd}>
                   {fiat}
                 </Text>
               )}

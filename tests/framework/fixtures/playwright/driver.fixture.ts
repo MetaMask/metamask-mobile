@@ -15,7 +15,6 @@ import {
   requestSharedSessionRecreate,
 } from '../../services/appium/sessionRecovery.ts';
 import { createPlaywrightLogger } from '../../playwrightLogger.ts';
-import { FrameworkDetector, TestFramework } from '../../FrameworkDetector.ts';
 import UnifiedGestures from '../../UnifiedGestures.ts';
 import type { ServiceProvider } from '../../services';
 import { isAppiumSessionReuseEnabled } from './sessionReuse.ts';
@@ -115,8 +114,6 @@ export const driverFixture = {
       await configureImplicitWait(drv, implicitMs);
 
       globalThis.driver = drv;
-      FrameworkDetector.reset();
-      FrameworkDetector.setFramework(TestFramework.APPIUM);
       UnifiedGestures.resetStrategy();
 
       const platformName = (await drv.capabilities)?.platformName;
@@ -243,7 +240,6 @@ export const driverFixture = {
 
         try {
           delete globalThis.driver;
-          FrameworkDetector.reset();
           UnifiedGestures.resetStrategy();
         } catch (error) {
           logger.error('Failed to clean up global driver:', error);

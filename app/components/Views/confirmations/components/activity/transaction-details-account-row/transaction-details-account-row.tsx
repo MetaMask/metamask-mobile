@@ -12,6 +12,8 @@ import {
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
+  Text,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
@@ -155,7 +157,7 @@ export function TransactionDetailsAccountRow() {
     ? strings('transaction_details.label.money_account')
     : (accountName ?? from);
 
-  const textColor = isWithdraw ? undefined : TextColor.Alternative;
+  const textColor = isWithdraw ? undefined : TextColor.TextAlternative;
 
   const avatarElement = isWithdraw ? (
     <View style={iconStyles.moneyIconWrapper}>

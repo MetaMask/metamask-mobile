@@ -3,10 +3,10 @@ import { View } from 'react-native';
 import {
   AvatarNetwork,
   AvatarNetworkSize,
+  Text,
   type ImageOrSvgSrc,
 } from '@metamask/design-system-react-native';
 
-import Text from '../../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../../component-library/hooks';
 import useNetworkInfo from '../../../../../hooks/useNetworkInfo';
 import styleSheet from './network.styles';

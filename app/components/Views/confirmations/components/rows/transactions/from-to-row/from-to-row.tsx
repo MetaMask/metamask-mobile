@@ -6,15 +6,15 @@ import {
   AvatarAccountSize,
   AvatarToken,
   AvatarTokenSize,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
 import { useStyles } from '../../../../../../../component-library/hooks';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
 import { getAvatarAccountVariant } from '../../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { useTransferRecipient } from '../../../../hooks/transactions/useTransferRecipient';
@@ -54,8 +54,8 @@ const AddressDisplay = ({
       <View style={styles.addressContent}>
         {label}
         <Text
-          variant={TextVariant.BodyMD}
-          color={isPoisoned ? TextColor.Error : undefined}
+          variant={TextVariant.BodyMd}
+          color={isPoisoned ? TextColor.ErrorDefault : undefined}
           numberOfLines={1}
           ellipsizeMode="middle"
         >
@@ -144,8 +144,8 @@ const FromToRow = () => {
             image={fromImage}
             label={
               <Text
-                variant={TextVariant.BodyMD}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
                 style={styles.label}
               >
                 {fromLabel}
@@ -169,8 +169,9 @@ const FromToRow = () => {
                 {isPoisoningSuspect && (
                   <View style={styles.poisonedBadge}>
                     <Text
-                      variant={TextVariant.BodyXSMedium}
-                      color={TextColor.Error}
+                      variant={TextVariant.BodyXs}
+                      fontWeight={FontWeight.Medium}
+                      color={TextColor.ErrorDefault}
                     >
                       {strings('alert_system.address_poisoning.badge')}
                     </Text>

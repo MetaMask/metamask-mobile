@@ -7,13 +7,13 @@ import {
   AvatarToken,
   AvatarTokenSize,
   ButtonBaseSize,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import Engine from '../../../../../../core/Engine';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '../../../../../UI/Box/Box';
 import { PredictClaimConfirmationSelectorsIDs } from '../../../../../UI/Predict/Predict.testIds';
@@ -102,8 +102,8 @@ export function PredictClaimFooter({
         {strings('confirm.predict_claim.button_label')}
       </ButtonHero>
       <Text
-        variant={TextVariant.BodyXS}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodyXs}
+        color={TextColor.TextAlternative}
         style={styles.bottom}
       >
         {strings('confirm.predict_claim.footer_bottom')}
@@ -137,12 +137,17 @@ function SingleWin({ wonPositions }: { wonPositions: PredictPosition[] }) {
         size={AvatarTokenSize.Lg}
       />
       <Box flexDirection={FlexDirection.Column} style={styles.textContainer}>
-        <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+        >
           {position.title}
         </Text>
         <Text
-          variant={TextVariant.BodySMMedium}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
           numberOfLines={1}
         >
           {amountFormatted} on {position.outcome}
@@ -170,7 +175,7 @@ function MultipleWinnings({
 
   return (
     <Box style={styles.top}>
-      <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
         {strings('confirm.predict_claim.footer_top', {
           count: wonPositions.length,
         })}

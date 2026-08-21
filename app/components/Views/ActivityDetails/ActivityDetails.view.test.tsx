@@ -1094,7 +1094,7 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
     expect(getByTestId(TOTAL_ROW)).toHaveTextContent(/\$/);
   });
 
-  it('shows confirmed Deposited USDC with fee and total', async () => {
+  it('shows confirmed Deposited USDC with total and no fee row', async () => {
     setupAccountsTransactionsApiMock([
       {
         hash: ACTIVITY_CV_DEPOSIT_USDC_HASH,
@@ -1128,14 +1128,19 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
       .withOverrides(activityUsdcTokenRatesOverride)
       .build();
 
-    const { findByTestId, findByText, getByTestId, UNSAFE_getAllByType } =
-      renderActivityDetailsView({
-        state,
-        params: {
-          chainId: MAINNET_CAIP,
-          txIdentifier: ACTIVITY_CV_DEPOSIT_USDC_HASH,
-        },
-      });
+    const {
+      findByTestId,
+      findByText,
+      getByTestId,
+      queryByTestId,
+      UNSAFE_getAllByType,
+    } = renderActivityDetailsView({
+      state,
+      params: {
+        chainId: MAINNET_CAIP,
+        txIdentifier: ACTIVITY_CV_DEPOSIT_USDC_HASH,
+      },
+    });
 
     expect(await findByTestId(SCREEN)).toBeOnTheScreen();
     expect(await findByText('Deposited USDC')).toBeOnTheScreen();
@@ -1144,9 +1149,9 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
     expect(
       within(amountHeader).getByTestId(AMOUNT_AVATAR_SINGLE),
     ).toBeOnTheScreen();
-    expect(within(amountHeader).getByText(/^\+.*USDC/)).toBeOnTheScreen();
-    expect(findAmountTextColor(UNSAFE_getAllByType, /^\+.*USDC/)).toBe(
-      TextColor.SuccessDefault,
+    expect(within(amountHeader).getByText(/^-.*USDC/)).toBeOnTheScreen();
+    expect(findAmountTextColor(UNSAFE_getAllByType, /^-.*USDC/)).toBe(
+      TextColor.TextDefault,
     );
 
     expect(await findByTestId(STATUS_PILL)).toHaveTextContent(
@@ -1180,9 +1185,7 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
       fireEvent.press(getByTestId(TRANSACTION_ID_COPY));
     });
 
-    await waitFor(() => {
-      expect(getByTestId(FEE_ROW)).toHaveTextContent(/\$/);
-    });
+    expect(queryByTestId(FEE_ROW)).not.toBeOnTheScreen();
     expect(getByTestId(TOTAL_ROW)).toHaveTextContent(/\$/);
   });
 });
@@ -1401,7 +1404,10 @@ describeForPlatforms(
         ActivityDetailsSelectorsIDs.TOTAL_ROW,
       );
       // 2 SOL * multichain rate 4 → $8.00 (formatCurrencyWithMinThreshold)
-      expect(within(totalRow).getByText('$8.00')).toBeOnTheScreen();
+      // The row renders before the rate resolves, so poll for the converted value.
+      await waitFor(() =>
+        expect(within(totalRow).getByText('$8.00')).toBeOnTheScreen(),
+      );
 
       expect(
         await findByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL),
@@ -1478,9 +1484,12 @@ describeForPlatforms('ActivityDetails — Solana swap', () => {
     });
     expect(within(getByTestId(FEE_ROW)).getByText('SOL')).toBeOnTheScreen();
     // 1 SOL × multichain rate 4; Solana base fees stay token-denominated.
-    expect(getByTestId(TOTAL_ROW)).toHaveTextContent('$4.00', {
-      exact: false,
-    });
+    // The row renders before the rate resolves, so poll for the converted value.
+    await waitFor(() =>
+      expect(getByTestId(TOTAL_ROW)).toHaveTextContent('$4.00', {
+        exact: false,
+      }),
+    );
 
     expect(getByTestId(BLOCK_EXPLORER_BUTTON)).toHaveTextContent(
       strings('activity_details.view_on_block_explorer'),

@@ -8,11 +8,10 @@ import {
   AvatarAccountSize,
   BottomSheet,
   BottomSheetHeader,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { getAvatarAccountVariant } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../../../../selectors/settings';
@@ -67,7 +66,7 @@ const SwitchAccountTypeModal = () => {
         />
         <View style={styles.wrapper}>
           <View style={styles.spinner} testID="no-address-fallback">
-            <Text variant={TextVariant.BodyMD}>No account selected</Text>
+            <Text variant={TextVariant.BodyMd}>No account selected</Text>
           </View>
         </View>
       </BottomSheet>
@@ -93,7 +92,7 @@ const SwitchAccountTypeModal = () => {
                 address={address}
                 variant={getAvatarAccountVariant(accountAvatarType)}
               />
-              <Text style={styles.account_name} variant={TextVariant.HeadingMD}>
+              <Text style={styles.account_name} variant={TextVariant.HeadingMd}>
                 {account?.metadata.name}
               </Text>
             </View>

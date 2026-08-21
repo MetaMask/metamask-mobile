@@ -2,17 +2,18 @@ import { Hex } from '@metamask/utils';
 import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { AvatarAccount } from '@metamask/design-system-react-native';
+import {
+  AvatarAccount,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
 import { getAvatarAccountVariant } from '../../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { selectAvatarAccountType } from '../../../../../../../selectors/settings';
@@ -57,7 +58,10 @@ const AccountNetworkInfoCollapsed = () => {
               </Text>
             </View>
             {hasMoreThanOneWallet && (
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
                 {walletName}
               </Text>
             )}

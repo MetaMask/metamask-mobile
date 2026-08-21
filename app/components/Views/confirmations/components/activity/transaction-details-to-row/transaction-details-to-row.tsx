@@ -9,8 +9,8 @@ import {
 import {
   AvatarAccount,
   AvatarAccountSize,
+  Text,
 } from '@metamask/design-system-react-native';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import { getAvatarAccountVariant } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';

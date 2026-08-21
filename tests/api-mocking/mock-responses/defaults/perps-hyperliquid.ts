@@ -13,6 +13,13 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
       responseCode: 200,
       response: [],
     },
+    {
+      // Generic E2E fixtures use the deterministic provider mocks below.
+      urlEndpoint:
+        /^https:\/\/terminal\.(dev-api|uat-api|api)\.cx\.metamask\.io\/v2\/perpetuals/,
+      responseCode: 503,
+      response: {},
+    },
   ],
   POST: [
     {

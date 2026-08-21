@@ -64,11 +64,8 @@ import {
   selectIsCardStateResolved,
   selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
-import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
-import {
-  selectMoneyEarningSectionEnabledFlag,
-  selectMoneyEnableMoneyAccountFlag,
-} from '../../selectors/featureFlags';
+import { selectMoneyEarningSectionEnabledFlag } from '../../selectors/featureFlags';
+import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
@@ -76,7 +73,7 @@ import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
 import { MoneyBalanceDisplayState } from '../../types';
 import { Hex } from '@metamask/utils';
-import { AssetType } from '../../../../Views/confirmations/types/token';
+import type { MoneyDepositAsset } from '../../selectors/depositTokens';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -209,6 +206,7 @@ const MoneyHomeView = () => {
     error: activityError,
     moneyAddress,
     mockDataEnabled,
+    cardEnrichmentByHash,
   } = useMoneyActivityItems({
     fill: {
       bucket: MoneyActivityFilter.All,
@@ -220,15 +218,10 @@ const MoneyHomeView = () => {
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isCardStateResolved = useSelector(selectIsCardStateResolved);
   const hasMetalCard = useSelector(selectHasMetalCard);
-  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isMoneyEarningSectionEnabled = useSelector(
     selectMoneyEarningSectionEnabledFlag,
   );
-  const isMoneyAccountGeoEligible = useSelector(
-    selectIsMoneyAccountGeoEligible,
-  );
-  const isMoneyAccountVisible =
-    isMoneyAccountEnabled && isMoneyAccountGeoEligible;
+  const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
     startLinkFlow,
     isCardAuthenticated,
@@ -587,7 +580,11 @@ const MoneyHomeView = () => {
   );
 
   const handleTokenButtonPress = useCallback(
-    async (token: AssetType, tokenIndex: number, tokenCount: number) => {
+    async (
+      token: MoneyDepositAsset,
+      tokenIndex: number,
+      tokenCount: number,
+    ) => {
       try {
         trackTokenButtonClicked({
           button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -620,7 +617,11 @@ const MoneyHomeView = () => {
   );
 
   const handleTokenCardPress = useCallback(
-    async (token: AssetType, tokenIndex: number, tokenCount: number) => {
+    async (
+      token: MoneyDepositAsset,
+      tokenIndex: number,
+      tokenCount: number,
+    ) => {
       try {
         trackTokenSurfaceClicked({
           component_name:
@@ -746,8 +747,12 @@ const MoneyHomeView = () => {
     isCardLinkedToMoneyAccount,
   });
 
+  // Users with no card never fetch card home data, so its status stays 'idle'
+  // for them — `isCardStateResolved` is what tells us the upsell mode is final.
   const isCardAnalyticsReady =
-    cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
+    isCardStateResolved ||
+    cardHomeDataStatus === 'success' ||
+    cardHomeDataStatus === 'error';
 
   const metamaskCardSection = metamaskCardMode
     ? {
@@ -829,6 +834,7 @@ const MoneyHomeView = () => {
           onViewAllPress={handleViewAllActivityPress}
           onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}
           privacyMode={privacyMode}
+          cardEnrichmentByHash={cardEnrichmentByHash}
         />
       ),
     });
