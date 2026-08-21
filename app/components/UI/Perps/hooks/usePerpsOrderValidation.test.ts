@@ -6,6 +6,7 @@ import {
 import { usePerpsOrderValidation } from './usePerpsOrderValidation';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetwork } from './usePerpsNetwork';
+import { strings } from '../../../../../locales/i18n';
 
 // Configure waitFor with a shorter timeout for all tests
 const fastWaitFor = (callback: () => void, options = {}) =>
@@ -206,8 +207,8 @@ describe('usePerpsOrderValidation', () => {
       const { result } = renderHook(() =>
         usePerpsOrderValidation({
           ...defaultParams,
-          spendableBalance: 5,
-          marginRequired: '10.00',
+          spendableBalance: 0.00004,
+          marginRequired: '3.59',
         }),
       );
 
@@ -222,8 +223,12 @@ describe('usePerpsOrderValidation', () => {
 
       expect(result.current.isValid).toBe(false);
       expect(result.current.errors).toContain(
-        'Insufficient balance: need 10.00, have 5',
+        strings('perps.order.validation.insufficient_balance', {
+          required: '3.59',
+          available: '0.00004',
+        }),
       );
+      expect(result.current.hasInsufficientBalance).toBe(true);
     });
   });
 
