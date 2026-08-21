@@ -121,7 +121,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     null,
   );
 
-  const brazeTraceIdRef = useRef(uuidv4());
+  const brazeTraceIdRef = useRef<string>('');
   const brazeTraceEndedRef = useRef(false);
 
   const clearNoResponseTimeout = useCallback(() => {
