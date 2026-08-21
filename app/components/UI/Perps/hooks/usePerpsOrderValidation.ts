@@ -54,6 +54,7 @@ interface ValidationState {
   warnings: string[];
   protocolValid: boolean;
   isValidating: boolean;
+  hasInsufficientBalance: boolean;
 }
 
 export interface ValidationResult {
@@ -62,6 +63,7 @@ export interface ValidationResult {
   fieldIssues: OrderFormFieldIssue[];
   isValid: boolean;
   isValidating: boolean;
+  hasInsufficientBalance: boolean;
 }
 
 // Stable empty array references to prevent unnecessary re-renders
@@ -109,6 +111,7 @@ export function usePerpsOrderValidation(
     warnings: EMPTY_WARNINGS,
     protocolValid: false,
     isValidating: false, // Start with false to prevent initial flickering
+    hasInsufficientBalance: false,
   });
 
   // Use stable array references to prevent unnecessary re-renders
@@ -159,7 +162,8 @@ export function usePerpsOrderValidation(
 
       // Balance validation (immediate)
       const requiredMargin = Number.parseFloat(marginRequired);
-      if (requiredMargin > spendableBalance) {
+      const hasInsufficientBalance = requiredMargin > spendableBalance;
+      if (hasInsufficientBalance) {
         immediateErrors.push(
           strings('perps.order.validation.insufficient_balance', {
             required: marginRequired,
@@ -306,6 +310,11 @@ export function usePerpsOrderValidation(
           warnings: warnings.length > 0 ? warnings : EMPTY_WARNINGS,
           protocolValid: errors.length === 0,
           isValidating: false,
+          hasInsufficientBalance:
+            hasInsufficientBalance ||
+            protocolValidation.error ===
+              PERPS_ERROR_CODES.INSUFFICIENT_BALANCE ||
+            protocolValidation.error === PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
         });
       } catch (error) {
         if (requestId !== validationRequestIdRef.current) {
@@ -320,6 +329,7 @@ export function usePerpsOrderValidation(
           warnings: EMPTY_WARNINGS,
           protocolValid: false,
           isValidating: false,
+          hasInsufficientBalance: false,
         });
       }
     },
@@ -426,5 +436,6 @@ export function usePerpsOrderValidation(
     fieldIssues,
     isValid: validation.protocolValid && fieldIssues.length === 0,
     isValidating: validation.isValidating,
+    hasInsufficientBalance: validation.hasInsufficientBalance,
   };
 }

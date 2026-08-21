@@ -73,6 +73,7 @@ import {
 } from '@metamask/perps-controller';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import PerpsOrderView from './PerpsOrderView';
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -267,6 +268,7 @@ jest.mock('../../hooks', () => ({
     isValid: true,
     errors: [],
     isValidating: false,
+    hasInsufficientBalance: false,
   })),
   usePerpsOrderExecution: jest.fn(() => ({
     placeOrder: jest.fn().mockResolvedValue({ success: true }),
@@ -4268,6 +4270,7 @@ describe('PerpsOrderView', () => {
         isValid: false,
         errors: ['Insufficient balance. Required: $3.59, Available: $0.00004'],
         isValidating: false,
+        hasInsufficientBalance: true,
       });
 
       const { getByTestId, queryByText, queryAllByText } = render(
@@ -4279,17 +4282,24 @@ describe('PerpsOrderView', () => {
       );
 
       expect(
-        getByTestId('perps-order-view-place-order-button'),
+        getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
       ).toBeOnTheScreen();
       expect(
-        queryAllByText('Insufficient funds to cover the trade'),
+        queryAllByText(
+          strings('perps.order.validation.insufficient_funds_to_cover_trade'),
+        ),
       ).toHaveLength(1);
       expect(
         queryByText(
-          'Insufficient balance. Required: $3.59, Available: $0.00004',
+          strings('perps.order.validation.insufficient_balance', {
+            required: '$3.59',
+            available: '$0.00004',
+          }),
         ),
       ).toBeNull();
-      expect(queryByText('Insufficient funds')).toBeNull();
+      expect(
+        queryByText(strings('perps.order.validation.insufficient_funds')),
+      ).toBeNull();
     });
 
     it('should not show balance warning when account is still loading', () => {
