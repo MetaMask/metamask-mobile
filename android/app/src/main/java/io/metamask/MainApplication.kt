@@ -31,6 +31,7 @@ import io.metamask.nativeModules.RNTar.RNTarPackage
 import io.metamask.nativeModules.NotificationPackage
 import com.braze.BrazeActivityLifecycleCallbackListener
 import com.margelo.nitro.nitrofetch.AutoPrefetcher
+import java.io.IOException
 
 class MainApplication : Application(), ShareApplication, ReactApplication {
 
@@ -103,7 +104,12 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
             // Non-fatal: if prefetch fails the app continues on the standard fetch path.
         }
 
-        SoLoader.init(this, OpenSourceMergedSoMapping)
+        // Keep this startup sequence aligned with ReactNativeApplicationEntryPoint.loadReactNative.
+        try {
+            SoLoader.init(this, OpenSourceMergedSoMapping)
+        } catch (error: IOException) {
+            throw RuntimeException(error)
+        }
         if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
             // Explicit CDP traces use these events to measure native UI FPS and jank.
             // BuildConfig.DEBUG keeps frame recording out of release builds.

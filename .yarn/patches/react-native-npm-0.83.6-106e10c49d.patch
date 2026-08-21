@@ -57,7 +57,8 @@ diff --git a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDefaults.h b/
 index b4924ba5601c66b40f605a75269bef538cc231f4..606c30666f5a3ce2cc87c58693c9dc00fbf9900b 100644
 --- a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDefaults.h
 +++ b/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDefaults.h
-@@ -258 +258,7 @@ class ReactNativeFeatureFlagsDefaults : public ReactNativeFeatureFlagsProvider {
+@@ -257,3 +257,9 @@ class ReactNativeFeatureFlagsDefaults : public ReactNativeFeatureFlagsProvider {
+   bool fuseboxFrameRecordingEnabled() override {
 -    return false;
 +#ifdef DEBUG
 +    // Explicit CDP traces use these events to measure native UI FPS and jank.
@@ -66,3 +67,4 @@ index b4924ba5601c66b40f605a75269bef538cc231f4..606c30666f5a3ce2cc87c58693c9dc00
 +#else
 +    return false;
 +#endif
+   }
