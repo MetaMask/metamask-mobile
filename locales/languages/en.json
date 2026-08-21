@@ -10953,6 +10953,16 @@
     "title": "MetaMask Pro",
     "subtitle": "Your Pro membership",
     "manage": "Manage subscription",
+    "manage_plan": "Manage plan",
+    "earned_with_pro": "Earned with Pro",
+    "saved_with_pro": "Saved with Pro",
+    "your_benefits": "Your benefits",
+    "next_payment": "Your next payment of {{amount}} is coming up {{date}}.",
+    "physical_card": {
+      "title": "Get your physical card.",
+      "description": "Get 3% mUSD back at 150M+ merchants when you spend with MetaMask Card.",
+      "cta": "Get card"
+    },
     "explore_benefits": "Explore benefits",
     "membership": {
       "title": "Your membership",
