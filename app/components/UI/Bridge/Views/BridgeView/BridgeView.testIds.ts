@@ -35,6 +35,7 @@ export const BridgeViewSelectorsIDs = {
     'recurring-source-token-area-amount-type-toggle',
   RECURRING_DEST_TOKEN_AREA: 'recurring-dest-token-area',
   RECURRING_DEST_TOKEN_INPUT: 'recurring-dest-token-area-input',
+  RECURRING_DEST_YOU_GET: 'recurring-dest-you-get',
 } as const;
 
 export type BridgeViewSelectorsIDsType = typeof BridgeViewSelectorsIDs;
