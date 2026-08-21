@@ -13,7 +13,12 @@ import android.database.CursorWindow
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
-import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
+import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint
+import com.facebook.react.internal.featureflags.ReactNativeFeatureFlagsOverrides_RNOSS_Stable_Android
+import com.facebook.react.internal.featureflags.ReactNativeFeatureFlagsProvider
+import com.facebook.react.soloader.OpenSourceMergedSoMapping
+import com.facebook.react.views.view.setEdgeToEdgeFeatureFlagOn
+import com.facebook.soloader.SoLoader
 
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ExpoReactHostFactory.getDefaultReactHost
@@ -59,6 +64,7 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
         }
     }
 
+    @Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
     override fun onCreate() {
         super.onCreate()
 
@@ -97,7 +103,19 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
             // Non-fatal: if prefetch fails the app continues on the standard fetch path.
         }
 
-        loadReactNative(this)
+        SoLoader.init(this, OpenSourceMergedSoMapping)
+        if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
+            // Explicit CDP traces use these events to measure native UI FPS and jank.
+            // BuildConfig.DEBUG keeps frame recording out of release builds.
+            val featureFlags = object : ReactNativeFeatureFlagsProvider by
+                ReactNativeFeatureFlagsOverrides_RNOSS_Stable_Android() {
+                override fun fuseboxFrameRecordingEnabled(): Boolean = BuildConfig.DEBUG
+            }
+            DefaultNewArchitectureEntryPoint.loadWithFeatureFlags(featureFlags)
+        }
+        if (BuildConfig.IS_EDGE_TO_EDGE_ENABLED) {
+            setEdgeToEdgeFeatureFlagOn()
+        }
 
         registerActivityLifecycleCallbacks(BrazeActivityLifecycleCallbackListener())
         ApplicationLifecycleDispatcher.onApplicationCreate(this)

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added native UI frame events to explicit React Native CDP traces in iOS development builds for performance checks.
+
 ## [8.8.0]
 
 ### Added
