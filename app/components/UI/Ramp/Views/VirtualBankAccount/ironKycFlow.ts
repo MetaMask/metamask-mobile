@@ -114,8 +114,11 @@ export async function startIronKycFlow(): Promise<void> {
 export async function startIronKycVerification(email: string): Promise<void> {
   // `POST /vendors/iron/customers` creates or resumes, so re-running this step
   // for an email that already has a customer is safe.
-  await runKycStep('createIronCustomer', () =>
-    Engine.context.KycController.createIronCustomer({ email }),
+  await runKycStep('createVendorCustomer', () =>
+    Engine.context.KycController.createVendorCustomer({
+      vendor: 'iron',
+      email,
+    }),
   );
 
   // Consents are submitted against the loaded disclaimers, so without them the
