@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { FlashList } from '@shopify/flash-list';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { CaipChainId, Hex } from '@metamask/utils';
 import {
@@ -19,7 +18,6 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   TabsBar,
   type TabItem,
@@ -31,15 +29,11 @@ import type { RootState } from '../../../../../reducers';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import {
   selectAllowedChainRanking,
-  selectTokenSelectorNetworkFilter,
+  selectOrdersNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import { OrdersEmptyState } from './OrdersEmptyState';
 import { OrdersTabsSelectorsIDs } from './OrdersTabs.testIds';
 import { OrdersTabKey, type OrdersTabsProps } from './OrdersTabs.types';
-
-function OrdersRowSeparator() {
-  return <Box twClassName="h-2" />;
-}
 
 function itemMatchesNetworkFilter<T>(
   item: T,
@@ -63,7 +57,7 @@ function OrdersNetworkFilter({
   enabledChainIds?: CaipChainId[];
 }) {
   const navigation = useNavigation<AppNavigationProp>();
-  const selectedChainId = useSelector(selectTokenSelectorNetworkFilter);
+  const selectedChainId = useSelector(selectOrdersNetworkFilter);
   const chainRanking = useSelector((state: RootState) =>
     selectAllowedChainRanking(state, enabledChainIds),
   );
@@ -76,7 +70,7 @@ function OrdersNetworkFilter({
   const handlePress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-      params: { enabledChainIds },
+      params: { enabledChainIds, filterTarget: 'orders' },
     });
   }, [enabledChainIds, navigation]);
 
@@ -127,8 +121,7 @@ function OrdersTabPanel<T>({
   getItemChainId?: (item: T) => Hex | CaipChainId | undefined;
   emptyDescription: string;
 }) {
-  const tw = useTailwind();
-  const selectedChainId = useSelector(selectTokenSelectorNetworkFilter);
+  const selectedChainId = useSelector(selectOrdersNetworkFilter);
 
   const filteredItems = useMemo(
     () =>
@@ -138,34 +131,23 @@ function OrdersTabPanel<T>({
     [getItemChainId, items, selectedChainId],
   );
 
-  const listRenderItem = useCallback(
-    ({ item, index }: { item: T; index: number }) =>
-      renderItem ? renderItem(item, index) : null,
-    [renderItem],
-  );
-
-  const listKeyExtractor = useCallback(
-    (item: T, index: number) =>
-      keyExtractor ? keyExtractor(item, index) : String(index),
-    [keyExtractor],
-  );
-
-  const listStyle = useMemo(() => tw.style('flex-1'), [tw]);
-
   if (filteredItems.length === 0 || !renderItem) {
     return <OrdersEmptyState description={emptyDescription} />;
   }
 
+  // Map rows instead of FlashList so the parent page ScrollView owns
+  // scrolling. A nested virtualized list with flex-1 fills the viewport
+  // and captures pans, which blocks page scroll on short form screens.
   return (
-    <FlashList
-      testID={OrdersTabsSelectorsIDs.CONTENT}
-      data={filteredItems}
-      renderItem={listRenderItem}
-      keyExtractor={listKeyExtractor}
-      ItemSeparatorComponent={OrdersRowSeparator}
-      showsVerticalScrollIndicator={false}
-      style={listStyle}
-    />
+    <Box testID={OrdersTabsSelectorsIDs.CONTENT} gap={2}>
+      {filteredItems.map((item, index) => (
+        <React.Fragment
+          key={keyExtractor ? keyExtractor(item, index) : String(index)}
+        >
+          {renderItem(item, index)}
+        </React.Fragment>
+      ))}
+    </Box>
   );
 }
 
@@ -198,30 +180,30 @@ function OrdersTabs<TOpen, THistory>({
   const activeIndex = selectedTab === OrdersTabKey.History ? 1 : 0;
 
   return (
-    <Box testID={OrdersTabsSelectorsIDs.CONTAINER} twClassName="flex-1">
-      <Box twClassName="mx-4 h-px bg-border-muted" />
-      <TabsBar
-        tabs={tabs}
-        activeIndex={activeIndex}
-        onTabPress={(index) =>
-          setSelectedTab(
-            index === 1 ? OrdersTabKey.History : OrdersTabKey.OpenOrders,
-          )
-        }
-        testID={OrdersTabsSelectorsIDs.TABS_BAR}
-      />
-      <Box twClassName="mx-4 flex-1 gap-4 py-4">
+    <Box testID={OrdersTabsSelectorsIDs.CONTAINER} twClassName="grow">
+      <Box gap={2}>
+        <Box twClassName="mx-4 border-t-[1px] border-muted" />
+        <TabsBar
+          tabs={tabs}
+          activeIndex={activeIndex}
+          onTabPress={(index) =>
+            setSelectedTab(
+              index === 1 ? OrdersTabKey.History : OrdersTabKey.OpenOrders,
+            )
+          }
+          testID={OrdersTabsSelectorsIDs.TABS_BAR}
+        />
+      </Box>
+      <Box twClassName="mx-4 grow gap-4 py-4">
+        <OrdersNetworkFilter enabledChainIds={enabledChainIds} />
         {selectedTab === OrdersTabKey.OpenOrders ? (
-          <>
-            <OrdersNetworkFilter enabledChainIds={enabledChainIds} />
-            <OrdersTabPanel
-              items={openOrders.items}
-              renderItem={openOrders.renderItem}
-              keyExtractor={openOrders.keyExtractor}
-              getItemChainId={openOrders.getItemChainId}
-              emptyDescription={strings('bridge.orders.empty.open_orders')}
-            />
-          </>
+          <OrdersTabPanel
+            items={openOrders.items}
+            renderItem={openOrders.renderItem}
+            keyExtractor={openOrders.keyExtractor}
+            getItemChainId={openOrders.getItemChainId}
+            emptyDescription={strings('bridge.orders.empty.open_orders')}
+          />
         ) : (
           <OrdersTabPanel
             items={history.items}

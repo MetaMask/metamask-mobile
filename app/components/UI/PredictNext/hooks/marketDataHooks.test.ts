@@ -1,5 +1,5 @@
 import { useInfiniteQuery, useQuery } from '@metamask/react-data-query';
-import { useEventDetail } from './useEventDetail';
+import { useEvent } from './useEvent';
 import { useFeed } from './useFeed';
 import { useVenueStatus } from './useVenueStatus';
 import type { PredictEntityId, PredictFeedId, PredictVenueId } from '../types';
@@ -80,8 +80,8 @@ describe('PredictNext market data hooks', () => {
     expect(nextCursor).toBeUndefined();
   });
 
-  it('uses the Event detail descriptor', () => {
-    useEventDetail(venueId, eventId);
+  it('uses the immutable Event descriptor', () => {
+    useEvent(venueId, eventId);
 
     expect(mockedUseQuery).toHaveBeenCalledWith({
       queryKey: ['PredictMarketDataService:getEvent', venueId, eventId],

@@ -7,6 +7,7 @@ import {
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
 import type { OrderFormFieldIssue } from '../../../../utils/triggerOrderValidation';
+import { ImpactMoment, playImpact } from '../../../../../../../util/haptics';
 import { usePerpsProOrderForm } from './usePerpsProOrderForm';
 
 // ---------------------------------------------------------------------------
@@ -240,6 +241,8 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(),
 }));
+
+jest.mock('../../../../../../../util/haptics');
 
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
@@ -487,6 +490,36 @@ describe('usePerpsProOrderForm', () => {
       expect(mockComplianceGate).toHaveBeenCalledTimes(1);
       expect(mockShowEligibilityModal).not.toHaveBeenCalled();
       expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    });
+
+    it('keeps haptics silent for a duplicate submit', async () => {
+      let resolveOrder:
+        | ((value: { success: boolean; error?: string }) => void)
+        | undefined;
+      mockExecuteOrder.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveOrder = resolve;
+        }),
+      );
+      const { result } = renderProForm();
+
+      let firstSubmission: Promise<unknown> | undefined;
+      await act(async () => {
+        firstSubmission = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+
+      await act(async () => {
+        resolveOrder?.({ success: false, error: 'rejected' });
+        await firstSubmission;
+      });
     });
 
     it('opens geo-block modal and skips execution for an ineligible user', async () => {
@@ -502,6 +535,7 @@ describe('usePerpsProOrderForm', () => {
         PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
       );
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('skips geo handling and execution when compliance gate blocks', async () => {
@@ -516,6 +550,7 @@ describe('usePerpsProOrderForm', () => {
       expect(mockComplianceGate).toHaveBeenCalledTimes(1);
       expect(mockShowEligibilityModal).not.toHaveBeenCalled();
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('commits pending slider preview without invoking compliance or submitting', async () => {
@@ -531,6 +566,7 @@ describe('usePerpsProOrderForm', () => {
       expect(mockSetAmount).toHaveBeenCalledWith('250');
       expect(mockComplianceGate).not.toHaveBeenCalled();
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
 
       mockOrderForm.amount = '250';
       mockIsEligible = false;
@@ -545,6 +581,7 @@ describe('usePerpsProOrderForm', () => {
         PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION,
       );
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('builds OrderParams including reduceOnly and calls executeOrder', async () => {
@@ -768,6 +805,7 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('blocks reduce-only submit when size exceeds the open position', async () => {
@@ -788,6 +826,7 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('blocks submit and shows a toast when validation is invalid', async () => {
@@ -804,6 +843,7 @@ describe('usePerpsProOrderForm', () => {
       // Assert
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(validationError).toHaveBeenCalledWith('Bad order');
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('blocks submit and exposes loading while validation is pending', async () => {
@@ -841,6 +881,7 @@ describe('usePerpsProOrderForm', () => {
       // Assert
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('aborts and tracks when the estimated slippage exceeds the max', async () => {
@@ -856,6 +897,7 @@ describe('usePerpsProOrderForm', () => {
       // Assert
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(validationError).toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('aborts submit when the stop loss risks liquidation (doesStopLossRiskLiquidation guard)', async () => {
@@ -870,6 +912,7 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('skips updatePositionTPSL and clearPendingConfig when the order fails (shouldHandleTPSLSeparately path)', async () => {
@@ -1713,6 +1756,8 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledTimes(1);
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
       const onConfirm = mockNavigate.mock.calls[0][1].onConfirm;
       await act(async () => {
         await onConfirm(undefined, '95000', '80000');
@@ -1735,6 +1780,7 @@ describe('usePerpsProOrderForm', () => {
       // Assert
       expect(mockShowToast).toHaveBeenCalledWith(limitPriceRequired);
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
     });
 
     it('confirms leverage, clamps an over-max amount, and tracks the change', () => {

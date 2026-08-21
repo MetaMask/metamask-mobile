@@ -19,6 +19,8 @@ import reducer, {
   selectAllowedChainRanking,
   setTokenSelectorNetworkFilter,
   selectTokenSelectorNetworkFilter,
+  setOrdersNetworkFilter,
+  selectOrdersNetworkFilter,
   setVisiblePillChainIds,
   selectVisiblePillChainIds,
   setSelectedQuoteRequestId,
@@ -152,6 +154,7 @@ describe('bridge slice', () => {
           everyUnit: 'hour',
           repeatCount: '10',
         },
+        ordersNetworkFilter: undefined,
       });
     });
   });
@@ -1091,6 +1094,38 @@ describe('bridge slice', () => {
     });
   });
 
+  describe('setOrdersNetworkFilter', () => {
+    it('sets the network filter to a chain ID', () => {
+      const chainId = 'eip155:1';
+      const action = setOrdersNetworkFilter(chainId as CaipChainId);
+      const state = reducer(initialState, action);
+
+      expect(state.ordersNetworkFilter).toBe(chainId);
+    });
+
+    it('clears the network filter when set to undefined', () => {
+      const stateWithFilter = {
+        ...initialState,
+        ordersNetworkFilter: 'eip155:1' as CaipChainId,
+      };
+      const action = setOrdersNetworkFilter(undefined);
+      const state = reducer(stateWithFilter, action);
+
+      expect(state.ordersNetworkFilter).toBeUndefined();
+    });
+
+    it('updates the network filter from one chain to another', () => {
+      const stateWithFilter = {
+        ...initialState,
+        ordersNetworkFilter: 'eip155:1' as CaipChainId,
+      };
+      const action = setOrdersNetworkFilter('eip155:137' as CaipChainId);
+      const state = reducer(stateWithFilter, action);
+
+      expect(state.ordersNetworkFilter).toBe('eip155:137');
+    });
+  });
+
   describe('selectBatchSellQuotes', () => {
     it('uses the BridgeController quote request count', () => {
       const mockState = cloneDeep(mockRootState);
@@ -1201,6 +1236,33 @@ describe('bridge slice', () => {
       };
 
       const result = selectTokenSelectorNetworkFilter(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toBe('eip155:10');
+    });
+  });
+
+  describe('selectOrdersNetworkFilter', () => {
+    it('returns undefined when no filter is set', () => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = { ...initialState };
+
+      const result = selectOrdersNetworkFilter(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns the set chain ID', () => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = {
+        ...initialState,
+        ordersNetworkFilter: 'eip155:10',
+      };
+
+      const result = selectOrdersNetworkFilter(
         mockState as unknown as RootState,
       );
 
