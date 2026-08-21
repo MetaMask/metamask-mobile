@@ -15,6 +15,7 @@ import { selectSelectedAccountGroupInternalAccounts } from '../../../../selector
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 const mockGoToSwaps = jest.fn();
 
 let mockRouteParams: {
@@ -41,7 +42,7 @@ jest.mock('../../../../selectors/tokenBalancesController', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn() }),
+  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
@@ -92,12 +93,14 @@ jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   SwapBridgeNavigationLocation: { Rewards: 'Rewards' },
 }));
 
-let mockIsTokenTradable = jest.fn(() => true);
+let mockIsTokenTradingOpen = jest.fn(() => true);
+let mockIsTokenMarketFullyClosed = jest.fn(() => false);
 
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
     isStockToken: jest.fn(() => false),
-    isTokenTradable: mockIsTokenTradable,
+    isTokenTradingOpen: mockIsTokenTradingOpen,
+    isTokenMarketFullyClosed: mockIsTokenMarketFullyClosed,
   }),
 }));
 
@@ -111,21 +114,23 @@ jest.mock('../components/Campaigns/OndoAfterHoursSheet', () => {
     default: ({
       onClose,
       onConfirm,
+      testID = 'after-hours-sheet',
     }: {
       onClose: () => void;
-      onConfirm: () => void;
+      onConfirm?: () => void;
       nextOpenAt: Date | null;
+      testID?: string;
     }) =>
       ReactActual.createElement(
         View,
-        { testID: 'after-hours-sheet' },
+        { testID },
         ReactActual.createElement(TouchableOpacity, {
-          testID: 'after-hours-close',
+          testID: `${testID}-close`,
           onPress: onClose,
         }),
         ReactActual.createElement(TouchableOpacity, {
-          testID: 'after-hours-confirm',
-          onPress: onConfirm,
+          testID: `${testID}-confirm`,
+          onPress: onConfirm ?? onClose,
         }),
       ),
   };
@@ -329,7 +334,8 @@ describe('OndoCampaignRwaSelectorView', () => {
     jest.clearAllMocks();
     mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
     mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
-    mockIsTokenTradable = jest.fn(() => true);
+    mockIsTokenTradingOpen = jest.fn(() => true);
+    mockIsTokenMarketFullyClosed = jest.fn(() => false);
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -633,10 +639,12 @@ describe('OndoCampaignRwaSelectorView', () => {
 
   describe('after hours sheet', () => {
     beforeEach(() => {
-      mockIsTokenTradable = jest.fn(() => false);
+      // Off-hours: tradable, but outside regular market hours.
+      mockIsTokenTradingOpen = jest.fn(() => false);
+      mockIsTokenMarketFullyClosed = jest.fn(() => false);
     });
 
-    it('shows after hours sheet when token is not tradable', () => {
+    it('shows after hours sheet when token is in off-hours', () => {
       const token = buildToken('AAPL');
       mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
@@ -659,7 +667,7 @@ describe('OndoCampaignRwaSelectorView', () => {
         <OndoCampaignRwaSelectorView />,
       );
       fireEvent.press(getByTestId('token-row-AAPL'));
-      fireEvent.press(getByTestId('after-hours-close'));
+      fireEvent.press(getByTestId('after-hours-sheet-close'));
       expect(queryByTestId('after-hours-sheet')).toBeNull();
       expect(mockGoToSwaps).not.toHaveBeenCalled();
     });
@@ -671,7 +679,7 @@ describe('OndoCampaignRwaSelectorView', () => {
         <OndoCampaignRwaSelectorView />,
       );
       fireEvent.press(getByTestId('token-row-AAPL'));
-      fireEvent.press(getByTestId('after-hours-confirm'));
+      fireEvent.press(getByTestId('after-hours-sheet-confirm'));
       expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
       expect(queryByTestId('after-hours-sheet')).toBeNull();
     });
@@ -681,7 +689,7 @@ describe('OndoCampaignRwaSelectorView', () => {
       mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
       fireEvent.press(getByTestId('token-row-AAPL'));
-      fireEvent.press(getByTestId('after-hours-confirm'));
+      fireEvent.press(getByTestId('after-hours-sheet-confirm'));
 
       expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
       const [srcArg, destArg] = mockGoToSwaps.mock.calls[0];
@@ -695,7 +703,7 @@ describe('OndoCampaignRwaSelectorView', () => {
       mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
       const { getByTestId } = render(<OndoCampaignRwaSelectorView />);
       fireEvent.press(getByTestId('token-row-AAPL'));
-      fireEvent.press(getByTestId('after-hours-confirm'));
+      fireEvent.press(getByTestId('after-hours-sheet-confirm'));
 
       // createEventBuilder: [0] = page view, [1] = button click on confirm
       const confirmBuilder = mockCreateEventBuilder.mock.results[1].value;
@@ -704,6 +712,55 @@ describe('OndoCampaignRwaSelectorView', () => {
           button_type: 'ondo_campaign_swap_aapl',
         }),
       );
+    });
+  });
+
+  describe('market closed', () => {
+    it('shows a dismissible market closed alert and stays on the selector', () => {
+      mockIsTokenTradingOpen = jest.fn(() => false);
+      mockIsTokenMarketFullyClosed = jest.fn(() => true);
+      const token = buildToken('AAPL');
+      mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
+
+      const { getByTestId, queryByTestId } = render(
+        <OndoCampaignRwaSelectorView />,
+      );
+      fireEvent.press(getByTestId('token-row-AAPL'));
+
+      expect(
+        getByTestId('ondo-rwa-selector-market-closed-sheet'),
+      ).toBeDefined();
+      expect(queryByTestId('after-hours-sheet')).toBeNull();
+      expect(mockGoToSwaps).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('lets the user pick another asset after closing the market closed alert', () => {
+      mockIsTokenMarketFullyClosed = jest.fn(
+        (token?: { symbol?: string }) => token?.symbol === 'AAPL',
+      );
+      mockIsTokenTradingOpen = jest.fn(
+        (token?: { symbol?: string }) => token?.symbol === 'MSFT',
+      );
+      mockUseRwaTokens.mockReturnValue({
+        data: [buildToken('AAPL'), buildToken('MSFT')],
+        isLoading: false,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <OndoCampaignRwaSelectorView />,
+      );
+      fireEvent.press(getByTestId('token-row-AAPL'));
+      fireEvent.press(
+        getByTestId('ondo-rwa-selector-market-closed-sheet-close'),
+      );
+
+      expect(queryByTestId('ondo-rwa-selector-market-closed-sheet')).toBeNull();
+      expect(mockGoToSwaps).not.toHaveBeenCalled();
+
+      fireEvent.press(getByTestId('token-row-MSFT'));
+
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
     });
   });
 
