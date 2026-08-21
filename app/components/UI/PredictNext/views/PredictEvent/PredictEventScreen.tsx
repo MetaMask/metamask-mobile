@@ -15,6 +15,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { getEventGame } from '../../events/game';
 import { useEvent } from '../../hooks/useEvent';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
@@ -76,7 +77,7 @@ export const PredictEventScreen = () => {
   if (query.data) {
     return (
       <EventScreenLayout onBack={handleBack}>
-        {query.data.sports?.game ? (
+        {getEventGame(query.data) ? (
           <GameEventHeader event={query.data} />
         ) : (
           <StandardEventHeader event={query.data} />
