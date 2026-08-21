@@ -1,13 +1,9 @@
 import type { CaipAssetType } from '@metamask/utils';
 import { strings } from '../../../locales/i18n';
-import {
-  mobileActivityAdapterEnvironment,
-  type ActivityAdapterEnvironment,
-} from './adapters/environment';
 import { mergeActivityItemSponsoredFees } from './fees';
 import type { ActivityListItem, TokenAmount } from './types';
 
-export const SPENDING_CAP_KINDS = new Set<ActivityListItem['type']>([
+const SPENDING_CAP_KINDS = new Set<ActivityListItem['type']>([
   'approveSpendingCap',
   'increaseSpendingCap',
   'revokeSpendingCap',
@@ -21,7 +17,7 @@ const hidePlusSignActivityTypes = SPENDING_CAP_KINDS;
  * True when a spending-cap item carries a cap amount — an explicit `amount` or
  * an unlimited approval.
  */
-export function isSpendingCapWithAmount(item: ActivityListItem): boolean {
+function isSpendingCapWithAmount(item: ActivityListItem): boolean {
   if (!SPENDING_CAP_KINDS.has(item.type)) {
     return false;
   }
@@ -66,7 +62,7 @@ export function isGasTokenFeeWithAmount(item: ActivityListItem): boolean {
  * Gas-token preference requires matching types so a degraded local
  * `contractInteraction` cannot permanently beat a richer API `send`/`swap`.
  */
-export function shouldPreferLocalActivityItem(
+function shouldPreferLocalActivityItem(
   localItem: ActivityListItem,
   apiItem: ActivityListItem,
 ): boolean {
@@ -129,7 +125,7 @@ export function isFailedOrCancelledTransfer(item: ActivityListItem): boolean {
   );
 }
 
-export const isSameLocalDay = (date: Date, otherDate: Date) =>
+const isSameLocalDay = (date: Date, otherDate: Date) =>
   date.getFullYear() === otherDate.getFullYear() &&
   date.getMonth() === otherDate.getMonth() &&
   date.getDate() === otherDate.getDate();
@@ -280,25 +276,6 @@ export const getGroupedActivityListItemKey = (
 
   return `${chainId}-${item.item.type}-${item.item.timestamp}-${index}`;
 };
-
-export function activityMatchesAssetId(
-  item: ActivityListItem,
-  assetId: CaipAssetType,
-  environment: ActivityAdapterEnvironment = mobileActivityAdapterEnvironment,
-) {
-  const { data } = item;
-  const tokenAssetIds = [
-    'token' in data ? data.token?.assetId : undefined,
-    'sourceToken' in data ? data.sourceToken?.assetId : undefined,
-    'destinationToken' in data ? data.destinationToken?.assetId : undefined,
-  ];
-
-  return tokenAssetIds.some(
-    (tokenAssetId) =>
-      tokenAssetId !== undefined &&
-      environment.equalsIgnoreCase(tokenAssetId, assetId),
-  );
-}
 
 function parseDate(timestamp: number) {
   const date = new Date(timestamp);

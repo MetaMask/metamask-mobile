@@ -1,13 +1,12 @@
 /**
  * `@metamask/client-utils` is the source of truth for activity types (same as
- * extension). Mobile-only extensions below are UI/persistence fields pending cleanup.
+ * extension). Remaining mobile-only fields are leftovers to delete as call sites move over.
  */
 import type {
   ActivityItem as ClientUtilsActivityItem,
   ActivityKind,
   Fee as ActivityFee,
   PerpsOrderKind,
-  Status,
   TokenAmount as ClientUtilsTokenAmount,
 } from '@metamask/client-utils';
 import type { Transaction } from '@metamask/keyring-api';
@@ -34,7 +33,8 @@ export type TokenAmount = ClientUtilsTokenAmount & {
 
 /**
  * Perps order-lifecycle kinds (market/limit/stop, long/short, open/close).
- * The single source the Perps "Order" sub-filter and icon/details dispatch derive from.
+ * The single source the `ActivityKind` union, the Perps "Order" sub-filter, and
+ * the icon/details dispatch all derive from, so a new kind is wired in once.
  */
 export const PERPS_ORDER_KINDS = [
   'marketShort',

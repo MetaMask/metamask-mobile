@@ -1,7 +1,7 @@
 /**
  * Activity adapters for MetaMask Mobile.
- * Core transaction mappers and activity types come from `@metamask/client-utils`;
- * mobile-only adapters (perps/predict/ramp) and UI helpers remain local.
+ * Core transaction mappers come from `@metamask/client-utils`; mobile-only
+ * adapters (perps/predict/ramp) and UI helpers remain local until shared.
  */
 export type {
   ActivityFee,
@@ -44,7 +44,6 @@ export {
 } from './fiat';
 export { formatTokenDisplayAmount } from './token-display';
 export {
-  activityMatchesAssetId,
   enrichTokenFromApi,
   formatActivityListDateHeader,
   getActivityFromTo,
@@ -53,9 +52,7 @@ export {
   groupActivityListItems,
   isFailedOrCancelledTransfer,
   isGasTokenFeeWithAmount,
-  isSpendingCapWithAmount,
   preferLocalOrApiActivityItem,
-  shouldPreferLocalActivityItem,
   shouldShowPlusSign,
   type GroupedActivityListItem,
 } from './activity-list-helpers';

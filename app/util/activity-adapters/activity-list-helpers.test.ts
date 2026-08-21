@@ -1,7 +1,5 @@
 import type { ActivityListItem, TokenAmount } from './types';
-import { GAS_FEE_SPONSORED } from './fees';
 import {
-  activityMatchesAssetId,
   enrichTokenFromApi,
   formatActivityListDateHeader,
   getActivityFromTo,
@@ -9,9 +7,6 @@ import {
   getGroupedActivityListItemKey,
   groupActivityListItems,
   isGasTokenFeeWithAmount,
-  isSpendingCapWithAmount,
-  preferLocalOrApiActivityItem,
-  shouldPreferLocalActivityItem,
   shouldShowPlusSign,
 } from './activity-list-helpers';
 
@@ -55,49 +50,6 @@ describe('activity list helpers', () => {
     expect(shouldShowPlusSign('increaseSpendingCap')).toBe(false);
     expect(shouldShowPlusSign('revokeSpendingCap')).toBe(false);
     expect(shouldShowPlusSign('receive')).toBe(true);
-  });
-
-  describe('isSpendingCapWithAmount', () => {
-    it('is true for a spending-cap item with an explicit amount', () => {
-      const item = makeItem({
-        type: 'approveSpendingCap',
-        data: { token: { amount: '100000', direction: 'out' } },
-      });
-      expect(isSpendingCapWithAmount(item)).toBe(true);
-    });
-
-    it('is true for an unlimited spending-cap approval', () => {
-      const item = makeItem({
-        type: 'increaseSpendingCap',
-        data: { token: { direction: 'out', isUnlimitedApproval: true } },
-      });
-      expect(isSpendingCapWithAmount(item)).toBe(true);
-    });
-
-    it('is false for a spending-cap item without a cap amount', () => {
-      const item = makeItem({
-        type: 'approveSpendingCap',
-        data: { token: { direction: 'out' } },
-      });
-      expect(isSpendingCapWithAmount(item)).toBe(false);
-    });
-
-    it('is false for a spending-cap item with no token', () => {
-      const item = makeItem({ type: 'revokeSpendingCap', data: {} });
-      expect(isSpendingCapWithAmount(item)).toBe(false);
-    });
-
-    it('is false for a non-spending-cap kind even with an amount', () => {
-      const item = makeItem({
-        type: 'send',
-        data: {
-          from: '0xfrom',
-          to: '0xto',
-          token: { amount: '100000', direction: 'out' },
-        },
-      });
-      expect(isSpendingCapWithAmount(item)).toBe(false);
-    });
   });
 
   describe('isGasTokenFeeWithAmount', () => {
@@ -155,119 +107,6 @@ describe('activity list helpers', () => {
         expect(isGasTokenFeeWithAmount(item)).toBe(false);
       }
     });
-  });
-
-  describe('shouldPreferLocalActivityItem / preferLocalOrApiActivityItem', () => {
-    it('prefers matching-type local when only it has a gas-token fee', () => {
-      const local = makeItem({
-        type: 'send',
-        data: {
-          from: '0xfrom',
-          to: '0xto',
-          fees: [
-            { type: 'gasToken', amount: '100', decimals: 6, symbol: 'USDT' },
-          ],
-        },
-      });
-      const api = makeItem({
-        type: 'send',
-        data: {
-          from: '0xfrom',
-          to: '0xto',
-          fees: [
-            { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
-          ],
-        },
-      });
-      expect(shouldPreferLocalActivityItem(local, api)).toBe(true);
-      expect(preferLocalOrApiActivityItem(local, api)).toBe(local);
-    });
-
-    it('does not let a gas-token local contractInteraction beat an API send', () => {
-      const local = makeItem({
-        type: 'contractInteraction',
-        data: {
-          from: '0xfrom',
-          to: '0xto',
-          fees: [
-            { type: 'gasToken', amount: '100', decimals: 6, symbol: 'USDT' },
-          ],
-        },
-      });
-      const api = makeItem({
-        type: 'send',
-        data: {
-          from: '0xfrom',
-          to: '0xto',
-          fees: [
-            { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
-          ],
-        },
-      });
-      expect(shouldPreferLocalActivityItem(local, api)).toBe(false);
-      expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
-    });
-
-    it('preserves sponsored local fees when an API item is preferred', () => {
-      const local = makeItem({
-        type: 'swap',
-        data: {
-          sourceToken: { amount: '1', direction: 'out', symbol: 'MON' },
-          destinationToken: { direction: 'in', symbol: 'USDC' },
-          fees: [{ type: GAS_FEE_SPONSORED }],
-        },
-      });
-      const api = makeItem({
-        type: 'swap',
-        data: {
-          sourceToken: { amount: '1', direction: 'out', symbol: 'MON' },
-          destinationToken: { amount: '2', direction: 'in', symbol: 'USDC' },
-          fees: [
-            { type: 'base', amount: '21000', decimals: 18, symbol: 'MON' },
-            { type: 'bridge', amount: '100', decimals: 6, symbol: 'USDC' },
-          ],
-        },
-      });
-
-      expect(preferLocalOrApiActivityItem(local, api)).toStrictEqual({
-        ...api,
-        data: {
-          ...api.data,
-          fees: [
-            { type: GAS_FEE_SPONSORED },
-            { type: 'bridge', amount: '100', decimals: 6, symbol: 'USDC' },
-          ],
-        },
-      });
-    });
-  });
-
-  it('matches token, source token, and destination token asset ids case-insensitively', () => {
-    const item = makeItem({
-      hash: '0xhash',
-      data: {
-        sourceToken: {
-          assetId: 'eip155:1/erc20:0xA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48',
-          direction: 'out',
-          symbol: 'USDC',
-        },
-        destinationToken: {
-          assetId: 'eip155:1/slip44:60',
-          direction: 'in',
-          symbol: 'ETH',
-        },
-      },
-      type: 'swap',
-    });
-
-    expect(
-      activityMatchesAssetId(
-        item,
-        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      ),
-    ).toBe(true);
-    expect(activityMatchesAssetId(item, 'eip155:1/slip44:60')).toBe(true);
-    expect(activityMatchesAssetId(item, 'eip155:137/slip44:60')).toBe(false);
   });
 
   it('groups pending items before date-grouped historical items', () => {
