@@ -5,7 +5,7 @@ import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProOrdersSummary from './PerpsProOrdersSummary';
 
 describe('PerpsProOrdersSummary', () => {
-  it('renders the open order count and an unscoped cancel control', () => {
+  it('renders the open order count', () => {
     render(<PerpsProOrdersSummary orderCount={3} />);
 
     expect(
@@ -13,6 +13,11 @@ describe('PerpsProOrdersSummary', () => {
         strings('perps.pro_positions_panel.open_orders', { count: 3 }),
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('labels the cancel control for the whole book when unfiltered', () => {
+    render(<PerpsProOrdersSummary orderCount={3} />);
+
     expect(
       screen.getByText(strings('perps.pro_positions_panel.cancel_all')),
     ).toBeOnTheScreen();

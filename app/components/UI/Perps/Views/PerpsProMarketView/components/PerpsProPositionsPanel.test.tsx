@@ -956,7 +956,7 @@ describe('PerpsProPositionsPanel', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('passes the ticker-filtered orders and filtered flag to the action sheets', () => {
+  it('passes the ticker-filtered orders to the action sheets', () => {
     const renderActionSheets = jest.fn(() => null);
     mockUsePerpsProPositionsPanelActions.mockReturnValue({
       handleClosePosition,
@@ -1001,6 +1001,50 @@ describe('PerpsProPositionsPanel', () => {
     expect(lastCall[2]).toEqual([
       expect.objectContaining({ orderId: 'sol-1', symbol: 'SOL' }),
     ]);
+  });
+
+  it('flags the orders as filtered for the action sheets', () => {
+    const renderActionSheets = jest.fn(() => null);
+    mockUsePerpsProPositionsPanelActions.mockReturnValue({
+      handleClosePosition,
+      handleReversePosition,
+      handleSharePosition,
+      handleEditPositionTpSl: jest.fn(),
+      handleEditPositionMargin: jest.fn(),
+      handleCancelOrder,
+      handleEditOrderPrice: jest.fn(),
+      handleEditOrderSize: jest.fn(),
+      handleCloseAllPress,
+      handleCancelAllPress,
+      cancelingOrderId: null,
+      editingOrderId: null,
+      isOrderCancelable: () => true,
+      isOrderEditable: () => true,
+      isOrderSizeEditable: () => true,
+      isPositionMarginEditable: () => true,
+      renderActionSheets,
+    });
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
+        makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    const lastCall =
+      renderActionSheets.mock.calls[renderActionSheets.mock.calls.length - 1];
     expect(lastCall[3]).toBe(true);
   });
 });

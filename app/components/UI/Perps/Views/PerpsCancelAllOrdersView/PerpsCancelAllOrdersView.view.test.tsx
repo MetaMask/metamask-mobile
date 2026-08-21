@@ -350,34 +350,28 @@ describe('PerpsCancelAllOrdersView', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
-  it('names the filtered scope and cancels only the passed orders', async () => {
-    const cancelOrders = Engine.context.PerpsController
-      .cancelOrders as jest.Mock;
-    cancelOrders.mockResolvedValue({
-      success: true,
-      successCount: 1,
-      failureCount: 0,
-      results: [],
-    });
-    const ethOnly = [orders[0]];
-
+  const renderFilteredCancelAll = (filtered: Order[]) => {
     const FilteredCancelAll = () => {
       const sheetRef = useRef<BottomSheetRef | null>(null);
       return (
         <PerpsCancelAllOrdersView
           sheetRef={sheetRef}
           onClose={jest.fn()}
-          orders={ethOnly}
+          orders={filtered}
           isFiltered
         />
       );
     };
 
-    renderPerpsView(
+    return renderPerpsView(
       FilteredCancelAll as unknown as React.ComponentType,
       Routes.PERPS.MODALS.CANCEL_ALL_ORDERS,
       { streamOverrides: { orders } },
     );
+  };
+
+  it('names the filtered scope in the confirmation copy', async () => {
+    renderFilteredCancelAll([orders[0]]);
 
     expect(
       await screen.findByText(strings('perps.cancel_all_modal.title_filtered')),
@@ -393,11 +387,29 @@ describe('PerpsCancelAllOrdersView', () => {
     expect(
       screen.queryByText(strings('perps.cancel_all_modal.description')),
     ).not.toBeOnTheScreen();
+  });
 
-    // Cancelling is async and toggles isCanceling on both sides of the await,
-    // so let those updates settle before asserting and tearing down.
+  it('cancels only the passed orders when filtered', async () => {
+    const cancelOrders = Engine.context.PerpsController
+      .cancelOrders as jest.Mock;
+    cancelOrders.mockResolvedValue({
+      success: true,
+      successCount: 1,
+      failureCount: 0,
+      results: [],
+    });
+
+    renderFilteredCancelAll([orders[0]]);
+
+    await screen.findByTestId(
+      PerpsCancelAllOrdersViewSelectorsIDs.CANCEL_ALL_BUTTON,
+    );
+
+    // Cancelling is async and toggles isCanceling on both sides of the await.
+    // Await the press itself, not just the act() wrapper, so the handler and its
+    // final loading-state update are joined to the test boundary.
     await act(async () => {
-      fireEvent.press(
+      await fireEvent.press(
         screen.getByTestId(
           PerpsCancelAllOrdersViewSelectorsIDs.CANCEL_ALL_BUTTON,
         ),

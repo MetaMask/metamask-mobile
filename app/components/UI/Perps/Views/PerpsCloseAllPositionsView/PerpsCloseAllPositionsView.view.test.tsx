@@ -110,38 +110,45 @@ describe('PerpsCloseAllPositionsView', () => {
     expect(closePositions).not.toHaveBeenCalled();
   });
 
-  it('names the filtered scope and counts only the passed positions', async () => {
-    const ethOnly = [positions[0]];
-
+  const renderFilteredCloseAll = (filtered: Position[]) => {
     const FilteredCloseAll = () => {
       const sheetRef = useRef<BottomSheetRef | null>(null);
       return (
         <PerpsCloseAllPositionsView
           sheetRef={sheetRef}
           onClose={jest.fn()}
-          positions={ethOnly}
+          positions={filtered}
           isFiltered
         />
       );
     };
 
-    renderPerpsView(
+    return renderPerpsView(
       FilteredCloseAll as unknown as React.ComponentType,
       Routes.PERPS.MODALS.CLOSE_ALL_POSITIONS,
       { streamOverrides: { positions } },
     );
+  };
+
+  it('names the filtered scope in the sheet title', async () => {
+    renderFilteredCloseAll([positions[0]]);
 
     expect(
       await screen.findByText(strings('perps.close_all_modal.title_filtered')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(
+      screen.queryByText(strings('perps.close_all_modal.title')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('counts only the passed positions', async () => {
+    renderFilteredCloseAll([positions[0]]);
+
+    expect(
+      await screen.findByText(
         strings('perps.close_all_modal.description', { count: 1 }),
       ),
     ).toBeOnTheScreen();
-    expect(
-      screen.queryByText(strings('perps.close_all_modal.title')),
-    ).not.toBeOnTheScreen();
     expect(
       screen.getByText(
         strings('perps.close_all_modal.close_count', { count: 1 }),
