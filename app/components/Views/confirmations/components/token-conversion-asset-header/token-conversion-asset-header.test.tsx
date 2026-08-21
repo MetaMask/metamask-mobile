@@ -289,7 +289,12 @@ describe('TokenConversionAssetHeader', () => {
     expect(
       getByTestId(TokenConversionAssetHeaderTestIds.OUTPUT_TOKEN_AVATAR),
     ).toBeOnTheScreen();
-    expect(queryByTestId('badgenetwork')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(TokenConversionAssetHeaderTestIds.INPUT_NETWORK_BADGE),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(TokenConversionAssetHeaderTestIds.OUTPUT_NETWORK_BADGE),
+    ).not.toBeOnTheScreen();
   });
 
   it('calls getNetworkImageSource with input and output token chainIds', () => {

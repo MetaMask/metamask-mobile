@@ -2536,12 +2536,13 @@ describe('BridgeView', () => {
         },
       }) as DeepPartial<RootState>;
 
-    const swipe = (translationX: number, velocityX = 0) => {
-      act(() => {
+    const swipe = async (translationX: number, velocityX = 0) => {
+      await act(async () => {
         fireGestureHandler(
           getByGestureTestId(BridgeViewSelectorsIDs.TABS_SWIPE_GESTURE),
           [{ translationX, velocityX }],
         );
+        await Promise.resolve();
       });
     };
 
@@ -2556,7 +2557,7 @@ describe('BridgeView', () => {
         queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
       ).toBeNull();
 
-      swipe(-80, -600);
+      await swipe(-80, -600);
 
       await waitFor(() => {
         expect(
@@ -2579,7 +2580,7 @@ describe('BridgeView', () => {
         ).toBeOnTheScreen();
       });
 
-      swipe(80, 600);
+      await swipe(80, 600);
 
       await waitFor(() => {
         expect(
@@ -2596,7 +2597,7 @@ describe('BridgeView', () => {
         { state: stateWithTabsEnabled() },
       );
 
-      swipe(80, 600);
+      await swipe(80, 600);
 
       await waitFor(() => {
         expect(mockGoBack).toHaveBeenCalled();
@@ -2617,7 +2618,7 @@ describe('BridgeView', () => {
         ).toBeOnTheScreen();
       });
 
-      swipe(-80, -600);
+      await swipe(-80, -600);
 
       await waitFor(() => {
         expect(
@@ -2633,13 +2634,7 @@ describe('BridgeView', () => {
         { state: mockState },
       );
 
-      await act(async () => {
-        fireGestureHandler(
-          getByGestureTestId(BridgeViewSelectorsIDs.TABS_SWIPE_GESTURE),
-          [{ translationX: 80, velocityX: 600 }],
-        );
-        await Promise.resolve();
-      });
+      await swipe(80, 600);
 
       expect(mockGoBack).toHaveBeenCalled();
     });

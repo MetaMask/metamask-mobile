@@ -550,7 +550,7 @@ const MoneyOnboardingView = () => {
           fit={Fit.Layout}
           layoutScaleFactor={PixelRatio.get()}
           onError={handleError}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
         />
       )}

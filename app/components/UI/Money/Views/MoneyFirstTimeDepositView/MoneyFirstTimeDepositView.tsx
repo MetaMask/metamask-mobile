@@ -149,7 +149,7 @@ const MoneyFirstTimeDepositView = () => {
           autoPlay
           fit={Fit.Layout}
           layoutScaleFactor={PixelRatio.get()}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           onError={handleError}
           testID={MoneyFirstTimeDepositViewTestIds.RIVE_ANIMATION}
         />

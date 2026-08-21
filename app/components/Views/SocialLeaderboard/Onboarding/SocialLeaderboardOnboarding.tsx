@@ -902,7 +902,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
       )}
       {referencedAssets && riveFile && instance && (
         <Animated.View
-          style={[StyleSheet.absoluteFillObject, { opacity: riveOpacity }]}
+          style={[StyleSheet.absoluteFill, { opacity: riveOpacity }]}
         >
           <RiveView
             hybridRef={setHybridRef}
@@ -914,7 +914,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
             fit={Fit.Layout}
             layoutScaleFactor={PixelRatio.get()}
             onError={handleError}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             testID={SocialLeaderboardOnboardingSelectorsIDs.RIVE_ANIMATION}
           />
         </Animated.View>
