@@ -192,6 +192,14 @@ describe('ProHub', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
     });
 
+    it('navigates to Earned when the earned card is pressed', () => {
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(getByTestId(ProHubTestIds.EARNED_CARD));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.EARNED);
+    });
+
     it('does not navigate when the physical card is pressed', () => {
       const { getByTestId } = renderProHub();
 

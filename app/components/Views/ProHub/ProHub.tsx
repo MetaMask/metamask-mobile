@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ScrollView } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -38,28 +38,60 @@ interface StatCardProps {
   label: string;
   value: string;
   testID: string;
+  onPress?: () => void;
 }
 
-const StatCard = ({ iconName, label, value, testID }: StatCardProps) => (
-  <Card
-    twClassName="flex-1 bg-background-section rounded-2xl p-4 gap-y-10 border-0"
-    testID={testID}
-  >
-    <Icon name={iconName} size={IconSize.Lg} color={IconColor.IconDefault} />
-    <Box twClassName="gap-y-1">
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-        {label}
-      </Text>
-      <Text
-        variant={TextVariant.HeadingMd}
-        fontWeight={FontWeight.Bold}
-        color={TextColor.TextDefault}
+const StatCard = ({
+  iconName,
+  label,
+  value,
+  testID,
+  onPress,
+}: StatCardProps) => {
+  const inner = (
+    <>
+      <Icon name={iconName} size={IconSize.Lg} color={IconColor.IconDefault} />
+      <Box twClassName="gap-y-1">
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {label}
+        </Text>
+        <Text
+          variant={TextVariant.HeadingMd}
+          fontWeight={FontWeight.Bold}
+          color={TextColor.TextDefault}
+        >
+          {value}
+        </Text>
+      </Box>
+    </>
+  );
+
+  if (!onPress) {
+    return (
+      <Card
+        twClassName="flex-1 bg-background-section rounded-2xl p-4 gap-y-10 border-0"
+        testID={testID}
       >
-        {value}
-      </Text>
+        {inner}
+      </Card>
+    );
+  }
+
+  return (
+    <Box twClassName="flex-1">
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        testID={testID}
+      >
+        <Card twClassName="bg-background-section rounded-2xl p-4 gap-y-10 border-0">
+          {inner}
+        </Card>
+      </Pressable>
     </Box>
-  </Card>
-);
+  );
+};
 
 const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -75,6 +107,10 @@ const ProHub = () => {
 
   const handleGetCard = useCallback(() => {
     navigation.navigate(Routes.CARD.ROOT);
+  }, [navigation]);
+
+  const handleEarnedPress = useCallback(() => {
+    navigation.navigate(Routes.PRO_HUB.EARNED);
   }, [navigation]);
 
   return (
@@ -124,6 +160,7 @@ const ProHub = () => {
             label={strings('pro_hub.earned_with_pro')}
             value={MOCK_PRO_HUB_STATS.earned}
             testID={ProHubTestIds.EARNED_CARD}
+            onPress={handleEarnedPress}
           />
           <StatCard
             iconName={IconName.AttachMoney}
