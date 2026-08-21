@@ -679,7 +679,6 @@ export const PerpsMarketBalanceActionsSelectorsIDs = {
 export const PerpsBalanceBottomSheetSelectorsIDs = {
   CONTAINER: 'perps-balance-bottom-sheet',
   CLOSE_BUTTON: 'perps-balance-bottom-sheet-close-button',
-  HISTORY_BUTTON: 'perps-balance-bottom-sheet-history-button',
   BALANCE_VALUE: 'perps-balance-bottom-sheet-balance-value',
   AVAILABLE_VALUE: 'perps-balance-bottom-sheet-available-value',
   PNL_VALUE: 'perps-balance-bottom-sheet-pnl-value',
