@@ -7,7 +7,7 @@
 import '../../../../../../tests/component-view/mocks';
 
 import React, { useRef } from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type { BottomSheetRef } from '@metamask/design-system-react-native';
 import type { Order } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
@@ -394,11 +394,15 @@ describe('PerpsCancelAllOrdersView', () => {
       screen.queryByText(strings('perps.cancel_all_modal.description')),
     ).not.toBeOnTheScreen();
 
-    fireEvent.press(
-      screen.getByTestId(
-        PerpsCancelAllOrdersViewSelectorsIDs.CANCEL_ALL_BUTTON,
-      ),
-    );
+    // Cancelling is async and toggles isCanceling on both sides of the await,
+    // so let those updates settle before asserting and tearing down.
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsCancelAllOrdersViewSelectorsIDs.CANCEL_ALL_BUTTON,
+        ),
+      );
+    });
 
     await waitFor(() => {
       expect(cancelOrders).toHaveBeenCalledWith({
