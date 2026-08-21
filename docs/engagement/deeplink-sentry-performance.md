@@ -25,6 +25,8 @@ From there the path splits on whether the wallet is unlocked:
 
 `parse` **executes** the link (legacy handlers navigate inside the call). `resolve` only **builds** a `DeeplinkIntent` when the handler supports it, then startup execution runs later.
 
+> **Current behavior:** the locked-path `resolve()` column above is design intent, not what ships today. On unlock, the deeplink saga wins the race: it forks `parseDeeplinkAfterNavReady` (carrying the captured unlock-session `app_start_type`) and clears `pendingDeeplink` (`app/store/sagas/index.ts`) before `navigateToPendingStartupDeeplink` reads it. Locked/cold links therefore go through `parse` after the post-unlock Home reset, and **`start_source: resolve` is never emitted** — expect zero such spans in Sentry. The startup-resolve code stays in place (it would skip the Home flash for `intent/` routes); making it win the race is a possible follow-up, not current behavior.
+
 Handlers live in two buckets:
 
 - **`handlers/intent/`** — return a `DeeplinkIntent` (`target.routeName` + optional `prepare()`). Both warm execute and startup execute go through `executeDeeplinkIntent.ts`.
@@ -53,7 +55,7 @@ Navigated is a navigation-state commit, not first paint.
 
 ## Deeplink Processed
 
-**Start:** `DeeplinkManager.parse` → `start_source: parse`. `DeeplinkManager.resolve` → `start_source: resolve`. A second start while one is in flight is a no-op (recursive parse: send → `ethereum:`, WalletConnect unwrap).
+**Start:** `DeeplinkManager.parse` → `start_source: parse`. `DeeplinkManager.resolve` → `start_source: resolve` (currently unreached — see the current-behavior note above). A second start while one is in flight is a no-op (recursive parse: send → `ethereum:`, WalletConnect unwrap).
 
 **End (first seam wins):**
 
@@ -126,7 +128,7 @@ Set at **start** on Processed and Navigated. `start_source` uses **different val
 | `deeplink_route`   | `trending`, `perps`, `home`, … / `unknown`                       | Path of a universal link, or host of `metamask://`. Unparseable URLs stay measured as `unknown`.            |
 | `deeplink_variant` | `crypto`, … / `default`                                          | `?screen=` or `?tab=`. Must match `^[a-z][a-z-]{0,23}$` or it becomes `default` (navigation does the same). |
 | `signed`           | `true` / `false`                                                 | URL has a `sig` param.                                                                                      |
-| `start_source`     | Processed: `parse` \| `resolve`. Navigated: `unlock` \| `intake` | Which entry point opened **this** span.                                                                     |
+| `start_source`     | Processed: `parse` \| `resolve`. Navigated: `unlock` \| `intake` | Which entry point opened **this** span. `resolve` is reserved and currently never emitted.                  |
 | `app_start_type`   | `cold` \| `warm`                                                 | JS **process** temperature. Not parse vs resolve, and not locked vs unlocked.                               |
 
 `deeplinkUrlTags(uri)` builds the URL tags.
@@ -148,13 +150,15 @@ Set at **end** (unknown at start):
 
 Same definition as Login (`loginPerformanceTags.ts`): `cold` until the first login interaction in this JS process completes, then `warm`. Lock-then-unlock in a live process is `warm`.
 
-Login flips `getLoginAppStartType()` to warm at submit, so deeplink code **captures** the type at unlock (`rememberUnlockDeeplinkAppStartType`) and reads it later (`getUnlockDeeplinkAppStartType`). `resolve()` uses that by default. Already-unlocked intake and ordinary saga `parse()` are `warm`.
+Login flips `getLoginAppStartType()` to warm at submit, so deeplink code **captures** the type at unlock (`rememberUnlockDeeplinkAppStartType`) and reads it later (`getUnlockDeeplinkAppStartType`). In practice the saga reads it when forking the post-unlock `parse` (`consumeNextParseAppStartType() ?? getUnlockDeeplinkAppStartType()`); `resolve()` would also use it if it ever ran. Already-unlocked intake and ordinary saga `parse()` are `warm`.
 
 `clearUnlockDeeplinkAppStartType()` runs on failed unlock, interstitial reject, successful startup execute, and no pending deeplink. It does **not** always pair with `clearPendingDeeplink`.
 
 ---
 
 ## Leftover parse
+
+This sequence only runs when startup `resolve` actually sees the pending link. Today it does not (see the current-behavior note): the saga clears `pendingDeeplink` first and forks `parse` directly, passing the unlock-session type via the `getUnlockDeeplinkAppStartType()` fallback. The steps below describe the latent startup-resolve path.
 
 Startup `resolve` only produces an intent for `intent/` handlers. For a leftover `legacy/` link (or a throw during startup execute):
 
@@ -191,14 +195,14 @@ In **Performance** or **Discover**, the transaction name is the TraceName string
 
 These are set at **span start**:
 
-| Tag                        | Typical filters                                                                               |
-| -------------------------- | --------------------------------------------------------------------------------------------- |
-| `deeplink_route`           | `home`, `trending`, `perps`, …                                                                |
-| `deeplink_variant`         | `crypto`, `default`, …                                                                        |
-| `signed`                   | `true` / `false`                                                                              |
-| `start_source`             | Processed: `parse` / `resolve`. Navigated: `unlock` / `intake`. Different enums — do not mix. |
-| `app_start_type`           | `cold` / `warm` (JS process, not locked vs unlocked)                                          |
-| `segment` / `interstitial` | Start tags **only** on the `after_gate` span (`segment:after_gate`, `interstitial:shown`)     |
+| Tag                        | Typical filters                                                                                                                   |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `deeplink_route`           | `home`, `trending`, `perps`, …                                                                                                    |
+| `deeplink_variant`         | `crypto`, `default`, …                                                                                                            |
+| `signed`                   | `true` / `false`                                                                                                                  |
+| `start_source`             | Processed: `parse` / `resolve` (`resolve` currently never emitted). Navigated: `unlock` / `intake`. Different enums — do not mix. |
+| `app_start_type`           | `cold` / `warm` (JS process, not locked vs unlocked)                                                                              |
+| `segment` / `interstitial` | Start tags **only** on the `after_gate` span (`segment:after_gate`, `interstitial:shown`)                                         |
 
 ```
 transaction:"Deeplink Processed" deeplink_route:trending start_source:parse
@@ -229,7 +233,7 @@ transaction:"Deeplink Processed" segment:after_gate
 | Did the user reject the interstitial?                         | `count(before_gate) − count(after_gate)`. Back does not emit a separate cancel on Processed.                                                                                                                                                                                 |
 | How long until navigation committed after the user unblocked? | Navigated. Locked start: `start_source:unlock`. Already unlocked: `start_source:intake`. Prefer `nav_target: known`.                                                                                                                                                         |
 | Cold process vs lock-then-unlock?                             | `app_start_type`, not `start_source`.                                                                                                                                                                                                                                        |
-| Was this the leftover legacy execute after startup resolve?   | Processed with `start_source:parse` after a cancelled resolve. That span is **not** tap-to-navigation; Navigated was already cancelled.                                                                                                                                      |
+| Was this the leftover legacy execute after startup resolve?   | Processed with `start_source:parse` after a cancelled resolve. That span is **not** tap-to-navigation; Navigated was already cancelled. (Latent path — does not occur today, see the current-behavior note.)                                                                 |
 
 ### Pitfalls when reading charts
 
