@@ -45,10 +45,7 @@ const ANVIL_MAINNET_LOCAL_NODE_OPTIONS = [
   },
 ];
 
-// 8.7.0: ETH→Base bridge confirm never enables (`bridge-confirm-button`).
-// Same specs are green on main and on release/8.7.0 branch CI; sticky on
-// cherry-pick runners. Skip the whole file's cases (gasless is separate).
-appiumTest.describe.skip(SmokeSwap('Bridge functionality'), () => {
+appiumTest.describe(SmokeSwap('Bridge functionality'), () => {
   appiumTest.describe.configure({ timeout: 180000 });
 
   appiumTest(

@@ -13,6 +13,7 @@ export const useCryptoTargetPrice = ({
   eventStartTime,
   variant,
   endDate,
+  twapWindowSeconds,
   enabled = true,
 }: UseCryptoTargetPriceParams) =>
   useQuery({
@@ -22,6 +23,7 @@ export const useCryptoTargetPrice = ({
       eventStartTime,
       variant,
       endDate,
+      twapWindowSeconds,
     }),
     enabled: enabled && !!eventId,
   });

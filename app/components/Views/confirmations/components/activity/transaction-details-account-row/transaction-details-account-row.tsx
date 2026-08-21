@@ -161,11 +161,13 @@ export function TransactionDetailsAccountRow() {
     <BadgeWrapper
       badgePosition={BadgePosition.BottomRight}
       badgeElement={
-        <Badge
-          variant={BadgeVariant.Network}
-          imageSource={networkImage}
-          name={networkName}
-        />
+        networkImage ? (
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={networkImage}
+            name={networkName}
+          />
+        ) : undefined
       }
     >
       <AvatarAccount accountAddress={avatarAddress} size={AvatarSize.Sm} />

@@ -68,12 +68,14 @@ const NftImageAndNetworkBadge = ({
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
         badgeElement={
-          <Badge
-            imageSource={networkImage}
-            name={networkName}
-            variant={BadgeVariant.Network}
-            testID="hero-nft-badge-network"
-          />
+          networkImage ? (
+            <Badge
+              imageSource={networkImage}
+              name={networkName}
+              variant={BadgeVariant.Network}
+              testID="hero-nft-badge-network"
+            />
+          ) : undefined
         }
       >
         <CollectibleMedia

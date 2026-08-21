@@ -59,14 +59,18 @@ const AddressElement: React.FC<AddressElementProps> = ({
 
   const renderIdenticon = useCallback(() => {
     if (shouldDisplayNetworkBadge) {
+      const networkImageSource = NetworkBadgeSource(chainId as Hex);
+
       return (
         <BadgeWrapper
           badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              imageSource={NetworkBadgeSource(chainId as Hex)}
-              name={addressElementNetwork?.name}
-            />
+            networkImageSource ? (
+              <Badge
+                variant={BadgeVariant.Network}
+                imageSource={networkImageSource}
+                name={addressElementNetwork?.name}
+              />
+            ) : undefined
           }
           badgePosition={BadgePosition.BottomRight}
         >
