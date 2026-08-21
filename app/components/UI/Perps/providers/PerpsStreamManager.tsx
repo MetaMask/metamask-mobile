@@ -576,6 +576,11 @@ abstract class StreamChannel<T> {
     }
 
     this.notifySubscribers(latest);
+    // Throttled subscribers would otherwise park this in pendingUpdate behind a
+    // timer — the Pro orders panel throttles at 1000ms, so a cancelled order
+    // could stay on screen for up to a second after the book is already empty.
+    // The batch operation has finished; there is nothing left to throttle.
+    this.flushThrottledDeliveries();
   }
 
   protected getCachedData(): T | null {

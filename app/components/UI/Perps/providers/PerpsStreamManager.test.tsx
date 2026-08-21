@@ -3564,6 +3564,50 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
+    it('flushes the cancelled-order snapshot to a throttled subscriber without waiting out the throttle', async () => {
+      // Regression: the Pro orders panel subscribes with throttleMs: 1000. A
+      // resume flush delivered as a normal 'fresh' update would sit in
+      // pendingUpdate behind that timer, leaving cancelled orders on screen for
+      // up to a second after the venue already reported an empty book.
+      const callback = jest.fn();
+      const unsubscribe = testStreamManager.orders.subscribe({
+        callback,
+        throttleMs: 1000,
+      });
+
+      await waitFor(() => expect(mockOrdersSubscribe).toHaveBeenCalled());
+
+      // First fresh update is delivered immediately, then throttling applies.
+      act(() => {
+        orderCallback?.([SAMPLE_ORDER]);
+      });
+      await waitFor(() => expect(callback).toHaveBeenCalledTimes(1));
+      callback.mockClear();
+
+      act(() => {
+        testStreamManager.orders.pause();
+      });
+      act(() => {
+        orderCallback?.([]);
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(callback).not.toHaveBeenCalled();
+
+      act(() => {
+        testStreamManager.orders.resume();
+      });
+
+      // Delivered synchronously by resume, NOT parked behind the 1000ms throttle
+      // timer. Asserted without waitFor on purpose: waitFor polls on real timers
+      // and would simply outlast the throttle window, passing either way.
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith([]);
+
+      unsubscribe();
+    });
+
     it('does not re-deliver on resume when nothing was suppressed', async () => {
       const callback = jest.fn();
       const unsubscribe = testStreamManager.orders.subscribe({
