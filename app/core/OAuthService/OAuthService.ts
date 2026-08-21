@@ -46,7 +46,14 @@ import {
 import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
-import { trackSocialLoginFailed } from './socialLoginAnalytics';
+import {
+  shouldAttemptAndroidGoogleBrowserFallback,
+  trackSocialLoginFailed,
+} from './socialLoginAnalytics';
+import {
+  getOAuthBackgroundAnalyticsProperties,
+  OAUTH_RESUME_OUTCOME,
+} from './oauthLifecycleTracking';
 import ReduxService from '../redux';
 import { setSeedlessOnboarding } from '../../actions/onboarding';
 import Device from '../../util/device';
@@ -266,6 +273,19 @@ export class OAuthService {
     try {
       let data: AuthResponse, handleCodeFlowResult: HandleOAuthLoginResult;
 
+      // Node details are independent of the OAuth result and are required by
+      // SeedlessOnboardingController.authenticate(). Start loading them while
+      // the user completes provider login and the auth-token exchange.
+      const preloadToprfNodeDetailsPromise = whenEngineReady()
+        .then(() =>
+          Engine.context.SeedlessOnboardingController.preloadToprfNodeDetails(),
+        )
+        .catch((error) => {
+          Logger.log(error as Error, {
+            message: 'Failed to preload TOPRF node details',
+          });
+        });
+
       const result = await this.#executeProviderLogin(
         loginHandler,
         parentTraceContext,
@@ -328,6 +348,10 @@ export class OAuthService {
 
         let seedlessAuthSuccess = false;
         try {
+          // Wait for the original preload request before authenticating so a
+          // cold cache does not issue a duplicate node-details request.
+          await preloadToprfNodeDetailsPromise;
+
           trace({
             name: TraceName.OnboardingOAuthSeedlessAuthenticate,
             op: TraceOperation.OnboardingSecurityOp,
@@ -412,6 +436,7 @@ export class OAuthService {
       account_type: getSocialAccountType(authConnection, isRehydration),
       surface: isRehydration ? 'rehydration' : 'onboarding',
       elapsed_ms: elapsedMs,
+      ...getOAuthBackgroundAnalyticsProperties(OAUTH_RESUME_OUTCOME.DISMISSED),
     };
 
     analytics.trackEvent(
@@ -469,7 +494,14 @@ export class OAuthService {
           authConnection: loginHandler.authConnection,
           elapsedMs: Date.now() - providerLoginStartedAt,
         });
-      } else {
+      } else if (
+        !shouldAttemptAndroidGoogleBrowserFallback(
+          error,
+          loginHandler.authConnection,
+        )
+      ) {
+        // One Tap errors that retry in the browser must not emit Failed; the
+        // fallback attempt owns the terminal Completed / Failed / Dismissed.
         trackSocialLoginFailed({
           authConnection: loginHandler.authConnection,
           isRehydration: this.localState.userClickedRehydration,

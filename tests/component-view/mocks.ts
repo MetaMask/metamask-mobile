@@ -116,6 +116,8 @@ jest.mock('../../app/core/Engine', () => {
           supportsCredit: true,
           supportsSensitiveDetailsView: false,
           supportsTravel: true,
+          supportsTransactionHistory: false,
+          supportsMoneyAccountLinking: false,
         }),
       },
       PhishingController: {
@@ -280,6 +282,7 @@ jest.mock('../../app/core/Engine', () => {
       AssetsContractController: {
         getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
         getERC721AssetSymbol: jest.fn().mockResolvedValue(undefined),
+        getERC20BalanceOf: jest.fn().mockResolvedValue(null),
       },
       TransactionController: {
         state: {
@@ -296,6 +299,7 @@ jest.mock('../../app/core/Engine', () => {
       NetworkController: {
         state: { networksMetadata: {}, networkConfigurationsByChainId: {} },
         addNetwork: jest.fn().mockResolvedValue(undefined),
+        removeNetwork: jest.fn(),
         getProviderAndBlockTracker() {
           return {
             provider: {
@@ -425,8 +429,14 @@ jest.mock('../../app/core/Engine', () => {
           getOrderFills: jest.fn().mockResolvedValue([]),
         })),
         getActiveProviderOrNull: jest.fn(() => null),
+        getBlockExplorerUrl: jest.fn((address?: string) =>
+          address
+            ? `https://app.hyperliquid.xyz/explorer/address/${address}`
+            : 'https://app.hyperliquid.xyz/explorer',
+        ),
         switchProvider: jest.fn().mockResolvedValue({ success: true }),
         subscribeToPrices: jest.fn(() => () => undefined),
+        subscribeToOrderFills: jest.fn(() => () => undefined),
         getOrderFills: jest.fn().mockResolvedValue([]),
         closePosition: jest.fn().mockResolvedValue({
           success: true,
@@ -458,6 +468,7 @@ jest.mock('../../app/core/Engine', () => {
           },
         ]),
         getOrders: jest.fn().mockResolvedValue([]),
+        getFunding: jest.fn().mockResolvedValue([]),
         getOpenOrders: jest.fn().mockResolvedValue([]),
         getAccountState: jest.fn().mockResolvedValue(null),
         depositWithOrder: jest.fn().mockResolvedValue({
