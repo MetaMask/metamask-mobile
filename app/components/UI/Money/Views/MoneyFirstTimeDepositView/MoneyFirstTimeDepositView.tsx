@@ -85,10 +85,14 @@ const MoneyFirstTimeDepositView = () => {
   const { setValue: setYValue } = useRiveNumber(RIVE_Y_VALUE_PATH, instance);
 
   const goHome = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    navigation.navigate(
+      Routes.HOME_TABS,
+      {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      },
+      { pop: true },
+    );
   }, [navigation]);
 
   useMountEffect(trackScreenViewed);

@@ -298,10 +298,14 @@ describe('MoneyOnboardingView', () => {
           payload: { seen: true },
         }),
       );
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
     });
   });
 
@@ -456,10 +460,14 @@ describe('MoneyOnboardingView', () => {
 
       await completeOnboarding();
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
     });
 
     it('dispatches setMoneyOnboardingSeen when the final step settles', async () => {
@@ -566,10 +574,14 @@ describe('MoneyOnboardingView', () => {
 
       fireTrigger('close');
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
     });
 
     it('navigates to Money home when post-onboarding deposit fails', async () => {
@@ -591,10 +603,14 @@ describe('MoneyOnboardingView', () => {
         __fireRiveTrigger('close');
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
     });
 
     it('dispatches setMoneyOnboardingSeen when close trigger fires', () => {
@@ -733,10 +749,14 @@ describe('MoneyOnboardingView', () => {
     it('redirects to Money home when Rive reports error', () => {
       renderAndTriggerRiveError();
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
     });
 
     it('dispatches onboarding seen when Rive reports error so users are not shown onboarding again', () => {

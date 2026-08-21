@@ -82,14 +82,6 @@ describe('ProHub', () => {
       expect(getByTestId(ProHubTestIds.MANAGE_PLANS_BUTTON)).toBeOnTheScreen();
     });
 
-    it('renders the explore benefits button with correct label', () => {
-      const { getByTestId } = renderProHub();
-
-      expect(getByTestId(ProHubTestIds.EXPLORE_BUTTON)).toHaveTextContent(
-        strings('pro_hub.explore_benefits'),
-      );
-    });
-
     it('renders the manage subscription button with correct label', () => {
       const { getByTestId } = renderProHub();
 

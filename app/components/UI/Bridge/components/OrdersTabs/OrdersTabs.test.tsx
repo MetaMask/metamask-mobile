@@ -12,14 +12,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { initialState } from '../../_mocks_/initialState';
 import OrdersTabs from './OrdersTabs';
 import { OrdersTabsSelectorsIDs } from './OrdersTabs.testIds';
-import type { OrdersTabsProps } from './OrdersTabs.types';
-
-jest.mock('@shopify/flash-list', () => {
-  const { flashListMock } = jest.requireActual(
-    '../../../../../util/test/mockFlashList',
-  );
-  return flashListMock();
-});
+import { OrdersTabKey, type OrdersTabsProps } from './OrdersTabs.types';
 
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   ...jest.requireActual('../../../../../util/remoteFeatureFlag'),
@@ -69,8 +62,8 @@ describe('OrdersTabs', () => {
     expect(getByText(strings('bridge.orders.empty.history'))).toBeOnTheScreen();
     expect(queryByText(strings('bridge.orders.empty.open_orders'))).toBeNull();
     expect(
-      queryByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
-    ).toBeNull();
+      getByTestId(OrdersTabsSelectorsIDs.NETWORK_FILTER_BUTTON),
+    ).toHaveTextContent(strings('bridge.all_networks'));
   });
 
   it('opens the swaps network picker when the All networks filter is pressed', () => {
@@ -83,7 +76,7 @@ describe('OrdersTabs', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-      params: { enabledChainIds: undefined },
+      params: { enabledChainIds: undefined, filterTarget: 'orders' },
     });
   });
 
@@ -100,7 +93,7 @@ describe('OrdersTabs', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
-      params: { enabledChainIds },
+      params: { enabledChainIds, filterTarget: 'orders' },
     });
   });
 
@@ -150,13 +143,46 @@ describe('OrdersTabs', () => {
         ...initialState,
         bridge: {
           ...initialState.bridge,
-          tokenSelectorNetworkFilter: formatChainIdToCaip('0xa'),
+          ordersNetworkFilter: formatChainIdToCaip('0xa'),
         },
       },
     );
 
     expect(queryByTestId('limit-open-order')).toBeNull();
     expect(getByTestId(OrdersTabsSelectorsIDs.EMPTY_STATE)).toBeOnTheScreen();
+  });
+
+  it('switches back to open orders when Open orders tab is pressed from History', () => {
+    const { getByTestId, getByText, queryByText } = renderOrdersTabs({
+      openOrders: { items: [] },
+      history: { items: [] },
+      initialTab: OrdersTabKey.History,
+    });
+
+    expect(getByText(strings('bridge.orders.empty.history'))).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB));
+
+    expect(
+      getByText(strings('bridge.orders.empty.open_orders')),
+    ).toBeOnTheScreen();
+    expect(queryByText(strings('bridge.orders.empty.history'))).toBeNull();
+  });
+
+  it('renders items without a keyExtractor using the row index as the key', () => {
+    const { getByTestId } = renderOrdersTabs({
+      openOrders: {
+        items: [{ label: 'first' }, { label: 'second' }],
+        renderItem: (item) => (
+          <Text testID={`order-row-${item.label}`}>{item.label}</Text>
+        ),
+      },
+      history: { items: [] },
+    });
+
+    expect(getByTestId('order-row-first')).toHaveTextContent('first');
+    expect(getByTestId('order-row-second')).toHaveTextContent('second');
+    expect(getByTestId(OrdersTabsSelectorsIDs.CONTENT)).toBeOnTheScreen();
   });
 
   it('shows the selected network icon and name on the filter button', () => {
@@ -169,7 +195,7 @@ describe('OrdersTabs', () => {
         ...initialState,
         bridge: {
           ...initialState.bridge,
-          tokenSelectorNetworkFilter: formatChainIdToCaip('0xa'),
+          ordersNetworkFilter: formatChainIdToCaip('0xa'),
         },
       },
     );
