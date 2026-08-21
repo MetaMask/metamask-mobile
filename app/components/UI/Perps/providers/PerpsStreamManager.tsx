@@ -127,6 +127,9 @@ abstract class StreamChannel<T> {
   // than to when the caller happened to look.
   protected lastDeliveredAt: number | null = null;
   protected deliveryRevision = 0;
+  // Set when a delivery is dropped because the channel is paused, so resume()
+  // knows the cache holds data the subscribers never saw.
+  protected hasSuppressedDelivery = false;
   // Retry counter for deferred connect() calls
   protected connectRetryCount = 0;
   // Timer handle for deferConnect so it can be cancelled on disconnect
@@ -140,6 +143,7 @@ abstract class StreamChannel<T> {
     this.deliveryRevision += 1;
     // Block emission while any pause is held (WebSocket continues receiving updates)
     if (this.pauseCount > 0) {
+      this.hasSuppressedDelivery = true;
       return;
     }
 
@@ -189,6 +193,7 @@ abstract class StreamChannel<T> {
     this.deliveryRevision += 1;
     // Block emission while any pause is held (WebSocket continues receiving updates)
     if (this.pauseCount > 0) {
+      this.hasSuppressedDelivery = true;
       return;
     }
 
@@ -542,9 +547,35 @@ abstract class StreamChannel<T> {
    * Resume emission of updates to subscribers.
    * Each pause() call must be matched by exactly one resume(). Emission
    * resumes only when all callers have released their pause.
+   *
+   * Updates that arrived while paused were cached but never delivered, so the
+   * last one is flushed here. Without it a batch operation that settles during
+   * the pause — cancelling every order, closing every position — leaves the UI
+   * rendering rows the venue has already removed until some later unrelated
+   * tick, which is stale state the user can act on.
    */
   public resume(): void {
-    this.pauseCount = Math.max(0, this.pauseCount - 1);
+    if (this.pauseCount === 0) {
+      // Unmatched resume — nothing was held, so there is nothing to flush.
+      return;
+    }
+
+    this.pauseCount -= 1;
+    if (this.pauseCount > 0) {
+      return;
+    }
+
+    if (!this.hasSuppressedDelivery) {
+      return;
+    }
+    this.hasSuppressedDelivery = false;
+
+    const latest = this.getCachedData();
+    if (latest === null || latest === undefined) {
+      return;
+    }
+
+    this.notifySubscribers(latest);
   }
 
   protected getCachedData(): T | null {
