@@ -112,6 +112,9 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
       confettiFiredRef.current = true;
       try {
         riveViewRef.triggerInput('Start');
+        // A settled state machine won't be advancing when the trigger lands;
+        // playIfNeeded is the runtime's low-overhead way to wake it.
+        riveViewRef.playIfNeeded();
       } catch (error) {
         console.warn('Error triggering Rive confetti animation:', error);
       }
@@ -152,6 +155,7 @@ export const StackCardEmpty: React.FC<StackCardEmptyProps> = ({
               file={riveFile}
               artboardName="Artboard"
               stateMachineName="Confetti"
+              autoPlay
               fit={Fit.Cover}
               alignment={Alignment.Center}
               style={{

@@ -298,8 +298,10 @@ describe('StackCardEmpty', () => {
 
       // View becomes ready after the card is already fully visible — the
       // riveViewRef flip must re-run the confetti effect and fire the trigger.
+      const mockPlayIfNeeded = jest.fn();
       const readyView = {
         triggerInput: __mockRiveTriggerInput,
+        playIfNeeded: mockPlayIfNeeded,
       } as unknown as NonNullable<
         ReturnType<typeof riveMockModule.useRive>['riveViewRef']
       >;
@@ -317,6 +319,8 @@ describe('StackCardEmpty', () => {
 
       expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Start');
       expect(__mockRiveTriggerInput).toHaveBeenCalledTimes(1);
+      // A settled state machine ignores the trigger unless playback is woken.
+      expect(mockPlayIfNeeded).toHaveBeenCalledTimes(1);
 
       useRiveSpy.mockRestore();
     });
