@@ -618,6 +618,8 @@ const Routes = {
     MEMBERSHIP: 'ProHubMembership',
     /** Lifetime Pro earnings breakdown — interest, card cashback, and add-money CTA. */
     EARNED: 'ProHubEarned',
+    /** Lifetime Pro savings breakdown — trading fees, card fees, coverage, and swap CTA. */
+    SAVED: 'ProHubSaved',
     /** Cancel membership screen — cancellation survey and confirmation. */
     CANCEL_MEMBERSHIP: 'ProHubCancelMembership',
   },

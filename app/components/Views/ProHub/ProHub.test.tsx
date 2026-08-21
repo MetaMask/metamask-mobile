@@ -200,6 +200,14 @@ describe('ProHub', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.EARNED);
     });
 
+    it('navigates to Saved when the saved card is pressed', () => {
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(getByTestId(ProHubTestIds.SAVED_CARD));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.SAVED);
+    });
+
     it('does not navigate when the physical card is pressed', () => {
       const { getByTestId } = renderProHub();
 
