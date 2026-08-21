@@ -117,6 +117,34 @@ describe('PredictEventScreen', () => {
     expect(view.getByTestId(PredictEventScreenTestIds.IMAGE)).toBeOnTheScreen();
   });
 
+  it('uses the Game header for a non-football Event with a Game snapshot', async () => {
+    resolveEvent(
+      createEvent({
+        title: 'Lakers vs Celtics',
+        sports: {
+          sport: {
+            id: 'basketball' as PredictEntityId,
+            label: 'Basketball',
+          },
+          game: {
+            status: 'in_progress',
+            awayTeam: { name: 'Lakers', abbreviation: 'LAL' },
+            homeTeam: { name: 'Celtics', abbreviation: 'BOS' },
+            score: { away: '88', home: '91' },
+            observedAt: '2026-09-11T02:30:00Z' as PredictTimestamp,
+          },
+        },
+      }),
+    );
+    const view = renderPredictEventScreen(routeParams);
+
+    await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER);
+
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
+    ).not.toBeOnTheScreen();
+  });
+
   it('uses the standard header for Sports metadata without a Game', async () => {
     resolveEvent(
       createEvent({
