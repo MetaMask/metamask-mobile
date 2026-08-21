@@ -99,6 +99,11 @@ import {
   getLoginPerformanceTags,
   markLoginInteractionCompleted,
 } from './loginPerformanceTags';
+import {
+  cancelHomepageReadyTrace,
+  startHomepageReadyTrace,
+  type HomepageReadyTraceToken,
+} from '../../../core/Performance/HomepageReady';
 
 interface LoginRouteParams {
   locked: boolean;
@@ -308,6 +313,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
+    const homepageReadyTraceToken: HomepageReadyTraceToken | null =
+      startHomepageReadyTrace({
+        source: 'unlock',
+        appStartType: loginPerformanceTags.current.app_start_type,
+      });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -350,6 +360,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
     } catch (loginErr) {
+      cancelHomepageReadyTrace({
+        reason: 'unlock_failed',
+        traceToken: homepageReadyTraceToken,
+      });
       await handleLoginError(loginErr as Error);
     }
     setLoading(false);
@@ -371,6 +385,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
+    const homepageReadyTraceToken: HomepageReadyTraceToken | null =
+      startHomepageReadyTrace({
+        source: 'unlock',
+        appStartType: loginPerformanceTags.current.app_start_type,
+      });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -389,6 +408,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
     } catch (loginerror) {
+      cancelHomepageReadyTrace({
+        reason: 'unlock_failed',
+        traceToken: homepageReadyTraceToken,
+      });
       await handleLoginError(loginerror as Error);
     }
     setLoading(false);

@@ -1,5 +1,8 @@
 import { type Observable } from 'rxjs';
-import { type DiscoveredDevice } from '@ledgerhq/device-management-kit';
+import {
+  type DeviceManagementKit,
+  type DiscoveredDevice,
+} from '@ledgerhq/device-management-kit';
 import { LedgerDmkBridge } from '@metamask/eth-ledger-bridge-keyring';
 import { ErrorCode, HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { createHardwareWalletError } from '../HardwareWallet/errors';
@@ -50,8 +53,8 @@ const getLedgerDmkBridge = (): Promise<LedgerDmkBridge> =>
  * Connect a Ledger device via a DMK session and return the running app name.
  *
  * Called by `LedgerBluetoothDmkAdapter` after it has discovered and connected
- * to the device through the shared DMK singleton. The session ID is forwarded
- * to the keyring's bridge via `updateSessionId`.
+ * to the device through the keyring bridge's shared DMK. The session ID is
+ * forwarded to the keyring's bridge via `updateSessionId`.
  *
  * @param sessionId - The DMK session ID from the adapter's connection.
  * @param deviceId - The device ID to connect to.
@@ -87,18 +90,50 @@ export const connectLedgerDmkHardware = async (
 };
 
 /**
+ * Request an Ethereum public key through the bridge's active DMK session.
+ *
+ * This address request confirms that the Ethereum app can execute an
+ * app-specific command, including when the device is locked.
+ *
+ * @param hdPath - The BIP-32 derivation path to query.
+ * @returns The public key, address, and chain code returned by the device.
+ */
+export const getLedgerDmkPublicKey = async (hdPath: string) => {
+  const bridge = await getLedgerDmkBridge();
+  return bridge.getPublicKey({ hdPath });
+};
+
+/**
+ * Listen for available Ledger devices via the keyring bridge's shared DMK.
+ *
+ * Uses `listenToAvailableDevices` (lists paired/known devices, including
+ * already-connected ones) rather than the bridge's `startDiscovering`
+ * active-scan path. Devices discovered here are valid for
+ * {@link connectLedgerDmkDevice}.
+ *
+ * @param args - Optional DMK `listenToAvailableDevices` options.
+ * @returns An observable that emits arrays of discovered devices.
+ */
+export const listenToLedgerDmkAvailableDevices = async (
+  ...args: Parameters<DeviceManagementKit['listenToAvailableDevices']>
+): Promise<ReturnType<DeviceManagementKit['listenToAvailableDevices']>> => {
+  const bridge = await getLedgerDmkBridge();
+  return bridge.dmk.listenToAvailableDevices(...args);
+};
+
+/**
  * Connect to a discovered Ledger device via the keyring's bridge. The session
  * is created on the bridge's own DMK instance and stored internally by the
  * bridge, so it is valid for subsequent bridge commands (app checks, signing).
  *
- * @param device - A discovered device from the bridge's DMK discovery stream.
+ * @param discoveredDevice - A discovered device from the bridge's DMK discovery stream.
  * @returns The DMK session ID.
  */
 export const connectLedgerDmkDevice = async (
-  device: DiscoveredDevice,
+  discoveredDevice: DiscoveredDevice,
 ): Promise<string> => {
   const bridge = await getLedgerDmkBridge();
-  return bridge.connect({ device });
+  return bridge.connect({ device: discoveredDevice });
 };
 
 /**

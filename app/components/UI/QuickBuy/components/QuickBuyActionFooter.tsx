@@ -55,7 +55,10 @@ const QuickBuyActionFooter: React.FC = () => {
       {/* Everything between the banners and the CTA depends on a quote that can
           never arrive without funds, so it is dimmed and inert as one block —
           leaving the "Add funds" CTA below as the only live control. */}
-      <QuickBuyDisabledSection isDisabled={hasNoPayWithFunds}>
+      <QuickBuyDisabledSection
+        isDisabled={hasNoPayWithFunds}
+        testID="quick-buy-disabled-footer"
+      >
         {features.quickAmountPills ? (
           <Box twClassName="pb-3">
             <QuickBuyQuickAmounts />

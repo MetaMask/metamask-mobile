@@ -1,7 +1,10 @@
 import React from 'react';
 import { Text as MockText, View as MockView } from 'react-native';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { fireEvent } from '@testing-library/react-native';
+import Engine from '../../../../core/Engine';
+import Routes from '../../../../constants/navigation/Routes';
 import { mockTheme } from '../../../../util/theme';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useUpgradeMoneyAccountOnFocus } from '../hooks/useUpgradeMoneyAccountOnFocus';
 import {
   MoneyConfirmationScreenStack,
@@ -16,6 +19,14 @@ jest.mock('../hooks/useUpgradeMoneyAccountOnFocus', () => ({
 const mockUseUpgradeMoneyAccountOnFocus = jest.mocked(
   useUpgradeMoneyAccountOnFocus,
 );
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    CardController: {
+      fetchCardHomeData: jest.fn(),
+    },
+  },
+}));
 
 jest.mock(
   '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations',
@@ -59,9 +70,23 @@ jest.mock('@react-navigation/native-stack', () => ({
         {children}
       </MockView>
     ),
-    Screen: ({ name }: { name: string }) => (
+    Screen: ({
+      name,
+      listeners,
+    }: {
+      name: string;
+      listeners?: { focus?: () => void };
+    }) => (
       <MockView testID={`money-screen-${name}`}>
         <MockText>{name}</MockText>
+        {listeners?.focus && (
+          <MockText
+            testID={`money-screen-${name}-focus`}
+            onPress={listeners.focus}
+          >
+            focus
+          </MockText>
+        )}
       </MockView>
     ),
   }),
@@ -149,6 +174,34 @@ describe('MoneyTabScreenStack', () => {
     });
 
     expect(mockUseUpgradeMoneyAccountOnFocus).toHaveBeenCalledTimes(1);
+  });
+
+  it('prefetches card home data when Money home receives focus', () => {
+    const { getByTestId } = renderWithProvider(<MoneyTabScreenStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    fireEvent.press(getByTestId(`money-screen-${Routes.MONEY.HOME}-focus`));
+
+    expect(
+      Engine.context.CardController.fetchCardHomeData,
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      Engine.context.CardController.fetchCardHomeData,
+    ).toHaveBeenCalledWith();
+  });
+
+  it('does not attach card prefetch listeners to other Money routes', () => {
+    const { queryByTestId } = renderWithProvider(<MoneyTabScreenStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(
+      queryByTestId(`money-screen-${Routes.MONEY.ACTIVITY}-focus`),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(`money-screen-${Routes.MONEY.HOW_IT_WORKS}-focus`),
+    ).not.toBeOnTheScreen();
   });
 });
 

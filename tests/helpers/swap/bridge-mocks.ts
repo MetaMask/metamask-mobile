@@ -128,7 +128,7 @@ export const testSpecificMock: TestSpecificMock = async (
     mockServer,
     /getQuoteStream/i,
     toSSEResponse(GET_QUOTE_ETH_BASE_RESPONSE),
-    1, // lower priority than specific mocks below (999)
+    2, // above mockttp's DEFAULT (1), which the MockServer /proxy passthrough uses; below the specific mocks (999)
   );
 
   // Mock SSE quote response ETH(Ethereum)->SOL(Solana)
@@ -309,7 +309,7 @@ export const createBridgeQuoteStatusManagerMock = (
       mockServer,
       /getQuoteStream/i,
       toSSEResponse(quotesWithId),
-      1, // lower priority than the specific mock below (999)
+      2, // above mockttp's DEFAULT (1), which the MockServer /proxy passthrough uses; below the specific mock (999)
     );
 
     // Mock SSE quote response ETH(Ethereum)->ETH(Base), with a quoteId so
