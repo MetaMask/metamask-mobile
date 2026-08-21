@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 import type { RiveViewRef, ViewModelInstance } from '@rive-app/react-native';
 
 interface UseRiveRevealTriggerOptions {
-  /** Bound view model instance; `null` while the file or binding loads. */
-  instance: ViewModelInstance | null;
+  /** Bound view model instance; nullish while the file or binding loads. */
+  instance: ViewModelInstance | null | undefined;
   /** Native view methods; set only after the view resolves awaitViewReady. */
   riveViewRef: RiveViewRef | null | undefined;
   /** ViewModel trigger that starts the reveal. */
