@@ -36,12 +36,11 @@ export const buildDigitTickerFrames = (finalValue: string): string[] => {
 
 /**
  * Animates a formatted currency string one digit at a time from zeros to
- * `finalValue`. Skips the animation in tests and when reduced motion is on.
+ * `finalValue`. Skips the animation when reduced motion is on.
  */
 export const useDigitTicker = (finalValue: string): string => {
   const reduceMotion = useReducedMotion();
-  const skipAnimation =
-    Boolean(process.env.JEST_WORKER_ID) || Boolean(reduceMotion);
+  const skipAnimation = Boolean(reduceMotion);
 
   const [displayed, setDisplayed] = useState(() =>
     skipAnimation ? finalValue : zeroDigits(finalValue),

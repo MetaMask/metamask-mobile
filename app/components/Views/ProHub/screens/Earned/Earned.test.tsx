@@ -27,6 +27,11 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
+jest.mock('react-native-reanimated', () => ({
+  ...jest.requireActual('react-native-reanimated'),
+  useReducedMotion: jest.fn(() => true),
+}));
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const renderEarned = () => render(<Earned />);

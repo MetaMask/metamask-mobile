@@ -25,7 +25,7 @@ import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { MOCK_EARNED_DATA } from './Earned.constants';
 import { EarnedTestIds } from './Earned.testIds';
-import { useDigitTicker } from './useDigitTicker';
+import { useDigitTicker } from '../../hooks';
 
 interface BreakdownRowProps {
   title: string;
