@@ -1162,6 +1162,19 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return orderValidation.errors.filter((err) => err !== sizePositiveMsg);
   }, [orderValidation.errors]);
 
+  const insufficientBalancePrefix = strings(
+    'perps.order.validation.insufficient_balance',
+    { required: '__REQ__', available: '__AVAIL__' },
+  ).split('__REQ__')[0];
+  const hasInsufficientFundsError =
+    hasInsufficientPayTokenBalance ||
+    filteredErrors.some((error) => error.startsWith(insufficientBalancePrefix));
+  if (hasInsufficientFundsError) {
+    DevLogger.log(
+      '[PR-TAT-3639] BUG_MARKER: duplicate insufficient-funds surfaces',
+    );
+  }
+
   // Handlers
   const handleTPSLPress = useCallback(() => {
     if (orderForm.type === 'limit' && !orderForm.limitPrice) {
@@ -1706,11 +1719,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       : 'perps.order.button.short';
   const isInsufficientFunds =
     !isLoadingAccount && amountTimesLeverage < minimumOrderAmount;
-  const placeOrderLabel = isInsufficientFunds
-    ? strings('perps.order.validation.insufficient_funds')
-    : strings(orderButtonKey, {
-        asset: getPerpsDisplaySymbol(orderForm.asset),
-      });
+  const placeOrderLabel =
+    isInsufficientFunds && !hasInsufficientFundsError
+      ? strings('perps.order.validation.insufficient_funds')
+      : strings(orderButtonKey, {
+          asset: getPerpsDisplaySymbol(orderForm.asset),
+        });
 
   const {
     doesStopLossRiskLiquidation,
@@ -1853,7 +1867,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 />
               )}
             </View>
-            {hasInsufficientPayTokenBalance && (
+            {hasInsufficientFundsError && (
               <View style={styles.insufficientPayTokenWarning}>
                 <Text
                   variant={TextVariant.BodySm}
@@ -2134,6 +2148,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       {!isInputFocused && !isAtOICap && (
         <View style={fixedBottomContainerStyle}>
           {filteredErrors.length > 0 &&
+            !hasInsufficientFundsError &&
             !isLoadingMarketData &&
             currentPrice != null &&
             !orderValidation.isValidating && (
