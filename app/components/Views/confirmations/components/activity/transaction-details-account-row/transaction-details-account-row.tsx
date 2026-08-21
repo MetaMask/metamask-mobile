@@ -15,9 +15,6 @@ import {
   Text,
   TextColor,
 } from '@metamask/design-system-react-native';
-import Text, {
-  TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
 import { getAvatarAccountVariant } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
