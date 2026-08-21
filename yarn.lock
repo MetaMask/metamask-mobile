@@ -36120,7 +36120,7 @@ __metadata:
     react-native-nitro-text-decoder: "npm:^0.2.0"
     react-native-nitro-websockets: "npm:^1.0.3"
     react-native-os: "patch:react-native-os@npm%3A1.2.6#~/.yarn/patches/react-native-os-npm-1.2.6-65c52ed3dc.patch"
-    react-native-pager-view: "npm:8.0.0"
+    react-native-pager-view: "npm:8.0.4"
     react-native-performance: "patch:react-native-performance@npm%3A6.0.0#~/.yarn/patches/react-native-performance-npm-6.0.0-48a0cbc8fc.patch"
     react-native-permissions: "npm:^5.6.0"
     react-native-progress: "npm:3.5.0"
@@ -40659,13 +40659,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-pager-view@npm:8.0.0":
-  version: 8.0.0
-  resolution: "react-native-pager-view@npm:8.0.0"
+"react-native-pager-view@npm:8.0.4":
+  version: 8.0.4
+  resolution: "react-native-pager-view@npm:8.0.4"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/69164a56ae2d6ab7bdf4cacc637f59f73fe3859ad51a564be74e860f1e58ec7714646febdd7f2df9d7b890e1f4a489981c327a9653aa7dc4af7971f241b6faff
+  checksum: 10/5eb006bc6d242f815e73d31d9e29c0a4eee291de921f98c21085c113279b03e476bb8a3e517f31154dcbf90f077c03439999db379883e0d7f099e47273f0a679
   languageName: node
   linkType: hard
 
