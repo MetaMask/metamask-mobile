@@ -33,7 +33,12 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../../hooks/useStyles';
-import useTooltipModal from '../../../../hooks/useTooltipModal';
+import {
+  KEY_VALUE_ROW_CLASSNAME,
+  KEY_VALUE_ROW_KEY_TEXT_PROPS,
+  KEY_VALUE_ROW_VALUE_TEXT_PROPS,
+  useKeyValueRowTooltip,
+} from '../../utils/keyValueRow';
 import InfoRowDivider from '../../../../Views/confirmations/components/UI/info-row-divider';
 import InfoSection from '../../../../Views/confirmations/components/UI/info-row/info-section';
 import AccountTag from '../../../Stake/components/StakingConfirmation/AccountTag/AccountTag';
@@ -55,16 +60,6 @@ import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
-
-const KEY_VALUE_ROW_CLASSNAME = 'h-auto px-0 overflow-hidden';
-
-const KEY_VALUE_ROW_KEY_TEXT_PROPS = {
-  color: TextColor.TextDefault,
-};
-
-const KEY_VALUE_ROW_VALUE_TEXT_PROPS = {
-  fontWeight: FontWeight.Regular,
-};
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -120,7 +115,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   const avatarAccountType = useSelector(selectAvatarAccountType);
 
-  const { openTooltipModal } = useTooltipModal();
+  const tooltipProps = useKeyValueRowTooltip();
 
   useEndTraceOnMount(TraceName.EarnWithdrawReviewScreen);
 
@@ -493,19 +488,10 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 twClassName={KEY_VALUE_ROW_CLASSNAME}
                 keyLabel={strings('earn.withdrawal_time')}
                 keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
-                keyEndButtonIconProps={{
-                  size: ButtonIconSize.Xs,
-                  iconName: IconName.Question,
-                  accessibilityRole: 'button',
-                  accessibilityLabel: `${strings(
-                    'earn.withdrawal_time',
-                  )} tooltip`,
-                  onPress: () =>
-                    openTooltipModal(
-                      strings('earn.withdrawal_time'),
-                      strings('earn.tooltip_content.withdrawal_time'),
-                    ),
-                }}
+                keyEndButtonIconProps={tooltipProps(
+                  strings('earn.withdrawal_time'),
+                  strings('earn.tooltip_content.withdrawal_time'),
+                )}
                 value={strings('earn.immediate')}
                 valueTextProps={KEY_VALUE_ROW_VALUE_TEXT_PROPS}
               />
@@ -532,17 +518,10 @@ const EarnLendingWithdrawalConfirmationView = () => {
                 twClassName={KEY_VALUE_ROW_CLASSNAME}
                 keyLabel={strings('earn.protocol')}
                 keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
-                keyEndButtonIconProps={{
-                  size: ButtonIconSize.Xs,
-                  iconName: IconName.Question,
-                  accessibilityRole: 'button',
-                  accessibilityLabel: `${strings('earn.protocol')} tooltip`,
-                  onPress: () =>
-                    openTooltipModal(
-                      strings('earn.protocol'),
-                      strings('earn.tooltip_content.protocol'),
-                    ),
-                }}
+                keyEndButtonIconProps={tooltipProps(
+                  strings('earn.protocol'),
+                  strings('earn.tooltip_content.protocol'),
+                )}
                 value={
                   <ContractTag
                     contractAddress={lendingContractAddress}
