@@ -147,6 +147,11 @@ export type PerpsStackParamList = {
          * Used by the header slide-up picker.
          */
         replaceOnSelect?: boolean;
+        /**
+         * When true, fires selection haptics on market row taps.
+         * Defaults off so Lite entry points stay silent.
+         */
+        enableHaptics?: boolean;
       }
     | undefined;
 
@@ -180,11 +185,13 @@ export type PerpsStackParamList = {
     source?: string;
     buttonClicked?: string;
     buttonLocation?: string;
+    enableHaptics?: boolean;
   };
 
   PerpsAdjustMargin: {
     position: Position;
     mode: 'add' | 'remove';
+    enableHaptics?: boolean;
   };
 
   // Action selection routes
@@ -251,6 +258,11 @@ export type PerpsStackParamList = {
     limitPrice?: string;
     amount?: string; // For new orders - USD amount to calculate position size for P&L
     szDecimals?: number; // For new orders - asset decimal precision for P&L
+    /**
+     * When true, fires catalog haptics for meaningful TP/SL gestures.
+     * Defaults off so Lite entry points stay silent.
+     */
+    enableHaptics?: boolean;
     /**
      * Called when user confirms TP/SL. First arg is position when editing existing position (avoids "No position found" from stale ref).
      * Signature: (position?, takeProfitPrice?, stopLossPrice?, trackingData?) so both edit-flow and order-flow can use it.

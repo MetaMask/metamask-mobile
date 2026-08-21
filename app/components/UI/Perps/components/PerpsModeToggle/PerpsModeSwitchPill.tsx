@@ -30,12 +30,16 @@ import {
   getPerpsProPillShimmerColors,
   PERPS_PRO_GOLD,
 } from '../../constants/perpsModeColors';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 
-export const GLOW_TOTAL_MS = 750;
-const GLOW_SWEEP_MS = 700;
+export const GLOW_TOTAL_MS = 680;
+const GLOW_SWEEP_MS = 630;
 const GLOW_FADE_MS = 120;
 const GLOW_HOLD_MS = GLOW_TOTAL_MS - GLOW_FADE_MS * 2;
 export const BORDER_WIDTH = 2;
+
+// Holds one width across the Lite/Pro label swap; CJK labels can still exceed it.
+const MIN_WIDTH = 56;
 
 // CSS 105deg translated to react-native-linear-gradient coordinates.
 const SHIMMER_START = { x: 0, y: 0.37 };
@@ -123,7 +127,8 @@ const ModeLabel = ({ children, isPro, isMask = false }: ModeLabelProps) => {
 interface PerpsModeSwitchPillProps {
   currentModeLabel: string;
   isPro: boolean;
-  onSwitchRequest: () => void;
+  onSwitchRequest: () => void | Promise<boolean | void>;
+  enableHaptics?: boolean;
   accessibilityLabel: string;
   accessibilityHint: string;
   testID: string;
@@ -133,12 +138,14 @@ const PerpsModeSwitchPill = ({
   currentModeLabel,
   isPro,
   onSwitchRequest,
+  enableHaptics = false,
   accessibilityLabel,
   accessibilityHint,
   testID,
 }: PerpsModeSwitchPillProps) => {
   const tw = useTailwind();
   const isDark = useIsDarkTheme();
+  const { playImpact } = useHaptics();
   const [width, setWidth] = useState(0);
   const [isShimmering, setIsShimmering] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -170,6 +177,15 @@ const PerpsModeSwitchPill = ({
     () => getPerpsProPillShimmerColors(isDark),
     [isDark],
   );
+  const handleModeSwitch = useCallback(() => {
+    Promise.resolve(onSwitchRequest())
+      .then((applied) => {
+        if (applied !== false && enableHaptics) {
+          playImpact(ImpactMoment.TabChange).catch(() => undefined);
+        }
+      })
+      .catch(() => undefined);
+  }, [enableHaptics, onSwitchRequest, playImpact]);
 
   const handlePress = useCallback(() => {
     if (timerRef.current) {
@@ -191,9 +207,10 @@ const PerpsModeSwitchPill = ({
     timerRef.current = setTimeout(() => {
       timerRef.current = null;
       setIsShimmering(false);
-      onSwitchRequest();
     }, GLOW_TOTAL_MS);
-  }, [onSwitchRequest, overlayOpacity, sweepProgress]);
+
+    handleModeSwitch();
+  }, [handleModeSwitch, overlayOpacity, sweepProgress]);
 
   // Pro outlines in the accent gold; Lite follows `border/default`, which the
   // preset resolves per theme. `tw.color` is not usable here — it does not
@@ -226,6 +243,11 @@ const PerpsModeSwitchPill = ({
           `h-8 rounded-lg border bg-default px-3 ${pressed ? 'bg-pressed' : ''}`
         }
         style={borderStyle}
+        style={{
+          borderColor: BORDER_COLOR,
+          borderWidth: BORDER_WIDTH,
+          minWidth: MIN_WIDTH,
+        }}
         onPress={handlePress}
         disabled={isShimmering}
         accessibilityLabel={accessibilityLabel}

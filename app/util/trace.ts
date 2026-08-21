@@ -256,6 +256,8 @@ export enum TraceName {
   PredictGetCryptoTargetPrice = 'Predict Get Crypto Target Price',
   // PredictNext
   PredictNextHomeView = 'PredictNext Home View',
+  PredictNextFeedView = 'PredictNext Feed View',
+  PredictNextEventView = 'PredictNext Event View',
   PredictNextGetVenueStatus = 'PredictNext Get Venue Status',
   PredictNextGetFeed = 'PredictNext Get Feed',
   PredictNextGetEvent = 'PredictNext Get Event',
