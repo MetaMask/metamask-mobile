@@ -4,14 +4,19 @@
  */
 import '../../../../../../tests/component-view/mocks';
 
+import React, { useRef } from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import type { BottomSheetRef } from '@metamask/design-system-react-native';
 import type { Position } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   defaultPositionForViews,
   renderPerpsCloseAllPositionsView,
+  renderPerpsView,
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import PerpsCloseAllPositionsView from './PerpsCloseAllPositionsView';
 
 const positions: Position[] = [
   defaultPositionForViews,
@@ -103,5 +108,44 @@ describe('PerpsCloseAllPositionsView', () => {
       ),
     ).not.toBeOnTheScreen();
     expect(closePositions).not.toHaveBeenCalled();
+  });
+
+  it('names the filtered scope and counts only the passed positions', async () => {
+    const ethOnly = [positions[0]];
+
+    const FilteredCloseAll = () => {
+      const sheetRef = useRef<BottomSheetRef | null>(null);
+      return (
+        <PerpsCloseAllPositionsView
+          sheetRef={sheetRef}
+          onClose={jest.fn()}
+          positions={ethOnly}
+          isFiltered
+        />
+      );
+    };
+
+    renderPerpsView(
+      FilteredCloseAll as unknown as React.ComponentType,
+      Routes.PERPS.MODALS.CLOSE_ALL_POSITIONS,
+      { streamOverrides: { positions } },
+    );
+
+    expect(
+      await screen.findByText(strings('perps.close_all_modal.title_filtered')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('perps.close_all_modal.description', { count: 1 }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.close_all_modal.title')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('perps.close_all_modal.close_count', { count: 1 }),
+      ),
+    ).toBeOnTheScreen();
   });
 });

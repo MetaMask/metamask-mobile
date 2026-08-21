@@ -19,6 +19,7 @@ import {
   renderPerpsCancelAllOrdersView,
   renderPerpsView,
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { PerpsCancelAllOrdersViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsCancelAllOrdersView from './PerpsCancelAllOrdersView';
 
 const orders: Order[] = [
@@ -347,5 +348,120 @@ describe('PerpsCancelAllOrdersView', () => {
       ).toBeEnabled();
     });
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('names the filtered scope and cancels only the passed orders', async () => {
+    const cancelOrders = Engine.context.PerpsController
+      .cancelOrders as jest.Mock;
+    cancelOrders.mockResolvedValue({
+      success: true,
+      successCount: 1,
+      failureCount: 0,
+      results: [],
+    });
+    const ethOnly = [orders[0]];
+
+    const FilteredCancelAll = () => {
+      const sheetRef = useRef<BottomSheetRef | null>(null);
+      return (
+        <PerpsCancelAllOrdersView
+          sheetRef={sheetRef}
+          onClose={jest.fn()}
+          orders={ethOnly}
+          isFiltered
+        />
+      );
+    };
+
+    renderPerpsView(
+      FilteredCancelAll as unknown as React.ComponentType,
+      Routes.PERPS.MODALS.CANCEL_ALL_ORDERS,
+      { streamOverrides: { orders } },
+    );
+
+    expect(
+      await screen.findByText(strings('perps.cancel_all_modal.title_filtered')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('perps.cancel_all_modal.description_filtered', { count: 1 }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.cancel_all_modal.title')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.cancel_all_modal.description')),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsCancelAllOrdersViewSelectorsIDs.CANCEL_ALL_BUTTON,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(cancelOrders).toHaveBeenCalledWith({
+        orderIds: [orders[0].orderId],
+      });
+    });
+  });
+
+  it('counts the filtered orders on the confirm button', async () => {
+    const FilteredCancelAll = () => {
+      const sheetRef = useRef<BottomSheetRef | null>(null);
+      return (
+        <PerpsCancelAllOrdersView
+          sheetRef={sheetRef}
+          onClose={jest.fn()}
+          orders={orders}
+          isFiltered
+        />
+      );
+    };
+
+    renderPerpsView(
+      FilteredCancelAll as unknown as React.ComponentType,
+      Routes.PERPS.MODALS.CANCEL_ALL_ORDERS,
+      { streamOverrides: { orders } },
+    );
+
+    expect(
+      await screen.findByText(
+        strings('perps.cancel_all_modal.cancel_count', { count: 2 }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.cancel_all_modal.confirm')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('describes the whole book when no filter is applied', async () => {
+    const UnfilteredCancelAll = () => {
+      const sheetRef = useRef<BottomSheetRef | null>(null);
+      return (
+        <PerpsCancelAllOrdersView
+          sheetRef={sheetRef}
+          onClose={jest.fn()}
+          orders={orders}
+        />
+      );
+    };
+
+    renderPerpsView(
+      UnfilteredCancelAll as unknown as React.ComponentType,
+      Routes.PERPS.MODALS.CANCEL_ALL_ORDERS,
+      { streamOverrides: { orders } },
+    );
+
+    expect(
+      await screen.findByText(strings('perps.cancel_all_modal.title')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('perps.cancel_all_modal.description')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('perps.cancel_all_modal.confirm')),
+    ).toBeOnTheScreen();
   });
 });
