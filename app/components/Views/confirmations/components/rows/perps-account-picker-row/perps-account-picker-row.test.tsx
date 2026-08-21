@@ -55,10 +55,6 @@ jest.mock('../../../../../../component-library/hooks/useStyles', () => ({
   }),
 }));
 
-jest.mock('../../../../../../util/theme/themeUtils', () => ({
-  useElevatedSurface: () => 'surface-elevated',
-}));
-
 jest.mock(
   '../../../../../../component-library/components/Avatars/Avatar',
   () => {
