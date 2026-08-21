@@ -687,7 +687,11 @@ describe('HardwareWalletsSwaps', () => {
         getByTestId(HardwareWalletsSwapsSelectorsIDs.CANCEL_BUTTON),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BRIDGE.BRIDGE_VIEW,
+        undefined,
+        { pop: true },
+      );
     });
   });
 
@@ -699,7 +703,11 @@ describe('HardwareWalletsSwaps', () => {
         getByTestId(HardwareWalletsSwapsSelectorsIDs.DONE_BUTTON),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.TRANSACTIONS_VIEW,
+        undefined,
+        { pop: true },
+      );
     });
 
     it('resets hardware wallet swaps state', () => {
@@ -718,7 +726,11 @@ describe('HardwareWalletsSwaps', () => {
       fireEvent.press(UNSAFE_getByProps({ iconName: IconName.Close }));
 
       expect(mockCancelCurrentBatch).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.TRANSACTIONS_VIEW,
+        undefined,
+        { pop: true },
+      );
       expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Idle);
     });
   });
@@ -875,7 +887,11 @@ describe('HardwareWalletsSwaps', () => {
 
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
       // No mount-local settlement metadata: preserve toast + Activity.
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.TRANSACTIONS_VIEW,
+        undefined,
+        { pop: true },
+      );
     });
 
     it.each([
@@ -947,7 +963,11 @@ describe('HardwareWalletsSwaps', () => {
         | undefined;
       act(() => transitionEnd?.({ data: { closing: false } }));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.BRIDGE.BRIDGE_VIEW,
+        undefined,
+        { pop: true },
+      );
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
         params: expect.objectContaining({
@@ -1106,9 +1126,11 @@ describe('HardwareWalletsSwaps', () => {
         getByTestId(HardwareWalletsSwapsSelectorsIDs.CANCEL_BUTTON),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
-        screen: Routes.SEND.AMOUNT,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SEND.DEFAULT,
+        { screen: Routes.SEND.AMOUNT },
+        { pop: true },
+      );
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
     });
 

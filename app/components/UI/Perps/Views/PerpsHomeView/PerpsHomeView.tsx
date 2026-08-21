@@ -1098,6 +1098,7 @@ const PerpsHomeView = () => {
                 mode={perpsMode}
                 onChange={handleModeChange}
                 variant="active"
+                enableHaptics
                 source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
               />
             ) : null}

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed React Native DevTools Network and Performance inspection being disabled by legacy Hermes runtimes miscounted as additional React Native hosts.
+
 ## [8.7.0]
 
 ### Added
