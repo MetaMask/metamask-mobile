@@ -2,6 +2,7 @@ import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import { setContentPreviewToken } from '../../../../actions/notification/helpers';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+import { resolveDeeplinkNavigatedTarget } from '../../../Performance/DeeplinkPerformance';
 
 export function navigateToHomeUrl(params: { homePath?: string }) {
   const { homePath } = params;
@@ -18,6 +19,11 @@ export function navigateToHomeUrl(params: { homePath?: string }) {
     ?.toLowerCase();
   const shouldOpenNetworkSelector = openNetworkSelectorParam === 'true';
 
+  // Legacy handler with no intent, so declare the target here: `home` is
+  // often opened while Home is already focused, which commits no navigation
+  // state change — the Navigated span can then only be closed by the
+  // already-focused settle, and that requires a known target.
+  resolveDeeplinkNavigatedTarget({ targetRoute: Routes.WALLET.HOME });
   NavigationService.navigation.navigate(Routes.WALLET.HOME);
 
   if (shouldOpenNetworkSelector) {

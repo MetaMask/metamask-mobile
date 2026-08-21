@@ -408,6 +408,21 @@ describe('persistConfig', () => {
       expect(userTransform.whitelist).toEqual(['user']);
     });
 
+    it('does not persist userLoggedIn', () => {
+      const userTransform = persistConfig.transforms[0] as Transform<
+        unknown,
+        unknown
+      > & {
+        in: (state: Record<string, unknown>) => Record<string, unknown>;
+      };
+
+      // Session-only: omitted on write so rehydrate falls back to
+      // userInitialState (`userLoggedIn: false`) via autoMergeLevel2.
+      expect(
+        userTransform.in({ userLoggedIn: true, passwordSet: true }),
+      ).toEqual({ passwordSet: true });
+    });
+
     it('has onboarding transform configured', () => {
       const onboardingTransform = persistConfig.transforms[1] as Transform<
         unknown,

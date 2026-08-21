@@ -32,6 +32,7 @@ import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import { consumeNextParseAppStartType } from '../../core/DeeplinkManager/utils/startupDeeplinkNavigation';
+import { getUnlockDeeplinkAppStartType } from '../../core/Performance/unlockDeeplinkTraces';
 import AppConstants from '../../core/AppConstants';
 import {
   SET_COMPLETED_ONBOARDING,
@@ -419,11 +420,15 @@ export function* handleDeeplinkSaga() {
       // while parseDeeplinkAfterNavReady waits for navigation to settle.
       // Capture before clearing pending: the leftover cold-start parse flag
       // is one-shot and must travel with this fork, not a later warm parse.
+      // The fallback is captured here rather than read inside `parse`, which
+      // runs only after MainNavigator mounts — by then the post-unlock
+      // navigation has cleared the remembered type and a cold start would
+      // report `warm`.
       yield fork(
         parseDeeplinkAfterNavReady,
         deeplink,
         deeplinkSource,
-        consumeNextParseAppStartType(),
+        consumeNextParseAppStartType() ?? getUnlockDeeplinkAppStartType(),
       );
       AppStateEventProcessor.clearPendingDeeplink();
     }
