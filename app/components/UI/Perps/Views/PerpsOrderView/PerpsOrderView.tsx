@@ -1160,13 +1160,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return orderValidation.errors.filter((err) => err !== sizePositiveMsg);
   }, [orderValidation.errors]);
 
-  const insufficientBalancePrefix = strings(
-    'perps.order.validation.insufficient_balance',
-    { required: '__REQ__', available: '__AVAIL__' },
-  ).split('__REQ__')[0];
   const hasInsufficientFundsError =
-    hasInsufficientPayTokenBalance ||
-    filteredErrors.some((error) => error.startsWith(insufficientBalancePrefix));
+    hasInsufficientPayTokenBalance || orderValidation.hasInsufficientBalance;
 
   // Handlers
   const handleTPSLPress = useCallback(() => {
