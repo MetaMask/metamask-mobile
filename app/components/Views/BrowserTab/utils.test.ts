@@ -3,6 +3,7 @@ import {
   isENSUrl,
   getMaskedUrl,
   isDisallowedExplicitPort,
+  resolveCommittedDocumentUrl,
 } from './utils';
 import URLParse from 'url-parse';
 import AppConstants from '../../../core/AppConstants';
@@ -24,6 +25,82 @@ describe('BrowserTab utils', () => {
         const parsedUrl = new URLParse(url);
         expect(isValidUrl(parsedUrl)).toBe(expected);
       });
+    });
+  });
+
+  describe('resolveCommittedDocumentUrl', () => {
+    it('returns the page-reported URL when origin matches the native WebView URL', () => {
+      const nativeUrl = 'https://example.org/page';
+      const pageReportedUrl = 'https://example.org/app';
+
+      const result = resolveCommittedDocumentUrl(nativeUrl, pageReportedUrl);
+
+      expect(result).toBe(pageReportedUrl);
+    });
+
+    it('returns the native WebView URL when the page reports a different origin', () => {
+      const nativeUrl = 'https://example.org/page';
+      const pageReportedUrl = 'https://example.com/page';
+
+      const result = resolveCommittedDocumentUrl(nativeUrl, pageReportedUrl);
+
+      expect(result).toBe(nativeUrl);
+    });
+
+    it('returns the native WebView URL when the page reports a URL with a disallowed explicit port', () => {
+      const nativeUrl = 'https://example.org/page';
+      const pageReportedUrl = 'https://example.com:8080/page';
+
+      const result = resolveCommittedDocumentUrl(nativeUrl, pageReportedUrl);
+
+      expect(result).toBe(nativeUrl);
+    });
+
+    it('returns the native WebView URL when the page-reported URL cannot be parsed', () => {
+      const nativeUrl = 'https://example.org/page';
+      const pageReportedUrl = 'not-a-url';
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      const result = resolveCommittedDocumentUrl(nativeUrl, pageReportedUrl);
+
+      expect(result).toBe(nativeUrl);
+      consoleWarnSpy.mockRestore();
+    });
+
+    it('returns the page-reported URL when origins match except for a default HTTPS port', () => {
+      const nativeUrl = 'https://example.org/page';
+      const pageReportedUrl = 'https://example.org:443/app';
+
+      const result = resolveCommittedDocumentUrl(nativeUrl, pageReportedUrl);
+
+      expect(result).toBe(pageReportedUrl);
+    });
+
+    it('returns the native WebView URL when the page-reported URL includes userinfo', () => {
+      const nativeUrl = 'https://example.org/page';
+      const pageReportedUrl = 'https://user@example.com/';
+
+      const result = resolveCommittedDocumentUrl(nativeUrl, pageReportedUrl);
+
+      expect(result).toBe(nativeUrl);
+    });
+
+    it('returns null when the native WebView URL has a disallowed explicit port', () => {
+      const nativeUrl = 'https://example.com:8080';
+      const pageReportedUrl = 'https://example.com:8080';
+
+      const result = resolveCommittedDocumentUrl(nativeUrl, pageReportedUrl);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when origin mismatches and the native WebView URL has a disallowed explicit port', () => {
+      const nativeUrl = 'https://example.com:8080';
+      const pageReportedUrl = 'https://example.org/page';
+
+      const result = resolveCommittedDocumentUrl(nativeUrl, pageReportedUrl);
+
+      expect(result).toBeNull();
     });
   });
 
