@@ -444,6 +444,7 @@ export const NETWORK_CHAIN_ID: {
   readonly KONET_MAINNET: '0x4341';
   readonly ROBINHOOD_CHAIN: '0x1237';
   readonly GNOSIS: '0x64';
+  readonly ZERO_G: '0x4115';
   readonly SOMNIA: '0x13a7';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
@@ -495,6 +496,7 @@ export const NETWORK_CHAIN_ID: {
   ARC: '0x13b2',
   KONET_MAINNET: '0x4341',
   ROBINHOOD_CHAIN: '0x1237',
+  ZERO_G: '0x4115',
   SOMNIA: '0x13a7',
   ...CHAIN_IDS,
 };
@@ -554,5 +556,6 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.ARC]: require('../../images/arc-network-logo.png'),
   [NETWORK_CHAIN_ID.KONET_MAINNET]: require('../../images/konet.png'),
   [NETWORK_CHAIN_ID.ROBINHOOD_CHAIN]: require('../../images/robinhood.png'),
+  [NETWORK_CHAIN_ID.ZERO_G]: require('../../images/0g-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.SOMNIA]: require('../../images/somnia.png'),
 };

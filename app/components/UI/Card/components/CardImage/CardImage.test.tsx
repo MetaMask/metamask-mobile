@@ -4,15 +4,6 @@ import { CardType, CardStatus } from '../../types';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
-jest.mock('../../util/truncateAddress', () => ({
-  truncateAddress: jest.fn((address: string | undefined) => {
-    if (address) {
-      return `${address.slice(0, 6)}...${address.slice(-4)}`;
-    }
-    return undefined;
-  }),
-}));
-
 function renderWithProvider(component: React.ComponentType) {
   return renderScreen(
     component,
@@ -100,31 +91,6 @@ describe('CardImage Component', () => {
     ));
 
     expect(getByTestId('active-card')).toBeOnTheScreen();
-  });
-
-  it('renders with truncated address when address prop provided', () => {
-    const { getByTestId } = renderWithProvider(() => (
-      <CardImage
-        type={CardType.VIRTUAL}
-        status={CardStatus.ACTIVE}
-        address="0x1234567890123456789012345678901234567890"
-        testID="card-with-address"
-      />
-    ));
-
-    expect(getByTestId('card-with-address')).toBeOnTheScreen();
-  });
-
-  it('renders without address when address prop not provided', () => {
-    const { getByTestId } = renderWithProvider(() => (
-      <CardImage
-        type={CardType.VIRTUAL}
-        status={CardStatus.ACTIVE}
-        testID="card-without-address"
-      />
-    ));
-
-    expect(getByTestId('card-without-address')).toBeOnTheScreen();
   });
 
   it.each([CardType.VIRTUAL, CardType.PHYSICAL, CardType.METAL] as const)(

@@ -32,9 +32,12 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../util/notifications/utils/get-session-profile-id', () => ({
-  getSessionProfileId: jest.fn(),
-}));
+jest.mock(
+  '../../../../util/notifications/utils/get-session-profile-id',
+  () => ({
+    getSessionProfileId: jest.fn(),
+  }),
+);
 
 const useSelectorMock = jest.mocked(useSelector);
 const showToastMock = jest.mocked(ToastService.showToast);

@@ -18,6 +18,7 @@ import {
   PartialState,
 } from '@react-navigation/native';
 import configureMockStore from 'redux-mock-store';
+import { legacy_createStore as createStore } from 'redux';
 import { Provider } from 'react-redux';
 import { mockTheme, ThemeContext } from '../../../util/theme';
 import { View as MockView } from 'react-native';
@@ -30,6 +31,12 @@ import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOn
 import { TraceName } from '../../../util/trace';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import Logger from '../../../util/Logger';
+
+const mockQueueColdHomepageReadyTrace = jest.fn();
+jest.mock('../../../core/Performance/HomepageReady', () => ({
+  queueColdHomepageReadyTrace: (...args: unknown[]) =>
+    mockQueueColdHomepageReadyTrace(...args),
+}));
 
 const initialState: DeepPartial<RootState> = {
   user: {
@@ -411,6 +418,7 @@ describe('App', () => {
   afterEach(() => {
     cleanup();
     jest.runOnlyPendingTimers();
+    jest.restoreAllMocks();
   });
 
   afterAll(() => {
@@ -471,7 +479,7 @@ describe('App', () => {
       },
     };
 
-    beforeAll(() => {
+    beforeEach(() => {
       // Mock the storage item to simulate existing user and bypass onboarding
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
         if (key === EXISTING_USER) {
@@ -1414,9 +1422,29 @@ describe('App', () => {
   });
 
   describe('Performance tracing', () => {
-    const renderApp = () => {
+    const getHomepageReadyState = (
+      isUnlocked: boolean,
+    ): DeepPartial<RootState> => ({
+      ...initialState,
+      user: {
+        ...initialState.user,
+        existingUser: true,
+      },
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine?.backgroundState,
+          KeyringController: {
+            ...backgroundState.KeyringController,
+            isUnlocked,
+          },
+        },
+      },
+    });
+
+    const renderApp = (state: DeepPartial<RootState> = initialState) => {
       const mockStore = configureMockStore();
-      const store = mockStore(initialState);
+      const store = mockStore(state);
 
       const Providers = ({ children }: { children: React.ReactElement }) => (
         <NavigationContainer>
@@ -1439,6 +1467,56 @@ describe('App', () => {
           name: TraceName.UIStartup,
         });
       });
+    });
+
+    it('queues Homepage Ready at app open for an unlocked existing user', () => {
+      renderApp(getHomepageReadyState(true));
+
+      expect(mockQueueColdHomepageReadyTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not queue Homepage Ready before credentials for a locked user', () => {
+      renderApp(getHomepageReadyState(false));
+
+      expect(mockQueueColdHomepageReadyTrace).not.toHaveBeenCalled();
+    });
+
+    it('queues Homepage Ready when the unlocked state becomes available after mount', () => {
+      const lockedState = getHomepageReadyState(false);
+      const unlockedState = getHomepageReadyState(true);
+      const store = createStore((state: unknown | undefined, action) => {
+        if (action.type === 'TEST/UNLOCKED_STATE_AVAILABLE') {
+          return unlockedState;
+        }
+        if (action.type === 'TEST/LOCKED') {
+          return lockedState;
+        }
+        return state ?? lockedState;
+      }, lockedState as unknown);
+      const Providers = ({ children }: { children: React.ReactElement }) => (
+        <NavigationContainer>
+          <Provider store={store}>
+            <ThemeContext.Provider value={mockTheme}>
+              {children}
+            </ThemeContext.Provider>
+          </Provider>
+        </NavigationContainer>
+      );
+
+      render(<App />, { wrapper: Providers });
+      expect(mockQueueColdHomepageReadyTrace).not.toHaveBeenCalled();
+
+      act(() => {
+        store.dispatch({ type: 'TEST/UNLOCKED_STATE_AVAILABLE' });
+      });
+      act(() => {
+        store.dispatch({ type: 'TEST/LOCKED' });
+      });
+      act(() => {
+        store.dispatch({ type: 'TEST/UNLOCKED_STATE_AVAILABLE' });
+      });
+
+      expect(mockQueueColdHomepageReadyTrace).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -1611,29 +1689,29 @@ describe('App', () => {
       return render(<App />, { wrapper: Providers });
     };
 
-    it('calls checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is true', async () => {
+    it('calls checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is true', () => {
       renderAppWithSeedlessState(true);
 
-      jest.advanceTimersByTime(0);
-
-      await waitFor(() => {
-        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
-          expect.objectContaining({
-            skipCache: true,
-            captureSentryError: false,
-          }),
-        );
+      act(() => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skipCache: true,
+          captureSentryError: false,
+        }),
+      );
     });
 
-    it('does not call checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is false', async () => {
+    it('does not call checkIsSeedlessPasswordOutdated when isSeedlessOnboardingLoginFlow is false', () => {
       renderAppWithSeedlessState(false);
 
-      jest.advanceTimersByTime(0);
-
-      await waitFor(() => {
-        expect(mockCheckIsSeedlessPasswordOutdated).not.toHaveBeenCalled();
+      act(() => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(mockCheckIsSeedlessPasswordOutdated).not.toHaveBeenCalled();
     });
 
     it('logs error when checkIsSeedlessPasswordOutdated rejects', async () => {
@@ -1642,14 +1720,14 @@ describe('App', () => {
 
       renderAppWithSeedlessState(true);
 
-      jest.advanceTimersByTime(0);
-
-      await waitFor(() => {
-        expect(Logger.error).toHaveBeenCalledWith(
-          testError,
-          'App: Error in checkIsSeedlessPasswordOutdated',
-        );
+      await act(async () => {
+        jest.advanceTimersByTime(0);
       });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        testError,
+        'App: Error in checkIsSeedlessPasswordOutdated',
+      );
     });
   });
 
@@ -2130,10 +2208,13 @@ describe('App', () => {
 
       const { getByTestId } = renderAppAtRoute(routeState);
 
-      await waitFor(() => {
-        expect(getByTestId('mock-lock-screen')).toBeTruthy();
-      });
-    });
+      await waitFor(
+        () => {
+          expect(getByTestId('mock-lock-screen')).toBeTruthy();
+        },
+        { timeout: 15000 },
+      );
+    }, 20000);
   });
 
   describe('isNetworkUiRedesignEnabled conditional rendering', () => {

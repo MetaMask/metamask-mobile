@@ -69,11 +69,13 @@ const AccordionRow = ({
   title,
   defaultExpanded = false,
   testID,
+  contentTestID,
   children,
 }: {
   title: string;
   defaultExpanded?: boolean;
   testID: string;
+  contentTestID: string;
   children: React.ReactNode;
 }) => {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
@@ -119,6 +121,7 @@ const AccordionRow = ({
           variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           twClassName="pb-3"
+          testID={contentTestID}
         >
           {children}
         </Text>
@@ -278,6 +281,9 @@ const VbaVerifyIdentity = () => {
                 'virtual_bank_account.verify_identity.what_we_collect_title',
               )}
               testID={VbaVerifyIdentitySelectorsIDs.WHAT_WE_COLLECT_TOGGLE}
+              contentTestID={
+                VbaVerifyIdentitySelectorsIDs.WHAT_WE_COLLECT_CONTENT
+              }
             >
               {strings(
                 'virtual_bank_account.verify_identity.what_we_collect_description',
@@ -288,6 +294,9 @@ const VbaVerifyIdentity = () => {
                 'virtual_bank_account.verify_identity.how_we_store_data_title',
               )}
               testID={VbaVerifyIdentitySelectorsIDs.HOW_WE_STORE_DATA_TOGGLE}
+              contentTestID={
+                VbaVerifyIdentitySelectorsIDs.HOW_WE_STORE_DATA_CONTENT
+              }
             >
               {strings(
                 'virtual_bank_account.verify_identity.how_we_store_data_description',
@@ -298,6 +307,9 @@ const VbaVerifyIdentity = () => {
                 'virtual_bank_account.verify_identity.how_to_delete_title',
               )}
               testID={VbaVerifyIdentitySelectorsIDs.HOW_TO_DELETE_TOGGLE}
+              contentTestID={
+                VbaVerifyIdentitySelectorsIDs.HOW_TO_DELETE_CONTENT
+              }
             >
               {strings(
                 'virtual_bank_account.verify_identity.how_to_delete_description',

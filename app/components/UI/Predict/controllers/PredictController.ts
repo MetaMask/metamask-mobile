@@ -79,6 +79,7 @@ import {
   ConnectionStatus,
   ConnectionStatusCallback,
   CryptoPriceHistoryPoint,
+  CryptoPriceSubscriptionOptions,
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GetAccountStateParams,
@@ -118,6 +119,7 @@ import {
   PrepareDepositParams,
   PrepareWithdrawParams,
   PreviewOrderParams,
+  PreviewMaxBuyOrderParams,
   PriceUpdateCallback,
   OrderbookCallback,
   Result,
@@ -1791,6 +1793,29 @@ export class PredictController extends BaseController<
     }
   }
 
+  async previewMaxBuyOrder(
+    params: PreviewMaxBuyOrderParams,
+  ): Promise<OrderPreview | null> {
+    try {
+      const provider = this.provider;
+      const signer = this.getSigner();
+
+      return provider.previewMaxBuyOrder({ ...params, signer });
+    } catch (error) {
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('previewMaxBuyOrder', {
+          providerId: POLYMARKET_PROVIDER_ID,
+          side: Side.BUY,
+          marketId: params.marketId,
+          outcomeId: params.outcomeId,
+        }),
+      );
+
+      throw error;
+    }
+  }
+
   private handlePostDepositOrderFailure({
     activeOrderAddress,
     errorMessage,
@@ -2991,12 +3016,15 @@ export class PredictController extends BaseController<
   public subscribeToCryptoPrices(
     symbols: string[],
     callback: CryptoPriceUpdateCallback,
+    options?: CryptoPriceSubscriptionOptions,
   ): () => void {
     const provider = this.provider;
     if (!provider?.subscribeToCryptoPrices) {
       return () => undefined;
     }
-    return provider.subscribeToCryptoPrices(symbols, callback);
+    return options
+      ? provider.subscribeToCryptoPrices(symbols, callback, options)
+      : provider.subscribeToCryptoPrices(symbols, callback);
   }
 
   /**
