@@ -544,6 +544,38 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         ),
       ).toHaveDisplayValue('1');
     });
+
+    it('shows You get on dest and does not fill a dest amount after source amount is entered', async () => {
+      const renderResult = renderBridgeView();
+
+      await openRecurringTab(renderResult);
+      await openAmountKeypad(renderResult);
+      fireEvent.press(renderResult.getByTestId('keypad-key-2'));
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(
+            BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_INPUT,
+          ),
+        ).toHaveDisplayValue('2');
+      });
+      expect(
+        renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_DEST_YOU_GET),
+      ).toBeOnTheScreen();
+      expect(
+        renderResult.getByText(strings('bridge.recurring.you_get')),
+      ).toBeOnTheScreen();
+      expect(
+        renderResult.queryByTestId(
+          BridgeViewSelectorsIDs.RECURRING_DEST_TOKEN_INPUT,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        renderResult.getByTestId(
+          BridgeViewSelectorsIDs.RECURRING_DEST_TOKEN_AREA,
+        ),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('shows a filled history row after pressing the History tab', async () => {

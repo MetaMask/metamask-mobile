@@ -8523,6 +8523,7 @@
       "expired_after": "Expired after {{duration}}"
     },
     "recurring": {
+      "you_get": "You get",
       "every": "Every",
       "repeat": "Repeat",
       "times": "times",
