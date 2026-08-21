@@ -3,22 +3,22 @@ import {
   TransactionPaymentToken,
 } from '@metamask/transaction-pay-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { type PaymentMethod } from '@metamask/ramps-controller';
 import { Hex } from '@metamask/utils';
 import { merge } from 'lodash';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
-import { useTransactionPayIsPostQuote } from './useTransactionPayData';
-import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPaySelectedFiatPaymentMethod';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayIsPostQuote,
+} from './useTransactionPayData';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useIsPayTokenBalanceUnresolved } from './useIsPayTokenBalanceUnresolved';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('./usePayTokenAccountBalance');
 jest.mock('./useTransactionPayData');
-jest.mock('./useTransactionPaySelectedFiatPaymentMethod');
 jest.mock('../transactions/useTransactionMetadataRequest');
 
 const PAY_TOKEN_MOCK = {
@@ -46,8 +46,8 @@ describe('useIsPayTokenBalanceUnresolved', () => {
   const useTransactionPayIsPostQuoteMock = jest.mocked(
     useTransactionPayIsPostQuote,
   );
-  const useTransactionPaySelectedFiatPaymentMethodMock = jest.mocked(
-    useTransactionPaySelectedFiatPaymentMethod,
+  const useTransactionPayFiatPaymentMock = jest.mocked(
+    useTransactionPayFiatPayment,
   );
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
@@ -65,7 +65,7 @@ describe('useIsPayTokenBalanceUnresolved', () => {
       balanceRaw: undefined,
     });
     useTransactionPayIsPostQuoteMock.mockReturnValue(false);
-    useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue(undefined);
+    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
     useTransactionMetadataRequestMock.mockReturnValue({
       id: TRANSACTION_ID_MOCK,
     } as TransactionMeta);
@@ -108,9 +108,9 @@ describe('useIsPayTokenBalanceUnresolved', () => {
   });
 
   it('returns false when a fiat payment method is selected', () => {
-    useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue({
-      id: 'debit-card',
-    } as PaymentMethod);
+    useTransactionPayFiatPaymentMock.mockReturnValue({
+      selectedPaymentMethodId: 'debit-card',
+    } as ReturnType<typeof useTransactionPayFiatPayment>);
 
     const { result } = runHook();
 

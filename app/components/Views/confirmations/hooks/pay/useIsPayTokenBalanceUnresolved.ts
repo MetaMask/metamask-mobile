@@ -4,8 +4,10 @@ import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
-import { useTransactionPayIsPostQuote } from './useTransactionPayData';
-import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPaySelectedFiatPaymentMethod';
+import {
+  useTransactionPayFiatPayment,
+  useTransactionPayIsPostQuote,
+} from './useTransactionPayData';
 import { useTransactionPayToken } from './useTransactionPayToken';
 
 /**
@@ -22,8 +24,10 @@ export function useIsPayTokenBalanceUnresolved(): boolean {
   const { payToken } = useTransactionPayToken();
   const { balanceUsd } = usePayTokenAccountBalance();
   const isPostQuote = useTransactionPayIsPostQuote();
-  const selectedFiatPaymentMethod =
-    useTransactionPaySelectedFiatPaymentMethod();
+  // Footer mounts this on every confirmation. Stay on the Redux selector so
+  // personal-sign tests do not need a ramps QueryClient.
+  const fiatPayment = useTransactionPayFiatPayment();
+  const hasFiatPayment = Boolean(fiatPayment?.selectedPaymentMethodId);
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
   const paymentOverride = useSelector((state: RootState) =>
@@ -32,12 +36,7 @@ export function useIsPayTokenBalanceUnresolved(): boolean {
   const isMoneyPaymentOverride =
     paymentOverride === PaymentOverride.MoneyAccount;
 
-  if (
-    !payToken ||
-    isPostQuote ||
-    Boolean(selectedFiatPaymentMethod) ||
-    isMoneyPaymentOverride
-  ) {
+  if (!payToken || isPostQuote || hasFiatPayment || isMoneyPaymentOverride) {
     return false;
   }
 
