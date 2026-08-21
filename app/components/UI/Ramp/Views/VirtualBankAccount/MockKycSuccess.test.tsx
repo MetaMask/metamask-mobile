@@ -6,8 +6,6 @@ import { getSessionProfileId } from '../../../../../util/notifications/utils/get
 import MockKycSuccess from './MockKycSuccess';
 import { MockKycSuccessSelectorsIDs } from './MockKycSuccess.testIds';
 import { buildMoneyAccountAutorampParams } from './moneyAccountAutoramp';
-import { resetMoneyAccountProvisioning } from './moneyAccountProvisioning';
-import { __resetRegisterSelectedMoneyAccountWalletForTests } from './registerSelectedMoneyAccountWallet';
 
 const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
 
@@ -24,11 +22,8 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
-    KycController: { refreshKycStatus: jest.fn() },
-    NeoBankService: { getCustomerByExternalId: jest.fn() },
     RampsController: {
-      registerMoneyAccountWallet: jest.fn(),
-      createAutoramp: jest.fn(),
+      provisionMoneyAccount: jest.fn(),
     },
   },
 }));
@@ -53,44 +48,27 @@ jest.mock('./neobank/NeobankWebSocket', () => ({
   },
 }));
 
-const mockKycController = Engine.context.KycController as unknown as {
-  refreshKycStatus: jest.Mock;
-};
-
-const mockNeoBankService = Engine.context.NeoBankService as unknown as {
-  getCustomerByExternalId: jest.Mock;
-};
-
 const mockRampsController = Engine.context.RampsController as unknown as {
-  registerMoneyAccountWallet: jest.Mock;
-  createAutoramp: jest.Mock;
+  provisionMoneyAccount: jest.Mock;
 };
 
 const setUp = () => {
   jest.clearAllMocks();
-  resetMoneyAccountProvisioning();
-  __resetRegisterSelectedMoneyAccountWalletForTests();
   jest.mocked(getSessionProfileId).mockResolvedValue('profile-1');
-  mockNeoBankService.getCustomerByExternalId.mockResolvedValue({
-    id: 'cus_1',
-    status: 'Active',
-  });
-  mockKycController.refreshKycStatus.mockResolvedValue({
-    status: 'completed',
-    sumsubSessionId: null,
-    errorCode: null,
-  });
-  mockRampsController.registerMoneyAccountWallet.mockResolvedValue({
-    type: 'registered',
+  mockRampsController.provisionMoneyAccount.mockResolvedValue({
     registration: {
-      id: 'reg-1',
-      address: WALLET_ADDRESS,
-      blockchain: 'Monad',
+      type: 'registered',
+      registration: {
+        id: 'reg-1',
+        address: WALLET_ADDRESS,
+        blockchain: 'Monad',
+      },
     },
-  });
-  mockRampsController.createAutoramp.mockResolvedValue({
-    id: 'autoramp-1',
-    status: 'created',
+    autoramp: {
+      id: 'autoramp-1',
+      customerId: 'cus_1',
+      status: 'Created',
+    },
   });
 };
 
@@ -113,49 +91,25 @@ describe('MockKycSuccess', () => {
     expect(getByText(/five real steps/)).toBeTruthy();
   });
 
-  it('signs wallet ownership before creating the autoramp when the pulled status is completed', async () => {
+  it('provisions the Money Account when the finish button is pressed', async () => {
     setUp();
-    const callOrder: string[] = [];
-    mockRampsController.registerMoneyAccountWallet.mockImplementation(
-      async () => {
-        callOrder.push('register');
-        return {
-          type: 'registered',
-          registration: {
-            id: 'reg-1',
-            address: WALLET_ADDRESS,
-            blockchain: 'Monad',
-          },
-        };
-      },
-    );
-    mockRampsController.createAutoramp.mockImplementation(async () => {
-      callOrder.push('autoramp');
-      return { id: 'autoramp-1', status: 'created' };
-    });
-
     const { getByTestId, getByText } = renderWithProvider(<MockKycSuccess />);
 
     fireEvent.press(getByTestId(MockKycSuccessSelectorsIDs.FINISH_BUTTON));
 
     await waitFor(() => {
-      expect(mockRampsController.createAutoramp).toHaveBeenCalledWith(
-        buildMoneyAccountAutorampParams(WALLET_ADDRESS),
-      );
-    });
-    expect(mockKycController.refreshKycStatus).toHaveBeenCalled();
-    expect(mockRampsController.registerMoneyAccountWallet).toHaveBeenCalledWith(
-      {
+      expect(mockRampsController.provisionMoneyAccount).toHaveBeenCalledWith({
         address: WALLET_ADDRESS,
-      },
-    );
-    expect(callOrder).toEqual(['register', 'autoramp']);
+        autoramp: buildMoneyAccountAutorampParams(WALLET_ADDRESS),
+      });
+    });
     expect(getByText(/registered · chain = Monad/)).toBeTruthy();
+    expect(mockConnect).toHaveBeenCalled();
   });
 
-  it('stops before autoramp creation when wallet signing fails', async () => {
+  it('stops the pipeline when provisioning fails', async () => {
     setUp();
-    mockRampsController.registerMoneyAccountWallet.mockRejectedValue(
+    mockRampsController.provisionMoneyAccount.mockRejectedValue(
       new Error('User rejected the request'),
     );
 
@@ -167,43 +121,23 @@ describe('MockKycSuccess', () => {
       expect(getByText('User rejected the request')).toBeTruthy();
     });
 
-    expect(mockRampsController.createAutoramp).not.toHaveBeenCalled();
     expect(getByText('Pipeline stopped')).toBeTruthy();
+    expect(mockConnect).not.toHaveBeenCalled();
   });
 
-  it('stops before the autoramp when the pulled status is not completed', async () => {
+  it('surfaces a non-completed KYC status from provisionMoneyAccount', async () => {
     setUp();
-    mockKycController.refreshKycStatus.mockResolvedValue({
-      status: 'pending',
-      sumsubSessionId: null,
-      errorCode: null,
-    });
+    mockRampsController.provisionMoneyAccount.mockRejectedValue(
+      new Error(
+        'KYC status is "pending". The wallet can only be registered once it reads completed.',
+      ),
+    );
     const { getByTestId, findByText } = renderWithProvider(<MockKycSuccess />);
 
     fireEvent.press(getByTestId(MockKycSuccessSelectorsIDs.FINISH_BUTTON));
 
     expect(await findByText(/KYC status is "pending"/u)).toBeOnTheScreen();
-    expect(
-      mockRampsController.registerMoneyAccountWallet,
-    ).not.toHaveBeenCalled();
-    expect(mockRampsController.createAutoramp).not.toHaveBeenCalled();
-  });
-
-  it('reuses the provisioned wallet and autoramp when the pipeline is re-run', async () => {
-    setUp();
-    const { getByTestId, findByText } = renderWithProvider(<MockKycSuccess />);
-
-    fireEvent.press(getByTestId(MockKycSuccessSelectorsIDs.FINISH_BUTTON));
-    await findByText('View bank account');
-    fireEvent.press(getByTestId(MockKycSuccessSelectorsIDs.FINISH_BUTTON));
-    await waitFor(() => {
-      expect(mockKycController.refreshKycStatus).toHaveBeenCalledTimes(2);
-    });
-
-    expect(
-      mockRampsController.registerMoneyAccountWallet,
-    ).toHaveBeenCalledTimes(1);
-    expect(mockRampsController.createAutoramp).toHaveBeenCalledTimes(1);
+    expect(mockConnect).not.toHaveBeenCalled();
   });
 
   it('navigates to the bank account once the autoramp exists', async () => {
