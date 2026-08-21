@@ -1,5 +1,6 @@
 import { Wallet, type WalletOptions } from '@metamask/wallet';
 import { RootMessenger } from '../types';
+import { isDmkEnabled } from '../../Ledger/dmk';
 import { getApprovalControllerInstanceOptions } from './instance-options/approval-controller';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
@@ -7,10 +8,10 @@ import { getConnectivityControllerInstanceOptions } from './instance-options/con
 import { getGasFeeControllerInstanceOptions } from './instance-options/gas-fee-controller';
 import { getSeedlessOnboardingControllerInstanceOptions } from './instance-options/seedless-onboarding-controller';
 import { getStorageServiceInstanceOptions } from './instance-options/storage-service';
-import {
-  getNetworkControllerInstanceOptions,
-  setupRpcEndpointMetrics,
-} from './instance-options/network-controller';
+import { getSubscriptionServiceInstanceOptions } from './instance-options/subscription-service';
+import { getShieldApiServiceInstanceOptions } from './instance-options/shield-api-service';
+import { getClaimsServiceInstanceOptions } from './instance-options/claims-service';
+import { getNetworkControllerInstanceOptions } from './instance-options/network-controller';
 import {
   getTransactionControllerInstanceOptions,
   setupTransactionControllerListeners,
@@ -33,6 +34,21 @@ export function initializeWallet({
   messenger: RootMessenger;
   state: NonNullable<WalletOptions['state']>;
 }) {
+  // DMK stack selection. Read the ledgerDmk flag fresh from the persisted
+  // RemoteFeatureFlagController state (LEDGER_FORCE_DMK env var overrides).
+  // No caching — the adapter factory reads the same flag from live state.
+  const remoteFeatureFlagState = (state as Record<string, unknown>)
+    ?.RemoteFeatureFlagController as
+    | {
+        remoteFeatureFlags?: Record<string, unknown>;
+        localOverrides?: Record<string, unknown>;
+      }
+    | undefined;
+  const useDmk = isDmkEnabled({
+    ...(remoteFeatureFlagState?.remoteFeatureFlags ?? {}),
+    ...(remoteFeatureFlagState?.localOverrides ?? {}),
+  });
+
   const transactionControllerInitMessenger =
     getTransactionControllerInitMessenger(messenger);
 
@@ -48,7 +64,7 @@ export function initializeWallet({
       approvalController: getApprovalControllerInstanceOptions(),
       connectivityController: getConnectivityControllerInstanceOptions(),
       gasFeeController: getGasFeeControllerInstanceOptions(),
-      keyringController: getKeyringControllerInstanceOptions(messenger),
+      keyringController: getKeyringControllerInstanceOptions(messenger, useDmk),
       networkController: getNetworkControllerInstanceOptions(),
       remoteFeatureFlagController:
         getRemoteFeatureFlagControllerInstanceOptions({
@@ -58,13 +74,15 @@ export function initializeWallet({
       seedlessOnboardingController:
         getSeedlessOnboardingControllerInstanceOptions(),
       storageService: getStorageServiceInstanceOptions(),
+      subscriptionService: getSubscriptionServiceInstanceOptions(),
+      shieldApiService: getShieldApiServiceInstanceOptions(),
+      claimsService: getClaimsServiceInstanceOptions(),
       transactionController: getTransactionControllerInstanceOptions({
         initMessenger: transactionControllerInitMessenger,
       }),
     },
   });
 
-  setupRpcEndpointMetrics(messenger);
   setupTransactionControllerListeners({
     messenger: transactionControllerInitMessenger,
   });

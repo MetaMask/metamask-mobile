@@ -175,7 +175,7 @@ describe('TransactionDetailsStatus', () => {
     });
 
     useTokenAmountMock.mockReturnValue({
-      fiat: '$123.45',
+      fiatUnformatted: '123.45',
     } as ReturnType<typeof useTokenAmount>);
 
     const { getByText } = render({
@@ -187,6 +187,43 @@ describe('TransactionDetailsStatus', () => {
       getByText(
         strings('transaction_details.perps_deposit_solution', {
           fiat: '$123.45',
+        }),
+      ),
+    ).toBeDefined();
+  });
+
+  it('keeps two decimals in the solution text for a whole-dollar amount', () => {
+    selectBridgeHistoryForAccountMock.mockReturnValue({
+      '1': {
+        quote: {
+          destAsset: { address: ARBITRUM_USDC.address },
+        },
+        status: {
+          status: StatusTypes.COMPLETE,
+        },
+      },
+    } as never);
+
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        requiredTransactionIds: ['1'],
+        type: TransactionType.perpsDeposit,
+      } as TransactionMeta,
+    });
+
+    useTokenAmountMock.mockReturnValue({
+      fiatUnformatted: '100',
+    } as ReturnType<typeof useTokenAmount>);
+
+    const { getByText } = render({
+      status: TransactionStatus.failed,
+      type: TransactionType.perpsDeposit,
+    });
+
+    expect(
+      getByText(
+        strings('transaction_details.perps_deposit_solution', {
+          fiat: '$100.00',
         }),
       ),
     ).toBeDefined();

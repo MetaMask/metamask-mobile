@@ -1,9 +1,9 @@
 import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { AccountDetailsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails.testIds';
 import { SwitchAccountModalSelectorIDs } from '../../../app/components/Views/confirmations/components/modals/switch-account-type-modal/SwitchAccountModal.testIds';
-import { EncapsulatedElementType, asPlaywrightElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 class SwitchAccountModal {
   get smartAccountLink(): EncapsulatedElementType {
@@ -17,23 +17,21 @@ class SwitchAccountModal {
   }
 
   async tapSmartAccountLink(): Promise<void> {
-    const linkEl = await asPlaywrightElement(this.smartAccountLink);
-    await PlaywrightGestures.scrollIntoView(linkEl);
-    await PlaywrightGestures.waitAndTap(linkEl, {
+    await Gestures.scrollIntoView(this.smartAccountLink);
+    await Gestures.waitAndTap(this.smartAccountLink, {
       elemDescription: 'Smart Account link',
       timeout: 15_000,
       checkForDisplayed: false,
-      checkForEnabled: false,
+      checkEnabled: false,
     });
   }
 
   async tapSmartAccountBackButton(): Promise<void> {
-    const backEl = await asPlaywrightElement(this.smartAccountBackButton);
-    await PlaywrightGestures.waitAndTap(backEl, {
+    await Gestures.waitAndTap(this.smartAccountBackButton, {
       elemDescription: 'Smart Account back button',
       timeout: 15_000,
       checkForDisplayed: !PlatformDetector.isIOS(),
-      checkForEnabled: false,
+      checkEnabled: false,
     });
   }
 }

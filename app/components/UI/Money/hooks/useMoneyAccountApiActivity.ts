@@ -7,6 +7,12 @@ import {
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import type { V1AccountTransactionsResponse } from '@metamask/core-backend';
 import { apiClient } from '../../../../core/apiClient';
+import {
+  annotateTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyCardActivityCashbackMultisendContracts } from '../selectors/featureFlags';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
@@ -16,6 +22,10 @@ import {
   oldestRawActivityTime,
   parseAccountsApiActivity,
 } from '../utils/accountsApi';
+import {
+  readCachedFirstPage,
+  writeCachedFirstPage,
+} from '../utils/moneyActivityCache';
 
 export interface UseMoneyAccountApiActivityResult {
   activity: AccountsApiActivity[];
@@ -78,15 +88,50 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     ACCOUNT_ACTIVITY_QUERY_OPTIONS,
   );
 
+  // `initialDataUpdatedAt` carries the write time, so the `staleTime` below
+  // still decides whether a background refetch runs — the freshness policy is
+  // unchanged, only the starting point.
+  const cachedFirstPage = useMemo(
+    () => (enabled ? readCachedFirstPage(moneyAddress) : undefined),
+    [enabled, moneyAddress],
+  );
+
   // `apiClient` is built against query-core v5; this repo's react-query is v4, so
   // the query options aren't nominally compatible. The shapes match at runtime.
   const query = useInfiniteQuery({
     queryKey: queryOptions.queryKey,
-    queryFn: ({ pageParam }: { pageParam?: string }) =>
-      apiClient.accounts.fetchV1AccountTransactions(moneyAddress, {
-        ...ACCOUNT_ACTIVITY_QUERY_OPTIONS,
-        cursor: pageParam,
-      }),
+    queryFn: async ({ pageParam }: { pageParam?: string }) => {
+      // `useMoneyActivityItems` auto-fills pages serially, so `is_initial_page`
+      // separates the request gating time-to-content from those behind it.
+      const page = await trace(
+        {
+          name: TraceName.MoneyActivityFetch,
+          op: TraceOperation.MoneyAccountDataFetch,
+          tags: { is_initial_page: pageParam === undefined },
+        },
+        async (context) => {
+          const response = await apiClient.accounts.fetchV1AccountTransactions(
+            moneyAddress,
+            {
+              ...ACCOUNT_ACTIVITY_QUERY_OPTIONS,
+              cursor: pageParam,
+            },
+          );
+          annotateTrace(context, {
+            row_count: response.data?.length ?? 0,
+            has_next_page: response.pageInfo?.hasNextPage ?? false,
+          });
+          return response;
+        },
+      );
+
+      // Outside the span: serialising is our cost, not the request's, and
+      // folding it in would inflate the metric the span exists to measure.
+      if (pageParam === undefined) {
+        writeCachedFirstPage(moneyAddress, page);
+      }
+      return page;
+    },
     // Guard the cursor too: react-query only stops on `undefined`, so a
     // malformed page with `hasNextPage: true` but an empty cursor would
     // otherwise refetch the first page in a loop.
@@ -97,6 +142,10 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     enabled,
     staleTime: 5 * MINUTE,
     retry: false,
+    initialData: cachedFirstPage
+      ? { pages: [cachedFirstPage.page], pageParams: [undefined] }
+      : undefined,
+    initialDataUpdatedAt: cachedFirstPage?.cachedAt,
   } as unknown as UseInfiniteQueryOptions<
     V1AccountTransactionsResponse,
     Error

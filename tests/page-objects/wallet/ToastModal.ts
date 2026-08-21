@@ -5,16 +5,8 @@ import {
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { PlaywrightAssertions } from '../../framework';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { sleep } from '../../framework/Utilities';
-import {
-  asPlaywrightElement,
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import { PlaywrightElement } from '../../framework/PlaywrightAdapter';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 const DEFAULT_TOAST_DISMISS_TIMEOUT_MS = 15_000;
 const DEFAULT_TOAST_APPEAR_TIMEOUT_MS = 5_000;
@@ -23,16 +15,6 @@ const TOAST_POLL_INTERVAL_MS = 250;
 class ToastModal {
   get container(): EncapsulatedElementType {
     return Matchers.getElementByID(ToastSelectorsIDs.CONTAINER);
-  }
-
-  get containerElement(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(ToastSelectorsIDs.CONTAINER),
-      appium: () =>
-        PlaywrightMatchers.getElementById(ToastSelectorsIDs.CONTAINER, {
-          exact: true,
-        }),
-    });
   }
 
   get notificationTitle(): EncapsulatedElementType {
@@ -64,58 +46,21 @@ class ToastModal {
     const appearTimeout =
       options.appearTimeout ?? DEFAULT_TOAST_APPEAR_TIMEOUT_MS;
 
-    await encapsulatedAction({
-      detox: async () => {
-        const visible = await this.pollDetoxToastVisible(appearTimeout);
-        if (!visible) {
-          return;
-        }
-        try {
-          await Assertions.expectElementToNotBeVisible(this.container, {
-            description: 'Toast dismissed',
-            timeout: dismissTimeout,
-          });
-        } catch {
-          // Toast still visible — continue without failing the test.
-        }
-      },
-      appium: async () => {
-        const toast = await asPlaywrightElement(this.containerElement);
-        const visible = await this.pollAppiumToastVisible(toast, appearTimeout);
-        if (!visible) {
-          return;
-        }
-        try {
-          await PlaywrightAssertions.expectElementToNotBeVisible(toast, {
-            description: 'Toast dismissed',
-            timeout: dismissTimeout,
-          });
-        } catch {
-          // Toast still visible — continue without failing the test.
-        }
-      },
-    });
-  }
-
-  private async pollAppiumToastVisible(
-    toast: PlaywrightElement,
-    appearTimeout: number,
-  ): Promise<boolean> {
-    const deadline = Date.now() + appearTimeout;
-    while (Date.now() < deadline) {
-      try {
-        if (await toast.unwrap().isDisplayed()) {
-          return true;
-        }
-      } catch {
-        // Stale element while the sheet animates.
-      }
-      await sleep(TOAST_POLL_INTERVAL_MS);
+    const visible = await this.pollToastVisible(appearTimeout);
+    if (!visible) {
+      return;
     }
-    return false;
+    try {
+      await Assertions.expectElementToNotBeVisible(this.container, {
+        description: 'Toast dismissed',
+        timeout: dismissTimeout,
+      });
+    } catch {
+      // Toast still visible — continue without failing the test.
+    }
   }
 
-  private async pollDetoxToastVisible(appearTimeout: number): Promise<boolean> {
+  private async pollToastVisible(appearTimeout: number): Promise<boolean> {
     const deadline = Date.now() + appearTimeout;
     while (Date.now() < deadline) {
       try {

@@ -81,6 +81,10 @@ export const PredictEventProperties = {
   // Payment token (buy-with-any-token flow only)
   PAYMENT_TOKEN_ADDRESS: 'payment_token_address',
   PAYMENT_TOKEN_SYMBOL: 'payment_token_symbol',
+  PAYMENT_METHOD: 'payment_method',
+  ATTEMPT_ID: 'attempt_id',
+  FAILURE_STAGE: 'failure_stage',
+  FAILURE_CATEGORY: 'failure_category',
 
   // Betslip dismissal
   DISMISSAL_METHOD: 'dismissal_method',
@@ -124,6 +128,7 @@ export const PredictEventValues = {
     HOMEPAGE_FEATURED_LIST: 'homepage_featured_list',
     MAIN_TRADE_BUTTON: 'main_trade_button',
     HOMESCREEN_PILL: 'homescreen_pill',
+    HOMESCREEN_BALANCE_BREAKDOWN: 'homescreen_balance_breakdown',
     REWARDS: 'rewards',
     GTM_MODAL: 'gtm_modal',
     BACKGROUND: 'background',
@@ -154,6 +159,24 @@ export const PredictEventValues = {
     NETWORK_ERROR: 'network_error',
     USER_REJECTED: 'user_rejected',
     UNKNOWN: 'unknown',
+  },
+  PAYMENT_METHOD: {
+    PAY_WITH_ANY_TOKEN: 'pay_with_any_token',
+    PREDICT_BALANCE: 'predict_balance',
+  },
+  FAILURE_STAGE: {
+    SWAP: 'swap',
+    ORDER: 'order',
+  },
+  FAILURE_CATEGORY: {
+    GAS_LIMIT: 'gas_limit',
+    INSUFFICIENT_BALANCE: 'insufficient_balance',
+    NOT_ELIGIBLE: 'not_eligible',
+    NO_MATCH: 'no_match',
+    RELAYER: 'relayer',
+    NETWORK: 'network',
+    USER_REJECTED: 'user_rejected',
+    OTHER: 'other',
   },
   MARKET_TYPE: {
     BINARY: 'binary',
@@ -223,10 +246,30 @@ export const PredictTradeStatus = {
   SWAP_FAILED: 'swap_failed',
   RETRY_PROMPTED: 'retry_prompted',
   RETRY_SUBMITTED: 'retry_submitted',
+  PAYMENT_FAILURE_PROMPTED: 'payment_failure_prompted',
+  ADD_FUNDS_SUBMITTED: 'add_funds_submitted',
+  ATTEMPT_STARTED: 'attempt_started',
+  ORDER_FAILED: 'order_failed',
 } as const;
+
+export const MAX_TRACKED_PREDICT_BUY_TERMINALS = 500;
 
 export type PredictTradeStatusValue =
   (typeof PredictTradeStatus)[keyof typeof PredictTradeStatus];
+
+export type PredictBuyTerminalStatus =
+  | typeof PredictTradeStatus.SUCCEEDED
+  | typeof PredictTradeStatus.FAILED
+  | typeof PredictTradeStatus.CANCELLED;
+
+export type PredictPaymentMethodValue =
+  (typeof PredictEventValues.PAYMENT_METHOD)[keyof typeof PredictEventValues.PAYMENT_METHOD];
+
+export type PredictFailureStageValue =
+  (typeof PredictEventValues.FAILURE_STAGE)[keyof typeof PredictEventValues.FAILURE_STAGE];
+
+export type PredictFailureCategoryValue =
+  (typeof PredictEventValues.FAILURE_CATEGORY)[keyof typeof PredictEventValues.FAILURE_CATEGORY];
 
 /**
  * Dismissal method values for the Predict Betslip Dismissed event

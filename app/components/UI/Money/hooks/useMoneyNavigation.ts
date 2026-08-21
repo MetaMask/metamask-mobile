@@ -55,16 +55,28 @@ export const useMoneyNavigation = () => {
   const { isOnboardingRedirectNeeded, redirectToOnboardingIfNeeded } =
     useMoneyOnboardingNavigation();
 
-  const navigateToMoneyHome = useCallback(() => {
-    if (redirectToOnboardingIfNeeded()) {
-      return;
-    }
+  const navigateToMoneyHome = useCallback(
+    (entryPoint?: string) => {
+      if (
+        redirectToOnboardingIfNeeded(entryPoint ? { entryPoint } : undefined)
+      ) {
+        return;
+      }
 
-    NavigationService.navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [redirectToOnboardingIfNeeded]);
+      NavigationService.navigation.navigate(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: {
+            screen: Routes.MONEY.HOME,
+            ...(entryPoint ? { params: { entryPoint } } : {}),
+          },
+        },
+        { pop: true },
+      );
+    },
+    [redirectToOnboardingIfNeeded],
+  );
 
   return { isOnboardingRedirectNeeded, navigateToMoneyHome };
 };
