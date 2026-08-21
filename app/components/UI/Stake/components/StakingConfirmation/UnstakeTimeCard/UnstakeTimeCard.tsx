@@ -1,41 +1,61 @@
 import React from 'react';
-import KeyValueRow from '../../../../../../component-library/components-temp/KeyValueRow';
-import Card from '../../../../../../component-library/components/Cards/Card';
+import {
+  ButtonIconSize,
+  Card,
+  FontWeight,
+  IconName,
+  KeyValueRow,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './UnstakeTimeCard.styles';
-import { TextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import useTooltipModal from '../../../../../hooks/useTooltipModal';
 import { createTooltipOpenedEvent } from '../../../utils/metaMetrics/tooltipMetaMetricsUtils';
+
+const KEY_VALUE_ROW_CLASSNAME = 'h-auto px-0 overflow-hidden';
+
+const KEY_VALUE_ROW_KEY_TEXT_PROPS = {
+  color: TextColor.TextDefault,
+};
+
+const KEY_VALUE_ROW_VALUE_TEXT_PROPS = {
+  fontWeight: FontWeight.Regular,
+};
 
 const UnstakingTimeCard = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const { trackEvent } = useAnalytics();
 
+  const { openTooltipModal } = useTooltipModal();
+
   return (
-    <Card style={styles.card} disabled>
+    <Card accessible style={styles.card}>
       <KeyValueRow
-        field={{
-          label: { text: strings('tooltip_modal.unstaking_time.title') },
-          tooltip: {
-            title: strings('tooltip_modal.unstaking_time.title'),
-            content: strings('tooltip_modal.unstaking_time.tooltip'),
-            onPress: () =>
-              trackEvent(
-                createTooltipOpenedEvent(
-                  'Unstaking Time Card',
-                  'Unstaking Time',
-                ),
-              ),
+        twClassName={KEY_VALUE_ROW_CLASSNAME}
+        keyLabel={strings('tooltip_modal.unstaking_time.title')}
+        keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
+        keyEndButtonIconProps={{
+          size: ButtonIconSize.Xs,
+          iconName: IconName.Question,
+          accessibilityRole: 'button',
+          accessibilityLabel: `${strings(
+            'tooltip_modal.unstaking_time.title',
+          )} tooltip`,
+          onPress: () => {
+            openTooltipModal(
+              strings('tooltip_modal.unstaking_time.title'),
+              strings('tooltip_modal.unstaking_time.tooltip'),
+            );
+            trackEvent(
+              createTooltipOpenedEvent('Unstaking Time Card', 'Unstaking Time'),
+            );
           },
         }}
-        value={{
-          label: {
-            text: strings('stake.estimated_unstaking_time'),
-            variant: TextVariant.BodyMD,
-          },
-        }}
+        value={strings('stake.estimated_unstaking_time')}
+        valueTextProps={KEY_VALUE_ROW_VALUE_TEXT_PROPS}
       />
     </Card>
   );
