@@ -5,96 +5,96 @@ import Utilities from '../../framework/Utilities';
 import { BuildQuoteSelectors } from '../../../app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { BUILD_QUOTE_TEST_IDS } from '../../../app/components/UI/Ramp/Views/BuildQuote/BuildQuote.testIds';
 import { AddressSelectorSelectors } from '../../../app/components/Views/AddressSelector/AddressSelector.testIds';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 
 class BuildQuoteView {
-  get amountToBuyLabel(): EncapsulatedElementType {
+  get amountToBuyLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(BuildQuoteSelectors.AMOUNT_TO_BUY_LABEL);
   }
 
-  get amountToSellLabel(): EncapsulatedElementType {
+  get amountToSellLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(BuildQuoteSelectors.AMOUNT_TO_SELL_LABEL);
   }
 
-  get getQuotesButton(): EncapsulatedElementType {
+  get getQuotesButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(BuildQuoteSelectors.GET_QUOTES_BUTTON);
   }
 
-  get cancelButton(): EncapsulatedElementType {
+  get cancelButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(BuildQuoteSelectors.CANCEL_BUTTON_TEXT);
   }
 
-  get selectRegionDropdown(): EncapsulatedElementType {
+  get selectRegionDropdown(): Promise<AppiumElement> {
     return Matchers.getElementByText(BuildQuoteSelectors.SELECT_REGION);
   }
 
-  get selectPaymentMethodDropdown(): EncapsulatedElementType {
+  get selectPaymentMethodDropdown(): Promise<AppiumElement> {
     return Matchers.getElementByText(BuildQuoteSelectors.SELECT_PAYMENT_METHOD);
   }
 
-  get selectCurrencyDropdown(): EncapsulatedElementType {
+  get selectCurrencyDropdown(): Promise<AppiumElement> {
     return Matchers.getElementByID(BuildQuoteSelectors.SELECT_CURRENCY);
   }
 
-  get amountInput(): EncapsulatedElementType {
+  get amountInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(BuildQuoteSelectors.AMOUNT_INPUT);
   }
 
-  get regionDropdown(): EncapsulatedElementType {
+  get regionDropdown(): Promise<AppiumElement> {
     return Matchers.getElementByID(BuildQuoteSelectors.REGION_DROPDOWN);
   }
 
-  get accountPicker(): EncapsulatedElementType {
+  get accountPicker(): Promise<AppiumElement> {
     return Matchers.getElementByID(BuildQuoteSelectors.ACCOUNT_PICKER);
   }
 
-  get minLimitErrorMessage(): EncapsulatedElementType {
+  get minLimitErrorMessage(): Promise<AppiumElement> {
     return Matchers.getElementByID(BuildQuoteSelectors.MIN_LIMIT_ERROR);
   }
 
-  get maxLimitErrorMessage(): EncapsulatedElementType {
+  get maxLimitErrorMessage(): Promise<AppiumElement> {
     return Matchers.getElementByID(BuildQuoteSelectors.MAX_LIMIT_ERROR);
   }
 
-  get insufficientBalanceErrorMessage(): EncapsulatedElementType {
+  get insufficientBalanceErrorMessage(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR,
     );
   }
 
-  get keypadDeleteButton(): EncapsulatedElementType {
+  get keypadDeleteButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON);
   }
 
-  get doneButton(): EncapsulatedElementType {
+  get doneButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(BuildQuoteSelectors.DONE_BUTTON);
   }
 
-  get continueButton(): EncapsulatedElementType {
+  get continueButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(BuildQuoteSelectors.CONTINUE_BUTTON);
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(BUILD_QUOTE_TEST_IDS.BACK_BUTTON);
   }
 
-  get quickAmount25(): EncapsulatedElementType {
+  get quickAmount25(): Promise<AppiumElement> {
     return Matchers.getElementByLabel('25%');
   }
 
-  get quickAmount50(): EncapsulatedElementType {
+  get quickAmount50(): Promise<AppiumElement> {
     return Matchers.getElementByLabel('50%');
   }
 
-  get quickAmount75(): EncapsulatedElementType {
+  get quickAmount75(): Promise<AppiumElement> {
     return Matchers.getElementByLabel('75%');
   }
 
-  get quickAmountMax(): EncapsulatedElementType {
+  get quickAmountMax(): Promise<AppiumElement> {
     return Matchers.getElementByLabel('MAX');
   }
 
-  get accountPickerDropdown(): EncapsulatedElementType {
+  get accountPickerDropdown(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AddressSelectorSelectors.ACCOUNT_PICKER_DROPDOWN,
     );
@@ -213,16 +213,11 @@ class BuildQuoteView {
     regex: string | RegExp,
   ): Promise<string | undefined> {
     try {
-      const elem = await (typeof regex === 'string'
-        ? Matchers.getElementByText(regex)
-        : Matchers.getElementByText(regex as RegExp));
-      const attributes = await (
-        elem as unknown as IndexableNativeElement
-      ).getAttributes();
-      return (
-        (attributes as { text?: string; label?: string }).text ??
-        (attributes as { text?: string; label?: string }).label
-      );
+      const elem =
+        typeof regex === 'string'
+          ? Matchers.getElementByText(regex)
+          : Matchers.getElementByText(regex as RegExp);
+      return Utilities.getElementText(elem);
     } catch (error) {
       // Purposefully returning undefined to use in an assertion
       return undefined;

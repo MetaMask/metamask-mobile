@@ -1,6 +1,6 @@
 import { EncapsulatedElement } from './EncapsulatedElement';
 import Matchers from './Matchers';
-import PlaywrightMatchers from './PlaywrightMatchers';
+import AppiumMatchers from './AppiumMatchers';
 import { resetDeviceInfo, setDeviceInfo } from './DeviceInfoCache.ts';
 
 function findPageObjectsWithEncapsulated(dir: string): string[] {
@@ -53,12 +53,12 @@ function getEncapsulatedGetterNames(pageObject: object): string[] {
 
 function atLeastOnePlaywrightMatcherWasCalled(): void {
   const playwrightCallCount =
-    (PlaywrightMatchers.getElementById as jest.Mock).mock.calls.length +
-    (PlaywrightMatchers.getElementByText as jest.Mock).mock.calls.length +
-    (PlaywrightMatchers.getElementByAccessibilityId as jest.Mock).mock.calls
+    (AppiumMatchers.getElementById as jest.Mock).mock.calls.length +
+    (AppiumMatchers.getElementByText as jest.Mock).mock.calls.length +
+    (AppiumMatchers.getElementByAccessibilityId as jest.Mock).mock.calls
       .length +
-    (PlaywrightMatchers.getElementByCatchAll as jest.Mock).mock.calls.length +
-    (PlaywrightMatchers.getElementByXPath as jest.Mock).mock.calls.length;
+    (AppiumMatchers.getElementByCatchAll as jest.Mock).mock.calls.length +
+    (AppiumMatchers.getElementByXPath as jest.Mock).mock.calls.length;
   expect(playwrightCallCount).toBeGreaterThan(0);
 }
 

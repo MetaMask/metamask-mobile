@@ -1,12 +1,9 @@
 import Utilities, { BASE_DEFAULTS, stripJsonKeys } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
-import {
-  asPlaywrightElement,
-  type EncapsulatedElementType,
-} from './EncapsulatedElement.ts';
+import type { AppiumElement } from './AppiumElement.ts';
 import { Json } from '@metamask/utils';
 import { PlatformDetector } from './PlatformLocator.ts';
-import PlaywrightAssertions from './PlaywrightAssertions.ts';
+import AppiumAssertions from './AppiumAssertions.ts';
 
 /**
  * Assertions with auto-retry and better error messages
@@ -16,18 +13,12 @@ export default class Assertions {
    * Assert element is visible with auto-retry
    */
   static async expectElementToBeVisible(
-    elem:
-      | DetoxElement
-      | WebElement
-      | DetoxMatcher
-      | IndexableNativeElement
-      | EncapsulatedElementType
-      | (() => EncapsulatedElementType),
+    elem: Promise<AppiumElement> | (() => Promise<AppiumElement>),
     options: AssertionOptions = {},
   ): Promise<void> {
     const resolved = typeof elem === 'function' ? elem() : elem;
-    return PlaywrightAssertions.expectElementToBeVisible(
-      asPlaywrightElement(resolved as EncapsulatedElementType),
+    return AppiumAssertions.expectElementToBeVisible(
+      resolved as Promise<AppiumElement>,
       options,
     );
   }
@@ -38,18 +29,12 @@ export default class Assertions {
    * isDisplayed=false while the UI is on screen.
    */
   static async expectElementToExist(
-    elem:
-      | DetoxElement
-      | WebElement
-      | DetoxMatcher
-      | IndexableNativeElement
-      | EncapsulatedElementType
-      | (() => EncapsulatedElementType),
+    elem: Promise<AppiumElement> | (() => Promise<AppiumElement>),
     options: AssertionOptions = {},
   ): Promise<void> {
     const resolved = typeof elem === 'function' ? elem() : elem;
-    return PlaywrightAssertions.expectElementToExist(
-      asPlaywrightElement(resolved as EncapsulatedElementType),
+    return AppiumAssertions.expectElementToExist(
+      resolved as Promise<AppiumElement>,
       options,
     );
   }
@@ -58,18 +43,12 @@ export default class Assertions {
    * Assert element is not visible with auto-retry
    */
   static async expectElementToNotBeVisible(
-    elem:
-      | DetoxElement
-      | WebElement
-      | DetoxMatcher
-      | IndexableNativeElement
-      | EncapsulatedElementType
-      | (() => EncapsulatedElementType),
+    elem: Promise<AppiumElement> | (() => Promise<AppiumElement>),
     options: AssertionOptions = {},
   ): Promise<void> {
     const resolved = typeof elem === 'function' ? elem() : elem;
-    return PlaywrightAssertions.expectElementToNotBeVisible(
-      asPlaywrightElement(resolved as EncapsulatedElementType),
+    return AppiumAssertions.expectElementToNotBeVisible(
+      resolved as Promise<AppiumElement>,
       options,
     );
   }
@@ -78,22 +57,18 @@ export default class Assertions {
    * Assert element has specific text with auto-retry
    */
   static async expectElementToHaveText(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    return PlaywrightAssertions.expectElementText(
-      asPlaywrightElement(elem),
-      text,
-      options,
-    );
+    return AppiumAssertions.expectElementText(elem, text, options);
   }
 
   /**
    * Assert element contains specific text with auto-retry
    */
   static async expectElementToContainText(
-    elem: EncapsulatedElementType | WebElement,
+    elem: Promise<AppiumElement>,
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -102,7 +77,7 @@ export default class Assertions {
       description = `element contains text "${text}"`,
     } = options;
 
-    const el = await asPlaywrightElement(elem as EncapsulatedElementType);
+    const el = (await elem) as Promise<AppiumElement>;
     return Utilities.executeWithRetry(
       async () => {
         const actual = ((await el.textContent()) ?? '').trim();
@@ -123,30 +98,22 @@ export default class Assertions {
    * Assert element does not have specific text with auto-retry
    */
   static async expectElementToNotHaveText(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    return PlaywrightAssertions.expectElementNotToHaveText(
-      asPlaywrightElement(elem),
-      text,
-      options,
-    );
+    return AppiumAssertions.expectElementNotToHaveText(elem, text, options);
   }
 
   /**
    * Assert element has specific label with auto-retry
    */
   static async expectElementToHaveLabel(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     label: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    return PlaywrightAssertions.expectElementToHaveLabel(
-      asPlaywrightElement(elem),
-      label,
-      options,
-    );
+    return AppiumAssertions.expectElementToHaveLabel(elem, label, options);
   }
 
   /**
@@ -156,7 +123,7 @@ export default class Assertions {
     text: string,
     options: AssertionOptions & { allowDuplicates?: boolean } = {},
   ): Promise<void> {
-    return PlaywrightAssertions.expectTextDisplayed(text, options);
+    return AppiumAssertions.expectTextDisplayed(text, options);
   }
 
   /**
@@ -166,14 +133,14 @@ export default class Assertions {
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    return PlaywrightAssertions.expectTextNotDisplayed(text, options);
+    return AppiumAssertions.expectTextNotDisplayed(text, options);
   }
 
   /**
    * Returns whether a Switch/toggle is currently on.
    */
-  static async isToggleOn(elem: EncapsulatedElementType): Promise<boolean> {
-    const el = await asPlaywrightElement(elem);
+  static async isToggleOn(elem: Promise<AppiumElement>): Promise<boolean> {
+    const el = await elem;
     // Each Appium driver only supports the attribute native to its Switch:
     // iOS XCUITest exposes `value` (`"1"` / `"0"`); Android UiAutomator2 exposes
     // `checked` (`"true"` / `"false"`). Querying the other one throws
@@ -198,7 +165,7 @@ export default class Assertions {
    * Assert element is enabled with auto-retry
    */
   static async expectToggleToBeOn(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -230,7 +197,7 @@ export default class Assertions {
    * Assert element is disabled with auto-retry
    */
   static async expectToggleToBeOff(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -482,7 +449,7 @@ export default class Assertions {
    * @deprecated Use expectElementToBeVisible() instead for better error handling and retry mechanisms
    */
   static async checkIfVisible(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     timeout = 15000,
   ): Promise<void> {
     return this.expectElementToBeVisible(elem, { timeout });
@@ -493,7 +460,7 @@ export default class Assertions {
    * @deprecated Use expectElementToBeVisible() instead for better error handling and retry mechanisms
    */
   static async webViewElementExists(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
   ): Promise<void> {
     return this.expectElementToExist(elem);
   }
@@ -503,10 +470,10 @@ export default class Assertions {
    * @deprecated Use expectElementToNotBeVisible() instead for better error handling and retry mechanisms
    */
   static async checkIfNotVisible(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     timeout = 15000,
   ): Promise<void> {
-    return this.expectElementToNotBeVisible(elem as DetoxElement, {
+    return this.expectElementToNotBeVisible(elem, {
       timeout,
     });
   }
@@ -516,11 +483,11 @@ export default class Assertions {
    * @deprecated Use expectElementToHaveText() instead for better error handling and retry mechanisms
    */
   static async checkIfElementToHaveText(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     text: string,
     timeout = 15000,
   ): Promise<void> {
-    return this.expectElementToHaveText(elem as DetoxElement, text, {
+    return this.expectElementToHaveText(elem, text, {
       timeout,
     });
   }
@@ -530,7 +497,7 @@ export default class Assertions {
    * @deprecated Use expectElementToHaveLabel() instead for better error handling and retry mechanisms
    */
   static async checkIfElementHasLabel(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     label: string,
     timeout = 15000,
   ): Promise<void> {
@@ -564,7 +531,7 @@ export default class Assertions {
    * @deprecated Use expectElementToNotHaveText() or custom assertion instead for better error handling and retry mechanisms
    */
   static async checkIfElementNotToHaveText(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     text: string,
     timeout = 15000,
   ): Promise<void> {
@@ -576,7 +543,7 @@ export default class Assertions {
    * @deprecated Use expectElementToNotBeVisible() or custom assertion instead for better error handling and retry mechanisms
    */
   static async checkIfElementDoesNotHaveLabel(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     _label: string,
     timeout = 15000,
   ): Promise<void> {
@@ -587,7 +554,7 @@ export default class Assertions {
    * Legacy method: Check if toggle is in "on" state
    * @deprecated Use expectToggleToBeOn() instead for better error handling and retry mechanisms
    */
-  static async checkIfToggleIsOn(elem: EncapsulatedElementType): Promise<void> {
+  static async checkIfToggleIsOn(elem: Promise<AppiumElement>): Promise<void> {
     return this.expectToggleToBeOn(elem);
   }
 
@@ -595,9 +562,7 @@ export default class Assertions {
    * Legacy method: Check if toggle is in "off" state
    * @deprecated Use expectToggleToBeOff() instead for better error handling and retry mechanisms
    */
-  static async checkIfToggleIsOff(
-    elem: EncapsulatedElementType,
-  ): Promise<void> {
+  static async checkIfToggleIsOff(elem: Promise<AppiumElement>): Promise<void> {
     return this.expectToggleToBeOff(elem);
   }
 
@@ -605,8 +570,8 @@ export default class Assertions {
    * Legacy method: Check if element is enabled
    * @deprecated Use Utilities.waitForElementToBeEnabled() instead for better retry handling
    */
-  static async checkIfEnabled(elem: EncapsulatedElementType): Promise<boolean> {
-    const el = await asPlaywrightElement(elem);
+  static async checkIfEnabled(elem: Promise<AppiumElement>): Promise<boolean> {
+    const el = await elem;
     return el.isEnabled();
   }
 
@@ -614,10 +579,8 @@ export default class Assertions {
    * Legacy method: Check if element is disabled
    * @deprecated Use Utilities.waitForElementToBeDisabled() instead for better retry handling
    */
-  static async checkIfDisabled(
-    elem: EncapsulatedElementType,
-  ): Promise<boolean> {
-    const el = await asPlaywrightElement(elem);
+  static async checkIfDisabled(elem: Promise<AppiumElement>): Promise<boolean> {
+    const el = await elem;
     return !(await el.isEnabled());
   }
 

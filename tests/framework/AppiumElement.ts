@@ -1,5 +1,5 @@
 import { ChainablePromiseElement } from 'webdriverio';
-import { boxedStep } from './PlaywrightUtilities.ts';
+import { boxedStep } from './AppiumUtilities.ts';
 
 export interface IsDisplayedParams {
   /**
@@ -25,18 +25,19 @@ export interface IsDisplayedParams {
 }
 
 /**
- * PlaywrightAdapter - Provides Playwright-like API on top of WebdriverIO elems
+ * AppiumElement - thin wrapper around WebdriverIO/Appium elements with a
+ * small set of convenience methods (`click`, `fill`, `textContent`, etc.).
  *
- * This adapter gives you the clean Playwright syntax while leveraging WebdriverIO's
- * robust elem finding, retry mechanisms, and mobile automation capabilities.
+ * Playwright is only the test runner; element finding and interaction go
+ * through Appium via WebdriverIO.
  *
  * @example
- * const elem = await PlaywrightAdapter.wrap(driver.$('~username'));
+ * const elem = await wrapElement(driver.$('~username'));
  * await elem.fill('myusername');
  * await elem.click();
  * const text = await elem.textContent();
  */
-export class PlaywrightElement {
+export class AppiumElement {
   private elem: ChainablePromiseElement;
 
   constructor(elem: ChainablePromiseElement) {
@@ -214,11 +215,11 @@ export class PlaywrightElement {
  * @returns The wrapped element
  */
 // eslint-disable-next-line @typescript-eslint/no-shadow
-export async function $(selector: string): Promise<PlaywrightElement> {
+export async function $(selector: string): Promise<AppiumElement> {
   const drv = globalThis.driver;
   if (!drv) throw new Error('Driver is not available');
   const elem = await drv.$(selector);
-  return new PlaywrightElement(elem);
+  return new AppiumElement(elem);
 }
 
 /**
@@ -228,18 +229,18 @@ export async function $(selector: string): Promise<PlaywrightElement> {
  * @returns The wrapped elements
  */
 // eslint-disable-next-line @typescript-eslint/no-shadow
-export async function $$(selector: string): Promise<PlaywrightElement[]> {
+export async function $$(selector: string): Promise<AppiumElement[]> {
   const drv = globalThis.driver;
   if (!drv) throw new Error('Driver is not available');
   const elems = await drv.$$(selector);
   return elems.map(
-    (el) => new PlaywrightElement(el as unknown as ChainablePromiseElement),
+    (el) => new AppiumElement(el as unknown as ChainablePromiseElement),
   );
 }
 
 /**
  * Static helper to wrap an existing WebdriverIO elem
  */
-export function wrapElement(elem: ChainablePromiseElement): PlaywrightElement {
-  return new PlaywrightElement(elem);
+export function wrapElement(elem: ChainablePromiseElement): AppiumElement {
+  return new AppiumElement(elem);
 }

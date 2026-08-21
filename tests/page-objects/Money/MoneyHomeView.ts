@@ -3,7 +3,7 @@ import { MoneyBalanceSummaryTestIds } from '../../../app/components/UI/Money/com
 import { MoneyEarningsTestIds } from '../../../app/components/UI/Money/components/MoneyEarnings/MoneyEarnings.testIds';
 import { MoneyOnboardingCardTestIds } from '../../../app/components/UI/Money/components/MoneyOnboardingCard/MoneyOnboardingCard.testIds';
 import Assertions from '../../framework/Assertions';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import type { AppiumElement } from '../../framework/AppiumElement';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
 
@@ -11,54 +11,54 @@ const MONEY_HOME_LOAD_TIMEOUT_MS = 60_000;
 
 class MoneyHomeView {
   // Balance summary elements
-  get balance(): EncapsulatedElementType {
+  get balance(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyBalanceSummaryTestIds.BALANCE);
   }
 
-  get apy(): EncapsulatedElementType {
+  get apy(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyBalanceSummaryTestIds.APY);
   }
 
-  get unavailableBalance(): EncapsulatedElementType {
+  get unavailableBalance(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE,
     );
   }
 
-  get noAccountBalance(): EncapsulatedElementType {
+  get noAccountBalance(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       MoneyBalanceSummaryTestIds.BALANCE_NO_ACCOUNT,
     );
   }
 
   // Earnings elements
-  get earnings(): EncapsulatedElementType {
+  get earnings(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyEarningsTestIds.CONTAINER);
   }
 
-  get monthlyEarningsLabel(): EncapsulatedElementType {
+  get monthlyEarningsLabel(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyEarningsTestIds.MONTHLY_LABEL);
   }
 
-  get monthlyEarningsValue(): EncapsulatedElementType {
+  get monthlyEarningsValue(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyEarningsTestIds.LAST_30_DAYS_VALUE);
   }
 
-  get lifetimeEarningsLabel(): EncapsulatedElementType {
+  get lifetimeEarningsLabel(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyEarningsTestIds.LIFETIME_LABEL);
   }
 
-  get lifetimeEarningsValue(): EncapsulatedElementType {
+  get lifetimeEarningsValue(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE);
   }
 
   // Onboarding elements
-  get onboardingCardTitle(): EncapsulatedElementType {
+  get onboardingCardTitle(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyOnboardingCardTestIds.TITLE);
   }
 
   // Action elements
-  get sendButton(): EncapsulatedElementType {
+  get sendButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(MoneyActionButtonRowTestIds.TRANSFER_BUTTON);
   }
 

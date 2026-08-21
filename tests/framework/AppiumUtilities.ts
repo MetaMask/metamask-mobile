@@ -1,7 +1,7 @@
 import test from '@playwright/test';
 import type { DeviceMatrix, LaunchArgs } from './types';
 import { getWindowSize } from './DeviceInfoCache.ts';
-import { PlaywrightElement } from './PlaywrightAdapter';
+import { AppiumElement } from './AppiumElement';
 import {
   CHROME_PACKAGE,
   DEFAULT_IMPLICIT_WAIT_MS,
@@ -19,10 +19,10 @@ import { ACCOUNT_ACTIVITY_WS } from '../websocket/constants.ts';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { execSync } from 'child_process';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
-import { createPlaywrightLogger } from './playwrightLogger.ts';
+import { createAppiumLogger } from './appiumLogger.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 
-const logger = createPlaywrightLogger('PlaywrightUtilities');
+const logger = createAppiumLogger('AppiumUtilities');
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import-x/no-commonjs, @typescript-eslint/no-require-imports
 const deviceMatrix: DeviceMatrix = require('../performance/device-matrix.json');
@@ -215,7 +215,7 @@ export function boxedStep<This, Args extends unknown[], Return>(
       constructor: {
         name: string;
       };
-      elem?: WebdriverIO.Element | { selector: string }; // WebdriverIO element with selector
+      elem?: WebdriverIO.Promise<AppiumElement> | { selector: string }; // WebdriverIO element with selector
     };
     const methodName = context.name as string;
 
@@ -460,7 +460,7 @@ export function isOverheadTrackingActive(): boolean {
   return _tracking;
 }
 
-class PlaywrightUtilities {
+class AppiumUtilities {
   private static isTransientIosTerminateError(error: unknown): boolean {
     const message = error instanceof Error ? error.message : String(error);
     return IOS_TERMINATE_TRANSIENT_ERROR_PATTERNS.some((pattern) =>
@@ -571,7 +571,7 @@ class PlaywrightUtilities {
    * @param timeout - The timeout in milliseconds
    */
   static async waitForElementToDisappear(
-    element: PlaywrightElement,
+    element: AppiumElement,
     timeout = 5000,
   ): Promise<void> {
     await element.waitForDisplayed({ reverse: true, timeout });
@@ -671,7 +671,7 @@ class PlaywrightUtilities {
    * do not cover Chrome's omnibox on CI emulators.
    */
   static collapseStatusBar(): void {
-    PlaywrightUtilities.dismissAndroidHeadsUpNotifications();
+    AppiumUtilities.dismissAndroidHeadsUpNotifications();
   }
 
   /**
@@ -747,7 +747,7 @@ class PlaywrightUtilities {
       launchArgs: {} as Partial<LaunchArgs>,
     },
   ): AndroidIntentExtra[] {
-    const resolved = PlaywrightUtilities.buildResolvedLaunchArgs({
+    const resolved = AppiumUtilities.buildResolvedLaunchArgs({
       launchArgs,
     });
 
@@ -771,7 +771,7 @@ class PlaywrightUtilities {
       launchArgs: {} as Partial<LaunchArgs>,
     },
   ): string[] {
-    const resolved = PlaywrightUtilities.buildResolvedLaunchArgs({
+    const resolved = AppiumUtilities.buildResolvedLaunchArgs({
       launchArgs,
     });
     const argumentsList: string[] = [];
@@ -889,7 +889,7 @@ class PlaywrightUtilities {
     const deepLinkUrl = this.getDeepLinkUrl(
       this.getDevLauncherPackagerUrl('android'),
     );
-    const extras = PlaywrightUtilities.buildAndroidIntentExtras({
+    const extras = AppiumUtilities.buildAndroidIntentExtras({
       launchArgs,
     });
 
@@ -958,7 +958,7 @@ class PlaywrightUtilities {
       );
     }
 
-    const extras = PlaywrightUtilities.buildAndroidIntentExtras({
+    const extras = AppiumUtilities.buildAndroidIntentExtras({
       launchArgs,
     });
     const stop = launchArgs?.stop ?? true;
@@ -1003,12 +1003,12 @@ class PlaywrightUtilities {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
-    const argumentsList = PlaywrightUtilities.buildIosLaunchProcessArguments({
+    const argumentsList = AppiumUtilities.buildIosLaunchProcessArguments({
       launchArgs,
     });
 
     logger.debug(`Launching iOS app ${bundleId}`);
-    await PlaywrightUtilities.terminateIosAppBeforeLaunch(bundleId);
+    await AppiumUtilities.terminateIosAppBeforeLaunch(bundleId);
     if (IOS_PRE_LAUNCH_SETTLE_MS > 0) {
       await new Promise((resolve) =>
         setTimeout(resolve, IOS_PRE_LAUNCH_SETTLE_MS),
@@ -1065,5 +1065,5 @@ class PlaywrightUtilities {
   }
 }
 
-// Change this once we use functions for the PlaywrightAdapter Utils
-export default PlaywrightUtilities;
+// Change this once we use functions for the AppiumElement Utils
+export default AppiumUtilities;

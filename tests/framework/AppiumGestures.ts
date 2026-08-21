@@ -1,22 +1,22 @@
 import { getWindowSize } from './DeviceInfoCache.ts';
 import { CurrentDeviceDetails } from './fixtures/playwright';
 import { PlatformDetector } from './PlatformLocator';
-import { PlaywrightElement } from './PlaywrightAdapter';
-import { boxedStep, getDriver } from './PlaywrightUtilities';
+import { AppiumElement } from './AppiumElement';
+import { boxedStep, getDriver } from './AppiumUtilities';
 import {
-  createPlaywrightLogger,
+  createAppiumLogger,
   debugElementAction,
   formatSelector,
-} from './playwrightLogger.ts';
+} from './appiumLogger.ts';
 
-const logger = createPlaywrightLogger('PlaywrightGestures');
+const logger = createAppiumLogger('AppiumGestures');
 
 export interface ScrollOptions {
   scrollParams?: { direction?: 'up' | 'down' | 'left' | 'right' };
   from?: { x: number; y: number };
   to?: { x: number; y: number };
   percent?: number;
-  scrollableElement?: PlaywrightElement;
+  scrollableElement?: AppiumElement;
   duration?: number;
   /** WDIO native scrollIntoView limit; default is 10. */
   maxScrolls?: number;
@@ -27,7 +27,7 @@ export interface ScrollOptions {
  * would invoke `getElementRect` (`scrollIntoView`, `getLocation`, `getSize`).
  */
 export async function assertResolvedElementId(
-  elem: PlaywrightElement,
+  elem: AppiumElement,
   action: string,
   role: 'target' | 'scrollableElement' = 'target',
 ): Promise<string> {
@@ -59,17 +59,17 @@ export async function assertResolvedElementId(
 }
 
 /**
- * PlaywrightGestures - Gesture helpers for WebdriverIO/Playwright
+ * AppiumGestures - Gesture helpers for WebdriverIO/Playwright
  *
- * This class provides gesture methods that wrap PlaywrightElement API.
+ * This class provides gesture methods that wrap AppiumElement API.
  * Currently these are simple wrappers with debug logging (similar to Detox Gestures).
  *
  * @example
- * const elem = await PlaywrightMatchers.getByXPath('...');
- * await PlaywrightGestures.tap(elem);
- * await PlaywrightGestures.fill(elem, 'text');
+ * const elem = await AppiumMatchers.getByXPath('...');
+ * await AppiumGestures.tap(elem);
+ * await AppiumGestures.fill(elem, 'text');
  */
-export default class PlaywrightGestures {
+export default class AppiumGestures {
   /**
    * Tap an element
    * This is a wrapper around the click method that waits for the element to be
@@ -78,7 +78,7 @@ export default class PlaywrightGestures {
    * @returns A promise that resolves when the tap is complete
    */
   @boxedStep
-  static async tap(elem: PlaywrightElement): Promise<void> {
+  static async tap(elem: AppiumElement): Promise<void> {
     await debugElementAction(logger, 'Tapping element', elem);
     await elem.unwrap().click();
   }
@@ -96,7 +96,7 @@ export default class PlaywrightGestures {
    * with the same position before resolving.
    */
   static async waitForElementStable(
-    elem: PlaywrightElement,
+    elem: AppiumElement,
     options?: { timeout?: number; interval?: number; stableCount?: number },
   ): Promise<void> {
     const { timeout = 3000, interval = 150, stableCount = 6 } = options || {};
@@ -135,7 +135,7 @@ export default class PlaywrightGestures {
    * is a Web/DOM API and is not implemented on Appium Android (always fails).
    */
   private static async isElementInteractive(
-    elem: PlaywrightElement,
+    elem: AppiumElement,
     memo?: { hasClickableAncestor?: boolean },
   ): Promise<boolean> {
     if (!(await elem.isEnabled())) {
@@ -185,7 +185,7 @@ export default class PlaywrightGestures {
    * Polls until the element stays interactive for consecutive reads.
    */
   static async waitUntilInteractive(
-    elem: PlaywrightElement,
+    elem: AppiumElement,
     timeout: number,
     options?: { requiredStableReads?: number; interval?: number },
   ): Promise<void> {
@@ -214,7 +214,7 @@ export default class PlaywrightGestures {
 
   @boxedStep
   static async waitAndTap(
-    elem: PlaywrightElement,
+    elem: AppiumElement,
     options?: {
       delay?: number;
       timeout?: number;
@@ -283,7 +283,7 @@ export default class PlaywrightGestures {
    * @returns A promise that resolves when the type text is complete
    */
   @boxedStep
-  static async typeText(elem: PlaywrightElement, text: string): Promise<void> {
+  static async typeText(elem: AppiumElement, text: string): Promise<void> {
     await debugElementAction(logger, 'Typing into element', elem);
     await elem.unwrap().addValue(text);
   }
@@ -295,7 +295,7 @@ export default class PlaywrightGestures {
    */
   @boxedStep
   static async typeTextByCharacters(
-    elem: PlaywrightElement,
+    elem: AppiumElement,
     text: string,
     options?: { submitWithReturn?: boolean },
   ): Promise<void> {
@@ -360,10 +360,7 @@ export default class PlaywrightGestures {
    * mobile sessions (GET with body).
    */
   @boxedStep
-  static async longPress(
-    elem: PlaywrightElement,
-    duration = 1000,
-  ): Promise<void> {
+  static async longPress(elem: AppiumElement, duration = 1000): Promise<void> {
     await assertResolvedElementId(elem, 'longPress', 'target');
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
@@ -393,7 +390,7 @@ export default class PlaywrightGestures {
    * native mobile sessions. Two fast clicks are more reliable in this layer.
    */
   @boxedStep
-  static async dblTap(elem: PlaywrightElement, intervalMs = 60): Promise<void> {
+  static async dblTap(elem: AppiumElement, intervalMs = 60): Promise<void> {
     const wrapped = elem.unwrap();
 
     await debugElementAction(logger, 'Double tapping element', elem);
@@ -411,7 +408,7 @@ export default class PlaywrightGestures {
    */
   @boxedStep
   static async scrollIntoView(
-    elem: PlaywrightElement,
+    elem: AppiumElement,
     options?: ScrollOptions,
   ): Promise<void> {
     const {
@@ -455,10 +452,10 @@ export default class PlaywrightGestures {
    */
   @boxedStep
   static async scrollIntoViewFullyVisible(
-    elem: PlaywrightElement,
+    elem: AppiumElement,
     options?: ScrollOptions,
   ): Promise<void> {
-    await PlaywrightGestures.scrollIntoView(elem, options);
+    await AppiumGestures.scrollIntoView(elem, options);
 
     const drv = getDriver();
     if (!drv) return;
@@ -708,7 +705,7 @@ export default class PlaywrightGestures {
    * network-pills strip (below the search field) to force blur.
    */
   static async dismissKeyboardAfterTokenSearch(): Promise<void> {
-    await PlaywrightGestures.hideKeyboard();
+    await AppiumGestures.hideKeyboard();
     if (PlatformDetector.isAndroid()) {
       return;
     }
