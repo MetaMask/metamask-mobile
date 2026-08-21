@@ -282,6 +282,33 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.hasSuppressedBalanceError).toBe(false);
       expect(result.current.isValid).toBe(true);
     });
+
+    it('removes the previous balance error when its caller starts owning the message', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+      const insufficientParams = {
+        ...defaultParams,
+        spendableBalance: 5,
+        marginRequired: '10.00',
+        skipBalanceError: false,
+      };
+      const { result, rerender } = renderHook(
+        (params) => usePerpsOrderValidation(params),
+        { initialProps: insufficientParams },
+      );
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(result.current.errors).toContain(
+        'Insufficient balance: need 10.00, have 5',
+      );
+
+      rerender({ ...insufficientParams, skipBalanceError: true });
+
+      expect(mockValidateOrder).toHaveBeenCalledTimes(1);
+      expect(result.current.errors).not.toContain(
+        'Insufficient balance: need 10.00, have 5',
+      );
+    });
   });
 
   describe('leverage warnings', () => {
