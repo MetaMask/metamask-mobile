@@ -1169,11 +1169,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const hasInsufficientFundsError =
     hasInsufficientPayTokenBalance ||
     filteredErrors.some((error) => error.startsWith(insufficientBalancePrefix));
-  if (hasInsufficientFundsError) {
-    DevLogger.log(
-      '[PR-TAT-3639] BUG_MARKER: duplicate insufficient-funds surfaces',
-    );
-  }
 
   // Handlers
   const handleTPSLPress = useCallback(() => {
