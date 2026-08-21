@@ -1,13 +1,17 @@
 import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { strings } from '../../../../../../../../locales/i18n';
-import KeyValueRow from '../../../../../../../component-library/components-temp/KeyValueRow';
-import Text, {
+import {
+  ButtonIconSize,
+  FontWeight,
+  IconName,
+  KeyValueRow,
+  Text,
   TextColor,
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../hooks/useStyles';
+import useTooltipModal from '../../../../../../hooks/useTooltipModal';
 import InfoSection from '../../../../../../Views/confirmations/components/UI/info-row/info-section';
 import ContractTag from '../../../../../Stake/components/StakingConfirmation/ContractTag/ContractTag';
 import { TokenI } from '../../../../../Tokens/types';
@@ -16,6 +20,16 @@ import styleSheet from './DepositInfoSection.styles';
 import { selectAvatarAccountType } from '../../../../../../../selectors/settings';
 
 export const DEPOSIT_DETAILS_SECTION_TEST_ID = 'depositDetailsSection';
+
+const KEY_VALUE_ROW_CLASSNAME = 'h-auto px-0 overflow-hidden';
+
+const KEY_VALUE_ROW_KEY_TEXT_PROPS = {
+  color: TextColor.TextDefault,
+};
+
+const KEY_VALUE_ROW_VALUE_TEXT_PROPS = {
+  fontWeight: FontWeight.Regular,
+};
 
 export interface DepositInfoSectionProps {
   token: TokenI;
@@ -36,6 +50,8 @@ const DepositInfoSection = ({
 
   const avatarAccountType = useSelector(selectAvatarAccountType);
 
+  const { openTooltipModal } = useTooltipModal();
+
   const { earnToken, getEstimatedAnnualRewardsForAmount } = useEarnToken(token);
 
   if (!earnToken) return null;
@@ -50,109 +66,110 @@ const DepositInfoSection = ({
     <InfoSection testID={DEPOSIT_DETAILS_SECTION_TEST_ID}>
       <View style={styles.infoSectionContent}>
         <KeyValueRow
-          field={{
-            label: {
-              text: strings('earn.apr'),
-              variant: TextVariant.BodyMDMedium,
-            },
-            tooltip: {
-              title: strings('earn.apr'),
-              content: (
+          twClassName={KEY_VALUE_ROW_CLASSNAME}
+          keyLabel={strings('earn.apr')}
+          keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
+          keyEndButtonIconProps={{
+            size: ButtonIconSize.Xs,
+            iconName: IconName.Question,
+            accessibilityRole: 'button',
+            accessibilityLabel: `${strings('earn.apr')} tooltip`,
+            onPress: () =>
+              openTooltipModal(
+                strings('earn.apr'),
                 <View style={styles.aprTooltipContentContainer}>
                   <Text>{strings('earn.tooltip_content.apr.part_one')}</Text>
                   <Text>{strings('earn.tooltip_content.apr.part_two')}</Text>
-                </View>
+                </View>,
               ),
-            },
           }}
-          value={{
-            label: {
-              text: `${earnToken?.experience?.apr}%`,
-              variant: TextVariant.BodyMD,
-              color: TextColor.Success,
-            },
+          value={`${earnToken?.experience?.apr}%`}
+          valueTextProps={{
+            fontWeight: FontWeight.Regular,
+            color: TextColor.SuccessDefault,
           }}
         />
         <KeyValueRow
-          field={{
-            label: {
-              text: strings('stake.estimated_annual_reward'),
-            },
-          }}
-          value={{
-            label: (
-              <View style={styles.estAnnualReward}>
-                <Text numberOfLines={1}>
-                  {
-                    estimatedAnnualRewardsForAmount?.estimatedAnnualRewardsFormatted
-                  }
-                </Text>
-                <Text
-                  color={TextColor.Alternative}
-                  numberOfLines={1}
-                  ellipsizeMode="head"
-                >
-                  {
-                    estimatedAnnualRewardsForAmount?.estimatedAnnualRewardsTokenFormatted
-                  }
-                </Text>
-              </View>
-            ),
-          }}
+          twClassName={KEY_VALUE_ROW_CLASSNAME}
+          keyLabel={strings('stake.estimated_annual_reward')}
+          keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
+          value={
+            <View style={styles.estAnnualReward}>
+              <Text numberOfLines={1}>
+                {
+                  estimatedAnnualRewardsForAmount?.estimatedAnnualRewardsFormatted
+                }
+              </Text>
+              <Text
+                color={TextColor.TextAlternative}
+                numberOfLines={1}
+                ellipsizeMode="head"
+              >
+                {
+                  estimatedAnnualRewardsForAmount?.estimatedAnnualRewardsTokenFormatted
+                }
+              </Text>
+            </View>
+          }
         />
         <KeyValueRow
-          field={{
-            label: {
-              text: strings('stake.reward_frequency'),
-            },
-            tooltip: {
-              title: strings('stake.reward_frequency'),
-              content: strings('earn.tooltip_content.reward_frequency'),
-            },
+          twClassName={KEY_VALUE_ROW_CLASSNAME}
+          keyLabel={strings('stake.reward_frequency')}
+          keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
+          keyEndButtonIconProps={{
+            size: ButtonIconSize.Xs,
+            iconName: IconName.Question,
+            accessibilityRole: 'button',
+            accessibilityLabel: `${strings('stake.reward_frequency')} tooltip`,
+            onPress: () =>
+              openTooltipModal(
+                strings('stake.reward_frequency'),
+                strings('earn.tooltip_content.reward_frequency'),
+              ),
           }}
-          value={{
-            label: {
-              text: strings('earn.every_minute'),
-              variant: TextVariant.BodyMD,
-            },
-          }}
+          value={strings('earn.every_minute')}
+          valueTextProps={KEY_VALUE_ROW_VALUE_TEXT_PROPS}
         />
         <KeyValueRow
-          field={{
-            label: {
-              text: strings('stake.withdrawal_time'),
-            },
-            tooltip: {
-              title: strings('stake.withdrawal_time'),
-              content: strings('earn.tooltip_content.withdrawal_time'),
-            },
+          twClassName={KEY_VALUE_ROW_CLASSNAME}
+          keyLabel={strings('stake.withdrawal_time')}
+          keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
+          keyEndButtonIconProps={{
+            size: ButtonIconSize.Xs,
+            iconName: IconName.Question,
+            accessibilityRole: 'button',
+            accessibilityLabel: `${strings('stake.withdrawal_time')} tooltip`,
+            onPress: () =>
+              openTooltipModal(
+                strings('stake.withdrawal_time'),
+                strings('earn.tooltip_content.withdrawal_time'),
+              ),
           }}
-          value={{
-            label: {
-              text: strings('earn.immediate'),
-              variant: TextVariant.BodyMD,
-            },
-          }}
+          value={strings('earn.immediate')}
+          valueTextProps={KEY_VALUE_ROW_VALUE_TEXT_PROPS}
         />
         <KeyValueRow
-          field={{
-            label: {
-              text: strings('earn.protocol'),
-            },
-            tooltip: {
-              title: strings('earn.protocol'),
-              content: strings('earn.tooltip_content.protocol'),
-            },
+          twClassName={KEY_VALUE_ROW_CLASSNAME}
+          keyLabel={strings('earn.protocol')}
+          keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
+          keyEndButtonIconProps={{
+            size: ButtonIconSize.Xs,
+            iconName: IconName.Question,
+            accessibilityRole: 'button',
+            accessibilityLabel: `${strings('earn.protocol')} tooltip`,
+            onPress: () =>
+              openTooltipModal(
+                strings('earn.protocol'),
+                strings('earn.tooltip_content.protocol'),
+              ),
           }}
-          value={{
-            label: (
-              <ContractTag
-                contractAddress={lendingContractAddress}
-                contractName={lendingProtocol}
-                avatarAccountType={avatarAccountType}
-              />
-            ),
-          }}
+          value={
+            <ContractTag
+              contractAddress={lendingContractAddress}
+              contractName={lendingProtocol}
+              avatarAccountType={avatarAccountType}
+            />
+          }
         />
       </View>
     </InfoSection>

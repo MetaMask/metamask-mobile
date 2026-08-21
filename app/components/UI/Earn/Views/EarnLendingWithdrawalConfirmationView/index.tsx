@@ -11,16 +11,17 @@ import { capitalize } from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  BadgeNetwork,
+  ButtonIconSize,
+  FontWeight,
+  HeaderStandard,
+  IconName,
+  KeyValueRow,
+  Text,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import {
   IMetaMetricsEvent,
@@ -32,6 +33,7 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import { renderFromTokenMinimalUnit } from '../../../../../util/number';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../../hooks/useStyles';
+import useTooltipModal from '../../../../hooks/useTooltipModal';
 import InfoRowDivider from '../../../../Views/confirmations/components/UI/info-row-divider';
 import InfoSection from '../../../../Views/confirmations/components/UI/info-row/info-section';
 import AccountTag from '../../../Stake/components/StakingConfirmation/AccountTag/AccountTag';
@@ -53,6 +55,16 @@ import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
+
+const KEY_VALUE_ROW_CLASSNAME = 'h-auto px-0 overflow-hidden';
+
+const KEY_VALUE_ROW_KEY_TEXT_PROPS = {
+  color: TextColor.TextDefault,
+};
+
+const KEY_VALUE_ROW_VALUE_TEXT_PROPS = {
+  fontWeight: FontWeight.Regular,
+};
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -107,6 +119,8 @@ const EarnLendingWithdrawalConfirmationView = () => {
   const activeAccountGroup = useSelector(selectSelectedAccountGroup);
 
   const avatarAccountType = useSelector(selectAvatarAccountType);
+
+  const { openTooltipModal } = useTooltipModal();
 
   useEndTraceOnMount(TraceName.EarnWithdrawReviewScreen);
 
@@ -476,93 +490,86 @@ const EarnLendingWithdrawalConfirmationView = () => {
           <InfoSection>
             <View style={styles.infoSectionContainer}>
               <KeyValueRow
-                field={{
-                  label: {
-                    text: strings('earn.withdrawal_time'),
-                    variant: TextVariant.BodyMDMedium,
-                  },
-                  tooltip: {
-                    title: strings('earn.withdrawal_time'),
-                    content: strings('earn.tooltip_content.withdrawal_time'),
-                  },
+                twClassName={KEY_VALUE_ROW_CLASSNAME}
+                keyLabel={strings('earn.withdrawal_time')}
+                keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
+                keyEndButtonIconProps={{
+                  size: ButtonIconSize.Xs,
+                  iconName: IconName.Question,
+                  accessibilityRole: 'button',
+                  accessibilityLabel: `${strings(
+                    'earn.withdrawal_time',
+                  )} tooltip`,
+                  onPress: () =>
+                    openTooltipModal(
+                      strings('earn.withdrawal_time'),
+                      strings('earn.tooltip_content.withdrawal_time'),
+                    ),
                 }}
-                value={{
-                  label: {
-                    text: strings('earn.immediate'),
-                    variant: TextVariant.BodyMD,
-                  },
-                }}
+                value={strings('earn.immediate')}
+                valueTextProps={KEY_VALUE_ROW_VALUE_TEXT_PROPS}
               />
             </View>
           </InfoSection>
           <InfoSection>
             <View style={styles.infoSectionContainer}>
               <KeyValueRow
-                field={{
-                  label: {
-                    text: strings('earn.withdrawing_to'),
-                    variant: TextVariant.BodyMDMedium,
-                  },
-                }}
-                value={{
-                  label: (
-                    <AccountTag
-                      accountAddress={selectedAccount?.address}
-                      accountName={
-                        activeAccountGroup?.metadata?.name ||
-                        selectedAccount.metadata.name
-                      }
-                      avatarAccountType={avatarAccountType}
-                    />
-                  ),
-                }}
+                twClassName={KEY_VALUE_ROW_CLASSNAME}
+                keyLabel={strings('earn.withdrawing_to')}
+                keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
+                value={
+                  <AccountTag
+                    accountAddress={selectedAccount?.address}
+                    accountName={
+                      activeAccountGroup?.metadata?.name ||
+                      selectedAccount.metadata.name
+                    }
+                    avatarAccountType={avatarAccountType}
+                  />
+                }
               />
               <KeyValueRow
-                field={{
-                  label: {
-                    text: strings('earn.protocol'),
-                    variant: TextVariant.BodyMDMedium,
-                  },
-                  tooltip: {
-                    title: strings('earn.protocol'),
-                    content: strings('earn.tooltip_content.protocol'),
-                  },
+                twClassName={KEY_VALUE_ROW_CLASSNAME}
+                keyLabel={strings('earn.protocol')}
+                keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
+                keyEndButtonIconProps={{
+                  size: ButtonIconSize.Xs,
+                  iconName: IconName.Question,
+                  accessibilityRole: 'button',
+                  accessibilityLabel: `${strings('earn.protocol')} tooltip`,
+                  onPress: () =>
+                    openTooltipModal(
+                      strings('earn.protocol'),
+                      strings('earn.tooltip_content.protocol'),
+                    ),
                 }}
-                value={{
-                  label: (
-                    <ContractTag
-                      contractAddress={lendingContractAddress}
-                      contractName={capitalize(lendingProtocol)}
-                      avatarAccountType={avatarAccountType}
-                    />
-                  ),
-                }}
+                value={
+                  <ContractTag
+                    contractAddress={lendingContractAddress}
+                    contractName={capitalize(lendingProtocol)}
+                    avatarAccountType={avatarAccountType}
+                  />
+                }
               />
             </View>
             <InfoRowDivider />
             <View style={styles.infoSectionContainer}>
               <KeyValueRow
-                field={{
-                  label: {
-                    text: strings('earn.network'),
-                    variant: TextVariant.BodyMDMedium,
-                  },
-                }}
-                value={{
-                  label: (
-                    <View style={styles.networkRowRight}>
-                      <Badge
-                        variant={BadgeVariant.Network}
-                        size={AvatarSize.Xs}
-                        isScaled={false}
-                        imageSource={getNetworkImageSource({
+                twClassName={KEY_VALUE_ROW_CLASSNAME}
+                keyLabel={strings('earn.network')}
+                keyTextProps={KEY_VALUE_ROW_KEY_TEXT_PROPS}
+                value={
+                  <View style={styles.networkRowRight}>
+                    <BadgeNetwork
+                      src={
+                        getNetworkImageSource({
                           chainId: token?.chainId,
-                        })}
-                      />
-                      <Text>{networkConfig?.name}</Text>
-                    </View>
-                  ),
-                }}
+                        }) as React.ComponentProps<typeof BadgeNetwork>['src']
+                      }
+                    />
+                    <Text>{networkConfig?.name}</Text>
+                  </View>
+                }
               />
             </View>
           </InfoSection>
