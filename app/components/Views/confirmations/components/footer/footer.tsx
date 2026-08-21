@@ -43,6 +43,7 @@ import {
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 import { useIsTransactionPayAmountStale } from '../../hooks/pay/useIsTransactionPayAmountStale';
+import { useIsPayTokenBalanceUnresolved } from '../../hooks/pay/useIsPayTokenBalanceUnresolved';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import { useIsConfirmationFromQrAccount } from '../../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
@@ -84,6 +85,7 @@ export const Footer = () => {
     MM_PAY_TRANSACTION_TYPES,
   );
   const isPayAmountStale = useIsTransactionPayAmountStale();
+  const isPayBalanceUnresolved = useIsPayTokenBalanceUnresolved();
   const { isGaslessLoading } = useIsGaslessLoading();
   const { isFooterVisible: isFooterVisibleFlag, isTransactionValueUpdating } =
     useConfirmationContext();
@@ -190,6 +192,7 @@ export const Footer = () => {
     isTransactionValueUpdating ||
     isPayLoading ||
     (isMMPayTransaction && isPayAmountStale) ||
+    isPayBalanceUnresolved ||
     isGaslessLoading;
 
   const isFooterVisible =
