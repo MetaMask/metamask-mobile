@@ -8,25 +8,19 @@ interface UseNotificationListPerformanceConfig {
   enabled?: boolean;
 }
 
-/**
- * Measures time to notification list content via Sentry traces.
- *
- * Captured metric:
- * - **Time to Content** — mount until `isLoading` becomes `false` (list renders).
- *
- * - `source: 'warm'` when `isLoading` stays `false` from mount (data in Redux).
- * - `source: 'cold'` when `isLoading` goes `true → false` at any point (API fetch needed).
- */
+/** Time-to-content trace for the notification list. `source: warm` = data in Redux on mount; `source: cold` = API fetch needed. */
 export function useNotificationListPerformance({
   isLoading,
   notificationCount,
   enabled = true,
 }: UseNotificationListPerformanceConfig) {
-  const ttcTraceId = useRef(uuidv4());
+  const ttcTraceId = useRef('');
   const ttcStarted = useRef(false);
   const ttcEnded = useRef(false);
   const prevIsLoading = useRef<boolean | undefined>(undefined);
   const sawFetchRef = useRef(false);
+  const latestCountRef = useRef(notificationCount);
+  latestCountRef.current = notificationCount;
 
   useEffect(() => {
     if (!enabled) return;
@@ -50,13 +44,12 @@ export function useNotificationListPerformance({
           data: {
             success: false,
             reason: 'unmounted',
-            notification_count: notificationCount,
+            notification_count: latestCountRef.current,
           },
         });
         ttcStarted.current = false;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled]);
 
   useEffect(() => {
