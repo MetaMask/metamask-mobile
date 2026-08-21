@@ -4254,7 +4254,12 @@ describe('PerpsOrderView', () => {
     it('shows one consolidated insufficient-funds treatment', () => {
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: false,
-        errors: ['Insufficient balance. Required: $3.59, Available: $0.00004'],
+        errors: [
+          strings('perps.order.validation.insufficient_balance', {
+            required: '$3.59',
+            available: '$0.00004',
+          }),
+        ],
         isValidating: false,
         hasInsufficientBalance: true,
       });

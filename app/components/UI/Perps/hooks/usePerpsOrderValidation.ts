@@ -321,5 +321,6 @@ export function usePerpsOrderValidation(
     warnings: stableWarnings,
     isValid: validation.isValid,
     isValidating: validation.isValidating,
+    hasInsufficientBalance: validation.hasInsufficientBalance,
   };
 }
