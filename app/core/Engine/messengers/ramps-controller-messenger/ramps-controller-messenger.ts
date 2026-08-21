@@ -1,6 +1,7 @@
 import {
   RAMPS_CONTROLLER_AUTORAMP_SYNC_ACTIONS,
   RAMPS_CONTROLLER_REQUIRED_CONTROLLER_ACTIONS,
+  RAMPS_CONTROLLER_REQUIRED_CONTROLLER_EVENTS,
   RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS,
   RampsControllerMessenger,
   type RampsControllerOrderStatusChangedEvent,
@@ -52,10 +53,11 @@ export function getRampsControllerMessenger(
       // Autoramp Backup & Sync (User Storage + auth gate).
       ...RAMPS_CONTROLLER_AUTORAMP_SYNC_ACTIONS,
       // Autoramp creation resolves the MoonPay customer id from KYC rather
-      // than trusting a caller-supplied one.
+      // than trusting a caller-supplied one. Money Account provisioning also
+      // refreshes KYC status before registering the wallet.
       ...RAMPS_CONTROLLER_REQUIRED_CONTROLLER_ACTIONS,
     ],
-    events: [],
+    events: [...RAMPS_CONTROLLER_REQUIRED_CONTROLLER_EVENTS],
   });
 
   return messenger;

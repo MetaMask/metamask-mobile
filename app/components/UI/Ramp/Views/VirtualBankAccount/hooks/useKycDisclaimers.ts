@@ -69,6 +69,7 @@ export const useKycDisclaimers = (country: string): UseKycDisclaimersResult => {
       FETCH_TIMEOUT_MS,
     );
 
+    // TODO(JL): This seems like it should be using the KycController.loadDisclaimers() action instead?
     const fetchDisclaimers = async () => {
       try {
         const bearerToken =

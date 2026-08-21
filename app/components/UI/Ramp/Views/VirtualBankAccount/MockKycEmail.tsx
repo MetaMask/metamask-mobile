@@ -50,13 +50,14 @@ const MockKycEmail = () => {
     const startedAt = Date.now();
     vbaTrace('kyc.verification.start', { hasEmail: Boolean(trimmedEmail) });
     try {
+      // TODO(JL): Is this in the right place or does it need to be migrated to a controller?
       await startIronKycVerification(trimmedEmail);
       vbaTrace('kyc.verification.success', {
         durationMs: Date.now() - startedAt,
       });
-      // Wallet registration + autoramp now run off `KycController:statusChanged`
-      // (see registerMoneyAccountOnKycCompletion), so this screen only drives
-      // the SumSub hand-off and navigates on to the success screen.
+      // Wallet registration + autoramp run off `RampsController.provisionMoneyAccount`
+      // (intent set on Get Pix Key, completion event + this screen's pull path),
+      // so this screen only drives the SumSub hand-off and navigates on.
       navigation.navigate(Routes.RAMP.VBA_MOCK_KYC_SUCCESS);
     } catch (error) {
       vbaTrace('kyc.verification.failed', {

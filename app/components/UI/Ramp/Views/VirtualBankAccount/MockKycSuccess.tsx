@@ -47,8 +47,6 @@ import {
 } from '../../debug/vbaTrace';
 import { useVbaKycTrace } from './hooks/useVbaKycTrace';
 import { buildMoneyAccountAutorampParams } from './moneyAccountAutoramp';
-import { ensureMoneyAccountAutorampCreated } from './moneyAccountProvisioning';
-import { registerSelectedMoneyAccountWallet } from './registerSelectedMoneyAccountWallet';
 
 type StepId = 'identity' | 'customer' | 'signing' | 'autoramp' | 'live';
 
@@ -74,18 +72,17 @@ const STEPS: { id: StepId; title: string; caller: string }[] = [
   {
     id: 'customer',
     title: 'Map identity to MoonPay customer',
-    caller: 'GET /neobank/customers/{externalId}/external',
+    caller: 'RampsController.provisionMoneyAccount (KYC / Profile Sync)',
   },
   {
     id: 'signing',
     title: 'Sign wallet ownership',
-    caller:
-      'RampsController.registerMoneyAccountWallet (EIP-191; MoonPay chain=Monad)',
+    caller: 'RampsController.provisionMoneyAccount',
   },
   {
     id: 'autoramp',
     title: 'Create the autoramp',
-    caller: 'POST /neobank/autoramps',
+    caller: 'RampsController.provisionMoneyAccount',
   },
   {
     id: 'live',
@@ -128,35 +125,6 @@ function truncateId(value: string): string {
 
 function errorMessageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
-}
-
-/**
- * Reads the MoonPay customer id out of the neo-bank proxy's passthrough of
- * MoonPay's `Customer` object.
- */
-function readCustomerId(customer: unknown): string | null {
-  if (customer && typeof customer === 'object') {
-    const { id } = customer as { id?: unknown };
-    if (typeof id === 'string' && id.length > 0) {
-      return id;
-    }
-  }
-  return null;
-}
-
-/**
- * Reads MoonPay's account state off the same `Customer` object. MoonPay refuses
- * to create an autoramp for a customer that isn't active, so showing this
- * alongside the id turns an otherwise opaque 403 into a readable blocker.
- */
-function readCustomerStatus(customer: unknown): string | null {
-  if (customer && typeof customer === 'object') {
-    const { status } = customer as { status?: unknown };
-    if (typeof status === 'string' && status.length > 0) {
-      return status;
-    }
-  }
-  return null;
 }
 
 /**
@@ -248,24 +216,11 @@ const StepRow = ({
 /**
  * Demo-only KYC success screen.
  *
- * Rather than hiding the work behind a single spinner, this screen runs the
- * autoramp creation pipeline stage by stage and reports each one: resolving the
- * wallet's Profile Sync identity, mapping it to a MoonPay customer, signing
- * wallet ownership (Money Account registration), creating the autoramp, then
- * holding a websocket open so MoonPay webhook pushes land live. Failures
- * surface the upstream message in place, which is what makes this useful while
- * the proxy routes are still being built out.
- *
- * The signing stage reads `GET /kyc/status` on demand rather than waiting for
- * `KycController:statusChanged`, because a status that was already `completed`
- * before this screen mounted publishes no event. That read and the event
- * subscriber share {@link registerSelectedMoneyAccountWallet} and
- * {@link ensureMoneyAccountAutorampCreated}, so whichever arrives first does
- * the work and the other reuses it: one signature prompt, one autoramp.
- *
- * The MoonPay `customer_id` is never passed from here: `createAutoramp`
- * resolves it itself. Stage 2 performs the same lookup only so the mapping is
- * observable during the demo.
+ * Resolves the wallet's Profile Sync identity for display, then calls
+ * `RampsController.provisionMoneyAccount` (KYC-gated wallet registration +
+ * autoramp create). That method is idempotent with the KYC `completed` event
+ * path, so this pull still works when status was already completed before
+ * mount. A websocket then stays open so MoonPay webhook pushes land live.
  */
 const MockKycSuccess = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -275,7 +230,6 @@ const MockKycSuccess = () => {
   const [steps, setSteps] = useState<Record<StepId, StepState>>(IDLE_STEPS);
   const [isRunning, setIsRunning] = useState(false);
   const [autorampId, setAutorampId] = useState<string | null>(null);
-  const [customerStatus, setCustomerStatus] = useState<string | null>(null);
   const [pushCount, setPushCount] = useState(0);
   const isMountedRef = useRef(true);
 
@@ -299,7 +253,6 @@ const MockKycSuccess = () => {
   const handleRun = useCallback(async () => {
     setSteps(IDLE_STEPS);
     setAutorampId(null);
-    setCustomerStatus(null);
     setPushCount(0);
     setIsRunning(true);
 
@@ -368,103 +321,46 @@ const MockKycSuccess = () => {
         source: 'AuthenticationController.getSessionProfile',
       });
 
-      const { customerId, status } = await timed('customer', async () => {
-        const customer =
-          await Engine.context.NeoBankService.getCustomerByExternalId(
-            profileId,
-          );
-        const resolved = readCustomerId(customer);
-        vbaTrace('customer.lookup.result', {
-          route: 'GET /neobank/customers/{externalId}/external',
-          externalId: profileId,
-          customerId: resolved,
-          status: readCustomerStatus(customer),
-          responseKeys:
-            customer && typeof customer === 'object'
-              ? Object.keys(customer as Record<string, unknown>)
-              : null,
-        });
-        if (!resolved) {
-          throw new Error(
-            'Proxy responded without a customer id for this external id.',
-          );
-        }
-        return { customerId: resolved, status: readCustomerStatus(customer) };
-      });
-      setCustomerStatus(status);
-      updateStep('customer', {
-        status: 'success',
-        detail: status
-          ? `customer_id = ${truncateId(customerId)} · status = ${status}`
-          : `customer_id = ${truncateId(customerId)}`,
-      });
-
-      const registration = await timed('signing', async () => {
-        const { status: kycStatus } =
-          await Engine.context.KycController.refreshKycStatus();
-        if (kycStatus !== 'completed') {
-          throw new Error(
-            `KYC status is "${kycStatus}". The wallet can only be registered once it reads completed.`,
-          );
-        }
-        return registerSelectedMoneyAccountWallet({
+      const provisioned = await timed('signing', async () => {
+        vbaTrace('provision.start', {
           source: 'pipeline',
-          address: walletAddress,
+          address: abbreviate(walletAddress),
         });
-      });
-      updateStep('signing', {
-        status: 'success',
-        detail: registration.reused
-          ? `reused ${registration.resultType} · chain = ${registration.registrationChain} (autoramp destination is ${DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN})`
-          : `${registration.resultType} · chain = ${registration.registrationChain} (autoramp destination is ${DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN})`,
-      });
-
-      const autorampRequest = buildMoneyAccountAutorampParams(walletAddress);
-
-      const account = await timed('autoramp', async () => {
-        vbaTrace('autoramp.create.start', {
-          route: 'POST /neobank/autoramps',
-          // `customer_id` is not passed from here: RampsController resolves it
-          // via resolveAutorampCustomerId. Stage 2 above shows what the UI
-          // believes that resolution returns.
-          uiResolvedCustomerId: customerId,
-          uiResolvedCustomerStatus: status,
-          request: autorampRequest,
+        const result =
+          await Engine.context.RampsController.provisionMoneyAccount({
+            address: walletAddress,
+            autoramp: buildMoneyAccountAutorampParams(walletAddress),
+          });
+        vbaTrace('provision.success', {
+          autorampId: result.autoramp.id,
+          status: result.autoramp.status,
+          registrationType: result.registration.type,
         });
-        try {
-          const created =
-            await ensureMoneyAccountAutorampCreated(walletAddress);
-          vbaTrace('autoramp.create.success', {
-            autorampId: created.id,
-            status: created.status,
-          });
-          return created;
-        } catch (error) {
-          vbaTrace('autoramp.create.failed', {
-            uiResolvedCustomerId: customerId,
-            uiResolvedCustomerStatus: status,
-            error: describeError(error),
-            // The response body for this failure is reported separately by the
-            // `neobank.response.error` record for POST /neobank/autoramps.
-            bodySource: 'neobank.response.error',
-          });
-          throw error;
-        }
+        return result;
       });
 
       if (!isMountedRef.current) {
         return;
       }
 
-      setAutorampId(account.id);
+      updateStep('customer', {
+        status: 'success',
+        detail: `customer_id = ${truncateId(provisioned.autoramp.customerId)}`,
+      });
+      updateStep('signing', {
+        status: 'success',
+        detail: `${provisioned.registration.type} · chain = ${DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN}`,
+      });
+
+      setAutorampId(provisioned.autoramp.id);
       updateStep('autoramp', {
         status: 'success',
-        detail: `id = ${truncateId(account.id)} · status = ${account.status}`,
+        detail: `id = ${truncateId(provisioned.autoramp.id)} · status = ${provisioned.autoramp.status}`,
       });
 
       const socket = NeobankWebSocket.getInstance();
       socket.connect();
-      vbaTrace('push.subscribe', { autorampId: account.id });
+      vbaTrace('push.subscribe', { autorampId: provisioned.autoramp.id });
       updateStep('live', {
         status: 'waiting',
         detail:
@@ -594,15 +490,9 @@ const MockKycSuccess = () => {
               Pipeline stopped
             </Text>
             <Text variant={TextVariant.BodySm} twClassName="mt-1">
-              The failing step above shows the upstream response. A 404 on the
-              customer lookup means MoonPay has no customer registered against
-              this wallet&apos;s external id yet.
+              The failing step above shows the upstream response from
+              RampsController.provisionMoneyAccount.
             </Text>
-            {customerStatus && customerStatus !== 'Active' ? (
-              <Text variant={TextVariant.BodySm} twClassName="mt-2">
-                {`This customer exists and is mapped correctly, but MoonPay reports status = ${customerStatus}, so it refuses to create an autoramp ("Customer is not active"). Identity documents have to clear before this stage can pass.`}
-              </Text>
-            ) : null}
           </Box>
         ) : null}
       </ScrollView>

@@ -2,6 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { Alert, Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -26,10 +27,13 @@ import { TagShape } from '../../../../../component-library/base-components/TagBa
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import Engine from '../../../../../core/Engine';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { PIX_BRAND_COLOR, VBA_KYC_COUNTRY_CODE } from './constants';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import { startIronKycFlow } from './ironKycFlow';
+import { buildMoneyAccountAutorampParams } from './moneyAccountAutoramp';
 
 // Pix's badge always renders bold italic white text on its brand teal,
 // regardless of app theme, so this is a plain style object rather than a
@@ -92,6 +96,7 @@ const LegalLink = ({
 const GetPixKey = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const walletAddress = useSelector(selectSelectedInternalAccountAddress);
   const [isStartingKyc, setIsStartingKyc] = useState(false);
   const { disclaimers, isLoading, error, retry } =
     useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
@@ -108,6 +113,14 @@ const GetPixKey = () => {
     setIsStartingKyc(true);
     try {
       await startIronKycFlow();
+      if (walletAddress) {
+        // So a later KycController:statusChanged `completed` event can register
+        // the wallet and create the autoramp without this screen staying mounted.
+        Engine.context.RampsController.setMoneyAccountProvisioningIntent({
+          address: walletAddress,
+          autoramp: buildMoneyAccountAutorampParams(walletAddress),
+        });
+      }
       navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
     } catch (error_) {
       Alert.alert(
@@ -119,7 +132,7 @@ const GetPixKey = () => {
     } finally {
       setIsStartingKyc(false);
     }
-  }, [navigation]);
+  }, [navigation, walletAddress]);
 
   return (
     <SafeAreaView

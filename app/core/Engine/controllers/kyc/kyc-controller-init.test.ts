@@ -6,7 +6,6 @@ import {
 } from '../../messengers/kyc/kyc-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
 import { kycControllerInit } from './kyc-controller-init';
-import { createRegisterMoneyAccountOnKycCompletion } from '../../../../components/UI/Ramp/Views/VirtualBankAccount/registerMoneyAccountOnKycCompletion';
 import {
   KycController,
   type KycControllerMessenger,
@@ -20,14 +19,6 @@ jest.mock('@metamask/kyc-controller', () => ({
     }
   },
 }));
-
-const mockHandler = jest.fn();
-jest.mock(
-  '../../../../components/UI/Ramp/Views/VirtualBankAccount/registerMoneyAccountOnKycCompletion',
-  () => ({
-    createRegisterMoneyAccountOnKycCompletion: jest.fn(() => mockHandler),
-  }),
-);
 
 const createMockInitMessenger = (): KycControllerInitMessenger =>
   ({
@@ -88,15 +79,11 @@ describe('kycControllerInit', () => {
     expect(controller).toBeInstanceOf(KycController);
   });
 
-  it('subscribes the Money Account registration orchestrator to statusChanged', () => {
+  it('does not subscribe to KYC status from kyc-controller init', () => {
     const request = getInitRequestMock();
 
     kycControllerInit(request);
 
-    expect(createRegisterMoneyAccountOnKycCompletion).toHaveBeenCalledTimes(1);
-    expect(request.initMessenger.subscribe).toHaveBeenCalledWith(
-      'KycController:statusChanged',
-      mockHandler,
-    );
+    expect(request.initMessenger.subscribe).not.toHaveBeenCalled();
   });
 });

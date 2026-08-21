@@ -105,6 +105,7 @@ export async function startIronKycFlow(): Promise<void> {
   );
 }
 
+// TODO(JL): Does this need to be moved into the RampsController?
 /**
  * Creates the Iron customer for `email`, posts the terms consents, and hands
  * off to the native SumSub SDK for document verification.

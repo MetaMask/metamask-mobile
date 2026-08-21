@@ -57,9 +57,10 @@ export type KycControllerInitMessenger = ReturnType<
 >;
 
 /**
- * Get the init messenger for the KycController. Scoped to the
- * `KycController:statusChanged` event that the Engine-level Money Account
- * registration / autoramp orchestrator subscribes to.
+ * Get the init messenger for the KycController.
+ *
+ * `KycController:statusChanged` is consumed by `RampsController` (via
+ * `RAMPS_CONTROLLER_REQUIRED_CONTROLLER_EVENTS`), not by this init messenger.
  *
  * @param rootMessenger - The root messenger.
  * @returns The KycControllerInitMessenger.
