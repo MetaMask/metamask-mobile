@@ -170,9 +170,7 @@ const persistUserTransform = createTransform(
       userLoggedIn,
       ...state
     } = inboundState;
-    // Reconstruct data to persist. `userLoggedIn` is session-only: a rehydrated
-    // `true` would claim the wallet is unlocked while Login is still up.
-    // Omitted here, so autoMergeLevel2 falls back to `userInitialState`.
+    // userLoggedIn is session-only; rehydrated true would claim unlocked during Login.
     return state;
   },
   null,

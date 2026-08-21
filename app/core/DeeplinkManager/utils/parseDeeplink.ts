@@ -39,11 +39,7 @@ async function parseDeeplink({
   browserCallBack?: (url: string) => void;
   onHandled?: () => void;
   mode?: DeeplinkParseMode;
-  /**
-   * Token of the Deeplink Processed span the calling `parse` owns. `null`
-   * (e.g. a recursive parse that hit the in-flight guard) makes the detached
-   * settle below a no-op.
-   */
+  /** null (recursive parse hit the guard) makes the detached settle a no-op. */
   processedTraceToken?: DeeplinkTraceToken | null;
 }): Promise<boolean | DeeplinkIntent | null> {
   try {
@@ -87,18 +83,10 @@ async function parseDeeplink({
         if (mode === 'resolve') {
           return (await result) ?? null;
         }
-        // Execute mode deliberately does not await the universal-link flow —
-        // it can block on the interstitial for as long as the user takes, and
-        // `parse` must return promptly. That means `parse`'s own Processed
-        // end call fires while the modal is still up (a no-op), so a gated
-        // link's trace has to be settled from this continuation once the flow
-        // actually finishes; otherwise its after_gate segment leaks into the
-        // next deeplink. Promise.resolve tolerates mocks that return a
-        // non-Promise synchronously.
+        // Not awaited — parse must return promptly; settle the trace from this continuation.
         Promise.resolve(result)
           .then((flowResult) => {
             if (flowResult === false) {
-              // The user declined the interstitial; release span and guards.
               cancelDeeplinkProcessedTrace({
                 reason: 'rejected',
                 traceToken: processedTraceToken,
