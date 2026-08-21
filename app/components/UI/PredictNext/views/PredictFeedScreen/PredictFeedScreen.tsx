@@ -20,6 +20,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useFeed } from '../../hooks/useFeed';
+import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import {
   getFeedScreen,
   getFeedScreenTab,
@@ -29,6 +30,7 @@ import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { PredictEventCard } from '../../events/cards';
 import type { PredictEvent, PredictVenueId } from '../../types';
+import { TraceName } from '../../../../../util/trace';
 import { FeedScreenTabs } from './internal/FeedScreenTabs';
 import { PredictFeedScreenTestIds } from './PredictFeedScreen.testIds';
 
@@ -106,6 +108,16 @@ const PredictFeedContent = ({
     [data],
   );
   const hasInitialError = isError && events.length === 0;
+
+  usePredictNextMeasurement({
+    traceName: TraceName.PredictNextFeedView,
+    conditions: [!isLoading],
+    debugContext: {
+      feedId: activeTab.feedId,
+      eventCount: events.length,
+      error: isError,
+    },
+  });
 
   const handleEndReached = useCallback(() => {
     if (!hasNextPage || isFetchingNextPage) {
