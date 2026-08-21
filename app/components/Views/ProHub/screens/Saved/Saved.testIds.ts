@@ -1,0 +1,15 @@
+export const SavedTestIds = {
+  CONTAINER: 'saved-container',
+  BACK_BUTTON: 'saved-back-button',
+  TOTAL_VALUE: 'saved-total-value',
+  TOTAL_LABEL: 'saved-total-label',
+  TRADING_FEES_ROW: 'saved-trading-fees-row',
+  CARD_ATM_FEES_ROW: 'saved-card-atm-fees-row',
+  COVERAGE_ROW: 'saved-coverage-row',
+  PAID_FOR_ITSELF_TITLE: 'saved-paid-for-itself-title',
+  PAID_FOR_ITSELF_VALUE: 'saved-paid-for-itself-value',
+  PAID_FOR_ITSELF_DESCRIPTION: 'saved-paid-for-itself-description',
+  SWAPS_PROMO_TITLE: 'saved-swaps-promo-title',
+  SWAPS_PROMO_DESCRIPTION: 'saved-swaps-promo-description',
+  SWAP_BUTTON: 'saved-swap-button',
+} as const;

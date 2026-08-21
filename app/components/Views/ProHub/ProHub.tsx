@@ -113,6 +113,10 @@ const ProHub = () => {
     navigation.navigate(Routes.PRO_HUB.EARNED);
   }, [navigation]);
 
+  const handleSavedPress = useCallback(() => {
+    navigation.navigate(Routes.PRO_HUB.SAVED);
+  }, [navigation]);
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
@@ -167,6 +171,7 @@ const ProHub = () => {
             label={strings('pro_hub.saved_with_pro')}
             value={MOCK_PRO_HUB_STATS.saved}
             testID={ProHubTestIds.SAVED_CARD}
+            onPress={handleSavedPress}
           />
         </Box>
 

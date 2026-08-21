@@ -10975,6 +10975,21 @@
       "grow_description": "Every $1,000 in your Money account earns about $70 a year at up to 7% APY.",
       "add_money": "Add money"
     },
+    "saved": {
+      "total_label": "Saved with Pro since joining",
+      "trading_fees_title": "Trading fees",
+      "trading_fees_subtitle": "Member pricing on swaps and perps",
+      "card_atm_fees_title": "Card & ATM fees",
+      "card_atm_fees_subtitle": "Global withdrawals and FX",
+      "coverage_title": "Included coverage",
+      "coverage_subtitle": "$10k DeFi protection",
+      "coverage_active": "Active",
+      "paid_for_itself_title": "Pro has paid for itself",
+      "paid_for_itself_description": "Earned back since joining — {{multiplier}}x your {{fee}} membership fee.",
+      "swaps_promo_title": "Your first $500 in swaps, on us",
+      "swaps_promo_description": "Every month, your first $500 in swaps is on us — no MetaMask fee up to the cap.",
+      "swap": "Swap"
+    },
     "explore_benefits": "Explore benefits",
     "membership": {
       "title": "Your membership",
