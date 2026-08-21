@@ -531,11 +531,9 @@ describe('usePerpsProPositionsPanelActions', () => {
     let actions:
       | ReturnType<typeof usePerpsProPositionsPanelActions>
       | undefined;
-    const filteredOrders = [
-      { orderId: 'eth-1', symbol: 'ETH' },
-    ] as unknown as Parameters<
-      ReturnType<typeof usePerpsProPositionsPanelActions>['renderActionSheets']
-    >[2];
+    const filteredOrders: Order[] = [
+      { ...order, orderId: 'eth-1', symbol: 'ETH' },
+    ];
 
     render(
       <ActionHarness
