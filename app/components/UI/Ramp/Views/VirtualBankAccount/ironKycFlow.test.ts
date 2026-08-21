@@ -6,7 +6,7 @@ jest.mock('../../../../../core/Engine', () => ({
     KycController: {
       state: { error: null, disclaimers: [] },
       initialize: jest.fn(),
-      createIronCustomer: jest.fn(),
+      createVendorCustomer: jest.fn(),
       acceptTermsAndStartSession: jest.fn(),
     },
   },
@@ -15,7 +15,7 @@ jest.mock('../../../../../core/Engine', () => ({
 const mockKycController = Engine.context.KycController as unknown as {
   state: { error: string | null; disclaimers: { id: string }[] };
   initialize: jest.Mock<Promise<void>, [unknown?]>;
-  createIronCustomer: jest.Mock<Promise<void>, [unknown?]>;
+  createVendorCustomer: jest.Mock<Promise<void>, [unknown?]>;
   acceptTermsAndStartSession: jest.Mock<Promise<void>, [unknown?]>;
 };
 
@@ -34,7 +34,7 @@ describe('startIronKycFlow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockKycController.initialize.mockResolvedValue(undefined);
-    mockKycController.createIronCustomer.mockResolvedValue(undefined);
+    mockKycController.createVendorCustomer.mockResolvedValue(undefined);
     mockKycController.acceptTermsAndStartSession.mockResolvedValue(undefined);
     resetControllerState();
   });
@@ -81,7 +81,7 @@ describe('startIronKycVerification', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockKycController.initialize.mockResolvedValue(undefined);
-    mockKycController.createIronCustomer.mockResolvedValue(undefined);
+    mockKycController.createVendorCustomer.mockResolvedValue(undefined);
     mockKycController.acceptTermsAndStartSession.mockResolvedValue(undefined);
     resetControllerState();
   });
@@ -89,7 +89,8 @@ describe('startIronKycVerification', () => {
   it('creates the Iron customer then accepts terms to start the session', async () => {
     await startIronKycVerification('user@example.com');
 
-    expect(mockKycController.createIronCustomer).toHaveBeenCalledWith({
+    expect(mockKycController.createVendorCustomer).toHaveBeenCalledWith({
+      vendor: 'iron',
       email: 'user@example.com',
     });
     expect(mockKycController.acceptTermsAndStartSession).toHaveBeenCalledWith({
@@ -101,7 +102,7 @@ describe('startIronKycVerification', () => {
   });
 
   it('throws the error the controller recorded while creating the customer', async () => {
-    mockKycController.createIronCustomer.mockImplementation(async () => {
+    mockKycController.createVendorCustomer.mockImplementation(async () => {
       mockKycController.state.error = 'Iron customer creation failed.';
     });
 
