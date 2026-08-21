@@ -416,14 +416,7 @@ export function* handleDeeplinkSaga() {
         yield call(waitForSDKServicesInitialization);
       }
 
-      // Fork so the saga loop keeps listening for new deeplink events
-      // while parseDeeplinkAfterNavReady waits for navigation to settle.
-      // Capture before clearing pending: the leftover cold-start parse flag
-      // is one-shot and must travel with this fork, not a later warm parse.
-      // The fallback is captured here rather than read inside `parse`, which
-      // runs only after MainNavigator mounts — by then the post-unlock
-      // navigation has cleared the remembered type and a cold start would
-      // report `warm`.
+      // Fork so the loop keeps listening. Fallback captured here — inside parse, post-unlock nav has already cleared it.
       yield fork(
         parseDeeplinkAfterNavReady,
         deeplink,

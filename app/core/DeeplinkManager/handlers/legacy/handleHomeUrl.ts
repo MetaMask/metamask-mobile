@@ -19,10 +19,7 @@ export function navigateToHomeUrl(params: { homePath?: string }) {
     ?.toLowerCase();
   const shouldOpenNetworkSelector = openNetworkSelectorParam === 'true';
 
-  // Legacy handler with no intent, so declare the target here: `home` is
-  // often opened while Home is already focused, which commits no navigation
-  // state change — the Navigated span can then only be closed by the
-  // already-focused settle, and that requires a known target.
+  // Declare target before navigate; home is often already focused (no state change fires).
   resolveDeeplinkNavigatedTarget({ targetRoute: Routes.WALLET.HOME });
   NavigationService.navigation.navigate(Routes.WALLET.HOME);
 

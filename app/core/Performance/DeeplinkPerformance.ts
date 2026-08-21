@@ -154,12 +154,7 @@ let processed: ProcessedState | null = null;
 let navigated: NavigatedState | null = null;
 /** When Processed last closed; the inferred Navigated end keys off this. */
 let processedEndedAt: number | null = null;
-/**
- * Focused route chain as of the last navigation commit, recorded whether or
- * not a deeplink is in flight. Needed to close a Navigated span whose target
- * is already focused: navigating to the focused route commits no state
- * change, so the nav callback would never fire for it.
- */
+// Recorded even without a span — needed to close Navigated for already-focused routes.
 let lastFocusedRouteNames: string[] = [];
 let nextTraceToken = 0;
 
@@ -261,14 +256,7 @@ export const markDeeplinkInterstitialContinued = () => {
   });
 };
 
-/**
- * Closes Navigated when its known target is already focused as Processed
- * ends. Navigating to the focused route commits no state change, so
- * `handleDeeplinkNavigationStateChange` would never fire and the span would
- * hang until cleanup dropped it (e.g. a `home` link opened while on Home).
- * Inferred spans are deliberately not settled here: without a known route
- * there is no way to tell "already there" from "has not navigated yet".
- */
+// Closes Navigated when target is already focused (nav commits no state change). Inferred spans excluded.
 const settleAlreadyFocusedNavigatedTrace = () => {
   if (navigated === null || navigated.targetRoute === null) {
     return;
@@ -293,15 +281,8 @@ const settleAlreadyFocusedNavigatedTrace = () => {
 };
 
 /**
- * Ends Processed at one of two seams. `pre_navigate` (intent handlers, after
- * `intent.prepare()`) is exact; `handler_finished` (everything else) includes the
- * handler's own navigate call. The tag makes the imprecision explicit — as
- * handlers migrate to intents they graduate seams with no telemetry change.
- *
- * @param traceToken - When given, the end only applies to the span opened
- * with that token. Detached callers (the universal-link flow settles after
- * `parse` has already returned) must pass it so a slow flow cannot close a
- * later deeplink's span.
+ * Ends Processed. `pre_navigate` (intent handlers) is exact; `handler_finished` includes the handler's navigate call.
+ * @param traceToken - When given, only closes the span opened with that token.
  */
 export const endDeeplinkProcessedTrace = ({
   seam,
@@ -335,12 +316,8 @@ export const endDeeplinkProcessedTrace = ({
 };
 
 /**
- * Ends an in-flight Navigated span that cannot reach a destination. Releasing
- * the guard matters as much as the span: a retry has to start from its own
- * entry point rather than inheriting time from the failed attempt.
- *
- * @param traceToken - When given, the cancel only applies to that span. Omit
- * it for terminal failures that are not tied to a specific entry point.
+ * Cancels an in-flight Navigated span. Also releases the guard so a retry starts clean.
+ * @param traceToken - When given, only cancels the span opened with that token.
  */
 export const cancelDeeplinkNavigatedTrace = ({
   reason,
@@ -368,14 +345,8 @@ export const cancelDeeplinkNavigatedTrace = ({
 };
 
 /**
- * Ends a Processed flow that will not reach navigation, and cancels the
- * Navigated span with it — a link that goes nowhere must not leave Navigated
- * waiting on a state change that never comes. A rejection while the modal is
- * up has no open span (the `before_gate` segment already closed as a valid
- * measurement); only the state is released.
- *
- * @param traceToken - When given, the cancel only applies to the span opened
- * with that token; see {@link endDeeplinkProcessedTrace}.
+ * Cancels Processed and cascades to Navigated. Interstitial-rejected links have no open span (before_gate already closed); only state is released.
+ * @param traceToken - When given, only cancels the span opened with that token.
  */
 export const cancelDeeplinkProcessedTrace = ({
   reason,
@@ -481,8 +452,6 @@ export const handleDeeplinkNavigationStateChange = ({
 }: {
   focusedRouteNames: string[];
 }) => {
-  // Recorded even with no span in flight — the already-focused settle needs
-  // to know where the app was *before* the deeplink arrived.
   lastFocusedRouteNames = focusedRouteNames;
 
   if (navigated === null) {
