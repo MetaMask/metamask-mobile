@@ -7,6 +7,7 @@ import { QuoteErrorBanner } from './QuoteErrorBanner';
 import {
   createBannerState,
   createStockRwaToken,
+  PINNED_STOCK_MARKET_NOW,
   renderBanner,
 } from './testUtils';
 
@@ -26,8 +27,14 @@ const setQuoteData = (overrides: Partial<QuoteContextValue> = {}) => {
 
 describe('QuoteErrorBanner', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(PINNED_STOCK_MARKET_NOW);
     jest.clearAllMocks();
     setQuoteData();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('explains why the quote stream completed without a quote', () => {

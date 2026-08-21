@@ -5,10 +5,20 @@ import { OffHoursTradingBanner } from './OffHoursTradingBanner';
 import {
   createBannerState,
   createStockRwaToken,
+  PINNED_STOCK_MARKET_NOW,
   renderBanner,
 } from './testUtils';
 
 describe('OffHoursTradingBanner', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(PINNED_STOCK_MARKET_NOW);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('warns when the dest stock is in an off-hours window', () => {
     const nowMs = Date.now();
 

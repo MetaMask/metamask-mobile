@@ -93,8 +93,10 @@ jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   SwapBridgeNavigationLocation: { Rewards: 'Rewards' },
 }));
 
-let mockIsTokenTradingOpen = jest.fn(() => true);
-let mockIsTokenMarketFullyClosed = jest.fn(() => false);
+const mockIsTokenTradingOpen = jest.fn((_token?: { symbol?: string }) => true);
+const mockIsTokenMarketFullyClosed = jest.fn(
+  (_token?: { symbol?: string }) => false,
+);
 
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
@@ -334,8 +336,10 @@ describe('OndoCampaignRwaSelectorView', () => {
     jest.clearAllMocks();
     mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
     mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
-    mockIsTokenTradingOpen = jest.fn(() => true);
-    mockIsTokenMarketFullyClosed = jest.fn(() => false);
+    mockIsTokenTradingOpen.mockReset();
+    mockIsTokenTradingOpen.mockReturnValue(true);
+    mockIsTokenMarketFullyClosed.mockReset();
+    mockIsTokenMarketFullyClosed.mockReturnValue(false);
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
@@ -640,8 +644,8 @@ describe('OndoCampaignRwaSelectorView', () => {
   describe('after hours sheet', () => {
     beforeEach(() => {
       // Off-hours: tradable, but outside regular market hours.
-      mockIsTokenTradingOpen = jest.fn(() => false);
-      mockIsTokenMarketFullyClosed = jest.fn(() => false);
+      mockIsTokenTradingOpen.mockReturnValue(false);
+      mockIsTokenMarketFullyClosed.mockReturnValue(false);
     });
 
     it('shows after hours sheet when token is in off-hours', () => {
@@ -717,8 +721,8 @@ describe('OndoCampaignRwaSelectorView', () => {
 
   describe('market closed', () => {
     it('shows a dismissible market closed alert and stays on the selector', () => {
-      mockIsTokenTradingOpen = jest.fn(() => false);
-      mockIsTokenMarketFullyClosed = jest.fn(() => true);
+      mockIsTokenTradingOpen.mockReturnValue(false);
+      mockIsTokenMarketFullyClosed.mockReturnValue(true);
       const token = buildToken('AAPL');
       mockUseRwaTokens.mockReturnValue({ data: [token], isLoading: false });
 
@@ -736,10 +740,10 @@ describe('OndoCampaignRwaSelectorView', () => {
     });
 
     it('lets the user pick another asset after closing the market closed alert', () => {
-      mockIsTokenMarketFullyClosed = jest.fn(
+      mockIsTokenMarketFullyClosed.mockImplementation(
         (token?: { symbol?: string }) => token?.symbol === 'AAPL',
       );
-      mockIsTokenTradingOpen = jest.fn(
+      mockIsTokenTradingOpen.mockImplementation(
         (token?: { symbol?: string }) => token?.symbol === 'MSFT',
       );
       mockUseRwaTokens.mockReturnValue({

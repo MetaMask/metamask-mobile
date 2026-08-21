@@ -14,6 +14,9 @@ export const mockSourceToken = createMockToken({
 
 const HOUR_MS = 60 * 60 * 1000;
 
+/** Pinned clock for stock-RWA market-hours tests. Far from any window boundary. */
+export const PINNED_STOCK_MARKET_NOW = new Date('2024-01-01T12:00:00.000Z');
+
 export const createStockRwaToken = ({
   nowMs,
   inRegularHours,
