@@ -7,7 +7,6 @@ import {
   Card,
   KeyValueRow,
   Text,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
@@ -21,12 +20,10 @@ import ContractTag from '../ContractTag/ContractTag';
 import useVaultMetadata from '../../../hooks/useVaultMetadata';
 import { EVM_SCOPE } from '../../../../Earn/constants/networks';
 import { selectAvatarAccountType } from '../../../../../../selectors/settings';
-
-const KEY_VALUE_ROW_CLASSNAME = 'h-auto px-0 overflow-hidden';
-
-const KEY_VALUE_ROW_KEY_TEXT_PROPS = {
-  color: TextColor.TextDefault,
-};
+import {
+  KEY_VALUE_ROW_CLASSNAME,
+  KEY_VALUE_ROW_KEY_TEXT_PROPS,
+} from '../keyValueRow';
 
 const AccountCard = ({
   contractName,
