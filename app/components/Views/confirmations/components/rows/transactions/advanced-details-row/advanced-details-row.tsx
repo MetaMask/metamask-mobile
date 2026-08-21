@@ -6,8 +6,6 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { strings } from '../../../../../../../../locales/i18n';
-import Text from '../../../../../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../../../../../component-library/components/Texts/Text/Text.types';
 import { useEditNonce } from '../../../../../../hooks/useEditNonce';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import Name from '../../../../../../UI/Name';
@@ -15,6 +13,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { NameType } from '../../../../../../UI/Name/Name.types';
 import { selectSmartTransactionsEnabled } from '../../../../../../../selectors/smartTransactionsController';
@@ -118,7 +118,7 @@ const AdvancedDetailsRow = () => {
                 tooltip={strings('transaction.custom_nonce_tooltip')}
               >
                 <Text
-                  variant={TextVariant.BodyMD}
+                  variant={TextVariant.BodyMd}
                   style={styles.nonceText}
                   onPress={
                     isNonceChangeDisabled ? undefined : handleShowNonceModal

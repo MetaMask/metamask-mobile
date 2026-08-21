@@ -340,7 +340,7 @@ describe('activity list helpers', () => {
           symbol: 'DAI',
         },
       },
-      type: 'swapIncomplete',
+      type: 'swap',
     });
 
     expect(getActivityValue(tokenItem)).toBe('1 ETH');

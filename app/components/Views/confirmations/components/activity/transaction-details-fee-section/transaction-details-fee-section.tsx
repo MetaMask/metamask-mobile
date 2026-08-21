@@ -1,15 +1,14 @@
 import React from 'react';
 import { BigNumber } from 'bignumber.js';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import {
   Icon,
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
@@ -49,7 +48,7 @@ export function TransactionDetailsFeeSection() {
             color={IconColor.SuccessDefault}
             size={IconSize.Sm}
           />
-          <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
             {strings('transactions.paid_by_metamask')}
           </Text>
         </Box>

@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { StyleProp, TextStyle, TouchableOpacity, View } from 'react-native';
-
 import {
   ButtonIcon,
   ButtonIconSize,
   IconName,
+  Text,
+  TextProps,
 } from '@metamask/design-system-react-native';
-import Text from '../../../../../../component-library/components/Texts/Text';
-import { TextProps } from '../../../../../../component-library/components/Texts/Text/Text.types';
 import { useStyles } from '../../../../../../component-library/hooks';
 import BottomModal from '../bottom-modal';
 import styleSheet from './text-with-tooltip.styles';
+
 interface TextWithTooltipProps {
   ellipsizeMode?: TextProps['ellipsizeMode'];
   label: string;

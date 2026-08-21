@@ -11,6 +11,7 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import { PerpsModeToggleSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PERPS_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsModeAnalytics';
@@ -40,15 +41,17 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
   size = SegmentedControlSize.Sm,
   isFullWidth = false,
   source,
+  enableHaptics = false,
   testID = PerpsModeToggleSelectorsIDs.CONTAINER,
 }) => {
   const { track } = usePerpsEventTracking();
+  const { playImpact } = useHaptics();
 
   const handleChange = useCallback(
-    async (value: string) => {
+    async (value: string): Promise<boolean> => {
       const nextMode = value as PerpsMode;
       if (nextMode === mode) {
-        return;
+        return false;
       }
 
       // Defer analytics until the parent confirms the mode was applied.
@@ -56,7 +59,13 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
       // switching — otherwise we would count dismissals as mode switches.
       const applied = await onChange?.(nextMode);
       if (applied === false) {
-        return;
+        return false;
+      }
+
+      // The active pill fires TabChange after its delayed switch request
+      // confirms the mode was applied; the default variant fires here.
+      if (enableHaptics && variant !== 'active') {
+        playImpact(ImpactMoment.TabChange).catch(() => undefined);
       }
 
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
@@ -65,8 +74,9 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
         [PERPS_MODE_ANALYTICS_PROPERTY]: nextMode,
         ...(source ? { [PERPS_EVENT_PROPERTY.SOURCE]: source } : {}),
       });
+      return true;
     },
-    [mode, onChange, source, track],
+    [enableHaptics, mode, onChange, playImpact, source, track, variant],
   );
 
   const liteLabel = strings('perps.mode.lite');
@@ -85,6 +95,7 @@ const PerpsModeToggle: React.FC<PerpsModeToggleProps> = ({
       <PerpsModeSwitchPill
         currentModeLabel={currentModeLabel}
         isPro={isPro}
+        enableHaptics={enableHaptics}
         onSwitchRequest={() =>
           handleChange(isPro ? PerpsMode.Lite : PerpsMode.Pro)
         }

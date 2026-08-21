@@ -9,8 +9,12 @@ import { selectConversionRateByChainId } from '../../../../../../../../../select
 import { useTheme } from '../../../../../../../../../util/theme';
 
 import ButtonPill from '../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
-import { ButtonIcon, IconName } from '@metamask/design-system-react-native';
-import Text from '../../../../../../../../../component-library/components/Texts/Text';
+import {
+  ButtonIcon,
+  IconColor,
+  IconName,
+  Text,
+} from '@metamask/design-system-react-native';
 
 import AssetPill from '../../../../../../../../UI/SimulationDetails/AssetPill/AssetPill';
 import { IndividualFiatDisplay } from '../../../../../../../../UI/SimulationDetails/FiatDisplay/FiatDisplay';
@@ -138,6 +142,7 @@ const NativeValueDisplay: React.FC<PermitSimulationValueDisplayParams> = ({
                   style={styles.valueModalHeaderIcon}
                   onPress={() => setHasValueModalOpen(false)}
                   iconName={IconName.ArrowLeft}
+                  iconProps={{ color: IconColor.IconDefault }}
                 />
                 <Text style={styles.valueModalHeaderText}>
                   {modalHeaderText}

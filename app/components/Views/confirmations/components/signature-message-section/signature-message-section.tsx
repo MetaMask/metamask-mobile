@@ -8,11 +8,10 @@ import {
   IconColor,
   IconName,
   IconSize,
-} from '@metamask/design-system-react-native';
-import Text, {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Expandable from '../UI/expandable';
 import styleSheet from './signature-message-section.styles';
@@ -39,7 +38,10 @@ const SignatureMessageSection = ({
         <InfoSection>
           <View style={styles.container}>
             <View>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
                 {strings('confirm.message')}
               </Text>
               {messageCollapsed && (

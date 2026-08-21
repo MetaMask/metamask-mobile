@@ -12,12 +12,10 @@ import {
   IconColor,
   IconName,
   IconSize,
-} from '@metamask/design-system-react-native';
-import {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
-import Text from '../../../../../../../component-library/components/Texts/Text/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confirmations';
 import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet';
@@ -47,6 +45,7 @@ import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import TagColored, {
   TagColor,
 } from '../../../../../../../component-library/components-temp/TagColored';
+import { TextVariant as LegacyTextVariant } from '../../../../../../../component-library/components/Texts/Text';
 import { shouldApplyGasFeeSponsorship } from '../../../../utils/transaction';
 
 const PaidByMetaMask = () => {
@@ -56,7 +55,7 @@ const PaidByMetaMask = () => {
       color={TagColor.Success}
       style={styles.paidByMetaMask}
       labelProps={{
-        variant: TextVariant.BodySM,
+        variant: LegacyTextVariant.BodySM,
         style: {
           textTransform: 'none',
           textAlign: 'center',
@@ -356,8 +355,8 @@ const GasFeesDetailsRow = ({
             <View style={styles.gasFeeTokenContainer}>
               <Text
                 data-testid="gas-fee-token-fee"
-                variant={TextVariant.BodySM}
-                color={TextColor.Alternative}
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
                 style={styles.gasFeeTokenText}
               >
                 {showGasFeeTokenInfo

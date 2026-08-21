@@ -28,7 +28,7 @@ const BenefitDetails = ({ onClose, details }: BenefitDetailsProps) => {
       onClose={onClose}
       testID={BenefitsTestIds.BENEFIT_DETAILS_CONTAINER}
     >
-      <Box twClassName="px-4 py-6 flex flex-col">
+      <Box twClassName="px-4 pt-6 flex flex-col">
         <Text
           variant={TextVariant.HeadingMd}
           color={TextColor.TextDefault}
@@ -70,8 +70,8 @@ const BenefitDetails = ({ onClose, details }: BenefitDetailsProps) => {
         {details.learnMore && details.learnMoreUrl && (
           <Text
             variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="mb-4"
+            color={TextColor.TextDefault}
+            twClassName="mb-4 self-start border-b-2 border-border-default"
             onPress={handleLearnMorePress}
             accessibilityRole="link"
           >
@@ -80,7 +80,7 @@ const BenefitDetails = ({ onClose, details }: BenefitDetailsProps) => {
         )}
 
         {details.notes && (
-          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextMuted}>
             {strings(details.notes)}
           </Text>
         )}

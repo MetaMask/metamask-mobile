@@ -4,16 +4,16 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import BottomModal from '../../../components/UI/bottom-modal';
 import Checkbox from '../../../../../../component-library/components/Checkbox';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { Alert, Severity } from '../../../types/alerts';
 import { getSeverityStyle } from '../../../utils/alert-system';
 import { strings } from '../../../../../../../locales/i18n';
@@ -63,7 +63,11 @@ const Header: React.FC<HeaderProps> = ({
       </View>
     )}
     <View style={styles.headerContainer}>
-      <Text style={styles.headerText} variant={TextVariant.BodyMDBold}>
+      <Text
+        style={styles.headerText}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Bold}
+      >
         {selectedAlert.title ?? strings('alert_system.alert_modal.title')}
       </Text>
     </View>
@@ -91,14 +95,18 @@ const Content: React.FC<ContentProps> = ({
         )}
         {selectedAlert.alertDetails && (
           <>
-            <Text style={styles.message} variant={TextVariant.BodyMDBold}>
+            <Text
+              style={styles.message}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
+            >
               {strings('alert_system.alert_modal.alert_details')}
             </Text>
             {selectedAlert.alertDetails.map((detail, index) => (
               <Text
                 key={`details-${index}`}
                 style={styles.detailsText}
-                variant={TextVariant.BodyMD}
+                variant={TextVariant.BodyMd}
               >
                 {'• ' + detail}
               </Text>

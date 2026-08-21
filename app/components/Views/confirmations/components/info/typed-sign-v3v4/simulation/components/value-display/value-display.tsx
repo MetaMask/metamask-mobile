@@ -6,8 +6,12 @@ import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 
 import ButtonPill from '../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
-import { ButtonIcon, IconName } from '@metamask/design-system-react-native';
-import Text from '../../../../../../../../../component-library/components/Texts/Text';
+import {
+  ButtonIcon,
+  IconColor,
+  IconName,
+  Text,
+} from '@metamask/design-system-react-native';
 
 import { IndividualFiatDisplay } from '../../../../../../../../UI/SimulationDetails/FiatDisplay/FiatDisplay';
 import {
@@ -246,6 +250,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
                   style={styles.valueModalHeaderIcon}
                   onPress={() => setHasValueModalOpen(false)}
                   iconName={IconName.ArrowLeft}
+                  iconProps={{ color: IconColor.IconDefault }}
                 />
                 <Text style={styles.valueModalHeaderText}>
                   {modalHeaderText}

@@ -636,6 +636,65 @@ describe('usePerpsProSizeInput', () => {
     expect(mockSetAmount).toHaveBeenCalledWith('250');
   });
 
+  it('preserves explicit maximum-slider intent separately from the floored amount', () => {
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(createParams({ maxPossibleAmount: 1000.75 })),
+    );
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(1000.75);
+    });
+
+    expect(result.current.sizeInput.value).toBe('1000');
+    expect(result.current.isAtMaxAmount).toBe(true);
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(500);
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+  });
+
+  it('clears maximum-slider intent when an interrupted drag previews a smaller amount', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(1000);
+      result.current.sizeSlider.onValueChange(500);
+      result.current.sizeSlider.onDragCancel();
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+    expect(mockSetAmount).toHaveBeenLastCalledWith('500');
+  });
+
+  it('clears maximum-slider intent when Place Order flushes a smaller preview', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(1000);
+      result.current.sizeSlider.onValueChange(500);
+    });
+
+    act(() => {
+      result.current.commitPendingSliderPreview();
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+    expect(mockSetAmount).toHaveBeenLastCalledWith('500');
+  });
+
+  it('clears maximum-slider intent after a manual size edit', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(1000);
+      result.current.sizeInput.onChange('250');
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+  });
+
   it('commits the terminal drag value instead of an earlier preview', () => {
     const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
     act(() => {
@@ -681,6 +740,38 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.sizeInput.value).toBe('10');
     expect(result.current.effectiveUsdAmount).toBe('10');
     expect(result.current.sizeSlider.value).toBe(10);
+  });
+
+  it('clears max intent when focus cancels an interrupted max preview', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.sizeSlider.onValueChange(
+        result.current.sizeSlider.maximumValue,
+      );
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(true);
+
+    act(() => {
+      result.current.sizeInput.onFocus();
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(false);
+    expect(result.current.effectiveUsdAmount).toBe('100');
+  });
+
+  it('preserves max intent after a committed max selection', () => {
+    const { result } = renderHook(() => usePerpsProSizeInput(createParams()));
+
+    act(() => {
+      result.current.sizeSlider.onDragEnd(
+        result.current.sizeSlider.maximumValue,
+      );
+      result.current.sizeInput.onFocus();
+    });
+
+    expect(result.current.isAtMaxAmount).toBe(true);
   });
 
   it('preserves an interrupted preview when a keyboard edit is rejected', () => {

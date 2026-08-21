@@ -120,7 +120,8 @@ jobs:
            inputs.platform != 'ios' && inputs.platform != 'android' && vars.NAMESPACE_RUNNER_LINUX) ||
           vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
-      CACHE_GENERATION: v1
+      # Must match build.yml's CACHE_GENERATION; the two compose the same cache key.
+      CACHE_GENERATION: v2
     outputs:
       artifact-name: ${{ steps.set-artifact-name.outputs.artifact-name }}
       cache-key: ${{ steps.cache-key.outputs.key }}
@@ -140,6 +141,9 @@ jobs:
           fetch-depth: ${{ inputs.fetch-depth }}
           submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
 
+      # node_modules must not be cached here: nscloud-cache-action mounts cached paths as
+      # symlinks into /Volumes/cache, and the cache/tarball this workflow produces would
+      # then hold that symlink instead of the real tree.
       - name: Configure Namespace cache
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
@@ -147,7 +151,6 @@ jobs:
           path: |
             ~/.cache/yarn
             .metamask
-            node_modules
             .yarn/cache
 
       # iOS: Only Node + Ruby needed (setup runs gem/bundle install, no pods/Xcode). Full iOS env is in build job.

@@ -15,14 +15,14 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import {
+  FontWeight,
   Icon,
   IconColor,
   IconName,
   IconSize,
-} from '@metamask/design-system-react-native';
-import Text, {
+  Text,
   TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './info-section-accordion.styles';
 
@@ -117,7 +117,9 @@ const InfoRowAccordion: React.FC<InfoRowAccordionProps> = ({
       >
         {typeof header === 'string' ? (
           <Animated.Text>
-            <Text variant={TextVariant.BodyMDMedium}>{header}</Text>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {header}
+            </Text>
           </Animated.Text>
         ) : (
           header

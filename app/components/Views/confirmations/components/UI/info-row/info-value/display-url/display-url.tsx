@@ -6,8 +6,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Text,
 } from '@metamask/design-system-react-native';
-import Text from '../../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../../component-library/hooks';
 import styleSheet from './display-url.styles';
 

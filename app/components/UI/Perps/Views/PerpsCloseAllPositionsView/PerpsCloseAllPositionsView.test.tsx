@@ -1,6 +1,7 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import PerpsCloseAllPositionsView from './PerpsCloseAllPositionsView';
+import { strings } from '../../../../../../locales/i18n';
 import {
   usePerpsLivePositions,
   usePerpsCloseAllCalculations,
@@ -9,11 +10,13 @@ import {
 } from '../../hooks';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { PerpsCloseAllPositionsViewSelectorsIDs } from '../../Perps.testIds';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 
 // Mock all dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: jest.fn(), goBack: jest.fn() })),
 }));
+jest.mock('../../../../../util/haptics');
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -146,6 +149,31 @@ describe('PerpsCloseAllPositionsView', () => {
     });
   });
 
+  it('keeps close-all confirmation haptics off by default', () => {
+    const { getByTestId } = render(<PerpsCloseAllPositionsView />);
+
+    fireEvent.press(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.CLOSE_ALL_BUTTON),
+    );
+
+    expect(mockCloseAllHook.handleCloseAll).toHaveBeenCalledTimes(1);
+    expect(playImpact).not.toHaveBeenCalled();
+  });
+
+  it('plays PrimaryCTA once for opted-in close-all confirmation', () => {
+    const { getByTestId } = render(
+      <PerpsCloseAllPositionsView enableHaptics />,
+    );
+
+    fireEvent.press(
+      getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.CLOSE_ALL_BUTTON),
+    );
+
+    expect(mockCloseAllHook.handleCloseAll).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+  });
+
   it('renders loading state when initially loading positions', () => {
     // Arrange
     mockUsePerpsLivePositions.mockReturnValue({
@@ -237,6 +265,61 @@ describe('PerpsCloseAllPositionsView', () => {
     expect(
       getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.CLOSING_STATE),
     ).toBeOnTheScreen();
+  });
+
+  describe('copy naming the markets being closed', () => {
+    const mockStrings = strings as jest.MockedFunction<typeof strings>;
+
+    it('names the count in the description for multiple positions', () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [mockPositions[0], { ...mockPositions[0], symbol: 'ETH' }],
+        isInitialLoading: false,
+      });
+
+      render(<PerpsCloseAllPositionsView />);
+
+      expect(mockStrings).toHaveBeenCalledWith(
+        'perps.close_all_modal.description',
+        { count: 2 },
+      );
+    });
+
+    // Singular vs plural is i18n's job now, so the rendered wording is asserted
+    // in the view test where `strings` is not mocked.
+    it('passes the count through for a lone position', () => {
+      render(<PerpsCloseAllPositionsView />);
+
+      expect(mockStrings).toHaveBeenCalledWith(
+        'perps.close_all_modal.description',
+        { count: 1 },
+      );
+    });
+
+    it('labels the confirm button with the count', () => {
+      render(<PerpsCloseAllPositionsView />);
+
+      expect(mockStrings).toHaveBeenCalledWith(
+        'perps.close_all_modal.close_count',
+        { count: 1 },
+      );
+    });
+
+    it('keeps "all" in the title when no filter is active', () => {
+      render(<PerpsCloseAllPositionsView />);
+
+      expect(mockStrings).toHaveBeenCalledWith('perps.close_all_modal.title');
+    });
+
+    it('drops "all" from the title when a filter is active', () => {
+      render(<PerpsCloseAllPositionsView isFiltered />);
+
+      expect(mockStrings).toHaveBeenCalledWith(
+        'perps.close_all_modal.title_filtered',
+      );
+      expect(mockStrings).not.toHaveBeenCalledWith(
+        'perps.close_all_modal.title',
+      );
+    });
   });
 
   it('renders with empty positions gracefully', () => {

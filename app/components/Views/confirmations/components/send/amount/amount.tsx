@@ -11,14 +11,14 @@ import {
   Icon,
   IconColor,
   IconName,
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import TagBase, {
   TagShape,
 } from '../../../../../../component-library/base-components/TagBase';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
@@ -126,12 +126,12 @@ export const Amount = () => {
   );
 
   const defaultValue = fiatMode ? '0.00' : '0';
-  let textColor = TextColor.Default;
+  let textColor: TextColor = TextColor.TextDefault;
   if (amountError) {
-    textColor = TextColor.Error;
+    textColor = TextColor.ErrorDefault;
   }
   if (!amount.length) {
-    textColor = TextColor.Muted;
+    textColor = TextColor.TextMuted;
   }
 
   return (
@@ -148,10 +148,13 @@ export const Amount = () => {
               collectible={asset as Nft}
               isTokenImage
             />
-            <Text variant={TextVariant.BodyMDBold}>{asset?.name}</Text>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
+              {asset?.name}
+            </Text>
             <Text
-              color={TextColor.Alternative}
-              variant={TextVariant.BodyMDBold}
+              color={TextColor.TextAlternative}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Bold}
             >
               {asset?.tokenId}
             </Text>
@@ -170,7 +173,7 @@ export const Amount = () => {
               color={textColor}
               style={styles.inputText}
               numberOfLines={1}
-              variant={TextVariant.DisplayMD}
+              variant={TextVariant.DisplayMd}
               adjustsFontSizeToFit
               testID="send_amount"
             >
@@ -179,9 +182,9 @@ export const Amount = () => {
             <AnimatedCursor />
             <Text
               style={styles.inputText}
-              color={amountError ? TextColor.Error : TextColor.Muted}
+              color={amountError ? TextColor.ErrorDefault : TextColor.TextMuted}
               numberOfLines={1}
-              variant={TextVariant.DisplayLG}
+              variant={TextVariant.DisplayLg}
             >
               {fiatMode ? fiatCurrencySymbol : assetDisplaySymbol}
             </Text>
@@ -190,7 +193,9 @@ export const Amount = () => {
         {conversionSupportedForAsset && (
           <TouchableOpacity onPress={toggleFiatMode} testID="fiat_toggle">
             <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
-              <Text color={TextColor.Alternative}>{alternateDisplayValue}</Text>
+              <Text color={TextColor.TextAlternative}>
+                {alternateDisplayValue}
+              </Text>
               <Icon
                 color={IconColor.IconAlternative}
                 name={IconName.SwapVertical}
@@ -201,7 +206,7 @@ export const Amount = () => {
         {isNftLoading ? (
           <Skeleton twClassName="h-4 w-40 rounded self-center mt-4" />
         ) : (
-          <Text style={styles.balanceText} color={TextColor.Alternative}>
+          <Text style={styles.balanceText} color={TextColor.TextAlternative}>
             {balanceDisplayValue}
           </Text>
         )}

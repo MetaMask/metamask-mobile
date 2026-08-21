@@ -11,11 +11,10 @@ import {
   IconColor,
   IconName,
   IconSize,
-} from '@metamask/design-system-react-native';
-import Text, {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { selectAvatarAccountType } from '../../../../../../../selectors/settings';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
@@ -60,7 +59,10 @@ const AccountNetworkInfoCollapsed = () => {
               </Text>
             </View>
             {hasMoreThanOneWallet && (
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
                 {walletName}
               </Text>
             )}
