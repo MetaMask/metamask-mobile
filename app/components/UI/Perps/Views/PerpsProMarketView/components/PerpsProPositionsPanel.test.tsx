@@ -13,7 +13,10 @@ import {
   usePerpsLiveOrders,
   usePerpsLivePositions,
 } from '../../../hooks/stream';
-import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
+import {
+  usePerpsProPositionsPanelActions,
+  type UsePerpsProPositionsPanelActionsReturn,
+} from '../../../hooks/usePerpsProPositionsPanelActions';
 import { usePerpsMarkets } from '../../../hooks/usePerpsMarkets';
 import {
   getPerpsProOrderRowSelector,
@@ -620,6 +623,7 @@ describe('PerpsProPositionsPanel', () => {
       handleEditOrderPrice: jest.fn(),
       handleEditOrderSize: jest.fn(),
       handleCloseAllPress,
+      handleCancelAllPress,
       cancelingOrderId: 'btc-1',
       editingOrderId: null,
       isOrderCancelable: () => true,
@@ -957,7 +961,11 @@ describe('PerpsProPositionsPanel', () => {
   });
 
   it('passes the ticker-filtered orders to the action sheets', () => {
-    const renderActionSheets = jest.fn(() => null);
+    const renderActionSheets: UsePerpsProPositionsPanelActionsReturn['renderActionSheets'] =
+      jest.fn(() => null);
+    const renderActionSheetsMock = renderActionSheets as jest.MockedFunction<
+      typeof renderActionSheets
+    >;
     mockUsePerpsProPositionsPanelActions.mockReturnValue({
       handleClosePosition,
       handleReversePosition,
@@ -997,14 +1005,20 @@ describe('PerpsProPositionsPanel', () => {
     );
 
     const lastCall =
-      renderActionSheets.mock.calls[renderActionSheets.mock.calls.length - 1];
+      renderActionSheetsMock.mock.calls[
+        renderActionSheetsMock.mock.calls.length - 1
+      ];
     expect(lastCall[2]).toEqual([
       expect.objectContaining({ orderId: 'sol-1', symbol: 'SOL' }),
     ]);
   });
 
   it('flags the orders as filtered for the action sheets', () => {
-    const renderActionSheets = jest.fn(() => null);
+    const renderActionSheets: UsePerpsProPositionsPanelActionsReturn['renderActionSheets'] =
+      jest.fn(() => null);
+    const renderActionSheetsMock = renderActionSheets as jest.MockedFunction<
+      typeof renderActionSheets
+    >;
     mockUsePerpsProPositionsPanelActions.mockReturnValue({
       handleClosePosition,
       handleReversePosition,
@@ -1044,7 +1058,9 @@ describe('PerpsProPositionsPanel', () => {
     );
 
     const lastCall =
-      renderActionSheets.mock.calls[renderActionSheets.mock.calls.length - 1];
+      renderActionSheetsMock.mock.calls[
+        renderActionSheetsMock.mock.calls.length - 1
+      ];
     expect(lastCall[3]).toBe(true);
   });
 });
