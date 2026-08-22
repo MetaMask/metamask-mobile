@@ -82,6 +82,7 @@ These are boundaries, not a requirement to create every possible directory or mo
 - [`docs/module-structure.md`](./docs/module-structure.md) — directory ownership, public module APIs, and internal boundaries.
 - [`docs/venue-adapters.md`](./docs/venue-adapters.md) — capability adapter rules.
 - [`docs/remote-adapters.md`](./docs/remote-adapters.md) — remote trust and transport rules.
+- [`docs/venue-defaulting.md`](./docs/venue-defaulting.md) — geolocation, rollout, availability, and eligibility boundaries for Active Venue resolution.
 - [`docs/agents/issue-tracker.md`](./docs/agents/issue-tracker.md) — Predict Jira conventions.
 
 ## Development rule
