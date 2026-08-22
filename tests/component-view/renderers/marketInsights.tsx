@@ -8,6 +8,7 @@ import renderWithProvider, {
 import type { RootState } from '../../../app/reducers';
 import Routes from '../../../app/constants/navigation/Routes';
 import { AccessRestrictedProvider } from '../../../app/components/UI/Compliance';
+import { QueryClientBoundary } from '../render';
 import MarketInsightsView from '../../../app/components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 import { BuildQuoteSelectors } from '../../../app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import {
@@ -96,26 +97,28 @@ export function renderMarketInsightsViewWithNavigation(
   const state = builder.build();
 
   const stackTree = (
-    <AccessRestrictedProvider>
-      <RootStack.Navigator
-        initialRouteName={Routes.MARKET_INSIGHTS.VIEW}
-        screenOptions={{ headerShown: false }}
-      >
-        <RootStack.Screen
-          name={Routes.MARKET_INSIGHTS.VIEW}
-          component={MarketInsightsView as unknown as React.ComponentType}
-          initialParams={initialParams}
-        />
-        <RootStack.Screen
-          name={Routes.BRIDGE.ROOT}
-          component={BridgeNavigator}
-        />
-        <RootStack.Screen
-          name={Routes.RAMP.TOKEN_SELECTION}
-          component={RampNavigator}
-        />
-      </RootStack.Navigator>
-    </AccessRestrictedProvider>
+    <QueryClientBoundary>
+      <AccessRestrictedProvider>
+        <RootStack.Navigator
+          initialRouteName={Routes.MARKET_INSIGHTS.VIEW}
+          screenOptions={{ headerShown: false }}
+        >
+          <RootStack.Screen
+            name={Routes.MARKET_INSIGHTS.VIEW}
+            component={MarketInsightsView as unknown as React.ComponentType}
+            initialParams={initialParams}
+          />
+          <RootStack.Screen
+            name={Routes.BRIDGE.ROOT}
+            component={BridgeNavigator}
+          />
+          <RootStack.Screen
+            name={Routes.RAMP.TOKEN_SELECTION}
+            component={RampNavigator}
+          />
+        </RootStack.Navigator>
+      </AccessRestrictedProvider>
+    </QueryClientBoundary>
   );
 
   return renderWithProvider(stackTree, { state });

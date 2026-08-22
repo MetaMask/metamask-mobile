@@ -49,7 +49,11 @@ function createQueryClient() {
   });
 }
 
-function QueryClientBoundary({ children }: { children: React.ReactNode }) {
+export function QueryClientBoundary({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [queryClient] = React.useState(createQueryClient);
 
   React.useEffect(
