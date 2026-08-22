@@ -4,7 +4,12 @@ import {
   useHardwareWallet,
   isUserCancellation,
 } from '../../../../core/HardwareWallet';
+import Engine from '../../../../core/Engine';
 import { getDeviceIdForAddress } from '../../../../core/HardwareWallet/helpers';
+import {
+  TransactionStatus,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 
 interface UseLedgerConfirmOptions {
   fromAddress: string;
@@ -14,6 +19,8 @@ interface UseLedgerConfirmOptions {
   }) => Promise<void>;
   executeApproval: () => Promise<void>;
   isTransactionReq: boolean;
+  requiredTransactionCount?: number;
+  transactionId?: string;
 }
 
 /**
@@ -27,6 +34,8 @@ export function useLedgerConfirm({
   onTransactionConfirm,
   executeApproval,
   isTransactionReq,
+  requiredTransactionCount,
+  transactionId,
 }: UseLedgerConfirmOptions) {
   const {
     ensureDeviceReady,
@@ -53,6 +62,16 @@ export function useLedgerConfirm({
     }
 
     setPendingOperationAddress(fromAddress);
+    let stopWatchingSignedTransactions = () => undefined;
+    let hasHiddenAwaitingConfirmation = false;
+    const hideAwaitingConfirmationOnce = () => {
+      if (hasHiddenAwaitingConfirmation) {
+        return;
+      }
+
+      hasHiddenAwaitingConfirmation = true;
+      hideAwaitingConfirmation();
+    };
 
     try {
       const deviceId = await getDeviceIdForAddress(fromAddress);
@@ -68,6 +87,50 @@ export function useLedgerConfirm({
         rejectOnce();
       });
 
+      if (requiredTransactionCount && transactionId) {
+        const signedHandler = Engine.controllerMessenger.subscribeOnceIf(
+          'TransactionController:transactionStatusUpdated',
+          () => {
+            hideAwaitingConfirmationOnce();
+          },
+          ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+            const transactions =
+              Engine.context.TransactionController.state.transactions;
+            const requiredTransactionIds =
+              transactions.find(
+                (transaction) => transaction.id === transactionId,
+              )?.requiredTransactionIds ?? [];
+
+            if (!requiredTransactionIds.includes(transactionMeta.id)) {
+              return false;
+            }
+
+            if (requiredTransactionIds.length < requiredTransactionCount) {
+              return false;
+            }
+
+            return requiredTransactionIds.every((requiredTransactionId) => {
+              const status = transactions.find(
+                (transaction) => transaction.id === requiredTransactionId,
+              )?.status;
+
+              return (
+                status === TransactionStatus.signed ||
+                status === TransactionStatus.submitted ||
+                status === TransactionStatus.confirmed
+              );
+            });
+          },
+        );
+
+        stopWatchingSignedTransactions = () => {
+          Engine.controllerMessenger.tryUnsubscribe(
+            'TransactionController:transactionStatusUpdated',
+            signedHandler,
+          );
+        };
+      }
+
       if (isTransactionReq) {
         await onTransactionConfirm({
           onError: (err) => {
@@ -78,9 +141,9 @@ export function useLedgerConfirm({
         await executeApproval();
       }
 
-      hideAwaitingConfirmation();
+      hideAwaitingConfirmationOnce();
     } catch (err) {
-      hideAwaitingConfirmation();
+      hideAwaitingConfirmationOnce();
 
       if (!hasRejectedRef.current && !isUserCancellation(err)) {
         showHardwareWalletError(err);
@@ -88,6 +151,7 @@ export function useLedgerConfirm({
 
       rejectOnce();
     } finally {
+      stopWatchingSignedTransactions();
       setPendingOperationAddress(null);
     }
   }, [
@@ -101,6 +165,8 @@ export function useLedgerConfirm({
     showHardwareWalletError,
     setPendingOperationAddress,
     fromAddress,
+    requiredTransactionCount,
+    transactionId,
   ]);
 
   return { onConfirm };
