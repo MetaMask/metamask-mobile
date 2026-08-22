@@ -45,6 +45,8 @@ import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { useRampsController } from '../../hooks/useRampsController';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { useContinueWithQuote } from '../../hooks/useContinueWithQuote';
+import useCrossmintWalletPayOverlay from '../../hooks/useCrossmintWalletPayOverlay';
+import WalletPayCheckoutOverlay from '../../components/WalletPayCheckoutOverlay';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
@@ -649,6 +651,18 @@ function BuildQuote() {
     !selectedQuoteLoading &&
     selectedQuote !== null;
 
+  // Crossmint wallet-pay embedded checkout (crossmintApplePayCheckout flag):
+  // pre-creates the order through the on-ramp API so the hosted Apple Pay /
+  // Google Pay button can replace the Continue button on eligible quotes.
+  const crossmintWalletPay = useCrossmintWalletPayOverlay(
+    hasSettledQuoteAmount ? selectedQuote : null,
+    debouncedPollingAmount,
+  );
+
+  const isWalletPayButtonVisible =
+    Boolean(crossmintWalletPay.checkoutUrl) &&
+    crossmintWalletPay.isCheckoutReady;
+
   const hasNoQuotes =
     hasAmount &&
     hasSettledQuoteAmount &&
@@ -709,6 +723,12 @@ function BuildQuote() {
           amount={amountAsNumber}
         />
       );
+    }
+    // The overlay's terms notice takes this slot and already names the
+    // provider, so the attribution would only repeat it. Until then the
+    // ordinary Continue button is showing and the attribution stays.
+    if (isWalletPayButtonVisible) {
+      return null;
     }
     if (selectedProvider && !isTokenUnavailable && tokenStateIsSettled) {
       return (
@@ -825,22 +845,33 @@ function BuildQuote() {
             {hasAmount ? (
               <>
                 {actionSectionMessage}
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
-                  onPress={handleContinuePress}
-                  isFullWidth
-                  isDisabled={!canContinue}
-                  isLoading={
-                    selectedQuoteLoading ||
-                    isContinueLoading ||
-                    isTokenUnavailable ||
-                    !tokenStateIsSettled
-                  }
-                  testID={BuildQuoteSelectors.CONTINUE_BUTTON}
-                >
-                  {strings('fiat_on_ramp.continue')}
-                </Button>
+                {crossmintWalletPay.checkoutUrl ? (
+                  <WalletPayCheckoutOverlay
+                    checkoutUrl={crossmintWalletPay.checkoutUrl}
+                    interactive={canContinue}
+                    onMessage={crossmintWalletPay.onMessage}
+                    onReady={crossmintWalletPay.onCheckoutReady}
+                  />
+                ) : null}
+                {isWalletPayButtonVisible ? null : (
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSize.Lg}
+                    onPress={handleContinuePress}
+                    isFullWidth
+                    isDisabled={!canContinue || crossmintWalletPay.isPreparing}
+                    isLoading={
+                      selectedQuoteLoading ||
+                      isContinueLoading ||
+                      isTokenUnavailable ||
+                      !tokenStateIsSettled ||
+                      crossmintWalletPay.isPreparing
+                    }
+                    testID={BuildQuoteSelectors.CONTINUE_BUTTON}
+                  >
+                    {strings('fiat_on_ramp.continue')}
+                  </Button>
+                )}
               </>
             ) : (
               quickAmounts.length > 0 && (
