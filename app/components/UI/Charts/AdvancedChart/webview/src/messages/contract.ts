@@ -176,6 +176,12 @@ export interface FocusTimePayload {
   spanMs?: number;
   /** false disables the slide animation (jump instead). Default true. */
   animate?: boolean;
+  /**
+   * Skip the "already comfortably visible → don't move" guard and always
+   * re-frame. Used by the reset-to-fit button, which must restore the default
+   * range even when its center is currently on screen (e.g. after zooming in).
+   */
+  force?: boolean;
 }
 
 // ----- Position Lines (Perps) ------------------------------------------------

@@ -86,6 +86,22 @@ describe('handleFocusTime', () => {
     expect(stub.setRangeCalls).toHaveLength(0);
   });
 
+  it('re-frames even when comfortably visible if force is set', () => {
+    // Target 5 sits inside the "comfortably visible" band [0.8, 9.2], which
+    // normally returns without moving — but the reset button's `force` flag
+    // must bypass that guard and re-apply the (default) range.
+    const stub = makeStubChart({ from: 0, to: 10 });
+    installWidget(stub.chart);
+    handleFocusTime({
+      timeMs: 5_000,
+      spanMs: 4_000,
+      animate: false,
+      force: true,
+    });
+    // spanSec = 4, center = 5 → from = 3, to = 7.
+    expect(stub.setRangeCalls).toEqual([{ from: 3, to: 7 }]);
+  });
+
   it('jumps immediately when animate=false', () => {
     const stub = makeStubChart({ from: 0, to: 10 });
     installWidget(stub.chart);
