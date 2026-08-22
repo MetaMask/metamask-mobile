@@ -31,12 +31,14 @@ import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactio
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../tokens/useTokenWithBalance');
+jest.mock('../transactions/useTransactionPayingAccount');
 jest.mock('../pay/useTransactionPaySelectedFiatPaymentMethod');
 jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
 
@@ -67,6 +69,8 @@ const NATIVE_TOKEN_MOCK = {
   address: '0x456' as Hex,
   balanceRaw: '100',
 } as NonNullable<ReturnType<typeof useTokenWithBalance>>;
+const PAYER_ADDRESS = '0x2222222222222222222222222222222222222222' as Hex;
+const SIGNER_ADDRESS = '0x1111111111111111111111111111111111111111' as Hex;
 
 function runHook(
   props: Parameters<typeof useInsufficientPayTokenBalanceAlert>[0] = {},
@@ -99,6 +103,9 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const useTransactionPayingAccountMock = jest.mocked(
+    useTransactionPayingAccount,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -109,6 +116,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     useTransactionPayIsMaxAmountMock.mockReturnValue(false);
     useTransactionPayIsPostQuoteMock.mockReturnValue(false);
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useTransactionPayingAccountMock.mockReturnValue(PAYER_ADDRESS);
     useTransactionMetadataRequestMock.mockReturnValue(
       undefined as unknown as TransactionMeta,
     );
@@ -342,6 +350,16 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
   });
 
   describe('for source network fee', () => {
+    it('uses paying account for native balance lookup', () => {
+      runHook();
+
+      expect(useTokenWithBalanceMock).toHaveBeenCalledWith(
+        expect.any(String),
+        PAY_TOKEN_MOCK.chainId,
+        PAYER_ADDRESS,
+      );
+    });
+
     it('returns alert if native balance is less than total source network fee', () => {
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
@@ -494,6 +512,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
     beforeEach(() => {
       useTransactionPayIsPostQuoteMock.mockReturnValue(true);
+      useTransactionPayingAccountMock.mockReturnValue(SIGNER_ADDRESS);
 
       // payToken is the *destination* token (e.g. ETH on mainnet 0x1)
       // transactionMeta.chainId is the *source* chain (e.g. Polygon 0x89)
@@ -548,6 +567,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       expect(useTokenWithBalanceMock).toHaveBeenCalledWith(
         expect.any(String),
         SOURCE_CHAIN_ID,
+        SIGNER_ADDRESS,
       );
     });
 
