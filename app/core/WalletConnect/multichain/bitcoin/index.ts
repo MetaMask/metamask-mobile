@@ -1,0 +1,1 @@
+export { bitcoinAdapter } from './adapter';
