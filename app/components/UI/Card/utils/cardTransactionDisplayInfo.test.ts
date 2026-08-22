@@ -17,8 +17,11 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../../util/intl', () => ({
-  getIntlDateTimeFormatter: () => ({
-    format: () => '15 Jan',
+  getIntlDateTimeFormatter: (
+    _locale: string,
+    options?: Intl.DateTimeFormatOptions,
+  ) => ({
+    format: () => (options?.year ? '15 Jan 2025' : '15 Jan'),
   }),
   getIntlNumberFormatter: (
     _locale: string,
@@ -86,6 +89,14 @@ describe('cardTransactionDisplayInfo', () => {
 
       expect(result).toBe('15 Jan');
     });
+
+    it('includes the year for timestamps outside the current year', () => {
+      const result = formatCardTransactionDate(
+        new Date('2025-04-30T08:00:00.000Z').getTime(),
+      );
+
+      expect(result).toBe('15 Jan 2025');
+    });
   });
 
   describe('cardTransactionDisplayInfo', () => {
@@ -113,7 +124,7 @@ describe('cardTransactionDisplayInfo', () => {
       expect(display.isIncoming).toBe(false);
     });
 
-    it('shows merchant original amount when currency differs from billing', () => {
+    it('shows merchant original amount as primary when currency differs from billing', () => {
       const display = cardTransactionDisplayInfo(
         createTransaction({
           billingAmount: { value: '11.95', currency: 'USD' },
@@ -121,8 +132,8 @@ describe('cardTransactionDisplayInfo', () => {
         }),
       );
 
-      expect(display.primaryAmount).toBe('-$11.95');
-      expect(display.fiatAmount).toBe('-R$61.35');
+      expect(display.primaryAmount).toBe('-R$61.35');
+      expect(display.fiatAmount).toBe('-$11.95');
     });
 
     it('omits secondary amount when original currency matches billing', () => {

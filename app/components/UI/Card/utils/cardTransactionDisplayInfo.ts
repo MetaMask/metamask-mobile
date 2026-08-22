@@ -39,9 +39,12 @@ export function formatCardTransactionDate(timestamp: number): string {
     return strings('card.transactions.yesterday');
   }
 
+  const isCurrentYear = date.getFullYear() === now.getFullYear();
+
   return getIntlDateTimeFormatter(I18n.locale, {
     day: 'numeric',
     month: 'short',
+    ...(isCurrentYear ? {} : { year: 'numeric' as const }),
   }).format(date);
 }
 
@@ -72,25 +75,29 @@ function getTransactionDescription(tx: CardTransaction): string | undefined {
   return formatCardTransactionDate(tx.timestamp);
 }
 
-function getSecondaryAmount(tx: CardTransaction): string {
+function getLocalAmount(tx: CardTransaction) {
   const original = tx.originalAmount;
   if (
     !original ||
     original.currency.toUpperCase() === tx.billingAmount.currency.toUpperCase()
   ) {
-    return '';
+    return undefined;
   }
-  return formatCardAmount(original, tx.isDebit);
+  return original;
 }
 
 export function cardTransactionDisplayInfo(
   tx: CardTransaction,
 ): MoneyTransactionDisplayInfo {
+  const localAmount = getLocalAmount(tx);
+  const primary = localAmount ?? tx.billingAmount;
+  const secondary = localAmount ? tx.billingAmount : undefined;
+
   return {
     label: getTransactionLabel(tx),
     description: getTransactionDescription(tx),
-    primaryAmount: formatCardAmount(tx.billingAmount, tx.isDebit),
-    fiatAmount: getSecondaryAmount(tx),
+    primaryAmount: formatCardAmount(primary, tx.isDebit),
+    fiatAmount: secondary ? formatCardAmount(secondary, tx.isDebit) : '',
     isIncoming: !tx.isDebit,
     icon: IconName.Card,
     status: mapCardTransactionStatus(tx.status),
