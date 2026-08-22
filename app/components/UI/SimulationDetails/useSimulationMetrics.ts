@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import {
   SimulationData,
@@ -74,27 +74,34 @@ export function useSimulationMetrics({
 
   useIncompleteAssetEvent(balanceChanges, displayNamesByAddress);
 
-  const receivingAssets = balanceChanges.filter(
-    (change) => !change.amount.isNegative(),
+  const receivingAssets = useMemo(
+    () => balanceChanges.filter((change) => !change.amount.isNegative()),
+    [balanceChanges],
   );
 
-  const sendingAssets = balanceChanges.filter((change) =>
-    change.amount.isNegative(),
+  const sendingAssets = useMemo(
+    () => balanceChanges.filter((change) => change.amount.isNegative()),
+    [balanceChanges],
   );
 
   const simulationResponse = getSimulationResponseType(simulationData);
   const simulationLatency = loadingTime;
 
-  const properties = {
-    simulation_response: simulationResponse,
-    simulation_latency: simulationLatency,
-    ...getProperties(receivingAssets, 'simulation_receiving_assets_'),
-    ...getProperties(sendingAssets, 'simulation_sending_assets_'),
-    ...getTotalValueProperty(receivingAssets, 'simulation_receiving_assets_'),
-    ...getTotalValueProperty(sendingAssets, 'simulation_sending_assets_'),
-  };
+  // Memoize the metrics properties (and `params` below) so they only change
+  // when the underlying inputs do, instead of being rebuilt every render.
+  const properties = useMemo(
+    () => ({
+      simulation_response: simulationResponse,
+      simulation_latency: simulationLatency,
+      ...getProperties(receivingAssets, 'simulation_receiving_assets_'),
+      ...getProperties(sendingAssets, 'simulation_sending_assets_'),
+      ...getTotalValueProperty(receivingAssets, 'simulation_receiving_assets_'),
+      ...getTotalValueProperty(sendingAssets, 'simulation_sending_assets_'),
+    }),
+    [simulationResponse, simulationLatency, receivingAssets, sendingAssets],
+  );
 
-  const params = { properties };
+  const params = useMemo(() => ({ properties }), [properties]);
 
   const shouldSkipMetrics =
     !enableMetrics ||
@@ -103,6 +110,12 @@ export function useSimulationMetrics({
       SimulationErrorCode.Disabled,
     ].includes(simulationData?.error?.code as SimulationErrorCode);
 
+  // Derive the effect dependency from the (now memoized) params. When params is
+  // referentially stable this skips JSON.stringify entirely; otherwise it still
+  // produces the same string value, so the effect fires only on a real content
+  // change — matching the previous behavior without over-firing.
+  const paramsKey = useMemo(() => JSON.stringify(params), [params]);
+
   useEffect(() => {
     if (shouldSkipMetrics) {
       return;
@@ -110,7 +123,7 @@ export function useSimulationMetrics({
 
     dispatch(updateConfirmationMetric({ id: transactionId, params }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldSkipMetrics, transactionId, JSON.stringify(params), dispatch]);
+  }, [shouldSkipMetrics, transactionId, paramsKey, dispatch]);
 }
 
 function useIncompleteAssetEvent(

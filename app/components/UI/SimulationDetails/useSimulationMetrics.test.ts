@@ -37,6 +37,10 @@ jest.mock('react', () => ({
   ...jest.requireActual('react'),
   useEffect: jest.fn(),
   useState: jest.fn(),
+  // Passthrough so the hook can be called directly in these tests (which stub
+  // useEffect/useState) without a React render context. Memoization itself is
+  // not under test here; the dispatch payload assertions are the safety net.
+  useMemo: (fn: () => unknown) => fn(),
 }));
 
 jest.mock('./useLoadingTime');
