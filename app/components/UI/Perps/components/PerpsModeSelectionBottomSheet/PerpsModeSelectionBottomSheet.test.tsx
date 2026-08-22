@@ -1,14 +1,18 @@
+import { IconName } from '@metamask/design-system-react-native';
+import { brandColor, darkTheme, lightTheme } from '@metamask/design-tokens';
 import { PerpsMode } from '@metamask/perps-controller';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
+import { ThemeContext } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
+import {
+  PERPS_PRO_CANDLESTICK_DARK,
+  PERPS_PRO_CANDLESTICK_LIGHT,
+  PERPS_PRO_ICON_TILE_DARK,
+  PERPS_PRO_ICON_TILE_LIGHT,
+} from '../../constants/perpsModeColors';
 import { PerpsModeSelectionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsModeSelectionBottomSheet from './PerpsModeSelectionBottomSheet';
-
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const tw = (..._args: unknown[]) => ({});
-  tw.style = jest.fn(() => ({}));
-  return { useTailwind: () => tw };
-});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -24,6 +28,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
     return translations[key] ?? key;
   }),
 }));
+
+const darkThemeContext = {
+  colors: darkTheme.colors,
+  themeAppearance: AppThemeKey.dark,
+  typography: darkTheme.typography,
+  shadows: darkTheme.shadows,
+  brandColors: brandColor,
+};
 
 describe('PerpsModeSelectionBottomSheet', () => {
   const defaultProps = {
@@ -51,6 +63,95 @@ describe('PerpsModeSelectionBottomSheet', () => {
     expect(
       screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.PRO_ICON),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the Pro icon as the filled candlestick in light-theme gold', () => {
+    render(<PerpsModeSelectionBottomSheet {...defaultProps} />);
+
+    const proIcon = screen.getByTestId(
+      PerpsModeSelectionBottomSheetSelectorsIDs.PRO_ICON,
+    );
+
+    expect(proIcon.props.name).toBe(IconName.CandlestickFilled);
+    expect(proIcon.props.fill).toBe(PERPS_PRO_CANDLESTICK_LIGHT);
+    expect(proIcon).toHaveStyle({ color: PERPS_PRO_CANDLESTICK_LIGHT });
+    expect(
+      screen.getByTestId(
+        PerpsModeSelectionBottomSheetSelectorsIDs.PRO_ICON_TILE,
+      ),
+    ).toHaveStyle({ backgroundColor: PERPS_PRO_ICON_TILE_LIGHT });
+  });
+
+  it('renders the Pro icon in dark-theme gold', () => {
+    render(
+      <ThemeContext.Provider value={darkThemeContext}>
+        <PerpsModeSelectionBottomSheet {...defaultProps} />
+      </ThemeContext.Provider>,
+    );
+
+    const proIcon = screen.getByTestId(
+      PerpsModeSelectionBottomSheetSelectorsIDs.PRO_ICON,
+    );
+
+    expect(proIcon.props.fill).toBe(PERPS_PRO_CANDLESTICK_DARK);
+    expect(proIcon).toHaveStyle({ color: PERPS_PRO_CANDLESTICK_DARK });
+    expect(
+      screen.getByTestId(
+        PerpsModeSelectionBottomSheetSelectorsIDs.PRO_ICON_TILE,
+      ),
+    ).toHaveStyle({ backgroundColor: PERPS_PRO_ICON_TILE_DARK });
+  });
+
+  it('lets both cards grow with their text instead of pinning a card height', () => {
+    render(<PerpsModeSelectionBottomSheet {...defaultProps} />);
+
+    [
+      PerpsModeSelectionBottomSheetSelectorsIDs.LITE_OPTION,
+      PerpsModeSelectionBottomSheetSelectorsIDs.PRO_OPTION,
+    ].forEach((testID) => {
+      // `height: auto` keeps the longest description from being clipped,
+      // `alignSelf: stretch` makes the shorter card match the taller one, and
+      // `minWidth: 0` lets the 2-column flex row wrap instead of overflow.
+      expect(screen.getByTestId(testID)).toHaveStyle({
+        height: 'auto',
+        alignSelf: 'stretch',
+        minWidth: 0,
+        justifyContent: 'flex-start',
+      });
+    });
+  });
+
+  it('paints both mode cards with the section background', () => {
+    render(
+      <PerpsModeSelectionBottomSheet
+        {...defaultProps}
+        selectedMode={PerpsMode.Pro}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.PRO_OPTION),
+    ).toHaveStyle({
+      backgroundColor: lightTheme.colors.background.section,
+    });
+    expect(
+      screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.LITE_OPTION),
+    ).toHaveStyle({
+      backgroundColor: lightTheme.colors.background.section,
+    });
+  });
+
+  it('sizes card titles and descriptions to the spec typography', () => {
+    render(<PerpsModeSelectionBottomSheet {...defaultProps} />);
+
+    // Title = Body/Md/Medium, description = Body/Sm/Regular.
+    expect(screen.getByText('Pro')).toHaveStyle({
+      fontSize: 16,
+      lineHeight: 24,
+    });
+    expect(
+      screen.getByText('Order book, advanced order types, and leverage.'),
+    ).toHaveStyle({ fontSize: 14, lineHeight: 22 });
   });
 
   it('marks only the selected mode', () => {
