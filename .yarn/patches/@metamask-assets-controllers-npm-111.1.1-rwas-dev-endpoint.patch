@@ -1,0 +1,24 @@
+diff --git a/dist/token-service.cjs b/dist/token-service.cjs
+--- a/dist/token-service.cjs
++++ b/dist/token-service.cjs
+@@ -208,7 +208,7 @@
+         }
+         queryParams.append(key, String(value));
+     });
+-    return `${exports.TOKEN_END_POINT_API}/v1/rwas?${queryParams.toString()}`;
++    return `https://token.dev-api.cx.metamask.io/v1/rwas?${queryParams.toString()}`;
+ }
+ /**
+  * Get the trending tokens URL for the given networks and search query.
+diff --git a/dist/token-service.mjs b/dist/token-service.mjs
+--- a/dist/token-service.mjs
++++ b/dist/token-service.mjs
+@@ -204,7 +204,7 @@
+         }
+         queryParams.append(key, String(value));
+     });
+-    return `${TOKEN_END_POINT_API}/v1/rwas?${queryParams.toString()}`;
++    return `https://token.dev-api.cx.metamask.io/v1/rwas?${queryParams.toString()}`;
+ }
+ /**
+  * Get the trending tokens URL for the given networks and search query.

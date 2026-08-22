@@ -85,6 +85,10 @@ jest.mock('../../../Views/ErrorBoundary', () => {
 const mockUseRwaTokens = jest.fn();
 jest.mock('../../Trending/hooks/useRwaTokens/useRwaTokens', () => ({
   useRwaTokens: (...args: unknown[]) => mockUseRwaTokens(...args),
+  RWA_NETWORKS_LIST: [
+    { caipChainId: 'eip155:1', name: 'Ethereum' },
+    { caipChainId: 'eip155:56', name: 'BNB Chain' },
+  ],
 }));
 
 jest.mock('../../Bridge/hooks/useSwapBridgeNavigation', () => ({
@@ -190,13 +194,6 @@ jest.mock('../../Trending/utils/getTrendingTokenImageUrl', () => ({
   getTrendingTokenImageUrl: jest.fn(
     (assetId: string) => `https://mock.image/${assetId}`,
   ),
-}));
-
-jest.mock('../../Trending/utils/trendingNetworksList', () => ({
-  RWA_NETWORKS_LIST: [
-    { caipChainId: 'eip155:1', name: 'Ethereum' },
-    { caipChainId: 'eip155:56', name: 'BNB Chain' },
-  ],
 }));
 
 jest.mock('../../Trending/hooks/useNetworkName/useNetworkName', () => ({

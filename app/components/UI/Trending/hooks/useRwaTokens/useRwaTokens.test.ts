@@ -1,11 +1,14 @@
-import { useRwaTokens } from './useRwaTokens';
+import {
+  useRwaTokens,
+  STOCKS_FEED_RWA_CHAIN_IDS,
+  RWA_CHAIN_IDS,
+} from './useRwaTokens';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { fetchRwas } from '@metamask/assets-controllers';
 import {
   PriceChangeOption,
   SortDirection,
 } from '../../components/TrendingTokensBottomSheet';
-import { RWA_CHAIN_IDS } from '../../utils/trendingNetworksList';
 import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { act, waitFor } from '@testing-library/react-native';
 
@@ -85,6 +88,10 @@ describe('useRwaTokens', () => {
         limit: 100,
       });
     });
+  });
+
+  it('exposes STOCKS_FEED_RWA_CHAIN_IDS defaulting to Ethereum and Robinhood', () => {
+    expect(STOCKS_FEED_RWA_CHAIN_IDS).toEqual(['eip155:1', 'eip155:4663']);
   });
 
   it('uses provided chainIds instead of defaults', async () => {
