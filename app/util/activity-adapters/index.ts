@@ -44,7 +44,6 @@ export {
 } from './fiat';
 export { formatTokenDisplayAmount } from './token-display';
 export {
-  activityMatchesAssetId,
   enrichTokenFromApi,
   formatActivityListDateHeader,
   getActivityFromTo,
@@ -53,9 +52,7 @@ export {
   groupActivityListItems,
   isFailedOrCancelledTransfer,
   isGasTokenFeeWithAmount,
-  isSpendingCapWithAmount,
   preferLocalOrApiActivityItem,
-  shouldPreferLocalActivityItem,
   shouldShowPlusSign,
   type GroupedActivityListItem,
 } from './activity-list-helpers';
