@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import {
+  annotateTrace,
   endTrace,
+  getTraceContext,
   trace,
   TraceName,
   TraceOperation,
@@ -37,10 +39,33 @@ interface UseSectionPerformanceConfig {
   reRenderThreshold?: number;
   /** Sliding window in ms for re-render detection. @default 500 */
   reRenderWindowMs?: number;
+  /** Bounded cohort tags applied to the existing TTC and DFD starts. */
+  tags?: Record<string, string | number | boolean>;
+  /** Trace data/context applied to the existing TTC and DFD ends. */
+  data?: Record<string, string | number | boolean>;
+  /** Restarts TTC/DFD when one mounted surface begins a new data generation. */
+  generationKey?: string;
 }
 
 const DEFAULT_RE_RENDER_THRESHOLD = 3;
 const DEFAULT_RE_RENDER_WINDOW_MS = 500;
+const RESERVED_METADATA_KEYS = new Set([
+  'section_id',
+  'success',
+  'content_state',
+  'reason',
+]);
+
+const sanitizeMetadata = (
+  metadata?: Record<string, string | number | boolean>,
+) =>
+  metadata
+    ? Object.fromEntries(
+        Object.entries(metadata).filter(
+          ([key]) => !RESERVED_METADATA_KEYS.has(key),
+        ),
+      )
+    : undefined;
 
 /**
  * Reusable performance telemetry for homepage sections.
@@ -61,7 +86,31 @@ export const useSectionPerformance = ({
   enabled = true,
   reRenderThreshold = DEFAULT_RE_RENDER_THRESHOLD,
   reRenderWindowMs = DEFAULT_RE_RENDER_WINDOW_MS,
+  tags,
+  data,
+  generationKey,
 }: UseSectionPerformanceConfig) => {
+  const nextTagsRef = useRef(sanitizeMetadata(tags));
+  nextTagsRef.current = sanitizeMetadata(tags);
+  const nextDataRef = useRef(sanitizeMetadata(data));
+  nextDataRef.current = sanitizeMetadata(data);
+  const pendingGenerationKeyRef = useRef(generationKey);
+  pendingGenerationKeyRef.current = generationKey;
+  const activeGenerationKeyRef = useRef(generationKey);
+  const tagsRef = useRef(nextTagsRef.current);
+  const dataRef = useRef(nextDataRef.current);
+  if (activeGenerationKeyRef.current === generationKey) {
+    tagsRef.current = nextTagsRef.current;
+    dataRef.current = nextDataRef.current;
+  }
+
+  const annotateLatestTags = (name: TraceName, id: string) => {
+    if (!tagsRef.current) {
+      return;
+    }
+    annotateTrace(getTraceContext({ name, id }), tagsRef.current);
+  };
+
   // --- Time to Content refs ---
   const ttcTraceId = useRef(uuidv4());
   const ttcStarted = useRef(false);
@@ -90,45 +139,85 @@ export const useSectionPerformance = ({
   // 1. Time to Content — start span on mount
   // ──────────────────────────────────────────────
   useEffect(() => {
+    activeGenerationKeyRef.current = generationKey;
+    tagsRef.current = nextTagsRef.current;
+    dataRef.current = nextDataRef.current;
+    fetchStarted.current = false;
+    fetchEnded.current = false;
+    prevIsLoading.current = undefined;
     if (!enabled) return;
 
+    const startedGenerationKey = generationKey;
     ttcTraceId.current = uuidv4();
     ttcEnded.current = false;
     trace({
       name: TraceName.HomepageSectionTimeToContent,
       op: TraceOperation.HomepageSectionPerformance,
       id: ttcTraceId.current,
-      tags: { section_id: sectionId },
+      tags: { ...tagsRef.current, section_id: sectionId },
+      data: { ...tagsRef.current, section_id: sectionId },
     });
     ttcStarted.current = true;
 
     return () => {
       if (ttcStarted.current && !ttcEnded.current) {
+        annotateLatestTags(
+          TraceName.HomepageSectionTimeToContent,
+          ttcTraceId.current,
+        );
         endTrace({
           name: TraceName.HomepageSectionTimeToContent,
           id: ttcTraceId.current,
-          data: { success: false, reason: 'unmounted', section_id: sectionId },
+          data: {
+            ...tagsRef.current,
+            ...dataRef.current,
+            success: false,
+            reason:
+              pendingGenerationKeyRef.current === startedGenerationKey
+                ? 'unmounted'
+                : 'generation_changed',
+            section_id: sectionId,
+          },
         });
         ttcStarted.current = false;
       }
       if (fetchStarted.current && !fetchEnded.current) {
+        annotateLatestTags(
+          TraceName.HomepageSectionDataFetch,
+          fetchTraceId.current,
+        );
         endTrace({
           name: TraceName.HomepageSectionDataFetch,
           id: fetchTraceId.current,
-          data: { success: false, reason: 'unmounted', section_id: sectionId },
+          data: {
+            ...tagsRef.current,
+            ...dataRef.current,
+            success: false,
+            reason:
+              pendingGenerationKeyRef.current === startedGenerationKey
+                ? 'unmounted'
+                : 'generation_changed',
+            section_id: sectionId,
+          },
         });
         fetchStarted.current = false;
       }
     };
-  }, [enabled, sectionId]);
+  }, [enabled, generationKey, sectionId]);
 
   // Time to Content — end span when content is ready
   useEffect(() => {
     if (enabled && contentReady && ttcStarted.current && !ttcEnded.current) {
+      annotateLatestTags(
+        TraceName.HomepageSectionTimeToContent,
+        ttcTraceId.current,
+      );
       endTrace({
         name: TraceName.HomepageSectionTimeToContent,
         id: ttcTraceId.current,
         data: {
+          ...tagsRef.current,
+          ...dataRef.current,
           success: true,
           section_id: sectionId,
           content_state: traceContentState,
@@ -136,7 +225,7 @@ export const useSectionPerformance = ({
       });
       ttcEnded.current = true;
     }
-  }, [enabled, contentReady, sectionId, traceContentState]);
+  }, [enabled, contentReady, sectionId, traceContentState, data]);
 
   // ──────────────────────────────────────────────
   // 2. Data Fetch Latency — track isLoading transitions
@@ -154,7 +243,8 @@ export const useSectionPerformance = ({
         name: TraceName.HomepageSectionDataFetch,
         op: TraceOperation.HomepageSectionPerformance,
         id: fetchTraceId.current,
-        tags: { section_id: sectionId },
+        tags: { ...tagsRef.current, section_id: sectionId },
+        data: { ...tagsRef.current, section_id: sectionId },
       });
       fetchStarted.current = true;
     }
@@ -166,10 +256,16 @@ export const useSectionPerformance = ({
       fetchStarted.current &&
       !fetchEnded.current
     ) {
+      annotateLatestTags(
+        TraceName.HomepageSectionDataFetch,
+        fetchTraceId.current,
+      );
       endTrace({
         name: TraceName.HomepageSectionDataFetch,
         id: fetchTraceId.current,
         data: {
+          ...tagsRef.current,
+          ...dataRef.current,
           success: true,
           section_id: sectionId,
           content_state: traceContentState,
@@ -178,5 +274,5 @@ export const useSectionPerformance = ({
       fetchStarted.current = false;
       fetchEnded.current = true;
     }
-  }, [enabled, isLoading, sectionId, traceContentState]);
+  }, [enabled, isLoading, sectionId, traceContentState, data]);
 };

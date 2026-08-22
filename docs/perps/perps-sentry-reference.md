@@ -10,11 +10,12 @@ This document defines all Sentry performance traces and measurements for the Per
 - API integration timing
 - Data fetch operations
 
-## Three Tracing Approaches
+## Four Tracing Approaches
 
 1. `usePerpsMeasurement` — single-component screen/render measurements.
 2. Direct `trace()` / `setMeasurement()` — controller/WebSocket/API operations.
 3. `perpsCufTrace` — cross-surface, stream-confirmed **user-perceived CUF** spans (gesture in one surface → live-data render in another). Added in TAT-3509.
+4. `Perps Loading Session` — Homepage-only, lifecycle/context-generation readiness offsets. Global preload, connection, and WebSocket traces remain app-wide and authoritative for their own durations.
 
 ### 1. `usePerpsMeasurement` Hook (UI Screens)
 
@@ -157,6 +158,18 @@ setMeasurement(
 - The stream dispatchers (`handlePerpsCufPositionsDelivered` / `handlePerpsCufOrdersDelivered`, called from `PerpsStreamManager`) end the matching op via `endPerpsCufTrace` when its watched condition renders; a 30s fallback (`endPerpsCufTraceAfter` / `endPerpsCufRequestAfter`) no-ops if it already ended.
 - **Request-acceptance gate:** cancel/close/TP-SL arm at the gesture but only complete as a success after the controller accepts the request (`acceptPerpsCufRequest`), so a coincidental stream change during a failed request is never recorded as success.
 - **Teardown:** `clearPendingPerpsCufTraces()` (called from the `PerpsConnectionManager` session-change handler) abandons pending confirmations as `disconnected` on an account/network/provider/HIP-3 switch, preserving the reconnect span.
+
+### 4. `Perps Loading Session` (Homepage Readiness)
+
+**Use for:** Correlating Homepage Perps readiness milestones within one mounted surface and one account/provider/network/HIP-3 generation.
+
+- The Homepage surface owns start, completion, cancellation, and resume.
+- Context changes cancel the old generation before starting the new one.
+- Position/order/account milestones must match the subscription's captured user identity; market/price milestones match the provider/network/HIP-3 identity.
+- App background and surface unmount end the current generation without a success/content outcome.
+- This trace does not replace Perps Home, market-detail, trade, operation-confirmation, preload, connection, or first-live traces.
+
+See [`docs/perps/performance/ARCHITECTURE.md`](performance/ARCHITECTURE.md) for the complete measurement contract.
 
 **Shared tags** (see `PERPS_CUF_TAG`): `feature`, `lifecycle_context` (`cold_process` | `background_resume` | `warm`, from `perpsLifecycleContext.ts`), plus flow variants — `variant` (`empty`/`position`/`order`, `funded`/`unfunded`), `direction`, `order_type`. **End data:** `success`, `boundary` (`stream`), `reason` (`request_failed`/`stream_timeout`/`controller_timeout`/`disconnected`/`superseded`/`exception`), and `toast_position_delta_ms` (signed; positive = position rendered after the toast) on market place-order.
 

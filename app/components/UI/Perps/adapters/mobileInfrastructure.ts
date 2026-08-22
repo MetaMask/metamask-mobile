@@ -11,7 +11,12 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
-import { trace, endTrace, TraceName } from '../../../../util/trace';
+import {
+  trace,
+  endTrace,
+  setTraceMeasurement,
+  TraceName,
+} from '../../../../util/trace';
 import {
   setMeasurement,
   addBreadcrumb,
@@ -49,6 +54,10 @@ import {
   getTerminalGlobalSnapshotUrl,
   resolveTerminalApiUrl,
 } from '../constants/terminalApi';
+import {
+  getActivePerpsLoadingSessionTraceData,
+  recordPerpsControllerConstructedAt,
+} from '../utils/perpsLoadingSession';
 
 /**
  * Resolves the Terminal API base URL based on build environment.
@@ -72,6 +81,19 @@ export function getTerminalApiUrl(): string {
  */
 function toTraceName(name: PerpsTraceName): TraceName {
   return name as unknown as TraceName;
+}
+
+function getPreloadTraceData(
+  name: PerpsTraceName,
+): { perps_session_id: string } | undefined {
+  const traceName = toTraceName(name);
+  if (
+    traceName !== TraceName.PerpsMarketDataPreload &&
+    traceName !== TraceName.PerpsUserDataPreload
+  ) {
+    return undefined;
+  }
+  return getActivePerpsLoadingSessionTraceData();
 }
 
 /**
@@ -228,6 +250,7 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
   const terminalGlobalSnapshotUrl = getTerminalGlobalSnapshotUrl(
     terminalMarketDataUrl,
   );
+  const traceNamesById = new Map<string, TraceName>();
 
   return {
     // === Observability (stateless utilities) ===
@@ -259,6 +282,7 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
       now(): number {
         return performance.now();
       },
+      onControllerConstructed: recordPerpsControllerConstructedAt,
     },
     tracer: {
       trace(params: {
@@ -268,12 +292,17 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
         tags?: Record<string, PerpsTraceValue>;
         data?: Record<string, PerpsTraceValue>;
       }): void {
+        const traceName = toTraceName(params.name);
+        const loadingSessionData = getPreloadTraceData(params.name);
+        traceNamesById.set(params.id, traceName);
         trace({
-          name: toTraceName(params.name),
+          name: traceName,
           id: params.id,
           op: params.op,
           tags: params.tags,
-          data: params.data,
+          data: loadingSessionData
+            ? { ...params.data, ...loadingSessionData }
+            : params.data,
         });
       },
       endTrace(params: {
@@ -286,8 +315,27 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
           id: params.id,
           data: params.data,
         });
+        traceNamesById.delete(params.id);
       },
-      setMeasurement(name: string, value: number, unit: string): void {
+      setMeasurement(
+        name: string,
+        value: number,
+        unit: string,
+        id?: string,
+      ): void {
+        if (id) {
+          const traceName = traceNamesById.get(id);
+          if (!traceName) {
+            return;
+          }
+          setTraceMeasurement(
+            { name: traceName, id },
+            name,
+            value,
+            unit as Parameters<typeof setTraceMeasurement>[3],
+          );
+          return;
+        }
         setMeasurement(name, value, unit);
       },
       addBreadcrumb(breadcrumb: {

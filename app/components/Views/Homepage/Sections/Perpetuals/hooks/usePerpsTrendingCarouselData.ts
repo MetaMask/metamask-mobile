@@ -13,7 +13,11 @@ export interface UsePerpsTrendingCarouselDataArgs {
 export function usePerpsTrendingCarouselData({
   skipInitialFetch = false,
 }: UsePerpsTrendingCarouselDataArgs = {}) {
-  const { markets, isLoading: marketsLoading } = usePerpsMarkets({
+  const {
+    markets,
+    isLoading: marketsLoading,
+    refresh: refreshMarkets,
+  } = usePerpsMarkets({
     skipInitialFetch,
   });
   const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
@@ -62,7 +66,14 @@ export function usePerpsTrendingCarouselData({
       marketsLoading,
       allCarouselMarkets,
       watchlistSymbolSet,
+      refreshMarkets,
     }),
-    [markets, marketsLoading, allCarouselMarkets, watchlistSymbolSet],
+    [
+      markets,
+      marketsLoading,
+      allCarouselMarkets,
+      watchlistSymbolSet,
+      refreshMarkets,
+    ],
   );
 }

@@ -1,18 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { usePerpsStream } from '../../../../../UI/Perps/providers/PerpsStreamManager';
 import {
   CandlePeriod,
   TimeDuration,
   type CandleData,
+  type PerpsMarketData,
 } from '@metamask/perps-controller';
+import { usePerpsStream } from '../../../../../UI/Perps/providers/PerpsStreamManager';
 
 const SPARKLINE_TARGET_POINTS = 50;
-const SPARKLINE_CANDLE_COUNT = 96; // 24h of 15-min candles
+const SPARKLINE_CANDLE_COUNT = 96;
 
 export interface UseHomepageSparklinesResult {
+  refresh: () => Promise<void>;
   sparklines: Record<string, number[]>;
-  refresh: () => void;
 }
+
+type MarketTrend = NonNullable<PerpsMarketData['trend']>;
 
 function downsample(data: number[], targetLength: number): number[] {
   if (data.length <= targetLength) return data;
@@ -24,87 +27,142 @@ function downsample(data: number[], targetLength: number): number[] {
   return result;
 }
 
-function extractCloses(candleData: CandleData): number[] {
-  const candles = candleData.candles.slice(-SPARKLINE_CANDLE_COUNT);
-  return candles.map((c) => parseFloat(String(c.close)));
+function extractCloses(trend: MarketTrend | undefined): number[] {
+  if (!trend || trend.length === 0) return [];
+  return trend
+    .map(([, price]) => Number.parseFloat(String(price)))
+    .filter((price) => !Number.isNaN(price));
+}
+
+function extractCandleCloses(candleData: CandleData): number[] {
+  return candleData.candles
+    .slice(-SPARKLINE_CANDLE_COUNT)
+    .map((candle) => Number.parseFloat(String(candle.close)))
+    .filter((price) => !Number.isNaN(price));
 }
 
 /**
- * Subscribe to candle data for the given symbols via the WebSocket stream
- * and return downsampled close prices suitable for sparkline rendering.
+ * Build downsampled close-price arrays from Terminal trend data when present.
+ * Markets returned by the direct-provider fallback have no trend, so only
+ * those markets retain the candle subscription needed to avoid blank tiles.
  *
- * Uses the existing CandleStreamChannel which handles caching, ref-counting,
- * and reconnection automatically.
+ * Previously this subscribed to a per-symbol candle stream, which fired a
+ * HyperLiquid `candleSnapshot` call per symbol on every reconnect. Reading
+ * `trend` instead avoids that, at the cost of hourly (not live) freshness —
+ * fine for the small homepage preview.
  *
- * Candle callbacks arrive independently per symbol. A microtask-based flush
- * coalesces rapid-fire arrivals into a single React state update so the
- * parent component re-renders once instead of N times (one per symbol).
- *
- * @param symbols - Market symbols to fetch sparklines for
+ * @param markets - Markets to build sparklines for.
  */
 export function useHomepageSparklines(
-  symbols: string[],
+  markets: PerpsMarketData[],
 ): UseHomepageSparklinesResult {
-  const safeSymbols = useMemo(() => symbols ?? [], [symbols]);
+  const safeMarkets = useMemo(() => markets ?? [], [markets]);
   const stream = usePerpsStream();
-  const [sparklines, setSparklines] = useState<Record<string, number[]>>({});
-  const dataRef = useRef<Record<string, number[]>>({});
+  const [fallbackSparklines, setFallbackSparklines] = useState<
+    Record<string, number[]>
+  >({});
+  const fallbackDataRef = useRef<Record<string, number[]>>({});
+  const refreshingSymbolsRef = useRef(new Set<string>());
   const flushScheduledRef = useRef(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
-  // Stable string key so the effect doesn't re-run on every render
-  const symbolsKey = useMemo(() => safeSymbols.join(','), [safeSymbols]);
+  const trendSparklines = useMemo(() => {
+    const result: Record<string, number[]> = {};
+    for (const market of safeMarkets) {
+      const closes = extractCloses(market.trend);
+      if (closes.length < 2) continue;
+      result[market.symbol] = downsample(closes, SPARKLINE_TARGET_POINTS);
+    }
+    return result;
+  }, [safeMarkets]);
+
+  const fallbackSymbolsKey = useMemo(
+    () =>
+      safeMarkets
+        .filter((market) => extractCloses(market.trend).length < 2)
+        .map((market) => market.symbol)
+        .join(','),
+    [safeMarkets],
+  );
 
   useEffect(() => {
-    if (!symbolsKey) return undefined;
-
-    dataRef.current = {};
+    let active = true;
+    fallbackDataRef.current = {};
     flushScheduledRef.current = false;
-    setSparklines({});
+    setFallbackSparklines((current) =>
+      Object.keys(current).length === 0 ? current : {},
+    );
+
+    if (!fallbackSymbolsKey) return undefined;
 
     const scheduleFlush = () => {
       if (flushScheduledRef.current) return;
       flushScheduledRef.current = true;
       queueMicrotask(() => {
+        if (!active) return;
         flushScheduledRef.current = false;
-        setSparklines({ ...dataRef.current });
+        setFallbackSparklines({ ...fallbackDataRef.current });
       });
     };
 
-    const unsubscribes: (() => void)[] = [];
-    const syms = symbolsKey.split(',').filter(Boolean);
-
-    for (const symbol of syms) {
-      const unsubscribe = stream.candles.subscribe({
+    const unsubscribes = fallbackSymbolsKey.split(',').map((symbol) =>
+      stream.candles.subscribe({
         symbol,
         interval: CandlePeriod.FifteenMinutes,
         duration: TimeDuration.OneDay,
         callback: (candleData: CandleData) => {
-          if (dataRef.current[symbol]) return;
-          if (!candleData?.candles || candleData.candles.length < 2) return;
+          if (!candleData?.candles || candleData.candles.length === 0) {
+            return;
+          }
+          if (
+            fallbackDataRef.current[symbol] &&
+            !refreshingSymbolsRef.current.has(symbol)
+          ) {
+            return;
+          }
+          if (candleData.candles.length < 2) return;
 
-          const closes = extractCloses(candleData);
+          const closes = extractCandleCloses(candleData);
           if (closes.length < 2) return;
 
-          dataRef.current = {
-            ...dataRef.current,
+          fallbackDataRef.current = {
+            ...fallbackDataRef.current,
             [symbol]: downsample(closes, SPARKLINE_TARGET_POINTS),
           };
           scheduleFlush();
         },
-      });
-      unsubscribes.push(unsubscribe);
-    }
+      }),
+    );
 
     return () => {
-      unsubscribes.forEach((unsub) => unsub());
+      active = false;
+      unsubscribes.forEach((unsubscribe) => unsubscribe());
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- symbolsKey is the stable representation of symbols
-  }, [stream, symbolsKey, refreshKey]);
+  }, [fallbackSymbolsKey, stream]);
 
-  const refresh = useCallback(() => {
-    setRefreshKey((k) => k + 1);
-  }, []);
+  const sparklines = useMemo(
+    () => ({ ...fallbackSparklines, ...trendSparklines }),
+    [fallbackSparklines, trendSparklines],
+  );
 
-  return useMemo(() => ({ sparklines, refresh }), [sparklines, refresh]);
+  const refresh = useCallback(async () => {
+    if (!fallbackSymbolsKey) return;
+    const symbols = fallbackSymbolsKey.split(',');
+    symbols.forEach((symbol) => refreshingSymbolsRef.current.add(symbol));
+    try {
+      await Promise.all(
+        symbols.map((symbol) =>
+          stream.candles.prewarmCandles(
+            symbol,
+            CandlePeriod.FifteenMinutes,
+            TimeDuration.OneDay,
+            true,
+          ),
+        ),
+      );
+    } finally {
+      symbols.forEach((symbol) => refreshingSymbolsRef.current.delete(symbol));
+    }
+  }, [fallbackSymbolsKey, stream]);
+
+  return useMemo(() => ({ refresh, sparklines }), [refresh, sparklines]);
 }

@@ -48,7 +48,16 @@ import {
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
 import { getPreloadedData } from '../hooks/stream/hasCachedPerpsData';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { getTerminalGlobalSnapshotUrl } from '../constants/terminalApi';
+import {
+  getTerminalGlobalSnapshotUrl,
+  TERMINAL_GLOBAL_SNAPSHOT_DATA_SOURCE,
+} from '../constants/terminalApi';
+import {
+  createPerpsLoadingSessionIdentity,
+  getActivePerpsLoadingSessionTraceData,
+  recordPerpsLoadingSessionValuesReady,
+  type PerpsLoadingSessionIdentity,
+} from '../utils/perpsLoadingSession';
 
 /**
  * Gets the EVM account from the selected account group.
@@ -59,6 +68,43 @@ function getEvmAccountFromSelectedAccountGroup() {
   const { AccountTreeController } = Engine.context;
   const accounts = AccountTreeController.getAccountsFromSelectedAccountGroup();
   return findEvmAccount(accounts as InternalAccount[]);
+}
+
+function getCurrentPerpsLoadingSessionIdentity(): PerpsLoadingSessionIdentity {
+  const {
+    activeProvider = PROVIDER_CONFIG.DefaultProvider,
+    hip3ConfigVersion = 0,
+    isTestnet,
+  } = Engine.context.PerpsController.state;
+  return createPerpsLoadingSessionIdentity({
+    address: getEvmAccountFromSelectedAccountGroup()?.address,
+    hip3ConfigVersion,
+    network: isTestnet ? 'testnet' : 'mainnet',
+    provider: activeProvider,
+  });
+}
+
+type LoadingSessionTraceData = ReturnType<
+  typeof getActivePerpsLoadingSessionTraceData
+>;
+const loadingSessionDataByTraceId = new Map<string, LoadingSessionTraceData>();
+
+function captureLoadingSessionTraceData(
+  traceId: string,
+): LoadingSessionTraceData {
+  const data = getActivePerpsLoadingSessionTraceData();
+  loadingSessionDataByTraceId.set(traceId, data);
+  return data;
+}
+
+function getCapturedLoadingSessionTraceData(
+  traceId: string,
+): LoadingSessionTraceData {
+  return loadingSessionDataByTraceId.get(traceId);
+}
+
+function clearCapturedLoadingSessionTraceData(traceId: string): void {
+  loadingSessionDataByTraceId.delete(traceId);
 }
 
 // Generic subscription parameters
@@ -635,8 +681,13 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       endTrace({
         name: TraceName.PerpsWebSocketFirstPrice,
         id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
+        data: {
+          ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
+          success: false,
+          reason: 'disconnected',
+        },
       });
+      clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
       this.firstDataTraceId = undefined;
     }
   }
@@ -707,12 +758,21 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
       tags: buildPerpsCufStartTags(),
+      data: captureLoadingSessionTraceData(this.firstDataTraceId),
     });
     this.wsConnectionStartTime = performance.now();
+    const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
       symbols: allSymbols,
       callback: (updates: PriceUpdate[]) => {
+        recordPerpsLoadingSessionValuesReady(
+          'prices',
+          'fresh_socket',
+          updates.length,
+          {},
+          loadingIdentity,
+        );
         // Track first price data from WebSocket (only once per connection)
         if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
           const firstDataDuration =
@@ -724,9 +784,14 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           endTrace({
             name: TraceName.PerpsWebSocketFirstPrice,
             id: this.firstDataTraceId,
-            data: { success: true, duration: firstDataDuration },
+            data: {
+              ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
+              success: true,
+              duration: firstDataDuration,
+            },
           });
           this.wsConnectionStartTime = null;
+          clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
           this.firstDataTraceId = undefined;
         }
 
@@ -887,8 +952,10 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           id: this.firstDataTraceId,
           op: TraceOperation.PerpsOperation,
           tags: buildPerpsCufStartTags(),
+          data: captureLoadingSessionTraceData(this.firstDataTraceId),
         });
         this.wsConnectionStartTime = performance.now();
+        const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
 
         // WARNING: Do NOT set includeMarketData: true here. It triggers
         // per-symbol activeAssetCtx subscriptions (N symbols × N DEXs = N²
@@ -898,6 +965,13 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           symbols: this.allMarketSymbols,
           includeMarketData: false,
           callback: (updates: PriceUpdate[]) => {
+            recordPerpsLoadingSessionValuesReady(
+              'prices',
+              'fresh_socket',
+              updates.length,
+              {},
+              loadingIdentity,
+            );
             // Track first price data from WebSocket (only once per prewarm)
             if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
               const firstDataDuration =
@@ -909,9 +983,14 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
               endTrace({
                 name: TraceName.PerpsWebSocketFirstPrice,
                 id: this.firstDataTraceId,
-                data: { success: true, duration: firstDataDuration },
+                data: {
+                  ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
+                  success: true,
+                  duration: firstDataDuration,
+                },
               });
               this.wsConnectionStartTime = null;
+              clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
               this.firstDataTraceId = undefined;
             }
 
@@ -989,8 +1068,13 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
       endTrace({
         name: TraceName.PerpsWebSocketFirstOrders,
         id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
+        data: {
+          ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
+          success: false,
+          reason: 'disconnected',
+        },
       });
+      clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
       this.firstDataTraceId = undefined;
     }
   }
@@ -1006,10 +1090,12 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
       name: TraceName.PerpsWebSocketFirstOrders,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      data: captureLoadingSessionTraceData(this.firstDataTraceId),
     });
 
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
+    const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrders({
       callback: (orders: Order[]) => {
@@ -1044,15 +1130,24 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
             name: TraceName.PerpsWebSocketFirstOrders,
             id: this.firstDataTraceId,
             data: {
+              ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
               success: true,
               duration: firstDataDuration,
             },
           });
 
           this.wsConnectionStartTime = null;
+          clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
           this.firstDataTraceId = undefined;
         }
 
+        recordPerpsLoadingSessionValuesReady(
+          'orders',
+          'fresh_socket',
+          orders.length,
+          {},
+          loadingIdentity,
+        );
         this.cache.set('orders', orders);
         this.notifySubscribers(orders);
         // Orders confirmed in the live stream — close pending cancel / limit
@@ -1215,8 +1310,13 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
       endTrace({
         name: TraceName.PerpsWebSocketFirstPositions,
         id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
+        data: {
+          ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
+          success: false,
+          reason: 'disconnected',
+        },
       });
+      clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
       this.firstDataTraceId = undefined;
     }
   }
@@ -1232,10 +1332,12 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
       name: TraceName.PerpsWebSocketFirstPositions,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      data: captureLoadingSessionTraceData(this.firstDataTraceId),
     });
 
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
+    const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToPositions({
       callback: (positions: Position[]) => {
@@ -1274,15 +1376,24 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
             name: TraceName.PerpsWebSocketFirstPositions,
             id: this.firstDataTraceId,
             data: {
+              ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
               success: true,
               duration: firstDataDuration,
             },
           });
 
           this.wsConnectionStartTime = null;
+          clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
           this.firstDataTraceId = undefined;
         }
 
+        recordPerpsLoadingSessionValuesReady(
+          'positions',
+          'fresh_socket',
+          positions.length,
+          {},
+          loadingIdentity,
+        );
         this.cache.set('positions', positions);
         this.notifySubscribers(positions);
         // Positions just rendered to subscribers — close any pending CUF span
@@ -1520,8 +1631,13 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
       endTrace({
         name: TraceName.PerpsWebSocketFirstAccount,
         id: this.firstDataTraceId,
-        data: { success: false, reason: 'disconnected' },
+        data: {
+          ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
+          success: false,
+          reason: 'disconnected',
+        },
       });
+      clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
       this.firstDataTraceId = undefined;
     }
   }
@@ -1537,10 +1653,12 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
       name: TraceName.PerpsWebSocketFirstAccount,
       id: this.firstDataTraceId,
       op: TraceOperation.PerpsOperation,
+      data: captureLoadingSessionTraceData(this.firstDataTraceId),
     });
 
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
+    const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToAccount({
       callback: (account: AccountState | null) => {
@@ -1578,15 +1696,24 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
             name: TraceName.PerpsWebSocketFirstAccount,
             id: this.firstDataTraceId,
             data: {
+              ...getCapturedLoadingSessionTraceData(this.firstDataTraceId),
               success: true,
               duration: firstDataDuration,
             },
           });
 
           this.wsConnectionStartTime = null;
+          clearCapturedLoadingSessionTraceData(this.firstDataTraceId);
           this.firstDataTraceId = undefined;
         }
 
+        recordPerpsLoadingSessionValuesReady(
+          'account',
+          'fresh_socket',
+          account ? 1 : 0,
+          {},
+          loadingIdentity,
+        );
         // Use base cache Map with consistent key
         this.cache.set('account', account);
         this.notifySubscribers(account as AccountState | null);
@@ -2044,7 +2171,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     return (
       data.length > 0 &&
       data.every(
-        (market) => market.dataSource === 'terminal-global-snapshot-mark',
+        (market) => market.dataSource === TERMINAL_GLOBAL_SNAPSHOT_DATA_SOURCE,
       )
     );
   }
@@ -2128,6 +2255,13 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         cacheValidForMs: this.CACHE_DURATION - cacheAge,
         providerId: currentProviderId,
       });
+      recordPerpsLoadingSessionValuesReady(
+        'markets',
+        'memory_cache',
+        cached.length,
+        {},
+        getCurrentPerpsLoadingSessionIdentity(),
+      );
       // subscribe() already delivered this cache. Existing subscribers already
       // render it, so wait for the next fresh fetch before notifying again.
     }
@@ -2181,6 +2315,13 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
           this.cache.set('markets', cachedForProvider);
           this.lastFetchTime = Date.now();
           this.cachedSourceKey = controllerNetworkKey;
+          recordPerpsLoadingSessionValuesReady(
+            'markets',
+            'memory_cache',
+            cachedForProvider.length,
+            {},
+            getCurrentPerpsLoadingSessionIdentity(),
+          );
           this.notifySubscribers(cachedForProvider, 'cache');
           return;
         }
@@ -2220,6 +2361,15 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         this.cache.set('markets', data);
         this.lastFetchTime = Date.now();
         this.cachedSourceKey = preFetchNetworkKey;
+        recordPerpsLoadingSessionValuesReady(
+          'markets',
+          this.isCompleteGlobalSnapshot(data)
+            ? 'terminal_global_snapshot_v2'
+            : 'provider',
+          data.length,
+          {},
+          getCurrentPerpsLoadingSessionIdentity(),
+        );
         // Notify all subscribers
         this.notifySubscribers(data);
         this.triggerPersist();
@@ -2448,6 +2598,31 @@ export class PerpsStreamManager {
     this.positions.seedCache('positions', snapshot.positions);
     this.orders.seedCache('orders', snapshot.orders);
     this.account.seedCache('account', snapshot.accountState);
+
+    const proofSource =
+      source === 'cache' ? 'memory_cache' : 'provider_snapshot';
+    const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
+    recordPerpsLoadingSessionValuesReady(
+      'positions',
+      proofSource,
+      snapshot.positions.length,
+      {},
+      loadingIdentity,
+    );
+    recordPerpsLoadingSessionValuesReady(
+      'orders',
+      proofSource,
+      snapshot.orders.length,
+      {},
+      loadingIdentity,
+    );
+    recordPerpsLoadingSessionValuesReady(
+      'account',
+      proofSource,
+      1,
+      {},
+      loadingIdentity,
+    );
 
     this.positions.publish(snapshot.positions, source);
     this.orders.publish(snapshot.orders, source);

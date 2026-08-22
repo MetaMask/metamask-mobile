@@ -6,6 +6,7 @@ import Engine from '../../../../core/Engine';
 import { PerpsAlwaysOnProvider } from './PerpsAlwaysOnProvider';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
+import { startPerpsLoadingSession } from '../utils/perpsLoadingSession';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -15,6 +16,10 @@ jest.mock('../services/PerpsConnectionManager');
 
 jest.mock('../utils/perpsLifecycleContext', () => ({
   initPerpsLifecycleTracking: jest.fn(() => jest.fn()),
+}));
+
+jest.mock('../utils/perpsLoadingSession', () => ({
+  startPerpsLoadingSession: jest.fn(() => 'session-id'),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -140,6 +145,16 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockStartMarketDataPreload).toHaveBeenCalledTimes(1);
   });
 
+  it('does not start a homepage loading session from the wallet root', () => {
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    expect(startPerpsLoadingSession).not.toHaveBeenCalled();
+  });
+
   it('does not call resumeFromForeground on mount when perps is disabled', () => {
     mockUseSelector.mockReturnValue(false);
 
@@ -231,8 +246,13 @@ describe('PerpsAlwaysOnProvider', () => {
       mockAppStateListener?.('background');
     });
     act(() => {
+      mockAppStateListener?.('inactive');
+    });
+    act(() => {
       mockAppStateListener?.('active');
     });
+
+    expect(startPerpsLoadingSession).not.toHaveBeenCalled();
 
     // Should not reconnect immediately — uses a timer delay
     expect(mockResumeFromForeground).not.toHaveBeenCalled();
@@ -302,6 +322,7 @@ describe('PerpsAlwaysOnProvider', () => {
 
     mockResumeFromForeground.mockClear();
     mockDisconnect.mockClear();
+    (startPerpsLoadingSession as jest.Mock).mockClear();
 
     // Pull-down: active → inactive → active
     act(() => {
@@ -317,6 +338,7 @@ describe('PerpsAlwaysOnProvider', () => {
 
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
     expect(mockResumeFromForeground).toHaveBeenCalledTimes(1);
+    expect(startPerpsLoadingSession).not.toHaveBeenCalled();
   });
 
   it('retries connection when initial resumeFromForeground fails', async () => {
