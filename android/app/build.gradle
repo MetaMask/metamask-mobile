@@ -240,6 +240,21 @@ android {
       ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
     }
 
+    // Performance/E2E BrowserStack builds use the Release build type, so the
+    // debug-only network_security_config (user CA trust) is not packaged.
+    // Overlay main react_native_config for BrowserStack builds and mark
+    // BrowserStack APKs debuggable — required for mitmproxy network capture.
+    def isBrowserStackBuild = System.getenv("IS_BROWSERSTACK_BUILD") == "true"
+    def trustUserCasForNetworkLogs = isBrowserStackBuild
+
+    sourceSets {
+      if (trustUserCasForNetworkLogs) {
+        release {
+          res.srcDirs += ["src/browserstackNetworkLogs/res"]
+        }
+      }
+    }
+
 	  signingConfigs {
       mainProd {
         storeFile file('../keystores/release.keystore')
@@ -321,6 +336,11 @@ android {
         }
         release {
             manifestPlaceholders.isDebug = false
+            // BrowserStack network logs require a debuggable app (mitmproxy CA).
+            // Keep production/beta/dev Release builds non-debuggable.
+            if (isBrowserStackBuild) {
+                debuggable true
+            }
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
             crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
