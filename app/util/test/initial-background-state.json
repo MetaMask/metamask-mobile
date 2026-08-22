@@ -976,6 +976,16 @@
   "MoneyAccountController": {
     "moneyAccounts": {}
   },
+  "MoneyAccountMigrationController": {
+    "status": "IDLE",
+    "inventory": null,
+    "destination": null,
+    "exitBatchId": null,
+    "residualDelegation": null,
+    "residualDelegationHash": null,
+    "tornDownAt": null,
+    "formerMoneyAccounts": {}
+  },
   "MoneyAccountUpgradeController": {
     "upgradedAccounts": {}
   }
