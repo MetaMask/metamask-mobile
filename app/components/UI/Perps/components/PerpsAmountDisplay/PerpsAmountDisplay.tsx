@@ -149,6 +149,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           variant={TextVariant.BodySm}
           color={TextColor.WarningDefault}
           style={styles.warning}
+          testID={PerpsAmountDisplaySelectorsIDs.WARNING}
         >
           {warningMessage}
         </Text>

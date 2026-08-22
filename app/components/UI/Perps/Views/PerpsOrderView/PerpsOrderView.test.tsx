@@ -11,6 +11,7 @@ import { TouchableOpacity } from 'react-native';
 import { Text } from '@metamask/design-system-react-native';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
 import type { ReactTestInstance } from 'react-test-renderer';
+import { strings } from '../../../../../../locales/i18n';
 
 // Local reanimated mock needed: Reanimated.default.call override is required
 // for RewardsAnimations component rendering.
@@ -38,7 +39,10 @@ jest.mock('react-native-gesture-handler', () => {
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsAmountDisplaySelectorsIDs,
+  PerpsOrderViewSelectorsIDs,
+} from '../../Perps.testIds';
 import {
   usePerpsLiveAccount,
   usePerpsLiquidationPrice,
@@ -102,6 +106,12 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.market.long': 'Long',
       'perps.market.short': 'Short',
       'perps.order.validation.insufficient_funds': 'Insufficient funds',
+      'perps.order.validation.insufficient_funds_to_cover_trade':
+        'Insufficient funds to cover the trade',
+      'perps.order.validation.minimum_amount':
+        'Minimum order size is ${{amount}}',
+      'perps.deposit.no_funds_available':
+        'Not enough funds available. Deposit funds or select a different payment method',
       'perps.deposit.max_button': 'Max',
       'perps.deposit.done_button': 'Done',
       'perps.errors.orderValidation.sizePositive':
@@ -133,11 +143,18 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 // Mock the context
+let capturedOrderProviderProps: { effectiveAvailableBalance?: number } = {};
 jest.mock('../../contexts/PerpsOrderContext', () => {
   const actual = jest.requireActual('../../contexts/PerpsOrderContext');
+  const reactActual = jest.requireActual('react');
   return {
     ...actual,
     usePerpsOrderContext: jest.fn(),
+    // Records what PerpsOrderView passes down, then renders the real provider.
+    PerpsOrderProvider: (props: Record<string, unknown>) => {
+      capturedOrderProviderProps = props;
+      return reactActual.createElement(actual.PerpsOrderProvider, props);
+    },
   };
 });
 
@@ -476,6 +493,20 @@ jest.mock(
   }),
 );
 
+// The reactive pay-token balance, as opposed to the stale snapshot carried on
+// `payToken.balanceUsd`.
+const mockUsePayTokenAccountBalance = jest.fn<
+  { balanceUsd: string | undefined; balanceRaw: string | undefined },
+  unknown[]
+>(() => ({ balanceUsd: '0', balanceRaw: '0' }));
+jest.mock(
+  '../../../../Views/confirmations/hooks/pay/usePayTokenAccountBalance',
+  () => ({
+    usePayTokenAccountBalance: (...args: unknown[]) =>
+      mockUsePayTokenAccountBalance(...args),
+  }),
+);
+
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useTransactionPayMetrics',
   () => ({
@@ -658,14 +689,16 @@ jest.mock('../../components/PerpsSlider', () => ({
     value,
     onValueChange,
     onDragEnd,
+    disabled,
   }: {
     value: number;
     onValueChange: (v: number) => void;
     onDragEnd?: (v: number) => void;
+    disabled?: boolean;
   }) => {
     const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
     return (
-      <View testID="perps-slider">
+      <View testID="perps-slider" accessibilityState={{ disabled: !!disabled }}>
         <Text>Slider Value: {value}</Text>
         <TouchableOpacity
           testID="perps-slider-drag"
@@ -1553,6 +1586,446 @@ describe('PerpsOrderView', () => {
     maxPossibleAmount: 1000,
     balanceForValidation: 1000,
     ...overrides,
+  });
+
+  describe('pay with token funding state', () => {
+    // Resolved through the file's `strings` mock, so these assertions track the
+    // locale keys the component renders rather than a copy of the wording.
+    const minimumOrderCopy = strings('perps.order.validation.minimum_amount', {
+      amount: '10',
+    });
+    const cannotCoverTradeCopy = strings(
+      'perps.order.validation.insufficient_funds_to_cover_trade',
+    );
+
+    // The trade screen is driven by a wallet token instead of the Perps
+    // balance, which is the flow where the funding messages used to stack.
+    // `isQuoteLoading` and `isBalanceResolved` are separate inputs on purpose:
+    // the quote settling does not mean the balance has landed, and the gate has
+    // to hold when only one of them is pending.
+    const renderWithPayToken = async ({
+      balanceForValidation,
+      isQuoteLoading = false,
+      isBalanceResolved = true,
+    }: {
+      balanceForValidation: number;
+      isQuoteLoading?: boolean;
+      isBalanceResolved?: boolean;
+    }) => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockIsPayQuoteLoading = isQuoteLoading;
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: {
+          address: '0xeeee',
+          chainId: '0x1',
+          symbol: 'ETH',
+          // Deliberately wrong: this snapshot is the value the screen used to
+          // read, and nothing may derive the funding state from it any more.
+          balanceUsd: '0',
+        },
+        setPayToken: jest.fn(),
+        isNative: true,
+      });
+      mockUsePayTokenAccountBalance.mockReturnValue({
+        balanceUsd: isBalanceResolved
+          ? String(balanceForValidation)
+          : undefined,
+        balanceRaw: isBalanceResolved ? '1' : undefined,
+      });
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          balanceForValidation,
+          maxPossibleAmount: balanceForValidation * 3,
+        }),
+      );
+
+      const result = render(<PerpsOrderView />, { wrapper: TestWrapper });
+      // `setIsDataReady` is deferred through the file's timer-backed
+      // requestAnimationFrame mock; flush it so the update lands inside act()
+      // instead of warning after the test finishes.
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      return result;
+    };
+
+    afterEach(() => {
+      mockIsPayQuoteLoading = false;
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: undefined,
+        setPayToken: jest.fn(),
+        isNative: undefined,
+      });
+      mockUsePayTokenAccountBalance.mockReturnValue({
+        balanceUsd: '0',
+        balanceRaw: '0',
+      });
+      capturedOrderProviderProps = {};
+      // Restored here rather than at the end of each test, so a failed
+      // assertion cannot leak an alert implementation into later tests.
+      (
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock }
+      ).useInsufficientPayTokenBalanceAlert.mockReturnValue([]);
+      (
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+        ) as { useNoPayTokenQuotesAlert: jest.Mock }
+      ).useNoPayTokenQuotesAlert.mockReturnValue([]);
+      // jest.clearAllMocks() keeps implementations, so restore the shared
+      // validation mock rather than leaking an invalid order into later tests.
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        isValid: true,
+        errors: [],
+        isValidating: false,
+      });
+    });
+
+    it('leaves the amount slider usable while the selected pay token balance is still loading', async () => {
+      // Arrange + Act
+      await renderWithPayToken({
+        balanceForValidation: 0,
+        isQuoteLoading: true,
+        isBalanceResolved: false,
+      });
+
+      // Assert
+      expect(
+        screen.getByTestId('perps-slider').props.accessibilityState.disabled,
+      ).toBe(false);
+    });
+
+    it('disables the amount slider once a resolved pay token balance cannot reach the minimum order size', async () => {
+      // Arrange + Act
+      await renderWithPayToken({
+        balanceForValidation: 3,
+      });
+
+      // Assert
+      expect(
+        screen.getByTestId('perps-slider').props.accessibilityState.disabled,
+      ).toBe(true);
+    });
+
+    it('states the minimum order size when the selected pay token cannot reach it', async () => {
+      // Arrange + Act
+      await renderWithPayToken({
+        balanceForValidation: 3,
+      });
+
+      // Assert
+      expect(
+        screen.getByTestId(
+          PerpsOrderViewSelectorsIDs.PAY_TOKEN_FUNDING_MESSAGE,
+        ),
+      ).toHaveTextContent(minimumOrderCopy);
+    });
+
+    it('states one funding message when the selected pay token cannot cover the trade', async () => {
+      // Arrange + Act — enough to reach the $10 minimum at 3x, but short of the
+      // $3.67 margin the $11 order needs.
+      await renderWithPayToken({
+        balanceForValidation: 3.5,
+      });
+
+      // Assert
+      expect(
+        screen.getByTestId(
+          PerpsOrderViewSelectorsIDs.PAY_TOKEN_FUNDING_MESSAGE,
+        ),
+      ).toHaveTextContent(cannotCoverTradeCopy);
+    });
+
+    it('hands the order provider the live pay token balance, not the stale snapshot', async () => {
+      // Arrange + Act — the snapshot `payToken.balanceUsd` is '0' while the
+      // account actually holds 1000. Asserting on what the wrapper passes into
+      // PerpsOrderProvider is what makes this fail if it reads the snapshot
+      // again; the downstream context is mocked, so screen state cannot prove it.
+      await renderWithPayToken({
+        balanceForValidation: 1000,
+      });
+
+      // Assert
+      expect(capturedOrderProviderProps.effectiveAvailableBalance).toBe(1000);
+    });
+
+    it('withholds the balance from the order provider until it resolves', async () => {
+      // Arrange + Act — an unresolved balance is unknown, so the provider must
+      // get `undefined` and fall back rather than a confirmed-looking 0.
+      await renderWithPayToken({
+        balanceForValidation: 0,
+        isQuoteLoading: true,
+        isBalanceResolved: false,
+      });
+
+      // Assert
+      expect(
+        capturedOrderProviderProps.effectiveAvailableBalance,
+      ).toBeUndefined();
+    });
+
+    it('drops the withheld balance error once a sufficient balance resolves', async () => {
+      // Arrange — while the balance was unresolved the form validated against
+      // the Perps balance and validation withheld an insufficiency for it.
+      // Validation is debounced, so that flag is still set for a beat after a
+      // sufficient live balance lands.
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockUseTransactionPayToken.mockReturnValue({
+        payToken: {
+          address: '0xeeee',
+          chainId: '0x1',
+          symbol: 'ETH',
+          balanceUsd: '0',
+        },
+        setPayToken: jest.fn(),
+        isNative: true,
+      });
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        errors: [],
+        warnings: [],
+        isValid: false,
+        isValidating: false,
+        hasSuppressedBalanceError: true,
+      });
+      mockUsePayTokenAccountBalance.mockReturnValue({
+        balanceUsd: undefined,
+        balanceRaw: undefined,
+      });
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          balanceForValidation: 1000,
+          maxPossibleAmount: 3000,
+        }),
+      );
+
+      const { rerender } = render(<PerpsOrderView />, { wrapper: TestWrapper });
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Act — the live balance resolves and comfortably covers the margin.
+      mockUsePayTokenAccountBalance.mockReturnValue({
+        balanceUsd: '1000',
+        balanceRaw: '1',
+      });
+      rerender(<PerpsOrderView />);
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Assert — the stale flag must not outvote the balance that just resolved.
+      expect(
+        screen.queryByTestId(
+          PerpsOrderViewSelectorsIDs.PAY_TOKEN_FUNDING_MESSAGE,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('omits any funding message while the selected pay token balance is still loading', async () => {
+      // Arrange + Act
+      await renderWithPayToken({
+        balanceForValidation: 0,
+        isQuoteLoading: true,
+        isBalanceResolved: false,
+      });
+
+      // Assert
+      expect(
+        screen.queryByTestId(
+          PerpsOrderViewSelectorsIDs.PAY_TOKEN_FUNDING_MESSAGE,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('omits the Perps balance deposit warning while paying with a wallet token', async () => {
+      // Arrange + Act
+      await renderWithPayToken({
+        balanceForValidation: 0,
+      });
+
+      // Assert
+      expect(
+        screen.queryByTestId(PerpsAmountDisplaySelectorsIDs.WARNING),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the Perps balance deposit warning when the Perps balance is the payment method', async () => {
+      // Arrange
+      mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          balanceForValidation: 0,
+          maxPossibleAmount: 0,
+        }),
+      );
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Assert
+      expect(
+        screen.getByTestId(PerpsAmountDisplaySelectorsIDs.WARNING),
+      ).toBeOnTheScreen();
+    });
+
+    it('states the minimum order size once when validation reports it as well', async () => {
+      // Arrange
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        errors: [minimumOrderCopy],
+        warnings: [],
+        isValid: false,
+        isValidating: false,
+      });
+
+      // Act
+      await renderWithPayToken({
+        balanceForValidation: 3,
+      });
+
+      // Assert
+      expect(screen.getAllByText(minimumOrderCopy)).toHaveLength(1);
+    });
+
+    it('shows one funding row when the calculation and a blocking balance alert both fire', async () => {
+      // Arrange — the token cannot reach the minimum AND the confirmation layer
+      // raises its own blocking insufficiency for the same shortfall.
+      const { useInsufficientPayTokenBalanceAlert: mockInsufficientAlert } =
+        jest.requireMock(
+          '../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+        ) as { useInsufficientPayTokenBalanceAlert: jest.Mock };
+      mockInsufficientAlert.mockReturnValue([
+        {
+          key: 'insufficient-pay-token-balance',
+          message: 'You do not have enough ETH to cover this transaction',
+          isBlocking: true,
+        },
+      ]);
+
+      // Act
+      await renderWithPayToken({ balanceForValidation: 3 });
+
+      // Assert — one row, and it is the more specific calculated message.
+      expect(
+        screen.getByTestId(
+          PerpsOrderViewSelectorsIDs.PAY_TOKEN_FUNDING_MESSAGE,
+        ),
+      ).toHaveTextContent(minimumOrderCopy);
+      expect(
+        screen.queryByTestId(
+          PerpsOrderViewSelectorsIDs.PAY_TOKEN_NO_QUOTE_MESSAGE,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByText(
+          'You do not have enough ETH to cover this transaction',
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('still surfaces an unrelated no-quote failure alongside the funding state', async () => {
+      // Arrange — a no-quote alert is a different failure, so it must keep its
+      // own row even while the funding calculation is also reporting. The
+      // balance is deliberately below the minimum so that state really exists.
+      const { useNoPayTokenQuotesAlert: mockNoQuotesAlert } = jest.requireMock(
+        '../../../../Views/confirmations/hooks/alerts/useNoPayTokenQuotesAlert',
+      ) as { useNoPayTokenQuotesAlert: jest.Mock };
+      mockNoQuotesAlert.mockReturnValue([
+        {
+          key: 'no-pay-token-quotes',
+          message: 'This payment route is not available right now',
+          isBlocking: true,
+        },
+      ]);
+
+      // Act
+      await renderWithPayToken({ balanceForValidation: 3 });
+
+      // Assert — both rows, because they describe different failures.
+      expect(
+        screen.getByTestId(
+          PerpsOrderViewSelectorsIDs.PAY_TOKEN_FUNDING_MESSAGE,
+        ),
+      ).toHaveTextContent(minimumOrderCopy);
+      expect(
+        screen.getByTestId(
+          PerpsOrderViewSelectorsIDs.PAY_TOKEN_NO_QUOTE_MESSAGE,
+        ),
+      ).toHaveTextContent('This payment route is not available right now');
+    });
+
+    it('leaves the amount slider usable when the quote has settled but the balance has not', async () => {
+      // Arrange + Act — quote readiness alone must not unlock the balance-derived
+      // UI; only the balance resolving may.
+      await renderWithPayToken({
+        balanceForValidation: 0,
+        isQuoteLoading: false,
+        isBalanceResolved: false,
+      });
+
+      // Assert
+      expect(
+        screen.getByTestId('perps-slider').props.accessibilityState.disabled,
+      ).toBe(false);
+      expect(
+        screen.queryByTestId(
+          PerpsOrderViewSelectorsIDs.PAY_TOKEN_FUNDING_MESSAGE,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('disables the place order button while the balance is unresolved', async () => {
+      // Arrange + Act — an unknown balance blocks the trade without being
+      // reported as an empty wallet.
+      await renderWithPayToken({
+        balanceForValidation: 0,
+        isQuoteLoading: false,
+        isBalanceResolved: false,
+      });
+
+      // Assert
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+      ).toBeDisabled();
+    });
+
+    it('disables the place order button while validation still reports the pre-resolution verdict', async () => {
+      // Arrange — validation is debounced, so for a beat after the balance
+      // resolves it still carries the verdict it reached against the Perps
+      // balance. The button must not open on that stale `isValid`.
+      (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+        errors: [],
+        warnings: [],
+        isValid: true,
+        isValidating: false,
+        hasSuppressedBalanceError: false,
+      });
+
+      // Act — the resolved token covers the $10 minimum at 3x but falls short
+      // of the $3.67 margin the $11 order needs.
+      await renderWithPayToken({ balanceForValidation: 3.5 });
+
+      // Assert
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+      ).toBeDisabled();
+    });
+
+    it('keeps the place order button on screen after the payment method changes', async () => {
+      // Arrange + Act
+      await renderWithPayToken({
+        balanceForValidation: 0,
+      });
+
+      // Assert
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+      ).toBeOnTheScreen();
+    });
   });
 
   describe('Slider drag commit funnel', () => {
@@ -4587,6 +5060,18 @@ describe('PerpsOrderView', () => {
         isNative: false,
       });
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockUsePayTokenAccountBalance.mockReturnValue({
+        balanceUsd: '0.01',
+        balanceRaw: '1',
+      });
+      // The screen funds the trade from the balance validation uses, so the
+      // shortfall has to be expressed there rather than on the pay-token snapshot.
+      (usePerpsOrderContext as jest.Mock).mockReturnValue(
+        buildOrderContextMock({
+          balanceForValidation: 0.01,
+          maxPossibleAmount: 0.03,
+        }),
+      );
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 

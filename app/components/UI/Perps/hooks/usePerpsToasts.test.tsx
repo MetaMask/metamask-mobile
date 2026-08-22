@@ -3,6 +3,7 @@ import { useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { playNotification, NotificationMoment } from '../../../../util/haptics';
 import usePerpsToasts, { PerpsToastOptions } from './usePerpsToasts';
+import { strings } from '../../../../../locales/i18n';
 import {
   ButtonIconVariant,
   ToastVariants,
@@ -1275,6 +1276,24 @@ describe('usePerpsToasts', () => {
           { label: 'Order validation failed', isBold: true },
           { label: '\n', isBold: false },
           { label: 'Insufficient balance', isBold: false },
+        ]);
+      });
+
+      it('returns a single line when no detail is available', () => {
+        // Arrange
+        const { result } = renderHook(() => usePerpsToasts());
+
+        // Act — the title is already "Order validation failed", so an absent
+        // detail must not be padded out with a copy of that title.
+        const config =
+          result.current.PerpsToastOptions.formValidation.orderForm.validationError();
+
+        // Assert
+        expect(config.labelOptions).toEqual([
+          {
+            label: strings('perps.order.validation.failed'),
+            isBold: true,
+          },
         ]);
       });
     });

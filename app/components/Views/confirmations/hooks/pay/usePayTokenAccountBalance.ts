@@ -11,8 +11,17 @@ const ZERO_ADDRESS = '0x0' as Hex;
 // AccountTracker polling). Read from the same reactive asset source the
 // token selector uses so the balance stays in sync.
 export function usePayTokenAccountBalance(): {
-  balanceUsd: string;
-  balanceRaw: string;
+  /**
+   * USD value from the reactive account source. `undefined` while the
+   * account token or USD rate is missing — not a measured zero.
+   */
+  balanceUsd: string | undefined;
+  /**
+   * Raw token units from the account source. `undefined` until that
+   * source produces a balance. Lands before `balanceUsd` when only the
+   * rate is missing.
+   */
+  balanceRaw: string | undefined;
 } {
   const { payToken } = useTransactionPayToken();
   const accountTokens = useAccountTokens({ includeNoBalance: true });
@@ -24,7 +33,10 @@ export function usePayTokenAccountBalance(): {
 
   return useMemo(() => {
     if (!payToken) {
-      return { balanceUsd: '0', balanceRaw: '0' };
+      return {
+        balanceUsd: undefined,
+        balanceRaw: undefined,
+      };
     }
 
     const matchingToken = accountTokens.find(
@@ -35,8 +47,8 @@ export function usePayTokenAccountBalance(): {
 
     if (!matchingToken?.rawBalance) {
       return {
-        balanceUsd: payToken.balanceUsd ?? '0',
-        balanceRaw: payToken.balanceRaw ?? '0',
+        balanceUsd: undefined,
+        balanceRaw: undefined,
       };
     }
 
@@ -45,10 +57,18 @@ export function usePayTokenAccountBalance(): {
     );
     const decimals = matchingToken.decimals ?? payToken.decimals;
     const humanBalance = new BigNumber(rawBalanceDecimal).shiftedBy(-decimals);
-    const balanceUsd = usdRate
-      ? humanBalance.multipliedBy(usdRate).toString(10)
-      : (payToken.balanceUsd ?? '0');
+    if (!usdRate) {
+      return {
+        balanceUsd: undefined,
+        balanceRaw: rawBalanceDecimal,
+      };
+    }
 
-    return { balanceUsd, balanceRaw: rawBalanceDecimal };
+    const balanceUsd = humanBalance.multipliedBy(usdRate).toString(10);
+
+    return {
+      balanceUsd,
+      balanceRaw: rawBalanceDecimal,
+    };
   }, [payToken, accountTokens, usdRate]);
 }

@@ -47,6 +47,12 @@ interface UsePerpsOrderValidationParams {
   midPrice?: number;
   /** Asset size decimals used to canonicalize venue prices. */
   szDecimals?: number;
+  /**
+   * When true, the caller renders its own funding message for the selected
+   * payment method, so the generic balance error is kept out of `errors`
+   * instead of being shown a second time. The order still reports as invalid.
+   */
+  skipBalanceError?: boolean;
 }
 
 interface ValidationState {
@@ -54,6 +60,13 @@ interface ValidationState {
   warnings: string[];
   protocolValid: boolean;
   isValidating: boolean;
+  hasSuppressedBalanceError: boolean;
+  /**
+   * Generic balance-error string last written into `errors`. Kept so a later
+   * `skipBalanceError` flip can drop it from the returned list before the
+   * debounced validation run finishes.
+   */
+  balanceError?: string;
 }
 
 export interface ValidationResult {
@@ -62,6 +75,11 @@ export interface ValidationResult {
   fieldIssues: OrderFormFieldIssue[];
   isValid: boolean;
   isValidating: boolean;
+  /**
+   * True when `skipBalanceError` withheld the balance message. The order is
+   * invalid with no message to show for it, so the caller must supply its own.
+   */
+  hasSuppressedBalanceError: boolean;
 }
 
 // Stable empty array references to prevent unnecessary re-renders
@@ -99,6 +117,7 @@ export function usePerpsOrderValidation(
     triggerPrice,
     midPrice = assetPrice,
     szDecimals,
+    skipBalanceError,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -109,6 +128,7 @@ export function usePerpsOrderValidation(
     warnings: EMPTY_WARNINGS,
     protocolValid: false,
     isValidating: false, // Start with false to prevent initial flickering
+    hasSuppressedBalanceError: false,
   });
 
   // Use stable array references to prevent unnecessary re-renders
@@ -159,13 +179,15 @@ export function usePerpsOrderValidation(
 
       // Balance validation (immediate)
       const requiredMargin = Number.parseFloat(marginRequired);
-      if (requiredMargin > spendableBalance) {
-        immediateErrors.push(
-          strings('perps.order.validation.insufficient_balance', {
+      const isBalanceInsufficient = requiredMargin > spendableBalance;
+      const balanceError = isBalanceInsufficient
+        ? strings('perps.order.validation.insufficient_balance', {
             required: marginRequired,
             available: spendableBalance.toString(),
-          }),
-        );
+          })
+        : undefined;
+      if (balanceError && !skipBalanceError) {
+        immediateErrors.push(balanceError);
       }
 
       // Minimum order size validation using original USD input (prevents precision loss)
@@ -304,8 +326,13 @@ export function usePerpsOrderValidation(
         setValidation({
           errors: errors.length > 0 ? errors : EMPTY_ERRORS,
           warnings: warnings.length > 0 ? warnings : EMPTY_WARNINGS,
-          protocolValid: errors.length === 0,
+          // A suppressed balance error still blocks the order; only its message
+          // is left to the caller's own funding message.
+          protocolValid: errors.length === 0 && !isBalanceInsufficient,
           isValidating: false,
+          hasSuppressedBalanceError:
+            isBalanceInsufficient && !!skipBalanceError,
+          balanceError: skipBalanceError ? undefined : balanceError,
         });
       } catch (error) {
         if (requestId !== validationRequestIdRef.current) {
@@ -320,6 +347,8 @@ export function usePerpsOrderValidation(
           warnings: EMPTY_WARNINGS,
           protocolValid: false,
           isValidating: false,
+          hasSuppressedBalanceError: false,
+          balanceError: undefined,
         });
       }
     },
@@ -337,6 +366,7 @@ export function usePerpsOrderValidation(
       originalUsdAmount,
       positionSize,
       reduceOnly,
+      skipBalanceError,
       spendableBalance,
       szDecimals,
       triggerPrice,
@@ -367,6 +397,9 @@ export function usePerpsOrderValidation(
         errors: EMPTY_ERRORS,
         isValidating: false,
         protocolValid: false,
+        // Nothing was suppressed here: the order is blocked on size, not funds.
+        hasSuppressedBalanceError: false,
+        balanceError: undefined,
       }));
       return;
     }
@@ -421,10 +454,14 @@ export function usePerpsOrderValidation(
 
   // Return validation with stable array references
   return {
-    errors: stableErrors,
+    errors:
+      skipBalanceError && validation.balanceError
+        ? stableErrors.filter((error) => error !== validation.balanceError)
+        : stableErrors,
     warnings: stableWarnings,
     fieldIssues,
     isValid: validation.protocolValid && fieldIssues.length === 0,
     isValidating: validation.isValidating,
+    hasSuppressedBalanceError: validation.hasSuppressedBalanceError,
   };
 }

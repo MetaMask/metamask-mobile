@@ -264,6 +264,33 @@ describe('PayWithRow', () => {
       expect(balanceEl).toHaveTextContent('($1,234.99)');
       expect(balanceEl).not.toHaveTextContent('1,235');
     });
+
+    it('renders zero instead of the pay token snapshot while the live balance is unresolved', () => {
+      // Arrange
+      jest.mocked(useTransactionPayToken).mockReturnValue({
+        payToken: {
+          address: ADDRESS_MOCK,
+          balanceHuman: '123.45',
+          balanceFiat: '$123.45',
+          balanceRaw: '1234500',
+          balanceUsd: '123.45',
+          chainId: CHAIN_ID_MOCK,
+          decimals: 4,
+          symbol: 'test',
+        },
+        setPayToken: jest.fn(),
+      });
+      jest.mocked(usePayTokenAccountBalance).mockReturnValue({
+        balanceUsd: undefined,
+        balanceRaw: undefined,
+      });
+
+      // Act
+      const { getByTestId } = render();
+
+      // Assert
+      expect(getByTestId('pay-with-balance')).toHaveTextContent('($0)');
+    });
   });
 
   describe('withdraw mode', () => {

@@ -110,6 +110,20 @@ describe('usePayWithPreferredToken', () => {
     });
   });
 
+  it('returns zero instead of the selected token snapshot while the live balance is unresolved', () => {
+    // Arrange
+    usePayTokenAccountBalanceMock.mockReturnValue({
+      balanceUsd: undefined,
+      balanceRaw: undefined,
+    });
+
+    // Act
+    const { result } = renderHook(() => usePayWithPreferredToken());
+
+    // Assert
+    expect(result.current.preferredToken?.balanceUsd).toBe('0');
+  });
+
   it('passes an explicit preferred token into automatic token selection', () => {
     const preferredToken = {
       address: TOKEN_MOCK.address,

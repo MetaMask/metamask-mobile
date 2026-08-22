@@ -15,13 +15,8 @@ import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsA
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import { Image, TouchableOpacity } from 'react-native';
 import MoneyIcon from '../../../../../../images/money.png';
-import { Box } from '../../../../../UI/Box/Box';
 import {
-  AlignItems,
-  FlexDirection,
-  JustifyContent,
-} from '../../../../../UI/Box/box.types';
-import {
+  Box,
   FontWeight,
   Icon,
   IconColor,
@@ -123,9 +118,7 @@ function PayWithRowLayout({
       testID={ConfirmationRowComponentIDs.PAY_WITH}
     >
       <Box
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
-        justifyContent={JustifyContent.spaceBetween}
+        twClassName="flex-row items-center justify-between"
         style={styles.container}
       >
         <Text
@@ -134,11 +127,7 @@ function PayWithRowLayout({
         >
           {label}
         </Text>
-        <Box
-          flexDirection={FlexDirection.Row}
-          alignItems={AlignItems.center}
-          gap={8}
-        >
+        <Box twClassName="flex-row items-center gap-2">
           {children}
           {showArrow && (
             <Icon
@@ -213,7 +202,10 @@ function PayWithRowInteractive() {
   const balanceUsdFormatted = useMemo(
     () =>
       formatFiat(
-        new BigNumber(accountBalanceUsd).decimalPlaces(2, BigNumber.ROUND_DOWN),
+        new BigNumber(accountBalanceUsd ?? '0').decimalPlaces(
+          2,
+          BigNumber.ROUND_DOWN,
+        ),
       ),
     [formatFiat, accountBalanceUsd],
   );
@@ -395,17 +387,11 @@ export function PayWithRowSkeleton() {
   return (
     <Box
       testID="pay-with-row-skeleton"
-      flexDirection={FlexDirection.Row}
-      alignItems={AlignItems.center}
-      justifyContent={JustifyContent.spaceBetween}
+      twClassName="flex-row items-center justify-between"
       style={styles.skeletonContainer}
     >
       <Skeleton height={18} width={60} style={styles.skeletonTop} />
-      <Box
-        flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.center}
-        gap={8}
-      >
+      <Box twClassName="flex-row items-center gap-2">
         <Skeleton height={32} width={32} style={styles.skeletonCircle} />
         <Skeleton height={18} width={120} style={styles.skeletonTop} />
       </Box>

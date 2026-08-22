@@ -69,6 +69,18 @@ export function useInsufficientPayTokenBalanceAlert({
     : accountBalanceUsd;
   const balanceRaw = accountBalanceRaw;
 
+  // `undefined` means the reactive source has not produced a value yet.
+  // Comparing against a fallback `0` would raise a blocking insufficiency
+  // for a balance nobody has measured. The money override reads a different
+  // source and is not subject to that race. Continue / confirm CTAs still
+  // fail closed via `useIsPayTokenBalanceUnresolved` during this window.
+  const isPayBalanceKnown =
+    isMoneyPaymentOverride || accountBalanceUsd !== undefined;
+
+  // Raw units land before the USD rate. Gate the fee check on raw presence
+  // so a known shortfall is not dropped while only the rate is missing.
+  const isPayBalanceRawKnown = accountBalanceRaw !== undefined;
+
   const ticker = useSelector((state: RootState) =>
     selectTickerByChainId(state, sourceChainId),
   );
@@ -125,8 +137,9 @@ export function useInsufficientPayTokenBalanceAlert({
     () =>
       !isPostQuote &&
       payToken &&
+      isPayBalanceKnown &&
       totalAmountUsd.isGreaterThan(balanceUsd ?? '0'),
-    [balanceUsd, isPostQuote, payToken, totalAmountUsd],
+    [balanceUsd, isPayBalanceKnown, isPostQuote, payToken, totalAmountUsd],
   );
 
   const isInsufficientForFees = useMemo(
@@ -135,9 +148,11 @@ export function useInsufficientPayTokenBalanceAlert({
       !isPostQuote &&
       !isPendingAlert &&
       payToken &&
+      isPayBalanceRawKnown &&
       totalSourceAmountRaw.isGreaterThan(balanceRaw ?? '0'),
     [
       balanceRaw,
+      isPayBalanceRawKnown,
       isMoneyPaymentOverride,
       isPendingAlert,
       isPostQuote,
