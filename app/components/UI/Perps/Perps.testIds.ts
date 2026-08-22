@@ -371,20 +371,6 @@ export const getPerpsViewSelector = {
     `perps-chart-duration-selector-duration-${duration}`,
 };
 
-// Helper functions for PerpsCandlePeriodBottomSheet dynamic selectors
-export const getPerpsCandlePeriodBottomSheetSelector = {
-  periodButton: (baseTestID: string, period: string) =>
-    `${baseTestID}-period-${period}`,
-};
-
-// Helper functions for PerpsCandlePeriodSelector dynamic selectors
-export const getPerpsCandlePeriodSelector = {
-  group: (baseTestID: string) => `${baseTestID}-group`,
-  periodButton: (baseTestID: string, period: string) =>
-    `${baseTestID}-period-${period}`,
-  moreButton: (baseTestID: string) => `${baseTestID}-more-button`,
-};
-
 // ========================================
 // PERPS WITHDRAW VIEW SELECTORS
 // ========================================
@@ -796,10 +782,6 @@ export const PerpsSlippageConfigSelectorsIDs = {
   BOTTOM_SHEET: 'perps-slippage-config-bottom-sheet',
   SET: 'perps-slippage-config-set',
   EDIT_CHIP: 'perps-slippage-config-edit-chip',
-} as const;
-
-export const PerpsCandlePeriodBottomSheetSelectorsIDs = {
-  CLOSE_BUTTON: 'perps-candle-period-bottom-sheet-close',
 } as const;
 
 export const getPerpsSlippageConfigSelector = {

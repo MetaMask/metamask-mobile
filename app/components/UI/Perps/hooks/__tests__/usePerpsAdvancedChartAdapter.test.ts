@@ -122,6 +122,7 @@ describe('INTERVAL_MS', () => {
     expect(INTERVAL_MS['4h']).toBe(14_400_000);
     expect(INTERVAL_MS['1d']).toBe(86_400_000);
     expect(INTERVAL_MS['1w']).toBe(604_800_000);
+    expect(INTERVAL_MS['1M']).toBe(30 * 24 * 60 * 60_000);
   });
 });
 
@@ -358,6 +359,9 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
 
     expect(result.current.visibleToMs).toBe(8000);
     expect(result.current.visibleFromMs).toBe(8000 - fourHourIntervalMs * 45);
+    expect(result.current.ohlcvSeriesKey).toBe(
+      `${SYMBOL}|${CandlePeriod.FourHours}`,
+    );
   });
 
   it('clears isLoading when the subscription reports an error', () => {
