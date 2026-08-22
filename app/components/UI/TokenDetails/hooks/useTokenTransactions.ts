@@ -128,11 +128,94 @@ export const getSwapLegTokenIdentifiers = (
   };
 };
 
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+type NonEvmFilterAsset = Pick<
+  TokenI,
+  'chainId' | 'address' | 'symbol' | 'isNative' | 'isETH'
+>;
+
+const filterTransactionsForNonEvmAsset = (
+  txs: Transaction[],
+  asset: NonEvmFilterAsset,
+): Transaction[] => {
+  if (asset.isNative || asset.isETH) {
+    const nativeAssetId =
+      AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
+        asset.chainId as SupportedCaipChainId
+      ]?.nativeCurrency;
+
+    return txs.filter((tx: Transaction) => {
+      const txData = (tx.from || []).concat(tx.to || []);
+
+      return txData.some(
+        (participant: { asset?: { type?: string } }) =>
+          participant.asset &&
+          typeof participant.asset === 'object' &&
+          participant.asset.type === nativeAssetId,
+      );
+    });
+  }
+
+  const assetAddress = asset.address?.toLowerCase();
+  const assetSymbol = asset.symbol?.toLowerCase();
+
+  if (!assetAddress && !assetSymbol) {
+    return txs;
+  }
+
+  return txs.filter((tx: Transaction) => {
+    const txData = (tx.from || []).concat(tx.to || []);
+
+    const involvesToken = txData.some(
+      (participant: { asset?: { type?: string; unit?: string } }) => {
+        if (participant.asset && typeof participant.asset === 'object') {
+          const assetType = participant.asset.type || '';
+          const assetUnit = participant.asset.unit || '';
+
+          if (assetAddress && assetType.toLowerCase().includes(assetAddress)) {
+            return true;
+          }
+
+          if (assetSymbol && assetUnit.toLowerCase() === assetSymbol) {
+            return true;
+          }
+        }
+        return false;
+      },
+    );
+
+    return involvesToken;
+  });
+};
+
 // Cache for non-EVM transactions
-// eslint-disable-next-line import-x/no-mutable-exports
-let cachedFilteredTransactions: Transaction[] | null = null;
-// eslint-disable-next-line import-x/no-mutable-exports
-let cacheKey: string | null = null;
+const nonEvmFilterCache: {
+  key: string | null;
+  transactions: Transaction[] | null;
+} = { key: null, transactions: null };
+
+const getFilteredNonEvmTransactions = (
+  txs: Transaction[],
+  asset: NonEvmFilterAsset,
+): Transaction[] => {
+  const key = JSON.stringify({
+    txCount: txs.length,
+    assetAddress: asset.address?.toLowerCase(),
+    assetSymbol: asset.symbol?.toLowerCase(),
+    isNativeAsset: asset.isNative || asset.isETH,
+    lastTxId: txs[0]?.id,
+  });
+
+  if (nonEvmFilterCache.key === key && nonEvmFilterCache.transactions) {
+    return nonEvmFilterCache.transactions;
+  }
+
+  const filtered = filterTransactionsForNonEvmAsset(txs, asset);
+  nonEvmFilterCache.transactions = filtered;
+  nonEvmFilterCache.key = key;
+  return filtered;
+};
+///: END:ONLY_INCLUDE_IF
 
 /**
  * Hook that handles transaction fetching, filtering, and normalization for a token.
@@ -221,77 +304,13 @@ export const useTokenTransactions = (
           (tx: Transaction) => tx.chain === asset.chainId,
         ) || [];
 
-      const assetAddress = asset.address?.toLowerCase();
-      const assetSymbol = asset.symbol?.toLowerCase();
-      const isNativeAsset = asset.isNative || asset.isETH;
-
-      const newCacheKey = JSON.stringify({
-        txCount: txs.length,
-        assetAddress,
-        assetSymbol,
-        isNativeAsset,
-        lastTxId: txs[0]?.id,
+      const filteredTransactions = getFilteredNonEvmTransactions(txs, {
+        chainId: asset.chainId,
+        address: asset.address,
+        symbol: asset.symbol,
+        isNative: asset.isNative,
+        isETH: asset.isETH,
       });
-
-      let filteredTransactions: Transaction[];
-      if (cacheKey === newCacheKey && cachedFilteredTransactions) {
-        filteredTransactions = cachedFilteredTransactions;
-      } else {
-        filteredTransactions = txs;
-
-        if (isNativeAsset) {
-          const nativeAssetId =
-            AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
-              asset.chainId as SupportedCaipChainId
-            ]?.nativeCurrency;
-
-          filteredTransactions = txs.filter((tx: Transaction) => {
-            const txData = (tx.from || []).concat(tx.to || []);
-
-            return txData.some(
-              (participant: { asset?: { type?: string } }) =>
-                participant.asset &&
-                typeof participant.asset === 'object' &&
-                participant.asset.type === nativeAssetId,
-            );
-          });
-        } else if (assetAddress || assetSymbol) {
-          filteredTransactions = txs.filter((tx: Transaction) => {
-            const txData = (tx.from || []).concat(tx.to || []);
-
-            const involvesToken = txData.some(
-              (participant: { asset?: { type?: string; unit?: string } }) => {
-                if (
-                  participant.asset &&
-                  typeof participant.asset === 'object'
-                ) {
-                  const assetType = participant.asset.type || '';
-                  const assetUnit = participant.asset.unit || '';
-
-                  if (
-                    assetAddress &&
-                    assetType.toLowerCase().includes(assetAddress)
-                  ) {
-                    return true;
-                  }
-
-                  if (assetSymbol && assetUnit.toLowerCase() === assetSymbol) {
-                    return true;
-                  }
-                }
-                return false;
-              },
-            );
-
-            return involvesToken;
-          });
-        }
-
-        // eslint-disable-next-line react-compiler/react-compiler
-        cachedFilteredTransactions = filteredTransactions;
-        // eslint-disable-next-line react-compiler/react-compiler
-        cacheKey = newCacheKey;
-      }
 
       transactions = [...filteredTransactions].sort(
         (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
@@ -493,11 +512,19 @@ export const useTokenTransactions = (
         return true;
       }
 
+      const fromAddress = from ?? '';
+      const toAddress = to ?? '';
+      const accountAddress = selectedAddress ?? '';
+
+      const involvesSelectedAddress =
+        areAddressesEqual(fromAddress, accountAddress) ||
+        areAddressesEqual(toAddress, accountAddress);
+      const matchesCurrentChain =
+        chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID);
+
       if (
-        (areAddressesEqual(from ?? '', selectedAddress ?? '') ||
-          areAddressesEqual(to ?? '', selectedAddress ?? '')) &&
-        (chainId === tx.chainId ||
-          (!tx.chainId && networkId === tx.networkID)) &&
+        involvesSelectedAddress &&
+        matchesCurrentChain &&
         tx.status !== 'unapproved'
       ) {
         if (
@@ -542,11 +569,19 @@ export const useTokenTransactions = (
         return true;
       }
 
+      const fromAddress = from ?? '';
+      const toAddress = to ?? '';
+      const accountAddress = selectedAddress ?? '';
+
+      const involvesSelectedAddress =
+        areAddressesEqual(fromAddress, accountAddress) ||
+        areAddressesEqual(toAddress, accountAddress);
+      const matchesCurrentChain =
+        chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID);
+
       if (
-        (areAddressesEqual(from ?? '', selectedAddress ?? '') ||
-          areAddressesEqual(to ?? '', selectedAddress ?? '')) &&
-        (chainId === tx.chainId ||
-          (!tx.chainId && networkId === tx.networkID)) &&
+        involvesSelectedAddress &&
+        matchesCurrentChain &&
         tx.status !== 'unapproved'
       ) {
         if (to?.toLowerCase() === navAddress) return true;
@@ -679,12 +714,17 @@ export const useTokenTransactions = (
             }
             const alreadySubmitted = submittedNonces.includes(nonce);
             const alreadyConfirmed = confirmedTxs.find(
-              (confirmedTransaction: Transaction) =>
-                areAddressesEqual(
+              (confirmedTransaction: Transaction) => {
+                const confirmedFrom =
                   safeToChecksumAddress(confirmedTransaction.txParams.from) ??
-                    '',
-                  selectedAddress ?? '',
-                ) && confirmedTransaction.txParams.nonce === nonce,
+                  '';
+                const accountAddress = selectedAddress ?? '';
+
+                return (
+                  areAddressesEqual(confirmedFrom, accountAddress) &&
+                  confirmedTransaction.txParams.nonce === nonce
+                );
+              },
             );
             if (alreadyConfirmed) {
               return false;

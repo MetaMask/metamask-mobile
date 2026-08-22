@@ -1,0 +1,83 @@
+React Compiler Report (Assets CODEOWNERS)
+========================================
+Source:              /Users/prithpalsooriya/Desktop/projects/metamask-mobile/rcm-raw.txt
+Team:                @MetaMask/metamask-assets
+Files with failures: 34
+Failure lines:       74
+
+Failures:
+----------------------------------------
+  components/hooks/useTokenBalance.tsx:41 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol.ts:38 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/NftDetails/NftDetails.tsx:107 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/Views/Homepage/Sections/Tokens/hooks/usePopularTokens.ts:162 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/Homepage/Sections/NFTs/NFTsSection.tsx:69 - (anonymous): Cannot access refs during render
+  components/Views/Homepage/Sections/NFTs/NFTsSection.tsx:88 - (anonymous): Cannot access refs during render
+  components/Views/AddAsset/components/SearchTokenAutoComplete/SearchTokenAutocomplete.tsx:210 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/Views/AddAsset/components/AddCustomToken/AddCustomToken.tsx:135 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/AddAsset/components/AddCustomCollectible/AddCustomCollectible.tsx:78 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/Views/AddAsset/components/AddCustomCollectible/AddCustomCollectible.tsx:233 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Tokens/index.tsx:208 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/Tokens/TokenList/TokenList.test.tsx:154 - (anonymous): Cannot access refs during render
+  components/UI/Tokens/TokenList/TokenList.tsx:119 - (anonymous): Unexpected terminal kind `optional` for logical test block
+  components/UI/TokenDetails/hooks/useAssetActivation.ts:98 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/TokenDetails/hooks/useAssetActivation.ts:153 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/TokenDetails/hooks/useTokenPrice.ts:188 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/TokenDetails/hooks/useTokenSecurityData.ts:44 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/TokenDetails/hooks/useTokenTransactions.ts:291 - (anonymous): Cannot reassign variables declared outside of the component/hook
+  components/UI/TokenDetails/hooks/useTokenTransactions.ts:293 - (anonymous): Cannot reassign variables declared outside of the component/hook
+  components/UI/TokenDetails/components/AssetOverviewContent.tsx:446 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/AssetOverviewContent.tsx:448 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/MoreTokenActionsMenu.tsx:265 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/MoreTokenActionsMenu.tsx:277 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/MoreTokenActionsMenu.tsx:289 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/MoreTokenActionsMenu.tsx:301 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/MoreTokenActionsMenu.tsx:312 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/ShareTokenBottomSheet.tsx:247 - (anonymous): Existing memoization could not be preserved
+  components/UI/TokenDetails/components/TokenDetailsActions.tsx:206 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/TokenDetailsActions.tsx:214 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/TokenDetailsActions.tsx:225 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/TokenDetailsActions.tsx:234 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/TokenDetailsActions.tsx:245 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/TokenDetailsActions.tsx:256 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/TokenDetailsActions.tsx:266 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/TokenDetailsActions.tsx:276 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/components/useAssetVisibility.ts:101 - (anonymous): Existing memoization could not be preserved
+  components/UI/TokenDetails/components/useAssetVisibility.ts:111 - (anonymous): Existing memoization could not be preserved
+  components/UI/TokenDetails/Views/TokenDetails.tsx:210 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/TokenDetails/Views/TokenDetails.tsx:687 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/Views/TokenDetails.tsx:775 - (anonymous): Cannot access refs during render
+  components/UI/TokenDetails/Views/TokenDetails.tsx:776 - (anonymous): Cannot access refs during render
+  components/UI/DeFiPositions/DeFiPositionsList.tsx:108 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/CollectibleOverview/index.js:169 - (anonymous): Cannot access refs during render
+  components/UI/CollectibleOverview/index.js:169 - (anonymous): Cannot access refs during render
+  components/UI/CollectibleOverview/index.js:169 - (anonymous): Cannot access refs during render
+  components/UI/CollectibleOverview/index.js:169 - (anonymous): Cannot access refs during render
+  components/UI/CollectibleOverview/index.js:169 - (anonymous): Cannot access refs during render
+  components/UI/Assets/components/Balance/AccountGroupBalance.tsx:85 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Assets/components/AssetLogo/AssetLogo.hook.tsx:16 - (anonymous): Cannot access refs during render
+  components/UI/Assets/components/AssetLogo/AssetLogo.hook.tsx:17 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/hooks/useAlertSaveFlow.ts:143 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/Assets/PriceAlerts/components/AlertAmountInput.tsx:42 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/AlertAmountInput.tsx:42 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/AlertAmountInput.tsx:42 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/AlertAmountInput.tsx:42 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/AlertAmountInput.tsx:42 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/SlidingPillToggle.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/SlidingPillToggle.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/SlidingPillToggle.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/SlidingPillToggle.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/SlidingPillToggle.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/SlidingPillToggle.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/components/SlidingPillToggle.tsx:74 - (anonymous): Cannot access refs during render
+  components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.tsx:206 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.tsx:207 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.tsx:209 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.tsx:284 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement with a finalizer ('finally') clause
+  components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.tsx:285 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Assets/PriceAlerts/Views/ManagePriceAlertsView/ManagePriceAlertsView.tsx:289 - (anonymous): (BuildHIR::lowerStatement) Support ThrowStatement inside of try/catch
+  components/UI/Assets/DeFiPositions/hooks/useDeFiPositionsV2.ts:176 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/Assets/DeFiPositions/components/DeFiPositionsListV2.tsx:95 - (anonymous): (BuildHIR::lowerStatement) Handle TryStatement without a catch clause
+  components/UI/AssetOverview/TokenDetails/TokenDetails.tsx:141 - (anonymous): Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement
+  components/UI/AssetOverview/PriceChart/PriceChart.tsx:149 - (anonymous): React Compiler has skipped optimizing this component because one or more React ESLint rules were disabled
+  components/UI/AssetOverview/Price/Price.advanced.tsx:1050 - (anonymous): Hooks may not be referenced as normal values, they must be called. See https://react.dev/reference/rules/react-calls-components-and-hooks#never-pass-around-hooks-as-regular-values
