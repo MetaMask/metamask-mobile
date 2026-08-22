@@ -4,6 +4,7 @@
 import {
   __resetMarkerHitTestForTests,
   attachMarkerHitTest,
+  findTradeMarkerIdNearPixel,
   findTradeMarkerIdNearPoint,
 } from '../markerHitTest';
 import {
@@ -313,8 +314,109 @@ describe('findTradeMarkerIdNearPoint — edge cases', () => {
   });
 });
 
-describe('attachMarkerHitTest', () => {
+describe('findTradeMarkerIdNearPixel', () => {
   beforeEach(() => {
+    __resetStateForTests();
+    __resetTradeMarkerStateForTests();
+    __resetMarkerHitTestForTests();
+    setOhlcvData(sampleBars);
+  });
+
+  it('returns null when no markers cached', () => {
+    setWidget(makeWidget(makeChart(300)));
+    setChartReady(true);
+    setMarkers([]);
+    expect(findTradeMarkerIdNearPixel(150, 0)).toBeNull();
+  });
+
+  it('returns marker id when offsetX maps to the marker plot-X', () => {
+    const chart = makeChart(300);
+    setWidget(makeWidget(chart));
+    setChartReady(true);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
+    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+    // pxPerSec = 300 / (3-1) = 150. Marker snaps to time 2s.
+    // Plot-X = (2 - range.lo=1) * 150 = 150 → timeSec = 1 + 150/150 = 2.
+    expect(findTradeMarkerIdNearPixel(150, undefined)).toBe('a');
+  });
+
+  it('returns null when offsetX lands beyond the tap radius', () => {
+    const chart = makeChart(300);
+    setWidget(makeWidget(chart));
+    setChartReady(true);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
+    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+    // offsetX = 0 → timeSec = 1 → dx = (2-1)*150 = 150px > 26 → null.
+    expect(findTradeMarkerIdNearPixel(0, undefined)).toBeNull();
+  });
+
+  it('returns null when offsetX is NaN', () => {
+    const chart = makeChart(300);
+    setWidget(makeWidget(chart));
+    setChartReady(true);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
+    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+    expect(findTradeMarkerIdNearPixel(NaN, 0)).toBeNull();
+  });
+});
+
+interface SyntheticTouch {
+  clientX: number;
+  clientY: number;
+}
+
+/** Build a plot element with a stubbed bounding rect and mount it. */
+function mountPlot(rect: DOMRect): HTMLElement {
+  const el = document.createElement('div');
+  el.className = 'chart-markup-table';
+  el.getBoundingClientRect = () => rect;
+  document.body.appendChild(el);
+  return el;
+}
+
+function makeRect(width: number, height: number): DOMRect {
+  return {
+    left: 0,
+    top: 0,
+    right: width,
+    bottom: height,
+    width,
+    height,
+    x: 0,
+    y: 0,
+    toJSON: () => ({}),
+  };
+}
+
+function dispatchTouch(
+  target: EventTarget,
+  type: 'touchstart' | 'touchend',
+  x: number,
+  y: number,
+): void {
+  const touch: SyntheticTouch = { clientX: x, clientY: y };
+  const ev = new Event(type, { bubbles: true, cancelable: true });
+  Object.assign(ev, {
+    touches: type === 'touchend' ? [] : [touch],
+    changedTouches: [touch],
+  });
+  target.dispatchEvent(ev);
+}
+
+function dispatchClick(target: EventTarget, x: number, y: number): void {
+  target.dispatchEvent(
+    new MouseEvent('click', {
+      bubbles: true,
+      cancelable: true,
+      clientX: x,
+      clientY: y,
+    }),
+  );
+}
+
+describe('attachMarkerHitTest — DOM tap detection', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
     __resetStateForTests();
     __resetTradeMarkerStateForTests();
     __resetMarkerHitTestForTests();
@@ -323,7 +425,20 @@ describe('attachMarkerHitTest', () => {
       .ReactNativeWebView;
   });
 
-  it('posts TRADE_MARKER_PRESSED on a fresh tap landing on a marker', () => {
+  afterEach(() => {
+    __resetMarkerHitTestForTests();
+    jest.clearAllTimers();
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+    document.body.innerHTML = '';
+  });
+
+  function setupChart(): {
+    bridge: MockBridge;
+    widget: TVChartingLibraryWidget;
+    chart: TVActiveChart;
+    plot: HTMLElement;
+  } {
     const bridge = installBridge();
     const chart = makeChart(300);
     const widget = makeWidget(chart);
@@ -331,120 +446,81 @@ describe('attachMarkerHitTest', () => {
     setChartReady(true);
     setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+    // pxPerSec = 300 / (3-1) = 150; marker plot-X = 150.
+    const plot = mountPlot(makeRect(300, 400));
+    return { bridge, widget, chart, plot };
+  }
 
+  it('posts TRADE_MARKER_PRESSED on a tap landing on a marker', () => {
+    const { bridge, widget, chart, plot } = setupChart();
     attachMarkerHitTest(widget, chart);
 
-    // Simulate the crosshair capturing a tap point at the marker's time.
-    const cb = (
-      globalThis as unknown as {
-        __crosshairCb: ((params: TVCrosshairParams) => void) | null;
-      }
-    ).__crosshairCb;
-    cb?.({ time: 2, price: 20, offsetY: undefined });
+    dispatchTouch(plot, 'touchstart', 150, 0);
+    dispatchTouch(plot, 'touchend', 150, 0);
 
-    // Release.
-    (widget as unknown as { __fire: (e: string) => void }).__fire('mouse_up');
     expect(bridge.postMessage).toHaveBeenCalledTimes(1);
-    const call = bridge.postMessage.mock.calls[0][0];
-    expect(JSON.parse(call)).toEqual({
+    expect(JSON.parse(bridge.postMessage.mock.calls[0][0])).toEqual({
       type: 'TRADE_MARKER_PRESSED',
       payload: { id: 'a' },
     });
   });
 
-  it('does not post when release lands off any marker', () => {
-    const bridge = installBridge();
-    const chart = makeChart(300);
-    const widget = makeWidget(chart);
-    setWidget(widget);
-    setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
-    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
-
+  it('does not post when the tap lands off any marker', () => {
+    const { bridge, widget, chart, plot } = setupChart();
     attachMarkerHitTest(widget, chart);
 
-    const cb = (
-      globalThis as unknown as {
-        __crosshairCb: ((params: TVCrosshairParams) => void) | null;
-      }
-    ).__crosshairCb;
-    cb?.({ time: 1, price: 10, offsetY: undefined }); // ~150px away from marker
+    // offsetX = 0 → timeSec = 1 → ~150px from the marker.
+    dispatchTouch(plot, 'touchstart', 0, 0);
+    dispatchTouch(plot, 'touchend', 0, 0);
 
-    (widget as unknown as { __fire: (e: string) => void }).__fire('mouse_up');
     expect(bridge.postMessage).not.toHaveBeenCalled();
   });
 
-  it('consumes the tap point on release so a second mouse_up does not re-fire', () => {
-    const bridge = installBridge();
-    const chart = makeChart(300);
-    const widget = makeWidget(chart);
-    setWidget(widget);
-    setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
-    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
-
+  it('does not post for a long-press beyond the tap duration', () => {
+    const { bridge, widget, chart, plot } = setupChart();
     attachMarkerHitTest(widget, chart);
-    const cb = (
-      globalThis as unknown as {
-        __crosshairCb: ((params: TVCrosshairParams) => void) | null;
-      }
-    ).__crosshairCb;
-    cb?.({ time: 2, price: 20, offsetY: undefined });
 
-    (widget as unknown as { __fire: (e: string) => void }).__fire('mouse_up');
-    (widget as unknown as { __fire: (e: string) => void }).__fire('mouse_up');
+    dispatchTouch(plot, 'touchstart', 150, 0);
+    jest.advanceTimersByTime(400); // > TAP_MAX_DURATION_MS (350)
+    dispatchTouch(plot, 'touchend', 150, 0);
+
+    expect(bridge.postMessage).not.toHaveBeenCalled();
+  });
+
+  it('does not post for a drag beyond the movement slop', () => {
+    const { bridge, widget, chart, plot } = setupChart();
+    attachMarkerHitTest(widget, chart);
+
+    dispatchTouch(plot, 'touchstart', 150, 0);
+    dispatchTouch(plot, 'touchend', 150, 50); // moved 50px > 10px slop
+
+    expect(bridge.postMessage).not.toHaveBeenCalled();
+  });
+
+  it('dedupes the synthetic click that follows a touch tap', () => {
+    const { bridge, widget, chart, plot } = setupChart();
+    attachMarkerHitTest(widget, chart);
+
+    dispatchTouch(plot, 'touchstart', 150, 0);
+    dispatchTouch(plot, 'touchend', 150, 0);
+    // Browser fires a synthetic click right after the touch tap.
+    dispatchClick(plot, 150, 0);
+
     expect(bridge.postMessage).toHaveBeenCalledTimes(1);
   });
 
-  it('ignores crosshair events with missing price or time', () => {
-    installBridge();
+  it('reports an error when installing listeners throws', () => {
+    const bridge = installBridge();
     const chart = makeChart(300);
     const widget = makeWidget(chart);
     setWidget(widget);
     setChartReady(true);
+    jest.spyOn(document, 'addEventListener').mockImplementation(() => {
+      throw new Error('addEventListener fail');
+    });
 
     attachMarkerHitTest(widget, chart);
-    const cb = (
-      globalThis as unknown as {
-        __crosshairCb: ((params: TVCrosshairParams) => void) | null;
-      }
-    ).__crosshairCb;
 
-    cb?.({ time: undefined, price: undefined } as unknown as TVCrosshairParams);
-    (widget as unknown as { __fire: (e: string) => void }).__fire('mouse_up');
-    // No marker pressed — tap point was never recorded
-  });
-
-  it('reports error when crossHairMoved subscription throws', () => {
-    const bridge = installBridge();
-    const chart = {
-      crossHairMoved: () => {
-        throw new Error('subscription fail');
-      },
-    } as unknown as TVActiveChart;
-    const widget = makeWidget(chart);
-    setWidget(widget);
-    setChartReady(true);
-
-    attachMarkerHitTest(widget, chart);
-    expect(bridge.postMessage).toHaveBeenCalledWith(
-      expect.stringContaining('"type":"ERROR"'),
-    );
-  });
-
-  it('reports error when widget.subscribe throws', () => {
-    const bridge = installBridge();
-    const chart = makeChart(300);
-    const widget = {
-      activeChart: () => chart,
-      subscribe: () => {
-        throw new Error('subscribe fail');
-      },
-    } as unknown as TVChartingLibraryWidget;
-    setWidget(widget);
-    setChartReady(true);
-
-    attachMarkerHitTest(widget, chart);
     expect(bridge.postMessage).toHaveBeenCalledWith(
       expect.stringContaining('"type":"ERROR"'),
     );
