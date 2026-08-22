@@ -5,7 +5,7 @@ import MultichainAccountsIntroModal, {
 } from './MultichainAccountsIntroModal';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
-import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from './testIds';
+import { MULTICHAIN_ACCOUNTS_INTRO_MODAL_TEST_IDS } from './MultichainAccountsIntroModal.testIds';
 import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import AppConstants from '../../../../core/AppConstants';
