@@ -793,6 +793,8 @@ jest.mock('../../components/Base/RemoteImage', () => {
 });
 
 // Mock MMDS BottomSheet so open/close callbacks run synchronously in view tests.
+// toast() throws unless <Toaster /> is mounted; view tests do not mount App's
+// Toaster, so stub the imperative API (same package is already mocked here).
 jest.mock('@metamask/design-system-react-native', () => {
   const React = require('react');
   const PropTypes = require('prop-types');
@@ -855,6 +857,9 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     ...actual,
     BottomSheet,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
   };
 });
 
