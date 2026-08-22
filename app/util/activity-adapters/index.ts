@@ -40,6 +40,7 @@ export {
   getHumanReadableTokenAmount,
   getDisplaySignPrefix,
   applyDisplaySign,
+  isNativeActivityToken,
   toMarketRateLookupToken,
 } from './fiat';
 export { formatTokenDisplayAmount } from './token-display';

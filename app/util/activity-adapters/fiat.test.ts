@@ -4,6 +4,7 @@ import {
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
   getTokenAddressForMarketRates,
+  isNativeActivityToken,
   type MarketRateLookupToken,
   toMarketRateLookupToken,
 } from './fiat';
@@ -99,6 +100,11 @@ describe('activity adapter fiat helpers', () => {
     );
     expect(
       getTokenAddressForMarketRates(
+        'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+      ),
+    ).toBe(NATIVE_TOKEN_ADDRESS);
+    expect(
+      getTokenAddressForMarketRates(
         'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
       ),
     ).toBe('0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48');
@@ -117,5 +123,50 @@ describe('activity adapter fiat helpers', () => {
         '0x1',
       ),
     ).toStrictEqual(ethToken);
+  });
+
+  describe('isNativeActivityToken', () => {
+    it('treats slip44, native, and zero-address CAIP ids as native', () => {
+      expect(
+        isNativeActivityToken({
+          direction: 'out',
+          assetId: 'eip155:1/slip44:60',
+        }),
+      ).toBe(true);
+      expect(
+        isNativeActivityToken({
+          direction: 'out',
+          assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/native:sol',
+        }),
+      ).toBe(true);
+      expect(
+        isNativeActivityToken({
+          direction: 'out',
+          assetId: 'eip155:1/erc20:0x0000000000000000000000000000000000000000',
+        }),
+      ).toBe(true);
+    });
+
+    it('treats a missing assetId as native only when the symbol matches the chain ticker', () => {
+      expect(
+        isNativeActivityToken({ direction: 'out', symbol: 'ETH' }, 'ETH'),
+      ).toBe(true);
+      expect(
+        isNativeActivityToken({ direction: 'out', symbol: 'USDC' }, 'ETH'),
+      ).toBe(false);
+      expect(
+        isNativeActivityToken({ direction: 'out', symbol: 'ETH' }),
+      ).toBe(false);
+    });
+
+    it('does not treat ERC-20 asset ids as native', () => {
+      expect(
+        isNativeActivityToken({
+          direction: 'out',
+          symbol: 'USDC',
+          assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        }),
+      ).toBe(false);
+    });
   });
 });
