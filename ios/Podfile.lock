@@ -634,7 +634,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - NitroModules (0.35.5):
+  - NitroModules (0.35.10):
     - boost
     - DoubleConversion
     - fast_float
@@ -3856,9 +3856,6 @@ PODS:
     - SocketRocket
   - ReactNativePayments (2.0.2):
     - React
-  - rive-react-native (9.8.5):
-    - React-Core
-    - RiveRuntime (= 6.21.1)
   - RiveRuntime (6.21.1)
   - RNCAsyncStorage (2.2.0):
     - boost
@@ -4174,6 +4171,36 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - RNWorklets
+    - SocketRocket
+    - Yoga
+  - RNRive (0.4.19):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - NitroModules
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - RiveRuntime (= 6.21.1)
     - SocketRocket
     - Yoga
   - RNScreens (4.25.2):
@@ -4652,7 +4679,6 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios/ReactCodegen`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "ReactNativePayments (from `../node_modules/@metamask/react-native-payments/lib/ios/`)"
-  - rive-react-native (from `../node_modules/rive-react-native`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
@@ -4671,6 +4697,7 @@ DEPENDENCIES:
   - RNOS (from `../node_modules/react-native-os`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
+  - "RNRive (from `../node_modules/@rive-app/react-native`)"
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSensors (from `../node_modules/react-native-sensors`)
   - "RNSentry (from `../node_modules/@sentry/react-native`)"
@@ -5021,8 +5048,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativePayments:
     :path: "../node_modules/@metamask/react-native-payments/lib/ios/"
-  rive-react-native:
-    :path: "../node_modules/rive-react-native"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCCheckbox:
@@ -5059,6 +5084,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-permissions"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
+  RNRive:
+    :path: "../node_modules/@rive-app/react-native"
   RNScreens:
     :path: "../node_modules/react-native-screens"
   RNSensors:
@@ -5151,7 +5178,7 @@ SPEC CHECKSUMS:
   NativeUtils: 1856148c08a042bbbca306acbe2771db8a9be99b
   NitroFetch: 232232e9d216dc35be48f6478cf9f6cebd077916
   NitroFetchWebsockets: 8ce4909248acd869f7002be2c9b1eefcbb60544a
-  NitroModules: ea5dc6c43666f4a75e71e372eaca6d3605856e51
+  NitroModules: b5c5baefa71a65c40e129876a8b7943a9aef6aa5
   NitroTextDecoder: 9b50be860ed7488349bc31791b6fe96778a43db0
   OpenSSL-Universal: 9110d21982bb7e8b22a962b6db56a8aa805afde7
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
@@ -5257,7 +5284,6 @@ SPEC CHECKSUMS:
   ReactCodegen: c8db9328177bc793ed2e3a217931689c594c5cf8
   ReactCommon: e788387a0b387a927a2a5d041fab09472fe8dedc
   ReactNativePayments: b501b8e13b52a7ee532634414b92c5c8790a6b58
-  rive-react-native: 0fad980aaaff989d45befe808c33de7dbec3f135
   RiveRuntime: b762bd437b7de47d34d0f8e670112d0b9143f8d6
   RNCAsyncStorage: 29f0230e1a25f36c20b05f65e2eb8958d6526e82
   RNCCheckbox: 33b44487ca8008394ce658cc32b26eab04f426ef
@@ -5277,6 +5303,7 @@ SPEC CHECKSUMS:
   RNOS: d07e5090b5060c6f2b83116d740a32cfdb33afe3
   RNPermissions: 4f5f8b17b9fff4e0abcf16361c3c1374cb25a6fb
   RNReanimated: 292cd58688552a22b3fc1cefcfbc49b336dfed68
+  RNRive: 6bdf0ea90ef6dbdaf58e84a89619d18140690d11
   RNScreens: 9269ab4971b2bd24917be84295d2c2ae7d06e9be
   RNSensors: 4690be00931bc60be7c7bd457701edefaff965e3
   RNSentry: 2511157b1e29381d4b1aee195e3ede5e685e8862
