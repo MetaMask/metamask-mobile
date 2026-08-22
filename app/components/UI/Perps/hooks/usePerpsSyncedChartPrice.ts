@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   CandlePeriod,
   TimeDuration,
@@ -47,25 +47,38 @@ export function usePerpsSyncedChartPrice({
     });
 
   const chartCurrentPrice = useMemo(() => {
-    if (!candleData?.candles?.length) {
+    if (candleData?.symbol !== symbol || !candleData.candles.length) {
       return 0;
     }
     const lastCandle = candleData.candles.at(-1);
     return lastCandle?.close ? Number.parseFloat(lastCandle.close) : 0;
-  }, [candleData]);
+  }, [candleData, symbol]);
 
-  const [advancedChartCurrentPrice, setAdvancedChartCurrentPrice] = useState<
-    number | undefined
-  >(undefined);
+  const [advancedChartPriceState, setAdvancedChartPriceState] = useState<{
+    symbol: string;
+    interval: CandlePeriod;
+    price: number;
+  }>();
+
+  const setAdvancedChartCurrentPrice = useCallback(
+    (price: number | undefined) => {
+      setAdvancedChartPriceState(
+        price === undefined ? undefined : { symbol, interval, price },
+      );
+    },
+    [interval, symbol],
+  );
+
+  const advancedChartCurrentPrice =
+    advancedChartPriceState?.symbol === symbol &&
+    advancedChartPriceState.interval === interval
+      ? advancedChartPriceState.price
+      : undefined;
 
   const syncedChartCurrentPrice =
     isAdvancedChartEnabled && advancedChartCurrentPrice !== undefined
       ? advancedChartCurrentPrice
       : chartCurrentPrice;
-
-  useEffect(() => {
-    setAdvancedChartCurrentPrice(undefined);
-  }, [isAdvancedChartEnabled, symbol, interval]);
 
   return {
     candleData,

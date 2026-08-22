@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
+import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import PerpsMarketDetailsView from '../PerpsMarketDetailsView';
 import PerpsProMarketView from '../PerpsProMarketView';
 import { usePerpsProModeEnabled } from './usePerpsProModeEnabled';
+import type { PerpsStackParamList } from '../../types/navigation';
 
 const SAFE_AREA_EDGES: Edge[] = ['top', 'bottom', 'left', 'right'];
 
@@ -25,10 +27,37 @@ const SAFE_AREA_EDGES: Edge[] = ['top', 'bottom', 'left', 'right'];
 const PerpsMarketDetailsRouter: React.FC = () => {
   const tw = useTailwind();
   const isProModeEnabled = usePerpsProModeEnabled();
+  const route =
+    useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
+  const symbol = route.params?.market?.symbol;
+  const mode = isProModeEnabled ? 'pro' : 'lite';
+  const previousIdentityRef = useRef<
+    { symbol?: string; mode: string } | undefined
+  >(undefined);
+  const consumedExplicitTriggerRef = useRef(false);
+  const previousIdentity = previousIdentityRef.current;
+  const generationTrigger =
+    (!consumedExplicitTriggerRef.current
+      ? route.params?.detailGenerationTrigger
+      : undefined) ??
+    (previousIdentity?.symbol && previousIdentity.symbol !== symbol
+      ? 'market_switch'
+      : previousIdentity?.mode && previousIdentity.mode !== mode
+        ? 'mode_switch'
+        : 'initial');
+
+  useLayoutEffect(() => {
+    previousIdentityRef.current = { symbol, mode };
+    consumedExplicitTriggerRef.current = true;
+  }, [mode, symbol]);
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')} edges={SAFE_AREA_EDGES}>
-      {isProModeEnabled ? <PerpsProMarketView /> : <PerpsMarketDetailsView />}
+      {isProModeEnabled ? (
+        <PerpsProMarketView generationTrigger={generationTrigger} />
+      ) : (
+        <PerpsMarketDetailsView generationTrigger={generationTrigger} />
+      )}
     </SafeAreaView>
   );
 };

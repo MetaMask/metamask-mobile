@@ -1,6 +1,10 @@
 import type React from 'react';
 import { act, render } from '@testing-library/react-native';
-import { CandlePeriod, TimeDuration } from '@metamask/perps-controller';
+import {
+  CandlePeriod,
+  TimeDuration,
+  type CandleData,
+} from '@metamask/perps-controller';
 import PerpsAdvancedChart, {
   mapTpslToPositionLines,
   getPerpsPositionLineColors,
@@ -343,7 +347,8 @@ describe('PerpsAdvancedChart', () => {
 
   it('ends the visibility trace when the skeleton hides', () => {
     const onSkeletonHidden = jest.fn();
-    renderChart({ onSkeletonHidden });
+    const onResolved = jest.fn();
+    renderChart({ onResolved, onSkeletonHidden });
 
     act(() => {
       advancedChartProps().onSkeletonHidden?.();
@@ -372,6 +377,7 @@ describe('PerpsAdvancedChart', () => {
       }),
     );
     expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
+    expect(onResolved).toHaveBeenCalledWith('BTC|1h');
   });
 
   it('supersedes the active trace and starts an interval trace when only the interval changes', () => {
@@ -552,6 +558,43 @@ describe('PerpsAdvancedChart', () => {
         coloredVolume: true,
       }),
     );
+  });
+
+  it('does not resolve fallback candles from the prior symbol', () => {
+    const onResolved = jest.fn();
+    const fallbackCandleData: CandleData = {
+      symbol: 'BTC',
+      interval: CandlePeriod.OneHour,
+      candles: [
+        {
+          time: 1,
+          open: '1',
+          high: '2',
+          low: '0.5',
+          close: '1.5',
+          volume: '10',
+        },
+      ],
+    };
+    const { rerender } = renderChart({ fallbackCandleData, onResolved });
+
+    act(() => {
+      advancedChartProps().onError?.('chart failed');
+    });
+    expect(onResolved).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <PerpsAdvancedChart
+        symbol="ETH"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={fallbackCandleData}
+        onResolved={onResolved}
+      />,
+    );
+
+    expect(onResolved).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -137,6 +137,64 @@ describe('usePerpsMeasurement', () => {
   });
 
   describe('advanced API with explicit conditions', () => {
+    it('uses a bounded reset reason and does not restart while failure persists', () => {
+      const { rerender } = renderHook(
+        ({ failed }) =>
+          usePerpsMeasurement({
+            traceName: TraceName.PerpsMarketDetailLive,
+            endConditions: [false],
+            resetConditions: [failed],
+            resetReason: 'stats_error',
+            blockStartWhileReset: true,
+          }),
+        { initialProps: { failed: true } },
+      );
+
+      expect(mockTrace).not.toHaveBeenCalled();
+
+      rerender({ failed: false });
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+
+      rerender({ failed: true });
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { success: false, reason: 'stats_error' },
+        }),
+      );
+
+      rerender({ failed: true });
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('ends the prior generation and starts a fresh trace when resetKey changes', () => {
+      const { rerender } = renderHook(
+        ({ resetKey, ready }) =>
+          usePerpsMeasurement({
+            traceName: TraceName.PerpsMarketDetailLive,
+            resetKey,
+            endConditions: [ready],
+          }),
+        { initialProps: { resetKey: 'BTC', ready: false } },
+      );
+
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+
+      rerender({ resetKey: 'ETH', ready: false });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.PerpsMarketDetailLive,
+          data: { success: false, reason: 'generation_changed' },
+        }),
+      );
+      expect(mockTrace).toHaveBeenCalledTimes(2);
+
+      rerender({ resetKey: 'ETH', ready: true });
+      expect(mockEndTrace).toHaveBeenLastCalledWith(
+        expect.objectContaining({ data: { success: true } }),
+      );
+    });
+
     it('should start measurement immediately when no start conditions provided', () => {
       const { rerender } = renderHook(
         ({ endConditions }) =>

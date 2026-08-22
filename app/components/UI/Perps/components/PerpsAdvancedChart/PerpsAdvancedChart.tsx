@@ -52,6 +52,8 @@ export interface PerpsAdvancedChartProps {
   onLatestPriceChange?: (price: number | undefined) => void;
   onError?: (error: string) => void;
   onSkeletonHidden?: (payload?: ChartRangeSettlePayload) => void;
+  /** Fires when the initial chart or its Lightweight fallback has resolved. */
+  onResolved?: (seriesKey: string) => void;
   /** Identifies which Perps chart surface is being measured. */
   surface?: PerpsChartSurface;
   /** Fallback candle data for the Lightweight chart if AdvancedChart fails this mount. */
@@ -214,6 +216,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   onLatestPriceChange,
   onError,
   onSkeletonHidden,
+  onResolved,
   surface = 'market_detail',
   fallbackCandleData,
   fallbackFetchMoreHistory,
@@ -425,8 +428,17 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         activeVisibilityTraceRef.current = null;
       }
       onSkeletonHidden?.(payload);
+      onResolved?.(ohlcvSeriesKey);
     },
-    [symbol, interval, surface, ohlcvData.length, onSkeletonHidden],
+    [
+      symbol,
+      interval,
+      surface,
+      ohlcvData.length,
+      ohlcvSeriesKey,
+      onSkeletonHidden,
+      onResolved,
+    ],
   );
 
   // ---- Error fallback ----
@@ -454,6 +466,16 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     },
     [symbol, interval, surface, onError],
   );
+
+  useEffect(() => {
+    if (
+      hasFailed &&
+      fallbackCandleData?.symbol === symbol &&
+      fallbackCandleData.candles.length
+    ) {
+      onResolved?.(ohlcvSeriesKey);
+    }
+  }, [fallbackCandleData, hasFailed, ohlcvSeriesKey, onResolved, symbol]);
 
   if (hasFailed) {
     return (

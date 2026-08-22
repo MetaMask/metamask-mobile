@@ -25,6 +25,11 @@ interface MarketStats {
   fundingRate: string;
   currentPrice?: number;
   isLoading: boolean;
+  /** Symbol for which both candles and live market statistics have resolved. */
+  dataSymbol?: string;
+  /** True once the current symbol has real volume/open-interest data. */
+  hasLiveData: boolean;
+  hasError?: boolean;
 }
 
 interface MarketDataUpdate {
@@ -45,12 +50,27 @@ export const usePerpsMarketStats = (
 ): UsePerpsMarketStatsReturn => {
   const { isInitialized } = usePerpsConnection();
   const [marketData, setMarketData] = useState<MarketDataUpdate>({});
+  const [marketDataSymbol, setMarketDataSymbol] = useState<string>();
+  const [hasMarketDataError, setHasMarketDataError] = useState(false);
   const [initialPrice, setInitialPrice] = useState<number | undefined>();
   // Track whether the initial price has been captured without making it a
   // reactive dependency of the subscription effect. Using state here would
   // cause the effect to re-run (unsubscribe/resubscribe) on the first tick,
   // missing ticks during the re-subscription window.
   const hasInitialPriceRef = useRef(false);
+  const marketStatsSymbolRef = useRef(symbol);
+
+  useEffect(() => {
+    if (marketStatsSymbolRef.current === symbol) {
+      return;
+    }
+    marketStatsSymbolRef.current = symbol;
+    setMarketData({});
+    setMarketDataSymbol(undefined);
+    setHasMarketDataError(false);
+    setInitialPrice(undefined);
+    hasInitialPriceRef.current = false;
+  }, [symbol]);
 
   // Get candlestick data for 24h high/low calculation via WebSocket streaming
   const { candleData } = usePerpsLiveCandles({
@@ -72,6 +92,8 @@ export const usePerpsMarketStats = (
     const callback = (updates: PriceUpdate[]) => {
       const update = updates.find(findSymbol);
       if (update) {
+        setHasMarketDataError(false);
+        setMarketDataSymbol(symbol);
         // Only extract market data, ignore price changes to prevent re-renders
         setMarketData((prev) => {
           // Check if market data actually changed
@@ -107,6 +129,7 @@ export const usePerpsMarketStats = (
           callback,
         });
       } catch (error) {
+        setHasMarketDataError(true);
         console.error('Error subscribing to market data:', error);
       }
     };
@@ -154,8 +177,25 @@ export const usePerpsMarketStats = (
       fundingRate: formatFundingRate(marketData.funding),
       currentPrice: fallbackPrice,
       isLoading: !candleData,
+      dataSymbol:
+        candleData?.symbol === symbol && marketDataSymbol === symbol
+          ? symbol
+          : undefined,
+      hasLiveData:
+        candleData?.symbol === symbol &&
+        marketDataSymbol === symbol &&
+        (marketData.volume24h !== undefined ||
+          marketData.openInterest !== undefined),
+      hasError: hasMarketDataError,
     };
-  }, [candleData, marketData, initialPrice]);
+  }, [
+    candleData,
+    hasMarketDataError,
+    initialPrice,
+    marketData,
+    marketDataSymbol,
+    symbol,
+  ]);
 
   // Refresh function - no-op since WebSocket provides real-time updates
   const refresh = useCallback(async () => {

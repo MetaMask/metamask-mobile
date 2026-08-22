@@ -31,6 +31,7 @@ import ComponentErrorBoundary from '../../../../ComponentErrorBoundary';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { PERPS_CHART_CONFIG } from '../../../constants/chartConfig';
 import { usePerpsMarketData } from '../../../hooks';
+import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
 import { usePerpsProChartExpanded } from '../../../hooks/usePerpsProChartExpanded';
 import { usePerpsEventTracking } from '../../../hooks/usePerpsEventTracking';
 import { useHasExistingPosition } from '../../../hooks/useHasExistingPosition';
@@ -90,6 +91,10 @@ interface PerpsProChartPanelProps {
   currentPrice: number;
   /** Forwards Advanced Chart latest-bar close into `usePerpsSyncedChartPrice`. */
   onLatestPriceChange?: (price: number | undefined) => void;
+  onResolvedStateChange?: (
+    symbol: string,
+    state: PerpsMarketDetailSectionState,
+  ) => void;
 }
 
 /**
@@ -105,6 +110,7 @@ const PerpsProChartPanel = ({
   onChartError,
   currentPrice,
   onLatestPriceChange,
+  onResolvedStateChange,
 }: PerpsProChartPanelProps) => {
   const { track } = usePerpsEventTracking();
   const { playSelection } = useHaptics();
@@ -137,6 +143,54 @@ const PerpsProChartPanel = ({
       duration: TimeDuration.YearToDate,
       throttleMs: 1000,
     });
+
+  useEffect(() => {
+    if (!isChartExpanded) {
+      onResolvedStateChange?.(symbol, 'not_applicable');
+      return;
+    }
+    onResolvedStateChange?.(symbol, 'loading');
+  }, [
+    isAdvancedChartEnabled,
+    isChartExpanded,
+    onResolvedStateChange,
+    selectedCandlePeriod,
+    symbol,
+  ]);
+
+  useEffect(() => {
+    if (
+      isChartExpanded &&
+      !isAdvancedChartEnabled &&
+      candleData?.symbol === symbol &&
+      candleData.interval === selectedCandlePeriod &&
+      hasHistoricalData
+    ) {
+      onResolvedStateChange?.(symbol, 'content');
+    }
+  }, [
+    candleData?.interval,
+    candleData?.symbol,
+    hasHistoricalData,
+    isAdvancedChartEnabled,
+    isChartExpanded,
+    onResolvedStateChange,
+    selectedCandlePeriod,
+    symbol,
+  ]);
+
+  const handleAdvancedChartResolved = useCallback(
+    (resolvedSeriesKey: string) => {
+      const expectedSeriesKey = `${symbol}|${selectedCandlePeriod}`;
+      if (
+        resolvedSeriesKey === expectedSeriesKey ||
+        resolvedSeriesKey.startsWith(`${expectedSeriesKey}|`)
+      ) {
+        onResolvedStateChange?.(symbol, 'content');
+      }
+    },
+    [onResolvedStateChange, selectedCandlePeriod, symbol],
+  );
   const { existingPosition } = useHasExistingPosition({
     asset: symbol,
     loadOnMount: true,
@@ -205,6 +259,7 @@ const PerpsProChartPanel = ({
   if (isAdvancedChartEnabled) {
     chartContent = (
       <PerpsAdvancedChart
+        key={symbol}
         symbol={symbol}
         interval={selectedCandlePeriod}
         visibleCandleCount={visibleCandleCount}
@@ -214,6 +269,7 @@ const PerpsProChartPanel = ({
         szDecimals={marketData?.szDecimals}
         onCrosshairDataChange={setOhlcData}
         onLatestPriceChange={onLatestPriceChange}
+        onResolved={handleAdvancedChartResolved}
         onError={onChartError}
         fallbackCandleData={candleData}
         fallbackFetchMoreHistory={fetchMoreHistory}
