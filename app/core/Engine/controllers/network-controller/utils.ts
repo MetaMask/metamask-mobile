@@ -1,10 +1,10 @@
 import { escapeRegExp } from 'lodash';
-import {
-  QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME,
-  PopularList,
-} from '../../../../util/networks/customNetworks';
+import { PopularList } from '../../../../util/networks/customNetworks';
+import { getIsQuicknodeEndpointUrl } from '../../../../util/networks/network-failover';
 import { BUILT_IN_CUSTOM_NETWORKS_RPC } from '@metamask/controller-utils';
 import { isPublicRpcDomain } from '../../../../util/rpc-domain-utils';
+
+export { getIsQuicknodeEndpointUrl };
 
 /**
  * Environments that are expected to resemble production, or production itself.
@@ -64,18 +64,6 @@ export function getIsMetaMaskInfuraEndpointUrl(
     )})$`,
     'u',
   ).test(endpointUrl);
-}
-
-/**
- * Determines whether the given RPC endpoint URL matches a known Quicknode URL.
- *
- * @param endpointUrl - The URL of the RPC endpoint.
- * @returns True if the URL is a Quicknode URL, false otherwise.
- */
-export function getIsQuicknodeEndpointUrl(endpointUrl: string): boolean {
-  return Object.values(QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME)
-    .map((getUrl) => getUrl())
-    .includes(endpointUrl);
 }
 
 /**
