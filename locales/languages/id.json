@@ -39,19 +39,12 @@
       "alert_details": "Detail peringatan"
     },
     "confirm_modal": {
-      "title": "Permintaan berisiko tinggi",
+      "title": "High-risk request",
       "checkbox_label": "Saya telah memahami peringatan tersebut dan masih ingin melanjutkan",
       "review_alerts": "Tinjau semua peringatan",
       "message": "Sebaiknya tolak permintaan ini. Jika dilanjutkan, aset Anda mungkin akan berisiko.",
-      "title_blockaid": "Aset Anda berpotensi hilang",
-      "blockaid": {
-        "message": "Jika permintaan ini dikonfirmasi, Anda dapat kehilangan aset milik Anda. Sebaiknya batalkan permintaan ini.",
-        "message1": "Jika permintaan ini dikonfirmasi, Anda mengizinkan penipu untuk menarik dan menggunakan aset Anda. Anda tidak akan mendapatkannya kembali.",
-        "message2": "Anda mengirimkan aset milik Anda ke penipu. Jika dilanjutkan, Anda akan kehilangan aset tersebut.",
-        "message3": "Jika dilanjutkan, semua aset yang Anda daftarkan di OpenSea bisa berpotensi hilang.",
-        "message4": "Jika dilanjutkan, semua aset yang Anda daftarkan di Blur bisa berpotensi hilang.",
-        "message5": "Anda berinteraksi dengan situs berbahaya. Jika dilanjutkan, Anda akan kehilangan aset milik Anda."
-      }
+      "blockaid_message": "Security partners found high-risk signals in this {{requestType}}. If you continue, your funds can't be recovered.",
+      "blockaid_message_with_amount": "Security partners found high-risk signals in this {{requestType}}. If you continue, your {{amount}} can't be recovered."
     },
     "inline_alert_label": "Peringatan",
     "review_alerts": "Tinjau peringatan",
@@ -191,21 +184,30 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan dapat mengambil semua aset Anda.",
-    "blur_farming_description": "Jika Anda menyetujui permintaan ini, seseorang dapat mencuri aset Anda yang terdaftar di Blur.",
-    "deceptive_request_title": "Ini adalah permintaan tipuan",
-    "failed_title": "Permintaan mungkin tidak aman",
-    "failed_description": "Karena terjadi kesalahan, permintaan ini tidak diverifikasi oleh penyedia keamanan. Lanjutkan dengan hati-hati.",
-    "malicious_domain_description": "Anda berinteraksi dengan domain berbahaya. Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
-    "other_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
-    "raw_signature_farming_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
-    "seaport_farming_description": "Jika Anda menyetujui permintaan ini, seseorang dapat mencuri aset Anda yang terdaftar di OpenSea.",
+    "high_risk_approval_title": "High-risk approval",
+    "high_risk_transfer_title": "High-risk transfer",
+    "high_risk_signature_title": "High-risk signature",
+    "site_flagged_unsafe_title": "Site flagged as unsafe",
+    "risk_signals_detected_title": "Risk signals detected",
+    "failed_title": "Security check unavailable",
+    "approval_farming_description": "You're giving an address flagged by security partners permission to move your assets.",
+    "marketplace_farming_description": "You're giving an address flagged by security partners permission to move your assets listed on {{marketplace}}.",
+    "transfer_farming_description": "You're sending assets to an address flagged by security partners. If this is a scam, your funds can't be recovered.",
+    "transfer_farming_description_with_amount": "You're sending assets to an address flagged by security partners. If this is a scam, your {{amount}} can't be recovered.",
+    "malicious_domain_description": "Security partners flag this site as malicious. If this is a scam, your funds can't be recovered.",
+    "malicious_domain_description_with_amount": "Security partners flag this site as malicious. If this is a scam, your {{amount}} can't be recovered.",
+    "high_risk_signature_description": "Security partners flag this signature as high risk. Signing could authorize actions with your assets without your permission.",
+    "other_description": "Security partners found risk signals in this request. Review before continuing.",
+    "failed_description": "We couldn't complete this safety check. Continue only if you trust the site and addresses involved.",
+    "request_type": {
+      "approval": "approval",
+      "transfer": "transfer",
+      "signature": "signature",
+      "request": "request"
+    },
     "see_details": "Lihat detailnya",
     "does_not_look_right": "Ada yang tidak beres?",
     "report_an_issue": "Laporkan masalah",
-    "suspicious_request_title": "Ini adalah permintaan yang mencurigakan",
-    "trade_order_farming_description": "Jika Anda menyetujui permintaan ini, aset Anda kemungkinan akan hilang.",
-    "transfer_farming_description": "Jika Anda menyetujui permintaan ini, pihak ketiga yang terdeteksi melakukan penipuan akan mengambil semua aset Anda.",
     "before_you_proceed": "Sebelum melanjutkan",
     "enable_blockaid_alerts": "Untuk mengaktifkan fitur ini, kami perlu mengatur peringatan keamanan. Halaman ini harus tetap terbuka selagi diatur. Diperlukan waktu kurang dari satu menit untuk menyelesaikannya.",
     "enable_blockaid_alerts_description": "Halaman ini harus tetap terbuka selagi mengatur peringatan keamanan. Butuh waktu kurang dari satu menit untuk menyelesaikan proses ini.",
@@ -1648,6 +1650,12 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Harga limit harus diatur sebelum mengonfigurasi TP/SL",
         "only_hyperliquid_usdc": "Saat ini hanya USDC di Hyperliquid yang didukung untuk pembayaran",
         "limit_price_far_warning": "Harga limit jauh dari harga pasar saat ini",
+        "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
+        "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
+        "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
+        "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
+        "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
+        "please_set_a_trigger_price": "Please set a trigger price",
         "oi_cap_reached": "Batas maksimum telah tercapai. Posisi baru tidak dapat dibuka untuk saat ini.",
         "reduce_only_no_position": "Anda harus memiliki posisi terbuka di pasar ini untuk menempatkan order untuk mengurangi posisi",
         "reduce_only_wrong_side": "Order untuk mengurangi posisi hanya dapat mengurangi posisi yang ada. Beralih ke sisi yang berlawanan.",
@@ -1804,6 +1812,7 @@
       "use_custom_title": "Gunakan selip khusus",
       "row_format": "Estimasi: {{est}}% / Maks: {{value}}%",
       "row_format_pending": "Estimasi: -- / Maks: {{value}}%",
+      "row_format_max": "Max: {{value}}%",
       "input_label": "Persentase selip maksimum",
       "decrement_label": "Turunkan selip",
       "increment_label": "Tingkatkan selip",
@@ -2411,13 +2420,17 @@
     },
     "close_all_modal": {
       "title": "Tutup semua posisi",
-      "description": "Kami akan menutup semua posisi terbuka pada harga pasar saat ini.",
+      "title_filtered": "Close positions",
+      "description": {
+        "one": "We'll close your open position at current market price.",
+        "other": "We'll close your {{count}} open positions at current market price."
+      },
       "margin": "Margin",
       "includes_pnl": "termasuk {{pnlAmount}}",
       "fees": "Biaya",
       "you_will_receive": "Anda akan menerima",
       "keep_positions": "Pertahankan posisi",
-      "close_all": "Tutup semua",
+      "close_count": "Close ({{count}})",
       "closing": "Menutup...",
       "success_title": "Posisi ditutup",
       "success_message": "Berhasil menutup {{count}} posisi",
@@ -2699,8 +2712,8 @@
     "card_footer_disclaimer": "Dihasilkan oleh AI",
     "footer_disclaimer": "Ringkasan AI hanya untuk informasi",
     "disclaimer_modal": {
-      "title": "Konten yang dihasilkan AI",
-      "body": "Ringkasan ini dihasilkan oleh AI pihak ketiga dan mungkin tidak akurat atau personal. Jangan gunakan ringkasan ini untuk keputusan perdagangan, investasi, hukum, atau pajak. Performa masa lalu tidak memprediksi hasil di masa mendatang.",
+      "title": "AI-generated content",
+      "body": "This summary is AI generated by a third party and may not be accurate or personalized. Don't use it for trading, investment, legal, or tax decisions. Past performance doesn't predict future results.",
       "got_it": "Mengerti"
     },
     "swap_button": "Swap",
@@ -2725,6 +2738,15 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "game_status": {
+      "live": "LIVE",
+      "scheduled": "SCHEDULED",
+      "delayed": "DELAYED",
+      "suspended": "SUSPENDED",
+      "postponed": "POSTPONED",
+      "final": "FINAL",
+      "canceled": "CANCELED"
+    },
     "send_to_predictions": "Kirim ke Prediction",
     "select_predict_account": "Pilih akun predict",
     "search_account": "Cari akun",
@@ -4023,7 +4045,7 @@
     "notifications_title": "Notifikasi",
     "notifications_desc": "Kelola notifikasi",
     "allow_notifications": "Izinkan notifikasi",
-    "enable_push_notifications": "Aktifkan notifikasi push",
+    "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "Pilih notifikasi yang ingin Anda terima dan bagaimana caranya.",
     "notifications_opts": {
       "preferences_title": "Preferensi",
@@ -5414,7 +5436,7 @@
     "mint": "Cetak",
     "tx_details_free": "Gratis",
     "tx_details_not_available": "Tidak tersedia",
-    "smart_contract_interaction": "Interaksi kontrak cerdas",
+    "smart_contract_interaction": "Contract interaction",
     "money_account_deposit": "Deposit ke Money Account",
     "money_account_withdraw": "Transfer dari Money Account",
     "swaps_transaction": "Transaksi swap",
@@ -6124,7 +6146,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "Permintaan penarikan",
     "prompt_title": "Terima notifikasi push",
     "notifications_enabled_error_title": "Terjadi kesalahan",
-    "notifications_enabled_error_desc": "Kami tidak dapat mengaktifkan notifikasi. Coba lagi nanti.",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Please try again later.",
     "prompt_desc": "Aktifkan notifikasi dari Pengaturan untuk mendapatkan peringatan penting tentang aktivitas dompet dan banyak lagi.",
     "prompt_ok": "Aktifkan",
     "prompt_cancel": "Nanti saja",
@@ -6172,7 +6194,7 @@
       "new_user": {
         "title": "Jangan pernah melewatkan apa pun",
         "body": "Dapatkan peringatan waktu nyata seputar pergerakan harga, konfirmasi perdagangan, aktivitas portofolio, dan reward berdasarkan cara Anda menggunakan MetaMask.",
-        "button_yes": "Aktifkan notifikasi",
+        "button_yes": "Turn on notifications",
         "button_not_now": "Tidak sekarang",
         "preview_card_1": {
           "time": "sekarang",
@@ -6214,7 +6236,7 @@
         }
       },
       "toast_enabled": "Notifikasi diaktifkan",
-      "toast_settings_hint": "Anda dapat mengaktifkan notifikasi kapan saja di Pengaturan > Notifikasi"
+      "toast_settings_hint": "You can turn on notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -7630,7 +7652,6 @@
   },
   "money": {
     "title": "Money",
-    "get_pro": "Get Pro",
     "your_balance": "Saldo Anda",
     "apy_label": "APY {{percentage}}%",
     "apy_currency_suffix": " • mUSD",
@@ -8480,6 +8501,49 @@
       "market": "Pasar",
       "limit": "Limit",
       "recurring": "Berulang"
+    },
+    "orders": {
+      "tabs": {
+        "open_orders": "Open orders",
+        "history": "History"
+      },
+      "empty": {
+        "open_orders": "Open orders appear here",
+        "history": "Order history appears here"
+      }
+    },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price",
+      "not_enough_gas": "Not enough gas",
+      "filled": "Filled",
+      "filled_at": "Filled at {{date}}",
+      "expired": "Expired",
+      "expired_after": "Expired after {{duration}}"
+    },
+    "recurring": {
+      "you_get": "You get",
+      "every": "Every",
+      "repeat": "Repeat",
+      "times": "times",
+      "confirm": "Confirm",
+      "unit": {
+        "minute": "minute",
+        "hour": "hour",
+        "day": "day",
+        "week": "week"
+      },
+      "unit_option": {
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day",
+        "week": "Week"
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled",
+      "filled": "Filled"
     },
     "continue": "Lanjutkan",
     "confirm_bridge": "Bridge",
@@ -9724,12 +9788,12 @@
     },
     "notifications_nudge": {
       "title": "Jangan lewatkan",
-      "description": "Aktifkan notifikasi agar Anda tetap mendapatkan informasi terbaru seputar kampanye.",
+      "description": "Turn on notifications to stay informed on campaigns.",
       "turn_on_button": "Aktifkan",
-      "loading": "Mengaktifkan notifikasi...",
+      "loading": "Turning on notifications...",
       "loading_description": "Butuh waktu beberapa saat.",
-      "enable_error": "Gagal mengaktifkan notifikasi",
-      "success": "Notifikasi diaktifkan"
+      "enable_error": "Failed to turn on notifications",
+      "success": "Notifications turned on"
     },
     "version_guard": {
       "title": "Pembaruan diperlukan",
@@ -10138,10 +10202,12 @@
       "geo_locked_cta": "Periksa kelayakan",
       "geo_loading": "Memeriksa wilayah...",
       "remind_me_success_toast": "Kami akan memberi tahu Anda kapan kampanye ini dimulai.",
-      "remind_me_save_error": "Tidak dapat menyimpan pengingat. Coba lagi."
+      "remind_me_save_error": "Tidak dapat menyimpan pengingat. Coba lagi.",
+      "view_details": "View details",
+      "view_details_accessibility": "View details for {{campaignName}}"
     },
     "campaign_mechanics": {
-      "title": "Mekanika"
+      "title": "Rules and eligibility"
     },
     "campaign_details": {
       "start_date": "Mulai: {{date}}",
@@ -10158,6 +10224,11 @@
       "swap_ondo_assets": "Swap Aset Ondo",
       "open_position": "Berdagang sekarang",
       "how_it_works": "Cara kerjanya",
+      "error_title": "Unable to load this campaign",
+      "error_description": "We couldn't load this campaign. Please try again.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "retry": "Retry",
       "ondo": {
         "entries_closed_title": "Pendaftaran ditutup",
         "entries_closed_description": "Anda melewatkan peluang ikut serta. Periksa kembali untuk kampanye lainnya di masa mendatang."
@@ -10446,8 +10517,8 @@
       "you_received": "Anda menerima",
       "token_received": "Token diterima",
       "money_account": "Money Account",
-      "perps_account": "Akun Perp 1",
-      "predictions_account": "Akun Prediction 1",
+      "perps_account": "Account 1 Perps",
+      "predictions_account": "Account 1 Predictions",
       "steps_completed": "Langkah ({{count}} selesai)",
       "summary": "Ringkasan"
     },
@@ -10527,7 +10598,7 @@
     "push_nudge": {
       "title": "Jangan lewatkan transaksi",
       "description": "Dapatkan peringatan  real-time untuk meninjau dan menyetujui transaksi dari sesi CLI Anda.",
-      "turn_on_button": "Aktifkan notifikasi",
+      "turn_on_button": "Turn on notifications",
       "preview_title": "Permintaan transaksi",
       "preview_message": "Agen Anda memerlukan persetujuan untuk limit baru.",
       "preview_timestamp": "sekarang"
@@ -10625,7 +10696,7 @@
     "view_all": "Lihat semua",
     "view_more": "Lihat selengkapnya",
     "view_x_more": "Lihat {{count}} lainnya",
-    "enable_basic_functionality": "Aktifkan fungsi dasar",
+    "enable_basic_functionality": "Turn on basic functionality",
     "basic_functionality_disabled_title": "Fitur Jelajahi tidak tersedia",
     "basic_functionality_disabled_description": "Kami tidak dapat mengakses metadata yang diperlukan saat fungsi dasar dinonaktifkan.",
     "empty_error_trending_state": {
@@ -10833,7 +10904,6 @@
   "whats_happening": {
     "title": "Apa yang sedang terjadi",
     "ai": "AI",
-    "ai_generated": "Dihasilkan oleh AI",
     "outdated": "Usang",
     "impact": {
       "bullish": "Bullish",
@@ -10878,6 +10948,52 @@
     "activate_error": "Terjadi kesalahan saat menambahkan trustline ini. Coba lagi.",
     "deactivate_error": "Terjadi kesalahan saat menghapus trustline ini. Coba lagi.",
     "deactivate_error_non_zero_balance_stellar": "Anda masih memiliki {{balance}} {{symbol}} di dompet ini. Anda harus mengirim atau menukar seluruhnya sebelum menonaktifkan aset ini di Stellar."
+  },
+  "pro_hub": {
+    "title": "MetaMask Pro",
+    "subtitle": "Your Pro membership",
+    "manage": "Manage subscription",
+    "explore_benefits": "Explore benefits",
+    "membership": {
+      "title": "Your membership",
+      "plan": "Membership",
+      "earned_this_month": "Earned this month",
+      "saved_this_month": "Saved this month",
+      "payment_details": "Payment details",
+      "total": "Total",
+      "paying_with": "Paying with",
+      "renews_on": "Renews on",
+      "manage": "Manage",
+      "contact_support": "Contact support",
+      "cancel_membership": "Cancel membership",
+      "earned_info": {
+        "title": "Earned this month",
+        "description": "The amount you earned in APY and mUSD back as a Pro member."
+      },
+      "saved_info": {
+        "title": "Saved this month",
+        "description": "The amount you saved as a Pro member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
+      }
+    },
+    "cancel_membership": {
+      "title": "Why are you canceling?",
+      "subtitle": "Survey is optional.",
+      "earned_as_member": "Earned as a member",
+      "membership_cost": "Membership cost",
+      "reason_issue": "I have an issue with my membership",
+      "reason_no_value": "Not getting enough value",
+      "reason_no_benefits": "I don't need the benefits",
+      "reason_support": "Unhappy with customer support",
+      "reason_other": "Other",
+      "keep_membership": "Keep membership",
+      "cancel": "Cancel",
+      "success": {
+        "title": "Plan canceled",
+        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
+        "description_suffix": ".",
+        "done": "Done"
+      }
+    }
   },
   "pro_subscription": {
     "title": "Earn more with Pro",

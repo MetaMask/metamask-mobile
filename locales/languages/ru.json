@@ -39,19 +39,12 @@
       "alert_details": "Сведения об оповещении"
     },
     "confirm_modal": {
-      "title": "Высокорисковый запрос",
+      "title": "High-risk request",
       "checkbox_label": "Я подтверждаю получение оповещения и все еще хочу продолжить",
       "review_alerts": "Просмотр всех оповещений",
       "message": "Мы предлагаем вам отклонить этот запрос. Если вы продолжите, вы можете подвергнуть свои активы риску.",
-      "title_blockaid": "Ваши активы могут быть под угрозой",
-      "blockaid": {
-        "message": "Если вы подтвердите этот запрос, вы можете потерять свои активы. Рекомендуем отменить его.",
-        "message1": "Если вы подтвердите этот запрос, вы позволите мошеннику снять и потратить ваши активы. Вы их не получите обратно.",
-        "message2": "Вы отправляете свои активы мошеннику. Если вы продолжите, вы потеряете эти активы.",
-        "message3": "Если вы продолжите, все активы, которые вы разместили на OpenSea, могут оказаться под угрозой.",
-        "message4": "Если вы продолжите, все активы, которые вы разместили на Blur, могут оказаться под угрозой.",
-        "message5": "Вы взаимодействуете с вредоносным сайтом. Если вы продолжите, вы потеряете свои активы."
-      }
+      "blockaid_message": "Security partners found high-risk signals in this {{requestType}}. If you continue, your funds can't be recovered.",
+      "blockaid_message_with_amount": "Security partners found high-risk signals in this {{requestType}}. If you continue, your {{amount}} can't be recovered."
     },
     "inline_alert_label": "Оповещение",
     "review_alerts": "Просмотр оповещений",
@@ -191,21 +184,30 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "Если вы одобрите этот запрос, третья сторона, известная мошенничеством, может похитить все ваши активы.",
-    "blur_farming_description": "Если вы одобрите этот запрос, кто-то может украсть ваши активы, зарегистрированные в Blur.",
-    "deceptive_request_title": "Это запрос с целью обмана",
-    "failed_title": "Запрос может быть небезопасным",
-    "failed_description": "Из-за ошибки этот запрос не был подтвержден поставщиком услуг безопасности. Действуйте осторожно.",
-    "malicious_domain_description": "Вы взаимодействуете с вредоносным доменом. Если вы одобрите этот запрос, вы можете потерять свои активы.",
-    "other_description": "Если вы одобрите этот запрос, вы можете потерять свои активы.",
-    "raw_signature_farming_description": "Если вы одобрите этот запрос, вы можете потерять свои активы.",
-    "seaport_farming_description": "Если вы одобрите этот запрос, кто-то может украсть ваши активы, указанные в OpenSea.",
+    "high_risk_approval_title": "High-risk approval",
+    "high_risk_transfer_title": "High-risk transfer",
+    "high_risk_signature_title": "High-risk signature",
+    "site_flagged_unsafe_title": "Site flagged as unsafe",
+    "risk_signals_detected_title": "Risk signals detected",
+    "failed_title": "Security check unavailable",
+    "approval_farming_description": "You're giving an address flagged by security partners permission to move your assets.",
+    "marketplace_farming_description": "You're giving an address flagged by security partners permission to move your assets listed on {{marketplace}}.",
+    "transfer_farming_description": "You're sending assets to an address flagged by security partners. If this is a scam, your funds can't be recovered.",
+    "transfer_farming_description_with_amount": "You're sending assets to an address flagged by security partners. If this is a scam, your {{amount}} can't be recovered.",
+    "malicious_domain_description": "Security partners flag this site as malicious. If this is a scam, your funds can't be recovered.",
+    "malicious_domain_description_with_amount": "Security partners flag this site as malicious. If this is a scam, your {{amount}} can't be recovered.",
+    "high_risk_signature_description": "Security partners flag this signature as high risk. Signing could authorize actions with your assets without your permission.",
+    "other_description": "Security partners found risk signals in this request. Review before continuing.",
+    "failed_description": "We couldn't complete this safety check. Continue only if you trust the site and addresses involved.",
+    "request_type": {
+      "approval": "approval",
+      "transfer": "transfer",
+      "signature": "signature",
+      "request": "request"
+    },
     "see_details": "См. подробности",
     "does_not_look_right": "Что-то выглядит не так?",
     "report_an_issue": "Сообщить о проблеме",
-    "suspicious_request_title": "Это подозрительный запрос",
-    "trade_order_farming_description": "Если вы одобрите этот запрос, вы можете потерять свои активы.",
-    "transfer_farming_description": "Если вы одобрите этот запрос, третья сторона, известная мошенничеством, похитит все ваши активы.",
     "before_you_proceed": "Прежде чем вы продолжите",
     "enable_blockaid_alerts": "Чтобы включить эту функцию, нам нужно настроить предупреждение безопасности. Эта страница должна оставаться открытой во время ее настройки. Это займет меньше минуты.",
     "enable_blockaid_alerts_description": "Эта страница должна оставаться открытой, пока настраиваются оповещения безопасности. Этот процесс займет меньше минуты.",
@@ -1648,6 +1650,12 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Предельная цена должна быть установлена до настройки ТП/СЛ.",
         "only_hyperliquid_usdc": "В настоящее время оплата на Hyperliquid выполняется только в USDC",
         "limit_price_far_warning": "Предельная цена далека от текущей рыночной цены",
+        "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
+        "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
+        "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
+        "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
+        "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
+        "please_set_a_trigger_price": "Please set a trigger price",
         "oi_cap_reached": "Достигнут лимит открытого процента. Открытие новых позиций пока невозможно.",
         "reduce_only_no_position": "У вас должна быть открытая позиция на этом рынке, чтобы размещать ордера только на уменьшение",
         "reduce_only_wrong_side": "Ордера только на уменьшение могут только уменьшить существующую позицию. Переключитесь на противоположную сторону.",
@@ -1804,6 +1812,7 @@
       "use_custom_title": "Использовать пользовательское проскальзывание",
       "row_format": "Расчетное: {{est}}% / Макс.: {{value}}%",
       "row_format_pending": "Расчетное: -- / Макс.: {{value}}%",
+      "row_format_max": "Max: {{value}}%",
       "input_label": "Макс. процент проскальзывания",
       "decrement_label": "Уменьшить проскальзывание",
       "increment_label": "Увеличить проскальзывание",
@@ -2411,13 +2420,17 @@
     },
     "close_all_modal": {
       "title": "Закрыть все позиции",
-      "description": "Мы закроем все ваши открытые позиции по текущей рыночной цене.",
+      "title_filtered": "Close positions",
+      "description": {
+        "one": "We'll close your open position at current market price.",
+        "other": "We'll close your {{count}} open positions at current market price."
+      },
       "margin": "Маржа",
       "includes_pnl": "включает {{pnlAmount}}",
       "fees": "Комиссии",
       "you_will_receive": "Вы получите",
       "keep_positions": "Сохранить позиции",
-      "close_all": "Закрыть все",
+      "close_count": "Close ({{count}})",
       "closing": "Закрытие...",
       "success_title": "Позиции закрыты",
       "success_message": "Успешно закрыта(-о) {{count}} позция(-ии/ий)",
@@ -2699,8 +2712,8 @@
     "card_footer_disclaimer": "Сгенерировано ИИ",
     "footer_disclaimer": "ИИ-сводка только для информации",
     "disclaimer_modal": {
-      "title": "Контент, сгенерированный ИИ",
-      "body": "Этот обзор создан сторонней организацией с помощью ИИ и может быть неточным или неперсонализированным. Не используйте его для торговых, инвестиционных, юридических или налоговых решений. Прошлая доходность не может служить основой для прогнозирования будущих результатов.",
+      "title": "AI-generated content",
+      "body": "This summary is AI generated by a third party and may not be accurate or personalized. Don't use it for trading, investment, legal, or tax decisions. Past performance doesn't predict future results.",
       "got_it": "Понятно"
     },
     "swap_button": "Обменять",
@@ -2725,6 +2738,15 @@
   },
   "predict": {
     "title": "Прогнозы MetaMask",
+    "game_status": {
+      "live": "LIVE",
+      "scheduled": "SCHEDULED",
+      "delayed": "DELAYED",
+      "suspended": "SUSPENDED",
+      "postponed": "POSTPONED",
+      "final": "FINAL",
+      "canceled": "CANCELED"
+    },
     "send_to_predictions": "Отправить в Прогнозы",
     "select_predict_account": "Выберите счет для прогнозов",
     "search_account": "Поиск счета",
@@ -4023,7 +4045,7 @@
     "notifications_title": "Уведомления",
     "notifications_desc": "Управляйте своими уведомлениями",
     "allow_notifications": "Разрешить уведомления",
-    "enable_push_notifications": "Включить push-уведомления",
+    "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "Выберите, о чем и как вы хотите получать уведомления.",
     "notifications_opts": {
       "preferences_title": "Настройки",
@@ -5414,7 +5436,7 @@
     "mint": "Выполнить минтинг",
     "tx_details_free": "Бесплатно",
     "tx_details_not_available": "Недоступен",
-    "smart_contract_interaction": "Взаимодействие со смарт-контрактом",
+    "smart_contract_interaction": "Contract interaction",
     "money_account_deposit": "Внести на Money Account",
     "money_account_withdraw": "Перевести с Money Account",
     "swaps_transaction": "Транзакция свопа",
@@ -6124,7 +6146,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "Запрошен вывод средств",
     "prompt_title": "Получать push-уведомления",
     "notifications_enabled_error_title": "Что-то пошло не так",
-    "notifications_enabled_error_desc": "Нам не удалось включить уведомления. Повторите попытку позже.",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Please try again later.",
     "prompt_desc": "Включите уведомления в Настройках, чтобы получать важные оповещения об активности кошелька и многом другом.",
     "prompt_ok": "Включить",
     "prompt_cancel": "Может быть, позже",
@@ -6172,7 +6194,7 @@
       "new_user": {
         "title": "Не упускайте ни одного движения",
         "body": "Получайте оповещения в реальном времени об изменениях цен, подтверждениях сделок, активности портфеля и наградах на основе того, как вы используете MetaMask.",
-        "button_yes": "Включить уведомления",
+        "button_yes": "Turn on notifications",
         "button_not_now": "Не сейчас",
         "preview_card_1": {
           "time": "сейчас",
@@ -6214,7 +6236,7 @@
         }
       },
       "toast_enabled": "Уведомления включены",
-      "toast_settings_hint": "Вы можете включить уведомления в любое время в разделе «Настройки > Уведомления»"
+      "toast_settings_hint": "You can turn on notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -7630,7 +7652,6 @@
   },
   "money": {
     "title": "Деньги",
-    "get_pro": "Get Pro",
     "your_balance": "Ваш баланс",
     "apy_label": "{{percentage}}% годовых",
     "apy_currency_suffix": " • mUSD",
@@ -8480,6 +8501,49 @@
       "market": "Рынок",
       "limit": "Лимит",
       "recurring": "Повторяющееся"
+    },
+    "orders": {
+      "tabs": {
+        "open_orders": "Open orders",
+        "history": "History"
+      },
+      "empty": {
+        "open_orders": "Open orders appear here",
+        "history": "Order history appears here"
+      }
+    },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price",
+      "not_enough_gas": "Not enough gas",
+      "filled": "Filled",
+      "filled_at": "Filled at {{date}}",
+      "expired": "Expired",
+      "expired_after": "Expired after {{duration}}"
+    },
+    "recurring": {
+      "you_get": "You get",
+      "every": "Every",
+      "repeat": "Repeat",
+      "times": "times",
+      "confirm": "Confirm",
+      "unit": {
+        "minute": "minute",
+        "hour": "hour",
+        "day": "day",
+        "week": "week"
+      },
+      "unit_option": {
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day",
+        "week": "Week"
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled",
+      "filled": "Filled"
     },
     "continue": "Продолжить",
     "confirm_bridge": "Мост",
@@ -9724,12 +9788,12 @@
     },
     "notifications_nudge": {
       "title": "Не пропустите",
-      "description": "Включите уведомления, чтобы быть в курсе кампаний.",
+      "description": "Turn on notifications to stay informed on campaigns.",
       "turn_on_button": "Включить",
-      "loading": "Включение уведомлений...",
+      "loading": "Turning on notifications...",
       "loading_description": "Это может занять некоторое время.",
-      "enable_error": "Не удалось включить уведомления",
-      "success": "Уведомления включены"
+      "enable_error": "Failed to turn on notifications",
+      "success": "Notifications turned on"
     },
     "version_guard": {
       "title": "Требуется обновление",
@@ -10138,10 +10202,12 @@
       "geo_locked_cta": "Проверить доступность",
       "geo_loading": "Проверка региона...",
       "remind_me_success_toast": "Мы сообщим вам, когда начнется эта кампания.",
-      "remind_me_save_error": "Не удалось сохранить ваше напоминание. Пожалуйста, попробуйте еще раз."
+      "remind_me_save_error": "Не удалось сохранить ваше напоминание. Пожалуйста, попробуйте еще раз.",
+      "view_details": "View details",
+      "view_details_accessibility": "View details for {{campaignName}}"
     },
     "campaign_mechanics": {
-      "title": "Механизм"
+      "title": "Rules and eligibility"
     },
     "campaign_details": {
       "start_date": "Начинается: {{date}}",
@@ -10158,6 +10224,11 @@
       "swap_ondo_assets": "Обменять активы Ondo",
       "open_position": "Торговать сейчас",
       "how_it_works": "Как это работает",
+      "error_title": "Unable to load this campaign",
+      "error_description": "We couldn't load this campaign. Please try again.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "retry": "Retry",
       "ondo": {
         "entries_closed_title": "Прием заявок закрыт",
         "entries_closed_description": "Вы пропустили окно для присоединения. Возвращайтесь, чтобы узнать о будущих кампаниях."
@@ -10446,8 +10517,8 @@
       "you_received": "Вы получили",
       "token_received": "Токен получен",
       "money_account": "Money Account",
-      "perps_account": "Счет перпов 1",
-      "predictions_account": "Счет прогнозов 1",
+      "perps_account": "Account 1 Perps",
+      "predictions_account": "Account 1 Predictions",
       "steps_completed": "Шаги (завершено: {{count}})",
       "summary": "Сводка"
     },
@@ -10527,7 +10598,7 @@
     "push_nudge": {
       "title": "Никогда не пропускайте транзакции",
       "description": "Получайте оповещения в реальном времени для проверки и утверждения транзакций из вашего сеанса CLI.",
-      "turn_on_button": "Включить уведомления",
+      "turn_on_button": "Turn on notifications",
       "preview_title": "Запрос транзакции",
       "preview_message": "Вашему агенту требуется подтверждение нового лимита.",
       "preview_timestamp": "сейчас"
@@ -10625,7 +10696,7 @@
     "view_all": "Смотреть все",
     "view_more": "Показать еще",
     "view_x_more": "Посмотреть еще {{count}}",
-    "enable_basic_functionality": "Включить базовый функционал",
+    "enable_basic_functionality": "Turn on basic functionality",
     "basic_functionality_disabled_title": "Обзор недоступен",
     "basic_functionality_disabled_description": "Мы не можем получить необходимые метаданные, когда базовый функционал отключен.",
     "empty_error_trending_state": {
@@ -10833,7 +10904,6 @@
   "whats_happening": {
     "title": "Что происходит",
     "ai": "ИИ",
-    "ai_generated": "Создано ИИ",
     "outdated": "Устарело",
     "impact": {
       "bullish": "Бычий",
@@ -10878,6 +10948,52 @@
     "activate_error": "Что-то пошло не так при добавлении этой линии доверия (trustline). Попробуйте снова.",
     "deactivate_error": "Что-то пошло не так при удалении этой линии доверия (trustline). Попробуйте снова.",
     "deactivate_error_non_zero_balance_stellar": "В вашем кошельке все еще осталось {{balance}} {{symbol}}. Вы должны отправить или обменять их все перед деактивацией этого актива в сети Stellar."
+  },
+  "pro_hub": {
+    "title": "MetaMask Pro",
+    "subtitle": "Your Pro membership",
+    "manage": "Manage subscription",
+    "explore_benefits": "Explore benefits",
+    "membership": {
+      "title": "Your membership",
+      "plan": "Membership",
+      "earned_this_month": "Earned this month",
+      "saved_this_month": "Saved this month",
+      "payment_details": "Payment details",
+      "total": "Total",
+      "paying_with": "Paying with",
+      "renews_on": "Renews on",
+      "manage": "Manage",
+      "contact_support": "Contact support",
+      "cancel_membership": "Cancel membership",
+      "earned_info": {
+        "title": "Earned this month",
+        "description": "The amount you earned in APY and mUSD back as a Pro member."
+      },
+      "saved_info": {
+        "title": "Saved this month",
+        "description": "The amount you saved as a Pro member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
+      }
+    },
+    "cancel_membership": {
+      "title": "Why are you canceling?",
+      "subtitle": "Survey is optional.",
+      "earned_as_member": "Earned as a member",
+      "membership_cost": "Membership cost",
+      "reason_issue": "I have an issue with my membership",
+      "reason_no_value": "Not getting enough value",
+      "reason_no_benefits": "I don't need the benefits",
+      "reason_support": "Unhappy with customer support",
+      "reason_other": "Other",
+      "keep_membership": "Keep membership",
+      "cancel": "Cancel",
+      "success": {
+        "title": "Plan canceled",
+        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
+        "description_suffix": ".",
+        "done": "Done"
+      }
+    }
   },
   "pro_subscription": {
     "title": "Earn more with Pro",

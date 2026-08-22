@@ -39,19 +39,12 @@
       "alert_details": "Detalhes do alerta"
     },
     "confirm_modal": {
-      "title": "Solicitação de alto risco",
+      "title": "High-risk request",
       "checkbox_label": "Reconheço o alerta e ainda quero prosseguir",
       "review_alerts": "Revisar todos os alertas",
       "message": "É recomendável que você recuse essa solicitação. Se continuar, você poderá colocar seus ativos em risco.",
-      "title_blockaid": "Seus ativos podem estar em risco",
-      "blockaid": {
-        "message": "Se você confirmar essa solicitação, poderá perder seus ativos. Recomendamos que você cancele essa solicitação.",
-        "message1": "Se você confirmar essa solicitação, estará permitindo que um golpista saque e gaste seus ativos. Você não os receberá de volta.",
-        "message2": "Você está enviando seus ativos para um golpista. Se você continuar, perderá esses ativos.",
-        "message3": "Se você continuar, todos os ativos que você listou na OpenSea podem estar em risco.",
-        "message4": "Se você continuar, todos os ativos que você listou na Blur podem estar em risco.",
-        "message5": "Você está interagindo com um site mal-intencionado. Se você continuar, perderá seus ativos."
-      }
+      "blockaid_message": "Security partners found high-risk signals in this {{requestType}}. If you continue, your funds can't be recovered.",
+      "blockaid_message_with_amount": "Security partners found high-risk signals in this {{requestType}}. If you continue, your {{amount}} can't be recovered."
     },
     "inline_alert_label": "Alerta",
     "review_alerts": "Revisar alertas",
@@ -191,21 +184,30 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "Se você aprovar essa solicitação, algum terceiro conhecido por aplicar golpes poderá tomar todos os seus ativos.",
-    "blur_farming_description": "Se você aprovar essa solicitação, alguém poderá roubar seus ativos listados na Blur.",
-    "deceptive_request_title": "Essa solicitação é enganosa",
-    "failed_title": "A solicitação pode não ser segura",
-    "failed_description": "Em razão de um erro, essa solicitação não foi confirmada pelo provedor de segurança. Prossiga com cautela.",
-    "malicious_domain_description": "Você está interagindo com um domínio mal-intencionado. Se você aprovar essa solicitação, poderá perder seus ativos.",
-    "other_description": "Se você aprovar essa solicitação, poderá perder seus ativos.",
-    "raw_signature_farming_description": "Se você aprovar essa solicitação, poderá perder seus ativos.",
-    "seaport_farming_description": "Se você aprovar essa solicitação, alguém poderá roubar seus ativos listados na OpenSea.",
+    "high_risk_approval_title": "High-risk approval",
+    "high_risk_transfer_title": "High-risk transfer",
+    "high_risk_signature_title": "High-risk signature",
+    "site_flagged_unsafe_title": "Site flagged as unsafe",
+    "risk_signals_detected_title": "Risk signals detected",
+    "failed_title": "Security check unavailable",
+    "approval_farming_description": "You're giving an address flagged by security partners permission to move your assets.",
+    "marketplace_farming_description": "You're giving an address flagged by security partners permission to move your assets listed on {{marketplace}}.",
+    "transfer_farming_description": "You're sending assets to an address flagged by security partners. If this is a scam, your funds can't be recovered.",
+    "transfer_farming_description_with_amount": "You're sending assets to an address flagged by security partners. If this is a scam, your {{amount}} can't be recovered.",
+    "malicious_domain_description": "Security partners flag this site as malicious. If this is a scam, your funds can't be recovered.",
+    "malicious_domain_description_with_amount": "Security partners flag this site as malicious. If this is a scam, your {{amount}} can't be recovered.",
+    "high_risk_signature_description": "Security partners flag this signature as high risk. Signing could authorize actions with your assets without your permission.",
+    "other_description": "Security partners found risk signals in this request. Review before continuing.",
+    "failed_description": "We couldn't complete this safety check. Continue only if you trust the site and addresses involved.",
+    "request_type": {
+      "approval": "approval",
+      "transfer": "transfer",
+      "signature": "signature",
+      "request": "request"
+    },
     "see_details": "Ver detalhes",
     "does_not_look_right": "Alguma coisa não parece certa?",
     "report_an_issue": "Comunicar um problema",
-    "suspicious_request_title": "Essa solicitação é suspeita",
-    "trade_order_farming_description": "Se você aprovar essa solicitação, poderá perder seus ativos.",
-    "transfer_farming_description": "Se você aprovar essa solicitação, algum terceiro conhecido por aplicar golpes tomará todos os seus ativos.",
     "before_you_proceed": "Antes de continuar",
     "enable_blockaid_alerts": "Para ativar esse recurso, precisamos configurar alguns alertas de segurança. Esta página precisa continuar aberta enquanto é configurada. Isso levará menos de um minuto para terminar.",
     "enable_blockaid_alerts_description": "Esta página precisa permanecer aberta enquanto os alertas de segurança são configurados. Esse processo levará menos de um minuto para terminar.",
@@ -1648,6 +1650,12 @@
         "limit_price_must_be_set_before_configuring_tpsl": "É necessário definir o preço limite antes de configurar o TP/SL",
         "only_hyperliquid_usdc": "Apenas USDC na Hyperliquid é atualmente aceito para pagamento",
         "limit_price_far_warning": "O preço limite está longe do preço de mercado atual",
+        "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
+        "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
+        "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
+        "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
+        "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
+        "please_set_a_trigger_price": "Please set a trigger price",
         "oi_cap_reached": "O limite de interesses em aberto foi atingido. Não é possível abrir novas posições neste momento.",
         "reduce_only_no_position": "Você precisa ter uma posição aberta neste mercado para colocar ordens que reduzam apenas a posição",
         "reduce_only_wrong_side": "Ordens que reduzem apenas a posição só podem reduzir uma posição existente. Mude para o lado oposto.",
@@ -1804,6 +1812,7 @@
       "use_custom_title": "Usar slippage personalizado",
       "row_format": "Est: {{est}}% / Máx: {{value}}%",
       "row_format_pending": "Est: -- / Máx: {{value}}%",
+      "row_format_max": "Max: {{value}}%",
       "input_label": "Porcentagem máxima de slippage",
       "decrement_label": "Diminuir slippage",
       "increment_label": "Aumentar slippage",
@@ -2411,13 +2420,17 @@
     },
     "close_all_modal": {
       "title": "Encerrar todas as posições",
-      "description": "Encerraremos todas as suas posições em aberto pelo preço de mercado atual.",
+      "title_filtered": "Close positions",
+      "description": {
+        "one": "We'll close your open position at current market price.",
+        "other": "We'll close your {{count}} open positions at current market price."
+      },
       "margin": "Margem",
       "includes_pnl": "inclui {{pnlAmount}}",
       "fees": "Taxas",
       "you_will_receive": "Você receberá",
       "keep_positions": "Manter posições",
-      "close_all": "Encerrar tudo",
+      "close_count": "Close ({{count}})",
       "closing": "Encerrando...",
       "success_title": "Posições encerradas",
       "success_message": "{{count}} posição(ões) encerrada(s) com sucesso",
@@ -2699,8 +2712,8 @@
     "card_footer_disclaimer": "Gerado por IA",
     "footer_disclaimer": "Resumo de IA apenas para fins informativos",
     "disclaimer_modal": {
-      "title": "Conteúdo gerado por IA",
-      "body": "Este resumo foi gerado por terceiros com IA e pode não ser preciso ou personalizado. Não o utilize para decisões de negociação, investimento, jurídicas ou fiscais. Desempenho passado não é garantia de resultados futuros.",
+      "title": "AI-generated content",
+      "body": "This summary is AI generated by a third party and may not be accurate or personalized. Don't use it for trading, investment, legal, or tax decisions. Past performance doesn't predict future results.",
       "got_it": "Entendi"
     },
     "swap_button": "Troca",
@@ -2725,6 +2738,15 @@
   },
   "predict": {
     "title": "Previsões da MetaMask",
+    "game_status": {
+      "live": "LIVE",
+      "scheduled": "SCHEDULED",
+      "delayed": "DELAYED",
+      "suspended": "SUSPENDED",
+      "postponed": "POSTPONED",
+      "final": "FINAL",
+      "canceled": "CANCELED"
+    },
     "send_to_predictions": "Enviar às previsões",
     "select_predict_account": "Selecionar conta de previsão",
     "search_account": "Pesquisar uma conta",
@@ -4023,7 +4045,7 @@
     "notifications_title": "Notificações",
     "notifications_desc": "Gerencie suas notificações",
     "allow_notifications": "Permitir notificações",
-    "enable_push_notifications": "Ativar notificações push",
+    "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "Escolha sobre o que deseja receber notificações e como as recebe.",
     "notifications_opts": {
       "preferences_title": "Preferências",
@@ -5414,7 +5436,7 @@
     "mint": "Mintar",
     "tx_details_free": "Gratuito",
     "tx_details_not_available": "Não disponível",
-    "smart_contract_interaction": "Interação com contrato inteligente",
+    "smart_contract_interaction": "Contract interaction",
     "money_account_deposit": "Depositar na Money Account",
     "money_account_withdraw": "Transferir da Money Account",
     "swaps_transaction": "Transação de trocas",
@@ -6124,7 +6146,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "Saque solicitado",
     "prompt_title": "Receber notificações push",
     "notifications_enabled_error_title": "Ocorreu algum erro",
-    "notifications_enabled_error_desc": "Não foi possível ativar as notificações. Tente novamente mais tarde.",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Please try again later.",
     "prompt_desc": "Ative as notificações em Configurações para receber alertas importantes sobre atividades da carteira e muito mais.",
     "prompt_ok": "Ativar",
     "prompt_cancel": "Talvez mais tarde",
@@ -6172,7 +6194,7 @@
       "new_user": {
         "title": "Não perca nenhum movimento",
         "body": "Receba alertas em tempo real sobre movimentações de preços, confirmações de negociações, atividades da carteira e recompensas com base em como você usa o MetaMask.",
-        "button_yes": "Ativar notificações",
+        "button_yes": "Turn on notifications",
         "button_not_now": "Agora não",
         "preview_card_1": {
           "time": "agora",
@@ -6214,7 +6236,7 @@
         }
       },
       "toast_enabled": "Notificações ativadas",
-      "toast_settings_hint": "Você pode ativar as notificações a qualquer momento em Configurações > Notificações"
+      "toast_settings_hint": "You can turn on notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -7630,7 +7652,6 @@
   },
   "money": {
     "title": "Dinheiro",
-    "get_pro": "Get Pro",
     "your_balance": "Seu saldo",
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
@@ -8480,6 +8501,49 @@
       "market": "Mercado",
       "limit": "Limite",
       "recurring": "Recorrente"
+    },
+    "orders": {
+      "tabs": {
+        "open_orders": "Open orders",
+        "history": "History"
+      },
+      "empty": {
+        "open_orders": "Open orders appear here",
+        "history": "Order history appears here"
+      }
+    },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price",
+      "not_enough_gas": "Not enough gas",
+      "filled": "Filled",
+      "filled_at": "Filled at {{date}}",
+      "expired": "Expired",
+      "expired_after": "Expired after {{duration}}"
+    },
+    "recurring": {
+      "you_get": "You get",
+      "every": "Every",
+      "repeat": "Repeat",
+      "times": "times",
+      "confirm": "Confirm",
+      "unit": {
+        "minute": "minute",
+        "hour": "hour",
+        "day": "day",
+        "week": "week"
+      },
+      "unit_option": {
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day",
+        "week": "Week"
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled",
+      "filled": "Filled"
     },
     "continue": "Continuar",
     "confirm_bridge": "Ponte",
@@ -9724,12 +9788,12 @@
     },
     "notifications_nudge": {
       "title": "Não perca",
-      "description": "Ative as notificações para ficar por dentro das campanhas.",
+      "description": "Turn on notifications to stay informed on campaigns.",
       "turn_on_button": "Ativar",
-      "loading": "Ativando notificações...",
+      "loading": "Turning on notifications...",
       "loading_description": "Isso pode levar alguns instantes.",
-      "enable_error": "Falha ao ativar notificações",
-      "success": "Notificações ativadas"
+      "enable_error": "Failed to turn on notifications",
+      "success": "Notifications turned on"
     },
     "version_guard": {
       "title": "Atualização necessária",
@@ -10138,10 +10202,12 @@
       "geo_locked_cta": "Verificar elegibilidade",
       "geo_loading": "Verificando região...",
       "remind_me_success_toast": "Avisaremos quando esta campanha começar.",
-      "remind_me_save_error": "Não foi possível salvar seu lembrete. Tente novamente."
+      "remind_me_save_error": "Não foi possível salvar seu lembrete. Tente novamente.",
+      "view_details": "View details",
+      "view_details_accessibility": "View details for {{campaignName}}"
     },
     "campaign_mechanics": {
-      "title": "Mecânica"
+      "title": "Rules and eligibility"
     },
     "campaign_details": {
       "start_date": "Início: {{date}}",
@@ -10158,6 +10224,11 @@
       "swap_ondo_assets": "Opção de swap de ativos da Ondo",
       "open_position": "Negocie agora",
       "how_it_works": "Como funciona",
+      "error_title": "Unable to load this campaign",
+      "error_description": "We couldn't load this campaign. Please try again.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "retry": "Retry",
       "ondo": {
         "entries_closed_title": "Inscrições encerradas",
         "entries_closed_description": "Você perdeu o prazo de inscrição. Volte a consultar esta página para futuras campanhas."
@@ -10446,8 +10517,8 @@
       "you_received": "Você recebeu",
       "token_received": "Token recebido",
       "money_account": "Money Account",
-      "perps_account": "Conta de perps 1",
-      "predictions_account": "Conta de previsões 1",
+      "perps_account": "Account 1 Perps",
+      "predictions_account": "Account 1 Predictions",
       "steps_completed": "Etapas ({{count}} concluídas)",
       "summary": "Resumo"
     },
@@ -10527,7 +10598,7 @@
     "push_nudge": {
       "title": "Nunca perca uma transação",
       "description": "Receba alertas em tempo real para revisar e aprovar transações da sua sessão do CLI.",
-      "turn_on_button": "Ativar notificações",
+      "turn_on_button": "Turn on notifications",
       "preview_title": "Solicitação de transação",
       "preview_message": "Seu agente precisa de aprovação em um novo limite.",
       "preview_timestamp": "agora"
@@ -10625,7 +10696,7 @@
     "view_all": "Exibir tudo",
     "view_more": "Ver mais",
     "view_x_more": "Exibir mais {{count}}",
-    "enable_basic_functionality": "Ativar funcionalidade básica",
+    "enable_basic_functionality": "Turn on basic functionality",
     "basic_functionality_disabled_title": "A opção Explorar não está disponível",
     "basic_functionality_disabled_description": "Não é possível obter os metadados necessários quando a funcionalidade básica está desativada.",
     "empty_error_trending_state": {
@@ -10833,7 +10904,6 @@
   "whats_happening": {
     "title": "O que está acontecendo",
     "ai": "IA",
-    "ai_generated": "Gerado por IA",
     "outdated": "Desatualizado",
     "impact": {
       "bullish": "Otimista",
@@ -10878,6 +10948,52 @@
     "activate_error": "Algo deu errado ao adicionar esta trustline. Tente novamente.",
     "deactivate_error": "Algo deu errado ao remover esta trustline. Tente novamente.",
     "deactivate_error_non_zero_balance_stellar": "Você ainda tem {{balance}} {{symbol}} nesta carteira. Você precisa enviar ou trocar tudo antes de desativar este ativo na Stellar."
+  },
+  "pro_hub": {
+    "title": "MetaMask Pro",
+    "subtitle": "Your Pro membership",
+    "manage": "Manage subscription",
+    "explore_benefits": "Explore benefits",
+    "membership": {
+      "title": "Your membership",
+      "plan": "Membership",
+      "earned_this_month": "Earned this month",
+      "saved_this_month": "Saved this month",
+      "payment_details": "Payment details",
+      "total": "Total",
+      "paying_with": "Paying with",
+      "renews_on": "Renews on",
+      "manage": "Manage",
+      "contact_support": "Contact support",
+      "cancel_membership": "Cancel membership",
+      "earned_info": {
+        "title": "Earned this month",
+        "description": "The amount you earned in APY and mUSD back as a Pro member."
+      },
+      "saved_info": {
+        "title": "Saved this month",
+        "description": "The amount you saved as a Pro member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
+      }
+    },
+    "cancel_membership": {
+      "title": "Why are you canceling?",
+      "subtitle": "Survey is optional.",
+      "earned_as_member": "Earned as a member",
+      "membership_cost": "Membership cost",
+      "reason_issue": "I have an issue with my membership",
+      "reason_no_value": "Not getting enough value",
+      "reason_no_benefits": "I don't need the benefits",
+      "reason_support": "Unhappy with customer support",
+      "reason_other": "Other",
+      "keep_membership": "Keep membership",
+      "cancel": "Cancel",
+      "success": {
+        "title": "Plan canceled",
+        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
+        "description_suffix": ".",
+        "done": "Done"
+      }
+    }
   },
   "pro_subscription": {
     "title": "Earn more with Pro",

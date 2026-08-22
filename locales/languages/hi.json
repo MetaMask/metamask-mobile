@@ -39,19 +39,12 @@
       "alert_details": "एलर्ट संबंधी विवरण"
     },
     "confirm_modal": {
-      "title": "उच्च जोखिम संबंधी अनुरोध",
+      "title": "High-risk request",
       "checkbox_label": "मैंने एलर्ट को स्वीकार कर लिया है और इसके बावजूद आगे बढ़ना चाहता हूँ",
       "review_alerts": "सभी एलर्ट की समीक्षा करें",
       "message": "हमारा सुझाव है कि आप इस अनुरोध को रिजेक्ट करें। यदि आप जारी रखते हैं, तो आप अपनी एसेट्स को जोखिम में डाल सकते हैं।",
-      "title_blockaid": "आपकी एसेट्स खतरे में हो सकती है",
-      "blockaid": {
-        "message": "यदि आप इस अनुरोध को कन्फर्म करते हैं, तो आप अपनी एसेट्स खो सकते हैं। हम सुझाव देते हैं कि आप इस अनुरोध को कैंसिल कर दें।",
-        "message1": "यदि आप इस अनुरोध को कन्फर्म करते हैं, तो आप एक स्कैमर को अपनी एसेट्स निकालने और खर्च करने की अनुमति दे रहे हैं। आपको वे वापस नहीं मिलेंगे।",
-        "message2": "आप अपनी एसेट्स किसी स्कैमर को भेज रहे हैं। अगर आप ऐसा करना जारी रखेंगे, तो आप उन एसेट्स को खो देंगे।",
-        "message3": "अगर आप ऐसा करना जारी रखते हैं, तो OpenSea पर आपके द्वारा सूचीबद्ध सभी एसेट्स खतरे में पड़ सकती हैं।",
-        "message4": "अगर आप ऐसा करना जारी रखते हैं, तो Blur पर आपके द्वारा सूचीबद्ध सभी एसेट्स खतरे में पड़ सकती हैं।",
-        "message5": "आप एक बुरी नीयत वाली साइट के साथ इंटरैक्ट कर रहे हैं। अगर आप ऐसा करना जारी रखेंगे, तो आप अपनी एसेट्स खो देंगे।"
-      }
+      "blockaid_message": "Security partners found high-risk signals in this {{requestType}}. If you continue, your funds can't be recovered.",
+      "blockaid_message_with_amount": "Security partners found high-risk signals in this {{requestType}}. If you continue, your {{amount}} can't be recovered."
     },
     "inline_alert_label": "एलर्ट",
     "review_alerts": "एलर्ट की समीक्षा करें",
@@ -191,21 +184,30 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो स्कैम के लिए मशहूर कोई तृतीय पक्ष आपके सारे एसेट चुरा सकती है।",
-    "blur_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो कोई Blur पर लिस्टेड आपके सारे एसेट चुरा सकता है।",
-    "deceptive_request_title": "इस अनुरोध को धोखेबाजी के उद्देश्य से भेजा गया है",
-    "failed_title": "हो सकता है कि अनुरोध सुरक्षित न हो",
-    "failed_description": "कोई समस्या होने के कारण, इस अनुरोध को सिक्यूरिटी प्रोवाइडर द्वारा सत्यापित नहीं किया गया। सावधानी से आगे बढ़ें।",
-    "malicious_domain_description": "आप एक बुरी नीयत वाले डोमेन से इंटरैक्ट कर रहे हैं। यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
-    "other_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
-    "raw_signature_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
-    "seaport_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो कोई OpenSea पर लिस्टेड आपके सारे एसेट चुरा सकता है।",
+    "high_risk_approval_title": "High-risk approval",
+    "high_risk_transfer_title": "High-risk transfer",
+    "high_risk_signature_title": "High-risk signature",
+    "site_flagged_unsafe_title": "Site flagged as unsafe",
+    "risk_signals_detected_title": "Risk signals detected",
+    "failed_title": "Security check unavailable",
+    "approval_farming_description": "You're giving an address flagged by security partners permission to move your assets.",
+    "marketplace_farming_description": "You're giving an address flagged by security partners permission to move your assets listed on {{marketplace}}.",
+    "transfer_farming_description": "You're sending assets to an address flagged by security partners. If this is a scam, your funds can't be recovered.",
+    "transfer_farming_description_with_amount": "You're sending assets to an address flagged by security partners. If this is a scam, your {{amount}} can't be recovered.",
+    "malicious_domain_description": "Security partners flag this site as malicious. If this is a scam, your funds can't be recovered.",
+    "malicious_domain_description_with_amount": "Security partners flag this site as malicious. If this is a scam, your {{amount}} can't be recovered.",
+    "high_risk_signature_description": "Security partners flag this signature as high risk. Signing could authorize actions with your assets without your permission.",
+    "other_description": "Security partners found risk signals in this request. Review before continuing.",
+    "failed_description": "We couldn't complete this safety check. Continue only if you trust the site and addresses involved.",
+    "request_type": {
+      "approval": "approval",
+      "transfer": "transfer",
+      "signature": "signature",
+      "request": "request"
+    },
     "see_details": "विवरण देखें",
     "does_not_look_right": "कुछ तो गड़बड़ है?",
     "report_an_issue": "समस्या रिपोर्ट करें",
-    "suspicious_request_title": "इस अनुरोध पर एकदम से भरोसा नहीं किया जा सकता",
-    "trade_order_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो आप अपने सारे एसेट गंवा सकते हैं।",
-    "transfer_farming_description": "यदि आप इस अनुरोध को स्वीकार करते हैं, तो स्कैम के लिए मशहूर कोई तृतीय पक्ष आपके सारे एसेट चुरा सकती है।",
     "before_you_proceed": "इससे पहले कि आप आगे बढ़ें",
     "enable_blockaid_alerts": "इस सुविधा को चालू करने के लिए हमें कुछ सुरक्षा एलर्ट सेट करने की आवश्यकता है। सेटअप के दौरान इस पेज को खुला रहना होगा। इसे पूरा होने में एक मिनट से भी कम समय लगेगा।",
     "enable_blockaid_alerts_description": "सुरक्षा एलर्ट सेट किए जाने के दौरान इस पेज को खुला रहना होगा। इस प्रक्रिया को पूरा होने में एक मिनट से भी कम समय लगेगा।",
@@ -1648,6 +1650,12 @@
         "limit_price_must_be_set_before_configuring_tpsl": "TP/SL कॉन्फ़िगर करने से पहले लिमिट प्राइस सेट किया जाना चाहिए",
         "only_hyperliquid_usdc": "वर्तमान में केवल हाइपरलिक्विड पर USDC ही भुगतान के लिए समर्थित है",
         "limit_price_far_warning": "लिमिट प्राइस वर्तमान मार्केट प्राइस से बहुत दूर है",
+        "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
+        "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
+        "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
+        "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
+        "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
+        "please_set_a_trigger_price": "Please set a trigger price",
         "oi_cap_reached": "ओपन इंटरेस्ट की सीमा पूरी हो गई है। इस समय नई पोज़िशन नहीं खोली जा सकती।",
         "reduce_only_no_position": "रिड्यूस-ओनली ऑर्डर देने के लिए इस मार्केट में आपकी ओपन पोज़िशन होनी चाहिए",
         "reduce_only_wrong_side": "रिड्यूस-ओनली ऑर्डर केवल मौजूदा पोज़िशन को कम कर सकते हैं। विपरीत साइड स्विच करें।",
@@ -1804,6 +1812,7 @@
       "use_custom_title": "कस्टम स्लिपेज (slippage) का उपयोग करें",
       "row_format": "अनुमानित: {{est}}% / अधिकतम: {{value}}%",
       "row_format_pending": "अनुमानित: -- / अधिकतम: {{value}}%",
+      "row_format_max": "Max: {{value}}%",
       "input_label": "अधिकतम स्लिपेज (slippage) प्रतिशत",
       "decrement_label": "स्लिपेज (slippage) घटाएं",
       "increment_label": "स्लिपेज (slippage) बढ़ाएं",
@@ -2411,13 +2420,17 @@
     },
     "close_all_modal": {
       "title": "सभी पोज़िशन बंद करें",
-      "description": "हम आपकी सभी ओपन पोज़िशन को वर्तमान मार्केट प्राइस पर बंद कर देंगे।",
+      "title_filtered": "Close positions",
+      "description": {
+        "one": "We'll close your open position at current market price.",
+        "other": "We'll close your {{count}} open positions at current market price."
+      },
       "margin": "मार्जिन",
       "includes_pnl": "{{pnlAmount}} शामिल है",
       "fees": "फीस",
       "you_will_receive": "आपको प्राप्त होगा",
       "keep_positions": "पोज़िशन्स रखें",
-      "close_all": "सब बंद करें",
+      "close_count": "Close ({{count}})",
       "closing": "बंद किया जा रहा है...",
       "success_title": "पोज़िशन्स बंद की गईं",
       "success_message": "{{count}} पोज़िशन(न्स) को सफलतापूर्वक बंद की गईं",
@@ -2699,8 +2712,8 @@
     "card_footer_disclaimer": "AI से बनाया गया",
     "footer_disclaimer": "AI सारांश केवल जानकारी के लिए है",
     "disclaimer_modal": {
-      "title": "AI से बनाया गया कंटेंट",
-      "body": "यह सारांश किसी तृतीय पक्ष द्वारा AI से तैयार किया गया है और यह सटीक या व्यक्तिगत जानकारी से संबंधित नहीं हो सकता है। इसका उपयोग व्यापार, निवेश, कानूनी या कर संबंधी निर्णयों के लिए न करें। पिछला प्रदर्शन भविष्य के परिणामों का पूर्वानुमान नहीं लगाता है।",
+      "title": "AI-generated content",
+      "body": "This summary is AI generated by a third party and may not be accurate or personalized. Don't use it for trading, investment, legal, or tax decisions. Past performance doesn't predict future results.",
       "got_it": "समझ गए"
     },
     "swap_button": "स्वैप करें",
@@ -2725,6 +2738,15 @@
   },
   "predict": {
     "title": "MetaMask प्रिडिक्शन्स",
+    "game_status": {
+      "live": "LIVE",
+      "scheduled": "SCHEDULED",
+      "delayed": "DELAYED",
+      "suspended": "SUSPENDED",
+      "postponed": "POSTPONED",
+      "final": "FINAL",
+      "canceled": "CANCELED"
+    },
     "send_to_predictions": "प्रेडिक्शन्स को भेजें",
     "select_predict_account": "प्रेडिक्ट अकाउंट चुनें",
     "search_account": "किसी अकाउंट को ढूंढें",
@@ -4023,7 +4045,7 @@
     "notifications_title": "अपने वॉलेट का उपयोग करना",
     "notifications_desc": "अपने नोटिफिकेशंस मैनेज करें",
     "allow_notifications": "नोटिफिकेशंस की अनुमति दें",
-    "enable_push_notifications": "पुश नोटिफिकेशंस को चालू करें",
+    "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "आपको किस बारे में और कैसे सूचनाएँ मिलेंगी, यह चुनें।",
     "notifications_opts": {
       "preferences_title": "प्राथमिकताएं",
@@ -5414,7 +5436,7 @@
     "mint": "मिंट",
     "tx_details_free": "मुफ्त",
     "tx_details_not_available": "उपलब्ध नहीं है",
-    "smart_contract_interaction": "स्मार्ट अनुबंध संपर्क",
+    "smart_contract_interaction": "Contract interaction",
     "money_account_deposit": "Money Account में डिपॉज़िट करें",
     "money_account_withdraw": "Money Account से ट्रांसफर करें",
     "swaps_transaction": "स्वैप का लेन-देन",
@@ -6124,7 +6146,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "विदड्रॉवल का अनुरोध किया गया",
     "prompt_title": "पुश नोटिफिकेशन को प्राप्त करें",
     "notifications_enabled_error_title": "कुछ गलत हो गया",
-    "notifications_enabled_error_desc": "हम नोटिफिकेशंस चालू नहीं कर सके। कृपया बाद में फिर से प्रयास करें।",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Please try again later.",
     "prompt_desc": "वॉलेट गतिविधि और अधिक पर महत्वपूर्ण अलर्ट प्राप्त करने के लिए सेटिंग्स से नोटिफिकेशंस चालू करें।",
     "prompt_ok": "चालू करें",
     "prompt_cancel": "शायद बाद में",
@@ -6172,7 +6194,7 @@
       "new_user": {
         "title": "कभी भी कोई मूव मिस न करें",
         "body": "आप MetaMask का इस्तेमाल कैसे करते हैं, इसके आधार पर प्राइस मूव्स, ट्रेड कन्फर्मेशन, पोर्टफोलियो एक्टिविटी और रिवॉर्ड्स पर रियल-टाइम अलर्ट पाएं।",
-        "button_yes": "नोटिफिकेशंस को चालू करें",
+        "button_yes": "Turn on notifications",
         "button_not_now": "अभी नहीं",
         "preview_card_1": {
           "time": "अब",
@@ -6214,7 +6236,7 @@
         }
       },
       "toast_enabled": "नोटिफिकेशन चालू हो गया",
-      "toast_settings_hint": "आप कभी भी सेटिंग्स > नोटिफिकेशंस में जाकर नोटिफिकेशंस चालू कर सकते हैं"
+      "toast_settings_hint": "You can turn on notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -7630,7 +7652,6 @@
   },
   "money": {
     "title": "Money",
-    "get_pro": "Get Pro",
     "your_balance": "आपका बैलेंस",
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
@@ -8480,6 +8501,49 @@
       "market": "मार्केट",
       "limit": "सीमित करें",
       "recurring": "आवर्ती"
+    },
+    "orders": {
+      "tabs": {
+        "open_orders": "Open orders",
+        "history": "History"
+      },
+      "empty": {
+        "open_orders": "Open orders appear here",
+        "history": "Order history appears here"
+      }
+    },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price",
+      "not_enough_gas": "Not enough gas",
+      "filled": "Filled",
+      "filled_at": "Filled at {{date}}",
+      "expired": "Expired",
+      "expired_after": "Expired after {{duration}}"
+    },
+    "recurring": {
+      "you_get": "You get",
+      "every": "Every",
+      "repeat": "Repeat",
+      "times": "times",
+      "confirm": "Confirm",
+      "unit": {
+        "minute": "minute",
+        "hour": "hour",
+        "day": "day",
+        "week": "week"
+      },
+      "unit_option": {
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day",
+        "week": "Week"
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled",
+      "filled": "Filled"
     },
     "continue": "जारी रखें",
     "confirm_bridge": "ब्रिज",
@@ -9724,12 +9788,12 @@
     },
     "notifications_nudge": {
       "title": "चूकें नहीं",
-      "description": "कैम्पेन्स की जानकारी पाने के लिए नोटिफिकेशन चालू करें।",
+      "description": "Turn on notifications to stay informed on campaigns.",
       "turn_on_button": "चालू करें",
-      "loading": "नोटिफिकेशंस चालू किया जा रहा है...",
+      "loading": "Turning on notifications...",
       "loading_description": "इसमें कुछ समय लग सकता है।",
-      "enable_error": "नोटिफिकेशन चालू नहीं हो पाया",
-      "success": "नोटिफिकेशन चालू हो गया"
+      "enable_error": "Failed to turn on notifications",
+      "success": "Notifications turned on"
     },
     "version_guard": {
       "title": "अपडेट ज़रूरी है",
@@ -10138,10 +10202,12 @@
       "geo_locked_cta": "योग्यता चेक करें",
       "geo_loading": "क्षेत्र की जांच की जा रही है…",
       "remind_me_success_toast": "हम आपको बताएंगे जब यह कैम्पेन शुरू होगा।",
-      "remind_me_save_error": "आपका रिमाइंडर सेव नहीं हो सका। कृपया फिर से प्रयास करें।"
+      "remind_me_save_error": "आपका रिमाइंडर सेव नहीं हो सका। कृपया फिर से प्रयास करें।",
+      "view_details": "View details",
+      "view_details_accessibility": "View details for {{campaignName}}"
     },
     "campaign_mechanics": {
-      "title": "मैकेनिक्स"
+      "title": "Rules and eligibility"
     },
     "campaign_details": {
       "start_date": "इस दिन शुरू होता है: {{date}}",
@@ -10158,6 +10224,11 @@
       "swap_ondo_assets": "Ondo Assets को स्वैप करें",
       "open_position": "अभी ट्रेड करें",
       "how_it_works": "ये कैसे काम करता है",
+      "error_title": "Unable to load this campaign",
+      "error_description": "We couldn't load this campaign. Please try again.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "retry": "Retry",
       "ondo": {
         "entries_closed_title": "एंट्री बंद हो गई हैं",
         "entries_closed_description": "आप ऑप्ट-इन करने से चूक गए। भविष्य में और भी कैंपेन देखने के लिए दोबारा आएं।"
@@ -10446,8 +10517,8 @@
       "you_received": "आपने प्राप्त किया",
       "token_received": "टोकन प्राप्त किया गया",
       "money_account": "Money Account",
-      "perps_account": "पर्प्स अकाउंट 1",
-      "predictions_account": "प्रेडिक्शंस अकाउंट 1",
+      "perps_account": "Account 1 Perps",
+      "predictions_account": "Account 1 Predictions",
       "steps_completed": "चरण ({{count}} पूरे हुए)",
       "summary": "सारांश"
     },
@@ -10527,7 +10598,7 @@
     "push_nudge": {
       "title": "कोई भी ट्रांसेक्शन न चूकें",
       "description": "अपने CLI सेशन के ट्रांसेक्शन की समीक्षा और एप्रूव करने के लिए रियल-टाइम एलर्ट पाएँ।",
-      "turn_on_button": "नोटिफिकेशंस को चालू करें",
+      "turn_on_button": "Turn on notifications",
       "preview_title": "ट्रांसेक्शन का अनुरोध",
       "preview_message": "आपके एजेंट को नई लिमिट के लिए मंज़ूरी चाहिए।",
       "preview_timestamp": "अब"
@@ -10625,7 +10696,7 @@
     "view_all": "सभी देखें",
     "view_more": "अधिक देखें",
     "view_x_more": "{{count}} और देखें",
-    "enable_basic_functionality": "बेसिक फंक्शनलिटी को चालू करें",
+    "enable_basic_functionality": "Turn on basic functionality",
     "basic_functionality_disabled_title": "एक्सप्लोर उपलब्ध नहीं है",
     "basic_functionality_disabled_description": "बेसिक फंक्शनलिटी बंद होने पर हम ज़रूरी मेटाडेटा नहीं ला सकते।",
     "empty_error_trending_state": {
@@ -10833,7 +10904,6 @@
   "whats_happening": {
     "title": "क्या हो रहा है",
     "ai": "AI",
-    "ai_generated": "AI से बनाया गया",
     "outdated": "अब प्रचलन में नहीं",
     "impact": {
       "bullish": "बुलिश",
@@ -10878,6 +10948,52 @@
     "activate_error": "यह ट्रस्टलाइन जोड़ते समय कुछ गड़बड़ हो गई। फिर से कोशिश करें।",
     "deactivate_error": "इस ट्रस्टलाइन को हटाते समय कुछ गड़बड़ हो गई। फिर से कोशिश करें।",
     "deactivate_error_non_zero_balance_stellar": "इस वॉलेट में अभी भी {{balance}} {{symbol}} है। Stellar पर इस एसेट को डीएक्टिवेट करने से पहले आपको यह सब भेजना या स्वैप करना होगा।"
+  },
+  "pro_hub": {
+    "title": "MetaMask Pro",
+    "subtitle": "Your Pro membership",
+    "manage": "Manage subscription",
+    "explore_benefits": "Explore benefits",
+    "membership": {
+      "title": "Your membership",
+      "plan": "Membership",
+      "earned_this_month": "Earned this month",
+      "saved_this_month": "Saved this month",
+      "payment_details": "Payment details",
+      "total": "Total",
+      "paying_with": "Paying with",
+      "renews_on": "Renews on",
+      "manage": "Manage",
+      "contact_support": "Contact support",
+      "cancel_membership": "Cancel membership",
+      "earned_info": {
+        "title": "Earned this month",
+        "description": "The amount you earned in APY and mUSD back as a Pro member."
+      },
+      "saved_info": {
+        "title": "Saved this month",
+        "description": "The amount you saved as a Pro member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
+      }
+    },
+    "cancel_membership": {
+      "title": "Why are you canceling?",
+      "subtitle": "Survey is optional.",
+      "earned_as_member": "Earned as a member",
+      "membership_cost": "Membership cost",
+      "reason_issue": "I have an issue with my membership",
+      "reason_no_value": "Not getting enough value",
+      "reason_no_benefits": "I don't need the benefits",
+      "reason_support": "Unhappy with customer support",
+      "reason_other": "Other",
+      "keep_membership": "Keep membership",
+      "cancel": "Cancel",
+      "success": {
+        "title": "Plan canceled",
+        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
+        "description_suffix": ".",
+        "done": "Done"
+      }
+    }
   },
   "pro_subscription": {
     "title": "Earn more with Pro",
