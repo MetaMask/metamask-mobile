@@ -353,6 +353,10 @@ jest.mock('../../app/core/Engine', () => {
         setLocation: jest.fn(),
         setInputPrimaryDenomination: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
+        fetchQuotes: jest.fn().mockResolvedValue([]),
+      },
+      BridgeStatusController: {
+        submitTx: jest.fn().mockResolvedValue({ success: true }),
       },
       PredictNextController: {},
       PredictController: {
