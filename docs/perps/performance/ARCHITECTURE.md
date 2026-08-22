@@ -136,6 +136,82 @@ It must not copy startup, Terminal request/parse, preload, connection, first-dat
 
 Sessions cancelled by context change, backgrounding, or surface unmount are ended with a bounded cancellation reason but no success/content outcome, and are excluded from success, error, and latency cohorts.
 
+## Market-detail readiness
+
+Market detail has a separate screen-owned session. It does not extend the
+Homepage loading session.
+
+`Perps Market Detail Live` remains the minimum-useful-screen duration. The
+`Perps Market Detail Session` adds one shared market-detail-mount anchor and
+records when each applicable section resolves. It stores no controller,
+connection, WebSocket, chart-internal, or API duration.
+
+One session owns one market, mode, selected account, provider, network, and
+HIP-3 configuration generation. A market/mode/context change starts a new
+generation. Backgrounding or leaving the screen cancels the active generation,
+so suspended time and stale-market callbacks cannot enter latency percentiles.
+Foreground resume starts a new `lifecycle_context=background_resume` cohort.
+Already-resolved resident sections may correctly record near zero in that
+cohort; dashboards must never pool it with `cold_process` or `warm` navigation.
+`generation_trigger` further separates `initial`, `background_resume`,
+`market_switch`, `mode_switch`, `account_switch`, `network_switch`, and
+`configuration_change`. Resident global/account sections may correctly resolve
+near zero after a context switch; navigation widgets filter to `initial`, while
+the other triggers have their own continuity/recovery cohorts.
+
+| Section          | Lite         | Pro               | Resolved boundary                                                              |
+| ---------------- | ------------ | ----------------- | ------------------------------------------------------------------------------ |
+| Market           | Yes          | Yes               | Current-symbol metadata is available                                           |
+| Price            | Yes          | Yes               | Current-symbol display price is positive                                       |
+| Chart            | Yes          | Yes when expanded | Skeleton replaced by the current-symbol chart or fallback                      |
+| Stats            | Yes          | Yes               | Current-symbol market statistics resolve                                       |
+| Market Insights  | When enabled | No                | Current-symbol content, empty response, or fetch error resolves                |
+| Account          | Yes          | Yes               | Current-account state or a valid empty state resolves                          |
+| Order book       | No           | Yes when expanded | Current-symbol ladder, valid empty state, or visible connection error resolves |
+| Positions/orders | Yes          | Yes               | Current-account streams resolve to rows or a valid empty state                 |
+
+The session measurements are:
+
+- `market_resolved_ms`
+- `price_resolved_ms`
+- `chart_resolved_ms`
+- `stats_resolved_ms`
+- `insights_resolved_ms`
+- `account_resolved_ms`
+- `order_book_resolved_ms`
+- `positions_orders_resolved_ms`
+
+Every emitted offset is non-negative and relative to detail-session start. Each
+measurement has a matching `<section>_state` attribute with `content`, `empty`,
+or `error`. `not_applicable` is stored as state without a fabricated zero
+measurement. Latency widgets include `content` and valid `empty` rows and
+exclude `error`; reliability widgets count error and timeout rows separately.
+Resolved sessions keep `success=true` even when one section resolves as
+`error`; `has_section_error=true` and the section state drive reliability
+queries. Cancellation and timeout rows do not count as completed sessions.
+
+Trade-control readiness has no independent async producer. Dashboard queries
+derive it as `max(market_resolved_ms, price_resolved_ms,
+account_resolved_ms)` instead of emitting a duplicate measurement.
+
+`chart_strategy` records the configured Advanced/Lightweight strategy.
+`chart_library` records the library that actually rendered and is updated when
+Advanced falls back to Lightweight without restarting the detail generation.
+`market_source=route|stream_enrichment|unknown` distinguishes the normally
+immediate route-metadata row from deep-link or activity entries that wait for
+market enrichment, so the market offset is not interpreted as fetch latency.
+
+Stats `error` means market-data subscription setup failed. A connected
+subscription that never delivers a current-symbol tick remains `loading` and
+ends through the bounded session timeout; it is not relabelled as an error.
+`Perps Market Detail Live` ends immediately with `reason=stats_error` for the
+explicit error state instead of waiting for screen unmount.
+
+Existing `perps.chart.first_candle` spans keep the chart-mount anchor and remain
+authoritative for chart-internal work. Existing `Perps WebSocket First *` spans
+keep their connection/subscription anchors. Their durations are not copied into
+the detail session.
+
 ## Derived metrics
 
 | Metric                               | Formula / source                                                              |
@@ -152,6 +228,8 @@ Sessions cancelled by context change, backgrounding, or surface unmount are ende
 | Live prices                          | `prices_live` bootstrap-relative milestone                                    |
 | Homepage TTC/DFD                     | Existing Homepage section traces                                              |
 | Initial UI / live-visible            | Existing surface trace measurements plus recipe frame evidence                |
+| Detail minimum useful                | Existing `Perps Market Detail Live` duration, split by `detail_mode`          |
+| Detail section resolution            | Detail-mount-relative `Perps Market Detail Session` measurements              |
 | Cache-to-visible / socket-to-visible | Recipe evidence; promote only after semantics are proven                      |
 
 All loading-session offsets are non-negative and bootstrap-relative.

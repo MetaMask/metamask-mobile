@@ -92,7 +92,7 @@ describe('usePerpsSyncedChartPrice', () => {
     expect(result.current.syncedChartCurrentPrice).toBe(0);
   });
 
-  it('clears the Advanced Chart price when the symbol changes', () => {
+  it('rejects candle and Advanced Chart prices from the prior symbol', () => {
     const { result, rerender } = renderHook(
       ({ symbol }: { symbol: string }) =>
         usePerpsSyncedChartPrice({
@@ -106,10 +106,16 @@ describe('usePerpsSyncedChartPrice', () => {
     act(() => {
       result.current.setAdvancedChartCurrentPrice(51000);
     });
+    const staleBtcSetter = result.current.setAdvancedChartCurrentPrice;
     expect(result.current.syncedChartCurrentPrice).toBe(51000);
 
     rerender({ symbol: 'ETH' });
 
-    expect(result.current.syncedChartCurrentPrice).toBe(50500);
+    expect(result.current.syncedChartCurrentPrice).toBe(0);
+
+    act(() => {
+      staleBtcSetter(52000);
+    });
+    expect(result.current.syncedChartCurrentPrice).toBe(0);
   });
 });

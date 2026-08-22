@@ -20,7 +20,13 @@ import {
 } from '@metamask/design-system-react-native';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import { AnimationDuration } from '@metamask/design-tokens';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pressable, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -35,6 +41,7 @@ import {
   type OrderBookLevel,
 } from '../../../hooks/stream/usePerpsLiveOrderBook';
 import { usePerpsOrderBookGrouping } from '../../../hooks/usePerpsOrderBookGrouping';
+import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
 import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
@@ -77,6 +84,10 @@ export interface PerpsProOrderBookPanelProps {
   onSelectPrice?: (price: string) => void;
   /** Hides the order-book column so the order form can go full width. */
   onCollapse?: () => void;
+  onResolvedStateChange?: (
+    symbol: string,
+    state: PerpsMarketDetailSectionState,
+  ) => void;
 }
 
 /**
@@ -381,6 +392,7 @@ const PerpsProOrderBookPanel = ({
   szDecimals,
   onSelectPrice,
   onCollapse,
+  onResolvedStateChange,
 }: PerpsProOrderBookPanelProps) => {
   const testID = PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL;
   const displaySymbol = getPerpsDisplaySymbol(symbol);
@@ -565,6 +577,34 @@ const PerpsProOrderBookPanel = ({
     (isInitialLoading || connectionStatus === 'connecting');
   const showEmptyPlaceholder =
     !showSkeleton && (hasConnectionError || !hasLadder);
+
+  const previousSymbolRef = useRef(symbol);
+  const isCurrentSymbol = previousSymbolRef.current === symbol;
+  useEffect(() => {
+    previousSymbolRef.current = symbol;
+    onResolvedStateChange?.(symbol, 'loading');
+  }, [onResolvedStateChange, symbol]);
+  useEffect(() => {
+    if (!isCurrentSymbol) {
+      return;
+    }
+    let state: PerpsMarketDetailSectionState = 'loading';
+    if (hasConnectionError) {
+      state = 'error';
+    } else if (hasLadder) {
+      state = 'content';
+    } else if (!showSkeleton) {
+      state = 'empty';
+    }
+    onResolvedStateChange?.(symbol, state);
+  }, [
+    hasConnectionError,
+    hasLadder,
+    isCurrentSymbol,
+    onResolvedStateChange,
+    showSkeleton,
+    symbol,
+  ]);
 
   let placeholderMessage = strings('perps.order_book.no_data');
   if (hasConnectionError) {

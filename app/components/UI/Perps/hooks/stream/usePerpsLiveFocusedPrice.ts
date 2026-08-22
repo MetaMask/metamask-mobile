@@ -52,9 +52,9 @@ export function usePerpsLiveFocusedPrice(
 ): PriceUpdate | undefined {
   const { symbol, enabled = true } = options;
   const stream = usePerpsStream();
-  const [priceUpdate, setPriceUpdate] = useState<PriceUpdate | undefined>(
-    undefined,
-  );
+  const [priceState, setPriceState] = useState<
+    { symbol: string; update: PriceUpdate } | undefined
+  >(undefined);
 
   // Track the symbol that produced the current cached value so we can clear
   // stale data only when the symbol changes, not on every effect re-run
@@ -65,7 +65,7 @@ export function usePerpsLiveFocusedPrice(
   useEffect(() => {
     if (!symbol || !enabled) {
       activeSymbolRef.current = null;
-      setPriceUpdate(undefined);
+      setPriceState(undefined);
       return;
     }
 
@@ -74,14 +74,14 @@ export function usePerpsLiveFocusedPrice(
       activeSymbolRef.current !== null &&
       activeSymbolRef.current !== symbol
     ) {
-      setPriceUpdate(undefined);
+      setPriceState(undefined);
     }
     activeSymbolRef.current = symbol;
 
     const unsubscribe = stream.focusedPrice.subscribeToSymbol({
       symbol,
       callback: (update) => {
-        setPriceUpdate(update);
+        setPriceState(update ? { symbol, update } : undefined);
       },
     });
 
@@ -90,5 +90,5 @@ export function usePerpsLiveFocusedPrice(
     };
   }, [stream, symbol, enabled]);
 
-  return priceUpdate;
+  return priceState?.symbol === symbol ? priceState.update : undefined;
 }

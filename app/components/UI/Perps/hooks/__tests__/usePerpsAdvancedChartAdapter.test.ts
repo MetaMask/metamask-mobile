@@ -331,12 +331,14 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
       { time: 1000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
       { time: 2000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
     ]);
+    expect(result.current.latestBar?.time).toBe(2000);
 
     rerender({ interval: CandlePeriod.FourHours });
 
     expect(mockSubscribe).toHaveBeenCalledTimes(2);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.ohlcvData).toBe(previousBars);
+    expect(result.current.latestBar).toBeUndefined();
 
     act(() => {
       subscribeParams(1).callback({
@@ -351,6 +353,7 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
       { time: 4000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
       { time: 8000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
     ]);
+    expect(result.current.latestBar?.time).toBe(8000);
     const fourHourIntervalMs = INTERVAL_MS[CandlePeriod.FourHours];
     if (fourHourIntervalMs === undefined) {
       throw new Error('Expected 4h interval duration to be defined');

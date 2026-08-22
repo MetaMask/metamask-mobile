@@ -38,8 +38,15 @@ import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
 import { usePerpsMarketData } from '../../hooks';
+import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import {
+  PERPS_MARKET_DETAIL_SECTION,
+  type PerpsMarketDetailSectionState,
+  usePerpsMarketDetailSession,
+} from '../../hooks/usePerpsMarketDetailSession';
+import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
 import { usePerpsSyncedChartPrice } from '../../hooks/usePerpsSyncedChartPrice';
@@ -54,6 +61,9 @@ import {
   getPerpsChartAnalyticsProperties,
   getPerpsChartLibrary,
 } from '../../utils/chartAnalytics';
+import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
+import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
+import { TraceName } from '../../../../../util/trace';
 import PerpsProChartPanel from './components/PerpsProChartPanel';
 import PerpsMarketHeader, {
   createProMarketHeaderTestIDs,
@@ -69,6 +79,10 @@ interface PerpsProOrderBookColumnProps {
   symbol: string;
   marketPrice?: number;
   onCollapse: () => void;
+  onResolvedStateChange?: (
+    symbol: string,
+    state: PerpsMarketDetailSectionState,
+  ) => void;
 }
 
 /**
@@ -84,6 +98,7 @@ const PerpsProOrderBookColumn = ({
   symbol,
   marketPrice,
   onCollapse,
+  onResolvedStateChange,
 }: PerpsProOrderBookColumnProps) => {
   const { setLimitPrice, setOrderType } = usePerpsOrderContext();
   // Drives the ladder's price precision and base-size decimals — without it
@@ -107,9 +122,22 @@ const PerpsProOrderBookColumn = ({
       szDecimals={marketData?.szDecimals}
       onCollapse={onCollapse}
       onSelectPrice={handleSelectPrice}
+      onResolvedStateChange={onResolvedStateChange}
     />
   );
 };
+
+type ProResolvedSection = 'chart' | 'stats' | 'order_book' | 'positions_orders';
+type ProResolvedSections = Partial<
+  Record<
+    ProResolvedSection,
+    { symbol: string; state: PerpsMarketDetailSectionState }
+  >
+>;
+
+interface PerpsProMarketViewProps {
+  generationTrigger?: 'initial' | 'market_switch' | 'mode_switch';
+}
 
 /**
  * Pro-mode replacement for `PerpsMarketDetailsView`.
@@ -120,7 +148,9 @@ const PerpsProOrderBookColumn = ({
  * server-aggregated ladder on a dedicated AggregatedOrderBookConnection
  * (same dual-stream approach as Extension).
  */
-const PerpsProMarketView = () => {
+const PerpsProMarketView = ({
+  generationTrigger = 'initial',
+}: PerpsProMarketViewProps) => {
   const { styles } = useStyles(createStyles, {});
   const navigation =
     useNavigation<NavigationProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
@@ -140,15 +170,25 @@ const PerpsProMarketView = () => {
   const hasFormattedMaxLeverage =
     typeof routeMarket?.maxLeverage === 'string' &&
     routeMarket.maxLeverage.endsWith('x');
-  const { markets } = usePerpsMarkets({
+  const {
+    markets,
+    isLoading: areMarketsLoading,
+    error: marketsError,
+  } = usePerpsMarkets({
     skipInitialFetch: hasFormattedMaxLeverage,
   });
+  const enrichedMarket = useMemo(
+    () => markets.find((item) => item.symbol === routeMarket?.symbol),
+    [markets, routeMarket?.symbol],
+  );
   const market = useMemo(() => {
     if (hasFormattedMaxLeverage) return routeMarket;
-    const fullMarket = markets.find((m) => m.symbol === routeMarket?.symbol);
-    return fullMarket || routeMarket;
-  }, [hasFormattedMaxLeverage, markets, routeMarket]);
+    return enrichedMarket || routeMarket;
+  }, [enrichedMarket, hasFormattedMaxLeverage, routeMarket]);
   const [isOrderBookCollapsed, setIsOrderBookCollapsed] = useState(false);
+  const [resolvedSections, setResolvedSections] = useState<ProResolvedSections>(
+    {},
+  );
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Swapping the route param rather than pushing keeps a single Pro screen on
@@ -237,6 +277,47 @@ const PerpsProMarketView = () => {
       interval: selectedCandlePeriod,
       isAdvancedChartEnabled,
     });
+  const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
+
+  const updateResolvedSection = useCallback(
+    (
+      section: ProResolvedSection,
+      sectionSymbol: string,
+      state: PerpsMarketDetailSectionState,
+    ) => {
+      setResolvedSections((current) => {
+        const previous = current[section];
+        if (previous?.symbol === sectionSymbol && previous.state === state) {
+          return current;
+        }
+        return {
+          ...current,
+          [section]: { symbol: sectionSymbol, state },
+        };
+      });
+    },
+    [],
+  );
+  const handleChartResolvedStateChange = useCallback(
+    (sectionSymbol: string, state: PerpsMarketDetailSectionState) =>
+      updateResolvedSection('chart', sectionSymbol, state),
+    [updateResolvedSection],
+  );
+  const handleStatsResolvedStateChange = useCallback(
+    (sectionSymbol: string, state: PerpsMarketDetailSectionState) =>
+      updateResolvedSection('stats', sectionSymbol, state),
+    [updateResolvedSection],
+  );
+  const handleOrderBookResolvedStateChange = useCallback(
+    (sectionSymbol: string, state: PerpsMarketDetailSectionState) =>
+      updateResolvedSection('order_book', sectionSymbol, state),
+    [updateResolvedSection],
+  );
+  const handlePositionsOrdersResolvedStateChange = useCallback(
+    (sectionSymbol: string, state: PerpsMarketDetailSectionState) =>
+      updateResolvedSection('positions_orders', sectionSymbol, state),
+    [updateResolvedSection],
+  );
 
   const handleWalletPress = useCallback(() => {
     setIsBalanceSheetVisible(true);
@@ -297,6 +378,99 @@ const PerpsProMarketView = () => {
       isAdvancedChartEnabled,
       onAdvancedChartError: handleAdvancedChartError,
     });
+
+  const currentSymbol = market?.symbol;
+  const stateForCurrentSymbol = useCallback(
+    (section: ProResolvedSection): PerpsMarketDetailSectionState => {
+      const resolved = resolvedSections[section];
+      return resolved && resolved.symbol === currentSymbol
+        ? resolved.state
+        : 'loading';
+    },
+    [currentSymbol, resolvedSections],
+  );
+  const marketSectionState: PerpsMarketDetailSectionState =
+    currentSymbol &&
+    (hasFormattedMaxLeverage || enrichedMarket?.symbol === currentSymbol)
+      ? 'content'
+      : areMarketsLoading
+        ? 'loading'
+        : marketsError
+          ? 'error'
+          : 'empty';
+  const priceSectionState: PerpsMarketDetailSectionState =
+    syncedChartCurrentPrice > 0 ? 'content' : 'loading';
+  const accountSectionState: PerpsMarketDetailSectionState = isLoadingAccount
+    ? 'loading'
+    : account
+      ? 'content'
+      : 'empty';
+  const statsSectionState = stateForCurrentSymbol('stats');
+  const detailSections = useMemo(
+    () => ({
+      [PERPS_MARKET_DETAIL_SECTION.MARKET]: marketSectionState,
+      [PERPS_MARKET_DETAIL_SECTION.PRICE]: priceSectionState,
+      [PERPS_MARKET_DETAIL_SECTION.CHART]: stateForCurrentSymbol('chart'),
+      [PERPS_MARKET_DETAIL_SECTION.STATS]: statsSectionState,
+      [PERPS_MARKET_DETAIL_SECTION.ACCOUNT]: accountSectionState,
+      [PERPS_MARKET_DETAIL_SECTION.ORDER_BOOK]: isOrderBookCollapsed
+        ? 'not_applicable'
+        : stateForCurrentSymbol('order_book'),
+      [PERPS_MARKET_DETAIL_SECTION.POSITIONS_ORDERS]:
+        stateForCurrentSymbol('positions_orders'),
+    }),
+    [
+      accountSectionState,
+      marketSectionState,
+      isOrderBookCollapsed,
+      priceSectionState,
+      stateForCurrentSymbol,
+      statsSectionState,
+    ],
+  );
+  const detailSession = usePerpsMarketDetailSession({
+    mode: 'pro',
+    symbol: currentSymbol,
+    configuredChartLibrary,
+    renderedChartLibrary: effectiveChartLibrary,
+    marketSource: hasFormattedMaxLeverage
+      ? 'route'
+      : enrichedMarket
+        ? 'stream_enrichment'
+        : 'unknown',
+    surfaceTrigger: generationTrigger,
+    entrySource: source,
+    sections: detailSections,
+  });
+
+  const marketDetailCufTags = useMemo(
+    () =>
+      buildPerpsCufStartTags({
+        detail_mode: 'pro',
+        generation_trigger: detailSession.generationTrigger,
+      }),
+    [detailSession.generationTrigger],
+  );
+  usePerpsMeasurement({
+    traceName: TraceName.PerpsMarketDetailLive,
+    resetKey: detailSession.liveResetKey,
+    endConditions: [
+      marketSectionState === 'content',
+      priceSectionState === 'content',
+      statsSectionState !== 'loading' && statsSectionState !== 'error',
+      accountSectionState !== 'loading',
+    ],
+    resetConditions: [statsSectionState === 'error'],
+    resetReason: 'stats_error',
+    blockStartWhileReset: true,
+    tags: marketDetailCufTags,
+    endData: {
+      [PERPS_CUF_TAG.VARIANT]:
+        !!account?.totalBalance && Number.parseFloat(account.totalBalance) > 0
+          ? PERPS_CUF_VARIANT.FUNDED
+          : PERPS_CUF_VARIANT.UNFUNDED,
+    },
+  });
 
   const {
     perpsMode,
@@ -371,6 +545,7 @@ const PerpsProMarketView = () => {
           onChartError={handleChartError}
           currentPrice={syncedChartCurrentPrice}
           onLatestPriceChange={setAdvancedChartCurrentPrice}
+          onResolvedStateChange={handleChartResolvedStateChange}
         />
         {/* The chart's own height (`PerpsProChartPanel`) animates when
             expanded/collapsed above this point — wrap everything that would
@@ -382,6 +557,7 @@ const PerpsProMarketView = () => {
             symbol={market.symbol}
             nextFundingTime={market.nextFundingTime}
             fundingIntervalHours={market.fundingIntervalHours}
+            onResolvedStateChange={handleStatsResolvedStateChange}
           />
           {/* Provider wraps BOTH columns (not just the form) so an order-book
               row tap can drive the form's Limit price / order type via shared
@@ -415,6 +591,7 @@ const PerpsProMarketView = () => {
                   symbol={market.symbol}
                   marketPrice={marketPrice}
                   onCollapse={handleCollapseOrderBook}
+                  onResolvedStateChange={handleOrderBookResolvedStateChange}
                 />
               }
             />
@@ -424,6 +601,7 @@ const PerpsProMarketView = () => {
             symbol={market.symbol}
             onSelectMarket={handleSelectMarket}
             onHistoryPress={handleHistoryPress}
+            onResolvedStateChange={handlePositionsOrdersResolvedStateChange}
           />
         </Animated.View>
       </Animated.ScrollView>

@@ -1607,6 +1607,7 @@ describe('PerpsMarketListView', () => {
                 params: expect.objectContaining({
                   market: mockMarketData[1],
                   source: 'perp_markets',
+                  detailGenerationTrigger: 'market_switch',
                 }),
               }),
             ],

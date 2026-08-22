@@ -110,6 +110,7 @@ export function usePerpsAdvancedChartAdapter({
   );
   const [isLoading, setIsLoading] = useState(true);
   const [cacheGeneration, setCacheGeneration] = useState(0);
+  const [latestBarSeriesKey, setLatestBarSeriesKey] = useState<string>();
 
   /** Always reflects the most recently received CandleData (unthrottled). */
   const latestCandleDataRef = useRef<CandleData | null>(null);
@@ -151,6 +152,7 @@ export function usePerpsAdvancedChartAdapter({
       hasLoadedBarsRef.current = false;
     }
     setRealtimeBar(undefined);
+    setLatestBarSeriesKey(undefined);
     prevLastBarRef.current = null;
     latestCandleDataRef.current = null;
     hasReceivedFirstUpdateRef.current = false;
@@ -167,6 +169,7 @@ export function usePerpsAdvancedChartAdapter({
           hasLoadedBarsRef.current = false;
           setOhlcvData([]);
           setRealtimeBar(undefined);
+          setLatestBarSeriesKey(undefined);
           setIsLoading(true);
           setCacheGeneration((generation) => generation + 1);
           return;
@@ -200,6 +203,7 @@ export function usePerpsAdvancedChartAdapter({
         if (prev === null) {
           // First data for this symbol+interval — send full dataset.
           setOhlcvData(converted);
+          setLatestBarSeriesKey(`${symbol}|${interval}`);
           hasLoadedBarsRef.current = true;
           // realtimeBar stays undefined; AdvancedChart uses ohlcvData for initial render.
         } else if (
@@ -212,6 +216,7 @@ export function usePerpsAdvancedChartAdapter({
           // Tick update: only the last candle changed — emit realtimeBar only.
           // Do NOT update ohlcvData; that would cause a full WebView data replacement.
           setRealtimeBar(lastBar);
+          setLatestBarSeriesKey(`${symbol}|${interval}`);
         }
         // If nothing changed (e.g. throttle burst with same values), skip update.
 
@@ -287,7 +292,10 @@ export function usePerpsAdvancedChartAdapter({
     [symbol, interval, paginationDuration, stream],
   );
 
-  const latestBar = realtimeBar ?? ohlcvData[ohlcvData.length - 1];
+  const latestBar =
+    latestBarSeriesKey === `${symbol}|${interval}`
+      ? (realtimeBar ?? ohlcvData[ohlcvData.length - 1])
+      : undefined;
 
   return {
     ohlcvData,

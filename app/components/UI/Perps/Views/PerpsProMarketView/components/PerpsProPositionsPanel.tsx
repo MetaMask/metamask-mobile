@@ -17,7 +17,7 @@ import {
   type Position,
 } from '@metamask/perps-controller';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
@@ -29,6 +29,7 @@ import {
   usePerpsLiveOrders,
   usePerpsLivePositions,
 } from '../../../hooks/stream';
+import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
 import {
   getPerpsProOrderRowSelector,
   getPerpsProPositionRowSelector,
@@ -73,6 +74,10 @@ interface PerpsProPositionsPanelProps {
   ) => void;
   /** Navigates to the order history screen. */
   onHistoryPress?: () => void;
+  onResolvedStateChange?: (
+    symbol: string,
+    state: PerpsMarketDetailSectionState,
+  ) => void;
 }
 
 /**
@@ -92,6 +97,7 @@ const PerpsProPositionsPanel = ({
   symbol,
   onSelectMarket,
   onHistoryPress,
+  onResolvedStateChange,
 }: PerpsProPositionsPanelProps) => {
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
   const [isTickerOnly, setIsTickerOnly] = useState(false);
@@ -134,6 +140,24 @@ const PerpsProPositionsPanel = ({
     renderActionSheets,
   } = usePerpsProPositionsPanelActions();
   const { markets } = usePerpsMarkets();
+
+  useEffect(() => {
+    if (isInitialLoading || areOrdersInitiallyLoading) {
+      onResolvedStateChange?.(symbol, 'loading');
+      return;
+    }
+    onResolvedStateChange?.(
+      symbol,
+      positions.length > 0 || orders.length > 0 ? 'content' : 'empty',
+    );
+  }, [
+    areOrdersInitiallyLoading,
+    isInitialLoading,
+    onResolvedStateChange,
+    orders.length,
+    positions.length,
+    symbol,
+  ]);
 
   const displaySymbol = getPerpsDisplaySymbol(symbol);
 

@@ -143,6 +143,7 @@ export const defaultPerpsMarketStatsMock: UsePerpsMarketStatsReturn = {
   fundingRate: '0.0100%',
   currentPrice: 3000,
   isLoading: false,
+  hasLiveData: true,
   refresh: jest.fn(),
 };
 

@@ -99,9 +99,31 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   nextFundingTime,
   fundingIntervalHours,
   testID = PerpsProMarketViewSelectorsIDs.STATS_BAR,
+  onResolvedStateChange,
 }) => {
   const { styles } = useStyles(createStyles, {});
   const marketStats = usePerpsMarketStats(symbol);
+
+  useEffect(() => {
+    if (marketStats.hasError) {
+      onResolvedStateChange?.(symbol, 'error');
+      return;
+    }
+    if (marketStats.dataSymbol !== symbol) {
+      onResolvedStateChange?.(symbol, 'loading');
+      return;
+    }
+    onResolvedStateChange?.(
+      symbol,
+      marketStats.hasLiveData ? 'content' : 'empty',
+    );
+  }, [
+    marketStats.dataSymbol,
+    marketStats.hasError,
+    marketStats.hasLiveData,
+    onResolvedStateChange,
+    symbol,
+  ]);
 
   // Live funding + mark/oracle, throttled to match PerpsMarketStatisticsCard.
   const livePrices = usePerpsLivePrices({

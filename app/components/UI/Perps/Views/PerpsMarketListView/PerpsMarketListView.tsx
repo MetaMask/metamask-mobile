@@ -299,6 +299,9 @@ const PerpsMarketListView = ({
           market,
           source: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
           source_section,
+          ...(replaceOnSelect
+            ? { detailGenerationTrigger: 'market_switch' as const }
+            : {}),
           ...(transactionActiveAbTests?.length
             ? { transactionActiveAbTests }
             : {}),

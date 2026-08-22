@@ -23,6 +23,10 @@ interface MeasurementOptions {
   traceName: TraceName;
   op?: TraceOperation; // Optional operation type, defaults to PerpsOperation
 
+  // Starts a fresh measurement when the owning screen changes generation
+  // without unmounting, such as switching the active market in-place.
+  resetKey?: string | number;
+
   // Simple API - most common case
   conditions?: boolean[]; // Start immediately, end when all conditions are true
 
@@ -30,6 +34,8 @@ interface MeasurementOptions {
   startConditions?: boolean[];
   endConditions?: boolean[];
   resetConditions?: boolean[];
+  resetReason?: string;
+  blockStartWhileReset?: boolean;
 
   debugContext?: Record<string, unknown>;
 
@@ -88,10 +94,13 @@ interface MeasurementOptions {
 export const usePerpsMeasurement = ({
   traceName,
   op = TraceOperation.PerpsOperation, // Default to PerpsOperation for all UI measurements
+  resetKey,
   conditions,
   startConditions,
   endConditions,
   resetConditions,
+  resetReason = 'reset',
+  blockStartWhileReset = false,
   debugContext = {},
   tags,
   endData,
@@ -102,6 +111,7 @@ export const usePerpsMeasurement = ({
   const traceStarted = useRef(false);
   const traceId = useRef<string>(uuidv4()); // Generate new ID on each trace start
   const activeTraceName = useRef(traceName);
+  const previousResetKey = useRef(resetKey);
 
   // Note: debugContext is used directly rather than memoized since:
   // 1. It's typically used sparingly for debugging/logging
@@ -156,24 +166,49 @@ export const usePerpsMeasurement = ({
   );
 
   useEffect(() => {
-    // Handle reset conditions
-    if (shouldReset && (traceStarted.current || hasCompleted.current)) {
-      // End any active trace before resetting
-      if (traceStarted.current) {
-        endTrace({
-          name: traceName,
-          id: traceId.current,
-          data: {
-            success: false,
-            reason: 'reset',
-          },
-        });
-        traceStarted.current = false;
-      }
-      hasCompleted.current = false;
-      previousStartState.current = false;
-      previousEndState.current = false;
+    if (previousResetKey.current === resetKey) {
       return;
+    }
+
+    if (traceStarted.current) {
+      endTrace({
+        name: activeTraceName.current,
+        id: traceId.current,
+        data: { success: false, reason: 'generation_changed' },
+      });
+      traceStarted.current = false;
+    }
+    hasCompleted.current = false;
+    previousStartState.current = false;
+    previousEndState.current = false;
+    previousResetKey.current = resetKey;
+  }, [resetKey]);
+
+  useEffect(() => {
+    // Handle reset conditions
+    if (shouldReset) {
+      const hadActiveOrCompletedTrace =
+        traceStarted.current || hasCompleted.current;
+      if (hadActiveOrCompletedTrace) {
+        // End any active trace before resetting
+        if (traceStarted.current) {
+          endTrace({
+            name: traceName,
+            id: traceId.current,
+            data: {
+              success: false,
+              reason: resetReason,
+            },
+          });
+          traceStarted.current = false;
+        }
+        hasCompleted.current = false;
+        previousStartState.current = false;
+        previousEndState.current = false;
+      }
+      if (hadActiveOrCompletedTrace || blockStartWhileReset) {
+        return;
+      }
     }
 
     // Handle start conditions
@@ -236,9 +271,12 @@ export const usePerpsMeasurement = ({
   }, [
     traceName,
     op,
+    resetKey,
     shouldStart,
     shouldEnd,
     shouldReset,
+    resetReason,
+    blockStartWhileReset,
     debugContext,
     tags,
     endData,

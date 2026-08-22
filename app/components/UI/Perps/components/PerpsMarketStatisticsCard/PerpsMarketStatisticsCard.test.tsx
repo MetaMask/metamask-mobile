@@ -72,6 +72,7 @@ describe('PerpsMarketStatisticsCard', () => {
     currentPrice: 47500,
     priceChange24h: 0.05,
     isLoading: false,
+    hasLiveData: true,
     refresh: jest.fn(),
   };
 

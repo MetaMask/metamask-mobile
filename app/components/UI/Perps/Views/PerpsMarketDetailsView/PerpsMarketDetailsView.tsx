@@ -137,6 +137,11 @@ import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
+import {
+  PERPS_MARKET_DETAIL_SECTION,
+  type PerpsMarketDetailSectionState,
+  usePerpsMarketDetailSession,
+} from '../../hooks/usePerpsMarketDetailSession';
 import { usePerpsSyncedChartPrice } from '../../hooks/usePerpsSyncedChartPrice';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
@@ -191,7 +196,9 @@ interface MarketDetailsRouteParams {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
-const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
+const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
+  generationTrigger = 'initial',
+}) => {
   // Use centralized navigation hook for all Perps navigation
   const { navigateToOrder, navigateToTutorial, navigateToClosePosition } =
     usePerpsNavigation();
@@ -329,7 +336,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     reportAssetId: perpsInsightsAssetId,
     timeAgo: perpsInsightsTimeAgo,
     isLoading: isPerpsInsightsLoading,
+    error: perpsInsightsError,
   } = useMarketInsights(market?.symbol, isPerpsInsightsEnabled);
+  const previousInsightsSymbolRef = useRef(market?.symbol);
+  const isInsightsStateForCurrentSymbol =
+    previousInsightsSymbolRef.current === market?.symbol;
+  useEffect(() => {
+    previousInsightsSymbolRef.current = market?.symbol;
+  }, [market?.symbol]);
 
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const {
@@ -429,6 +443,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
   const chartRef = useRef<TradingViewChartRef>(null);
+  const [advancedChartResolvedKey, setAdvancedChartResolvedKey] = useState<
+    string | null
+  >(null);
   const [advancedChartResetKey, setAdvancedChartResetKey] = useState(0);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
 
@@ -438,7 +455,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
 
   // Get real-time open orders via WebSocket
-  const { orders: ordersData } = usePerpsLiveOrders({});
+  const { orders: ordersData, isInitialLoading: areOrdersInitiallyLoading } =
+    usePerpsLiveOrders({});
 
   // Filter orders for the current market
   const openOrders = useMemo(() => {
@@ -699,34 +717,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     },
   });
 
-  // Market detail CUF: open -> stats + live price. Chart and top-of-book keep
-  // their own spans. Tags captured at mount for per-context p75.
-  const marketDetailCufTags = useMemo(() => buildPerpsCufStartTags(), []);
-  usePerpsMeasurement({
-    traceName: TraceName.PerpsMarketDetailLive,
-    // endConditions (not the simple `conditions` API), which would auto-reset
-    // while the first condition is false and restart the span on every render
-    // during hydration — under-reporting open-to-live-detail latency.
-    endConditions: [
-      !!market,
-      !!marketStats,
-      !isLoadingHistory,
-      !isLoadingPosition,
-      !!currentPrice,
-      // The funded/unfunded endData tag reads account.totalBalance, so the span
-      // must not end until the account stream has loaded — otherwise a funded
-      // user is misrecorded as unfunded while account is still loading.
-      !isLoadingAccount,
-    ],
-    tags: marketDetailCufTags,
-    endData: {
-      [PERPS_CUF_TAG.VARIANT]:
-        !!account?.totalBalance && parseFloat(account.totalBalance) > 0
-          ? PERPS_CUF_VARIANT.FUNDED
-          : PERPS_CUF_VARIANT.UNFUNDED,
-    },
-  });
-
   const marketDetailsScreenViewedProperties = useMemo(
     () => ({
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
@@ -844,8 +834,149 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Check if notifications feature is enabled once
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
 
-  const { marketData } = usePerpsMarketData({
+  const {
+    marketData,
+    isLoading: isLoadingMarketData,
+    error: marketDataError,
+  } = usePerpsMarketData({
     asset: market?.symbol || '',
+  });
+
+  const advancedChartSeriesKey = `${market?.symbol ?? ''}|${selectedCandlePeriod}`;
+  const handleAdvancedChartResolved = useCallback(
+    (resolvedSeriesKey: string) => {
+      if (
+        resolvedSeriesKey === advancedChartSeriesKey ||
+        resolvedSeriesKey.startsWith(`${advancedChartSeriesKey}|`)
+      ) {
+        setAdvancedChartResolvedKey(advancedChartSeriesKey);
+      }
+    },
+    [advancedChartSeriesKey],
+  );
+
+  const marketHasResolvedMetadata = Boolean(
+    market?.symbol &&
+      ((typeof market.maxLeverage === 'string' &&
+        market.maxLeverage.endsWith('x')) ||
+        marketData?.name === market.symbol),
+  );
+  const detailMarketSource =
+    typeof market?.maxLeverage === 'string' && market.maxLeverage.endsWith('x')
+      ? ('route' as const)
+      : marketData?.name === market?.symbol
+        ? ('stream_enrichment' as const)
+        : ('unknown' as const);
+  const marketSectionState: PerpsMarketDetailSectionState =
+    marketHasResolvedMetadata
+      ? 'content'
+      : isLoadingMarketData
+        ? 'loading'
+        : marketDataError
+          ? 'error'
+          : 'empty';
+  const priceSectionState: PerpsMarketDetailSectionState =
+    syncedChartCurrentPrice > 0 ? 'content' : 'loading';
+  const chartSectionState: PerpsMarketDetailSectionState =
+    isAdvancedChartEnabled
+      ? advancedChartResolvedKey === advancedChartSeriesKey
+        ? 'content'
+        : 'loading'
+      : candleData?.symbol === market?.symbol &&
+          candleData.interval === selectedCandlePeriod &&
+          hasHistoricalData
+        ? 'content'
+        : 'loading';
+  const statsSectionState: PerpsMarketDetailSectionState = marketStats.hasError
+    ? 'error'
+    : marketStats.dataSymbol !== market?.symbol
+      ? 'loading'
+      : marketStats.hasLiveData
+        ? 'content'
+        : 'empty';
+  const insightsSectionState: PerpsMarketDetailSectionState =
+    !isPerpsInsightsEnabled
+      ? 'not_applicable'
+      : !isInsightsStateForCurrentSymbol || isPerpsInsightsLoading
+        ? 'loading'
+        : perpsInsightsError
+          ? 'error'
+          : perpsInsightsReport && perpsInsightsAssetId === market?.symbol
+            ? 'content'
+            : 'empty';
+  const accountSectionState: PerpsMarketDetailSectionState = isLoadingAccount
+    ? 'loading'
+    : account
+      ? 'content'
+      : 'empty';
+  const positionsOrdersSectionState: PerpsMarketDetailSectionState =
+    isLoadingPosition || areOrdersInitiallyLoading
+      ? 'loading'
+      : existingPosition || displayOrders.length > 0
+        ? 'content'
+        : 'empty';
+  const detailSections = useMemo(
+    () => ({
+      [PERPS_MARKET_DETAIL_SECTION.MARKET]: marketSectionState,
+      [PERPS_MARKET_DETAIL_SECTION.PRICE]: priceSectionState,
+      [PERPS_MARKET_DETAIL_SECTION.CHART]: chartSectionState,
+      [PERPS_MARKET_DETAIL_SECTION.STATS]: statsSectionState,
+      [PERPS_MARKET_DETAIL_SECTION.INSIGHTS]: insightsSectionState,
+      [PERPS_MARKET_DETAIL_SECTION.ACCOUNT]: accountSectionState,
+      [PERPS_MARKET_DETAIL_SECTION.POSITIONS_ORDERS]:
+        positionsOrdersSectionState,
+    }),
+    [
+      accountSectionState,
+      chartSectionState,
+      insightsSectionState,
+      marketSectionState,
+      positionsOrdersSectionState,
+      priceSectionState,
+      statsSectionState,
+    ],
+  );
+  const detailSession = usePerpsMarketDetailSession({
+    mode: 'lite',
+    symbol: market?.symbol,
+    configuredChartLibrary,
+    renderedChartLibrary: chartLibrary,
+    marketSource: detailMarketSource,
+    surfaceTrigger: generationTrigger,
+    entrySource: source,
+    configurationKey: String(isPerpsInsightsEnabled),
+    sections: detailSections,
+  });
+
+  // Minimum-useful detail stays separate from the section waterfall and ends
+  // only on current-symbol/current-account readiness.
+  const marketDetailCufTags = useMemo(
+    () =>
+      buildPerpsCufStartTags({
+        detail_mode: 'lite',
+        generation_trigger: detailSession.generationTrigger,
+      }),
+    [detailSession.generationTrigger],
+  );
+  usePerpsMeasurement({
+    traceName: TraceName.PerpsMarketDetailLive,
+    resetKey: detailSession.liveResetKey,
+    endConditions: [
+      marketSectionState === 'content',
+      priceSectionState === 'content',
+      statsSectionState !== 'loading' && statsSectionState !== 'error',
+      accountSectionState !== 'loading',
+    ],
+    resetConditions: [statsSectionState === 'error'],
+    resetReason: 'stats_error',
+    blockStartWhileReset: true,
+    tags: marketDetailCufTags,
+    endData: {
+      [PERPS_CUF_TAG.VARIANT]:
+        !!account?.totalBalance && parseFloat(account.totalBalance) > 0
+          ? PERPS_CUF_VARIANT.FUNDED
+          : PERPS_CUF_VARIANT.UNFUNDED,
+    },
   });
 
   const handleTradeAction = useCallback(
@@ -1605,6 +1736,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                   szDecimals={marketData?.szDecimals}
                   onCrosshairDataChange={setOhlcData}
                   onLatestPriceChange={setAdvancedChartCurrentPrice}
+                  onResolved={handleAdvancedChartResolved}
                   onError={handleChartError}
                   fallbackCandleData={candleData}
                   fallbackFetchMoreHistory={fetchMoreHistory}

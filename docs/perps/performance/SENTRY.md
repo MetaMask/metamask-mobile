@@ -20,6 +20,7 @@ flowchart TD
   CONN[Perps Connection Establishment]
   LIVE[Perps WebSocket First streams]
   SECTION[Homepage Section TTC and DFD]
+  DETAIL[Perps Market Detail Session: section offsets]
   SESSION -. perps_session_id context .- MARKET
   SESSION -. perps_session_id context .- USER
   SESSION -. perps_session_id context .- CONN
@@ -28,6 +29,10 @@ flowchart TD
 ```
 
 These remain independent root transactions. The session is not a synthetic parent and does not copy their durations.
+
+The market-detail session is also an independent root. It shares bounded
+lifecycle/provider/network/mode attributes with the reused traces but does not
+join or copy them.
 
 ## Existing authoritative traces
 
@@ -174,6 +179,40 @@ Dashboards aggregate each authoritative transaction independently using the same
 - Close confirmation.
 - Cancel confirmation.
 
+### Market detail
+
+- `Perps Market Detail Live` p50/p75/p95 split by `detail_mode`.
+- One waterfall table from `Perps Market Detail Session`, with count and
+  p50/p75/p95 for each applicable `*_resolved_ms` measurement.
+- Split market metadata by `market_source`; route metadata and stream enrichment
+  are different cohorts.
+- Split every waterfall by `lifecycle_context`; do not pool
+  `background_resume` resident rows with cold or warm navigation.
+- Navigation waterfalls filter `generation_trigger=initial`. Market, account,
+  mode, network, background, and configuration changes are separate cohorts.
+- Lite filters for price, chart, stats, insights, account, and
+  positions/orders.
+- Pro filters for price, chart, stats, account, order book, and
+  positions/orders.
+- Trade-control/order-form readiness derives from the max of market, price, and
+  account offsets; there is no duplicate emitted duration.
+- Section-error and session-timeout counts in separate reliability widgets.
+- `Perps Market Detail Live` reliability groups bounded unsuccessful reasons:
+  `generation_changed` for a superseded context and `stats_error` for explicit
+  stats subscription setup failure. Neither reason enters latency widgets.
+- Chart rows split by configured `chart_strategy` and rendered
+  `chart_library`; fallback rows must not be pooled with native Advanced rows.
+- No grouping by market symbol or session id. Drill down by symbol only on an
+  individual event.
+
+Reuse the four mirrored Perps dashboards:
+
+- Product summaries add minimum-useful Lite/Pro and fully-resolved trend rows.
+- Engineering dashboards add the section waterfall and failure table.
+- Development mirrors production definitions before release.
+- Production rows remain `release pending` until an identifiable Mobile release
+  contains the detail-session instrumentation.
+
 Every latency widget splits by platform and identifiable release. Android and iOS are never pooled for a performance conclusion.
 
 ## Implementation gates
@@ -185,6 +224,8 @@ Every latency widget splits by platform and identifiable release. Android and iO
 5. Create or update a separate development validation dashboard.
 6. Populate production widgets only from an identifiable release containing the instrumentation.
 7. Keep dashboard 3948326 unchanged until its owner approves a separate proposed diff.
+8. Correlate one Lite and one Pro detail session on Android and iOS before
+   enabling the market-detail widgets.
 
 ## Delivery status
 
