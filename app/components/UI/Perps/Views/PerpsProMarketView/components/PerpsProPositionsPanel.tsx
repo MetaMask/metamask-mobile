@@ -345,7 +345,6 @@ const PerpsProPositionsPanel = ({
         <Box testID={PerpsProMarketViewSelectorsIDs.ORDERS_LIST}>
           <PerpsProOrdersSummary
             orderCount={sideFilteredOrders.length}
-            isFiltered={areOrdersFiltered}
             onCancelAll={handleCancelAllPress}
           />
           {sortedVisibleOrders.map((order, index) => (

@@ -930,7 +930,7 @@ describe('PerpsProPositionsPanel', () => {
     ).toBeOnTheScreen();
   });
 
-  it('counts only the listed orders on the bulk cancel when ticker-only is enabled', () => {
+  it('narrows the summary count when ticker-only is enabled', () => {
     mockUsePerpsLiveOrders.mockReturnValue({
       orders: [
         makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
@@ -952,11 +952,13 @@ describe('PerpsProPositionsPanel', () => {
 
     expect(
       screen.getByText(
-        strings('perps.pro_positions_panel.cancel_count', { count: 1 }),
+        strings('perps.pro_positions_panel.open_orders', { count: 1 }),
       ),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByText(strings('perps.pro_positions_panel.cancel_all')),
+      screen.queryByText(
+        strings('perps.pro_positions_panel.open_orders', { count: 2 }),
+      ),
     ).not.toBeOnTheScreen();
   });
 

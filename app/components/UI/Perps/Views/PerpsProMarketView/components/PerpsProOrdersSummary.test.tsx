@@ -23,17 +23,22 @@ describe('PerpsProOrdersSummary', () => {
     ).toBeOnTheScreen();
   });
 
-  it('counts the listed orders on the cancel control when filtered', () => {
-    render(<PerpsProOrdersSummary orderCount={2} isFiltered />);
+  it('narrows the count to the orders left after filtering', () => {
+    render(<PerpsProOrdersSummary orderCount={2} />);
 
     expect(
       screen.getByText(
-        strings('perps.pro_positions_panel.cancel_count', { count: 2 }),
+        strings('perps.pro_positions_panel.open_orders', { count: 2 }),
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('keeps the cancel label unchanged when the list is filtered', () => {
+    render(<PerpsProOrdersSummary orderCount={2} />);
+
     expect(
-      screen.queryByText(strings('perps.pro_positions_panel.cancel_all')),
-    ).not.toBeOnTheScreen();
+      screen.getByText(strings('perps.pro_positions_panel.cancel_all')),
+    ).toBeOnTheScreen();
   });
 
   it('invokes the cancel-all callback when the control is pressed', () => {

@@ -36,7 +36,7 @@ interface PerpsCancelAllOrdersViewProps {
   onClose?: () => void;
   /** When provided, only these orders are described and cancelled. */
   orders?: Order[];
-  /** Drops "all" from the copy, which would misdescribe a filtered subset. */
+  /** Scopes cancellation to `orders` instead of the whole book. */
   isFiltered?: boolean;
 }
 
@@ -159,27 +159,22 @@ const PerpsCancelAllOrdersView: React.FC<PerpsCancelAllOrdersViewProps> = ({
 
   const primaryButtonProps = useMemo(
     () => ({
-      children: isFiltered
-        ? strings('perps.cancel_all_modal.cancel_count', { count: orderCount })
-        : strings('perps.cancel_all_modal.confirm'),
+      children: strings('perps.cancel_all_modal.confirm'),
       onPress: handleCancelAll,
       size: ButtonSize.Lg,
-      isDanger: true,
       isLoading: isCanceling,
       isDisabled: isCanceling,
       testID: PerpsCancelAllOrdersViewSelectorsIDs.CANCEL_ALL_BUTTON,
     }),
-    [handleCancelAll, isCanceling, isFiltered, orderCount],
+    [handleCancelAll, isCanceling],
   );
 
-  const title = isFiltered
-    ? strings('perps.cancel_all_modal.title_filtered')
-    : strings('perps.cancel_all_modal.title');
-  const description = isFiltered
-    ? strings('perps.cancel_all_modal.description_filtered', {
-        count: orderCount,
-      })
-    : strings('perps.cancel_all_modal.description');
+  // One title and one count-based body in both states: the count already names
+  // the scope, so the copy does not branch on the filter.
+  const title = strings('perps.cancel_all_modal.title');
+  const description = strings('perps.cancel_all_modal.description', {
+    count: orderCount,
+  });
 
   return (
     <BottomSheet

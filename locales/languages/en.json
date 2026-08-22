@@ -1549,10 +1549,9 @@
       "order_history": "Order history",
       "close_count": "Close ({{count}})",
       "cancel_all": "Cancel all",
-      "cancel_count": "Cancel ({{count}})",
       "open_orders": {
-        "one": "{{count}} open order",
-        "other": "{{count}} open orders"
+        "one": "{{count}} order",
+        "other": "{{count}} orders"
       },
       "positions": "Positions",
       "positions_with_count": "Positions ({{count}})",
@@ -2438,16 +2437,13 @@
       "error_message": "Failed to close {{count}} position(s)"
     },
     "cancel_all_modal": {
-      "title": "Cancel all orders",
-      "title_filtered": "Cancel orders",
-      "description": "We'll cancel all your open orders.",
-      "description_filtered": {
-        "one": "We'll cancel your open order.",
-        "other": "We'll cancel your {{count}} open orders."
+      "title": "Cancel orders",
+      "description": {
+        "one": "We'll cancel {{count}} pending order. Any unfilled orders will be removed immediately.",
+        "other": "We'll cancel {{count}} pending orders. Any unfilled orders will be removed immediately."
       },
-      "cancel_count": "Cancel ({{count}})",
       "keep_orders": "Keep orders",
-      "confirm": "Confirm",
+      "confirm": "Cancel all",
       "canceling": "Canceling...",
       "success_title": "Orders canceled",
       "success_message": "Successfully canceled {{count}} order(s)",

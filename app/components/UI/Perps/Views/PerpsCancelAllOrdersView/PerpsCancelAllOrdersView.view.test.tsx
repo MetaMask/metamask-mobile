@@ -57,7 +57,9 @@ describe('PerpsCancelAllOrdersView', () => {
       await screen.findByText(strings('perps.cancel_all_modal.title')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.cancel_all_modal.description')),
+      screen.getByText(
+        strings('perps.cancel_all_modal.description', { count: 2 }),
+      ),
     ).toBeOnTheScreen();
 
     fireEvent.press(
@@ -131,7 +133,9 @@ describe('PerpsCancelAllOrdersView', () => {
     );
 
     expect(
-      screen.getByText(strings('perps.cancel_all_modal.description')),
+      screen.getByText(
+        strings('perps.cancel_all_modal.description', { count: 2 }),
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.cancel_all_modal.confirm')),
@@ -370,22 +374,21 @@ describe('PerpsCancelAllOrdersView', () => {
     );
   };
 
-  it('names the filtered scope in the confirmation copy', async () => {
+  it('counts only the passed orders in the confirmation copy', async () => {
     renderFilteredCancelAll([orders[0]]);
 
     expect(
-      await screen.findByText(strings('perps.cancel_all_modal.title_filtered')),
+      await screen.findByText(strings('perps.cancel_all_modal.title')),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(
-        strings('perps.cancel_all_modal.description_filtered', { count: 1 }),
+        strings('perps.cancel_all_modal.description', { count: 1 }),
       ),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByText(strings('perps.cancel_all_modal.title')),
-    ).not.toBeOnTheScreen();
-    expect(
-      screen.queryByText(strings('perps.cancel_all_modal.description')),
+      screen.queryByText(
+        strings('perps.cancel_all_modal.description', { count: 2 }),
+      ),
     ).not.toBeOnTheScreen();
   });
 
@@ -423,7 +426,7 @@ describe('PerpsCancelAllOrdersView', () => {
     });
   });
 
-  it('counts the filtered orders on the confirm button', async () => {
+  it('keeps the confirm label fixed while the body carries the count', async () => {
     const FilteredCancelAll = () => {
       const sheetRef = useRef<BottomSheetRef | null>(null);
       return (
@@ -443,13 +446,13 @@ describe('PerpsCancelAllOrdersView', () => {
     );
 
     expect(
-      await screen.findByText(
-        strings('perps.cancel_all_modal.cancel_count', { count: 2 }),
-      ),
+      await screen.findByText(strings('perps.cancel_all_modal.confirm')),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByText(strings('perps.cancel_all_modal.confirm')),
-    ).not.toBeOnTheScreen();
+      screen.getByText(
+        strings('perps.cancel_all_modal.description', { count: 2 }),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('describes the whole book when no filter is applied', async () => {
@@ -474,7 +477,9 @@ describe('PerpsCancelAllOrdersView', () => {
       await screen.findByText(strings('perps.cancel_all_modal.title')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.cancel_all_modal.description')),
+      screen.getByText(
+        strings('perps.cancel_all_modal.description', { count: 2 }),
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.cancel_all_modal.confirm')),
