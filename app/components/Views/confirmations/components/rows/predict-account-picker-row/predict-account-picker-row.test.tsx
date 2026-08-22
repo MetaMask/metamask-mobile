@@ -41,6 +41,11 @@ jest.mock('../../../../../UI/Predict/utils/format', () => ({
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
+jest.mock('../../confirm/confirm-component', () => ({
+  PayWithOption: {
+    MoneyAccount: 'money_account',
+  },
+}));
 
 jest.mock('../../../../../../component-library/hooks/useStyles', () => ({
   useStyles: () => ({
@@ -58,22 +63,6 @@ jest.mock('../../../../../../component-library/hooks/useStyles', () => ({
     },
   }),
 }));
-
-jest.mock('../../../../../../component-library/components/Icons/Icon', () => {
-  const RN = jest.requireActual('react-native');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const RR = require('react');
-  const MockIcon = (props: Record<string, unknown>) =>
-    RR.createElement(RN.View, { testID: `mock-icon-${props.name}` });
-  MockIcon.displayName = 'MockIcon';
-  return {
-    __esModule: true,
-    default: MockIcon,
-    IconColor: { Alternative: 'Alternative' },
-    IconName: { Search: 'Search', ArrowDown: 'ArrowDown' },
-    IconSize: { Sm: 'Sm', Md: 'Md' },
-  };
-});
 
 jest.mock(
   '../../../../../../component-library/components/Avatars/Avatar',

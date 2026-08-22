@@ -6,11 +6,12 @@ import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 
 import ButtonPill from '../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
-import ButtonIcon from '../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
 import {
-  IconName,
+  ButtonIcon,
   IconColor,
-} from '../../../../../../../../../component-library/components/Icons/Icon';
+  IconName,
+  Text,
+} from '@metamask/design-system-react-native';
 
 import { IndividualFiatDisplay } from '../../../../../../../../UI/SimulationDetails/FiatDisplay/FiatDisplay';
 import {
@@ -41,7 +42,6 @@ import { strings } from '../../../../../../../../../../locales/i18n';
 import AnimatedPulse from '../../../../../UI/animated-pulse';
 import { selectContractExchangeRatesByChainId } from '../../../../../../../../../selectors/tokenRatesController';
 import { RootState } from '../../../../../../../../../reducers';
-import { Text } from '@metamask/design-system-react-native';
 
 interface SimulationValueDisplayParams {
   /** ID of the associated chain. */
@@ -247,10 +247,10 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
             <View style={styles.valueModal}>
               <View style={styles.valueModalHeader}>
                 <ButtonIcon
-                  iconColor={IconColor.Default}
                   style={styles.valueModalHeaderIcon}
                   onPress={() => setHasValueModalOpen(false)}
                   iconName={IconName.ArrowLeft}
+                  iconProps={{ color: IconColor.IconDefault }}
                 />
                 <Text style={styles.valueModalHeaderText}>
                   {modalHeaderText}

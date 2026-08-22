@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { StyleProp, TextStyle, TouchableOpacity, View } from 'react-native';
-
-import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import { ButtonIconSizes } from '../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
 import {
-  IconColor,
+  ButtonIcon,
+  ButtonIconSize,
   IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
+  Text,
+  TextProps,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import BottomModal from '../bottom-modal';
 import styleSheet from './text-with-tooltip.styles';
-import { Text, TextProps } from '@metamask/design-system-react-native';
+
 interface TextWithTooltipProps {
   ellipsizeMode?: TextProps['ellipsizeMode'];
   label: string;
@@ -50,8 +50,7 @@ const TextWithTooltip = ({
             <View style={styles.tooltipHeader}>
               <ButtonIcon
                 style={styles.backIcon}
-                iconColor={IconColor.Default}
-                size={ButtonIconSizes.Sm}
+                size={ButtonIconSize.Sm}
                 onPress={() => setTooltipVisible(false)}
                 iconName={IconName.ArrowLeft}
                 testID={tooltipTestId ?? 'tooltipTestId'}

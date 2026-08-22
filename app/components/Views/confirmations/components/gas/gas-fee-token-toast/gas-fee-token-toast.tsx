@@ -2,8 +2,9 @@ import { useContext, useEffect, useRef } from 'react';
 import {
   ToastContext,
   ToastVariants,
-  ButtonIconVariant,
 } from '../../../../../../component-library/components/Toast';
+import { ButtonIconVariant } from '../../../../../../component-library/components/Toast/Toast.types';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   TransactionType,
@@ -16,7 +17,6 @@ import {
   useSelectedGasFeeToken,
 } from '../../../hooks/gas/useGasFeeToken';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import { useTokenWithBalance } from '../../../hooks/tokens/useTokenWithBalance';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 

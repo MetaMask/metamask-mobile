@@ -7,10 +7,15 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 import { strings } from '../../../../../../../locales/i18n';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import TagBase, {
   TagShape,
 } from '../../../../../../component-library/base-components/TagBase';
@@ -33,12 +38,6 @@ import { AmountKeyboard } from './amount-keyboard';
 import { AnimatedCursor } from './animated-cursor';
 import { styleSheet } from './amount.styles';
 import { InitSendLocation } from '../../../constants/send';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-} from '@metamask/design-system-react-native';
 
 export const Amount = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -198,7 +197,7 @@ export const Amount = () => {
                 {alternateDisplayValue}
               </Text>
               <Icon
-                color={IconColor.Alternative}
+                color={IconColor.IconAlternative}
                 name={IconName.SwapVertical}
               />
             </TagBase>

@@ -2,21 +2,20 @@ import React from 'react';
 
 import { strings } from '../../../../../../locales/i18n';
 import TagBase from '../../../../../component-library/base-components/TagBase';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
-} from '../../../../../component-library/components/Icons/Icon';
+  Text,
+  TextColor,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useIsInternalConfirmation } from '../../hooks/transactions/useIsInternalConfirmation';
 import { useTransactionBatchesMetadata } from '../../hooks/transactions/useTransactionBatchesMetadata';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import styleSheet from './batched-transactions-tag.styles';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-} from '@metamask/design-system-react-native';
 
 export const BatchedTransactionTag = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -39,7 +38,7 @@ export const BatchedTransactionTag = () => {
     <TagBase
       style={styles.tagBaseStyle}
       startAccessory={
-        <Icon name={IconName.Info} color={IconColor.Alternative} />
+        <Icon name={IconName.Info} color={IconColor.IconAlternative} />
       }
     >
       <Text

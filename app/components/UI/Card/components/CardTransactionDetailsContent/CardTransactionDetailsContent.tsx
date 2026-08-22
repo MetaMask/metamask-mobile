@@ -5,9 +5,11 @@ import {
   AvatarTokenSize,
   Box,
   Button,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
+  IconColor,
   IconName,
   Text,
   TextColor,
@@ -15,8 +17,6 @@ import {
 } from '@metamask/design-system-react-native';
 import type { ImageOrSvgSrc } from '@metamask/design-system-react-native/dist/components/temp-components/ImageOrSvg/ImageOrSvg.types.d.cts';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconColor } from '../../../../../component-library/components/Icons/Icon';
 import { TransactionDetailDivider } from '../../../../Views/confirmations/components/activity/transaction-detail-divider/transaction-detail-divider';
 import { TransactionDetailsRow } from '../../../../Views/confirmations/components/activity/transaction-details-row/transaction-details-row';
 import CopyButton from '../../../../Views/confirmations/components/UI/copy-button/copy-button';
@@ -139,8 +139,8 @@ const CardTransactionDetailsContent = ({
                   <Text color={TextColor.TextAlternative}>{transactionId}</Text>
                   <CopyButton
                     copyText={transactionId}
-                    size={ButtonIconSizes.Sm}
-                    iconColor={IconColor.Alternative}
+                    size={ButtonIconSize.Sm}
+                    iconColor={IconColor.IconAlternative}
                     testID="card-transaction-details-copy-id"
                   />
                 </Box>

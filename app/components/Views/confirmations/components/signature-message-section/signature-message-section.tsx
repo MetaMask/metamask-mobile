@@ -3,20 +3,19 @@ import { ScrollView, TouchableOpacity, View } from 'react-native';
 
 import { ConfirmationRowComponentIDs } from '../../ConfirmationView.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Expandable from '../UI/expandable';
 import styleSheet from './signature-message-section.styles';
 import InfoSection from '../UI/info-row/info-section';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-} from '@metamask/design-system-react-native';
 
 interface SignatureMessageSectionProps {
   messageCollapsed?: ReactNode | string;
@@ -64,7 +63,7 @@ const SignatureMessageSection = ({
             </View>
             <Icon
               style={styles.icon}
-              color={IconColor.Muted}
+              color={IconColor.IconMuted}
               size={IconSize.Sm}
               name={IconName.ArrowRight}
             />

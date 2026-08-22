@@ -1,21 +1,20 @@
 import React, { ReactNode } from 'react';
 import { View } from 'react-native';
-import Icon, {
+import {
+  FontWeight,
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import Tooltip from '../Tooltip/Tooltip';
 import styleSheet from './info-row.styles';
 import CopyIcon from './copy-icon/copy-icon';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-} from '@metamask/design-system-react-native';
 
 export enum InfoRowVariant {
   Default = 'default',
@@ -117,7 +116,7 @@ const InfoRow = ({
         )}
         {valueOnNewLine ? null : ValueComponent}
         {copyText && (
-          <CopyIcon textToCopy={copyText ?? ''} color={IconColor.Muted} />
+          <CopyIcon textToCopy={copyText ?? ''} color={IconColor.IconMuted} />
         )}
         {withIcon && (
           <Icon

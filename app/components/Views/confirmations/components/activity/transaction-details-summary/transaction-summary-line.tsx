@@ -4,7 +4,7 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import I18n from '../../../../../../../locales/i18n';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
 import { useMultichainBlockExplorerTxUrl } from '../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl';

@@ -1,26 +1,25 @@
 import React, { useCallback, useState } from 'react';
 
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import ClipboardManager from '../../../../../../core/ClipboardManager';
 import {
+  ButtonIcon,
+  ButtonIconSize,
   IconColor,
   IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
+import ClipboardManager from '../../../../../../core/ClipboardManager';
 
 interface CopyButtonProps {
   copyText: string;
   testID?: string;
-  size?: ButtonIconSizes;
+  size?: ButtonIconSize;
   iconColor?: IconColor;
 }
 
 const CopyButton = ({
   copyText,
   testID,
-  size = ButtonIconSizes.Md,
-  iconColor = IconColor.Alternative,
+  size = ButtonIconSize.Md,
+  iconColor = IconColor.IconAlternative,
 }: CopyButtonProps) => {
   const [copied, setCopied] = useState(false);
 
@@ -31,7 +30,7 @@ const CopyButton = ({
 
   return (
     <ButtonIcon
-      iconColor={iconColor}
+      iconProps={{ color: iconColor }}
       size={size}
       onPress={copyMessage}
       iconName={copied ? IconName.CopySuccess : IconName.Copy}

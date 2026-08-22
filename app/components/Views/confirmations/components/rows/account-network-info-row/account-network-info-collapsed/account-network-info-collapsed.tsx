@@ -6,11 +6,15 @@ import { useSelector } from 'react-redux';
 import Avatar, {
   AvatarVariant,
 } from '../../../../../../../component-library/components/Avatars/Avatar';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { selectAvatarAccountType } from '../../../../../../../selectors/settings';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
@@ -18,11 +22,6 @@ import { useApprovalInfo } from '../../../../hooks/useApprovalInfo';
 import InfoSection from '../../../UI/info-row/info-section';
 import styleSheet from './account-network-info-collapsed.styles';
 import { selectWalletsMap } from '../../../../../../../selectors/multichainAccounts/accountTreeController';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-} from '@metamask/design-system-react-native';
 
 const AccountNetworkInfoCollapsed = () => {
   const mockAvatarAccountType = useSelector(selectAvatarAccountType);
@@ -70,7 +69,7 @@ const AccountNetworkInfoCollapsed = () => {
           </View>
         </View>
         <Icon
-          color={IconColor.Muted}
+          color={IconColor.IconMuted}
           size={IconSize.Sm}
           name={IconName.ArrowDown}
         />

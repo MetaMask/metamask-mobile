@@ -7,7 +7,7 @@ import Text, {
 import { useStyles } from '../../../component-library/hooks';
 import Tooltip from '../../Views/confirmations/components/UI/Tooltip';
 import styleSheet from './SnapUIInfoRow.styles';
-import { IconColor } from '../../../component-library/components/Icons/Icon';
+import { IconColor } from '@metamask/design-system-react-native';
 
 export enum RowVariant {
   Default = 'default',
@@ -36,10 +36,10 @@ const getColorFromVariant = (variant?: RowVariant | string): TextColor => {
 
 const getIconColorFromVariant = (variant?: RowVariant | string): IconColor => {
   if (variant === RowVariant.Critical || variant === 'critical')
-    return IconColor.Error;
+    return IconColor.ErrorDefault;
   if (variant === RowVariant.Warning || variant === 'warning')
-    return IconColor.Warning;
-  return IconColor.Muted; // Default tooltip color
+    return IconColor.WarningDefault;
+  return IconColor.IconMuted; // Default tooltip color
 };
 
 const getContainerStyle = (

@@ -1,10 +1,11 @@
 import React, { useCallback } from 'react';
 import { TouchableOpacity, ViewStyle } from 'react-native';
-import Icon, {
+import {
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { AlertTypeIDs } from '../../../ConfirmationView.testIds';
 import { Alert, Severity } from '../../../types/alerts';
@@ -24,11 +25,11 @@ export interface InlineAlertProps {
 const getIconColor = (severity: Severity) => {
   switch (severity) {
     case Severity.Danger:
-      return IconColor.Error;
+      return IconColor.ErrorDefault;
     case Severity.Warning:
-      return IconColor.Warning;
+      return IconColor.WarningDefault;
     default:
-      return IconColor.Info;
+      return IconColor.InfoDefault;
   }
 };
 
