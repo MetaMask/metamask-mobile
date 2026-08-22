@@ -44,7 +44,7 @@ import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/t
 import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
-import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
+import { useFiatDepositPaymentMethods } from './useFiatDepositPaymentMethods';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -167,7 +167,7 @@ export function useAutomaticTransactionPayToken({
 
   const automaticToken = useMemo(() => selectBestToken(), [selectBestToken]);
 
-  const { paymentMethods } = useRampsPaymentMethods();
+  const { paymentMethods } = useFiatDepositPaymentMethods();
   const { maxDelayMinutesForPaymentMethods } = useMMPayFiatConfig();
   const isFiatEnabled = useIsFiatPaymentAvailable();
 
