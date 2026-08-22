@@ -723,10 +723,10 @@ describeForPlatforms('Send', () => {
       }
 
       // Regression guard for #22806: all contacts rendered the same avatar.
-      // Extract the accountAddress fed to each Avatar and verify all are unique.
+      // Extract the address fed to each AvatarAccount and verify all are unique.
       const avatarAddresses = avatarElements.map((el) => {
-        const nodes = el.findAll((node) => 'accountAddress' in node.props);
-        return nodes[0]?.props.accountAddress;
+        const nodes = el.findAll((node) => 'address' in node.props);
+        return nodes[0]?.props.address;
       });
       for (const addr of avatarAddresses) {
         expect(addr).toBeDefined();

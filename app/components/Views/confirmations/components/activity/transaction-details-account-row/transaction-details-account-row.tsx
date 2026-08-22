@@ -7,20 +7,22 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import {
+  AvatarAccount,
+  AvatarAccountSize,
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
   Text,
   TextColor,
 } from '@metamask/design-system-react-native';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import AvatarAccount from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { getAvatarAccountVariant } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import { NameType } from '../../../../../UI/Name/Name.types';
 import { useAccountNames } from '../../../../../hooks/DisplayName/useAccountNames';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
+import { selectAvatarAccountType } from '../../../../../../selectors/settings';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
@@ -63,6 +65,8 @@ export function TransactionDetailsAccountRow() {
   const { transactionMeta } = useTransactionDetails();
   const isMoneyContext = useIsMoneyAccountContext();
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
+  const accountAvatarVariant = getAvatarAccountVariant(accountAvatarType);
   const moneyAddress = primaryMoneyAccount?.address;
 
   const chainId = (transactionMeta.metamaskPay?.chainId ??
@@ -114,7 +118,12 @@ export function TransactionDetailsAccountRow() {
         />
       </View>
     ) : (
-      <AvatarAccount accountAddress={address} size={AvatarSize.Sm} />
+      <AvatarAccount
+        address={address}
+        variant={accountAvatarVariant}
+        size={AvatarAccountSize.Sm}
+        testID="transaction-details-account-avatar"
+      />
     );
 
     return (
@@ -168,7 +177,12 @@ export function TransactionDetailsAccountRow() {
         ) : null
       }
     >
-      <AvatarAccount accountAddress={avatarAddress} size={AvatarSize.Sm} />
+      <AvatarAccount
+        address={avatarAddress}
+        variant={accountAvatarVariant}
+        size={AvatarAccountSize.Sm}
+        testID="transaction-details-account-avatar"
+      />
     </BadgeWrapper>
   );
 

@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import { BtcAccountType } from '@metamask/keyring-api';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { AvatarAccountType } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { Recipient, RecipientType } from './recipient';
 
 describe('Recipient', () => {

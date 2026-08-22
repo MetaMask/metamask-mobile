@@ -1,12 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
+import {
+  AvatarGroup,
+  AvatarGroupSize,
+  AvatarGroupVariant,
+  AvatarToken,
+  AvatarTokenSize,
+  ButtonBaseSize,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import Engine from '../../../../../../core/Engine';
-import Avatar, {
-  AvatarSize,
-  AvatarVariant,
-} from '../../../../../../component-library/components/Avatars/Avatar';
-import AvatarGroup from '../../../../../../component-library/components/Avatars/AvatarGroup';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '../../../../../UI/Box/Box';
 import { PredictClaimConfirmationSelectorsIDs } from '../../../../../UI/Predict/Predict.testIds';
@@ -17,13 +24,6 @@ import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
 import ButtonHero from '../../../../../../component-library/components-temp/Buttons/ButtonHero';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  ButtonBaseSize,
-} from '@metamask/design-system-react-native';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { RootState } from '../../../../../../reducers';
@@ -130,10 +130,11 @@ function SingleWin({ wonPositions }: { wonPositions: PredictPosition[] }) {
       alignItems={AlignItems.center}
       gap={12}
     >
-      <Avatar
-        variant={AvatarVariant.Token}
-        imageSource={{ uri: position.icon }}
-        size={AvatarSize.Lg}
+      <AvatarToken
+        testID="predict-claim-single-avatar"
+        src={{ uri: position.icon }}
+        name={position.title}
+        size={AvatarTokenSize.Lg}
       />
       <Box flexDirection={FlexDirection.Column} style={styles.textContainer}>
         <Text
@@ -163,9 +164,13 @@ function MultipleWinnings({
 }) {
   const { styles } = useStyles(styleSheet, {});
 
-  const positionIcons = wonPositions.map((position) => ({
-    imageSource: { uri: position.icon },
-    variant: AvatarVariant.Token as const,
+  const positionIcons = wonPositions.map((position, index) => ({
+    src: position.icon ? { uri: position.icon } : undefined,
+    name: position.title,
+    testID: `predict-claim-avatar-${index}`,
+    imageOrSvgProps: {
+      imageProps: { testID: `predict-claim-avatar-image-${index}` },
+    },
   }));
 
   return (
@@ -176,9 +181,11 @@ function MultipleWinnings({
         })}
       </Text>
       <AvatarGroup
-        avatarPropsList={positionIcons}
-        size={AvatarSize.Sm}
-        maxStackedAvatars={3}
+        testID="predict-claim-avatar-group"
+        variant={AvatarGroupVariant.Token}
+        avatarPropsArr={positionIcons}
+        size={AvatarGroupSize.Sm}
+        max={3}
       />
     </Box>
   );

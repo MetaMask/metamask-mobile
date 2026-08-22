@@ -2,15 +2,19 @@ import { Hex } from '@metamask/utils';
 import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import {
+  AvatarAccount,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
-import Avatar, {
-  AvatarVariant,
-} from '../../../../../../../component-library/components/Avatars/Avatar';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../../../../../component-library/components/Icons/Icon';
+import { getAvatarAccountVariant } from '../../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { selectAvatarAccountType } from '../../../../../../../selectors/settings';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
@@ -18,14 +22,9 @@ import { useApprovalInfo } from '../../../../hooks/useApprovalInfo';
 import InfoSection from '../../../UI/info-row/info-section';
 import styleSheet from './account-network-info-collapsed.styles';
 import { selectWalletsMap } from '../../../../../../../selectors/multichainAccounts/accountTreeController';
-import {
-  Text,
-  TextVariant,
-  TextColor,
-} from '@metamask/design-system-react-native';
 
 const AccountNetworkInfoCollapsed = () => {
-  const mockAvatarAccountType = useSelector(selectAvatarAccountType);
+  const accountAvatarType = useSelector(selectAvatarAccountType);
   const { chainId, fromAddress } = useApprovalInfo() ?? {};
   const walletsMap = useSelector(selectWalletsMap);
   const hasMoreThanOneWallet = Object.keys(walletsMap || {}).length > 1;
@@ -37,10 +36,9 @@ const AccountNetworkInfoCollapsed = () => {
   const { styles } = useStyles(styleSheet, {});
 
   const avatarComponent = (
-    <Avatar
-      variant={AvatarVariant.Account}
-      type={mockAvatarAccountType}
-      accountAddress={fromAddress as string}
+    <AvatarAccount
+      variant={getAvatarAccountVariant(accountAvatarType)}
+      address={fromAddress as string}
     />
   );
 
