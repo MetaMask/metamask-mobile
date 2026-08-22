@@ -15,6 +15,12 @@ export interface UsePerpsLivePositionsOptions {
   throttleMs?: number;
   /** Whether to subscribe to price updates for live PnL calculations (default: false) */
   useLivePnl?: boolean;
+  /**
+   * Throttle delay for price updates when useLivePnl is true (default: 1000ms).
+   * PnL doesn't need sub-second precision; throttling reduces GC pressure from
+   * the `{...prev, ...newPriceData}` merge that runs on every price tick.
+   */
+  pnlThrottleMs?: number;
 }
 
 export interface UsePerpsLivePositionsReturn {
@@ -99,12 +105,13 @@ export function enrichPositionsWithLivePnL(
  * @param options - Configuration options for the hook
  * @param options.throttleMs - Throttle delay in milliseconds (default: 0)
  * @param options.useLivePnl - Whether to subscribe to price updates for live PnL calculations (default: false)
+ * @param options.pnlThrottleMs - Throttle delay for price updates used in PnL calculations (default: 1000)
  * @returns Object containing positions array with optional live PnL and loading state
  */
 export function usePerpsLivePositions(
   options: UsePerpsLivePositionsOptions = {},
 ): UsePerpsLivePositionsReturn {
-  const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
+  const { throttleMs = 0, useLivePnl = false, pnlThrottleMs = 1000 } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
   const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const initialChannelPositions = stream.positions.getSnapshot();
@@ -214,7 +221,7 @@ export function usePerpsLivePositions(
         // would wipe other positions' prices when a partial batch arrives.
         setPriceData((prev) => ({ ...prev, ...newPriceData }));
       },
-      throttleMs,
+      throttleMs: pnlThrottleMs,
     });
 
     return () => {
@@ -224,7 +231,7 @@ export function usePerpsLivePositions(
     // intentionally omitted to avoid re-subscribing when the array reference
     // changes but its contents are the same.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stream, symbolsKey, throttleMs, useLivePnl]);
+  }, [stream, symbolsKey, pnlThrottleMs, useLivePnl]);
 
   return {
     positions,

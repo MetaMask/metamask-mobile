@@ -132,7 +132,7 @@ describe('usePerpsLivePositions', () => {
       expect(mockPricesSubscribeToSymbols).toHaveBeenCalledWith({
         symbols: ['BTC-PERP', 'ETH-PERP'],
         callback: expect.any(Function),
-        throttleMs: 0,
+        throttleMs: 1000,
       });
       expect(mockPricesSubscribe).not.toHaveBeenCalled();
     });
