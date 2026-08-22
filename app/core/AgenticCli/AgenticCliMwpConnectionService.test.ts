@@ -219,6 +219,33 @@ describe('AgenticCliMwpConnectionService', () => {
     );
   });
 
+  it('dismisses the loading sheet before showing the OTP sheet so it is not left stacked underneath', async () => {
+    mockConnection.connect.mockImplementation(async () => {
+      clientHandlers.display_otp?.('4892AKJ7', Date.now() + 60_000);
+    });
+
+    await handleAgenticCliConnectDeeplink(agenticCliDeeplink, {
+      relayURL: RELAY_URL,
+      keymanager: mockKeyManager,
+      hostapp: mockHostApp,
+      hasConnection: () => false,
+      cleanupConnection: jest.fn().mockResolvedValue(undefined),
+    });
+
+    expect(mockHostApp.hideConnectionLoading).toHaveBeenCalledWith(
+      expect.objectContaining({ id: mockConnectionInfo.id }),
+    );
+    expect(showAgenticCliOtpCode).toHaveBeenCalled();
+
+    // The loading sheet must be dismissed before the OTP sheet is pushed,
+    // otherwise the loading route is left stacked underneath the OTP sheet.
+    const firstHideOrder = (mockHostApp.hideConnectionLoading as jest.Mock).mock
+      .invocationCallOrder[0];
+    const firstShowOtpOrder = (showAgenticCliOtpCode as jest.Mock).mock
+      .invocationCallOrder[0];
+    expect(firstHideOrder).toBeLessThan(firstShowOtpOrder);
+  });
+
   it('hides the OTP sheet when connect fails after display_otp', async () => {
     mockConnection.connect.mockImplementation(async () => {
       clientHandlers.display_otp?.('4892AKJ7', Date.now() + 60_000);
