@@ -183,6 +183,27 @@ describe('activity list helpers', () => {
       expect(preferLocalOrApiActivityItem(local, api)).toBe(local);
     });
 
+    it('does not let a local send beat an API bridge', () => {
+      const local = makeItem({
+        type: 'send',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          token: { amount: '1', direction: 'out', symbol: 'MUSD' },
+        },
+      });
+      const api = makeItem({
+        type: 'bridge',
+        data: {
+          from: '0xfrom',
+          sourceToken: { amount: '1', direction: 'out', symbol: 'MUSD' },
+        },
+      });
+
+      expect(shouldPreferLocalActivityItem(local, api)).toBe(false);
+      expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
+    });
+
     it('does not let a gas-token local contractInteraction beat an API send', () => {
       const local = makeItem({
         type: 'contractInteraction',

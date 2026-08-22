@@ -141,6 +141,19 @@ export function shouldSkipTransaction(
   );
 }
 
+// The Accounts API labels the outgoing leg of a bridge `BRIDGE_OUT`, but the
+// shared mapper only recognises `BRIDGE_WITHDRAW` as an outgoing bridge, so a
+// `BRIDGE_OUT` transaction falls through to `contractInteraction` and the row
+// ends up rendering as a send. Aliasing the category keeps the bridge
+// classification (and its source token and fees) without forking the mapper.
+function withBridgeCategoryAlias(
+  transaction: V1TransactionByHashResponse,
+): V1TransactionByHashResponse {
+  return transaction.transactionCategory === 'BRIDGE_OUT'
+    ? { ...transaction, transactionCategory: 'BRIDGE_WITHDRAW' }
+    : transaction;
+}
+
 function transformApiTransactions(
   address: string,
   transactions: V1TransactionByHashResponse[],
@@ -154,7 +167,10 @@ function transformApiTransactions(
       continue;
     }
     items.push({
-      ...mapApiTransaction({ subjectAddress, transaction: tx }),
+      ...mapApiTransaction({
+        subjectAddress,
+        transaction: withBridgeCategoryAlias(tx),
+      }),
       raw: { type: 'apiEvmTransaction' as const, data: tx },
     } as ActivityListItem);
   }
