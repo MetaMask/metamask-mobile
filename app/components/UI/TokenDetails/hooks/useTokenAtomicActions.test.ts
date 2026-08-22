@@ -774,6 +774,10 @@ describe('useTokenAtomicActions - useHandleOnReceive', () => {
 // Source priority is documented under `computeBuySourceToken`.
 describe('useTokenAtomicActions - useHandleOnSwap', () => {
   const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
+  const ETH_MAINNET_USDC_ADDRESS =
+    '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+  const BNB_MAINNET_USDT_ADDRESS =
+    '0x55d398326f99059ff775485246999027b3197955';
 
   const arrangeToken = (balance: string): TokenI =>
     ({ ...defaultToken, balance }) as TokenI;
@@ -818,6 +822,49 @@ describe('useTokenAtomicActions - useHandleOnSwap', () => {
     expect(() => result.current()).not.toThrow();
     expect(mockGoToSwaps).not.toHaveBeenCalled();
   });
+
+  it.each([
+    {
+      chainId: '0x1' as Hex,
+      sourceAddress: ETH_MAINNET_USDC_ADDRESS,
+      sourceSymbol: 'USDC',
+    },
+    {
+      chainId: '0x38' as Hex,
+      sourceAddress: BNB_MAINNET_USDT_ADDRESS,
+      sourceSymbol: 'USDT',
+    },
+  ])(
+    'routes $sourceSymbol as source and the RWA token as destination on chain $chainId',
+    ({ chainId, sourceAddress, sourceSymbol }) => {
+      const rwaToken = {
+        ...defaultToken,
+        chainId,
+        balance: '1',
+        rwaData: { instrumentType: 'stock' } as TokenI['rwaData'],
+      } as TokenI;
+
+      const { result } = renderHook(() => useHandleOnSwap({ token: rwaToken }));
+
+      result.current();
+
+      expect(mockSelectAssetsBySelectedAccountGroup).not.toHaveBeenCalled();
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: sourceAddress,
+          symbol: sourceSymbol,
+          chainId,
+        }),
+        expect.objectContaining({
+          address: defaultToken.address,
+          chainId,
+          rwaData: { instrumentType: 'stock' },
+        }),
+        undefined,
+        true,
+      );
+    },
+  );
 
   // Cases where the current token has balance, so is indicated as a source token (swap out of the current token)
   const swapOutOfCurrentTokenRoutingCases = [
@@ -1171,7 +1218,7 @@ describe('useTokenAtomicActions - useHandleOnSwap securityData adaptation', () =
     );
   });
 
-  it('forwards rwaData so selectIsRwaSwap can detect the convert flow', () => {
+  it('keeps rwaData on the destination token in the RWA convert flow', () => {
     const rwaToken = {
       ...defaultToken,
       balance: '1',
@@ -1184,10 +1231,13 @@ describe('useTokenAtomicActions - useHandleOnSwap securityData adaptation', () =
 
     expect(mockGoToSwaps).toHaveBeenCalledWith(
       expect.objectContaining({
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        symbol: 'USDC',
+      }),
+      expect.objectContaining({
         address: defaultToken.address,
         rwaData: { instrumentType: 'stock' },
       }),
-      undefined,
       undefined,
       true,
     );
