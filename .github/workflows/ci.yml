@@ -1750,6 +1750,26 @@ jobs:
         env:
           HAVE_SONAR_TOKEN: ${{ secrets.SONAR_TOKEN != '' }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      # report-task.txt identifies this scan's Compute Engine task. The quality-gate
+      # job polls that task (and its analysisId) instead of the PR-level endpoint,
+      # which otherwise keeps serving the previous analysis for this PR number.
+      - name: Upload Sonar scanner metadata (Namespace)
+        if: ${{ always() && env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        continue-on-error: true
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: sonar-report-task
+          path: .scannerwork/report-task.txt
+          retention-days: 1
+      - name: Upload Sonar scanner metadata (current)
+        if: ${{ always() && env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonar-report-task
+          path: .scannerwork/report-task.txt
+          if-no-files-found: ignore
+          retention-days: 1
       - name: Require clean working directory
         shell: bash
         run: |
@@ -1787,12 +1807,38 @@ jobs:
       contents: read
       issues: read
       pull-requests: read
+      actions: read
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts/sonar-quality-gate-status.cjs
       - name: Checkout code
         uses: actions/checkout@v6
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts/sonar-quality-gate-status.cjs
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+      - name: Download Sonar scanner metadata (Namespace)
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        continue-on-error: true
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: sonar-report-task
+          path: .scannerwork
+      - name: Download Sonar scanner metadata (current)
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: sonar-report-task
+          path: .scannerwork
       - name: SonarCloud Quality Gate Status
         id: sonar-status
         env:
@@ -1801,68 +1847,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          # Skip step if event is not a PR
-          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
-            echo "This job only runs for pull requests."
-            exit 0
-          fi
-
-          if [ -z "$PR_NUMBER" ]; then
-            echo "No pull request number found. Failing the check."
-            exit 1
-          fi
-
-          # Bypass step if skip-sonar-cloud label is found. The `type == "array"`
-          # guard keeps a GitHub error payload (rate limit, 403) from aborting the
-          # job: an unreadable label list must not decide the quality gate.
-          LABELS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
-            "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/labels" | \
-            jq -r 'if type == "array" then .[].name else empty end' 2>/dev/null || true)
-
-          if grep -qx 'skip-sonar-cloud' <<< "$LABELS"; then
-            echo "skip-sonar-cloud label found. Skipping SonarCloud Quality Gate check."
-            exit 0
-          fi
-
-          PROJECT_KEY="MetaMask_metamask-mobile"
-
-          # Poll until SonarCloud has finished ingesting the analysis. OK is final,
-          # but ERROR is only trusted once it survives several polls: right after the
-          # scan the API still serves the previous analysis for this PR number, so an
-          # immediate ERROR is frequently stale and flips to OK within ~2 minutes.
-          MAX_ATTEMPTS=20
-          SLEEP_INTERVAL=15
-          ERROR_STREAK=0
-          ERROR_STREAK_TO_FAIL=8
-          for i in $(seq 1 $MAX_ATTEMPTS); do
-            RESPONSE=$(curl -s -u "$SONAR_TOKEN:" \
-              "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT_KEY&pullRequest=$PR_NUMBER")
-            echo "SonarCloud API Response (attempt $i/$MAX_ATTEMPTS): $RESPONSE"
-            STATUS=$(echo "$RESPONSE" | jq -r '.projectStatus.status // empty' 2>/dev/null || true)
-
-            if [[ "$STATUS" == "OK" ]]; then
-              echo "Quality Gate passed."
-              exit 0
-            elif [[ "$STATUS" == "ERROR" ]]; then
-              ERROR_STREAK=$((ERROR_STREAK + 1))
-              if [[ $ERROR_STREAK -ge $ERROR_STREAK_TO_FAIL ]]; then
-                echo "Quality Gate failed (ERROR stable across $ERROR_STREAK polls)."
-                exit 1
-              fi
-              echo "Got ERROR ($ERROR_STREAK/$ERROR_STREAK_TO_FAIL), it may be a previous analysis. Retrying in ${SLEEP_INTERVAL}s..."
-            else
-              ERROR_STREAK=0
-              echo "Quality Gate status not yet settled (got: '$STATUS'). Retrying in ${SLEEP_INTERVAL}s..."
-            fi
-
-            if [[ $i -lt $MAX_ATTEMPTS ]]; then
-              sleep "$SLEEP_INTERVAL"
-            fi
-          done
-
-          echo "Could not determine Quality Gate status after $MAX_ATTEMPTS attempts."
-          exit 1
+        run: node .github/scripts/sonar-quality-gate-status.cjs
 
   # TEMP: delete the ci-js-deps artifact once all consumers have finished so it
   # does not sit in GitHub artifact storage for the full retention-days: 1

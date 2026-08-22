@@ -1,0 +1,29 @@
+name: Rerun failed CI on skip-sonar-cloud
+
+# skip-sonar-cloud is read live by the quality-gate job while that job is still
+# running. If the gate already failed (common while E2E keeps the workflow open),
+# this workflow cancels the run if needed and re-runs failed jobs.
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  rerun-failed-ci:
+    if: github.event.pull_request.state == 'open' && github.event.label.name == 'skip-sonar-cloud'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts/rerun-ci-on-skip-sonar-cloud.sh
+      - name: Rerun failed jobs on latest CI workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: bash .github/scripts/rerun-ci-on-skip-sonar-cloud.sh

@@ -31,7 +31,7 @@ Any label can be manually added on demand depending on the PR's content. For ins
 
 Using any of these labels should be exceptional in case of CI friction and urgencies. Please use them reasonably and verify new changes and regressions manually.
 
-- **skip-sonar-cloud**: The PR will be merged without running SonarCloud checks.
+- **skip-sonar-cloud**: The PR will be merged without running SonarCloud checks. Adding this label re-runs failed CI jobs so the quality-gate job does not have to be retried by hand.
 - **skip-e2e**: The PR will be merged without running E2E tests.
 - **skip-e2e-flakiness-detection**: This label will disable the default test retries for E2E test files modified in a PR. Useful when making large refactors or when changes don't pose flakiness risk.
 
