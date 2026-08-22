@@ -1,10 +1,20 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { BuyWidget, QuotesResponse } from '@metamask/ramps-controller';
 import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
 import { rampsQueries } from '../queries';
 import type { RampsQueryStatus } from './useRampsPaymentMethods';
+import {
+  buildRampsQuoteFetchCompletion,
+  buildRampsQuoteFetchStartTags,
+  endRampsQuoteFetchTrace,
+  startRampsQuoteFetchTrace,
+} from '../utils/rampsQuoteFetchTrace';
+import {
+  RAMPS_QUOTE_FETCH_END_REASON,
+  RAMPS_QUOTE_FETCH_TAG,
+} from '../constants/rampsQuoteFetchTags';
 
 export interface GetQuotesOptions {
   region?: string;
@@ -49,6 +59,15 @@ export function useRampsQuotes(
     options?.assetId && options.walletAddress && options.amount > 0,
   );
 
+  // Stabilize by provider-id value so inline `providers: [id]` arrays do not
+  // retrigger the quote-fetch effect every render.
+  const requestedProvidersKey = (options?.providers ?? []).join(',');
+  const requestedProviders = useMemo(
+    () => options?.providers,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by value
+    [requestedProvidersKey],
+  );
+
   const quotesQuery = useQuery({
     ...rampsQueries.quotes.options({
       assetId: options?.assetId,
@@ -56,12 +75,59 @@ export function useRampsQuotes(
       walletAddress: options?.walletAddress ?? '',
       redirectUrl: options?.redirectUrl,
       paymentMethods: options?.paymentMethods,
-      providers: options?.providers,
+      providers: requestedProviders,
       forceRefresh: options?.forceRefresh,
       ttl: options?.ttl,
     }),
     enabled: queryEnabled,
   });
+
+  const quoteFetchOpIdRef = useRef<string | null>(null);
+
+  // Unified Buy quote-fetch tracing (TRAM-3805): fetch start → quotes rendered
+  // or provider-level failure (incl. PayPal custom-action quotes).
+  useEffect(() => {
+    if (!queryEnabled) {
+      if (quoteFetchOpIdRef.current) {
+        endRampsQuoteFetchTrace({
+          id: quoteFetchOpIdRef.current,
+          data: {
+            [RAMPS_QUOTE_FETCH_TAG.SUCCESS]: false,
+            [RAMPS_QUOTE_FETCH_TAG.REASON]:
+              RAMPS_QUOTE_FETCH_END_REASON.CANCELLED,
+          },
+        });
+        quoteFetchOpIdRef.current = null;
+      }
+      return;
+    }
+
+    if (quotesQuery.isFetching && !quoteFetchOpIdRef.current) {
+      quoteFetchOpIdRef.current = startRampsQuoteFetchTrace({
+        tags: buildRampsQuoteFetchStartTags(requestedProviders),
+      });
+      return;
+    }
+
+    if (!quotesQuery.isFetching && quoteFetchOpIdRef.current) {
+      const opId = quoteFetchOpIdRef.current;
+      quoteFetchOpIdRef.current = null;
+      endRampsQuoteFetchTrace({
+        id: opId,
+        data: buildRampsQuoteFetchCompletion({
+          isQueryError: quotesQuery.isError,
+          response: quotesQuery.data,
+          requestedProviders,
+        }),
+      });
+    }
+  }, [
+    queryEnabled,
+    quotesQuery.isFetching,
+    quotesQuery.isError,
+    quotesQuery.data,
+    requestedProviders,
+  ]);
 
   const status = useMemo<RampsQueryStatus>(() => {
     if (!queryEnabled) {
