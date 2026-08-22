@@ -244,10 +244,15 @@ export const useScrollTracking = (
 ) => {
   const hasTracked = useRef(false);
   const searchQueryRef = useRef(searchQuery);
-  searchQueryRef.current = searchQuery;
-
   const extraPropsRef = useRef(extraProperties);
-  extraPropsRef.current = extraProperties;
+
+  // Mirrored into refs so `onScrollBeginDrag` keeps a stable identity across
+  // keystrokes while still reporting the current values. Synced in an effect
+  // rather than during render, which is a Rules of React violation.
+  useEffect(() => {
+    searchQueryRef.current = searchQuery;
+    extraPropsRef.current = extraProperties;
+  });
 
   const onScrollBeginDrag = useCallback(() => {
     if (hasTracked.current) return;
