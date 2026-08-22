@@ -29,6 +29,7 @@ import type { NetworkListModalParams } from '../components/BridgeTokenSelector/N
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type BridgeScreensStackParamList = {
   BridgeView: BridgeRouteParams | undefined;
+  WalletAssistant: undefined;
   BridgeTokenSelector: BridgeTokenSelectorRouteParams | undefined;
   BatchSellTokenSelect: BatchSellTokenSelectRouteParams | undefined;
   BatchSellReview: undefined;

@@ -1,5 +1,6 @@
 import { useMemo, useRef, useEffect } from 'react';
 import type { TrendingAsset } from '@metamask/assets-controllers';
+import type { CaipChainId } from '@metamask/utils';
 import { useTrendingSearch } from '../../../../UI/Trending/hooks/useTrendingSearch/useTrendingSearch';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
@@ -12,6 +13,8 @@ import {
 } from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
 
 interface UseTokensFeedOptions {
+  /** Limits results to the requested networks. */
+  chainIds?: CaipChainId[] | null;
   /** Search query; when present, results are sorted by market cap descending. */
   query?: string;
   refresh?: RefreshConfig;
@@ -36,6 +39,7 @@ export interface UseTokensFeedResult {
 
 /** Trending tokens feed; same source for the home list, "crypto movers" pills, and search. */
 export const useTokensFeed = ({
+  chainIds,
   query,
   refresh,
   hideRiskyTokens = false,
@@ -52,6 +56,7 @@ export const useTokensFeed = ({
     hasNextPage,
     totalCount,
   } = useTrendingSearch({
+    chainIds,
     searchQuery: query,
     enableDebounce: false,
     sortBy,

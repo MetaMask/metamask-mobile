@@ -37,6 +37,8 @@ export enum TokenDetailsSource {
   BannerRobinhoodExplore = 'banner-robinhood-explore',
   /** Swap/Bridge token selector */
   Swap = 'swap',
+  /** Token pill in Wallet Assistant research */
+  WalletAssistant = 'wallet_assistant',
   /** Price alert notification deeplink */
   PriceAlertNotification = 'price_alert_notification',
   /** Watchlist section on the homepage */
