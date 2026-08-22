@@ -390,18 +390,10 @@ jest.mock('react-native-keychain', () => ({
 
   // Storage Type enum
   STORAGE_TYPE: {
-    FB: 'FacebookConceal',
-    AES: 'KeystoreAES',
     AES_CBC: 'KeystoreAESCBC',
     AES_GCM_NO_AUTH: 'KeystoreAESGCM_NoAuth',
     AES_GCM: 'KeystoreAESGCM',
     RSA: 'KeystoreRSAECB',
-  },
-
-  // Security Rules enum
-  SECURITY_RULES: {
-    NONE: 'none',
-    AUTOMATIC_UPGRADE: 'automaticUpgradeToMoreSecuredStorage',
   },
 
   // Generic password functions
@@ -437,6 +429,7 @@ jest.mock('react-native-keychain', () => ({
   getSecurityLevel: jest
     .fn()
     .mockResolvedValue('MOCK_SECURITY_LEVEL_SECURE_SOFTWARE'),
+  isPasscodeAuthAvailable: jest.fn().mockResolvedValue(true),
 
   // Shared web credentials (iOS only)
   requestSharedWebCredentials: jest.fn().mockResolvedValue({
