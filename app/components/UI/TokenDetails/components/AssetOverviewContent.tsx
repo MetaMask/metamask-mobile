@@ -80,6 +80,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { TextColor as ComponentLibraryTextColor } from '../../../../component-library/components/Texts/Text';
 import { SecurityBanner } from './SecurityBanner';
+import { TokenDetailsOpenOrdersCard } from './TokenDetailsOpenOrdersCard';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 import TronAssetOverviewSection from './TronAssetOverviewSection';
@@ -721,6 +722,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               testID={TokenOverviewSelectorsIDs.PERPS_DISCOVERY_BANNER}
             />
           )}
+          <TokenDetailsOpenOrdersCard tokenSymbol={token.symbol} />
           <View style={styles.tokenDetailsWrapper}>
             <TokenDetails
               asset={token}
