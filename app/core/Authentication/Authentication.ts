@@ -23,6 +23,7 @@ import {
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
+import { startUnlockWindow } from '../UnlockNetworkMeter';
 import { UserCredentials, BIOMETRY_TYPE } from 'react-native-keychain';
 import {
   AUTHENTICATION_FAILED_WALLET_CREATION,
@@ -799,6 +800,10 @@ class AuthenticationService {
   ) => {
     let passwordToUse: string | undefined;
     try {
+      // Arm in-app unlock HTTP meter (fetch/XHR) for Developer Options + real-network
+      // performance gates. Ends on homepage ready + network quiescence.
+      startUnlockWindow();
+
       const existingUser = selectExistingUser(ReduxService.store.getState());
 
       if (existingUser || authPreference?.oauth2Login) {
