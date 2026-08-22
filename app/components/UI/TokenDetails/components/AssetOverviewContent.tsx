@@ -258,7 +258,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
-  const { isTokenTradingOpen } = useRWAToken();
+  const { isTokenTradable } = useRWAToken();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasBalanceValue = Boolean(balance) && balance !== '0';
@@ -614,7 +614,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             onPriceDirectionChange={onPriceDirectionChange}
             useAmbientColor={useAmbientColor}
           />
-          {!isTokenTradingOpen(token as BridgeToken) && (
+          {!isTokenTradable(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>
               <MarketClosedActionButton
                 iconName={ComponentLibraryIconName.Info}

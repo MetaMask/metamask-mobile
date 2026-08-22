@@ -7,7 +7,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
-import { useSelector } from 'react-redux';
+import { useSelector, useStore } from 'react-redux';
 import {
   selectBridgeFeatureFlags,
   selectIsSolanaSourced,
@@ -17,7 +17,9 @@ import {
   selectSourceAmount,
   selectSourceToken,
   selectDestToken,
+  selectIsStockMarketClosed,
 } from '../../../../../core/redux/slices/bridge';
+import type { RootState } from '../../../../../reducers';
 import { isNegativeSecurityType } from '../../utils/tokenSecurityUtils';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
@@ -53,6 +55,7 @@ import {
 } from './abTestConfig';
 import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
+import { useStockMarketHours } from '../../hooks/useStockMarketHours';
 
 const SUCCESS_TEXT_PROPS = { color: TextColor.SuccessInverse } as const;
 
@@ -81,6 +84,7 @@ export const SwapsConfirmButton = ({
       ? `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`
       : 'bg-success-default';
   const navigation = useNavigation<AppNavigationProp>();
+  const store = useStore<RootState>();
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const destToken = useSelector(selectDestToken);
@@ -98,6 +102,10 @@ export const SwapsConfirmButton = ({
     ? !!isHardwareAccount(selectedAddress)
     : false;
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  // Own one-minute clock. Parent re-renders are not enough: after quotes
+  // settle the store stops updating, and a memoized button would keep the
+  // last "Market is closed" label until the user changes tokens.
+  const { isStockMarketClosed } = useStockMarketHours();
 
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
@@ -211,9 +219,19 @@ export const SwapsConfirmButton = ({
     (isHardwareAddress && isSolanaSourced) ||
     hasError ||
     hasInsufficientGas ||
-    !walletAddress;
+    !walletAddress ||
+    isStockMarketClosed;
 
   const handleContinue = async () => {
+    // Re-check at tap time so a stock selected during off-hours cannot be
+    // submitted after the window has closed, even if the last poll is stale.
+    if (selectIsStockMarketClosed(store.getState(), Date.now())) {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+      });
+      return;
+    }
+
     const securityData = destToken?.securityData;
     if (isNegativeSecurityType(securityData?.type)) {
       const params: TokenWarningModalParams = {
@@ -275,6 +293,7 @@ export const SwapsConfirmButton = ({
   };
 
   const buttonIsInLoadingState =
+    !isStockMarketClosed &&
     !needsNewQuote &&
     !hasError &&
     (isLoading ||
@@ -285,6 +304,10 @@ export const SwapsConfirmButton = ({
     isSubmitDisabled;
 
   const label = useMemo(() => {
+    if (isStockMarketClosed) {
+      return strings('bridge.market_closed.title');
+    }
+
     if (needsNewQuote) {
       return strings('quote_expired_modal.get_new_quote');
     }
@@ -313,6 +336,7 @@ export const SwapsConfirmButton = ({
     hasInsufficientGas,
     isSubmittingTx,
     needsNewQuote,
+    isStockMarketClosed,
   ]);
 
   return (
@@ -329,7 +353,9 @@ export const SwapsConfirmButton = ({
       onPress={needsNewQuote ? handleGetNewQuote : handleContinue}
       isFullWidth
       testID={testID ?? BridgeViewSelectorsIDs.CONFIRM_BUTTON}
-      isDisabled={needsNewQuote ? false : isSubmitDisabled}
+      isDisabled={
+        isStockMarketClosed || (needsNewQuote ? false : isSubmitDisabled)
+      }
     >
       {label}
     </Button>

@@ -4,7 +4,12 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
 import { QuoteErrorBanner } from './QuoteErrorBanner';
-import { createBannerState, renderBanner } from './testUtils';
+import {
+  createBannerState,
+  createStockRwaToken,
+  PINNED_STOCK_MARKET_NOW,
+  renderBanner,
+} from './testUtils';
 
 jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   useBridgeQuoteDataContext: jest.fn(),
@@ -22,8 +27,14 @@ const setQuoteData = (overrides: Partial<QuoteContextValue> = {}) => {
 
 describe('QuoteErrorBanner', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(PINNED_STOCK_MARKET_NOW);
     jest.clearAllMocks();
     setQuoteData();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('explains why the quote stream completed without a quote', () => {
@@ -54,6 +65,27 @@ describe('QuoteErrorBanner', () => {
 
   it('renders nothing while quotes are being fetched without error', () => {
     const { queryByTestId } = renderBanner(<QuoteErrorBanner />);
+
+    expect(queryByTestId(SwapsBannersSelectorsIDs.QUOTE_ERROR)).toBeNull();
+  });
+
+  it('hides the market-unavailable error when the dest stock market is fully closed', () => {
+    const nowMs = Date.now();
+    const { queryByTestId } = renderBanner(<QuoteErrorBanner />, {
+      state: createBannerState({
+        destToken: createStockRwaToken({
+          nowMs,
+          inRegularHours: false,
+          inOffHours: false,
+        }),
+        quoteStreamComplete: {
+          quoteCount: 0,
+          hasQuotes: false,
+          reason: QuoteStreamCompleteReason.RWA_MARKET_UNAVAILABLE,
+        },
+        rwaEnabled: true,
+      }),
+    });
 
     expect(queryByTestId(SwapsBannersSelectorsIDs.QUOTE_ERROR)).toBeNull();
   });

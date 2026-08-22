@@ -369,10 +369,10 @@ jest.mock('../../../../core/ToastService/ToastService', () => ({
   },
 }));
 
-const mockIsTokenTradingOpen = jest.fn().mockReturnValue(true);
+const mockIsTokenTradable = jest.fn().mockReturnValue(true);
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
-    isTokenTradingOpen: mockIsTokenTradingOpen,
+    isTokenTradable: mockIsTokenTradable,
     isStockToken: jest.fn(() => false),
   }),
 }));
@@ -461,7 +461,7 @@ describe('TokenDetails', () => {
     mockCreateEventBuilder.mockReturnValue({
       addProperties: mockAddProperties,
     });
-    mockIsTokenTradingOpen.mockReturnValue(true);
+    mockIsTokenTradable.mockReturnValue(true);
     mockUseTokenTransactions.mockReturnValue(defaultUseTokenTransactionsReturn);
     mockUseTokenBuyability.mockReturnValue({
       isBuyable: true,
@@ -535,8 +535,8 @@ describe('TokenDetails', () => {
       expect(getByText('Buy')).toBeOnTheScreen();
     });
 
-    it('does not show sticky buttons when RWA token trading is not open', () => {
-      mockIsTokenTradingOpen.mockReturnValue(false);
+    it('does not show sticky buttons when RWA token is not tradable', () => {
+      mockIsTokenTradable.mockReturnValue(false);
 
       const { queryByTestId } = render(<TokenDetails />);
 

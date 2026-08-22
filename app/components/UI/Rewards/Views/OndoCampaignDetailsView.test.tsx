@@ -277,10 +277,10 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-const mockIsTokenTradingOpen = jest.fn(() => true);
+const mockIsTokenTradable = jest.fn(() => true);
 jest.mock('../../Bridge/hooks/useRWAToken', () => ({
   useRWAToken: () => ({
-    isTokenTradingOpen: mockIsTokenTradingOpen,
+    isTokenTradable: mockIsTokenTradable,
     isStockToken: jest.fn(() => false),
   }),
 }));
@@ -476,6 +476,8 @@ jest.mock('../../../../../locales/i18n', () => ({
   },
 }));
 
+const FIXED_NOW = new Date('2024-06-15T12:00:00.000Z');
+
 const createTestCampaign = (
   overrides: Partial<CampaignDto> = {},
 ): CampaignDto => {
@@ -513,7 +515,10 @@ const hookDefaults = {
 
 describe('OndoCampaignDetailsView', () => {
   beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(FIXED_NOW);
     jest.clearAllMocks();
+    mockRouteState.params = { campaignId: 'campaign-1' };
     resetOndoCampaignDetailsSessionAutoNavigationForTests();
     (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
       if (selector === selectReferralCode) {
@@ -527,7 +532,7 @@ describe('OndoCampaignDetailsView', () => {
       }
       return null;
     });
-    mockIsTokenTradingOpen.mockReturnValue(true);
+    mockIsTokenTradable.mockReturnValue(true);
     mockOndoCampaignStatsSummary.mockReset();
     mockUseRewardCampaigns.mockReturnValue(hookDefaults);
     mockUseGetCampaignParticipantStatus.mockReturnValue({
@@ -573,6 +578,10 @@ describe('OndoCampaignDetailsView', () => {
       hasError: false,
     });
     mockOndoPrizePool.mockReset();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('renders the container', () => {
@@ -1244,12 +1253,8 @@ describe('OndoCampaignDetailsView', () => {
     });
   });
 
-  const completeCampaignStart = new Date();
-  completeCampaignStart.setMonth(completeCampaignStart.getMonth() - 1);
-  const completeCampaignEnd = new Date();
-  completeCampaignEnd.setDate(completeCampaignEnd.getDate() - 1);
-  const startDate = completeCampaignStart.toISOString();
-  const endDate = completeCampaignEnd.toISOString();
+  const startDate = '2024-05-15T12:00:00.000Z';
+  const endDate = '2024-06-14T12:00:00.000Z';
 
   const winnerPosition = {
     rank: 1,

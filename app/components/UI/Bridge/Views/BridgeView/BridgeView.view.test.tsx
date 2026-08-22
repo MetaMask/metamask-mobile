@@ -22,6 +22,7 @@ import {
   setSourceAmount,
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
+import { FEATURE_FLAG_NAME as RWA_FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
 import { BridgeViewMode, type BridgeToken } from '../../types';
 import { BridgeTokenSelector } from '../../components/BridgeTokenSelector/BridgeTokenSelector';
 import Engine from '../../../../../core/Engine';
@@ -49,6 +50,44 @@ import {
   mockTrendingTokensData,
 } from '../../../../../../tests/component-view/api-mocking/trending';
 import { merge } from 'lodash';
+
+const HOUR_MS = 60 * 60 * 1000;
+
+const createStockRwaToken = ({
+  nowMs,
+  inRegularHours,
+  inOffHours,
+}: {
+  nowMs: number;
+  inRegularHours: boolean;
+  inOffHours: boolean;
+}): BridgeToken => ({
+  address: '0x1111111111111111111111111111111111111111',
+  symbol: 'AAPL',
+  name: 'Apple',
+  decimals: 18,
+  chainId: '0x1',
+  rwaData: {
+    instrumentType: 'stock',
+    market: inRegularHours
+      ? {
+          nextOpen: new Date(nowMs - HOUR_MS).toISOString(),
+          nextClose: new Date(nowMs + 6 * HOUR_MS).toISOString(),
+        }
+      : {
+          nextOpen: new Date(nowMs + 12 * HOUR_MS).toISOString(),
+          nextClose: new Date(nowMs + 20 * HOUR_MS).toISOString(),
+        },
+    ...(inOffHours
+      ? {
+          offhours: {
+            nextOpen: new Date(nowMs - HOUR_MS).toISOString(),
+            nextClose: new Date(nowMs + 2 * HOUR_MS).toISOString(),
+          },
+        }
+      : {}),
+  } as BridgeToken['rwaData'],
+});
 
 const defaultBridgeWithTokens = (overrides?: Record<string, unknown>) => {
   const { bridge: bridgeOverrides, ...rest } = overrides ?? {};
@@ -874,6 +913,159 @@ describeForPlatforms('BridgeView', () => {
       expect(
         await findByText(strings('bridge.quote_stream_complete_retry')),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Off-hours trading banner', () => {
+    it('shows the warning when dest stock is in off-hours and hides it after switching dest', async () => {
+      const nowMs = Date.now();
+      const stockInRegularHours = createStockRwaToken({
+        nowMs,
+        inRegularHours: true,
+        inOffHours: false,
+      });
+      const stockInOffHours = createStockRwaToken({
+        nowMs,
+        inRegularHours: false,
+        inOffHours: true,
+      });
+      const { queryByTestId, findByTestId, findByText, store } =
+        defaultBridgeWithTokens({
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [RWA_FEATURE_FLAG_NAME]: true,
+                },
+              },
+            },
+          },
+        });
+
+      act(() => {
+        store.dispatch(setDestToken(stockInRegularHours));
+      });
+
+      await waitFor(() => {
+        expect(store.getState().bridge.destToken?.symbol).toBe('AAPL');
+      });
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+      ).not.toBeOnTheScreen();
+
+      act(() => {
+        store.dispatch(setDestToken(stockInOffHours));
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        await findByText(strings('bridge.off_hours_trading.title')),
+      ).toBeOnTheScreen();
+      expect(
+        await findByText(strings('bridge.off_hours_trading.description')),
+      ).toBeOnTheScreen();
+
+      act(() => {
+        store.dispatch(setDestToken(USDC_DEST as BridgeToken));
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+        ).not.toBeOnTheScreen();
+      });
+    });
+
+    it('replaces the off-hours warning with the market-closed banner when dest stock becomes fully closed', async () => {
+      const nowMs = Date.now();
+      const stockInOffHours = createStockRwaToken({
+        nowMs,
+        inRegularHours: false,
+        inOffHours: true,
+      });
+      const stockFullyClosed = createStockRwaToken({
+        nowMs,
+        inRegularHours: false,
+        inOffHours: false,
+      });
+      const { queryByTestId, findByTestId, store } = defaultBridgeWithTokens({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+      });
+
+      act(() => {
+        store.dispatch(setDestToken(stockInOffHours));
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.MARKET_CLOSED_BANNER),
+      ).not.toBeOnTheScreen();
+
+      act(() => {
+        store.dispatch(setDestToken(stockFullyClosed));
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.MARKET_CLOSED_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the market-unavailable quote error when the dest stock market is fully closed', async () => {
+      const nowMs = Date.now();
+      const stockFullyClosed = createStockRwaToken({
+        nowMs,
+        inRegularHours: false,
+        inOffHours: false,
+      });
+
+      const { queryByTestId, findByTestId } = defaultBridgeWithTokens({
+        bridge: {
+          destToken: stockFullyClosed,
+          sourceAmount: '1',
+        },
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [],
+              recommendedQuote: null,
+              quotesLastFetched: nowMs,
+              quotesLoadingStatus: RequestStatus.FETCHED,
+              quoteStreamComplete: {
+                hasQuotes: false,
+                quoteCount: 0,
+                reason: QuoteStreamCompleteReason.RWA_MARKET_UNAVAILABLE,
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        await findByTestId(BridgeViewSelectorsIDs.MARKET_CLOSED_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(BridgeViewSelectorsIDs.NO_QUOTES_BANNER),
+      ).not.toBeOnTheScreen();
     });
   });
 

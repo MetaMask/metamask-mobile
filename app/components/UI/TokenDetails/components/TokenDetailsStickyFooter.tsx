@@ -187,7 +187,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     });
 
   const { isBuyable } = useTokenBuyability(token);
-  const { isTokenTradingOpen, isStockToken } = useRWAToken();
+  const { isTokenTradable, isStockToken } = useRWAToken();
 
   const isRwaGeoRestricted = useMemo(() => {
     if (!isStockToken(token as BridgeToken)) return false;
@@ -217,7 +217,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const showBothButtons = showSwapButton && showBuyButton;
   const showQuickBuyButton = !isMoneyEarnCtaActive && Boolean(onQuickBuyPress);
 
-  const tradingOpen = isTokenTradingOpen(token as BridgeToken);
+  const tradingOpen = isTokenTradable(token as BridgeToken);
   useEffect(() => {
     if (onStickyButtonsResolved) {
       if (!tradingOpen) {

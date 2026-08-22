@@ -32,7 +32,8 @@ import {
 } from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
-import { SecurityDataType, BridgeViewMode } from '../../types';
+import { SecurityDataType, BridgeViewMode, BridgeToken } from '../../types';
+import { FEATURE_FLAG_NAME as RWA_FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 import { ButtonVariant, TextColor } from '@metamask/design-system-react-native';
 import {
@@ -41,6 +42,7 @@ import {
 } from './abTestConfig';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../../util/theme';
+import { STOCK_MARKET_STATUS_POLL_MS } from '../../hooks/useStockMarketHours';
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
   '../../../../../multichain-accounts/controllers/account-tree-controller',
@@ -368,6 +370,11 @@ describe('SwapsConfirmButton', () => {
       hash: '0xabc',
       status: 'submitted',
     });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   describe('CTA color A/B test', () => {
@@ -727,6 +734,332 @@ describe('SwapsConfirmButton', () => {
 
       const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
       expect(button.props.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('disables button when dest stock market is fully closed', () => {
+      jest.useFakeTimers();
+      const nowMs = new Date('2024-01-02T12:00:00.000Z').getTime();
+      jest.setSystemTime(nowMs);
+      const hourMs = 60 * 60 * 1000;
+      const closedStock: BridgeToken = {
+        address: '0x1111111111111111111111111111111111111111',
+        symbol: 'AAPL',
+        name: 'Apple',
+        decimals: 18,
+        chainId: '0x1' as Hex,
+        rwaData: {
+          instrumentType: 'stock',
+          market: {
+            nextOpen: new Date(nowMs + 12 * hourMs).toISOString(),
+            nextClose: new Date(nowMs + 20 * hourMs).toISOString(),
+          },
+        } as BridgeToken['rwaData'],
+      };
+      const closedMarketState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine?.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bridgeConfigV2: defaultBridgeConfigV2,
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+        bridge: {
+          ...mockState.bridge,
+          destToken: closedStock,
+        },
+      };
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: closedMarketState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(
+        getByText(strings('bridge.market_closed.title')),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(button);
+
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+    });
+
+    it('keeps button enabled when dest stock is in off-hours', () => {
+      jest.useFakeTimers();
+      const nowMs = new Date('2024-01-01T18:00:00.000Z').getTime();
+      jest.setSystemTime(nowMs);
+      const hourMs = 60 * 60 * 1000;
+      const offHoursStock: BridgeToken = {
+        address: '0x1111111111111111111111111111111111111111',
+        symbol: 'AAPL',
+        name: 'Apple',
+        decimals: 18,
+        chainId: '0x1' as Hex,
+        rwaData: {
+          instrumentType: 'stock',
+          market: {
+            nextOpen: new Date(nowMs + 12 * hourMs).toISOString(),
+            nextClose: new Date(nowMs + 20 * hourMs).toISOString(),
+          },
+          offhours: {
+            nextOpen: new Date(nowMs - hourMs).toISOString(),
+            nextClose: new Date(nowMs + 2 * hourMs).toISOString(),
+          },
+        } as BridgeToken['rwaData'],
+      };
+      const offHoursState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine?.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bridgeConfigV2: defaultBridgeConfigV2,
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+        bridge: {
+          ...mockState.bridge,
+          destToken: offHoursStock,
+        },
+      };
+
+      const { getByTestId, queryByText } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: offHoursState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(false);
+      expect(
+        queryByText(strings('bridge.market_closed.title')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('blocks submit when off-hours ends after the button has already rendered', () => {
+      jest.useFakeTimers();
+      const nowMs = new Date('2024-01-01T18:00:00.000Z').getTime();
+      jest.setSystemTime(nowMs);
+      const hourMs = 60 * 60 * 1000;
+      const offHoursStock: BridgeToken = {
+        address: '0x1111111111111111111111111111111111111111',
+        symbol: 'AAPL',
+        name: 'Apple',
+        decimals: 18,
+        chainId: '0x1' as Hex,
+        rwaData: {
+          instrumentType: 'stock',
+          market: {
+            nextOpen: new Date(nowMs + 15 * hourMs).toISOString(),
+            nextClose: new Date(nowMs + 23 * hourMs).toISOString(),
+          },
+          offhours: {
+            nextOpen: new Date(nowMs - hourMs).toISOString(),
+            nextClose: new Date(nowMs + 2 * hourMs).toISOString(),
+          },
+        } as BridgeToken['rwaData'],
+      };
+      const offHoursState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine?.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bridgeConfigV2: defaultBridgeConfigV2,
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+        bridge: {
+          ...mockState.bridge,
+          destToken: offHoursStock,
+        },
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: offHoursState,
+        },
+      );
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(false);
+
+      act(() => {
+        jest.setSystemTime(nowMs + 3 * hourMs);
+      });
+
+      fireEvent.press(button);
+
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+      });
+    });
+
+    it('updates label to market closed when the poll fires after off-hours ends', () => {
+      jest.useFakeTimers();
+      const nowMs = new Date('2024-01-01T18:00:00.000Z').getTime();
+      jest.setSystemTime(nowMs);
+      const hourMs = 60 * 60 * 1000;
+      const offHoursStock: BridgeToken = {
+        address: '0x1111111111111111111111111111111111111111',
+        symbol: 'AAPL',
+        name: 'Apple',
+        decimals: 18,
+        chainId: '0x1' as Hex,
+        rwaData: {
+          instrumentType: 'stock',
+          market: {
+            nextOpen: new Date(nowMs + 15 * hourMs).toISOString(),
+            nextClose: new Date(nowMs + 23 * hourMs).toISOString(),
+          },
+          offhours: {
+            nextOpen: new Date(nowMs - hourMs).toISOString(),
+            nextClose: new Date(nowMs + 2 * hourMs).toISOString(),
+          },
+        } as BridgeToken['rwaData'],
+      };
+      const offHoursState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine?.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bridgeConfigV2: defaultBridgeConfigV2,
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+        bridge: {
+          ...mockState.bridge,
+          destToken: offHoursStock,
+        },
+      };
+
+      const { getByTestId, queryByText, getByText } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: offHoursState,
+        },
+      );
+
+      expect(
+        queryByText(strings('bridge.market_closed.title')),
+      ).not.toBeOnTheScreen();
+
+      act(() => {
+        jest.setSystemTime(nowMs + 3 * hourMs);
+        jest.advanceTimersByTime(STOCK_MARKET_STATUS_POLL_MS);
+      });
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(
+        getByText(strings('bridge.market_closed.title')),
+      ).toBeOnTheScreen();
+    });
+
+    it('clears market-closed label when the poll fires after off-hours starts', () => {
+      jest.useFakeTimers();
+      const nowMs = new Date('2024-01-01T12:00:00.000Z').getTime();
+      jest.setSystemTime(nowMs);
+      const hourMs = 60 * 60 * 1000;
+      const closedThenOffHoursStock: BridgeToken = {
+        address: '0x1111111111111111111111111111111111111111',
+        symbol: 'AAPL',
+        name: 'Apple',
+        decimals: 18,
+        chainId: '0x1' as Hex,
+        rwaData: {
+          instrumentType: 'stock',
+          market: {
+            nextOpen: new Date(nowMs + 12 * hourMs).toISOString(),
+            nextClose: new Date(nowMs + 20 * hourMs).toISOString(),
+          },
+          offhours: {
+            nextOpen: new Date(nowMs + 5 * hourMs).toISOString(),
+            nextClose: new Date(nowMs + 8 * hourMs).toISOString(),
+          },
+        } as BridgeToken['rwaData'],
+      };
+      const closedMarketState = {
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine?.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                bridgeConfigV2: defaultBridgeConfigV2,
+                [RWA_FEATURE_FLAG_NAME]: true,
+              },
+            },
+          },
+        },
+        bridge: {
+          ...mockState.bridge,
+          destToken: closedThenOffHoursStock,
+        },
+      };
+
+      const { getByTestId, getByText, queryByText } = renderWithProvider(
+        <SwapsConfirmButton
+          latestSourceBalance={mockLatestSourceBalance}
+          location={MetaMetricsSwapsEventSource.MainView}
+        />,
+        {
+          state: closedMarketState,
+        },
+      );
+
+      expect(
+        getByText(strings('bridge.market_closed.title')),
+      ).toBeOnTheScreen();
+
+      act(() => {
+        jest.setSystemTime(nowMs + 6 * hourMs);
+        jest.advanceTimersByTime(STOCK_MARKET_STATUS_POLL_MS);
+      });
+
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
+      expect(button.props.accessibilityState?.disabled).toBe(false);
+      expect(
+        queryByText(strings('bridge.market_closed.title')),
+      ).not.toBeOnTheScreen();
     });
   });
 

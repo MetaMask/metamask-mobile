@@ -9,8 +9,10 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { QuoteStreamCompleteReason } from '@metamask/bridge-controller';
 import { selectQuoteStreamComplete } from '../../../../../../core/redux/slices/bridge';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { useStockMarketHours } from '../../../hooks/useStockMarketHours';
 import { getQuoteStreamReasonString } from '../../../utils/getQuoteStreamReasonString';
 import { ERROR_BANNER_TW_CLASSNAME } from '../SwapsBanners.constants';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
@@ -21,8 +23,17 @@ import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
 export const QuoteErrorBanner = () => {
   const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const { quoteFetchError } = useBridgeQuoteDataContext();
+  const { isStockMarketClosed } = useStockMarketHours();
 
-  if (!quoteStreamComplete?.reason && !quoteFetchError) {
+  const hideMarketUnavailableQuoteError =
+    isStockMarketClosed &&
+    quoteStreamComplete?.reason ===
+      QuoteStreamCompleteReason.RWA_MARKET_UNAVAILABLE;
+
+  if (
+    !quoteFetchError &&
+    (!quoteStreamComplete?.reason || hideMarketUnavailableQuoteError)
+  ) {
     return null;
   }
 

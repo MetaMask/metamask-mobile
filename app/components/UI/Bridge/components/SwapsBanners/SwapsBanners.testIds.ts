@@ -14,4 +14,6 @@ export const SwapsBannersSelectorsIDs = {
   HARDWARE_WALLET_ORDER_TYPE_UNSUPPORTED:
     'swaps-banners-hardware-wallet-order-type-unsupported',
   BLOCKAID_ERROR: 'swaps-banners-blockaid-error',
+  OFF_HOURS_TRADING: BridgeViewSelectorsIDs.OFF_HOURS_TRADING_BANNER,
+  MARKET_CLOSED: BridgeViewSelectorsIDs.MARKET_CLOSED_BANNER,
 } as const;
