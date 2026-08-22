@@ -71,18 +71,18 @@ export const baseStyles: Record<string, ViewStyle> = {
  */
 export const fontStyles: Record<string, TextStyle> = {
   normal: {
-    fontFamily: 'Geist-Regular',
+    fontFamily: 'Inter-Regular',
   },
   light: {
-    fontFamily: 'Geist-Regular',
+    fontFamily: 'Inter-Regular',
   },
   thin: {
-    fontFamily: 'Geist-Regular',
+    fontFamily: 'Inter-Regular',
   },
   bold: {
-    fontFamily: 'Geist-SemiBold',
+    fontFamily: 'Inter-SemiBold',
   },
   medium: {
-    fontFamily: 'Geist-Medium',
+    fontFamily: 'Inter-Medium',
   },
 };
