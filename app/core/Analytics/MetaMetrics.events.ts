@@ -541,6 +541,9 @@ enum EVENT_NAME {
   VAULT_CORRUPTION_WALLET_RESET_NEEDED_TRY_AGAIN_BUTTON_PRESSED = 'Vault Corruption Wallet Reset Needed Try Again Button Pressed',
   VAULT_CORRUPTION_WALLET_RESET_NEEDED_CREATE_NEW_WALLET_BUTTON_PRESSED = 'Vault Corruption Wallet Reset Needed Create A New Wallet Button Pressed',
 
+  // Account access diagnostics
+  ACCOUNT_ACCESS_FORCED_RESET = 'Account Access Forced Reset',
+
   // Login screen
   LOGIN_SCREEN_VIEWED = 'Login Screen Viewed',
 
@@ -1506,6 +1509,11 @@ const events = {
     generateOpt(
       EVENT_NAME.VAULT_CORRUPTION_WALLET_RESET_NEEDED_CREATE_NEW_WALLET_BUTTON_PRESSED,
     ),
+
+  // Account access diagnostics
+  ACCOUNT_ACCESS_FORCED_RESET: generateOpt(
+    EVENT_NAME.ACCOUNT_ACCESS_FORCED_RESET,
+  ),
 
   // Login screen
   LOGIN_SCREEN_VIEWED: generateOpt(EVENT_NAME.LOGIN_SCREEN_VIEWED),

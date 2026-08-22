@@ -324,6 +324,8 @@ jest.mock('../../../core/redux', () => ({
   },
 }));
 
+const mockLoginReduxStore = jest.requireMock('../../../core/redux').default;
+
 const mockBackHandlerAddEventListener = jest
   .fn()
   .mockReturnValue({ remove: jest.fn() });
@@ -393,6 +395,9 @@ describe('Login', () => {
     (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
     mockBackHandlerAddEventListener.mockClear();
     mockBackHandlerAddEventListener.mockReturnValue({ remove: jest.fn() });
+    mockGetVaultFromBackup.mockReset();
+    mockParseVaultValue.mockReset();
+    mockLoginReduxStore.store.getState.mockReturnValue({ mock: 'state' });
 
     const mockStore = createMockReduxStore();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue(mockStore);
@@ -1671,12 +1676,277 @@ describe('Login', () => {
   });
 
   describe('Navigation and lifecycle', () => {
-    it('navigates to forgot password modal when reset wallet is pressed', () => {
+    it('navigates to forgot password modal when reset wallet is pressed', async () => {
       const { getByTestId } = renderWithProvider(<Login />);
-      fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.DELETE_WALLET,
       });
+    });
+
+    it('navigates to the delete-wallet modal once when reset wallet is pressed twice', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
+      let resolveBackup: (value: {
+        success: boolean;
+        vault: string;
+      }) => void = () => undefined;
+      mockGetVaultFromBackup.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveBackup = resolve;
+          }),
+      );
+      mockParseVaultValue.mockResolvedValueOnce('mock-seed');
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+
+      const resetWallet = getByTestId(LoginViewSelectors.RESET_WALLET);
+      await act(async () => {
+        fireEvent.press(resetWallet);
+        fireEvent.press(resetWallet);
+        resolveBackup({ success: true, vault: 'mock-vault' });
+      });
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      expect(mockReplace).not.toHaveBeenCalled();
+    });
+
+    it('does not decrypt the vault backup when password was typed but never submitted', async () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      expect(mockGetVaultFromBackup).not.toHaveBeenCalled();
+      expect(mockParseVaultValue).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+    });
+
+    it('reports Sentry when the last failed unlock password decrypts a vault backup', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
+      mockGetVaultFromBackup.mockResolvedValueOnce({
+        success: true,
+        vault: 'mock-vault',
+      });
+      mockParseVaultValue.mockResolvedValueOnce('mock-seed');
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      expect(mockReplace).not.toHaveBeenCalledWith(
+        Routes.VAULT_RECOVERY.RESTORE_WALLET,
+        expect.anything(),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'Forgot password: submitted password decrypts on-device vault backup',
+        }),
+        expect.objectContaining({
+          tags: { feature: 'account_access' },
+          context: {
+            name: 'ForgotPasswordVaultMismatch',
+            data: {
+              local_backup_decrypts: true,
+              unlock_attempted: true,
+            },
+          },
+        }),
+      );
+    });
+
+    it('falls through to the destructive reset when the last failed unlock password does not decrypt the backup', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
+      mockGetVaultFromBackup.mockResolvedValueOnce({
+        success: true,
+        vault: 'mock-vault',
+      });
+      mockParseVaultValue.mockResolvedValueOnce(undefined);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'wrong-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      expect(mockLogger.error).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'Forgot password: submitted password decrypts on-device vault backup',
+        }),
+        expect.anything(),
+      );
+    });
+
+    it('falls through to the destructive reset when the backup check throws after a failed unlock', async () => {
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
+      mockGetVaultFromBackup.mockRejectedValueOnce(new Error('keychain error'));
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+    });
+
+    it('reports Sentry when seedless password is outdated on forgot password', async () => {
+      mockLoginReduxStore.store.getState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'seedless-vault',
+            },
+          },
+        },
+      });
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValueOnce(true);
+
+      const { getByTestId } = renderWithProvider(<Login />);
+
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      expect(mockReplace).not.toHaveBeenCalledWith(
+        Routes.VAULT_RECOVERY.RESTORE_WALLET,
+        expect.anything(),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+        skipCache: true,
+        captureSentryError: true,
+      });
+      expect(mockParseVaultValue).not.toHaveBeenCalled();
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'Forgot password: seedless local vault may be out of sync with server',
+        }),
+        expect.objectContaining({
+          tags: { feature: 'account_access' },
+          context: {
+            name: 'ForgotPasswordSeedlessDesync',
+            data: {
+              password_outdated: true,
+              local_backup_decrypts: false,
+              unlock_attempted: false,
+            },
+          },
+        }),
+      );
+    });
+
+    it('reports Sentry when seedless backup still decrypts the last failed unlock password', async () => {
+      mockLoginReduxStore.store.getState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'seedless-vault',
+            },
+          },
+        },
+      });
+      mockUnlockWallet.mockRejectedValueOnce(new Error('Decrypt failed'));
+      mockGetVaultFromBackup.mockResolvedValueOnce({
+        success: true,
+        vault: 'mock-vault',
+      });
+      mockParseVaultValue.mockResolvedValueOnce('mock-seed');
+
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+      });
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      });
+
+      expect(mockReplace).not.toHaveBeenCalledWith(
+        Routes.VAULT_RECOVERY.RESTORE_WALLET,
+        expect.anything(),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.MODAL.DELETE_WALLET,
+      });
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'Forgot password: seedless local vault may be out of sync with server',
+        }),
+        expect.objectContaining({
+          context: {
+            name: 'ForgotPasswordSeedlessDesync',
+            data: {
+              password_outdated: false,
+              local_backup_decrypts: true,
+              unlock_attempted: true,
+            },
+          },
+        }),
+      );
     });
 
     it('navigates to rehydrate on seedless onboarding error', async () => {

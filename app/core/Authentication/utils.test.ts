@@ -7,6 +7,7 @@ import { UnlockWalletErrorType } from './types';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from './constants';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import {
+  classifyUnlockError,
   handlePasswordSubmissionError,
   checkPasswordRequirement,
   getAuthLabel,
@@ -99,6 +100,34 @@ describe('handlePasswordSubmissionError', () => {
     );
     expect(() => handlePasswordSubmissionError(error)).toThrow(
       expectedThrownError,
+    );
+  });
+});
+
+describe('classifyUnlockError', () => {
+  it('returns INVALID_PASSWORD for a wrong-password error', () => {
+    const error = new Error(UNLOCK_WALLET_ERROR_MESSAGES.WRONG_PASSWORD);
+
+    expect(classifyUnlockError(error)).toBe(
+      UnlockWalletErrorType.INVALID_PASSWORD,
+    );
+  });
+
+  it('returns VAULT_CORRUPTION for a missing previous vault error', () => {
+    const error = new Error(
+      UNLOCK_WALLET_ERROR_MESSAGES.PREVIOUS_VAULT_NOT_FOUND,
+    );
+
+    expect(classifyUnlockError(error)).toBe(
+      UnlockWalletErrorType.VAULT_CORRUPTION,
+    );
+  });
+
+  it('returns UNRECOGNIZED_ERROR for an unclassified error', () => {
+    const error = new Error('Unrecognized error!');
+
+    expect(classifyUnlockError(error)).toBe(
+      UnlockWalletErrorType.UNRECOGNIZED_ERROR,
     );
   });
 });
