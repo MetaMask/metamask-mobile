@@ -271,6 +271,21 @@ export const selectMoneyCardTiltAnimationEnabledFlag = createSelector(
   },
 );
 
+/**
+ * Kill-switch for the card education screen Rive cards animation.
+ * Defaults to ON (true).
+ */
+export const selectMoneyCardEducationAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyCardEducationAnimationEnabled as unknown as VersionGatedFeatureFlag;
+    const local =
+      process.env.MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED !== 'false';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
 const FALLBACK_MONEY_DEPOSIT_MIN_BALANCE = 0.01; // 1 cent
 
 /**
