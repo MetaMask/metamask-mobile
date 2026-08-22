@@ -1,0 +1,80 @@
+##############################################################################################
+#
+# Hotfix Backport Alert
+#
+# Runs every Thursday at 09:00 UTC (weekly release deadline) and checks whether
+# commits from hotfixes on the previous release line were carried forward into
+# the current release branch:
+#
+#   release/X.Y.0        → checks hotfixes on the X.(Y-1) line
+#                          e.g. release/7.79.0 checks v7.78.1, v7.78.2 …
+#
+#   release/X.Y.Z (Z>0)  → checks the previous patches on the same X.Y line
+#   release/X.Y.Z-ota      e.g. release/7.79.2[-ota] checks v7.79.1 / v7.79.1-ota
+#
+# The latest release branch is auto-detected from the repo unless overridden via
+# workflow_dispatch. If potentially missing commits are found, a warning is posted
+# to the release Slack channel and @release-owner-mobile is tagged.
+#
+# This alert is a WARNING ONLY — the fixes may not be needed. The team is
+# pinged so they can make an informed decision.
+#
+# NOTE: Scheduled workflows always run from the default branch (main). This
+# workflow must be merged to main before the cron will fire.
+#
+##############################################################################################
+name: Hotfix Backport Alert
+
+on:
+  schedule:
+    - cron: '0 9 * * 4'   # Thursday 09:00 UTC (weekly release deadline)
+  workflow_dispatch:
+    inputs:
+      semver:
+        description: 'Release semver to check (e.g. 7.79.0). Empty = auto-detect latest release branch.'
+        required: false
+        type: string
+      is_ota:
+        description: 'Treat the release as an OTA hotfix (release/X.Y.Z-ota)'
+        required: false
+        type: boolean
+        default: false
+      dry_run:
+        description: 'Print the Slack payload without posting (for local/CI testing)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  hotfix-backport-alert:
+    name: Check hotfix backports and alert
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Run hotfix backport alert
+        run: node ./scripts/slack-hotfix-backport-alert.mjs
+        env:
+          # Empty on cron → script auto-detects the latest release branch.
+          # On workflow_dispatch, set to a bare semver (e.g. "7.79.1"). Do NOT include -ota here.
+          NEW_SEMVER: ${{ inputs.semver || '' }}
+          # Only used when NEW_SEMVER is explicitly set. Ignored during auto-detect (cron).
+          # Boolean dispatch inputs stringify to 'true'/'false'; '' on cron → 'false'.
+          IS_OTA: ${{ inputs.is_ota || 'false' }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
