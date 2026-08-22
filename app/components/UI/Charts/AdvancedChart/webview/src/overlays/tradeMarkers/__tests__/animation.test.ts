@@ -3,6 +3,7 @@
  */
 import { handlePulseTradeMarker } from '../animation';
 import { __resetTradeMarkerStateForTests, getShapesByMarkerId } from '../state';
+import { TRADE_MARKER_SIZE } from '../index';
 import {
   __resetStateForTests,
   setChartReady,
@@ -112,6 +113,58 @@ describe('handlePulseTradeMarker', () => {
     jest.advanceTimersByTime(1500);
     // Property calls continued after the second pulse — first's loop was cancelled.
     expect(fillRec.properties.length).toBeGreaterThan(countAfterFirst);
+  });
+
+  it('resets an earlier dot to base size when a different dot is pulsed mid-pulse', () => {
+    // Two distinct markers: 'a' (fill + ring) and 'b' (fill only).
+    const { shape: fillA, record: fillARec } = makeShape('fill-a');
+    const { shape: ringA } = makeShape('ring-a');
+    const { shape: fillB, record: fillBRec } = makeShape('fill-b');
+    const { widget } = makeWidgetWithShapes({
+      'fill-a': fillA,
+      'ring-a': ringA,
+      'fill-b': fillB,
+    });
+    setWidget(widget);
+    setChartReady(true);
+    getShapesByMarkerId().set('a', { fill: 'fill-a', ring: 'ring-a' });
+    getShapesByMarkerId().set('b', { fill: 'fill-b', ring: null });
+
+    // Pulse 'a' and let it run partway so it is enlarged mid-envelope.
+    handlePulseTradeMarker({ id: 'a' });
+    jest.advanceTimersByTime(64);
+    const midSizeA = fillARec.properties[fillARec.properties.length - 1]
+      ?.size as number;
+    expect(midSizeA).toBeGreaterThan(TRADE_MARKER_SIZE);
+
+    // Pulse a DIFFERENT dot mid-pulse — must not freeze 'a' at its peak.
+    handlePulseTradeMarker({ id: 'b' });
+    jest.advanceTimersByTime(1500);
+
+    // Both dots' loops ran to completion and reset to the base size.
+    const finalSizeA = fillARec.properties[fillARec.properties.length - 1]
+      ?.size as number;
+    const finalSizeB = fillBRec.properties[fillBRec.properties.length - 1]
+      ?.size as number;
+    expect(finalSizeA).toBe(TRADE_MARKER_SIZE);
+    expect(finalSizeB).toBe(TRADE_MARKER_SIZE);
+  });
+
+  it('resets to base size after two quick pulses on the same dot', () => {
+    const { shape: fill, record: fillRec } = makeShape('fill-a');
+    const { widget } = makeWidgetWithShapes({ 'fill-a': fill });
+    setWidget(widget);
+    setChartReady(true);
+    getShapesByMarkerId().set('a', { fill: 'fill-a', ring: null });
+
+    handlePulseTradeMarker({ id: 'a' });
+    jest.advanceTimersByTime(64);
+    handlePulseTradeMarker({ id: 'a' }); // supersedes same dot
+    jest.advanceTimersByTime(1500);
+
+    const finalSize = fillRec.properties[fillRec.properties.length - 1]
+      ?.size as number;
+    expect(finalSize).toBe(TRADE_MARKER_SIZE);
   });
 
   it('no-ops when payload id is null', () => {
