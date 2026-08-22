@@ -39,19 +39,12 @@
       "alert_details": "Uyarı bilgileri"
     },
     "confirm_modal": {
-      "title": "Yüksek riskli talep",
+      "title": "High-risk request",
       "checkbox_label": "Uyarıyı biliyor ve yine de ilerlemek istiyorum",
       "review_alerts": "Tüm uyarıları incele",
       "message": "Bu talebi reddetmenizi öneririz. Devam ederseniz varlıklarınızı riske atarsınız.",
-      "title_blockaid": "Varlıklarınız risk altında olabilir",
-      "blockaid": {
-        "message": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz. Bu talebi iptal etmenizi öneririz.",
-        "message1": "Bu talebi onaylarsanız bir dolandırıcının varlıklarınızı çekmesine ve harcamasına izin verirsiniz. Varlıklarınızı geri alamazsınız.",
-        "message2": "Varlıklarınızı bir dolandırıcıya gönderiyorsunuz. Devam ederseniz bu varlıkları kaybedeceksiniz.",
-        "message3": "Devam ederseniz OpenSea'de yer alan tüm varlıklarınız riske girebilir.",
-        "message4": "Devam ederseniz Blur'de yer alan tüm varlıklarınız riske girebilir.",
-        "message5": "Kötü niyetli bir siteyle etkileşimde bulunuyorsunuz. Devam ederseniz varlıklarınızı kaybedeceksiniz."
-      }
+      "blockaid_message": "Security partners found high-risk signals in this {{requestType}}. If you continue, your funds can't be recovered.",
+      "blockaid_message_with_amount": "Security partners found high-risk signals in this {{requestType}}. If you continue, your {{amount}} can't be recovered."
     },
     "inline_alert_label": "Uyarı",
     "review_alerts": "Uyarıları incele",
@@ -191,21 +184,30 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "Bu talebi onaylarsanız dolandırıcılıkla bilinen üçüncü bir taraf tüm varlıklarınızı çalabilir.",
-    "blur_farming_description": "Bu talebi onaylarsanız birisi Blur üzerinde yer alan varlıklarınızı çalabilir.",
-    "deceptive_request_title": "Bu, aldatıcı bir taleptir",
-    "failed_title": "Talep güvenli olmayabilir",
-    "failed_description": "Bu talep bir hatadan dolayı güvenlik sağlayıcısı tarafından doğrulanmadı. Dikkatli bir şekilde ilerleyin.",
-    "malicious_domain_description": "Kötü niyetli bir alanla etkileşimde bulunuyorsunuz. Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
-    "other_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
-    "raw_signature_farming_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
-    "seaport_farming_description": "Bu talebi onaylarsanız birisi OpenSea üzerinde yer alan varlıklarınızı çalabilir.",
+    "high_risk_approval_title": "High-risk approval",
+    "high_risk_transfer_title": "High-risk transfer",
+    "high_risk_signature_title": "High-risk signature",
+    "site_flagged_unsafe_title": "Site flagged as unsafe",
+    "risk_signals_detected_title": "Risk signals detected",
+    "failed_title": "Security check unavailable",
+    "approval_farming_description": "You're giving an address flagged by security partners permission to move your assets.",
+    "marketplace_farming_description": "You're giving an address flagged by security partners permission to move your assets listed on {{marketplace}}.",
+    "transfer_farming_description": "You're sending assets to an address flagged by security partners. If this is a scam, your funds can't be recovered.",
+    "transfer_farming_description_with_amount": "You're sending assets to an address flagged by security partners. If this is a scam, your {{amount}} can't be recovered.",
+    "malicious_domain_description": "Security partners flag this site as malicious. If this is a scam, your funds can't be recovered.",
+    "malicious_domain_description_with_amount": "Security partners flag this site as malicious. If this is a scam, your {{amount}} can't be recovered.",
+    "high_risk_signature_description": "Security partners flag this signature as high risk. Signing could authorize actions with your assets without your permission.",
+    "other_description": "Security partners found risk signals in this request. Review before continuing.",
+    "failed_description": "We couldn't complete this safety check. Continue only if you trust the site and addresses involved.",
+    "request_type": {
+      "approval": "approval",
+      "transfer": "transfer",
+      "signature": "signature",
+      "request": "request"
+    },
     "see_details": "Ayrıntıları gör",
     "does_not_look_right": "Bir şeyler doğru görünmüyor mu?",
     "report_an_issue": "Bir sorun bildir",
-    "suspicious_request_title": "Bu, şüheli bir taleptir",
-    "trade_order_farming_description": "Bu talebi onaylarsanız varlıklarınızı kaybedebilirsiniz.",
-    "transfer_farming_description": "Bu talebi onaylarsanız dolandırıcılıkla bilinen üçüncü bir taraf tüm varlıklarınızı çalar.",
     "before_you_proceed": "Devam etmeden önce",
     "enable_blockaid_alerts": "Bu özelliği etkinleştirmek için bazı güvenlik uyarılarının kurulumunun yapılması gerekiyor. Kurulum yapılırken bu sayfanın açık kalması gerekecek. Bu işlemin tamamlanması bir dakikadan az sürecektir.",
     "enable_blockaid_alerts_description": "Güvenlik uyarılarının kurulumu yapılırken bu sayfanın açık kalması gerekir. Bu sürecin tamamlanması bir dakikadan kısa sürecektir.",
@@ -1648,6 +1650,12 @@
         "limit_price_must_be_set_before_configuring_tpsl": "KA/ZD yapılandırılmadan önce limit fiyat belirlenmelidir",
         "only_hyperliquid_usdc": "HyperLiquid’de ödeme için şu anda yalnızca USDC desteklenmektedir",
         "limit_price_far_warning": "Limit fiyat güncel piyasa fiyatından uzak",
+        "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
+        "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
+        "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
+        "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
+        "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
+        "please_set_a_trigger_price": "Please set a trigger price",
         "oi_cap_reached": "Açık pozisyon limiti doldu. Şu anda yeni pozisyonlar açılamıyor.",
         "reduce_only_no_position": "Yalnızca azaltma emirleri verebilmek için bu piyasada açık bir pozisyonunuzun olması gerekir",
         "reduce_only_wrong_side": "Yalnızca azaltma emirleri sadece mevcut bir pozisyonu azaltabilir. Ters yöne geçiş yapın.",
@@ -1804,6 +1812,7 @@
       "use_custom_title": "Özel kayma kullanın",
       "row_format": "Tah: %{{est}} / Maks: %{{value}}",
       "row_format_pending": "Tah: -- / Maks: %{{value}}",
+      "row_format_max": "Max: {{value}}%",
       "input_label": "Maks. kayma yüzdesi",
       "decrement_label": "Kaymayı azalt",
       "increment_label": "Kaymayı artır",
@@ -2411,13 +2420,17 @@
     },
     "close_all_modal": {
       "title": "Tüm pozisyonları kapat",
-      "description": "Tüm açık pozisyonlarınızı güncel piyasa fiyatından kapatacağız.",
+      "title_filtered": "Close positions",
+      "description": {
+        "one": "We'll close your open position at current market price.",
+        "other": "We'll close your {{count}} open positions at current market price."
+      },
       "margin": "Marj",
       "includes_pnl": "{{pnlAmount}} dahildir",
       "fees": "Ücretler",
       "you_will_receive": "Elinize geçecek miktar:",
       "keep_positions": "Pozisyonları tut",
-      "close_all": "Tümünü kapat",
+      "close_count": "Close ({{count}})",
       "closing": "Kapatılıyor...",
       "success_title": "Pozisyonlar kapatıldı",
       "success_message": "{{count}} pozisyon başarılı bir şekilde kapatıldı",
@@ -2699,8 +2712,8 @@
     "card_footer_disclaimer": "Yapay zeka ile oluşturulmuş",
     "footer_disclaimer": "Yapay zeka özeti yalnızca bilgi amaçlıdır",
     "disclaimer_modal": {
-      "title": "Yapay zeka ile oluşturulmuş içerik",
-      "body": "Bu özet, bir üçüncü tarafça yapay zeka aracılığıyla oluşturulmuştur ve doğru veya kişiselleştirilmiş olmayabilir. İşlem, yatırım, hukuk veya vergi kararları için kullanmayın. Geçmiş performans, gelecekteki sonuçlara yönelik tahmin teşkil etmez.",
+      "title": "AI-generated content",
+      "body": "This summary is AI generated by a third party and may not be accurate or personalized. Don't use it for trading, investment, legal, or tax decisions. Past performance doesn't predict future results.",
       "got_it": "Anladım"
     },
     "swap_button": "Takas",
@@ -2725,6 +2738,15 @@
   },
   "predict": {
     "title": "MetaMask Tahminler",
+    "game_status": {
+      "live": "LIVE",
+      "scheduled": "SCHEDULED",
+      "delayed": "DELAYED",
+      "suspended": "SUSPENDED",
+      "postponed": "POSTPONED",
+      "final": "FINAL",
+      "canceled": "CANCELED"
+    },
     "send_to_predictions": "Tahminlere Gönder",
     "select_predict_account": "Tahmin hesabı seç",
     "search_account": "Bir hesabı ara",
@@ -4023,7 +4045,7 @@
     "notifications_title": "Bildirimler",
     "notifications_desc": "Bildirimlerinizi yönetin",
     "allow_notifications": "Bildirimlere izin ver",
-    "enable_push_notifications": "Anlık bildirimleri etkinleştir",
+    "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "Ne hakkında ve nasıl bildirim alacağınızı seçin.",
     "notifications_opts": {
       "preferences_title": "Tercihler",
@@ -5414,7 +5436,7 @@
     "mint": "Mint",
     "tx_details_free": "Ücretsiz",
     "tx_details_not_available": "Mevcut değil",
-    "smart_contract_interaction": "Akıllı sözleşme etkileşimi",
+    "smart_contract_interaction": "Contract interaction",
     "money_account_deposit": "Money Account hesabına para yatır",
     "money_account_withdraw": "Money Account Hesabından Para Transfer Et",
     "swaps_transaction": "Swap işlemi",
@@ -6124,7 +6146,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "Para çekme talep edildi",
     "prompt_title": "Anlık bildirimleri al",
     "notifications_enabled_error_title": "Bir şeyler ters gitti",
-    "notifications_enabled_error_desc": "Bildirimleri etkinleştiremedik. Lütfen daha sonra tekrar deneyin.",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Please try again later.",
     "prompt_desc": "Cüzdan aktivitesi hakkında önemli uyarıları ve daha fazlasını almak için Ayarlar kısmından bildirimleri açın.",
     "prompt_ok": "Aç",
     "prompt_cancel": "Belki daha sonra",
@@ -6172,7 +6194,7 @@
       "new_user": {
         "title": "Hiçbir hamleyi kaçırmayın",
         "body": "MetaMask'i nasıl kullandığınıza bağlı olarak fiyat hareketleri, işlem onayları, portföy aktivitesi ve ödüller hakkında gerçek zamanlı uyarılar alın.",
-        "button_yes": "Bildirimleri etkinleştir",
+        "button_yes": "Turn on notifications",
         "button_not_now": "Şimdi değil",
         "preview_card_1": {
           "time": "şimdi",
@@ -6214,7 +6236,7 @@
         }
       },
       "toast_enabled": "Bildirimler etkinleştirildi",
-      "toast_settings_hint": "Bildirimleri Ayarlar > Bildirimler bölümünde dilediğiniz zaman etkinleştirebilirsiniz"
+      "toast_settings_hint": "You can turn on notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -7630,7 +7652,6 @@
   },
   "money": {
     "title": "Bakiye",
-    "get_pro": "Get Pro",
     "your_balance": "Bakiyeniz",
     "apy_label": "%{{percentage}} Yıllık Bileşik Getiri",
     "apy_currency_suffix": " • mUSD",
@@ -8480,6 +8501,49 @@
       "market": "Piyasa",
       "limit": "Limit",
       "recurring": "Tekrarlayan"
+    },
+    "orders": {
+      "tabs": {
+        "open_orders": "Open orders",
+        "history": "History"
+      },
+      "empty": {
+        "open_orders": "Open orders appear here",
+        "history": "Order history appears here"
+      }
+    },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price",
+      "not_enough_gas": "Not enough gas",
+      "filled": "Filled",
+      "filled_at": "Filled at {{date}}",
+      "expired": "Expired",
+      "expired_after": "Expired after {{duration}}"
+    },
+    "recurring": {
+      "you_get": "You get",
+      "every": "Every",
+      "repeat": "Repeat",
+      "times": "times",
+      "confirm": "Confirm",
+      "unit": {
+        "minute": "minute",
+        "hour": "hour",
+        "day": "day",
+        "week": "week"
+      },
+      "unit_option": {
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day",
+        "week": "Week"
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled",
+      "filled": "Filled"
     },
     "continue": "Devam et",
     "confirm_bridge": "Köprü",
@@ -9724,12 +9788,12 @@
     },
     "notifications_nudge": {
       "title": "Kaçırmayın",
-      "description": "Kampanyalar hakkında bilgi almaya devam etmek için bildirimleri etkinleştirin.",
+      "description": "Turn on notifications to stay informed on campaigns.",
       "turn_on_button": "Aç",
-      "loading": "Bildirimler etkinleştiriliyor...",
+      "loading": "Turning on notifications...",
       "loading_description": "Bu işlem biraz zaman alabilir.",
-      "enable_error": "Bildirimler etkinleştirilemedi",
-      "success": "Bildirimler etkinleştirildi"
+      "enable_error": "Failed to turn on notifications",
+      "success": "Notifications turned on"
     },
     "version_guard": {
       "title": "Güncelleme gerekli",
@@ -10138,10 +10202,12 @@
       "geo_locked_cta": "Uygunluğu kontrol et",
       "geo_loading": "Bölge kontrol ediliyor...",
       "remind_me_success_toast": "Bu kampanya başladığında sizi bilgilendireceğiz.",
-      "remind_me_save_error": "Hatırlatıcınız kaydedilemedi. Lütfen tekrar deneyin."
+      "remind_me_save_error": "Hatırlatıcınız kaydedilemedi. Lütfen tekrar deneyin.",
+      "view_details": "View details",
+      "view_details_accessibility": "View details for {{campaignName}}"
     },
     "campaign_mechanics": {
-      "title": "İşleyiş"
+      "title": "Rules and eligibility"
     },
     "campaign_details": {
       "start_date": "Başlangıç: {{date}}",
@@ -10158,6 +10224,11 @@
       "swap_ondo_assets": "Ondo Varlıklarını Takas Et",
       "open_position": "Şimdi işlem yapın",
       "how_it_works": "Nasıl çalışır?",
+      "error_title": "Unable to load this campaign",
+      "error_description": "We couldn't load this campaign. Please try again.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "retry": "Retry",
       "ondo": {
         "entries_closed_title": "Girişler kapatıldı",
         "entries_closed_description": "Katılım fırsatını kaçırdınız. Gelecekte daha fazla kampanya için tekrar kontrol edin."
@@ -10446,8 +10517,8 @@
       "you_received": "Aldığınız",
       "token_received": "Token alındı",
       "money_account": "Money account",
-      "perps_account": "Sürekli Vadeli İşlem Hesabı 1",
-      "predictions_account": "Tahminler Hesabı 1",
+      "perps_account": "Account 1 Perps",
+      "predictions_account": "Account 1 Predictions",
       "steps_completed": "Adımlar ({{count}} tamamlandı)",
       "summary": "Özet"
     },
@@ -10527,7 +10598,7 @@
     "push_nudge": {
       "title": "Hiçbir işlemi kaçırmayın",
       "description": "CLI oturumunuzdan gerçekleşen işlemleri incelemek ve onaylamak için gerçek zamanlı uyarılar alın.",
-      "turn_on_button": "Bildirimleri etkinleştir",
+      "turn_on_button": "Turn on notifications",
       "preview_title": "İşlem talebi",
       "preview_message": "Temsilcinizin yeni bir limit için onaya ihtiyacı var.",
       "preview_timestamp": "şimdi"
@@ -10625,7 +10696,7 @@
     "view_all": "Tümünü görüntüle",
     "view_more": "Daha fazlasını görüntüle",
     "view_x_more": "{{count}} tanesini daha görüntüle",
-    "enable_basic_functionality": "Temel işlevselliği etkinleştir",
+    "enable_basic_functionality": "Turn on basic functionality",
     "basic_functionality_disabled_title": "Keşfet özelliği kullanılamıyor",
     "basic_functionality_disabled_description": "Temel işlevsellik devre dışıyken gerekli meta verileri getiremiyoruz.",
     "empty_error_trending_state": {
@@ -10833,7 +10904,6 @@
   "whats_happening": {
     "title": "Neler oluyor",
     "ai": "Yapay Zeka",
-    "ai_generated": "Yapay Zeka ile Oluşturulmuştur",
     "outdated": "Güncel değil",
     "impact": {
       "bullish": "Boğa",
@@ -10878,6 +10948,52 @@
     "activate_error": "Bu trustline eklenirken bir şeyler ters gitti. Tekrar deneyin.",
     "deactivate_error": "Bu trustline kaldırılırken bir şeyler ters gitti. Tekrar deneyin.",
     "deactivate_error_non_zero_balance_stellar": "Bu cüzdanda halen {{balance}} {{symbol}} varlığınız bulunuyor. Stellar üzerinde bu varlığı devre dışı bırakmadan önce tamamını göndermeli veya takas etmelisiniz."
+  },
+  "pro_hub": {
+    "title": "MetaMask Pro",
+    "subtitle": "Your Pro membership",
+    "manage": "Manage subscription",
+    "explore_benefits": "Explore benefits",
+    "membership": {
+      "title": "Your membership",
+      "plan": "Membership",
+      "earned_this_month": "Earned this month",
+      "saved_this_month": "Saved this month",
+      "payment_details": "Payment details",
+      "total": "Total",
+      "paying_with": "Paying with",
+      "renews_on": "Renews on",
+      "manage": "Manage",
+      "contact_support": "Contact support",
+      "cancel_membership": "Cancel membership",
+      "earned_info": {
+        "title": "Earned this month",
+        "description": "The amount you earned in APY and mUSD back as a Pro member."
+      },
+      "saved_info": {
+        "title": "Saved this month",
+        "description": "The amount you saved as a Pro member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
+      }
+    },
+    "cancel_membership": {
+      "title": "Why are you canceling?",
+      "subtitle": "Survey is optional.",
+      "earned_as_member": "Earned as a member",
+      "membership_cost": "Membership cost",
+      "reason_issue": "I have an issue with my membership",
+      "reason_no_value": "Not getting enough value",
+      "reason_no_benefits": "I don't need the benefits",
+      "reason_support": "Unhappy with customer support",
+      "reason_other": "Other",
+      "keep_membership": "Keep membership",
+      "cancel": "Cancel",
+      "success": {
+        "title": "Plan canceled",
+        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
+        "description_suffix": ".",
+        "done": "Done"
+      }
+    }
   },
   "pro_subscription": {
     "title": "Earn more with Pro",

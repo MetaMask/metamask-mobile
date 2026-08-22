@@ -39,19 +39,12 @@
       "alert_details": "アラートの詳細"
     },
     "confirm_modal": {
-      "title": "リスクの高い要求",
+      "title": "High-risk request",
       "checkbox_label": "アラートを確認したうえで続行します",
       "review_alerts": "すべてのアラートを確認",
       "message": "この要求を拒否することをお勧めします。続行すると、資産がリスクにさらされる可能性があります。",
-      "title_blockaid": "資産がリスクにさらされている可能性があります",
-      "blockaid": {
-        "message": "この要求を確定すると、資産を失う可能性があります。この要求はキャンセルすることをお勧めします。",
-        "message1": "この要求を確定すると、詐欺師に資産の引き出しや使用を許可することになります。失った資産は取り戻すことができません。",
-        "message2": "資産を詐欺師に送金しようとしています。続行すると、これらの資産は失われます。",
-        "message3": "続行すると、OpenSeaに出品している資産がすべてリスクにさらされる可能性があります。",
-        "message4": "続行すると、Blurに出品している資産がすべてリスクにさらされる可能性があります。",
-        "message5": "悪意のあるサイトとやり取りしています。続行すると、資産が失われます。"
-      }
+      "blockaid_message": "Security partners found high-risk signals in this {{requestType}}. If you continue, your funds can't be recovered.",
+      "blockaid_message_with_amount": "Security partners found high-risk signals in this {{requestType}}. If you continue, your {{amount}} can't be recovered."
     },
     "inline_alert_label": "アラート",
     "review_alerts": "アラートを確認",
@@ -191,21 +184,30 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われる可能性があります。",
-    "blur_farming_description": "このリクエストを承認すると、Blurに登録されている資産を誰かに盗まれる可能性があります。",
-    "deceptive_request_title": "これは虚偽のリクエストです",
-    "failed_title": "リクエストが安全でない可能性があります",
-    "failed_description": "エラーが発生したため、このリクエストはセキュリティプロバイダーにより確認されませんでした。慎重に進めてください。",
-    "malicious_domain_description": "悪質なドメインとやり取りしています。このリクエストを承認すると、資産を失う可能性があります。",
-    "other_description": "このリクエストを承認すると、資産を失う可能性があります。",
-    "raw_signature_farming_description": "このリクエストを承認すると、資産を失う可能性があります。",
-    "seaport_farming_description": "このリクエストを承認すると、OpenSeaに登録されている資産を誰かに盗まれる可能性があります。",
+    "high_risk_approval_title": "High-risk approval",
+    "high_risk_transfer_title": "High-risk transfer",
+    "high_risk_signature_title": "High-risk signature",
+    "site_flagged_unsafe_title": "Site flagged as unsafe",
+    "risk_signals_detected_title": "Risk signals detected",
+    "failed_title": "Security check unavailable",
+    "approval_farming_description": "You're giving an address flagged by security partners permission to move your assets.",
+    "marketplace_farming_description": "You're giving an address flagged by security partners permission to move your assets listed on {{marketplace}}.",
+    "transfer_farming_description": "You're sending assets to an address flagged by security partners. If this is a scam, your funds can't be recovered.",
+    "transfer_farming_description_with_amount": "You're sending assets to an address flagged by security partners. If this is a scam, your {{amount}} can't be recovered.",
+    "malicious_domain_description": "Security partners flag this site as malicious. If this is a scam, your funds can't be recovered.",
+    "malicious_domain_description_with_amount": "Security partners flag this site as malicious. If this is a scam, your {{amount}} can't be recovered.",
+    "high_risk_signature_description": "Security partners flag this signature as high risk. Signing could authorize actions with your assets without your permission.",
+    "other_description": "Security partners found risk signals in this request. Review before continuing.",
+    "failed_description": "We couldn't complete this safety check. Continue only if you trust the site and addresses involved.",
+    "request_type": {
+      "approval": "approval",
+      "transfer": "transfer",
+      "signature": "signature",
+      "request": "request"
+    },
     "see_details": "詳細を表示",
     "does_not_look_right": "おかしな点がありますか？",
     "report_an_issue": "問題を報告する",
-    "suspicious_request_title": "これは不審なリクエストです",
-    "trade_order_farming_description": "このリクエストを承認すると、資産を失う可能性があります。",
-    "transfer_farming_description": "このリクエストを承認すると、詐欺が判明しているサードパーティに資産をすべて奪われます。",
     "before_you_proceed": "続ける前に",
     "enable_blockaid_alerts": "この機能を有効にするには、セキュリティアラートの設定が必要です。設定の間、このページは開いたままにしておく必要があります。この作業は1分未満で完了します。",
     "enable_blockaid_alerts_description": "セキュリティアラートの設定中、このページを開いたままにする必要があります。このプロセスには1分もかかりません。",
@@ -1648,6 +1650,12 @@
         "limit_price_must_be_set_before_configuring_tpsl": "リミット価格の設定はTP/SLの設定前に行う必要があります",
         "only_hyperliquid_usdc": "現在、HyperliquidのUSDCだけが支払いに使用できます",
         "limit_price_far_warning": "リミット価格が現在の市場価格から離れすぎています",
+        "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
+        "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
+        "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
+        "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
+        "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
+        "please_set_a_trigger_price": "Please set a trigger price",
         "oi_cap_reached": "未決済建玉の上限に達しました。現在、新規のポジションをオープンすることはできません。",
         "reduce_only_no_position": "リデュースオンリー注文を行うには、この市場でポジションを保有している必要があります",
         "reduce_only_wrong_side": "リデュースオンリー注文は、既存のポジションのみ削減できます。反対側に切り替えてください。",
@@ -1804,6 +1812,7 @@
       "use_custom_title": "カスタムスリッページの使用",
       "row_format": "予想: {{est}}% / 最大: {{value}}%",
       "row_format_pending": "予想: -- / 最大: {{value}}%",
+      "row_format_max": "Max: {{value}}%",
       "input_label": "最大スリッページ割合",
       "decrement_label": "スリッページを減らす",
       "increment_label": "スリッページを増やす",
@@ -2411,13 +2420,17 @@
     },
     "close_all_modal": {
       "title": "すべてのポジションをクローズ",
-      "description": "すべての未決済のポジションを現在の市場価格でクローズします。",
+      "title_filtered": "Close positions",
+      "description": {
+        "one": "We'll close your open position at current market price.",
+        "other": "We'll close your {{count}} open positions at current market price."
+      },
       "margin": "証拠金",
       "includes_pnl": "{{pnlAmount}}を含む",
       "fees": "手数料",
       "you_will_receive": "受取額",
       "keep_positions": "ポジションをキープ",
-      "close_all": "すべてクローズ",
+      "close_count": "Close ({{count}})",
       "closing": "クローズしています...",
       "success_title": "ポジションがクローズされました",
       "success_message": "{{count}}個のポジションがクローズされました",
@@ -2699,8 +2712,8 @@
     "card_footer_disclaimer": "AI生成",
     "footer_disclaimer": "AIによる要約は参考用です",
     "disclaimer_modal": {
-      "title": "AI生成コンテンツ",
-      "body": "このサマリーはサードパーティのAIにより生成されており、正確ではなく、パーソナライズされていない可能性があります。取引、投資、法務、税務の意思決定には使用しないでください。過去の結果は未来の結果を予測するものではありません。",
+      "title": "AI-generated content",
+      "body": "This summary is AI generated by a third party and may not be accurate or personalized. Don't use it for trading, investment, legal, or tax decisions. Past performance doesn't predict future results.",
       "got_it": "了解"
     },
     "swap_button": "スワップ",
@@ -2725,6 +2738,15 @@
   },
   "predict": {
     "title": "MetaMask 予測",
+    "game_status": {
+      "live": "LIVE",
+      "scheduled": "SCHEDULED",
+      "delayed": "DELAYED",
+      "suspended": "SUSPENDED",
+      "postponed": "POSTPONED",
+      "final": "FINAL",
+      "canceled": "CANCELED"
+    },
     "send_to_predictions": "予測アカウントに送金",
     "select_predict_account": "予測アカウントの選択",
     "search_account": "アカウントの検索",
@@ -4023,7 +4045,7 @@
     "notifications_title": "通知",
     "notifications_desc": "通知の管理",
     "allow_notifications": "通知を許可する",
-    "enable_push_notifications": "プッシュ通知を有効にする",
+    "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "通知の内容と受取方法を選択できます。",
     "notifications_opts": {
       "preferences_title": "設定",
@@ -5414,7 +5436,7 @@
     "mint": "ミント",
     "tx_details_free": "無料",
     "tx_details_not_available": "利用できません",
-    "smart_contract_interaction": "スマートコントラクトのインタラクション",
+    "smart_contract_interaction": "Contract interaction",
     "money_account_deposit": "Money Accountに入金",
     "money_account_withdraw": "Money Accountから送金",
     "swaps_transaction": "スワップトランザクション",
@@ -6124,7 +6146,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "出金がリクエストされました",
     "prompt_title": "プッシュ通知の受取",
     "notifications_enabled_error_title": "問題が発生しました",
-    "notifications_enabled_error_desc": "通知を有効にできませんでした。後ほどもう一度お試しください。",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Please try again later.",
     "prompt_desc": "ウォレットのアクティビティなどに関する重要なアラートを取得するには、設定で通知をオンにします。",
     "prompt_ok": "オンにする",
     "prompt_cancel": "後で",
@@ -6172,7 +6194,7 @@
       "new_user": {
         "title": "価格変動を見逃さない",
         "body": "価格変動、取引の確認、ポートフォリオの動向、およびMetaMaskの利用状況に応じた報酬に関するリアルタイムの通知を受け取ることができます。",
-        "button_yes": "通知を有効にする",
+        "button_yes": "Turn on notifications",
         "button_not_now": "後で",
         "preview_card_1": {
           "time": "現在",
@@ -6214,7 +6236,7 @@
         }
       },
       "toast_enabled": "通知が有効になりました",
-      "toast_settings_hint": "設定 > 通知でいつでも通知を有効にできます"
+      "toast_settings_hint": "You can turn on notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -7630,7 +7652,6 @@
   },
   "money": {
     "title": "マネー",
-    "get_pro": "Get Pro",
     "your_balance": "残高",
     "apy_label": "年換算利率 (APY) {{percentage}}%",
     "apy_currency_suffix": " • mUSD",
@@ -8480,6 +8501,49 @@
       "market": "マーケット",
       "limit": "リミット",
       "recurring": "定期"
+    },
+    "orders": {
+      "tabs": {
+        "open_orders": "Open orders",
+        "history": "History"
+      },
+      "empty": {
+        "open_orders": "Open orders appear here",
+        "history": "Order history appears here"
+      }
+    },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price",
+      "not_enough_gas": "Not enough gas",
+      "filled": "Filled",
+      "filled_at": "Filled at {{date}}",
+      "expired": "Expired",
+      "expired_after": "Expired after {{duration}}"
+    },
+    "recurring": {
+      "you_get": "You get",
+      "every": "Every",
+      "repeat": "Repeat",
+      "times": "times",
+      "confirm": "Confirm",
+      "unit": {
+        "minute": "minute",
+        "hour": "hour",
+        "day": "day",
+        "week": "week"
+      },
+      "unit_option": {
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day",
+        "week": "Week"
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled",
+      "filled": "Filled"
     },
     "continue": "続行",
     "confirm_bridge": "ブリッジ",
@@ -9724,12 +9788,12 @@
     },
     "notifications_nudge": {
       "title": "お見逃しなく",
-      "description": "キャンペーン情報を逃さないように通知を有効にします。",
+      "description": "Turn on notifications to stay informed on campaigns.",
       "turn_on_button": "オンにする",
-      "loading": "通知を有効にしています...",
+      "loading": "Turning on notifications...",
       "loading_description": "これには少し時間がかかる可能性があります。",
-      "enable_error": "通知を有効にできませんでした",
-      "success": "通知が有効になりました"
+      "enable_error": "Failed to turn on notifications",
+      "success": "Notifications turned on"
     },
     "version_guard": {
       "title": "アップデートが必要です",
@@ -10138,10 +10202,12 @@
       "geo_locked_cta": "資格を確認",
       "geo_loading": "地域を確認中…",
       "remind_me_success_toast": "このキャンペーンが始まる際にお知らせします。",
-      "remind_me_save_error": "リマインダーを保存できませんでした。もう一度お試しください。"
+      "remind_me_save_error": "リマインダーを保存できませんでした。もう一度お試しください。",
+      "view_details": "View details",
+      "view_details_accessibility": "View details for {{campaignName}}"
     },
     "campaign_mechanics": {
-      "title": "仕組み"
+      "title": "Rules and eligibility"
     },
     "campaign_details": {
       "start_date": "開始: {{date}}",
@@ -10158,6 +10224,11 @@
       "swap_ondo_assets": "Ondo資産のスワップ",
       "open_position": "今すぐ取引",
       "how_it_works": "報酬獲得の仕組み",
+      "error_title": "Unable to load this campaign",
+      "error_description": "We couldn't load this campaign. Please try again.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "retry": "Retry",
       "ondo": {
         "entries_closed_title": "エントリーは終了しました",
         "entries_closed_description": "オプトイン期間が終了しました。今後のキャンペーンの情報がないかまたご確認ください。"
@@ -10446,8 +10517,8 @@
       "you_received": "受取額",
       "token_received": "トークンを受け取りました",
       "money_account": "Money Account",
-      "perps_account": "パーペチュアルアカウント1",
-      "predictions_account": "予測市場アカウント1",
+      "perps_account": "Account 1 Perps",
+      "predictions_account": "Account 1 Predictions",
       "steps_completed": "手順（{{count}}件完了）",
       "summary": "サマリー"
     },
@@ -10527,7 +10598,7 @@
     "push_nudge": {
       "title": "二度とトランザクションを見逃さないために",
       "description": "リアルタイムのアラートを受け取り、CLIセッションからトランザクションの確認と承認を行います。",
-      "turn_on_button": "通知を有効にする",
+      "turn_on_button": "Turn on notifications",
       "preview_title": "トランザクション要求",
       "preview_message": "エージェントが新しい上限の承認を求めています。",
       "preview_timestamp": "現在"
@@ -10625,7 +10696,7 @@
     "view_all": "すべて表示",
     "view_more": "さらに表示",
     "view_x_more": "他{{count}}件を表示",
-    "enable_basic_functionality": "基本機能を有効にする",
+    "enable_basic_functionality": "Turn on basic functionality",
     "basic_functionality_disabled_title": "閲覧を利用できません",
     "basic_functionality_disabled_description": "基本機能が無効になっていると、必要なメタデータを取得できません。",
     "empty_error_trending_state": {
@@ -10833,7 +10904,6 @@
   "whats_happening": {
     "title": "現在起きていること",
     "ai": "AI",
-    "ai_generated": "AIによって生成されています",
     "outdated": "終了しました",
     "impact": {
       "bullish": "強気",
@@ -10878,6 +10948,52 @@
     "activate_error": "このトラストラインの追加中に問題が発生しました。もう一度お試しください。",
     "deactivate_error": "このトラストラインの削除中に問題が発生しました。もう一度お試しください。",
     "deactivate_error_non_zero_balance_stellar": "このウォレットには、まだ{{balance}} {{symbol}}が残っています。Stellarでこの資産を無効化する前に、全額を送金するかスワップする必要があります。"
+  },
+  "pro_hub": {
+    "title": "MetaMask Pro",
+    "subtitle": "Your Pro membership",
+    "manage": "Manage subscription",
+    "explore_benefits": "Explore benefits",
+    "membership": {
+      "title": "Your membership",
+      "plan": "Membership",
+      "earned_this_month": "Earned this month",
+      "saved_this_month": "Saved this month",
+      "payment_details": "Payment details",
+      "total": "Total",
+      "paying_with": "Paying with",
+      "renews_on": "Renews on",
+      "manage": "Manage",
+      "contact_support": "Contact support",
+      "cancel_membership": "Cancel membership",
+      "earned_info": {
+        "title": "Earned this month",
+        "description": "The amount you earned in APY and mUSD back as a Pro member."
+      },
+      "saved_info": {
+        "title": "Saved this month",
+        "description": "The amount you saved as a Pro member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
+      }
+    },
+    "cancel_membership": {
+      "title": "Why are you canceling?",
+      "subtitle": "Survey is optional.",
+      "earned_as_member": "Earned as a member",
+      "membership_cost": "Membership cost",
+      "reason_issue": "I have an issue with my membership",
+      "reason_no_value": "Not getting enough value",
+      "reason_no_benefits": "I don't need the benefits",
+      "reason_support": "Unhappy with customer support",
+      "reason_other": "Other",
+      "keep_membership": "Keep membership",
+      "cancel": "Cancel",
+      "success": {
+        "title": "Plan canceled",
+        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
+        "description_suffix": ".",
+        "done": "Done"
+      }
+    }
   },
   "pro_subscription": {
     "title": "Earn more with Pro",

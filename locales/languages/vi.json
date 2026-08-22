@@ -39,19 +39,12 @@
       "alert_details": "Chi tiết cảnh báo"
     },
     "confirm_modal": {
-      "title": "Yêu cầu có độ rủi ro cao",
+      "title": "High-risk request",
       "checkbox_label": "Tôi đã hiểu cảnh báo và vẫn muốn tiếp tục",
       "review_alerts": "Xem xét tất cả cảnh báo",
       "message": "Chúng tôi khuyên bạn nên từ chối yêu cầu này. Nếu tiếp tục, bạn có thể khiến tài sản của mình gặp rủi ro.",
-      "title_blockaid": "Tài sản của bạn có thể gặp rủi ro",
-      "blockaid": {
-        "message": "Nếu bạn xác nhận yêu cầu này, bạn có thể bị mất tài sản. Chúng tôi khuyên bạn nên hủy yêu cầu này.",
-        "message1": "Nếu bạn xác nhận yêu cầu này, bạn đang cho phép kẻ lừa đảo rút và chi tiêu tài sản của mình. Bạn sẽ không lấy lại được tài sản.",
-        "message2": "Bạn đang gửi tài sản của mình cho kẻ lừa đảo. Nếu tiếp tục, bạn sẽ bị mất những tài sản đó.",
-        "message3": "Nếu tiếp tục, tất cả tài sản bạn đã niêm yết trên OpenSea có thể gặp rủi ro.",
-        "message4": "Nếu tiếp tục, tất cả tài sản bạn đã niêm yết trên Blur có thể gặp rủi ro.",
-        "message5": "Bạn đang tương tác với một trang web độc hại. Nếu tiếp tục, bạn sẽ bị mất tài sản."
-      }
+      "blockaid_message": "Security partners found high-risk signals in this {{requestType}}. If you continue, your funds can't be recovered.",
+      "blockaid_message_with_amount": "Security partners found high-risk signals in this {{requestType}}. If you continue, your {{amount}} can't be recovered."
     },
     "inline_alert_label": "Cảnh báo",
     "review_alerts": "Xem xét cảnh báo",
@@ -191,21 +184,30 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "Nếu bạn chấp thuận yêu cầu này, một bên thứ ba nổi tiếng là lừa đảo có thể lấy hết tài sản của bạn.",
-    "blur_farming_description": "Nếu bạn chấp thuận yêu cầu này, người khác có thể đánh cắp tài sản của bạn được niêm yết trên Blur.",
-    "deceptive_request_title": "Đây là một yêu cầu lừa đảo",
-    "failed_title": "Yêu cầu có thể không an toàn",
-    "failed_description": "Do có lỗi, yêu cầu này đã không được nhà cung cấp dịch vụ bảo mật xác minh. Hãy thực hiện cẩn thận.",
-    "malicious_domain_description": "Bạn đang tương tác với một tên miền độc hại. Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
-    "other_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
-    "raw_signature_farming_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
-    "seaport_farming_description": "Nếu bạn chấp thuận yêu cầu này, người khác có thể đánh cắp tài sản của bạn được niêm yết trên OpenSea.",
+    "high_risk_approval_title": "High-risk approval",
+    "high_risk_transfer_title": "High-risk transfer",
+    "high_risk_signature_title": "High-risk signature",
+    "site_flagged_unsafe_title": "Site flagged as unsafe",
+    "risk_signals_detected_title": "Risk signals detected",
+    "failed_title": "Security check unavailable",
+    "approval_farming_description": "You're giving an address flagged by security partners permission to move your assets.",
+    "marketplace_farming_description": "You're giving an address flagged by security partners permission to move your assets listed on {{marketplace}}.",
+    "transfer_farming_description": "You're sending assets to an address flagged by security partners. If this is a scam, your funds can't be recovered.",
+    "transfer_farming_description_with_amount": "You're sending assets to an address flagged by security partners. If this is a scam, your {{amount}} can't be recovered.",
+    "malicious_domain_description": "Security partners flag this site as malicious. If this is a scam, your funds can't be recovered.",
+    "malicious_domain_description_with_amount": "Security partners flag this site as malicious. If this is a scam, your {{amount}} can't be recovered.",
+    "high_risk_signature_description": "Security partners flag this signature as high risk. Signing could authorize actions with your assets without your permission.",
+    "other_description": "Security partners found risk signals in this request. Review before continuing.",
+    "failed_description": "We couldn't complete this safety check. Continue only if you trust the site and addresses involved.",
+    "request_type": {
+      "approval": "approval",
+      "transfer": "transfer",
+      "signature": "signature",
+      "request": "request"
+    },
     "see_details": "Xem chi tiết",
     "does_not_look_right": "Có gì đó không ổn?",
     "report_an_issue": "Báo cáo sự cố",
-    "suspicious_request_title": "Đây là một yêu cầu đáng ngờ",
-    "trade_order_farming_description": "Nếu bạn chấp thuận yêu cầu này, bạn có thể mất tài sản của mình.",
-    "transfer_farming_description": "Nếu bạn chấp thuận yêu cầu này, một bên thứ ba nổi tiếng là lừa đảo sẽ lấy hết tài sản của bạn.",
     "before_you_proceed": "Trước khi bạn tiếp tục",
     "enable_blockaid_alerts": "Để kích hoạt tính năng này, chúng tôi cần thiết lập một số cảnh báo bảo mật. Phải luôn mở trang này trong suốt quá trình thiết lập. Quá trình này sẽ mất chưa đến một phút để hoàn thành.",
     "enable_blockaid_alerts_description": "Trang này phải luôn mở khi đang thiết lập cảnh báo bảo mật. Quá trình này sẽ hoàn tất trong vòng chưa đến một phút.",
@@ -1648,6 +1650,12 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Cần đặt giá giới hạn trước khi thiết lập mức Chốt lời/Cắt lỗ",
         "only_hyperliquid_usdc": "Hiện tại chỉ hỗ trợ USDC trên Hyperliquid khi thực hiện thanh toán",
         "limit_price_far_warning": "Giá giới hạn cách xa giá thị trường hiện tại",
+        "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
+        "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
+        "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
+        "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
+        "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
+        "please_set_a_trigger_price": "Please set a trigger price",
         "oi_cap_reached": "Đã đạt giới hạn lãi suất mở. Không thể mở vị thế mới vào lúc này.",
         "reduce_only_no_position": "Bạn cần có một vị thế mở trên thị trường này để đặt lệnh chỉ giảm vị thế",
         "reduce_only_wrong_side": "Lệnh chỉ giảm vị thế chỉ có thể giảm một vị thế hiện có. Chuyển sang phía đối diện.",
@@ -1804,6 +1812,7 @@
       "use_custom_title": "Sử dụng mức trượt giá tùy chỉnh",
       "row_format": "Ước tính: {{est}}% / Tối đa: {{value}}%",
       "row_format_pending": "Ước tính: -- / Tối đa: {{value}}%",
+      "row_format_max": "Max: {{value}}%",
       "input_label": "Phần trăm trượt giá tối đa",
       "decrement_label": "Giảm mức trượt giá",
       "increment_label": "Tăng mức trượt giá",
@@ -2411,13 +2420,17 @@
     },
     "close_all_modal": {
       "title": "Đóng tất cả vị thế",
-      "description": "Chúng tôi sẽ đóng tất cả các vị thế đang mở của bạn theo giá thị trường hiện tại.",
+      "title_filtered": "Close positions",
+      "description": {
+        "one": "We'll close your open position at current market price.",
+        "other": "We'll close your {{count}} open positions at current market price."
+      },
       "margin": "Ký quỹ",
       "includes_pnl": "bao gồm {{pnlAmount}}",
       "fees": "Phí",
       "you_will_receive": "Bạn sẽ nhận được",
       "keep_positions": "Giữ vị thế",
-      "close_all": "Đóng tất cả",
+      "close_count": "Close ({{count}})",
       "closing": "Đang đóng...",
       "success_title": "Đã đóng vị thế",
       "success_message": "Đã đóng thành công {{count}} vị thế",
@@ -2699,8 +2712,8 @@
     "card_footer_disclaimer": "Được tạo bởi AI",
     "footer_disclaimer": "Tóm tắt AI chỉ mang tính chất cung cấp thông tin",
     "disclaimer_modal": {
-      "title": "Nội dung được tạo bởi AI",
-      "body": "Bản tóm tắt này được tạo bởi AI từ bên thứ ba và có thể không chính xác hoặc được cá nhân hóa. Không sử dụng cho các quyết định giao dịch, đầu tư, pháp lý hoặc thuế. Hiệu suất trong quá khứ không dự đoán kết quả trong tương lai.",
+      "title": "AI-generated content",
+      "body": "This summary is AI generated by a third party and may not be accurate or personalized. Don't use it for trading, investment, legal, or tax decisions. Past performance doesn't predict future results.",
       "got_it": "Tôi đã hiểu"
     },
     "swap_button": "Hoán đổi",
@@ -2725,6 +2738,15 @@
   },
   "predict": {
     "title": "MetaMask Dự đoán",
+    "game_status": {
+      "live": "LIVE",
+      "scheduled": "SCHEDULED",
+      "delayed": "DELAYED",
+      "suspended": "SUSPENDED",
+      "postponed": "POSTPONED",
+      "final": "FINAL",
+      "canceled": "CANCELED"
+    },
     "send_to_predictions": "Gửi đến Dự đoán",
     "select_predict_account": "Chọn tài khoản dự đoán",
     "search_account": "Tìm kiếm tài khoản",
@@ -4023,7 +4045,7 @@
     "notifications_title": "Thông báo",
     "notifications_desc": "Quản lý thông báo",
     "allow_notifications": "Cho phép thông báo",
-    "enable_push_notifications": "Bật thông báo đẩy",
+    "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "Chọn nội dung bạn muốn nhận thông báo và cách nhận.",
     "notifications_opts": {
       "preferences_title": "Tùy chọn",
@@ -5414,7 +5436,7 @@
     "mint": "Đúc",
     "tx_details_free": "Miễn phí",
     "tx_details_not_available": "Không có sẵn",
-    "smart_contract_interaction": "Tương tác hợp đồng thông minh",
+    "smart_contract_interaction": "Contract interaction",
     "money_account_deposit": "Gửi tiền vào Money Account",
     "money_account_withdraw": "Chuyển tiền từ Money Account",
     "swaps_transaction": "Giao dịch hoán đổi",
@@ -6124,7 +6146,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "Đã yêu cầu rút tiền",
     "prompt_title": "Nhận thông báo đẩy",
     "notifications_enabled_error_title": "Đã xảy ra sự cố",
-    "notifications_enabled_error_desc": "Chúng tôi không thể bật thông báo. Vui lòng thử lại sau.",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Please try again later.",
     "prompt_desc": "Bật thông báo từ phần Cài đặt để nhận các cảnh báo quan trọng về hoạt động ví và nhiều thông tin khác.",
     "prompt_ok": "Bật",
     "prompt_cancel": "Để sau",
@@ -6172,7 +6194,7 @@
       "new_user": {
         "title": "Đừng bỏ lỡ bất kỳ biến động nào",
         "body": "Nhận thông báo theo thời gian thực về biến động giá, xác nhận giao dịch, hoạt động danh mục đầu tư và phần thưởng dựa trên cách bạn sử dụng MetaMask.",
-        "button_yes": "Bật thông báo",
+        "button_yes": "Turn on notifications",
         "button_not_now": "Không phải bây giờ",
         "preview_card_1": {
           "time": "ngay bây giờ",
@@ -6214,7 +6236,7 @@
         }
       },
       "toast_enabled": "Đã bật thông báo",
-      "toast_settings_hint": "Bạn có thể bật thông báo bất cứ lúc nào trong phần Cài đặt > Thông báo"
+      "toast_settings_hint": "You can turn on notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -7630,7 +7652,6 @@
   },
   "money": {
     "title": "Tài chính",
-    "get_pro": "Get Pro",
     "your_balance": "Số dư của bạn",
     "apy_label": "APY {{percentage}}%",
     "apy_currency_suffix": " • mUSD",
@@ -8480,6 +8501,49 @@
       "market": "Thị trường",
       "limit": "Giới hạn",
       "recurring": "Định kỳ"
+    },
+    "orders": {
+      "tabs": {
+        "open_orders": "Open orders",
+        "history": "History"
+      },
+      "empty": {
+        "open_orders": "Open orders appear here",
+        "history": "Order history appears here"
+      }
+    },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price",
+      "not_enough_gas": "Not enough gas",
+      "filled": "Filled",
+      "filled_at": "Filled at {{date}}",
+      "expired": "Expired",
+      "expired_after": "Expired after {{duration}}"
+    },
+    "recurring": {
+      "you_get": "You get",
+      "every": "Every",
+      "repeat": "Repeat",
+      "times": "times",
+      "confirm": "Confirm",
+      "unit": {
+        "minute": "minute",
+        "hour": "hour",
+        "day": "day",
+        "week": "week"
+      },
+      "unit_option": {
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day",
+        "week": "Week"
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled",
+      "filled": "Filled"
     },
     "continue": "Tiếp tục",
     "confirm_bridge": "Cầu nối",
@@ -9724,12 +9788,12 @@
     },
     "notifications_nudge": {
       "title": "Đừng bỏ lỡ cơ hội",
-      "description": "Bật thông báo để luôn được cập nhật về các chiến dịch.",
+      "description": "Turn on notifications to stay informed on campaigns.",
       "turn_on_button": "Bật",
-      "loading": "Đang bật thông báo...",
+      "loading": "Turning on notifications...",
       "loading_description": "Quá trình này có thể mất một chút thời gian.",
-      "enable_error": "Không thể bật thông báo",
-      "success": "Đã bật thông báo"
+      "enable_error": "Failed to turn on notifications",
+      "success": "Notifications turned on"
     },
     "version_guard": {
       "title": "Yêu cầu cập nhật",
@@ -10138,10 +10202,12 @@
       "geo_locked_cta": "Kiểm tra điều kiện đủ",
       "geo_loading": "Đang kiểm tra khu vực...",
       "remind_me_success_toast": "Chúng tôi sẽ thông báo cho bạn khi chiến dịch này bắt đầu.",
-      "remind_me_save_error": "Không thể lưu lời nhắc của bạn. Vui lòng thử lại."
+      "remind_me_save_error": "Không thể lưu lời nhắc của bạn. Vui lòng thử lại.",
+      "view_details": "View details",
+      "view_details_accessibility": "View details for {{campaignName}}"
     },
     "campaign_mechanics": {
-      "title": "Cơ chế"
+      "title": "Rules and eligibility"
     },
     "campaign_details": {
       "start_date": "Bắt đầu: {{date}}",
@@ -10158,6 +10224,11 @@
       "swap_ondo_assets": "Hoán đổi tài sản Ondo",
       "open_position": "Giao dịch ngay",
       "how_it_works": "Cách hoạt động",
+      "error_title": "Unable to load this campaign",
+      "error_description": "We couldn't load this campaign. Please try again.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "retry": "Retry",
       "ondo": {
         "entries_closed_title": "Đã đóng đăng ký",
         "entries_closed_description": "Bạn đã bỏ lỡ thời gian đăng ký. Hãy quay lại để xem các chiến dịch trong tương lai."
@@ -10446,8 +10517,8 @@
       "you_received": "Bạn đã nhận được",
       "token_received": "Đã nhận token",
       "money_account": "Money Account",
-      "perps_account": "Tài khoản Hợp đồng vĩnh cửu 1",
-      "predictions_account": "Tài khoản Dự đoán 1",
+      "perps_account": "Account 1 Perps",
+      "predictions_account": "Account 1 Predictions",
       "steps_completed": "Các bước (đã hoàn thành {{count}} bước)",
       "summary": "Tóm tắt"
     },
@@ -10527,7 +10598,7 @@
     "push_nudge": {
       "title": "Không bao giờ bỏ lỡ giao dịch",
       "description": "Nhận cảnh báo theo thời gian thực để xem xét và chấp thuận các giao dịch từ phiên CLI của bạn.",
-      "turn_on_button": "Bật thông báo",
+      "turn_on_button": "Turn on notifications",
       "preview_title": "Yêu cầu giao dịch",
       "preview_message": "Đại lý của bạn cần được phê duyệt hạn mức mới.",
       "preview_timestamp": "ngay bây giờ"
@@ -10625,7 +10696,7 @@
     "view_all": "Xem tất cả",
     "view_more": "Xem thêm",
     "view_x_more": "Xem thêm {{count}} kết quả",
-    "enable_basic_functionality": "Bật chức năng cơ bản",
+    "enable_basic_functionality": "Turn on basic functionality",
     "basic_functionality_disabled_title": "Khám phá không khả dụng",
     "basic_functionality_disabled_description": "Chúng tôi không thể tìm nạp siêu dữ liệu cần thiết khi chức năng cơ bản bị tắt.",
     "empty_error_trending_state": {
@@ -10833,7 +10904,6 @@
   "whats_happening": {
     "title": "Tình hình hiện nay",
     "ai": "AI",
-    "ai_generated": "Được tạo bởi AI",
     "outdated": "Đã cũ",
     "impact": {
       "bullish": "Xu hướng tăng",
@@ -10878,6 +10948,52 @@
     "activate_error": "Đã xảy ra lỗi khi thêm trustline này. Vui lòng thử lại.",
     "deactivate_error": "Đã xảy ra lỗi khi xóa trustline này. Vui lòng thử lại.",
     "deactivate_error_non_zero_balance_stellar": "Bạn vẫn còn {{balance}} {{symbol}} trong ví này. Bạn phải gửi hoặc hoán đổi toàn bộ số dư trước khi hủy kích hoạt tài sản này trên Stellar."
+  },
+  "pro_hub": {
+    "title": "MetaMask Pro",
+    "subtitle": "Your Pro membership",
+    "manage": "Manage subscription",
+    "explore_benefits": "Explore benefits",
+    "membership": {
+      "title": "Your membership",
+      "plan": "Membership",
+      "earned_this_month": "Earned this month",
+      "saved_this_month": "Saved this month",
+      "payment_details": "Payment details",
+      "total": "Total",
+      "paying_with": "Paying with",
+      "renews_on": "Renews on",
+      "manage": "Manage",
+      "contact_support": "Contact support",
+      "cancel_membership": "Cancel membership",
+      "earned_info": {
+        "title": "Earned this month",
+        "description": "The amount you earned in APY and mUSD back as a Pro member."
+      },
+      "saved_info": {
+        "title": "Saved this month",
+        "description": "The amount you saved as a Pro member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
+      }
+    },
+    "cancel_membership": {
+      "title": "Why are you canceling?",
+      "subtitle": "Survey is optional.",
+      "earned_as_member": "Earned as a member",
+      "membership_cost": "Membership cost",
+      "reason_issue": "I have an issue with my membership",
+      "reason_no_value": "Not getting enough value",
+      "reason_no_benefits": "I don't need the benefits",
+      "reason_support": "Unhappy with customer support",
+      "reason_other": "Other",
+      "keep_membership": "Keep membership",
+      "cancel": "Cancel",
+      "success": {
+        "title": "Plan canceled",
+        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
+        "description_suffix": ".",
+        "done": "Done"
+      }
+    }
   },
   "pro_subscription": {
     "title": "Earn more with Pro",

@@ -39,19 +39,12 @@
       "alert_details": "提醒详情"
     },
     "confirm_modal": {
-      "title": "高风险请求",
+      "title": "High-risk request",
       "checkbox_label": "我已收到提醒，但仍想继续",
       "review_alerts": "查看所有提醒",
       "message": "我们建议您拒绝此请求。如果继续，您的资产可能会面临风险。",
-      "title_blockaid": "您的资产可能面临风险",
-      "blockaid": {
-        "message": "如果您确认此请求，可能会遭受资产损失。我们建议您取消此请求。",
-        "message1": "如果您确认此请求，则表示您允许欺诈方提取并花费您的资产。您将无法收回资产。",
-        "message2": "您正在将您的资产发送给欺诈方。如果继续，您将会损失这部分资产。",
-        "message3": "如果继续，您在 OpenSea 上列出的全部资产都将面临风险。",
-        "message4": "如果继续，您在 Blur 上列出的全部资产都将面临风险。",
-        "message5": "您正在与恶意网站交互。如果继续，您可能会遭受资产损失。"
-      }
+      "blockaid_message": "Security partners found high-risk signals in this {{requestType}}. If you continue, your funds can't be recovered.",
+      "blockaid_message_with_amount": "Security partners found high-risk signals in this {{requestType}}. If you continue, your {{amount}} can't be recovered."
     },
     "inline_alert_label": "提醒",
     "review_alerts": "查看提醒",
@@ -191,21 +184,30 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "如果您批准此请求，因欺诈而恶名昭彰的第三方可能会拿走您的所有资产。",
-    "blur_farming_description": "如果您批准此请求，则有人可以窃取您列于Blur上的资产。",
-    "deceptive_request_title": "此请求属欺骗性质",
-    "failed_title": "此请求可能不安全",
-    "failed_description": "由于出现错误，安全服务提供商未验证此请求。请谨慎操作。",
-    "malicious_domain_description": "您正在与恶意网域交互。如果您批准此请求，可能会遭受资产损失。",
-    "other_description": "如果您批准此请求，可能会遭受资产损失。",
-    "raw_signature_farming_description": "如果您批准此请求，可能会遭受资产损失。",
-    "seaport_farming_description": "如果您批准此请求，则有人可以窃取您列于OpenSea上的资产。",
+    "high_risk_approval_title": "High-risk approval",
+    "high_risk_transfer_title": "High-risk transfer",
+    "high_risk_signature_title": "High-risk signature",
+    "site_flagged_unsafe_title": "Site flagged as unsafe",
+    "risk_signals_detected_title": "Risk signals detected",
+    "failed_title": "Security check unavailable",
+    "approval_farming_description": "You're giving an address flagged by security partners permission to move your assets.",
+    "marketplace_farming_description": "You're giving an address flagged by security partners permission to move your assets listed on {{marketplace}}.",
+    "transfer_farming_description": "You're sending assets to an address flagged by security partners. If this is a scam, your funds can't be recovered.",
+    "transfer_farming_description_with_amount": "You're sending assets to an address flagged by security partners. If this is a scam, your {{amount}} can't be recovered.",
+    "malicious_domain_description": "Security partners flag this site as malicious. If this is a scam, your funds can't be recovered.",
+    "malicious_domain_description_with_amount": "Security partners flag this site as malicious. If this is a scam, your {{amount}} can't be recovered.",
+    "high_risk_signature_description": "Security partners flag this signature as high risk. Signing could authorize actions with your assets without your permission.",
+    "other_description": "Security partners found risk signals in this request. Review before continuing.",
+    "failed_description": "We couldn't complete this safety check. Continue only if you trust the site and addresses involved.",
+    "request_type": {
+      "approval": "approval",
+      "transfer": "transfer",
+      "signature": "signature",
+      "request": "request"
+    },
     "see_details": "查看详细信息",
     "does_not_look_right": "有什么不对劲吗？",
     "report_an_issue": "报告问题",
-    "suspicious_request_title": "此请求很可疑",
-    "trade_order_farming_description": "如果您批准此请求，可能会遭受资产损失。",
-    "transfer_farming_description": "如果您批准此请求，因欺诈而恶名昭彰的第三方会拿走您的所有资产。",
     "before_you_proceed": "继续之前",
     "enable_blockaid_alerts": "要启用此功能，我们需要设置一些安全提醒。此页面在设置过程中需要保持打开状态。此操作需要不到一分钟即可完成。",
     "enable_blockaid_alerts_description": "在设置安全提醒时，该页面需要保持打开状态。此过程花费不到一分钟的时间即可完成。",
@@ -1648,6 +1650,12 @@
         "limit_price_must_be_set_before_configuring_tpsl": "配置止盈/止损前须设定限价",
         "only_hyperliquid_usdc": "目前仅支持使用 Hyperliquid 上的 USDC 进行支付",
         "limit_price_far_warning": "限价与当前市价相差较多",
+        "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
+        "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
+        "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
+        "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
+        "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
+        "please_set_a_trigger_price": "Please set a trigger price",
         "oi_cap_reached": "未平仓合约数已达上限。目前暂无法开立新仓位。",
         "reduce_only_no_position": "您需要在该市场持有未平仓仓位才能下达减仓订单",
         "reduce_only_wrong_side": "减仓订单只能减少现有仓位。请切换至相反方向。",
@@ -1804,6 +1812,7 @@
       "use_custom_title": "使用自定义滑移",
       "row_format": "预估：{{est}}% / 最大：{{value}}%",
       "row_format_pending": "预估：-- / 最大：{{value}}%",
+      "row_format_max": "Max: {{value}}%",
       "input_label": "最大滑移百分比",
       "decrement_label": "降低滑移",
       "increment_label": "提高滑移",
@@ -2411,13 +2420,17 @@
     },
     "close_all_modal": {
       "title": "全部平仓",
-      "description": "我们将按当前市价为您的所有未平仓仓位进行平仓。",
+      "title_filtered": "Close positions",
+      "description": {
+        "one": "We'll close your open position at current market price.",
+        "other": "We'll close your {{count}} open positions at current market price."
+      },
       "margin": "保证金",
       "includes_pnl": "包含 {{pnlAmount}}",
       "fees": "费用",
       "you_will_receive": "您将收到",
       "keep_positions": "保留仓位",
-      "close_all": "全部平仓",
+      "close_count": "Close ({{count}})",
       "closing": "平仓中……",
       "success_title": "仓位已平仓",
       "success_message": "已成功平仓 {{count}} 个仓位",
@@ -2699,8 +2712,8 @@
     "card_footer_disclaimer": "AI 生成",
     "footer_disclaimer": "AI 摘要仅供参考",
     "disclaimer_modal": {
-      "title": "AI 生成内容",
-      "body": "本摘要由第三方 AI 生成，内容可能不够准确或未考虑您的个性化需求。请勿将本摘要用于交易、投资、法律或税务决策。过往业绩并不预示未来结果。",
+      "title": "AI-generated content",
+      "body": "This summary is AI generated by a third party and may not be accurate or personalized. Don't use it for trading, investment, legal, or tax decisions. Past performance doesn't predict future results.",
       "got_it": "知道了"
     },
     "swap_button": "交换",
@@ -2725,6 +2738,15 @@
   },
   "predict": {
     "title": "MetaMask 预测",
+    "game_status": {
+      "live": "LIVE",
+      "scheduled": "SCHEDULED",
+      "delayed": "DELAYED",
+      "suspended": "SUSPENDED",
+      "postponed": "POSTPONED",
+      "final": "FINAL",
+      "canceled": "CANCELED"
+    },
     "send_to_predictions": "转入预测市场",
     "select_predict_account": "选择预测账户",
     "search_account": "搜索账户",
@@ -4023,7 +4045,7 @@
     "notifications_title": "通知",
     "notifications_desc": "管理您的通知",
     "allow_notifications": "允许通知",
-    "enable_push_notifications": "启用推送通知",
+    "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "选择您要接收通知的内容和方式。",
     "notifications_opts": {
       "preferences_title": "偏好",
@@ -5414,7 +5436,7 @@
     "mint": "铸币",
     "tx_details_free": "免费",
     "tx_details_not_available": "不可用",
-    "smart_contract_interaction": "智能合约交互",
+    "smart_contract_interaction": "Contract interaction",
     "money_account_deposit": "存入 Money Account",
     "money_account_withdraw": "从 Money Account 转账",
     "swaps_transaction": "兑换交易",
@@ -6124,7 +6146,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "已请求提取",
     "prompt_title": "接收推送通知",
     "notifications_enabled_error_title": "出错了......",
-    "notifications_enabled_error_desc": "我们无法启用通知。请稍后再试。",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Please try again later.",
     "prompt_desc": "从“设置”打开通知，以获取有关钱包等活动的重要提醒。",
     "prompt_ok": "开启",
     "prompt_cancel": "以后再说",
@@ -6172,7 +6194,7 @@
       "new_user": {
         "title": "绝不错过任何市场行情",
         "body": "开启实时提醒，根据您的 MetaMask 使用习惯，一手掌握价格波动、交易确认、资产动态及奖励发放。",
-        "button_yes": "启用通知",
+        "button_yes": "Turn on notifications",
         "button_not_now": "暂时不",
         "preview_card_1": {
           "time": "立即",
@@ -6214,7 +6236,7 @@
         }
       },
       "toast_enabled": "通知已启用",
-      "toast_settings_hint": "您可以随时在“设置”→“通知”中启用通知"
+      "toast_settings_hint": "You can turn on notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -7630,7 +7652,6 @@
   },
   "money": {
     "title": "Money",
-    "get_pro": "Get Pro",
     "your_balance": "您的余额",
     "apy_label": "{{percentage}}% 年化收益率",
     "apy_currency_suffix": " • mUSD",
@@ -8480,6 +8501,49 @@
       "market": "市场型",
       "limit": "限制",
       "recurring": "定期"
+    },
+    "orders": {
+      "tabs": {
+        "open_orders": "Open orders",
+        "history": "History"
+      },
+      "empty": {
+        "open_orders": "Open orders appear here",
+        "history": "Order history appears here"
+      }
+    },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price",
+      "not_enough_gas": "Not enough gas",
+      "filled": "Filled",
+      "filled_at": "Filled at {{date}}",
+      "expired": "Expired",
+      "expired_after": "Expired after {{duration}}"
+    },
+    "recurring": {
+      "you_get": "You get",
+      "every": "Every",
+      "repeat": "Repeat",
+      "times": "times",
+      "confirm": "Confirm",
+      "unit": {
+        "minute": "minute",
+        "hour": "hour",
+        "day": "day",
+        "week": "week"
+      },
+      "unit_option": {
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day",
+        "week": "Week"
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled",
+      "filled": "Filled"
     },
     "continue": "继续",
     "confirm_bridge": "桥接",
@@ -9724,12 +9788,12 @@
     },
     "notifications_nudge": {
       "title": "切勿错过",
-      "description": "启用通知以实时掌握活动资讯。",
+      "description": "Turn on notifications to stay informed on campaigns.",
       "turn_on_button": "开启",
-      "loading": "正在启用通知...",
+      "loading": "Turning on notifications...",
       "loading_description": "这可能需要一点时间。",
-      "enable_error": "启用通知失败",
-      "success": "通知已启用"
+      "enable_error": "Failed to turn on notifications",
+      "success": "Notifications turned on"
     },
     "version_guard": {
       "title": "需要更新",
@@ -10138,10 +10202,12 @@
       "geo_locked_cta": "检查资格",
       "geo_loading": "正在检查地区……",
       "remind_me_success_toast": "活动开始时我们会通知您。",
-      "remind_me_save_error": "无法保存提醒设置。请重试。"
+      "remind_me_save_error": "无法保存提醒设置。请重试。",
+      "view_details": "View details",
+      "view_details_accessibility": "View details for {{campaignName}}"
     },
     "campaign_mechanics": {
-      "title": "机制"
+      "title": "Rules and eligibility"
     },
     "campaign_details": {
       "start_date": "开始时间：{{date}}",
@@ -10158,6 +10224,11 @@
       "swap_ondo_assets": "兑换 Ondo 资产",
       "open_position": "立即交易",
       "how_it_works": "如何运行",
+      "error_title": "Unable to load this campaign",
+      "error_description": "We couldn't load this campaign. Please try again.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "retry": "Retry",
       "ondo": {
         "entries_closed_title": "报名已截止",
         "entries_closed_description": "您已错过报名窗口。敬请期待未来更多活动。"
@@ -10446,8 +10517,8 @@
       "you_received": "您已收到",
       "token_received": "代币已收到",
       "money_account": "Money Account",
-      "perps_account": "永续合约账户 1",
-      "predictions_account": "预测账户 1",
+      "perps_account": "Account 1 Perps",
+      "predictions_account": "Account 1 Predictions",
       "steps_completed": "步骤（已完成 {{count}} 步）",
       "summary": "摘要"
     },
@@ -10527,7 +10598,7 @@
     "push_nudge": {
       "title": "不错过任何交易",
       "description": "获取实时提醒，以审核和批准来自您 CLI 会话的交易。",
-      "turn_on_button": "启用通知",
+      "turn_on_button": "Turn on notifications",
       "preview_title": "交易请求",
       "preview_message": "您的代理需要批准新的限额。",
       "preview_timestamp": "立即"
@@ -10625,7 +10696,7 @@
     "view_all": "查看全部",
     "view_more": "查看更多",
     "view_x_more": "查看另外 {{count}} 条",
-    "enable_basic_functionality": "启用基本功能",
+    "enable_basic_functionality": "Turn on basic functionality",
     "basic_functionality_disabled_title": "探索功能不可用",
     "basic_functionality_disabled_description": "当基础功能被禁用时，我们无法获取所需的元数据。",
     "empty_error_trending_state": {
@@ -10833,7 +10904,6 @@
   "whats_happening": {
     "title": "发生了什么",
     "ai": "人工智能（AI）",
-    "ai_generated": "AI 生成",
     "outdated": "已过期",
     "impact": {
       "bullish": "看涨",
@@ -10878,6 +10948,52 @@
     "activate_error": "添加此信任线时出错。请重试。",
     "deactivate_error": "移除此信任线时出错。请重试。",
     "deactivate_error_non_zero_balance_stellar": "此钱包中仍有 {{balance}} {{symbol}}。您必须先将其全部转出或兑换，然后才能在 Stellar 上停用此资产。"
+  },
+  "pro_hub": {
+    "title": "MetaMask Pro",
+    "subtitle": "Your Pro membership",
+    "manage": "Manage subscription",
+    "explore_benefits": "Explore benefits",
+    "membership": {
+      "title": "Your membership",
+      "plan": "Membership",
+      "earned_this_month": "Earned this month",
+      "saved_this_month": "Saved this month",
+      "payment_details": "Payment details",
+      "total": "Total",
+      "paying_with": "Paying with",
+      "renews_on": "Renews on",
+      "manage": "Manage",
+      "contact_support": "Contact support",
+      "cancel_membership": "Cancel membership",
+      "earned_info": {
+        "title": "Earned this month",
+        "description": "The amount you earned in APY and mUSD back as a Pro member."
+      },
+      "saved_info": {
+        "title": "Saved this month",
+        "description": "The amount you saved as a Pro member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
+      }
+    },
+    "cancel_membership": {
+      "title": "Why are you canceling?",
+      "subtitle": "Survey is optional.",
+      "earned_as_member": "Earned as a member",
+      "membership_cost": "Membership cost",
+      "reason_issue": "I have an issue with my membership",
+      "reason_no_value": "Not getting enough value",
+      "reason_no_benefits": "I don't need the benefits",
+      "reason_support": "Unhappy with customer support",
+      "reason_other": "Other",
+      "keep_membership": "Keep membership",
+      "cancel": "Cancel",
+      "success": {
+        "title": "Plan canceled",
+        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
+        "description_suffix": ".",
+        "done": "Done"
+      }
+    }
   },
   "pro_subscription": {
     "title": "Earn more with Pro",

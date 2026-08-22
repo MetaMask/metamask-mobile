@@ -39,19 +39,12 @@
       "alert_details": "Benachrichtigungsdetails"
     },
     "confirm_modal": {
-      "title": "Anfrage mit hohem Risiko",
+      "title": "High-risk request",
       "checkbox_label": "Ich bin mir der Benachrichtigung bewusst und möchte trotzdem fortfahren",
       "review_alerts": "Alle Benachrichtigungen überprüfen",
       "message": "Wir empfehlen Ihnen, diese Anfrage abzulehnen. Wenn Sie fortfahren, könnten Sie Ihre Assets gefährden.",
-      "title_blockaid": "Ihre Assets könnten gefährdet sein",
-      "blockaid": {
-        "message": "Wenn Sie diese Anfrage bestätigen, besteht die Gefahr, dass Sie Ihre Assets verlieren. Wir empfehlen Ihnen, diese Anfrage abzubrechen.",
-        "message1": "Wenn Sie diese Anfrage bestätigen, erlauben Sie einem Betrüger, Ihre Assets abzuheben und auszugeben. Sie erhalten sie nicht zurück.",
-        "message2": "Sie senden Ihre Assets an einen Betrüger. Wenn Sie so weitermachen, werden Sie diese Assets verlieren.",
-        "message3": "Wenn Sie fortfahren, könnten alle von Ihnen auf OpenSea gelisteten Assets gefährdet sein.",
-        "message4": "Wenn Sie fortfahren, könnten alle von Ihnen auf Blur gelisteten Assets gefährdet sein.",
-        "message5": "Sie interagieren mit einer bösartigen Website. Wenn Sie fortfahren, werden Sie Ihre Assets verlieren."
-      }
+      "blockaid_message": "Security partners found high-risk signals in this {{requestType}}. If you continue, your funds can't be recovered.",
+      "blockaid_message_with_amount": "Security partners found high-risk signals in this {{requestType}}. If you continue, your {{amount}} can't be recovered."
     },
     "inline_alert_label": "Benachrichtigung",
     "review_alerts": "Benachrichtigungen überprüfen",
@@ -191,21 +184,30 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Dritte, die für Betrügereien bekannt sind, alle Ihre Assets an sich reißen.",
-    "blur_farming_description": "Wenn Sie diese Anfrage genehmigen, kann jemand Ihre auf Blur aufgeführten Assets stehlen.",
-    "deceptive_request_title": "Dies ist eine betrügerische Anfrage.",
-    "failed_title": "Anfrage ist möglicherweise nicht sicher",
-    "failed_description": "Aufgrund eines Fehlers wurde diese Anfrage vom Sicherheitsanbieter nicht überprüft. Gehen Sie mit Bedacht vor.",
-    "malicious_domain_description": "Sie haben es mit einer bösartigen Domain zu tun. Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
-    "other_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
-    "raw_signature_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
-    "seaport_farming_description": "Wenn Sie diese Anfrage genehmigen, kann jemand Ihre auf OpenSea aufgeführten Assets stehlen.",
+    "high_risk_approval_title": "High-risk approval",
+    "high_risk_transfer_title": "High-risk transfer",
+    "high_risk_signature_title": "High-risk signature",
+    "site_flagged_unsafe_title": "Site flagged as unsafe",
+    "risk_signals_detected_title": "Risk signals detected",
+    "failed_title": "Security check unavailable",
+    "approval_farming_description": "You're giving an address flagged by security partners permission to move your assets.",
+    "marketplace_farming_description": "You're giving an address flagged by security partners permission to move your assets listed on {{marketplace}}.",
+    "transfer_farming_description": "You're sending assets to an address flagged by security partners. If this is a scam, your funds can't be recovered.",
+    "transfer_farming_description_with_amount": "You're sending assets to an address flagged by security partners. If this is a scam, your {{amount}} can't be recovered.",
+    "malicious_domain_description": "Security partners flag this site as malicious. If this is a scam, your funds can't be recovered.",
+    "malicious_domain_description_with_amount": "Security partners flag this site as malicious. If this is a scam, your {{amount}} can't be recovered.",
+    "high_risk_signature_description": "Security partners flag this signature as high risk. Signing could authorize actions with your assets without your permission.",
+    "other_description": "Security partners found risk signals in this request. Review before continuing.",
+    "failed_description": "We couldn't complete this safety check. Continue only if you trust the site and addresses involved.",
+    "request_type": {
+      "approval": "approval",
+      "transfer": "transfer",
+      "signature": "signature",
+      "request": "request"
+    },
     "see_details": "Details ansehen",
     "does_not_look_right": "Scheint irgendetwas nicht in Ordnung zu sein?",
     "report_an_issue": "Ein Problem melden",
-    "suspicious_request_title": "Dies ist eine verdächtige Anfrage.",
-    "trade_order_farming_description": "Wenn Sie diese Anfrage genehmigen, könnten Sie Ihre Assets verlieren.",
-    "transfer_farming_description": "Wenn Sie diese Anfrage genehmigen, wird eine dritte Partei, die für Betrügereien bekannt ist, alle Ihre Assets an sich reißen.",
     "before_you_proceed": "Bevor Sie fortfahren",
     "enable_blockaid_alerts": "Um diese Funktion zu aktivieren, müssen wir eine Sicherheitsbenachrichtigung einrichten. Diese Seite muss geöffnet bleiben, während sie eingerichtet wird. Dieser Vorgang dauert weniger als eine Minute.",
     "enable_blockaid_alerts_description": "Diese Seite muss offen bleiben, während die Sicherheitswarnungen eingerichtet werden. Dieser Vorgang dauert weniger als eine Minute.",
@@ -1648,6 +1650,12 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Der Limit-Preis muss vor der Konfiguration von TP/SL festgelegt werden",
         "only_hyperliquid_usdc": "Auf Hyperliquid wird derzeit nur USDC als Zahlungsmittel unterstützt",
         "limit_price_far_warning": "Limit-Preis weicht stark vom aktuellen Marktpreis ab",
+        "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
+        "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
+        "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
+        "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
+        "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
+        "please_set_a_trigger_price": "Please set a trigger price",
         "oi_cap_reached": "Die Obergrenze für offene Positionen wurde erreicht. Derzeit können keine weiteren Positionen eröffnet werden.",
         "reduce_only_no_position": "Sie müssen in diesem Markt eine offene Position halten, um nur reduzierte Orders platzieren zu können",
         "reduce_only_wrong_side": "Reduzierte Orders können nur eine bestehende Position reduzieren. Wechseln Sie auf die Gegenseite.",
@@ -1804,6 +1812,7 @@
       "use_custom_title": "Benutzerdefinierte Slippage verwenden",
       "row_format": "Geschätzt: {{est}} % / Max: {{value}} %",
       "row_format_pending": "Geschätzt: -- / Max: {{value}} %",
+      "row_format_max": "Max: {{value}}%",
       "input_label": "Maximaler Prozentsatz der Slippage",
       "decrement_label": "Slippage verringern",
       "increment_label": "Slippage erhöhen",
@@ -2411,13 +2420,17 @@
     },
     "close_all_modal": {
       "title": "Alle Positionen schließen",
-      "description": "Wir werden alle Ihre offenen Positionen zum aktuellen Marktpreis schließen.",
+      "title_filtered": "Close positions",
+      "description": {
+        "one": "We'll close your open position at current market price.",
+        "other": "We'll close your {{count}} open positions at current market price."
+      },
       "margin": "Margin",
       "includes_pnl": "beinhaltet {{pnlAmount}}",
       "fees": "Gebühren",
       "you_will_receive": "Sie empfangen",
       "keep_positions": "Positionen beibehalten",
-      "close_all": "Alle schließen",
+      "close_count": "Close ({{count}})",
       "closing": "Schließen ...",
       "success_title": "Position geschlossen",
       "success_message": "{{count}} Position(en) erfolgreich geschlossen",
@@ -2699,8 +2712,8 @@
     "card_footer_disclaimer": "KI-generiert",
     "footer_disclaimer": "KI-Zusammenfassung nur zu Informationszwecken",
     "disclaimer_modal": {
-      "title": "KI-generierter Inhalt",
-      "body": "Diese Zusammenfassung wurde von einer Drittpartei durch KI-generiert und könnte nicht genau oder personalisiert sein. Verwenden Sie diese Informationen nicht für Trading-, Investitions-, Rechts- oder Steuerentscheidungen. Vergangene Wertentwicklung ist keine Prognose für zukünftige Ergebnisse.",
+      "title": "AI-generated content",
+      "body": "This summary is AI generated by a third party and may not be accurate or personalized. Don't use it for trading, investment, legal, or tax decisions. Past performance doesn't predict future results.",
       "got_it": "Verstanden"
     },
     "swap_button": "Tauschen",
@@ -2725,6 +2738,15 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "game_status": {
+      "live": "LIVE",
+      "scheduled": "SCHEDULED",
+      "delayed": "DELAYED",
+      "suspended": "SUSPENDED",
+      "postponed": "POSTPONED",
+      "final": "FINAL",
+      "canceled": "CANCELED"
+    },
     "send_to_predictions": "An Tipps senden",
     "select_predict_account": "Prognosekonto auswählen",
     "search_account": "Ein Konto suchen",
@@ -4023,7 +4045,7 @@
     "notifications_title": "Benachrichtigungen",
     "notifications_desc": "Verwalten Sie Ihre Benachrichtigungen",
     "allow_notifications": "Benachrichtigungen erlauben",
-    "enable_push_notifications": "Push-Benachrichtigungen aktivieren",
+    "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "Bestimmen Sie, worüber Sie benachrichtigt werden und wie.",
     "notifications_opts": {
       "preferences_title": "Einstellungen",
@@ -5414,7 +5436,7 @@
     "mint": "Prägung",
     "tx_details_free": "Kostenlos",
     "tx_details_not_available": "Nicht verfügbar",
-    "smart_contract_interaction": "Smart Contract-Interaktion",
+    "smart_contract_interaction": "Contract interaction",
     "money_account_deposit": "Auf Money Account einzahlen",
     "money_account_withdraw": "Von Money Account transferieren",
     "swaps_transaction": "Swaps-Transaktion",
@@ -6124,7 +6146,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "Auszahlung angefordert",
     "prompt_title": "Push-Benachrichtigungen erhalten",
     "notifications_enabled_error_title": "Hoppla! Etwas ist schiefgelaufen ...",
-    "notifications_enabled_error_desc": "Wir konnten die Benachrichtigungen nicht aktivieren. Bitte versuchen Sie es später erneut.",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Please try again later.",
     "prompt_desc": "Schalten Sie Benachrichtigungen in den Einstellungen ein, um wichtige Benachrichtigungen zu Wallet-Aktivitäten und mehr zu erhalten.",
     "prompt_ok": "Einschalten",
     "prompt_cancel": "Vielleicht später",
@@ -6172,7 +6194,7 @@
       "new_user": {
         "title": "Verpassen Sie keine Bewegung",
         "body": "Erhalten Sie Echtzeit-Benachrichtigungen zu Kursbewegungen, Handelsbestätigungen, Portfolio-Aktivitäten und Belohnungen, entsprechend Ihrer Nutzung von MetaMask.",
-        "button_yes": "Benachrichtigungen aktivieren",
+        "button_yes": "Turn on notifications",
         "button_not_now": "Nicht jetzt",
         "preview_card_1": {
           "time": "jetzt",
@@ -6214,7 +6236,7 @@
         }
       },
       "toast_enabled": "Mitteilungen aktiviert",
-      "toast_settings_hint": "Sie können Benachrichtigungen jederzeit unter Einstellungen > Benachrichtigungen aktivieren"
+      "toast_settings_hint": "You can turn on notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -7630,7 +7652,6 @@
   },
   "money": {
     "title": "Geld",
-    "get_pro": "Get Pro",
     "your_balance": "Ihr Kontostand",
     "apy_label": "APY von {{percentage}} %",
     "apy_currency_suffix": " • mUSD",
@@ -8480,6 +8501,49 @@
       "market": "Markt",
       "limit": "Limit",
       "recurring": "Wiederkehrend"
+    },
+    "orders": {
+      "tabs": {
+        "open_orders": "Open orders",
+        "history": "History"
+      },
+      "empty": {
+        "open_orders": "Open orders appear here",
+        "history": "Order history appears here"
+      }
+    },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price",
+      "not_enough_gas": "Not enough gas",
+      "filled": "Filled",
+      "filled_at": "Filled at {{date}}",
+      "expired": "Expired",
+      "expired_after": "Expired after {{duration}}"
+    },
+    "recurring": {
+      "you_get": "You get",
+      "every": "Every",
+      "repeat": "Repeat",
+      "times": "times",
+      "confirm": "Confirm",
+      "unit": {
+        "minute": "minute",
+        "hour": "hour",
+        "day": "day",
+        "week": "week"
+      },
+      "unit_option": {
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day",
+        "week": "Week"
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled",
+      "filled": "Filled"
     },
     "continue": "Fortfahren",
     "confirm_bridge": "Bridge",
@@ -9724,12 +9788,12 @@
     },
     "notifications_nudge": {
       "title": "Nicht verpassen",
-      "description": "Aktivieren Sie Mitteilungen, um über Kampagnen informiert zu bleiben.",
+      "description": "Turn on notifications to stay informed on campaigns.",
       "turn_on_button": "Einschalten",
-      "loading": "Benachrichtigungen aktivieren ...",
+      "loading": "Turning on notifications...",
       "loading_description": "Das könnte einen Moment dauern.",
-      "enable_error": "Mitteilungen konnten nicht aktiviert werden",
-      "success": "Mitteilungen aktiviert"
+      "enable_error": "Failed to turn on notifications",
+      "success": "Notifications turned on"
     },
     "version_guard": {
       "title": "Aktualisierung erforderlich",
@@ -10138,10 +10202,12 @@
       "geo_locked_cta": "Berechtigung prüfen",
       "geo_loading": "Region wird überprüft ...",
       "remind_me_success_toast": "Wir geben Ihnen Bescheid, sobald diese Kampagne startet.",
-      "remind_me_save_error": "Ihre Erinnerung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut."
+      "remind_me_save_error": "Ihre Erinnerung konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+      "view_details": "View details",
+      "view_details_accessibility": "View details for {{campaignName}}"
     },
     "campaign_mechanics": {
-      "title": "Mechaniken"
+      "title": "Rules and eligibility"
     },
     "campaign_details": {
       "start_date": "Beginnt am: {{date}}",
@@ -10158,6 +10224,11 @@
       "swap_ondo_assets": "Ondo-Assets swappen",
       "open_position": "Jetzt handeln",
       "how_it_works": "Wie es funktioniert",
+      "error_title": "Unable to load this campaign",
+      "error_description": "We couldn't load this campaign. Please try again.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "retry": "Retry",
       "ondo": {
         "entries_closed_title": "Anmeldung geschlossen",
         "entries_closed_description": "Sie haben die Anmeldefrist verpasst. Schauen Sie künftig für weitere Kampagnen wieder vorbei."
@@ -10446,8 +10517,8 @@
       "you_received": "Sie haben empfangen",
       "token_received": "Token erhalten",
       "money_account": "Money Account",
-      "perps_account": "Perps-Konto 1",
-      "predictions_account": "Prognosekonto 1",
+      "perps_account": "Account 1 Perps",
+      "predictions_account": "Account 1 Predictions",
       "steps_completed": "Schritte ({{count}} abgeschlossen)",
       "summary": "Zusammenfassung"
     },
@@ -10527,7 +10598,7 @@
     "push_nudge": {
       "title": "Verpassen Sie keine Transaktion",
       "description": "Erhalten Sie Echtzeit-Benachrichtigungen, um Transaktionen direkt in Ihrer CLI-Sitzung einzusehen und zu genehmigen.",
-      "turn_on_button": "Benachrichtigungen aktivieren",
+      "turn_on_button": "Turn on notifications",
       "preview_title": "Transaktionsanfrage",
       "preview_message": "Ihr Agent benötigt die Genehmigung für ein neues Limit.",
       "preview_timestamp": "jetzt"
@@ -10625,7 +10696,7 @@
     "view_all": "Alle anzeigen",
     "view_more": "Mehr anzeigen",
     "view_x_more": "{{count}} mehr anzeigen",
-    "enable_basic_functionality": "Grundlegende Funktionen aktivieren",
+    "enable_basic_functionality": "Turn on basic functionality",
     "basic_functionality_disabled_title": "Entdecken ist nicht verfügbar",
     "basic_functionality_disabled_description": "Die erforderlichen Metadaten können nicht abgerufen werden, wenn die Basisfunktionalität deaktiviert ist.",
     "empty_error_trending_state": {
@@ -10833,7 +10904,6 @@
   "whats_happening": {
     "title": "Was ist passiert?",
     "ai": "KI",
-    "ai_generated": "KI-generiert",
     "outdated": "Veraltet",
     "impact": {
       "bullish": "Haussierend",
@@ -10878,6 +10948,52 @@
     "activate_error": "Beim Hinzufügen dieser Trustline ist etwas schiefgelaufen. Bitte versuchen Sie es erneut.",
     "deactivate_error": "Beim Entfernen dieser Trustline ist etwas schiefgelaufen. Bitte versuchen Sie es erneut.",
     "deactivate_error_non_zero_balance_stellar": "Sie verfügen noch über {{balance}} {{symbol}} in dieser Wallet. Sie müssen den gesamten Betrag versenden oder umtauschen, bevor Sie dieses Asset auf Stellar deaktivieren können."
+  },
+  "pro_hub": {
+    "title": "MetaMask Pro",
+    "subtitle": "Your Pro membership",
+    "manage": "Manage subscription",
+    "explore_benefits": "Explore benefits",
+    "membership": {
+      "title": "Your membership",
+      "plan": "Membership",
+      "earned_this_month": "Earned this month",
+      "saved_this_month": "Saved this month",
+      "payment_details": "Payment details",
+      "total": "Total",
+      "paying_with": "Paying with",
+      "renews_on": "Renews on",
+      "manage": "Manage",
+      "contact_support": "Contact support",
+      "cancel_membership": "Cancel membership",
+      "earned_info": {
+        "title": "Earned this month",
+        "description": "The amount you earned in APY and mUSD back as a Pro member."
+      },
+      "saved_info": {
+        "title": "Saved this month",
+        "description": "The amount you saved as a Pro member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
+      }
+    },
+    "cancel_membership": {
+      "title": "Why are you canceling?",
+      "subtitle": "Survey is optional.",
+      "earned_as_member": "Earned as a member",
+      "membership_cost": "Membership cost",
+      "reason_issue": "I have an issue with my membership",
+      "reason_no_value": "Not getting enough value",
+      "reason_no_benefits": "I don't need the benefits",
+      "reason_support": "Unhappy with customer support",
+      "reason_other": "Other",
+      "keep_membership": "Keep membership",
+      "cancel": "Cancel",
+      "success": {
+        "title": "Plan canceled",
+        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
+        "description_suffix": ".",
+        "done": "Done"
+      }
+    }
   },
   "pro_subscription": {
     "title": "Earn more with Pro",

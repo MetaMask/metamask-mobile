@@ -39,19 +39,12 @@
       "alert_details": "경고 세부 정보"
     },
     "confirm_modal": {
-      "title": "고위험 요청",
+      "title": "High-risk request",
       "checkbox_label": "본인은 경고를 인지했으며 계속 진행하기 원합니다",
       "review_alerts": "모든 경고 검토",
       "message": "이 요청을 거부할 것을 권장합니다. 계속하면 자산이 위험에 처할 수 있습니다.",
-      "title_blockaid": "보유한 자산이 위험할 수 있습니다",
-      "blockaid": {
-        "message": "이 요청을 컨펌하면, 자산을 잃을 수 있습니다. 이 요청을 취소할 것을 권장합니다.",
-        "message1": "이 요청을 컨펌하면, 사기범이 자산을 인출하고 사용할 수 있게 됩니다. 그러한 자산은 돌려받을 수 없습니다.",
-        "message2": "지금 자산을 사기범에게 보내고 있습니다. 계속하면 해당 자산을 잃게 됩니다.",
-        "message3": "계속하면 OpenSea에 등록한 모든 자산이 위험에 처할 수 있습니다.",
-        "message4": "계속하면 Blur에 등록한 모든 자산이 위험에 처할 수 있습니다.",
-        "message5": "악성 사이트와 인터렉션하고 있습니다. 계속하면 자산을 잃게 됩니다."
-      }
+      "blockaid_message": "Security partners found high-risk signals in this {{requestType}}. If you continue, your funds can't be recovered.",
+      "blockaid_message_with_amount": "Security partners found high-risk signals in this {{requestType}}. If you continue, your {{amount}} can't be recovered."
     },
     "inline_alert_label": "경고",
     "review_alerts": "경고 검토",
@@ -191,21 +184,30 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "이 요청을 승인하면 스캠을 목적으로 하는 타사가 회원님의 자산을 모두 가져갈 수 있습니다.",
-    "blur_farming_description": "이 요청을 승인하면 Blur에 등록된 회원님의 자산을 타인이 훔칠 수 있습니다.",
-    "deceptive_request_title": "사기성 요청입니다",
-    "failed_title": "안전하지 않은 요청일 수 있습니다",
-    "failed_description": "오류로 인해 보안업체에서 이 요청을 확인하지 못했습니다. 주의하여 진행하세요.",
-    "malicious_domain_description": "악성 도메인과 인터렉션하고 있습니다. 이 요청을 승인하면 본인의 자산을 잃을 수도 있습니다.",
-    "other_description": "이 요청을 승인하면, 자산을 잃을 수 있습니다.",
-    "raw_signature_farming_description": "이 요청을 승인하면, 자산을 잃을 수 있습니다.",
-    "seaport_farming_description": "이 요청을 승인하면 OpenSea에 등록된 회원님의 자산을 타인이 훔칠 수 있습니다.",
+    "high_risk_approval_title": "High-risk approval",
+    "high_risk_transfer_title": "High-risk transfer",
+    "high_risk_signature_title": "High-risk signature",
+    "site_flagged_unsafe_title": "Site flagged as unsafe",
+    "risk_signals_detected_title": "Risk signals detected",
+    "failed_title": "Security check unavailable",
+    "approval_farming_description": "You're giving an address flagged by security partners permission to move your assets.",
+    "marketplace_farming_description": "You're giving an address flagged by security partners permission to move your assets listed on {{marketplace}}.",
+    "transfer_farming_description": "You're sending assets to an address flagged by security partners. If this is a scam, your funds can't be recovered.",
+    "transfer_farming_description_with_amount": "You're sending assets to an address flagged by security partners. If this is a scam, your {{amount}} can't be recovered.",
+    "malicious_domain_description": "Security partners flag this site as malicious. If this is a scam, your funds can't be recovered.",
+    "malicious_domain_description_with_amount": "Security partners flag this site as malicious. If this is a scam, your {{amount}} can't be recovered.",
+    "high_risk_signature_description": "Security partners flag this signature as high risk. Signing could authorize actions with your assets without your permission.",
+    "other_description": "Security partners found risk signals in this request. Review before continuing.",
+    "failed_description": "We couldn't complete this safety check. Continue only if you trust the site and addresses involved.",
+    "request_type": {
+      "approval": "approval",
+      "transfer": "transfer",
+      "signature": "signature",
+      "request": "request"
+    },
     "see_details": "세부 정보 보기",
     "does_not_look_right": "무언가 잘못되었나요?",
     "report_an_issue": "문제 신고",
-    "suspicious_request_title": "의심스러운 요청입니다",
-    "trade_order_farming_description": "이 요청을 승인하면, 자산을 잃을 수 있습니다.",
-    "transfer_farming_description": "이 요청을 승인하면 스캠을 목적으로 하는 타사가 회원님의 자산을 모두 가져가게 됩니다.",
     "before_you_proceed": "사전 유의 사항",
     "enable_blockaid_alerts": "이 기능을 활성화하려면 몇 가지 보안 경고를 설정해야 합니다. 설정하는 동안 이 페이지는 열려 있어야 합니다. 완료하는 데 1분도 소요되지 않습니다.",
     "enable_blockaid_alerts_description": "보안 경고를 설정하는 동안 이 페이지는 열려 있어야 합니다. 완료하는 데 1분도 소요되지 않습니다.",
@@ -1648,6 +1650,12 @@
         "limit_price_must_be_set_before_configuring_tpsl": "익절/손절 구성 전에 지정가를 설정해야 합니다",
         "only_hyperliquid_usdc": "현재 Hyperliquid 결제는 USDC만 지원됩니다",
         "limit_price_far_warning": "지정가가 현재 시장 가격과 거리가 멉니다",
+        "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
+        "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
+        "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
+        "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
+        "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
+        "please_set_a_trigger_price": "Please set a trigger price",
         "oi_cap_reached": "미결제 약정 한도에 도달했습니다. 현재 신규 포지션에 진입할 수 없습니다.",
         "reduce_only_no_position": "리듀스 온리 주문을 하려면 이 시장에 보유 중인 포지션이 있어야 합니다",
         "reduce_only_wrong_side": "리듀스 온리 주문은 기존 포지션을 축소하는 것만 가능합니다. 반대 포지션으로 전환하세요.",
@@ -1804,6 +1812,7 @@
       "use_custom_title": "사용자 지정 슬리피지 사용",
       "row_format": "예상: {{est}}% / 최대: {{value}}%",
       "row_format_pending": "예상: -- / 최대: {{value}}%",
+      "row_format_max": "Max: {{value}}%",
       "input_label": "최대 슬리피지 퍼센티지",
       "decrement_label": "슬리피지 낮추기",
       "increment_label": "슬리피지 높이기",
@@ -2411,13 +2420,17 @@
     },
     "close_all_modal": {
       "title": "모든 포지션 종료",
-      "description": "회원님의 모든 포지션을 현재 시장가에 종료합니다.",
+      "title_filtered": "Close positions",
+      "description": {
+        "one": "We'll close your open position at current market price.",
+        "other": "We'll close your {{count}} open positions at current market price."
+      },
       "margin": "증거금",
       "includes_pnl": "{{pnlAmount}} 포함",
       "fees": "수수료",
       "you_will_receive": "받을 금액:",
       "keep_positions": "포지션 유지",
-      "close_all": "모두 종료",
+      "close_count": "Close ({{count}})",
       "closing": "종료 중...",
       "success_title": "포지션 종료됨",
       "success_message": "{{count}}개 포지션이 성공적으로 종료됨",
@@ -2699,8 +2712,8 @@
     "card_footer_disclaimer": "AI 생성",
     "footer_disclaimer": "참고용 AI 요약",
     "disclaimer_modal": {
-      "title": "AI 생성 콘텐츠",
-      "body": "이 요약은 제3자가 생성한 AI 콘텐츠이므로 정확하지 않거나 본인의 상황에 맞지 않을 수 있습니다. 거래, 투자, 법률 또는 세무 관련 결정에 사용하지 마시기 바랍니다. 과거 실적으로 미래 결과를 예측할 수는 없습니다.",
+      "title": "AI-generated content",
+      "body": "This summary is AI generated by a third party and may not be accurate or personalized. Don't use it for trading, investment, legal, or tax decisions. Past performance doesn't predict future results.",
       "got_it": "컨펌"
     },
     "swap_button": "스와프",
@@ -2725,6 +2738,15 @@
   },
   "predict": {
     "title": "MetaMask 예측",
+    "game_status": {
+      "live": "LIVE",
+      "scheduled": "SCHEDULED",
+      "delayed": "DELAYED",
+      "suspended": "SUSPENDED",
+      "postponed": "POSTPONED",
+      "final": "FINAL",
+      "canceled": "CANCELED"
+    },
     "send_to_predictions": "예측으로 보내기",
     "select_predict_account": "예측 계정 선택",
     "search_account": "계정 검색",
@@ -4023,7 +4045,7 @@
     "notifications_title": "알림",
     "notifications_desc": "알림 관리",
     "allow_notifications": "알림 허용",
-    "enable_push_notifications": "푸시 알림 활성화",
+    "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "알림 내용 및 알림 수신 방식을 선택하세요.",
     "notifications_opts": {
       "preferences_title": "기본 설정",
@@ -5414,7 +5436,7 @@
     "mint": "민트",
     "tx_details_free": "수수료",
     "tx_details_not_available": "이용할 수 없음",
-    "smart_contract_interaction": "스마트 계약 인터렉션",
+    "smart_contract_interaction": "Contract interaction",
     "money_account_deposit": "Money Account에 입금하기",
     "money_account_withdraw": "Money Account에서 이체하기",
     "swaps_transaction": "스와프 트랜잭션",
@@ -6124,7 +6146,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "출금 요청됨",
     "prompt_title": "푸시 알림 받기",
     "notifications_enabled_error_title": "문제가 발생했습니다",
-    "notifications_enabled_error_desc": "알림을 활성화할 수 없습니다. 나중에 다시 시도하세요.",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Please try again later.",
     "prompt_desc": "설정에서 알림을 켜서 지갑 활동 등에 대한 중요한 알림을 받으세요.",
     "prompt_ok": "켜기",
     "prompt_cancel": "나중에",
@@ -6172,7 +6194,7 @@
       "new_user": {
         "title": "매매 기회를 놓치지 마세요",
         "body": "MetaMask 사용 방식에 따라 가격 변동, 거래 컨펌, 포트폴리오 활동 및 보상에 관한 실시간 알림을 받아보세요.",
-        "button_yes": "알림 활성화",
+        "button_yes": "Turn on notifications",
         "button_not_now": "나중에",
         "preview_card_1": {
           "time": "지금",
@@ -6214,7 +6236,7 @@
         }
       },
       "toast_enabled": "알림 활성화됨",
-      "toast_settings_hint": "'설정 > 알림'에서 언제든지 알림을 활성화할 수 있습니다"
+      "toast_settings_hint": "You can turn on notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -7630,7 +7652,6 @@
   },
   "money": {
     "title": "Money",
-    "get_pro": "Get Pro",
     "your_balance": "내 잔액",
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
@@ -8480,6 +8501,49 @@
       "market": "시장",
       "limit": "한도",
       "recurring": "반복"
+    },
+    "orders": {
+      "tabs": {
+        "open_orders": "Open orders",
+        "history": "History"
+      },
+      "empty": {
+        "open_orders": "Open orders appear here",
+        "history": "Order history appears here"
+      }
+    },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price",
+      "not_enough_gas": "Not enough gas",
+      "filled": "Filled",
+      "filled_at": "Filled at {{date}}",
+      "expired": "Expired",
+      "expired_after": "Expired after {{duration}}"
+    },
+    "recurring": {
+      "you_get": "You get",
+      "every": "Every",
+      "repeat": "Repeat",
+      "times": "times",
+      "confirm": "Confirm",
+      "unit": {
+        "minute": "minute",
+        "hour": "hour",
+        "day": "day",
+        "week": "week"
+      },
+      "unit_option": {
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day",
+        "week": "Week"
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled",
+      "filled": "Filled"
     },
     "continue": "계속",
     "confirm_bridge": "브릿지",
@@ -9724,12 +9788,12 @@
     },
     "notifications_nudge": {
       "title": "기회를 놓치지 마세요",
-      "description": "캠페인 소식을 받아보려면 알림을 활성화하세요.",
+      "description": "Turn on notifications to stay informed on campaigns.",
       "turn_on_button": "켜기",
-      "loading": "알림 활성화 중...",
+      "loading": "Turning on notifications...",
       "loading_description": "이 작업은 약간 시간이 걸릴 수 있습니다.",
-      "enable_error": "알림 활성화 실패",
-      "success": "알림 활성화됨"
+      "enable_error": "Failed to turn on notifications",
+      "success": "Notifications turned on"
     },
     "version_guard": {
       "title": "업데이트 필요",
@@ -10138,10 +10202,12 @@
       "geo_locked_cta": "자격 확인",
       "geo_loading": "지역 확인 중...",
       "remind_me_success_toast": "이 캠페인이 시작되면 알려드립니다.",
-      "remind_me_save_error": "알림을 저장할 수 없습니다. 다시 시도하세요."
+      "remind_me_save_error": "알림을 저장할 수 없습니다. 다시 시도하세요.",
+      "view_details": "View details",
+      "view_details_accessibility": "View details for {{campaignName}}"
     },
     "campaign_mechanics": {
-      "title": "운영 방식"
+      "title": "Rules and eligibility"
     },
     "campaign_details": {
       "start_date": "시작일: {{date}}",
@@ -10158,6 +10224,11 @@
       "swap_ondo_assets": "Ondo 자산 스왑",
       "open_position": "거래하기",
       "how_it_works": "작동 방식",
+      "error_title": "Unable to load this campaign",
+      "error_description": "We couldn't load this campaign. Please try again.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "retry": "Retry",
       "ondo": {
         "entries_closed_title": "참여 접수 마감",
         "entries_closed_description": "참여 신청 기간을 놓쳤습니다. 이후 진행되는 다른 캠페인을 확인해 주세요."
@@ -10446,8 +10517,8 @@
       "you_received": "수령한 금액",
       "token_received": "토큰 받음",
       "money_account": "Money Account",
-      "perps_account": "무기한 선물 계정 1",
-      "predictions_account": "예측 계정 1",
+      "perps_account": "Account 1 Perps",
+      "predictions_account": "Account 1 Predictions",
       "steps_completed": "단계({{count}}개 완료)",
       "summary": "요약"
     },
@@ -10527,7 +10598,7 @@
     "push_nudge": {
       "title": "트랜잭션을 놓치지 마세요",
       "description": "CLI 세션에서 발생하는 트랜잭션을 검토하고 승인할 수 있도록 실시간 알림을 받아보세요.",
-      "turn_on_button": "알림 활성화",
+      "turn_on_button": "Turn on notifications",
       "preview_title": "트랜잭션 요청",
       "preview_message": "에이전트가 새로운 한도에 대한 승인을 요청하고 있습니다.",
       "preview_timestamp": "지금"
@@ -10625,7 +10696,7 @@
     "view_all": "모두 보기",
     "view_more": "더 보기",
     "view_x_more": "{{count}}개 더 보기",
-    "enable_basic_functionality": "기본 기능 활성화",
+    "enable_basic_functionality": "Turn on basic functionality",
     "basic_functionality_disabled_title": "탐색 기능을 사용할 수 없습니다",
     "basic_functionality_disabled_description": "기본 기능이 비활성화되어 있어 필요한 메타데이터를 가져올 수 없습니다.",
     "empty_error_trending_state": {
@@ -10833,7 +10904,6 @@
   "whats_happening": {
     "title": "주요 동향",
     "ai": "AI",
-    "ai_generated": "AI 생성",
     "outdated": "오래됨",
     "impact": {
       "bullish": "강세",
@@ -10878,6 +10948,52 @@
     "activate_error": "이 트러스트라인을 추가하는 동안 문제가 발생했습니다. 다시 시도하세요.",
     "deactivate_error": "이 트러스트라인을 제거하는 동안 문제가 발생했습니다. 다시 시도하세요.",
     "deactivate_error_non_zero_balance_stellar": "이 지갑에 아직 {{balance}} {{symbol}}이(가) 남아 있습니다. Stellar에서 이 자산을 비활성화하려면 먼저 모든 잔액을 보내거나 스왑해야 합니다."
+  },
+  "pro_hub": {
+    "title": "MetaMask Pro",
+    "subtitle": "Your Pro membership",
+    "manage": "Manage subscription",
+    "explore_benefits": "Explore benefits",
+    "membership": {
+      "title": "Your membership",
+      "plan": "Membership",
+      "earned_this_month": "Earned this month",
+      "saved_this_month": "Saved this month",
+      "payment_details": "Payment details",
+      "total": "Total",
+      "paying_with": "Paying with",
+      "renews_on": "Renews on",
+      "manage": "Manage",
+      "contact_support": "Contact support",
+      "cancel_membership": "Cancel membership",
+      "earned_info": {
+        "title": "Earned this month",
+        "description": "The amount you earned in APY and mUSD back as a Pro member."
+      },
+      "saved_info": {
+        "title": "Saved this month",
+        "description": "The amount you saved as a Pro member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
+      }
+    },
+    "cancel_membership": {
+      "title": "Why are you canceling?",
+      "subtitle": "Survey is optional.",
+      "earned_as_member": "Earned as a member",
+      "membership_cost": "Membership cost",
+      "reason_issue": "I have an issue with my membership",
+      "reason_no_value": "Not getting enough value",
+      "reason_no_benefits": "I don't need the benefits",
+      "reason_support": "Unhappy with customer support",
+      "reason_other": "Other",
+      "keep_membership": "Keep membership",
+      "cancel": "Cancel",
+      "success": {
+        "title": "Plan canceled",
+        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
+        "description_suffix": ".",
+        "done": "Done"
+      }
+    }
   },
   "pro_subscription": {
     "title": "Earn more with Pro",

@@ -39,19 +39,12 @@
       "alert_details": "Mga detalye ng alerto"
     },
     "confirm_modal": {
-      "title": "Kahilingang may mataas ang panganib",
+      "title": "High-risk request",
       "checkbox_label": "Kinikilala ko ang alerto at gusto ko pa ring magpatuloy",
       "review_alerts": "Suriin ang lahat ng alerto",
       "message": "Iminumungkahi namin na tanggihan mo ang kahilingang ito. Kapag nagpatuloy ka, maaari mong mailagay sa panganib ang mga asset mo.",
-      "title_blockaid": "Maaaring nasa panganib ang mga asset mo",
-      "blockaid": {
-        "message": "Kapag kinumpirma mo ang kahilingang ito, maaaring mawala sa iyo ang mga asset mo. Inirerekomenda namin na kanselahin mo ang kahilingang ito.",
-        "message1": "Kapag kinumpirma mo ang kahilingang ito, pinapayagan mo ang scammer na i-withdraw at gastusin ang mga asset mo. Hindi mo na mababawi ang mga iyon.",
-        "message2": "Ipapadala mo ang iyong mga asset sa scammer. Kapag nagpatuloy ka, mawawala sa iyo ang mga asset na iyon.",
-        "message3": "Kung magpapatuloy ka, maaaring mailagay sa panganib ang lahat ng asset na ini-list mo sa OpenSea.",
-        "message4": "Kung magpapatuloy ka, maaaring mailagay sa panganib ang lahat ng asset na ini-list mo sa Blur.",
-        "message5": "Nakikipag-ugnayan ka sa isang site na may masamang hangarin. Kapag nagpatuloy ka, mawawala sa iyo ang mga asset mo."
-      }
+      "blockaid_message": "Security partners found high-risk signals in this {{requestType}}. If you continue, your funds can't be recovered.",
+      "blockaid_message_with_amount": "Security partners found high-risk signals in this {{requestType}}. If you continue, your {{amount}} can't be recovered."
     },
     "inline_alert_label": "Alerto",
     "review_alerts": "Suriin ang mga alerto",
@@ -191,21 +184,30 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng kunin ng third party na kilala sa mga panloloko ang lahat ng asset mo.",
-    "blur_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng nakawin ng ibang tao ang mga asset mo na nakalista sa Blur.",
-    "deceptive_request_title": "Isa itong mapanlinlang na kahilingan",
-    "failed_title": "Baka hindi ligtas ang kahilingan",
-    "failed_description": "Dahil sa pagkakamali, ang kahilingang ito ay hindi na-verify ng tagapaglaan ng seguridad. Magpatuloy nang may pag-iingat.",
-    "malicious_domain_description": "Nakikipag-ugnayan ka sa isang mapaminsalang domain. Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
-    "other_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
-    "raw_signature_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
-    "seaport_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng nakawin ng ibang tao ang mga asset mo na nakalista sa OpenSea.",
+    "high_risk_approval_title": "High-risk approval",
+    "high_risk_transfer_title": "High-risk transfer",
+    "high_risk_signature_title": "High-risk signature",
+    "site_flagged_unsafe_title": "Site flagged as unsafe",
+    "risk_signals_detected_title": "Risk signals detected",
+    "failed_title": "Security check unavailable",
+    "approval_farming_description": "You're giving an address flagged by security partners permission to move your assets.",
+    "marketplace_farming_description": "You're giving an address flagged by security partners permission to move your assets listed on {{marketplace}}.",
+    "transfer_farming_description": "You're sending assets to an address flagged by security partners. If this is a scam, your funds can't be recovered.",
+    "transfer_farming_description_with_amount": "You're sending assets to an address flagged by security partners. If this is a scam, your {{amount}} can't be recovered.",
+    "malicious_domain_description": "Security partners flag this site as malicious. If this is a scam, your funds can't be recovered.",
+    "malicious_domain_description_with_amount": "Security partners flag this site as malicious. If this is a scam, your {{amount}} can't be recovered.",
+    "high_risk_signature_description": "Security partners flag this signature as high risk. Signing could authorize actions with your assets without your permission.",
+    "other_description": "Security partners found risk signals in this request. Review before continuing.",
+    "failed_description": "We couldn't complete this safety check. Continue only if you trust the site and addresses involved.",
+    "request_type": {
+      "approval": "approval",
+      "transfer": "transfer",
+      "signature": "signature",
+      "request": "request"
+    },
     "see_details": "Tingnan ang mga detalye",
     "does_not_look_right": "Mayroon bang hindi tama?",
     "report_an_issue": "Mag-ulat ng isyu",
-    "suspicious_request_title": "Isa itong kahina-hinalang kahilingan",
-    "trade_order_farming_description": "Kung aaprubahan mo ang kahilingang ito, posibleng mawala sa iyo ang mga asset mo.",
-    "transfer_farming_description": "Kung aaprubahan mo ang kahilingang ito, kukunin ng third party na kilala sa mga panloloko ang lahat ng asset mo.",
     "before_you_proceed": "Bago ka magpatuloy",
     "enable_blockaid_alerts": "Para i-enable ang feature na ito, kailangan naming mag-set up ng ilang alertong pangseguridad. Ang page na ito ay kakailanganing manatiling bukas habang sine-set up ito. Tatagal ito nang wala pang isang minuto para makumpleto.",
     "enable_blockaid_alerts_description": "Ang pahina na ito ay kailangan na manatiling bukas habang itinatakda ang mga alerto sa seguridad. Ang prosesong ito ay aabot ng wala pang isang minuto para makumpleto.",
@@ -1648,6 +1650,12 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Dapat na itakda ang limit price bago i-configure ang TP/SL",
         "only_hyperliquid_usdc": "Sa kasalukuyan, USDC lang ang sinusuportahan para sa pagbabayad sa Hyperliquid",
         "limit_price_far_warning": "Malayo ang limit price sa kasalukuyang presyo sa market",
+        "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
+        "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
+        "trigger_must_be_above_mid": "Trigger price must be higher than mid price",
+        "trigger_must_be_below_mid": "Trigger price must be lower than mid price",
+        "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
+        "please_set_a_trigger_price": "Please set a trigger price",
         "oi_cap_reached": "Naabot na ang limitasyon ng bukas na interes. Hindi makakapagbukas ng mga bagong posisyon sa pagkakataong ito.",
         "reduce_only_no_position": "Kailangan mong magkaroon ng bukas ng posisyon sa merkadong ito para mailagay ang reduce-only na mga order",
         "reduce_only_wrong_side": "Ang mga reduce-only na order ay maaari lamang mabawasan sa umiiral na posisyon. Ilipat sa kabilang panig.",
@@ -1804,6 +1812,7 @@
       "use_custom_title": "Gumamit ng iniangkop na slippage",
       "row_format": "Tinantya: {{est}}% / Max: {{value}}%",
       "row_format_pending": "Tinantya: -- / Max: {{value}}%",
+      "row_format_max": "Max: {{value}}%",
       "input_label": "Max na porsyento ng slippage",
       "decrement_label": "Bawasan ang slippage",
       "increment_label": "Dagdagan ang slippage",
@@ -2411,13 +2420,17 @@
     },
     "close_all_modal": {
       "title": "Isara ang lahat ng posisyon",
-      "description": "Isasara namin ang lahat ng bukas na posisyon mo sa kasalukuyang presyo sa merkado.",
+      "title_filtered": "Close positions",
+      "description": {
+        "one": "We'll close your open position at current market price.",
+        "other": "We'll close your {{count}} open positions at current market price."
+      },
       "margin": "Margin",
       "includes_pnl": "kabilang ang {{pnlAmount}}",
       "fees": "Mga Bayarin",
       "you_will_receive": "Makakatanggap ka ng",
       "keep_positions": "Panatilihin ang mga posisyon",
-      "close_all": "Isara lahat",
+      "close_count": "Close ({{count}})",
       "closing": "Isinasara...",
       "success_title": "Naisara ang mga posisyon",
       "success_message": "Matagumpay na naisara ang {{count}} (na) posisyon",
@@ -2699,8 +2712,8 @@
     "card_footer_disclaimer": "Gawa ng AI",
     "footer_disclaimer": "Para sa impormasyon lang ang buod ng AI",
     "disclaimer_modal": {
-      "title": "Content na gawa ng AI",
-      "body": "Ang buod na ito ay gawa ng AI ng third party at maaaring hindi tumpak o isinapersonal. Huwag itong gamitin para sa mga desisyon sa pagti-trade, pamumuhunan, legal, o buwis. Hindi nahuhulaan ng performace sa nakalipas ang mga resulta ng hinaharap.",
+      "title": "AI-generated content",
+      "body": "This summary is AI generated by a third party and may not be accurate or personalized. Don't use it for trading, investment, legal, or tax decisions. Past performance doesn't predict future results.",
       "got_it": "Nakuha ko"
     },
     "swap_button": "Mag-swap",
@@ -2725,6 +2738,15 @@
   },
   "predict": {
     "title": "Mga Predisksyon ng MetaMask",
+    "game_status": {
+      "live": "LIVE",
+      "scheduled": "SCHEDULED",
+      "delayed": "DELAYED",
+      "suspended": "SUSPENDED",
+      "postponed": "POSTPONED",
+      "final": "FINAL",
+      "canceled": "CANCELED"
+    },
     "send_to_predictions": "Ipadala sa mga Prediksyon",
     "select_predict_account": "Pumili ng predict account",
     "search_account": "Pumili ng isang account",
@@ -4023,7 +4045,7 @@
     "notifications_title": "Mga notipikasyon",
     "notifications_desc": "Pamahalaan ang mga notipikasyon mo",
     "allow_notifications": "Payagan ang mga notipikasyon",
-    "enable_push_notifications": "Paganahin ang mga push na notipikasyon",
+    "enable_push_notifications": "Turn on push notifications",
     "allow_notifications_desc": "Piliin kung para saan mo gustong maabisuhan at kung paano.",
     "notifications_opts": {
       "preferences_title": "Mga Kagustuhan",
@@ -5414,7 +5436,7 @@
     "mint": "Mint",
     "tx_details_free": "Libre",
     "tx_details_not_available": "Hindi available",
-    "smart_contract_interaction": "Interaksyon sa smart na kontrata",
+    "smart_contract_interaction": "Contract interaction",
     "money_account_deposit": "Ideposito sa Money Account",
     "money_account_withdraw": "Ilipat mula sa Money Account",
     "swaps_transaction": "Transaksyon sa mga swap",
@@ -6124,7 +6146,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "Hiniling ang pag-withdraw",
     "prompt_title": "Tumanggap ng mga push notification",
     "notifications_enabled_error_title": "Mayroong nang mali",
-    "notifications_enabled_error_desc": "Hindi namin mapagana ang mga notipikasyon. Mangyaring subukan muli mamaya.",
+    "notifications_enabled_error_desc": "We couldn't turn on notifications. Please try again later.",
     "prompt_desc": "I-on ang mga notification mula sa Settings para makakuha ng mga mahahalagang alerto ng aktibidad sa wallet at iba pa.",
     "prompt_ok": "I-on",
     "prompt_cancel": "Baka mamaya",
@@ -6172,7 +6194,7 @@
       "new_user": {
         "title": "Walang dapat palampasin",
         "body": "Makakuha ng mga real-time na alerto sa mga paggalaw ng presyo, kumpirmasyon ng trade, aktibidad ng portfolio, at mga reward batay sa kung paano mo ginagamit ang MetaMask.",
-        "button_yes": "Paganahin ang mga notipikasyon",
+        "button_yes": "Turn on notifications",
         "button_not_now": "Hindi sa ngayon",
         "preview_card_1": {
           "time": "ngayon",
@@ -6214,7 +6236,7 @@
         }
       },
       "toast_enabled": "Napagana ang mga notipikasyon",
-      "toast_settings_hint": "Puwede mong i-enable ang mga notipikasyon anumang oras sa Mga Setting > Mga Notipikasyon"
+      "toast_settings_hint": "You can turn on notifications any time in Settings > Notifications"
     }
   },
   "protect_your_wallet_modal": {
@@ -7630,7 +7652,6 @@
   },
   "money": {
     "title": "Pera",
-    "get_pro": "Get Pro",
     "your_balance": "Iyong balanse",
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
@@ -8480,6 +8501,49 @@
       "market": "Market",
       "limit": "Limit",
       "recurring": "Umuulit"
+    },
+    "orders": {
+      "tabs": {
+        "open_orders": "Open orders",
+        "history": "History"
+      },
+      "empty": {
+        "open_orders": "Open orders appear here",
+        "history": "Order history appears here"
+      }
+    },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Expiry: {{timeLeft}}",
+      "limit_price": "{{symbol}} limit price",
+      "not_enough_gas": "Not enough gas",
+      "filled": "Filled",
+      "filled_at": "Filled at {{date}}",
+      "expired": "Expired",
+      "expired_after": "Expired after {{duration}}"
+    },
+    "recurring": {
+      "you_get": "You get",
+      "every": "Every",
+      "repeat": "Repeat",
+      "times": "times",
+      "confirm": "Confirm",
+      "unit": {
+        "minute": "minute",
+        "hour": "hour",
+        "day": "day",
+        "week": "week"
+      },
+      "unit_option": {
+        "minute": "Minute",
+        "hour": "Hour",
+        "day": "Day",
+        "week": "Week"
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} orders",
+      "percent_filled": "{{percent}}% filled",
+      "filled": "Filled"
     },
     "continue": "Magpatuloy",
     "confirm_bridge": "Mag-bridge",
@@ -9724,12 +9788,12 @@
     },
     "notifications_nudge": {
       "title": "Huwag palampasin",
-      "description": "Paganahin ang mga notipikasyon para manatiling may alam tungkol sa mga campaign.",
+      "description": "Turn on notifications to stay informed on campaigns.",
       "turn_on_button": "I-on",
-      "loading": "Pinapagana ang mga notipikasyon...",
+      "loading": "Turning on notifications...",
       "loading_description": "Posibleng magtagal ito nang ilang sandali.",
-      "enable_error": "Hindi napagana ang mga notipikasyon",
-      "success": "Napagana ang mga notipikasyon"
+      "enable_error": "Failed to turn on notifications",
+      "success": "Notifications turned on"
     },
     "version_guard": {
       "title": "Kinakailangan ng update",
@@ -10138,10 +10202,12 @@
       "geo_locked_cta": "Alamin kung kwalipikado",
       "geo_loading": "Sinusuri ang rehiyon...",
       "remind_me_success_toast": "Ipapaalam namin sa iyo kung kailan magsisimula ang campaign na ito.",
-      "remind_me_save_error": "Hindi ma-save ang paalala mo. Subukan ulit."
+      "remind_me_save_error": "Hindi ma-save ang paalala mo. Subukan ulit.",
+      "view_details": "View details",
+      "view_details_accessibility": "View details for {{campaignName}}"
     },
     "campaign_mechanics": {
-      "title": "Mechanics"
+      "title": "Rules and eligibility"
     },
     "campaign_details": {
       "start_date": "Magsisimula sa: {{date}}",
@@ -10158,6 +10224,11 @@
       "swap_ondo_assets": "I-swap ang mga Ondo Asset",
       "open_position": "Mag-trade na",
       "how_it_works": "Paano ito gumagana",
+      "error_title": "Unable to load this campaign",
+      "error_description": "We couldn't load this campaign. Please try again.",
+      "stats_error_title": "Unable to load stats",
+      "stats_error_description": "We had a problem loading your stats. Please try again.",
+      "retry": "Retry",
       "ondo": {
         "entries_closed_title": "Sarado na ang mga entry",
         "entries_closed_description": "Nakaligtaan mo ang opt-in window. Balikan para sa mas maraming campaign sa hinaharap."
@@ -10446,8 +10517,8 @@
       "you_received": "Nakatanggap ka ng",
       "token_received": "Natanggap na ang token",
       "money_account": "Money account",
-      "perps_account": "Perps Account 1",
-      "predictions_account": "Account sa Predictions 1",
+      "perps_account": "Account 1 Perps",
+      "predictions_account": "Account 1 Predictions",
       "steps_completed": "Mga hakbang ({{count}} ang nakumpleto)",
       "summary": "Buod"
     },
@@ -10527,7 +10598,7 @@
     "push_nudge": {
       "title": "Huwag kaligtaan ang transaksyon",
       "description": "Makakuha ng mga real-time na alerto para masuri at maaprubahan ang mga transaksyon mula sa iyong sesyon na CLI.",
-      "turn_on_button": "Paganahin ang mga notipikasyon",
+      "turn_on_button": "Turn on notifications",
       "preview_title": "Kahilingan sa transaksyon",
       "preview_message": "Nangangailangan ang agent mo ng pag-apruba sa bagong limit.",
       "preview_timestamp": "ngayon"
@@ -10625,7 +10696,7 @@
     "view_all": "Tingnan lahat",
     "view_more": "Tumingin ng higit pa",
     "view_x_more": "Tumingin ng {{count}} pa",
-    "enable_basic_functionality": "Paganahin ang basic functionality",
+    "enable_basic_functionality": "Turn on basic functionality",
     "basic_functionality_disabled_title": "Hindi available ang pagtuklas",
     "basic_functionality_disabled_description": "Hindi namin makukuha ang kinakailangang metadata kapag hindi pinapagana ang basic functionality.",
     "empty_error_trending_state": {
@@ -10833,7 +10904,6 @@
   "whats_happening": {
     "title": "Ano ang nangyayari",
     "ai": "AI",
-    "ai_generated": "AI Generated",
     "outdated": "Napaglipasan na",
     "impact": {
       "bullish": "Bullish",
@@ -10878,6 +10948,52 @@
     "activate_error": "Nagkaproblema habang idinadagdag ang trustline na ito. Subukan muli.",
     "deactivate_error": "Nagkaproblema habang inaalis ang trustline na ito. Subukan muli.",
     "deactivate_error_non_zero_balance_stellar": "Mayroon ka pang {{balance}} {{symbol}} sa wallet na ito. Kailangan mo itong ipadala o i-swap ang lahat ng ito bago mag-deactivate ng asset na ito sa Stellar."
+  },
+  "pro_hub": {
+    "title": "MetaMask Pro",
+    "subtitle": "Your Pro membership",
+    "manage": "Manage subscription",
+    "explore_benefits": "Explore benefits",
+    "membership": {
+      "title": "Your membership",
+      "plan": "Membership",
+      "earned_this_month": "Earned this month",
+      "saved_this_month": "Saved this month",
+      "payment_details": "Payment details",
+      "total": "Total",
+      "paying_with": "Paying with",
+      "renews_on": "Renews on",
+      "manage": "Manage",
+      "contact_support": "Contact support",
+      "cancel_membership": "Cancel membership",
+      "earned_info": {
+        "title": "Earned this month",
+        "description": "The amount you earned in APY and mUSD back as a Pro member."
+      },
+      "saved_info": {
+        "title": "Saved this month",
+        "description": "The amount you saved as a Pro member on MetaMask fees in swaps, perps, and predictions this month, plus ATM and FX fees."
+      }
+    },
+    "cancel_membership": {
+      "title": "Why are you canceling?",
+      "subtitle": "Survey is optional.",
+      "earned_as_member": "Earned as a member",
+      "membership_cost": "Membership cost",
+      "reason_issue": "I have an issue with my membership",
+      "reason_no_value": "Not getting enough value",
+      "reason_no_benefits": "I don't need the benefits",
+      "reason_support": "Unhappy with customer support",
+      "reason_other": "Other",
+      "keep_membership": "Keep membership",
+      "cancel": "Cancel",
+      "success": {
+        "title": "Plan canceled",
+        "description_prefix": "Your Pro plan was canceled successfully. It won't renew, and you'll keep all your benefits until ",
+        "description_suffix": ".",
+        "done": "Done"
+      }
+    }
   },
   "pro_subscription": {
     "title": "Earn more with Pro",
