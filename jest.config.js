@@ -27,6 +27,8 @@ process.env.IOS_GOOGLE_REDIRECT_URI = 'iosGoogleRedirectUri';
 
 process.env.MM_CARD_BAANX_API_CLIENT_KEY = 'test-api-key';
 
+process.env.BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE = '1.5';
+
 // When running Reassure perf tests we want to avoid Jest coverage to reduce memory usage
 const isReassureRun = process.env.REASSURE === 'true';
 

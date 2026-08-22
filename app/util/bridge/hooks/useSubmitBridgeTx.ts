@@ -44,6 +44,7 @@ import {
   createActiveABTestAssignment,
   normalizeActiveABTestAssignments,
 } from '../../analytics/activeABTestAssignments';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../constants/bridge';
 
 function mergeTransactionActiveAbTests(
   ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
@@ -163,7 +164,7 @@ export default function useSubmitBridgeTx() {
     location,
     transactionActiveAbTests: transactionActiveAbTestsFromRoute,
   }: {
-    quoteResponse: QuoteResponse & QuoteMetadata;
+    quoteResponse: QuoteResponse;
     /** The entry point from which the user initiated the swap or bridge */
     location?: MetaMetricsSwapsEventSource;
     /** Route-carried A/B assignments merged at submit time. */
@@ -192,6 +193,7 @@ export default function useSubmitBridgeTx() {
             activeAbTests: mergedActiveAbTests,
             tokenSecurityTypeDestination,
             inputPrimaryDenomination,
+            migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
           });
         }
         return await Engine.context.BridgeStatusController.submitTx(
@@ -205,6 +207,7 @@ export default function useSubmitBridgeTx() {
           tokenSecurityTypeDestination,
           undefined, // batchSellTrades
           inputPrimaryDenomination,
+          BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
         );
       },
     );
