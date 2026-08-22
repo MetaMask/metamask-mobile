@@ -177,6 +177,7 @@ export interface RewardOptInAccountGroupModalParams {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsStackParamList = {
   ReferralRewardsView: undefined;
+  ReferralRewardsPerformanceView: undefined;
   RewardsSettingsView: undefined;
   RewardsVipSplashView: undefined;
   RewardsVipView: undefined;

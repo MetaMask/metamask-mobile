@@ -45,6 +45,15 @@ interface MoneyEarningsProps {
    * Whether the earnings values should be masked.
    */
   privacyMode?: boolean;
+  /**
+   * Opens the full earnings view from the section header.
+   */
+  onPress?: () => void;
+  /**
+   * Optional row-label overrides for contexts that reuse the earnings summary.
+   */
+  primaryLabel?: string;
+  secondaryLabel?: string;
 }
 
 const UNDERLINE_HEIGHT = 2;
@@ -132,7 +141,7 @@ const DottedInfoLabel = ({
         >
           {children}
         </Text>
-        {underlineWidth > 0 ? (
+        {onPress && underlineWidth > 0 ? (
           <Svg
             width={underlineWidth}
             height={UNDERLINE_HEIGHT}
@@ -164,9 +173,15 @@ const MoneyEarnings = ({
   onMonthlyInfoPress,
   onLifetimeInfoPress,
   privacyMode = false,
+  onPress,
+  primaryLabel,
+  secondaryLabel,
 }: MoneyEarningsProps) => (
   <Box twClassName="px-4 pt-7 pb-3" testID={MoneyEarningsTestIds.CONTAINER}>
-    <MoneySectionHeader title={strings('money.earnings.title')} />
+    <MoneySectionHeader
+      title={strings('money.earnings.title')}
+      onPress={onPress}
+    />
 
     <Box twClassName="mt-5 gap-4">
       <Box
@@ -177,10 +192,12 @@ const MoneyEarnings = ({
       >
         <DottedInfoLabel
           onPress={onMonthlyInfoPress}
-          accessibilityLabel={strings('money.earnings.monthly_info_label')}
+          accessibilityLabel={
+            primaryLabel ?? strings('money.earnings.monthly_info_label')
+          }
           testID={MoneyEarningsTestIds.MONTHLY_LABEL}
         >
-          {strings('money.earnings.estimated_monthly')}
+          {primaryLabel ?? strings('money.earnings.estimated_monthly')}
         </DottedInfoLabel>
         {isLoading ? (
           <Skeleton
@@ -206,10 +223,12 @@ const MoneyEarnings = ({
       >
         <DottedInfoLabel
           onPress={onLifetimeInfoPress}
-          accessibilityLabel={strings('money.earnings.lifetime_info_label')}
+          accessibilityLabel={
+            secondaryLabel ?? strings('money.earnings.lifetime_info_label')
+          }
           testID={MoneyEarningsTestIds.LIFETIME_LABEL}
         >
-          {strings('money.earnings.estimated_lifetime')}
+          {secondaryLabel ?? strings('money.earnings.estimated_lifetime')}
         </DottedInfoLabel>
         {isLoading ? (
           <Skeleton
