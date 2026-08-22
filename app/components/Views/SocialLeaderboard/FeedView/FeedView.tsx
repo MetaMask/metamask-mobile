@@ -203,6 +203,12 @@ const FeedView: React.FC<FeedViewProps> = ({
     loadMore,
     error,
     refresh,
+    // Doubles as the clock for relative timestamps and as the signal that busts
+    // the memoized rows. Sourcing it from the fetch (rather than from mount or
+    // from a render-time `Date.now()`) keeps ages consistent with the snapshot
+    // on screen and makes them recompute after a refetch that returned an
+    // unchanged payload.
+    dataUpdatedAt,
   } = useTraderFeed({ audience, typeFilter, enabled: isActive });
 
   // Report spot availability up to the parent so it can mount the Buy Action
@@ -373,9 +379,10 @@ const FeedView: React.FC<FeedViewProps> = ({
         onTradePress={handleTradePress}
         onPositionPress={handlePositionPress}
         onTraderPress={handleTraderPress}
+        now={dataUpdatedAt}
       />
     ),
-    [handleTradePress, handlePositionPress, handleTraderPress],
+    [handleTradePress, handlePositionPress, handleTraderPress, dataUpdatedAt],
   );
 
   const renderSectionHeader = useCallback(
@@ -541,6 +548,7 @@ const FeedView: React.FC<FeedViewProps> = ({
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         contentContainerStyle={tw.style('pb-6 flex-grow')}
+        extraData={dataUpdatedAt}
         refreshControl={refreshControl}
         testID={FeedViewSelectorsIDs.LIST}
       />
@@ -559,6 +567,7 @@ const FeedView: React.FC<FeedViewProps> = ({
     filterRow,
     onScroll,
     tw,
+    dataUpdatedAt,
   ]);
 
   return (

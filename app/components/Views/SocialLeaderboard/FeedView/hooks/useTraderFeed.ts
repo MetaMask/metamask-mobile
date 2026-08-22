@@ -66,6 +66,13 @@ export interface UseTraderFeedResult {
   error: string | null;
   /** Reset to the first page and refetch the newest activity. */
   refresh: () => Promise<void>;
+  /**
+   * Instant the loaded snapshot was fetched, or `undefined` before the first
+   * success. Advances on every successful fetch — including a refetch whose
+   * payload is deeply equal to the cached one, which React Query would
+   * otherwise hide behind structural sharing.
+   */
+  dataUpdatedAt: number | undefined;
 }
 
 const EMPTY_ITEMS: FeedItem[] = [];
@@ -222,5 +229,8 @@ export const useTraderFeed = (
     loadMore,
     error: formatSocialQueryErrorMessage(error),
     refresh,
+    // React Query reports `0` until the first success; normalise to `undefined`
+    // so consumers fall back to their own render-time clock.
+    dataUpdatedAt: query.dataUpdatedAt || undefined,
   };
 };

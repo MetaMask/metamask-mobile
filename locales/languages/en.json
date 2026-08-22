@@ -1134,6 +1134,7 @@
       "following": "Following",
       "all": "All",
       "trade": "Trade",
+      "just_now": "Just now",
       "action": {
         "bought": "bought",
         "sold": "sold",
