@@ -7,7 +7,6 @@ import type { Json } from '@metamask/utils';
  */
 export enum FeatureFlagNames {
   otaUpdatesEnabled = 'otaUpdatesEnabled',
-  fullPageAccountList = 'fullPageAccountList',
   assetsDefiPositionsEnabled = 'assetsDefiPositionsEnabled',
   defiControllerV2 = 'defiControllerV2',
   tokenDetailsV2Buttons = 'tokenDetailsV2Buttons',
