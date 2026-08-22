@@ -3,7 +3,8 @@ import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { RootState } from '../../../../../reducers';
 import { earnSelectors } from '../../../../../selectors/earnController';
-import StakingBalance from '../../../Stake/components/StakingBalance/StakingBalance';
+import StakingOverview from '../../../Stake/components/StakingBalance/StakingOverview';
+import StakingDiscovery from '../../../Stake/components/StakingBalance/StakingDiscovery/StakingDiscovery';
 import { TokenI } from '../../../Tokens/types';
 import EarnLendingBalance from '../EarnLendingBalance';
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
@@ -48,11 +49,15 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
   const isConvertibleStablecoin =
     isMusdConversionFlowEnabled && isConversionToken(asset) && isGeoEligible;
 
-  // EVM staking: only when stakeable and not a staked output token
-  if (isStakeableToken && !asset.isStaked) {
+  // EVM staking: native ETH shows discovery, staked ETH shows active staking UI
+  if (isStakeableToken) {
     return (
       <Box twClassName="px-4">
-        <StakingBalance asset={asset} />
+        {asset.isStaked ? (
+          <StakingOverview asset={asset} />
+        ) : (
+          <StakingDiscovery asset={asset} />
+        )}
       </Box>
     );
   }
