@@ -4,6 +4,10 @@ import {
   SOL_ACCOUNT_PROVIDER_NAME,
   BTC_ACCOUNT_PROVIDER_NAME,
   TRX_ACCOUNT_PROVIDER_NAME,
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  AccountProviderWrapper,
+  XlmAccountProvider,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/multichain-account-service';
 import { MessengerClientInitFunction } from '../../types';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
@@ -39,8 +43,37 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     },
   };
 
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  // Stellar-only: enable discovery + batched create with a longer timeout.
+  // Do not put these on the shared config used by Solana/Bitcoin/Tron — that
+  // changes account boot shape for every smoke suite.
+  const stellarSnapAccountProviderConfig = {
+    ...snapAccountProviderConfig,
+    discovery: {
+      ...snapAccountProviderConfig.discovery,
+      enabled: true,
+    },
+    createAccounts: {
+      ...snapAccountProviderConfig.createAccounts,
+      batched: true,
+      timeoutMs: 30000,
+    },
+  };
+  ///: END:ONLY_INCLUDE_IF
+
   const controller = new MultichainAccountService({
     messenger: controllerMessenger,
+    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+    providers: [
+      new AccountProviderWrapper(
+        controllerMessenger,
+        new XlmAccountProvider(
+          controllerMessenger,
+          stellarSnapAccountProviderConfig,
+        ),
+      ),
+    ],
+    ///: END:ONLY_INCLUDE_IF
     providerConfigs: {
       [SOL_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
       /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
