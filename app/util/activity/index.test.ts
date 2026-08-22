@@ -6,7 +6,6 @@ import {
   isFromOrToSelectedAddress,
   isFromCurrentChain,
   sortTransactions,
-  filterByAddress as filterByAddressOriginal,
   filterByAddressAndNetwork as filterByAddressAndNetworkOriginal,
   PAY_TYPES,
   isTransactionOnChains,
@@ -41,26 +40,6 @@ function filterByAddressAndNetwork(
     tokens,
     selectedAddress,
     tokenNetworkFilter,
-    allTransactions,
-    bridgeHistory,
-    buildTrustedAddressSet(addressBook, internalAccountAddresses),
-  );
-}
-
-function filterByAddress(
-  transaction: TransactionMeta,
-  tokens: { address: string }[],
-  selectedAddress: string,
-  allTransactions: TransactionMeta[] = [],
-  bridgeHistory: Record<string, BridgeHistoryItem> = {},
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  addressBook: any = {},
-  internalAccountAddresses: string[] = [],
-): boolean {
-  return filterByAddressOriginal(
-    transaction,
-    tokens,
-    selectedAddress,
     allTransactions,
     bridgeHistory,
     buildTrustedAddressSet(addressBook, internalAccountAddresses),

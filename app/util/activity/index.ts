@@ -262,48 +262,6 @@ export const filterByAddressAndNetwork = (
   return false;
 };
 
-export const filterByAddress = (
-  tx: TransactionMeta,
-  tokens: { address: string }[],
-  selectedAddress: string,
-  allTransactions: TransactionMeta[],
-  bridgeHistory: Record<string, BridgeHistoryItem>,
-  trustedAddresses: Set<string>,
-): boolean => {
-  const {
-    isTransfer,
-    transferInformation,
-    txParams: { from, to },
-  } = tx;
-
-  if (isFilteredByMetaMaskPay(tx, allTransactions ?? [], bridgeHistory)) {
-    return false;
-  }
-
-  if (
-    isFromOrToSelectedAddress(from, to ?? '', selectedAddress) &&
-    tx.status !== TX_UNAPPROVED
-  ) {
-    if (isIncomingNativeTransfer(tx, selectedAddress)) {
-      return shouldShowIncomingNativeByAddress(from, trustedAddresses);
-    }
-
-    const result = isTransfer
-      ? shouldShowTransferByAddress(
-          from,
-          selectedAddress,
-          tokens,
-          transferInformation?.contractAddress,
-          trustedAddresses,
-        )
-      : true;
-
-    return result;
-  }
-
-  return false;
-};
-
 export function isTransactionOnChains(
   transaction: TransactionMeta,
   chainIds: Hex[],
