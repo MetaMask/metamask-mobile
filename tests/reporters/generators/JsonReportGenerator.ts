@@ -88,11 +88,15 @@ export class JsonReportGenerator {
 
       const safeTestName = this.sanitizeFileSegment(metric.testName, 60);
       const safeDeviceName = this.sanitizeFileSegment(metric.device.name, 40);
+      const safeOsVersion = this.sanitizeFileSegment(
+        metric.device.osVersion,
+        20,
+      );
       const projectSuffix = metric.projectName
         ? `-${this.sanitizeFileSegment(metric.projectName, 40)}`
         : '';
 
-      let baseName = `app-profiling-${safeTestName}-${safeDeviceName}-${metric.device.osVersion}${projectSuffix}`;
+      let baseName = `app-profiling-${safeTestName}-${safeDeviceName}-${safeOsVersion}${projectSuffix}`;
       const collisionCount = usedFileNames.get(baseName) ?? 0;
       usedFileNames.set(baseName, collisionCount + 1);
       if (collisionCount > 0) {
@@ -158,9 +162,13 @@ export class JsonReportGenerator {
         /[^a-zA-Z0-9]/g,
         '_',
       );
+      const safeOsVersion = this.sanitizeFileSegment(
+        deviceData.device.osVersion,
+        20,
+      );
       const jsonPath = path.join(
         reportsDir,
-        `performance-metrics-${testName}-${safeDeviceName}-${deviceData.device.osVersion}.json`,
+        `performance-metrics-${testName}-${safeDeviceName}-${safeOsVersion}.json`,
       );
       fs.writeFileSync(jsonPath, JSON.stringify(deviceData.metrics, null, 2));
       logger.info(`Device-specific report saved: ${jsonPath}`);
