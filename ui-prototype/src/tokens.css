@@ -1,0 +1,27 @@
+/* Generated from @metamask/design-tokens `pureBlackDarkTheme` — same source as the app when MM_PURE_BLACK_PREVIEW is on. */
+:root {
+  --bg-default: #000000;
+  --bg-alternative: #0d0d0f;
+  --bg-section: #18181b;
+  --bg-subsection: #222226;
+  --bg-muted: #e2e2ff1b;
+  --text-default: #ffffff;
+  --text-alternative: #a3a4a7;
+  --text-muted: #66676a;
+  --icon-default: #ffffff;
+  --icon-alternative: #a3a4a7;
+  --icon-muted: #66676a;
+  --border-default: #66676a;
+  --border-muted: #e2e2ff26;
+  --primary: #8b99ff;
+  --primary-muted: #8b99ff26;
+  --primary-inverse: #0d0d0f;
+  /* success.default — TextColor.Success / SuccessDefault */
+  --success: #baf24a;
+  --success-muted: #baf24a26;
+  --error: #ff7584;
+  --error-muted: #ff758426;
+  --overlay: #030304b8;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --phone-bezel: #1a1b1e;
+}
