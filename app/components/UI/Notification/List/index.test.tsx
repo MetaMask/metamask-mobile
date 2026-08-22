@@ -16,6 +16,7 @@ import NotificationsList, {
   NotificationsListItem,
   TEST_IDS,
   useNotificationOnClick,
+  applyNotificationTemplate,
 } from './';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -44,6 +45,90 @@ beforeEach(() => {
     .mockReturnValue(
       createMockUseAnalyticsHook({ trackEvent: mockTrackEvent }),
     );
+});
+
+describe('applyNotificationTemplate', () => {
+  // Cast needed: baseItem is a minimal stub, not a full MenuItemState
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const baseItem: any = {
+    title: 'Client title',
+    description: { start: 'Client description', end: 'Client end' },
+    image: { url: 'https://example.com/image.png' },
+    badgeIcon: 'badge',
+    createdAt: '2024-01-01',
+  };
+
+  it('returns item unchanged when template is absent', () => {
+    expect(applyNotificationTemplate(baseItem, undefined)).toBe(baseItem);
+  });
+
+  it('returns item unchanged when item is undefined', () => {
+    expect(
+      applyNotificationTemplate(undefined, { title: 'Backend' }),
+    ).toBeUndefined();
+  });
+
+  it('overrides title when template.title is present', () => {
+    const result = applyNotificationTemplate(baseItem, {
+      title: 'Backend title',
+    });
+    expect(result?.title).toBe('Backend title');
+  });
+
+  it('falls back to client title when template.title is empty string', () => {
+    const result = applyNotificationTemplate(baseItem, { title: '' });
+    expect(result?.title).toBe('Client title');
+  });
+
+  it('overrides description.start when template.body is present', () => {
+    const result = applyNotificationTemplate(baseItem, {
+      body: 'Backend body',
+    });
+    expect(result?.description?.start).toBe('Backend body');
+  });
+
+  it('drops description.end when template.body is set (prose full-width override)', () => {
+    const result = applyNotificationTemplate(baseItem, {
+      body: 'Backend body',
+    });
+    expect(result?.description?.end).toBeUndefined();
+  });
+
+  it('keeps description.end when template.body is empty string', () => {
+    const result = applyNotificationTemplate(baseItem, { body: '' });
+    expect(result?.description?.end).toBe('Client end');
+  });
+
+  it('does not affect description.end when only template.title is set', () => {
+    const result = applyNotificationTemplate(baseItem, {
+      title: 'Backend title',
+    });
+    expect(result?.description?.end).toBe('Client end');
+  });
+
+  it('falls back to client description when template.body is empty string', () => {
+    const result = applyNotificationTemplate(baseItem, { body: '' });
+    expect(result?.description?.start).toBe('Client description');
+  });
+
+  it('overrides both title and description when both are present', () => {
+    const result = applyNotificationTemplate(baseItem, {
+      title: 'Backend title',
+      body: 'Backend body',
+    });
+    expect(result?.title).toBe('Backend title');
+    expect(result?.description?.start).toBe('Backend body');
+  });
+
+  it('preserves non-copy fields (image, badgeIcon, createdAt)', () => {
+    const result = applyNotificationTemplate(baseItem, {
+      title: 'Backend title',
+      body: 'Backend body',
+    });
+    expect(result?.image).toEqual(baseItem.image);
+    expect(result?.badgeIcon).toBe(baseItem.badgeIcon);
+    expect(result?.createdAt).toBe(baseItem.createdAt);
+  });
 });
 
 describe('NotificationsList States', () => {
