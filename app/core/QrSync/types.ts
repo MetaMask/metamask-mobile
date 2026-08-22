@@ -1,4 +1,4 @@
-import type { EntropySourceId } from '@metamask/keyring-api';
+import type { AccountTreePayload } from '@metamask/account-tree-controller';
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 
 import {
@@ -96,18 +96,17 @@ export type QrSyncSyncOfferMessage = QrSyncMessage<QrSyncOffer> & {
   data: QrSyncOffer;
 };
 
-/** Wire message sent by extension with decrypted import payload data. */
+/** Wire message sent by extension with the account tree import payload. */
 export interface QrSyncSyncReadyMessage {
   type: typeof QrSyncActionTypes.SYNC_READY;
   version: QrSyncMessageVersion;
   deadline: number;
-  data: QrSyncReadyData[];
+  data: AccountTreePayload;
 }
 
 /** E2E-only: plaintext SRP sync-ready inject payload (HAS_TEST_OVERRIDES). */
 export interface QrSyncTestSyncReadyPayload {
   mnemonic: string;
-  isPrimary?: boolean;
   walletName?: string;
   accountName?: string;
 }
@@ -185,116 +184,6 @@ export type QrSyncServiceEvent =
   | QrSyncSyncCancelledEvent
   | QrSyncSyncErrorEvent;
 
-// --- Provisioning (wire payload, secrets, persisted metadata) ---
-
-/** Pin/hide flags shared by account groups and private-key entries. */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QrSyncPinHideFlags = {
-  pinned?: boolean;
-  hidden?: boolean;
-};
-
-/** Correlates wire, ephemeral secret, and persisted metadata entries. */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QrSyncIndexedEntry = {
-  index: number;
-};
-
-/**
- * Account group metadata (wire and persisted).
- * Aligns with `AccountTreeGroupMetadata.name` and `entropy.groupIndex`.
- */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QrSyncAccountGroup = {
-  groupIndex: number;
-  name: string;
-} & QrSyncPinHideFlags;
-
-/**
- * Extension `sync-ready` import payload (v1).
- *
- * `name` on a mnemonic entry is the wallet name (`AccountTreeWalletMetadata.name`).
- * `groups[].name` is each account group name (`AccountTreeGroupMetadata.name`).
- * On a private-key entry, `name` is the imported account group name.
- */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QrSyncReadyMnemonicData = {
-  type: typeof QrSyncSecretTypes.MNEMONIC;
-  mnemonic: string;
-  name?: string;
-  groups?: QrSyncAccountGroup[];
-  isPrimary?: boolean;
-};
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QrSyncReadyPrivateKeyData = {
-  type: typeof QrSyncSecretTypes.PRIVATE_KEY;
-  privateKey: string;
-  name: string;
-} & QrSyncPinHideFlags;
-
-export type QrSyncReadyData =
-  | QrSyncReadyMnemonicData
-  | QrSyncReadyPrivateKeyData;
-
-/** Ephemeral secret material held until password import. Never persisted. */
-export type QrSyncSecretImportEntry = QrSyncIndexedEntry & {
-  type: QrSyncSecretType;
-  value: string;
-  /** Whether the SRP (Mnemonic) secret is the primary secret for the wallet. */
-  isPrimary?: boolean;
-};
-
-/** Persisted mnemonic provisioning entry (no secret material). */
-export type QrSyncProvisioningMnemonicEntry = QrSyncIndexedEntry & {
-  type: typeof QrSyncSecretTypes.MNEMONIC;
-  isPrimary?: boolean;
-  name?: string;
-  groups?: QrSyncAccountGroup[];
-  /** Set after vault import; maps entry to MultichainAccountService / account tree. */
-  entropySource?: EntropySourceId;
-};
-
-/** Persisted private-key provisioning entry (no secret material). */
-export type QrSyncProvisioningPrivateKeyEntry = QrSyncIndexedEntry & {
-  type: typeof QrSyncSecretTypes.PRIVATE_KEY;
-  name: string;
-  /** Set after vault import; used to resolve the account-tree group. */
-  accountAddress?: string;
-} & QrSyncPinHideFlags;
-
-export type QrSyncProvisioningEntry =
-  | QrSyncProvisioningMnemonicEntry
-  | QrSyncProvisioningPrivateKeyEntry;
-
-/** Persisted provisioning plan (no secret material). */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QrSyncProvisioningMetadata = {
-  version: QrSyncMessageVersion;
-  entries: QrSyncProvisioningEntry[];
-};
-
 /** Persisted provisioning pipeline status for QR sync vault import. */
 export type QrSyncProvisioningStatus =
   (typeof QrSyncProvisioningStatuses)[keyof typeof QrSyncProvisioningStatuses];
-
-/** Phase B secret-import preconditions used by the QR sync controller. */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export interface QrSyncSecretImportPreconditions {
-  provisioningStatus: QrSyncProvisioningStatus | null;
-  pendingSecretImports: QrSyncSecretImportEntry[] | null;
-}
-
-/** Phase B enrichment context: secret-import preconditions plus persisted metadata. */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export interface QrSyncProvisioningEntryEnrichmentContext
-  extends QrSyncSecretImportPreconditions {
-  provisioningMetadata: QrSyncProvisioningMetadata | null;
-}
-
-/** Resolved provisioning metadata entry for Phase B enrichment. */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export interface QrSyncProvisioningEntryResolution {
-  entryIndex: number;
-  entry: QrSyncProvisioningEntry;
-}

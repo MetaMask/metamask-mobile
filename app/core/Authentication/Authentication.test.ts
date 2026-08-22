@@ -219,8 +219,7 @@ jest.mock('../Engine', () => ({
     },
 
     QrSyncController: {
-      enrichPrimaryProvisioningEntry: jest.fn(),
-      importRemainingSecrets: jest.fn().mockResolvedValue(undefined),
+      finalizeVaultCreation: jest.fn(),
     },
   },
 }));
@@ -1452,12 +1451,8 @@ describe('Authentication', () => {
         expect(depositResetProviderToken).toHaveBeenCalledTimes(1);
       });
 
-      it('imports remaining QR sync secrets after primary vault restore', async () => {
+      it('calls finalizeVaultCreation after primary vault restore when isQrSync is true', async () => {
         const Engine = jest.requireMock('../Engine');
-        const PRIMARY_ENTROPY_SOURCE = 'primary-entropy-source';
-        Engine.context.KeyringController.createNewVaultAndRestore.mockResolvedValueOnce(
-          PRIMARY_ENTROPY_SOURCE,
-        );
 
         await Authentication.newWalletAndRestore(
           'password',
@@ -1468,14 +1463,11 @@ describe('Authentication', () => {
         );
 
         expect(
-          Engine.context.QrSyncController.enrichPrimaryProvisioningEntry,
-        ).toHaveBeenCalledWith(PRIMARY_ENTROPY_SOURCE);
-        expect(
-          Engine.context.QrSyncController.importRemainingSecrets,
+          Engine.context.QrSyncController.finalizeVaultCreation,
         ).toHaveBeenCalledWith();
       });
 
-      it('does not import remaining QR sync secrets when isQrSync is false', async () => {
+      it('does not call finalizeVaultCreation when isQrSync is false', async () => {
         const Engine = jest.requireMock('../Engine');
 
         await Authentication.newWalletAndRestore(
@@ -1487,7 +1479,7 @@ describe('Authentication', () => {
         );
 
         expect(
-          Engine.context.QrSyncController.importRemainingSecrets,
+          Engine.context.QrSyncController.finalizeVaultCreation,
         ).not.toHaveBeenCalled();
       });
 

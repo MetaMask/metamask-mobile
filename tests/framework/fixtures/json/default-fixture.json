@@ -577,9 +577,8 @@
           "connectionStatus": "disconnected",
           "error": null,
           "otp": null,
-          "pendingSecretImports": null,
+          "pendingPayload": null,
           "phase": "idle",
-          "provisioningMetadata": null,
           "provisioningStatus": null,
           "syncFlow": null
         },

@@ -902,8 +902,7 @@
     "phase": "idle",
     "connectionStatus": "disconnected",
     "syncFlow": null,
-    "pendingSecretImports": null,
-    "provisioningMetadata": null,
+    "pendingPayload": null,
     "provisioningStatus": null,
     "otp": null,
     "error": null

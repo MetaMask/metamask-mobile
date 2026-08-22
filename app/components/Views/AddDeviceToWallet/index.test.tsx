@@ -6,7 +6,6 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   QrSyncPhases,
   QrSyncProvisioningStatuses,
-  QrSyncSecretTypes,
 } from '../../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import AddDeviceToWallet from './index';
@@ -361,19 +360,29 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('QR sync import navigation', () => {
-    const pendingSecretImports = [
-      {
-        index: 0,
-        value: 'word1 word2 word3',
-        type: QrSyncSecretTypes.MNEMONIC,
-        isPrimary: true,
-      },
-    ];
+    const pendingPayload = {
+      version: 1 as const,
+      wallets: [
+        {
+          id: 'wallet:test' as `wallet:${string}`,
+          type: 'mnemonic' as const,
+          value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+          metadata: { name: 'Wallet 1' },
+          groups: [
+            {
+              id: 'wallet:test/0' as `wallet:${string}/${string}`,
+              groupIndex: 0,
+              metadata: { name: 'Account 1', pinned: false, hidden: false },
+            },
+          ],
+        },
+      ],
+    };
 
-    it('navigates to import when awaiting password with pending secrets', async () => {
+    it('navigates to import when awaiting password with pending payload', async () => {
       renderComponent({
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-        pendingSecretImports,
+        pendingPayload,
       });
 
       await waitFor(() => {
@@ -388,11 +397,11 @@ describe('AddDeviceToWallet', () => {
       });
     });
 
-    it('navigates to import after sync completes while secrets are still pending', async () => {
+    it('navigates to import after sync completes while payload is still pending', async () => {
       renderComponent({
         phase: QrSyncPhases.COMPLETED,
         provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-        pendingSecretImports,
+        pendingPayload,
       });
 
       await waitFor(() => {
@@ -407,10 +416,10 @@ describe('AddDeviceToWallet', () => {
       });
     });
 
-    it('does not navigate to import when sync failed with stale secret data', async () => {
+    it('does not navigate to import when sync failed with stale payload data', async () => {
       renderComponent({
         phase: QrSyncPhases.FAILED,
-        pendingSecretImports,
+        pendingPayload,
         error: {
           code: 'SYNC_FAILED',
           message: 'Sync failed',

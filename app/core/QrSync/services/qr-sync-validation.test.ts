@@ -1,22 +1,19 @@
+import type {
+  AccountGroupPayloadId,
+  AccountTreePayload,
+  AccountWalletPayloadId,
+} from '@metamask/account-tree-controller';
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
-import { deflate } from 'pako';
 
-import {
-  QrSyncActionTypes,
-  QrSyncMessageVersion,
-  QrSyncProvisioningStatuses,
-  QrSyncSecretTypes,
-} from '../constants';
-import type { QrSyncReadyData, QrSyncSyncReadyMessage } from '../types';
+import { QrSyncActionTypes, QrSyncMessageVersion } from '../constants';
+import type { QrSyncSyncReadyMessage } from '../types';
 import {
   isQrSyncConnectionRequest,
-  isQrSyncReadyForSecretImport,
   isQrSyncSessionRequest,
   parseQrSyncConnectionRequest,
   parseQrSyncSyncReadyMessage,
   QR_SYNC_MWP_DEEPLINK_PREFIX,
-  resolveQrSyncProvisioningEntryForEnrichment,
-  validateQrSyncSecretImportsForOnboarding,
+  validateQrSyncPayloadForOnboarding,
 } from './qr-sync-validation';
 
 const VALID_SESSION_ID = '11111111-2222-3333-4444-555555555555';
@@ -25,9 +22,6 @@ const VALID_CHANNEL = 'handshake:aabbccdd-1122-3344-5566-778899aabbcc';
 const VALID_PUBLIC_KEY_B64 = 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V';
 const FIXED_NOW = 1_700_000_000_000;
 const FUTURE_DEADLINE = FIXED_NOW + 60_000;
-
-const encodeSecret = (plaintext: string): string =>
-  Buffer.from(plaintext, 'utf-8').toString('base64');
 
 const encodeBase64Json = (value: unknown): string =>
   Buffer.from(JSON.stringify(value), 'utf-8').toString('base64');
@@ -46,15 +40,24 @@ const createSessionRequest = (
   ...overrides,
 });
 
-const defaultSyncReadyImportData = (): QrSyncReadyData[] => [
-  {
-    type: QrSyncSecretTypes.MNEMONIC,
-    mnemonic: encodeSecret('word1 word2 word3'),
-    name: 'Wallet 1',
-    isPrimary: true,
-    groups: [{ groupIndex: 0, name: 'Account 1' }],
-  },
-];
+const defaultSyncReadyPayload = (): AccountTreePayload => ({
+  version: 1,
+  wallets: [
+    {
+      id: 'wallet:test-primary' as AccountWalletPayloadId,
+      type: 'mnemonic',
+      value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+      metadata: { name: 'Wallet 1' },
+      groups: [
+        {
+          id: 'wallet:test-primary/0' as AccountGroupPayloadId,
+          groupIndex: 0,
+          metadata: { name: 'Account 1', pinned: false, hidden: false },
+        },
+      ],
+    },
+  ],
+});
 
 const createSyncReadyMessage = (
   overrides: Partial<QrSyncSyncReadyMessage> = {},
@@ -62,7 +65,7 @@ const createSyncReadyMessage = (
   type: QrSyncActionTypes.SYNC_READY,
   version: QrSyncMessageVersion.V1,
   deadline: FUTURE_DEADLINE,
-  data: defaultSyncReadyImportData(),
+  data: defaultSyncReadyPayload(),
   ...overrides,
 });
 
@@ -210,105 +213,63 @@ describe('qr-sync-validation', () => {
   });
 
   describe('parseQrSyncSyncReadyMessage', () => {
-    it('maps mnemonic and private-key entries to secrets and provisioning metadata', () => {
-      const plaintext = 'word1 word2 word3';
-      const message = createSyncReadyMessage({
-        data: [
-          {
-            type: QrSyncSecretTypes.MNEMONIC,
-            mnemonic: encodeSecret(plaintext),
-            name: 'Wallet 1',
-            isPrimary: true,
-            groups: [
-              { groupIndex: 0, name: 'Account 1', pinned: true },
-              { groupIndex: 1, name: 'Account 2' },
-              { groupIndex: 2, name: 'Savings', hidden: true },
-            ],
-          },
-          {
-            type: QrSyncSecretTypes.PRIVATE_KEY,
-            privateKey: encodeSecret('0xabc'),
-            name: 'Imported Account 1',
-          },
-        ],
-      });
+    it('returns the VersionedState payload from a valid sync-ready message', () => {
+      const payload = defaultSyncReadyPayload();
+      const message = createSyncReadyMessage({ data: payload });
 
       const result = parseQrSyncSyncReadyMessage(message, FIXED_NOW);
 
       expect(result).toEqual({
         valid: true,
-        pendingSecretImports: [
-          {
-            index: 0,
-            type: QrSyncSecretTypes.MNEMONIC,
-            value: plaintext,
-            isPrimary: true,
-          },
-          {
-            index: 1,
-            type: QrSyncSecretTypes.PRIVATE_KEY,
-            value: '0xabc',
-          },
-        ],
-        provisioningMetadata: {
-          version: QrSyncMessageVersion.V1,
-          entries: [
-            {
-              index: 0,
-              type: QrSyncSecretTypes.MNEMONIC,
-              isPrimary: true,
-              name: 'Wallet 1',
-              groups: [
-                { groupIndex: 0, name: 'Account 1', pinned: true },
-                { groupIndex: 1, name: 'Account 2' },
-                { groupIndex: 2, name: 'Savings', hidden: true },
-              ],
-            },
-            {
-              index: 1,
-              type: QrSyncSecretTypes.PRIVATE_KEY,
-              name: 'Imported Account 1',
-            },
-          ],
-        },
+        pendingPayload: payload,
       });
     });
 
-    it('treats omitted isPrimary as false on mnemonic entries', () => {
-      const message = createSyncReadyMessage({
-        data: [
+    it('passes through a multi-wallet payload intact', () => {
+      const payload: AccountTreePayload = {
+        version: 1,
+        wallets: [
           {
-            type: QrSyncSecretTypes.MNEMONIC,
-            mnemonic: 'word1 word2 word3',
-            name: 'Wallet 1',
-            groups: [{ groupIndex: 0, name: 'Account 1' }],
+            id: 'wallet:test-primary' as AccountWalletPayloadId,
+            type: 'mnemonic',
+            value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+            metadata: { name: 'Wallet 1' },
+            groups: [
+              {
+                id: 'wallet:test-primary/0' as AccountGroupPayloadId,
+                groupIndex: 0,
+                metadata: { name: 'Account 1', pinned: false, hidden: false },
+              },
+            ],
           },
           {
-            type: QrSyncSecretTypes.MNEMONIC,
-            mnemonic: 'other seed phrase',
-            name: 'Wallet 2',
-            groups: [{ groupIndex: 0, name: 'Account 1' }],
+            id: 'wallet:test-pk' as AccountWalletPayloadId,
+            type: 'private-key',
+            metadata: { name: 'Imported Accounts' },
+            groups: [
+              {
+                id: 'wallet:test-pk/0xabc' as AccountGroupPayloadId,
+                value: {
+                  privateKey: [0x0, 0xa, 0xb, 0xc],
+                  encoding: 'hexadecimal' as const,
+                },
+                metadata: {
+                  name: 'Imported Account 1',
+                  pinned: false,
+                  hidden: false,
+                },
+              },
+            ],
           },
         ],
-      });
+      };
 
-      const result = parseQrSyncSyncReadyMessage(message, FIXED_NOW);
+      const result = parseQrSyncSyncReadyMessage(
+        createSyncReadyMessage({ data: payload }),
+        FIXED_NOW,
+      );
 
-      expect(result.valid).toBe(true);
-      if (!result.valid) {
-        return;
-      }
-
-      expect(result.pendingSecretImports?.[0]?.isPrimary).toBe(false);
-      expect(result.pendingSecretImports?.[1]?.isPrimary).toBe(false);
-      expect(result.provisioningMetadata?.entries?.[0]).toMatchObject({
-        isPrimary: false,
-        name: 'Wallet 1',
-      });
-      expect(result.provisioningMetadata?.entries?.[1]).toMatchObject({
-        isPrimary: false,
-        name: 'Wallet 2',
-      });
+      expect(result).toEqual({ valid: true, pendingPayload: payload });
     });
 
     it('returns SESSION_EXPIRED when deadline is not after current time', () => {
@@ -326,45 +287,13 @@ describe('qr-sync-validation', () => {
       });
     });
 
-    it('returns INVALID_PAYLOAD when more than one mnemonic is marked primary', () => {
-      const result = parseQrSyncSyncReadyMessage(
-        createSyncReadyMessage({
-          data: [
-            {
-              type: QrSyncSecretTypes.MNEMONIC,
-              mnemonic: encodeSecret('word1 word2 word3'),
-              name: 'Wallet 1',
-              isPrimary: true,
-              groups: [{ groupIndex: 0, name: 'Account 1' }],
-            },
-            {
-              type: QrSyncSecretTypes.MNEMONIC,
-              mnemonic: encodeSecret('other seed phrase'),
-              name: 'Wallet 2',
-              isPrimary: true,
-              groups: [{ groupIndex: 0, name: 'Account 1' }],
-            },
-          ],
-        }),
-        FIXED_NOW,
-      );
-
-      expect(result).toEqual({
-        valid: false,
-        error: {
-          code: 'INVALID_PAYLOAD',
-          message: 'QR sync payload may include at most one primary mnemonic.',
-        },
-      });
-    });
-
     it('returns INVALID_PAYLOAD when envelope type is not sync-ready', () => {
       const result = parseQrSyncSyncReadyMessage(
         {
           type: QrSyncActionTypes.SYNC_OFFER,
           version: QrSyncMessageVersion.V1,
           deadline: FUTURE_DEADLINE,
-          data: defaultSyncReadyImportData(),
+          data: defaultSyncReadyPayload(),
         },
         FIXED_NOW,
       );
@@ -378,13 +307,13 @@ describe('qr-sync-validation', () => {
       });
     });
 
-    it('returns INVALID_PAYLOAD when sync-ready data payload is malformed', () => {
+    it('returns INVALID_PAYLOAD when data is not an AccountTreePayload', () => {
       const result = parseQrSyncSyncReadyMessage(
         {
           type: QrSyncActionTypes.SYNC_READY,
           version: QrSyncMessageVersion.V1,
           deadline: FUTURE_DEADLINE,
-          data: [],
+          data: [] as unknown as AccountTreePayload,
         },
         FIXED_NOW,
       );
@@ -393,22 +322,16 @@ describe('qr-sync-validation', () => {
         valid: false,
         error: {
           code: 'INVALID_PAYLOAD',
-          message: 'QR sync payload must include at least one secret import.',
+          message:
+            'QR sync message payload is malformed or uses an unsupported version.',
         },
       });
     });
 
-    it('returns INVALID_PAYLOAD when an import entry has an unsupported type', () => {
+    it('returns INVALID_PAYLOAD when wallets array is empty', () => {
       const result = parseQrSyncSyncReadyMessage(
         createSyncReadyMessage({
-          data: [
-            {
-              type: 'SeedPhrase',
-              mnemonic: encodeSecret('word1 word2 word3'),
-              name: 'Wallet 1',
-              groups: [{ groupIndex: 0, name: 'Account 1' }],
-            } as unknown as QrSyncReadyData,
-          ],
+          data: { version: 1, wallets: [] },
         }),
         FIXED_NOW,
       );
@@ -417,112 +340,7 @@ describe('qr-sync-validation', () => {
         valid: false,
         error: {
           code: 'INVALID_PAYLOAD',
-          message: 'QR sync payload contains a malformed import entry.',
-        },
-      });
-    });
-
-    it('accepts mnemonic entries with omitted name, groups, and isPrimary', () => {
-      const plaintext = 'word1 word2 word3';
-      const message = createSyncReadyMessage({
-        data: [
-          {
-            type: QrSyncSecretTypes.MNEMONIC,
-            mnemonic: encodeSecret(plaintext),
-          },
-        ],
-      });
-
-      const result = parseQrSyncSyncReadyMessage(message, FIXED_NOW);
-
-      expect(result).toEqual({
-        valid: true,
-        pendingSecretImports: [
-          {
-            index: 0,
-            type: QrSyncSecretTypes.MNEMONIC,
-            value: plaintext,
-            isPrimary: false,
-          },
-        ],
-        provisioningMetadata: {
-          version: QrSyncMessageVersion.V1,
-          entries: [
-            {
-              index: 0,
-              type: QrSyncSecretTypes.MNEMONIC,
-              isPrimary: false,
-            },
-          ],
-        },
-      });
-    });
-
-    it('returns INVALID_PAYLOAD when a mnemonic entry has an empty name', () => {
-      const result = parseQrSyncSyncReadyMessage(
-        createSyncReadyMessage({
-          data: [
-            {
-              type: QrSyncSecretTypes.MNEMONIC,
-              mnemonic: encodeSecret('word1 word2 word3'),
-              name: '',
-            },
-          ],
-        }),
-        FIXED_NOW,
-      );
-
-      expect(result).toEqual({
-        valid: false,
-        error: {
-          code: 'INVALID_PAYLOAD',
-          message: 'QR sync payload contains a malformed import entry.',
-        },
-      });
-    });
-
-    it('returns INVALID_PAYLOAD when groups contains a malformed account group', () => {
-      const result = parseQrSyncSyncReadyMessage(
-        createSyncReadyMessage({
-          data: [
-            {
-              type: QrSyncSecretTypes.MNEMONIC,
-              mnemonic: encodeSecret('word1 word2 word3'),
-              groups: [{ groupIndex: 0, name: '' }],
-            },
-          ],
-        }),
-        FIXED_NOW,
-      );
-
-      expect(result).toEqual({
-        valid: false,
-        error: {
-          code: 'INVALID_PAYLOAD',
-          message: 'QR sync payload contains a malformed import entry.',
-        },
-      });
-    });
-
-    it('returns INVALID_PAYLOAD when a private-key entry omits name', () => {
-      const result = parseQrSyncSyncReadyMessage(
-        createSyncReadyMessage({
-          data: [
-            {
-              type: QrSyncSecretTypes.PRIVATE_KEY,
-              privateKey: encodeSecret('0xabc'),
-              name: '',
-            },
-          ],
-        }),
-        FIXED_NOW,
-      );
-
-      expect(result).toEqual({
-        valid: false,
-        error: {
-          code: 'INVALID_PAYLOAD',
-          message: 'QR sync payload contains a malformed import entry.',
+          message: 'QR sync payload must include at least one wallet.',
         },
       });
     });
@@ -541,171 +359,94 @@ describe('qr-sync-validation', () => {
     });
   });
 
-  describe('validateQrSyncSecretImportsForOnboarding', () => {
-    const pendingSecretImports = [
-      {
-        index: 0,
-        value: 'word1 word2 word3',
-        type: QrSyncSecretTypes.MNEMONIC,
-        isPrimary: true,
-      },
-    ];
+  describe('validateQrSyncPayloadForOnboarding', () => {
+    it('returns valid when payload has a mnemonic wallet with a value', () => {
+      const payload: AccountTreePayload = {
+        version: 1,
+        wallets: [
+          {
+            id: 'wallet:test' as AccountWalletPayloadId,
+            type: 'mnemonic',
+            value: [0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6],
+            metadata: { name: 'Wallet 1' },
+            groups: [
+              {
+                id: 'wallet:test/0' as AccountGroupPayloadId,
+                groupIndex: 0,
+                metadata: { name: 'Account 1', pinned: false, hidden: false },
+              },
+            ],
+          },
+        ],
+      };
 
-    it('requires a primary mnemonic in pending secret imports', () => {
-      expect(
-        validateQrSyncSecretImportsForOnboarding(pendingSecretImports),
-      ).toEqual({
+      expect(validateQrSyncPayloadForOnboarding(payload)).toEqual({
         valid: true,
       });
-      expect(
-        validateQrSyncSecretImportsForOnboarding([
-          { ...pendingSecretImports[0], isPrimary: false },
-        ]),
-      ).toEqual({
+    });
+
+    it('returns invalid when no mnemonic wallet is present', () => {
+      const payload: AccountTreePayload = {
+        version: 1,
+        wallets: [
+          {
+            id: 'wallet:test-pk' as AccountWalletPayloadId,
+            type: 'private-key',
+            metadata: { name: 'Imported Wallet' },
+            groups: [],
+          },
+        ],
+      };
+
+      expect(validateQrSyncPayloadForOnboarding(payload)).toEqual({
         valid: false,
         error: {
           code: 'INVALID_PAYLOAD',
           message:
-            'QR sync payload must include a primary mnemonic when onboarding is not completed.',
+            'QR sync payload must include a primary mnemonic for new-user onboarding.',
         },
       });
     });
 
-    it('returns invalid when pending secret imports are undefined', () => {
-      expect(validateQrSyncSecretImportsForOnboarding(undefined)).toEqual({
+    it('returns invalid when mnemonic wallet has no value', () => {
+      const payload: AccountTreePayload = {
+        version: 1,
+        wallets: [
+          {
+            id: 'wallet:test' as AccountWalletPayloadId,
+            type: 'mnemonic',
+            // value intentionally omitted (metadata-only export)
+            metadata: { name: 'Wallet 1' },
+            groups: [
+              {
+                id: 'wallet:test/0' as AccountGroupPayloadId,
+                groupIndex: 0,
+                metadata: { name: 'Account 1', pinned: false, hidden: false },
+              },
+            ],
+          },
+        ],
+      };
+
+      expect(validateQrSyncPayloadForOnboarding(payload)).toEqual({
         valid: false,
         error: {
           code: 'INVALID_PAYLOAD',
           message:
-            'QR sync payload must include a primary mnemonic when onboarding is not completed.',
+            'QR sync payload must include a primary mnemonic for new-user onboarding.',
         },
       });
     });
-  });
 
-  describe('isQrSyncReadyForSecretImport', () => {
-    const pendingSecretImports = [
-      {
-        index: 0,
-        type: QrSyncSecretTypes.MNEMONIC,
-        value: 'word1 word2 word3',
-        isPrimary: true,
-      },
-    ];
-
-    it('returns true when awaiting_password with pending secrets', () => {
-      expect(
-        isQrSyncReadyForSecretImport({
-          provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-          pendingSecretImports,
-        }),
-      ).toBe(true);
-    });
-
-    it('returns false when provisioning status is not awaiting_password', () => {
-      expect(
-        isQrSyncReadyForSecretImport({
-          provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
-          pendingSecretImports,
-        }),
-      ).toBe(false);
-    });
-
-    it('returns false when pending secrets are empty or missing', () => {
-      expect(
-        isQrSyncReadyForSecretImport({
-          provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-          pendingSecretImports: [],
-        }),
-      ).toBe(false);
-      expect(
-        isQrSyncReadyForSecretImport({
-          provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-          pendingSecretImports: null,
-        }),
-      ).toBe(false);
-    });
-  });
-
-  describe('resolveQrSyncProvisioningEntryForEnrichment', () => {
-    const pendingSecretImports = [
-      {
-        index: 0,
-        type: QrSyncSecretTypes.MNEMONIC,
-        value: 'word1 word2 word3',
-        isPrimary: true,
-      },
-    ];
-    const provisioningMetadata = {
-      version: QrSyncMessageVersion.V1,
-      entries: [
-        {
-          index: 0,
-          type: QrSyncSecretTypes.MNEMONIC,
-          isPrimary: true,
-          name: 'Wallet 1',
+    it('returns invalid when payload is undefined', () => {
+      expect(validateQrSyncPayloadForOnboarding(undefined)).toEqual({
+        valid: false,
+        error: {
+          code: 'INVALID_PAYLOAD',
+          message:
+            'QR sync payload must include a primary mnemonic for new-user onboarding.',
         },
-        {
-          index: 1,
-          type: QrSyncSecretTypes.PRIVATE_KEY,
-          name: 'Imported Account',
-        },
-      ],
-    };
-
-    it('resolves the metadata entry at the given index', () => {
-      expect(
-        resolveQrSyncProvisioningEntryForEnrichment(
-          {
-            provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-            pendingSecretImports,
-            provisioningMetadata,
-          },
-          1,
-        ),
-      ).toEqual({
-        entryIndex: 1,
-        entry: provisioningMetadata.entries[1],
       });
-    });
-
-    it('throws when secret import preconditions are not met', () => {
-      expect(() =>
-        resolveQrSyncProvisioningEntryForEnrichment(
-          {
-            provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
-            pendingSecretImports,
-            provisioningMetadata,
-          },
-          0,
-        ),
-      ).toThrow('QR sync enrichment requires ready for secret import');
-    });
-
-    it('throws when provisioning metadata is missing', () => {
-      expect(() =>
-        resolveQrSyncProvisioningEntryForEnrichment(
-          {
-            provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-            pendingSecretImports,
-            provisioningMetadata: null,
-          },
-          0,
-        ),
-      ).toThrow('QR sync enrichment requires provisioning metadata');
-    });
-
-    it('throws when no metadata entry matches the index', () => {
-      expect(() =>
-        resolveQrSyncProvisioningEntryForEnrichment(
-          {
-            provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
-            pendingSecretImports,
-            provisioningMetadata,
-          },
-          99,
-        ),
-      ).toThrow('QR sync metadata has no entry at index 99');
     });
   });
 });
