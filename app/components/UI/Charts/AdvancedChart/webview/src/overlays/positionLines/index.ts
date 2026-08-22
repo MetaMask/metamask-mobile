@@ -96,14 +96,24 @@ export function handleSetPositionLines(payload: SetPositionLinesPayload): void {
   const lines: PositionLineConfig[] = [];
 
   if (position.currentPrice) {
+    // When a label is supplied (SocialLeaderboard), keep the original green
+    // dotted current-price line and add a left-aligned "Current" label. Do NOT
+    // show the price on this line — the native last-value axis pill already
+    // shows it on the right, so showPrice here would duplicate it. When absent
+    // (Perps), the line is byte-for-byte the original label-less thin dashed
+    // line.
+    const currentPriceLabel = position.currentPriceLabel;
+    const hasLabel =
+      typeof currentPriceLabel === 'string' && !!currentPriceLabel;
     lines.push({
       price: position.currentPrice,
+      ...(hasLabel ? { text: currentPriceLabel } : {}),
       color: currentPriceColor,
-      lineStyle: 2,
+      lineStyle: hasLabel ? 1 : 2,
       lineWidth: 1,
-      showLabel: false,
+      showLabel: hasLabel,
       showPrice: false,
-      horzLabelsAlign: 'right',
+      horzLabelsAlign: hasLabel ? 'left' : 'right',
     });
   }
   if (position.entryPrice) {

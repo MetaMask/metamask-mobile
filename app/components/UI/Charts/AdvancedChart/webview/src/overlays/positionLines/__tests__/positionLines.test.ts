@@ -148,6 +148,59 @@ describe('positionLines/index', () => {
     expect(getPositionShapeIds().length).toBeGreaterThan(0);
   });
 
+  it('renders a left-aligned "Current" pill on a green dotted line when currentPriceLabel is supplied', () => {
+    const { createShape } = installWidget();
+
+    handleSetPositionLines({
+      position: {
+        side: 'long',
+        currentPrice: 42500,
+        currentPriceLabel: 'Current',
+      },
+    });
+
+    expect(createShape).toHaveBeenCalledTimes(1);
+    const [point, options] = createShape.mock.calls[0] as [
+      Record<string, unknown>,
+      Record<string, unknown>,
+    ];
+    expect(point).toEqual({ price: 42500 });
+    // Label is a top-level createShape option, not inside overrides.
+    expect(options.text).toBe('Current');
+    const overrides = options.overrides as Record<string, unknown>;
+    expect(overrides).not.toHaveProperty('text');
+    // Left-aligned "Current" label; the price is NOT shown here (the native
+    // last-value axis pill shows it on the right — avoids a duplicate pill).
+    expect(overrides.showLabel).toBe(true);
+    expect(overrides.showPrice).toBe(false);
+    expect(overrides.horzLabelsAlign).toBe('left');
+    // Original thin dotted line (dotted = 1), not restyled solid/thick.
+    expect(overrides.linewidth).toBe(1);
+    expect(overrides.linestyle).toBe(1);
+  });
+
+  it('keeps the Perps current-price line label-less, thin, dashed and right-aligned when no label is supplied (regression)', () => {
+    const { createShape } = installWidget();
+
+    handleSetPositionLines({
+      position: {
+        side: 'long',
+        currentPrice: 42500,
+      },
+    });
+
+    expect(createShape).toHaveBeenCalledTimes(1);
+    const options = createShape.mock.calls[0][1] as Record<string, unknown>;
+    expect(options).not.toHaveProperty('text');
+    const overrides = options.overrides as Record<string, unknown>;
+    expect(overrides.showLabel).toBe(false);
+    expect(overrides.showPrice).toBe(false);
+    expect(overrides.horzLabelsAlign).toBe('right');
+    expect(overrides.linewidth).toBe(1);
+    // Unlabeled = dashed line (unchanged Perps behavior).
+    expect(overrides.linestyle).toBe(2);
+  });
+
   it('sets hasExplicitCurrentPriceLine when currentPrice is provided', () => {
     const { applyOverrides } = installWidget();
 
