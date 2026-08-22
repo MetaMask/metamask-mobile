@@ -53,18 +53,24 @@ index fb99142850803e5afc47fcd1b7d58bef482da9fd..1790ef1b8289a7406249e137e3734604
        }
      end
 
-diff --git a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDefaults.h b/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDefaults.h
-index b4924ba5601c66b40f605a75269bef538cc231f4..606c30666f5a3ce2cc87c58693c9dc00fbf9900b 100644
---- a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDefaults.h
-+++ b/ReactCommon/react/featureflags/ReactNativeFeatureFlagsDefaults.h
-@@ -257,3 +257,9 @@ class ReactNativeFeatureFlagsDefaults : public ReactNativeFeatureFlagsProvider {
-   bool fuseboxFrameRecordingEnabled() override {
--    return false;
-+#ifdef DEBUG
-+    // Explicit CDP traces use these events to measure native UI FPS and jank.
-+    // Release builds keep React Native's default disabled behavior.
+diff --git a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h b/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
+index fddc9e107e..381b61aa4c 100644
+--- a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
++++ b/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
+@@ -36,6 +36,16 @@ class ReactNativeFeatureFlagsOverridesOSSStable : public ReactNativeFeatureFlags
+   {
+     return true;
+   }
++  bool fuseboxFrameRecordingEnabled() override
++  {
++#if defined(DEBUG) && defined(__APPLE__)
++    // React Native DevTools uses this flag to emit native frame events only
++    // while an explicit CDP Tracing session is active.
 +    return true;
 +#else
 +    return false;
 +#endif
-   }
++  }
+   bool useShadowNodeStateOnClone() override
+   {
+     return true;
