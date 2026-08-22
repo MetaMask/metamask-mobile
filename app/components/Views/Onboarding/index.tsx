@@ -42,7 +42,9 @@ import {
 } from '../../../actions/legalNotices';
 import { selectGoogleLoginIosUnsupportedBlockingEnabled } from '../../../selectors/featureFlagController/googleLoginIosUnsupportedBlocking';
 import { selectTelegramLoginEnabled } from '../../../selectors/featureFlagController/seedlessTelegramLogin';
-import PreventScreenshot from '../../../core/PreventScreenshot';
+import PreventScreenshot, {
+  CAPTURE_KEYS,
+} from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
@@ -1404,7 +1406,7 @@ const Onboarding = () => {
 
     InteractionManager.runAfterInteractions(() => {
       checkForMigrationFailureAndVaultBackup();
-      PreventScreenshot.forbid();
+      PreventScreenshot.forbid(CAPTURE_KEYS.onboarding);
       if (route?.params?.delete || route?.params?.showErrorReportSentToast) {
         showNotification();
       }
@@ -1447,7 +1449,9 @@ const Onboarding = () => {
       });
       onboardingTraceCtx.current = undefined;
       unsetLoading();
-      InteractionManager.runAfterInteractions(PreventScreenshot.allow);
+      InteractionManager.runAfterInteractions(() =>
+        PreventScreenshot.allow(CAPTURE_KEYS.onboarding),
+      );
     },
     [unsetLoading, finalizeInFlightOAuthTraces, endSocialLoginAttemptTrace],
   );
