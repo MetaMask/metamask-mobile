@@ -336,9 +336,7 @@ describe('OndoCampaignRwaSelectorView', () => {
     jest.clearAllMocks();
     mockUseRwaTokens.mockReturnValue({ data: [], isLoading: false });
     mockRouteParams = { mode: 'open_position', campaignId: 'campaign-1' };
-    mockIsTokenTradingOpen.mockReset();
     mockIsTokenTradingOpen.mockReturnValue(true);
-    mockIsTokenMarketFullyClosed.mockReset();
     mockIsTokenMarketFullyClosed.mockReturnValue(false);
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
