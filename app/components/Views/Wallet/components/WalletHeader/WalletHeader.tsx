@@ -29,7 +29,15 @@ interface TouchAreaSlop {
   right: number;
 }
 
-const accountPickerContainerStyle: ViewStyle = { flex: 1 };
+const accountPickerContainerStyle: ViewStyle = {
+  flex: 1,
+  minWidth: 0,
+  overflow: 'hidden',
+};
+
+const headerActionsContainerStyle: ViewStyle = {
+  flexShrink: 0,
+};
 
 export interface WalletHeaderProps {
   displayName: string;
@@ -75,7 +83,13 @@ const WalletHeader = ({
     <HeaderRoot
       testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
       endAccessory={
-        <View style={headerActionButtonsContainerStyle} accessible={false}>
+        <View
+          style={[
+            headerActionButtonsContainerStyle,
+            headerActionsContainerStyle,
+          ]}
+          accessible={false}
+        >
           <ButtonIcon
             iconProps={{
               color: MMDSIconColor.IconDefault,
@@ -147,9 +161,13 @@ const WalletHeader = ({
       twClassName="pl-1 pr-3"
     >
       {/* `HeaderRoot` doesn't shrink `children` like the old deprecated
-          version did, so the account picker needs its own flex-1 wrapper
-          to make room for the action buttons on narrow screens. */}
-      <View style={accountPickerContainerStyle}>
+          version did. The picker wrapper must flex and allow shrinking
+          below the account name's intrinsic width (`minWidth: 0`) so
+          long names truncate instead of pushing action buttons off-screen. */}
+      <View
+        style={accountPickerContainerStyle}
+        testID={WalletViewSelectorsIDs.ACCOUNT_PICKER_CONTAINER}
+      >
         <PickerAccount
           accountName={displayName}
           onPress={handleAccountPickerPress}
