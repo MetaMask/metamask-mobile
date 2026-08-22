@@ -422,6 +422,51 @@ describe('useTrendingRequest', () => {
       spyGetTrendingTokens.mockRestore();
     });
 
+    it('keeps existing results and no error when a poll fails', async () => {
+      const spyGetTrendingTokens = jest.spyOn(
+        assetsControllers,
+        'getTrendingTokens',
+      );
+      const initialResults: assetsControllers.TrendingAsset[] = [
+        {
+          assetId: 'eip155:1/erc20:0x123',
+          symbol: 'TOKEN1',
+          name: 'Token 1',
+          decimals: 18,
+          price: '1',
+          aggregatedUsdVolume: 1,
+          marketCap: 1,
+        },
+      ];
+
+      spyGetTrendingTokens
+        .mockResolvedValueOnce(initialResults as never)
+        .mockRejectedValue(new Error('Poll failed'));
+
+      const { result, unmount } = renderHookWithProvider(() =>
+        useTrendingRequest({
+          chainIds: ['eip155:1'],
+        }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+      expect(result.current.results).toStrictEqual(initialResults);
+
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(5 * 60 * 1000);
+      });
+
+      expect(spyGetTrendingTokens).toHaveBeenCalledTimes(2);
+      expect(result.current.results).toStrictEqual(initialResults);
+      expect(result.current.error).toBeNull();
+      expect(result.current.isLoading).toBe(false);
+
+      spyGetTrendingTokens.mockRestore();
+      unmount();
+    });
+
     it('does not start polling when initial load fails', async () => {
       const spyGetTrendingTokens = jest.spyOn(
         assetsControllers,

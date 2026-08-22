@@ -270,6 +270,57 @@ describe('useSearchRequest', () => {
     unmount();
   });
 
+  it('keeps existing results and allows retrying when loadMore fails', async () => {
+    const page1Results = [createMockSearchResult({ symbol: 'ETH' })];
+    const page2Results = [createMockSearchResult({ symbol: 'BTC' })];
+
+    spySearchTokens
+      .mockResolvedValueOnce({
+        data: page1Results,
+        pageInfo: { hasNextPage: true, endCursor: 'cursor-page-2' },
+      } as never)
+      .mockRejectedValueOnce(new Error('Pagination failed'))
+      .mockResolvedValueOnce({
+        data: page2Results,
+        pageInfo: { hasNextPage: false, endCursor: undefined },
+      } as never);
+
+    const { result, unmount } = renderHookWithProvider(() =>
+      useSearchRequest({
+        chainIds: ['eip155:1'],
+        query: 'ETH',
+        limit: 10,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    await act(async () => {
+      await result.current.loadMore();
+    });
+
+    // The failed page leaves the current results and cursor untouched
+    expect(result.current.results).toStrictEqual(page1Results);
+    expect(result.current.hasNextPage).toBe(true);
+    expect(result.current.isLoadingMore).toBe(false);
+    expect(result.current.error).toBeNull();
+
+    // The in-flight guard is released, so the next page can still be fetched
+    await act(async () => {
+      await result.current.loadMore();
+    });
+
+    expect(result.current.results).toStrictEqual([
+      ...page1Results,
+      ...page2Results,
+    ]);
+    expect(result.current.hasNextPage).toBe(false);
+
+    unmount();
+  });
+
   it('loadMore is a no-op when hasNextPage is false', async () => {
     const mockResults = [createMockSearchResult()];
     spySearchTokens.mockResolvedValue({
