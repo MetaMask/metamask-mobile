@@ -41,9 +41,8 @@ describe('MainNavigator Route Constants', () => {
     expect(Routes.RAMP.ORDER_DETAILS).toBeDefined();
   });
 
-  it('has deposit routes defined', () => {
-    expect(Routes.DEPOSIT.ID).toBeDefined();
-    expect(Routes.DEPOSIT.ORDER_DETAILS).toBeDefined();
+  it('has legacy deposit order details route defined', () => {
+    expect(Routes.DEPOSIT.ORDER_DETAILS).toBe('DepositOrderDetails');
   });
 
   it('has bridge routes defined', () => {
