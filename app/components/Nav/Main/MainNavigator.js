@@ -191,6 +191,12 @@ import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
 import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 import { ALLOWED_CAPABILITIES as WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/Wallet/messenger';
+import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/AddDeviceToWallet/messenger';
+import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
+import { ALLOWED_CAPABILITIES as MANUAL_BACKUP_STEP_1_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ManualBackupStep1/messenger';
+import { ALLOWED_CAPABILITIES as MANUAL_BACKUP_STEP_2_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ManualBackupStep2/messenger';
+import { ALLOWED_CAPABILITIES as MANUAL_BACKUP_STEP_3_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ManualBackupStep3/messenger';
+import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 
 const NativeStack = createNativeStackNavigator();
@@ -198,6 +204,30 @@ const Tab = createBottomTabNavigator();
 
 const WalletWithMessenger = withMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const AddDeviceToWalletWithMessenger = withMessenger(AddDeviceToWallet, {
+  capabilities: ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const ChoosePasswordWithMessenger = withMessenger(ChoosePassword, {
+  capabilities: CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const ManualBackupStep1WithMessenger = withMessenger(ManualBackupStep1, {
+  capabilities: MANUAL_BACKUP_STEP_1_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const ManualBackupStep2WithMessenger = withMessenger(ManualBackupStep2, {
+  capabilities: MANUAL_BACKUP_STEP_2_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const ManualBackupStep3WithMessenger = withMessenger(ManualBackupStep3, {
+  capabilities: MANUAL_BACKUP_STEP_3_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const QRTabSwitcherWithMessenger = withMessenger(QRTabSwitcher, {
+  capabilities: QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES,
 });
 
 const styles = StyleSheet.create({
@@ -540,15 +570,15 @@ const SettingsFlow = () => {
       />
       <NativeStack.Screen
         name="ManualBackupStep1"
-        component={ManualBackupStep1}
+        component={ManualBackupStep1WithMessenger}
       />
       <NativeStack.Screen
         name="ManualBackupStep2"
-        component={ManualBackupStep2}
+        component={ManualBackupStep2WithMessenger}
       />
       <NativeStack.Screen
         name="ManualBackupStep3"
-        component={ManualBackupStep3}
+        component={ManualBackupStep3WithMessenger}
       />
       <NativeStack.Screen
         name="EnterPasswordSimple"
@@ -945,7 +975,10 @@ const NotificationsModeView = (props) => (
 
 const SetPasswordFlow = () => (
   <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen name="ChoosePassword" component={ChoosePassword} />
+    <NativeStack.Screen
+      name="ChoosePassword"
+      component={ChoosePasswordWithMessenger}
+    />
     <NativeStack.Screen
       name="AccountBackupStep1"
       component={AccountBackupStep1}
@@ -957,15 +990,15 @@ const SetPasswordFlow = () => (
     />
     <NativeStack.Screen
       name="ManualBackupStep1"
-      component={ManualBackupStep1}
+      component={ManualBackupStep1WithMessenger}
     />
     <NativeStack.Screen
       name="ManualBackupStep2"
-      component={ManualBackupStep2}
+      component={ManualBackupStep2WithMessenger}
     />
     <NativeStack.Screen
       name="ManualBackupStep3"
-      component={ManualBackupStep3}
+      component={ManualBackupStep3WithMessenger}
     />
     <NativeStack.Screen name="OptinMetrics" component={OptinMetrics} />
   </NativeStack.Navigator>
@@ -1150,7 +1183,7 @@ const MainNavigator = () => {
       />
       <NativeStack.Screen
         name={Routes.QR_TAB_SWITCHER}
-        component={QRTabSwitcher}
+        component={QRTabSwitcherWithMessenger}
       />
       <NativeStack.Screen
         name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
@@ -1159,7 +1192,7 @@ const MainNavigator = () => {
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
-        component={AddDeviceToWallet}
+        component={AddDeviceToWalletWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
