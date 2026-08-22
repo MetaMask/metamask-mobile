@@ -58,7 +58,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+         vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     steps:
@@ -81,12 +81,13 @@ jobs:
   upload-ios-testflight:
     name: Upload iOS to TestFlight
     needs: [testflight-upload-summary]
-    # iOS/macOS only ever runs on Namespace or Cirrus; there is no GitHub-hosted macOS arm.
+    # iOS/macOS uses the Namespace build profile. macOS is retained only as a defensive
+    # fallback for explicitly overridden provider values.
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-         vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ios-build' || 'ghcr.io/cirruslabs/macos-runner:tahoe-xl'
+         vars.NAMESPACE_RUNNER_IOS || 'namespace') == 'namespace' &&
+        'namespace-profile-metamask-ios-build' || 'macos-15'
       }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
@@ -94,7 +95,7 @@ jobs:
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-          vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+          vars.NAMESPACE_RUNNER_IOS || 'namespace'
         }}
     steps:
       - name: Checkout repository (Namespace)

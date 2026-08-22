@@ -68,7 +68,6 @@ on:
         options:
           - inherit
           - namespace
-          - current
         default: inherit
 
 permissions:

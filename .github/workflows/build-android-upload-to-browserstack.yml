@@ -101,7 +101,6 @@ on:
         type: choice
         options:
           - inherit
-          - current
           - namespace
         default: inherit
 
@@ -463,23 +462,20 @@ jobs:
     name: Upload APKs to BrowserStack
     # Namespace uses metamask-android-build (JDK + /opt/android-sdk). ci-linux
     # does not have that image; setup-e2e-env skips JDK when provider=namespace.
-    # current keeps today's split: Cirrus lg for fingerprint-repack, ubuntu-latest
-    # for as-is/fresh upload.
+    # GitHub-hosted labels are retained only as a defensive fallback for explicitly
+    # overridden provider values.
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-         vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+         vars.NAMESPACE_RUNNER_ANDROID || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-android-build' ||
-        (needs.resolve-fingerprint-reuse.outputs.found == 'true' &&
-         inputs.main_branch_only != true &&
-         fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
-         fromJSON('["ubuntu-latest"]'))
+        'ubuntu-latest'
       }}
     env:
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-          vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+          vars.NAMESPACE_RUNNER_ANDROID || 'namespace'
         }}
     # Only the JS-repack path needs build-e2e/rc/exp secrets (ADDITIONAL_SRP_1, etc.).
     # Fresh/as-is upload only needs repo-level BrowserStack credentials.

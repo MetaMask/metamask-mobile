@@ -100,11 +100,10 @@ jobs:
          (inputs.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS ||
           inputs.platform == 'android' && vars.NAMESPACE_RUNNER_ANDROID ||
           inputs.platform != 'ios' && inputs.platform != 'android' && vars.NAMESPACE_RUNNER_LINUX) ||
-         vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+         'namespace') == 'namespace' &&
         (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-build' ||
          (inputs.platform == 'android' && 'namespace-profile-metamask-android-build' || 'namespace-profile-metamask-ci-linux')) ||
-        (inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' ||
-         (inputs.platform == 'android' && 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg' || 'ubuntu-latest'))
+        (inputs.platform == 'ios' && 'macos-15' || 'ubuntu-latest')
       }}
     permissions:
       contents: read
@@ -118,7 +117,7 @@ jobs:
           (inputs.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS ||
            inputs.platform == 'android' && vars.NAMESPACE_RUNNER_ANDROID ||
            inputs.platform != 'ios' && inputs.platform != 'android' && vars.NAMESPACE_RUNNER_LINUX) ||
-          vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+          'namespace'
         }}
       # Must match build.yml's CACHE_GENERATION; the two compose the same cache key.
       CACHE_GENERATION: v2

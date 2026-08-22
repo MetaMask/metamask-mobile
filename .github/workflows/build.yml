@@ -105,7 +105,6 @@ on:
         options:
           - inherit
           - namespace
-          - current
         default: inherit
 
 permissions:
@@ -119,7 +118,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+         vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -128,7 +127,7 @@ jobs:
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-          vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+          vars.NAMESPACE_RUNNER_LINUX || 'namespace'
         }}
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
@@ -226,15 +225,15 @@ jobs:
     strategy:
       matrix:
         platform: ${{ inputs.platform == 'both' && fromJSON('["android", "ios"]') || fromJSON(format('["{0}"]', inputs.platform)) }}
-    # Namespace: per-platform build profiles. Cirrus fallback: lg (large) runner for the
-    # 8GB Gradle heap on Android, macOS Tahoe for iOS (has Xcode 26.x).
+    # Namespace: per-platform build profiles. GitHub-hosted labels are retained only as
+    # a defensive fallback for explicitly overridden provider values.
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
          (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
-         vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+         'namespace') == 'namespace' &&
         (matrix.platform == 'ios' && 'namespace-profile-metamask-ios-build' || 'namespace-profile-metamask-android-build') ||
-        (matrix.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg')
+        (matrix.platform == 'ios' && 'macos-15' || 'ubuntu-latest')
       }}
     environment: ${{ needs.prepare.outputs.github_environment }}
     env:
@@ -244,18 +243,12 @@ jobs:
         ${{
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
           (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
-          vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+          'namespace'
         }}
-      # Namespace runners use the standard runner home; Cirrus images run as `admin`.
+      # Namespace and GitHub-hosted runners use the standard runner home.
       # Cannot reference RESOLVED_RUNNER_PROVIDER: env entries in the same block are
       # not visible to each other.
-      GRADLE_USER_HOME: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-           (matrix.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || matrix.platform != 'ios' && vars.NAMESPACE_RUNNER_ANDROID) ||
-           vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-          '/home/runner/_work/.gradle' || '/home/admin/_work/.gradle'
-        }}
+      GRADLE_USER_HOME: /home/runner/_work/.gradle
       # Must match setup-node-modules.yml's CACHE_GENERATION; the two compose the same cache key.
       CACHE_GENERATION: v2
     steps:
@@ -467,7 +460,7 @@ jobs:
           ALL_SECRETS: ${{ toJSON(secrets) }}
         run: node scripts/set-secrets-from-config.js
 
-      # Android only: minimal env (SDK is pre-installed on Cirrus runner)
+      # Android only: minimal env (SDK is pre-installed on the Namespace runner)
       - name: Set Android environment variables
         if: matrix.platform == 'android'
         run: |
@@ -490,7 +483,7 @@ jobs:
       - name: Restore Gradle dependencies from branch cache (Android)
         if: matrix.platform == 'android'
         id: gradle-cache-restore
-        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             ~/_work/.gradle/caches
@@ -499,7 +492,7 @@ jobs:
 
       - name: Restore Gradle dependencies from main cache (Android)
         if: matrix.platform == 'android' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main'
-        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             ~/_work/.gradle/caches
@@ -740,7 +733,7 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-         vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+         vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -749,7 +742,7 @@ jobs:
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-          vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+          vars.NAMESPACE_RUNNER_LINUX || 'namespace'
         }}
     outputs:
       checkout_ref: ${{ steps.meta.outputs.checkout_ref }}

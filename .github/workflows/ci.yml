@@ -40,7 +40,6 @@ on:
         type: choice
         options:
           - inherit
-          - current
           - namespace
           - bitrise
         default: inherit
@@ -76,7 +75,7 @@ jobs:
     # macos/ios-build concurrency.
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -84,7 +83,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
@@ -200,7 +199,7 @@ jobs:
     name: Dedupe
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -208,7 +207,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
@@ -259,7 +258,7 @@ jobs:
     name: Run `@lavamoat/git-safe-dependencies`
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -267,7 +266,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
@@ -311,7 +310,7 @@ jobs:
     name: Run `${{ matrix.scripts }}`
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -319,7 +318,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
@@ -381,7 +380,7 @@ jobs:
     name: JS bundle size check
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -389,7 +388,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
@@ -633,7 +632,7 @@ jobs:
           name: ios-bundle
           path: ios/main.jsbundle
           retention-days: 7
-      - name: Upload iOS bundle (current)
+      - name: Upload iOS bundle (GitHub)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
@@ -645,7 +644,7 @@ jobs:
     name: Ship JS bundle size check
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -653,7 +652,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     needs: [js-bundle-size-check]
     # Skip on Bitrise trial runs: cron against main would otherwise push duplicate
@@ -683,7 +682,7 @@ jobs:
         with:
           name: ios-bundle
           path: ios
-      - name: Download iOS bundle (current)
+      - name: Download iOS bundle (GitHub)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/download-artifact@v4
         with:
@@ -718,7 +717,7 @@ jobs:
     name: Check workflows
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -726,7 +725,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
@@ -750,7 +749,7 @@ jobs:
     name: Prepare CI JS dependencies
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -758,7 +757,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
@@ -787,7 +786,7 @@ jobs:
     name: Unit tests (${{ matrix.shard }})
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -795,7 +794,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
@@ -848,7 +847,7 @@ jobs:
           path: ./tests/coverage/
           if-no-files-found: error
           retention-days: 7
-      - name: Upload coverage unit shard (current)
+      - name: Upload coverage unit shard (GitHub)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
@@ -871,7 +870,7 @@ jobs:
   merge-unit-and-component-view-tests:
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -879,7 +878,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     needs:
       - prepare-ci-js-deps
@@ -916,7 +915,7 @@ jobs:
         with:
           pattern: coverage-*
           path: tests/coverage/
-      - name: Download coverage shards (current)
+      - name: Download coverage shards (GitHub)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/download-artifact@v4
         with:
@@ -1000,7 +999,7 @@ jobs:
           path: ./tests/merged-coverage/lcov.info
           if-no-files-found: error
           retention-days: 7
-      - name: Upload lcov.info (current)
+      - name: Upload lcov.info (GitHub)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
@@ -1016,7 +1015,7 @@ jobs:
           path: ./cv-test-stats.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload cv-test-stats (current)
+      - name: Upload cv-test-stats (GitHub)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
@@ -1032,7 +1031,7 @@ jobs:
           path: ./integration-test-stats.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload integration-test-stats (current)
+      - name: Upload integration-test-stats (GitHub)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
@@ -1048,7 +1047,7 @@ jobs:
           path: ./unit-test-stats.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload unit-test-stats (current)
+      - name: Upload unit-test-stats (GitHub)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
@@ -1066,7 +1065,7 @@ jobs:
           path: ./tests/coverage-cv-lcov/
           if-no-files-found: error
           retention-days: 7
-      - name: Upload cv-test-coverage-html (current)
+      - name: Upload cv-test-coverage-html (GitHub)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
@@ -1082,7 +1081,7 @@ jobs:
           path: ./tests/coverage-cv-lcov/coverage-summary.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload cv-test-coverage-summary (current)
+      - name: Upload cv-test-coverage-summary (GitHub)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
@@ -1101,7 +1100,7 @@ jobs:
           path: ./tests/coverage-integration-lcov/
           if-no-files-found: error
           retention-days: 7
-      - name: Upload integration-test-coverage-html (current)
+      - name: Upload integration-test-coverage-html (GitHub)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
         uses: actions/upload-artifact@v4
         with:
@@ -1117,7 +1116,7 @@ jobs:
           path: ./tests/coverage-integration-lcov/coverage-summary.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload integration-test-coverage-summary (current)
+      - name: Upload integration-test-coverage-summary (GitHub)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
         uses: actions/upload-artifact@v4
         with:
@@ -1135,7 +1134,7 @@ jobs:
           path: ./tests/coverage-unit-lcov/coverage-summary.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload unit-test-coverage-summary (current)
+      - name: Upload unit-test-coverage-summary (GitHub)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
@@ -1157,7 +1156,7 @@ jobs:
     name: Component view tests (${{ matrix.shard }})
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -1165,7 +1164,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
@@ -1219,7 +1218,7 @@ jobs:
           path: ./tests/coverage/
           if-no-files-found: error
           retention-days: 7
-      - name: Upload coverage CV shard (current)
+      - name: Upload coverage CV shard (GitHub)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
@@ -1234,7 +1233,7 @@ jobs:
     name: Integration tests
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -1242,7 +1241,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     if: ${{ !cancelled() && needs.get_requirements.result == 'success' && needs.get_requirements.outputs.skip_everything != 'true' && inputs.runner_provider != 'bitrise' }}
     needs:
@@ -1296,7 +1295,7 @@ jobs:
           path: ./tests/coverage/
           if-no-files-found: error
           retention-days: 7
-      - name: Upload coverage integration shard (current)
+      - name: Upload coverage integration shard (GitHub)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
@@ -1309,7 +1308,7 @@ jobs:
     name: 'Smart E2E Selection'
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -1317,7 +1316,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     if: ${{ needs.get_requirements.outputs.run_smart_e2e_selection == 'true' }}
     needs:
@@ -1431,7 +1430,7 @@ jobs:
       runner_provider: >-
         ${{
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-          vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+          vars.NAMESPACE_RUNNER_ANDROID || 'namespace'
         }}
       reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
     secrets: inherit
@@ -1511,7 +1510,7 @@ jobs:
       runner_provider: >-
         ${{
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-          vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+          vars.NAMESPACE_RUNNER_IOS || 'namespace'
         }}
       reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
     secrets: inherit
@@ -1545,11 +1544,11 @@ jobs:
       build_type: 'main'
       metamask_environment: 'e2e'
       # Mirrors build-android-apks' resolution chain so this consumer always matches
-      # the builder's artifact store (GitHub on current, Namespace store on namespace).
+      # the builder's artifact store (GitHub on fallback, Namespace store on namespace).
       runner_provider: >-
         ${{
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-          vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+          vars.NAMESPACE_RUNNER_ANDROID || 'namespace'
         }}
       selected_tags: >-
         ${{
@@ -1597,11 +1596,11 @@ jobs:
       build_type: 'main'
       metamask_environment: 'e2e'
       # Mirrors build-ios-apps' resolution chain so this consumer always matches
-      # the builder's artifact store (GitHub on current, Namespace store on namespace).
+      # the builder's artifact store (GitHub on fallback, Namespace store on namespace).
       runner_provider: >-
         ${{
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-          vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+          vars.NAMESPACE_RUNNER_IOS || 'namespace'
         }}
       selected_tags: >-
         ${{
@@ -1635,11 +1634,11 @@ jobs:
       build_type: 'main'
       metamask_environment: 'e2e'
       # Mirrors build-ios-apps' resolution chain so this consumer always matches
-      # the builder's artifact store (GitHub on current, Namespace store on namespace).
+      # the builder's artifact store (GitHub on fallback, Namespace store on namespace).
       runner_provider: >-
         ${{
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-          vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+          vars.NAMESPACE_RUNNER_IOS || 'namespace'
         }}
     secrets: inherit
 
@@ -1647,7 +1646,7 @@ jobs:
     name: 'Report Fixture Validation'
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -1655,7 +1654,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     if: ${{ inputs.runner_provider != 'bitrise' && !cancelled() && needs.validate-e2e-fixtures.result != 'skipped' }}
     needs: [validate-e2e-fixtures]
@@ -1692,7 +1691,7 @@ jobs:
     name: SonarCloud analysis
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -1700,7 +1699,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     needs: merge-unit-and-component-view-tests
     # Run when merged coverage is ready even if optional integration shards failed upstream.
@@ -1732,7 +1731,7 @@ jobs:
         with:
           name: lcov.info
           path: coverage/
-      - name: Download lcov.info (current)
+      - name: Download lcov.info (GitHub)
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/download-artifact@v4
         with:
@@ -1771,7 +1770,7 @@ jobs:
     name: SonarCloud quality gate status
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -1779,7 +1778,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     needs: sonar-cloud
     if: ${{ always() && !cancelled() && needs.sonar-cloud.result == 'success' && inputs.runner_provider != 'bitrise' && github.event_name != 'merge_group' && !github.event.pull_request.head.repo.fork }}
@@ -1910,7 +1909,7 @@ jobs:
     if: ${{ always() && !cancelled() && inputs.runner_provider != 'bitrise' }}
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -1918,7 +1917,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     needs:
       - get_requirements
@@ -1964,7 +1963,7 @@ jobs:
     name: Log merge group failure
     runs-on: >-
       ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     env:
@@ -1972,7 +1971,7 @@ jobs:
       # directly, or a provider set through the repo variables would be ignored.
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || 'namespace')
         }}
     # Only run this job if the merge group event fails, skip on forks
     if: ${{ inputs.runner_provider != 'bitrise' && github.event_name == 'merge_group' && failure() }}
