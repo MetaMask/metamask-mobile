@@ -3,10 +3,10 @@ import { act } from '@testing-library/react-native';
 import { View } from 'react-native';
 // eslint-disable-next-line import-x/no-namespace
 import * as routeMessengerModule from '../messengers/route-messenger';
-import { RouteWithMessenger } from './route-with-messenger';
+import type { UIMessengerActions, UIMessengerEvents } from '../messengers/ui-messenger';
+import { RouteMessengerProvider } from './route-messenger';
 import renderWithProvider from '../util/test/renderWithProvider';
 import { createMockUIMessenger } from '../util/test/mock-ui-messenger';
-import type { UIMessengerActions, UIMessengerEvents } from './ui-messenger';
 
 const CAPABILITIES = {
   actions: [
@@ -17,15 +17,15 @@ const CAPABILITIES = {
   ],
 };
 
-describe('RouteWithMessenger', () => {
+describe('RouteMessengerProvider', () => {
   it('renders children once delegation is complete', async () => {
     const uiMessenger = createMockUIMessenger();
     jest.spyOn(uiMessenger, 'delegate').mockResolvedValue(undefined);
 
     const { findByTestId } = renderWithProvider(
-      <RouteWithMessenger path="TestPath" capabilities={CAPABILITIES}>
+      <RouteMessengerProvider path="TestPath" capabilities={CAPABILITIES}>
         <View testID="child" />
-      </RouteWithMessenger>,
+      </RouteMessengerProvider>,
       { uiMessenger },
     );
 
@@ -44,9 +44,9 @@ describe('RouteWithMessenger', () => {
     );
 
     const { findByTestId } = renderWithProvider(
-      <RouteWithMessenger path="SomePath" capabilities={CAPABILITIES}>
+      <RouteMessengerProvider path="SomePath" capabilities={CAPABILITIES}>
         <View testID="content" />
-      </RouteWithMessenger>,
+      </RouteMessengerProvider>,
       { uiMessenger },
     );
 
@@ -71,9 +71,9 @@ describe('RouteWithMessenger', () => {
       .mockResolvedValue(undefined);
 
     const { findByTestId, unmount } = renderWithProvider(
-      <RouteWithMessenger path="SomePath" capabilities={CAPABILITIES}>
+      <RouteMessengerProvider path="SomePath" capabilities={CAPABILITIES}>
         <View testID="content" />
-      </RouteWithMessenger>,
+      </RouteMessengerProvider>,
       { uiMessenger },
     );
 

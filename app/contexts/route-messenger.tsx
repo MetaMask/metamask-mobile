@@ -1,16 +1,55 @@
-import React, { ReactNode, useEffect, useRef, useState } from 'react';
-import { UIMessengerActions, UIMessengerEvents } from './ui-messenger';
-import { RouteMessengerContext } from '../contexts/route-messenger';
-import { useUIMessenger } from '../contexts/ui-messenger';
-import { createRouteMessenger, type RouteMessenger } from './route-messenger';
+import React, {
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+
+import {
+  RouteMessenger,
+  createRouteMessenger,
+} from '../messengers/route-messenger';
 import { captureException } from '@sentry/react-native';
+import { value } from '../components/Snaps/SnapUIRenderer/components/value';
+import {
+  UIMessengerActions,
+  UIMessengerEvents,
+} from '../messengers/ui-messenger';
+import { useUIMessenger } from './ui-messenger';
+
+/**
+ * Context that holds the messenger for the current route.
+ *
+ * @see {@link RouteMessengerProvider}
+ */
+export const RouteMessengerContext = createContext<RouteMessenger | null>(null);
+
+/**
+ * Hook to access the messenger for the current route from context.
+ *
+ * @returns The route messenger in context.
+ * @throws If the route messenger has not been set.
+ */
+export function useRouteMessenger(): RouteMessenger {
+  const messenger = useContext(RouteMessengerContext);
+
+  if (!messenger) {
+    throw new Error(
+      'useRouteMessenger must be used within a route messenger context.',
+    );
+  }
+
+  return messenger;
+}
 
 /**
  * Utility component which creates a messenger representing a route and
  * provides it to children via context.
  *
- * Do not use this component directly. Instead, use the `withMessenger` HOC to
- * wrap route components, which will render this component internally.
+ * Do not use this component directly. Instead, use the `withRouteMessenger` HOC
+ * to wrap route components, which will render this component internally.
  *
  * @param props - Component props.
  * @param props.path - The path of the route. This is used for debugging
@@ -25,7 +64,7 @@ import { captureException } from '@sentry/react-native';
  * messenger.
  * @param props.children - Child components.
  */
-export const RouteWithMessenger = ({
+export const RouteMessengerProvider = ({
   path,
   capabilities,
   children,
