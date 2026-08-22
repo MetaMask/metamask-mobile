@@ -1,0 +1,228 @@
+name: 'RC native baseline'
+description: >-
+  Reads or writes the Auto RC OTA native baseline: the Expo fingerprint of the last SUCCESSFUL
+  native RC build on a release branch. Stored as a sticky comment on that branch's release PR,
+  which needs only `pull-requests: write` and no admin-scoped token.
+
+  Auto RC builds compare the fingerprint of the pushed commit against this baseline. Equal means
+  the native layer already on testers' devices still matches, so the push ships as an OTA update;
+  different means a native build is required. Comparing against the last SUCCESSFUL native build
+  rather than the previous commit is what makes batched merges safe: a native change introduced
+  anywhere in a batch is still visible at HEAD, no matter how many runs were cancelled in between.
+
+  Failing to read leaves the baseline empty, and an empty baseline means a native build, so every
+  failure mode here biases towards building native rather than shipping a broken OTA. Only
+  bot-authored comments are accepted, so a comment left by anyone else cannot pass itself off as
+  the baseline.
+
+inputs:
+  mode:
+    description: "'read' to resolve the current baseline, 'write' to record a new one"
+    required: true
+  pr-number:
+    description: 'Release PR number the baseline comment lives on'
+    required: true
+  github-token:
+    description: >-
+      Token with `pull-requests: write`. Must be a bot token, `secrets.GITHUB_TOKEN` or a GitHub
+      App one, because only bot-authored comments are accepted as a baseline.
+    required: true
+  fingerprint:
+    description: 'Expo fingerprint to record (write mode only)'
+    required: false
+    default: ''
+  commit-sha:
+    description: 'Commit the native build was made from (write mode only)'
+    required: false
+    default: ''
+  build-number:
+    description: 'Build number the native build was stamped with (write mode only)'
+    required: false
+    default: ''
+
+outputs:
+  fingerprint:
+    description: 'Baseline fingerprint, empty when no baseline exists yet'
+    value: ${{ steps.baseline.outputs.fingerprint }}
+  commit-sha:
+    description: 'Commit the baseline native build was made from, empty when no baseline exists'
+    value: ${{ steps.baseline.outputs.commit-sha }}
+  short-sha:
+    description: 'First 7 characters of commit-sha, empty when no baseline exists'
+    value: ${{ steps.baseline.outputs.short-sha }}
+  build-number:
+    description: 'Build number of the baseline native build, empty when no baseline exists'
+    value: ${{ steps.baseline.outputs.build-number }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: ${{ inputs.mode == 'write' && 'Record native baseline' || 'Resolve native baseline' }}
+      id: baseline
+      uses: actions/github-script@v7
+      env:
+        MODE: ${{ inputs.mode }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+        FINGERPRINT: ${{ inputs.fingerprint }}
+        COMMIT_SHA: ${{ inputs.commit-sha }}
+        BUILD_NUMBER: ${{ inputs.build-number }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const STICKY_MARKER = '<!-- rc-native-baseline -->';
+          const DATA_PREFIX = '<!-- rc-native-baseline-data:';
+
+          const { MODE, FINGERPRINT, COMMIT_SHA, BUILD_NUMBER, RUN_URL } = process.env;
+          const prNumber = Number(process.env.PR_NUMBER);
+
+          if (MODE !== 'read' && MODE !== 'write') {
+            core.setFailed(`mode must be 'read' or 'write', got '${MODE}'`);
+            return;
+          }
+          if (!Number.isInteger(prNumber) || prNumber <= 0) {
+            core.setFailed(`pr-number must be a positive integer, got '${process.env.PR_NUMBER}'`);
+            return;
+          }
+
+          // Anyone can comment on a release PR, so a marker alone is not proof the baseline
+          // was written by this action. Matching on the author type rather than a hardcoded
+          // `github-actions[bot]` login keeps this working if the token is ever swapped for
+          // a GitHub App one. A skipped comment is warned about rather than ignored silently,
+          // so an attempt to plant a baseline shows up in the run log.
+          const isBotAuthored = (comment) => comment.user?.type === 'Bot';
+
+          const findBaselineComment = async () => {
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              per_page: 100,
+            });
+            const marked = comments.filter((c) => c.body?.includes(STICKY_MARKER));
+            const trusted = marked.filter(isBotAuthored);
+            if (trusted.length !== marked.length) {
+              core.warning(
+                `Ignoring ${marked.length - trusted.length} baseline comment(s) on PR #${prNumber} ` +
+                'that were not written by a bot.'
+              );
+            }
+            // Newest wins. Only one should ever exist, but a duplicate must not pin the
+            // baseline to a stale fingerprint.
+            return trusted.pop();
+          };
+
+          // Parsing keys off a JSON marker rather than the rendered table, so the
+          // human-readable part of the comment can be reworded freely.
+          const parseBaseline = (body) => {
+            const line = body
+              .split('\n')
+              .map((l) => l.trim())
+              .find((l) => l.startsWith(DATA_PREFIX));
+            if (!line) {
+              throw new Error('baseline comment has no data marker');
+            }
+            const json = line.slice(DATA_PREFIX.length, line.lastIndexOf('-->')).trim();
+            return JSON.parse(json);
+          };
+
+          const renderBody = (data) => [
+            STICKY_MARKER,
+            '### RC native baseline',
+            '',
+            'The last successful native RC build on this branch. Pushes whose Expo fingerprint',
+            'matches this one ship as OTA updates to the `rc` channel instead of triggering',
+            'another native build.',
+            '',
+            '| Field | Value |',
+            '| :--- | :--- |',
+            `| Commit | \`${data.commitSha.slice(0, 7)}\` |`,
+            `| Build number | \`${data.buildNumber || 'unknown'}\` |`,
+            `| Fingerprint | \`${data.fingerprint}\` |`,
+            `| Updated | ${data.updatedAt} |`,
+            '',
+            `<sub>Maintained automatically by [Auto RC builds](${RUN_URL}). Editing or deleting`,
+            'this comment makes the next push build native again.</sub>',
+            '',
+            `${DATA_PREFIX}${JSON.stringify(data)} -->`,
+          ].join('\n');
+
+          if (MODE === 'read') {
+            const empty = { fingerprint: '', 'commit-sha': '', 'short-sha': '', 'build-number': '' };
+            const setOutputs = (values) => {
+              for (const [name, value] of Object.entries(values)) {
+                core.setOutput(name, value);
+              }
+            };
+
+            let comment;
+            try {
+              comment = await findBaselineComment();
+            } catch (error) {
+              // Treated as "no baseline", which routes the push to a native build.
+              core.warning(`Could not read baseline comment, assuming none: ${error.message}`);
+              setOutputs(empty);
+              return;
+            }
+
+            if (!comment) {
+              core.info(`No baseline recorded on PR #${prNumber} yet, a native build is required.`);
+              setOutputs(empty);
+              return;
+            }
+
+            let data;
+            try {
+              data = parseBaseline(comment.body);
+            } catch (error) {
+              core.warning(`Baseline comment is unreadable, assuming none: ${error.message}`);
+              setOutputs(empty);
+              return;
+            }
+
+            setOutputs({
+              fingerprint: data.fingerprint ?? '',
+              'commit-sha': data.commitSha ?? '',
+              'short-sha': (data.commitSha ?? '').slice(0, 7),
+              'build-number': data.buildNumber ?? '',
+            });
+            core.info(
+              `Baseline: ${data.fingerprint} from ${(data.commitSha ?? '').slice(0, 7)} ` +
+              `(native build ${data.buildNumber || 'unknown'})`
+            );
+            return;
+          }
+
+          if (!FINGERPRINT || !COMMIT_SHA) {
+            // A blank baseline would compare unequal against everything and pin the branch to
+            // native builds forever, so refuse rather than write one.
+            core.setFailed('write mode requires both fingerprint and commit-sha');
+            return;
+          }
+
+          const data = {
+            fingerprint: FINGERPRINT,
+            commitSha: COMMIT_SHA,
+            buildNumber: BUILD_NUMBER,
+            updatedAt: new Date().toISOString(),
+          };
+          const body = renderBody(data);
+          const existing = await findBaselineComment();
+
+          if (existing) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existing.id,
+              body,
+            });
+            core.info(`Updated baseline on PR #${prNumber} to ${FINGERPRINT}`);
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body,
+            });
+            core.info(`Created baseline on PR #${prNumber} at ${FINGERPRINT}`);
+          }
