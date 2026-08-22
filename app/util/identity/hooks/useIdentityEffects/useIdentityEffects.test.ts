@@ -2,11 +2,13 @@ import { renderHookWithProvider } from '../../../test/renderWithProvider';
 import { useAutoSignIn, useAutoSignOut } from '../useAuthentication';
 import { useAccountSyncing } from '../useAccountSyncing';
 import { useContactSyncing } from '../useContactSyncing';
+import { useRampsOrderSyncing } from '../useRampsOrderSyncing';
 import { useIdentityEffects } from './useIdentityEffects';
 
 jest.mock('../useAuthentication');
 jest.mock('../useAccountSyncing');
 jest.mock('../useContactSyncing');
+jest.mock('../useRampsOrderSyncing');
 jest.mock('../useCanonicalProfileIdTrait');
 jest.mock('../../../../core/Braze/hooks', () => ({
   useBrazeIdentity: jest.fn(),
@@ -17,6 +19,7 @@ describe('useIdentityEffects', () => {
   const mockUseAutoSignOut = jest.mocked(useAutoSignOut);
   const mockUseAccountSyncing = jest.mocked(useAccountSyncing);
   const mockUseContactSyncing = jest.mocked(useContactSyncing);
+  const mockUseRampsOrderSyncing = jest.mocked(useRampsOrderSyncing);
 
   beforeEach(() => {
     mockUseAutoSignIn.mockReturnValue({
@@ -38,6 +41,11 @@ describe('useIdentityEffects', () => {
     mockUseContactSyncing.mockReturnValue({
       dispatchContactSyncing: jest.fn(),
       shouldDispatchContactSyncing: false,
+    });
+
+    mockUseRampsOrderSyncing.mockReturnValue({
+      dispatchRampsOrderSyncing: jest.fn(),
+      shouldDispatchRampsOrderSyncing: false,
     });
   });
 
@@ -121,6 +129,19 @@ describe('useIdentityEffects', () => {
     expect(dispatchContactSyncing).toHaveBeenCalled();
   });
 
+  it('dispatches ramps order syncing if shouldDispatchRampsOrderSyncing returns true', () => {
+    const dispatchRampsOrderSyncing = jest.fn();
+    const shouldDispatchRampsOrderSyncing = true;
+    mockUseRampsOrderSyncing.mockReturnValue({
+      dispatchRampsOrderSyncing,
+      shouldDispatchRampsOrderSyncing,
+    });
+
+    renderHookWithProvider(() => useIdentityEffects());
+
+    expect(dispatchRampsOrderSyncing).toHaveBeenCalled();
+  });
+
   it('does not dispatch account syncing if shouldDispatchAccountSyncing returns false', () => {
     const dispatchAccountSyncing = jest.fn();
     const shouldDispatchAccountSyncing = false;
@@ -145,5 +166,18 @@ describe('useIdentityEffects', () => {
     renderHookWithProvider(() => useIdentityEffects());
 
     expect(dispatchContactSyncing).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch ramps order syncing if shouldDispatchRampsOrderSyncing returns false', () => {
+    const dispatchRampsOrderSyncing = jest.fn();
+    const shouldDispatchRampsOrderSyncing = false;
+    mockUseRampsOrderSyncing.mockReturnValue({
+      dispatchRampsOrderSyncing,
+      shouldDispatchRampsOrderSyncing,
+    });
+
+    renderHookWithProvider(() => useIdentityEffects());
+
+    expect(dispatchRampsOrderSyncing).not.toHaveBeenCalled();
   });
 });

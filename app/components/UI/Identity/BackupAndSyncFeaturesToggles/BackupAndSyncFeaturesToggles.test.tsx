@@ -20,6 +20,7 @@ const MOCK_STORE_STATE = {
         isBackupAndSyncEnabled: true,
         isAccountSyncingEnabled: false,
         isContactSyncingEnabled: false,
+        isRampsSyncingEnabled: false,
       },
       AuthenticationController: {
         isSignedIn: true,

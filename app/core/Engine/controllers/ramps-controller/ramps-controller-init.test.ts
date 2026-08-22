@@ -70,6 +70,14 @@ jest.mock('../../../../components/UI/Ramp/debug/RampsDebugBridge', () => ({
   initRampsDebugBridge: jest.fn(),
 }));
 
+jest.mock('../../utils/analytics', () => ({
+  buildAndTrackEvent: jest.fn(),
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn(),
+}));
+
 const getInitRampsDebugBridgeMock = (): jest.Mock =>
   (
     jest.requireMock(
@@ -116,10 +124,40 @@ describe('ramps controller init', () => {
 
     rampsControllerInit(initRequestMock);
 
-    const rampsControllerState =
-      rampsControllerClassMock.mock.calls[0][0].state;
+    const constructorArgs = rampsControllerClassMock.mock.calls[0][0];
 
-    expect(rampsControllerState).toEqual(defaultRampsControllerState);
+    expect(constructorArgs.state).toEqual(defaultRampsControllerState);
+    expect(constructorArgs.trace).toEqual(expect.any(Function));
+    expect(constructorArgs.onOrderSyncErroneousSituation).toEqual(
+      expect.any(Function),
+    );
+  });
+
+  it('tracks order sync erroneous situations', () => {
+    const { buildAndTrackEvent } = jest.requireMock(
+      '../../utils/analytics',
+    ) as {
+      buildAndTrackEvent: jest.Mock;
+    };
+    const { MetaMetricsEvents } = jest.requireActual(
+      '../../../Analytics',
+    ) as typeof import('../../../Analytics');
+
+    rampsControllerInit(initRequestMock);
+    const onOrderSyncErroneousSituation =
+      rampsControllerClassMock.mock.calls[0][0].onOrderSyncErroneousSituation;
+
+    onOrderSyncErroneousSituation?.('sync failed');
+
+    expect(buildAndTrackEvent).toHaveBeenCalledWith(
+      initRequestMock.initMessenger,
+      MetaMetricsEvents.PROFILE_ACTIVITY_UPDATED.category,
+      {
+        feature_name: 'Ramps Order Sync',
+        action: 'Ramps Order Sync Erroneous Situation',
+        additional_description: 'sync failed',
+      },
+    );
   });
 
   it('uses initial state when initial state is passed in', () => {

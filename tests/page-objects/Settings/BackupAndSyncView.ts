@@ -22,6 +22,12 @@ class BackupAndSyncView {
     );
   }
 
+  get rampsSyncToggle(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      BackupAndSyncViewSelectorsIDs.RAMPS_SYNC_TOGGLE,
+    );
+  }
+
   async toggleBackupAndSync() {
     await Gestures.waitAndTap(this.backupAndSyncToggle, {
       elemDescription: 'Backup and Sync Toggle in Backup and Sync View',
@@ -37,6 +43,12 @@ class BackupAndSyncView {
   async toggleContactSync() {
     await Gestures.waitAndTap(this.contactSyncToggle, {
       elemDescription: 'Contacts Sync Toggle in Backup and Sync View',
+    });
+  }
+
+  async toggleRampsSync() {
+    await Gestures.waitAndTap(this.rampsSyncToggle, {
+      elemDescription: 'Ramps Order Sync Toggle in Backup and Sync View',
     });
   }
 }

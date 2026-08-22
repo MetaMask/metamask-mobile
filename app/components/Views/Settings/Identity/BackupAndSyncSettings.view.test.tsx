@@ -88,4 +88,33 @@ describeForPlatforms('BackupAndSyncSettings identity sync toggles', () => {
 
     setFeatureSpy.mockRestore();
   });
+
+  it('disables ramps order sync through user storage', async () => {
+    const setFeatureSpy = jest.spyOn(
+      Engine.context.UserStorageController,
+      'setIsBackupAndSyncFeatureEnabled',
+    );
+    const { getByTestId } = renderBackupAndSyncSettings({
+      stateOptions: {
+        isRampsSyncingEnabled: true,
+      },
+    });
+
+    fireEvent(
+      getByTestId(
+        BACKUP_AND_SYNC_FEATURES_TOGGLES_TEST_IDS.TOGGLE_RAMPS_SYNCING,
+      ),
+      'onValueChange',
+      false,
+    );
+
+    await waitFor(() => {
+      expect(setFeatureSpy).toHaveBeenCalledWith(
+        BACKUPANDSYNC_FEATURES.rampsSyncing,
+        false,
+      );
+    });
+
+    setFeatureSpy.mockRestore();
+  });
 });
