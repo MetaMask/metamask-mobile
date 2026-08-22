@@ -1,8 +1,8 @@
 import Utilities, { BASE_DEFAULTS, sleep } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
-import type { PlaywrightElement } from './PlaywrightAdapter.ts';
-import PlaywrightMatchers from './PlaywrightMatchers.ts';
-import PlaywrightGestures from './PlaywrightGestures.ts';
+import type { AppiumElement } from './AppiumElement.ts';
+import AppiumMatchers from './AppiumMatchers.ts';
+import AppiumGestures from './AppiumGestures.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import {
   addOverhead,
@@ -13,10 +13,10 @@ import {
   recordOverheadProbe,
   recordSuccessPollCommand,
   withImplicitWait,
-} from './PlaywrightUtilities.ts';
-import { createPlaywrightLogger } from './playwrightLogger.ts';
+} from './AppiumUtilities.ts';
+import { createAppiumLogger } from './appiumLogger.ts';
 
-const logger = createPlaywrightLogger('PlaywrightAssertions');
+const logger = createAppiumLogger('AppiumAssertions');
 
 export interface VisibilityWithSettleOptions extends AssertionOptions {
   settleMs?: number;
@@ -24,7 +24,7 @@ export interface VisibilityWithSettleOptions extends AssertionOptions {
 
 export interface TextDisplayedOptions extends AssertionOptions {
   /** When set, asserts text on this element instead of searching the screen. */
-  within?: PlaywrightElement | Promise<PlaywrightElement>;
+  within?: AppiumElement | Promise<AppiumElement>;
 }
 
 /**
@@ -41,7 +41,7 @@ export interface TextDisplayedOptions extends AssertionOptions {
  * stay in app time so cold start is not under-reported, and timers cannot
  * collapse to 0ms after a real wait.
  */
-export default class PlaywrightAssertions {
+export default class AppiumAssertions {
   private static getTimeout(options: AssertionOptions): number {
     return options.timeout ?? BASE_DEFAULTS.timeout;
   }
@@ -74,7 +74,7 @@ export default class PlaywrightAssertions {
   }
 
   private static async pollUntilVisible(
-    el: PlaywrightElement,
+    el: AppiumElement,
     timeout: number,
   ): Promise<void> {
     const tracking = isOverheadTrackingActive();
@@ -142,7 +142,7 @@ export default class PlaywrightAssertions {
    * Measures pure Appium/network overhead by running `isExisting()` on an
    * element that is already visible. Used as RTT calibration and infra cost.
    */
-  private static async probeOverhead(el: PlaywrightElement): Promise<void> {
+  private static async probeOverhead(el: AppiumElement): Promise<void> {
     const t0 = Date.now();
     await el.unwrap().isExisting();
     recordOverheadProbe(Date.now() - t0);
@@ -155,7 +155,7 @@ export default class PlaywrightAssertions {
    * (resolution, poll commands, sleeps, probe) is tracked and subtracted.
    */
   static async expectElementToBeVisible(
-    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    targetElement: AppiumElement | Promise<AppiumElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
     const t0 = Date.now();
@@ -173,7 +173,7 @@ export default class PlaywrightAssertions {
    * confirmation children that report isDisplayed=false while on screen.
    */
   static async expectElementToExist(
-    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    targetElement: AppiumElement | Promise<AppiumElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
     const el = await targetElement;
@@ -214,21 +214,17 @@ export default class PlaywrightAssertions {
    * Prefer waitForInteractive on waitAndTap for tap flows.
    */
   static async expectElementToBeInteractive(
-    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    targetElement: AppiumElement | Promise<AppiumElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
     const el = await targetElement;
-    await PlaywrightGestures.waitUntilInteractive(
-      el,
-      this.getTimeout(options),
-      {
-        requiredStableReads: 3,
-      },
-    );
+    await AppiumGestures.waitUntilInteractive(el, this.getTimeout(options), {
+      requiredStableReads: 3,
+    });
   }
 
   static async expectElementToBeVisibleWithSettle(
-    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    targetElement: AppiumElement | Promise<AppiumElement>,
     options: VisibilityWithSettleOptions = {},
   ): Promise<void> {
     const { settleMs = 0, ...assertionOptions } = options;
@@ -252,7 +248,7 @@ export default class PlaywrightAssertions {
    * single-element assertions.
    */
   static async expectAllElementsToBeVisible(
-    elements: (PlaywrightElement | Promise<PlaywrightElement>)[],
+    elements: (AppiumElement | Promise<AppiumElement>)[],
     options: AssertionOptions = {},
   ): Promise<void> {
     for (const el of elements) {
@@ -267,7 +263,7 @@ export default class PlaywrightAssertions {
    * commands, sleeps, and a post-match probe for RTT calibration.
    */
   static async expectElementText(
-    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    targetElement: AppiumElement | Promise<AppiumElement>,
     expected: string,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -321,7 +317,7 @@ export default class PlaywrightAssertions {
    * Polls until an element's text content is not the forbidden value.
    */
   static async expectElementNotToHaveText(
-    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    targetElement: AppiumElement | Promise<AppiumElement>,
     forbidden: string,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -345,7 +341,7 @@ export default class PlaywrightAssertions {
   }
 
   static async expectElementToNotBeVisible(
-    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    targetElement: AppiumElement | Promise<AppiumElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
     try {
@@ -392,7 +388,7 @@ export default class PlaywrightAssertions {
     const timeout = this.getTimeout(assertionOptions);
     return Utilities.executeWithRetry(
       async () => {
-        const el = await PlaywrightMatchers.getElementByText(text);
+        const el = await AppiumMatchers.getElementByText(text);
         await el.waitForDisplayed({ timeout: 100 });
       },
       {
@@ -403,7 +399,7 @@ export default class PlaywrightAssertions {
   }
 
   static async expectElementToHaveLabel(
-    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    targetElement: AppiumElement | Promise<AppiumElement>,
     expectedLabel: string,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -446,7 +442,7 @@ export default class PlaywrightAssertions {
   }
 
   private static async getElementAccessibilityLabel(
-    el: PlaywrightElement,
+    el: AppiumElement,
   ): Promise<string> {
     const raw = el.unwrap();
     const isAndroid = await PlatformDetector.isAndroid();
@@ -469,7 +465,7 @@ export default class PlaywrightAssertions {
     options: AssertionOptions = {},
   ): Promise<void> {
     try {
-      const el = await PlaywrightMatchers.getElementByText(text);
+      const el = await AppiumMatchers.getElementByText(text);
       await el.waitForDisplayed({
         reverse: true,
         timeout: this.getTimeout(options),

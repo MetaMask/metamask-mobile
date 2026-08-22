@@ -9,13 +9,9 @@ import {
   TypeTextOptions,
   type ScrollContainer,
 } from './types.ts';
-import {
-  asPlaywrightElement,
-  type EncapsulatedElementType,
-} from './EncapsulatedElement.ts';
 import UnifiedGestures from './UnifiedGestures.ts';
-import { PlaywrightElement } from './PlaywrightAdapter.ts';
-import PlaywrightGestures from './PlaywrightGestures.ts';
+import { AppiumElement } from './AppiumElement.ts';
+import AppiumGestures from './AppiumGestures.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
 
@@ -29,10 +25,10 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async tap(
-    elem: DetoxElement | WebElement | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     options: TapOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.tap(elem as EncapsulatedElementType, {
+    return UnifiedGestures.tap(elem as Promise<AppiumElement>, {
       timeout: options.timeout,
       description: options.elemDescription,
       delay: options.delay,
@@ -49,10 +45,10 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async waitAndTap(
-    elem: DetoxElement | WebElement | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     options: TapOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.waitAndTap(elem as EncapsulatedElementType, {
+    return UnifiedGestures.waitAndTap(elem as Promise<AppiumElement>, {
       timeout: options.timeout,
       description: options.elemDescription,
       delay: options.delay,
@@ -70,11 +66,11 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async tapAtIndex(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     index: number,
     options: TapOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.tapAtIndex(elem as EncapsulatedElementType, index, {
+    return UnifiedGestures.tapAtIndex(elem as Promise<AppiumElement>, index, {
       timeout: options.timeout,
       description: options.elemDescription,
     });
@@ -87,11 +83,11 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async tapAtPoint(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     point: { x: number; y: number },
     options: TapOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.tapAtPoint(elem as EncapsulatedElementType, point, {
+    return UnifiedGestures.tapAtPoint(elem as Promise<AppiumElement>, point, {
       timeout: options.timeout,
       description: options.elemDescription,
     });
@@ -104,10 +100,10 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async dblTap(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     options: TapOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.dblTap(elem as EncapsulatedElementType, {
+    return UnifiedGestures.dblTap(elem as Promise<AppiumElement>, {
       timeout: options.timeout,
       description: options.elemDescription,
     });
@@ -119,10 +115,10 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async longPress(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     options: LongPressOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.longPress(elem as EncapsulatedElementType, {
+    return UnifiedGestures.longPress(elem as Promise<AppiumElement>, {
       timeout: options.timeout,
       description: options.elemDescription,
       duration: options.duration,
@@ -135,11 +131,11 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async typeText(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     text: string,
     options: TypeTextOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.typeText(elem as EncapsulatedElementType, text, {
+    return UnifiedGestures.typeText(elem as Promise<AppiumElement>, text, {
       timeout: options.timeout,
       description: options.elemDescription,
       hideKeyboard: options.hideKeyboard,
@@ -151,22 +147,14 @@ export default class Gestures {
   /**
    * Type text into a web element within a webview.
    * Detox uses JS injection; Appium uses Playwright clear + fill on the web element.
-   * @param {Promise<Detox.IndexableWebElement> | Promise<{ clear: () => Promise<void>; fill: (text: string) => Promise<void> }>} element
+   * @param {Promise<AppiumElement> | Promise<{ clear: () => Promise<void>; fill: (text: string) => Promise<void> }>} element
    * @param {string} text - The text to type.
    */
   static async typeInWebElement(
-    elem:
-      | Promise<IndexableWebElement>
-      | Promise<{
-          clear: () => Promise<void>;
-          fill: (text: string) => Promise<void>;
-        }>,
+    elem: Promise<AppiumElement>,
     text: string,
   ): Promise<void> {
-    const input = (await elem) as {
-      clear: () => Promise<void>;
-      fill: (value: string) => Promise<void>;
-    };
+    const input = await elem;
     await input.clear();
     await input.fill(text);
     return;
@@ -178,11 +166,11 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async replaceText(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     text: string,
     options: GestureOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.replaceText(elem as EncapsulatedElementType, text, {
+    return UnifiedGestures.replaceText(elem as Promise<AppiumElement>, text, {
       timeout: options.timeout,
       description: options.elemDescription,
     });
@@ -194,11 +182,11 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async swipe(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     direction: 'up' | 'down' | 'left' | 'right',
     options: SwipeOptions = {},
   ): Promise<void> {
-    return UnifiedGestures.swipe(elem as EncapsulatedElementType, direction, {
+    return UnifiedGestures.swipe(elem as Promise<AppiumElement>, direction, {
       timeout: options.timeout,
       description: options.elemDescription,
       speed: options.speed,
@@ -211,12 +199,12 @@ export default class Gestures {
    * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async scrollToElement(
-    targetElement: DetoxElement | EncapsulatedElementType,
+    targetElement: Promise<AppiumElement>,
     scrollableContainer?: ScrollContainer,
     options: ScrollOptions = {},
   ): Promise<void> {
     return UnifiedGestures.scrollToElement(
-      targetElement as EncapsulatedElementType,
+      targetElement as Promise<AppiumElement>,
       scrollableContainer,
       {
         timeout: options.timeout,
@@ -233,7 +221,7 @@ export default class Gestures {
    * @throws Will throw an error if the scroll operation fails after all retry attempts
    */
   static async scrollToWebViewPort(
-    elem: WebElement | Promise<PlaywrightElement>,
+    elem: Promise<AppiumElement>,
   ): Promise<void> {
     const el = await elem;
     await Utilities.executeWithRetry(
@@ -254,7 +242,7 @@ export default class Gestures {
    * @deprecated Use longPress() instead for better error handling and retry mechanisms
    */
   static async tapAndLongPress(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     timeout = 2000,
   ): Promise<void> {
     return this.longPress(elem, { duration: timeout });
@@ -265,19 +253,17 @@ export default class Gestures {
    * @deprecated Use tap() with web elements instead for better error handling and retry mechanisms
    */
   static async tapWebElement(
-    elem: Promise<Detox.IndexableWebElement>,
+    elem: Promise<AppiumElement>,
     timeout = 15000,
   ): Promise<void> {
-    return this.tap(elem as EncapsulatedElementType, { timeout });
+    return this.tap(elem as Promise<AppiumElement>, { timeout });
   }
 
   /**
    * Legacy method: Double tap an element
    * @deprecated Use dblTap() instead for better error handling and retry mechanisms - we should replace the function name when we have migrated all usages
    */
-  static async doubleTap(
-    elem: DetoxElement | EncapsulatedElementType,
-  ): Promise<void> {
+  static async doubleTap(elem: Promise<AppiumElement>): Promise<void> {
     return this.dblTap(elem);
   }
 
@@ -286,7 +272,7 @@ export default class Gestures {
    * @deprecated Use typeText() with clearFirst option or the replaceText() from Gestures.ts instead for better error handling and retry mechanisms
    */
   static async clearField(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     options: GestureOptions = {},
   ): Promise<void> {
     return this.replaceText(elem, '', options);
@@ -297,7 +283,7 @@ export default class Gestures {
    * @deprecated Use typeText() with hideKeyboard option instead for better error handling and retry mechanisms
    */
   static async typeTextAndHideKeyboard(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     text: string,
   ): Promise<void> {
     return this.typeText(elem, text, {
@@ -311,7 +297,7 @@ export default class Gestures {
    * @deprecated Use typeText() with hideKeyboard: false option instead for better error handling and retry mechanisms
    */
   static async typeTextWithoutKeyboard(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     text: string,
   ): Promise<void> {
     return this.typeText(elem, text, {
@@ -325,7 +311,7 @@ export default class Gestures {
    * @deprecated Use replaceText() instead for better error handling and retry mechanisms
    */
   static async replaceTextInField(
-    elem: DetoxElement | EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     text: string,
     timeout = 10000,
   ): Promise<void> {
@@ -340,7 +326,7 @@ export default class Gestures {
     if (!PlatformDetector.isIOSAppium()) {
       throw new Error('Gestures.tapIosKeyboardKey is Appium iOS only');
     }
-    await PlaywrightGestures.tapIosKeyboardKey(keyName);
+    await AppiumGestures.tapIosKeyboardKey(keyName);
   }
 
   /**
@@ -349,7 +335,7 @@ export default class Gestures {
    * to fire onSubmitEditing when returnKeyType is done/next/go/search.
    */
   static async tapKeyboardReturnKey(keyName: string): Promise<void> {
-    await PlaywrightGestures.tapKeyboardReturnKey(keyName);
+    await AppiumGestures.tapKeyboardReturnKey(keyName);
   }
 
   /**
@@ -362,7 +348,7 @@ export default class Gestures {
     if (!PlatformDetector.isIOSAppium()) {
       throw new Error('Gestures.typeViaIosKeyboard is Appium iOS only');
     }
-    await PlaywrightGestures.typeViaIosKeyboard(text, options);
+    await AppiumGestures.typeViaIosKeyboard(text, options);
   }
 
   /**
@@ -370,12 +356,12 @@ export default class Gestures {
    * Use for iOS multiline TextInputs where Gestures.typeText (fill) is unreliable.
    */
   static async typeTextByCharacters(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     text: string,
     options?: { submitWithReturn?: boolean },
   ): Promise<void> {
-    const field = await asPlaywrightElement(elem);
-    await PlaywrightGestures.typeTextByCharacters(field, text, options);
+    const field = await elem;
+    await AppiumGestures.typeTextByCharacters(field, text, options);
   }
 
   /**
@@ -383,10 +369,10 @@ export default class Gestures {
    * Use after replaceText when Return must submit separately (e.g. iOS URL bar).
    */
   static async appendText(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     text: string,
   ): Promise<void> {
-    const field = await asPlaywrightElement(elem);
+    const field = await elem;
     await field.type(text);
   }
 
@@ -396,7 +382,7 @@ export default class Gestures {
    * with `tapOutside` (plain `driver.hideKeyboard()` is unreliable on XCUITest).
    */
   static async hideKeyboard(): Promise<void> {
-    await PlaywrightGestures.hideKeyboard();
+    await AppiumGestures.hideKeyboard();
   }
 
   /**
@@ -406,7 +392,7 @@ export default class Gestures {
     currentDeviceDetails?: CurrentDeviceDetails,
     packageId?: string,
   ): Promise<void> {
-    await PlaywrightGestures.activateApp(currentDeviceDetails, packageId);
+    await AppiumGestures.activateApp(currentDeviceDetails, packageId);
   }
 
   /**
@@ -414,16 +400,16 @@ export default class Gestures {
    */
   static async terminateApp(
     currentDeviceDetails: CurrentDeviceDetails,
-    options?: Parameters<typeof PlaywrightGestures.terminateApp>[1],
+    options?: Parameters<typeof AppiumGestures.terminateApp>[1],
   ): Promise<void> {
-    await PlaywrightGestures.terminateApp(currentDeviceDetails, options);
+    await AppiumGestures.terminateApp(currentDeviceDetails, options);
   }
 
   /**
    * Submit the focused Android URL field via KEYCODE_ENTER.
    */
   static async submitAndroidUrlBar(): Promise<void> {
-    await PlaywrightGestures.submitAndroidUrlBar();
+    await AppiumGestures.submitAndroidUrlBar();
   }
 
   /**
@@ -431,9 +417,9 @@ export default class Gestures {
    * locator exists.
    */
   static async swipeScreen(
-    options: Parameters<typeof PlaywrightGestures.swipe>[0],
+    options: Parameters<typeof AppiumGestures.swipe>[0],
   ): Promise<void> {
-    await PlaywrightGestures.swipe(options);
+    await AppiumGestures.swipe(options);
   }
 
   /**
@@ -441,28 +427,28 @@ export default class Gestures {
    * Prefer this over typeText({ hideKeyboard: true }) for TextFieldSearch.
    */
   static async dismissKeyboardAfterTokenSearch(): Promise<void> {
-    await PlaywrightGestures.dismissKeyboardAfterTokenSearch();
+    await AppiumGestures.dismissKeyboardAfterTokenSearch();
   }
 
   /**
    * Appium: scroll an element into view (WDIO native scrollIntoView).
-   * Prefer when you already have a PlaywrightElement (e.g. from
-   * Matchers.getAllElementsByXPath). For EncapsulatedElementType targets with
+   * Prefer when you already have a AppiumElement (e.g. from
+   * Matchers.getAllElementsByXPath). For Promise<AppiumElement> targets with
    * a known scroll container, prefer scrollToElement.
    */
   static async scrollIntoView(
-    elem: EncapsulatedElementType | PlaywrightElement,
+    elem: Promise<AppiumElement> | AppiumElement,
     options?: {
       direction?: 'up' | 'down' | 'left' | 'right';
       maxScrolls?: number;
-      scrollableElement?: PlaywrightElement;
+      scrollableElement?: AppiumElement;
       percent?: number;
       from?: { x: number; y: number };
       to?: { x: number; y: number };
     },
   ): Promise<void> {
-    const target = (await Promise.resolve(elem)) as PlaywrightElement;
-    await PlaywrightGestures.scrollIntoView(target, {
+    const target = (await Promise.resolve(elem)) as AppiumElement;
+    await AppiumGestures.scrollIntoView(target, {
       scrollParams: { direction: options?.direction ?? 'up' },
       maxScrolls: options?.maxScrolls,
       scrollableElement: options?.scrollableElement,
@@ -477,18 +463,18 @@ export default class Gestures {
    * the target would otherwise sit in the bottom 15% of the screen.
    */
   static async scrollIntoViewFullyVisible(
-    elem: EncapsulatedElementType | PlaywrightElement,
+    elem: Promise<AppiumElement> | AppiumElement,
     options?: {
       direction?: 'up' | 'down' | 'left' | 'right';
       maxScrolls?: number;
-      scrollableElement?: PlaywrightElement;
+      scrollableElement?: AppiumElement;
       percent?: number;
       from?: { x: number; y: number };
       to?: { x: number; y: number };
     },
   ): Promise<void> {
-    const target = (await Promise.resolve(elem)) as PlaywrightElement;
-    await PlaywrightGestures.scrollIntoViewFullyVisible(target, {
+    const target = (await Promise.resolve(elem)) as AppiumElement;
+    await AppiumGestures.scrollIntoViewFullyVisible(target, {
       scrollParams: { direction: options?.direction ?? 'up' },
       maxScrolls: options?.maxScrolls,
       scrollableElement: options?.scrollableElement,

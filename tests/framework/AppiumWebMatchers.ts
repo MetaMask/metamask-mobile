@@ -1,9 +1,9 @@
-import PlaywrightContextHelpers from './PlaywrightContextHelpers.ts';
-import { wrapElement, type PlaywrightElement } from './PlaywrightAdapter.ts';
-import { getDriver, withTimeout } from './PlaywrightUtilities.ts';
-import { createPlaywrightLogger } from './playwrightLogger.ts';
+import AppiumContextHelpers from './AppiumContextHelpers.ts';
+import { wrapElement, type AppiumElement } from './AppiumElement.ts';
+import { getDriver, withTimeout } from './AppiumUtilities.ts';
+import { createAppiumLogger } from './appiumLogger.ts';
 
-const logger = createPlaywrightLogger('PlaywrightWebMatchers');
+const logger = createAppiumLogger('AppiumWebMatchers');
 
 /** Caps hung Chromedriver HTTP calls (CI default client timeout is ~12 min). */
 const WEBVIEW_ELEMENT_LOOKUP_TIMEOUT_MS = 30_000;
@@ -13,7 +13,7 @@ const WEBVIEW_ELEMENT_WAIT_EXIST_MS = 15_000;
  * Appium WebView element locators. Switches into the browser WebView context
  * for the given page URL before querying DOM selectors.
  */
-export default class PlaywrightWebMatchers {
+export default class AppiumWebMatchers {
   private static getWebViewUrlFragment(url: string): string {
     try {
       const parsed = new URL(url);
@@ -26,13 +26,13 @@ export default class PlaywrightWebMatchers {
   private static async ensureWebViewContext(pageUrl: string): Promise<void> {
     const fragment = this.getWebViewUrlFragment(pageUrl);
     logger.debug(`Ensuring WebView context for: ${fragment}`);
-    await PlaywrightContextHelpers.switchToWebViewContext(fragment);
+    await AppiumContextHelpers.switchToWebViewContext(fragment);
   }
 
   static async getElementByWebID(
     innerID: string,
     pageUrl: string,
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     await this.ensureWebViewContext(pageUrl);
     return this.findElementByWebID(innerID);
   }
@@ -50,13 +50,13 @@ export default class PlaywrightWebMatchers {
     try {
       await action();
     } finally {
-      await PlaywrightContextHelpers.switchToNativeContext();
+      await AppiumContextHelpers.switchToNativeContext();
     }
   }
 
   private static async findElementByWebID(
     innerID: string,
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
@@ -76,12 +76,43 @@ export default class PlaywrightWebMatchers {
   static async getElementByXPath(
     xpath: string,
     pageUrl: string,
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     await this.ensureWebViewContext(pageUrl);
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
     const elem = await drv.$(xpath);
     return wrapElement(elem);
+  }
+
+  /**
+   * CSS selector inside a WebView (switches context for `pageUrl` first).
+   */
+  static async getElementByCSS(
+    selector: string,
+    pageUrl: string,
+  ): Promise<AppiumElement> {
+    await this.ensureWebViewContext(pageUrl);
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    const elem = await drv.$(selector);
+    await withTimeout(
+      elem.waitForExist({ timeout: WEBVIEW_ELEMENT_WAIT_EXIST_MS }),
+      WEBVIEW_ELEMENT_LOOKUP_TIMEOUT_MS,
+      `WebView CSS lookup (${selector})`,
+    );
+    return wrapElement(elem);
+  }
+
+  /**
+   * Anchor/`href` lookup inside a WebView.
+   */
+  static async getElementByHref(
+    url: string,
+    pageUrl: string,
+  ): Promise<AppiumElement> {
+    const escaped = url.replace(/"/g, '\\"');
+    return this.getElementByXPath(`//*[@href="${escaped}"]`, pageUrl);
   }
 }

@@ -1,14 +1,14 @@
 import { PlatformDetector } from './PlatformLocator';
-import { PlaywrightElement, wrapElement } from './PlaywrightAdapter';
+import { AppiumElement, wrapElement } from './AppiumElement';
 import { MatcherOptions } from './types';
-import { getDriver } from './PlaywrightUtilities';
+import { getDriver } from './AppiumUtilities';
 import { ChainablePromiseElement } from 'webdriverio';
-import { createPlaywrightLogger } from './playwrightLogger.ts';
+import { createAppiumLogger } from './appiumLogger.ts';
 
-const logger = createPlaywrightLogger('PlaywrightMatchers');
+const logger = createAppiumLogger('AppiumMatchers');
 
 /**
- * PlaywrightMatchers - Element selectors that return Playwright-like wrapped
+ * AppiumMatchers - Element selectors that return Playwright-like wrapped
  * elements.
  *
  * These matchers use WebdriverIO's robust element finding under the hood,
@@ -19,13 +19,13 @@ const logger = createPlaywrightLogger('PlaywrightMatchers');
  * WebdriverIO framework only.
  *
  * @example
- * const element = await PlaywrightMatchers.getByAccessibilityId('login-button');
+ * const element = await AppiumMatchers.getByAccessibilityId('login-button');
  * await element.fill('myusername');
  * await element.click();
  * const text = await element.textContent();
  * console.log(text);
  */
-export default class PlaywrightMatchers {
+export default class AppiumMatchers {
   private static logFind(strategy: string, target: string): void {
     logger.debug(`Finding element by ${strategy}: ${target}`);
   }
@@ -40,7 +40,7 @@ export default class PlaywrightMatchers {
   static async getElementByAccessibilityId(
     elementId: string,
     options: MatcherOptions = {},
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     const { index } = options;
     this.logFind('accessibility id', elementId);
     const drv = getDriver();
@@ -64,7 +64,7 @@ export default class PlaywrightMatchers {
   static async getElementById(
     elementId: string | RegExp,
     options: MatcherOptions = {},
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     if (elementId instanceof RegExp) {
       const isAndroid = await PlatformDetector.isAndroid();
       const escaped = isAndroid
@@ -129,7 +129,7 @@ export default class PlaywrightMatchers {
     text: string | RegExp,
     exactMatch: boolean = false,
     options: MatcherOptions = {},
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     if (text instanceof RegExp) {
       const isAndroid = await PlatformDetector.isAndroid();
       const escaped = isAndroid
@@ -222,7 +222,7 @@ export default class PlaywrightMatchers {
     locator: string,
     index: number,
     targetDescription: string,
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
     const elements = await drv.$$(locator);
@@ -251,7 +251,7 @@ export default class PlaywrightMatchers {
   static async getElementByCatchAll(
     identifier: string,
     options: MatcherOptions = {},
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     this.logFind('catch-all', identifier);
     const isAndroid = await PlatformDetector.isAndroid();
     let xpath = '';
@@ -268,9 +268,7 @@ export default class PlaywrightMatchers {
    * @param text - The text to search for
    * @returns The wrapped elements
    */
-  static async getAllElementsByText(
-    text: string,
-  ): Promise<PlaywrightElement[]> {
+  static async getAllElementsByText(text: string): Promise<AppiumElement[]> {
     this.logFind('all elements by text', text);
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
@@ -288,7 +286,7 @@ export default class PlaywrightMatchers {
   static async getElementByXPath(
     xpath: string,
     options: MatcherOptions = {},
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     const { lastElement = true, index } = options;
     this.logFind('xpath', `${xpath}${lastElement ? ' (last)' : ' (first)'}`);
 
@@ -327,9 +325,7 @@ export default class PlaywrightMatchers {
    * @param xpath - The XPath selector to search for
    * @returns The wrapped elements
    */
-  static async getAllElementsByXPath(
-    xpath: string,
-  ): Promise<PlaywrightElement[]> {
+  static async getAllElementsByXPath(xpath: string): Promise<AppiumElement[]> {
     this.logFind('all elements by xpath', xpath);
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
@@ -348,9 +344,7 @@ export default class PlaywrightMatchers {
    * @param xpath - The XPath selector to search for
    * @returns The wrapped element reference
    */
-  static async getLazyElementByXPath(
-    xpath: string,
-  ): Promise<PlaywrightElement> {
+  static async getLazyElementByXPath(xpath: string): Promise<AppiumElement> {
     this.logFind('lazy xpath', xpath);
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
@@ -365,7 +359,7 @@ export default class PlaywrightMatchers {
    */
   static async getElementByClassName(
     className: string,
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     this.logFind('class name', className);
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
@@ -380,7 +374,7 @@ export default class PlaywrightMatchers {
    */
   static async getAllElementsByClassName(
     className: string,
-  ): Promise<PlaywrightElement[]> {
+  ): Promise<AppiumElement[]> {
     this.logFind('all elements by class name', className);
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
@@ -401,7 +395,7 @@ export default class PlaywrightMatchers {
   static async getElementByAndroidUIAutomator(
     selector: string,
     options: MatcherOptions = {},
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     this.logFind('android uiautomator', selector);
     const baseUiAutomatorSelector = 'android=new UiSelector()';
     const instanceSuffix =
@@ -423,7 +417,7 @@ export default class PlaywrightMatchers {
    */
   static async getElementByIOSPredicate(
     predicate: string,
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     this.logFind('ios predicate', predicate);
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
@@ -440,7 +434,7 @@ export default class PlaywrightMatchers {
   static async getElementByNameiOS(
     name: string,
     lazy = false,
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     this.logFind('ios name', `${name}${lazy ? ' (lazy)' : ''}`);
     const isIOS = await PlatformDetector.isIOS();
     if (!isIOS) throw new Error('This function is only valid for iOS');
@@ -459,7 +453,7 @@ export default class PlaywrightMatchers {
    */
   static async getElementByIOSClassChain(
     chain: string,
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     this.logFind('ios class chain', chain);
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');

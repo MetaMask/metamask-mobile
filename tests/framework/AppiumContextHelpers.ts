@@ -5,10 +5,10 @@ import type {
 } from 'webdriverio/build/types';
 import { APP_PACKAGE_IDS } from './Constants';
 import { PlatformDetector } from './PlatformLocator';
-import { getDriver, withTimeout } from './PlaywrightUtilities';
-import { createPlaywrightLogger } from './playwrightLogger.ts';
+import { getDriver, withTimeout } from './AppiumUtilities';
+import { createAppiumLogger } from './appiumLogger.ts';
 
-const logger = createPlaywrightLogger('PlaywrightContextHelpers');
+const logger = createAppiumLogger('AppiumContextHelpers');
 
 type DetailedContext = IosDetailedContext | AndroidDetailedContext;
 
@@ -19,7 +19,7 @@ type AndroidContextWithPage = AndroidDetailedContext & {
 const NATIVE_APP = 'NATIVE_APP';
 const LAVAMOAT_PATTERN = /LavaMoat|ShadowRoot|scuttling/i;
 
-export default class PlaywrightContextHelpers {
+export default class AppiumContextHelpers {
   private static readonly WEBVIEW_TIMEOUT_MS = 30_000;
   private static readonly WEBVIEW_SWITCH_TIMEOUT_MS = 45_000;
   private static readonly WEBVIEW_WARMUP_TIMEOUT_MS = 15_000;

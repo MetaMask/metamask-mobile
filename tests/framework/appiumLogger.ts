@@ -1,11 +1,11 @@
-import type { PlaywrightElement } from './PlaywrightAdapter.ts';
+import type { AppiumElement } from './AppiumElement.ts';
 import { createLogger, type Logger, LogLevel } from './logger.ts';
 
 /**
- * Resolves log level for Playwright framework modules.
+ * Resolves log level for Appium framework modules.
  * Defaults to INFO so debug traces are hidden unless E2E_LOG_LEVEL is set to "debug" (or "trace").
  */
-export function resolvePlaywrightLogLevel(): LogLevel {
+export function resolveAppiumLogLevel(): LogLevel {
   // Bracket access so babel does not inline this env var at compile time.
   const value = process.env.E2E_LOG_LEVEL?.toLowerCase();
 
@@ -26,10 +26,10 @@ export function resolvePlaywrightLogLevel(): LogLevel {
   }
 }
 
-export function createPlaywrightLogger(name: string) {
+export function createAppiumLogger(name: string) {
   return createLogger({
     name,
-    level: resolvePlaywrightLogLevel(),
+    level: resolveAppiumLogLevel(),
   });
 }
 
@@ -63,7 +63,7 @@ export async function debugLazy(
 export async function debugElementAction(
   logger: Logger,
   action: string,
-  elem: PlaywrightElement,
+  elem: AppiumElement,
 ): Promise<void> {
   await debugLazy(
     logger,
@@ -71,9 +71,7 @@ export async function debugElementAction(
   );
 }
 
-export async function describeElement(
-  elem: PlaywrightElement,
-): Promise<string> {
+export async function describeElement(elem: AppiumElement): Promise<string> {
   try {
     const selector = await elem.unwrap().selector;
     const label = formatSelector(selector);
