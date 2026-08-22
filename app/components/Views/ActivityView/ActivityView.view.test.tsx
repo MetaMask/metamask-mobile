@@ -45,8 +45,8 @@ describeForPlatforms('ActivityView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('lazy-loads the redesigned activity screen', async () => {
-    const { findByTestId } = renderActivityView({
+  it('renders the redesigned activity screen on the first render', () => {
+    const { getByTestId } = renderActivityView({
       redesignEnabled: true,
     });
 
@@ -54,7 +54,7 @@ describeForPlatforms('ActivityView', () => {
     // commented out — TODO(activity-redesign): restore the search-typing
     // assertion with the unified list + filtering.
     expect(
-      await findByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP),
+      getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP),
     ).toBeOnTheScreen();
   });
 });
