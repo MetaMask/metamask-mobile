@@ -13,15 +13,14 @@ import type { RootMessenger } from '../../types';
  * @returns The ComplianceServiceMessenger.
  */
 export function getComplianceServiceMessenger(
-  rootMessenger: RootMessenger,
-): ComplianceServiceMessenger {
-  return new Messenger<
-    'ComplianceService',
+  rootMessenger: RootMessenger<
     MessengerActions<ComplianceServiceMessenger>,
-    MessengerEvents<ComplianceServiceMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<ComplianceServiceMessenger>
+  >,
+): ComplianceServiceMessenger {
+  const messenger: ComplianceServiceMessenger = new Messenger({
     namespace: 'ComplianceService',
     parent: rootMessenger,
   });
+  return messenger;
 }
