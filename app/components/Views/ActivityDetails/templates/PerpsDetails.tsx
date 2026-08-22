@@ -33,6 +33,7 @@ import {
   useActivityPayFiat,
   useFormatActivityTokenAmount,
 } from '../components';
+import { usePayFundsFailure } from '../hooks/usePayFundsFailure';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import {
   asPerpsActivityItem,
@@ -50,7 +51,6 @@ import {
   type PerpsDepositWithdrawalStatus,
   type PerpsTransaction,
 } from '../components/ActivityDetailsPerps.utils';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
 import { resolvePerpsOrderStatusLabel } from '../../../UI/ActivityListItemRow/titleLabels';
 import { PerpsConnectionProvider } from '../../../UI/Perps/providers/PerpsConnectionProvider';
@@ -367,12 +367,9 @@ function FundsDetails({
 }) {
   const depositWithdrawal = transaction.depositWithdrawal;
   const openPerpsHome = useNavigateToPerpsHome();
-  // Provider-backed rows carry no `metamaskPay`; it is resolved from the local
-  // transaction behind this row's hash.
   const pay = useActivityPayFiat(item);
-  // The perps source prefixes wallet-originated funds movements with `wallet-`;
-  // only those carry a real on-chain `txHash` we can link to a block explorer.
-  // Other deposit/withdrawal ids (e.g. internal transfers) have no explorer tx.
+  const isDeposit = transaction.type === 'deposit';
+  const failure = usePayFundsFailure(item);
   const isWalletOriginated = transaction.id.startsWith('wallet-');
   const stepExplorerTarget =
     isWalletOriginated && depositWithdrawal?.txHash
@@ -382,8 +379,6 @@ function FundsDetails({
   if (!depositWithdrawal) {
     return null;
   }
-
-  const isDeposit = transaction.type === 'deposit';
 
   return (
     <ActivityDetailsTemplateFrame
@@ -403,6 +398,7 @@ function FundsDetails({
           timeline={
             <ActivityDetailsPerpsStepTimeline
               explorerTarget={stepExplorerTarget}
+              failure={failure}
               status={depositWithdrawal.status}
               timestamp={item.timestamp}
               type={depositWithdrawal.type}
@@ -429,8 +425,9 @@ function FundsDetails({
 function LocalFundsDetails({ item }: { item: PerpsActivityListItem }) {
   const openPerpsHome = useNavigateToPerpsHome();
   const pay = useActivityPayFiat(item);
-  const formatActivityTokenAmount = useFormatActivityTokenAmount();
   const isDeposit = item.type === 'perpsAddFunds';
+  const failure = usePayFundsFailure(item);
+  const formatActivityTokenAmount = useFormatActivityTokenAmount();
   const token = 'token' in item.data ? item.data.token : undefined;
 
   return (
@@ -455,6 +452,7 @@ function LocalFundsDetails({ item }: { item: PerpsActivityListItem }) {
                   ? { chainId: item.chainId, hash: item.hash }
                   : undefined
               }
+              failure={failure}
               status={toPerpsFundsStatus(item.status)}
               timestamp={item.timestamp}
               type={isDeposit ? 'deposit' : 'withdrawal'}

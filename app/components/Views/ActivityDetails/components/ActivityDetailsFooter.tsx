@@ -61,13 +61,20 @@ export function ActivityDetailsWebviewButton({
   );
 }
 
-/** Secondary CTA that opens the transaction in a block explorer webview. */
+/**
+ * Secondary CTA that opens the transaction in a block explorer webview.
+ *
+ * @param props.onNavigate - Run before the webview opens. Callers rendering this
+ * inside a modal use it to dismiss, so the modal does not sit over the webview.
+ */
 export function ActivityDetailsBlockExplorerButton({
   chainId,
   hash,
+  onNavigate,
 }: {
   chainId: string | undefined;
   hash: string | undefined;
+  onNavigate?: () => void;
 }) {
   const link = useActivityBlockExplorer(chainId, hash);
   const openWebview = useOpenWebview();
@@ -81,7 +88,10 @@ export function ActivityDetailsBlockExplorerButton({
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Lg}
       twClassName="w-full"
-      onPress={() => openWebview(link)}
+      onPress={() => {
+        onNavigate?.();
+        openWebview(link);
+      }}
       testID={ActivityDetailsSelectorsIDs.BLOCK_EXPLORER_BUTTON}
     >
       {strings('activity_details.view_on_block_explorer')}

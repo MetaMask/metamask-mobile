@@ -10572,7 +10572,11 @@
     "transaction_pending": "Transaction pending",
     "likely_to_confirm_in": "Likely to confirm in",
     "confirm_time_estimate": "< 30 sec",
-    "not_found": "Transaction details are unavailable."
+    "not_found": "Transaction details are unavailable.",
+    "failure": {
+      "title": "Why it failed",
+      "unknown": "We couldn't determine why this step failed."
+    }
   },
   "sdk_connect_v2": {
     "show_loading": {
