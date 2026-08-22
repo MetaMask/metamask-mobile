@@ -9,6 +9,7 @@ import {
   type ResourceState,
   type TransakState,
   type RampsOrder,
+  type AutorampAccount,
 } from '@metamask/ramps-controller';
 import { RootState } from '../../reducers';
 import { areAddressesEqual } from '../../util/address';
@@ -100,6 +101,15 @@ export const selectPaymentMethods = createSelector(
 export const selectRampsOrders = createSelector(
   selectRampsControllerState,
   (rampsControllerState): RampsOrder[] => rampsControllerState?.orders ?? [],
+);
+
+/**
+ * Selects local neo-bank autoramp accounts from RampsController state.
+ */
+export const selectRampsAutoramps = createSelector(
+  selectRampsControllerState,
+  (rampsControllerState): AutorampAccount[] =>
+    rampsControllerState?.autoramps ?? [],
 );
 
 /**

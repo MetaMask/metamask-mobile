@@ -67,7 +67,12 @@ export function useRampsOrders(): UseRampsOrdersResult {
 
   const addPrecreatedOrder = useCallback(
     (params: AddPrecreatedOrderParams) =>
-      Engine.context.RampsController.addPrecreatedOrder(params),
+      // ramps-controller v20 requires `chainId`; an empty value is a no-op
+      // there, which matches the previous "no chain known yet" behaviour.
+      Engine.context.RampsController.addPrecreatedOrder({
+        ...params,
+        chainId: params.chainId ?? '',
+      }),
     [],
   );
 

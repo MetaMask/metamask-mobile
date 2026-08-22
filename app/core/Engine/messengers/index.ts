@@ -116,6 +116,7 @@ import {
 } from './ramps-controller-messenger';
 import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
+import { getNeoBankServiceMessenger } from './neo-bank-service-messenger/neo-bank-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getNetworkConnectionBannerControllerMessenger } from './network-connection-banner-controller-messenger';
 import { getConfigRegistryControllerMessenger } from './config-registry-controller-messenger';
@@ -147,6 +148,11 @@ import { getQrSyncControllerMessenger } from './qr-sync-controller-messenger';
 import { getQrSyncProvisioningServiceMessenger } from './qr-sync-provisioning-service-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
+import { getKycServiceMessenger } from './kyc/kyc-service-messenger';
+import {
+  getKycControllerInitMessenger,
+  getKycControllerMessenger,
+} from './kyc/kyc-controller-messenger';
 import { getConfigRegistryApiServiceMessenger } from './config-registry-api-service-messenger.ts';
 import {
   getChompApiServiceMessenger,
@@ -399,6 +405,10 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getTransakServiceMessenger,
     getInitMessenger: noop,
   },
+  NeoBankService: {
+    getMessenger: getNeoBankServiceMessenger,
+    getInitMessenger: noop,
+  },
   TokenBalancesController: {
     getMessenger: getTokenBalancesControllerMessenger,
     getInitMessenger: getTokenBalancesControllerInitMessenger,
@@ -498,6 +508,14 @@ export const MESSENGER_FACTORIES = {
   ComplianceController: {
     getMessenger: getComplianceControllerMessenger,
     getInitMessenger: noop,
+  },
+  KycService: {
+    getMessenger: getKycServiceMessenger,
+    getInitMessenger: noop,
+  },
+  KycController: {
+    getMessenger: getKycControllerMessenger,
+    getInitMessenger: getKycControllerInitMessenger,
   },
   ChompApiService: {
     getMessenger: getChompApiServiceMessenger,

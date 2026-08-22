@@ -1,5 +1,6 @@
 import type { RampsController } from '@metamask/ramps-controller';
 import Logger from '../../../../util/Logger';
+import { setVbaTraceSink, type VbaTraceRecord } from './vbaTrace';
 
 /** Default dashboard WebSocket; use `adb reverse tcp:8099 tcp:8099` on Android so the app can reach the host. */
 const DASHBOARD_WS_URL = 'ws://localhost:8099';
@@ -51,6 +52,10 @@ type DebugMessage =
   | {
       type: 'widget-url-request';
       details: WidgetUrlRequestDetails;
+    }
+  | {
+      type: 'vba-trace';
+      record: VbaTraceRecord;
     };
 
 /**
@@ -148,6 +153,9 @@ export function initRampsDebugBridge(
 
   fetchUrlTracker.registerWidgetCallback((details: WidgetUrlRequestDetails) => {
     send({ type: 'widget-url-request', details });
+  });
+  setVbaTraceSink((record: VbaTraceRecord) => {
+    send({ type: 'vba-trace', record });
   });
   wrapControllerMethods(controller, send, fetchUrlTracker);
   connect();
