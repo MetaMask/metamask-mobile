@@ -181,6 +181,20 @@
         "message": "This has been identified as suspicious. We recommend not interacting with this site.",
         "title": "Suspicious site"
       }
+    },
+    "signature_address_scan": {
+      "malicious": {
+        "message": "The {{field}} address {{address}} has been identified as malicious.",
+        "title": "Malicious address"
+      },
+      "warning": {
+        "message": "The {{field}} address {{address}} needs review. Only continue if you trust the source.",
+        "title": "Address needs review"
+      },
+      "incomplete": {
+        "message": "Some addresses in this request couldn't be checked for known threats. Only continue if you trust this site.",
+        "title": "Addresses not fully checked"
+      }
     }
   },
   "blockaid_banner": {
