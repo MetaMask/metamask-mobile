@@ -16,6 +16,7 @@ import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { formatUsd, formatTradeTime } from '../../utils/formatters';
 import PerpBadges from '../../components/PerpBadges';
 import { getPerpTradeDirection, isPerpTrade } from '../../utils/perp';
+import { tradeActionLabelKey, type TradeAction } from '../../utils/tradeAction';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 
@@ -25,6 +26,12 @@ const EMPHASIS_FADE_MS = 1600;
 
 export interface TradeRowProps {
   trade: Trade;
+  /**
+   * Where this fill sits in the position's lifecycle. Resolved once for the
+   * whole position by the parent, since a fill's stage depends on the ones
+   * before it.
+   */
+  action: TradeAction;
   traderImageUrl?: string;
   traderAddress?: string;
   /** When provided, the row is tappable (e.g. to focus the chart on this trade). */
@@ -38,6 +45,7 @@ export interface TradeRowProps {
 
 const TradeRow: React.FC<TradeRowProps> = ({
   trade,
+  action,
   traderImageUrl,
   traderAddress,
   onPress,
@@ -62,14 +70,12 @@ const TradeRow: React.FC<TradeRowProps> = ({
   const isPerp = isPerpTrade(trade);
   const perpDirection = getPerpTradeDirection(trade);
 
-  // Perp fills read as "opened"/"closed" (vs spot "bought"/"sold").
-  const actionLabel = isPerp
-    ? isEntry
-      ? strings('social_leaderboard.trader_position.opened')
-      : strings('social_leaderboard.trader_position.closed_action')
-    : isEntry
-      ? strings('social_leaderboard.trader_position.bought')
-      : strings('social_leaderboard.trader_position.sold');
+  const actionLabel = strings(
+    `social_leaderboard.trader_position.action.${tradeActionLabelKey(
+      isPerp,
+      action,
+    )}`,
+  );
 
   return (
     <Pressable
