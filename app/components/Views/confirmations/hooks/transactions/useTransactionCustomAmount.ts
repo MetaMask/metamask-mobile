@@ -70,7 +70,7 @@ export function useTransactionCustomAmount({
     getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
 
   const { amount: defaultAmount } = useParams<{ amount?: string }>();
-  const [amountFiatState, setAmountFiat] = useState(defaultAmount ?? '0');
+  const [amountFiat, setAmountFiat] = useState(defaultAmount ?? '0');
   const [isInputChanged, setInputChanged] = useState(false);
   const [hasInput, setHasInput] = useState(false);
   const [amountHumanDebounced, setAmountHumanDebounced] = useState('0');
@@ -199,11 +199,6 @@ export function useTransactionCustomAmount({
     currency: 'usd',
   });
 
-  // The input field always displays the full amount the user is putting in
-  // (their balance on Max), matching the withdraw flow. The net amount received
-  // after fees is surfaced separately by the receive row (targetAmount.usd).
-  const amountFiat = amountFiatState;
-
   const amountHuman = useMemo(
     () =>
       tokenFiatRate
@@ -239,13 +234,12 @@ export function useTransactionCustomAmount({
       return;
     }
 
-    const effectiveHuman = amountHumanDebounced;
     const isNewPrefetch =
-      prefetchQuoteRequestRef.current?.amountHuman !== effectiveHuman ||
+      prefetchQuoteRequestRef.current?.amountHuman !== amountHumanDebounced ||
       prefetchQuoteRequestRef.current?.payTokenKey !== payTokenKey;
     if (isNewPrefetch) {
       prefetchQuoteRequestRef.current = {
-        amountHuman: effectiveHuman,
+        amountHuman: amountHumanDebounced,
         payTokenKey,
         isAmountPrepared: false,
         quoteBaseline: quotesLastUpdatedRef.current,
@@ -257,7 +251,7 @@ export function useTransactionCustomAmount({
 
     // Prefetch failures stay speculative. Continue retries the cleared request
     // and uses the existing toast path if the committed update also fails.
-    updateTransactionPayAmount(effectiveHuman).then(
+    updateTransactionPayAmount(amountHumanDebounced).then(
       (isPublished) => {
         if (!isPublished) {
           return;
@@ -266,7 +260,7 @@ export function useTransactionCustomAmount({
         const prefetchRequest = prefetchQuoteRequestRef.current;
         if (
           isNewPrefetch &&
-          prefetchRequest?.amountHuman === effectiveHuman &&
+          prefetchRequest?.amountHuman === amountHumanDebounced &&
           prefetchRequest.payTokenKey === payTokenKey
         ) {
           prefetchRequest.isAmountPrepared = true;
@@ -276,7 +270,8 @@ export function useTransactionCustomAmount({
       },
       () => {
         if (
-          prefetchQuoteRequestRef.current?.amountHuman === effectiveHuman &&
+          prefetchQuoteRequestRef.current?.amountHuman ===
+            amountHumanDebounced &&
           prefetchQuoteRequestRef.current.payTokenKey === payTokenKey
         ) {
           prefetchQuoteRequestRef.current = undefined;

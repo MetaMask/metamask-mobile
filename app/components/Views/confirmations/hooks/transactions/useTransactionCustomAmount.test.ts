@@ -98,6 +98,42 @@ jest.useFakeTimers();
 const TOKEN_ADDRESS_MOCK = '0x1234567890123456789012345678901234567890' as Hex;
 const TOKEN_TRANSFER_DATA =
   '0xa9059cbb0000000000000000000000005a52e96bacdabb82fd05763e25335261b270efcb0000000000000000000000000000000000000000000000004563918244f40000';
+const MONEY_ACCOUNT_ADDRESS_MOCK = '0xabc123';
+const MONEY_ACCOUNT_KEYRING_ID_MOCK = 'mock-money-keyring-id';
+
+function getMoneyAccountState(balanceRaw?: string) {
+  return {
+    moneyBalance: {
+      redeemable: balanceRaw
+        ? { address: MONEY_ACCOUNT_ADDRESS_MOCK, raw: balanceRaw }
+        : null,
+    },
+    engine: {
+      backgroundState: {
+        KeyringController: {
+          keyrings: [
+            {
+              accounts: [],
+              metadata: { id: MONEY_ACCOUNT_KEYRING_ID_MOCK, name: 'HD 1' },
+              type: 'HD Key Tree',
+            },
+          ],
+        },
+        MoneyAccountController: {
+          moneyAccounts: {
+            account1: {
+              address: MONEY_ACCOUNT_ADDRESS_MOCK,
+              id: 'account1',
+              options: {
+                entropy: { id: MONEY_ACCOUNT_KEYRING_ID_MOCK },
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+}
 
 function runHook({
   transactionMeta,
@@ -900,7 +936,7 @@ describe('useTransactionCustomAmount', () => {
       expect(config.isMaxAmount).toBe(true);
     });
 
-    it('to percentage of predict balance converted to USD', async () => {
+    it('to percentage of predict balance as USD 1:1', async () => {
       usePredictBalanceMock.mockReturnValue({ data: 4321.23 } as never);
 
       const { result } = runHook({
@@ -913,7 +949,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(43);
       });
 
-      expect(result.current.amountFiat).toBe('3716.25');
+      expect(result.current.amountFiat).toBe('1858.12');
     });
 
     it('to total predict balance when selecting max', async () => {
@@ -929,7 +965,7 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(100);
       });
 
-      expect(result.current.amountFiat).toBe('8642.46');
+      expect(result.current.amountFiat).toBe('4321.23');
     });
 
     it('uses predict balance for predictWithdraw even when payment override is MoneyAccount', async () => {
@@ -964,8 +1000,8 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(50);
       });
 
-      // 4321.23 (predict balance) × 2 (fiat rate) × 0.50 = 4321.23
-      expect(result.current.amountFiat).toBe('4321.23');
+      // Predict balance is treated as USD 1:1, ignoring the pay-token fiat rate.
+      expect(result.current.amountFiat).toBe('2160.61');
     });
 
     it('uses full predict balance for predictWithdraw max even when payment override is MoneyAccount', async () => {
@@ -1000,8 +1036,8 @@ describe('useTransactionCustomAmount', () => {
         result.current.updatePendingAmountPercentage(100);
       });
 
-      // 4321.23 (predict balance) × 2 (fiat rate) = 8642.46
-      expect(result.current.amountFiat).toBe('8642.46');
+      // Predict balance is treated as USD 1:1, ignoring the pay-token fiat rate.
+      expect(result.current.amountFiat).toBe('4321.23');
     });
 
     it('to percentage of perps available balance', async () => {
@@ -1123,6 +1159,7 @@ describe('useTransactionCustomAmount', () => {
         transactionMeta: {
           type: TransactionType.moneyAccountWithdraw,
         },
+        stateOverrides: getMoneyAccountState('500000000'),
       });
 
       await act(async () => {
@@ -1163,6 +1200,7 @@ describe('useTransactionCustomAmount', () => {
         transactionMeta: {
           type: TransactionType.moneyAccountWithdraw,
         },
+        stateOverrides: getMoneyAccountState('500000000'),
       });
 
       await act(async () => {
@@ -1184,6 +1222,7 @@ describe('useTransactionCustomAmount', () => {
         transactionMeta: {
           type: TransactionType.moneyAccountWithdraw,
         },
+        stateOverrides: getMoneyAccountState('500000000'),
       });
 
       await act(async () => {
@@ -1632,7 +1671,7 @@ describe('useTransactionCustomAmount', () => {
       },
     };
 
-    it('uses withdrawableFiatRaw as balance when payment override is MoneyAccount', async () => {
+    it('uses cached money-account redeemable raw as balance when payment override is MoneyAccount', async () => {
       useMoneyAccountBalanceMock.mockReturnValue({
         withdrawableFiatRaw: '750.50',
       } as ReturnType<typeof useMoneyAccountBalance>);
@@ -1644,7 +1683,11 @@ describe('useTransactionCustomAmount', () => {
           chainId: '0x1' as Hex,
           txParams: { from: '0xabc' },
         } as unknown as Partial<TransactionMeta>,
-        stateOverrides: moneyAccountStateOverrides,
+        stateOverrides: merge(
+          {},
+          moneyAccountStateOverrides,
+          getMoneyAccountState('750500000'),
+        ),
       });
 
       await act(async () => {
@@ -1654,7 +1697,7 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('750.50');
     });
 
-    it('returns 0 when payment override is MoneyAccount but withdrawableFiatRaw is undefined', async () => {
+    it('returns 0 when payment override is MoneyAccount but cached redeemable raw is undefined', async () => {
       useMoneyAccountBalanceMock.mockReturnValue({
         withdrawableFiatRaw: undefined,
       } as ReturnType<typeof useMoneyAccountBalance>);

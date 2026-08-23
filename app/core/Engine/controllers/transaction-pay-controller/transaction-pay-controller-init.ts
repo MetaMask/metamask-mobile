@@ -21,13 +21,13 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
 
   try {
     const transactionPayController = new TransactionPayController({
+      fiatOptions: getTransactionPayFiatTestOptions(),
       getAmountData,
+      getBalance,
       getDelegationTransaction: ({ transaction, isSubsidized }) =>
         getDelegationTransaction(initMessenger, transaction, isSubsidized),
-      fiatOptions: getTransactionPayFiatTestOptions(),
       getPaymentOverrideData: (paymentOverrideRequest) =>
         getPaymentOverrideData(paymentOverrideRequest, initMessenger),
-      getBalance,
       messenger: controllerMessenger,
       polymarket: createPolymarketCallbacks(initMessenger),
       state: persistedState.TransactionPayController,

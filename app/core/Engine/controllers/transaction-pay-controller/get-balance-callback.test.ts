@@ -77,7 +77,6 @@ describe('getBalance', () => {
       expect(
         getBalance(buildRequest({ type: TransactionType.perpsWithdraw })),
       ).toStrictEqual({
-        balanceHuman: '123.45',
         balanceRaw: '123450000',
       });
     });
@@ -110,7 +109,6 @@ describe('getBalance', () => {
       expect(
         getBalance(buildRequest({ type: TransactionType.predictWithdraw })),
       ).toStrictEqual({
-        balanceHuman: '50.5',
         balanceRaw: '50500000',
       });
     });
@@ -123,7 +121,6 @@ describe('getBalance', () => {
       expect(
         getBalance(buildRequest({ type: TransactionType.predictWithdraw })),
       ).toStrictEqual({
-        balanceHuman: '10',
         balanceRaw: '10000000',
       });
     });
@@ -166,7 +163,6 @@ describe('getBalance', () => {
           buildRequest({ type: TransactionType.moneyAccountWithdraw }),
         ),
       ).toStrictEqual({
-        balanceHuman: '15.019083',
         balanceRaw: '15019083',
       });
     });
@@ -177,7 +173,6 @@ describe('getBalance', () => {
           buildRequest({ paymentOverride: PaymentOverride.MoneyAccount }),
         ),
       ).toStrictEqual({
-        balanceHuman: '15.019083',
         balanceRaw: '15019083',
       });
     });

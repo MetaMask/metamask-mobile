@@ -8,75 +8,78 @@ import {
   type GetBalanceResponse,
 } from '@metamask/transaction-pay-controller';
 import BigNumber from 'bignumber.js';
+import { selectPerpsAccountState } from '../../../../components/UI/Perps/selectors/perpsController';
 import Engine from '../../../../core/Engine';
 import ReduxService from '../../../../core/redux/ReduxService';
-import { RootState } from '../../../../reducers';
 import {
   getUsableMoneyAccountRedeemableRaw,
   selectMoneyAccountRedeemable,
 } from '../../../../core/redux/slices/moneyBalance';
+import { RootState } from '../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { selectPerpsAccountState } from '../../../../components/UI/Perps/selectors/perpsController';
 
 /**
- * Build a {@link GetBalanceResponse} from a human-readable balance and the
- * source token decimals. The source token for a withdraw is the first required
- * token (`transactionData.tokens[0]`); its decimals convert the human balance
- * to the atomic amount the controller uses as the exact source amount.
+ * Synchronous balance override for max-amount source calculation. Runs inside
+ * the TransactionPayController state-update block, so it must read all balances
+ * synchronously from Redux / controller state (never React hooks or async).
  *
- * @param balanceHuman - Human-readable balance (already factoring decimals).
- * @param decimals - Decimals of the source token.
- * @returns The balance override, or `undefined` if the balance is not positive.
+ * Returns the correct source balance for the flows whose max amount cannot be
+ * derived from the pay-token wallet balance:
+ * - Perps withdraw — HyperLiquid withdrawable balance.
+ * - Predict withdraw — Polymarket balance.
+ * - Money-account withdraw / MoneyAccount override — mUSD + vmUSD redeemable.
+ *
+ * Returns `undefined` for every other case so the controller falls back to the
+ * built-in token balance.
+ *
+ * @param request - The balance request.
+ * @param request.transaction - Metadata of the transaction being resolved.
+ * @param request.transactionData - Pay-controller state for the transaction.
+ * @returns The balance override, or `undefined` to use the built-in balance.
  */
-function toBalanceResponse(
-  balanceHuman: string | undefined,
-  decimals: number | undefined,
-): GetBalanceResponse | undefined {
-  if (balanceHuman === undefined || decimals === undefined) {
-    return undefined;
+export function getBalance({
+  transaction,
+  transactionData,
+}: GetBalanceRequest): GetBalanceResponse | undefined {
+  const decimals = transactionData.tokens[0]?.decimals;
+
+  if (hasTransactionType(transaction, [TransactionType.perpsWithdraw])) {
+    return getPerpsBalance(decimals);
   }
 
-  const human = new BigNumber(balanceHuman);
-
-  if (!human.isFinite() || human.lte(0)) {
-    return undefined;
+  if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
+    return getPredictBalance(transaction.txParams?.from, decimals);
   }
 
-  return {
-    balanceHuman: human.toString(10),
-    balanceRaw: human
-      .shiftedBy(decimals)
-      .decimalPlaces(0, BigNumber.ROUND_DOWN)
-      .toFixed(0),
-  };
+  if (
+    hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw]) ||
+    transactionData.paymentOverride === PaymentOverride.MoneyAccount
+  ) {
+    return getMoneyAccountBalance();
+  }
+
+  return undefined;
 }
 
 /**
- * Build a {@link GetBalanceResponse} from an atomic (raw) balance and the
- * source token decimals. Used when only the raw redeemable amount is known.
+ * Resolve the money-account withdrawable (mUSD + vmUSD) balance synchronously
+ * from the persisted redeemable raw amount, stashed into Redux on every
+ * successful balance fetch by {@link useMoneyAccountBalance}.
  *
- * @param balanceRaw - Atomic balance (not factoring decimals).
- * @param decimals - Decimals of the source token.
- * @returns The balance override, or `undefined` if the balance is not positive.
+ * @param decimals - Decimals of the source token (mUSD).
+ * @returns The balance override, or `undefined` when unavailable.
  */
-function toBalanceResponseFromRaw(
-  balanceRaw: string | undefined,
-  decimals: number | undefined,
-): GetBalanceResponse | undefined {
-  if (balanceRaw === undefined || decimals === undefined) {
-    return undefined;
-  }
+function getMoneyAccountBalance(): GetBalanceResponse | undefined {
+  const state = ReduxService.store.getState() as RootState;
+  const redeemable = selectMoneyAccountRedeemable(state);
+  const activeAddress = selectPrimaryMoneyAccount(state)?.address;
 
-  const raw = new BigNumber(balanceRaw);
+  const redeemableRaw = getUsableMoneyAccountRedeemableRaw(
+    redeemable,
+    activeAddress,
+  );
 
-  if (!raw.isFinite() || raw.lte(0)) {
-    return undefined;
-  }
-
-  return {
-    balanceHuman: raw.shiftedBy(-decimals).toString(10),
-    balanceRaw: raw.decimalPlaces(0, BigNumber.ROUND_DOWN).toFixed(0),
-  };
+  return toBalanceResponseFromRaw(redeemableRaw);
 }
 
 /**
@@ -117,67 +120,57 @@ function getPredictBalance(
 }
 
 /**
- * Resolve the money-account withdrawable (mUSD + vmUSD) balance synchronously
- * from the persisted redeemable raw amount, stashed into Redux on every
- * successful balance fetch by {@link useMoneyAccountBalance}.
+ * Build a {@link GetBalanceResponse} from a human-readable balance and the
+ * source token decimals. The source token for a withdraw is the first required
+ * token (`transactionData.tokens[0]`); its decimals convert the human balance
+ * to the atomic amount the controller uses as the exact source amount.
  *
- * @param decimals - Decimals of the source token (mUSD).
- * @returns The balance override, or `undefined` when unavailable.
+ * @param balanceHuman - Human-readable balance (already factoring decimals).
+ * @param decimals - Decimals of the source token.
+ * @returns The balance override, or `undefined` if the balance is not positive.
  */
-function getMoneyAccountBalance(
+function toBalanceResponse(
+  balanceHuman: string | undefined,
   decimals: number | undefined,
 ): GetBalanceResponse | undefined {
-  const state = ReduxService.store.getState() as RootState;
-  const redeemable = selectMoneyAccountRedeemable(state);
-  const activeAddress = selectPrimaryMoneyAccount(state)?.address;
+  if (balanceHuman === undefined || decimals === undefined) {
+    return undefined;
+  }
 
-  const redeemableRaw = getUsableMoneyAccountRedeemableRaw(
-    redeemable,
-    activeAddress,
-  );
+  const human = new BigNumber(balanceHuman);
 
-  return toBalanceResponseFromRaw(redeemableRaw, decimals);
+  if (!human.isFinite() || human.lte(0)) {
+    return undefined;
+  }
+
+  return {
+    balanceRaw: human
+      .shiftedBy(decimals)
+      .decimalPlaces(0, BigNumber.ROUND_DOWN)
+      .toFixed(0),
+  };
 }
 
 /**
- * Synchronous balance override for max-amount source calculation. Runs inside
- * the TransactionPayController state-update block, so it must read all balances
- * synchronously from Redux / controller state (never React hooks or async).
+ * Build a {@link GetBalanceResponse} from an atomic (raw) balance.
  *
- * Returns the correct source balance for the flows whose max amount cannot be
- * derived from the pay-token wallet balance:
- * - Perps withdraw — HyperLiquid withdrawable balance.
- * - Predict withdraw — Polymarket balance.
- * - Money-account withdraw / MoneyAccount override — mUSD + vmUSD redeemable.
- *
- * Returns `undefined` for every other case so the controller falls back to the
- * built-in token balance.
- *
- * @param request - The balance request.
- * @param request.transaction - Metadata of the transaction being resolved.
- * @param request.transactionData - Pay-controller state for the transaction.
- * @returns The balance override, or `undefined` to use the built-in balance.
+ * @param balanceRaw - Atomic balance (not factoring decimals).
+ * @returns The balance override, or `undefined` if the balance is not positive.
  */
-export function getBalance({
-  transaction,
-  transactionData,
-}: GetBalanceRequest): GetBalanceResponse | undefined {
-  const decimals = transactionData.tokens[0]?.decimals;
-
-  if (hasTransactionType(transaction, [TransactionType.perpsWithdraw])) {
-    return getPerpsBalance(decimals);
+function toBalanceResponseFromRaw(
+  balanceRaw: string | undefined,
+): GetBalanceResponse | undefined {
+  if (balanceRaw === undefined) {
+    return undefined;
   }
 
-  if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
-    return getPredictBalance(transaction.txParams?.from, decimals);
+  const raw = new BigNumber(balanceRaw);
+
+  if (!raw.isFinite() || raw.lte(0)) {
+    return undefined;
   }
 
-  if (
-    hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw]) ||
-    transactionData.paymentOverride === PaymentOverride.MoneyAccount
-  ) {
-    return getMoneyAccountBalance(decimals);
-  }
-
-  return undefined;
+  return {
+    balanceRaw: raw.decimalPlaces(0, BigNumber.ROUND_DOWN).toFixed(0),
+  };
 }

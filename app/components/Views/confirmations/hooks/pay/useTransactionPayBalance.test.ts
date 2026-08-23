@@ -1,40 +1,25 @@
-import { BigNumber } from 'bignumber.js';
 import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import {
-  PaymentOverride,
-  TransactionPaymentToken,
-} from '@metamask/transaction-pay-controller';
+import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { merge } from 'lodash';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useTransactionPayToken } from './useTransactionPayToken';
-import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
-import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
 import { useTransactionPayBalance } from './useTransactionPayBalance';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
-jest.mock('./useTransactionPayToken');
-jest.mock('../tokens/useTokenFiatRates');
 jest.mock('../../../../UI/Predict/hooks/usePredictBalance');
-jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('./usePayTokenAccountBalance');
 
+const MONEY_ACCOUNT_ADDRESS_MOCK = '0xabc123';
+const MONEY_ACCOUNT_KEYRING_ID_MOCK = 'mock-money-keyring-id';
 const TRANSACTION_ID_MOCK = 'tx-1';
-
-const PAY_TOKEN_MOCK = {
-  address: '0x1234567890123456789012345678901234567890' as Hex,
-  chainId: '0x1' as Hex,
-  balanceHuman: '12.5',
-  balanceUsd: '25',
-} as TransactionPaymentToken;
 
 function runHook(stateOverrides?: Record<string, unknown>) {
   return renderHookWithProvider(() => useTransactionPayBalance(), {
@@ -42,14 +27,45 @@ function runHook(stateOverrides?: Record<string, unknown>) {
   });
 }
 
+function getMoneyAccountState(balanceRaw?: string) {
+  return {
+    moneyBalance: {
+      redeemable: balanceRaw
+        ? { address: MONEY_ACCOUNT_ADDRESS_MOCK, raw: balanceRaw }
+        : null,
+    },
+    engine: {
+      backgroundState: {
+        KeyringController: {
+          keyrings: [
+            {
+              accounts: [],
+              metadata: { id: MONEY_ACCOUNT_KEYRING_ID_MOCK, name: 'HD 1' },
+              type: 'HD Key Tree',
+            },
+          ],
+        },
+        MoneyAccountController: {
+          moneyAccounts: {
+            account1: {
+              address: MONEY_ACCOUNT_ADDRESS_MOCK,
+              id: 'account1',
+              options: {
+                entropy: { id: MONEY_ACCOUNT_KEYRING_ID_MOCK },
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+}
+
 describe('useTransactionPayBalance', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
-  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
-  const useTokenFiatRateMock = jest.mocked(useTokenFiatRate);
   const usePredictBalanceMock = jest.mocked(usePredictBalance);
-  const useMoneyAccountBalanceMock = jest.mocked(useMoneyAccountBalance);
   const usePayTokenAccountBalanceMock = jest.mocked(usePayTokenAccountBalance);
 
   function mockTransaction(overrides: Partial<TransactionMeta> = {}) {
@@ -65,21 +81,9 @@ describe('useTransactionPayBalance', () => {
 
     mockTransaction();
 
-    useTransactionPayTokenMock.mockReturnValue({
-      payToken: PAY_TOKEN_MOCK,
-      setPayToken: jest.fn(),
-    });
-
-    useTokenFiatRateMock.mockReturnValue(1);
-
     usePredictBalanceMock.mockReturnValue({
       data: 0,
     } as ReturnType<typeof usePredictBalance>);
-
-    useMoneyAccountBalanceMock.mockReturnValue({
-      withdrawableMusd: undefined,
-      withdrawableFiatRaw: undefined,
-    } as ReturnType<typeof useMoneyAccountBalance>);
 
     // Reactive wallet balance backing the default (deposit) flow.
     usePayTokenAccountBalanceMock.mockReturnValue({
@@ -92,17 +96,12 @@ describe('useTransactionPayBalance', () => {
     const { result } = runHook();
 
     expect(result.current).toStrictEqual({
-      balanceHuman: '12.5',
-      balanceUsd: 25,
       balanceRaw: '12500000',
+      balanceUsd: 25,
     });
   });
 
   it('returns zero when the pay token is unset', () => {
-    useTransactionPayTokenMock.mockReturnValue({
-      payToken: undefined,
-      setPayToken: jest.fn(),
-    });
     usePayTokenAccountBalanceMock.mockReturnValue({
       balanceUsd: '0',
       balanceRaw: '0',
@@ -111,9 +110,8 @@ describe('useTransactionPayBalance', () => {
     const { result } = runHook();
 
     expect(result.current).toStrictEqual({
-      balanceHuman: '0',
-      balanceUsd: 0,
       balanceRaw: '0',
+      balanceUsd: 0,
     });
   });
 
@@ -139,9 +137,8 @@ describe('useTransactionPayBalance', () => {
       );
 
       expect(result.current).toStrictEqual({
-        balanceHuman: '500.5',
-        balanceUsd: 500.5,
         balanceRaw: '500500000',
+        balanceUsd: 500.5,
       });
     });
 
@@ -160,9 +157,8 @@ describe('useTransactionPayBalance', () => {
       );
 
       expect(result.current).toStrictEqual({
-        balanceHuman: '0',
-        balanceUsd: 0,
         balanceRaw: '0',
+        balanceUsd: 0,
       });
     });
   });
@@ -172,32 +168,21 @@ describe('useTransactionPayBalance', () => {
       mockTransaction({ type: TransactionType.moneyAccountWithdraw });
     });
 
-    it('returns the withdrawable mUSD converted to USD via the mUSD rate', () => {
-      useTokenFiatRateMock.mockReturnValue(2);
-      useMoneyAccountBalanceMock.mockReturnValue({
-        withdrawableMusd: new BigNumber('10'),
-      } as ReturnType<typeof useMoneyAccountBalance>);
-
-      const { result } = runHook();
+    it('returns the exact cached money-account redeemable raw as 1:1 USD', () => {
+      const { result } = runHook(getMoneyAccountState('10000000'));
 
       expect(result.current).toStrictEqual({
-        balanceHuman: '10',
-        balanceUsd: 20,
         balanceRaw: '10000000',
+        balanceUsd: 10,
       });
     });
 
-    it('returns zero when the withdrawable mUSD is unavailable', () => {
-      useMoneyAccountBalanceMock.mockReturnValue({
-        withdrawableMusd: undefined,
-      } as ReturnType<typeof useMoneyAccountBalance>);
-
+    it('returns zero when the cached money-account redeemable raw is unavailable', () => {
       const { result } = runHook();
 
       expect(result.current).toStrictEqual({
-        balanceHuman: '0',
-        balanceUsd: 0,
         balanceRaw: '0',
+        balanceUsd: 0,
       });
     });
   });
@@ -207,8 +192,7 @@ describe('useTransactionPayBalance', () => {
       mockTransaction({ type: TransactionType.predictWithdraw });
     });
 
-    it('returns the predict balance converted to USD via the pay token rate', () => {
-      useTokenFiatRateMock.mockReturnValue(3);
+    it('returns the predict balance with USD 1:1', () => {
       usePredictBalanceMock.mockReturnValue({
         data: 4,
       } as ReturnType<typeof usePredictBalance>);
@@ -216,9 +200,8 @@ describe('useTransactionPayBalance', () => {
       const { result } = runHook();
 
       expect(result.current).toStrictEqual({
-        balanceHuman: '4',
-        balanceUsd: 12,
         balanceRaw: '4000000',
+        balanceUsd: 4,
       });
     });
   });
@@ -238,37 +221,34 @@ describe('useTransactionPayBalance', () => {
       },
     };
 
-    it('returns the withdrawable fiat rounded down to cents, human == usd', () => {
-      useMoneyAccountBalanceMock.mockReturnValue({
-        withdrawableFiatRaw: '3.129',
-      } as ReturnType<typeof useMoneyAccountBalance>);
-
+    it('returns the cached money-account redeemable raw as 1:1 USD', () => {
       const { result } = renderHookWithProvider(
         () => useTransactionPayBalance(),
-        { state: merge({}, otherControllersMock, overrideState) },
+        {
+          state: merge(
+            {},
+            otherControllersMock,
+            overrideState,
+            getMoneyAccountState('3129000'),
+          ),
+        },
       );
 
       expect(result.current).toStrictEqual({
-        balanceHuman: '3.12',
-        balanceUsd: 3.12,
-        balanceRaw: '3120000',
+        balanceUsd: 3.129,
+        balanceRaw: '3129000',
       });
     });
 
-    it('returns zero when the withdrawable fiat is unavailable', () => {
-      useMoneyAccountBalanceMock.mockReturnValue({
-        withdrawableFiatRaw: undefined,
-      } as ReturnType<typeof useMoneyAccountBalance>);
-
+    it('returns zero when the cached money-account redeemable raw is unavailable', () => {
       const { result } = renderHookWithProvider(
         () => useTransactionPayBalance(),
         { state: merge({}, otherControllersMock, overrideState) },
       );
 
       expect(result.current).toStrictEqual({
-        balanceHuman: '0',
-        balanceUsd: 0,
         balanceRaw: '0',
+        balanceUsd: 0,
       });
     });
   });
