@@ -1965,6 +1965,14 @@ describe('PerpsMarketDetailsView', () => {
           `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-ohlcv-bar`,
         ),
       ).toBeOnTheScreen();
+      fireEvent.press(
+        view.getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
+        ),
+      );
+      expect(
+        view.getByTestId('perps-chart-fullscreen-close-button'),
+      ).toBeOnTheScreen();
 
       mockMarketContextKey = 'mainnet|hyperliquid|1';
       mockMarketContextReady = false;
@@ -1989,6 +1997,9 @@ describe('PerpsMarketDetailsView', () => {
           `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`,
         ),
       ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId('perps-chart-fullscreen-close-button'),
+      ).not.toBeOnTheScreen();
     });
   });
 

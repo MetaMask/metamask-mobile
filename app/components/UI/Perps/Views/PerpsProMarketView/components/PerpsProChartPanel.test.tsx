@@ -567,6 +567,12 @@ describe('PerpsProChartPanel', () => {
     expect(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_OHLCV),
     ).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_FULLSCREEN_BUTTON,
+      ),
+    );
+    expect(screen.getByTestId('mock-perps-fullscreen-chart')).toBeOnTheScreen();
 
     view.rerender(
       <PerpsProChartPanel
@@ -593,6 +599,9 @@ describe('PerpsProChartPanel', () => {
     expect(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_SKELETON),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('mock-perps-fullscreen-chart'),
+    ).not.toBeOnTheScreen();
   });
 
   it('resets chart readiness when the configured strategy changes', () => {
