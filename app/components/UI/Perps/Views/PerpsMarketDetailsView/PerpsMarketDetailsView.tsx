@@ -137,6 +137,7 @@ import { usePerpsRecordMarketViewed } from '../../hooks/usePerpsRecordMarketView
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
+import { usePerpsMarketContext } from '../../hooks/usePerpsMarketContext';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
   PERPS_MARKET_DETAIL_SECTION,
@@ -540,6 +541,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
+  const { identityKey: marketContextKey, isReady: isMarketContextReady } =
+    usePerpsMarketContext();
 
   const {
     candleData,
@@ -552,6 +555,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     symbol: market?.symbol || '',
     interval: selectedCandlePeriod,
     isAdvancedChartEnabled,
+    marketContextKey,
+    isMarketContextReady,
   });
 
   // Auto-zoom to latest candle when interval changes and new data arrives
@@ -841,7 +846,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   });
 
   const advancedChartSeriesKey = `${market?.symbol ?? ''}|${selectedCandlePeriod}`;
-  const advancedChartIdentity = `${advancedChartSeriesKey}|${configuredChartLibrary}`;
+  const advancedChartIdentity = `${advancedChartSeriesKey}|${configuredChartLibrary}|${marketContextKey}`;
   const previousAdvancedChartIdentityRef = useRef(advancedChartIdentity);
   const advancedChartGenerationRef = useRef(0);
   if (previousAdvancedChartIdentityRef.current !== advancedChartIdentity) {
@@ -885,9 +890,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           ? 'error'
           : 'empty';
   const priceSectionState: PerpsMarketDetailSectionState =
-    syncedChartCurrentPrice > 0 ? 'content' : 'loading';
-  const chartSectionState: PerpsMarketDetailSectionState =
-    isAdvancedChartEnabled
+    isMarketContextReady && syncedChartCurrentPrice > 0 ? 'content' : 'loading';
+  const chartSectionState: PerpsMarketDetailSectionState = !isMarketContextReady
+    ? 'loading'
+    : isAdvancedChartEnabled
       ? advancedChartResolution?.key === advancedChartReadinessKey
         ? advancedChartResolution.state
         : 'loading'
@@ -1742,7 +1748,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                 )}
                 {isAdvancedChartEnabled && market?.symbol ? (
                   <PerpsAdvancedChart
-                    key={`${market.symbol}-${advancedChartResetKey}`}
+                    key={`${market.symbol}-${marketContextKey}-${advancedChartResetKey}`}
                     symbol={market.symbol}
                     interval={selectedCandlePeriod}
                     visibleCandleCount={

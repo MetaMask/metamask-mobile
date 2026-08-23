@@ -468,12 +468,11 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   );
 
   useEffect(() => {
-    if (
-      hasFailed &&
-      fallbackCandleData?.symbol === symbol &&
-      fallbackCandleData.candles.length
-    ) {
-      onResolved?.(ohlcvSeriesKey, 'content');
+    if (hasFailed && fallbackCandleData?.symbol === symbol) {
+      onResolved?.(
+        ohlcvSeriesKey,
+        fallbackCandleData.candles.length > 0 ? 'content' : 'empty',
+      );
     }
   }, [fallbackCandleData, hasFailed, ohlcvSeriesKey, onResolved, symbol]);
 

@@ -211,6 +211,8 @@ const renderChartPanel = (overrides: Partial<PerpsProChartPanelProps> = {}) =>
       isAdvancedChartEnabled
       configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
       effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+      marketContextKey="testnet|hyperliquid|1"
+      isMarketContextReady
       onCandlePeriodChange={mockOnCandlePeriodChange}
       onMorePress={mockOnMorePress}
       onChartError={mockOnChartError}
@@ -481,6 +483,8 @@ describe('PerpsProChartPanel', () => {
         isAdvancedChartEnabled
         configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
         effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+        marketContextKey="testnet|hyperliquid|1"
+        isMarketContextReady
         onCandlePeriodChange={mockOnCandlePeriodChange}
         onMorePress={mockOnMorePress}
         onChartError={mockOnChartError}
@@ -508,7 +512,7 @@ describe('PerpsProChartPanel', () => {
     expect(onResolvedStateChange).toHaveBeenCalledWith(
       'BTC',
       'empty',
-      `BTC|${CandlePeriod.FifteenMinutes}|${PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}`,
+      `BTC|testnet|hyperliquid|1|${CandlePeriod.FifteenMinutes}|${PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}`,
     );
   });
 
@@ -531,6 +535,8 @@ describe('PerpsProChartPanel', () => {
         isAdvancedChartEnabled={false}
         configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}
         effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}
+        marketContextKey="testnet|hyperliquid|1"
+        isMarketContextReady
         onCandlePeriodChange={mockOnCandlePeriodChange}
         onMorePress={mockOnMorePress}
         onChartError={mockOnChartError}
@@ -542,7 +548,7 @@ describe('PerpsProChartPanel', () => {
     expect(onResolvedStateChange).toHaveBeenCalledWith(
       'BTC',
       'loading',
-      `BTC|${CandlePeriod.FifteenMinutes}|${PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}`,
+      `BTC|testnet|hyperliquid|1|${CandlePeriod.FifteenMinutes}|${PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}`,
     );
   });
 
@@ -759,6 +765,8 @@ describe('PerpsProChartPanel', () => {
           isAdvancedChartEnabled
           configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
           effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+          marketContextKey="testnet|hyperliquid|1"
+          isMarketContextReady
           onCandlePeriodChange={mockOnCandlePeriodChange}
           onMorePress={mockOnMorePress}
           onChartError={mockOnChartError}

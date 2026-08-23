@@ -57,6 +57,7 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
 import { usePerpsRecordMarketViewed } from '../../hooks/usePerpsRecordMarketViewed';
+import { usePerpsMarketContext } from '../../hooks/usePerpsMarketContext';
 import { usePerpsSyncedChartPrice } from '../../hooks/usePerpsSyncedChartPrice';
 import {
   PerpsOrderProvider,
@@ -64,6 +65,7 @@ import {
 } from '../../contexts/PerpsOrderContext';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
 import { selectPerpsAdvancedChartEnabledFlag } from '../../selectors/featureFlags';
+import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
 import type { PerpsStackParamList } from '../../types/navigation';
 import {
   getPerpsChartAnalyticsProperties,
@@ -87,6 +89,7 @@ import { canonicalizeOrderPrice } from '../../utils/triggerOrderValidation';
 interface PerpsProOrderBookColumnProps {
   symbol: string;
   marketPrice?: number;
+  isMarketContextReady: boolean;
   onCollapse: () => void;
   onResolvedStateChange?: (
     symbol: string,
@@ -104,6 +107,7 @@ interface PerpsProOrderBookColumnProps {
 const PerpsProOrderBookColumn = ({
   symbol,
   marketPrice,
+  isMarketContextReady,
   onCollapse,
   onResolvedStateChange,
 }: PerpsProOrderBookColumnProps) => {
@@ -149,6 +153,7 @@ const PerpsProOrderBookColumn = ({
     <PerpsProOrderBookPanel
       symbol={symbol}
       marketPrice={marketPrice}
+      isMarketContextReady={isMarketContextReady}
       szDecimals={marketData?.szDecimals}
       onCollapse={onCollapse}
       onSelectPrice={handleSelectPrice}
@@ -305,6 +310,12 @@ const PerpsProMarketView = ({
     useState(false);
 
   const [isBalanceSheetVisible, setIsBalanceSheetVisible] = useState(false);
+  const currentSymbol = market?.symbol;
+  const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
+  const { identityKey: marketContextKey, isReady: isMarketContextReady } =
+    usePerpsMarketContext();
+  const marketSectionContextKey = `${currentSymbol ?? ''}|${marketContextKey}`;
+  const userSectionContextKey = `${marketSectionContextKey}|${selectedAddress ?? ''}`;
 
   // Same parent-owned merge as Lite: last candle close, overridden by the
   // Advanced Chart latest-bar close while that chart is reporting.
@@ -313,6 +324,8 @@ const PerpsProMarketView = ({
       symbol: market?.symbol || '',
       interval: selectedCandlePeriod,
       isAdvancedChartEnabled,
+      marketContextKey,
+      isMarketContextReady,
     });
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
@@ -350,18 +363,33 @@ const PerpsProMarketView = ({
   );
   const handleStatsResolvedStateChange = useCallback(
     (sectionSymbol: string, state: PerpsMarketDetailSectionState) =>
-      updateResolvedSection('stats', sectionSymbol, state),
-    [updateResolvedSection],
+      updateResolvedSection(
+        'stats',
+        sectionSymbol,
+        state,
+        marketSectionContextKey,
+      ),
+    [marketSectionContextKey, updateResolvedSection],
   );
   const handleOrderBookResolvedStateChange = useCallback(
     (sectionSymbol: string, state: PerpsMarketDetailSectionState) =>
-      updateResolvedSection('order_book', sectionSymbol, state),
-    [updateResolvedSection],
+      updateResolvedSection(
+        'order_book',
+        sectionSymbol,
+        state,
+        marketSectionContextKey,
+      ),
+    [marketSectionContextKey, updateResolvedSection],
   );
   const handlePositionsOrdersResolvedStateChange = useCallback(
     (sectionSymbol: string, state: PerpsMarketDetailSectionState) =>
-      updateResolvedSection('positions_orders', sectionSymbol, state),
-    [updateResolvedSection],
+      updateResolvedSection(
+        'positions_orders',
+        sectionSymbol,
+        state,
+        userSectionContextKey,
+      ),
+    [updateResolvedSection, userSectionContextKey],
   );
 
   const handleWalletPress = useCallback(() => {
@@ -436,7 +464,7 @@ const PerpsProMarketView = ({
   );
 
   const currentSymbol = market?.symbol;
-  const chartContextKey = `${currentSymbol ?? ''}|${selectedCandlePeriod}|${configuredChartLibrary}`;
+  const chartContextKey = `${marketSectionContextKey}|${selectedCandlePeriod}|${configuredChartLibrary}`;
   const stateForCurrentSymbol = useCallback(
     (
       section: ProResolvedSection,
@@ -461,13 +489,16 @@ const PerpsProMarketView = ({
           ? 'error'
           : 'empty';
   const priceSectionState: PerpsMarketDetailSectionState =
-    syncedChartCurrentPrice > 0 ? 'content' : 'loading';
+    isMarketContextReady && syncedChartCurrentPrice > 0 ? 'content' : 'loading';
   const accountSectionState: PerpsMarketDetailSectionState = isLoadingAccount
     ? 'loading'
     : account
       ? 'content'
       : 'empty';
-  const statsSectionState = stateForCurrentSymbol('stats');
+  const statsSectionState = stateForCurrentSymbol(
+    'stats',
+    marketSectionContextKey,
+  );
   const detailSections = useMemo(
     () => ({
       [PERPS_MARKET_DETAIL_SECTION.MARKET]: marketSectionState,
@@ -480,18 +511,22 @@ const PerpsProMarketView = ({
       [PERPS_MARKET_DETAIL_SECTION.ACCOUNT]: accountSectionState,
       [PERPS_MARKET_DETAIL_SECTION.ORDER_BOOK]: isOrderBookCollapsed
         ? 'not_applicable'
-        : stateForCurrentSymbol('order_book'),
-      [PERPS_MARKET_DETAIL_SECTION.POSITIONS_ORDERS]:
-        stateForCurrentSymbol('positions_orders'),
+        : stateForCurrentSymbol('order_book', marketSectionContextKey),
+      [PERPS_MARKET_DETAIL_SECTION.POSITIONS_ORDERS]: stateForCurrentSymbol(
+        'positions_orders',
+        userSectionContextKey,
+      ),
     }),
     [
       accountSectionState,
       chartContextKey,
       marketSectionState,
+      marketSectionContextKey,
       isOrderBookCollapsed,
       priceSectionState,
       stateForCurrentSymbol,
       statsSectionState,
+      userSectionContextKey,
     ],
   );
   const detailSession = usePerpsMarketDetailSession({
@@ -610,6 +645,8 @@ const PerpsProMarketView = ({
           isAdvancedChartEnabled={isAdvancedChartEnabled}
           configuredChartLibrary={configuredChartLibrary}
           effectiveChartLibrary={effectiveChartLibrary}
+          marketContextKey={marketContextKey}
+          isMarketContextReady={isMarketContextReady}
           onCandlePeriodChange={handleProCandlePeriodChange}
           onMorePress={() => setIsMoreCandlePeriodsVisible(true)}
           onChartError={handleChartError}
@@ -660,6 +697,7 @@ const PerpsProMarketView = ({
                 <PerpsProOrderBookColumn
                   symbol={market.symbol}
                   marketPrice={marketPrice}
+                  isMarketContextReady={isMarketContextReady}
                   onCollapse={handleCollapseOrderBook}
                   onResolvedStateChange={handleOrderBookResolvedStateChange}
                 />

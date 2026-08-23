@@ -82,6 +82,8 @@ interface PerpsProChartPanelProps {
   isAdvancedChartEnabled: boolean;
   configuredChartLibrary: string;
   effectiveChartLibrary: string;
+  marketContextKey: string;
+  isMarketContextReady: boolean;
   onCandlePeriodChange: (period: CandlePeriod) => void;
   onMorePress: () => void;
   onChartError: (error?: Error | string) => void;
@@ -108,6 +110,8 @@ const PerpsProChartPanel = ({
   isAdvancedChartEnabled,
   configuredChartLibrary,
   effectiveChartLibrary,
+  marketContextKey,
+  isMarketContextReady,
   onCandlePeriodChange,
   onMorePress,
   onChartError,
@@ -124,7 +128,7 @@ const PerpsProChartPanel = ({
   const chartRef = useRef<TradingViewChartRef>(null);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
   const visibleCandleCount = PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT;
-  const chartContextKey = `${symbol}|${selectedCandlePeriod}|${configuredChartLibrary}`;
+  const chartContextKey = `${symbol}|${marketContextKey}|${selectedCandlePeriod}|${configuredChartLibrary}`;
 
   // Pro-only: the Advanced Chart unmounts while collapsed, so drop its last
   // reported close. Symbol/period/flag resets are owned by
@@ -146,6 +150,8 @@ const PerpsProChartPanel = ({
       interval: selectedCandlePeriod,
       duration: TimeDuration.YearToDate,
       throttleMs: 1000,
+      resetKey: marketContextKey,
+      enabled: isMarketContextReady,
     });
 
   useEffect(() => {
@@ -153,11 +159,16 @@ const PerpsProChartPanel = ({
       onResolvedStateChange?.(symbol, 'not_applicable', chartContextKey);
       return;
     }
+    if (!isMarketContextReady) {
+      onResolvedStateChange?.(symbol, 'loading', chartContextKey);
+      return;
+    }
     onResolvedStateChange?.(symbol, 'loading', chartContextKey);
   }, [
     chartContextKey,
     isAdvancedChartEnabled,
     isChartExpanded,
+    isMarketContextReady,
     onResolvedStateChange,
     selectedCandlePeriod,
     symbol,
@@ -166,6 +177,7 @@ const PerpsProChartPanel = ({
   useEffect(() => {
     if (
       isChartExpanded &&
+      isMarketContextReady &&
       !isAdvancedChartEnabled &&
       candleData?.symbol === symbol &&
       candleData.interval === selectedCandlePeriod &&
@@ -180,6 +192,7 @@ const PerpsProChartPanel = ({
     hasHistoricalData,
     isAdvancedChartEnabled,
     isChartExpanded,
+    isMarketContextReady,
     onResolvedStateChange,
     selectedCandlePeriod,
     symbol,
@@ -268,7 +281,7 @@ const PerpsProChartPanel = ({
   if (isAdvancedChartEnabled) {
     chartContent = (
       <PerpsAdvancedChart
-        key={symbol}
+        key={`${symbol}|${marketContextKey}`}
         symbol={symbol}
         interval={selectedCandlePeriod}
         visibleCandleCount={visibleCandleCount}

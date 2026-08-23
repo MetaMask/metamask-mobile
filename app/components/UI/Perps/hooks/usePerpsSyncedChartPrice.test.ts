@@ -118,4 +118,33 @@ describe('usePerpsSyncedChartPrice', () => {
     });
     expect(result.current.syncedChartCurrentPrice).toBe(0);
   });
+
+  it('rejects prices until the new market context is ready', () => {
+    const { result, rerender } = renderHook(
+      ({ contextKey, isReady }) =>
+        usePerpsSyncedChartPrice({
+          symbol: 'BTC',
+          interval: CandlePeriod.FifteenMinutes,
+          isAdvancedChartEnabled: true,
+          marketContextKey: contextKey,
+          isMarketContextReady: isReady,
+        }),
+      {
+        initialProps: {
+          contextKey: 'testnet|hyperliquid|1',
+          isReady: true,
+        },
+      },
+    );
+
+    act(() => result.current.setAdvancedChartCurrentPrice(51000));
+    const staleSetter = result.current.setAdvancedChartCurrentPrice;
+
+    rerender({ contextKey: 'mainnet|hyperliquid|1', isReady: false });
+    expect(result.current.syncedChartCurrentPrice).toBe(0);
+
+    act(() => staleSetter(52000));
+    rerender({ contextKey: 'mainnet|hyperliquid|1', isReady: true });
+    expect(result.current.syncedChartCurrentPrice).toBe(50500);
+  });
 });

@@ -296,6 +296,7 @@ describe('usePerpsMarketStats', () => {
       });
 
       const { result, rerender } = renderHook(() => usePerpsMarketStats('BTC'));
+      const connectionState = mockedUsePerpsConnection();
       act(() => callbacks[0]([mockPriceData.BTC]));
       expect(result.current.dataSymbol).toBe('BTC');
 
@@ -303,9 +304,24 @@ describe('usePerpsMarketStats', () => {
       rerender();
       expect(result.current.dataSymbol).toBeUndefined();
       expect(result.current.hasLiveData).toBe(false);
+      expect(callbacks).toHaveLength(1);
 
       act(() => callbacks[0]([mockPriceData.BTC]));
       expect(result.current.dataSymbol).toBeUndefined();
+
+      mockedUsePerpsConnection.mockReturnValue({
+        ...connectionState,
+        isInitialized: false,
+      });
+      rerender();
+      expect(callbacks).toHaveLength(1);
+
+      mockedUsePerpsConnection.mockReturnValue({
+        ...connectionState,
+        isInitialized: true,
+      });
+      rerender();
+      expect(callbacks).toHaveLength(2);
 
       act(() => callbacks[1]([mockPriceData.BTC]));
       expect(result.current.dataSymbol).toBe('BTC');

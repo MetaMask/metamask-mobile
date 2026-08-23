@@ -26,6 +26,10 @@ export interface UsePerpsLiveCandlesOptions {
   duration: TimeDuration;
   /** Throttle delay in milliseconds (default: 1000ms) */
   throttleMs?: number;
+  /** Restarts the subscription when its market context changes. */
+  resetKey?: string;
+  /** Defers subscription until the requested market context is connected. */
+  enabled?: boolean;
 }
 
 export interface UsePerpsLiveCandlesReturn {
@@ -68,7 +72,14 @@ export interface UsePerpsLiveCandlesReturn {
 export function usePerpsLiveCandles(
   options: UsePerpsLiveCandlesOptions,
 ): UsePerpsLiveCandlesReturn {
-  const { symbol, interval, duration, throttleMs = 1000 } = options;
+  const {
+    symbol,
+    interval,
+    duration,
+    throttleMs = 1000,
+    resetKey,
+    enabled = true,
+  } = options;
   const stream = usePerpsStream();
   const [candleData, setCandleData] = useState<CandleData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,6 +93,10 @@ export function usePerpsLiveCandles(
     setIsLoading(true);
     setError(null);
     hasReceivedFirstUpdate.current = false;
+
+    if (!enabled) {
+      return;
+    }
 
     if (!symbol) {
       setCandleData(EMPTY_CANDLE_DATA);
@@ -179,7 +194,7 @@ export function usePerpsLiveCandles(
       setIsLoading(false);
       return;
     }
-  }, [stream, symbol, interval, duration, throttleMs]);
+  }, [stream, symbol, interval, duration, throttleMs, resetKey, enabled]);
 
   const hasHistoricalData =
     candleData !== null && candleData.candles.length > 0;

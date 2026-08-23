@@ -81,6 +81,8 @@ export interface PerpsProOrderBookPanelProps {
   marketPrice?: number;
   /** Asset base-size decimal precision (Hyperliquid `szDecimals`). */
   szDecimals?: number;
+  /** Whether the selected provider/network context has reinitialized. */
+  isMarketContextReady?: boolean;
   /** Called when a ladder row is tapped (limit-price prefills). */
   onSelectPrice?: (price: string) => void;
   /** Hides the order-book column so the order form can go full width. */
@@ -391,6 +393,7 @@ const PerpsProOrderBookPanel = ({
   symbol,
   marketPrice,
   szDecimals,
+  isMarketContextReady = true,
   onSelectPrice,
   onCollapse,
   onResolvedStateChange,
@@ -593,7 +596,9 @@ const PerpsProOrderBookPanel = ({
   );
 
   const hasLadder = Boolean(
-    grouped && (grouped.bids.length > 0 || grouped.asks.length > 0),
+    isMarketContextReady &&
+      grouped &&
+      (grouped.bids.length > 0 || grouped.asks.length > 0),
   );
   const hasConnectionError = connectionStatus === 'error';
   // Skeleton only when we have no ladder yet (initial connect / reconnect).
@@ -601,7 +606,9 @@ const PerpsProOrderBookPanel = ({
   const showSkeleton =
     !hasConnectionError &&
     !hasLadder &&
-    (isInitialLoading || connectionStatus === 'connecting');
+    (!isMarketContextReady ||
+      isInitialLoading ||
+      connectionStatus === 'connecting');
   const showEmptyPlaceholder =
     !showSkeleton && (hasConnectionError || !hasLadder);
 
@@ -612,6 +619,10 @@ const PerpsProOrderBookPanel = ({
     onResolvedStateChange?.(symbol, 'loading');
   }, [onResolvedStateChange, symbol]);
   useEffect(() => {
+    if (!isMarketContextReady) {
+      onResolvedStateChange?.(symbol, 'loading');
+      return;
+    }
     if (!isCurrentSymbol) {
       return;
     }
@@ -627,6 +638,7 @@ const PerpsProOrderBookPanel = ({
   }, [
     hasConnectionError,
     hasLadder,
+    isMarketContextReady,
     isCurrentSymbol,
     onResolvedStateChange,
     showSkeleton,

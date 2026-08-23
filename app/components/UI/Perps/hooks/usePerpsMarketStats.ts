@@ -7,12 +7,6 @@ import {
   calculate24hHighLow,
   type PriceUpdate,
 } from '@metamask/perps-controller';
-import { useSelector } from 'react-redux';
-import { selectHip3ConfigVersion } from '../selectors/featureFlags';
-import {
-  selectPerpsNetwork,
-  selectPerpsProvider,
-} from '../selectors/perpsController';
 import {
   formatFundingRate,
   formatLargeNumber,
@@ -20,7 +14,7 @@ import {
   LARGE_NUMBER_RANGES_DETAILED,
   PRICE_RANGES_UNIVERSAL,
 } from '../utils/formatUtils';
-import { usePerpsConnection } from './usePerpsConnection';
+import { usePerpsMarketContext } from './usePerpsMarketContext';
 import { usePerpsLiveCandles } from './stream/usePerpsLiveCandles';
 
 interface MarketStats {
@@ -54,11 +48,8 @@ export interface UsePerpsMarketStatsReturn extends MarketStats {
 export const usePerpsMarketStats = (
   symbol: string,
 ): UsePerpsMarketStatsReturn => {
-  const { isInitialized } = usePerpsConnection();
-  const network = useSelector(selectPerpsNetwork);
-  const provider = useSelector(selectPerpsProvider);
-  const hip3ConfigVersion = useSelector(selectHip3ConfigVersion);
-  const marketContextKey = `${network}|${provider ?? 'unknown'}|${hip3ConfigVersion}`;
+  const { key: marketContextKey, isReady: isMarketContextReady } =
+    usePerpsMarketContext();
   const marketStatsIdentity = `${symbol}|${marketContextKey}`;
   const [marketData, setMarketData] = useState<MarketDataUpdate>({});
   const [marketDataSymbol, setMarketDataSymbol] = useState<string>();
@@ -73,6 +64,10 @@ export const usePerpsMarketStats = (
   // subscription effect while still allowing each context its own price.
   const initialPriceContextRef = useRef<string | null>(null);
   const marketStatsIdentityRef = useRef(marketStatsIdentity);
+  const currentMarketContextRef = useRef(marketContextKey);
+  const isMarketContextReadyRef = useRef(isMarketContextReady);
+  currentMarketContextRef.current = marketContextKey;
+  isMarketContextReadyRef.current = isMarketContextReady;
 
   useEffect(() => {
     if (marketStatsIdentityRef.current === marketStatsIdentity) {
@@ -93,18 +88,26 @@ export const usePerpsMarketStats = (
     interval: CandlePeriod.OneHour, // Use 1h candles for 24h calculation
     duration: TimeDuration.OneDay,
     throttleMs: 1000,
+    resetKey: marketContextKey,
+    enabled: isMarketContextReady,
   });
 
   // Subscribe to market data updates (funding, open interest, volume).
-  // Gate on isInitialized so a fast Perps open after wallet unlock does not
-  // get a no-op subscribe with no retry (same pattern as usePerpsPrices).
+  // Wait for the selected market context so an old provider cannot satisfy the
+  // new generation during the reconnect window.
   useEffect(() => {
-    if (!symbol || !isInitialized) return;
+    if (!symbol || !isMarketContextReady) return;
 
     let unsubscribe: (() => void) | undefined;
     const findSymbol = (update: PriceUpdate) => update.symbol === symbol;
 
     const callback = (updates: PriceUpdate[]) => {
+      if (
+        !isMarketContextReadyRef.current ||
+        currentMarketContextRef.current !== marketContextKey
+      ) {
+        return;
+      }
       const update = updates.find(findSymbol);
       if (update) {
         setMarketDataErrorContextKey(undefined);
@@ -163,11 +166,12 @@ export const usePerpsMarketStats = (
         unsubscribe();
       }
     };
-  }, [isInitialized, marketContextKey, symbol]);
+  }, [isMarketContextReady, marketContextKey, symbol]);
 
   // Calculate all statistics
   const stats = useMemo<MarketStats>(() => {
-    const { high, low } = calculate24hHighLow(candleData);
+    const currentCandleData = isMarketContextReady ? candleData : null;
+    const { high, low } = calculate24hHighLow(currentCandleData);
     const hasCurrentMarketData = marketDataContextKey === marketContextKey;
     const currentMarketData = hasCurrentMarketData ? marketData : {};
     const fallbackPrice =
@@ -201,15 +205,15 @@ export const usePerpsMarketStats = (
           : PERPS_CONSTANTS.FallbackPriceDisplay,
       fundingRate: formatFundingRate(currentMarketData.funding),
       currentPrice: fallbackPrice,
-      isLoading: !candleData,
+      isLoading: !currentCandleData,
       dataSymbol:
-        candleData?.symbol === symbol &&
+        currentCandleData?.symbol === symbol &&
         marketDataSymbol === symbol &&
         hasCurrentMarketData
           ? symbol
           : undefined,
       hasLiveData:
-        candleData?.symbol === symbol &&
+        currentCandleData?.symbol === symbol &&
         marketDataSymbol === symbol &&
         hasCurrentMarketData &&
         (currentMarketData.volume24h !== undefined ||
@@ -224,6 +228,7 @@ export const usePerpsMarketStats = (
     marketDataErrorContextKey,
     marketDataSymbol,
     marketContextKey,
+    isMarketContextReady,
     symbol,
   ]);
 
