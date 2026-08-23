@@ -129,8 +129,8 @@ function ReceiveRow() {
         rowVariant={InfoRowVariant.Small}
       >
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
           testID={ConfirmationRowComponentIDs.RECEIVE}
         >
           {receiveUsd}
