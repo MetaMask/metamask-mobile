@@ -224,6 +224,20 @@ describe('PerpsProPositionsPanel', () => {
     });
   });
 
+  it('reports loading while the market context reconnects', () => {
+    const onResolvedStateChange = jest.fn();
+    renderWithProvider(
+      <PerpsProPositionsPanel
+        symbol="SOL"
+        isMarketContextReady={false}
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('SOL', 'loading');
+  });
+
   it('shows the global empty state when there are no positions', () => {
     renderPanel();
 

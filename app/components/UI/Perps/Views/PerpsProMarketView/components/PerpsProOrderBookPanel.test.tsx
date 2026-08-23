@@ -245,6 +245,45 @@ describe('PerpsProOrderBookPanel', () => {
     expect(queryByTestId(`${testID}-reconnect`)).not.toBeOnTheScreen();
   });
 
+  it('disables both order-book sockets until the market context is ready', () => {
+    const view = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        isMarketContextReady={false}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(mockUsePerpsLiveOrderBook).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(mockUsePerpsLiveOrderBook).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(view.getByTestId(`${testID}-skeleton`)).toBeOnTheScreen();
+
+    mockUsePerpsLiveOrderBook.mockClear();
+    view.rerender(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        isMarketContextReady
+      />,
+    );
+
+    expect(mockUsePerpsLiveOrderBook).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ enabled: true }),
+    );
+    expect(mockUsePerpsLiveOrderBook).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ enabled: true }),
+    );
+  });
+
   it('makes ladder rows interactive and reports the tapped price via onSelectPrice', () => {
     const onSelectPrice = jest.fn();
     const { getByTestId } = renderWithProvider(

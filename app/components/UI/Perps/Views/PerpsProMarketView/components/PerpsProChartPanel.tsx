@@ -278,7 +278,7 @@ const PerpsProChartPanel = ({
   }, [chartAnalyticsProperties, symbol, track]);
 
   let chartContent: React.ReactNode;
-  if (isAdvancedChartEnabled) {
+  if (isAdvancedChartEnabled && isMarketContextReady) {
     chartContent = (
       <PerpsAdvancedChart
         key={`${symbol}|${marketContextKey}`}

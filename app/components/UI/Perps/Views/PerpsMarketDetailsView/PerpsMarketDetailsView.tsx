@@ -1746,7 +1746,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                     testID={PerpsMarketDetailsViewSelectorsIDs.CHART_EDGE_GUARD}
                   />
                 )}
-                {isAdvancedChartEnabled && market?.symbol ? (
+                {isAdvancedChartEnabled &&
+                isMarketContextReady &&
+                market?.symbol ? (
                   <PerpsAdvancedChart
                     key={`${market.symbol}-${marketContextKey}-${advancedChartResetKey}`}
                     symbol={market.symbol}
@@ -1767,7 +1769,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                     fallbackFetchMoreHistory={fetchMoreHistory}
                     paginationDuration={TimeDuration.YearToDate}
                   />
-                ) : hasHistoricalData ? (
+                ) : isMarketContextReady && hasHistoricalData ? (
                   <TradingViewChart
                     ref={chartRef}
                     candleData={candleData}

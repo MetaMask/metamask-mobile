@@ -5,6 +5,7 @@ import { usePerpsMarketStats } from './usePerpsMarketStats';
 let mockNetwork = 'testnet';
 let mockProvider = 'hyperliquid';
 let mockHip3ConfigVersion = 1;
+let mockInitializedMarketContextKey: string | null = 'testnet|hyperliquid|1';
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: object) => unknown) => selector({}),
@@ -15,6 +16,12 @@ jest.mock('../selectors/featureFlags', () => ({
 jest.mock('../selectors/perpsController', () => ({
   selectPerpsNetwork: () => mockNetwork,
   selectPerpsProvider: () => mockProvider,
+}));
+jest.mock('../services/PerpsConnectionManager', () => ({
+  PerpsConnectionManager: {
+    getInitializedMarketContextKey: () => mockInitializedMarketContextKey,
+    subscribeToInitializedMarketContext: () => jest.fn(),
+  },
 }));
 
 // Mock Engine
@@ -49,6 +56,7 @@ describe('usePerpsMarketStats', () => {
     mockNetwork = 'testnet';
     mockProvider = 'hyperliquid';
     mockHip3ConfigVersion = 1;
+    mockInitializedMarketContextKey = 'testnet|hyperliquid|1';
     mockedUsePerpsConnection.mockReturnValue({
       isInitialized: true,
       isConnected: true,
@@ -316,6 +324,7 @@ describe('usePerpsMarketStats', () => {
       rerender();
       expect(callbacks).toHaveLength(1);
 
+      mockInitializedMarketContextKey = `${mockNetwork}|${mockProvider}|${mockHip3ConfigVersion}`;
       mockedUsePerpsConnection.mockReturnValue({
         ...connectionState,
         isInitialized: true,
@@ -328,6 +337,45 @@ describe('usePerpsMarketStats', () => {
       expect(result.current.hasLiveData).toBe(true);
     },
   );
+
+  it('keeps resident stats and restores the subscription after an account reconnect', () => {
+    const callbacks: ((updates: (typeof mockPriceData.BTC)[]) => void)[] = [];
+    mockSubscribeToPrices.mockImplementation(({ callback }) => {
+      callbacks.push(callback);
+      return jest.fn();
+    });
+    mockedUsePerpsLiveCandles.mockReturnValue({
+      candleData: mockCandleData,
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: true,
+      error: null,
+      fetchMoreHistory: jest.fn(),
+    });
+
+    const { result, rerender } = renderHook(() => usePerpsMarketStats('BTC'));
+    const connectionState = mockedUsePerpsConnection();
+    act(() => callbacks[0]([mockPriceData.BTC]));
+    expect(result.current.dataSymbol).toBe('BTC');
+
+    mockedUsePerpsConnection.mockReturnValue({
+      ...connectionState,
+      isInitialized: false,
+    });
+    rerender();
+    expect(result.current.dataSymbol).toBe('BTC');
+    expect(callbacks).toHaveLength(1);
+
+    act(() => callbacks[0]([{ ...mockPriceData.BTC, volume24h: 1 }]));
+    expect(result.current.volume24h).toBe('$1.23B');
+
+    mockedUsePerpsConnection.mockReturnValue(connectionState);
+    rerender();
+    expect(callbacks).toHaveLength(2);
+
+    act(() => callbacks[1]([{ ...mockPriceData.BTC, volume24h: 1 }]));
+    expect(result.current.volume24h).toBe('$1');
+  });
 
   it('formats negative funding rates with proper sign and decimals', () => {
     // Given a negative funding rate

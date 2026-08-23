@@ -48,8 +48,11 @@ export interface UsePerpsMarketStatsReturn extends MarketStats {
 export const usePerpsMarketStats = (
   symbol: string,
 ): UsePerpsMarketStatsReturn => {
-  const { key: marketContextKey, isReady: isMarketContextReady } =
-    usePerpsMarketContext();
+  const {
+    key: marketContextKey,
+    isReady: isMarketContextReady,
+    isConnectionInitialized,
+  } = usePerpsMarketContext();
   const marketStatsIdentity = `${symbol}|${marketContextKey}`;
   const [marketData, setMarketData] = useState<MarketDataUpdate>({});
   const [marketDataSymbol, setMarketDataSymbol] = useState<string>();
@@ -66,8 +69,10 @@ export const usePerpsMarketStats = (
   const marketStatsIdentityRef = useRef(marketStatsIdentity);
   const currentMarketContextRef = useRef(marketContextKey);
   const isMarketContextReadyRef = useRef(isMarketContextReady);
+  const isConnectionInitializedRef = useRef(isConnectionInitialized);
   currentMarketContextRef.current = marketContextKey;
   isMarketContextReadyRef.current = isMarketContextReady;
+  isConnectionInitializedRef.current = isConnectionInitialized;
 
   useEffect(() => {
     if (marketStatsIdentityRef.current === marketStatsIdentity) {
@@ -96,7 +101,7 @@ export const usePerpsMarketStats = (
   // Wait for the selected market context so an old provider cannot satisfy the
   // new generation during the reconnect window.
   useEffect(() => {
-    if (!symbol || !isMarketContextReady) return;
+    if (!symbol || !isMarketContextReady || !isConnectionInitialized) return;
 
     let unsubscribe: (() => void) | undefined;
     const findSymbol = (update: PriceUpdate) => update.symbol === symbol;
@@ -104,6 +109,7 @@ export const usePerpsMarketStats = (
     const callback = (updates: PriceUpdate[]) => {
       if (
         !isMarketContextReadyRef.current ||
+        !isConnectionInitializedRef.current ||
         currentMarketContextRef.current !== marketContextKey
       ) {
         return;
@@ -166,7 +172,7 @@ export const usePerpsMarketStats = (
         unsubscribe();
       }
     };
-  }, [isMarketContextReady, marketContextKey, symbol]);
+  }, [isConnectionInitialized, isMarketContextReady, marketContextKey, symbol]);
 
   // Calculate all statistics
   const stats = useMemo<MarketStats>(() => {
