@@ -6,9 +6,7 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { usePerpsStream } from '../../../../../UI/Perps/providers/PerpsStreamManager';
-
-const SPARKLINE_TARGET_POINTS = 50;
-const SPARKLINE_CANDLE_COUNT = 96;
+import { SPARKLINE_CANDLE_COUNT, SPARKLINE_TARGET_POINTS } from '../constants';
 
 export interface UseHomepageSparklinesResult {
   refresh: () => Promise<void>;
@@ -39,6 +37,17 @@ function extractCandleCloses(candleData: CandleData): number[] {
     .slice(-SPARKLINE_CANDLE_COUNT)
     .map((candle) => Number.parseFloat(String(candle.close)))
     .filter((price) => !Number.isNaN(price));
+}
+
+function retainFallbackSymbols(
+  sparklines: Record<string, number[]>,
+  symbols: string[],
+): Record<string, number[]> {
+  return Object.fromEntries(
+    symbols.flatMap((symbol) =>
+      symbol in sparklines ? [[symbol, sparklines[symbol]]] : [],
+    ),
+  );
 }
 
 /**
@@ -86,13 +95,24 @@ export function useHomepageSparklines(
 
   useEffect(() => {
     let active = true;
-    fallbackDataRef.current = {};
-    flushScheduledRef.current = false;
-    setFallbackSparklines((current) =>
-      Object.keys(current).length === 0 ? current : {},
+    const fallbackSymbols = fallbackSymbolsKey
+      ? fallbackSymbolsKey.split(',')
+      : [];
+    fallbackDataRef.current = retainFallbackSymbols(
+      fallbackDataRef.current,
+      fallbackSymbols,
     );
+    flushScheduledRef.current = false;
+    setFallbackSparklines((current) => {
+      const next = retainFallbackSymbols(current, fallbackSymbols);
+      const currentSymbols = Object.keys(current);
+      return currentSymbols.length === Object.keys(next).length &&
+        currentSymbols.every((symbol) => current[symbol] === next[symbol])
+        ? current
+        : next;
+    });
 
-    if (!fallbackSymbolsKey) return undefined;
+    if (fallbackSymbols.length === 0) return undefined;
 
     const scheduleFlush = () => {
       if (flushScheduledRef.current) return;
@@ -104,7 +124,7 @@ export function useHomepageSparklines(
       });
     };
 
-    const unsubscribes = fallbackSymbolsKey.split(',').map((symbol) =>
+    const unsubscribes = fallbackSymbols.map((symbol) =>
       stream.candles.subscribe({
         symbol,
         interval: CandlePeriod.FifteenMinutes,

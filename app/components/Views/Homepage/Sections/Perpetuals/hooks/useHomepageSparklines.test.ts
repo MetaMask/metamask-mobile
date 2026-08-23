@@ -138,6 +138,48 @@ describe('useHomepageSparklines', () => {
     );
   });
 
+  it('keeps fallback data for symbols that still need candles', async () => {
+    const callbacks = new Map<string, (candleData: CandleData) => void>();
+    mockSubscribe.mockImplementation(
+      (params: {
+        symbol: string;
+        callback: (candleData: CandleData) => void;
+      }) => {
+        callbacks.set(params.symbol, params.callback);
+        return jest.fn();
+      },
+    );
+
+    const { result, rerender } = renderHook(
+      ({ markets }) => useHomepageSparklines(markets),
+      {
+        initialProps: {
+          markets: [makeMarket('BTC'), makeMarket('ETH')],
+        },
+      },
+    );
+
+    await act(async () => {
+      callbacks.get('BTC')?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.FifteenMinutes,
+        candles: makeCandles(10, 100),
+      });
+      callbacks.get('ETH')?.({
+        symbol: 'ETH',
+        interval: CandlePeriod.FifteenMinutes,
+        candles: makeCandles(10, 200),
+      });
+    });
+
+    rerender({
+      markets: [makeMarket('BTC', makeTrend(2, [500, 501])), makeMarket('ETH')],
+    });
+
+    expect(result.current.sparklines.BTC).toEqual([500, 501]);
+    expect(result.current.sparklines.ETH?.[0]).toBe(200);
+  });
+
   it('keeps the last fallback data and only replaces it on explicit refresh', async () => {
     let callback: ((candleData: CandleData) => void) | undefined;
     mockSubscribe.mockImplementation(
