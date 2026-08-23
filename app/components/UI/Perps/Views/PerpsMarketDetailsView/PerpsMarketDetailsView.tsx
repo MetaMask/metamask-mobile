@@ -564,6 +564,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   useEffect(() => {
     if (!isMarketContextReady) {
       setOhlcData(null);
+      setIsFullscreenChartVisible(false);
     }
   }, [isMarketContextReady, marketContextKey]);
 
@@ -1733,7 +1734,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
               onError={handleChartError}
             >
               {/* OHLCV Bar - Shows above chart when interacting */}
-              {ohlcData && (
+              {isMarketContextReady && ohlcData && (
                 <PerpsOHLCVBar
                   open={ohlcData.open}
                   high={ohlcData.high}
@@ -2056,20 +2057,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       )}
 
       {/* Fullscreen Chart Modal */}
-      <PerpsChartFullscreenModal
-        isVisible={isFullscreenChartVisible}
-        candleData={candleData}
-        tpslLines={tpslLines}
-        selectedInterval={selectedCandlePeriod}
-        visibleCandleCount={visibleCandleCount}
-        onClose={handleFullscreenChartClose}
-        onIntervalChange={handleCandlePeriodChange}
-        isAdvancedChartEnabled={isAdvancedChartEnabled}
-        symbol={market?.symbol}
-        positionSize={existingPosition?.size}
-        szDecimals={marketData?.szDecimals}
-        fallbackFetchMoreHistory={fetchMoreHistory}
-      />
+      {isMarketContextReady && (
+        <PerpsChartFullscreenModal
+          isVisible={isFullscreenChartVisible}
+          candleData={candleData}
+          tpslLines={tpslLines}
+          selectedInterval={selectedCandlePeriod}
+          visibleCandleCount={visibleCandleCount}
+          onClose={handleFullscreenChartClose}
+          onIntervalChange={handleCandlePeriodChange}
+          isAdvancedChartEnabled={isAdvancedChartEnabled}
+          symbol={market?.symbol}
+          positionSize={existingPosition?.size}
+          szDecimals={marketData?.szDecimals}
+          fallbackFetchMoreHistory={fetchMoreHistory}
+        />
+      )}
 
       {/* Market Insights Disclaimer Bottom Sheet */}
       {isInsightsDisclaimerVisible && (

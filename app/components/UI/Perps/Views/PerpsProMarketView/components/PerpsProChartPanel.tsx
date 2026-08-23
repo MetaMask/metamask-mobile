@@ -149,6 +149,7 @@ const PerpsProChartPanel = ({
   useEffect(() => {
     if (!isMarketContextReady) {
       setOhlcData(null);
+      setIsFullscreenChartVisible(false);
     }
   }, [isMarketContextReady, marketContextKey]);
 
@@ -400,7 +401,7 @@ const PerpsProChartPanel = ({
                 onError={onChartError}
               >
                 <Box twClassName="relative flex-1">
-                  {ohlcData ? (
+                  {isMarketContextReady && ohlcData ? (
                     <Box twClassName="absolute left-0 right-0 top-0 z-10">
                       <PerpsOHLCVBar
                         open={ohlcData.open}
@@ -429,20 +430,22 @@ const PerpsProChartPanel = ({
           PerpsProMarketViewSelectorsIDs.CHART_SERVICE_INTERRUPTION_BANNER
         }
       />
-      <PerpsChartFullscreenModal
-        isVisible={isFullscreenChartVisible}
-        candleData={candleData}
-        tpslLines={tpslLines}
-        selectedInterval={selectedCandlePeriod}
-        visibleCandleCount={visibleCandleCount}
-        onClose={() => setIsFullscreenChartVisible(false)}
-        onIntervalChange={onCandlePeriodChange}
-        isAdvancedChartEnabled={isAdvancedChartEnabled}
-        symbol={symbol}
-        positionSize={existingPosition?.size}
-        szDecimals={marketData?.szDecimals}
-        fallbackFetchMoreHistory={fetchMoreHistory}
-      />
+      {isMarketContextReady && (
+        <PerpsChartFullscreenModal
+          isVisible={isFullscreenChartVisible}
+          candleData={candleData}
+          tpslLines={tpslLines}
+          selectedInterval={selectedCandlePeriod}
+          visibleCandleCount={visibleCandleCount}
+          onClose={() => setIsFullscreenChartVisible(false)}
+          onIntervalChange={onCandlePeriodChange}
+          isAdvancedChartEnabled={isAdvancedChartEnabled}
+          symbol={symbol}
+          positionSize={existingPosition?.size}
+          szDecimals={marketData?.szDecimals}
+          fallbackFetchMoreHistory={fetchMoreHistory}
+        />
+      )}
     </>
   );
 };
