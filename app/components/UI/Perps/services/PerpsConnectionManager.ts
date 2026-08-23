@@ -497,6 +497,7 @@ class PerpsConnectionManagerClass {
       this.isConnecting = false;
       this.isConnected = false;
       this.isInitialized = false;
+      this.setInitializedMarketContextKey(null);
       if (!suppressError) {
         this.setError(PERPS_ERROR_CODES.CONNECTION_TIMEOUT);
       }

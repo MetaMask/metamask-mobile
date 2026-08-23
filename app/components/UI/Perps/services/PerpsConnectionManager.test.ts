@@ -1971,8 +1971,10 @@ describe('PerpsConnectionManager', () => {
         startConnectionTimeout: (suppressError?: boolean) => void;
         error: string | null;
         isConnecting: boolean;
+        initializedMarketContextKey: string | null;
       };
       m.isConnecting = true;
+      m.initializedMarketContextKey = 'testnet|hyperliquid|1';
 
       m.startConnectionTimeout(true);
 
@@ -1981,6 +1983,7 @@ describe('PerpsConnectionManager', () => {
 
       // Error should NOT be set because suppressError=true
       expect(m.error).toBeNull();
+      expect(m.initializedMarketContextKey).toBeNull();
 
       jest.useRealTimers();
     });

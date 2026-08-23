@@ -50,6 +50,8 @@ export interface UsePerpsLiveOrderBookOptions {
 export interface UsePerpsLiveOrderBookReturn {
   /** Order book data */
   orderBook: OrderBookData | null;
+  /** Symbol associated with the current data or terminal subscription state. */
+  dataSymbol: string | null;
   /** Whether the initial data is still loading */
   isLoading: boolean;
   /** Error if subscription failed */
@@ -97,6 +99,7 @@ export function usePerpsLiveOrderBook(
   const isAggregated = channel === 'orderBookAggregated';
 
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
+  const [dataSymbol, setDataSymbol] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [connectionStatus, setConnectionStatus] =
@@ -109,27 +112,32 @@ export function usePerpsLiveOrderBook(
 
   // Use refs for throttling
   const lastUpdateRef = useRef<number>(0);
-  const pendingUpdateRef = useRef<OrderBookData | null>(null);
+  const pendingUpdateRef = useRef<{
+    data: OrderBookData;
+    symbol: string;
+  } | null>(null);
   const throttleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Throttled update function
   const applyUpdate = useCallback(
-    (data: OrderBookData) => {
+    (data: OrderBookData, updateSymbol: string) => {
       const now = Date.now();
       const timeSinceLastUpdate = now - lastUpdateRef.current;
 
       if (timeSinceLastUpdate >= throttleMs) {
         setOrderBook(data);
+        setDataSymbol(updateSymbol);
         lastUpdateRef.current = now;
         setIsLoading(false);
       } else {
-        pendingUpdateRef.current = data;
+        pendingUpdateRef.current = { data, symbol: updateSymbol };
 
         if (!throttleTimerRef.current) {
           const remainingTime = throttleMs - timeSinceLastUpdate;
           throttleTimerRef.current = setTimeout(() => {
             if (pendingUpdateRef.current) {
-              setOrderBook(pendingUpdateRef.current);
+              setOrderBook(pendingUpdateRef.current.data);
+              setDataSymbol(pendingUpdateRef.current.symbol);
               lastUpdateRef.current = Date.now();
               pendingUpdateRef.current = null;
               setIsLoading(false);
@@ -145,12 +153,14 @@ export function usePerpsLiveOrderBook(
   useEffect(() => {
     if (!symbol || !enabled) {
       setOrderBook(null);
+      setDataSymbol(null);
       setIsLoading(false);
       setConnectionStatus(isAggregated ? 'connecting' : 'connected');
       return;
     }
 
     setOrderBook(null);
+    setDataSymbol(null);
     setIsLoading(true);
     setError(null);
     setConnectionStatus(isAggregated ? 'connecting' : 'connected');
@@ -178,10 +188,13 @@ export function usePerpsLiveOrderBook(
           nSigFigs,
           mantissa,
           callback: (data: OrderBookData) => {
-            applyUpdate(data);
+            applyUpdate(data, symbol);
           },
           onStatusChange: (status) => {
             setConnectionStatus(status);
+            if (status === 'error') {
+              setDataSymbol(symbol);
+            }
           },
         });
       } else {
@@ -193,10 +206,11 @@ export function usePerpsLiveOrderBook(
           mantissa,
           fast,
           callback: (data: OrderBookData) => {
-            applyUpdate(data);
+            applyUpdate(data, symbol);
           },
           onError: (err: Error) => {
             DevLogger.log('usePerpsLiveOrderBook: Subscription error', err);
+            setDataSymbol(symbol);
             setError(err);
             setIsLoading(false);
           },
@@ -248,12 +262,21 @@ export function usePerpsLiveOrderBook(
   return useMemo(
     () => ({
       orderBook,
+      dataSymbol,
       isLoading,
       error,
       connectionStatus: isAggregated ? connectionStatus : 'connected',
       reconnect,
     }),
-    [orderBook, isLoading, error, connectionStatus, isAggregated, reconnect],
+    [
+      orderBook,
+      dataSymbol,
+      isLoading,
+      error,
+      connectionStatus,
+      isAggregated,
+      reconnect,
+    ],
   );
 }
 

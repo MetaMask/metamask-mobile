@@ -22,6 +22,7 @@ const mockMarketData = {
   subscribe: mockSubscribe,
   refresh: mockRefresh,
   getSnapshot: () => mockChannelMarketsSnapshot,
+  getLastDeliveredAt: jest.fn((): number | null => Date.now()),
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -217,6 +218,21 @@ describe('usePerpsMarkets', () => {
       // Assert
       expect(result.current.markets).toEqual([]);
       expect(result.current.error).toBeNull();
+      expect(result.current.hasResolvedInitialData).toBe(true);
+    });
+
+    it('returns to unresolved when the current market channel is cleared', async () => {
+      const { result } = renderHook(() => usePerpsMarkets());
+
+      await waitFor(() => {
+        expect(result.current.hasResolvedInitialData).toBe(true);
+      });
+
+      const subscriberCallback = mockSubscribe.mock.calls[0][0].callback;
+      mockMarketData.getLastDeliveredAt.mockReturnValueOnce(null);
+      act(() => subscriberCallback([]));
+
+      expect(result.current.hasResolvedInitialData).toBe(false);
     });
   });
 

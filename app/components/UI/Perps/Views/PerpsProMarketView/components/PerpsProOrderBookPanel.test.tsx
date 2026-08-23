@@ -14,7 +14,13 @@ const mockSaveGrouping = jest.fn();
 const mockSavedGroupingBySymbol: Record<string, number | undefined> = {};
 
 jest.mock('../../../hooks/stream/usePerpsLiveOrderBook', () => ({
-  usePerpsLiveOrderBook: (params: unknown) => mockUsePerpsLiveOrderBook(params),
+  usePerpsLiveOrderBook: (params: { symbol: string }) => {
+    const result = mockUsePerpsLiveOrderBook(params);
+    return {
+      ...result,
+      dataSymbol: result.dataSymbol ?? params.symbol,
+    };
+  },
 }));
 
 jest.mock('../../../hooks/usePerpsOrderBookGrouping', () => ({
@@ -240,6 +246,30 @@ describe('PerpsProOrderBookPanel', () => {
     expect(getByTestId(`${testID}-skeleton`)).toBeOnTheScreen();
     expect(queryByTestId(`${testID}-ask-row-0`)).not.toBeOnTheScreen();
     expect(queryByTestId(`${testID}-reconnect`)).not.toBeOnTheScreen();
+  });
+
+  it('keeps readiness loading while the book belongs to the prior symbol', () => {
+    const onResolvedStateChange = jest.fn();
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: mockOrderBook,
+      dataSymbol: 'ETH',
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: mockReconnect,
+    }));
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(getByTestId(`${testID}-skeleton`)).toBeOnTheScreen();
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'loading');
   });
 
   it('disables both order-book sockets until the market context is ready', () => {

@@ -628,13 +628,26 @@ describe('PerpsAdvancedChart', () => {
       interval: CandlePeriod.OneHour,
       candles: [],
     };
-    renderChart({ fallbackCandleData, onResolved });
+    const { rerender } = renderChart({ fallbackCandleData, onResolved });
 
     act(() => {
       advancedChartProps().onError?.('chart failed');
     });
 
     expect(onResolved).toHaveBeenCalledWith('BTC|1h', 'empty');
+
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={{ ...fallbackCandleData, candles: [] }}
+        onResolved={onResolved}
+      />,
+    );
+
+    expect(onResolved).toHaveBeenCalledTimes(1);
   });
 });
 

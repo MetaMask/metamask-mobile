@@ -158,10 +158,6 @@ const PerpsProChartPanel = ({
       onResolvedStateChange?.(symbol, 'not_applicable', chartContextKey);
       return;
     }
-    if (!isMarketContextReady) {
-      onResolvedStateChange?.(symbol, 'loading', chartContextKey);
-      return;
-    }
     onResolvedStateChange?.(symbol, 'loading', chartContextKey);
   }, [
     chartContextKey,

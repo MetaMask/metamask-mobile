@@ -26,10 +26,20 @@ import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
 
 interface MockLiveOrderBookResult {
   orderBook: OrderBookData | null;
+  dataSymbol?: string | null;
   isLoading: boolean;
   error: null;
   connectionStatus: string;
   reconnect: () => void;
+}
+
+interface MockUsePerpsMarketsResult {
+  markets: { symbol: string; maxLeverage: string }[];
+  isLoading: boolean;
+  error: null;
+  hasResolvedInitialData?: boolean;
+  refresh: jest.Mock;
+  isRefreshing: boolean;
 }
 
 interface MockRouteParams {
@@ -310,7 +320,13 @@ const mockUsePerpsLiveOrderBook = jest.fn(
   }),
 );
 jest.mock('../../hooks/stream/usePerpsLiveOrderBook', () => ({
-  usePerpsLiveOrderBook: (params: unknown) => mockUsePerpsLiveOrderBook(params),
+  usePerpsLiveOrderBook: (params: { symbol: string }) => {
+    const result = mockUsePerpsLiveOrderBook(params);
+    return {
+      ...result,
+      dataSymbol: result.dataSymbol ?? params.symbol,
+    };
+  },
 }));
 
 jest.mock('../../hooks/usePerpsOrderBookGrouping', () => ({
@@ -342,7 +358,7 @@ jest.mock('../../contexts/PerpsOrderContext', () => ({
 // PerpsStreamProvider in the tree, and overridable per-test via
 // `mockUsePerpsMarketsImpl` for the enrichment test below.
 const mockUsePerpsMarketsImpl = jest.fn(
-  (_options?: UsePerpsMarketsOptions) => ({
+  (_options?: UsePerpsMarketsOptions): MockUsePerpsMarketsResult => ({
     markets: [] as { symbol: string; maxLeverage: string }[],
     isLoading: false,
     error: null,
@@ -790,6 +806,42 @@ describe('PerpsProMarketView', () => {
     const { getByText } = renderView();
 
     expect(getByText('40x')).toBeOnTheScreen();
+  });
+
+  it('keeps market readiness loading until the current stream resolves', () => {
+    mockRouteParams = { market: { symbol: 'BTC', name: 'Bitcoin' } };
+    mockUsePerpsMarketsImpl.mockReturnValue({
+      markets: [],
+      isLoading: false,
+      error: null,
+      hasResolvedInitialData: false,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const view = renderView();
+
+    expect(mockUsePerpsMarketDetailSession).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        sections: expect.objectContaining({ market: 'loading' }),
+      }),
+    );
+
+    mockUsePerpsMarketsImpl.mockReturnValue({
+      markets: [],
+      isLoading: false,
+      error: null,
+      hasResolvedInitialData: true,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProMarketView />);
+
+    expect(mockUsePerpsMarketDetailSession).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        sections: expect.objectContaining({ market: 'empty' }),
+      }),
+    );
   });
 
   it('does not re-fetch markets when route data already has a formatted maxLeverage', () => {

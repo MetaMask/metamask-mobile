@@ -25,6 +25,8 @@ export interface UsePerpsMarketsResult {
    * Error state with error message
    */
   error: string | null;
+  /** Whether the current market channel has delivered, including an empty list. */
+  hasResolvedInitialData?: boolean;
   /**
    * Refresh function to manually refetch data
    */
@@ -109,6 +111,12 @@ export const usePerpsMarkets = (
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasResolvedInitialData, setHasResolvedInitialData] = useState(
+    () =>
+      skipInitialFetch ||
+      (initialChannelMarkets !== null && initialChannelMarkets !== undefined) ||
+      hasPreloadedData('cachedMarketData'),
+  );
 
   // Helper function to filter and sort markets by volume
   const sortMarketsByVolume = useCallback(
@@ -145,6 +153,7 @@ export const usePerpsMarkets = (
   useEffect(() => {
     if (skipInitialFetch) {
       setIsLoading(false);
+      setHasResolvedInitialData(true);
       return;
     }
 
@@ -153,6 +162,12 @@ export const usePerpsMarkets = (
 
     const unsubscribe = streamManager.marketData.subscribe({
       callback: (marketData) => {
+        if (marketData !== null && marketData !== undefined) {
+          setHasResolvedInitialData(
+            marketData.length > 0 ||
+              streamManager.marketData.getLastDeliveredAt() !== null,
+          );
+        }
         const receiveTime = Date.now();
         const timeToData = receiveTime - subscriptionStartTime;
         if (marketData && marketData.length > 0) {
@@ -213,6 +228,7 @@ export const usePerpsMarkets = (
     markets,
     isLoading,
     error,
+    hasResolvedInitialData,
     refresh,
     isRefreshing,
   };

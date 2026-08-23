@@ -4,6 +4,7 @@ import PerpsProMarketStatsBar from './PerpsProMarketStatsBar';
 import type { PerpsProMarketStatsBarProps } from './PerpsProMarketStatsBar.types';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
+import type { UsePerpsMarketStatsReturn } from '../../hooks/usePerpsMarketStats';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -22,7 +23,7 @@ jest.mock('@metamask/perps-controller', () => ({
   calculateFundingCountdown: jest.fn(() => '39:24'),
 }));
 
-const mockMarketStats = {
+const mockMarketStats: UsePerpsMarketStatsReturn = {
   high24h: '$50,000.00',
   low24h: '$45,000.00',
   volume24h: '$1.37B',
@@ -30,6 +31,9 @@ const mockMarketStats = {
   fundingRate: '0.0100%',
   currentPrice: 64639,
   isLoading: false,
+  dataSymbol: 'BTC',
+  hasLiveData: true,
+  hasError: false,
   refresh: jest.fn(),
 };
 const mockUsePerpsMarketStats = jest.fn((_symbol?: string) => mockMarketStats);
@@ -106,6 +110,33 @@ describe('PerpsProMarketStatsBar', () => {
     renderComponent({ symbol: 'ETH' });
 
     expect(mockUsePerpsMarketStats).toHaveBeenCalledWith('ETH');
+  });
+
+  it('keeps readiness loading until live volume or open interest arrives', () => {
+    const onResolvedStateChange = jest.fn();
+    mockUsePerpsMarketStats.mockReturnValue({
+      ...mockMarketStats,
+      dataSymbol: 'BTC',
+      hasLiveData: false,
+    });
+
+    const view = renderComponent({ onResolvedStateChange });
+
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'loading');
+
+    mockUsePerpsMarketStats.mockReturnValue({
+      ...mockMarketStats,
+      dataSymbol: 'BTC',
+      hasLiveData: true,
+    });
+    view.rerender(
+      <PerpsProMarketStatsBar
+        {...defaultProps}
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+    );
+
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'content');
   });
 
   it('prefers the live WebSocket funding rate when available', () => {

@@ -2499,6 +2499,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       this.cache.clear();
       this.lastFetchTime = 0;
       this.cachedSourceKey = null;
+      this.lastDeliveredAt = null;
     }
 
     this.subscribers.forEach((subscriber) => {

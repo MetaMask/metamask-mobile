@@ -210,6 +210,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
 
   // Per-mount error fallback: once errored, stay on Lightweight until unmount.
   const [hasFailed, setHasFailed] = useState(false);
+  const reportedFallbackResolutionRef = useRef<string | null>(null);
 
   const { colors } = useTheme();
 
@@ -436,10 +437,12 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
 
   useEffect(() => {
     if (hasFailed && fallbackCandleData?.symbol === symbol) {
-      onResolved?.(
-        ohlcvSeriesKey,
-        fallbackCandleData.candles.length > 0 ? 'content' : 'empty',
-      );
+      const state = fallbackCandleData.candles.length > 0 ? 'content' : 'empty';
+      const resolutionKey = `${ohlcvSeriesKey}|${state}`;
+      if (reportedFallbackResolutionRef.current !== resolutionKey) {
+        reportedFallbackResolutionRef.current = resolutionKey;
+        onResolved?.(ohlcvSeriesKey, state);
+      }
     }
   }, [fallbackCandleData, hasFailed, ohlcvSeriesKey, onResolved, symbol]);
 

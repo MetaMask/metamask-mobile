@@ -115,7 +115,7 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
     }
     onResolvedStateChange?.(
       symbol,
-      marketStats.hasLiveData ? 'content' : 'empty',
+      marketStats.hasLiveData ? 'content' : 'loading',
     );
   }, [
     marketStats.dataSymbol,

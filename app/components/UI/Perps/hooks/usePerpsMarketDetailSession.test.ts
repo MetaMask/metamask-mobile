@@ -259,7 +259,6 @@ describe('usePerpsMarketDetailSession', () => {
   );
 
   it.each([
-    ['configuration key', { configurationKey: 'insights-on' }],
     ['chart strategy', { configuredChartLibrary: 'advanced' }],
     ['entry source', { entrySource: 'deeplink' }],
   ])('restarts Live and Session for a %s change', (_name, changedProps) => {
@@ -274,6 +273,28 @@ describe('usePerpsMarketDetailSession', () => {
     });
 
     expect(result.current.liveResetKey).not.toBe(initialLiveResetKey);
+    expect(result.current.generationTrigger).toBe('configuration_change');
+    expect(trace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          generation_trigger: 'configuration_change',
+        }),
+      }),
+    );
+  });
+
+  it('restarts only the section session for a configuration change', () => {
+    const { result, rerender } = renderSession();
+    const initialLiveResetKey = result.current.liveResetKey;
+    jest.clearAllMocks();
+
+    rerender({
+      symbol: 'ETH',
+      currentSections: resolvedSections,
+      configurationKey: 'insights-on',
+    });
+
+    expect(result.current.liveResetKey).toBe(initialLiveResetKey);
     expect(result.current.generationTrigger).toBe('configuration_change');
     expect(trace).toHaveBeenCalledWith(
       expect.objectContaining({
