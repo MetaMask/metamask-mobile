@@ -101,6 +101,11 @@ const mockHandleMarketListPress = jest.fn();
 const mockHandleFavoritePress = jest.fn();
 const mockHandlePerpsModeChange = jest.fn();
 const mockHeaderPerpsMode = PerpsMode.Pro;
+let mockMarketContextReady = true;
+const mockUsePerpsMarketDetailSession = jest.fn((_params?: unknown) => ({
+  generationTrigger: 'initial',
+  liveResetKey: 'detail-session',
+}));
 
 const mockPerpsProChartPanel = jest.fn(
   ({ symbol, onMorePress }: MockChartPanelProps) => (
@@ -228,8 +233,14 @@ jest.mock('../../hooks/usePerpsMarketHeaderActions', () => ({
 jest.mock('../../hooks/usePerpsMarketContext', () => ({
   usePerpsMarketContext: () => ({
     key: 'testnet|hyperliquid|1',
-    isReady: true,
+    isReady: mockMarketContextReady,
   }),
+}));
+
+jest.mock('../../hooks/usePerpsMarketDetailSession', () => ({
+  ...jest.requireActual('../../hooks/usePerpsMarketDetailSession'),
+  usePerpsMarketDetailSession: (params: unknown) =>
+    mockUsePerpsMarketDetailSession(params),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -403,6 +414,7 @@ const renderView = () =>
 describe('PerpsProMarketView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMarketContextReady = true;
     mockRouteParams = {
       market: {
         symbol: 'BTC',
@@ -436,6 +448,18 @@ describe('PerpsProMarketView', () => {
       orders: [],
       isInitialLoading: false,
     });
+  });
+
+  it('keeps account readiness loading while market context reconnects', () => {
+    mockMarketContextReady = false;
+
+    renderView();
+
+    expect(mockUsePerpsMarketDetailSession).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        sections: expect.objectContaining({ account: 'loading' }),
+      }),
+    );
   });
 
   it('configures an empty fallback amount for the Pro order form', () => {

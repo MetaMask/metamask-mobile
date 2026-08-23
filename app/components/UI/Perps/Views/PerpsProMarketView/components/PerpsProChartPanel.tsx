@@ -137,7 +137,7 @@ const PerpsProChartPanel = ({
     [effectiveChartLibrary],
   );
 
-  const { candleData, hasHistoricalData, fetchMoreHistory } =
+  const { candleData, isLoading, hasHistoricalData, fetchMoreHistory } =
     usePerpsLiveCandles({
       symbol,
       interval: selectedCandlePeriod,
@@ -180,9 +180,13 @@ const PerpsProChartPanel = ({
       !isAdvancedChartEnabled &&
       candleData?.symbol === symbol &&
       candleData.interval === selectedCandlePeriod &&
-      hasHistoricalData
+      !isLoading
     ) {
-      onResolvedStateChange?.(symbol, 'content', chartContextKey);
+      onResolvedStateChange?.(
+        symbol,
+        hasHistoricalData ? 'content' : 'empty',
+        chartContextKey,
+      );
     }
   }, [
     candleData?.interval,
@@ -191,6 +195,7 @@ const PerpsProChartPanel = ({
     hasHistoricalData,
     isAdvancedChartEnabled,
     isChartExpanded,
+    isLoading,
     isMarketContextReady,
     onResolvedStateChange,
     selectedCandlePeriod,
@@ -304,7 +309,11 @@ const PerpsProChartPanel = ({
         paginationDuration={TimeDuration.YearToDate}
       />
     );
-  } else if (hasHistoricalData) {
+  } else if (
+    candleData?.symbol === symbol &&
+    candleData.interval === selectedCandlePeriod &&
+    !isLoading
+  ) {
     chartContent = (
       <TradingViewChart
         ref={chartRef}

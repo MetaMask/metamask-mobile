@@ -1175,6 +1175,10 @@ class PerpsConnectionManagerClass {
       const skipMarketNotify = this.pendingSkipMarketNotify;
       this.pendingSkipMarketNotify = false;
 
+      if (!skipMarketNotify) {
+        this.setInitializedMarketContextKey(null);
+      }
+
       streamManager.positions.clearCache();
       streamManager.orders.clearCache();
       streamManager.account.clearCache();
@@ -1330,6 +1334,7 @@ class PerpsConnectionManagerClass {
     } catch (error) {
       this.isConnected = false;
       this.isInitialized = false;
+      this.setInitializedMarketContextKey(null);
 
       // Clear connection timeout on error
       this.clearConnectionTimeout();

@@ -969,6 +969,52 @@ describe('PerpsConnectionManager', () => {
       );
     });
 
+    it('invalidates market readiness during a non-account reconnect', async () => {
+      const manager = PerpsConnectionManager as unknown as {
+        initializedMarketContextKey: string | null;
+        pendingSkipMarketNotify: boolean;
+        getSelectedMarketContextKey: () => string;
+        reconnectWithNewContext: () => Promise<void>;
+      };
+      const selectedMarketContextKey = manager.getSelectedMarketContextKey();
+      manager.initializedMarketContextKey = selectedMarketContextKey;
+      manager.pendingSkipMarketNotify = false;
+      const listener = jest.fn();
+      const unsubscribe =
+        PerpsConnectionManager.subscribeToInitializedMarketContext(listener);
+
+      await manager.reconnectWithNewContext();
+
+      expect(listener).toHaveBeenCalledTimes(2);
+      expect(PerpsConnectionManager.getInitializedMarketContextKey()).toBe(
+        selectedMarketContextKey,
+      );
+      unsubscribe();
+    });
+
+    it('preserves market readiness during an account-only reconnect', async () => {
+      const manager = PerpsConnectionManager as unknown as {
+        initializedMarketContextKey: string | null;
+        pendingSkipMarketNotify: boolean;
+        getSelectedMarketContextKey: () => string;
+        reconnectWithNewContext: () => Promise<void>;
+      };
+      const selectedMarketContextKey = manager.getSelectedMarketContextKey();
+      manager.initializedMarketContextKey = selectedMarketContextKey;
+      manager.pendingSkipMarketNotify = true;
+      const listener = jest.fn();
+      const unsubscribe =
+        PerpsConnectionManager.subscribeToInitializedMarketContext(listener);
+
+      await manager.reconnectWithNewContext();
+
+      expect(listener).not.toHaveBeenCalled();
+      expect(PerpsConnectionManager.getInitializedMarketContextKey()).toBe(
+        selectedMarketContextKey,
+      );
+      unsubscribe();
+    });
+
     it('waits for concurrent controller reinit before health-check ping', async () => {
       // Arrange: controller reports reinitializing on first call, ready on second
       mockPerpsController.init.mockResolvedValue();
@@ -998,6 +1044,11 @@ describe('PerpsConnectionManager', () => {
 
     it('logs error and resets connecting flag when reconnection fails', async () => {
       const error = new Error('Reconnection failed');
+      (
+        PerpsConnectionManager as unknown as {
+          initializedMarketContextKey: string | null;
+        }
+      ).initializedMarketContextKey = 'mainnet|hyperliquid|0';
       mockPerpsController.init.mockRejectedValueOnce(error);
 
       // Reconnection errors are caught, logged, and re-thrown (so caller can handle)
@@ -1016,6 +1067,9 @@ describe('PerpsConnectionManager', () => {
       expect(
         mockStreamManagerInstance.candles.reconnect,
       ).not.toHaveBeenCalled();
+      expect(
+        PerpsConnectionManager.getInitializedMarketContextKey(),
+      ).toBeNull();
     });
   });
 
