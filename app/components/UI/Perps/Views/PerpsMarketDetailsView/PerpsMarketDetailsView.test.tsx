@@ -499,7 +499,7 @@ jest.mock('../../hooks/stream/usePerpsLiveCandles', () => ({
 const defaultLiveCandles = () => ({
   candleData: {
     symbol: 'BTC',
-    interval: '1h',
+    interval: '15m',
     candles: [
       {
         time: 1234567890,
@@ -972,6 +972,9 @@ describe('PerpsMarketDetailsView', () => {
     const mockSelectPerpsEligibility = jest.requireMock(
       '../../selectors/perpsController',
     ).selectPerpsEligibility;
+    const mockSelectPerpsChartPreferredCandlePeriod = jest.requireMock(
+      '../../selectors/chartPreferences',
+    ).selectPerpsChartPreferredCandlePeriod;
     useSelector.mockImplementation((selector: unknown) => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
@@ -981,6 +984,9 @@ describe('PerpsMarketDetailsView', () => {
       }
       if (selector === selectPerpsAdvancedChartEnabledFlag) {
         return false;
+      }
+      if (selector === mockSelectPerpsChartPreferredCandlePeriod) {
+        return CandlePeriod.FifteenMinutes;
       }
       return undefined;
     });

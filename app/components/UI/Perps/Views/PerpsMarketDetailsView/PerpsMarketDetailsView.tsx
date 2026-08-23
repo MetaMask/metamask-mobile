@@ -903,7 +903,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       ? advancedChartResolution?.key === advancedChartReadinessKey
         ? advancedChartResolution.state
         : 'loading'
-      : candleData?.symbol === market?.symbol &&
+      : market?.symbol &&
+          candleData?.symbol === market.symbol &&
           candleData.interval === selectedCandlePeriod &&
           !isLoadingHistory
         ? hasHistoricalData
@@ -912,11 +913,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         : 'loading';
   const statsSectionState: PerpsMarketDetailSectionState = marketStats.hasError
     ? 'error'
-    : marketStats.dataSymbol !== market?.symbol
-      ? 'loading'
-      : marketStats.hasLiveData
-        ? 'content'
-        : 'empty';
+    : marketStats.dataSymbol === market?.symbol && marketStats.hasLiveData
+      ? 'content'
+      : 'loading';
   const insightsSectionState: PerpsMarketDetailSectionState =
     !isPerpsInsightsEnabled
       ? 'not_applicable'
@@ -988,7 +987,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     endConditions: [
       marketSectionState === 'content',
       priceSectionState === 'content',
-      statsSectionState !== 'loading' && statsSectionState !== 'error',
+      statsSectionState === 'content',
       accountSectionState !== 'loading',
     ],
     resetConditions: [statsSectionState === 'error'],
@@ -1783,7 +1782,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                     fallbackFetchMoreHistory={fetchMoreHistory}
                     paginationDuration={TimeDuration.YearToDate}
                   />
-                ) : candleData?.symbol === market?.symbol &&
+                ) : market?.symbol &&
+                  candleData?.symbol === market.symbol &&
                   candleData.interval === selectedCandlePeriod &&
                   !isLoadingHistory ? (
                   <TradingViewChart

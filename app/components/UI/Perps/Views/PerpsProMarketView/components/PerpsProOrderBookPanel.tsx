@@ -470,16 +470,19 @@ const PerpsProOrderBookPanel = ({
   }
 
   // Raw, full-precision book — mid price + spread (shared controller socket).
-  const { orderBook: rawOrderBook } = usePerpsLiveOrderBook({
-    symbol,
-    enabled: Boolean(symbol) && isMarketContextReady,
-    // Leave nSigFigs at default 5 / no mantissa so this stays full-precision
-    // relative to the aggregated channel's coarser grouping.
-    levels: ORDER_BOOK_AGGREGATED_LEVELS,
-  });
+  const { orderBook: rawOrderBook, dataSymbol: rawOrderBookSymbol } =
+    usePerpsLiveOrderBook({
+      symbol,
+      enabled: Boolean(symbol) && isMarketContextReady,
+      // Leave nSigFigs at default 5 / no mantissa so this stays full-precision
+      // relative to the aggregated channel's coarser grouping.
+      levels: ORDER_BOOK_AGGREGATED_LEVELS,
+    });
 
   const midPriceValue = useMemo<number | null>(() => {
-    const orderBookMid = Number.parseFloat(rawOrderBook?.midPrice ?? '');
+    const orderBookMid = Number.parseFloat(
+      rawOrderBookSymbol === symbol ? (rawOrderBook?.midPrice ?? '') : '',
+    );
     if (Number.isFinite(orderBookMid) && orderBookMid > 0) {
       return orderBookMid;
     }
@@ -487,7 +490,7 @@ const PerpsProOrderBookPanel = ({
       return marketPrice;
     }
     return null;
-  }, [rawOrderBook?.midPrice, marketPrice]);
+  }, [marketPrice, rawOrderBook?.midPrice, rawOrderBookSymbol, symbol]);
 
   const groupingOptions = useMemo(
     () => calculateGroupingOptions(midPriceValue ?? 0),
@@ -530,6 +533,7 @@ const PerpsProOrderBookPanel = ({
   // Server-aggregated book on its own dedicated socket (does not disturb raw).
   const {
     orderBook: aggregatedOrderBook,
+    dataSymbol: aggregatedOrderBookSymbol,
     isLoading: isInitialLoading,
     connectionStatus,
     reconnect,
@@ -595,27 +599,28 @@ const PerpsProOrderBookPanel = ({
     [saveGrouping],
   );
 
+  const isOrderBookForCurrentSymbol = aggregatedOrderBookSymbol === symbol;
   const hasLadder = Boolean(
     isMarketContextReady &&
+      isOrderBookForCurrentSymbol &&
       grouped &&
       (grouped.bids.length > 0 || grouped.asks.length > 0),
   );
-  const hasConnectionError = connectionStatus === 'error';
+  const hasConnectionError =
+    isOrderBookForCurrentSymbol && connectionStatus === 'error';
   // Skeleton only when we have no ladder yet (initial connect / reconnect).
   // Avoids collapsing the column into a short "Loading..." message.
   const showSkeleton =
     !hasConnectionError &&
     !hasLadder &&
     (!isMarketContextReady ||
+      !isOrderBookForCurrentSymbol ||
       isInitialLoading ||
       connectionStatus === 'connecting');
   const showEmptyPlaceholder =
     !showSkeleton && (hasConnectionError || !hasLadder);
 
-  const previousSymbolRef = useRef(symbol);
-  const isCurrentSymbol = previousSymbolRef.current === symbol;
   useEffect(() => {
-    previousSymbolRef.current = symbol;
     onResolvedStateChange?.(symbol, 'loading');
   }, [onResolvedStateChange, symbol]);
   useEffect(() => {
@@ -623,7 +628,8 @@ const PerpsProOrderBookPanel = ({
       onResolvedStateChange?.(symbol, 'loading');
       return;
     }
-    if (!isCurrentSymbol) {
+    if (!isOrderBookForCurrentSymbol) {
+      onResolvedStateChange?.(symbol, 'loading');
       return;
     }
     let state: PerpsMarketDetailSectionState = 'loading';
@@ -639,7 +645,7 @@ const PerpsProOrderBookPanel = ({
     hasConnectionError,
     hasLadder,
     isMarketContextReady,
-    isCurrentSymbol,
+    isOrderBookForCurrentSymbol,
     onResolvedStateChange,
     showSkeleton,
     symbol,

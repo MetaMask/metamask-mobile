@@ -49,7 +49,6 @@ import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
-  PERPS_MARKET_DETAIL_SECTION,
   type PerpsMarketDetailSectionState,
   usePerpsMarketDetailSession,
 } from '../../hooks/usePerpsMarketDetailSession';
@@ -85,6 +84,7 @@ import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
 import { createStyles } from './PerpsProMarketView.styles';
 import { canonicalizeOrderPrice } from '../../utils/triggerOrderValidation';
+import { usePerpsProSectionReadiness } from './hooks/usePerpsProSectionReadiness';
 
 interface PerpsProOrderBookColumnProps {
   symbol: string;
@@ -162,18 +162,6 @@ const PerpsProOrderBookColumn = ({
   );
 };
 
-type ProResolvedSection = 'chart' | 'stats' | 'order_book' | 'positions_orders';
-type ProResolvedSections = Partial<
-  Record<
-    ProResolvedSection,
-    {
-      symbol: string;
-      state: PerpsMarketDetailSectionState;
-      contextKey?: string;
-    }
-  >
->;
-
 interface PerpsProMarketViewProps {
   generationTrigger?: 'initial' | 'market_switch' | 'mode_switch';
 }
@@ -214,6 +202,7 @@ const PerpsProMarketView = ({
     markets,
     isLoading: areMarketsLoading,
     error: marketsError,
+    hasResolvedInitialData: haveMarketsResolved = false,
   } = usePerpsMarkets({
     skipInitialFetch: hasFormattedMaxLeverage,
   });
@@ -226,9 +215,6 @@ const PerpsProMarketView = ({
     return enrichedMarket || routeMarket;
   }, [enrichedMarket, hasFormattedMaxLeverage, routeMarket]);
   const [isOrderBookCollapsed, setIsOrderBookCollapsed] = useState(false);
-  const [resolvedSections, setResolvedSections] = useState<ProResolvedSections>(
-    {},
-  );
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Swapping the route param rather than pushing keeps a single Pro screen on
@@ -329,69 +315,6 @@ const PerpsProMarketView = ({
     });
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
-  const updateResolvedSection = useCallback(
-    (
-      section: ProResolvedSection,
-      sectionSymbol: string,
-      state: PerpsMarketDetailSectionState,
-      contextKey?: string,
-    ) => {
-      setResolvedSections((current) => {
-        const previous = current[section];
-        if (
-          previous?.symbol === sectionSymbol &&
-          previous.state === state &&
-          previous.contextKey === contextKey
-        ) {
-          return current;
-        }
-        return {
-          ...current,
-          [section]: { symbol: sectionSymbol, state, contextKey },
-        };
-      });
-    },
-    [],
-  );
-  const handleChartResolvedStateChange = useCallback(
-    (
-      sectionSymbol: string,
-      state: PerpsMarketDetailSectionState,
-      contextKey: string,
-    ) => updateResolvedSection('chart', sectionSymbol, state, contextKey),
-    [updateResolvedSection],
-  );
-  const handleStatsResolvedStateChange = useCallback(
-    (sectionSymbol: string, state: PerpsMarketDetailSectionState) =>
-      updateResolvedSection(
-        'stats',
-        sectionSymbol,
-        state,
-        marketSectionContextKey,
-      ),
-    [marketSectionContextKey, updateResolvedSection],
-  );
-  const handleOrderBookResolvedStateChange = useCallback(
-    (sectionSymbol: string, state: PerpsMarketDetailSectionState) =>
-      updateResolvedSection(
-        'order_book',
-        sectionSymbol,
-        state,
-        marketSectionContextKey,
-      ),
-    [marketSectionContextKey, updateResolvedSection],
-  );
-  const handlePositionsOrdersResolvedStateChange = useCallback(
-    (sectionSymbol: string, state: PerpsMarketDetailSectionState) =>
-      updateResolvedSection(
-        'positions_orders',
-        sectionSymbol,
-        state,
-        userSectionContextKey,
-      ),
-    [updateResolvedSection, userSectionContextKey],
-  );
-
   const handleWalletPress = useCallback(() => {
     setIsBalanceSheetVisible(true);
   }, []);
@@ -465,28 +388,14 @@ const PerpsProMarketView = ({
 
   const currentSymbol = market?.symbol;
   const chartContextKey = `${marketSectionContextKey}|${selectedCandlePeriod}|${configuredChartLibrary}`;
-  const stateForCurrentSymbol = useCallback(
-    (
-      section: ProResolvedSection,
-      contextKey?: string,
-    ): PerpsMarketDetailSectionState => {
-      const resolved = resolvedSections[section];
-      return resolved &&
-        resolved.symbol === currentSymbol &&
-        resolved.contextKey === contextKey
-        ? resolved.state
-        : 'loading';
-    },
-    [currentSymbol, resolvedSections],
-  );
   const marketSectionState: PerpsMarketDetailSectionState =
     currentSymbol &&
     (hasFormattedMaxLeverage || enrichedMarket?.symbol === currentSymbol)
       ? 'content'
-      : areMarketsLoading
-        ? 'loading'
-        : marketsError
-          ? 'error'
+      : marketsError
+        ? 'error'
+        : areMarketsLoading || !haveMarketsResolved
+          ? 'loading'
           : 'empty';
   const priceSectionState: PerpsMarketDetailSectionState =
     isMarketContextReady && syncedChartCurrentPrice > 0 ? 'content' : 'loading';
@@ -496,40 +405,23 @@ const PerpsProMarketView = ({
       : account
         ? 'content'
         : 'empty';
-  const statsSectionState = stateForCurrentSymbol(
-    'stats',
-    marketSectionContextKey,
-  );
-  const detailSections = useMemo(
-    () => ({
-      [PERPS_MARKET_DETAIL_SECTION.MARKET]: marketSectionState,
-      [PERPS_MARKET_DETAIL_SECTION.PRICE]: priceSectionState,
-      [PERPS_MARKET_DETAIL_SECTION.CHART]: stateForCurrentSymbol(
-        'chart',
-        chartContextKey,
-      ),
-      [PERPS_MARKET_DETAIL_SECTION.STATS]: statsSectionState,
-      [PERPS_MARKET_DETAIL_SECTION.ACCOUNT]: accountSectionState,
-      [PERPS_MARKET_DETAIL_SECTION.ORDER_BOOK]: isOrderBookCollapsed
-        ? 'not_applicable'
-        : stateForCurrentSymbol('order_book', marketSectionContextKey),
-      [PERPS_MARKET_DETAIL_SECTION.POSITIONS_ORDERS]: stateForCurrentSymbol(
-        'positions_orders',
-        userSectionContextKey,
-      ),
-    }),
-    [
-      accountSectionState,
-      chartContextKey,
-      marketSectionState,
-      marketSectionContextKey,
-      isOrderBookCollapsed,
-      priceSectionState,
-      stateForCurrentSymbol,
-      statsSectionState,
-      userSectionContextKey,
-    ],
-  );
+  const {
+    onChartResolved: handleChartResolvedStateChange,
+    onOrderBookResolved: handleOrderBookResolvedStateChange,
+    onPositionsOrdersResolved: handlePositionsOrdersResolvedStateChange,
+    onStatsResolved: handleStatsResolvedStateChange,
+    sections: detailSections,
+    statsState: statsSectionState,
+  } = usePerpsProSectionReadiness({
+    accountState: accountSectionState,
+    chartContextKey,
+    currentSymbol,
+    isOrderBookCollapsed,
+    marketContextKey: marketSectionContextKey,
+    marketState: marketSectionState,
+    priceState: priceSectionState,
+    userContextKey: userSectionContextKey,
+  });
   const detailSession = usePerpsMarketDetailSession({
     mode: 'pro',
     symbol: currentSymbol,
@@ -553,25 +445,29 @@ const PerpsProMarketView = ({
       }),
     [detailSession.generationTrigger],
   );
+  const marketDetailEndData = useMemo(
+    () => ({
+      [PERPS_CUF_TAG.VARIANT]:
+        !!account?.totalBalance && Number.parseFloat(account.totalBalance) > 0
+          ? PERPS_CUF_VARIANT.FUNDED
+          : PERPS_CUF_VARIANT.UNFUNDED,
+    }),
+    [account?.totalBalance],
+  );
   usePerpsMeasurement({
     traceName: TraceName.PerpsMarketDetailLive,
     resetKey: detailSession.liveResetKey,
     endConditions: [
       marketSectionState === 'content',
       priceSectionState === 'content',
-      statsSectionState !== 'loading' && statsSectionState !== 'error',
+      statsSectionState === 'content',
       accountSectionState !== 'loading',
     ],
     resetConditions: [statsSectionState === 'error'],
     resetReason: 'stats_error',
     blockStartWhileReset: true,
     tags: marketDetailCufTags,
-    endData: {
-      [PERPS_CUF_TAG.VARIANT]:
-        !!account?.totalBalance && Number.parseFloat(account.totalBalance) > 0
-          ? PERPS_CUF_VARIANT.FUNDED
-          : PERPS_CUF_VARIANT.UNFUNDED,
-    },
+    endData: marketDetailEndData,
   });
 
   const {

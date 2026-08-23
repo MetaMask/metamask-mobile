@@ -16,6 +16,7 @@ import {
 } from '../utils/formatUtils';
 import { usePerpsMarketContext } from './usePerpsMarketContext';
 import { usePerpsLiveCandles } from './stream/usePerpsLiveCandles';
+import Logger from '../../../../util/Logger';
 
 interface MarketStats {
   high24h: string;
@@ -161,7 +162,16 @@ export const usePerpsMarketStats = (
         });
       } catch (error) {
         setMarketDataErrorContextKey(marketContextKey);
-        console.error('Error subscribing to market data:', error);
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          {
+            tags: { feature: PERPS_CONSTANTS.FeatureName },
+            context: {
+              name: 'usePerpsMarketStats.subscribeToMarketData',
+              data: { message: 'Error subscribing to Perps market data' },
+            },
+          },
+        );
       }
     };
 

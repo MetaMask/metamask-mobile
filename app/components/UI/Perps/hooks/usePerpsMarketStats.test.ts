@@ -434,7 +434,7 @@ describe('usePerpsMarketStats', () => {
     expect(result.current.openInterest).toBe('$0');
   });
 
-  it('resolves a current-symbol tick with missing stats as valid empty data', () => {
+  it('does not treat a current-symbol tick without stats as live data', () => {
     mockSubscribeToPrices.mockImplementation(({ callback }) => {
       callback([
         {
