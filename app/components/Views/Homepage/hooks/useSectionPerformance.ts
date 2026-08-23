@@ -225,7 +225,7 @@ export const useSectionPerformance = ({
       });
       ttcEnded.current = true;
     }
-  }, [enabled, contentReady, sectionId, traceContentState, data]);
+  }, [enabled, contentReady, sectionId, traceContentState]);
 
   // ──────────────────────────────────────────────
   // 2. Data Fetch Latency — track isLoading transitions
@@ -274,5 +274,5 @@ export const useSectionPerformance = ({
       fetchStarted.current = false;
       fetchEnded.current = true;
     }
-  }, [enabled, isLoading, sectionId, traceContentState, data]);
+  }, [enabled, isLoading, sectionId, traceContentState]);
 };

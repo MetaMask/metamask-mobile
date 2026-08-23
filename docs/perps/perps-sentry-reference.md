@@ -159,6 +159,8 @@ setMeasurement(
 - **Request-acceptance gate:** cancel/close/TP-SL arm at the gesture but only complete as a success after the controller accepts the request (`acceptPerpsCufRequest`), so a coincidental stream change during a failed request is never recorded as success.
 - **Teardown:** `clearPendingPerpsCufTraces()` (called from the `PerpsConnectionManager` session-change handler) abandons pending confirmations as `disconnected` on an account/network/provider/HIP-3 switch, preserving the reconnect span.
 
+**CUF shared tags** (see `PERPS_CUF_TAG`): `feature`, `lifecycle_context` (`cold_process` | `background_resume` | `warm`, from `perpsLifecycleContext.ts`), plus flow variants — `variant` (`empty`/`position`/`order`, `funded`/`unfunded`), `direction`, `order_type`. **End data:** `success`, `boundary` (`stream`), `reason` (`request_failed`/`stream_timeout`/`controller_timeout`/`disconnected`/`superseded`/`exception`), and `toast_position_delta_ms` (signed; positive = position rendered after the toast) on market place-order.
+
 ### 4. `Perps Loading Session` (Homepage Readiness)
 
 **Use for:** Correlating Homepage Perps readiness milestones within one mounted surface and one account/provider/network/HIP-3 generation.
@@ -170,8 +172,6 @@ setMeasurement(
 - This trace does not replace Perps Home, market-detail, trade, operation-confirmation, preload, connection, or first-live traces.
 
 See [`docs/perps/performance/ARCHITECTURE.md`](performance/ARCHITECTURE.md) for the complete measurement contract.
-
-**Shared tags** (see `PERPS_CUF_TAG`): `feature`, `lifecycle_context` (`cold_process` | `background_resume` | `warm`, from `perpsLifecycleContext.ts`), plus flow variants — `variant` (`empty`/`position`/`order`, `funded`/`unfunded`), `direction`, `order_type`. **End data:** `success`, `boundary` (`stream`), `reason` (`request_failed`/`stream_timeout`/`controller_timeout`/`disconnected`/`superseded`/`exception`), and `toast_position_delta_ms` (signed; positive = position rendered after the toast) on market place-order.
 
 ## Event Catalog
 

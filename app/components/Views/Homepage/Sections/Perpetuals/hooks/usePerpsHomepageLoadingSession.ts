@@ -70,6 +70,9 @@ export function usePerpsHomepageLoadingSession(): PerpsHomepageLoadingSession {
     getPerpsLifecycleContext(),
   );
   const preparedRef = useRef(false);
+  // Arm during render so synchronous stream snapshots published before layout
+  // effects are buffered. The ref and cancel path make StrictMode re-renders
+  // idempotent and prevent an abandoned render from leaking into a later mount.
   if (!preparedRef.current) {
     preparePerpsLoadingSession();
     preparedRef.current = true;

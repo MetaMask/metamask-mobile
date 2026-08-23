@@ -71,27 +71,26 @@ export function useHomepageSparklines(
     Record<string, number[]>
   >({});
   const fallbackDataRef = useRef<Record<string, number[]>>({});
-  const refreshingSymbolsRef = useRef(new Set<string>());
+  const refreshCountBySymbolRef = useRef(new Map<string, number>());
   const flushScheduledRef = useRef(false);
+  const lastSparklinesRef = useRef<Record<string, number[]>>({});
 
-  const trendSparklines = useMemo(() => {
-    const result: Record<string, number[]> = {};
+  const { fallbackSymbolsKey, trendSparklines } = useMemo(() => {
+    const fallbacks: string[] = [];
+    const trends: Record<string, number[]> = {};
     for (const market of safeMarkets) {
       const closes = extractCloses(market.trend);
-      if (closes.length < 2) continue;
-      result[market.symbol] = downsample(closes, SPARKLINE_TARGET_POINTS);
+      if (closes.length < 2) {
+        fallbacks.push(market.symbol);
+      } else {
+        trends[market.symbol] = downsample(closes, SPARKLINE_TARGET_POINTS);
+      }
     }
-    return result;
+    return {
+      fallbackSymbolsKey: fallbacks.join(','),
+      trendSparklines: trends,
+    };
   }, [safeMarkets]);
-
-  const fallbackSymbolsKey = useMemo(
-    () =>
-      safeMarkets
-        .filter((market) => extractCloses(market.trend).length < 2)
-        .map((market) => market.symbol)
-        .join(','),
-    [safeMarkets],
-  );
 
   useEffect(() => {
     let active = true;
@@ -135,7 +134,7 @@ export function useHomepageSparklines(
           }
           if (
             fallbackDataRef.current[symbol] &&
-            !refreshingSymbolsRef.current.has(symbol)
+            (refreshCountBySymbolRef.current.get(symbol) ?? 0) === 0
           ) {
             return;
           }
@@ -159,15 +158,27 @@ export function useHomepageSparklines(
     };
   }, [fallbackSymbolsKey, stream]);
 
-  const sparklines = useMemo(
-    () => ({ ...fallbackSparklines, ...trendSparklines }),
-    [fallbackSparklines, trendSparklines],
-  );
+  const sparklines = useMemo(() => {
+    const current = { ...fallbackSparklines, ...trendSparklines };
+    const next = Object.fromEntries(
+      safeMarkets.flatMap(({ symbol }) => {
+        const values = current[symbol] ?? lastSparklinesRef.current[symbol];
+        return values ? [[symbol, values]] : [];
+      }),
+    );
+    lastSparklinesRef.current = next;
+    return next;
+  }, [fallbackSparklines, safeMarkets, trendSparklines]);
 
   const refresh = useCallback(async () => {
     if (!fallbackSymbolsKey) return;
     const symbols = fallbackSymbolsKey.split(',');
-    symbols.forEach((symbol) => refreshingSymbolsRef.current.add(symbol));
+    symbols.forEach((symbol) =>
+      refreshCountBySymbolRef.current.set(
+        symbol,
+        (refreshCountBySymbolRef.current.get(symbol) ?? 0) + 1,
+      ),
+    );
     try {
       await Promise.all(
         symbols.map((symbol) =>
@@ -180,7 +191,14 @@ export function useHomepageSparklines(
         ),
       );
     } finally {
-      symbols.forEach((symbol) => refreshingSymbolsRef.current.delete(symbol));
+      symbols.forEach((symbol) => {
+        const count = (refreshCountBySymbolRef.current.get(symbol) ?? 1) - 1;
+        if (count > 0) {
+          refreshCountBySymbolRef.current.set(symbol, count);
+        } else {
+          refreshCountBySymbolRef.current.delete(symbol);
+        }
+      });
     }
   }, [fallbackSymbolsKey, stream]);
 
