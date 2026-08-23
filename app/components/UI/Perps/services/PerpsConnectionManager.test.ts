@@ -535,6 +535,11 @@ describe('PerpsConnectionManager', () => {
     });
 
     it('returns connecting state while connection is in progress', async () => {
+      const marketContextListener = jest.fn();
+      const unsubscribe =
+        PerpsConnectionManager.subscribeToInitializedMarketContext(
+          marketContextListener,
+        );
       mockPerpsController.init.mockImplementation(
         () => new Promise((resolve) => setTimeout(resolve, 100)),
       );
@@ -555,6 +560,8 @@ describe('PerpsConnectionManager', () => {
       expect(PerpsConnectionManager.getInitializedMarketContextKey()).toBe(
         'testnet|hyperliquid|0',
       );
+      expect(marketContextListener).toHaveBeenCalledTimes(1);
+      unsubscribe();
     });
   });
 

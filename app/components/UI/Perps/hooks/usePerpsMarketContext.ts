@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from 'react';
+import { useSyncExternalStore } from 'react';
 import { useSelector } from 'react-redux';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
@@ -15,6 +15,12 @@ export interface PerpsMarketContext {
   isConnectionInitialized: boolean;
 }
 
+const subscribeToInitializedMarketContext = (listener: () => void) =>
+  PerpsConnectionManager.subscribeToInitializedMarketContext(listener);
+
+const getInitializedMarketContextSnapshot = () =>
+  PerpsConnectionManager.getInitializedMarketContextKey();
+
 /**
  * Compares the selected market context with the connection that last completed
  * initialization. Account reconnects keep the same market identity, so their
@@ -26,19 +32,11 @@ export function usePerpsMarketContext(): PerpsMarketContext {
   const hip3ConfigVersion = useSelector(selectHip3ConfigVersion);
   const { isInitialized } = usePerpsConnection();
   const key = buildPerpsMarketContextKey(network, provider, hip3ConfigVersion);
-  const [, refreshInitializedContext] = useReducer(
-    (revision: number) => revision + 1,
-    0,
+  const initializedKey = useSyncExternalStore(
+    subscribeToInitializedMarketContext,
+    getInitializedMarketContextSnapshot,
+    getInitializedMarketContextSnapshot,
   );
-  useEffect(
-    () =>
-      PerpsConnectionManager.subscribeToInitializedMarketContext(
-        refreshInitializedContext,
-      ),
-    [],
-  );
-  const initializedKey =
-    PerpsConnectionManager.getInitializedMarketContextKey();
   const isReady = initializedKey === key;
 
   return { key, isReady, isConnectionInitialized: isInitialized };
