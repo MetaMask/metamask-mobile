@@ -13,6 +13,7 @@ import {
 } from '../../Perps.testIds';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import { GLOW_TOTAL_MS } from '../../components/PerpsModeToggle/PerpsModeSwitchPill';
+import type { OhlcData } from '../../components/TradingViewChart';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import { Linking, Platform } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -40,6 +41,9 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 const mockPerpsAdvancedChartMount = jest.fn();
 const mockPerpsAdvancedChartUnmount = jest.fn();
 const mockTradingViewResetToDefault = jest.fn();
+const mockTradingViewRender = jest.fn();
+let mockMarketContextKey = 'testnet|hyperliquid|1';
+let mockMarketContextReady = true;
 
 jest.mock('../../../../../util/haptics');
 
@@ -85,6 +89,7 @@ jest.mock('../../components/TradingViewChart', () => {
   return {
     __esModule: true,
     default: ReactActual.forwardRef((props: object, ref: unknown) => {
+      mockTradingViewRender(props);
       ReactActual.useImperativeHandle(ref, () => ({
         resetToDefault: mockTradingViewResetToDefault,
         zoomToLatestCandle: jest.fn(),
@@ -101,6 +106,14 @@ jest.mock('../../../Ramp/types/legacyDeposit', () => ({
     instant: 'instant',
     oneToTwoDays: 'oneToTwoDays',
   },
+}));
+
+jest.mock('../../hooks/usePerpsMarketContext', () => ({
+  usePerpsMarketContext: () => ({
+    key: mockMarketContextKey,
+    isReady: mockMarketContextReady,
+    isConnectionInitialized: mockMarketContextReady,
+  }),
 }));
 
 // Mock PerpsStreamManager
@@ -875,6 +888,8 @@ describe('PerpsMarketDetailsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPerpsModeValue = 'lite';
+    mockMarketContextKey = 'testnet|hyperliquid|1';
+    mockMarketContextReady = true;
     jest.spyOn(Date, 'now').mockReturnValue(MOCK_NOW_MS);
 
     mockUsePerpsAccount.mockReturnValue({
@@ -1919,6 +1934,60 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeOnTheScreen();
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('market context chart isolation', () => {
+    it('hides prior candles and OHLC while the new context reconnects', () => {
+      const view = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+      const tradingViewProps = mockTradingViewRender.mock.calls.at(-1)?.[0] as
+        | { onOhlcDataChange?: (data: OhlcData) => void }
+        | undefined;
+
+      act(() => {
+        tradingViewProps?.onOhlcDataChange?.({
+          open: '1',
+          high: '2',
+          low: '0.5',
+          close: '1.5',
+          volume: '10',
+          time: 1,
+        });
+      });
+      expect(
+        view.getByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-ohlcv-bar`,
+        ),
+      ).toBeOnTheScreen();
+
+      mockMarketContextKey = 'mainnet|hyperliquid|1';
+      mockMarketContextReady = false;
+      view.rerender(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+      );
+
+      expect(
+        view.queryByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-ohlcv-bar`,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`,
+        ),
       ).toBeOnTheScreen();
     });
   });
