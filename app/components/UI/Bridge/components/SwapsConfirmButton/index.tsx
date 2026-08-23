@@ -102,7 +102,7 @@ export const SwapsConfirmButton = ({
     ? !!isHardwareAccount(selectedAddress)
     : false;
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
-  // Own one-minute clock. Parent re-renders are not enough: after quotes
+  // Shared one-minute clock. Parent re-renders are not enough: after quotes
   // settle the store stops updating, and a memoized button would keep the
   // last "Market is closed" label until the user changes tokens.
   const { isStockMarketClosed } = useStockMarketHours();

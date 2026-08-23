@@ -1,5 +1,6 @@
 import React from 'react';
 import { strings } from '../../../../../../../locales/i18n';
+import { __resetStockMarketHoursClockForTest } from '../../../hooks/useStockMarketHours';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
 import { OffHoursTradingBanner } from './OffHoursTradingBanner';
 import {
@@ -13,9 +14,11 @@ describe('OffHoursTradingBanner', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(PINNED_STOCK_MARKET_NOW);
+    __resetStockMarketHoursClockForTest();
   });
 
   afterEach(() => {
+    __resetStockMarketHoursClockForTest();
     jest.useRealTimers();
   });
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { QuoteStreamCompleteReason } from '@metamask/bridge-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { __resetStockMarketHoursClockForTest } from '../../../hooks/useStockMarketHours';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
 import { QuoteErrorBanner } from './QuoteErrorBanner';
 import {
@@ -29,11 +30,13 @@ describe('QuoteErrorBanner', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(PINNED_STOCK_MARKET_NOW);
+    __resetStockMarketHoursClockForTest();
     jest.clearAllMocks();
     setQuoteData();
   });
 
   afterEach(() => {
+    __resetStockMarketHoursClockForTest();
     jest.useRealTimers();
   });
 

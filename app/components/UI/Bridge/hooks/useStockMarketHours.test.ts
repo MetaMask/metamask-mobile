@@ -2,6 +2,7 @@ import { act } from '@testing-library/react-native';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
   STOCK_MARKET_STATUS_POLL_MS,
+  __resetStockMarketHoursClockForTest,
   useStockMarketHours,
 } from './useStockMarketHours';
 import type { BridgeToken } from '../types';
@@ -53,6 +54,7 @@ const createState = (
 
 describe('useStockMarketHours', () => {
   afterEach(() => {
+    __resetStockMarketHoursClockForTest();
     jest.useRealTimers();
   });
 
@@ -96,6 +98,53 @@ describe('useStockMarketHours', () => {
     expect(result.current.isStockMarketClosed).toBe(true);
 
     unmount();
+  });
+
+  it('keeps a remounted caller on the same clock as still-mounted callers', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-01T18:00:00.000Z'));
+
+    const { result: stillMounted, unmount: unmountStillMounted } =
+      renderHookWithProvider(() => useStockMarketHours(), {
+        state: createState(stockWithOffHours),
+      });
+    const { unmount: unmountTransient } = renderHookWithProvider(
+      () => useStockMarketHours(),
+      { state: createState(stockWithOffHours) },
+    );
+
+    expect(stillMounted.current.isInOffHoursTrading).toBe(true);
+    expect(stillMounted.current.isStockMarketClosed).toBe(false);
+
+    act(() => {
+      jest.setSystemTime(new Date('2024-01-01T20:30:00.000Z'));
+    });
+    unmountTransient();
+    const { result: remounted, unmount: unmountRemounted } =
+      renderHookWithProvider(() => useStockMarketHours(), {
+        state: createState(stockWithOffHours),
+      });
+
+    expect(remounted.current.isInOffHoursTrading).toBe(
+      stillMounted.current.isInOffHoursTrading,
+    );
+    expect(remounted.current.isStockMarketClosed).toBe(
+      stillMounted.current.isStockMarketClosed,
+    );
+    expect(remounted.current.isInOffHoursTrading).toBe(true);
+    expect(remounted.current.isStockMarketClosed).toBe(false);
+
+    act(() => {
+      jest.advanceTimersByTime(STOCK_MARKET_STATUS_POLL_MS);
+    });
+
+    expect(remounted.current.isInOffHoursTrading).toBe(false);
+    expect(remounted.current.isStockMarketClosed).toBe(true);
+    expect(stillMounted.current.isInOffHoursTrading).toBe(false);
+    expect(stillMounted.current.isStockMarketClosed).toBe(true);
+
+    unmountRemounted();
+    unmountStillMounted();
   });
 
   it('returns both flags false when dest is not a stock RWA', () => {

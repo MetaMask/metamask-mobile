@@ -42,7 +42,10 @@ import {
 } from './abTestConfig';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../../util/theme';
-import { STOCK_MARKET_STATUS_POLL_MS } from '../../hooks/useStockMarketHours';
+import {
+  STOCK_MARKET_STATUS_POLL_MS,
+  __resetStockMarketHoursClockForTest,
+} from '../../hooks/useStockMarketHours';
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
   '../../../../../multichain-accounts/controllers/account-tree-controller',
@@ -373,6 +376,7 @@ describe('SwapsConfirmButton', () => {
   });
 
   afterEach(() => {
+    __resetStockMarketHoursClockForTest();
     jest.useRealTimers();
     jest.restoreAllMocks();
   });
