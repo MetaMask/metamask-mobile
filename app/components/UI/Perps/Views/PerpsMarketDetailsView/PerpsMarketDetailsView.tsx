@@ -561,6 +561,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     marketContextKey,
     isMarketContextReady,
   });
+  useEffect(() => {
+    if (!isMarketContextReady) {
+      setOhlcData(null);
+    }
+  }, [isMarketContextReady, marketContextKey]);
 
   // Auto-zoom to latest candle when interval changes and new data arrives
   // This ensures the chart shows the most recent data after interval change
@@ -1739,9 +1744,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                 />
               )}
 
-              {isAdvancedChartEnabled &&
-              isMarketContextReady &&
-              market?.symbol ? (
+              {!isMarketContextReady ? (
+                <Skeleton
+                  height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+                  width="100%"
+                  testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
+                />
+              ) : isAdvancedChartEnabled && market?.symbol ? (
                 <PerpsAdvancedChart
                   key={`${market.symbol}-${marketContextKey}-${advancedChartResetKey}`}
                   symbol={market.symbol}

@@ -146,6 +146,11 @@ const PerpsProChartPanel = ({
       resetKey: marketContextKey,
       enabled: isMarketContextReady,
     });
+  useEffect(() => {
+    if (!isMarketContextReady) {
+      setOhlcData(null);
+    }
+  }, [isMarketContextReady, marketContextKey]);
 
   useEffect(() => {
     if (!isChartExpanded) {
@@ -270,7 +275,15 @@ const PerpsProChartPanel = ({
   }, [chartAnalyticsProperties, symbol, track]);
 
   let chartContent: React.ReactNode;
-  if (isAdvancedChartEnabled && isMarketContextReady) {
+  if (!isMarketContextReady) {
+    chartContent = (
+      <Skeleton
+        height={PRO_CHART_HEIGHT}
+        width="100%"
+        testID={PerpsProMarketViewSelectorsIDs.CHART_SKELETON}
+      />
+    );
+  } else if (isAdvancedChartEnabled) {
     chartContent = (
       <PerpsAdvancedChart
         key={`${symbol}|${marketContextKey}`}

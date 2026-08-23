@@ -450,6 +450,55 @@ describe('PerpsProChartPanel', () => {
     expect(mockPerpsAdvancedChart).toHaveBeenCalledTimes(1);
   });
 
+  it('hides prior Lightweight candles and OHLC while context reconnects', () => {
+    const view = renderChartPanel({
+      isAdvancedChartEnabled: false,
+      configuredChartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+      effectiveChartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+    });
+    const tradingViewProps = mockTradingViewChart.mock.calls.at(-1)?.[0];
+
+    act(() => {
+      tradingViewProps?.onOhlcDataChange?.({
+        open: '1',
+        high: '2',
+        low: '0.5',
+        close: '1.5',
+        volume: '10',
+        time: 1,
+      });
+    });
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_OHLCV),
+    ).toBeOnTheScreen();
+
+    view.rerender(
+      <PerpsProChartPanel
+        symbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        isAdvancedChartEnabled={false}
+        configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}
+        effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}
+        marketContextKey="mainnet|hyperliquid|1"
+        isMarketContextReady={false}
+        onCandlePeriodChange={mockOnCandlePeriodChange}
+        onMorePress={mockOnMorePress}
+        onChartError={mockOnChartError}
+        currentPrice={50500}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsProMarketViewSelectorsIDs.CHART_OHLCV),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_SKELETON),
+    ).toBeOnTheScreen();
+  });
+
   it('resets chart readiness when the configured strategy changes', () => {
     const onResolvedStateChange = jest.fn();
     const view = renderChartPanel({ onResolvedStateChange });
