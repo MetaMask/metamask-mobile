@@ -7,6 +7,7 @@ import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { MUSD_DECIMALS } from '../../../../UI/Earn/constants/musd';
+import { COLLATERAL_TOKEN_DECIMALS as PREDICT_TOKEN_DECIMALS } from '../../../../UI/Predict/providers/polymarket/constants';
 import { usePredictBalance as usePredictControllerBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
 import { selectPerpsAccountState } from '../../../../UI/Perps/selectors/perpsController';
 import {
@@ -19,8 +20,7 @@ import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/t
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { usePayTokenAccountBalance } from './usePayTokenAccountBalance';
 
-/** USDC decimals — the denomination of perps (HyperLiquid) and predict balances. */
-const USDC_DECIMALS = 6;
+const PERPS_TOKEN_DECIMALS = 8;
 
 const ZERO: TransactionPayBalance = {
   balanceRaw: '0',
@@ -121,7 +121,7 @@ function usePerpsBalance(): TransactionPayBalance {
 
   // HyperLiquid balance is USDC, so USD equals the human balance 1:1.
   return {
-    balanceRaw: toRaw(withdrawableBalance, USDC_DECIMALS),
+    balanceRaw: toRaw(withdrawableBalance, PERPS_TOKEN_DECIMALS),
     balanceUsd: new BigNumber(withdrawableBalance).toNumber(),
   };
 }
@@ -131,7 +131,7 @@ function usePredictBalance(): TransactionPayBalance {
   const human = new BigNumber(predictBalanceHuman ?? '0');
 
   return {
-    balanceRaw: toRaw(human, USDC_DECIMALS),
+    balanceRaw: toRaw(human, PREDICT_TOKEN_DECIMALS),
     balanceUsd: human.toNumber(),
   };
 }

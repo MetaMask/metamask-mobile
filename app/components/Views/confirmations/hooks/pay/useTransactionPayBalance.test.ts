@@ -137,7 +137,7 @@ describe('useTransactionPayBalance', () => {
       );
 
       expect(result.current).toStrictEqual({
-        balanceRaw: '500500000',
+        balanceRaw: '50050000000',
         balanceUsd: 500.5,
       });
     });
