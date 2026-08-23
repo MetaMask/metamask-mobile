@@ -1739,7 +1739,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                 />
               )}
 
-              {isAdvancedChartEnabled && market?.symbol ? (
+              {isAdvancedChartEnabled &&
+              isMarketContextReady &&
+              market?.symbol ? (
                 <PerpsAdvancedChart
                   key={`${market.symbol}-${marketContextKey}-${advancedChartResetKey}`}
                   symbol={market.symbol}

@@ -78,6 +78,7 @@ interface PerpsProPositionsPanelProps {
     symbol: string,
     state: PerpsMarketDetailSectionState,
   ) => void;
+  isMarketContextReady?: boolean;
 }
 
 /**
@@ -98,6 +99,7 @@ const PerpsProPositionsPanel = ({
   onSelectMarket,
   onHistoryPress,
   onResolvedStateChange,
+  isMarketContextReady = true,
 }: PerpsProPositionsPanelProps) => {
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
   const [isTickerOnly, setIsTickerOnly] = useState(false);
@@ -142,6 +144,10 @@ const PerpsProPositionsPanel = ({
   const { markets } = usePerpsMarkets();
 
   useEffect(() => {
+    if (!isMarketContextReady) {
+      onResolvedStateChange?.(symbol, 'loading');
+      return;
+    }
     if (isInitialLoading || areOrdersInitiallyLoading) {
       onResolvedStateChange?.(symbol, 'loading');
       return;
@@ -153,6 +159,7 @@ const PerpsProPositionsPanel = ({
   }, [
     areOrdersInitiallyLoading,
     isInitialLoading,
+    isMarketContextReady,
     onResolvedStateChange,
     orders.length,
     positions.length,

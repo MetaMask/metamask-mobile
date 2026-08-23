@@ -130,7 +130,10 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { selectPerpsNetwork } from '../selectors/perpsController';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
 import {
   clearPendingPerpsCufTraces,
   endPerpsCufTrace,
@@ -168,6 +171,7 @@ const resetManager = (manager: unknown) => {
     isConnected: boolean;
     isConnecting: boolean;
     isInitialized: boolean;
+    initializedMarketContextKey: string | null;
     isDisconnecting: boolean;
     connectionRefCount: number;
     initPromise: Promise<void> | null;
@@ -210,6 +214,7 @@ const resetManager = (manager: unknown) => {
   m.isConnected = false;
   m.isConnecting = false;
   m.isInitialized = false;
+  m.initializedMarketContextKey = null;
   m.isDisconnecting = false;
   m.connectionRefCount = 0;
   m.initPromise = null;
@@ -255,6 +260,10 @@ describe('PerpsConnectionManager', () => {
         },
       },
     });
+    (selectPerpsNetwork as unknown as jest.Mock).mockReturnValue('testnet');
+    (selectPerpsProvider as unknown as jest.Mock).mockReturnValue(
+      'hyperliquid',
+    );
 
     // Clear StreamManager mock calls
     mockStreamManagerInstance.positions.clearCache.mockClear();
@@ -543,6 +552,9 @@ describe('PerpsConnectionManager', () => {
       expect(finalState.isConnecting).toBe(false);
       expect(finalState.isConnected).toBe(true);
       expect(finalState.isInitialized).toBe(true);
+      expect(PerpsConnectionManager.getInitializedMarketContextKey()).toBe(
+        'testnet|hyperliquid|0',
+      );
     });
   });
 

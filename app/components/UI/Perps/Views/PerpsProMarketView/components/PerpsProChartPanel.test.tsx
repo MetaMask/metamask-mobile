@@ -420,6 +420,36 @@ describe('PerpsProChartPanel', () => {
     );
   });
 
+  it('mounts Advanced Chart only after the market context is ready', () => {
+    const view = renderChartPanel({ isMarketContextReady: false });
+
+    expect(mockPerpsAdvancedChart).not.toHaveBeenCalled();
+    expect(mockUsePerpsLiveCandles).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+
+    view.rerender(
+      <PerpsProChartPanel
+        symbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        isAdvancedChartEnabled
+        configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+        effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
+        marketContextKey="testnet|hyperliquid|1"
+        isMarketContextReady
+        onCandlePeriodChange={mockOnCandlePeriodChange}
+        onMorePress={mockOnMorePress}
+        onChartError={mockOnChartError}
+        currentPrice={50500}
+      />,
+    );
+
+    expect(mockUsePerpsLiveCandles).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
+    expect(mockPerpsAdvancedChart).toHaveBeenCalledTimes(1);
+  });
+
   it('resets chart readiness when the configured strategy changes', () => {
     const onResolvedStateChange = jest.fn();
     const view = renderChartPanel({ onResolvedStateChange });

@@ -445,7 +445,7 @@ const PerpsProOrderBookPanel = ({
   // Raw, full-precision book — mid price + spread (shared controller socket).
   const { orderBook: rawOrderBook } = usePerpsLiveOrderBook({
     symbol,
-    enabled: Boolean(symbol),
+    enabled: Boolean(symbol) && isMarketContextReady,
     // Leave nSigFigs at default 5 / no mantissa so this stays full-precision
     // relative to the aggregated channel's coarser grouping.
     levels: ORDER_BOOK_AGGREGATED_LEVELS,
@@ -509,7 +509,7 @@ const PerpsProOrderBookPanel = ({
   } = usePerpsLiveOrderBook({
     symbol,
     channel: 'orderBookAggregated',
-    enabled: Boolean(symbol),
+    enabled: Boolean(symbol) && isMarketContextReady,
     levels: ORDER_BOOK_AGGREGATED_LEVELS,
     nSigFigs: aggregationParams.nSigFigs,
     mantissa: aggregationParams.mantissa,

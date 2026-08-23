@@ -659,6 +659,7 @@ const PerpsProMarketView = ({
           <SectionDivider marginVertical={0} />
           <PerpsProPositionsPanel
             symbol={market.symbol}
+            isMarketContextReady={isMarketContextReady}
             onSelectMarket={handleSelectMarket}
             onHistoryPress={handleHistoryPress}
             onResolvedStateChange={handlePositionsOrdersResolvedStateChange}

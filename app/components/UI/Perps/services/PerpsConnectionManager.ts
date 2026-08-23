@@ -59,6 +59,7 @@ import {
   setPerpsLoadingSessionLifecycle,
 } from '../utils/perpsLoadingSession';
 import { getPerpsLifecycleContext } from '../utils/perpsLifecycleContext';
+import { buildPerpsMarketContextKey } from '../utils/perpsMarketContext';
 
 interface ConnectOptions {
   source?: string;
@@ -76,6 +77,8 @@ class PerpsConnectionManagerClass {
   private isConnected = false;
   private isConnecting = false;
   private isInitialized = false;
+  private initializedMarketContextKey: string | null = null;
+  private initializedMarketContextListeners = new Set<() => void>();
   private isDisconnecting = false;
   private error: string | null = null;
   private connectionRefCount = 0;
@@ -104,6 +107,23 @@ class PerpsConnectionManagerClass {
   private constructor() {
     // Private constructor to enforce singleton pattern
     // Monitoring will be set up on first connect
+  }
+
+  private getSelectedMarketContextKey(): string {
+    const state = store.getState();
+    return buildPerpsMarketContextKey(
+      selectPerpsNetwork(state),
+      selectPerpsProvider(state),
+      selectHip3ConfigVersion(state),
+    );
+  }
+
+  private setInitializedMarketContextKey(key: string | null): void {
+    if (this.initializedMarketContextKey === key) {
+      return;
+    }
+    this.initializedMarketContextKey = key;
+    this.initializedMarketContextListeners.forEach((listener) => listener());
   }
 
   /**
@@ -709,6 +729,7 @@ class PerpsConnectionManagerClass {
               streamManager.fills.clearCache();
               streamManager.topOfBook.clearCache();
               streamManager.candles.clearCache();
+              this.setInitializedMarketContextKey(null);
               // Hard teardown (streams torn down, caches cleared): abandon any
               // pending confirmation CUF as `disconnected`, or a later reconnect
               // delivery would end the stale op as a success with a duration
@@ -939,6 +960,7 @@ class PerpsConnectionManagerClass {
         // Mark as connected - WebSocket connection validated and ready
         this.isConnected = true;
         this.isConnecting = false;
+        this.setInitializedMarketContextKey(this.getSelectedMarketContextKey());
         // Clear errors on successful connection
         this.clearError();
 
@@ -999,6 +1021,7 @@ class PerpsConnectionManagerClass {
         this.isConnecting = false;
         this.isConnected = false;
         this.isInitialized = false;
+        this.setInitializedMarketContextKey(null);
 
         // Clear connection timeout on error
         this.clearConnectionTimeout();
@@ -1260,6 +1283,7 @@ class PerpsConnectionManagerClass {
       this.isConnected = true;
       this.isInitialized = true;
       this.isDisconnecting = false;
+      this.setInitializedMarketContextKey(this.getSelectedMarketContextKey());
       // Clear errors on successful reconnection
       this.clearError();
 
@@ -1552,6 +1576,15 @@ class PerpsConnectionManagerClass {
       isInGracePeriod: this.isInGracePeriod,
       error: this.error,
     };
+  }
+
+  getInitializedMarketContextKey(): string | null {
+    return this.initializedMarketContextKey;
+  }
+
+  subscribeToInitializedMarketContext(listener: () => void): () => void {
+    this.initializedMarketContextListeners.add(listener);
+    return () => this.initializedMarketContextListeners.delete(listener);
   }
 
   /**

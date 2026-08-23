@@ -1,59 +1,45 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useReducer } from 'react';
 import { useSelector } from 'react-redux';
+import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { selectHip3ConfigVersion } from '../selectors/featureFlags';
 import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../selectors/perpsController';
 import { usePerpsConnection } from './usePerpsConnection';
+import { buildPerpsMarketContextKey } from '../utils/perpsMarketContext';
 
 export interface PerpsMarketContext {
   key: string;
   isReady: boolean;
+  isConnectionInitialized: boolean;
 }
 
 /**
- * Tracks when the connection has reinitialized for the selected market context.
- * Account reconnects keep the same key, so resident market data stays usable.
+ * Compares the selected market context with the connection that last completed
+ * initialization. Account reconnects keep the same market identity, so their
+ * resident global data stays usable while user data reconnects.
  */
 export function usePerpsMarketContext(): PerpsMarketContext {
   const network = useSelector(selectPerpsNetwork);
   const provider = useSelector(selectPerpsProvider);
   const hip3ConfigVersion = useSelector(selectHip3ConfigVersion);
   const { isInitialized } = usePerpsConnection();
-  const key = `${network}|${provider ?? 'unknown'}|${hip3ConfigVersion}`;
-
-  const [readyKey, setReadyKey] = useState<string | null>(() =>
-    isInitialized ? key : null,
+  const key = buildPerpsMarketContextKey(network, provider, hip3ConfigVersion);
+  const [, refreshInitializedContext] = useReducer(
+    (revision: number) => revision + 1,
+    0,
   );
-  const isInitializedRef = useRef(isInitialized);
-  isInitializedRef.current = isInitialized;
-  const pendingKeyRef = useRef<string | null>(isInitialized ? null : key);
-  const observedReconnectRef = useRef(!isInitialized);
+  useEffect(
+    () =>
+      PerpsConnectionManager.subscribeToInitializedMarketContext(
+        refreshInitializedContext,
+      ),
+    [],
+  );
+  const initializedKey =
+    PerpsConnectionManager.getInitializedMarketContextKey();
+  const isReady = initializedKey === key;
 
-  useEffect(() => {
-    if (readyKey === key) {
-      return;
-    }
-    pendingKeyRef.current = key;
-    observedReconnectRef.current = !isInitializedRef.current;
-    setReadyKey(null);
-  }, [key, readyKey]);
-
-  useEffect(() => {
-    const pendingKey = pendingKeyRef.current;
-    if (!pendingKey) {
-      return;
-    }
-    if (!isInitialized) {
-      observedReconnectRef.current = true;
-      return;
-    }
-    if (pendingKey === key && observedReconnectRef.current) {
-      pendingKeyRef.current = null;
-      setReadyKey(key);
-    }
-  }, [isInitialized, key]);
-
-  return { key, isReady: readyKey === key };
+  return { key, isReady, isConnectionInitialized: isInitialized };
 }
