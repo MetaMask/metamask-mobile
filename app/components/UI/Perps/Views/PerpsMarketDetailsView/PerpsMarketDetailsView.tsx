@@ -905,8 +905,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         : 'loading'
       : candleData?.symbol === market?.symbol &&
           candleData.interval === selectedCandlePeriod &&
-          hasHistoricalData
-        ? 'content'
+          !isLoadingHistory
+        ? hasHistoricalData
+          ? 'content'
+          : 'empty'
         : 'loading';
   const statsSectionState: PerpsMarketDetailSectionState = marketStats.hasError
     ? 'error'
@@ -925,13 +927,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
           : perpsInsightsReport && perpsInsightsAssetId === market?.symbol
             ? 'content'
             : 'empty';
-  const accountSectionState: PerpsMarketDetailSectionState = isLoadingAccount
-    ? 'loading'
-    : account
-      ? 'content'
-      : 'empty';
+  const accountSectionState: PerpsMarketDetailSectionState =
+    !isMarketContextReady || isLoadingAccount
+      ? 'loading'
+      : account
+        ? 'content'
+        : 'empty';
   const positionsOrdersSectionState: PerpsMarketDetailSectionState =
-    isLoadingPosition || areOrdersInitiallyLoading
+    !isMarketContextReady || isLoadingPosition || areOrdersInitiallyLoading
       ? 'loading'
       : existingPosition || displayOrders.length > 0
         ? 'content'
@@ -1715,6 +1718,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                 iconName={IconName.Expand}
                 size={ButtonIconSize.Md}
                 onPress={handleFullscreenChartOpen}
+                isDisabled={!isMarketContextReady}
                 style={styles.marketSummaryFullscreenButton}
                 testID={
                   PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON
@@ -1752,9 +1756,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                     testID={PerpsMarketDetailsViewSelectorsIDs.CHART_EDGE_GUARD}
                   />
                 )}
-                {isAdvancedChartEnabled &&
-                isMarketContextReady &&
-                market?.symbol ? (
+                {!isMarketContextReady ? (
+                  <Skeleton
+                    height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
+                    width="100%"
+                    testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
+                  />
+                ) : isAdvancedChartEnabled && market?.symbol ? (
                   <PerpsAdvancedChart
                     key={`${market.symbol}-${marketContextKey}-${advancedChartResetKey}`}
                     symbol={market.symbol}
@@ -1775,7 +1783,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                     fallbackFetchMoreHistory={fetchMoreHistory}
                     paginationDuration={TimeDuration.YearToDate}
                   />
-                ) : isMarketContextReady && hasHistoricalData ? (
+                ) : candleData?.symbol === market?.symbol &&
+                  candleData.interval === selectedCandlePeriod &&
+                  !isLoadingHistory ? (
                   <TradingViewChart
                     ref={chartRef}
                     candleData={candleData}

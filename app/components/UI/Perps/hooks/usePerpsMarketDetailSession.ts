@@ -26,6 +26,7 @@ import {
 } from '../selectors/perpsController';
 import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 import { buildPerpsCufStartTags } from '../utils/perpsCufTrace';
+import { PERPS_LOADING_SESSION_TIMEOUT_MS } from '../utils/perpsLoadingSession';
 
 export const PERPS_MARKET_DETAIL_SECTION = {
   MARKET: 'market',
@@ -72,7 +73,6 @@ const SECTION_MEASUREMENTS: Record<PerpsMarketDetailSection, string> = {
   positions_orders: 'positions_orders_resolved_ms',
 };
 
-const SESSION_TIMEOUT_MS = 90_000;
 const PROOF_MARKER = '[PerpsDetailLoadProof]';
 
 interface ActiveDetailSession {
@@ -400,7 +400,7 @@ export function usePerpsMarketDetailSession({
         reason: 'detail_session_timeout',
         missingSections,
       });
-    }, SESSION_TIMEOUT_MS);
+    }, PERPS_LOADING_SESSION_TIMEOUT_MS);
 
     activeSessionRef.current = {
       id,

@@ -490,11 +490,12 @@ const PerpsProMarketView = ({
           : 'empty';
   const priceSectionState: PerpsMarketDetailSectionState =
     isMarketContextReady && syncedChartCurrentPrice > 0 ? 'content' : 'loading';
-  const accountSectionState: PerpsMarketDetailSectionState = isLoadingAccount
-    ? 'loading'
-    : account
-      ? 'content'
-      : 'empty';
+  const accountSectionState: PerpsMarketDetailSectionState =
+    !isMarketContextReady || isLoadingAccount
+      ? 'loading'
+      : account
+        ? 'content'
+        : 'empty';
   const statsSectionState = stateForCurrentSymbol(
     'stats',
     marketSectionContextKey,

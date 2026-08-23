@@ -1399,6 +1399,10 @@ class PerpsConnectionManagerClass {
         this.setInitializedMarketContextKey(null);
       }
 
+      if (!skipMarketNotify) {
+        this.setInitializedMarketContextKey(null);
+      }
+
       streamManager.positions.clearCache();
       streamManager.orders.clearCache();
       streamManager.account.clearCache();

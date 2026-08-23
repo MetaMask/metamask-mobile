@@ -516,6 +516,36 @@ describe('PerpsProChartPanel', () => {
     );
   });
 
+  it('renders and resolves an empty Lightweight chart', () => {
+    mockUsePerpsLiveCandles.mockReturnValue({
+      candleData: {
+        symbol: 'BTC',
+        interval: CandlePeriod.FifteenMinutes,
+        candles: [],
+      },
+      isLoading: false,
+      hasHistoricalData: false,
+      fetchMoreHistory: mockFetchMoreHistory,
+    });
+    const onResolvedStateChange = jest.fn();
+
+    renderChartPanel({
+      isAdvancedChartEnabled: false,
+      configuredChartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+      effectiveChartLibrary: PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+      onResolvedStateChange,
+    });
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT),
+    ).toBeOnTheScreen();
+    expect(onResolvedStateChange).toHaveBeenCalledWith(
+      'BTC',
+      'empty',
+      `BTC|testnet|hyperliquid|1|${CandlePeriod.FifteenMinutes}|${PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}`,
+    );
+  });
+
   it('mounts Advanced Chart only after the market context is ready', () => {
     const view = renderChartPanel({ isMarketContextReady: false });
 
