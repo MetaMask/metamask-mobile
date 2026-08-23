@@ -10,12 +10,13 @@ import { endTrace, setTraceMeasurement, trace } from '../../../../util/trace';
 let mockAddress = '0xabc';
 let mockNetwork = 'testnet';
 let mockProvider = 'hyperliquid';
+let mockHip3ConfigVersion = 1;
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: object) => unknown) => selector({}),
 }));
 jest.mock('../selectors/featureFlags', () => ({
-  selectHip3ConfigVersion: () => 1,
+  selectHip3ConfigVersion: () => mockHip3ConfigVersion,
 }));
 jest.mock('../selectors/perpsController', () => ({
   selectPerpsNetwork: () => mockNetwork,
@@ -71,6 +72,7 @@ describe('usePerpsMarketDetailSession', () => {
     mockAddress = '0xabc';
     mockNetwork = 'testnet';
     mockProvider = 'hyperliquid';
+    mockHip3ConfigVersion = 1;
     appState = 'active';
     Object.defineProperty(AppState, 'currentState', {
       configurable: true,
@@ -89,19 +91,35 @@ describe('usePerpsMarketDetailSession', () => {
     jest.restoreAllMocks();
   });
 
+  interface SessionTestProps {
+    currentSections: PerpsMarketDetailSections;
+    symbol: string;
+    configurationKey?: string;
+    configuredChartLibrary?: string;
+    entrySource?: string;
+  }
+
   const renderSession = (
     sections = resolvedSections,
     surfaceTrigger: 'initial' | 'market_switch' = 'initial',
   ) =>
     renderHook(
-      ({ currentSections, symbol }) =>
+      ({
+        currentSections,
+        symbol,
+        configurationKey = '',
+        configuredChartLibrary = 'lightweight',
+        entrySource,
+      }: SessionTestProps) =>
         usePerpsMarketDetailSession({
           mode: 'lite',
           symbol,
-          configuredChartLibrary: 'lightweight',
+          configuredChartLibrary,
           renderedChartLibrary: 'lightweight',
           marketSource: 'route',
           surfaceTrigger,
+          configurationKey,
+          entrySource,
           sections: currentSections,
         }),
       { initialProps: { currentSections: sections, symbol: 'ETH' } },
@@ -136,7 +154,8 @@ describe('usePerpsMarketDetailSession', () => {
   });
 
   it('replays unchanged resolved sections into a separate resume cohort', () => {
-    renderSession();
+    const { result } = renderSession();
+    const initialLiveResetKey = result.current.liveResetKey;
     jest.clearAllMocks();
 
     act(() => {
@@ -155,6 +174,7 @@ describe('usePerpsMarketDetailSession', () => {
       }),
     );
     expect(setTraceMeasurement).toHaveBeenCalledTimes(3);
+    expect(result.current.liveResetKey).not.toBe(initialLiveResetKey);
     expect(endTrace).toHaveBeenCalledWith(
       expect.objectContaining({ data: { success: true } }),
     );
@@ -208,6 +228,72 @@ describe('usePerpsMarketDetailSession', () => {
     expect(trace).toHaveBeenCalledWith(
       expect.objectContaining({
         tags: expect.objectContaining({ generation_trigger: 'account_switch' }),
+      }),
+    );
+  });
+
+  it.each([
+    ['provider', () => (mockProvider = 'myx')],
+    ['network', () => (mockNetwork = 'mainnet')],
+    ['HIP-3 configuration', () => (mockHip3ConfigVersion = 2)],
+  ])(
+    'restarts Live and Session when the %s changes',
+    (_name, changeContext) => {
+      const { result, rerender } = renderSession();
+      const initialLiveResetKey = result.current.liveResetKey;
+      jest.clearAllMocks();
+
+      changeContext();
+      rerender({ symbol: 'ETH', currentSections: resolvedSections });
+
+      expect(result.current.liveResetKey).not.toBe(initialLiveResetKey);
+      expect(result.current.generationTrigger).toBe('network_switch');
+      expect(trace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            generation_trigger: 'network_switch',
+          }),
+        }),
+      );
+    },
+  );
+
+  it.each([
+    ['configuration key', { configurationKey: 'insights-on' }],
+    ['chart strategy', { configuredChartLibrary: 'advanced' }],
+    ['entry source', { entrySource: 'deeplink' }],
+  ])('restarts Live and Session for a %s change', (_name, changedProps) => {
+    const { result, rerender } = renderSession();
+    const initialLiveResetKey = result.current.liveResetKey;
+    jest.clearAllMocks();
+
+    rerender({
+      symbol: 'ETH',
+      currentSections: resolvedSections,
+      ...changedProps,
+    });
+
+    expect(result.current.liveResetKey).not.toBe(initialLiveResetKey);
+    expect(result.current.generationTrigger).toBe('configuration_change');
+    expect(trace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          generation_trigger: 'configuration_change',
+        }),
+      }),
+    );
+  });
+
+  it('completes with section-error metadata for a resolved error state', () => {
+    renderSession({
+      [PERPS_MARKET_DETAIL_SECTION.MARKET]: 'content',
+      [PERPS_MARKET_DETAIL_SECTION.STATS]: 'error',
+    });
+
+    expect(setTraceMeasurement).toHaveBeenCalledTimes(2);
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { success: true, has_section_error: true },
       }),
     );
   });

@@ -53,7 +53,7 @@ export interface PerpsAdvancedChartProps {
   onError?: (error: string) => void;
   onSkeletonHidden?: (payload?: ChartRangeSettlePayload) => void;
   /** Fires when the initial chart or its Lightweight fallback has resolved. */
-  onResolved?: (seriesKey: string) => void;
+  onResolved?: (seriesKey: string, state: 'content' | 'empty') => void;
   /** Identifies which Perps chart surface is being measured. */
   surface?: PerpsChartSurface;
   /** Fallback candle data for the Lightweight chart if AdvancedChart fails this mount. */
@@ -395,7 +395,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         activeVisibilityTraceRef.current = null;
       }
       onSkeletonHidden?.(payload);
-      onResolved?.(ohlcvSeriesKey);
+      onResolved?.(ohlcvSeriesKey, ohlcvData.length > 0 ? 'content' : 'empty');
     },
     [
       symbol,
@@ -440,7 +440,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       fallbackCandleData?.symbol === symbol &&
       fallbackCandleData.candles.length
     ) {
-      onResolved?.(ohlcvSeriesKey);
+      onResolved?.(ohlcvSeriesKey, 'content');
     }
   }, [fallbackCandleData, hasFailed, ohlcvSeriesKey, onResolved, symbol]);
 

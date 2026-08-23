@@ -131,7 +131,11 @@ type ProResolvedSection = 'chart' | 'stats' | 'order_book' | 'positions_orders';
 type ProResolvedSections = Partial<
   Record<
     ProResolvedSection,
-    { symbol: string; state: PerpsMarketDetailSectionState }
+    {
+      symbol: string;
+      state: PerpsMarketDetailSectionState;
+      contextKey?: string;
+    }
   >
 >;
 
@@ -284,23 +288,31 @@ const PerpsProMarketView = ({
       section: ProResolvedSection,
       sectionSymbol: string,
       state: PerpsMarketDetailSectionState,
+      contextKey?: string,
     ) => {
       setResolvedSections((current) => {
         const previous = current[section];
-        if (previous?.symbol === sectionSymbol && previous.state === state) {
+        if (
+          previous?.symbol === sectionSymbol &&
+          previous.state === state &&
+          previous.contextKey === contextKey
+        ) {
           return current;
         }
         return {
           ...current,
-          [section]: { symbol: sectionSymbol, state },
+          [section]: { symbol: sectionSymbol, state, contextKey },
         };
       });
     },
     [],
   );
   const handleChartResolvedStateChange = useCallback(
-    (sectionSymbol: string, state: PerpsMarketDetailSectionState) =>
-      updateResolvedSection('chart', sectionSymbol, state),
+    (
+      sectionSymbol: string,
+      state: PerpsMarketDetailSectionState,
+      contextKey: string,
+    ) => updateResolvedSection('chart', sectionSymbol, state, contextKey),
     [updateResolvedSection],
   );
   const handleStatsResolvedStateChange = useCallback(
@@ -380,10 +392,16 @@ const PerpsProMarketView = ({
     });
 
   const currentSymbol = market?.symbol;
+  const chartContextKey = `${currentSymbol ?? ''}|${selectedCandlePeriod}|${configuredChartLibrary}`;
   const stateForCurrentSymbol = useCallback(
-    (section: ProResolvedSection): PerpsMarketDetailSectionState => {
+    (
+      section: ProResolvedSection,
+      contextKey?: string,
+    ): PerpsMarketDetailSectionState => {
       const resolved = resolvedSections[section];
-      return resolved && resolved.symbol === currentSymbol
+      return resolved &&
+        resolved.symbol === currentSymbol &&
+        resolved.contextKey === contextKey
         ? resolved.state
         : 'loading';
     },
@@ -410,7 +428,10 @@ const PerpsProMarketView = ({
     () => ({
       [PERPS_MARKET_DETAIL_SECTION.MARKET]: marketSectionState,
       [PERPS_MARKET_DETAIL_SECTION.PRICE]: priceSectionState,
-      [PERPS_MARKET_DETAIL_SECTION.CHART]: stateForCurrentSymbol('chart'),
+      [PERPS_MARKET_DETAIL_SECTION.CHART]: stateForCurrentSymbol(
+        'chart',
+        chartContextKey,
+      ),
       [PERPS_MARKET_DETAIL_SECTION.STATS]: statsSectionState,
       [PERPS_MARKET_DETAIL_SECTION.ACCOUNT]: accountSectionState,
       [PERPS_MARKET_DETAIL_SECTION.ORDER_BOOK]: isOrderBookCollapsed
@@ -421,6 +442,7 @@ const PerpsProMarketView = ({
     }),
     [
       accountSectionState,
+      chartContextKey,
       marketSectionState,
       isOrderBookCollapsed,
       priceSectionState,
@@ -539,6 +561,7 @@ const PerpsProMarketView = ({
           symbol={market.symbol}
           selectedCandlePeriod={selectedCandlePeriod}
           isAdvancedChartEnabled={isAdvancedChartEnabled}
+          configuredChartLibrary={configuredChartLibrary}
           effectiveChartLibrary={effectiveChartLibrary}
           onCandlePeriodChange={handleCandlePeriodChange}
           onMorePress={() => setIsMoreCandlePeriodsVisible(true)}

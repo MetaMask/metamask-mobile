@@ -201,6 +201,7 @@ const renderChartPanel = (overrides: Partial<PerpsProChartPanelProps> = {}) =>
       symbol="BTC"
       selectedCandlePeriod={CandlePeriod.FifteenMinutes}
       isAdvancedChartEnabled
+      configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
       effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
       onCandlePeriodChange={mockOnCandlePeriodChange}
       onMorePress={mockOnMorePress}
@@ -382,6 +383,7 @@ describe('PerpsProChartPanel', () => {
         symbol="BTC"
         selectedCandlePeriod={CandlePeriod.FifteenMinutes}
         isAdvancedChartEnabled
+        configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
         effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
         onCandlePeriodChange={mockOnCandlePeriodChange}
         onMorePress={mockOnMorePress}
@@ -392,6 +394,59 @@ describe('PerpsProChartPanel', () => {
 
     expect(mockLivePriceHeader).toHaveBeenLastCalledWith(
       expect.objectContaining({ currentPrice: 51000 }),
+    );
+  });
+
+  it('reports Advanced Chart resolution with the configured chart context', () => {
+    const onResolvedStateChange = jest.fn();
+    renderChartPanel({ onResolvedStateChange });
+    onResolvedStateChange.mockClear();
+
+    act(() => {
+      getLastAdvancedChartProps().onResolved?.(
+        `BTC|${CandlePeriod.FifteenMinutes}`,
+        'empty',
+      );
+    });
+
+    expect(onResolvedStateChange).toHaveBeenCalledWith(
+      'BTC',
+      'empty',
+      `BTC|${CandlePeriod.FifteenMinutes}|${PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}`,
+    );
+  });
+
+  it('resets chart readiness when the configured strategy changes', () => {
+    const onResolvedStateChange = jest.fn();
+    const view = renderChartPanel({ onResolvedStateChange });
+
+    act(() => {
+      getLastAdvancedChartProps().onResolved?.(
+        `BTC|${CandlePeriod.FifteenMinutes}`,
+        'content',
+      );
+    });
+    onResolvedStateChange.mockClear();
+
+    view.rerender(
+      <PerpsProChartPanel
+        symbol="BTC"
+        selectedCandlePeriod={CandlePeriod.FifteenMinutes}
+        isAdvancedChartEnabled={false}
+        configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}
+        effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}
+        onCandlePeriodChange={mockOnCandlePeriodChange}
+        onMorePress={mockOnMorePress}
+        onChartError={mockOnChartError}
+        currentPrice={50500}
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+    );
+
+    expect(onResolvedStateChange).toHaveBeenCalledWith(
+      'BTC',
+      'loading',
+      `BTC|${CandlePeriod.FifteenMinutes}|${PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}`,
     );
   });
 
@@ -604,6 +659,7 @@ describe('PerpsProChartPanel', () => {
           symbol="BTC"
           selectedCandlePeriod={CandlePeriod.FifteenMinutes}
           isAdvancedChartEnabled
+          configuredChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
           effectiveChartLibrary={PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED}
           onCandlePeriodChange={mockOnCandlePeriodChange}
           onMorePress={mockOnMorePress}

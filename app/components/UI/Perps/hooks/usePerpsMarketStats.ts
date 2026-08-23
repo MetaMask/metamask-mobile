@@ -7,6 +7,12 @@ import {
   calculate24hHighLow,
   type PriceUpdate,
 } from '@metamask/perps-controller';
+import { useSelector } from 'react-redux';
+import { selectHip3ConfigVersion } from '../selectors/featureFlags';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
 import {
   formatFundingRate,
   formatLargeNumber,
@@ -49,28 +55,37 @@ export const usePerpsMarketStats = (
   symbol: string,
 ): UsePerpsMarketStatsReturn => {
   const { isInitialized } = usePerpsConnection();
+  const network = useSelector(selectPerpsNetwork);
+  const provider = useSelector(selectPerpsProvider);
+  const hip3ConfigVersion = useSelector(selectHip3ConfigVersion);
+  const marketContextKey = `${network}|${provider ?? 'unknown'}|${hip3ConfigVersion}`;
+  const marketStatsIdentity = `${symbol}|${marketContextKey}`;
   const [marketData, setMarketData] = useState<MarketDataUpdate>({});
   const [marketDataSymbol, setMarketDataSymbol] = useState<string>();
-  const [hasMarketDataError, setHasMarketDataError] = useState(false);
-  const [initialPrice, setInitialPrice] = useState<number | undefined>();
-  // Track whether the initial price has been captured without making it a
-  // reactive dependency of the subscription effect. Using state here would
-  // cause the effect to re-run (unsubscribe/resubscribe) on the first tick,
-  // missing ticks during the re-subscription window.
-  const hasInitialPriceRef = useRef(false);
-  const marketStatsSymbolRef = useRef(symbol);
+  const [marketDataContextKey, setMarketDataContextKey] = useState<string>();
+  const [marketDataErrorContextKey, setMarketDataErrorContextKey] =
+    useState<string>();
+  const [initialPrice, setInitialPrice] = useState<{
+    contextKey: string;
+    value: number;
+  }>();
+  // The ref prevents a synchronous first tick from retriggering the
+  // subscription effect while still allowing each context its own price.
+  const initialPriceContextRef = useRef<string | null>(null);
+  const marketStatsIdentityRef = useRef(marketStatsIdentity);
 
   useEffect(() => {
-    if (marketStatsSymbolRef.current === symbol) {
+    if (marketStatsIdentityRef.current === marketStatsIdentity) {
       return;
     }
-    marketStatsSymbolRef.current = symbol;
+    marketStatsIdentityRef.current = marketStatsIdentity;
     setMarketData({});
     setMarketDataSymbol(undefined);
-    setHasMarketDataError(false);
+    setMarketDataContextKey(undefined);
+    setMarketDataErrorContextKey(undefined);
     setInitialPrice(undefined);
-    hasInitialPriceRef.current = false;
-  }, [symbol]);
+    initialPriceContextRef.current = null;
+  }, [marketStatsIdentity]);
 
   // Get candlestick data for 24h high/low calculation via WebSocket streaming
   const { candleData } = usePerpsLiveCandles({
@@ -92,7 +107,8 @@ export const usePerpsMarketStats = (
     const callback = (updates: PriceUpdate[]) => {
       const update = updates.find(findSymbol);
       if (update) {
-        setHasMarketDataError(false);
+        setMarketDataErrorContextKey(undefined);
+        setMarketDataContextKey(marketContextKey);
         setMarketDataSymbol(symbol);
         // Only extract market data, ignore price changes to prevent re-renders
         setMarketData((prev) => {
@@ -113,9 +129,15 @@ export const usePerpsMarketStats = (
         });
 
         // Store initial price only once for high/low calculation fallback
-        if (!hasInitialPriceRef.current && update.price) {
-          hasInitialPriceRef.current = true;
-          setInitialPrice(Number.parseFloat(update.price));
+        if (
+          initialPriceContextRef.current !== marketContextKey &&
+          update.price
+        ) {
+          initialPriceContextRef.current = marketContextKey;
+          setInitialPrice({
+            contextKey: marketContextKey,
+            value: Number.parseFloat(update.price),
+          });
         }
       }
     };
@@ -129,7 +151,7 @@ export const usePerpsMarketStats = (
           callback,
         });
       } catch (error) {
-        setHasMarketDataError(true);
+        setMarketDataErrorContextKey(marketContextKey);
         console.error('Error subscribing to market data:', error);
       }
     };
@@ -141,12 +163,15 @@ export const usePerpsMarketStats = (
         unsubscribe();
       }
     };
-  }, [symbol, isInitialized]);
+  }, [isInitialized, marketContextKey, symbol]);
 
   // Calculate all statistics
   const stats = useMemo<MarketStats>(() => {
     const { high, low } = calculate24hHighLow(candleData);
-    const fallbackPrice = initialPrice || 0;
+    const hasCurrentMarketData = marketDataContextKey === marketContextKey;
+    const currentMarketData = hasCurrentMarketData ? marketData : {};
+    const fallbackPrice =
+      initialPrice?.contextKey === marketContextKey ? initialPrice.value : 0;
 
     return {
       // 24h high/low from candlestick data, with fallback estimates (4 sig figs)
@@ -163,37 +188,42 @@ export const usePerpsMarketStats = (
               ranges: PRICE_RANGES_UNIVERSAL,
             }),
       volume24h:
-        marketData.volume24h !== undefined
-          ? `$${formatLargeNumber(marketData.volume24h, {
+        currentMarketData.volume24h !== undefined
+          ? `$${formatLargeNumber(currentMarketData.volume24h, {
               ranges: LARGE_NUMBER_RANGES_DETAILED,
             })}`
           : PERPS_CONSTANTS.FallbackPriceDisplay,
       openInterest:
-        marketData.openInterest !== undefined
-          ? `$${formatLargeNumber(marketData.openInterest, {
+        currentMarketData.openInterest !== undefined
+          ? `$${formatLargeNumber(currentMarketData.openInterest, {
               ranges: LARGE_NUMBER_RANGES_DETAILED,
             })}`
           : PERPS_CONSTANTS.FallbackPriceDisplay,
-      fundingRate: formatFundingRate(marketData.funding),
+      fundingRate: formatFundingRate(currentMarketData.funding),
       currentPrice: fallbackPrice,
       isLoading: !candleData,
       dataSymbol:
-        candleData?.symbol === symbol && marketDataSymbol === symbol
+        candleData?.symbol === symbol &&
+        marketDataSymbol === symbol &&
+        hasCurrentMarketData
           ? symbol
           : undefined,
       hasLiveData:
         candleData?.symbol === symbol &&
         marketDataSymbol === symbol &&
-        (marketData.volume24h !== undefined ||
-          marketData.openInterest !== undefined),
-      hasError: hasMarketDataError,
+        hasCurrentMarketData &&
+        (currentMarketData.volume24h !== undefined ||
+          currentMarketData.openInterest !== undefined),
+      hasError: marketDataErrorContextKey === marketContextKey,
     };
   }, [
     candleData,
-    hasMarketDataError,
     initialPrice,
     marketData,
+    marketDataContextKey,
+    marketDataErrorContextKey,
     marketDataSymbol,
+    marketContextKey,
     symbol,
   ]);
 

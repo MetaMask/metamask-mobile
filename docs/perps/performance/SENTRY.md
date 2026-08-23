@@ -146,6 +146,21 @@ Dashboards aggregate each authoritative transaction independently using the same
 
 ## Dashboard proposal
 
+The production dashboards answer two different questions:
+
+- Product trend: are the key Perps screens and user flows improving or
+  regressing over time? Plot each authoritative duration as a release-aware
+  p50/p75/p95 time series, split by platform. Keep Perps Home, market-list,
+  Lite/Pro detail, and open/limit/close/cancel flows visible without combining
+  their different anchors.
+- Engineering bottleneck: which lifecycle or section explains a regression?
+  Drill from the high-level row into the matching Homepage/detail waterfall,
+  source/cache cohort, reliability row, and individual session context.
+
+The development dashboards mirror these definitions before release. A local
+report may validate emission, but only an identifiable production release can
+populate a production trend.
+
 ### Startup
 
 - Load Scripts p50/p75/p95.
@@ -182,17 +197,21 @@ Dashboards aggregate each authoritative transaction independently using the same
 ### Market detail
 
 - `Perps Market Detail Live` p50/p75/p95 split by `detail_mode`.
+- A release/platform time series for the minimum-useful Lite and Pro durations,
+  linked to the section waterfall used to explain each regression.
 - One waterfall table from `Perps Market Detail Session`, with count and
   p50/p75/p95 for each applicable `*_resolved_ms` measurement.
+- A section p75 time series and slowest-section table so chart, stats, insights,
+  account, order-book, and positions/orders bottlenecks can be ranked over time.
 - Split market metadata by `market_source`; route metadata and stream enrichment
   are different cohorts.
 - Split every waterfall by `lifecycle_context`; do not pool
   `background_resume` resident rows with cold or warm navigation.
 - Navigation waterfalls filter `generation_trigger=initial`. Market, account,
   mode, network, background, and configuration changes are separate cohorts.
-- Lite filters for price, chart, stats, insights, account, and
+- Lite filters for market, price, chart, stats, insights, account, and
   positions/orders.
-- Pro filters for price, chart, stats, account, order book, and
+- Pro filters for market, price, chart, stats, account, order book, and
   positions/orders.
 - Trade-control/order-form readiness derives from the max of market, price, and
   account offsets; there is no duplicate emitted duration.
