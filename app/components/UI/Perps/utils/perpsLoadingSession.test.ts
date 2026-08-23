@@ -161,6 +161,27 @@ describe('perpsLoadingSession', () => {
     expect(getActivePerpsLoadingSessionContext()).toBeNull();
   });
 
+  it('disarms a prepared buffer when cancelled before the session starts', () => {
+    preparePerpsLoadingSession();
+    recordPerpsLoadingSessionValuesReady('markets', 'provider', 4);
+    finishPerpsLoadingSession({
+      success: true,
+      content_state: 'empty',
+      content_variant: 'trending',
+    });
+
+    cancelPerpsLoadingSession('surface_unmounted');
+    startPerpsLoadingSession();
+
+    expect(setMeasurement).not.toHaveBeenCalledWith(
+      expect.anything(),
+      'markets_ready_ms',
+      expect.anything(),
+      expect.anything(),
+    );
+    expect(endTrace).not.toHaveBeenCalled();
+  });
+
   it('cancels rather than failing the old session on restart', () => {
     startPerpsLoadingSession();
 

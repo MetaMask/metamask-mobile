@@ -14,6 +14,7 @@ import { TERMINAL_GLOBAL_SNAPSHOT_DATA_SOURCE } from '../constants/terminalApi';
 export const PERPS_BOOTSTRAP_STAGE = 'perps_bootstrap_start';
 export const PERPS_VALUES_READY_STAGE = 'values_ready';
 export const PERPS_LOADING_SESSION_TIMEOUT_MS = 90_000;
+const PRE_SESSION_EVENT_BUFFER_LIMIT = 20;
 
 export type PerpsLoadingStream =
   | 'markets'
@@ -308,7 +309,7 @@ export function recordPerpsLoadingSessionValuesReady(
       identity,
       recordedAtMs,
     });
-    preSessionEvents = preSessionEvents.slice(-20);
+    preSessionEvents = preSessionEvents.slice(-PRE_SESSION_EVENT_BUFFER_LIMIT);
     return;
   }
 
@@ -576,6 +577,9 @@ export function cancelPerpsLoadingSession(
   reason: PerpsLoadingSessionCancellationReason,
 ): void {
   if (!activeSessionId) {
+    preSessionEvents = [];
+    preSessionFinishData = null;
+    preSessionBufferArmed = false;
     return;
   }
   const cancelledContext = getActivePerpsLoadingSessionContext();
