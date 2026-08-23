@@ -225,6 +225,13 @@ jest.mock('../../hooks/usePerpsMarketHeaderActions', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsMarketContext', () => ({
+  usePerpsMarketContext: () => ({
+    key: 'testnet|hyperliquid|1',
+    isReady: true,
+  }),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {

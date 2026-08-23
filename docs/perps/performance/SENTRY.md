@@ -201,8 +201,9 @@ populate a production trend.
   linked to the section waterfall used to explain each regression.
 - One waterfall table from `Perps Market Detail Session`, with count and
   p50/p75/p95 for each applicable `*_resolved_ms` measurement.
-- A section p75 time series and slowest-section table so chart, stats, insights,
-  account, order-book, and positions/orders bottlenecks can be ranked over time.
+- A section p75 time series and slowest-section table so market, chart, stats,
+  insights, account, order-book, and positions/orders bottlenecks can be ranked
+  over time.
 - Split market metadata by `market_source`; route metadata and stream enrichment
   are different cohorts.
 - Split every waterfall by `lifecycle_context`; do not pool

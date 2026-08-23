@@ -10,6 +10,8 @@ export interface UsePerpsSyncedChartPriceParams {
   symbol: string;
   interval: CandlePeriod;
   isAdvancedChartEnabled: boolean;
+  marketContextKey?: string;
+  isMarketContextReady?: boolean;
 }
 
 export interface UsePerpsSyncedChartPriceResult {
@@ -37,6 +39,8 @@ export function usePerpsSyncedChartPrice({
   symbol,
   interval,
   isAdvancedChartEnabled,
+  marketContextKey = '',
+  isMarketContextReady = true,
 }: UsePerpsSyncedChartPriceParams): UsePerpsSyncedChartPriceResult {
   const { candleData, isLoading, hasHistoricalData, fetchMoreHistory } =
     usePerpsLiveCandles({
@@ -44,34 +48,45 @@ export function usePerpsSyncedChartPrice({
       interval,
       duration: TimeDuration.YearToDate,
       throttleMs: 1000,
+      resetKey: marketContextKey,
+      enabled: isMarketContextReady,
     });
 
   const chartCurrentPrice = useMemo(() => {
-    if (candleData?.symbol !== symbol || !candleData.candles.length) {
+    if (
+      !isMarketContextReady ||
+      candleData?.symbol !== symbol ||
+      !candleData.candles.length
+    ) {
       return 0;
     }
     const lastCandle = candleData.candles.at(-1);
     return lastCandle?.close ? Number.parseFloat(lastCandle.close) : 0;
-  }, [candleData, symbol]);
+  }, [candleData, isMarketContextReady, symbol]);
 
   const [advancedChartPriceState, setAdvancedChartPriceState] = useState<{
     symbol: string;
     interval: CandlePeriod;
+    marketContextKey: string;
     price: number;
   }>();
 
   const setAdvancedChartCurrentPrice = useCallback(
     (price: number | undefined) => {
       setAdvancedChartPriceState(
-        price === undefined ? undefined : { symbol, interval, price },
+        price === undefined
+          ? undefined
+          : { symbol, interval, marketContextKey, price },
       );
     },
-    [interval, symbol],
+    [interval, marketContextKey, symbol],
   );
 
   const advancedChartCurrentPrice =
     advancedChartPriceState?.symbol === symbol &&
-    advancedChartPriceState.interval === interval
+    advancedChartPriceState.interval === interval &&
+    advancedChartPriceState.marketContextKey === marketContextKey &&
+    isMarketContextReady
       ? advancedChartPriceState.price
       : undefined;
 
