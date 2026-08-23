@@ -451,7 +451,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
                 <PerpsPositionSkeleton />
               </SectionRow>
             ) : (
-              <Box testID="homepage-perps-positions">
+              <Box testID="homepage-perps-positions" collapsable={false}>
                 {displayPositions.map((position) => (
                   <PerpsCard
                     key={position.symbol}

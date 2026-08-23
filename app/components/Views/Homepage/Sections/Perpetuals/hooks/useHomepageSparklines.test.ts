@@ -180,6 +180,23 @@ describe('useHomepageSparklines', () => {
     expect(result.current.sparklines.ETH?.[0]).toBe(200);
   });
 
+  it('keeps the last trend while a new candle fallback resolves', () => {
+    const { result, rerender } = renderHook(
+      ({ markets }) => useHomepageSparklines(markets),
+      {
+        initialProps: {
+          markets: [makeMarket('BTC', makeTrend(2, [500, 501]))],
+        },
+      },
+    );
+
+    expect(result.current.sparklines.BTC).toEqual([500, 501]);
+
+    rerender({ markets: [makeMarket('BTC')] });
+
+    expect(result.current.sparklines.BTC).toEqual([500, 501]);
+  });
+
   it('keeps the last fallback data and only replaces it on explicit refresh', async () => {
     let callback: ((candleData: CandleData) => void) | undefined;
     mockSubscribe.mockImplementation(
@@ -253,6 +270,49 @@ describe('useHomepageSparklines', () => {
       TimeDuration.OneDay,
       true,
     );
+  });
+
+  it('accepts refresh data until overlapping refreshes both settle', async () => {
+    let candleCallback: ((candleData: CandleData) => void) | undefined;
+    let resolveFirst: (() => void) | undefined;
+    let resolveSecond: (() => void) | undefined;
+    mockSubscribe.mockImplementation(
+      (params: { callback: (candleData: CandleData) => void }) => {
+        candleCallback = params.callback;
+        return jest.fn();
+      },
+    );
+    mockPrewarmCandles
+      .mockImplementationOnce(
+        () => new Promise<void>((resolve) => (resolveFirst = resolve)),
+      )
+      .mockImplementationOnce(
+        () => new Promise<void>((resolve) => (resolveSecond = resolve)),
+      );
+    const { result } = renderHook(() =>
+      useHomepageSparklines([makeMarket('BTC')]),
+    );
+
+    const firstRefresh = result.current.refresh();
+    const secondRefresh = result.current.refresh();
+    await act(async () => {
+      resolveFirst?.();
+      await firstRefresh;
+    });
+    await act(async () => {
+      candleCallback?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.FifteenMinutes,
+        candles: makeCandles(10, 200),
+      });
+    });
+
+    expect(result.current.sparklines.BTC?.[0]).toBe(200);
+
+    await act(async () => {
+      resolveSecond?.();
+      await secondRefresh;
+    });
   });
 
   it('filters out unparseable trend price entries', () => {
