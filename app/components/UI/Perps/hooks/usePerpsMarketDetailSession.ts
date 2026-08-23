@@ -255,8 +255,25 @@ export function usePerpsMarketDetailSession({
         provider ?? '',
         network,
         hip3ConfigVersion,
+        foregroundGeneration,
+        configuredChartLibrary,
+        configurationKey,
+        entrySource ?? '',
+        expectedSectionsKey,
       ]),
-    [address, hip3ConfigVersion, mode, network, provider, symbol],
+    [
+      address,
+      configurationKey,
+      configuredChartLibrary,
+      entrySource,
+      expectedSectionsKey,
+      foregroundGeneration,
+      hip3ConfigVersion,
+      mode,
+      network,
+      provider,
+      symbol,
+    ],
   );
 
   const endActiveSession = useCallback(

@@ -440,9 +440,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   const [isMoreCandlePeriodsVisible, setIsMoreCandlePeriodsVisible] =
     useState(false);
   const chartRef = useRef<TradingViewChartRef>(null);
-  const [advancedChartResolvedKey, setAdvancedChartResolvedKey] = useState<
-    string | null
-  >(null);
+  const [advancedChartResolution, setAdvancedChartResolution] = useState<{
+    key: string;
+    state: Extract<PerpsMarketDetailSectionState, 'content' | 'empty'>;
+  } | null>(null);
   const [advancedChartResetKey, setAdvancedChartResetKey] = useState(0);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
 
@@ -840,16 +841,27 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   });
 
   const advancedChartSeriesKey = `${market?.symbol ?? ''}|${selectedCandlePeriod}`;
+  const advancedChartIdentity = `${advancedChartSeriesKey}|${configuredChartLibrary}`;
+  const previousAdvancedChartIdentityRef = useRef(advancedChartIdentity);
+  const advancedChartGenerationRef = useRef(0);
+  if (previousAdvancedChartIdentityRef.current !== advancedChartIdentity) {
+    previousAdvancedChartIdentityRef.current = advancedChartIdentity;
+    advancedChartGenerationRef.current += 1;
+  }
+  const advancedChartReadinessKey = `${advancedChartIdentity}|${advancedChartGenerationRef.current}`;
   const handleAdvancedChartResolved = useCallback(
-    (resolvedSeriesKey: string) => {
+    (
+      resolvedSeriesKey: string,
+      state: Extract<PerpsMarketDetailSectionState, 'content' | 'empty'>,
+    ) => {
       if (
         resolvedSeriesKey === advancedChartSeriesKey ||
         resolvedSeriesKey.startsWith(`${advancedChartSeriesKey}|`)
       ) {
-        setAdvancedChartResolvedKey(advancedChartSeriesKey);
+        setAdvancedChartResolution({ key: advancedChartReadinessKey, state });
       }
     },
-    [advancedChartSeriesKey],
+    [advancedChartReadinessKey, advancedChartSeriesKey],
   );
 
   const marketHasResolvedMetadata = Boolean(
@@ -876,8 +888,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     syncedChartCurrentPrice > 0 ? 'content' : 'loading';
   const chartSectionState: PerpsMarketDetailSectionState =
     isAdvancedChartEnabled
-      ? advancedChartResolvedKey === advancedChartSeriesKey
-        ? 'content'
+      ? advancedChartResolution?.key === advancedChartReadinessKey
+        ? advancedChartResolution.state
         : 'loading'
       : candleData?.symbol === market?.symbol &&
           candleData.interval === selectedCandlePeriod &&

@@ -80,6 +80,7 @@ interface PerpsProChartPanelProps {
   symbol: string;
   selectedCandlePeriod: CandlePeriod;
   isAdvancedChartEnabled: boolean;
+  configuredChartLibrary: string;
   effectiveChartLibrary: string;
   onCandlePeriodChange: (period: CandlePeriod) => void;
   onMorePress: () => void;
@@ -94,6 +95,7 @@ interface PerpsProChartPanelProps {
   onResolvedStateChange?: (
     symbol: string,
     state: PerpsMarketDetailSectionState,
+    contextKey: string,
   ) => void;
 }
 
@@ -104,6 +106,7 @@ const PerpsProChartPanel = ({
   symbol,
   selectedCandlePeriod,
   isAdvancedChartEnabled,
+  configuredChartLibrary,
   effectiveChartLibrary,
   onCandlePeriodChange,
   onMorePress,
@@ -121,6 +124,7 @@ const PerpsProChartPanel = ({
   const chartRef = useRef<TradingViewChartRef>(null);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
   const visibleCandleCount = PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT;
+  const chartContextKey = `${symbol}|${selectedCandlePeriod}|${configuredChartLibrary}`;
 
   // Pro-only: the Advanced Chart unmounts while collapsed, so drop its last
   // reported close. Symbol/period/flag resets are owned by
@@ -146,11 +150,12 @@ const PerpsProChartPanel = ({
 
   useEffect(() => {
     if (!isChartExpanded) {
-      onResolvedStateChange?.(symbol, 'not_applicable');
+      onResolvedStateChange?.(symbol, 'not_applicable', chartContextKey);
       return;
     }
-    onResolvedStateChange?.(symbol, 'loading');
+    onResolvedStateChange?.(symbol, 'loading', chartContextKey);
   }, [
+    chartContextKey,
     isAdvancedChartEnabled,
     isChartExpanded,
     onResolvedStateChange,
@@ -166,11 +171,12 @@ const PerpsProChartPanel = ({
       candleData.interval === selectedCandlePeriod &&
       hasHistoricalData
     ) {
-      onResolvedStateChange?.(symbol, 'content');
+      onResolvedStateChange?.(symbol, 'content', chartContextKey);
     }
   }, [
     candleData?.interval,
     candleData?.symbol,
+    chartContextKey,
     hasHistoricalData,
     isAdvancedChartEnabled,
     isChartExpanded,
@@ -180,16 +186,19 @@ const PerpsProChartPanel = ({
   ]);
 
   const handleAdvancedChartResolved = useCallback(
-    (resolvedSeriesKey: string) => {
+    (
+      resolvedSeriesKey: string,
+      state: Extract<PerpsMarketDetailSectionState, 'content' | 'empty'>,
+    ) => {
       const expectedSeriesKey = `${symbol}|${selectedCandlePeriod}`;
       if (
         resolvedSeriesKey === expectedSeriesKey ||
         resolvedSeriesKey.startsWith(`${expectedSeriesKey}|`)
       ) {
-        onResolvedStateChange?.(symbol, 'content');
+        onResolvedStateChange?.(symbol, state, chartContextKey);
       }
     },
-    [onResolvedStateChange, selectedCandlePeriod, symbol],
+    [chartContextKey, onResolvedStateChange, selectedCandlePeriod, symbol],
   );
   const { existingPosition } = useHasExistingPosition({
     asset: symbol,

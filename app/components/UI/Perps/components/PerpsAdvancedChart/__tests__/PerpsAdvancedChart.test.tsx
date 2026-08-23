@@ -377,7 +377,31 @@ describe('PerpsAdvancedChart', () => {
       }),
     );
     expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
-    expect(onResolved).toHaveBeenCalledWith('BTC|1h');
+    expect(onResolved).toHaveBeenCalledWith('BTC|1h', 'empty');
+  });
+
+  it('resolves the chart as content when the skeleton hides with bars', () => {
+    const onResolved = jest.fn();
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      ohlcvData: [
+        {
+          time: 1,
+          open: 1,
+          high: 2,
+          low: 0.5,
+          close: 1.5,
+          volume: 10,
+        },
+      ],
+    });
+    renderChart({ onResolved });
+
+    act(() => {
+      advancedChartProps().onSkeletonHidden?.();
+    });
+
+    expect(onResolved).toHaveBeenCalledWith('BTC|1h', 'content');
   });
 
   it('supersedes the active trace and starts an interval trace when only the interval changes', () => {
@@ -581,7 +605,7 @@ describe('PerpsAdvancedChart', () => {
     act(() => {
       advancedChartProps().onError?.('chart failed');
     });
-    expect(onResolved).toHaveBeenCalledTimes(1);
+    expect(onResolved).toHaveBeenCalledWith('BTC|1h', 'content');
 
     rerender(
       <PerpsAdvancedChart

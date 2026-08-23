@@ -2,6 +2,21 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import { CandlePeriod, PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { usePerpsMarketStats } from './usePerpsMarketStats';
 
+let mockNetwork = 'testnet';
+let mockProvider = 'hyperliquid';
+let mockHip3ConfigVersion = 1;
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: (state: object) => unknown) => selector({}),
+}));
+jest.mock('../selectors/featureFlags', () => ({
+  selectHip3ConfigVersion: () => mockHip3ConfigVersion,
+}));
+jest.mock('../selectors/perpsController', () => ({
+  selectPerpsNetwork: () => mockNetwork,
+  selectPerpsProvider: () => mockProvider,
+}));
+
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -31,6 +46,9 @@ describe('usePerpsMarketStats', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockNetwork = 'testnet';
+    mockProvider = 'hyperliquid';
+    mockHip3ConfigVersion = 1;
     mockedUsePerpsConnection.mockReturnValue({
       isInitialized: true,
       isConnected: true,
@@ -255,6 +273,45 @@ describe('usePerpsMarketStats', () => {
     expect(result.current.dataSymbol).toBe('ETH');
     expect(result.current.hasLiveData).toBe(true);
   });
+
+  it.each([
+    ['provider', () => (mockProvider = 'myx')],
+    ['network', () => (mockNetwork = 'mainnet')],
+    ['HIP-3 configuration', () => (mockHip3ConfigVersion = 2)],
+  ])(
+    'does not reuse same-symbol stats after a %s change',
+    (_name, changeContext) => {
+      const callbacks: ((updates: (typeof mockPriceData.BTC)[]) => void)[] = [];
+      mockSubscribeToPrices.mockImplementation(({ callback }) => {
+        callbacks.push(callback);
+        return jest.fn();
+      });
+      mockedUsePerpsLiveCandles.mockReturnValue({
+        candleData: mockCandleData,
+        isLoading: false,
+        isLoadingMore: false,
+        hasHistoricalData: true,
+        error: null,
+        fetchMoreHistory: jest.fn(),
+      });
+
+      const { result, rerender } = renderHook(() => usePerpsMarketStats('BTC'));
+      act(() => callbacks[0]([mockPriceData.BTC]));
+      expect(result.current.dataSymbol).toBe('BTC');
+
+      changeContext();
+      rerender();
+      expect(result.current.dataSymbol).toBeUndefined();
+      expect(result.current.hasLiveData).toBe(false);
+
+      act(() => callbacks[0]([mockPriceData.BTC]));
+      expect(result.current.dataSymbol).toBeUndefined();
+
+      act(() => callbacks[1]([mockPriceData.BTC]));
+      expect(result.current.dataSymbol).toBe('BTC');
+      expect(result.current.hasLiveData).toBe(true);
+    },
+  );
 
   it('formats negative funding rates with proper sign and decimals', () => {
     // Given a negative funding rate
