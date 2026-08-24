@@ -184,6 +184,20 @@ module.exports = function (baseConfig) {
               'node:buffer': '@craftzdog/react-native-buffer',
             },
             resolveRequest: (context, moduleName, platform) => {
+              // Swaps in a SafeAreaView that applies the top inset via
+              // useSafeAreaInsets; the native inset recalculates on mount and
+              // visibly drops headers a frame late. Bare specifier only —
+              // subpaths (jest/mock, and the shim's own `src/` imports) must
+              // still resolve to node_modules.
+              if (moduleName === 'react-native-safe-area-context') {
+                return {
+                  type: 'sourceFile',
+                  filePath: path.resolve(
+                    __dirname,
+                    'app/shims/react-native-safe-area-context.tsx',
+                  ),
+                };
+              }
               // reflect-metadata's only job is to add metadata APIs
               // (Reflect.defineMetadata etc.) to the global Reflect object.
               // getPolyfills above already runs it once at bundle startup,
