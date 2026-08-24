@@ -92,13 +92,7 @@ const PerpsProSizeInput = ({
 
     playSelection().catch(() => undefined);
     onToggleDenomination?.();
-    focusInput();
-  }, [
-    canPressDenominationToggle,
-    focusInput,
-    onToggleDenomination,
-    playSelection,
-  ]);
+  }, [canPressDenominationToggle, onToggleDenomination, playSelection]);
 
   const handleAddFundsPress = useCallback(() => {
     if (!onAddFundsPress) {

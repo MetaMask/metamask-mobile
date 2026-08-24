@@ -13,9 +13,9 @@ import {
   IconColor,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import type { BenefitItem } from '../Benefits.constants';
-import { BenefitsTestIds } from '../Benefits.testIds';
-import { strings } from '../../../../../../../locales/i18n';
+import type { BenefitItem } from './benefits.constants';
+import { BenefitRowTestIds } from './BenefitRow.testIds';
+import { strings } from '../../../../../locales/i18n';
 
 interface BenefitRowProps {
   item: BenefitItem;
@@ -37,7 +37,7 @@ const BenefitRow = ({
       twClassName="py-3 gap-x-4"
     >
       <Icon
-        name={IconName.Check}
+        name={IconName.CheckBold}
         size={IconSize.Lg}
         color={IconColor.IconDefault}
         twClassName="shrink-0"
@@ -70,7 +70,7 @@ const BenefitRow = ({
         onPress={() => onPress(item)}
         accessibilityRole="button"
         accessibilityLabel={strings(item.title)}
-        testID={BenefitsTestIds.BENEFIT_ROW(item.id)}
+        testID={BenefitRowTestIds.ROW(item.id)}
       >
         {content}
       </TouchableOpacity>
@@ -80,7 +80,7 @@ const BenefitRow = ({
   return (
     <Box
       accessibilityLabel={strings(item.title)}
-      testID={BenefitsTestIds.BENEFIT_ROW(item.id)}
+      testID={BenefitRowTestIds.ROW(item.id)}
     >
       {content}
     </Box>
