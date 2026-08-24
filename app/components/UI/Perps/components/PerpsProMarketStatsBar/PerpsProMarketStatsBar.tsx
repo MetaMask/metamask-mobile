@@ -159,7 +159,7 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   const oraclePriceDisplay = formatLivePrice(livePriceUpdate?.markPrice);
 
   return (
-    <Box testID={testID} twClassName="border-t border-b border-border-muted">
+    <Box testID={testID} twClassName="border-b border-border-muted">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

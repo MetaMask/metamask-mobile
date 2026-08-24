@@ -21,8 +21,6 @@ export const createStyles = ({
       justifyContent: 'space-between',
       paddingHorizontal: 16,
       paddingVertical: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
     },
     accountSummary: {
       backgroundColor: colors.background.alternative,
