@@ -133,6 +133,8 @@ jest.mock('./utils', () => {
       CLOB_RELAYER: 'https://predict.api.cx.metamask.io',
       GEOBLOCK_API_ENDPOINT: 'https://polymarket.com/api/geoblock',
       CRYPTO_PRICE_ENDPOINT: 'https://polymarket.com/api/crypto/crypto-price',
+      CRYPTO_PRICE_HISTORY_ENDPOINT:
+        'https://polymarket.com/api/crypto/price-history',
       CHAINLINK_CANDLES_ENDPOINT:
         'https://polymarket.com/api/chainlink-candles',
     })),
@@ -2213,6 +2215,38 @@ describe('PolymarketProvider', () => {
     expect(result).toEqual([
       { timestamp: 1000, value: 10 },
       { timestamp: 1060, value: 11 },
+    ]);
+  });
+
+  it('gets TWAP price history from the current Polymarket price history API', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue([
+        { timestamp: 1787158800000, value: 68449.07681200188 },
+        { timestamp: 1787158805000, value: 68450.56902128145 },
+        { timestamp: 'invalid', value: 68455 },
+      ]),
+    });
+    const params = {
+      symbol: ' btc ',
+      eventStartTime: '2026-08-19T17:00:00Z',
+      variant: 'fiveminute',
+      endDate: '2026-08-19T17:05:00Z',
+      twapWindowSeconds: 60 as const,
+    };
+
+    const result = await createProvider().getCryptoPriceHistory(params);
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://polymarket.com/api/crypto/price-history?symbol=BTC&eventStartTime=2026-08-19T17%3A00%3A00Z&variant=fiveminute&endDate=2026-08-19T17%3A05%3A00Z&twapEnabled=true&twapLookbackSeconds=60',
+      expect.objectContaining({
+        method: 'GET',
+        signal: expect.any(AbortSignal),
+      }),
+    );
+    expect(result).toEqual([
+      { timestamp: 1787158800000, value: 68449.07681200188 },
+      { timestamp: 1787158805000, value: 68450.56902128145 },
     ]);
   });
 

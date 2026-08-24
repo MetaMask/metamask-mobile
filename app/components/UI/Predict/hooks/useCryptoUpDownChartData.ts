@@ -377,12 +377,15 @@ export const useCryptoUpDownChartData = (
     : [wsSymbol, handleLiveUpdate];
   useLiveCryptoPrices(...liveSubscriptionArgs);
 
-  const historyStartDate =
-    options.historicalWindow?.startDate ?? eventStartTime;
+  const historyStartDate = twapWindowSeconds
+    ? eventStartTime
+    : (options.historicalWindow?.startDate ?? eventStartTime);
   const liveHistoryEndDate = isLiveByEndDate ? undefined : market.endDate;
-  const historyEndDate = options.historicalWindow
-    ? options.historicalWindow.endDate
-    : liveHistoryEndDate;
+  const historyEndDate = twapWindowSeconds
+    ? market.endDate
+    : options.historicalWindow
+      ? options.historicalWindow.endDate
+      : liveHistoryEndDate;
 
   // Counts consecutive failed historical-poll cycles. React Query's
   // `fetchFailureCount` only counts retries *within a single fetch* and resets
@@ -407,8 +410,9 @@ export const useCryptoUpDownChartData = (
       eventStartTime: historyStartDate ?? '',
       variant,
       endDate: historyEndDate,
+      ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
     }),
-    enabled: enabled && !twapWindowSeconds && !!symbol && !!historyStartDate,
+    enabled: enabled && !!symbol && !!historyStartDate,
     keepPreviousData: true,
     staleTime: shouldStreamLive ? 1000 : Infinity,
     refetchOnMount: shouldStreamLive || !liveUpdatesEnabled ? 'always' : false,
@@ -431,10 +435,9 @@ export const useCryptoUpDownChartData = (
         : false,
   });
 
-  const historicalData =
-    twapWindowSeconds === undefined && !hasPriceSourceChanged
-      ? (historicalQuery.data ?? EMPTY_DATA)
-      : EMPTY_DATA;
+  const historicalData = !hasPriceSourceChanged
+    ? (historicalQuery.data ?? EMPTY_DATA)
+    : EMPTY_DATA;
   const hasUsableHistoricalData = preserveHistoricalDataAcrossMarket
     ? historicalData.length >= 2
     : historicalData.length > 0;

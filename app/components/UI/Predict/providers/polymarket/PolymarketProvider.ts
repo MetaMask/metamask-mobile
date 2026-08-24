@@ -1375,12 +1375,52 @@ export class PolymarketProvider implements PredictProvider {
   public async getCryptoPriceHistory(
     params: GetCryptoPriceHistoryParams,
   ): Promise<CryptoPriceHistoryPoint[]> {
-    const { symbol, eventStartTime, variant, endDate } = params;
+    const { symbol, eventStartTime, variant, endDate, twapWindowSeconds } =
+      params;
 
     try {
       const normalizedSymbol = symbol.trim().toUpperCase();
       if (!normalizedSymbol) {
         throw new Error('symbol parameter is required');
+      }
+
+      if (twapWindowSeconds !== undefined) {
+        const { CRYPTO_PRICE_HISTORY_ENDPOINT } = getPolymarketEndpoints();
+        const searchParams = new URLSearchParams({
+          symbol: normalizedSymbol,
+          eventStartTime,
+          variant,
+        });
+        if (endDate) {
+          searchParams.set('endDate', endDate);
+        }
+        searchParams.set('twapEnabled', 'true');
+        searchParams.set('twapLookbackSeconds', twapWindowSeconds.toString());
+
+        const response = await fetchWithTimeout(
+          `${CRYPTO_PRICE_HISTORY_ENDPOINT}?${searchParams.toString()}`,
+          { method: 'GET' },
+        );
+        if (!response.ok) {
+          throw new Error('Failed to get crypto price history');
+        }
+
+        const data: unknown = await response.json();
+        if (!Array.isArray(data)) {
+          return [];
+        }
+
+        return data.filter(
+          (entry): entry is CryptoPriceHistoryPoint =>
+            typeof entry === 'object' &&
+            entry !== null &&
+            'timestamp' in entry &&
+            typeof entry.timestamp === 'number' &&
+            Number.isFinite(entry.timestamp) &&
+            'value' in entry &&
+            typeof entry.value === 'number' &&
+            Number.isFinite(entry.value),
+        );
       }
 
       const { CHAINLINK_CANDLES_ENDPOINT } = getPolymarketEndpoints();
@@ -1463,6 +1503,7 @@ export class PolymarketProvider implements PredictProvider {
         eventStartTime,
         variant,
         endDate,
+        twapWindowSeconds,
       } as Record<string, unknown>);
 
       // Transient network/availability failures are expected while polling and
