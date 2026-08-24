@@ -51,15 +51,8 @@ import styleSheet from './ActivityView.styles';
 import { selectIsActivityRedesignEnabled } from './selectors/featureFlags';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter enum; route-isolation backlog
 import { ActivityTypeFilter } from '../ActivityScreen/types';
-
-// Lazily loaded so the redesigned Activity screen and its dependencies are not
-// evaluated when `tmcuActivityRedesignEnabled` is off, keeping the legacy path
-// fully isolated.
-const ActivityScreen = React.lazy(
-  () =>
-    // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-    import('../ActivityScreen/ActivityScreen'),
-);
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import ActivityScreen from '../ActivityScreen/ActivityScreen';
 
 const LegacyActivityView = () => {
   const { colors } = useTheme();
@@ -316,9 +309,7 @@ const ActivityView = () => {
   );
 
   return isActivityRedesignEnabled ? (
-    <React.Suspense fallback={null}>
-      <ActivityScreen />
-    </React.Suspense>
+    <ActivityScreen />
   ) : (
     <LegacyActivityView />
   );
