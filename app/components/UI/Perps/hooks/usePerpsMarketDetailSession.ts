@@ -211,7 +211,10 @@ export function usePerpsMarketDetailSession({
   const previousGenerationRef = useRef<DetailGenerationIdentity | null>(null);
 
   const expectedSectionsKey = useMemo(
-    () => Object.keys(sections).sort().join('|'),
+    () =>
+      Object.keys(sections)
+        .sort((first, second) => first.localeCompare(second))
+        .join('|'),
     [sections],
   );
   const sectionStatesKey = useMemo(

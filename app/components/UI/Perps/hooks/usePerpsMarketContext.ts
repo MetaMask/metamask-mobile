@@ -9,8 +9,10 @@ import {
 import { buildPerpsMarketContextKey } from '../utils/perpsMarketContext';
 
 export interface PerpsMarketContext {
+  key: string;
   identityKey: string;
   isReady: boolean;
+  isUserReady: boolean;
 }
 
 const subscribeToInitializedMarketContext = (listener: () => void) =>
@@ -24,6 +26,10 @@ const getConnectionGenerationSnapshot = () =>
   PerpsConnectionManager.getConnectionGeneration();
 const getInitializedConnectionGenerationSnapshot = () =>
   PerpsConnectionManager.getInitializedConnectionGeneration();
+const subscribeToInitializedUserContext = (listener: () => void) =>
+  PerpsConnectionManager.subscribeToInitializedUserContext(listener);
+const getUserContextReadySnapshot = () =>
+  PerpsConnectionManager.isSelectedUserContextReady();
 
 /**
  * Compares the selected market context with the connection that last completed
@@ -57,8 +63,15 @@ export function usePerpsMarketContext(): PerpsMarketContext {
   const isReady =
     initializedKey === selectedContextKey &&
     initializedConnectionGeneration === connectionGeneration;
+  const isUserReady = useSyncExternalStore(
+    subscribeToInitializedUserContext,
+    getUserContextReadySnapshot,
+    getUserContextReadySnapshot,
+  );
   return {
+    key: `${selectedContextKey}|${connectionGeneration}`,
     identityKey: selectedContextKey,
     isReady,
+    isUserReady,
   };
 }

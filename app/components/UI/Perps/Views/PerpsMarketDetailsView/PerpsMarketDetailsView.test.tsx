@@ -44,6 +44,7 @@ const mockTradingViewResetToDefault = jest.fn();
 const mockTradingViewRender = jest.fn();
 let mockMarketContextKey = 'testnet|hyperliquid|1';
 let mockMarketContextReady = true;
+let mockConnectionInitialized = true;
 
 jest.mock('../../../../../util/haptics');
 
@@ -112,7 +113,8 @@ jest.mock('../../hooks/usePerpsMarketContext', () => ({
   usePerpsMarketContext: () => ({
     key: mockMarketContextKey,
     isReady: mockMarketContextReady,
-    isConnectionInitialized: mockMarketContextReady,
+    isUserReady: mockConnectionInitialized,
+    isConnectionInitialized: mockConnectionInitialized,
   }),
 }));
 
@@ -903,6 +905,7 @@ describe('PerpsMarketDetailsView', () => {
     mockPerpsModeValue = 'lite';
     mockMarketContextKey = 'testnet|hyperliquid|1';
     mockMarketContextReady = true;
+    mockConnectionInitialized = true;
     mockUsePerpsLiveCandles.mockReturnValue(defaultLiveCandles());
     jest.spyOn(Date, 'now').mockReturnValue(MOCK_NOW_MS);
 
@@ -1961,6 +1964,26 @@ describe('PerpsMarketDetailsView', () => {
   describe('market context chart isolation', () => {
     it('keeps account-owned sections loading while context reconnects', () => {
       mockMarketContextReady = false;
+
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(mockUsePerpsMarketDetailSession).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          sections: expect.objectContaining({
+            account: 'loading',
+            positions_orders: 'loading',
+          }),
+        }),
+      );
+    });
+
+    it('keeps account-owned sections loading during an account reconnect', () => {
+      mockConnectionInitialized = false;
 
       renderWithProvider(
         <PerpsConnectionProvider>
