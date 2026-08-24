@@ -1,4 +1,4 @@
-import { TabEmptyState } from '@metamask/design-system-react-native';
+import { Box, TabEmptyState } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { Image } from 'react-native';
@@ -45,18 +45,21 @@ const PerpsProTabEmptyState = ({
       : strings(emptyDescriptionKey);
 
   return (
-    <TabEmptyState
-      icon={
-        <Image
-          source={perpsImage}
-          resizeMode="contain"
-          style={tw.style('w-[72px] h-[72px]')}
-          accessible={false}
-        />
-      }
-      description={description}
-      testID={testID}
-    />
+    // TabEmptyState does not forward testID to a measurable native view, so the
+    // locator lives on a wrapping Box that automated checks can resolve.
+    <Box testID={testID}>
+      <TabEmptyState
+        icon={
+          <Image
+            source={perpsImage}
+            resizeMode="contain"
+            style={tw.style('w-[72px] h-[72px]')}
+            accessible={false}
+          />
+        }
+        description={description}
+      />
+    </Box>
   );
 };
 
