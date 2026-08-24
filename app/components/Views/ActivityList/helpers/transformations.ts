@@ -17,6 +17,7 @@ import type { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import type { InfiniteData } from '@tanstack/react-query';
 import { type ActivityListItem } from '../../../../util/activity-adapters';
 import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
+import { normalizeActivityItemTokenDecimals } from '../../../../util/activity-adapters/adapters/normalize-token-decimals';
 import { equalsIgnoreCase } from '../../../../util/string';
 import { applyBridgeQuote } from './apply-bridge-quote';
 
@@ -153,10 +154,12 @@ function transformApiTransactions(
     if (shouldSkipTransaction(subjectAddress, tx, excludedTxHashes)) {
       continue;
     }
-    items.push({
-      ...mapApiTransaction({ subjectAddress, transaction: tx }),
-      raw: { type: 'apiEvmTransaction' as const, data: tx },
-    } as ActivityListItem);
+    items.push(
+      normalizeActivityItemTokenDecimals({
+        ...mapApiTransaction({ subjectAddress, transaction: tx }),
+        raw: { type: 'apiEvmTransaction' as const, data: tx },
+      } as ActivityListItem),
+    );
   }
 
   return items;

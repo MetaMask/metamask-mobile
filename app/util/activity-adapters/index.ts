@@ -20,6 +20,7 @@ export {
   enrichLocalActivity,
   prepareLocalTransactionGroup,
 } from './adapters/enrich-local-activity';
+export { normalizeActivityItemTokenDecimals } from './adapters/normalize-token-decimals';
 export { mapPredictActivity } from './adapters/predict-activity';
 export { mapPerpsTransaction } from './adapters/perps-transaction';
 export { mapRampOrder } from './adapters/ramp-order';

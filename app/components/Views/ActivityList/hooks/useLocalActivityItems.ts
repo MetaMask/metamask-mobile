@@ -24,6 +24,7 @@ import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../select
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import {
   enrichLocalActivity,
+  normalizeActivityItemTokenDecimals,
   prepareLocalTransactionGroup,
   type TransactionGroup,
   type ActivityListItem,
@@ -375,11 +376,13 @@ export function useLocalActivityItems(): ActivityListItem[] {
       };
 
       const prepared = prepareLocalTransactionGroup(group);
-      const item = enrichLocalActivity(
-        mapLocalTransaction(
-          prepared as Parameters<typeof mapLocalTransaction>[0],
-        ) as ActivityListItem,
-        prepared,
+      const item = normalizeActivityItemTokenDecimals(
+        enrichLocalActivity(
+          mapLocalTransaction(
+            prepared as Parameters<typeof mapLocalTransaction>[0],
+          ) as ActivityListItem,
+          prepared,
+        ),
       );
       items.push({
         ...item,
