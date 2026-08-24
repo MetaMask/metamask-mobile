@@ -240,14 +240,17 @@ describe('ReferralRevenueShareDashboard', () => {
 
       expect(screen.queryByText('Prototype Scenarios')).not.toBeOnTheScreen();
       expect(screen.getByTestId('invited-new-user-screen')).toBeOnTheScreen();
-      expect(screen.getByText("You're invited")).toBeOnTheScreen();
+      expect(
+        screen.getByText("You're invited to earn double cashback"),
+      ).toBeOnTheScreen();
       expect(
         screen.queryByTestId('invited-existing-user-sheet'),
       ).not.toBeOnTheScreen();
       expect(
-        screen.getByText(/Someone shared an invite with you/),
+        screen.getByText(
+          /Earn 2× cashback on Swaps and Perps trades for a limited time./,
+        ),
       ).toBeOnTheScreen();
-      expect(screen.getByText(/Tap Accept to join/)).toBeOnTheScreen();
       expect(
         screen.getByTestId('invited-new-user-referral-code-input'),
       ).toHaveTextContent(/8F3A21/);
@@ -366,9 +369,10 @@ describe('ReferralRevenueShareDashboard', () => {
       ).toBeOnTheScreen();
       expect(screen.getByText("You're invited")).toBeOnTheScreen();
       expect(
-        screen.getByText(/Someone shared an invite with you/),
+        screen.getByText(
+          /Earn 2× cashback on Swaps and Perps trades for a limited time./,
+        ),
       ).toBeOnTheScreen();
-      expect(screen.getByText(/Tap Accept to join/)).toBeOnTheScreen();
       expect(
         screen.getByLabelText('Referral invite illustration'),
       ).toBeOnTheScreen();
@@ -388,9 +392,10 @@ describe('ReferralRevenueShareDashboard', () => {
     it('requires accept or decline on the invited existing user sheet', () => {
       renderExistingUserInvite();
 
+      expect(screen.getByText("You're invited")).toBeOnTheScreen();
       expect(
-        screen.queryByTestId('close-invited-existing-user-button'),
-      ).not.toBeOnTheScreen();
+        screen.getByTestId('close-invited-existing-user-button'),
+      ).toBeOnTheScreen();
       expect(
         screen.getByTestId('decline-invited-existing-user-button'),
       ).toBeOnTheScreen();
@@ -506,6 +511,16 @@ describe('ReferralRevenueShareDashboard', () => {
       fireEvent.press(
         screen.getByTestId('decline-invited-existing-user-button'),
       );
+
+      expect(
+        screen.queryByTestId('invited-existing-user-sheet'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('dismisses the invited existing user sheet when close is pressed', () => {
+      renderExistingUserInvite();
+
+      fireEvent.press(screen.getByTestId('close-invited-existing-user-button'));
 
       expect(
         screen.queryByTestId('invited-existing-user-sheet'),

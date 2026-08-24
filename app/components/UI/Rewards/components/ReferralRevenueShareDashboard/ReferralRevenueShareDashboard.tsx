@@ -75,9 +75,10 @@ import MoneyEarnings from '../../../Money/components/MoneyEarnings';
 
 const CREATOR_REFERRAL_CODE = '8F3A21';
 const REFERRAL_CODE_LENGTH = 6;
-const REFERRAL_INVITE_HEADER = "You're invited";
+const REFERRAL_INVITE_HEADER = "You're invited to earn double cashback";
+const REFERRAL_INVITE_SHEET_HEADER = "You're invited";
 const REFERRAL_INVITE_BODY =
-  "Someone shared an invite with you. Tap Accept to join. Opening this link doesn't enroll you automatically.";
+  "Earn 2× cashback on Swaps and Perps trades for a limited time. Opening this link doesn't enroll you automatically.";
 // Placeholder program values — configured by the backend in production.
 const REFERRER_REVENUE_SHARE_RATE = '25%';
 const REFERRED_USER_CASHBACK_RATE = '10%';
@@ -1063,26 +1064,43 @@ const ReferralInviteBody = ({
   referralCode,
   onChangeReferralCode,
   codeInputTestID,
-  includeOnboardingHeader = false,
+  centered = false,
+  showTitle = true,
 }: {
   referralCode: string;
   onChangeReferralCode: (value: string) => void;
   codeInputTestID: string;
-  includeOnboardingHeader?: boolean;
+  centered?: boolean;
+  showTitle?: boolean;
 }) => (
   <>
     <ReferralInviteIllustration />
-    {includeOnboardingHeader ? (
-      <Box twClassName="gap-y-1">
-        <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
+    {showTitle ? (
+      <Box
+        alignItems={centered ? BoxAlignItems.Center : undefined}
+        twClassName="gap-y-2"
+      >
+        <Text
+          variant={TextVariant.DisplayMd}
+          color={TextColor.TextDefault}
+          twClassName={centered ? 'text-center' : undefined}
+        >
           {REFERRAL_INVITE_HEADER}
         </Text>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName={centered ? 'text-center' : undefined}
+        >
           {REFERRAL_INVITE_BODY}
         </Text>
       </Box>
     ) : (
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
+        twClassName={centered ? 'text-center' : undefined}
+      >
         {REFERRAL_INVITE_BODY}
       </Text>
     )}
@@ -1205,7 +1223,6 @@ const InvitedNewUserScreen = ({
                 referralCode={referralCode}
                 onChangeReferralCode={setReferralCode}
                 codeInputTestID="invited-new-user-referral-code-input"
-                includeOnboardingHeader
               />
             </ScrollView>
             <Box twClassName="px-4">
@@ -1276,12 +1293,20 @@ const InvitedExistingUserSheet = ({
         isInteractable={false}
         testID="invited-existing-user-sheet"
       >
-        <BottomSheetHeader>{REFERRAL_INVITE_HEADER}</BottomSheetHeader>
-        <Box twClassName="px-4 pb-6 gap-4">
+        <BottomSheetHeader
+          onClose={handleDecline}
+          closeButtonProps={{
+            testID: 'close-invited-existing-user-button',
+          }}
+        >
+          {REFERRAL_INVITE_SHEET_HEADER}
+        </BottomSheetHeader>
+        <Box twClassName="px-4 gap-4">
           <ReferralInviteBody
             referralCode={referralCode}
             onChangeReferralCode={setReferralCode}
             codeInputTestID="invited-existing-user-referral-code-input"
+            showTitle={false}
           />
           <ReferralInviteDisclosure />
         </Box>
@@ -1299,7 +1324,7 @@ const InvitedExistingUserSheet = ({
             size: ButtonSize.Lg,
             testID: 'accept-invited-existing-user-button',
           }}
-          twClassName="px-4"
+          twClassName="px-4 pt-4 pb-6"
         />
       </BottomSheet>
     </Modal>
