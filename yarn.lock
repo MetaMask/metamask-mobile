@@ -36128,7 +36128,7 @@ __metadata:
     react-native-quick-base64: "patch:react-native-quick-base64@npm%3A2.2.0#~/.yarn/patches/react-native-quick-base64-npm-2.2.0-9083eb316a.patch"
     react-native-quick-crypto: "patch:react-native-quick-crypto@npm%3A0.7.15#~/.yarn/patches/react-native-quick-crypto-npm-0.7.15-85c4f4892e.patch"
     react-native-randombytes: "npm:^3.5.3"
-    react-native-reanimated: "npm:4.5.1"
+    react-native-reanimated: "npm:4.5.3"
     react-native-release-profiler: "npm:^0.4.4"
     react-native-render-html: "npm:^6.3.4"
     react-native-reorderable-list: "npm:^0.18.1"
@@ -36151,7 +36151,7 @@ __metadata:
     react-native-video: "npm:^6.19.2"
     react-native-view-shot: "npm:5.1.1"
     react-native-vision-camera: "npm:^4.7.3"
-    react-native-worklets: "npm:0.10.1"
+    react-native-worklets: "npm:0.10.4"
     react-redux: "npm:^8.1.3"
     react-test-renderer: "npm:19.2.0"
     reactotron-react-native: "npm:^5.1.14"
@@ -40782,17 +40782,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-reanimated@npm:4.5.1":
-  version: 4.5.1
-  resolution: "react-native-reanimated@npm:4.5.1"
+"react-native-reanimated@npm:4.5.3":
+  version: 4.5.3
+  resolution: "react-native-reanimated@npm:4.5.3"
   dependencies:
     react-native-is-edge-to-edge: "npm:^1.3.1"
     semver: "npm:^7.7.3"
   peerDependencies:
     react: "*"
     react-native: 0.83 - 0.86
-    react-native-worklets: 0.10.x
-  checksum: 10/da53fe28fd0eb492eecd5f5f988153b0e214c6010636762cb9e2e508795e6aff0b94ac9288a0a16559e3b60bdf5e005218baaee69b23a13d0afa7b85c09c51bf
+    react-native-worklets: 0.10.x - 0.11.x
+  checksum: 10/b043b6316156a525f3b77bb22279dc9bc1113c06ae5e818e6511e879f989b5a0884a9b5abc2b8c93c8e14430011602850067585036e4645370ce503c7995673b
   languageName: node
   linkType: hard
 
@@ -41127,9 +41127,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-worklets@npm:0.10.1":
-  version: 0.10.1
-  resolution: "react-native-worklets@npm:0.10.1"
+"react-native-worklets@npm:0.10.4":
+  version: 0.10.4
+  resolution: "react-native-worklets@npm:0.10.4"
   dependencies:
     "@babel/plugin-transform-arrow-functions": "npm:^7.27.1"
     "@babel/plugin-transform-class-properties": "npm:^7.28.6"
@@ -41148,7 +41148,7 @@ __metadata:
     "@react-native/metro-config": "*"
     react: "*"
     react-native: 0.83 - 0.86
-  checksum: 10/5c728806660e8798fc39dd7733129d69254413800ae3ecef64c999720a7545125ffa52e93f3d5715aec96fc79d97f60b4be3e5dabd39a7a051f6dd30b10778a2
+  checksum: 10/57090076467c4c9ffd46ba753b3a74b971b5ba9e0d139e684623a12e4459eb0c55acc191dcd6e4df3f8b106529b983c1a6601baf3201d30c041789fc18e92b6b
   languageName: node
   linkType: hard
 
