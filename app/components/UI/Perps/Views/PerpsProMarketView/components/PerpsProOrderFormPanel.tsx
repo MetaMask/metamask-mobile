@@ -67,6 +67,7 @@ const PerpsProOrderFormPanel = ({
     onAddFundsPress,
     reduceOnly,
     onReduceOnlyChange,
+    twap,
     isTPSLConfigured,
     onTPSLPress,
     notices,
@@ -191,6 +192,7 @@ const PerpsProOrderFormPanel = ({
         onAddFundsPress={onAddFundsPress}
         reduceOnly={reduceOnly}
         onReduceOnlyChange={onReduceOnlyChange}
+        twap={twap}
         isTPSLConfigured={isTPSLConfigured}
         onTPSLPress={onTPSLPress}
         notices={notices}
@@ -225,6 +227,7 @@ const PerpsProOrderFormPanel = ({
             title={strings('perps.pro_order_form.choose_order_type')}
             showSelectedIcon
             showTriggeredTypes={showTriggeredTypes}
+            showTwapType={isProModeActive}
           />
         </PerpsProModalPortal>
       )}

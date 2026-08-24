@@ -32,6 +32,7 @@ interface PerpsOrderTypeBottomSheetProps {
   title?: string;
   showSelectedIcon?: boolean;
   showTriggeredTypes?: boolean;
+  showTwapType?: boolean;
   sheetRef?: React.RefObject<BottomSheetRef | null>;
 }
 
@@ -45,6 +46,7 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
   title,
   showSelectedIcon = false,
   showTriggeredTypes = false,
+  showTwapType = false,
   sheetRef: externalSheetRef,
 }) => {
   const { track } = usePerpsEventTracking();
@@ -78,6 +80,7 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
       title={title}
       showSelectedIcon={showSelectedIcon}
       showTriggeredTypes={showTriggeredTypes}
+      showTwapType={showTwapType}
       sheetRef={externalSheetRef}
     />
   );

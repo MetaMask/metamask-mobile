@@ -1579,7 +1579,18 @@
       "est_liquidation": "Est Liquidation",
       "tpsl": "TP / SL",
       "place_order": "Place order",
-      "close_keyboard": "Close keyboard"
+      "close_keyboard": "Close keyboard",
+      "twap": {
+        "running_time": "Running time",
+        "valid_range": "5 min–24 hr",
+        "days": "Day(s)",
+        "hours": "Hour(s)",
+        "minutes": "Min(s)",
+        "randomize": "Randomize",
+        "randomize_description": "Vary each suborder size by up to ±20%.",
+        "minimum_size": "TWAP total size must be at least $100.",
+        "duration_range": "Running time must be between 5 minutes and 24 hours."
+      }
     },
     "pro_positions_panel": {
       "order_history": "Order history",
@@ -1771,6 +1782,7 @@
         "title": "Order type",
         "basic": "Basic",
         "triggered": "Triggered",
+        "advanced": "Advanced",
         "market": {
           "title": "Market",
           "description": "Execute instantly at best available price"
@@ -1794,6 +1806,10 @@
         "take_profit_market": {
           "title": "Take market",
           "description": "Place a market order if trigger price is reached"
+        },
+        "twap": {
+          "title": "TWAP",
+          "description": "Execute gradually over a selected running time"
         }
       },
       "payment_token": "Payment token",

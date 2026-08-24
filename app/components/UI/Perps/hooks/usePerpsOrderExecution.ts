@@ -7,6 +7,7 @@ import { ensureError } from '../../../../util/errorUtils';
 import {
   PERPS_CONSTANTS,
   PERPS_EVENT_VALUE,
+  isStrategyOrderType,
   isTriggerOrderType,
   type OrderParams,
   type OrderResult,
@@ -101,7 +102,8 @@ export function usePerpsOrderExecution(
       // overlapping orders never collide.
       const isRestingOrder =
         getOrderPlacementKind(orderParams.orderType) === 'resting';
-      const isMarketOrder = !isRestingOrder;
+      const isStrategyOrder = isStrategyOrderType(orderParams.orderType);
+      const isMarketOrder = !isRestingOrder && !isStrategyOrder;
       const cufOpId = startPerpsCufTrace({
         name: isMarketOrder
           ? TraceName.PerpsPlaceOrderToPositionRendered
@@ -203,7 +205,12 @@ export function usePerpsOrderExecution(
             result,
           );
 
-          if (isRestingOrder) {
+          if (isStrategyOrder) {
+            // Strategy acceptance starts a schedule; it does not imply that a
+            // position or resting child order has rendered yet.
+            onSuccess?.();
+            endCuf({ [PERPS_CUF_TAG.SUCCESS]: true });
+          } else if (isRestingOrder) {
             // Resting orders: accepted, no position renders now. Confirm
             // immediately, then end the order-render CUF when the resting order
             // appears in the stream (or on timeout).

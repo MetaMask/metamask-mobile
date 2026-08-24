@@ -1,6 +1,7 @@
 import { capitalize } from 'lodash';
 import {
   isLimitExecutionOrderType,
+  isStrategyOrderType,
   isTPSLOrder,
   isTriggerOrderType,
   type OrderParams,
@@ -54,7 +55,11 @@ export const getOrderPlacementKind = (
 export const getOrderManagementToastKey = (
   orderType: OrderType | undefined,
 ): 'market' | 'limit' =>
-  getOrderPlacementKind(orderType) === 'resting' ? 'limit' : 'market';
+  orderType !== undefined && isStrategyOrderType(orderType)
+    ? 'limit'
+    : getOrderPlacementKind(orderType) === 'resting'
+      ? 'limit'
+      : 'market';
 
 /**
  * Parses the trigger price from an order, returning null when absent or invalid.

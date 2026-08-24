@@ -101,6 +101,15 @@ const TRIGGERED_ORDER_TYPES: readonly (OrderTypeOption & {
   },
 ];
 
+const TWAP_ORDER_TYPE: OrderTypeOption = {
+  type: 'twap',
+  titleKey: 'perps.order.type.twap.title',
+  descriptionKey: 'perps.order.type.twap.description',
+  LightIcon: MarketIconLight,
+  DarkIcon: MarketIconDark,
+  testID: PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION,
+};
+
 const OrderTypeStartAccessory = ({
   LightIcon,
   DarkIcon,
@@ -136,6 +145,7 @@ export interface PerpsOrderTypeBottomSheetViewProps {
   title?: string;
   showSelectedIcon?: boolean;
   showTriggeredTypes?: boolean;
+  showTwapType?: boolean;
   sheetRef?: React.RefObject<BottomSheetRef | null>;
 }
 
@@ -147,6 +157,7 @@ const PerpsOrderTypeBottomSheetView = ({
   title = strings('perps.order.type.title'),
   showSelectedIcon = false,
   showTriggeredTypes = false,
+  showTwapType = false,
   sheetRef: externalSheetRef,
 }: PerpsOrderTypeBottomSheetViewProps) => {
   const internalSheetRef = useRef<BottomSheetRef>(null);
@@ -241,6 +252,9 @@ const PerpsOrderTypeBottomSheetView = ({
           PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_SECTION_HEADER,
         )}
       {showTriggeredTypes && TRIGGERED_ORDER_TYPES.map(renderOrderType)}
+      {showTwapType &&
+        renderSectionHeader(strings('perps.order.type.advanced'))}
+      {showTwapType && renderOrderType(TWAP_ORDER_TYPE)}
     </BottomSheet>
   );
 };

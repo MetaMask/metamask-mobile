@@ -35,6 +35,7 @@ import {
   Keyboard,
   Platform,
   Pressable,
+  View,
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useHaptics } from '../../../../../../../util/haptics';
@@ -55,6 +56,17 @@ import type {
 } from './PerpsProOrderForm.types';
 
 const ids = PerpsProOrderFormSelectorsIDs;
+
+const EMPTY_TWAP_MODEL = {
+  days: '',
+  hours: '',
+  minutes: '5',
+  randomize: false,
+  onDaysChange: () => undefined,
+  onHoursChange: () => undefined,
+  onMinutesChange: () => undefined,
+  onRandomizeChange: () => undefined,
+};
 
 const buttonIcon = (iconName: IconName, testID: string, onPress?: () => void) =>
   ({
@@ -212,14 +224,15 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
             testID={`${ids.NOTICE}-${notice.id}`}
           />
         ) : (
-          <Text
+          <View
             key={notice.id}
-            variant={TextVariant.BodyXs}
-            color={TextColor.ErrorDefault}
             testID={`${ids.NOTICE}-${notice.id}`}
+            collapsable={false}
           >
-            {notice.message}
-          </Text>
+            <Text variant={TextVariant.BodyXs} color={TextColor.ErrorDefault}>
+              {notice.message}
+            </Text>
+          </View>
         ),
       )}
     </Box>
@@ -341,6 +354,7 @@ const PerpsProOrderForm = ({
   onAddFundsPress,
   reduceOnly,
   onReduceOnlyChange,
+  twap = EMPTY_TWAP_MODEL,
   onTPSLPress,
   notices,
   summary,
@@ -354,7 +368,8 @@ const PerpsProOrderForm = ({
   const isLong = direction === 'long';
   const showsTriggerPrice = isTriggerOrderType(orderType);
   const showsLimitPrice = isLimitExecutionOrderType(orderType);
-  const showsTpSl = !reduceOnly && !showsTriggerPrice;
+  const isTwap = orderType === 'twap';
+  const showsTpSl = !reduceOnly && !showsTriggerPrice && !isTwap;
   const orderTypeTitle = strings(`perps.order.type.${orderType}.title`);
   const summaryOnSlippagePress = summary.onSlippagePress;
 
@@ -528,31 +543,98 @@ const PerpsProOrderForm = ({
             >
               {orderTypeTitle}
             </ButtonBase>
-            <PriceField
-              label={strings('perps.order.trigger_price')}
-              value={triggerPrice}
-              onChangeText={onTriggerPriceChange}
-              onFocus={onTriggerPriceFocus}
-              onBlur={onTriggerPriceBlur}
-              onFieldPress={onTriggerPriceFieldPress}
-              testID={ids.TRIGGER_PRICE_INPUT}
-              prefixTestID={ids.TRIGGER_PRICE_PREFIX}
-              isHidden={!showsTriggerPrice}
-            />
-            <PriceField
-              label={strings('perps.order.limit_price')}
-              value={limitPrice}
-              onChangeText={onLimitPriceChange}
-              onFocus={onLimitPriceFocus}
-              onBlur={onLimitPriceBlur}
-              onFieldPress={onLimitPriceFieldPress}
-              onUseMidPress={showsLimitPrice ? onUseMidPricePress : undefined}
-              testID={ids.LIMIT_PRICE_INPUT}
-              prefixTestID={ids.LIMIT_PRICE_PREFIX}
-              midButtonTestID={ids.MID_PRICE_BUTTON}
-              isHidden={!showsLimitPrice}
-            />
+            {showsTriggerPrice ? (
+              <PriceField
+                label={strings('perps.order.trigger_price')}
+                value={triggerPrice}
+                onChangeText={onTriggerPriceChange}
+                onFocus={onTriggerPriceFocus}
+                onBlur={onTriggerPriceBlur}
+                onFieldPress={onTriggerPriceFieldPress}
+                testID={ids.TRIGGER_PRICE_INPUT}
+                prefixTestID={ids.TRIGGER_PRICE_PREFIX}
+              />
+            ) : null}
+            {showsLimitPrice ? (
+              <PriceField
+                label={strings('perps.order.limit_price')}
+                value={limitPrice}
+                onChangeText={onLimitPriceChange}
+                onFocus={onLimitPriceFocus}
+                onBlur={onLimitPriceBlur}
+                onFieldPress={onLimitPriceFieldPress}
+                onUseMidPress={onUseMidPricePress}
+                testID={ids.LIMIT_PRICE_INPUT}
+                prefixTestID={ids.LIMIT_PRICE_PREFIX}
+                midButtonTestID={ids.MID_PRICE_BUTTON}
+              />
+            ) : null}
           </Box>
+          {isTwap ? (
+            <Box twClassName="gap-2" testID={ids.TWAP_DURATION}>
+              <View testID={ids.TWAP_DURATION_LABEL} collapsable={false}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings('perps.pro_order_form.twap.running_time')}
+                </Text>
+              </View>
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
+              >
+                {strings('perps.pro_order_form.twap.valid_range')}
+              </Text>
+              <Box twClassName="flex-row gap-2">
+                <Box twClassName="flex-1">
+                  <PerpsProCompactInput
+                    label={strings('perps.pro_order_form.twap.days')}
+                    value={twap.days}
+                    onChangeText={twap.onDaysChange}
+                    testID={ids.TWAP_DAYS}
+                  />
+                </Box>
+                <Box twClassName="flex-1">
+                  <PerpsProCompactInput
+                    label={strings('perps.pro_order_form.twap.hours')}
+                    value={twap.hours}
+                    onChangeText={twap.onHoursChange}
+                    testID={ids.TWAP_HOURS}
+                  />
+                </Box>
+                <Box twClassName="flex-1">
+                  <PerpsProCompactInput
+                    label={strings('perps.pro_order_form.twap.minutes')}
+                    value={twap.minutes}
+                    onChangeText={twap.onMinutesChange}
+                    testID={ids.TWAP_MINUTES}
+                  />
+                </Box>
+              </Box>
+              <Box twClassName="rounded-xl bg-muted px-3 py-3">
+                <Checkbox
+                  label={strings('perps.pro_order_form.twap.randomize')}
+                  labelProps={{
+                    variant: TextVariant.BodySm,
+                    fontWeight: FontWeight.Medium,
+                    style: { marginLeft: 0, flex: 1 },
+                  }}
+                  isSelected={twap.randomize}
+                  onChange={twap.onRandomizeChange}
+                  testID={ids.TWAP_RANDOMIZE}
+                  twClassName="w-full flex-row-reverse justify-between"
+                />
+                <Text
+                  variant={TextVariant.BodyXs}
+                  color={TextColor.TextAlternative}
+                  twClassName="mt-1"
+                >
+                  {strings('perps.pro_order_form.twap.randomize_description')}
+                </Text>
+              </Box>
+            </Box>
+          ) : null}
           {priceCardMessage ? (
             <HelpText
               severity={
@@ -632,6 +714,9 @@ const PerpsProOrderForm = ({
           <KeyboardAccessory inputTestID={ids.SIZE_INPUT} />
           <KeyboardAccessory inputTestID={ids.TRIGGER_PRICE_INPUT} />
           <KeyboardAccessory inputTestID={ids.LIMIT_PRICE_INPUT} />
+          <KeyboardAccessory inputTestID={ids.TWAP_DAYS} />
+          <KeyboardAccessory inputTestID={ids.TWAP_HOURS} />
+          <KeyboardAccessory inputTestID={ids.TWAP_MINUTES} />
         </>
       ) : null}
     </>

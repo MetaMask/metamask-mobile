@@ -136,7 +136,11 @@ const PerpsProCompactInput = ({
         {/* Tapping the label focuses the input and opens the keyboard, same
             as tapping the (visually small) input row itself. */}
         <Pressable onPress={focusInput}>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+          >
             {label}
           </Text>
         </Pressable>

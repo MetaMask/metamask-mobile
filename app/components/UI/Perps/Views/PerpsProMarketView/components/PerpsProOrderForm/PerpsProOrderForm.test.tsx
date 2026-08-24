@@ -97,6 +97,44 @@ describe('PerpsProOrderForm', () => {
   });
 
   describe('inputs', () => {
+    it('renders TWAP controls and hides incompatible order fields', () => {
+      const onDaysChange = jest.fn();
+      const onHoursChange = jest.fn();
+      const onMinutesChange = jest.fn();
+      const onRandomizeChange = jest.fn();
+
+      renderForm({
+        orderType: 'twap',
+        onTPSLPress: jest.fn(),
+        twap: {
+          days: '1',
+          hours: '2',
+          minutes: '3',
+          randomize: false,
+          onDaysChange,
+          onHoursChange,
+          onMinutesChange,
+          onRandomizeChange,
+        },
+      });
+
+      fireEvent.changeText(screen.getByTestId(ids.TWAP_DAYS), '2');
+      fireEvent.changeText(screen.getByTestId(ids.TWAP_HOURS), '4');
+      fireEvent.changeText(screen.getByTestId(ids.TWAP_MINUTES), '5');
+      fireEvent.press(screen.getByTestId(ids.TWAP_RANDOMIZE));
+
+      expect(screen.getByTestId(ids.TWAP_DURATION)).toBeOnTheScreen();
+      expect(onDaysChange).toHaveBeenCalledWith('2');
+      expect(onHoursChange).toHaveBeenCalledWith('4');
+      expect(onMinutesChange).toHaveBeenCalledWith('5');
+      expect(onRandomizeChange).toHaveBeenCalledWith(true);
+      expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+    });
+
     it('passes raw size text to sizeInput.onChange', () => {
       const onChange = jest.fn();
       renderForm({ sizeInput: createSizeInput({ onChange }) });
@@ -357,33 +395,32 @@ describe('PerpsProOrderForm', () => {
     const limitPriceAccessoryID = getPerpsProInputAccessoryID(
       ids.LIMIT_PRICE_INPUT,
     );
+    const twapDaysAccessoryID = getPerpsProInputAccessoryID(ids.TWAP_DAYS);
+    const twapHoursAccessoryID = getPerpsProInputAccessoryID(ids.TWAP_HOURS);
+    const twapMinutesAccessoryID = getPerpsProInputAccessoryID(
+      ids.TWAP_MINUTES,
+    );
+    const allAccessoryIDs = [
+      sizeAccessoryID,
+      triggerAccessoryID,
+      limitPriceAccessoryID,
+      twapDaysAccessoryID,
+      twapHoursAccessoryID,
+      twapMinutesAccessoryID,
+    ];
     const mountedAccessoryIDs = () =>
       screen
         .UNSAFE_getAllByType(host('RCTInputAccessoryView'))
         .map((accessory) => accessory.props.nativeID);
 
-    it('keeps size, trigger, and limit keyboard accessories mounted on market', () => {
+    it('keeps all keyboard accessories mounted on market', () => {
       renderForm({ orderType: 'market' });
 
-      expect(
-        screen.getByTestId(ids.TRIGGER_PRICE_INPUT, {
-          includeHiddenElements: true,
-        }),
-      ).toHaveProp('inputAccessoryViewID', triggerAccessoryID);
-      expect(
-        screen.getByTestId(ids.LIMIT_PRICE_INPUT, {
-          includeHiddenElements: true,
-        }),
-      ).toHaveProp('inputAccessoryViewID', limitPriceAccessoryID);
       expect(
         screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),
       ).not.toBeOnTheScreen();
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
-      expect(mountedAccessoryIDs()).toEqual([
-        sizeAccessoryID,
-        triggerAccessoryID,
-        limitPriceAccessoryID,
-      ]);
+      expect(mountedAccessoryIDs()).toEqual(allAccessoryIDs);
     });
 
     it('connects the trigger input to its pre-mounted accessory on stop-market', () => {
@@ -395,11 +432,7 @@ describe('PerpsProOrderForm', () => {
         triggerAccessoryID,
       );
       expect(screen.queryByTestId(ids.MID_PRICE_BUTTON)).not.toBeOnTheScreen();
-      expect(mountedAccessoryIDs()).toEqual([
-        sizeAccessoryID,
-        triggerAccessoryID,
-        limitPriceAccessoryID,
-      ]);
+      expect(mountedAccessoryIDs()).toEqual(allAccessoryIDs);
     });
 
     it('connects each visible iOS numeric input to its own keyboard accessory', () => {
@@ -414,11 +447,7 @@ describe('PerpsProOrderForm', () => {
         limitPriceAccessoryID,
       );
       expect(sizeAccessoryID).not.toBe(limitPriceAccessoryID);
-      expect(mountedAccessoryIDs()).toEqual([
-        sizeAccessoryID,
-        triggerAccessoryID,
-        limitPriceAccessoryID,
-      ]);
+      expect(mountedAccessoryIDs()).toEqual(allAccessoryIDs);
     });
 
     it('dismisses the keyboard from the custom minimize control', () => {

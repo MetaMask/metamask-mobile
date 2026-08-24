@@ -47,6 +47,10 @@ interface UsePerpsOrderValidationParams {
   midPrice?: number;
   /** Asset size decimals used to canonicalize venue prices. */
   szDecimals?: number;
+  /** TWAP running time in whole minutes. */
+  twapDuration?: number;
+  /** Whether the venue should randomize TWAP suborder sizes. */
+  twapRandomize?: boolean;
 }
 
 interface ValidationState {
@@ -99,6 +103,8 @@ export function usePerpsOrderValidation(
     triggerPrice,
     midPrice = assetPrice,
     szDecimals,
+    twapDuration,
+    twapRandomize,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -213,6 +219,8 @@ export function usePerpsOrderValidation(
             : {}),
           ...(reduceOnly !== undefined ? { reduceOnly } : {}),
           ...(isFullClose !== undefined ? { isFullClose } : {}),
+          ...(twapDuration !== undefined ? { twapDuration } : {}),
+          ...(twapRandomize !== undefined ? { twapRandomize } : {}),
         };
 
         // Get protocol-specific validation
@@ -340,6 +348,8 @@ export function usePerpsOrderValidation(
       spendableBalance,
       szDecimals,
       triggerPrice,
+      twapDuration,
+      twapRandomize,
       validateOrder,
     ],
   );
