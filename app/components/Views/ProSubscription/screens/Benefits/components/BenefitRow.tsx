@@ -19,22 +19,23 @@ import { strings } from '../../../../../../../locales/i18n';
 
 interface BenefitRowProps {
   item: BenefitItem;
-  onPress: (item: BenefitItem) => void;
+  /** When omitted, the row is non-interactive. */
+  onPress?: (item: BenefitItem) => void;
+  /** Trailing disclosure arrow. Defaults to true when `onPress` is provided. */
+  showArrow?: boolean;
 }
 
-const BenefitRow = ({ item, onPress }: BenefitRowProps) => (
-  <TouchableOpacity
-    onPress={() => onPress(item)}
-    accessibilityRole="button"
-    accessibilityLabel={strings(item.title)}
-    testID={BenefitsTestIds.BENEFIT_ROW(item.id)}
-  >
+const BenefitRow = ({
+  item,
+  onPress,
+  showArrow = Boolean(onPress),
+}: BenefitRowProps) => {
+  const content = (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Start}
       twClassName="py-3 gap-x-4"
     >
-      {/* Check circle */}
       <Icon
         name={IconName.Check}
         size={IconSize.Lg}
@@ -42,7 +43,6 @@ const BenefitRow = ({ item, onPress }: BenefitRowProps) => (
         twClassName="shrink-0"
       />
 
-      {/* Text block */}
       <Box twClassName="flex-1 flex-col gap-y-1">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings(item.title)}
@@ -52,15 +52,39 @@ const BenefitRow = ({ item, onPress }: BenefitRowProps) => (
         </Text>
       </Box>
 
-      <Box twClassName="self-center ml-2">
-        <Icon
-          name={IconName.ArrowRight}
-          size={IconSize.Sm}
-          color={IconColor.IconAlternative}
-        />
-      </Box>
+      {showArrow ? (
+        <Box twClassName="self-center ml-2">
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.IconAlternative}
+          />
+        </Box>
+      ) : null}
     </Box>
-  </TouchableOpacity>
-);
+  );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        onPress={() => onPress(item)}
+        accessibilityRole="button"
+        accessibilityLabel={strings(item.title)}
+        testID={BenefitsTestIds.BENEFIT_ROW(item.id)}
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <Box
+      accessibilityLabel={strings(item.title)}
+      testID={BenefitsTestIds.BENEFIT_ROW(item.id)}
+    >
+      {content}
+    </Box>
+  );
+};
 
 export default BenefitRow;

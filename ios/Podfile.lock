@@ -2885,7 +2885,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-pager-view (8.0.0):
+  - react-native-pager-view (8.0.4):
     - boost
     - DoubleConversion
     - fast_float
@@ -5230,7 +5230,7 @@ SPEC CHECKSUMS:
   react-native-launch-arguments: 7eb321ed3f3ef19b3ec4a2eca71c4f9baee76b41
   react-native-mmkv: ac7507625cd74bac0eb5333604a7cd7b08fe9e3e
   react-native-netinfo: 57447b5a45c98808f8eae292cf641f3d91d13830
-  react-native-pager-view: d7d2aa47f54343bf55fdcee3973503dd27c2bd37
+  react-native-pager-view: 1baaa3452a7d5efbd642856cbbdafbd8958028b4
   react-native-performance: b48d1aba7501a54af5e1a7efb0dab1ab25dc734f
   react-native-quick-base64: e5eea0a73474108a7b80e33ce2c004a414649da2
   react-native-randombytes: 3c8f3e89d12487fd03a2f966c288d495415fc116

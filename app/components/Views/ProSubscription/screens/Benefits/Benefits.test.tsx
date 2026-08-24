@@ -1,7 +1,7 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import { render, fireEvent, within } from '@testing-library/react-native';
-import Benefits from './index';
+import Benefits from './Benefits';
 import { BenefitsTestIds } from './Benefits.testIds';
 import {
   BENEFITS,
