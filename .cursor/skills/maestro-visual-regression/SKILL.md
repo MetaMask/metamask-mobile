@@ -3,21 +3,21 @@ name: maestro-visual-regression
 description: >-
   Runs a local Maestro visual-regression compare of a candidate git branch
   against a base branch (default main), then embeds the PNGs into the open
-  PR: main → Screenshots/Recordings Before, candidate branch → After. Use
-  when the user wants Maestro screenshot tests, visual regressions vs main,
-  or PR before/after screenshots. Always collect the candidate branch name
-  first.
+  PR: main → Screenshots/Recordings Before, candidate branch → After. Installs
+  Homebrew and the Maestro CLI on the machine if they are missing. Use when
+  the user wants Maestro screenshot tests, visual regressions vs main, or PR
+  before/after screenshots. Always collect the candidate branch name first.
 ---
 
 # Maestro visual regression (branch vs base)
 
-Local Maestro CLI compare. **Maestro Studio is not required** to run the test — only to debug selectors. Do not install Maestro into the repo; it stays on the machine.
+Local Maestro CLI compare. **Maestro Studio is not required** to run the test — only to debug selectors. Do not install Maestro into the repo; it stays on the machine. If this machine is missing Maestro or Homebrew, install them (see **Ensure Maestro CLI**).
 
 This is **not** the Appium `aiVisualTest` path in `tests/framework/ai-visual/`.
 
 ## Step 0 — Branch name (mandatory, do this first)
 
-Do **not** checkout, install, write YAML, or run `maestro test` until `CANDIDATE_BRANCH` is known.
+Do **not** checkout, install the app, write YAML, or run `maestro test` until `CANDIDATE_BRANCH` is known. After it is known, install missing Maestro/Homebrew (next section) before any `maestro` command.
 
 1. If the user gave a **branch name**, use it as `CANDIDATE_BRANCH`.
 2. If they gave a **PR URL or number**, resolve it:
@@ -49,6 +49,35 @@ git log --oneline "origin/${BASE_BRANCH}..origin/${CANDIDATE_BRANCH}"
 From the diff, pick the screen(s) and stable selectors (testIDs / visible text) to screenshot. Crop to the changed control (toast, button, banner). Do not screenshot the whole wallet home if only a toast changed.
 
 A PR is required for the Before/After embed. If none exists, stop after capturing PNGs and say so — do not open a PR unless asked.
+
+## Ensure Maestro CLI (after the branch is known)
+
+Do this **after** `CANDIDATE_BRANCH` is confirmed and **before** `maestro list-devices` or `maestro test`. Do not add Maestro or Homebrew to the repo.
+
+```bash
+bash .cursor/skills/maestro-visual-regression/scripts/ensure_maestro.sh
+```
+
+The script exits immediately if `maestro` is already on `PATH` or at `~/.maestro/bin/maestro`. Otherwise it:
+
+1. Installs **Homebrew** with the official installer if `brew` is missing (`PATH`, `/opt/homebrew/bin/brew`, `/usr/local/bin/brew`).
+2. Installs Java 17+ via `brew install openjdk@17` if `java` is missing (Maestro requires it).
+3. Installs Maestro with `brew install mobile-dev-inc/tap/maestro` — never `brew install maestro`, which can install a different app.
+
+Tell the user before installing that they may need to enter their macOS password. After Homebrew lands, keep `brew` on `PATH` for the rest of the session:
+
+```bash
+# Apple Silicon
+eval "$(/opt/homebrew/bin/brew shellenv)"
+# Intel
+eval "$(/usr/local/bin/brew shellenv)"
+```
+
+If the Homebrew installer stops because this shell cannot prompt for sudo, give the user this command for Terminal.app, then re-run `ensure_maestro.sh`:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
 
 ## Defaults (MetaMask Mobile)
 
@@ -150,3 +179,5 @@ If an optional `assertScreenshot` run failed, attach the diff path as well — s
 - Commit Maestro YAML, baselines, or run artifacts unless the user asks.
 - Skip Step 4 when `PR_NUMBER` is known. The point of the screenshots is the PR body.
 - Put `main` shots under After, or candidate shots under Before.
+- Skip installing Maestro when it is missing, or install it into the repo.
+- Use `brew install maestro` (wrong package). Always use `mobile-dev-inc/tap/maestro`.
