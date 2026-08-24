@@ -14,7 +14,7 @@ import {
   PlatformDetector,
   Utilities,
   sleep,
-  type EncapsulatedElementType,
+  type AppiumElement,
 } from '../../framework';
 
 const TOKEN_SEARCH_PLACEHOLDER = enContent.send.search_tokens;
@@ -26,11 +26,11 @@ export function getKeypadKeyTestId(key: string): string {
 }
 
 class TransactionPayConfirmation {
-  get bridgeTime(): EncapsulatedElementType {
+  get bridgeTime(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.BRIDGE_TIME);
   }
 
-  get keypad(): EncapsulatedElementType {
+  get keypad(): Promise<AppiumElement> {
     return Matchers.getElementByID(TransactionPayComponentIDs.KEYPAD);
   }
 
@@ -67,62 +67,62 @@ class TransactionPayConfirmation {
     await this.tapKeyboardContinueButton();
   }
 
-  get keyboardContainer(): EncapsulatedElementType {
+  get keyboardContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TransactionPayComponentIDs.KEYBOARD_CONTAINER,
     );
   }
 
-  get payWithRow(): EncapsulatedElementType {
+  get payWithRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.PAY_WITH);
   }
 
-  get payWithSymbol(): EncapsulatedElementType {
+  get payWithSymbol(): Promise<AppiumElement> {
     return Matchers.getElementByID(TransactionPayComponentIDs.PAY_WITH_SYMBOL);
   }
 
-  get payWithFiat(): EncapsulatedElementType {
+  get payWithFiat(): Promise<AppiumElement> {
     return Matchers.getElementByID(TransactionPayComponentIDs.PAY_WITH_FIAT);
   }
 
-  get payWithBalance(): EncapsulatedElementType {
+  get payWithBalance(): Promise<AppiumElement> {
     return Matchers.getElementByID(TransactionPayComponentIDs.PAY_WITH_BALANCE);
   }
 
-  get keyboardContinueButton(): EncapsulatedElementType {
+  get keyboardContinueButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TransactionPayComponentIDs.KEYBOARD_CONTINUE_BUTTON,
     );
   }
 
-  get amount(): EncapsulatedElementType {
+  get amount(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.AMOUNT);
   }
 
-  get total(): EncapsulatedElementType {
+  get total(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.TOTAL);
   }
 
-  get receive(): EncapsulatedElementType {
+  get receive(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.RECEIVE);
   }
 
-  get availableBalance(): EncapsulatedElementType {
+  get availableBalance(): Promise<AppiumElement> {
     return Matchers.getElementByText('Available balance');
   }
 
-  get transactionFee(): EncapsulatedElementType {
+  get transactionFee(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.TRANSACTION_FEE);
   }
 
-  get payWithTokenList(): EncapsulatedElementType {
+  get payWithTokenList(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TransactionPayComponentIDs.PAY_WITH_TOKEN_LIST,
     );
   }
 
   // iOS: match search placeholder text; Android: use testID.
-  get tokenSearchInput(): EncapsulatedElementType {
+  get tokenSearchInput(): Promise<AppiumElement> {
     if (PlatformDetector.isIOS()) {
       return Matchers.getElementByNativeXPath(
         `//*[contains(@name,'${TOKEN_SEARCH_PLACEHOLDER}') or contains(@label,'${TOKEN_SEARCH_PLACEHOLDER}') or contains(@text,'${TOKEN_SEARCH_PLACEHOLDER}')]`,
@@ -131,24 +131,21 @@ class TransactionPayConfirmation {
     return Matchers.getElementByID(TEXTFIELDSEARCH_TEST_ID);
   }
 
-  getTokenBySymbol(symbol: string): EncapsulatedElementType {
+  getTokenBySymbol(symbol: string): Promise<AppiumElement> {
     return Matchers.getElementByID(getAssetTestId(symbol));
   }
 
-  getTokenOptionAt(
-    tokenSymbol: string,
-    index: number,
-  ): EncapsulatedElementType {
+  getTokenOptionAt(tokenSymbol: string, index: number): Promise<AppiumElement> {
     return Matchers.getElementByText(tokenSymbol, index);
   }
 
-  getFirstTokenOption(tokenSymbol: string): EncapsulatedElementType {
+  getFirstTokenOption(tokenSymbol: string): Promise<AppiumElement> {
     return Matchers.getElementByNativeXPath(
       `//*[@resource-id='${tokenSymbol}' or contains(@text,'${tokenSymbol}') or contains(@content-desc,'${tokenSymbol}')]/*[@resource-id='badgenetwork']`,
     );
   }
 
-  getNetworkFilter(networkName: string): EncapsulatedElementType {
+  getNetworkFilter(networkName: string): Promise<AppiumElement> {
     const networkFilter =
       networkName === 'Ethereum'
         ? ETHEREUM_NETWORK_FILTER_TEST_ID
@@ -156,12 +153,12 @@ class TransactionPayConfirmation {
     return Matchers.getElementByID(networkFilter);
   }
 
-  getKeypadButton(key: string): EncapsulatedElementType {
+  getKeypadButton(key: string): Promise<AppiumElement> {
     return Matchers.getElementByID(getKeypadKeyTestId(key));
   }
 
   async expectText(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     text: string,
     description: string,
   ): Promise<void> {
@@ -170,7 +167,7 @@ class TransactionPayConfirmation {
 
   // Amount row text includes the label; match by contains.
   private async expectTextContains(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     text: string,
     description: string,
   ): Promise<void> {
@@ -196,7 +193,7 @@ class TransactionPayConfirmation {
     });
   }
 
-  getPercentageButton(pct: 10 | 25 | 50 | 90): EncapsulatedElementType {
+  getPercentageButton(pct: 10 | 25 | 50 | 90): Promise<AppiumElement> {
     return Matchers.getElementByText(`${pct}%`);
   }
 
@@ -207,7 +204,7 @@ class TransactionPayConfirmation {
     });
   }
 
-  get maxButton(): EncapsulatedElementType {
+  get maxButton(): Promise<AppiumElement> {
     return Matchers.getElementByText('Max');
   }
 
@@ -226,7 +223,7 @@ class TransactionPayConfirmation {
     });
   }
 
-  get preferredPayTokenRow(): EncapsulatedElementType {
+  get preferredPayTokenRow(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PayWithBottomSheetIDs.CRYPTO_PREFERRED_TOKEN_ROW,
     );
