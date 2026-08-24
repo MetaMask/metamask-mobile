@@ -33,7 +33,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
-import { ImpactMoment, playImpact } from '../../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  useHaptics,
+} from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
 import {
   DECIMAL_PRECISION_CONFIG,
@@ -97,12 +101,15 @@ const PerpsClosePositionView: React.FC = () => {
     source: routeSource,
     buttonClicked: entryButtonClicked,
     buttonLocation: entryButtonLocation,
+    enableHaptics = false,
   } = route.params as {
     position: Position;
     source?: string;
     buttonClicked?: string;
     buttonLocation?: string;
+    enableHaptics?: boolean;
   };
+  const { playImpact: playHapticImpact } = useHaptics();
 
   const inputMethodRef = useRef<InputMethod>('default');
   const isAmountInitializedRef = useRef(false);
@@ -564,6 +571,10 @@ const PerpsClosePositionView: React.FC = () => {
   }, [effectiveOrderType, limitPrice]);
 
   const handleConfirm = useCallback(async () => {
+    if (isClosing) {
+      return;
+    }
+
     // Guard against submitting a stale committed `closePercentage` while
     // `isDraggingSlider` is (or is stuck) true — e.g. a cancelled gesture
     // that never reached commitClosePercentage (see handleSliderDragCancel
@@ -583,6 +594,9 @@ const PerpsClosePositionView: React.FC = () => {
     // For limit orders, validate price
     if (effectiveOrderType === 'limit' && !limitPrice) {
       return;
+    }
+    if (enableHaptics) {
+      playHapticImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     }
     // Mark confirmed so the focus-effect cleanup does not emit an abandon event
     hasConfirmedCloseRef.current = true;
@@ -629,6 +643,8 @@ const PerpsClosePositionView: React.FC = () => {
     closePercentage,
     closeAmount,
     effectiveOrderType,
+    enableHaptics,
+    isClosing,
     limitPrice,
     navigation,
     handleClosePosition,
@@ -648,6 +664,7 @@ const PerpsClosePositionView: React.FC = () => {
     position.symbol,
     closingValueString,
     effectivePrice,
+    playHapticImpact,
     isDraggingSlider,
     commitClosePercentage,
     liveDragClosePercentage,

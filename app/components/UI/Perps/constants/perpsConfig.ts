@@ -102,6 +102,13 @@ export const LEVERAGE_SLIDER_CONFIG = {
 export const MAX_PERPS_INPUT_DIGITS = 9;
 
 /**
+ * Decimal places used when displaying how far a position's current price sits
+ * from its liquidation price, as a percentage. Whole-number rounding hid
+ * meaningful headroom — a position 0.4% from liquidation displayed as 0%.
+ */
+export const LIQUIDATION_DISTANCE_DECIMALS = 2;
+
+/**
  * TP/SL View UI configuration
  * Controls the Take Profit / Stop Loss screen behavior and display options
  */

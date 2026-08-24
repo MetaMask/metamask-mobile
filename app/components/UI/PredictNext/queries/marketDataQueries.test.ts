@@ -35,7 +35,7 @@ describe('market data query descriptors', () => {
     });
   });
 
-  it('qualifies event detail queries by venue and event', () => {
+  it('qualifies immutable Event queries by Venue and Event', () => {
     const descriptor = marketDataQueries.getEvent(venueId, eventId);
 
     expect(descriptor.queryKey).toEqual([
