@@ -116,6 +116,7 @@
       th.group-0 { background: #eff6ff; }
       th.group-1 { background: #ecfdf3; }
       th.group-2 { background: #faf5ff; }
+      th.group-3 { background: #fff7ed; }
       th.delta { background: #fef3f2; }
       tr:last-child td { border-bottom: 0; }
       td:first-child { min-width: 220px; font-weight: 600; position: sticky; left: 0; background: var(--card); z-index: 1; }
@@ -168,7 +169,7 @@
 
     <script>
       /** Order of runs left → right in the table */
-      const RUN_ORDER = ["a", "b", "c"];
+      const RUN_ORDER = ["a", "b", "c", "d"];
 
       const RUNS = {
         a: {
@@ -195,7 +196,7 @@
         },
         c: {
           id: "32730868375",
-          label: "Run C (latest)",
+          label: "Run C",
           url: "https://github.com/MetaMask/metamask-mobile/actions/runs/32730868375",
           date: "2026-08-24 13:07 UTC",
           commit: "b43fcdab",
@@ -203,6 +204,17 @@
           browserstack: { executed: false, pass: null, note: "Performance Test Android skipped" },
           saucePrivate: { pass: 16, qgFail: 2, noMetrics: 5, device: "Google_Pixel_7_POC(49|05)" },
           sauceCloud: { pass: 18, qgFail: 0, noMetrics: 5, device: "Google Pixel.*" }
+        },
+        d: {
+          id: "32736700431",
+          label: "Run D (latest · BS enabled)",
+          url: "https://github.com/MetaMask/metamask-mobile/actions/runs/32736700431",
+          date: "2026-08-24 14:06 UTC",
+          commit: "d4f96816",
+          branch: "MMQA-TestMu-PoC-HyperExecute",
+          browserstack: { executed: true, pass: 20, qgFail: 0, noMetrics: 3, device: "Google Pixel 7 Pro+13.0", note: "First run with enable_browserstack=true" },
+          saucePrivate: { pass: 17, qgFail: 1, noMetrics: 5, device: "Google_Pixel_7_POC(49|05)" },
+          sauceCloud: { pass: 16, qgFail: 2, noMetrics: 5, device: "Google Pixel.*" }
         }
       };
 
@@ -211,29 +223,29 @@
        * Each cell: [seconds|null, status P|F|N|—]
        */
       const rows = [
-        { name: "Cold Start → Onboarding", a: [[null,"—"],[0.389,"P"],[4.04,"P"]], b: [[null,"—"],[0.63,"P"],[1.714,"P"]], c: [[null,"—"],[2.789,"P"],[0.511,"P"]] },
-        { name: "Fresh SRP wallet creation", a: [[null,"—"],[8.797,"P"],[8.073,"P"]], b: [[null,"—"],[10.62,"P"],[8.54,"P"]], c: [[null,"—"],[9.238,"P"],[8.945,"P"]] },
-        { name: "Import SRP onboarding +50", a: [[null,"—"],[4.032,"P"],[3.746,"P"]], b: [[null,"—"],[4.045,"P"],[3.766,"P"]], c: [[null,"—"],[4.142,"P"],[3.612,"P"]] },
-        { name: "Money Home · empty", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]] },
-        { name: "Account creation", a: [[null,"—"],[4.097,"F"],[1.4,"P"]], b: [[null,"—"],[1.883,"P"],[1.278,"P"]], c: [[null,"—"],[1.325,"P"],[1.465,"P"]] },
-        { name: "Money Home · funded", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]] },
-        { name: "Perps open/close", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]] },
-        { name: "Seedless Apple", a: [[null,"—"],[4.415,"P"],[4.719,"P"]], b: [[null,"—"],[4.45,"P"],[5.279,"P"]], c: [[null,"—"],[4.398,"P"],[5.412,"P"]] },
-        { name: "Seedless Google", a: [[null,"—"],[5.541,"P"],[2.572,"P"]], b: [[null,"—"],[4.055,"P"],[5.753,"P"]], c: [[null,"—"],[5.594,"P"],[3.76,"P"]] },
-        { name: "Seedless Telegram", a: [[null,"—"],[5.341,"P"],[5.668,"P"]], b: [[null,"—"],[7.938,"F"],[4.213,"P"]], c: [[null,"—"],[4.795,"P"],[5.132,"P"]] },
-        { name: "Aggregated Balance", a: [[null,"—"],[8.674,"P"],[9.163,"P"]], b: [[null,"—"],[8.706,"P"],[8.603,"P"]], c: [[null,"—"],[8.665,"P"],[8.86,"P"]] },
-        { name: "Cross-chain ETH→SOL", a: [[null,"—"],[4.958,"P"],[null,"N"]], b: [[null,"—"],[3.652,"P"],[4.334,"P"]], c: [[null,"—"],[6.311,"P"],[3.1,"P"]] },
-        { name: "Asset View", a: [[null,"—"],[3.857,"P"],[4.388,"P"]], b: [[null,"—"],[3.769,"P"],[2.272,"P"]], c: [[null,"—"],[4.576,"P"],[2.643,"P"]] },
-        { name: "Cold Start → Login", a: [[null,"—"],[6.207,"F"],[4.999,"P"]], b: [[null,"—"],[5.929,"F"],[4.696,"P"]], c: [[null,"—"],[5.979,"F"],[4.361,"P"]] },
-        { name: "Swap ETH→LINK", a: [[null,"—"],[1.846,"P"],[2.228,"P"]], b: [[null,"—"],[1.902,"P"],[1.6,"P"]], c: [[null,"—"],[2.07,"P"],[2.241,"P"]] },
-        { name: "Import SRP +50", a: [[null,"—"],[3.051,"P"],[15.77,"F"]], b: [[null,"—"],[3.461,"P"],[4.463,"P"]], c: [[null,"—"],[3.9,"P"],[2.912,"P"]] },
-        { name: "Warm Start → Wallet", a: [[null,"—"],[1.237,"P"],[2.512,"P"]], b: [[null,"—"],[1.186,"P"],[1.088,"P"]], c: [[null,"—"],[3.332,"F"],[1.06,"P"]] },
-        { name: "Perps add funds", a: [[null,"—"],[5.35,"P"],[5.188,"P"]], b: [[null,"—"],[5.796,"P"],[6.038,"P"]], c: [[null,"—"],[6.022,"P"],[4.968,"P"]] },
-        { name: "Warm Start → Login", a: [[null,"—"],[0.477,"P"],[1.26,"P"]], b: [[null,"—"],[0.963,"P"],[0.41,"P"]], c: [[null,"—"],[0.928,"P"],[1.026,"P"]] },
-        { name: "Predict Avail. Balance", a: [[null,"—"],[1.753,"P"],[3.519,"P"]], b: [[null,"—"],[0.885,"P"],[0.926,"P"]], c: [[null,"—"],[0.967,"P"],[1.344,"P"]] },
-        { name: "Predict Market Details", a: [[null,"—"],[1.768,"P"],[2.554,"P"]], b: [[null,"—"],[1.936,"P"],[1.916,"P"]], c: [[null,"—"],[2.047,"P"],[2.623,"P"]] },
-        { name: "Predict Deposit", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]] },
-        { name: "Rewards tab", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]] }
+        { name: "Cold Start → Onboarding", a: [[null,"—"],[0.389,"P"],[4.04,"P"]], b: [[null,"—"],[0.63,"P"],[1.714,"P"]], c: [[null,"—"],[2.789,"P"],[0.511,"P"]], d: [[3.133,"P"],[0.549,"P"],[4.16,"P"]] },
+        { name: "Fresh SRP wallet creation", a: [[null,"—"],[8.797,"P"],[8.073,"P"]], b: [[null,"—"],[10.62,"P"],[8.54,"P"]], c: [[null,"—"],[9.238,"P"],[8.945,"P"]], d: [[7.03,"P"],[9.111,"P"],[5.902,"P"]] },
+        { name: "Import SRP onboarding +50", a: [[null,"—"],[4.032,"P"],[3.746,"P"]], b: [[null,"—"],[4.045,"P"],[3.766,"P"]], c: [[null,"—"],[4.142,"P"],[3.612,"P"]], d: [[4.985,"P"],[4.209,"P"],[3.408,"P"]] },
+        { name: "Money Home · empty", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]], d: [[null,"N"],[null,"N"],[null,"N"]] },
+        { name: "Account creation", a: [[null,"—"],[4.097,"F"],[1.4,"P"]], b: [[null,"—"],[1.883,"P"],[1.278,"P"]], c: [[null,"—"],[1.325,"P"],[1.465,"P"]], d: [[3.202,"P"],[1.697,"P"],[1.66,"P"]] },
+        { name: "Money Home · funded", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]], d: [[null,"N"],[null,"N"],[null,"N"]] },
+        { name: "Perps open/close", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]], d: [[13.663,"P"],[null,"N"],[null,"N"]] },
+        { name: "Seedless Apple", a: [[null,"—"],[4.415,"P"],[4.719,"P"]], b: [[null,"—"],[4.45,"P"],[5.279,"P"]], c: [[null,"—"],[4.398,"P"],[5.412,"P"]], d: [[4.781,"P"],[5.274,"P"],[4.801,"P"]] },
+        { name: "Seedless Google", a: [[null,"—"],[5.541,"P"],[2.572,"P"]], b: [[null,"—"],[4.055,"P"],[5.753,"P"]], c: [[null,"—"],[5.594,"P"],[3.76,"P"]], d: [[5.776,"P"],[4.806,"P"],[5.877,"F"]] },
+        { name: "Seedless Telegram", a: [[null,"—"],[5.341,"P"],[5.668,"P"]], b: [[null,"—"],[7.938,"F"],[4.213,"P"]], c: [[null,"—"],[4.795,"P"],[5.132,"P"]], d: [[5.765,"P"],[3.73,"P"],[2.101,"P"]] },
+        { name: "Aggregated Balance", a: [[null,"—"],[8.674,"P"],[9.163,"P"]], b: [[null,"—"],[8.706,"P"],[8.603,"P"]], c: [[null,"—"],[8.665,"P"],[8.86,"P"]], d: [[8.308,"P"],[9.089,"P"],[8.77,"P"]] },
+        { name: "Cross-chain ETH→SOL", a: [[null,"—"],[4.958,"P"],[null,"N"]], b: [[null,"—"],[3.652,"P"],[4.334,"P"]], c: [[null,"—"],[6.311,"P"],[3.1,"P"]], d: [[5.385,"P"],[5.483,"P"],[5.377,"P"]] },
+        { name: "Asset View", a: [[null,"—"],[3.857,"P"],[4.388,"P"]], b: [[null,"—"],[3.769,"P"],[2.272,"P"]], c: [[null,"—"],[4.576,"P"],[2.643,"P"]], d: [[3.293,"P"],[2.451,"P"],[2.356,"P"]] },
+        { name: "Cold Start → Login", a: [[null,"—"],[6.207,"F"],[4.999,"P"]], b: [[null,"—"],[5.929,"F"],[4.696,"P"]], c: [[null,"—"],[5.979,"F"],[4.361,"P"]], d: [[3.713,"P"],[5.835,"F"],[5.707,"F"]] },
+        { name: "Swap ETH→LINK", a: [[null,"—"],[1.846,"P"],[2.228,"P"]], b: [[null,"—"],[1.902,"P"],[1.6,"P"]], c: [[null,"—"],[2.07,"P"],[2.241,"P"]], d: [[1.408,"P"],[2.121,"P"],[2.477,"P"]] },
+        { name: "Import SRP +50", a: [[null,"—"],[3.051,"P"],[15.77,"F"]], b: [[null,"—"],[3.461,"P"],[4.463,"P"]], c: [[null,"—"],[3.9,"P"],[2.912,"P"]], d: [[2.827,"P"],[4.047,"P"],[3.262,"P"]] },
+        { name: "Warm Start → Wallet", a: [[null,"—"],[1.237,"P"],[2.512,"P"]], b: [[null,"—"],[1.186,"P"],[1.088,"P"]], c: [[null,"—"],[3.332,"F"],[1.06,"P"]], d: [[1.387,"P"],[1.372,"P"],[2.329,"P"]] },
+        { name: "Perps add funds", a: [[null,"—"],[5.35,"P"],[5.188,"P"]], b: [[null,"—"],[5.796,"P"],[6.038,"P"]], c: [[null,"—"],[6.022,"P"],[4.968,"P"]], d: [[6.672,"P"],[5.517,"P"],[5.081,"P"]] },
+        { name: "Warm Start → Login", a: [[null,"—"],[0.477,"P"],[1.26,"P"]], b: [[null,"—"],[0.963,"P"],[0.41,"P"]], c: [[null,"—"],[0.928,"P"],[1.026,"P"]], d: [[0.65,"P"],[0.46,"P"],[0.471,"P"]] },
+        { name: "Predict Avail. Balance", a: [[null,"—"],[1.753,"P"],[3.519,"P"]], b: [[null,"—"],[0.885,"P"],[0.926,"P"]], c: [[null,"—"],[0.967,"P"],[1.344,"P"]], d: [[1.067,"P"],[1.59,"P"],[3.149,"P"]] },
+        { name: "Predict Market Details", a: [[null,"—"],[1.768,"P"],[2.554,"P"]], b: [[null,"—"],[1.936,"P"],[1.916,"P"]], c: [[null,"—"],[2.047,"P"],[2.623,"P"]], d: [[3.027,"P"],[2.827,"P"],[4.226,"P"]] },
+        { name: "Predict Deposit", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]], d: [[10.833,"P"],[null,"N"],[null,"N"]] },
+        { name: "Rewards tab", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]], d: [[null,"N"],[null,"N"],[null,"N"]] }
       ];
 
       function statusClass(s) {
@@ -281,6 +293,9 @@
         RUN_ORDER.forEach((key) => {
           const run = RUNS[key];
           const bsText = run.browserstack.executed ? `${run.browserstack.pass} / 23` : "Skipped";
+          const bsDetail = run.browserstack.executed
+            ? `QG fail ${run.browserstack.qgFail} · no metrics ${run.browserstack.noMetrics}`
+            : (run.browserstack.note || "");
           container.insertAdjacentHTML(
             "beforeend",
             `<article class="run-card">
@@ -293,7 +308,7 @@
                 <div class="stat bs">
                   <label>BrowserStack</label>
                   <strong>${bsText}</strong>
-                  <small>${run.browserstack.note || ""}</small>
+                  <small>${bsDetail}</small>
                 </div>
                 <div class="stat priv">
                   <label>Sauce Private</label>
@@ -365,21 +380,29 @@
         const rA = RUNS.a;
         const rB = RUNS.b;
         const rC = RUNS.c;
+        const rD = RUNS.d;
 
         if (rB.sauceCloud.pass > rA.sauceCloud.pass) {
           bullets.push(`<strong>Sauce Cloud</strong> improved from Run A (${rA.sauceCloud.pass}/23) to Run B/C (${rB.sauceCloud.pass}/23), clearing QG failures including <em>Import SRP +50</em>.`);
         }
         bullets.push(`<strong>Run C vs B — Sauce Cloud</strong> stays at 18/23; notable timers: Cold → Onboarding faster (1.71 → 0.51s), Import SRP +50 faster (4.46 → 2.91s), Warm → Wallet faster (1.09 → 1.06s).`);
         bullets.push(`<strong>Run C vs B — Sauce Private</strong> still 16/23; <em>Seedless Telegram</em> recovered (7.94s F → 4.80s P), but new QG fail on <em>Warm Start → Wallet</em> (3.33s). <em>Cold Start → Login</em> still fails on Private.`);
-        bullets.push(`<strong>Fresh SRP</strong> passes on all Sauce lanes across all three runs (~8–10s Private, ~8–9s Cloud).`);
-        bullets.push(`<strong>Unchanged blockers:</strong> Money Home ×2, Perps open/close, Predict Deposit, Rewards — no metrics in every run.`);
-        if (!RUN_ORDER.some((k) => RUNS[k].browserstack.executed)) {
-          bullets.push(`Set <code>enable_browserstack=true</code> to populate BrowserStack columns on the next run.`);
+
+        if (rD) {
+          bullets.push(`<strong>Run D — first BrowserStack run</strong> (<code>enable_browserstack=true</code>): BS <strong>20/23</strong> on Pixel 7 Pro+13.0. Sauce Private <strong>17/23</strong> (+1 vs C), Sauce Cloud <strong>16/23</strong> (−2 vs C).`);
+          bullets.push(`<strong>Run D — BS-only coverage:</strong> <em>Perps open/close</em> (13.66s P) and <em>Predict Deposit</em> (10.83s P) pass on BrowserStack but remain no-metrics on both Sauce lanes.`);
+          bullets.push(`<strong>Run D — Cold Start → Login:</strong> BS passes at 3.71s; both Sauce lanes still fail (~5.7–5.8s). Largest cross-vendor gap in this run.`);
+          bullets.push(`<strong>Run D vs C — Sauce Private:</strong> score improves 16 → 17/23; <em>Warm Start → Wallet</em> recovers (3.33s F → 1.37s P). Still blocked on <em>Cold Start → Login</em>.`);
+          bullets.push(`<strong>Run D vs C — Sauce Cloud:</strong> drops 18 → 16/23; new QG fail on <em>Seedless Google</em> (5.88s). <em>Cold Start → Login</em> now fails on Cloud too (5.71s).`);
+          bullets.push(`<strong>Run D — shared blockers:</strong> Money Home ×2 and Rewards tab — no metrics on all three providers.`);
         }
 
+        bullets.push(`<strong>Fresh SRP</strong> passes on all executed lanes in every run (~5–10s depending on vendor/run).`);
+
         document.getElementById("analysis").innerHTML = `<ul>${bullets.map((b) => `<li>${b}</li>`).join("")}</ul>`;
+        const latest = RUN_ORDER[RUN_ORDER.length - 1];
         document.getElementById("footer").textContent =
-          `Runs: ${RUN_ORDER.map((k) => RUNS[k].id).join(" · ")} · Branch ${RUNS.c.branch} · Values in seconds.`;
+          `Runs: ${RUN_ORDER.map((k) => RUNS[k].id).join(" · ")} · Branch ${RUNS[latest].branch} · Values in seconds.`;
       }
 
       renderLinks();
