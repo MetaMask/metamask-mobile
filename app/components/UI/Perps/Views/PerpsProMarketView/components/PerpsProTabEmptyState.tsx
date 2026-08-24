@@ -47,7 +47,7 @@ const PerpsProTabEmptyState = ({
   return (
     // TabEmptyState does not forward testID to a measurable native view, so the
     // locator lives on a wrapping View that automated checks can resolve.
-    <View testID={testID}>
+    <View testID={testID} style={tw.style('flex-1')}>
       <TabEmptyState
         icon={
           <Image
