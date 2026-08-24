@@ -9,14 +9,24 @@ import {
 import { updateNotificationSubscriptionExpiration } from '../constants/notification-storage-keys';
 import { requestPushPermissions } from '../services/NotificationService';
 import Logger from '../../Logger';
+import { pushStartupLog } from '../utils/push-startup-log';
 
 export function usePushPermissionNotificationSetup() {
   // Ask the OS for push permission while the pre-prompt is still in focus.
   const requestPushPermission = useCallback(async () => {
+    pushStartupLog('pre-prompt: requesting OS push permission');
     try {
       assertIsFeatureEnabled();
-      return await requestPushPermissions();
+      const granted = await requestPushPermissions();
+      pushStartupLog('pre-prompt: OS push permission result', { granted });
+      return granted;
     } catch (requestError) {
+      pushStartupLog('pre-prompt: OS push permission request failed', {
+        error:
+          requestError instanceof Error
+            ? requestError.message
+            : String(requestError),
+      });
       Logger.error(
         requestError as Error,
         'Failed to request push permission from pre-prompt',
@@ -38,6 +48,12 @@ export function usePushPermissionNotificationSetup() {
           const hasExistingNotificationPreferences =
             await hasNotificationPreferencesHelper();
 
+          pushStartupLog('pre-prompt: enabling notifications in background', {
+            nativePermissionEnabled,
+            registerPushNotifications,
+            hasExistingNotificationPreferences,
+          });
+
           if (hasExistingNotificationPreferences) {
             // Still run the enable flow for auth, trigger refresh, controller
             // state, and push registration; existing AUS prefs are updated separately.
@@ -54,7 +70,14 @@ export function usePushPermissionNotificationSetup() {
           }
 
           await updateNotificationSubscriptionExpiration();
+          pushStartupLog('pre-prompt: background notification setup done');
         } catch (backgroundSetupError) {
+          pushStartupLog('pre-prompt: background notification setup failed', {
+            error:
+              backgroundSetupError instanceof Error
+                ? backgroundSetupError.message
+                : String(backgroundSetupError),
+          });
           Logger.error(
             backgroundSetupError as Error,
             'Failed to enable notifications from push pre-prompt',

@@ -13,6 +13,7 @@ import {
   hasPushPermission,
   requestPushPermissions,
 } from '../services/NotificationService';
+import { pushStartupLog } from '../utils/push-startup-log';
 
 export interface UsePushNotificationsToggleProps {
   // Depending on the instance, we may want to nudge to enable push notifications
@@ -32,15 +33,28 @@ export function usePushNotificationsToggle(
       ? requestPushPermissions
       : hasPushPermission;
 
+    pushStartupLog('enablePushNotifications: checking native permission', {
+      nudgeEnablePush: props.nudgeEnablePush,
+      strategy: props.nudgeEnablePush
+        ? 'requestPushPermissions'
+        : 'hasPushPermission',
+    });
     const nativePermissionEnabled = await pushPermCallback().catch(() => false);
+    pushStartupLog('enablePushNotifications: native permission result', {
+      nativePermissionEnabled,
+    });
     if (!nativePermissionEnabled) {
       return false;
     }
 
     try {
       await enablePushNotificationsHelper();
+      pushStartupLog('enablePushNotifications: controller push enabled');
       return true;
-    } catch {
+    } catch (error) {
+      pushStartupLog('enablePushNotifications: controller enable failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return false;
     }
   }, [props.nudgeEnablePush]);

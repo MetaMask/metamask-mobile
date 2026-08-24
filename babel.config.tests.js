@@ -64,6 +64,10 @@ const newOverrides = [
       'app/hooks/useProSubscriptionEnabled.test.ts',
       'app/util/environment.ts',
       'app/util/environment.test.ts',
+      // osLog guards on JEST_WORKER_ID at runtime so prod bundles log to the
+      // device OS log while unit tests stay silent.
+      'app/util/osLog/index.ts',
+      'app/util/osLog/index.test.ts',
       'app/util/sentry/utils.ts',
       'app/util/sentry/utils.test.ts',
       'app/constants/bridge.ts',

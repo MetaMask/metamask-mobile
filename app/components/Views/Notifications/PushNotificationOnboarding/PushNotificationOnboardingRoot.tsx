@@ -8,7 +8,12 @@ import {
   type PushPrePromptVariant,
 } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
 import { isE2EOrExpEnvironment } from '../../../../util/test/utils';
-import { selectPrePushPromptEnabled } from '../../../../selectors/featureFlagController/engagement';
+import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
+import {
+  selectPrePushPromptEnabled,
+  PRE_PUSH_PROMPT_FLAG_KEY,
+} from '../../../../selectors/featureFlagController/engagement';
+import { pushStartupLog } from '../../../../util/notifications/utils/push-startup-log';
 import PushNotificationPermissionFallback from './PushNotificationPermissionFallback';
 
 type VisibleVariant = Exclude<PushPrePromptVariant, null>;
@@ -63,6 +68,26 @@ const PushNotificationOnboardingRootContent = () => {
 
 const PushNotificationOnboardingRoot = () => {
   const isPrePromptEnabled = useSelector(selectPrePushPromptEnabled);
+  const remoteFeatureFlags = useSelector(selectRemoteFeatureFlags);
+
+  // Runs before the early returns below so the startup pre-prompt decision is
+  // always visible in the device log, including on exp builds where the
+  // pre-prompt is force-disabled. Remote flags load asynchronously after
+  // launch, so re-log whenever they change.
+  useEffect(() => {
+    pushStartupLog('PushNotificationOnboardingRoot decision', {
+      isE2EOrExpEnvironment,
+      isPrePromptEnabled,
+      prePushPromptEnabledFlag:
+        remoteFeatureFlags?.[PRE_PUSH_PROMPT_FLAG_KEY] ?? null,
+      metamaskEnvironment: process.env.METAMASK_ENVIRONMENT ?? null,
+      renders: isE2EOrExpEnvironment
+        ? 'nothing (e2e/exp environment)'
+        : isPrePromptEnabled
+          ? 'pre-prompt'
+          : 'permission-fallback',
+    });
+  }, [isPrePromptEnabled, remoteFeatureFlags]);
 
   if (isE2EOrExpEnvironment) {
     return null;
