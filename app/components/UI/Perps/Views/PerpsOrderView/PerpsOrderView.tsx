@@ -14,10 +14,7 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 import {
   Box,
@@ -104,6 +101,7 @@ import {
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
 import {
+  useBottomSafeAreaInset,
   useHasExistingPosition,
   useMinimumOrderAmount,
   usePerpsLiquidationPrice,
@@ -165,7 +163,9 @@ import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
 } from '../../utils/orderParams';
-import createStyles from './PerpsOrderView.styles';
+import createStyles, {
+  FIXED_BOTTOM_CONTAINER_PADDING,
+} from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
@@ -242,7 +242,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     route.params?.chartLibrary ?? getPerpsChartLibrary(isAdvancedChartEnabled);
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
+  const bottomSafeAreaInset = useBottomSafeAreaInset();
 
   useAddToken({
     chainId: CHAIN_IDS.ARBITRUM,
@@ -266,13 +266,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const styles = createStyles(colors);
 
-  // Dynamic bottom padding for fixed container: safe area inset + 16px visual padding
+  // Dynamic bottom padding for fixed container: system navigation-bar inset plus
+  // the visual padding, so the CTA is never drawn under the navigation bar.
   const fixedBottomContainerStyle = useMemo(
     () => ({
       ...styles.fixedBottomContainer,
-      paddingBottom: insets.bottom + 16,
+      paddingBottom: bottomSafeAreaInset + FIXED_BOTTOM_CONTAINER_PADDING,
     }),
-    [styles.fixedBottomContainer, insets.bottom],
+    [styles.fixedBottomContainer, bottomSafeAreaInset],
   );
 
   // Deferred loading: Load non-critical data after UI renders

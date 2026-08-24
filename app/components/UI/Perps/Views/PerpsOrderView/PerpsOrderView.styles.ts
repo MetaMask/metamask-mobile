@@ -1,6 +1,12 @@
 import { StyleSheet } from 'react-native';
 import type { Colors } from '../../../../../util/theme/models';
 
+/**
+ * Visual padding kept between the fixed CTA and the bottom of its container.
+ * The system navigation-bar inset is added to this at runtime.
+ */
+export const FIXED_BOTTOM_CONTAINER_PADDING = 16;
+
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     container: {
