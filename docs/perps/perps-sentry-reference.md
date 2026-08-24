@@ -199,10 +199,12 @@ See the Market-detail readiness section in
 [`docs/perps/performance/ARCHITECTURE.md`](performance/ARCHITECTURE.md) for the
 measurement names and dashboard filters.
 
-Market-detail Live adds two bounded unsuccessful reasons:
+Market-detail Live uses four bounded unsuccessful reasons:
 `generation_changed` when a newer symbol/account/network generation supersedes
-the open span, and `stats_error` when stats subscription setup fails. Dashboard
-latency filters exclude both; reliability widgets count them by reason.
+the open span, `stats_error` when stats subscription setup fails,
+`app_backgrounded` when the app leaves the foreground, and `owner_cancelled`
+when the screen stops owning the span. Dashboard latency filters exclude all
+four; reliability widgets count them by reason.
 
 ## Event Catalog
 
@@ -213,7 +215,7 @@ latency filters exclude both; reliability widgets count them by reason.
 | TraceName                             | Boundary (gesture → render-complete with live data)                             | Approach                                        |
 | ------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------- |
 | `PerpsEntryToLiveMarketList`          | Home mount → live market list (positions + markets + orders loaded)             | `usePerpsMeasurement` (`endConditions`)         |
-| `PerpsMarketDetailLive`               | Market detail mount → stats + price + account loaded                            | `usePerpsMeasurement` (`endConditions`)         |
+| `PerpsMarketDetailLive`               | Market detail mount → market + stats + price + account loaded                   | `usePerpsMeasurement` (`endConditions`)         |
 | `PerpsMarketDetailSession`            | Market detail mount → per-section resolved offsets for one Lite/Pro generation  | `usePerpsMarketDetailSession`                   |
 | `PerpsTradePageRender`                | Order view mount → price + fresh account (`!isLoadingAccount`)                  | `usePerpsMeasurement` (`endConditions`)         |
 | `PerpsPlaceOrderToPositionRendered`   | Market submit → matching position stream-rendered (+ `toast_position_delta_ms`) | `perpsCufTrace` (single-flight resolver)        |

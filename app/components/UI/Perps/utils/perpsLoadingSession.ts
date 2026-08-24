@@ -461,7 +461,6 @@ function recordValuesReady({
 }
 
 export function resolvePerpsMarketSource(
-  _markets: { dataSource?: string }[],
   sessionMarketSource?: PerpsSessionMarketSource | null,
 ): PerpsSessionMarketSource {
   if (sessionMarketSource && sessionMarketSource !== 'unknown') {
@@ -657,6 +656,7 @@ function requiresFreshMarkets(
 ): boolean {
   return (
     data.success !== false &&
+    data.content_state !== 'empty' &&
     (data.content_variant === 'trending' || data.content_variant === 'pills') &&
     (activeLifecycle === 'cold_no_cache' ||
       activeLifecycle === 'cold_disk_cache' ||

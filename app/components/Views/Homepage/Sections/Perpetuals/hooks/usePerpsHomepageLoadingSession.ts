@@ -200,7 +200,9 @@ export function usePerpsHomepageLoadingSession(
 
   useEffect(
     () => () => {
-      cancelPerpsLoadingSession('surface_unmounted');
+      if (hasOwnedSessionRef.current) {
+        cancelPerpsLoadingSession('surface_unmounted');
+      }
       hasOwnedSessionRef.current = false;
       previousIdentityRef.current = null;
     },

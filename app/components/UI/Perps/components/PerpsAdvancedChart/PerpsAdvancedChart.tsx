@@ -455,7 +455,11 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   );
 
   useEffect(() => {
-    if (hasFailed && fallbackCandleData?.symbol === symbol) {
+    if (
+      hasFailed &&
+      fallbackCandleData?.symbol === symbol &&
+      fallbackCandleData.interval === interval
+    ) {
       const state = fallbackCandleData.candles.length > 0 ? 'content' : 'empty';
       const resolutionKey = `${ohlcvSeriesKey}|${state}`;
       if (reportedFallbackResolutionRef.current !== resolutionKey) {
@@ -463,7 +467,14 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         onResolved?.(ohlcvSeriesKey, state);
       }
     }
-  }, [fallbackCandleData, hasFailed, ohlcvSeriesKey, onResolved, symbol]);
+  }, [
+    fallbackCandleData,
+    hasFailed,
+    interval,
+    ohlcvSeriesKey,
+    onResolved,
+    symbol,
+  ]);
 
   if (hasFailed) {
     return (

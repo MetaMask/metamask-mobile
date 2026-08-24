@@ -1942,6 +1942,28 @@ describe('PerpsStreamManager', () => {
       expect(btcCb).toHaveBeenCalledTimes(1);
     });
 
+    it('drops a late callback from the previous subscription generation', () => {
+      const callback = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback,
+      });
+      const staleCallback = priceCallback;
+
+      testStreamManager.prices.reconnect();
+      const currentCallback = priceCallback;
+
+      staleCallback([makePrice('BTC-PERP', '50000')]);
+      expect(callback).not.toHaveBeenCalled();
+
+      currentCallback([makePrice('BTC-PERP', '50001')]);
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          'BTC-PERP': expect.objectContaining({ price: '50001' }),
+        }),
+      );
+    });
+
     it('preserves first-update and throttle semantics for scoped dispatch', () => {
       const cb = jest.fn();
 
@@ -2082,6 +2104,7 @@ describe('PerpsStreamManager', () => {
       // Account switch clears caches and notifies every subscriber with cleared data
       act(() => {
         testStreamManager.prices.clearCache();
+        testStreamManager.prices.reconnect();
       });
       expect(btcCb).toHaveBeenCalledWith({});
       expect(ethCb).toHaveBeenCalledWith({});
@@ -3858,6 +3881,32 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
       expect(mockSubscribeToPrices).toHaveBeenLastCalledWith(
         expect.objectContaining({ symbols: ['ETH'] }),
+      );
+    });
+
+    it('restores the focused symbol and rejects the prior callback on reconnect', () => {
+      const callback = jest.fn();
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+      const staleCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+
+      testStreamManager.focusedPrice.reconnect();
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({ symbols: ['BTC'] }),
+      );
+      expect(callback).toHaveBeenCalledWith(undefined);
+      callback.mockClear();
+      staleCallback([{ symbol: 'BTC', price: '50000' }]);
+      expect(callback).not.toHaveBeenCalled();
+
+      const currentCallback = mockSubscribeToPrices.mock.calls[1][0].callback;
+      currentCallback([{ symbol: 'BTC', price: '50001' }]);
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'BTC', price: '50001' }),
       );
     });
 

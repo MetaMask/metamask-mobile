@@ -6,7 +6,9 @@ import { usePerpsProModeEnabled } from './usePerpsProModeEnabled';
 jest.mock('./usePerpsProModeEnabled');
 
 const mockUseRoute = jest.fn();
+const mockSetParams = jest.fn();
 jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ setParams: mockSetParams }),
   useRoute: () => mockUseRoute(),
 }));
 
@@ -128,6 +130,9 @@ describe('PerpsMarketDetailsRouter', () => {
     expect(mockProProps).toHaveBeenCalledWith(
       expect.objectContaining({ generationTrigger: 'market_switch' }),
     );
+    expect(mockSetParams).toHaveBeenCalledWith({
+      detailGenerationTrigger: undefined,
+    });
   });
 
   it('consumes the header-picker trigger before a later mode switch', () => {

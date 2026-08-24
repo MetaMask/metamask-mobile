@@ -679,7 +679,7 @@ describe('perpsLoadingSession', () => {
 
     it('waits for fresh markets and the complete live account on a network switch', () => {
       startPerpsLoadingSession({ lifecycle: 'network_switch' });
-      finishPerpsLoadingSession(finishData);
+      finishPerpsLoadingSession({ ...finishData, content_state: 'filled' });
 
       expect(endTrace).not.toHaveBeenCalled();
 
@@ -785,22 +785,30 @@ describe('perpsLoadingSession', () => {
       const sessionMarketSource =
         getActivePerpsLoadingSessionContext()?.marketSource;
 
-      expect(
-        resolvePerpsMarketSource(
-          [{ dataSource: 'terminal-global-snapshot-mark' }],
-          'memory_cache',
-        ),
-      ).toBe('memory_cache');
-      expect(
-        resolvePerpsMarketSource(
-          [{ dataSource: 'terminal-global-snapshot-mark' }],
-          'unknown',
-        ),
-      ).toBe('unknown');
-      expect(resolvePerpsMarketSource([{}, {}], sessionMarketSource)).toBe(
+      expect(resolvePerpsMarketSource('memory_cache')).toBe('memory_cache');
+      expect(resolvePerpsMarketSource('unknown')).toBe('unknown');
+      expect(resolvePerpsMarketSource(sessionMarketSource)).toBe(
         'memory_cache',
       );
-      expect(resolvePerpsMarketSource([], null)).toBe('unknown');
+      expect(resolvePerpsMarketSource(null)).toBe('unknown');
+    });
+
+    it('finishes an empty cold surface without inventing market readiness', () => {
+      startPerpsLoadingSession({ lifecycle: 'cold_no_cache' });
+      recordFresh('positions', 0);
+      recordFresh('orders', 0);
+      recordFresh('account', 1);
+
+      finishPerpsLoadingSession(finishData);
+
+      expect(endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            content_state: 'empty',
+            required_live_streams_complete: true,
+          }),
+        }),
+      );
     });
 
     it('exposes the coherent account cache source and recorded market source', () => {

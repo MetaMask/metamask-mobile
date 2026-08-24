@@ -188,6 +188,10 @@ abstract class StreamChannel<T> {
     );
   }
 
+  protected invalidateSubscriptionContext(): void {
+    this.subscriptionGeneration += 1;
+  }
+
   // Track account context to prevent stale data across account switches
   protected accountAddress: string | null = null;
   protected cacheAccountAddress: string | null = null;
@@ -570,7 +574,7 @@ abstract class StreamChannel<T> {
   }
 
   public disconnect() {
-    this.subscriptionGeneration += 1;
+    this.invalidateSubscriptionContext();
     this.#lifecycle?.onDisconnect?.();
     this.connectRetryCount = 0;
     if (this.deferConnectTimer) {
@@ -655,7 +659,7 @@ abstract class StreamChannel<T> {
   }
 
   public clearCache(): void {
-    this.subscriptionGeneration += 1;
+    this.invalidateSubscriptionContext();
     // End any first-data trace still open, so clearing the cache before first
     // data doesn't leave a span running until the 5-minute auto-clean.
     this.endOpenFirstDataTrace();
@@ -794,10 +798,14 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     });
     this.wsConnectionStartTime = performance.now();
     const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
+    const subscriptionContext = this.getSubscriptionContext();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
       symbols: allSymbols,
       callback: (updates: PriceUpdate[]) => {
+        if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
+          return;
+        }
         recordPerpsLoadingSessionValuesReady(
           'prices',
           'fresh_socket',
@@ -989,6 +997,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         });
         this.wsConnectionStartTime = performance.now();
         const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
+        const subscriptionContext = this.getSubscriptionContext();
 
         // WARNING: Do NOT set includeMarketData: true here. It triggers
         // per-symbol activeAssetCtx subscriptions (N symbols × N DEXs = N²
@@ -998,6 +1007,9 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           symbols: this.allMarketSymbols,
           includeMarketData: false,
           callback: (updates: PriceUpdate[]) => {
+            if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
+              return;
+            }
             recordPerpsLoadingSessionValuesReady(
               'prices',
               'fresh_socket',
@@ -1079,6 +1091,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
    * Cleanup pre-warm subscription
    */
   public cleanupPrewarm(): void {
+    this.invalidateSubscriptionContext();
     // Prewarm starts the first-price trace; end it here too so a soft reconnect
     // (preserveCaches: true skips clearCache) doesn't leave it open to be
     // overwritten by the next prewarm.
@@ -2073,11 +2086,17 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
       symbol: this.currentSymbol,
     });
 
+    const subscribedSymbol = this.currentSymbol;
+    const subscriptionContext = this.getSubscriptionContext();
+
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
-      symbols: [this.currentSymbol],
+      symbols: [subscribedSymbol],
       includeMarketData: true,
       callback: (updates: PriceUpdate[]) => {
-        const update = updates.find((u) => u.symbol === this.currentSymbol);
+        if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
+          return;
+        }
+        const update = updates.find((u) => u.symbol === subscribedSymbol);
         if (update) {
           this.cachedPriceUpdate = update;
           // Scope dispatch to subscribers registered for this update's symbol.
@@ -2170,6 +2189,18 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
     this.disconnect();
     this.currentSymbol = nextSymbol;
     this.connect();
+  }
+
+  public reconnect(): void {
+    const symbol =
+      this.currentSymbol ?? this.symbolSubscribers.keys().next().value;
+    this.cachedPriceUpdate = undefined;
+    this.disconnect();
+    super.clearCache();
+    if (symbol && this.subscribers.size > 0) {
+      this.currentSymbol = symbol;
+      this.connect();
+    }
   }
 
   public disconnect() {

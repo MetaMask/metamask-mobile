@@ -689,6 +689,26 @@ describe('PerpsAdvancedChart', () => {
     expect(onResolved).toHaveBeenCalledTimes(1);
   });
 
+  it('does not resolve fallback candles from the prior interval', () => {
+    const onResolved = jest.fn();
+    const fallbackCandleData: CandleData = {
+      symbol: 'BTC',
+      interval: CandlePeriod.OneHour,
+      candles: [],
+    };
+    renderChart({
+      interval: CandlePeriod.FourHours,
+      fallbackCandleData,
+      onResolved,
+    });
+
+    act(() => {
+      advancedChartProps().onError?.('chart failed');
+    });
+
+    expect(onResolved).not.toHaveBeenCalled();
+  });
+
   it('reports an empty resolved fallback for the current symbol', () => {
     const onResolved = jest.fn();
     const fallbackCandleData: CandleData = {

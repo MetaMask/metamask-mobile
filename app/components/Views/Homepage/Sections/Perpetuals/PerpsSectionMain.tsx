@@ -329,10 +329,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
               : 'trending';
     const lifecycle = sessionContext?.lifecycle ?? proposedLifecycle;
     const sessionId = sessionContext?.id;
-    const marketSource = resolvePerpsMarketSource(
-      allCarouselMarkets.length > 0 ? allCarouselMarkets : markets,
-      sessionContext?.marketSource,
-    );
+    const marketSource = resolvePerpsMarketSource(sessionContext?.marketSource);
     const accountSource = sessionContext?.accountSource ?? 'unknown';
     const cohortTags = useMemo(
       () => ({
