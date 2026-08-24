@@ -17,6 +17,7 @@
         --green: #15803d;
         --red: #b42318;
         --gray: #98a2b3;
+        --purple: #7c3aed;
       }
       * { box-sizing: border-box; }
       body {
@@ -25,7 +26,7 @@
         color: var(--ink);
         font: 15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
       }
-      .wrap { max-width: 1680px; margin: 0 auto; padding: 36px 22px 64px; }
+      .wrap { max-width: 100%; margin: 0 auto; padding: 36px 22px 64px; }
       .hero {
         background: linear-gradient(135deg, #172554, #2563eb 50%, #b54708);
         border-radius: 24px;
@@ -55,7 +56,7 @@
       .run-grid {
         display: grid;
         gap: 16px;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         margin: 22px 0;
       }
       .run-card {
@@ -67,6 +68,7 @@
       }
       .run-card h3 { margin: 0 0 6px; font-size: 18px; }
       .run-meta { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+      .run-meta a { color: var(--blue); }
       .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
       .stat {
         border: 1px solid var(--line);
@@ -79,7 +81,7 @@
       .stat.cloud { border-top: 3px solid var(--teal); }
       .stat label { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
       .stat strong { display: block; font-size: 22px; margin-top: 4px; }
-      .stat small { color: var(--muted); font-size: 12px; }
+      .stat small { color: var(--muted); font-size: 11px; line-height: 1.35; }
       .section {
         background: var(--card);
         border: 1px solid var(--line);
@@ -96,16 +98,8 @@
         padding: 13px 15px;
         margin: 0 0 16px;
       }
-      .callout {
-        background: #eff6ff;
-        border: 1px solid #bfdbfe;
-        color: #1e3a8a;
-        border-radius: 12px;
-        padding: 13px 15px;
-        margin: 0 0 16px;
-      }
       .table-wrap { overflow-x: auto; }
-      table { width: 100%; border-collapse: collapse; min-width: 1200px; }
+      table { width: 100%; border-collapse: collapse; min-width: 900px; }
       th, td {
         border-bottom: 1px solid var(--line);
         padding: 10px 8px;
@@ -119,26 +113,23 @@
         letter-spacing: .04em;
         background: #f8fafc;
       }
-      th.group-a { background: #eff6ff; }
-      th.group-b { background: #ecfdf3; }
+      th.group-0 { background: #eff6ff; }
+      th.group-1 { background: #ecfdf3; }
+      th.group-2 { background: #faf5ff; }
       th.delta { background: #fef3f2; }
       tr:last-child td { border-bottom: 0; }
-      td:first-child { min-width: 220px; font-weight: 600; }
+      td:first-child { min-width: 220px; font-weight: 600; position: sticky; left: 0; background: var(--card); z-index: 1; }
       .pass { color: var(--green); font-weight: 700; }
       .fail { color: var(--red); font-weight: 700; }
       .missing { color: var(--orange); font-weight: 700; }
       .skip { color: var(--gray); font-weight: 700; }
-      .time { display: block; font-variant-numeric: tabular-nums; font-size: 14px; }
+      .time { display: block; font-variant-numeric: tabular-nums; font-size: 13px; }
       .status { display: block; font-size: 10px; margin-top: 2px; }
-      .delta-pos { color: var(--red); font-weight: 700; }
-      .delta-neg { color: var(--green); font-weight: 700; }
-      .delta-na { color: var(--gray); }
+      .delta-pos { color: var(--red); font-weight: 700; font-size: 13px; }
+      .delta-neg { color: var(--green); font-weight: 700; font-size: 13px; }
+      .delta-na { color: var(--gray); font-size: 13px; }
       .foot { color: var(--muted); font-size: 12px; margin-top: 18px; }
       code { font-size: 12px; }
-      @media (max-width: 900px) {
-        .run-grid { grid-template-columns: 1fr; }
-        .stats { grid-template-columns: 1fr; }
-      }
     </style>
   </head>
   <body>
@@ -147,9 +138,9 @@
         <div class="eyebrow">MetaMask Mobile · Performance E2E</div>
         <h1>BrowserStack vs Sauce Labs · Run comparison</h1>
         <p>
-          Side-by-side comparison of two workflow runs. Only <strong>BrowserStack</strong> and
-          <strong>Sauce Labs</strong> (Private + Cloud) are shown so you can track provider trends
-          across executions. Update the <code>RUNS</code> object at the bottom of this file for future runs.
+          Track <strong>BrowserStack</strong> and <strong>Sauce Labs</strong> (Private + Cloud) across
+          workflow runs. Edit <code>RUN_ORDER</code>, <code>RUNS</code>, and <code>rows</code> at the
+          bottom of this file to add future executions.
         </p>
         <nav class="links" id="run-links"></nav>
       </header>
@@ -172,70 +163,77 @@
         <div id="analysis"></div>
       </section>
 
-      <section class="section">
-        <h2>How to add another run pair</h2>
-        <ol>
-          <li>Download onboarding + imported-wallet Sauce artifacts for Private and Cloud lanes.</li>
-          <li>If BrowserStack was enabled, use the aggregated report or BS test-result artifacts.</li>
-          <li>Edit the embedded <code>rows</code> data or regenerate from <code>performance-metrics-*.json</code>.</li>
-          <li>Update <code>RUNS.a</code> / <code>RUNS.b</code> metadata (id, url, commit, date).</li>
-        </ol>
-      </section>
-
       <p class="foot" id="footer"></p>
     </main>
 
     <script>
+      /** Order of runs left → right in the table */
+      const RUN_ORDER = ["a", "b", "c"];
+
       const RUNS = {
         a: {
           id: "32707596917",
-          label: "Run A (previous)",
+          label: "Run A",
           url: "https://github.com/MetaMask/metamask-mobile/actions/runs/32707596917",
           date: "2026-08-24 08:41 UTC",
           commit: "e9bc7c6d",
           branch: "MMQA-TestMu-PoC-HyperExecute",
-          browserstack: { executed: false, pass: null, note: "Performance Test Android jobs skipped" },
+          browserstack: { executed: false, pass: null, note: "Performance Test Android skipped" },
           saucePrivate: { pass: 16, qgFail: 2, noMetrics: 5, device: "Google_Pixel_7_POC(49|05)" },
           sauceCloud: { pass: 16, qgFail: 1, noMetrics: 6, device: "Google Pixel.*" }
         },
         b: {
           id: "32722078830",
-          label: "Run B (latest)",
+          label: "Run B",
           url: "https://github.com/MetaMask/metamask-mobile/actions/runs/32722078830",
           date: "2026-08-24 11:29 UTC",
           commit: "b43fcdab",
           branch: "MMQA-TestMu-PoC-HyperExecute",
-          browserstack: { executed: false, pass: null, note: "Performance Test Android jobs skipped" },
+          browserstack: { executed: false, pass: null, note: "Performance Test Android skipped" },
+          saucePrivate: { pass: 16, qgFail: 2, noMetrics: 5, device: "Google_Pixel_7_POC(49|05)" },
+          sauceCloud: { pass: 18, qgFail: 0, noMetrics: 5, device: "Google Pixel.*" }
+        },
+        c: {
+          id: "32730868375",
+          label: "Run C (latest)",
+          url: "https://github.com/MetaMask/metamask-mobile/actions/runs/32730868375",
+          date: "2026-08-24 13:07 UTC",
+          commit: "b43fcdab",
+          branch: "MMQA-TestMu-PoC-HyperExecute",
+          browserstack: { executed: false, pass: null, note: "Performance Test Android skipped" },
           saucePrivate: { pass: 16, qgFail: 2, noMetrics: 5, device: "Google_Pixel_7_POC(49|05)" },
           sauceCloud: { pass: 18, qgFail: 0, noMetrics: 5, device: "Google Pixel.*" }
         }
       };
 
-      // [scenario, bsA, privA, cloudA, bsB, privB, cloudB] — time in seconds, status P/F/N/—
+      /**
+       * Per scenario: name + per-run triple [browserstack, saucePrivate, sauceCloud]
+       * Each cell: [seconds|null, status P|F|N|—]
+       */
       const rows = [
-        ["Cold Start → Onboarding", [null, "—"], [0.389, "P"], [4.04, "P"], [null, "—"], [0.63, "P"], [1.714, "P"]],
-        ["Fresh SRP wallet creation", [null, "—"], [8.797, "P"], [8.073, "P"], [null, "—"], [10.62, "P"], [8.54, "P"]],
-        ["Import SRP onboarding +50", [null, "—"], [4.032, "P"], [3.746, "P"], [null, "—"], [4.045, "P"], [3.766, "P"]],
-        ["Money Home · empty", [null, "—"], [null, "N"], [null, "N"], [null, "—"], [null, "N"], [null, "N"]],
-        ["Account creation", [null, "—"], [4.097, "F"], [1.4, "P"], [null, "—"], [1.883, "P"], [1.278, "P"]],
-        ["Money Home · funded", [null, "—"], [null, "N"], [null, "N"], [null, "—"], [null, "N"], [null, "N"]],
-        ["Perps open/close", [null, "—"], [null, "N"], [null, "N"], [null, "—"], [null, "N"], [null, "N"]],
-        ["Seedless Apple", [null, "—"], [4.415, "P"], [4.719, "P"], [null, "—"], [4.45, "P"], [5.279, "P"]],
-        ["Seedless Google", [null, "—"], [5.541, "P"], [2.572, "P"], [null, "—"], [4.055, "P"], [5.753, "P"]],
-        ["Seedless Telegram", [null, "—"], [5.341, "P"], [5.668, "P"], [null, "—"], [7.938, "F"], [4.213, "P"]],
-        ["Aggregated Balance", [null, "—"], [8.674, "P"], [9.163, "P"], [null, "—"], [8.706, "P"], [8.603, "P"]],
-        ["Cross-chain ETH→SOL", [null, "—"], [4.958, "P"], [null, "N"], [null, "—"], [3.652, "P"], [4.334, "P"]],
-        ["Asset View", [null, "—"], [3.857, "P"], [4.388, "P"], [null, "—"], [3.769, "P"], [2.272, "P"]],
-        ["Cold Start → Login", [null, "—"], [6.207, "F"], [4.999, "P"], [null, "—"], [5.929, "F"], [4.696, "P"]],
-        ["Swap ETH→LINK", [null, "—"], [1.846, "P"], [2.228, "P"], [null, "—"], [1.902, "P"], [1.6, "P"]],
-        ["Import SRP +50", [null, "—"], [3.051, "P"], [15.77, "F"], [null, "—"], [3.461, "P"], [4.463, "P"]],
-        ["Warm Start → Wallet", [null, "—"], [1.237, "P"], [2.512, "P"], [null, "—"], [1.186, "P"], [1.088, "P"]],
-        ["Perps add funds", [null, "—"], [5.35, "P"], [5.188, "P"], [null, "—"], [5.796, "P"], [6.038, "P"]],
-        ["Warm Start → Login", [null, "—"], [0.477, "P"], [1.26, "P"], [null, "—"], [0.963, "P"], [0.41, "P"]],
-        ["Predict Avail. Balance", [null, "—"], [1.753, "P"], [3.519, "P"], [null, "—"], [0.885, "P"], [0.926, "P"]],
-        ["Predict Market Details", [null, "—"], [1.768, "P"], [2.554, "P"], [null, "—"], [1.936, "P"], [1.916, "P"]],
-        ["Predict Deposit", [null, "—"], [null, "N"], [null, "N"], [null, "—"], [null, "N"], [null, "N"]],
-        ["Rewards tab", [null, "—"], [null, "N"], [null, "N"], [null, "—"], [null, "N"], [null, "N"]]
+        { name: "Cold Start → Onboarding", a: [[null,"—"],[0.389,"P"],[4.04,"P"]], b: [[null,"—"],[0.63,"P"],[1.714,"P"]], c: [[null,"—"],[2.789,"P"],[0.511,"P"]] },
+        { name: "Fresh SRP wallet creation", a: [[null,"—"],[8.797,"P"],[8.073,"P"]], b: [[null,"—"],[10.62,"P"],[8.54,"P"]], c: [[null,"—"],[9.238,"P"],[8.945,"P"]] },
+        { name: "Import SRP onboarding +50", a: [[null,"—"],[4.032,"P"],[3.746,"P"]], b: [[null,"—"],[4.045,"P"],[3.766,"P"]], c: [[null,"—"],[4.142,"P"],[3.612,"P"]] },
+        { name: "Money Home · empty", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]] },
+        { name: "Account creation", a: [[null,"—"],[4.097,"F"],[1.4,"P"]], b: [[null,"—"],[1.883,"P"],[1.278,"P"]], c: [[null,"—"],[1.325,"P"],[1.465,"P"]] },
+        { name: "Money Home · funded", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]] },
+        { name: "Perps open/close", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]] },
+        { name: "Seedless Apple", a: [[null,"—"],[4.415,"P"],[4.719,"P"]], b: [[null,"—"],[4.45,"P"],[5.279,"P"]], c: [[null,"—"],[4.398,"P"],[5.412,"P"]] },
+        { name: "Seedless Google", a: [[null,"—"],[5.541,"P"],[2.572,"P"]], b: [[null,"—"],[4.055,"P"],[5.753,"P"]], c: [[null,"—"],[5.594,"P"],[3.76,"P"]] },
+        { name: "Seedless Telegram", a: [[null,"—"],[5.341,"P"],[5.668,"P"]], b: [[null,"—"],[7.938,"F"],[4.213,"P"]], c: [[null,"—"],[4.795,"P"],[5.132,"P"]] },
+        { name: "Aggregated Balance", a: [[null,"—"],[8.674,"P"],[9.163,"P"]], b: [[null,"—"],[8.706,"P"],[8.603,"P"]], c: [[null,"—"],[8.665,"P"],[8.86,"P"]] },
+        { name: "Cross-chain ETH→SOL", a: [[null,"—"],[4.958,"P"],[null,"N"]], b: [[null,"—"],[3.652,"P"],[4.334,"P"]], c: [[null,"—"],[6.311,"P"],[3.1,"P"]] },
+        { name: "Asset View", a: [[null,"—"],[3.857,"P"],[4.388,"P"]], b: [[null,"—"],[3.769,"P"],[2.272,"P"]], c: [[null,"—"],[4.576,"P"],[2.643,"P"]] },
+        { name: "Cold Start → Login", a: [[null,"—"],[6.207,"F"],[4.999,"P"]], b: [[null,"—"],[5.929,"F"],[4.696,"P"]], c: [[null,"—"],[5.979,"F"],[4.361,"P"]] },
+        { name: "Swap ETH→LINK", a: [[null,"—"],[1.846,"P"],[2.228,"P"]], b: [[null,"—"],[1.902,"P"],[1.6,"P"]], c: [[null,"—"],[2.07,"P"],[2.241,"P"]] },
+        { name: "Import SRP +50", a: [[null,"—"],[3.051,"P"],[15.77,"F"]], b: [[null,"—"],[3.461,"P"],[4.463,"P"]], c: [[null,"—"],[3.9,"P"],[2.912,"P"]] },
+        { name: "Warm Start → Wallet", a: [[null,"—"],[1.237,"P"],[2.512,"P"]], b: [[null,"—"],[1.186,"P"],[1.088,"P"]], c: [[null,"—"],[3.332,"F"],[1.06,"P"]] },
+        { name: "Perps add funds", a: [[null,"—"],[5.35,"P"],[5.188,"P"]], b: [[null,"—"],[5.796,"P"],[6.038,"P"]], c: [[null,"—"],[6.022,"P"],[4.968,"P"]] },
+        { name: "Warm Start → Login", a: [[null,"—"],[0.477,"P"],[1.26,"P"]], b: [[null,"—"],[0.963,"P"],[0.41,"P"]], c: [[null,"—"],[0.928,"P"],[1.026,"P"]] },
+        { name: "Predict Avail. Balance", a: [[null,"—"],[1.753,"P"],[3.519,"P"]], b: [[null,"—"],[0.885,"P"],[0.926,"P"]], c: [[null,"—"],[0.967,"P"],[1.344,"P"]] },
+        { name: "Predict Market Details", a: [[null,"—"],[1.768,"P"],[2.554,"P"]], b: [[null,"—"],[1.936,"P"],[1.916,"P"]], c: [[null,"—"],[2.047,"P"],[2.623,"P"]] },
+        { name: "Predict Deposit", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]] },
+        { name: "Rewards tab", a: [[null,"—"],[null,"N"],[null,"N"]], b: [[null,"—"],[null,"N"],[null,"N"]], c: [[null,"—"],[null,"N"],[null,"N"]] }
       ];
 
       function statusClass(s) {
@@ -269,19 +267,27 @@
         return `<span class="${cls}">${sign}${d.toFixed(3)} s${pct}</span>`;
       }
 
+      function renderLinks() {
+        document.getElementById("run-links").innerHTML = RUN_ORDER
+          .map((k) => {
+            const r = RUNS[k];
+            return `<a href="${r.url}" target="_blank">${r.label} · ${r.id}</a>`;
+          })
+          .join("");
+      }
+
       function renderRunCards() {
         const container = document.getElementById("run-cards");
-        Object.values(RUNS).forEach((run) => {
-          const bsText = run.browserstack.executed
-            ? `${run.browserstack.pass} / 23`
-            : "Skipped";
+        RUN_ORDER.forEach((key) => {
+          const run = RUNS[key];
+          const bsText = run.browserstack.executed ? `${run.browserstack.pass} / 23` : "Skipped";
           container.insertAdjacentHTML(
             "beforeend",
             `<article class="run-card">
               <h3>${run.label}</h3>
               <p class="run-meta">
                 <a href="${run.url}" target="_blank">${run.id}</a> · ${run.date} ·
-                <code>${run.commit}</code> · ${run.branch}
+                <code>${run.commit}</code>
               </p>
               <div class="stats">
                 <div class="stat bs">
@@ -292,12 +298,12 @@
                 <div class="stat priv">
                   <label>Sauce Private</label>
                   <strong>${run.saucePrivate.pass} / 23</strong>
-                  <small>${run.saucePrivate.device} · QG fail ${run.saucePrivate.qgFail} · no metrics ${run.saucePrivate.noMetrics}</small>
+                  <small>QG fail ${run.saucePrivate.qgFail} · no metrics ${run.saucePrivate.noMetrics}</small>
                 </div>
                 <div class="stat cloud">
                   <label>Sauce Cloud</label>
                   <strong>${run.sauceCloud.pass} / 23</strong>
-                  <small>${run.sauceCloud.device} · QG fail ${run.sauceCloud.qgFail} · no metrics ${run.sauceCloud.noMetrics}</small>
+                  <small>QG fail ${run.sauceCloud.qgFail} · no metrics ${run.sauceCloud.noMetrics}</small>
                 </div>
               </div>
             </article>`
@@ -305,84 +311,75 @@
         });
       }
 
-      function renderLinks() {
-        document.getElementById("run-links").innerHTML = Object.values(RUNS)
-          .map((r) => `<a href="${r.url}" target="_blank">${r.label} · ${r.id}</a>`)
-          .join("");
-      }
-
       function renderTable() {
-        document.getElementById("bs-note").innerHTML =
-          RUNS.a.browserstack.executed || RUNS.b.browserstack.executed
-            ? "<strong>BrowserStack</strong> data is included where the lane was enabled."
-            : "<strong>BrowserStack was not executed</strong> in either run (<code>enable_browserstack=false</code> or Performance Test Android jobs skipped). Sauce Labs Private + Cloud ran in both.";
+        const anyBs = RUN_ORDER.some((k) => RUNS[k].browserstack.executed);
+        document.getElementById("bs-note").innerHTML = anyBs
+          ? "<strong>BrowserStack</strong> columns populated where the lane was enabled."
+          : "<strong>BrowserStack was not executed</strong> in these runs (<code>enable_browserstack=false</code>). Only Sauce Labs Private + Cloud ran.";
 
-        document.getElementById("table-head").innerHTML = `
-          <tr>
-            <th rowspan="2">Scenario</th>
-            <th colspan="3" class="group-a">${RUNS.a.label}</th>
-            <th colspan="3" class="group-b">${RUNS.b.label}</th>
-            <th colspan="2" class="delta">Δ (B − A)</th>
-          </tr>
-          <tr>
-            <th class="group-a">BrowserStack</th>
-            <th class="group-a">Sauce Private</th>
-            <th class="group-a">Sauce Cloud</th>
-            <th class="group-b">BrowserStack</th>
-            <th class="group-b">Sauce Private</th>
-            <th class="group-b">Sauce Cloud</th>
-            <th class="delta">Private</th>
-            <th class="delta">Cloud</th>
-          </tr>`;
+        const deltaPairs = [];
+        for (let i = 1; i < RUN_ORDER.length; i++) {
+          deltaPairs.push({ from: RUN_ORDER[i - 1], to: RUN_ORDER[i] });
+        }
+
+        let headRow1 = `<tr><th rowspan="2">Scenario</th>`;
+        RUN_ORDER.forEach((key, idx) => {
+          headRow1 += `<th colspan="3" class="group-${idx}">${RUNS[key].label}<br><small>${RUNS[key].id}</small></th>`;
+        });
+        deltaPairs.forEach(({ from, to }) => {
+          headRow1 += `<th colspan="2" class="delta">Δ ${RUNS[to].label} − ${RUNS[from].label}</th>`;
+        });
+        headRow1 += `</tr>`;
+
+        let headRow2 = `<tr>`;
+        RUN_ORDER.forEach(() => {
+          headRow2 += `<th class="group-0">BrowserStack</th><th class="group-0">Sauce Private</th><th class="group-0">Sauce Cloud</th>`;
+        });
+        deltaPairs.forEach(() => {
+          headRow2 += `<th class="delta">Private</th><th class="delta">Cloud</th>`;
+        });
+        headRow2 += `</tr>`;
+
+        document.getElementById("table-head").innerHTML = headRow1 + headRow2;
 
         const tbody = document.getElementById("table-body");
-        rows.forEach(([name, bsA, privA, cloudA, bsB, privB, cloudB]) => {
-          tbody.insertAdjacentHTML(
-            "beforeend",
-            `<tr>
-              <td>${name}</td>
-              <td>${cellHtml(bsA[0], bsA[1])}</td>
-              <td>${cellHtml(privA[0], privA[1])}</td>
-              <td>${cellHtml(cloudA[0], cloudA[1])}</td>
-              <td>${cellHtml(bsB[0], bsB[1])}</td>
-              <td>${cellHtml(privB[0], privB[1])}</td>
-              <td>${cellHtml(cloudB[0], cloudB[1])}</td>
-              <td>${deltaHtml(privA[0], privB[0])}</td>
-              <td>${deltaHtml(cloudA[0], cloudB[0])}</td>
-            </tr>`
-          );
+        rows.forEach((row) => {
+          let html = `<tr><td>${row.name}</td>`;
+          RUN_ORDER.forEach((key) => {
+            const [bs, priv, cloud] = row[key];
+            html += `<td>${cellHtml(bs[0], bs[1])}</td>`;
+            html += `<td>${cellHtml(priv[0], priv[1])}</td>`;
+            html += `<td>${cellHtml(cloud[0], cloud[1])}</td>`;
+          });
+          deltaPairs.forEach(({ from, to }) => {
+            html += `<td>${deltaHtml(row[from][1][0], row[to][1][0])}</td>`;
+            html += `<td>${deltaHtml(row[from][2][0], row[to][2][0])}</td>`;
+          });
+          html += `</tr>`;
+          tbody.insertAdjacentHTML("beforeend", html);
         });
       }
 
       function renderAnalysis() {
         const bullets = [];
-        const cloudGain = RUNS.b.sauceCloud.pass - RUNS.a.sauceCloud.pass;
-        if (cloudGain > 0) {
-          bullets.push(
-            `<strong>Sauce Cloud improved pass rate</strong> from ${RUNS.a.sauceCloud.pass}/23 to ${RUNS.b.sauceCloud.pass}/23 (zero QG failures in Run B).`
-          );
+        const rA = RUNS.a;
+        const rB = RUNS.b;
+        const rC = RUNS.c;
+
+        if (rB.sauceCloud.pass > rA.sauceCloud.pass) {
+          bullets.push(`<strong>Sauce Cloud</strong> improved from Run A (${rA.sauceCloud.pass}/23) to Run B/C (${rB.sauceCloud.pass}/23), clearing QG failures including <em>Import SRP +50</em>.`);
         }
-        bullets.push(
-          `<strong>Import SRP +50 on Sauce Cloud</strong> recovered from QG fail (15.77s) to pass (4.46s) — largest run-over-run gain (−11.3s).`
-        );
-        bullets.push(
-          `<strong>Sauce Private</strong> stayed at 16/23; Run B adds a new QG fail on <em>Seedless Telegram</em> (7.94s) while <em>Account creation</em> improved from fail to pass.`
-        );
-        bullets.push(
-          `<strong>Fresh SRP</strong> remains green on all Sauce lanes; Private regressed +1.8s (8.8 → 10.6s) but still passes.`
-        );
-        bullets.push(
-          `<strong>Shared no-metrics blockers</strong> unchanged: Money Home ×2, Perps open/close, Predict Deposit, Rewards tab.`
-        );
-        if (!RUNS.a.browserstack.executed && !RUNS.b.browserstack.executed) {
-          bullets.push(
-            `Enable <code>enable_browserstack=true</code> on a future dispatch to populate the BrowserStack columns in this template.`
-          );
+        bullets.push(`<strong>Run C vs B — Sauce Cloud</strong> stays at 18/23; notable timers: Cold → Onboarding faster (1.71 → 0.51s), Import SRP +50 faster (4.46 → 2.91s), Warm → Wallet faster (1.09 → 1.06s).`);
+        bullets.push(`<strong>Run C vs B — Sauce Private</strong> still 16/23; <em>Seedless Telegram</em> recovered (7.94s F → 4.80s P), but new QG fail on <em>Warm Start → Wallet</em> (3.33s). <em>Cold Start → Login</em> still fails on Private.`);
+        bullets.push(`<strong>Fresh SRP</strong> passes on all Sauce lanes across all three runs (~8–10s Private, ~8–9s Cloud).`);
+        bullets.push(`<strong>Unchanged blockers:</strong> Money Home ×2, Perps open/close, Predict Deposit, Rewards — no metrics in every run.`);
+        if (!RUN_ORDER.some((k) => RUNS[k].browserstack.executed)) {
+          bullets.push(`Set <code>enable_browserstack=true</code> to populate BrowserStack columns on the next run.`);
         }
 
         document.getElementById("analysis").innerHTML = `<ul>${bullets.map((b) => `<li>${b}</li>`).join("")}</ul>`;
         document.getElementById("footer").textContent =
-          `Run A ${RUNS.a.id} vs Run B ${RUNS.b.id} · Branch ${RUNS.b.branch} · Sauce data parsed from job artifacts · Values in seconds.`;
+          `Runs: ${RUN_ORDER.map((k) => RUNS[k].id).join(" · ")} · Branch ${RUNS.c.branch} · Values in seconds.`;
       }
 
       renderLinks();
