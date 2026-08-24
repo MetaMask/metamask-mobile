@@ -67,6 +67,11 @@ interface ConnectOptions {
   preserveCaches?: boolean;
 }
 
+interface PendingReconnectRequest {
+  userContextKey: string;
+  force: boolean;
+}
+
 /**
  * Singleton manager for Perps connection state
  * This ensures that both PerpsScreenStack and PerpsModalStack
@@ -98,6 +103,7 @@ class PerpsConnectionManagerClass {
   private gracePeriodTimer: number | null = null;
   private isInGracePeriod = false;
   private pendingReconnectPromise: Promise<void> | null = null;
+  private pendingReconnectRequest: PendingReconnectRequest | null = null;
   private connectionTimeoutRef: ReturnType<typeof setTimeout> | null = null;
   private stateChangeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private pendingSkipMarketNotify = false;
@@ -1114,11 +1120,10 @@ class PerpsConnectionManagerClass {
       // Clear connection timeout if active
       this.clearConnectionTimeout();
 
-      // Clear all pending promises to cancel in-flight operations
-      // Note: Actual disconnect happens in performReconnection → Controller.init → performInitialization
+      // Cancel pending initialization. An in-flight reconnect cannot be
+      // cancelled, so force requests join it and queue another pass below.
       this.isConnecting = false;
       this.initPromise = null;
-      this.pendingReconnectPromise = null;
     } else {
       // Wait for pending initialization if exists
       if (this.initPromise) {
@@ -1135,18 +1140,53 @@ class PerpsConnectionManagerClass {
 
       // If already reconnecting, return existing promise
       if (this.pendingReconnectPromise) {
+        this.pendingReconnectRequest = {
+          userContextKey: this.getSelectedUserContextKey(),
+          force: this.pendingReconnectRequest?.force ?? false,
+        };
         return this.pendingReconnectPromise;
       }
     }
 
+    if (this.pendingReconnectPromise) {
+      this.pendingReconnectRequest = {
+        userContextKey: this.getSelectedUserContextKey(),
+        force: true,
+      };
+      return this.pendingReconnectPromise;
+    }
+
     // Create a new reconnection promise
-    this.pendingReconnectPromise = this.performReconnection();
+    const reconnectPromise = this.performSerializedReconnection();
+    this.pendingReconnectPromise = reconnectPromise;
 
     try {
-      await this.pendingReconnectPromise;
+      await reconnectPromise;
     } finally {
-      this.pendingReconnectPromise = null;
+      if (this.pendingReconnectPromise === reconnectPromise) {
+        this.pendingReconnectPromise = null;
+      }
     }
+  }
+
+  private async performSerializedReconnection(): Promise<void> {
+    let pendingRequest: PendingReconnectRequest | null;
+
+    do {
+      this.pendingReconnectRequest = null;
+      await this.performReconnection();
+      pendingRequest = this.getPendingReconnectRequest();
+    } while (
+      pendingRequest?.force ||
+      (this.isConnected &&
+        (!this.isSelectedUserContextReady() ||
+          (pendingRequest !== null &&
+            pendingRequest.userContextKey !== this.initializedUserContextKey)))
+    );
+  }
+
+  private getPendingReconnectRequest(): PendingReconnectRequest | null {
+    return this.pendingReconnectRequest;
   }
 
   /**

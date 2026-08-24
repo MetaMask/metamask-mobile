@@ -69,10 +69,13 @@ These measurements are emitted once by Core and written to the explicit market-p
 
 ### `Perps Loading Session`
 
-All measurements are non-negative bootstrap-relative offsets:
+Process-relative measurements:
 
 - `process_to_perps_bootstrap_start_ms`
 - `process_to_perps_controller_constructed_ms`
+
+Non-negative bootstrap-relative readiness offsets:
+
 - `markets_ready_ms`
 - `account_cache_ready_ms`
 - `account_live_ms`
@@ -88,7 +91,7 @@ Do not add another Homepage TTC or DFD transaction.
 
 - Existing TTC remains the resolved-content duration.
 - Existing DFD remains the loading duration.
-- Add `surface_initial_ui_ms` and `surface_live_content_ms` as measurements on that existing surface trace only where applicable.
+- Keep Homepage frame-stage boundaries recipe-only. They are not measurements on the production section trace.
 - Keep `socket_to_visible_ms` recipe-only until on-device evidence justifies promotion.
 - Keep socket→subscriber→commit→frame components recipe-only.
 

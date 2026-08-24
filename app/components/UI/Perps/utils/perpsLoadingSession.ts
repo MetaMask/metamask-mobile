@@ -138,6 +138,7 @@ export function startPerpsLoadingSession(
     `[PerpsLoadProof] ${JSON.stringify({
       stage: PERPS_BOOTSTRAP_STAGE,
       session_id: sessionId,
+      lifecycle: activeLifecycle,
       monotonic_ms: Number(now.toFixed(3)),
     })}`,
   );
@@ -360,6 +361,8 @@ function recordValuesReady({
   DevLogger.log(
     `[PerpsLoadProof] ${JSON.stringify({
       stage: PERPS_VALUES_READY_STAGE,
+      perps_session_id: activeSessionId,
+      lifecycle: activeLifecycle,
       stream,
       source,
       item_count: itemCount,

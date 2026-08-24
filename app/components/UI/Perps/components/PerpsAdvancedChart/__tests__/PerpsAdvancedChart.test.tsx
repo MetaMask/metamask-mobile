@@ -438,6 +438,40 @@ describe('PerpsAdvancedChart', () => {
     );
   });
 
+  it('resolves a new interval when its layout settles after first reveal', () => {
+    const onResolved = jest.fn();
+    const { rerender } = renderChart({ onResolved });
+    act(() => {
+      advancedChartProps().onSkeletonHidden?.();
+    });
+    onResolved.mockClear();
+
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      ohlcvSeriesKey: 'BTC|4h',
+      ohlcvData: [
+        { time: 1, open: 1, high: 2, low: 0.5, close: 1.5, volume: 10 },
+      ],
+    });
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.FourHours}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={null}
+        onResolved={onResolved}
+      />,
+    );
+
+    act(() => {
+      latestAdvancedChartProps().onChartLayoutSettled?.();
+    });
+
+    expect(onResolved).toHaveBeenCalledTimes(1);
+    expect(onResolved).toHaveBeenCalledWith('BTC|4h', 'content');
+  });
+
   it('starts a new initial trace when the symbol changes without an interval change', () => {
     const { rerender } = renderChart();
 

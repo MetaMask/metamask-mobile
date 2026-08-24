@@ -15,6 +15,7 @@ import {
   type PerpsMarketData,
   type Position,
   type Order,
+  type OrderFill,
   type AccountState,
 } from '@metamask/perps-controller';
 import { trace, TraceName, TraceOperation } from '../../../../util/trace';
@@ -952,6 +953,129 @@ describe('PerpsStreamManager', () => {
       testStreamManager.positions.subscribe({ callback, throttleMs: 0 });
       testStreamManager.positions.clearCache();
       expect(callback).toHaveBeenLastCalledWith(null);
+    });
+
+    it('rejects old user callbacks after clear and accepts replacement subscriptions', () => {
+      const orderCallbacks: ((orders: Order[]) => void)[] = [];
+      const positionCallbacks: ((positions: Position[]) => void)[] = [];
+      const accountCallbacks: ((account: AccountState | null) => void)[] = [];
+      const fillCallbacks: ((
+        fills: OrderFill[],
+        isSnapshot?: boolean,
+      ) => void)[] = [];
+      mockSubscribeToOrders.mockImplementation(({ callback }) => {
+        orderCallbacks.push(callback);
+        return jest.fn();
+      });
+      mockSubscribeToPositions.mockImplementation(({ callback }) => {
+        positionCallbacks.push(callback);
+        return jest.fn();
+      });
+      mockSubscribeToAccount.mockImplementation(({ callback }) => {
+        accountCallbacks.push(callback);
+        return jest.fn();
+      });
+      const mockSubscribeToOrderFills = jest.fn(({ callback }) => {
+        fillCallbacks.push(callback);
+        return jest.fn();
+      });
+      mockEngine.context.PerpsController = {
+        ...mockEngine.context.PerpsController,
+        subscribeToOrderFills: mockSubscribeToOrderFills,
+      } as unknown as typeof mockEngine.context.PerpsController;
+      const order = { orderId: 'old-order' } as Order;
+      const position = { symbol: 'BTC', size: '1' } as Position;
+      const account = { totalBalance: '1' } as AccountState;
+      const fill = {
+        orderId: 'old-order',
+        symbol: 'BTC',
+        side: 'buy',
+        size: '1',
+        price: '1',
+        pnl: '0',
+        direction: 'Open Long',
+        fee: '0',
+        feeToken: 'USDC',
+        timestamp: 1,
+      } as OrderFill;
+
+      testStreamManager.orders.subscribe({ callback: jest.fn() });
+      testStreamManager.positions.subscribe({ callback: jest.fn() });
+      testStreamManager.account.subscribe({ callback: jest.fn() });
+      testStreamManager.fills.subscribe({ callback: jest.fn() });
+      testStreamManager.orders.clearCache();
+      testStreamManager.positions.clearCache();
+      testStreamManager.account.clearCache();
+      testStreamManager.fills.clearCache();
+
+      orderCallbacks[0]?.([order]);
+      positionCallbacks[0]?.([position]);
+      accountCallbacks[0]?.(account);
+      fillCallbacks[0]?.([fill], true);
+
+      expect(testStreamManager.orders.getSnapshot()).toBeNull();
+      expect(testStreamManager.positions.getSnapshot()).toBeNull();
+      expect(testStreamManager.account.getSnapshot()).toBeNull();
+      expect(testStreamManager.fills.getSnapshot()).toBeNull();
+
+      testStreamManager.orders.subscribe({ callback: jest.fn() });
+      testStreamManager.positions.subscribe({ callback: jest.fn() });
+      testStreamManager.account.subscribe({ callback: jest.fn() });
+      testStreamManager.fills.subscribe({ callback: jest.fn() });
+      orderCallbacks[1]?.([order]);
+      positionCallbacks[1]?.([position]);
+      accountCallbacks[1]?.(account);
+      fillCallbacks[1]?.([fill], true);
+
+      expect(testStreamManager.orders.getSnapshot()).toEqual([order]);
+      expect(testStreamManager.positions.getSnapshot()).toEqual([position]);
+      expect(testStreamManager.account.getSnapshot()).toEqual(account);
+      expect(testStreamManager.fills.getSnapshot()).toEqual([fill]);
+    });
+
+    it('rejects user callbacks when the selected address changes', () => {
+      const orderCallback = jest.fn();
+      const positionCallback = jest.fn();
+      const accountCallback = jest.fn();
+      const fillCallback = jest.fn();
+      mockSubscribeToOrders.mockImplementation(({ callback }) => {
+        orderCallback.mockImplementation(callback);
+        return jest.fn();
+      });
+      mockSubscribeToPositions.mockImplementation(({ callback }) => {
+        positionCallback.mockImplementation(callback);
+        return jest.fn();
+      });
+      mockSubscribeToAccount.mockImplementation(({ callback }) => {
+        accountCallback.mockImplementation(callback);
+        return jest.fn();
+      });
+      mockEngine.context.PerpsController = {
+        ...mockEngine.context.PerpsController,
+        subscribeToOrderFills: jest.fn(({ callback }) => {
+          fillCallback.mockImplementation(callback);
+          return jest.fn();
+        }),
+      } as unknown as typeof mockEngine.context.PerpsController;
+
+      testStreamManager.orders.subscribe({ callback: jest.fn() });
+      testStreamManager.positions.subscribe({ callback: jest.fn() });
+      testStreamManager.account.subscribe({ callback: jest.fn() });
+      testStreamManager.fills.subscribe({ callback: jest.fn() });
+      (
+        mockEngine.context.AccountTreeController
+          .getAccountsFromSelectedAccountGroup as jest.Mock
+      ).mockReturnValue([{ address: '0x987654321' }]);
+
+      orderCallback([]);
+      positionCallback([]);
+      accountCallback({ totalBalance: '1' } as AccountState);
+      fillCallback([], true);
+
+      expect(testStreamManager.orders.getSnapshot()).toBeNull();
+      expect(testStreamManager.positions.getSnapshot()).toBeNull();
+      expect(testStreamManager.account.getSnapshot()).toBeNull();
+      expect(testStreamManager.fills.getSnapshot()).toBeNull();
     });
 
     it('cleans up prewarm subscription when clearing account cache', () => {

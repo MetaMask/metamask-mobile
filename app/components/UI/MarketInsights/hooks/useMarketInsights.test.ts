@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useMarketInsights } from './useMarketInsights';
 const mockFetchMarketInsights = jest.fn();
 
@@ -172,5 +172,40 @@ describe('useMarketInsights', () => {
 
     expect(result.current.report).toEqual(usdcReport);
     expect(result.current.reportAssetId).toBe('eip155:1/erc20:0x456');
+  });
+
+  it('ignores a stale request after the asset changes', async () => {
+    let resolveEth: (value: Record<string, unknown>) => void = () => undefined;
+    let resolveBtc: (value: Record<string, unknown>) => void = () => undefined;
+    const ethRequest = new Promise<Record<string, unknown>>((resolve) => {
+      resolveEth = resolve;
+    });
+    const btcRequest = new Promise<Record<string, unknown>>((resolve) => {
+      resolveBtc = resolve;
+    });
+    mockFetchMarketInsights
+      .mockReturnValueOnce(ethRequest)
+      .mockReturnValueOnce(btcRequest);
+
+    const { result, rerender } = renderHook(
+      ({ symbol }) => useMarketInsights(symbol, true),
+      { initialProps: { symbol: 'ETH' } },
+    );
+    rerender({ symbol: 'BTC' });
+
+    await act(async () => {
+      resolveEth({ asset: 'eth', generatedAt: '', headline: 'old' });
+      await ethRequest;
+    });
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.report).toBeNull();
+    expect(result.current.reportAssetId).toBeNull();
+
+    await act(async () => {
+      resolveBtc({ asset: 'btc', generatedAt: '', headline: 'current' });
+      await btcRequest;
+    });
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.reportAssetId).toBe('BTC');
   });
 });

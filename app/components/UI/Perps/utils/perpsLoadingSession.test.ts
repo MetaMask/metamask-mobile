@@ -223,6 +223,8 @@ describe('perpsLoadingSession', () => {
           (message) =>
             JSON.parse(message.replace('[PerpsLoadProof] ', '')) as {
               stage: string;
+              perps_session_id: string;
+              lifecycle: string;
               stream: string;
               source: string;
               item_count: number;
@@ -262,6 +264,8 @@ describe('perpsLoadingSession', () => {
       expect(valuesReadyRecords()).toEqual([
         expect.objectContaining({
           stage: 'values_ready',
+          perps_session_id: 'session-id-1',
+          lifecycle: 'cold_no_cache',
           stream: 'markets',
           source: 'provider',
           item_count: 12,

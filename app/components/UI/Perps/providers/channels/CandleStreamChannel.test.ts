@@ -7,6 +7,8 @@ import {
   type CandleData,
 } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
 
 const mockGetIsInitialized = jest.fn().mockReturnValue(true);
 
@@ -15,6 +17,8 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../../util/Logger');
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
+const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
+const mockLogger = Logger as jest.Mocked<typeof Logger>;
 
 describe('CandleStreamChannel', () => {
   let channel: CandleStreamChannel;
@@ -186,6 +190,43 @@ describe('CandleStreamChannel', () => {
           candles: [],
         }),
       );
+    });
+
+    it('rejects an old live callback after clear and accepts the new generation', () => {
+      const controllerCallbacks: ((data: CandleData) => void)[] = [];
+      const subscriber = jest.fn();
+      mockSubscribeToCandles.mockImplementation(({ callback }) => {
+        controllerCallbacks.push(callback);
+        return jest.fn();
+      });
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: subscriber,
+      });
+      flushConnectDebounce();
+      channel.clearCache();
+      subscriber.mockClear();
+
+      controllerCallbacks[0]?.(mockCandleData);
+
+      expect(channel.getCachedData('BTC', CandlePeriod.OneHour)).toBeNull();
+      expect(subscriber).not.toHaveBeenCalled();
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      controllerCallbacks[1]?.(mockCandleData);
+
+      expect(channel.getCachedData('BTC', CandlePeriod.OneHour)).toEqual(
+        mockCandleData,
+      );
+      expect(subscriber).toHaveBeenCalledWith(mockCandleData);
     });
 
     it('should return null when no cached data available', () => {
@@ -736,6 +777,53 @@ describe('CandleStreamChannel', () => {
       expect(mockEthUnsubscribe).toHaveBeenCalled();
     });
 
+    it('absorbs an already-unsubscribed async cleanup rejection', async () => {
+      const mockUnsubscribe = jest
+        .fn()
+        .mockRejectedValue(new Error('Already unsubscribed'));
+      mockSubscribeToCandles.mockReturnValue(mockUnsubscribe);
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+
+      channel.disconnectAll();
+      await Promise.resolve();
+
+      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        'CandleStreamChannel: Subscription was already unsubscribed',
+      );
+      expect(mockLogger.error).not.toHaveBeenCalled();
+    });
+
+    it('reports unrelated async cleanup rejections', async () => {
+      const unsubscribeError = new Error('transport cleanup failed');
+      mockSubscribeToCandles.mockReturnValue(
+        jest.fn().mockRejectedValue(unsubscribeError),
+      );
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+
+      channel.disconnectAll();
+      await Promise.resolve();
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        unsubscribeError,
+        expect.objectContaining({
+          context: { name: 'unsubscribe' },
+        }),
+      );
+    });
+
     it('should clear all throttle timers on disconnectAll', () => {
       const callback = jest.fn();
 
@@ -1002,6 +1090,45 @@ describe('CandleStreamChannel', () => {
           ]),
         }),
       );
+    });
+
+    it('discards historical candles resolved after context clear', async () => {
+      let capturedCallback: ((data: CandleData) => void) | undefined;
+      let resolveHistory: (data: CandleData) => void = () => undefined;
+      const subscriber = jest.fn();
+      mockSubscribeToCandles.mockImplementation(({ callback }) => {
+        capturedCallback = callback;
+        return jest.fn();
+      });
+      mockFetchHistoricalCandles.mockReturnValue(
+        new Promise<CandleData>((resolve) => {
+          resolveHistory = resolve;
+        }),
+      );
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneHour,
+        duration: TimeDuration.OneDay,
+        callback: subscriber,
+      });
+      flushConnectDebounce();
+      capturedCallback?.(mockCandleData);
+      const historyRequest = channel.fetchHistoricalCandles(
+        'BTC',
+        CandlePeriod.OneHour,
+        TimeDuration.OneDay,
+      );
+      channel.clearCache();
+      subscriber.mockClear();
+
+      resolveHistory({
+        ...mockCandleData,
+        candles: [{ ...mockCandleData.candles[0], time: 1699996400000 }],
+      });
+      await historyRequest;
+
+      expect(channel.getCachedData('BTC', CandlePeriod.OneHour)).toBeNull();
+      expect(subscriber).not.toHaveBeenCalled();
     });
 
     it('filters out duplicate candles when merging', async () => {

@@ -351,6 +351,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const { onLayout: onSurfaceMetricsLayout } = useHomepagePerpsSurfaceMetrics(
       {
         sectionRef: sectionViewRef,
+        isRendered: !pillsEmptyFeedHidden,
         isFocused: isHomepageFocused,
         sessionId,
         lifecycle,

@@ -19,6 +19,7 @@ type HomepagePerpsContentVariant =
 
 interface UseHomepagePerpsSurfaceMetricsOptions {
   sectionRef: RefObject<View | null>;
+  isRendered: boolean;
   isFocused: boolean;
   sessionId?: string;
   lifecycle: PerpsLoadingLifecycle;
@@ -72,6 +73,7 @@ const logSurfaceStage = (
  */
 export function useHomepagePerpsSurfaceMetrics({
   sectionRef,
+  isRendered,
   isFocused,
   sessionId,
   lifecycle,
@@ -86,7 +88,7 @@ export function useHomepagePerpsSurfaceMetrics({
   const contentVariantRef = useRef(contentVariant);
   const hasErrorRef = useRef(hasError);
   const resolvedSourceRef = useRef(resolvedSource);
-  const isSurfaceVisible = isFocused && isVisible;
+  const isSurfaceVisible = isRendered && isFocused && isVisible;
   const isSurfaceVisibleRef = useRef(isSurfaceVisible);
   const finishedSessionsRef = useRef(new Set<string>());
   const recordedStagesRef = useRef(new Set<SurfaceStage>());
@@ -147,8 +149,17 @@ export function useHomepagePerpsSurfaceMetrics({
       return;
     }
     recordAfterPaint('surface_resolved_recorded');
+    const resolvedSource = resolvedSourceRef.current;
+    const isAccountVariant =
+      contentVariantRef.current === 'positions' ||
+      contentVariantRef.current === 'orders' ||
+      contentVariantRef.current === 'positions_and_orders';
+    const isFreshForLifecycle = isAccountVariant
+      ? resolvedSource === 'fresh_socket'
+      : resolvedSource === 'terminal_v2' || resolvedSource === 'provider';
     if (
       !hasErrorRef.current &&
+      isFreshForLifecycle &&
       finishedSessionsRef.current.has(demand.sessionId)
     ) {
       recordAfterPaint('surface_live_recorded');
@@ -206,7 +217,7 @@ export function useHomepagePerpsSurfaceMetrics({
 
   useEffect(() => {
     recordResolvedAndLive();
-  }, [contentReady, recordResolvedAndLive]);
+  }, [contentReady, recordResolvedAndLive, resolvedSource]);
 
   useEffect(
     () => () => {

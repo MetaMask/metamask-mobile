@@ -306,6 +306,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     startedAt: number;
     transition: PerpsChartTransitionType;
   } | null>(null);
+  const reportedResolutionRef = useRef<string | null>(null);
 
   useEffect(() => {
     const previousSeriesKey = visibilityTraceStartedRef.current;
@@ -367,7 +368,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     [],
   );
 
-  const handleSkeletonHidden = useCallback(
+  const settleSeries = useCallback(
     (payload?: ChartRangeSettlePayload) => {
       const open = activeVisibilityTraceRef.current;
       if (open) {
@@ -395,19 +396,27 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         endTrace({ name: open.traceName, id: open.seriesKey, data });
         activeVisibilityTraceRef.current = null;
       }
-      onSkeletonHidden?.(payload);
-      onResolved?.(ohlcvSeriesKey, ohlcvData.length > 0 ? 'content' : 'empty');
+      const state = ohlcvData.length > 0 ? 'content' : 'empty';
+      const resolutionKey = `${ohlcvSeriesKey}|${state}`;
+      if (reportedResolutionRef.current !== resolutionKey) {
+        reportedResolutionRef.current = resolutionKey;
+        onResolved?.(ohlcvSeriesKey, state);
+      }
     },
-    [
-      symbol,
-      interval,
-      surface,
-      ohlcvData.length,
-      ohlcvSeriesKey,
-      onSkeletonHidden,
-      onResolved,
-    ],
+    [symbol, interval, surface, ohlcvData.length, ohlcvSeriesKey, onResolved],
   );
+
+  const handleSkeletonHidden = useCallback(
+    (payload?: ChartRangeSettlePayload) => {
+      settleSeries(payload);
+      onSkeletonHidden?.(payload);
+    },
+    [onSkeletonHidden, settleSeries],
+  );
+
+  const handleChartLayoutSettled = useCallback(() => {
+    settleSeries();
+  }, [settleSeries]);
 
   // ---- Error fallback ----
 
@@ -483,6 +492,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       onCrosshairMove={handleCrosshairMove}
       onError={handleError}
       onSkeletonHidden={handleSkeletonHidden}
+      onChartLayoutSettled={handleChartLayoutSettled}
       visibleFromMs={visibleFromMs}
       visibleToMs={visibleToMs}
       currentPriceLineColorOverride={positionLineColors.currentPrice}

@@ -1,0 +1,134 @@
+diff --git a/dist/services/HyperLiquidClientService.cjs b/dist/services/HyperLiquidClientService.cjs
+index 17358067e3be8b2e39b1e27cba21ec3be63a7817..f06d838a00b27097a83f06b7bb666162882a03e6 100644
+--- a/dist/services/HyperLiquidClientService.cjs
++++ b/dist/services/HyperLiquidClientService.cjs
+@@ -398,9 +398,44 @@ class HyperLiquidClientService {
+         let currentCandleData = null;
+         let wsUnsubscribe = null;
+         let isUnsubscribed = false;
++        let hasUnsubscribeStarted = false;
+         // Store the subscription promise to enable cleanup even when pending
+         // This fixes a race condition where component unmounts before subscription resolves
+         let subscriptionPromise = null;
++        const unsubscribeFromCandles = (subscription) => {
++            if (hasUnsubscribeStarted) {
++                return;
++            }
++            hasUnsubscribeStarted = true;
++            const logUnsubscribeError = (error) => {
++                const errorInstance = (0, errorUtils_js_1.ensureError)(error, 'HyperLiquidClientService.subscribeToCandles');
++                if (errorInstance.message.startsWith('Already unsubscribed')) {
++                    return;
++                }
++                __classPrivateFieldGet(this, _HyperLiquidClientService_deps, "f").logger.error(errorInstance, {
++                    tags: {
++                        feature: perpsConfig_js_1.PERPS_CONSTANTS.FeatureName,
++                        service: 'HyperLiquidClientService',
++                        network: __classPrivateFieldGet(this, _HyperLiquidClientService_isTestnet, "f") ? 'testnet' : 'mainnet',
++                    },
++                    context: {
++                        name: 'websocket_unsubscription',
++                        data: {
++                            operation: 'subscribeToCandles',
++                            symbol,
++                            interval,
++                            phase: 'ws_unsubscription',
++                        },
++                    },
++                });
++            };
++            try {
++                Promise.resolve(subscription.unsubscribe()).catch(logUnsubscribeError);
++            }
++            catch (error) {
++                logUnsubscribeError(error);
++            }
++        };
+         // AbortController to cancel in-flight REST calls (candleSnapshot) on cleanup.
+         // Prevents rate limit exhaustion when rapidly switching markets (#28141).
+         const abortController = new AbortController();
+@@ -478,7 +513,7 @@ class HyperLiquidClientService {
+                 // Store cleanup function when subscription resolves
+                 try {
+                     const sub = await subscriptionPromise;
+-                    wsUnsubscribe = () => sub.unsubscribe();
++                    wsUnsubscribe = () => unsubscribeFromCandles(sub);
+                     // If already unsubscribed while waiting, clean up immediately
+                     if (isUnsubscribed) {
+                         wsUnsubscribe();
+@@ -555,7 +590,7 @@ class HyperLiquidClientService {
+                 // This prevents WebSocket subscription leaks when component unmounts
+                 // before the subscription promise resolves
+                 subscriptionPromise
+-                    .then((sub) => sub.unsubscribe())
++                    .then((sub) => unsubscribeFromCandles(sub))
+                     .catch(() => {
+                     // Ignore errors during cleanup - subscription may have failed
+                 });
+diff --git a/dist/services/HyperLiquidClientService.mjs b/dist/services/HyperLiquidClientService.mjs
+index 794c9e79330aded68780be57dbad60b42ad4d94a..e97fd8f5bbcfbcc4d2d24de40c15980a372afbc8 100644
+--- a/dist/services/HyperLiquidClientService.mjs
++++ b/dist/services/HyperLiquidClientService.mjs
+@@ -394,9 +394,44 @@ export class HyperLiquidClientService {
+         let currentCandleData = null;
+         let wsUnsubscribe = null;
+         let isUnsubscribed = false;
++        let hasUnsubscribeStarted = false;
+         // Store the subscription promise to enable cleanup even when pending
+         // This fixes a race condition where component unmounts before subscription resolves
+         let subscriptionPromise = null;
++        const unsubscribeFromCandles = (subscription) => {
++            if (hasUnsubscribeStarted) {
++                return;
++            }
++            hasUnsubscribeStarted = true;
++            const logUnsubscribeError = (error) => {
++                const errorInstance = ensureError(error, 'HyperLiquidClientService.subscribeToCandles');
++                if (errorInstance.message.startsWith('Already unsubscribed')) {
++                    return;
++                }
++                __classPrivateFieldGet(this, _HyperLiquidClientService_deps, "f").logger.error(errorInstance, {
++                    tags: {
++                        feature: PERPS_CONSTANTS.FeatureName,
++                        service: 'HyperLiquidClientService',
++                        network: __classPrivateFieldGet(this, _HyperLiquidClientService_isTestnet, "f") ? 'testnet' : 'mainnet',
++                    },
++                    context: {
++                        name: 'websocket_unsubscription',
++                        data: {
++                            operation: 'subscribeToCandles',
++                            symbol,
++                            interval,
++                            phase: 'ws_unsubscription',
++                        },
++                    },
++                });
++            };
++            try {
++                Promise.resolve(subscription.unsubscribe()).catch(logUnsubscribeError);
++            }
++            catch (error) {
++                logUnsubscribeError(error);
++            }
++        };
+         // AbortController to cancel in-flight REST calls (candleSnapshot) on cleanup.
+         // Prevents rate limit exhaustion when rapidly switching markets (#28141).
+         const abortController = new AbortController();
+@@ -474,7 +509,7 @@ export class HyperLiquidClientService {
+                 // Store cleanup function when subscription resolves
+                 try {
+                     const sub = await subscriptionPromise;
+-                    wsUnsubscribe = () => sub.unsubscribe();
++                    wsUnsubscribe = () => unsubscribeFromCandles(sub);
+                     // If already unsubscribed while waiting, clean up immediately
+                     if (isUnsubscribed) {
+                         wsUnsubscribe();
+@@ -551,7 +586,7 @@ export class HyperLiquidClientService {
+                 // This prevents WebSocket subscription leaks when component unmounts
+                 // before the subscription promise resolves
+                 subscriptionPromise
+-                    .then((sub) => sub.unsubscribe())
++                    .then((sub) => unsubscribeFromCandles(sub))
+                     .catch(() => {
+                     // Ignore errors during cleanup - subscription may have failed
+                 });

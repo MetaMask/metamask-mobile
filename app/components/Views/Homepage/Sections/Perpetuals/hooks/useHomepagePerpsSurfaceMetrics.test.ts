@@ -1,18 +1,11 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { DevLogger } from '../../../../../../core/SDKConnect/utils/DevLogger';
+import type { PerpsLoadingSessionUpdate } from '../../../../../UI/Perps/utils/perpsLoadingSession';
 import { useHomepagePerpsSurfaceMetrics } from './useHomepagePerpsSurfaceMetrics';
 
 let mockIsVisible = true;
 let mockLoadingSessionListener:
-  | ((update: {
-      type: 'finished' | 'cancelled' | 'timed_out';
-      context: {
-        id: string;
-        marketSource: 'terminal_v2';
-        accountSource: 'fresh_socket';
-        lifecycle: 'cold_no_cache';
-      };
-    }) => void)
+  | ((update: PerpsLoadingSessionUpdate) => void)
   | undefined;
 let mockNow = 100;
 let mockUuidIndex = 0;
@@ -49,6 +42,7 @@ const parseStages = () =>
 
 const defaultProps = {
   sectionRef: { current: null },
+  isRendered: true,
   isFocused: true,
   sessionId: 'session-1',
   lifecycle: 'cold_no_cache' as const,
@@ -134,6 +128,57 @@ describe('useHomepagePerpsSurfaceMetrics', () => {
     );
 
     expect(DevLogger.log).not.toHaveBeenCalled();
+  });
+
+  it('records nothing after the section stops rendering', () => {
+    const { rerender } = renderHook(
+      (props: typeof defaultProps) => useHomepagePerpsSurfaceMetrics(props),
+      { initialProps: defaultProps },
+    );
+    jest.mocked(DevLogger.log).mockClear();
+
+    rerender({ ...defaultProps, isRendered: false, contentReady: true });
+    act(() => {
+      mockLoadingSessionListener?.({
+        type: 'finished',
+        context: {
+          id: 'session-1',
+          marketSource: 'unknown',
+          accountSource: 'unknown',
+          lifecycle: 'cold_no_cache',
+        },
+      });
+    });
+
+    expect(DevLogger.log).not.toHaveBeenCalled();
+  });
+
+  it('does not label unknown-source content as lifecycle-fresh', () => {
+    const props = { ...defaultProps, resolvedSource: 'unknown' };
+    const { rerender } = renderHook(
+      (currentProps: typeof props) =>
+        useHomepagePerpsSurfaceMetrics(currentProps),
+      { initialProps: props },
+    );
+
+    rerender({ ...props, contentReady: true });
+    act(() => {
+      mockLoadingSessionListener?.({
+        type: 'finished',
+        context: {
+          id: 'session-1',
+          marketSource: 'unknown',
+          accountSource: 'unknown',
+          lifecycle: 'network_switch',
+        },
+      });
+    });
+
+    expect(parseStages().map(({ stage }) => stage)).toEqual([
+      'surface_demand',
+      'surface_initial_ui_recorded',
+      'surface_resolved_recorded',
+    ]);
   });
 
   it('starts a new demand when the loading generation changes', () => {

@@ -178,6 +178,10 @@ const resetManager = (manager: unknown) => {
     initPromise: Promise<void> | null;
     disconnectPromise: Promise<void> | null;
     pendingReconnectPromise: Promise<void> | null;
+    pendingReconnectRequest: {
+      userContextKey: string;
+      force: boolean;
+    } | null;
     ensureConnectedPromise: Promise<void> | null;
     unsubscribeFromStore: (() => void) | null;
     previousAddress: string | undefined;
@@ -222,6 +226,7 @@ const resetManager = (manager: unknown) => {
   m.initPromise = null;
   m.disconnectPromise = null;
   m.pendingReconnectPromise = null;
+  m.pendingReconnectRequest = null;
   m.ensureConnectedPromise = null;
   m.unsubscribeFromStore = null;
   m.previousAddress = undefined;
@@ -994,6 +999,61 @@ describe('PerpsConnectionManager', () => {
   describe('reconnectWithNewContext', () => {
     beforeEach(() => {
       mockPerpsController.reconnectWithNewContext.mockResolvedValue();
+    });
+
+    it('reconnects again when account changes during reconnection preload', async () => {
+      jest.useFakeTimers();
+      const addressA = '0x1111111111111111111111111111111111111111';
+      const addressB = '0x2222222222222222222222222222222222222222';
+      const addressC = '0x3333333333333333333333333333333333333333';
+      let notifyBPreloadStarted: () => void = () => undefined;
+      const bPreloadStarted = new Promise<void>((resolve) => {
+        notifyBPreloadStarted = resolve;
+      });
+      let resolveBPreload: (() => void) | undefined;
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: addressA }));
+      mockPerpsController.init.mockResolvedValue();
+      mockStreamManagerInstance.prices.prewarm
+        .mockResolvedValueOnce(jest.fn())
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveBPreload = () => resolve(jest.fn());
+              notifyBPreloadStarted();
+            }),
+        )
+        .mockResolvedValueOnce(jest.fn());
+      await PerpsConnectionManager.connect();
+      const storeCallback = storeCallbacks[storeCallbacks.length - 1];
+      const manager = PerpsConnectionManager as unknown as {
+        pendingReconnectPromise: Promise<void> | null;
+      };
+
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: addressB }));
+      storeCallback();
+      jest.advanceTimersByTime(50);
+      await bPreloadStarted;
+      const reconnectPromise = manager.pendingReconnectPromise;
+      if (!reconnectPromise || !resolveBPreload) {
+        throw new Error('Account B reconnection preload did not start.');
+      }
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: addressC }));
+      storeCallback();
+      jest.advanceTimersByTime(50);
+      await Promise.resolve();
+      resolveBPreload();
+      await reconnectPromise;
+
+      expect(mockPerpsController.init).toHaveBeenCalledTimes(3);
+      expect(mockStreamManagerInstance.prices.prewarm).toHaveBeenCalledTimes(3);
+      expect(PerpsConnectionManager.isSelectedUserContextReady()).toBe(true);
+      jest.useRealTimers();
     });
 
     it('clears all StreamManager caches on reconnection', async () => {

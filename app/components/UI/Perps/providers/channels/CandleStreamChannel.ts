@@ -24,11 +24,13 @@ interface StreamSubscription<T> {
   onError?: (error: Error) => void;
 }
 
+type Unsubscribe = () => void | Promise<void>;
+
 // Base class for stream channel (simplified version)
 abstract class StreamChannel<T> {
   protected cache = new Map<string, T>();
   protected subscribers = new Map<string, StreamSubscription<T>>();
-  protected wsSubscriptions = new Map<string, () => void>();
+  protected wsSubscriptions = new Map<string, Unsubscribe>();
   protected isPaused = false;
   readonly #onDataPersist?: () => void;
 
@@ -38,6 +40,36 @@ abstract class StreamChannel<T> {
 
   protected triggerPersist(): void {
     this.#onDataPersist?.();
+  }
+
+  protected unsubscribeSafely(unsubscribe: Unsubscribe): void {
+    const reportFailure = (error: unknown) => {
+      const unsubscribeError = ensureError(
+        error,
+        'CandleStreamChannel.unsubscribe',
+      );
+      if (/already unsubscribed/i.test(unsubscribeError.message)) {
+        DevLogger.log(
+          'CandleStreamChannel: Subscription was already unsubscribed',
+        );
+        return;
+      }
+      Logger.error(unsubscribeError, {
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'CandleStreamChannel',
+        },
+        context: {
+          name: 'unsubscribe',
+        },
+      });
+    };
+
+    try {
+      Promise.resolve(unsubscribe()).catch(reportFailure);
+    } catch (error) {
+      reportFailure(error);
+    }
   }
 
   protected notifySubscribers(cacheKey: string, updates: T) {
@@ -99,7 +131,7 @@ abstract class StreamChannel<T> {
 
     // Disconnect all WebSocket subscriptions
     this.wsSubscriptions.forEach((unsubscribe) => {
-      unsubscribe();
+      this.unsubscribeSafely(unsubscribe);
     });
     this.wsSubscriptions.clear();
 
@@ -127,6 +159,9 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   private connectRetryCounts = new Map<string, number>();
   private readonly prewarmRequests = new Map<string, Promise<void>>();
   private prewarmGeneration = 0;
+  private generation = 0;
+  private contextGeneration = 0;
+  private readonly activeSubscriptionGenerations = new Map<string, number>();
   private static readonly MAX_CONNECT_RETRIES = 50;
   // Upper bound on cached candles per cacheKey. Matches fetchHistoricalCandles
   // so merge-on-update can't cause unbounded memory growth.
@@ -221,6 +256,8 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   }
 
   public override clearCache(): void {
+    this.contextGeneration = ++this.generation;
+    this.activeSubscriptionGenerations.clear();
     this.prewarmGeneration += 1;
     this.deferConnectTimers.forEach((timer) => {
       clearTimeout(timer);
@@ -462,12 +499,21 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     const subscribedNetwork = Engine.context.PerpsController.state?.isTestnet
       ? 'testnet'
       : 'mainnet';
+    const subscriptionGeneration = ++this.generation;
+    this.activeSubscriptionGenerations.set(cacheKey, subscriptionGeneration);
 
     const unsubscribe = Engine.context.PerpsController.subscribeToCandles({
       symbol,
       interval,
       duration,
       callback: (candleData: CandleData) => {
+        if (
+          this.activeSubscriptionGenerations.get(cacheKey) !==
+          subscriptionGeneration
+        ) {
+          return;
+        }
+
         if (__DEV__) {
           deliveryCount += 1;
           if (deliveryCount === 2) {
@@ -492,6 +538,13 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         this.notifySubscribers(cacheKey, merged);
       },
       onError: (error: Error) => {
+        if (
+          this.activeSubscriptionGenerations.get(cacheKey) !==
+          subscriptionGeneration
+        ) {
+          return;
+        }
+
         // Log initialization failure
         DevLogger.log(
           'CandleStreamChannel: Subscription initialization failed',
@@ -512,6 +565,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         });
 
         // Clean up failed subscription
+        this.activeSubscriptionGenerations.delete(cacheKey);
         this.wsSubscriptions.delete(cacheKey);
       },
     });
@@ -537,6 +591,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       this.disconnectAll();
       return;
     }
+    this.activeSubscriptionGenerations.delete(cacheKey);
     // Cancel any pending deferred connect for this cacheKey
     const timer = this.deferConnectTimers.get(cacheKey);
     if (timer) {
@@ -549,7 +604,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     // Disconnect specific subscription
     const unsubscribe = this.wsSubscriptions.get(cacheKey);
     if (unsubscribe) {
-      unsubscribe();
+      this.unsubscribeSafely(unsubscribe);
       this.wsSubscriptions.delete(cacheKey);
     }
   }
@@ -592,6 +647,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   ): Promise<void> {
     const cacheKey = this.getCacheKey(symbol, interval);
     const cachedData = this.cache.get(cacheKey);
+    const contextGeneration = this.contextGeneration;
 
     // If no cached data or no candles, nothing to extend
     if (!cachedData || cachedData.candles.length === 0) {
@@ -647,6 +703,10 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
           limit,
           endTime,
         });
+
+      if (contextGeneration !== this.contextGeneration) {
+        return;
+      }
 
       if (!newCandleData || newCandleData.candles.length === 0) {
         DevLogger.log(
@@ -823,6 +883,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
    * Disconnect all subscriptions
    */
   public disconnectAll(): void {
+    this.activeSubscriptionGenerations.clear();
     // Cancel all deferred connect timers
     this.deferConnectTimers.forEach((timer) => {
       clearTimeout(timer);
@@ -845,7 +906,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     });
 
     this.wsSubscriptions.forEach((unsubscribe) => {
-      unsubscribe();
+      this.unsubscribeSafely(unsubscribe);
     });
     this.wsSubscriptions.clear();
   }

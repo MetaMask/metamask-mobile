@@ -146,6 +146,7 @@ abstract class StreamChannel<T> {
   // subscribers. Channels without symbol subscriptions never touch this map.
   protected readonly symbolSubscribers = new Map<string, Set<string>>();
   protected wsSubscription: (() => void) | null = null;
+  private subscriptionGeneration = 0;
   readonly #onDataPersist?: () => void;
   readonly #lifecycle?: StreamChannelLifecycle;
 
@@ -156,6 +157,29 @@ abstract class StreamChannel<T> {
 
   protected triggerPersist(): void {
     this.#onDataPersist?.();
+  }
+
+  protected getSubscriptionContext(): {
+    generation: number;
+    address: string | null;
+  } {
+    return {
+      generation: this.subscriptionGeneration,
+      address:
+        getEvmAccountFromSelectedAccountGroup()?.address?.toLowerCase() ?? null,
+    };
+  }
+
+  protected isSubscriptionContextCurrent(context: {
+    generation: number;
+    address: string | null;
+  }): boolean {
+    const currentAddress =
+      getEvmAccountFromSelectedAccountGroup()?.address?.toLowerCase() ?? null;
+    return (
+      context.generation === this.subscriptionGeneration &&
+      context.address === currentAddress
+    );
   }
 
   // Track account context to prevent stale data across account switches
@@ -540,6 +564,7 @@ abstract class StreamChannel<T> {
   }
 
   public disconnect() {
+    this.subscriptionGeneration += 1;
     this.#lifecycle?.onDisconnect?.();
     this.connectRetryCount = 0;
     if (this.deferConnectTimer) {
@@ -624,6 +649,7 @@ abstract class StreamChannel<T> {
   }
 
   public clearCache(): void {
+    this.subscriptionGeneration += 1;
     // End any first-data trace still open, so clearing the cache before first
     // data doesn't leave a span running until the 5-minute auto-clean.
     this.endOpenFirstDataTrace();
@@ -1096,21 +1122,15 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
     const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
+    const subscriptionContext = this.getSubscriptionContext();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrders({
       callback: (orders: Order[]) => {
-        // Validate account context
-        const currentAccount =
-          getEvmAccountFromSelectedAccountGroup()?.address || null;
-        if (this.accountAddress && this.accountAddress !== currentAccount) {
-          Logger.error(new Error('OrderStreamChannel: Wrong account context'), {
-            expected: currentAccount,
-            received: this.accountAddress,
-          });
+        if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
           return;
         }
-        this.accountAddress = currentAccount;
-        this.cacheAccountAddress = currentAccount;
+        this.accountAddress = subscriptionContext.address;
+        this.cacheAccountAddress = subscriptionContext.address;
 
         // Track first order data from WebSocket (only once per connection)
         if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
@@ -1338,24 +1358,15 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
     const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
+    const subscriptionContext = this.getSubscriptionContext();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToPositions({
       callback: (positions: Position[]) => {
-        // Validate account context
-        const currentAccount =
-          getEvmAccountFromSelectedAccountGroup()?.address || null;
-        if (this.accountAddress && this.accountAddress !== currentAccount) {
-          Logger.error(
-            new Error('PositionStreamChannel: Wrong account context'),
-            {
-              expected: currentAccount,
-              received: this.accountAddress,
-            },
-          );
+        if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
           return;
         }
-        this.accountAddress = currentAccount;
-        this.cacheAccountAddress = currentAccount;
+        this.accountAddress = subscriptionContext.address;
+        this.cacheAccountAddress = subscriptionContext.address;
 
         // Track first position data from WebSocket (only once per connection)
         if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {
@@ -1544,8 +1555,16 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
 
     if (!this.ensureReady()) return;
 
+    const subscriptionContext = this.getSubscriptionContext();
+
     this.wsSubscription = Engine.context.PerpsController.subscribeToOrderFills({
       callback: (fills: OrderFill[], isSnapshot?: boolean) => {
+        if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
+          return;
+        }
+        this.accountAddress = subscriptionContext.address;
+        this.cacheAccountAddress = subscriptionContext.address;
+
         let updated: OrderFill[];
         if (isSnapshot) {
           // Snapshot: replace cache with initial historical data
@@ -1566,7 +1585,11 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
   }
 
   protected getCachedData() {
-    return this.cache.get('fills') || [];
+    const cached = this.cache.get('fills');
+    if (cached === undefined) {
+      return [];
+    }
+    return this.isAccountContextCurrent() ? cached : null;
   }
 
   protected getClearedData(): OrderFill[] {
@@ -1574,7 +1597,9 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
   }
 
   public getSnapshot(): OrderFill[] | null {
-    return this.cache.get('fills') ?? null;
+    return this.isAccountContextCurrent()
+      ? (this.cache.get('fills') ?? null)
+      : null;
   }
 
   /**
@@ -1659,24 +1684,15 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
     // Track WebSocket connection start time for duration calculation
     this.wsConnectionStartTime = performance.now();
     const loadingIdentity = getCurrentPerpsLoadingSessionIdentity();
+    const subscriptionContext = this.getSubscriptionContext();
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToAccount({
       callback: (account: AccountState | null) => {
-        // Validate account context
-        const currentAccount =
-          getEvmAccountFromSelectedAccountGroup()?.address || null;
-        if (this.accountAddress && this.accountAddress !== currentAccount) {
-          Logger.error(
-            new Error('AccountStreamChannel: Wrong account context'),
-            {
-              expected: currentAccount,
-              received: this.accountAddress,
-            },
-          );
+        if (!this.isSubscriptionContextCurrent(subscriptionContext)) {
           return;
         }
-        this.accountAddress = currentAccount;
-        this.cacheAccountAddress = currentAccount;
+        this.accountAddress = subscriptionContext.address;
+        this.cacheAccountAddress = subscriptionContext.address;
 
         // Track first account data from WebSocket (only once per connection)
         if (this.wsConnectionStartTime !== null && this.firstDataTraceId) {

@@ -1515,10 +1515,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     () =>
       isPerpsInsightsEnabled &&
       Boolean(market?.symbol) &&
-      (Boolean(perpsInsightsReport) || isPerpsInsightsLoading),
+      ((Boolean(perpsInsightsReport) &&
+        perpsInsightsAssetId === market?.symbol) ||
+        isPerpsInsightsLoading),
     [
       isPerpsInsightsEnabled,
       market?.symbol,
+      perpsInsightsAssetId,
       perpsInsightsReport,
       isPerpsInsightsLoading,
     ],

@@ -21,7 +21,6 @@ mm-harness run perps.performance \
   provider=hyperliquid \
   initial_network=mainnet \
   lifecycle=cold_no_cache \
-  source_strategy=current_main \
   sample_id=<arm-and-sample> \
   snapshot_endpoint_mode=deployed \
   --device <android-serial-or-ios-UDID> \
@@ -33,13 +32,12 @@ Local candidate shortcut:
 ```bash
 mm-harness run perps.performance \
   account=dev1 \
-  source_strategy=full_bootstrap \
   lifecycle=cold_no_cache \
   --device <android-serial-or-ios-UDID> \
   --hud show
 ```
 
-For a matched optimized arm, change only `source_strategy=full_bootstrap`, `sample_id`, and checkout. Keep the same physical device or simulator. If different devices are unavoidable, label the result hardware-unmatched and do not present it as a controlled code-performance comparison. Android and iOS use the same recipe parameters.
+For a matched optimized arm, change only `sample_id` and checkout. Keep every recipe input and the physical device or simulator identical. If different devices are unavoidable, label the result hardware-unmatched and do not present it as a controlled code-performance comparison. Android and iOS use the same recipe parameters.
 
 ## Timing boundaries
 
