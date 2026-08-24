@@ -45,7 +45,7 @@ import {
 } from '../../../app/util/test/keyringControllerTestUtils.ts';
 import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
 import { RpcEndpointType } from '@metamask/network-controller';
-import { USDC_MAINNET, MUSD_MAINNET } from '../../constants/musd-mainnet.ts';
+import { USDC_MAINNET } from '../../constants/musd-mainnet.ts';
 import {
   toWeiHex,
   type TokenHolding,
@@ -98,14 +98,11 @@ export const GENERIC_SNAP_WALLET_1_ID = 'snap:npm:@metamask/generic-snap-1';
 export const GENERIC_SNAP_WALLET_2_ID = 'snap:npm:@metamask/generic-snap-2';
 
 /**
- * Options for mUSD conversion E2E fixture state.
+ * Options for Mainnet USDC E2E fixture state.
  */
-export interface MusdFixtureOptions {
-  musdConversionEducationSeen: boolean;
+export interface MainnetUsdcFixtureOptions {
   hasUsdcBalance?: boolean;
   usdcBalance?: number;
-  hasMusdBalance?: boolean;
-  musdBalance?: number;
 }
 
 /**
@@ -2129,21 +2126,16 @@ class FixtureBuilder {
   }
 
   /**
-   * Sets mUSD conversion fixture state: user flags, fiat orders, currency rates,
-   * and Mainnet token balances (USDC, optional MUSD) and native ETH for the default account.
-   * Call after withNetworkController, withTokensForAllPopularNetworks([ETH, USDC, MUSD?]), and withTokenRates.
+   * Sets Mainnet USDC fixture state: fiat orders, currency rates, and Mainnet
+   * USDC token balance plus native ETH for the default account.
+   * Call after withNetworkController, withTokensForAllPopularNetworks([ETH, USDC]), and withTokenRates.
    *
-   * @param options - mUSD conversion options (education seen, USDC/MUSD balances).
+   * @param options - Mainnet USDC options (balance presence and amount).
    * @returns - The FixtureBuilder instance for method chaining.
    */
-  withMusdConversion(options: MusdFixtureOptions) {
+  withMainnetUsdcBalance(options: MainnetUsdcFixtureOptions) {
     const USDC_DECIMALS = 6;
-    const MUSD_DECIMALS = 6;
     const ETH_BALANCE_WEI = '0x' + (BigInt(10) * BigInt(10 ** 18)).toString(16);
-
-    merge(this.fixture.state.user, {
-      musdConversionEducationSeen: options.musdConversionEducationSeen,
-    });
 
     this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
 
@@ -2203,13 +2195,6 @@ class FixtureBuilder {
       mainnetBalances[toChecksumHexAddress(USDC_MAINNET.toLowerCase())] =
         '0x' +
         Math.floor((options.usdcBalance ?? 100) * 10 ** USDC_DECIMALS).toString(
-          16,
-        );
-    }
-    if (options.hasMusdBalance) {
-      mainnetBalances[toChecksumHexAddress(MUSD_MAINNET.toLowerCase())] =
-        '0x' +
-        Math.floor((options.musdBalance ?? 10) * 10 ** MUSD_DECIMALS).toString(
           16,
         );
     }
