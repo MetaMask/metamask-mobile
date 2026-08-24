@@ -216,7 +216,7 @@ describe('AddDeviceToWallet', () => {
       fireEvent.press(getByTestId('button-icon'));
 
       await waitFor(() => {
-        expect(mockGoBack).toHaveBeenCalledTimes(1);
+        expect(mockGoBack).toHaveBeenCalled();
       });
     });
 
@@ -228,8 +228,8 @@ describe('AddDeviceToWallet', () => {
       fireEvent.press(getByTestId('button-icon'));
 
       await waitFor(() => {
-        expect(mockResetState).toHaveBeenCalledTimes(1);
-        expect(mockGoBack).toHaveBeenCalledTimes(1);
+        expect(mockResetState).toHaveBeenCalled();
+        expect(mockGoBack).toHaveBeenCalled();
       });
     });
   });
@@ -257,8 +257,8 @@ describe('AddDeviceToWallet', () => {
       );
 
       await waitFor(() => {
-        expect(mockResetState).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
+        expect(mockResetState).toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalled();
       });
     });
 

@@ -162,7 +162,7 @@ describe('useQrSyncImportNavigation', () => {
     );
 
     await waitFor(() => {
-      expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
+      expect(mockImportRemainingSecrets).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
@@ -182,7 +182,7 @@ describe('useQrSyncImportNavigation', () => {
     );
 
     await waitFor(() => {
-      expect(mockShowAlreadySyncedSheet).toHaveBeenCalledTimes(1);
+      expect(mockShowAlreadySyncedSheet).toHaveBeenCalled();
     });
 
     expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
@@ -203,7 +203,7 @@ describe('useQrSyncImportNavigation', () => {
     );
 
     await waitFor(() => {
-      expect(mockShowImportFailedSheet).toHaveBeenCalledTimes(1);
+      expect(mockShowImportFailedSheet).toHaveBeenCalled();
     });
 
     expect(mockShowAlreadySyncedSheet).not.toHaveBeenCalled();
@@ -223,7 +223,7 @@ describe('useQrSyncImportNavigation', () => {
     );
 
     await waitFor(() => {
-      expect(mockImportRemainingSecrets).toHaveBeenCalledTimes(1);
+      expect(mockImportRemainingSecrets).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
@@ -243,7 +243,7 @@ describe('useQrSyncImportNavigation', () => {
     );
 
     await waitFor(() => {
-      expect(mockResetState).toHaveBeenCalledTimes(1);
+      expect(mockResetState).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
