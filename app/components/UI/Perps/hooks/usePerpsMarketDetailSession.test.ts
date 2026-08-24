@@ -278,6 +278,18 @@ describe('usePerpsMarketDetailSession', () => {
         tags: expect.objectContaining({ generation_trigger: 'account_switch' }),
       }),
     );
+    expect(setTraceMeasurement).toHaveBeenCalledTimes(1);
+    expect(endTrace).not.toHaveBeenCalled();
+
+    mockConnectionGeneration += 1;
+    mockDeliveryRevisions.focusedPrice += 1;
+    mockDeliveryRevisions.candles += 1;
+    rerender({ symbol: 'ETH', currentSections: resolvedSections });
+
+    expect(setTraceMeasurement).toHaveBeenCalledTimes(3);
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { success: true } }),
+    );
   });
 
   it.each([
