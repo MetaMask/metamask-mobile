@@ -1,0 +1,24 @@
+# Run on BOTH branches. Replace every {{PLACEHOLDER}}.
+# BASE_BRANCH (main)  → copy PNGs to maestro/before/  (PR "Before")
+# CANDIDATE_BRANCH    → copy PNGs to maestro/after/   (PR "After")
+
+appId: "{{APP_ID}}"
+---
+- launchApp:
+    clearState: false
+
+# Start from the screen the flow expects (usually wallet home).
+- tapOn: "{{ENTRY_TEXT_OR_ID}}"
+
+- assertVisible:
+    id: "{{CHANGED_CONTROL_ID}}"
+
+- tapOn:
+    id: "{{CHANGED_CONTROL_ID}}"
+
+- assertVisible: "{{VISIBLE_RESULT_TEXT}}"
+
+- takeScreenshot:
+    path: "{{SCREENSHOT_NAME}}"
+    cropOn:
+      text: "{{VISIBLE_RESULT_TEXT}}"

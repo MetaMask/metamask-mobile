@@ -1,0 +1,23 @@
+# Assert candidate branch against PNGs captured on BASE_BRANCH.
+# Requires maestro/baselines/{{SCREENSHOT_NAME}}.png from the capture run.
+
+appId: "{{APP_ID}}"
+---
+- launchApp:
+    clearState: false
+
+- tapOn: "{{ENTRY_TEXT_OR_ID}}"
+
+- assertVisible:
+    id: "{{CHANGED_CONTROL_ID}}"
+
+- tapOn:
+    id: "{{CHANGED_CONTROL_ID}}"
+
+- assertVisible: "{{VISIBLE_RESULT_TEXT}}"
+
+- assertScreenshot:
+    path: maestro/baselines/{{SCREENSHOT_NAME}}.png
+    cropOn:
+      text: "{{VISIBLE_RESULT_TEXT}}"
+    thresholdPercentage: 98
