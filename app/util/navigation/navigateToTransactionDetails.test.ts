@@ -67,13 +67,12 @@ describe('navigateToTransactionDetails', () => {
     );
   });
 
-  it('opens the redesigned details screen when the redesign is enabled', () => {
+  it('opens ActivityDetails when chainId is provided', () => {
     const navigation = createNavigation();
 
     navigateToTransactionDetails(navigation, {
       transactionId: 'tx-meta-id',
       initialTypeFilter: ActivityTypeFilter.Predictions,
-      isTransactionsRedesignEnabled: true,
       chainId: 'eip155:137',
     });
 
@@ -85,28 +84,11 @@ describe('navigateToTransactionDetails', () => {
     expect(navigation.navigate).toHaveBeenCalledTimes(2);
   });
 
-  it('falls back to the legacy details screen when the redesign is enabled without a chainId', () => {
+  it('falls back to the legacy details screen without a chainId', () => {
     const navigation = createNavigation();
 
     navigateToTransactionDetails(navigation, {
       transactionId: 'tx-meta-id',
-      isTransactionsRedesignEnabled: true,
-    });
-
-    expect(navigation.navigate).toHaveBeenNthCalledWith(
-      2,
-      Routes.TRANSACTION_DETAILS,
-      { transactionId: 'tx-meta-id' },
-    );
-  });
-
-  it('keeps the legacy details screen when the redesign is disabled', () => {
-    const navigation = createNavigation();
-
-    navigateToTransactionDetails(navigation, {
-      transactionId: 'tx-meta-id',
-      isTransactionsRedesignEnabled: false,
-      chainId: 'eip155:137',
     });
 
     expect(navigation.navigate).toHaveBeenNthCalledWith(

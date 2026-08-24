@@ -9,7 +9,6 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
 import Routes from '../../../constants/navigation/Routes';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { selectAllTokens } from '../../../selectors/tokensController';
@@ -207,7 +206,6 @@ describe('AssetDetailsActivityListItem', () => {
       if (selector === selectEvmNetworkConfigurationsByChainId)
         return { '0x1': { nativeCurrency: 'ETH' } };
       if (selector === selectAllTokens) return {};
-      if (selector === selectIsTransactionsRedesignEnabled) return true;
       return undefined;
     });
     const navigation = createNavigation();
@@ -248,7 +246,7 @@ describe('AssetDetailsActivityListItem', () => {
     expect(handleUnifiedSwapsTxHistoryItemClick).not.toHaveBeenCalled();
   });
 
-  it('routes to the ActivityDetails screen when the redesign is enabled', () => {
+  it('routes to the ActivityDetails screen', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectBridgeHistoryForAccount) {
         return bridgeHistory;
@@ -272,10 +270,6 @@ describe('AssetDetailsActivityListItem', () => {
 
       if (selector === selectAllTokens) {
         return {};
-      }
-
-      if (selector === selectIsTransactionsRedesignEnabled) {
-        return true;
       }
 
       return undefined;
@@ -304,46 +298,6 @@ describe('AssetDetailsActivityListItem', () => {
         chainId: 'eip155:1',
         txIdentifier: 'tx-1',
         preloadKey: expect.any(String),
-      }),
-    );
-  });
-
-  it('opens the legacy transaction details sheet when the redesign is disabled', () => {
-    const navigation = createNavigation();
-    const onSpeedUpAction = jest.fn();
-    const onCancelAction = jest.fn();
-    const transaction = createTransaction();
-
-    const { getByTestId, queryByTestId } = render(
-      <AssetDetailsActivityListItem
-        transaction={transaction}
-        index={0}
-        assetSymbol="ETH"
-        chainId="0x1"
-        navigation={navigation}
-        onSpeedUpAction={onSpeedUpAction}
-        onCancelAction={onCancelAction}
-      />,
-    );
-
-    fireEvent.press(getByTestId('activity-list-item-row'));
-
-    expect(
-      queryByTestId('activity-list-account-import-time-row'),
-    ).not.toBeOnTheScreen();
-    expect(resolveActivityListItemTitle).toHaveBeenCalled();
-    expect(navigation.navigate).toHaveBeenCalledWith(
-      Routes.MODAL.ROOT_MODAL_FLOW,
-      expect.objectContaining({
-        screen: Routes.SHEET.TRANSACTION_DETAILS,
-        params: expect.objectContaining({
-          tx: expect.objectContaining({ id: 'tx-1' }),
-          transactionElement: expect.objectContaining({
-            actionKey: 'Send ETH',
-          }),
-          showSpeedUpModal: expect.any(Function),
-          showCancelModal: expect.any(Function),
-        }),
       }),
     );
   });

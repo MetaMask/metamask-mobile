@@ -1262,11 +1262,6 @@ export const initialStateActivityWithLocalTransactions = (
     },
   } as unknown as DeepPartial<RootState>);
 
-export const initialStateActivityWithRedesignEnabled = () =>
-  initialStateActivity().withRemoteFeatureFlags({
-    tmcuActivityRedesignEnabled: true,
-  });
-
 /** State for ActivityList tests that load EVM history from the accounts API. */
 export const initialStateActivityWithAccountsApi = () =>
   initialStateActivity().withOverrides({
@@ -1329,25 +1324,23 @@ export const buildActivityCvRampSellEthOrder = (): FiatOrder =>
     data: {},
   }) as FiatOrder;
 
-/** Activity state with redesign + legacy fiatOrders for Ramp Details CV. */
+/** Activity state with fiatOrders for Ramp Details CV. */
 export const initialStateActivityWithRampOrders = (orders: FiatOrder[]) =>
-  initialStateActivity()
-    .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
-    .withOverrides({
-      fiatOrders: {
-        orders,
-      },
-      engine: {
-        backgroundState: {
-          NetworkEnablementController: {
-            enabledNetworkMap: enabledMainnetNetworkMap,
-          },
-          RampsController: {
-            orders: [],
-          },
+  initialStateActivity().withOverrides({
+    fiatOrders: {
+      orders,
+    },
+    engine: {
+      backgroundState: {
+        NetworkEnablementController: {
+          enabledNetworkMap: enabledMainnetNetworkMap,
+        },
+        RampsController: {
+          orders: [],
         },
       },
-    } as unknown as DeepPartial<RootState>);
+    },
+  } as unknown as DeepPartial<RootState>);
 
 export const ACTIVITY_CV_SOLANA_ACCOUNT_ID = 'activity-cv-solana-acc';
 
@@ -2061,7 +2054,6 @@ export const initialStateActivityWithPerpsDetails = (
   transactions: TransactionMeta[] = [],
 ) =>
   initialStateActivity()
-    .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
     .withOverrides(activityPerpsDetailsStateOverrides)
     .withOverrides({
       engine: {

@@ -109,7 +109,6 @@ describeForPlatforms('ActivityDetails — send / receive mUSD', () => {
   it('shows confirmed Sent mUSD details with fee, total, and copyable tx id', async () => {
     const sendTransaction = buildConfirmedLocalMusdSendTransaction();
     const state = initialStateActivityWithLocalTransactions([sendTransaction])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
       .withOverrides(activityMusdTokenRatesOverride)
       .build();
 
@@ -209,9 +208,7 @@ describeForPlatforms('ActivityDetails — send / receive mUSD', () => {
       },
     ]);
 
-    const state = initialStateActivityWithAccountsApi()
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
-      .build();
+    const state = initialStateActivityWithAccountsApi().build();
 
     const {
       findByTestId,
@@ -429,9 +426,7 @@ describeForPlatforms('ActivityDetails — contract / approvals / upgrade', () =>
       buildConfirmedLocalContractInteractionWithFeesTransaction();
     const state = initialStateActivityWithLocalTransactions([
       contractTransaction,
-    ])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
-      .build();
+    ]).build();
 
     const { findByTestId, findByText, getByTestId, queryByTestId } =
       renderActivityDetailsView({
@@ -495,9 +490,7 @@ describeForPlatforms('ActivityDetails — contract / approvals / upgrade', () =>
       buildConfirmedLocalUsdtUnlimitedApproveTransaction();
     const state = initialStateActivityWithLocalTransactions([
       approveTransaction,
-    ])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
-      .build();
+    ]).build();
 
     const { findByTestId, findByText, getByTestId, queryByTestId } =
       renderActivityDetailsView({
@@ -554,9 +547,7 @@ describeForPlatforms('ActivityDetails — contract / approvals / upgrade', () =>
       buildConfirmedLocalUsdtIncreaseAllowanceTransaction();
     const state = initialStateActivityWithLocalTransactions([
       increaseTransaction,
-    ])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
-      .build();
+    ]).build();
 
     const { findByTestId, findByText, getByTestId, queryByTestId } =
       renderActivityDetailsView({
@@ -613,9 +604,7 @@ describeForPlatforms('ActivityDetails — contract / approvals / upgrade', () =>
       buildConfirmedLocalSmartAccountUpgradeTransaction();
     const state = initialStateActivityWithLocalTransactions([
       upgradeTransaction,
-    ])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
-      .build();
+    ]).build();
 
     const { findByTestId, findByText, getByTestId, queryByTestId } =
       renderActivityDetailsView({
@@ -687,7 +676,6 @@ describeForPlatforms('ActivityDetails — swap / convert / bridge', () => {
   it('shows confirmed Swapped ETH → mUSD dual header with fee and total', async () => {
     const swapTransaction = buildConfirmedLocalEthToMusdSwapTransaction();
     const state = initialStateActivityWithLocalTransactions([swapTransaction])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
       .withOverrides(activityMusdTokenRatesOverride)
       .withOverrides(
         bridgeHistoryOverride(
@@ -770,7 +758,6 @@ describeForPlatforms('ActivityDetails — swap / convert / bridge', () => {
     const state = initialStateActivityWithLocalTransactions([
       convertTransaction,
     ])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
       .withOverrides(activityUsdcTokenRatesOverride)
       .withOverrides(
         bridgeHistoryOverride(
@@ -841,7 +828,6 @@ describeForPlatforms('ActivityDetails — swap / convert / bridge', () => {
     const bridgeTransaction =
       buildConfirmedLocalBridgeEthToMusdLineaTransaction();
     const state = initialStateActivityWithLocalTransactions([bridgeTransaction])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
       .withOverrides(activityLineaNetworkOverride)
       .withOverrides(activityMusdTokenRatesOverride)
       .withOverrides(
@@ -918,7 +904,6 @@ describeForPlatforms('ActivityDetails — swap / convert / bridge', () => {
   it('shows confirmed Bridged ETH → SOL with dual network and explorer sheet CTA', async () => {
     const bridgeTransaction = buildConfirmedLocalBridgeEthToSolTransaction();
     const state = initialStateActivityWithLocalTransactions([bridgeTransaction])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
       .withOverrides(
         bridgeHistoryOverride(
           bridgeTransaction.id,
@@ -1017,7 +1002,6 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
   it('shows confirmed Claimed mUSD bonus with fee and total', async () => {
     const claimTransaction = buildConfirmedLocalMusdClaimTransaction();
     const state = initialStateActivityWithLocalTransactions([claimTransaction])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
       .withOverrides(activityLineaNetworkOverride)
       .withOverrides(activityLineaMusdTokenRatesOverride)
       .withOverrides({
@@ -1124,7 +1108,6 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
     ]);
 
     const state = initialStateActivityWithAccountsApi()
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
       .withOverrides(activityUsdcTokenRatesOverride)
       .build();
 
@@ -1193,9 +1176,9 @@ describeForPlatforms('ActivityDetails — claim / deposit', () => {
 describeForPlatforms('ActivityDetails — stake', () => {
   it('shows confirmed Staked Ethereum with fee, total, tx id, and explorer', async () => {
     const stakeTransaction = buildConfirmedLocalStakingDepositTransaction();
-    const state = initialStateActivityWithLocalTransactions([stakeTransaction])
-      .withRemoteFeatureFlags({ tmcuActivityRedesignEnabled: true })
-      .build();
+    const state = initialStateActivityWithLocalTransactions([
+      stakeTransaction,
+    ]).build();
 
     const {
       findByTestId,

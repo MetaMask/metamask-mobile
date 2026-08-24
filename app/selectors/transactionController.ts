@@ -7,7 +7,6 @@ import {
 } from './smartTransactionsController';
 import { selectEvmAddress } from './accountsController';
 import { selectSelectedAccountGroupEvmInternalAccount } from './multichainAccounts/accountTreeController';
-import { selectIsActivityRedesignEnabled } from './featureFlagController/activityRedesign';
 import {
   TransactionMeta,
   TransactionStatus,
@@ -191,19 +190,12 @@ export const selectGasPaymentTransactionHashes = createSelector(
 
 /**
  * Hashes that Activity API feeds should drop: MetaMask Pay / required children,
- * plus gas-token fee legs when redesigned Activity is enabled (legacy keeps
- * fee legs visible — it has no compensating gasToken fee UI).
+ * plus gas-token fee legs (hidden as separate rows in redesigned Activity).
  */
 export const selectExcludedActivityTransactionHashes = createSelector(
-  [
-    selectRequiredTransactionHashes,
-    selectGasPaymentTransactionHashes,
-    selectIsActivityRedesignEnabled,
-  ],
-  (requiredHashes, gasPaymentHashes, isActivityRedesignEnabled) =>
-    isActivityRedesignEnabled
-      ? new Set([...requiredHashes, ...gasPaymentHashes])
-      : new Set(requiredHashes),
+  [selectRequiredTransactionHashes, selectGasPaymentTransactionHashes],
+  (requiredHashes, gasPaymentHashes) =>
+    new Set([...requiredHashes, ...gasPaymentHashes]),
 );
 
 export const selectRelatedChainIdsByTransactionId = createSelector(
@@ -368,7 +360,6 @@ export const selectLocalTransactions = createDeepEqualSelector(
     selectEvmAddress,
     selectRequiredTransactionIds,
     selectGasPaymentTransactionIds,
-    selectIsActivityRedesignEnabled,
   ],
   (
     nonReplacedTransactions,
@@ -377,7 +368,6 @@ export const selectLocalTransactions = createDeepEqualSelector(
     fallbackEvmAddress,
     requiredTransactionIds,
     gasPaymentTransactionIds,
-    isActivityRedesignEnabled,
   ) => {
     const activeEvmAddress = groupEvmAccount?.address ?? fallbackEvmAddress;
 
@@ -385,10 +375,7 @@ export const selectLocalTransactions = createDeepEqualSelector(
       if (requiredTransactionIds.has(transaction.id)) {
         return false;
       }
-      if (
-        isActivityRedesignEnabled &&
-        gasPaymentTransactionIds.has(transaction.id)
-      ) {
+      if (gasPaymentTransactionIds.has(transaction.id)) {
         return false;
       }
       return belongsToActiveAccount(transaction, activeEvmAddress);
@@ -421,7 +408,6 @@ export const selectReplacedLocalTransactions = createDeepEqualSelector(
     selectEvmAddress,
     selectRequiredTransactionIds,
     selectGasPaymentTransactionIds,
-    selectIsActivityRedesignEnabled,
   ],
   (
     transactions,
@@ -429,7 +415,6 @@ export const selectReplacedLocalTransactions = createDeepEqualSelector(
     fallbackEvmAddress,
     requiredTransactionIds,
     gasPaymentTransactionIds,
-    isActivityRedesignEnabled,
   ) => {
     const activeEvmAddress = groupEvmAccount?.address ?? fallbackEvmAddress;
 
@@ -440,10 +425,7 @@ export const selectReplacedLocalTransactions = createDeepEqualSelector(
       if (requiredTransactionIds.has(transaction.id)) {
         return false;
       }
-      if (
-        isActivityRedesignEnabled &&
-        gasPaymentTransactionIds.has(transaction.id)
-      ) {
+      if (gasPaymentTransactionIds.has(transaction.id)) {
         return false;
       }
       return belongsToActiveAccount(transaction, activeEvmAddress);
