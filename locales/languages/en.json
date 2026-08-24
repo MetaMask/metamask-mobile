@@ -2787,6 +2787,14 @@
     },
     "prediction_markets": "Prediction markets",
     "market_list": "Market list",
+    "market_rules": {
+      "title": "Market rules",
+      "accessibility_label": "View market rules",
+      "settlement_sources": {
+        "prefix": "Outcome verified from",
+        "suffix": "."
+      }
+    },
     "loading": "Loading...",
     "buttons": {
       "back": "Back",

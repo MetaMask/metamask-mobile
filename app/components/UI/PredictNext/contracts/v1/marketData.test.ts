@@ -41,6 +41,32 @@ describe('Predict API canonical response parsers', () => {
     expect(result).toEqual(input);
   });
 
+  it('parses market rules and removes raw venue rule fields', () => {
+    const input = createEvent({
+      settlementSources: [
+        { name: 'the Governing League', url: 'https://www.nfl.com/' },
+        { name: 'ESPN', url: 'https://www.espn.com/' },
+      ],
+      markets: [
+        createMarket({
+          rules: 'Primary rule.\n\nSecondary rule.',
+          rules_primary: 'Primary rule.',
+          rules_secondary: 'Secondary rule.',
+        }),
+      ],
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.settlementSources).toEqual([
+      { name: 'the Governing League', url: 'https://www.nfl.com/' },
+      { name: 'ESPN', url: 'https://www.espn.com/' },
+    ]);
+    expect(result.markets[0].rules).toBe('Primary rule.\n\nSecondary rule.');
+    expect(result.markets[0]).not.toHaveProperty('rules_primary');
+    expect(result.markets[0]).not.toHaveProperty('rules_secondary');
+  });
+
   it('parses a closed Market', () => {
     const input = createEvent({
       markets: [createMarket({ status: 'closed' })],

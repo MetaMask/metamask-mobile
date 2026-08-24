@@ -100,7 +100,11 @@ export const PredictEventScreen = () => {
           <Text variant={TextVariant.HeadingMd}>Predict</Text>
           <MarketList>
             {query.data.markets.map((market) => (
-              <MarketStandardCard key={market.id} market={market} />
+              <MarketStandardCard
+                key={market.id}
+                market={market}
+                settlementSources={query.data.settlementSources}
+              />
             ))}
           </MarketList>
         </Box>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { lightTheme } from '@metamask/design-tokens';
 import type {
@@ -6,9 +7,14 @@ import type {
   PredictEntityId,
   PredictMarket,
   PredictOutcome,
+  PredictSettlementSource,
 } from '../../types';
 import { MarketStandardCard } from './MarketStandardCard';
 import { MarketStandardCardTestIds } from './MarketStandardCard.testIds';
+
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  openURL: jest.fn(),
+}));
 
 const createOutcome = (
   side: 'yes' | 'no',
@@ -36,6 +42,10 @@ const createMarket = (
 });
 
 describe('MarketStandardCard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders the Yes Outcome label, Volume, percentage, and Ask Prices', () => {
     const market = createMarket();
 
@@ -160,5 +170,103 @@ describe('MarketStandardCard', () => {
     expect(
       screen.getByTestId(MarketStandardCardTestIds.card(market.id)),
     ).toBeOnTheScreen();
+  });
+
+  it('opens the rules sheet with primary and secondary rules in order', () => {
+    const market = createMarket({
+      rules: 'Primary rule.\n\nSecondary rule.',
+    });
+
+    render(<MarketStandardCard market={market} />);
+
+    fireEvent.press(
+      screen.getByTestId(MarketStandardCardTestIds.rulesButton(market.id)),
+    );
+
+    expect(
+      screen.getByTestId(MarketStandardCardTestIds.rulesSheet(market.id)),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MarketStandardCardTestIds.rulesText(market.id)),
+    ).toHaveTextContent('Primary rule.\n\nSecondary rule.');
+    expect(screen.getByText('Market rules')).toBeOnTheScreen();
+  });
+
+  it('renders settlement sources above the market rules', () => {
+    const market = createMarket({ rules: 'Primary rule.' });
+    const settlementSources: PredictSettlementSource[] = [
+      { name: 'the Governing League', url: 'https://www.nfl.com/' },
+      { name: 'ESPN', url: 'https://www.espn.com/' },
+    ];
+
+    render(
+      <MarketStandardCard
+        market={market}
+        settlementSources={settlementSources}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(MarketStandardCardTestIds.rulesButton(market.id)),
+    );
+
+    expect(
+      screen.getByTestId(MarketStandardCardTestIds.rulesSources(market.id)),
+    ).toHaveTextContent('Outcome verified from the Governing League and ESPN.');
+  });
+
+  it('opens the selected settlement source URL', () => {
+    const market = createMarket({ rules: 'Primary rule.' });
+    const settlementSources: PredictSettlementSource[] = [
+      { name: 'the Governing League', url: 'https://www.nfl.com/' },
+      { name: 'ESPN', url: 'https://www.espn.com/' },
+    ];
+
+    render(
+      <MarketStandardCard
+        market={market}
+        settlementSources={settlementSources}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(MarketStandardCardTestIds.rulesButton(market.id)),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        MarketStandardCardTestIds.rulesSourceLink(market.id, 1),
+      ),
+    );
+
+    expect(Linking.openURL).toHaveBeenCalledWith('https://www.espn.com/');
+  });
+
+  it('closes the rules sheet from the header close control', () => {
+    const market = createMarket({ rules: 'Primary rule.' });
+
+    render(<MarketStandardCard market={market} />);
+    fireEvent.press(
+      screen.getByTestId(MarketStandardCardTestIds.rulesButton(market.id)),
+    );
+    fireEvent.press(
+      screen.getByTestId(MarketStandardCardTestIds.rulesCloseButton(market.id)),
+    );
+
+    expect(
+      screen.queryByTestId(MarketStandardCardTestIds.rulesSheet(market.id)),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the rules control and sheet when rules are absent', () => {
+    const market = createMarket({ rules: undefined });
+
+    render(<MarketStandardCard market={market} />);
+
+    expect(
+      screen.queryByTestId(MarketStandardCardTestIds.rulesButton(market.id)),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MarketStandardCardTestIds.rulesSheet(market.id)),
+    ).not.toBeOnTheScreen();
   });
 });

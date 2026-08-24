@@ -107,6 +107,11 @@ const sportsContextSchema = object({
   game: optional(gameSchema),
 });
 
+const settlementSourceSchema = object({
+  name: string(),
+  url: httpsUrl,
+});
+
 const outcomeSchema = object({
   id: entityId,
   side,
@@ -125,6 +130,7 @@ const binaryOutcomes = refine(
 const marketSchema = object({
   id: entityId,
   question: string(),
+  rules: optional(string()),
   outcomes: binaryOutcomes,
   status,
   volume: optional(amount),
@@ -156,6 +162,7 @@ const eventSchema = object({
   volume24h: optional(amount),
   imageUrl: optional(httpsUrl),
   sports: optional(sportsContextSchema),
+  settlementSources: optional(array(settlementSourceSchema)),
   markets: nonEmptyMarkets,
 });
 

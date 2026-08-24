@@ -186,6 +186,52 @@ describe('PredictEventScreen', () => {
     expect(fieldCard.getByText('No')).toBeOnTheScreen();
   });
 
+  it('opens the rules sheet from a MarketCard', async () => {
+    const event = createMultiMarketEvent();
+    resolveEvent({
+      ...event,
+      settlementSources: [
+        { name: 'the Governing League', url: 'https://www.nfl.com/' },
+        { name: 'ESPN', url: 'https://www.espn.com/' },
+      ],
+      markets: event.markets.map((market) =>
+        market.id === 'dodgers' || market.id === 'yankees'
+          ? { ...market, rules: 'Primary rule.\n\nSecondary rule.' }
+          : market,
+      ),
+    });
+    const view = renderPredictEventScreen(routeParams);
+
+    await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION);
+    fireEvent.press(
+      view.getByTestId(MarketStandardCardTestIds.rulesButton('dodgers')),
+    );
+
+    expect(
+      view.getByTestId(MarketStandardCardTestIds.rulesSheet('dodgers')),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(MarketStandardCardTestIds.rulesText('dodgers')),
+    ).toHaveTextContent('Primary rule.\n\nSecondary rule.');
+    expect(
+      view.getByTestId(MarketStandardCardTestIds.rulesSources('dodgers')),
+    ).toHaveTextContent('Outcome verified from the Governing League and ESPN.');
+
+    fireEvent.press(
+      view.getByTestId(MarketStandardCardTestIds.rulesCloseButton('dodgers')),
+    );
+    fireEvent.press(
+      view.getByTestId(MarketStandardCardTestIds.rulesButton('yankees')),
+    );
+
+    expect(
+      view.getByTestId(MarketStandardCardTestIds.rulesSheet('yankees')),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(MarketStandardCardTestIds.rulesText('yankees')),
+    ).toHaveTextContent('Primary rule.\n\nSecondary rule.');
+  });
+
   it('keeps Outcome presses inside the Event Screen', async () => {
     resolveEvent(createMultiMarketEvent());
     const view = renderPredictEventScreen(routeParams);

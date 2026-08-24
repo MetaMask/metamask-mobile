@@ -80,6 +80,7 @@ export interface PredictOutcome {
 export interface PredictMarket {
   id: PredictEntityId;
   question: string;
+  rules?: string;
   outcomes: readonly [PredictOutcome, PredictOutcome];
   status: PredictMarketStatus;
   volume?: string;
@@ -89,6 +90,11 @@ export interface PredictMarket {
   opensAt?: PredictTimestamp;
   closesAt?: PredictTimestamp;
   resolvesAt?: PredictTimestamp;
+}
+
+export interface PredictSettlementSource {
+  name: string;
+  url: string;
 }
 
 export interface PredictEvent {
@@ -105,6 +111,7 @@ export interface PredictEvent {
   volume24h?: string;
   imageUrl?: string;
   sports?: PredictSportsContext;
+  settlementSources?: readonly PredictSettlementSource[];
   markets: readonly PredictMarket[];
 }
 
