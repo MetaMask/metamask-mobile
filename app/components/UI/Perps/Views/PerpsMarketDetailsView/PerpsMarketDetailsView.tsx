@@ -1790,8 +1790,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                 ) : market?.symbol &&
                   candleData?.symbol === market.symbol &&
                   candleData.interval === selectedCandlePeriod &&
-                  !isLoadingHistory &&
-                  hasHistoricalData ? (
+                  !isLoadingHistory ? (
                   <TradingViewChart
                     ref={chartRef}
                     candleData={candleData}
