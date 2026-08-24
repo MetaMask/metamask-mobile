@@ -7492,22 +7492,18 @@
       },
       "strategies": {
         "money": {
-          "title": "6.2% APY",
           "subtitle": "Money account",
           "tertiary_text": "Variable yield · auto-earning"
         },
         "lending": {
-          "title": "2.1% APR",
           "subtitle": "Lend {{asset}}",
           "tertiary_text": "Variable yield"
         },
         "pooled_staking": {
-          "title": "Variable APY",
           "subtitle": "Stake {{asset}}",
           "tertiary_text": "Pooled staking · variable yield"
         },
         "trx_staking": {
-          "title": "Variable APY",
           "subtitle": "Stake {{asset}}",
           "tertiary_text": "TRON staking · variable yield"
         }

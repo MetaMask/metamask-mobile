@@ -54,7 +54,6 @@ const infoIcons = [IconName.Chart, IconName.Lock, IconName.SecurityTick];
 const getStrategy = (
   experience: EarnExperience,
   assetLabel: string,
-  moneyApyPercent?: number,
 ): EarnAssetStrategy => {
   const strategyKind = getStrategyKind(experience);
   const infoRowsKey = infoRowsKeyByStrategyKind[strategyKind];
@@ -83,25 +82,25 @@ const getStrategy = (
     ),
     infoRows: infoIcons.flatMap((icon, index) => {
       const rowNumber = index + 1;
-      const isMoneyApyRow = strategyKind === 'money' && rowNumber === 1;
       const rowKey = `earn.strategy_selection.info_rows.${infoRowsKey}.row_${rowNumber}`;
-      const text = isMoneyApyRow
-        ? moneyApyPercent === undefined
-          ? undefined
-          : strings(rowKey, {
-              percentage: truncateNumber(moneyApyPercent),
-            })
-        : strings(rowKey);
-
-      if (text === undefined) return [];
-
-      return [{ id: `${experience.id}:${rowNumber}`, icon, text }];
+      return [
+        {
+          id: `${experience.id}:${rowNumber}`,
+          icon,
+          text: strings(
+            rowKey,
+            percentage === undefined
+              ? undefined
+              : { percentage: truncateNumber(percentage) },
+          ),
+        },
+      ];
     }),
   };
 };
 
 const useEarnAssetStrategies = (assetId: EarnAssetId) => {
-  const { assetsById, isLoading, hasError, errors, refresh, moneyApyPercent } =
+  const { assetsById, isLoading, hasError, errors, refresh } =
     useEarnAssetCatalogue();
   const asset = assetsById[assetId.toLowerCase()];
   const strategies = useMemo(() => {
@@ -110,9 +109,9 @@ const useEarnAssetStrategies = (assetId: EarnAssetId) => {
     const assetLabel =
       metadata.ticker ?? metadata.symbol ?? metadata.name ?? '';
     return asset.experiences.map((experience) =>
-      getStrategy(experience, assetLabel, moneyApyPercent),
+      getStrategy(experience, assetLabel),
     );
-  }, [asset, moneyApyPercent]);
+  }, [asset]);
 
   return useMemo(
     () => ({

@@ -43,8 +43,8 @@ import useEarnAssetStrategies from '../../hooks/useEarnAssetStrategies';
 import { useStablecoinLendingRedirect } from '../../hooks/useStablecoinLendingRedirect';
 import useStakingChain from '../../../Stake/hooks/useStakingChain';
 import { useMoneyAccountDeposit } from '../../../Money/hooks/useMoneyAccount';
-import type { EarnAssetId, EarnExperienceType } from '../../types/earnAssets';
 import { earnAssetToToken, getEarnAssetMetadata } from '../../utils/earnAssets';
+import { EarnAssetId, EarnExperienceType } from '../../types/earnAssets';
 
 export interface EarnStrategySelectionViewRouteParams {
   assetId: EarnAssetId;

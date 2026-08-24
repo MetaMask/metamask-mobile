@@ -60,7 +60,7 @@ const createCatalogueResult = (): ReturnType<typeof useEarnAssetCatalogue> => {
     hasError: false,
     errors: [],
     refresh: jest.fn(),
-    moneyApyPercent: 6.2,
+    moneyApyPercent: 99.9,
     moneyRateStatus: 'ready',
   };
 };
@@ -93,6 +93,12 @@ describe('useEarnAssetStrategies', () => {
       EarnStrategyRiskLevel.Recommended,
       EarnStrategyRiskLevel.Medium,
     ]);
+  });
+
+  it('uses the Money experience rate for the APY info row', () => {
+    const { result } = renderHook(() => useEarnAssetStrategies(assetId));
+
+    expect(result.current.strategies[0].infoRows[0].text).toContain('6.2% APY');
   });
 
   it('uses unavailable copy when an experience has no rate', () => {
