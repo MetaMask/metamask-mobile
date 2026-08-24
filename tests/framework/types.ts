@@ -152,9 +152,6 @@ export interface MatcherOptions {
   index?: number;
 }
 
-/** @deprecated Scroll containers are Appium testID strings only. */
-export type ScrollViewMatcher = never;
-
 /** Scroll container for Gestures.scrollToElement — Appium testID string. */
 export type ScrollContainer = string;
 

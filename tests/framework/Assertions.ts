@@ -1,6 +1,6 @@
 import Utilities, { BASE_DEFAULTS, stripJsonKeys } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
-import type { AppiumElement, AppiumElementRef } from './AppiumElement.ts';
+import type { AppiumElement } from './AppiumElement.ts';
 import { Json } from '@metamask/utils';
 import { PlatformDetector } from './PlatformLocator.ts';
 import AppiumAssertions from './AppiumAssertions.ts';
@@ -13,14 +13,14 @@ export default class Assertions {
    * Assert element is visible with auto-retry
    */
   static async expectElementToBeVisible(
-    elem: AppiumElementRef | (() => AppiumElementRef),
+    elem:
+      | AppiumElement
+      | Promise<AppiumElement>
+      | (() => AppiumElement | Promise<AppiumElement>),
     options: AssertionOptions = {},
   ): Promise<void> {
     const resolved = typeof elem === 'function' ? elem() : elem;
-    return AppiumAssertions.expectElementToBeVisible(
-      resolved as AppiumElementRef,
-      options,
-    );
+    return AppiumAssertions.expectElementToBeVisible(resolved, options);
   }
 
   /**
@@ -29,35 +29,35 @@ export default class Assertions {
    * isDisplayed=false while the UI is on screen.
    */
   static async expectElementToExist(
-    elem: AppiumElementRef | (() => AppiumElementRef),
+    elem:
+      | AppiumElement
+      | Promise<AppiumElement>
+      | (() => AppiumElement | Promise<AppiumElement>),
     options: AssertionOptions = {},
   ): Promise<void> {
     const resolved = typeof elem === 'function' ? elem() : elem;
-    return AppiumAssertions.expectElementToExist(
-      resolved as AppiumElementRef,
-      options,
-    );
+    return AppiumAssertions.expectElementToExist(resolved, options);
   }
 
   /**
    * Assert element is not visible with auto-retry
    */
   static async expectElementToNotBeVisible(
-    elem: AppiumElementRef | (() => AppiumElementRef),
+    elem:
+      | AppiumElement
+      | Promise<AppiumElement>
+      | (() => AppiumElement | Promise<AppiumElement>),
     options: AssertionOptions = {},
   ): Promise<void> {
     const resolved = typeof elem === 'function' ? elem() : elem;
-    return AppiumAssertions.expectElementToNotBeVisible(
-      resolved as AppiumElementRef,
-      options,
-    );
+    return AppiumAssertions.expectElementToNotBeVisible(resolved, options);
   }
 
   /**
    * Assert element has specific text with auto-retry
    */
   static async expectElementToHaveText(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -68,7 +68,7 @@ export default class Assertions {
    * Assert element contains specific text with auto-retry
    */
   static async expectElementToContainText(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -98,7 +98,7 @@ export default class Assertions {
    * Assert element does not have specific text with auto-retry
    */
   static async expectElementToNotHaveText(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -109,7 +109,7 @@ export default class Assertions {
    * Assert element has specific label with auto-retry
    */
   static async expectElementToHaveLabel(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     label: string,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -139,7 +139,9 @@ export default class Assertions {
   /**
    * Returns whether a Switch/toggle is currently on.
    */
-  static async isToggleOn(elem: AppiumElementRef): Promise<boolean> {
+  static async isToggleOn(
+    elem: AppiumElement | Promise<AppiumElement>,
+  ): Promise<boolean> {
     const el = await elem;
     // Each Appium driver only supports the attribute native to its Switch:
     // iOS XCUITest exposes `value` (`"1"` / `"0"`); Android UiAutomator2 exposes
@@ -165,7 +167,7 @@ export default class Assertions {
    * Assert element is enabled with auto-retry
    */
   static async expectToggleToBeOn(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -197,7 +199,7 @@ export default class Assertions {
    * Assert element is disabled with auto-retry
    */
   static async expectToggleToBeOff(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -449,7 +451,7 @@ export default class Assertions {
    * @deprecated Use expectElementToBeVisible() instead for better error handling and retry mechanisms
    */
   static async checkIfVisible(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     timeout = 15000,
   ): Promise<void> {
     return this.expectElementToBeVisible(elem, { timeout });
@@ -459,7 +461,9 @@ export default class Assertions {
    * Legacy method: Check if a web element exists
    * @deprecated Use expectElementToBeVisible() instead for better error handling and retry mechanisms
    */
-  static async webViewElementExists(elem: AppiumElementRef): Promise<void> {
+  static async webViewElementExists(
+    elem: AppiumElement | Promise<AppiumElement>,
+  ): Promise<void> {
     return this.expectElementToExist(elem);
   }
 
@@ -468,7 +472,7 @@ export default class Assertions {
    * @deprecated Use expectElementToNotBeVisible() instead for better error handling and retry mechanisms
    */
   static async checkIfNotVisible(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     timeout = 15000,
   ): Promise<void> {
     return this.expectElementToNotBeVisible(elem, {
@@ -481,7 +485,7 @@ export default class Assertions {
    * @deprecated Use expectElementToHaveText() instead for better error handling and retry mechanisms
    */
   static async checkIfElementToHaveText(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     text: string,
     timeout = 15000,
   ): Promise<void> {
@@ -495,7 +499,7 @@ export default class Assertions {
    * @deprecated Use expectElementToHaveLabel() instead for better error handling and retry mechanisms
    */
   static async checkIfElementHasLabel(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     label: string,
     timeout = 15000,
   ): Promise<void> {
@@ -529,7 +533,7 @@ export default class Assertions {
    * @deprecated Use expectElementToNotHaveText() or custom assertion instead for better error handling and retry mechanisms
    */
   static async checkIfElementNotToHaveText(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     text: string,
     timeout = 15000,
   ): Promise<void> {
@@ -541,7 +545,7 @@ export default class Assertions {
    * @deprecated Use expectElementToNotBeVisible() or custom assertion instead for better error handling and retry mechanisms
    */
   static async checkIfElementDoesNotHaveLabel(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     _label: string,
     timeout = 15000,
   ): Promise<void> {
@@ -552,7 +556,9 @@ export default class Assertions {
    * Legacy method: Check if toggle is in "on" state
    * @deprecated Use expectToggleToBeOn() instead for better error handling and retry mechanisms
    */
-  static async checkIfToggleIsOn(elem: AppiumElementRef): Promise<void> {
+  static async checkIfToggleIsOn(
+    elem: AppiumElement | Promise<AppiumElement>,
+  ): Promise<void> {
     return this.expectToggleToBeOn(elem);
   }
 
@@ -560,7 +566,9 @@ export default class Assertions {
    * Legacy method: Check if toggle is in "off" state
    * @deprecated Use expectToggleToBeOff() instead for better error handling and retry mechanisms
    */
-  static async checkIfToggleIsOff(elem: AppiumElementRef): Promise<void> {
+  static async checkIfToggleIsOff(
+    elem: AppiumElement | Promise<AppiumElement>,
+  ): Promise<void> {
     return this.expectToggleToBeOff(elem);
   }
 
@@ -568,7 +576,9 @@ export default class Assertions {
    * Legacy method: Check if element is enabled
    * @deprecated Use Utilities.waitForElementToBeEnabled() instead for better retry handling
    */
-  static async checkIfEnabled(elem: AppiumElementRef): Promise<boolean> {
+  static async checkIfEnabled(
+    elem: AppiumElement | Promise<AppiumElement>,
+  ): Promise<boolean> {
     const el = await elem;
     return el.isEnabled();
   }
@@ -577,7 +587,9 @@ export default class Assertions {
    * Legacy method: Check if element is disabled
    * @deprecated Use Utilities.waitForElementToBeDisabled() instead for better retry handling
    */
-  static async checkIfDisabled(elem: AppiumElementRef): Promise<boolean> {
+  static async checkIfDisabled(
+    elem: AppiumElement | Promise<AppiumElement>,
+  ): Promise<boolean> {
     const el = await elem;
     return !(await el.isEnabled());
   }

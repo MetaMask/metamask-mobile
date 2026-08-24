@@ -239,12 +239,6 @@ export async function $$(selector: string): Promise<AppiumElement[]> {
 }
 
 /**
- * Resolved Appium element, or a Promise that resolves to one.
- * Locators return promises; callers may also pass an already-awaited element.
- */
-export type AppiumElementRef = AppiumElement | Promise<AppiumElement>;
-
-/**
  * Static helper to wrap an existing WebdriverIO elem
  */
 export function wrapElement(elem: ChainablePromiseElement): AppiumElement {

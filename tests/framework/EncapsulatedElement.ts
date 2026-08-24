@@ -79,10 +79,10 @@ export function encapsulated(config: LocatorConfig): Promise<AppiumElement> {
 export type EncapsulatedElementType = Promise<AppiumElement>;
 
 /**
- * @deprecated Await the element promise directly. Identity helper for unmigrated call sites.
+ * @deprecated Await the element promise directly.
  */
 export async function asPlaywrightElement(
-  elem: EncapsulatedElementType,
+  elem: Promise<AppiumElement>,
 ): Promise<AppiumElement> {
   return elem;
 }

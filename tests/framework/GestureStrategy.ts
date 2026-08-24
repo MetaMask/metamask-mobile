@@ -1,11 +1,11 @@
 import AppiumGestures from './AppiumGestures.ts';
 import Matchers from './Matchers.ts';
-import { AppiumElement, type AppiumElementRef } from './AppiumElement.ts';
+import { AppiumElement } from './AppiumElement.ts';
 import type { ScrollContainer } from './types.ts';
 import { getDriver } from './AppiumUtilities.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 
-export type { ScrollContainer, ScrollViewMatcher } from './types.ts';
+export type { ScrollContainer } from './types.ts';
 
 /**
  * Unified options for gesture methods.
@@ -51,56 +51,65 @@ export interface UnifiedGestureOptions {
 }
 
 /**
- * Element input for tapAtIndex — single element or an array (select by index).
+ * Element input for tapAtIndex — single element promise or an array (select by index).
  */
-export type TapAtIndexElement = AppiumElementRef | AppiumElement[];
+export type TapAtIndexElement =
+  | AppiumElement
+  | Promise<AppiumElement>
+  | AppiumElement[];
 
 /**
  * Strategy interface for framework-agnostic gesture execution.
  *
- * Each method accepts an `AppiumElementRef` (AppiumElementRef).
+ * Each method accepts an `AppiumElement` or `AppiumElement | Promise<AppiumElement>`.
  */
 export interface GestureStrategy {
-  tap(elem: AppiumElementRef, opts?: UnifiedGestureOptions): Promise<void>;
+  tap(
+    elem: AppiumElement | Promise<AppiumElement>,
+    opts?: UnifiedGestureOptions,
+  ): Promise<void>;
 
   waitAndTap(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     opts?: UnifiedGestureOptions,
   ): Promise<void>;
 
   typeText(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     text: string,
     opts?: UnifiedGestureOptions,
   ): Promise<void>;
 
   replaceText(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     text: string,
     opts?: UnifiedGestureOptions,
   ): Promise<void>;
 
   swipe(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     direction: 'up' | 'down' | 'left' | 'right',
     opts?: UnifiedGestureOptions,
   ): Promise<void>;
 
   scrollToElement(
-    target: AppiumElementRef,
+    target: AppiumElement | Promise<AppiumElement>,
     scrollView?: ScrollContainer,
     opts?: UnifiedGestureOptions,
   ): Promise<void>;
 
   longPress(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     opts?: UnifiedGestureOptions,
   ): Promise<void>;
 
-  dblTap(elem: AppiumElementRef, opts?: UnifiedGestureOptions): Promise<void>;
+  dblTap(
+    elem: AppiumElement | Promise<AppiumElement>,
+    opts?: UnifiedGestureOptions,
+  ): Promise<void>;
 
   tapAtPoint(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     point: { x: number; y: number },
     opts?: UnifiedGestureOptions,
   ): Promise<void>;
@@ -149,7 +158,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @returns A promise that resolves when the tap is complete
    */
   async tap(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     const el = await elem;
@@ -168,7 +177,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @returns A promise that resolves when the wait and tap is complete
    */
   async waitAndTap(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     const el = await elem;
@@ -191,7 +200,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @returns A promise that resolves when the type text is complete
    */
   async typeText(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     text: string,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
@@ -211,7 +220,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @returns A promise that resolves when the replace text is complete
    */
   async replaceText(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     text: string,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
@@ -237,7 +246,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @returns A promise that resolves when the swipe is complete
    */
   async swipe(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     direction: 'up' | 'down' | 'left' | 'right',
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
@@ -255,7 +264,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
   }
 
   private async scrollWithinContainer(
-    scrollView: AppiumElementRef,
+    scrollView: AppiumElement | Promise<AppiumElement>,
     swipeDirection: 'up' | 'down' | 'left' | 'right',
     percent = 0.6,
   ): Promise<void> {
@@ -320,7 +329,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @returns A promise that resolves when the scroll to element is complete
    */
   async scrollToElement(
-    target: AppiumElementRef,
+    target: AppiumElement | Promise<AppiumElement>,
     scrollView?: ScrollContainer,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
@@ -351,7 +360,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @returns A promise that resolves when the long press is complete
    */
   async longPress(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     const el = await elem;
@@ -363,7 +372,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @param elem - The element to double tap
    * @returns A promise that resolves when the double tap is complete
    */
-  async dblTap(elem: AppiumElementRef): Promise<void> {
+  async dblTap(elem: AppiumElement | Promise<AppiumElement>): Promise<void> {
     const el = await elem;
     await AppiumGestures.dblTap(el);
   }
@@ -375,7 +384,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
    * @returns A promise that resolves when the tap at point is complete
    */
   async tapAtPoint(
-    elem: AppiumElementRef,
+    elem: AppiumElement | Promise<AppiumElement>,
     point: { x: number; y: number },
   ): Promise<void> {
     const el = await elem;

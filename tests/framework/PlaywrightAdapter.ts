@@ -5,5 +5,4 @@ export {
   wrapElement,
   $,
   $$,
-  type AppiumElementRef,
 } from './AppiumElement.ts';
