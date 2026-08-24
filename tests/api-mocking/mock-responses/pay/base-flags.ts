@@ -1013,6 +1013,12 @@ const BASE_PERPS_FLAGS = [
     },
   },
   {
+    perpsMobileTwap: {
+      minimumVersion: '8.8.0',
+      enabled: true,
+    },
+  },
+  {
     perpsProductsEnabled: {
       enabled: true,
       minimumVersion: '7.82.0',

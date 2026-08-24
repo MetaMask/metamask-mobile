@@ -570,6 +570,46 @@ describe('usePerpsToasts', () => {
       });
     });
 
+    describe('orderManagement.strategy', () => {
+      it('describes the TWAP window while placement is submitted', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config =
+          result.current.PerpsToastOptions.orderManagement.strategy.submitted(
+            'long',
+            '0.5',
+            'ETH',
+            90,
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Long 0.5 ETH over 90 min',
+          isBold: false,
+        });
+      });
+
+      it('confirms TWAP placement without claiming a fill', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config =
+          result.current.PerpsToastOptions.orderManagement.strategy.confirmed(
+            'short',
+            '1.0',
+            'BTC',
+            45,
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'TWAP started',
+          isBold: true,
+        });
+        expect(config.labelOptions).toContainEqual({
+          label: 'Short 1.0 BTC over 45 min',
+          isBold: false,
+        });
+      });
+    });
+
     describe('orderManagement.shared', () => {
       it('returns submitting your trade configuration with dismiss option', () => {
         const { result } = renderHook(() => usePerpsToasts());

@@ -69,6 +69,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Execute at your specified price or better',
       'perps.order.type.basic': 'Basic',
       'perps.order.type.triggered': 'Triggered',
+      'perps.order.type.advanced': 'Advanced',
       'perps.order.type.stop_limit.title': 'Stop limit',
       'perps.order.type.stop_limit.description':
         'Place a limit order if trigger price hits',
@@ -81,6 +82,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.type.take_profit_market.title': 'Take market',
       'perps.order.type.take_profit_market.description':
         'Place a market order if trigger price is reached',
+      'perps.order.type.twap.title': 'TWAP',
+      'perps.order.type.twap.description':
+        'Execute gradually over a selected running time',
     };
     return translations[key] || key;
   }),
@@ -220,6 +224,23 @@ describe('PerpsOrderTypeBottomSheet', () => {
       expect(
         screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION),
       ).toBeOnTheScreen();
+    });
+
+    it('hides TWAP when the strategy option is disabled', () => {
+      render(<PerpsOrderTypeBottomSheet {...defaultProps} />);
+
+      expect(
+        screen.queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders TWAP in the Advanced section when enabled', () => {
+      render(<PerpsOrderTypeBottomSheet {...defaultProps} showTwapType />);
+
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Advanced')).toBeOnTheScreen();
     });
 
     it('shows order type icons only in the Pro presentation', () => {
@@ -371,6 +392,26 @@ describe('PerpsOrderTypeBottomSheet', () => {
       },
     );
 
+    it('emits TWAP and closes when its option is pressed', () => {
+      const onSelect = jest.fn();
+      const onClose = jest.fn();
+      render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          onSelect={onSelect}
+          onClose={onClose}
+          showTwapType
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
+      );
+
+      expect(onSelect).toHaveBeenCalledWith('twap');
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
     it('marks only the current triggered order type as selected', () => {
       render(
         <PerpsOrderTypeBottomSheet
@@ -470,6 +511,27 @@ describe('PerpsOrderTypeBottomSheet', () => {
         );
       },
     );
+
+    it('tracks TWAP with the strategy analytics value', () => {
+      render(
+        <PerpsOrderTypeBottomSheet
+          {...defaultProps}
+          currentOrderType={undefined}
+          showTwapType
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
+      );
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ORDER_TYPE]: PERPS_EVENT_VALUE.ORDER_TYPE.TWAP,
+        }),
+      );
+    });
   });
 
   describe('Bottom Sheet Interaction', () => {

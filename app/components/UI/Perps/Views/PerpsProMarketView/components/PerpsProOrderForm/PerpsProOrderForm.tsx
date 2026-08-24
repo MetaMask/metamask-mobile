@@ -26,6 +26,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
+  HYPERLIQUID_TWAP_LIMITS,
   isLimitExecutionOrderType,
   isTriggerOrderType,
 } from '@metamask/perps-controller';
@@ -35,7 +36,6 @@ import {
   Keyboard,
   Platform,
   Pressable,
-  View,
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useHaptics } from '../../../../../../../util/haptics';
@@ -56,6 +56,12 @@ import type {
 } from './PerpsProOrderForm.types';
 
 const ids = PerpsProOrderFormSelectorsIDs;
+const MINUTES_PER_HOUR = 60;
+const TWAP_DURATION_RANGE_I18N_VALUES = {
+  minDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
+  maxDurationHours:
+    HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes / MINUTES_PER_HOUR,
+};
 
 const EMPTY_TWAP_MODEL = {
   days: '',
@@ -224,15 +230,14 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
             testID={`${ids.NOTICE}-${notice.id}`}
           />
         ) : (
-          <View
+          <Text
             key={notice.id}
+            variant={TextVariant.BodyXs}
+            color={TextColor.ErrorDefault}
             testID={`${ids.NOTICE}-${notice.id}`}
-            collapsable={false}
           >
-            <Text variant={TextVariant.BodyXs} color={TextColor.ErrorDefault}>
-              {notice.message}
-            </Text>
-          </View>
+            {notice.message}
+          </Text>
         ),
       )}
     </Box>
@@ -543,48 +548,48 @@ const PerpsProOrderForm = ({
             >
               {orderTypeTitle}
             </ButtonBase>
-            {showsTriggerPrice ? (
-              <PriceField
-                label={strings('perps.order.trigger_price')}
-                value={triggerPrice}
-                onChangeText={onTriggerPriceChange}
-                onFocus={onTriggerPriceFocus}
-                onBlur={onTriggerPriceBlur}
-                onFieldPress={onTriggerPriceFieldPress}
-                testID={ids.TRIGGER_PRICE_INPUT}
-                prefixTestID={ids.TRIGGER_PRICE_PREFIX}
-              />
-            ) : null}
-            {showsLimitPrice ? (
-              <PriceField
-                label={strings('perps.order.limit_price')}
-                value={limitPrice}
-                onChangeText={onLimitPriceChange}
-                onFocus={onLimitPriceFocus}
-                onBlur={onLimitPriceBlur}
-                onFieldPress={onLimitPriceFieldPress}
-                onUseMidPress={onUseMidPricePress}
-                testID={ids.LIMIT_PRICE_INPUT}
-                prefixTestID={ids.LIMIT_PRICE_PREFIX}
-                midButtonTestID={ids.MID_PRICE_BUTTON}
-              />
-            ) : null}
+            <PriceField
+              label={strings('perps.order.trigger_price')}
+              value={triggerPrice}
+              onChangeText={onTriggerPriceChange}
+              onFocus={onTriggerPriceFocus}
+              onBlur={onTriggerPriceBlur}
+              onFieldPress={onTriggerPriceFieldPress}
+              testID={ids.TRIGGER_PRICE_INPUT}
+              prefixTestID={ids.TRIGGER_PRICE_PREFIX}
+              isHidden={!showsTriggerPrice}
+            />
+            <PriceField
+              label={strings('perps.order.limit_price')}
+              value={limitPrice}
+              onChangeText={onLimitPriceChange}
+              onFocus={onLimitPriceFocus}
+              onBlur={onLimitPriceBlur}
+              onFieldPress={onLimitPriceFieldPress}
+              onUseMidPress={showsLimitPrice ? onUseMidPricePress : undefined}
+              testID={ids.LIMIT_PRICE_INPUT}
+              prefixTestID={ids.LIMIT_PRICE_PREFIX}
+              midButtonTestID={ids.MID_PRICE_BUTTON}
+              isHidden={!showsLimitPrice}
+            />
           </Box>
           {isTwap ? (
             <Box twClassName="gap-2" testID={ids.TWAP_DURATION}>
-              <View testID={ids.TWAP_DURATION_LABEL} collapsable={false}>
-                <Text
-                  variant={TextVariant.BodySm}
-                  fontWeight={FontWeight.Medium}
-                >
-                  {strings('perps.pro_order_form.twap.running_time')}
-                </Text>
-              </View>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                testID={ids.TWAP_DURATION_LABEL}
+              >
+                {strings('perps.pro_order_form.twap.running_time')}
+              </Text>
               <Text
                 variant={TextVariant.BodyXs}
                 color={TextColor.TextAlternative}
               >
-                {strings('perps.pro_order_form.twap.valid_range')}
+                {strings(
+                  'perps.pro_order_form.twap.valid_range',
+                  TWAP_DURATION_RANGE_I18N_VALUES,
+                )}
               </Text>
               <Box twClassName="flex-row gap-2">
                 <Box twClassName="flex-1">

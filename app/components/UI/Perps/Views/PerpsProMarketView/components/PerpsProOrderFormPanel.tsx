@@ -12,7 +12,11 @@ import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomShe
 import PerpsMarginModeBottomSheet from '../../../components/PerpsMarginModeBottomSheet';
 import PerpsOrderTypeBottomSheet from '../../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
-import { selectPerpsProTriggeredOrdersEnabledFlag } from '../../../selectors/featureFlags';
+import {
+  selectPerpsProTriggeredOrdersEnabledFlag,
+  selectPerpsProTwapEnabledFlag,
+} from '../../../selectors/featureFlags';
+import { selectPerpsProvider } from '../../../selectors/perpsController';
 import { useIsPerpsProModeActive } from '../../../utils/perpsModeSwitch';
 import PerpsProModalPortal from './PerpsProModalPortal';
 import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
@@ -46,6 +50,10 @@ const PerpsProOrderFormPanel = ({
   const isTriggeredOrdersEnabled = useSelector(
     selectPerpsProTriggeredOrdersEnabledFlag,
   );
+  const isTwapFlagEnabled = useSelector(selectPerpsProTwapEnabledFlag);
+  const activeProvider = useSelector(selectPerpsProvider);
+  const isTwapEnabled =
+    isProModeActive && isTwapFlagEnabled && activeProvider === 'hyperliquid';
   const {
     direction,
     onDirectionChange,
@@ -99,6 +107,7 @@ const PerpsProOrderFormPanel = ({
   } = usePerpsProOrderForm({
     market,
     isTriggeredOrdersEnabled: isProModeActive && isTriggeredOrdersEnabled,
+    isTwapEnabled,
   });
 
   const { styles } = useStyles(createStyles, {});
@@ -227,7 +236,7 @@ const PerpsProOrderFormPanel = ({
             title={strings('perps.pro_order_form.choose_order_type')}
             showSelectedIcon
             showTriggeredTypes={showTriggeredTypes}
-            showTwapType={isProModeActive}
+            showTwapType={isTwapEnabled}
           />
         </PerpsProModalPortal>
       )}

@@ -92,6 +92,36 @@ describe('usePerpsOrderValidation', () => {
   };
 
   describe('protocol validation', () => {
+    it('passes TWAP duration and Randomize to protocol validation', async () => {
+      const twapOrderForm: OrderFormState = {
+        ...defaultOrderForm,
+        type: 'twap',
+      };
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          orderForm: twapOrderForm,
+          twapDuration: 90,
+          twapRandomize: true,
+        }),
+      );
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      expect(mockValidateOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'twap',
+          twapDuration: 90,
+          twapRandomize: true,
+        }),
+      );
+    });
+
     it('clears existing errors when position size changes to zero', async () => {
       // Arrange
       mockValidateOrder.mockResolvedValue({

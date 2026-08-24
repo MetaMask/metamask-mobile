@@ -54,6 +54,20 @@ const createSizeSlider = (
   ...overrides,
 });
 
+const createTwap = (
+  overrides: Partial<NonNullable<PerpsProOrderFormProps['twap']>> = {},
+): NonNullable<PerpsProOrderFormProps['twap']> => ({
+  days: '',
+  hours: '',
+  minutes: '5',
+  randomize: false,
+  onDaysChange: jest.fn(),
+  onHoursChange: jest.fn(),
+  onMinutesChange: jest.fn(),
+  onRandomizeChange: jest.fn(),
+  ...overrides,
+});
+
 const createProps = (
   overrides: Partial<PerpsProOrderFormProps> = {},
 ): PerpsProOrderFormProps => {
@@ -98,11 +112,6 @@ describe('PerpsProOrderForm', () => {
 
   describe('inputs', () => {
     it('renders TWAP controls and hides incompatible order fields', () => {
-      const onDaysChange = jest.fn();
-      const onHoursChange = jest.fn();
-      const onMinutesChange = jest.fn();
-      const onRandomizeChange = jest.fn();
-
       renderForm({
         orderType: 'twap',
         onTPSLPress: jest.fn(),
@@ -111,28 +120,70 @@ describe('PerpsProOrderForm', () => {
           hours: '2',
           minutes: '3',
           randomize: false,
-          onDaysChange,
-          onHoursChange,
-          onMinutesChange,
-          onRandomizeChange,
+          onDaysChange: jest.fn(),
+          onHoursChange: jest.fn(),
+          onMinutesChange: jest.fn(),
+          onRandomizeChange: jest.fn(),
         },
       });
 
-      fireEvent.changeText(screen.getByTestId(ids.TWAP_DAYS), '2');
-      fireEvent.changeText(screen.getByTestId(ids.TWAP_HOURS), '4');
-      fireEvent.changeText(screen.getByTestId(ids.TWAP_MINUTES), '5');
-      fireEvent.press(screen.getByTestId(ids.TWAP_RANDOMIZE));
-
       expect(screen.getByTestId(ids.TWAP_DURATION)).toBeOnTheScreen();
-      expect(onDaysChange).toHaveBeenCalledWith('2');
-      expect(onHoursChange).toHaveBeenCalledWith('4');
-      expect(onMinutesChange).toHaveBeenCalledWith('5');
-      expect(onRandomizeChange).toHaveBeenCalledWith(true);
+      expect(screen.getByTestId(ids.TWAP_DURATION_LABEL)).toHaveTextContent(
+        'Running time',
+      );
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
       expect(
         screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),
       ).not.toBeOnTheScreen();
       expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+    });
+
+    it('forwards TWAP day input changes', () => {
+      const onDaysChange = jest.fn();
+      renderForm({
+        orderType: 'twap',
+        twap: createTwap({ days: '1', onDaysChange }),
+      });
+
+      fireEvent.changeText(screen.getByTestId(ids.TWAP_DAYS), '2');
+
+      expect(onDaysChange).toHaveBeenCalledWith('2');
+    });
+
+    it('forwards TWAP hour input changes', () => {
+      const onHoursChange = jest.fn();
+      renderForm({
+        orderType: 'twap',
+        twap: createTwap({ hours: '2', onHoursChange }),
+      });
+
+      fireEvent.changeText(screen.getByTestId(ids.TWAP_HOURS), '4');
+
+      expect(onHoursChange).toHaveBeenCalledWith('4');
+    });
+
+    it('forwards TWAP minute input changes', () => {
+      const onMinutesChange = jest.fn();
+      renderForm({
+        orderType: 'twap',
+        twap: createTwap({ minutes: '3', onMinutesChange }),
+      });
+
+      fireEvent.changeText(screen.getByTestId(ids.TWAP_MINUTES), '5');
+
+      expect(onMinutesChange).toHaveBeenCalledWith('5');
+    });
+
+    it('forwards the next TWAP Randomize value', () => {
+      const onRandomizeChange = jest.fn();
+      renderForm({
+        orderType: 'twap',
+        twap: createTwap({ randomize: false, onRandomizeChange }),
+      });
+
+      fireEvent.press(screen.getByTestId(ids.TWAP_RANDOMIZE));
+
+      expect(onRandomizeChange).toHaveBeenCalledWith(true);
     });
 
     it('passes raw size text to sizeInput.onChange', () => {
@@ -416,6 +467,16 @@ describe('PerpsProOrderForm', () => {
     it('keeps all keyboard accessories mounted on market', () => {
       renderForm({ orderType: 'market' });
 
+      expect(
+        screen.getByTestId(ids.TRIGGER_PRICE_INPUT, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('inputAccessoryViewID', triggerAccessoryID);
+      expect(
+        screen.getByTestId(ids.LIMIT_PRICE_INPUT, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('inputAccessoryViewID', limitPriceAccessoryID);
       expect(
         screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),
       ).not.toBeOnTheScreen();

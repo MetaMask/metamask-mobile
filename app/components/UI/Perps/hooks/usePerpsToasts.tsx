@@ -140,6 +140,21 @@ export interface PerpsToastOptionsConfig {
       ) => PerpsToastOptions;
       editFailed: (error?: string) => PerpsToastOptions;
     };
+    strategy: {
+      submitted: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+        durationMinutes?: number,
+      ) => PerpsToastOptions;
+      confirmed: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+        durationMinutes?: number,
+      ) => PerpsToastOptions;
+      creationFailed: (error?: string) => PerpsToastOptions;
+    };
   };
   positionManagement: {
     closePosition: {
@@ -656,6 +671,66 @@ const usePerpsToasts = (): {
                 error,
                 fallbackMessage: strings(
                   'perps.order.order_update_failed_subtitle',
+                ),
+              }),
+            ),
+          }),
+        },
+        strategy: {
+          submitted: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+            durationMinutes?: number,
+          ) => ({
+            ...perpsBaseToastOptions.inProgress,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_submitted'),
+              durationMinutes === undefined
+                ? strings('perps.order.order_placement_subtitle', {
+                    direction: capitalize(direction),
+                    amount,
+                    assetSymbol: getPerpsDisplaySymbol(assetSymbol),
+                  })
+                : strings('perps.order.twap_placement_subtitle', {
+                    direction: capitalize(direction),
+                    amount,
+                    assetSymbol: getPerpsDisplaySymbol(assetSymbol),
+                    durationMinutes,
+                  }),
+            ),
+          }),
+          confirmed: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+            durationMinutes?: number,
+          ) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.twap_started'),
+              durationMinutes === undefined
+                ? strings('perps.order.order_placement_subtitle', {
+                    direction: capitalize(direction),
+                    amount,
+                    assetSymbol: getPerpsDisplaySymbol(assetSymbol),
+                  })
+                : strings('perps.order.twap_placement_subtitle', {
+                    direction: capitalize(direction),
+                    amount,
+                    assetSymbol: getPerpsDisplaySymbol(assetSymbol),
+                    durationMinutes,
+                  }),
+            ),
+          }),
+          creationFailed: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_failed'),
+              handlePerpsError({
+                error,
+                fallbackMessage: strings(
+                  'perps.order.your_funds_have_been_returned_to_you',
                 ),
               }),
             ),

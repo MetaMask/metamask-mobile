@@ -19,6 +19,7 @@ import {
   selectPerpsWatchlistEnabledFlag,
   selectPerpsProModeEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
+  selectPerpsProTwapEnabledFlag,
   selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsShowFullAssetNamesFlag,
   selectPerpsClosePositionLimitOrderEnabledFlag,
@@ -2180,6 +2181,64 @@ describe('Perps Feature Flag Selectors', () => {
       const result = selectPerpsProTriggeredOrdersEnabledFlag(state);
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPerpsProTwapEnabledFlag', () => {
+    const createStateWithFlag = (flag?: Json) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags:
+              flag === undefined ? {} : { perpsMobileTwap: flag },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('returns true when the remote flag is enabled for the app version', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+
+      const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the remote flag is disabled', () => {
+      const state = createStateWithFlag({
+        enabled: false,
+        minimumVersion: '1.0.0',
+      });
+
+      const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the app version is below the minimum', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '99.0.0',
+      });
+
+      const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('falls back to the local flag when the remote flag is missing', () => {
+      process.env.MM_PERPS_TWAP_ENABLED = 'true';
+      const state = createStateWithFlag();
+
+      const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(true);
     });
   });
 

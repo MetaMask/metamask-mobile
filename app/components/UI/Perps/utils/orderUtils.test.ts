@@ -38,6 +38,7 @@ describe('orderUtils', () => {
       ['stop_limit', 'resting'],
       ['take_profit_market', 'resting'],
       ['take_profit_limit', 'resting'],
+      ['twap', 'strategy'],
     ] as const)('classifies %s as %s', (orderType, expectedKind) => {
       expect(getOrderPlacementKind(orderType)).toBe(expectedKind);
     });
@@ -45,6 +46,7 @@ describe('orderUtils', () => {
     it('maps resting placements to limit management copy', () => {
       expect(getOrderManagementToastKey('stop_market')).toBe('limit');
       expect(getOrderManagementToastKey('market')).toBe('market');
+      expect(getOrderManagementToastKey('twap')).toBe('strategy');
     });
   });
 

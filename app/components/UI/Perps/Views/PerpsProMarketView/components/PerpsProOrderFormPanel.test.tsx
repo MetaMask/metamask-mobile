@@ -15,6 +15,11 @@ import {
   PerpsProOrderFormSelectorsIDs,
 } from '../../../Perps.testIds';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
+import {
+  selectPerpsProTriggeredOrdersEnabledFlag,
+  selectPerpsProTwapEnabledFlag,
+} from '../../../selectors/featureFlags';
+import { selectPerpsProvider } from '../../../selectors/perpsController';
 
 const mockUseSelector = jest.fn();
 const mockUseIsPerpsProModeActive = jest.fn();
@@ -127,6 +132,7 @@ jest.mock('../../../components/PerpsOrderTypeBottomSheet', () => {
       isVisible: boolean;
       onSelect: (type: string) => void;
       showTriggeredTypes: boolean;
+      showTwapType: boolean;
     }) => {
       mockOrderTypeBottomSheet(props);
       return props.isVisible
@@ -205,7 +211,12 @@ const renderPanel = (
 describe('PerpsProOrderFormPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue(true);
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectPerpsProvider) {
+        return 'hyperliquid';
+      }
+      return true;
+    });
     mockUseIsPerpsProModeActive.mockReturnValue(true);
     // Fully restore every property (not just the few tests currently mutate) so
     // added tests can safely set any field without bleeding into later tests.
@@ -427,7 +438,12 @@ describe('PerpsProOrderFormPanel', () => {
   });
 
   it('hides triggered types when the remote flag is disabled', () => {
-    mockUseSelector.mockReturnValue(false);
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectPerpsProvider) {
+        return 'hyperliquid';
+      }
+      return selector !== selectPerpsProTriggeredOrdersEnabledFlag;
+    });
     mockHookResult.isOrderTypeVisible = true;
 
     renderPanel();
@@ -435,6 +451,51 @@ describe('PerpsProOrderFormPanel', () => {
     expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
       expect.objectContaining({
         showTriggeredTypes: false,
+      }),
+    );
+  });
+
+  it('shows TWAP for Hyperliquid when its remote flag is enabled', () => {
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        showTwapType: true,
+      }),
+    );
+  });
+
+  it('hides TWAP when its remote flag is disabled', () => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectPerpsProvider) {
+        return 'hyperliquid';
+      }
+      return selector !== selectPerpsProTwapEnabledFlag;
+    });
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        showTwapType: false,
+      }),
+    );
+  });
+
+  it('hides TWAP for providers without strategy placement support', () => {
+    mockUseSelector.mockImplementation((selector: unknown) =>
+      selector === selectPerpsProvider ? 'myx' : true,
+    );
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        showTwapType: false,
       }),
     );
   });

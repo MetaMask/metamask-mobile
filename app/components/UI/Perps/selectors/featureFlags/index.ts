@@ -431,6 +431,25 @@ export const selectPerpsProTriggeredOrdersEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Hyperliquid TWAP placement in the Perps Pro order form.
+ * Defaults to false so strategy placement can be rolled out independently.
+ *
+ * LaunchDarkly key: `perps-mobile-twap`
+ *
+ * @returns boolean - true if TWAP placement can be shown, false otherwise
+ */
+export const selectPerpsProTwapEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_PERPS_TWAP_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.perpsMobileTwap as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
  * Selector for Terminal Backend feature flag.
  * Controls whether market-data calls route through the MetaMask Terminal API
  * (with HyperLiquid fallback) or go directly to HyperLiquid.

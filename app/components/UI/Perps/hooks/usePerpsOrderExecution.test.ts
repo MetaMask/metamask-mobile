@@ -11,7 +11,7 @@ import {
   PERPS_CUF_STREAM_CONFIRM_RACE_MS,
   PERPS_CUF_STREAM_TIMEOUT_MS,
 } from '../constants/perpsCufTags';
-import { endTrace, TraceName } from '../../../../util/trace';
+import { endTrace, trace, TraceName } from '../../../../util/trace';
 
 jest.mock('./usePerpsTrading');
 jest.mock('../../../../util/trace', () => {
@@ -23,6 +23,7 @@ jest.mock('../../../../util/trace', () => {
   };
 });
 const mockEndTrace = endTrace as jest.Mock;
+const mockTrace = trace as jest.Mock;
 const mockGetPositionsSnapshot = jest.fn();
 const mockGetOrdersSnapshot = jest.fn();
 const mockPositionsLastDeliveredAt = jest.fn(() => null as number | null);
@@ -124,6 +125,29 @@ describe('usePerpsOrderExecution', () => {
       return { success: true, orderId: 'order123', ...result };
     });
   };
+
+  describe('strategy orders', () => {
+    it('confirms TWAP acceptance without a render CUF or stream wait', async () => {
+      const onSuccess = jest.fn();
+      mockPlaceOrder.mockResolvedValue({ success: true, orderId: 'twap-1' });
+      const { result } = renderHook(() =>
+        usePerpsOrderExecution({ onSuccess }),
+      );
+
+      await act(async () => {
+        await result.current.placeOrder({
+          ...mockOrderParams,
+          orderType: 'twap',
+          twapDuration: 90,
+          twapRandomize: true,
+        });
+      });
+
+      expect(onSuccess).toHaveBeenCalledWith();
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+  });
 
   describe('limit orders (order-render CUF, not position-render)', () => {
     it('confirms immediately when the resting order is already rendered', async () => {

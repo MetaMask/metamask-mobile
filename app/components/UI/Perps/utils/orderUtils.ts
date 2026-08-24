@@ -28,7 +28,7 @@ const SYNTHETIC_SL_ID_SUFFIX = '-synthetic-sl';
 const TRIGGER_CONDITION_PRICE_ABOVE = 'perps.order_details.price_above';
 const TRIGGER_CONDITION_PRICE_BELOW = 'perps.order_details.price_below';
 
-export type OrderPlacementKind = 'immediate' | 'resting';
+export type OrderPlacementKind = 'immediate' | 'resting' | 'strategy';
 
 /**
  * Identifies whether submitting an order creates an immediate fill or a
@@ -40,11 +40,16 @@ export type OrderPlacementKind = 'immediate' | 'resting';
  */
 export const getOrderPlacementKind = (
   orderType: OrderType | undefined,
-): OrderPlacementKind =>
-  orderType === undefined ||
-  (!isLimitExecutionOrderType(orderType) && !isTriggerOrderType(orderType))
+): OrderPlacementKind => {
+  if (orderType !== undefined && isStrategyOrderType(orderType)) {
+    return 'strategy';
+  }
+
+  return orderType === undefined ||
+    (!isLimitExecutionOrderType(orderType) && !isTriggerOrderType(orderType))
     ? 'immediate'
     : 'resting';
+};
 
 /**
  * Selects the toast family for the placement lifecycle.
@@ -54,12 +59,13 @@ export const getOrderPlacementKind = (
  */
 export const getOrderManagementToastKey = (
   orderType: OrderType | undefined,
-): 'market' | 'limit' =>
-  orderType !== undefined && isStrategyOrderType(orderType)
-    ? 'limit'
-    : getOrderPlacementKind(orderType) === 'resting'
-      ? 'limit'
-      : 'market';
+): 'market' | 'limit' | 'strategy' => {
+  const placementKind = getOrderPlacementKind(orderType);
+  if (placementKind === 'strategy') {
+    return 'strategy';
+  }
+  return placementKind === 'resting' ? 'limit' : 'market';
+};
 
 /**
  * Parses the trigger price from an order, returning null when absent or invalid.
