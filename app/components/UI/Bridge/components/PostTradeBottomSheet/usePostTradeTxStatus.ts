@@ -93,9 +93,9 @@ export const usePostTradeTxStatus = ({
   // Same-chain Solana swaps never terminalize in `BridgeStatusController`, so
   // resolve them from `MultichainTransactionsController` instead
   const shouldResolveFromMultichain = Boolean(
-    !isBridgeTx && quote && 
-    (isSolanaChainId(quote.srcChainId) ||
-    isStellarChainId(quote.srcChainId))
+    !isBridgeTx &&
+      quote &&
+      (isSolanaChainId(quote.srcChainId) || isStellarChainId(quote.srcChainId)),
   );
 
   const multichainStatus = useSelector((state: RootState) =>

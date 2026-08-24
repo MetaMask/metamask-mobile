@@ -118,75 +118,81 @@ describe('usePostTradeTxStatus', () => {
     expect(statusOf(undefined, BridgeStatus.UNKNOWN)).toBe(Status.InProgress);
   });
 
-  it.each([{
-    chainId: SOLANA_MAINNET_CHAIN_ID,
-    chainName: 'Solana',
-    txHash: 'sol-sig',
-    txnGenerator: solanaTx,
-  }, {
-    chainId: STELLAR_MAINNET_CHAIN_ID,
-    chainName: 'Stellar',
-    txHash: 'stellar-sig',
-    txnGenerator: stellarTx,
-  }])('resolves same-chain $chainName swaps from multichain transactions', ({ chainId, txHash, txnGenerator }) => {
-    expect(
-      statusOf(undefined, BridgeStatus.UNKNOWN, {
-        srcChainId: chainId,
-        destChainId: chainId,
-        transactionHash: txHash,
-        nonEvmTransactions: txnGenerator(KeyringTransactionStatus.Confirmed),
-      }),
-    ).toBe(Status.Success);
+  it.each([
+    {
+      chainId: SOLANA_MAINNET_CHAIN_ID,
+      chainName: 'Solana',
+      txHash: 'sol-sig',
+      txnGenerator: solanaTx,
+    },
+    {
+      chainId: STELLAR_MAINNET_CHAIN_ID,
+      chainName: 'Stellar',
+      txHash: 'stellar-sig',
+      txnGenerator: stellarTx,
+    },
+  ])(
+    'resolves same-chain $chainName swaps from multichain transactions',
+    ({ chainId, txHash, txnGenerator }) => {
+      expect(
+        statusOf(undefined, BridgeStatus.UNKNOWN, {
+          srcChainId: chainId,
+          destChainId: chainId,
+          transactionHash: txHash,
+          nonEvmTransactions: txnGenerator(KeyringTransactionStatus.Confirmed),
+        }),
+      ).toBe(Status.Success);
 
-    expect(
-      statusOf(undefined, BridgeStatus.UNKNOWN, {
-        metaHash: '',
-        srcChainId: chainId,
-        destChainId: chainId,
-        transactionHash: txHash,
-        nonEvmTransactions: txnGenerator(KeyringTransactionStatus.Confirmed),
-      }),
-    ).toBe(Status.Success);
+      expect(
+        statusOf(undefined, BridgeStatus.UNKNOWN, {
+          metaHash: '',
+          srcChainId: chainId,
+          destChainId: chainId,
+          transactionHash: txHash,
+          nonEvmTransactions: txnGenerator(KeyringTransactionStatus.Confirmed),
+        }),
+      ).toBe(Status.Success);
 
-    expect(
-      statusOf(undefined, BridgeStatus.UNKNOWN, {
-        srcChainId: chainId,
-        destChainId: chainId,
-        transactionHash: txHash,
-        nonEvmTransactions: txnGenerator(KeyringTransactionStatus.Failed),
-      }),
-    ).toBe(Status.Failed);
+      expect(
+        statusOf(undefined, BridgeStatus.UNKNOWN, {
+          srcChainId: chainId,
+          destChainId: chainId,
+          transactionHash: txHash,
+          nonEvmTransactions: txnGenerator(KeyringTransactionStatus.Failed),
+        }),
+      ).toBe(Status.Failed);
 
-    expect(
-      statusOf(undefined, BridgeStatus.UNKNOWN, {
-        isBridge: true,
-        srcChainId: chainId,
-        destChainId: 1,
-        transactionHash: txHash,
-        nonEvmTransactions: txnGenerator(KeyringTransactionStatus.Confirmed),
-      }),
-    ).toBe(Status.InProgress);
+      expect(
+        statusOf(undefined, BridgeStatus.UNKNOWN, {
+          isBridge: true,
+          srcChainId: chainId,
+          destChainId: 1,
+          transactionHash: txHash,
+          nonEvmTransactions: txnGenerator(KeyringTransactionStatus.Confirmed),
+        }),
+      ).toBe(Status.InProgress);
 
-    expect(
-      statusOf(undefined, BridgeStatus.UNKNOWN, {
-        srcChainId: chainId,
-        destChainId: chainId,
-        statusSrcTxHash: txHash,
-        nonEvmTransactions: txnGenerator(KeyringTransactionStatus.Confirmed),
-      }),
-    ).toBe(Status.Success);
+      expect(
+        statusOf(undefined, BridgeStatus.UNKNOWN, {
+          srcChainId: chainId,
+          destChainId: chainId,
+          statusSrcTxHash: txHash,
+          nonEvmTransactions: txnGenerator(KeyringTransactionStatus.Confirmed),
+        }),
+      ).toBe(Status.Success);
 
-    expect(
-      statusOf(undefined, BridgeStatus.UNKNOWN, {
-        srcChainId: chainId,
-        destChainId: chainId,
-        nonEvmTransactions: txnGenerator(
-          KeyringTransactionStatus.Confirmed,
-          'tx-id',
-        ),
-      }),
-    ).toBe(Status.Success);
-  });
+      expect(
+        statusOf(undefined, BridgeStatus.UNKNOWN, {
+          srcChainId: chainId,
+          destChainId: chainId,
+          nonEvmTransactions: txnGenerator(
+            KeyringTransactionStatus.Confirmed,
+            'tx-id',
+          ),
+        }),
+      ).toBe(Status.Success);
+    },
+  );
 
   describe('cross-chain bridge completion', () => {
     it('stays in progress when a bridge reports COMPLETE without a destination tx hash', () => {
