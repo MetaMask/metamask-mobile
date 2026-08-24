@@ -2,11 +2,11 @@
  * Wildcard Token List Utility Functions
  *
  * Generic utilities for working with chain-to-token mappings that support wildcards.
- * Used for mUSD conversion filtering, CTA visibility, and other token filtering needs.
+ * Used to parse remote token catalogs, such as the Money account no-fee deposit list.
  */
 
 /**
- * Wildcard token list type for mUSD conversion.
+ * Wildcard token list type.
  * Maps chain IDs (or "*" for all chains) to arrays of token symbols (or ["*"] for all tokens).
  *
  * @example
@@ -38,59 +38,6 @@ export const isValidWildcardTokenList = (
       Array.isArray(val) &&
       val.every((symbol) => typeof symbol === 'string'),
   );
-};
-
-/**
- * Checks if a token is in a wildcard token list.
- * Supports wildcard matching:
- * - "*" as chain key: applies to all chains
- * - "*" in symbol array: applies to all tokens on that chain
- *
- * @param tokenSymbol - The token symbol (case-insensitive)
- * @param wildcardTokenList - The wildcard token list to use
- * @param chainId - The chain ID where the token exists
- * @returns true if the token is in the wildcard token list, false otherwise
- */
-export const isTokenInWildcardList = (
-  tokenSymbol: string,
-  wildcardTokenList: WildcardTokenList = {},
-  chainId?: string,
-): boolean => {
-  if (!chainId || !tokenSymbol) return false;
-
-  const normalizedSymbol = tokenSymbol.toUpperCase();
-
-  // Check global wildcard: wildcardTokenList["*"] includes this symbol
-  const globalTokenSymbols = wildcardTokenList['*'];
-  if (globalTokenSymbols) {
-    if (
-      globalTokenSymbols.includes('*') ||
-      globalTokenSymbols
-        .map((symbol) => symbol.toUpperCase())
-        .includes(normalizedSymbol)
-    ) {
-      return true;
-    }
-  }
-
-  // Check chain-specific rules
-  const chainTokenSymbols = wildcardTokenList[chainId];
-  if (chainTokenSymbols) {
-    // Chain wildcard: include all tokens on this chain
-    if (chainTokenSymbols.includes('*')) {
-      return true;
-    }
-    // Specific symbol check
-    if (
-      chainTokenSymbols
-        .map((symbol) => symbol.toUpperCase())
-        .includes(normalizedSymbol)
-    ) {
-      return true;
-    }
-  }
-
-  return false;
 };
 
 /**
@@ -145,66 +92,4 @@ export const getWildcardTokenListFromConfig = (
   }
 
   return {};
-};
-
-/**
- * Checks if a token is allowed based on combined allowlist and blocklist rules.
- *
- * Logic:
- * 1. If allowlist is non-empty, token MUST be in allowlist
- * 2. If blocklist is non-empty, token must NOT be in blocklist
- * 3. Both conditions must pass for the token to be allowed
- *
- * @param tokenSymbol - The token symbol (case-insensitive)
- * @param allowlist - Tokens to allow (empty = allow all)
- * @param blocklist - Tokens to block (empty = block none)
- * @param chainId - The chain ID where the token exists
- * @returns true if the token is allowed, false otherwise
- *
- * @example Allowlist only (specific tokens)
- * isTokenAllowed("USDC", { "0x1": ["USDC", "USDT"] }, {}, "0x1") // → true
- * isTokenAllowed("DAI", { "0x1": ["USDC", "USDT"] }, {}, "0x1") // → false
- *
- * @example Blocklist only (all except certain tokens)
- * isTokenAllowed("USDC", {}, { "*": ["TUSD"] }, "0x1") // → true
- * isTokenAllowed("TUSD", {}, { "*": ["TUSD"] }, "0x1") // → false
- *
- * @example Combined (allowlist + blocklist override)
- * isTokenAllowed("USDT", { "0x1": ["USDC", "USDT"] }, { "*": ["USDT"] }, "0x1") // → false
- */
-export const isTokenAllowed = (
-  tokenSymbol: string,
-  allowlist: WildcardTokenList = {},
-  blocklist: WildcardTokenList = {},
-  chainId?: string,
-): boolean => {
-  if (!chainId || !tokenSymbol) return false;
-
-  // Step 1: If allowlist is non-empty, token must be in it
-  const hasAllowlist = Object.keys(allowlist).length > 0;
-  if (hasAllowlist) {
-    const isInAllowlist = isTokenInWildcardList(
-      tokenSymbol,
-      allowlist,
-      chainId,
-    );
-    if (!isInAllowlist) {
-      return false;
-    }
-  }
-
-  // Step 2: If blocklist is non-empty, token must NOT be in it
-  const hasBlocklist = Object.keys(blocklist).length > 0;
-  if (hasBlocklist) {
-    const isInBlocklist = isTokenInWildcardList(
-      tokenSymbol,
-      blocklist,
-      chainId,
-    );
-    if (isInBlocklist) {
-      return false;
-    }
-  }
-
-  return true;
 };

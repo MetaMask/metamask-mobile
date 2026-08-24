@@ -1,7 +1,6 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { ConfirmationParams } from '../../../Views/confirmations/components/confirm/confirm-component';
 import type { AssetType } from '../../../Views/confirmations/types/token';
-import type { EarnMusdConversionEducationViewRouteParams } from '../Views/EarnMusdConversionEducationView';
 import type { EarnTokenDetails } from './lending.types';
 import type {
   LendingDepositConfirmationParams,
@@ -18,9 +17,6 @@ export type EarnScreensStackParamList = {
   EarnLendingDepositConfirmation: LendingDepositConfirmationParams | undefined;
   EarnLendingWithdrawalConfirmation:
     | LendingWithdrawalConfirmationParams
-    | undefined;
-  EarnMusdConversionEducation:
-    | EarnMusdConversionEducationViewRouteParams
     | undefined;
   RedesignedConfirmations: ConfirmationParams | undefined;
 };

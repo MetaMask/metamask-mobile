@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { retryWithExponentialDelay } from '../../../../util/exponential-retry';
-import { ensureMusdTokenRegistered } from '../utils/musdConversionTransaction';
+import { ensureMusdTokenRegistered } from '../utils/musdTokenRegistration';
 import { useEnsureMusdTokenRegistered } from './useEnsureMusdTokenRegistered';
 
 jest.mock('react-redux', () => ({
@@ -32,7 +32,7 @@ jest.mock('../../../../util/exponential-retry', () => ({
   retryWithExponentialDelay: jest.fn((fn: () => Promise<unknown>) => fn()),
 }));
 
-jest.mock('../utils/musdConversionTransaction', () => ({
+jest.mock('../utils/musdTokenRegistration', () => ({
   ensureMusdTokenRegistered: jest.fn(),
 }));
 
