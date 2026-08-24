@@ -1,6 +1,11 @@
 import { v4 as uuidv4 } from 'uuid';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { endTrace, trace, TraceName } from '../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import type { BridgeToken } from '../types';
 
 export type SwapQuoteFetchTraceResult =
@@ -57,6 +62,7 @@ export const swapQuoteFetchTrace = {
     }
     trace({
       name: TraceName.SwapQuoteFetch,
+      op: TraceOperation.BridgeDataFetch,
       id,
       data: {
         request_id: id,

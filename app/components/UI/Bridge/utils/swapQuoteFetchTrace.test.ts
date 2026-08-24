@@ -1,5 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
-import { endTrace, trace, TraceName } from '../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import { swapQuoteFetchTrace } from './swapQuoteFetchTrace';
 import type { BridgeToken } from '../types';
 
@@ -40,6 +45,7 @@ describe('swapQuoteFetchTrace', () => {
     expect(traceId).toBe('quote-trace-id');
     expect(mockTrace).toHaveBeenCalledWith({
       name: TraceName.SwapQuoteFetch,
+      op: TraceOperation.BridgeDataFetch,
       id: 'quote-trace-id',
       data: {
         request_id: 'quote-trace-id',
