@@ -34,12 +34,20 @@ export const PRO_POSITION_SIDE_FILTER_OPTIONS: {
   },
 ];
 
+/**
+ * Shared shape of the positions and orders side filters. The two domains export
+ * independent contracts (`ProPositionSideFilter` / `ProOrderSideFilter`) that
+ * happen to be value-equal today; the shared internals below are typed against
+ * this local union so neither domain borrows the other's contract.
+ */
+type ProSideFilter = ProPositionSideFilter | ProOrderSideFilter;
+
 const getPositionSide = (position: Position): 'long' | 'short' =>
   parseFloat(position.size) >= 0 ? 'long' : 'short';
 
 const filterProItemsBySide = <T>(
   items: T[],
-  sideFilter: ProPositionSideFilter,
+  sideFilter: ProSideFilter,
   getSide: (item: T) => 'long' | 'short',
 ): T[] => {
   if (sideFilter === 'all') {
@@ -68,7 +76,7 @@ const getOrderSide = (order: Order): 'long' | 'short' =>
  */
 export const filterProOrdersBySide = (
   orders: Order[],
-  sideFilter: ProPositionSideFilter,
+  sideFilter: ProOrderSideFilter,
 ): Order[] => filterProItemsBySide(orders, sideFilter, getOrderSide);
 
 export const getProPositionSideFilterButtonLabelKey = (
@@ -96,7 +104,7 @@ const SIDE_FILTER_EMPTY_DESCRIPTION_KEYS = {
 } as const;
 
 export const getProSideFilterEmptyDescriptionKey = (
-  sideFilter: ProPositionSideFilter,
+  sideFilter: ProSideFilter,
   entity: keyof typeof SIDE_FILTER_EMPTY_DESCRIPTION_KEYS,
 ): string | undefined => {
   if (sideFilter === 'all') {
@@ -112,6 +120,6 @@ export const getProPositionSideFilterEmptyDescriptionKey = (
   getProSideFilterEmptyDescriptionKey(sideFilter, 'positions');
 
 export const getProOrderSideFilterEmptyDescriptionKey = (
-  sideFilter: ProPositionSideFilter,
+  sideFilter: ProOrderSideFilter,
 ): string | undefined =>
   getProSideFilterEmptyDescriptionKey(sideFilter, 'orders');
