@@ -64,6 +64,7 @@ import {
   IconName as MMDSIconName,
   Text as CustomText,
   TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
 import {
@@ -239,6 +240,13 @@ const createStyles = ({ colors }: Theme) =>
     headerAccountPickerStyle: {
       marginRight: 16,
       backgroundColor: 'transparent',
+    },
+    // The refreshed header drops the account name, so the balance cluster
+    // carries it instead. `marginHorizontal` matches AccountGroupBalance so the
+    // name aligns with the balance; the negative bottom absorbs the cluster gap.
+    refreshedHeaderAccountName: {
+      marginHorizontal: 16,
+      marginBottom: -12,
     },
   });
 
@@ -1082,6 +1090,16 @@ const Wallet = ({
   ) : (
     <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
+      {useRefreshedHeader && (
+        <CustomText
+          variant={TextVariant.BodyMd}
+          style={styles.refreshedHeaderAccountName}
+          numberOfLines={1}
+          testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING}
+        >
+          {displayName}
+        </CustomText>
+      )}
       <AccountGroupBalance {...walletHomeAccountGroupBalanceProps} />
       {walletHomeMainAssetDetailsActions}
       {growthBanner}
@@ -1234,7 +1252,7 @@ const Wallet = ({
                       </View>
                     )
                   }
-                  twClassName="pl-1 pr-3"
+                  twClassName={useRefreshedHeader ? 'pl-4 pr-4' : 'pl-1 pr-3'}
                 >
                   {useRefreshedHeader ? (
                     <TouchableOpacity
@@ -1243,7 +1261,6 @@ const Wallet = ({
                       hitSlop={touchAreaSlop}
                       accessibilityRole="button"
                       accessibilityLabel={displayName}
-                      style={styles.headerAccountPickerStyle}
                     >
                       <BadgeWrapper
                         position={BadgeWrapperPosition.BottomRight}

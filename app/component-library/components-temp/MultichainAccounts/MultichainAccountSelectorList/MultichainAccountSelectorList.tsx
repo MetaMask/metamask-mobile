@@ -74,6 +74,7 @@ const MultichainAccountSelectorList = ({
   chainId,
   hideAccountCellMenu = false,
   hideSearch = false,
+  disableAutoScrollToSelected = false,
   showExternalAccountOnEmptySearch = false,
   onSelectExternalAccount,
   selectedExternalAddress,
@@ -240,6 +241,9 @@ const MultichainAccountSelectorList = ({
 
   // Scroll to selected item on initial mount
   useEffect(() => {
+    if (disableAutoScrollToSelected) {
+      return undefined;
+    }
     if (
       !hasScrolledToSelected.current &&
       listRefToUse.current &&
@@ -264,7 +268,13 @@ const MultichainAccountSelectorList = ({
       }
       hasScrolledToSelected.current = true;
     }
-  }, [flattenedData, selectedAccountGroups, listRefToUse]);
+    return undefined;
+  }, [
+    disableAutoScrollToSelected,
+    flattenedData,
+    selectedAccountGroups,
+    listRefToUse,
+  ]);
 
   // Reset scroll to top when search text changes
   useEffect(() => {

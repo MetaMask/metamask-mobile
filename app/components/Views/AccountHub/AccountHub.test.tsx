@@ -49,7 +49,9 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 // The account list pulls a large selector graph that is orthogonal to this
-// screen's wiring; the screen only needs to pass it the right props.
+// screen's wiring; the screen only needs to pass it the right props. The stub
+// renders the header/footer slots because this screen puts its own content
+// there so the whole screen scrolls as one.
 jest.mock(
   '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList',
   () => {
@@ -57,7 +59,10 @@ jest.mock(
     return {
       __esModule: true,
       default: (props: Record<string, unknown>) => (
-        <View testID={props.testID as string} {...{ accessible: false }} />
+        <View testID={props.testID as string} accessible={false}>
+          {props.ListHeaderComponent as React.ReactNode}
+          {props.ListFooterComponent as React.ReactNode}
+        </View>
       ),
     };
   },
@@ -200,6 +205,20 @@ describe('AccountHub', () => {
       Engine.context.AccountTreeController.setSelectedAccountGroup,
     ).toHaveBeenCalledWith('group-2');
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('scrolls the whole screen by handing the list its header and footer', () => {
+    const { UNSAFE_getByType } = render(<AccountHub />);
+    const list = UNSAFE_getByType(
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList')
+        .default,
+    );
+
+    expect(list.props.ListHeaderComponent).toBeTruthy();
+    expect(list.props.ListFooterComponent).toBeTruthy();
+    // Without this the mount-time centering scroll hides the header.
+    expect(list.props.disableAutoScrollToSelected).toBe(true);
   });
 
   it('hides search in the reused account list', () => {

@@ -1948,6 +1948,19 @@ describe('Header and Nav Bar refresh AB test', () => {
     expect(
       queryByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
     ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('moves the account name above the balance in treatment', () => {
+    mockHeaderNavBarVariantName = 'treatment';
+
+    const { getByTestId } = render(Wallet);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING),
+    ).toBeOnTheScreen();
   });
 
   it('renders only the avatar and rewards entry points in treatment', () => {

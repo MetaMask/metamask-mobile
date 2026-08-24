@@ -138,30 +138,10 @@ const AccountHub = () => {
     ? loadingMessage
     : strings('multichain_accounts.add_wallet');
 
-  return (
-    <SafeAreaView
-      edges={{ bottom: 'additive' }}
-      style={tw.style('flex-1 bg-default')}
-      testID={AccountHubSelectorsIDs.CONTAINER}
-    >
-      <HeaderStandard
-        onBack={handleBack}
-        backButtonProps={{ testID: AccountHubSelectorsIDs.BACK_BUTTON }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Menu,
-            onPress: handleMenuPress,
-            testID: AccountHubSelectorsIDs.MENU_BUTTON,
-          },
-          {
-            iconName: IconName.Notification,
-            onPress: handleNotificationsPress,
-            testID: AccountHubSelectorsIDs.NOTIFICATIONS_BUTTON,
-          },
-        ]}
-        includesTopInset
-      />
-
+  // Rendered inside the account list so the avatar, name, and actions scroll
+  // with it rather than staying pinned above a separately scrolling list.
+  const listHeader = (
+    <>
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
@@ -211,42 +191,76 @@ const AccountHub = () => {
           testID={AccountHubSelectorsIDs.ACTIVITY_BUTTON}
         />
       </Box>
+    </>
+  );
+
+  const listFooter = (
+    <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 pt-6 pb-5">
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Lg}
+        onPress={handleAddWallet}
+        isDisabled={isAccountSyncingInProgress}
+        testID={AccountHubSelectorsIDs.ADD_WALLET_BUTTON}
+        twClassName="flex-1"
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          gap={2}
+        >
+          {isAccountSyncingInProgress ? (
+            <ActivityIndicator size="small" />
+          ) : null}
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {addWalletLabel}
+          </Text>
+        </Box>
+      </Button>
+    </Box>
+  );
+
+  return (
+    <SafeAreaView
+      edges={{ bottom: 'additive' }}
+      style={tw.style('flex-1 bg-default')}
+      testID={AccountHubSelectorsIDs.CONTAINER}
+    >
+      <HeaderStandard
+        onBack={handleBack}
+        backButtonProps={{ testID: AccountHubSelectorsIDs.BACK_BUTTON }}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Menu,
+            onPress: handleMenuPress,
+            testID: AccountHubSelectorsIDs.MENU_BUTTON,
+          },
+          {
+            iconName: IconName.Notification,
+            onPress: handleNotificationsPress,
+            testID: AccountHubSelectorsIDs.NOTIFICATIONS_BUTTON,
+          },
+        ]}
+        includesTopInset
+      />
 
       {selectedAccountGroup ? (
         <MultichainAccountSelectorList
           onSelectAccount={handleSelectAccount}
           selectedAccountGroups={selectedAccountGroups}
           hideSearch
+          disableAutoScrollToSelected
+          ListHeaderComponent={listHeader}
+          ListFooterComponent={listFooter}
           testID={AccountHubSelectorsIDs.ACCOUNT_LIST}
         />
       ) : (
-        <ScrollView />
+        <ScrollView>
+          {listHeader}
+          {listFooter}
+        </ScrollView>
       )}
-
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="px-4 pt-6 pb-5">
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          onPress={handleAddWallet}
-          isDisabled={isAccountSyncingInProgress}
-          testID={AccountHubSelectorsIDs.ADD_WALLET_BUTTON}
-          twClassName="flex-1"
-        >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            gap={2}
-          >
-            {isAccountSyncingInProgress ? (
-              <ActivityIndicator size="small" />
-            ) : null}
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {addWalletLabel}
-            </Text>
-          </Box>
-        </Button>
-      </Box>
     </SafeAreaView>
   );
 };

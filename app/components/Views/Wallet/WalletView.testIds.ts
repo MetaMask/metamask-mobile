@@ -99,6 +99,7 @@ export const WalletViewSelectorsIDs = {
   WALLET_SEARCH_BUTTON: 'wallet-search-button',
   WALLET_REWARDS_BUTTON: 'wallet-rewards-button',
   WALLET_ACCOUNT_HUB_BUTTON: 'wallet-account-hub-button',
+  WALLET_ACCOUNT_NAME_HEADING: 'wallet-account-name-heading',
   WALLET_HEADER_ROOT: 'wallet-header-root',
   WALLET_SAFE_AREA: 'wallet-safe-area',
   WALLET_SCROLL_VIEW: 'wallet-scroll-view',
