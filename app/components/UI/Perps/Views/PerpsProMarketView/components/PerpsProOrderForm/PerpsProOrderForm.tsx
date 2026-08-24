@@ -59,10 +59,15 @@ const EMPTY_SCALE_ORDER: PerpsProScaleOrderModel = {
   totalOrders: '',
   sizeSkew: '',
   onStartPriceChange: () => undefined,
+  onStartPriceBlur: () => undefined,
   onEndPriceChange: () => undefined,
+  onEndPriceBlur: () => undefined,
   onTotalOrdersChange: () => undefined,
+  onTotalOrdersBlur: () => undefined,
   onSizeSkewChange: () => undefined,
   onSizeSkewBlur: () => undefined,
+  onSizeSkewInfoPress: () => undefined,
+  onPreviewToggle: () => undefined,
   rungs: [],
   orderValue: '',
   marginRequired: '',
@@ -313,6 +318,7 @@ const ScaleFields = ({ model }: { model: PerpsProScaleOrderModel }) => (
           label={strings('perps.pro_order_form.scale.start_price')}
           value={model.startPrice}
           onChangeText={model.onStartPriceChange}
+          onBlur={model.onStartPriceBlur}
           testID={ids.SCALE_START_PRICE}
           startAccessory={<Text variant={TextVariant.BodySm}>$</Text>}
           placeholder="0.00"
@@ -323,6 +329,7 @@ const ScaleFields = ({ model }: { model: PerpsProScaleOrderModel }) => (
           label={strings('perps.pro_order_form.scale.end_price')}
           value={model.endPrice}
           onChangeText={model.onEndPriceChange}
+          onBlur={model.onEndPriceBlur}
           testID={ids.SCALE_END_PRICE}
           startAccessory={<Text variant={TextVariant.BodySm}>$</Text>}
           placeholder="0.00"
@@ -335,6 +342,7 @@ const ScaleFields = ({ model }: { model: PerpsProScaleOrderModel }) => (
           label={strings('perps.pro_order_form.scale.total_orders')}
           value={model.totalOrders}
           onChangeText={model.onTotalOrdersChange}
+          onBlur={model.onTotalOrdersBlur}
           testID={ids.SCALE_TOTAL_ORDERS}
         />
       </Box>
@@ -346,10 +354,10 @@ const ScaleFields = ({ model }: { model: PerpsProScaleOrderModel }) => (
           onBlur={model.onSizeSkewBlur}
           testID={ids.SCALE_SIZE_SKEW}
           endAccessory={
-            <Icon
-              name={IconName.Info}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
+            <ButtonIcon
+              iconName={IconName.Info}
+              size={ButtonIconSize.Xs}
+              onPress={model.onSizeSkewInfoPress}
               testID={ids.SCALE_SKEW_INFO}
               accessibilityLabel={strings(
                 'perps.pro_order_form.scale.size_skew_hint',
@@ -377,36 +385,47 @@ const ScalePreview = ({ model }: { model: PerpsProScaleOrderModel }) => {
       <KeyValueRow
         keyLabel={strings('perps.pro_order_form.scale.start')}
         value={`${first.size} @ $${first.price}`}
+        valueTextProps={{ testID: ids.SCALE_PREVIEW_START_VALUE }}
         twClassName={summaryRowClassName}
         style={summaryRowStyle}
       />
       <KeyValueRow
         keyLabel={strings('perps.pro_order_form.scale.end')}
         value={`${last.size} @ $${last.price}`}
+        valueTextProps={{ testID: ids.SCALE_PREVIEW_END_VALUE }}
         twClassName={summaryRowClassName}
         style={summaryRowStyle}
       />
       <KeyValueRow
         keyLabel={strings('perps.pro_order_form.scale.order_value')}
         value={model.orderValue}
+        valueTextProps={{ testID: ids.SCALE_PREVIEW_ORDER_VALUE }}
         twClassName={summaryRowClassName}
         style={summaryRowStyle}
       />
       <KeyValueRow
         keyLabel={strings('perps.pro_order_form.scale.margin_required')}
         value={model.marginRequired}
+        valueTextProps={{ testID: ids.SCALE_PREVIEW_MARGIN_VALUE }}
         twClassName={summaryRowClassName}
         style={summaryRowStyle}
       />
       <KeyValueRow
         keyLabel={strings('perps.order.fees')}
         value={model.fees}
+        valueTextProps={{ testID: ids.SCALE_PREVIEW_FEES_VALUE }}
         twClassName={summaryRowClassName}
         style={summaryRowStyle}
       />
       <ButtonBase
         size={ButtonBaseSize.Sm}
-        onPress={() => setIsExpanded((value) => !value)}
+        onPress={() =>
+          setIsExpanded((value) => {
+            const nextValue = !value;
+            model.onPreviewToggle(nextValue);
+            return nextValue;
+          })
+        }
         testID={ids.SCALE_PREVIEW_TOGGLE}
       >
         {strings(
@@ -422,6 +441,7 @@ const ScalePreview = ({ model }: { model: PerpsProScaleOrderModel }) => {
               key={rung.index}
               keyLabel={`#${rung.index + 1}`}
               value={`${rung.size} @ $${rung.price}`}
+              valueTextProps={{ testID: ids.scalePreviewRung(rung.index) }}
               twClassName={summaryRowClassName}
               style={summaryRowStyle}
             />

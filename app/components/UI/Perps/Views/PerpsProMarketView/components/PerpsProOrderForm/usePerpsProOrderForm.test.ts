@@ -130,6 +130,7 @@ let mockMaxSlippageBps = 100;
 let mockMaxSlippageSource = 'default';
 let mockLivePrice = '90000';
 let mockLiveMarkPrice = '90000';
+let mockMinimumOrderAmount = 10;
 
 const submitted = jest.fn(() => ({ id: 'submitted' }));
 const confirmed = jest.fn(() => ({ id: 'confirmed' }));
@@ -256,6 +257,14 @@ jest.mock('../../../../hooks/usePerpsOICap', () => ({
   usePerpsOICap: () => ({ isAtCap: mockIsAtCap }),
 }));
 
+jest.mock('../../../../hooks/useMinimumOrderAmount', () => ({
+  useMinimumOrderAmount: () => ({
+    minimumOrderAmount: mockMinimumOrderAmount,
+    isLoading: false,
+    error: null,
+  }),
+}));
+
 jest.mock('../../../../../Rewards/hooks/useVipTier', () => ({
   useVipTier: () => 1,
 }));
@@ -337,6 +346,7 @@ describe('usePerpsProOrderForm', () => {
     mockMaxSlippageSource = 'default';
     mockLivePrice = '90000';
     mockLiveMarkPrice = '90000';
+    mockMinimumOrderAmount = 10;
     mockIsInitialized = true;
     mockPositionStreamLoading = false;
     mockMarketDataLoading = false;
@@ -360,6 +370,7 @@ describe('usePerpsProOrderForm', () => {
       mockContextValue.hasBlurredTriggerPrice = false;
     });
     mockUpdatePositionTPSL.mockResolvedValue({ success: true });
+    mockExecuteOrder.mockResolvedValue({ success: true });
   });
 
   describe('availableBalance', () => {
@@ -1784,7 +1795,7 @@ describe('usePerpsProOrderForm', () => {
       });
     };
 
-    it('submits one GTC limit order per rung with a shared client ID prefix', async () => {
+    it('submits one controller Scale request with canonical strategy parameters', async () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
       const { result } = renderProForm();
@@ -1794,29 +1805,24 @@ describe('usePerpsProOrderForm', () => {
         await result.current.onPlaceOrderPress();
       });
 
-      expect(mockExecuteOrder).toHaveBeenCalledTimes(3);
-      const params = mockExecuteOrder.mock.calls.map(
-        ([orderParams]) =>
-          orderParams as {
-            orderType: string;
-            timeInForce: string;
-            clientOrderId: string;
-          },
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'scale',
+          scaleMinPrice: '100',
+          scaleMaxPrice: '200',
+          scaleNumOrders: 3,
+          scaleSkew: 2,
+          reduceOnly: false,
+        }),
       );
-      expect(params.every(({ orderType }) => orderType === 'limit')).toBe(true);
-      expect(params.every(({ timeInForce }) => timeInForce === 'GTC')).toBe(
-        true,
-      );
-      expect(
-        new Set(params.map(({ clientOrderId }) => clientOrderId.slice(0, -8)))
-          .size,
-      ).toBe(1);
-      expect(
-        new Set(params.map(({ clientOrderId }) => clientOrderId)).size,
-      ).toBe(3);
+      const params = mockExecuteOrder.mock.calls[0][0];
+      expect(params).not.toHaveProperty('timeInForce');
+      expect(params).not.toHaveProperty('clientOrderId');
+      expect(params).not.toHaveProperty('price');
     });
 
-    it('resets Scale configuration after every rung is placed', async () => {
+    it('resets Scale configuration after controller placement succeeds', async () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
       const { result } = renderProForm();
@@ -1835,6 +1841,188 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.scaleOrder.sizeSkew).toBe('1.00');
     });
 
+    it('surfaces a partial controller result and resets to prevent duplicate retry', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockExecuteOrder.mockResolvedValueOnce({
+        success: true,
+        childOrderIds: ['101', '102'],
+        submittedSize: '2.222',
+      });
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(confirmed).toHaveBeenCalledWith(
+        'long',
+        '2/3 orders · 2.222',
+        'BTC',
+      );
+      expect(mockUpdateOrderForm).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: '', type: 'market' }),
+      );
+      expect(result.current.scaleOrder.startPrice).toBe('');
+    });
+
+    it('retains Scale configuration when the controller rejects the placement', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockExecuteOrder.mockResolvedValueOnce({
+        success: false,
+        error: 'Scale order rejected',
+      });
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(mockUpdateOrderForm).not.toHaveBeenCalled();
+      expect(result.current.scaleOrder.startPrice).toBe('100');
+    });
+
+    it('rejects fractional order counts instead of truncating them', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.scaleOrder.onStartPriceChange('100');
+        result.current.scaleOrder.onEndPriceChange('200');
+        result.current.scaleOrder.onTotalOrdersChange('3.5');
+      });
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'scale',
+            message: 'Total orders must be between 2 and 20',
+          }),
+        ]),
+      );
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            'scale_validation_error_shown',
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]: 'invalid_order_count',
+        }),
+      );
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('rejects a ladder when a rung is below the market minimum', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockMinimumOrderAmount = 500;
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'scale',
+            message: 'Every Scale order must meet the market minimum lot size',
+          }),
+        ]),
+      );
+    });
+
+    it('blocks Scale placement when the whole ladder exceeds available margin', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockValidation.isValid = false;
+      mockValidation.errors = ['Insufficient funds'];
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(validationError).toHaveBeenCalledWith('Insufficient funds');
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('blocks a Reduce Only Scale order when no position can be reduced', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(
+        result.current.notices.find((notice) => notice.id === 'reduce-only')
+          ?.message,
+      ).toBe(
+        'You need to have an open position in this market to place reduce-only orders',
+      );
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('builds the preview from controller price and skew-aware size helpers', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      const [first, middle, last] = result.current.scaleOrder.rungs;
+      expect(first.price).toBe('100');
+      expect(middle.price).toBe('150');
+      expect(last.price).toBe('200');
+      expect(Number(first.size)).toBeLessThan(Number(middle.size));
+      expect(Number(middle.size)).toBeLessThan(Number(last.size));
+      expect(result.current.scaleOrder.orderValue).not.toBe('$600.00');
+    });
+
+    it('weights a below-one Scale skew toward the start of the range', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      act(() => {
+        result.current.scaleOrder.onSizeSkewChange('0.50');
+      });
+
+      const [first, middle, last] = result.current.scaleOrder.rungs;
+      expect(Number(first.size)).toBeGreaterThan(Number(middle.size));
+      expect(Number(middle.size)).toBeGreaterThan(Number(last.size));
+    });
+
+    it('keeps an exactly-one Scale skew even within one size-grid unit', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      act(() => {
+        result.current.scaleOrder.onSizeSkewChange('1.00');
+      });
+
+      const [first, middle, last] = result.current.scaleOrder.rungs;
+      expect(middle.size).toBe(last.size);
+      expect(Number(first.size) - Number(middle.size)).toBeCloseTo(0.001, 10);
+    });
+
     it('coerces Scale skew to two decimals on blur', () => {
       mockOrderForm.type = 'scale';
       const { result } = renderProForm();
@@ -1847,6 +2035,66 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(result.current.scaleOrder.sizeSkew).toBe('2.35');
+    });
+
+    it('tracks configuration and preview expansion interactions', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.scaleOrder.onSizeSkewChange('2.345');
+      });
+      act(() => {
+        result.current.scaleOrder.onSizeSkewBlur();
+        result.current.scaleOrder.onPreviewToggle(true);
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: 'scale_config_changed',
+          [PERPS_EVENT_PROPERTY.SETTING_TYPE]: 'size_skew',
+          [PERPS_EVENT_PROPERTY.SCALE_SKEW]: 2.35,
+        }),
+      );
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]: 'scale_preview_expanded',
+        }),
+      );
+    });
+
+    it('opens the Size skew tooltip', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.scaleOrder.onSizeSkewInfoPress();
+      });
+
+      expect(result.current.selectedTooltip).toBe('size_skew');
+    });
+
+    it('blocks Scale selection and placement when the remote flag is disabled', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(true, false);
+      configureScaleOrder(result);
+
+      act(() => {
+        result.current.onOrderTypeSelect('scale');
+      });
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockSetOrderType).toHaveBeenCalledWith('market');
+      expect(mockSetOrderType).not.toHaveBeenCalledWith('scale');
+      expect(validationError).toHaveBeenCalledWith(
+        'Scale orders are temporarily unavailable. Select another order type.',
+      );
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
   });
 

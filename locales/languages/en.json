@@ -2322,6 +2322,10 @@
         "total": "Total fees",
         "discount_message": "You're saving {{percentage}}% on fees as a VIP."
       },
+      "size_skew": {
+        "title": "Size skew",
+        "content": "Size skew controls how order size is distributed across the range. Values above 1 put more size near the end, values below 1 put more near the start, and 1.00 splits size evenly."
+      },
       "closing_fees": {
         "title": "Closing fees",
         "metamask_fee": "MetaMask fee",

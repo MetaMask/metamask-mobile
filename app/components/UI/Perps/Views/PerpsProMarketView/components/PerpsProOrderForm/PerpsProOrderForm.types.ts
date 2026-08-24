@@ -1,7 +1,13 @@
 import type { OrderType } from '@metamask/perps-controller';
 import type { Ref } from 'react';
 import type { View } from 'react-native';
-import type { ScaleOrderRung } from '../../../../utils/scaleOrderUtils';
+
+export interface ScaleOrderRung {
+  index: number;
+  price: string;
+  size: string;
+  usdAmount: string;
+}
 
 export type PerpsProOrderDirection = 'long' | 'short';
 

@@ -607,8 +607,15 @@ export const PerpsProOrderFormSelectorsIDs = {
   SCALE_SIZE_SKEW: 'perps-pro-order-form-scale-size-skew',
   SCALE_SKEW_INFO: 'perps-pro-order-form-scale-skew-info',
   SCALE_PREVIEW: 'perps-pro-order-form-scale-preview',
+  SCALE_PREVIEW_START_VALUE: 'perps-pro-order-form-scale-preview-start-value',
+  SCALE_PREVIEW_END_VALUE: 'perps-pro-order-form-scale-preview-end-value',
+  SCALE_PREVIEW_ORDER_VALUE: 'perps-pro-order-form-scale-preview-order-value',
+  SCALE_PREVIEW_MARGIN_VALUE: 'perps-pro-order-form-scale-preview-margin-value',
+  SCALE_PREVIEW_FEES_VALUE: 'perps-pro-order-form-scale-preview-fees-value',
   SCALE_PREVIEW_TOGGLE: 'perps-pro-order-form-scale-preview-toggle',
   SCALE_PREVIEW_LADDER: 'perps-pro-order-form-scale-preview-ladder',
+  scalePreviewRung: (index: number) =>
+    `perps-pro-order-form-scale-preview-rung-${index}`,
 };
 
 // ========================================

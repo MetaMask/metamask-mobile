@@ -110,10 +110,15 @@ const createScaleOrder = (): NonNullable<
   totalOrders: '2',
   sizeSkew: '1.00',
   onStartPriceChange: jest.fn(),
+  onStartPriceBlur: jest.fn(),
   onEndPriceChange: jest.fn(),
+  onEndPriceBlur: jest.fn(),
   onTotalOrdersChange: jest.fn(),
+  onTotalOrdersBlur: jest.fn(),
   onSizeSkewChange: jest.fn(),
   onSizeSkewBlur: jest.fn(),
+  onSizeSkewInfoPress: jest.fn(),
+  onPreviewToggle: jest.fn(),
   rungs: [
     { index: 0, price: '100', size: '1', usdAmount: '100.00' },
     { index: 1, price: '200', size: '1', usdAmount: '200.00' },
@@ -219,18 +224,49 @@ describe('PerpsProOrderForm', () => {
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
     });
 
-    it('renders Scale inputs and preview while omitting Limit and TP/SL rows', () => {
+    it('renders Scale configuration inputs', () => {
       renderForm({
         orderType: 'scale',
         scaleOrder: createScaleOrder(),
-        onTPSLPress: jest.fn(),
       });
 
       expect(screen.getByTestId(ids.SCALE_START_PRICE)).toBeOnTheScreen();
       expect(screen.getByTestId(ids.SCALE_END_PRICE)).toBeOnTheScreen();
       expect(screen.getByTestId(ids.SCALE_TOTAL_ORDERS)).toBeOnTheScreen();
       expect(screen.getByTestId(ids.SCALE_SIZE_SKEW)).toBeOnTheScreen();
+    });
+
+    it('renders the Scale preview with dedicated value selectors', () => {
+      renderForm({
+        orderType: 'scale',
+        scaleOrder: createScaleOrder(),
+      });
+
       expect(screen.getByTestId(ids.SCALE_PREVIEW)).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(ids.SCALE_PREVIEW_START_VALUE),
+      ).toHaveTextContent('1 @ $100');
+      expect(screen.getByTestId(ids.SCALE_PREVIEW_END_VALUE)).toHaveTextContent(
+        '1 @ $200',
+      );
+      expect(
+        screen.getByTestId(ids.SCALE_PREVIEW_ORDER_VALUE),
+      ).toHaveTextContent('$300');
+      expect(
+        screen.getByTestId(ids.SCALE_PREVIEW_MARGIN_VALUE),
+      ).toHaveTextContent('$100');
+      expect(
+        screen.getByTestId(ids.SCALE_PREVIEW_FEES_VALUE),
+      ).toHaveTextContent('$1');
+    });
+
+    it('omits ordinary price and TP/SL rows for Scale', () => {
+      renderForm({
+        orderType: 'scale',
+        scaleOrder: createScaleOrder(),
+        onTPSLPress: jest.fn(),
+      });
+
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
       expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
     });
@@ -526,6 +562,28 @@ describe('PerpsProOrderForm', () => {
   });
 
   describe('controls', () => {
+    it('opens the Size skew explainer from the info button', () => {
+      const scaleOrder = createScaleOrder();
+      renderForm({ orderType: 'scale', scaleOrder });
+
+      fireEvent.press(screen.getByTestId(ids.SCALE_SKEW_INFO));
+
+      expect(scaleOrder.onSizeSkewInfoPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('expands the full Scale ladder and reports the preview interaction', () => {
+      const scaleOrder = createScaleOrder();
+      renderForm({ orderType: 'scale', scaleOrder });
+
+      fireEvent.press(screen.getByTestId(ids.SCALE_PREVIEW_TOGGLE));
+
+      expect(scaleOrder.onPreviewToggle).toHaveBeenCalledWith(true);
+      expect(screen.getByTestId(ids.SCALE_PREVIEW_LADDER)).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.scalePreviewRung(0))).toHaveTextContent(
+        '1 @ $100',
+      );
+    });
+
     it('renders the order type chevron from Figma', () => {
       renderForm();
 
