@@ -21,6 +21,7 @@ export interface NavigationAnalyticsRouteParams {
 interface NavigationAttributionMapping {
   eventName: string;
   property: 'entry_point' | 'source';
+  requiredProperties?: Readonly<Record<string, unknown>>;
 }
 
 const NAVIGATION_ATTRIBUTION_MAPPINGS: Record<
@@ -31,6 +32,10 @@ const NAVIGATION_ATTRIBUTION_MAPPINGS: Record<
     {
       eventName: EVENT_NAME.MONEY_SURFACE_VIEWED,
       property: 'entry_point',
+      requiredProperties: {
+        screen_name: 'money_home',
+        surface_type: 'screen',
+      },
     },
     {
       eventName: EVENT_NAME.PERPS_SCREEN_VIEWED,
@@ -73,6 +78,15 @@ const getNavigationAnalyticsAttribution = (
 ): NavigationAttributionMapping | undefined =>
   NAVIGATION_ATTRIBUTION_MAPPINGS[analyticsContext.attribution]?.find(
     ({ eventName: mappedEventName }) => mappedEventName === eventName,
+  );
+
+const hasRequiredProperties = (
+  mapping: NavigationAttributionMapping,
+  properties: Record<string, unknown>,
+): boolean =>
+  !mapping.requiredProperties ||
+  Object.entries(mapping.requiredProperties).every(
+    ([property, value]) => properties[property] === value,
   );
 
 /**
@@ -124,6 +138,10 @@ export const enrichWithNavigationAttribution = <
     event.name,
   );
   if (!mapping) {
+    return event;
+  }
+
+  if (!hasRequiredProperties(mapping, event.properties)) {
     return event;
   }
 

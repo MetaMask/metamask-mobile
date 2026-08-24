@@ -30,15 +30,48 @@ describe('navigation analytics attribution', () => {
   });
 
   it.each([
-    [EVENT_NAME.MONEY_SURFACE_VIEWED, 'entry_point'],
-    [EVENT_NAME.PERPS_SCREEN_VIEWED, 'source'],
-    [EVENT_NAME.POSITION_SCREEN_VIEWED, 'source'],
-  ])('injects the delegated property into %s', (eventName, property) => {
-    const event = createEvent(eventName);
+    [
+      EVENT_NAME.MONEY_SURFACE_VIEWED,
+      'entry_point',
+      { screen_name: 'money_home', surface_type: 'screen' },
+    ],
+    [EVENT_NAME.PERPS_SCREEN_VIEWED, 'source', {}],
+    [EVENT_NAME.POSITION_SCREEN_VIEWED, 'source', {}],
+  ])(
+    'injects the delegated property into %s',
+    (eventName, property, properties) => {
+      const event = createEvent(eventName, properties);
 
-    const result = enrichWithNavigationAttribution(event, createRoute());
+      const result = enrichWithNavigationAttribution(event, createRoute());
 
-    expect(result.properties[property]).toBe('homescreen_balance_breakdown');
+      expect(result.properties[property]).toBe('homescreen_balance_breakdown');
+    },
+  );
+
+  it('preserves Money attribution until the Money home screen event', () => {
+    const route = createRoute();
+    const intermediateEvent = createEvent(EVENT_NAME.MONEY_SURFACE_VIEWED, {
+      screen_name: 'money_onboarding',
+      surface_type: 'screen',
+    });
+    const moneyHomeEvent = createEvent(EVENT_NAME.MONEY_SURFACE_VIEWED, {
+      screen_name: 'money_home',
+      surface_type: 'screen',
+    });
+
+    const intermediateResult = enrichWithNavigationAttribution(
+      intermediateEvent,
+      route,
+    );
+    const moneyHomeResult = enrichWithNavigationAttribution(
+      moneyHomeEvent,
+      route,
+    );
+
+    expect(intermediateResult.properties.entry_point).toBeUndefined();
+    expect(moneyHomeResult.properties.entry_point).toBe(
+      'homescreen_balance_breakdown',
+    );
   });
 
   it('consumes attribution after the first matching event', () => {
@@ -62,11 +95,17 @@ describe('navigation analytics attribution', () => {
     const secondRoute = createRoute();
 
     enrichWithNavigationAttribution(
-      createEvent(EVENT_NAME.MONEY_SURFACE_VIEWED),
+      createEvent(EVENT_NAME.MONEY_SURFACE_VIEWED, {
+        screen_name: 'money_home',
+        surface_type: 'screen',
+      }),
       firstRoute,
     );
     const result = enrichWithNavigationAttribution(
-      createEvent(EVENT_NAME.MONEY_SURFACE_VIEWED),
+      createEvent(EVENT_NAME.MONEY_SURFACE_VIEWED, {
+        screen_name: 'money_home',
+        surface_type: 'screen',
+      }),
       secondRoute,
     );
 
