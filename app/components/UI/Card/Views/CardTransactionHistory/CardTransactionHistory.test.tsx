@@ -90,6 +90,7 @@ function mockTransactions(
     isLoadingMore: false,
     isLoading: false,
     error: null,
+    isLoadMoreError: false,
     refetch: mockRefetch,
     isFetching: false,
     ...overrides,
@@ -144,6 +145,7 @@ describe('CardTransactionHistory', () => {
       items: [createTransaction()],
       hasMore: true,
       error: new Error('failed'),
+      isLoadMoreError: true,
     });
 
     const { getByText, getByTestId, queryByText, queryByTestId } = render(
@@ -167,6 +169,7 @@ describe('CardTransactionHistory', () => {
       items: [createTransaction()],
       hasMore: true,
       error: new Error('failed'),
+      isLoadMoreError: true,
     });
 
     const { UNSAFE_getByType } = render(<CardTransactionHistory />);
@@ -194,5 +197,30 @@ describe('CardTransactionHistory', () => {
     expect(
       queryByTestId('card-transaction-history-load-more-retry'),
     ).toBeNull();
+  });
+
+  it('shows a list retry when pull-to-refresh fails and rows already exist', () => {
+    mockTransactions({
+      items: [createTransaction()],
+      hasMore: true,
+      error: new Error('failed'),
+      isLoadMoreError: false,
+    });
+
+    const { getByText, getByTestId, queryByText, queryByTestId } = render(
+      <CardTransactionHistory />,
+    );
+
+    expect(getByText('card.transactions.load_error')).toBeOnTheScreen();
+    expect(getByTestId('card-transaction-history-retry')).toBeOnTheScreen();
+    expect(queryByText('card.transactions.load_error_more')).toBeNull();
+    expect(
+      queryByTestId('card-transaction-history-load-more-retry'),
+    ).toBeNull();
+
+    fireEvent.press(getByTestId('card-transaction-history-retry'));
+
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
+    expect(mockLoadMore).not.toHaveBeenCalled();
   });
 });

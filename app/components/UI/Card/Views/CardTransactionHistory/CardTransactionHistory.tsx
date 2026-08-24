@@ -96,6 +96,7 @@ const CardTransactionHistory = () => {
     isLoadingMore,
     isLoading,
     error,
+    isLoadMoreError,
     refetch,
     isFetching,
   } = useCardTransactions();
@@ -149,7 +150,7 @@ const CardTransactionHistory = () => {
     <Box twClassName="items-center py-4">
       <ActivityIndicator color={colors.icon.alternative} />
     </Box>
-  ) : error && items.length > 0 ? (
+  ) : error && items.length > 0 && isLoadMoreError ? (
     <Box twClassName="items-center gap-2 py-4">
       <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {strings('card.transactions.load_error_more')}
@@ -160,6 +161,21 @@ const CardTransactionHistory = () => {
         onPress={loadMore}
         twClassName="self-center"
         testID="card-transaction-history-load-more-retry"
+      >
+        {strings('card.transactions.retry')}
+      </Button>
+    </Box>
+  ) : error && items.length > 0 ? (
+    <Box twClassName="items-center gap-2 py-4">
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {strings('card.transactions.load_error')}
+      </Text>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Md}
+        onPress={handleRetry}
+        twClassName="self-center"
+        testID="card-transaction-history-retry"
       >
         {strings('card.transactions.retry')}
       </Button>

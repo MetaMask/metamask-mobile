@@ -296,4 +296,44 @@ describe('useCardTransactions', () => {
     });
     await waitFor(() => expect(result.current.isLoadingMore).toBe(false));
   });
+
+  it('sets isLoadMoreError after a later page fails', async () => {
+    mockListTransactions
+      .mockResolvedValueOnce(buildPage(['tx-1'], 'cursor-1'))
+      .mockRejectedValueOnce(new Error('page 2 failed'));
+    const { Wrapper } = createWrapper();
+
+    const { result } = renderHook(() => useCardTransactions(), {
+      wrapper: Wrapper,
+    });
+    await waitFor(() => expect(result.current.hasMore).toBe(true));
+
+    act(() => {
+      result.current.loadMore();
+    });
+
+    await waitFor(() => expect(result.current.error).toBeTruthy());
+    expect(result.current.isLoadMoreError).toBe(true);
+    expect(result.current.items).toHaveLength(1);
+  });
+
+  it('does not set isLoadMoreError when a refresh fails', async () => {
+    mockListTransactions
+      .mockResolvedValueOnce(buildPage(['tx-1'], 'cursor-1'))
+      .mockRejectedValueOnce(new Error('refresh failed'));
+    const { Wrapper } = createWrapper();
+
+    const { result } = renderHook(() => useCardTransactions(), {
+      wrapper: Wrapper,
+    });
+    await waitFor(() => expect(result.current.items).toHaveLength(1));
+
+    await act(async () => {
+      await result.current.refetch();
+    });
+
+    await waitFor(() => expect(result.current.error).toBeTruthy());
+    expect(result.current.isLoadMoreError).toBe(false);
+    expect(result.current.items).toHaveLength(1);
+  });
 });

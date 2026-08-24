@@ -32,8 +32,10 @@ import {
   selectCardUserLocation,
 } from '../../../../../selectors/cardController';
 import { selectCardImmersveConfig } from '../../../../../selectors/featureFlagController/card';
+import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
-import { useNavigateToInternalBrowserPage } from '../../hooks/useNavigateToCardPage';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import {
   CARD_SUPPORT_EMAIL,
@@ -41,7 +43,7 @@ import {
   IMMERSVE_REPORT_TRANSACTION_ID_PARAM,
 } from '../../constants';
 import { getCardSupportEmail } from '../../util/registrationSettings';
-import { CardActions } from '../../util/metrics';
+import { CardActions, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 
 type CardReportTransactionRouteProp = RouteProp<
@@ -64,8 +66,7 @@ const CardReportTransaction = () => {
   const tw = useTailwind();
   const headerHandlers = useCardHeaderHandlers('back');
   const { toastRef } = useContext(ToastContext);
-  const { navigateToInternalBrowserUrl } =
-    useNavigateToInternalBrowserPage(navigation);
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const providerId = useSelector(selectCardActiveProviderId);
   const userLocation = useSelector(selectCardUserLocation);
@@ -90,10 +91,19 @@ const CardReportTransaction = () => {
         immersveConfig.reportTransactionUrl ||
         DEFAULT_IMMERSVE_REPORT_TRANSACTION_URL;
       const url = buildReportTransactionUrl(baseUrl, transactionId);
-      navigateToInternalBrowserUrl(
-        url,
-        CardActions.NAVIGATE_TO_REPORT_TRANSACTION_PAGE,
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties(
+            withCardProvider(providerId, {
+              action: CardActions.NAVIGATE_TO_REPORT_TRANSACTION_PAGE,
+            }),
+          )
+          .build(),
       );
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: { url },
+      });
       return;
     }
 
@@ -107,10 +117,10 @@ const CardReportTransaction = () => {
           variant: ToastVariants.Icon,
           labelOptions: [
             {
-              label: strings('card.transactions.report_file'),
+              label: strings('card.transactions.load_error'),
             },
           ],
-          iconName: LegacyIconName.Info,
+          iconName: LegacyIconName.Warning,
           hasNoTimeout: false,
         });
       }
@@ -127,11 +137,14 @@ const CardReportTransaction = () => {
       });
     }
   }, [
+    createEventBuilder,
     immersveConfig.reportTransactionUrl,
     isImmersve,
-    navigateToInternalBrowserUrl,
+    navigation,
+    providerId,
     supportEmail,
     toastRef,
+    trackEvent,
     transactionId,
   ]);
 

@@ -2,18 +2,18 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   CARD_SUPPORT_EMAIL,
   DEFAULT_IMMERSVE_REPORT_TRANSACTION_URL,
   IMMERSVE_REPORT_TRANSACTION_ID_PARAM,
 } from '../../constants';
-import { CardActions } from '../../util/metrics';
 import CardReportTransaction, {
   buildReportTransactionUrl,
 } from './CardReportTransaction';
 
 const mockGoBack = jest.fn();
-const mockNavigateToInternalBrowserUrl = jest.fn();
+const mockNavigate = jest.fn();
 const mockShowToast = jest.fn();
 const mockUseSelector = jest.fn();
 const mockGetCardSupportEmail = jest.fn(() => 'support@example.com');
@@ -24,7 +24,7 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({
       goBack: mockGoBack,
-      navigate: jest.fn(),
+      navigate: mockNavigate,
     }),
     useRoute: () => ({
       params: { transactionId: 'tx-123' },
@@ -41,9 +41,13 @@ jest.mock('../../hooks/useCardHeaderHandlers', () => ({
   useCardHeaderHandlers: () => ({ onBack: mockGoBack }),
 }));
 
-jest.mock('../../hooks/useNavigateToCardPage', () => ({
-  useNavigateToInternalBrowserPage: () => ({
-    navigateToInternalBrowserUrl: mockNavigateToInternalBrowserUrl,
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: () => ({
+      addProperties: () => ({ build: () => ({}) }),
+      build: () => ({}),
+    }),
   }),
 }));
 
@@ -53,8 +57,7 @@ jest.mock('../../hooks/useRegistrationSettings', () => ({
 }));
 
 jest.mock('../../util/registrationSettings', () => ({
-  getCardSupportEmail: (registrationSettings: unknown, location: unknown) =>
-    mockGetCardSupportEmail(registrationSettings, location),
+  getCardSupportEmail: () => mockGetCardSupportEmail(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -176,7 +179,7 @@ describe('CardReportTransaction', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the Immersve report form in the internal browser', () => {
+  it('opens the Immersve report form in a simple webview', () => {
     mockSelectors({
       providerId: CardProviderIds.Immersve,
       reportTransactionUrl: 'https://help.example.com/report?foo=1',
@@ -185,12 +188,14 @@ describe('CardReportTransaction', () => {
 
     fireEvent.press(getByTestId('card-report-transaction-file-button'));
 
-    expect(mockNavigateToInternalBrowserUrl).toHaveBeenCalledTimes(1);
-    const [url, action] = mockNavigateToInternalBrowserUrl.mock.calls[0] as [
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    const [route, navParams] = mockNavigate.mock.calls[0] as [
       string,
-      CardActions,
+      { screen: string; params: { url: string } },
     ];
-    const parsed = new URL(url);
+    expect(route).toBe(Routes.WEBVIEW.MAIN);
+    expect(navParams.screen).toBe(Routes.WEBVIEW.SIMPLE);
+    const parsed = new URL(navParams.params.url);
     expect(parsed.origin + parsed.pathname).toBe(
       'https://help.example.com/report',
     );
@@ -198,7 +203,6 @@ describe('CardReportTransaction', () => {
     expect(parsed.searchParams.get(IMMERSVE_REPORT_TRANSACTION_ID_PARAM)).toBe(
       'tx-123',
     );
-    expect(action).toBe(CardActions.NAVIGATE_TO_REPORT_TRANSACTION_PAGE);
     expect(Linking.openURL).not.toHaveBeenCalled();
   });
 
@@ -215,10 +219,10 @@ describe('CardReportTransaction', () => {
       DEFAULT_IMMERSVE_REPORT_TRANSACTION_URL,
       'tx-123',
     );
-    expect(mockNavigateToInternalBrowserUrl).toHaveBeenCalledWith(
-      expectedUrl,
-      CardActions.NAVIGATE_TO_REPORT_TRANSACTION_PAGE,
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: { url: expectedUrl },
+    });
   });
 
   it('opens a mailto link for non-Immersve providers', async () => {
@@ -235,7 +239,7 @@ describe('CardReportTransaction', () => {
         'mailto:support@example.com',
       );
     });
-    expect(mockNavigateToInternalBrowserUrl).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('uses the default support email when registration email is empty', async () => {
@@ -261,7 +265,7 @@ describe('CardReportTransaction', () => {
     await waitFor(() => {
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          labelOptions: [{ label: 'card.transactions.report_file' }],
+          labelOptions: [{ label: 'card.transactions.load_error' }],
         }),
       );
     });
