@@ -22,9 +22,11 @@ const WINDOW_WIDTH = 411;
 const arrangeInsets = ({
   insetBottom,
   frameHeight,
+  frameY = 0,
 }: {
   insetBottom: number;
   frameHeight: number;
+  frameY?: number;
 }) => {
   mockUseSafeAreaInsets.mockReturnValue({
     top: 24,
@@ -34,7 +36,7 @@ const arrangeInsets = ({
   });
   mockUseSafeAreaFrame.mockReturnValue({
     x: 0,
-    y: 0,
+    y: frameY,
     width: WINDOW_WIDTH,
     height: frameHeight,
   });
@@ -69,6 +71,18 @@ describe('useBottomSafeAreaInset', () => {
 
   it('derives the three-button navigation bar inset when the reported inset is zero', () => {
     arrangeInsets({ insetBottom: 0, frameHeight: WINDOW_HEIGHT - 48 });
+
+    const { result } = renderHook(() => useBottomSafeAreaInset());
+
+    expect(result.current).toBe(48);
+  });
+
+  it('accounts for a frame offset from the top of the window', () => {
+    arrangeInsets({
+      insetBottom: 0,
+      frameY: 24,
+      frameHeight: WINDOW_HEIGHT - 24 - 48,
+    });
 
     const { result } = renderHook(() => useBottomSafeAreaInset());
 

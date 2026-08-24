@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 import { View, Modal, NativeScrollEvent } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
@@ -47,6 +46,7 @@ import {
 } from '../../utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
+  useBottomSafeAreaInset,
   usePerpsHomeData,
   usePerpsNavigation,
   usePerpsMeasurement,
@@ -138,7 +138,7 @@ import {
 
 const PerpsHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
-  const insets = useSafeAreaInsets();
+  const bottomSafeAreaInset = useBottomSafeAreaInset();
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
@@ -1001,8 +1001,8 @@ const PerpsHomeView = () => {
   }, []);
 
   // Calculate actual footer dimensions
-  // Footer: paddingTop(16) + button(48) + paddingBottom(16 + insets.bottom)
-  const footerHeight = 80 + insets.bottom;
+  // Footer: paddingTop(16) + button(48) + paddingBottom(16 + bottomSafeAreaInset)
+  const footerHeight = 80 + bottomSafeAreaInset;
 
   const showsFixedFooter =
     !isBalanceEmpty &&
@@ -1020,8 +1020,8 @@ const PerpsHomeView = () => {
 
   // Add safe area inset to footer for Android navigation bar
   const fixedFooterStyle = useMemo(
-    () => [styles.fixedFooter, { paddingBottom: 16 + insets.bottom }],
-    [styles.fixedFooter, insets.bottom],
+    () => [styles.fixedFooter, { paddingBottom: 16 + bottomSafeAreaInset }],
+    [styles.fixedFooter, bottomSafeAreaInset],
   );
 
   const scrollContentContainerStyle = useMemo(
@@ -1029,9 +1029,9 @@ const PerpsHomeView = () => {
       styles.scrollViewContent,
       showsFixedFooter
         ? { paddingBottom: 0 }
-        : { paddingBottom: 16 + insets.bottom },
+        : { paddingBottom: 16 + bottomSafeAreaInset },
     ],
-    [styles.scrollViewContent, showsFixedFooter, insets.bottom],
+    [styles.scrollViewContent, showsFixedFooter, bottomSafeAreaInset],
   );
 
   const titleEndAccessory = useMemo(() => {

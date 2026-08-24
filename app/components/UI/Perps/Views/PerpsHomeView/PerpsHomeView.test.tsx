@@ -137,6 +137,7 @@ const mockCloseEligibilityModal = jest.fn();
 const mockSetPerpsMode = jest.fn();
 const mockUsePerpsHomeSectionTracking = jest.fn();
 jest.mock('../../hooks', () => ({
+  useBottomSafeAreaInset: jest.fn(() => 0),
   usePerpsHomeData: jest.fn(),
   usePerpsMeasurement: jest.fn(),
   usePerpsNavigation: jest.fn(() => ({
