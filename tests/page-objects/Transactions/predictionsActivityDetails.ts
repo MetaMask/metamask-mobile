@@ -25,12 +25,6 @@ class PredictActivityDetails {
     );
   }
 
-  /**
-   * iOS native-stack v7 often groups the heading amount with the USDC icon
-   * (or marks the leaf StaticText accessible=false), so exact-text
-   * `expectTextDisplayed('$30.75')` misses a visible details screen.
-   * Stay scoped to the details container so a list row underneath cannot match.
-   */
   amountElement(amount: string): EncapsulatedElementType {
     if (!PlatformDetector.isIOSAppium()) {
       return this.amountDisplay;
