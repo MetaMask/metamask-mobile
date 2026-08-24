@@ -557,6 +557,14 @@ const fundedAccount = {
   isInitialLoading: false,
 };
 
+// Children such as PerpsCompetitionBanner resolve storage in an async effect
+// after the first render; flush it so assertions run on a settled tree.
+const settleAsyncChildren = async () => {
+  await act(async () => {
+    await Promise.resolve();
+  });
+};
+
 const flattenStyle = (node: { props: { style: unknown } }) =>
   StyleSheet.flatten(node.props.style as StyleProp<ViewStyle>);
 
@@ -583,7 +591,8 @@ describe('PerpsHomeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // clearAllMocks drops the factory implementation; restore the default inset.
+    // Pin the default inset so a mockReturnValue set by one test cannot leak
+    // into later ones (clearAllMocks resets call state, not return values).
     mockUseBottomSafeAreaInset.mockReturnValue(0);
     mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
     mockNavigateBack.mockClear();
@@ -1306,11 +1315,12 @@ describe('PerpsHomeView', () => {
       ).toBeTruthy();
     });
 
-    it('adds the system navigation bar inset to the fixed footer padding', () => {
+    it('adds the system navigation bar inset to the fixed footer padding', async () => {
       mockUseBottomSafeAreaInset.mockReturnValue(NAVIGATION_BAR_INSET);
       mockUsePerpsLiveAccount.mockReturnValue(fundedAccount);
 
       const { getByTestId } = render(<PerpsHomeView />);
+      await settleAsyncChildren();
 
       expect(
         flattenStyle(getByTestId(PerpsHomeViewSelectorsIDs.FIXED_FOOTER)),
@@ -1321,11 +1331,12 @@ describe('PerpsHomeView', () => {
       );
     });
 
-    it('reserves scroll space for the navigation bar inset below the fixed footer', () => {
+    it('reserves scroll space for the navigation bar inset below the fixed footer', async () => {
       mockUseBottomSafeAreaInset.mockReturnValue(NAVIGATION_BAR_INSET);
       mockUsePerpsLiveAccount.mockReturnValue(fundedAccount);
 
       const { getByTestId } = render(<PerpsHomeView />);
+      await settleAsyncChildren();
 
       expect(
         flattenStyle(getByTestId(PerpsHomeViewSelectorsIDs.BOTTOM_SPACER)),
@@ -1341,11 +1352,12 @@ describe('PerpsHomeView', () => {
   });
 
   describe('scroll content bottom padding', () => {
-    it('adds the system navigation bar inset when no fixed footer is rendered', () => {
+    it('adds the system navigation bar inset when no fixed footer is rendered', async () => {
       mockUseBottomSafeAreaInset.mockReturnValue(NAVIGATION_BAR_INSET);
       mockUsePerpsLiveAccount.mockReturnValue(fundedAccount);
 
       const { getByTestId } = render(<PerpsHomeView />);
+      await settleAsyncChildren();
 
       const contentContainerStyle = StyleSheet.flatten(
         getByTestId(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT).props
