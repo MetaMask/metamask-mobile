@@ -262,60 +262,63 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       }
     }, [refresh]);
 
-    const renderEarnAssetSlot = (
-      slot: (typeof assetSlots)[number],
-      index: number,
-    ) => {
-      if (slot.kind === 'unavailable') {
-        return renderUnavailableAssetCard(slot.key);
-      }
-
-      const { asset } = slot;
-      const metadata = getEarnAssetMetadata(asset);
-      const hasMinDepositAmount =
-        !isEarnAssetBalanceBelowMinDepositAmount(asset);
-      const hasSubsidizedFee = asset.experiences.some(
-        ({ isFeeSubsidized }) => isFeeSubsidized,
-      );
-      const isApr = asset.highestRateExperience?.rate.type === 'APR';
-      const rateText =
-        asset.highestRatePercent === undefined
-          ? strings('earn_module.rate_unavailable')
-          : strings(
-              hasMinDepositAmount
-                ? isApr
-                  ? 'earn_module.get_rate_apr'
-                  : 'earn_module.get_rate_apy'
-                : isApr
-                  ? 'earn_module.rate_apr'
-                  : 'earn_module.rate_apy',
-              {
-                percentage: truncateNumber(asset.highestRatePercent),
-              },
-            );
-
-      return (
-        <EarnSectionAssetCard
-          key={slot.key}
-          icon={renderEarnAssetIcon(earnAssetToToken(asset))}
-          tag={
-            hasSubsidizedFee ? (
-              <EarnNoFeeTag testID={`earn-section-asset-${index}-no-fee-tag`} />
-            ) : undefined
+    const renderedAssetCards = useMemo(
+      () =>
+        assetSlots.map((slot, index) => {
+          if (slot.kind === 'unavailable') {
+            return renderUnavailableAssetCard(slot.key);
           }
-          primaryText={metadata.ticker ?? metadata.symbol}
-          secondaryText={
-            hasMinDepositAmount
-              ? (getEarnAssetFiatDisplay(asset) ??
-                strings('earn_module.balance_unavailable'))
-              : (metadata.name ?? metadata.ticker ?? metadata.symbol)
-          }
-          tertiaryText={rateText}
-          testID={`earn-section-asset-${index}-card`}
-          onPress={() => handleAssetCardPress(asset)}
-        />
-      );
-    };
+
+          const { asset } = slot;
+          const metadata = getEarnAssetMetadata(asset);
+          const hasMinDepositAmount =
+            !isEarnAssetBalanceBelowMinDepositAmount(asset);
+          const hasSubsidizedFee = asset.experiences.some(
+            ({ isFeeSubsidized }) => isFeeSubsidized,
+          );
+          const isApr = asset.highestRateExperience?.rate.type === 'APR';
+          const rateText =
+            asset.highestRatePercent === undefined
+              ? strings('earn_module.rate_unavailable')
+              : strings(
+                  hasMinDepositAmount
+                    ? isApr
+                      ? 'earn_module.get_rate_apr'
+                      : 'earn_module.get_rate_apy'
+                    : isApr
+                      ? 'earn_module.rate_apr'
+                      : 'earn_module.rate_apy',
+                  {
+                    percentage: truncateNumber(asset.highestRatePercent),
+                  },
+                );
+
+          return (
+            <EarnSectionAssetCard
+              key={slot.key}
+              icon={renderEarnAssetIcon(earnAssetToToken(asset))}
+              tag={
+                hasSubsidizedFee ? (
+                  <EarnNoFeeTag
+                    testID={`earn-section-asset-${index}-no-fee-tag`}
+                  />
+                ) : undefined
+              }
+              primaryText={metadata.ticker ?? metadata.symbol}
+              secondaryText={
+                hasMinDepositAmount
+                  ? (getEarnAssetFiatDisplay(asset) ??
+                    strings('earn_module.balance_unavailable'))
+                  : (metadata.name ?? metadata.ticker ?? metadata.symbol)
+              }
+              tertiaryText={rateText}
+              testID={`earn-section-asset-${index}-card`}
+              onPress={() => handleAssetCardPress(asset)}
+            />
+          );
+        }),
+      [assetSlots, handleAssetCardPress],
+    );
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
@@ -393,7 +396,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
             )}
             {isLoading
               ? assetSlots.map(({ key }) => renderAssetCardSkeleton(key))
-              : assetSlots.map(renderEarnAssetSlot)}
+              : renderedAssetCards}
             {!isLoading && hasMoreAssets && (
               <EarnSectionCard
                 testID="earn-section-view-more-card"

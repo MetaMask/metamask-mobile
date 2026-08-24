@@ -44,7 +44,12 @@ import { useStablecoinLendingRedirect } from '../../hooks/useStablecoinLendingRe
 import useStakingChain from '../../../Stake/hooks/useStakingChain';
 import { useMoneyAccountDeposit } from '../../../Money/hooks/useMoneyAccount';
 import { earnAssetToToken, getEarnAssetMetadata } from '../../utils/earnAssets';
-import { EarnAssetId, EarnExperienceType } from '../../types/earnAssets';
+import type { TokenI } from '../../../Tokens/types';
+import type {
+  EarnAsset,
+  EarnAssetId,
+  EarnExperienceType,
+} from '../../types/earnAssets';
 
 export interface EarnStrategySelectionViewRouteParams {
   assetId: EarnAssetId;
@@ -54,6 +59,43 @@ type EarnStrategySelectionRoute = RouteProp<
   { params: EarnStrategySelectionViewRouteParams },
   'params'
 >;
+
+/**
+ * Builds the payment token required to start a Money deposit.
+ *
+ * @param earnAsset - Earn asset selected for the Money strategy.
+ * @returns Payment token address and chain ID.
+ * @throws When the selected asset is not a held asset with an address.
+ */
+export const getMoneyDepositPaymentToken = (
+  earnAsset: EarnAsset,
+): { address: Hex; chainId: Hex } => {
+  if (earnAsset.kind !== 'held' || !('address' in earnAsset.asset)) {
+    throw new Error(
+      'Money deposit requires a held asset with address property',
+    );
+  }
+
+  return {
+    address: earnAsset.asset.address as Hex,
+    chainId: earnAsset.asset.chainId as Hex,
+  };
+};
+
+/**
+ * Returns the token required to start a staking strategy.
+ *
+ * @param token - Token representation for the selected Earn asset.
+ * @returns Token representation for the staking flow.
+ * @throws When token metadata is unavailable.
+ */
+export const requireEarnStrategyToken = (token?: TokenI): TokenI => {
+  if (!token) {
+    throw new Error('Earn strategy asset metadata is unavailable');
+  }
+
+  return token;
+};
 
 const FAQ_URL_BY_EXPERIENCE: Record<EarnExperienceType, string> = {
   MONEY_ACCOUNT_DEPOSIT: MONEY_LANDING_URL,
@@ -108,17 +150,8 @@ const EarnStrategySelectionView = () => {
     const experienceType = selectedStrategy.experience.type;
 
     if (experienceType === 'MONEY_ACCOUNT_DEPOSIT') {
-      if (earnAsset.kind !== 'held' || !('address' in earnAsset.asset)) {
-        throw new Error(
-          'Money deposit requires a held asset with address property',
-        );
-      }
-
       await initiateDeposit({
-        preferredPaymentToken: {
-          address: earnAsset.asset.address as Hex,
-          chainId: earnAsset.asset.chainId as Hex,
-        },
+        preferredPaymentToken: getMoneyDepositPaymentToken(earnAsset),
         intent: 'convert',
       });
       return;
@@ -138,14 +171,10 @@ const EarnStrategySelectionView = () => {
       );
     }
 
-    if (!token) {
-      throw new Error('Earn strategy asset metadata is unavailable');
-    }
-
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE,
       params: {
-        token,
+        token: requireEarnStrategyToken(token),
       },
     });
   }, [
@@ -177,6 +206,62 @@ const EarnStrategySelectionView = () => {
   const handleStrategyPress = useCallback((strategyId: string) => {
     setSelectedStrategyId(strategyId);
   }, []);
+
+  let strategyContent: React.ReactNode;
+  if (isLoading) {
+    strategyContent = (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        gap={3}
+        twClassName="mt-7"
+        testID="earn-strategy-selection-loading"
+      >
+        <Skeleton height={170} twClassName="flex-1 rounded-2xl" />
+        <Skeleton height={170} twClassName="flex-1 rounded-2xl" />
+      </Box>
+    );
+  } else if (!earnAsset) {
+    strategyContent = (
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.ErrorDefault}
+        twClassName="mt-7"
+        testID="earn-strategy-selection-error"
+      >
+        {strings('earn_module.asset_unavailable')}
+      </Text>
+    );
+  } else {
+    strategyContent = (
+      <>
+        {hasError && (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
+            twClassName="mt-7"
+            testID="earn-strategy-selection-degraded"
+          >
+            {strings('earn_module.rate_unavailable')}
+          </Text>
+        )}
+        <Box flexDirection={BoxFlexDirection.Row} gap={3} twClassName="mt-7">
+          {strategies.map((strategy) => (
+            <EarnStrategyCard
+              key={strategy.id}
+              risk={strategy.risk}
+              title={strategy.title}
+              subtitle={strategy.subtitle}
+              tertiaryText={strategy.tertiaryText}
+              isFeeSubsidized={strategy.experience.isFeeSubsidized}
+              selected={selectedStrategyId === strategy.id}
+              onPress={() => handleStrategyPress(strategy.id)}
+              testID={`earn-strategy-card-${strategy.id}`}
+            />
+          ))}
+        </Box>
+      </>
+    );
+  }
 
   return (
     <SafeAreaView
@@ -220,58 +305,7 @@ const EarnStrategySelectionView = () => {
             })}
           </Text>
 
-          {isLoading ? (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              gap={3}
-              twClassName="mt-7"
-              testID="earn-strategy-selection-loading"
-            >
-              <Skeleton height={170} twClassName="flex-1 rounded-2xl" />
-              <Skeleton height={170} twClassName="flex-1 rounded-2xl" />
-            </Box>
-          ) : !earnAsset ? (
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.ErrorDefault}
-              twClassName="mt-7"
-              testID="earn-strategy-selection-error"
-            >
-              {strings('earn_module.asset_unavailable')}
-            </Text>
-          ) : (
-            <>
-              {hasError && (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.ErrorDefault}
-                  twClassName="mt-7"
-                  testID="earn-strategy-selection-degraded"
-                >
-                  {strings('earn_module.rate_unavailable')}
-                </Text>
-              )}
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                gap={3}
-                twClassName="mt-7"
-              >
-                {strategies.map((strategy) => (
-                  <EarnStrategyCard
-                    key={strategy.id}
-                    risk={strategy.risk}
-                    title={strategy.title}
-                    subtitle={strategy.subtitle}
-                    tertiaryText={strategy.tertiaryText}
-                    isFeeSubsidized={strategy.experience.isFeeSubsidized}
-                    selected={selectedStrategyId === strategy.id}
-                    onPress={() => handleStrategyPress(strategy.id)}
-                    testID={`earn-strategy-card-${strategy.id}`}
-                  />
-                ))}
-              </Box>
-            </>
-          )}
+          {strategyContent}
 
           {selectedStrategy && (
             <Box gap={4} twClassName="mt-7">

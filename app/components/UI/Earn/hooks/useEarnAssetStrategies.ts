@@ -33,6 +33,13 @@ const infoRowsKeyByStrategyKind: Record<StrategyKind, string> = {
   trx_staking: 'trx_staking',
 };
 
+/**
+ * Maps an Earn experience type to the strategy content category used by the
+ * strategy-selection UI.
+ *
+ * @param experience - Earn experience to categorize.
+ * @returns Strategy content category.
+ */
 const getStrategyKind = (experience: EarnExperience): StrategyKind => {
   if (experience.type === 'MONEY_ACCOUNT_DEPOSIT') return 'money';
   if (experience.type === EARN_EXPERIENCES.STABLECOIN_LENDING) {
@@ -51,6 +58,13 @@ const riskByStrategyKind: Record<StrategyKind, EarnStrategyRiskLevel> = {
 
 const infoIcons = [IconName.Chart, IconName.Lock, IconName.SecurityTick];
 
+/**
+ * Builds the display model for one Earn strategy.
+ *
+ * @param experience - Earn experience containing rate and product details.
+ * @param assetLabel - User-facing label for the underlying asset.
+ * @returns Strategy card and information-row content.
+ */
 const getStrategy = (
   experience: EarnExperience,
   assetLabel: string,
@@ -58,15 +72,18 @@ const getStrategy = (
   const strategyKind = getStrategyKind(experience);
   const infoRowsKey = infoRowsKeyByStrategyKind[strategyKind];
   const percentage = experience.rate.percentage;
-  const title =
-    percentage === undefined
-      ? strings('earn_module.rate_unavailable')
-      : strings(
-          experience.rate.type === 'APY'
-            ? 'earn_module.rate_apy'
-            : 'earn_module.rate_apr',
-          { percentage: truncateNumber(percentage) },
-        );
+  let title: string;
+  if (percentage === undefined) {
+    title = strings('earn_module.rate_unavailable');
+  } else if (experience.rate.type === 'APY') {
+    title = strings('earn_module.rate_apy', {
+      percentage: truncateNumber(percentage),
+    });
+  } else {
+    title = strings('earn_module.rate_apr', {
+      percentage: truncateNumber(percentage),
+    });
+  }
 
   return {
     id: experience.id,

@@ -297,7 +297,7 @@ describe('BrowserTab', () => {
       );
 
       await waitFor(() =>
-        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+        expect(screen.getByTestId('browser-webview')).toBeOnTheScreen(),
       );
 
       fireEvent.press(screen.getByTestId('browser-tab-close-button'));

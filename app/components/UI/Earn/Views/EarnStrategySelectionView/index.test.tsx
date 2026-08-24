@@ -19,7 +19,11 @@ import useEarnAssetStrategies, {
 import { useStablecoinLendingRedirect } from '../../hooks/useStablecoinLendingRedirect';
 import useStakingChain from '../../../Stake/hooks/useStakingChain';
 import { useMoneyAccountDeposit } from '../../../Money/hooks/useMoneyAccount';
-import type { EarnAssetId, EarnExperienceType } from '../../types/earnAssets';
+import type {
+  EarnAsset,
+  EarnAssetId,
+  EarnExperienceType,
+} from '../../types/earnAssets';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   LENDING_FAQ_URL,
@@ -27,7 +31,10 @@ import {
   POOLED_STAKING_FAQ_URL,
   TRON_STAKING_FAQ_URL,
 } from '../../../../../constants/urls';
-import EarnStrategySelectionView from './index';
+import EarnStrategySelectionView, {
+  getMoneyDepositPaymentToken,
+  requireEarnStrategyToken,
+} from './index';
 
 jest.mock('@react-navigation/native');
 jest.mock('@metamask/design-system-twrnc-preset');
@@ -236,6 +243,19 @@ describe('EarnStrategySelectionView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders degraded state when strategy rates are unavailable', () => {
+    mockUseEarnAssetStrategies.mockReturnValue({
+      ...createHookResult(),
+      hasError: true,
+    });
+
+    render(<EarnStrategySelectionView />);
+
+    expect(
+      screen.getByTestId('earn-strategy-selection-degraded'),
+    ).toBeOnTheScreen();
+  });
+
   it('renders loading state while catalogue data resolves', () => {
     mockUseEarnAssetStrategies.mockReturnValue({
       ...createHookResult(),
@@ -257,6 +277,34 @@ describe('EarnStrategySelectionView', () => {
     fireEvent.press(screen.getByTestId('earn-strategy-selection-back-button'));
 
     expect(goBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('throws when Money strategy asset is not held', () => {
+    const discoveryAsset: EarnAsset = {
+      kind: 'discovery',
+      assetId,
+      metadata: {
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: '0x1',
+        decimals: 6,
+        image: '',
+        name: 'USD Coin',
+        symbol: 'USDC',
+        logo: undefined,
+        isETH: false,
+      },
+      experiences: [],
+    };
+
+    expect(() => getMoneyDepositPaymentToken(discoveryAsset)).toThrow(
+      'Money deposit requires a held asset with address property',
+    );
+  });
+
+  it('throws when staking strategy token metadata is unavailable', () => {
+    expect(() => requireEarnStrategyToken()).toThrow(
+      'Earn strategy asset metadata is unavailable',
+    );
   });
 
   it.each([
