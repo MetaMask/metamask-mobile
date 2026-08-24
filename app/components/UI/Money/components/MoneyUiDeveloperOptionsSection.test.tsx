@@ -1,6 +1,12 @@
 import React from 'react';
+import { Alert } from 'react-native';
 import { render, fireEvent, act } from '@testing-library/react-native';
-import { MoneyUiDeveloperOptionsSection } from './MoneyUiDeveloperOptionsSection';
+import {
+  MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID,
+  MONEY_DEV_MIGRATION_STATUS_TEST_ID,
+  MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID,
+  MoneyUiDeveloperOptionsSection,
+} from './MoneyUiDeveloperOptionsSection';
 import { UserActionType } from '../../../../actions/user/types';
 import {
   selectMoneyEarnBannerDismissedTokens,
@@ -10,6 +16,30 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
 
 const mockNavigate = jest.fn();
+const mockMigrate = jest.fn();
+
+interface MigrationParams {
+  source: string;
+  destination: string;
+  onBeforePhase?: (phase: string) => Promise<void>;
+}
+
+jest.mock(
+  '../../../../lib/Money/migration/MoneyAccountMigrationPocService',
+  () => ({
+    MoneyAccountMigrationPoc: {
+      migrate: (params: MigrationParams) => mockMigrate(params),
+    },
+  }),
+);
+
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    log: jest.fn(),
+    error: jest.fn(),
+  },
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -46,6 +76,16 @@ jest.mock('../../../../core/ClipboardManager', () => ({
 }));
 
 const MOCK_ADDRESS = '0xABCDEF1234567890ABCDEF1234567890ABCDEF12';
+const MOCK_DESTINATION = '0x1111111111111111111111111111111111111111';
+
+const confirmRunAlert = () => {
+  jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
+    const action = buttons?.find(
+      (button) => button.text === 'Run' || button.text === 'Continue',
+    );
+    action?.onPress?.();
+  });
+};
 
 interface SelectorMockOptions {
   hasSeenMoneyOnboarding?: boolean;
@@ -87,7 +127,12 @@ function setupSelectorMocks(options: SelectorMockOptions = {}) {
 describe('MoneyUiDeveloperOptionsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMigrate.mockResolvedValue(undefined);
     setupSelectorMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders the "Money UI" heading', () => {
@@ -225,6 +270,110 @@ describe('MoneyUiDeveloperOptionsSection', () => {
       });
 
       expect(mockSetString).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Money Account migration POC', () => {
+    it('disables the run button when destination is empty', () => {
+      const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
+
+      expect(
+        getByTestId(MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID),
+      ).toBeDisabled();
+    });
+
+    it('does not call migrate when destination equals the money account', () => {
+      confirmRunAlert();
+      const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
+
+      fireEvent.changeText(
+        getByTestId(MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID),
+        MOCK_ADDRESS,
+      );
+      fireEvent.press(getByTestId(MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID));
+
+      expect(mockMigrate).not.toHaveBeenCalled();
+    });
+
+    it('calls migrate with the money account source and typed destination', async () => {
+      confirmRunAlert();
+      const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
+
+      fireEvent.changeText(
+        getByTestId(MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID),
+        MOCK_DESTINATION,
+      );
+      await act(async () => {
+        fireEvent.press(getByTestId(MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID));
+      });
+
+      expect(mockMigrate).toHaveBeenCalledWith({
+        source: MOCK_ADDRESS,
+        destination: MOCK_DESTINATION,
+        onBeforePhase: expect.any(Function),
+      });
+      expect(getByTestId(MONEY_DEV_MIGRATION_STATUS_TEST_ID)).toHaveTextContent(
+        'Migration finished',
+      );
+    });
+
+    it('shows a blocking prompt for a migration phase', async () => {
+      mockMigrate.mockImplementation(
+        async ({ onBeforePhase }: MigrationParams) => {
+          await onBeforePhase?.('collect-inventory');
+        },
+      );
+      confirmRunAlert();
+      const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
+
+      fireEvent.changeText(
+        getByTestId(MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID),
+        MOCK_DESTINATION,
+      );
+      await act(async () => {
+        fireEvent.press(getByTestId(MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID));
+      });
+
+      expect(Alert.alert).toHaveBeenCalledWith(
+        'Migration phase: collect-inventory',
+        'Tap Continue to start this phase.',
+        expect.arrayContaining([
+          expect.objectContaining({ text: 'Cancel' }),
+          expect.objectContaining({ text: 'Continue' }),
+        ]),
+        { cancelable: false },
+      );
+    });
+
+    it('shows the migrate error message when migrate throws', async () => {
+      confirmRunAlert();
+      mockMigrate.mockRejectedValue(new Error('exit-batch-failed'));
+      const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
+
+      fireEvent.changeText(
+        getByTestId(MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID),
+        MOCK_DESTINATION,
+      );
+      await act(async () => {
+        fireEvent.press(getByTestId(MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID));
+      });
+
+      expect(getByTestId(MONEY_DEV_MIGRATION_STATUS_TEST_ID)).toHaveTextContent(
+        'Migration failed: exit-batch-failed',
+      );
+    });
+
+    it('does not call migrate when the alert is cancelled', () => {
+      jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+      const { getByTestId } = render(<MoneyUiDeveloperOptionsSection />);
+
+      fireEvent.changeText(
+        getByTestId(MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID),
+        MOCK_DESTINATION,
+      );
+      fireEvent.press(getByTestId(MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID));
+
+      expect(mockMigrate).not.toHaveBeenCalled();
     });
   });
 });

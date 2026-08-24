@@ -57,6 +57,8 @@ const STUB_DESTINATION_ACCOUNT: MoneyAccount = {
     EthMethod.SignTypedDataV4,
   ],
 };
+
+// Money account is avaiable on monad only
 const DEFAULT_CHAIN_ID = '0x8f' as Hex;
 const PENDING_READ = { blockTag: 'pending' } as const;
 const ERC20 = new Interface(abiERC20);
@@ -70,7 +72,11 @@ const FAILED_TX_STATUSES = new Set<TransactionStatus>([
   TransactionStatus.rejected,
 ]);
 
-type ExitCall = { to: Hex; data: Hex; value: Hex };
+interface ExitCall {
+  to: Hex;
+  data: Hex;
+  value: Hex;
+}
 
 const buildExitCalls = (
   inventory: MigrationInventory,
@@ -137,6 +143,8 @@ const buildExitCalls = (
   return calls;
 };
 
+export type MigrationPhasePrompt = (phase: string) => Promise<void>;
+
 const findInnerTxForBatch = async (batchId: Hex): Promise<TransactionMeta> => {
   const messenger = Engine.controllerMessenger;
   for (let attempt = 0; attempt < INNER_TX_RETRIES; attempt++) {
@@ -156,6 +164,15 @@ const findInnerTxForBatch = async (batchId: Hex): Promise<TransactionMeta> => {
   throw new Error('exit-batch-tx-not-found');
 };
 
+async function runMigrationPhase<T>(
+  phase: string,
+  operation: () => Promise<T>,
+  onBeforePhase?: MigrationPhasePrompt,
+): Promise<T> {
+  await onBeforePhase?.(phase);
+  return operation();
+}
+
 /**
  * Option B Money Account footprint migration (ADR 0006) for POC.
  * Linear: inventory → teardown → one exit batch → residual → re-provision.
@@ -167,30 +184,70 @@ export class MoneyAccountMigrationPocService {
   async migrate({
     source,
     destination,
+    onBeforePhase,
   }: {
     source: Hex;
     destination?: Hex;
+    onBeforePhase?: MigrationPhasePrompt;
   }): Promise<void> {
-    const dest =
-      destination ?? (await this.createDestination()).address;
-    const inventory = await this.collectInventory(source, dest);
-    const blockers = await this.collectBlockers(inventory);
+    const dest = await runMigrationPhase<Hex>(
+      'resolve-destination',
+      async () =>
+        destination ?? ((await this.createDestination()).address as Hex),
+      onBeforePhase,
+    );
+    const inventory = await runMigrationPhase(
+      'collect-inventory',
+      () => this.collectInventory(source, dest),
+      onBeforePhase,
+    );
+    const blockers = await runMigrationPhase(
+      'collect-blockers',
+      () => this.collectBlockers(inventory),
+      onBeforePhase,
+    );
     if (blockers.length > 0) {
       throw new Error(blockers[0].kind);
     }
-    if (!(await this.assertBatchFromSelf(inventory))) {
+    const batchSupported = await runMigrationPhase(
+      'assert-atomic-batch-support',
+      () => this.assertBatchFromSelf(inventory),
+      onBeforePhase,
+    );
+    if (!batchSupported) {
       throw new Error('atomic-batch-unsupported');
     }
 
-    await this.teardown(inventory);
-    await this.executeExitBatch(inventory);
-    await this.persistResidualDelegation(
-      inventory.source,
-      inventory.destination,
-      inventory.chainId,
+    await runMigrationPhase(
+      'teardown',
+      () => this.teardown(inventory),
+      onBeforePhase,
     );
-    await this.reprovision(inventory.destination, inventory);
-    await this.verifyOldInert(inventory);
+    await runMigrationPhase(
+      'execute-exit-batch',
+      () => this.executeExitBatch(inventory),
+      onBeforePhase,
+    );
+    await runMigrationPhase(
+      'persist-residual-delegation',
+      () =>
+        this.persistResidualDelegation(
+          inventory.source,
+          inventory.destination,
+          inventory.chainId,
+        ),
+      onBeforePhase,
+    );
+    await runMigrationPhase(
+      'reprovision',
+      () => this.reprovision(inventory.destination, inventory),
+      onBeforePhase,
+    );
+    await runMigrationPhase(
+      'verify-old-inert',
+      () => this.verifyOldInert(inventory),
+      onBeforePhase,
+    );
   }
 
   // Stub MoneyAccount MFA
@@ -223,21 +280,15 @@ export class MoneyAccountMigrationPocService {
         queryKey: ['AuthenticatedUserStorageService:listDelegations'],
       }),
     ]);
-    const [
-      flagState,
-      vmUsdBalance,
-      musdBalance,
-      intents,
-      delegations,
-      home,
-    ] = await Promise.all([
-      messenger.call('RemoteFeatureFlagController:getState'),
-      messenger.call('MoneyAccountBalanceService:getVmusdBalance', source),
-      messenger.call('MoneyAccountBalanceService:getMusdBalance', source),
-      messenger.call('ChompApiService:getIntentsByAddress', source),
-      messenger.call('AuthenticatedUserStorageService:listDelegations'),
-      Engine.context.CardController.getCardHomeData(source),
-    ]);
+    const [flagState, vmUsdBalance, musdBalance, intents, delegations, home] =
+      await Promise.all([
+        messenger.call('RemoteFeatureFlagController:getState'),
+        messenger.call('MoneyAccountBalanceService:getVmusdBalance', source),
+        messenger.call('MoneyAccountBalanceService:getMusdBalance', source),
+        messenger.call('ChompApiService:getIntentsByAddress', source),
+        messenger.call('AuthenticatedUserStorageService:listDelegations'),
+        Engine.context.CardController.getCardHomeData(source),
+      ]);
 
     const vaultConfig = getMoneyAccountVaultConfig(
       flagState.remoteFeatureFlags,
@@ -260,8 +311,10 @@ export class MoneyAccountMigrationPocService {
     }
 
     const sourceLower = source.toLowerCase();
-    const chainId = (vaultConfig?.chainId as Hex | undefined) ?? DEFAULT_CHAIN_ID;
-    const musdAddress = MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId] ?? MUSD_TOKEN_ADDRESS;
+    const chainId =
+      (vaultConfig?.chainId as Hex | undefined) ?? DEFAULT_CHAIN_ID;
+    const musdAddress =
+      MUSD_TOKEN_ADDRESS_BY_CHAIN[chainId] ?? MUSD_TOKEN_ADDRESS;
     const networkClientId = await messenger.call(
       'NetworkController:findNetworkClientIdByChainId',
       chainId,
@@ -321,7 +374,6 @@ export class MoneyAccountMigrationPocService {
   }
 
   async teardown(inventory: MigrationInventory): Promise<void> {
-
     // keep chomp connection alive
     // can a profile have 2 chomp associated address ( old and new account )?
     // await this.revokeChompIntents(inventory.chompIntentHashes);
@@ -380,8 +432,9 @@ export class MoneyAccountMigrationPocService {
       const home = await Engine.context.CardController.getCardHomeData(
         inventory.source,
       );
-      cardSpender = getVedaTokenConfig(home.delegationSettings)
-        ?.delegationContract;
+      cardSpender = getVedaTokenConfig(
+        home.delegationSettings,
+      )?.delegationContract;
     }
     const calls = buildExitCalls(inventory, {
       boringVault: vaultConfig?.boringVault,
@@ -430,7 +483,8 @@ export class MoneyAccountMigrationPocService {
       throw new Error('exit-batch-failed');
     }
     await awaitTransactionConfirmed({
-      messenger: Engine.controllerMessenger as unknown as AwaitTransactionConfirmedMessenger,
+      messenger:
+        Engine.controllerMessenger as unknown as AwaitTransactionConfirmedMessenger,
       submit: async () => ({
         result: Promise.resolve(innerTx.hash ?? ''),
         transactionMeta: innerTx,
@@ -450,7 +504,7 @@ export class MoneyAccountMigrationPocService {
     const unsigned = {
       delegate: destination,
       delegator: source,
-      authority: ROOT_AUTHORITY,
+      authority: ROOT_AUTHORITY as Hex,
       caveats: [],
       salt,
     };
@@ -507,3 +561,5 @@ export class MoneyAccountMigrationPocService {
     // vmUSD/mUSD/allowances 0, 7702 kept, no active CHOMP intents, Card unlinked.
   }
 }
+
+export const MoneyAccountMigrationPoc = new MoneyAccountMigrationPocService();

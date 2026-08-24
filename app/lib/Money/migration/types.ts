@@ -1,4 +1,4 @@
-import type { Hex } from '@metamask/utils';
+import type { Hex, Json } from '@metamask/utils';
 
 export type MigrationStatus =
   | 'IDLE'
@@ -13,7 +13,7 @@ export const AUTO_RESTORE_AFTER_MS = 7 * 24 * 60 * 60 * 1000;
 
 export type FormerMoneyAccount = {
   newAddress: Hex;
-  residualDelegation: unknown | null;
+  residualDelegation: Json | null;
   residualDelegationHash: Hex | null;
 };
 
@@ -22,7 +22,7 @@ export type MigrationSnapshot = {
   inventory: MigrationInventory | null;
   destination: Hex | null;
   exitBatchId: Hex | null;
-  residualDelegation: unknown | null;
+  residualDelegation: Json | null;
   residualDelegationHash: Hex | null;
   tornDownAt: number | null;
   formerMoneyAccounts: Record<string, FormerMoneyAccount>;

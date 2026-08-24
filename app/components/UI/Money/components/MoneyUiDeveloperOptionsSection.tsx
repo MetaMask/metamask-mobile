@@ -1,6 +1,8 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
+import { Alert } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { Hex } from '@metamask/utils';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import { useTheme } from '../../../../util/theme';
@@ -20,15 +22,28 @@ import {
   Text,
   TextColor,
   TextVariant,
+  TextField,
   Button,
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import styleSheet from '../../../Views/Settings/DeveloperOptions/DeveloperOptions.styles';
 import ClipboardManager from '../../../../core/ClipboardManager';
+import Logger from '../../../../util/Logger';
+import { isValidHexAddress } from '../../../../util/address';
+import {
+  MoneyAccountMigrationPoc,
+  type MigrationPhasePrompt,
+} from '../../../../lib/Money/migration/MoneyAccountMigrationPocService';
 import { STEPPER_IDS } from '../hooks/useOnboardingStep';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
+
+export const MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID =
+  'money-dev-migration-destination-input';
+export const MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID =
+  'money-dev-run-migration-button';
+export const MONEY_DEV_MIGRATION_STATUS_TEST_ID = 'money-dev-migration-status';
 
 export const MoneyUiDeveloperOptionsSection = () => {
   const dispatch = useDispatch();
@@ -48,6 +63,15 @@ export const MoneyUiDeveloperOptionsSection = () => {
   const earnBannerDismissedCount = Object.keys(
     earnBannerDismissedTokens,
   ).length;
+  const [destinationAddress, setDestinationAddress] = useState('');
+  const [isMigrationRunning, setIsMigrationRunning] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState<string | null>(null);
+  const trimmedDestination = destinationAddress.trim();
+  const canRunMigration =
+    Boolean(moneyAccountAddress) &&
+    isValidHexAddress(trimmedDestination) &&
+    trimmedDestination.toLowerCase() !== moneyAccountAddress?.toLowerCase() &&
+    !isMigrationRunning;
 
   const handleResetOnboardingSeenState = useCallback(() => {
     dispatch(setMoneyOnboardingSeen(false));
@@ -70,6 +94,69 @@ export const MoneyUiDeveloperOptionsSection = () => {
   const handleClearEarnBannerDismissals = useCallback(() => {
     dispatch(clearMoneyEarnBannerDismissedTokens());
   }, [dispatch]);
+
+  const promptBeforeMigrationPhase = useCallback<MigrationPhasePrompt>(
+    (phase) =>
+      new Promise<void>((resolve, reject) => {
+        Alert.alert(
+          `Migration phase: ${phase}`,
+          'Tap Continue to start this phase.',
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel',
+              onPress: () => reject(new Error('migration-debug-cancelled')),
+            },
+            { text: 'Continue', onPress: () => resolve() },
+          ],
+          { cancelable: false },
+        );
+      }),
+    [],
+  );
+
+  const runMigration = useCallback(async () => {
+    if (!moneyAccountAddress || !isValidHexAddress(trimmedDestination)) {
+      return;
+    }
+    setIsMigrationRunning(true);
+    setMigrationStatus('Migration running…');
+    try {
+      await MoneyAccountMigrationPoc.migrate({
+        source: moneyAccountAddress as Hex,
+        destination: trimmedDestination as Hex,
+        onBeforePhase: promptBeforeMigrationPhase,
+      });
+      setMigrationStatus('Migration finished');
+      Logger.log('MoneyUiDeveloperOptionsSection: migration POC finished', {
+        source: moneyAccountAddress,
+        destination: trimmedDestination,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setMigrationStatus(`Migration failed: ${message}`);
+      Logger.error(
+        error instanceof Error ? error : new Error(message),
+        'MoneyUiDeveloperOptionsSection: migration POC failed',
+      );
+    } finally {
+      setIsMigrationRunning(false);
+    }
+  }, [moneyAccountAddress, promptBeforeMigrationPhase, trimmedDestination]);
+
+  const handleRunMigration = useCallback(() => {
+    if (!canRunMigration || !moneyAccountAddress) {
+      return;
+    }
+    Alert.alert(
+      'Run Money Account migration POC?',
+      `Moves funds on Monad from ${moneyAccountAddress} to ${trimmedDestination}. Import the destination private key via Settings → Import Account first. Do not paste a private key here.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Run', onPress: runMigration },
+      ],
+    );
+  }, [canRunMigration, moneyAccountAddress, runMigration, trimmedDestination]);
 
   return (
     <Box twClassName="gap-2">
@@ -173,6 +260,53 @@ export const MoneyUiDeveloperOptionsSection = () => {
         >
           {'Clear Earn banner dismissals'}
         </Button>
+      </Box>
+      <Box>
+        <Text
+          color={TextColor.TextAlternative}
+          variant={TextVariant.BodyMd}
+          style={styles.desc}
+        >
+          {
+            'POC: migrate Money Account footprint on Monad. Destination must be an address you control. Import its private key via Settings → Import Account, then paste that address here — never paste a private key.'
+          }
+        </Text>
+        <TextField
+          placeholder="0x destination address"
+          value={destinationAddress}
+          onChangeText={setDestinationAddress}
+          isDisabled={isMigrationRunning}
+          twClassName="w-full"
+          style={styles.accessory}
+          inputProps={{
+            autoCapitalize: 'none',
+            autoCorrect: false,
+            testID: MONEY_DEV_MIGRATION_DESTINATION_INPUT_TEST_ID,
+          }}
+        />
+        <Button
+          variant={ButtonVariant.Secondary}
+          style={styles.accessory}
+          size={ButtonSize.Lg}
+          onPress={handleRunMigration}
+          isDisabled={!canRunMigration}
+          isFullWidth
+          testID={MONEY_DEV_RUN_MIGRATION_BUTTON_TEST_ID}
+        >
+          {isMigrationRunning
+            ? 'Migration running…'
+            : 'Run Money Account migration POC'}
+        </Button>
+        {migrationStatus ? (
+          <Text
+            color={TextColor.TextAlternative}
+            variant={TextVariant.BodyMd}
+            style={styles.desc}
+            testID={MONEY_DEV_MIGRATION_STATUS_TEST_ID}
+          >
+            {migrationStatus}
+          </Text>
+        ) : null}
       </Box>
     </Box>
   );
