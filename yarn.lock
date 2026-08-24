@@ -29591,7 +29591,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expo-modules-core@npm:55.0.25":
+"expo-modules-core@npm:55.0.25, expo-modules-core@npm:~55.0.25":
   version: 55.0.25
   resolution: "expo-modules-core@npm:55.0.25"
   dependencies:
@@ -29604,6 +29604,26 @@ __metadata:
     react-native-worklets:
       optional: true
   checksum: 10/9a1121a46d15ba585f05893c4b785ed767bf595722b19c181a4867fca982ac769b295d230f5197345b91353a8202c16f92005923f7671ddf5166c85678124657
+  languageName: node
+  linkType: hard
+
+"expo-screen-capture@npm:55.0.16":
+  version: 55.0.16
+  resolution: "expo-screen-capture@npm:55.0.16"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+  checksum: 10/0b9e2a6f9d6a83850c2a516bb2d2b0a3ec37f8c0dafa3608082e3f5ce5c7f77b7555950264bd97ec94b69c6fc0e75cd52726123040647b2e6dbdf23b57ea73b5
+  languageName: node
+  linkType: hard
+
+"expo-screen-capture@patch:expo-screen-capture@npm%3A55.0.16#~/.yarn/patches/expo-screen-capture-npm-55.0.16-d0c787506f.patch":
+  version: 55.0.16
+  resolution: "expo-screen-capture@patch:expo-screen-capture@npm%3A55.0.16#~/.yarn/patches/expo-screen-capture-npm-55.0.16-d0c787506f.patch::version=55.0.16&hash=a3f343"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+  checksum: 10/5da89b6ae15135d58a8e73f9b8ae046accac6b2160ed6e572d1bd04699a8fbaee156e09b7ee507f14cbfb75d5c577a7822e705846d9150ef9aaa19cb54a19d2d
   languageName: node
   linkType: hard
 
@@ -36031,6 +36051,8 @@ __metadata:
     expo-haptics: "npm:~55.0.14"
     expo-image: "npm:~55.0.11"
     expo-local-authentication: "npm:~55.0.14"
+    expo-modules-core: "npm:~55.0.25"
+    expo-screen-capture: "patch:expo-screen-capture@npm%3A55.0.16#~/.yarn/patches/expo-screen-capture-npm-55.0.16-d0c787506f.patch"
     expo-screen-orientation: "npm:~55.0.16"
     expo-sensors: "npm:~55.0.15"
     expo-splash-screen: "npm:~55.0.21"
