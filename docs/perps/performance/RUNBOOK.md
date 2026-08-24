@@ -43,19 +43,19 @@ For a matched optimized arm, change only `source_strategy=full_bootstrap`, `samp
 
 ## Timing boundaries
 
-The vocabulary below is the target recipe contract. This change emits
-`perps_bootstrap_start` and its bootstrap-relative milestones. The four
-`surface_*` stages remain `recipe pending`; Mobile does not emit them yet. Keep
-each milestone `recipe pending` until it has correlated on-device evidence,
-then `release pending` until an identifiable Mobile release contains it. Never
-synthesize a missing milestone.
+The vocabulary below is the recipe contract. This change emits
+`perps_bootstrap_start`, its bootstrap-relative milestones, and the four
+Homepage `surface_*` stages. Keep each milestone `recipe pending` until it has
+correlated on-device evidence, then `release pending` until an identifiable
+Mobile release contains it. Never synthesize a missing milestone.
 
 The recipe captures both clocks without mixing them:
 
 - Existing app startup traces retain process, UI, authentication, and Homepage Ready timing.
 - Perps bootstrap-relative milestones anchor at recipe-proven `perps_bootstrap_start`.
-- Existing Homepage section TTC starts at section mount. A recipe-visible
-  `surface_demand` anchor remains pending until its Mobile producer lands.
+- Recipe-visible surface timing starts at `surface_demand`. Existing Homepage
+  section TTC still starts at section mount and remains a separate production
+  clock.
 
 Metro compilation and fixture/account setup remain visible in `trace.json` but are excluded from product durations. Homepage Ready and Perps bootstrap remain independently owned traces; this PR does not synthesize a per-event offset between them.
 
@@ -67,7 +67,7 @@ The normal operator mode is `--hud show`. Use `--hud hide` only for an explicitl
 
 The final report combines:
 
-1. Homepage markets, HIP-3 coverage, prices, account resolution, and live-stream readiness. Cached-to-visible and fresh-visible timing remain `recipe pending` until the surface markers land.
+1. Homepage markets, HIP-3 coverage, prices, account resolution, visible content, and fresh-visible timing. Cache-to-visible remains excluded until the cache delivery source is attached to the frame evidence.
 2. Critical Perps CUFs already instrumented in the app: market list/detail, open position, limit order, close, and cancel.
 3. Executable lifecycle cohorts: cold no-cache, cold disk cache, navigation return, short resume, reconnect, account switch, and network switch.
 
@@ -75,7 +75,7 @@ The final report combines:
 
 Do not combine setup/build duration with these measurements, and do not compare Android device timing directly with an iOS simulator as a code-performance claim.
 
-The current recipe may pass native visibility and bootstrap/live-stream checks
-with `require_records=false`. Such a run does not validate the pending
-`surface_*` contract. Reports must show those fields as missing or excluded,
-never as a successful visible-performance measurement.
+The canonical recipe must use `require_records=true` and require
+`surface_demand`, `surface_initial_ui_recorded`,
+`surface_resolved_recorded`, and `surface_live_recorded`. A native visibility
+assertion alone does not validate this timing contract.

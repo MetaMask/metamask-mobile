@@ -18,6 +18,9 @@ import type {
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
 const mockUseSectionPerformance = jest.fn((_config: unknown) => undefined);
+const mockUseHomepagePerpsSurfaceMetrics = jest.fn((_config: unknown) => ({
+  onLayout: jest.fn(),
+}));
 const mockFinishPerpsLoadingSession = jest.fn(
   (_data: unknown, _expectedSessionId?: string) => undefined,
 );
@@ -33,6 +36,11 @@ const mockGetActivePerpsLoadingSessionContext = jest.fn<
 
 jest.mock('../../hooks/useSectionPerformance', () => ({
   useSectionPerformance: (config: unknown) => mockUseSectionPerformance(config),
+}));
+
+jest.mock('./hooks/useHomepagePerpsSurfaceMetrics', () => ({
+  useHomepagePerpsSurfaceMetrics: (config: unknown) =>
+    mockUseHomepagePerpsSurfaceMetrics(config),
 }));
 
 jest.mock('../../../../UI/Perps/utils/perpsLoadingSession', () => ({
@@ -430,6 +438,15 @@ describe('PerpsSection', () => {
           account_source: 'memory_cache',
         }),
         data: { perps_session_id: 'session-id-1' },
+      }),
+    );
+    expect(mockUseHomepagePerpsSurfaceMetrics).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionId: 'session-id-1',
+        lifecycle: 'cold_no_cache',
+        contentReady: true,
+        contentVariant: 'trending',
+        resolvedSource: 'provider',
       }),
     );
   });
