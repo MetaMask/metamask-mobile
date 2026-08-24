@@ -7,16 +7,10 @@ import {
   AccountProviderWrapper,
   XlmAccountProvider,
 } from '@metamask/multichain-account-service';
-import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { MessengerClientInitFunction } from '../../types';
 import { MultichainAccountServiceInitMessenger } from '../../messengers/multichain-account-service-messenger/multichain-account-service-messenger';
 import { isStellarAccountsFeatureEnabled } from '../../../../multichain-stellar/remote-feature-flag';
 import { previousValueComparator } from '../../../../util/value-comparator';
-
-const mergedFlags = (state: RemoteFeatureFlagControllerState) => ({
-  ...state.remoteFeatureFlags,
-  ...(state.localOverrides ?? {}),
-});
 
 /**
  * Initialize the multichain account service.
@@ -61,7 +55,7 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
   );
 
   const initialStellarEnabled = isStellarAccountsFeatureEnabled(
-    mergedFlags(initialRemoteFeatureFlagsState).stellarAccounts,
+    initialRemoteFeatureFlagsState.remoteFeatureFlags?.stellarAccounts,
   );
 
   xlmProvider.setEnabled(initialStellarEnabled);
@@ -87,10 +81,10 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     'RemoteFeatureFlagController:stateChange',
     previousValueComparator((prevState, currState) => {
       const prevStellarEnabled = isStellarAccountsFeatureEnabled(
-        mergedFlags(prevState).stellarAccounts,
+        prevState.remoteFeatureFlags?.stellarAccounts,
       );
       const currStellarEnabled = isStellarAccountsFeatureEnabled(
-        mergedFlags(currState).stellarAccounts,
+        currState.remoteFeatureFlags?.stellarAccounts,
       );
 
       // Only handle the case when Stellar provider is enabled.

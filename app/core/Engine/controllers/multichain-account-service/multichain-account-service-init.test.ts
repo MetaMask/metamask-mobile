@@ -224,7 +224,6 @@ describe('MultichainAccountServiceInit', () => {
           remoteFeatureFlags: {
             stellarAccounts: next,
           },
-          localOverrides: {},
         });
 
         expect(mockSetEnabled).toHaveBeenCalledTimes(setEnabledCalls);
