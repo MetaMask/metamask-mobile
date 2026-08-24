@@ -14,23 +14,7 @@ import {
   TokenInputAreaType,
 } from '../../../components/TokenInputArea';
 import { useStyles } from '../../../../../../component-library/hooks';
-import {
-  BannerAlert,
-  BannerAlertSeverity,
-  BannerBase,
-  Box,
-  ButtonSize,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
-import {
-  getBridgeTokenSecurityConfig,
-  isNegativeSecurityType,
-} from '../../../utils/tokenSecurityUtils';
+import { Box } from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import {
@@ -47,13 +31,12 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
-  selectQuoteStreamComplete,
   selectBridgeBalanceRefreshKey,
   selectBridgeControllerState,
+  selectQuoteStreamComplete,
   selectSlippage,
   selectIsSlippageUserOverride,
 } from '../../../../../../core/redux/slices/bridge';
-import { TokenWarningModalMode } from '../../../components/TokenWarningModal/constants';
 import {
   useNavigation,
   useRoute,
@@ -61,9 +44,7 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import { useTheme } from '../../../../../../util/theme';
-import { strings } from '../../../../../../../locales/i18n';
-import { SecurityDataType, TokenSelectorType } from '../../../types';
+import { TokenSelectorType } from '../../../types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import QuoteDetailsCard from '../../../components/QuoteDetailsCard';
 import QuoteDetailsCardSkeleton from '../../../components/QuoteDetailsCard/QuoteDetailsCardSkeleton';
@@ -80,7 +61,6 @@ import { selectSelectedNetworkClientId } from '../../../../../../selectors/netwo
 import { useIsNetworkEnabled } from '../../../hooks/useIsNetworkEnabled';
 import { useSwitchTokens } from '../../../hooks/useSwitchTokens';
 import {
-  Pressable,
   ScrollView,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
@@ -89,7 +69,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import useIsInsufficientBalance from '../../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../../util/address';
-import { endTrace, TraceName } from '../../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../../hooks/useInitialSlippage';
 import { useHasSufficientGas } from '../../../hooks/useHasSufficientGas/index.ts';
 import { useRecipientInitialization } from '../../../hooks/useRecipientInitialization';
@@ -99,6 +78,7 @@ import {
 } from '../../../../../../selectors/bridge';
 import { Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../../hooks/useBridgeQuoteEvents/index.ts';
+import { useSwapBridgePageLoadTrace } from '../../../hooks/useSwapBridgePageLoadTrace';
 import { SwapsKeypad } from '../../../components/SwapsKeypad/index.tsx';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
 import { normalizeSourceAmountToMaxLength } from '../../../utils/normalizeSourceAmountToMaxLength.ts';
@@ -109,7 +89,7 @@ import { useRefreshSmartTransactionsLiveness } from '../../../../../hooks/useRef
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { SwapsKeypadRef } from '../../../components/SwapsKeypad/types.ts';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions/index.tsx';
-import { SwapsConfirmButton } from '../../../components/SwapsConfirmButton/index.tsx';
+import { SwapsMarketOrderConfirmButton } from '../../../components/SwapsMarketOrderConfirmButton/index.tsx';
 import { useBridgeViewOnFocus } from '../../../hooks/useBridgeViewOnFocus/index.ts';
 import { type BridgeRouteParams } from '../../../hooks/useSwapBridgeNavigation/index.ts';
 import SwapDiscoveryFeed from '../../../components/SwapDiscoveryFeed/SwapDiscoveryFeed';
@@ -129,8 +109,13 @@ import type { RootState } from '../../../../../../reducers';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { useTrackSwapPageViewed } from '../../../hooks/useTrackSwapPageViewed/index.ts';
 import { BridgeMarketViewFooter } from './BridgeMarketViewFooter.tsx';
-import { getQuoteStreamReasonString } from './BridgeMarketView.utils';
-import { hasMissingPriceData } from '../../../utils/hasMissingPriceData';
+import {
+  InsufficientNativeReserveBanner,
+  MissingQuotePriceDataBanner,
+  QuoteErrorBanner,
+  SwapsBanners,
+  TokenWarningBanner,
+} from '../../../components/SwapsBanners';
 import { useSourceAmountInput } from '../../../hooks/useSourceAmountInput';
 import { useInsufficientNativeReserveError } from '../../../hooks/useInsufficientNativeReserveError/index.ts';
 import { useIsNetworkFeeUnavailable } from '../../../hooks/useIsNetworkFeeUnavailable/index.ts';
@@ -172,7 +157,6 @@ const BridgeMarketViewContent = ({
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
-  const { colors } = useTheme();
   const keypadRef = useRef<SwapsKeypadRef>(null);
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -201,12 +185,6 @@ const BridgeMarketViewContent = ({
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
-  const destTokenSecurityData = destToken?.securityData;
-  const tokenWarning =
-    destTokenSecurityData && isNegativeSecurityType(destTokenSecurityData.type)
-      ? { ...destTokenSecurityData, type: destTokenSecurityData.type }
-      : undefined;
-  const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {
@@ -283,11 +261,6 @@ const BridgeMarketViewContent = ({
     }
   }, [route.params?.bridgeViewMode, dispatch, bridgeViewMode]);
 
-  // End trace when component mounts
-  useEffect(() => {
-    endTrace({ name: TraceName.SwapViewLoaded, timestamp: Date.now() });
-  }, []);
-
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
   const updateQuoteParams = useBridgeQuoteRequest({
@@ -315,8 +288,25 @@ const BridgeMarketViewContent = ({
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
+  const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const slippage = useSelector(selectSlippage);
   const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
+
+  const isQuoteSurfaceReady = Boolean(
+    (activeQuote && isActiveQuoteForCurrentTokenPair) ||
+      isNoQuotesAvailable ||
+      quoteFetchError ||
+      (quoteStreamComplete && !isLoading),
+  );
+
+  useSwapBridgePageLoadTrace({
+    traceId: route.params?.swapViewTraceId,
+    sourceToken,
+    destToken,
+    latestSourceBalance,
+    sourceAmount: route.params?.sourceAmount,
+    isQuoteSurfaceReady,
+  });
   const previousSlippageRef = useRef(slippage);
   const nonSlippageQuoteRequestKey = JSON.stringify([
     sourceAmount,
@@ -421,11 +411,10 @@ const BridgeMarketViewContent = ({
     isNetworkFeeUnavailable,
     isSubmitDisabled,
     isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
+    hasUsableQuote: Boolean(activeQuote && isActiveQuoteForCurrentTokenPair),
   });
 
   const isZeroState = !sourceAmount || !(Number(sourceAmount) > 0);
-
-  const ticker = sourceToken?.symbol;
 
   // Update quote parameters when relevant state changes
   useEffect(() => {
@@ -624,158 +613,16 @@ const BridgeMarketViewContent = ({
             </Box>
           </Box>
 
-          <Box gap={3} twClassName="mx-4">
-            {quoteStreamComplete?.reason || quoteFetchError
-              ? (() => {
-                  const quoteStreamErrorBannerStyle = {
-                    borderLeftWidth: 4,
-                    borderColor: colors.error.default,
-                    backgroundColor: colors.error.muted,
-                    paddingLeft: 8,
-                  };
-                  const quoteStreamErrorMessage = getQuoteStreamReasonString(
-                    quoteStreamComplete?.reason,
-                  );
-                  return (
-                    <BannerBase
-                      style={quoteStreamErrorBannerStyle}
-                      startAccessory={
-                        <Icon
-                          name={IconName.Error}
-                          color={IconColor.ErrorDefault}
-                          size={IconSize.Lg}
-                        />
-                      }
-                      description={
-                        <Text
-                          testID={BridgeViewSelectorsIDs.NO_QUOTES_BANNER}
-                          variant={TextVariant.BodySm}
-                        >
-                          {quoteStreamErrorMessage}
-                        </Text>
-                      }
-                    />
-                  );
-                })()
-              : null}
-
-            {tokenWarning
-              ? (() => {
-                  const isMalicious =
-                    tokenWarning.type === SecurityDataType.Malicious;
-                  const bannerColors = isMalicious
-                    ? colors.error
-                    : colors.warning;
-                  const bannerStyle = {
-                    borderLeftWidth: 4,
-                    borderColor: bannerColors.default,
-                    backgroundColor: bannerColors.muted,
-                    paddingLeft: 8,
-                  };
-                  const securityConfig = getBridgeTokenSecurityConfig(
-                    tokenWarning.type,
-                  );
-                  const navigateToModal = () =>
-                    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-                      screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
-                      params: {
-                        warningType: tokenWarning.type,
-                        features: tokenWarning.metadata?.features ?? [],
-                        mode: TokenWarningModalMode.Info,
-                        location,
-                      },
-                    });
-                  return (
-                    <Pressable onPress={navigateToModal}>
-                      <BannerBase
-                        style={bannerStyle}
-                        startAccessory={
-                          <Icon
-                            name={securityConfig.iconName}
-                            color={securityConfig.iconColor}
-                            size={IconSize.Lg}
-                          />
-                        }
-                        description={
-                          isMalicious
-                            ? strings('bridge.token_warning_malicious_banner', {
-                                token: destToken?.symbol,
-                              })
-                            : strings(
-                                'bridge.token_warning_suspicious_banner',
-                                {
-                                  token: destToken?.symbol,
-                                },
-                              )
-                        }
-                        onClose={navigateToModal}
-                      />
-                    </Pressable>
-                  );
-                })()
-              : null}
-
-            {insufficientNativeReserveError && !hasInsufficientBalance
-              ? (() => {
-                  const bannerStyle = {
-                    borderLeftWidth: 4,
-                    borderColor: colors.warning.default,
-                    backgroundColor: colors.warning.muted,
-                    paddingLeft: 8,
-                  };
-                  return (
-                    <BannerBase
-                      startAccessory={
-                        <Icon
-                          name={IconName.Warning}
-                          color={IconColor.WarningDefault}
-                          size={IconSize.Lg}
-                        />
-                      }
-                      title={strings(
-                        'bridge.insufficient_native_reserve_title',
-                        { ticker },
-                      )}
-                      style={bannerStyle}
-                      actionButtonLabel={strings(
-                        'bridge.insufficient_native_reserve_cta',
-                      )}
-                      actionButtonOnPress={() =>
-                        handleSourcePresetAmountSelect(
-                          insufficientNativeReserveError.maxSwappableNativeBalance,
-                        )
-                      }
-                      actionButtonProps={{
-                        size: ButtonSize.Sm,
-                        style: {
-                          marginTop: 6,
-                        },
-                      }}
-                      description={strings(
-                        'bridge.insufficient_native_reserve_message',
-                        {
-                          ticker,
-                          minimumReserve:
-                            insufficientNativeReserveError.minimumNativeBalanceToBeKeptInAccount,
-                          maxSwappable:
-                            insufficientNativeReserveError.maxSwappableNativeBalance,
-                        },
-                      )}
-                    />
-                  );
-                })()
-              : null}
-
-            {contentMode === 'quote' &&
-            activeQuote &&
-            hasMissingPriceData(activeQuote) ? (
-              <BannerAlert
-                severity={BannerAlertSeverity.Danger}
-                description={strings('swaps.market_price_unavailable')}
-                testID={BridgeViewSelectorsIDs.MISSING_PRICE_BANNER}
-              />
-            ) : null}
-          </Box>
+          <SwapsBanners
+            latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
+            location={location}
+            onAdjustSourceAmount={handleSourcePresetAmountSelect}
+          >
+            <QuoteErrorBanner />
+            <TokenWarningBanner />
+            <InsufficientNativeReserveBanner />
+            <MissingQuotePriceDataBanner />
+          </SwapsBanners>
 
           <Box
             style={styles.dynamicContent}
@@ -825,7 +672,7 @@ const BridgeMarketViewContent = ({
           decimals={sourceAmountInput.keypadDecimals}
         >
           {sourceAmount && sourceAmount !== '0' ? (
-            <SwapsConfirmButton
+            <SwapsMarketOrderConfirmButton
               location={location}
               latestSourceBalance={latestSourceBalance}
               transactionActiveAbTests={transactionActiveAbTests}

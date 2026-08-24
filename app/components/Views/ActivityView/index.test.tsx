@@ -218,8 +218,7 @@ jest.mock('../UnifiedTransactionsView/UnifiedTransactionsView', () => {
   };
 });
 
-// The redesigned screen is lazily imported by ActivityView; mock it so the
-// dynamic import resolves to a lightweight component in tests.
+// Keep the redesigned screen lightweight in ActivityView tests.
 jest.mock('../ActivityScreen/ActivityScreen', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -473,7 +472,11 @@ describe('ActivityView', () => {
 
       fireEvent.press(getByTestId('activity-view-back-button'));
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        undefined,
+        { pop: true },
+      );
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
     });
 
@@ -484,7 +487,11 @@ describe('ActivityView', () => {
 
       fireEvent.press(getByTestId('activity-view-back-button'));
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        undefined,
+        { pop: true },
+      );
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
     });
 
@@ -509,7 +516,11 @@ describe('ActivityView', () => {
 
       const result = handler();
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS);
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        undefined,
+        { pop: true },
+      );
       expect(result).toBe(true);
     });
 
@@ -528,6 +539,8 @@ describe('ActivityView', () => {
 
       expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
         Routes.HOME_TABS,
+        undefined,
+        { pop: true },
       );
     });
   });
@@ -850,14 +863,12 @@ describe('ActivityView', () => {
       expect(queryByTestId('activity-screen-mock')).toBeNull();
     });
 
-    it('renders the redesigned activity screen when the flag is on', async () => {
+    it('renders the redesigned activity screen on the first render when the flag is on', () => {
       const { getByTestId, queryByTestId } = renderComponent(
         stateWithRedesignEnabled,
       );
 
-      await waitFor(() =>
-        expect(getByTestId('activity-screen-mock')).toBeOnTheScreen(),
-      );
+      expect(getByTestId('activity-screen-mock')).toBeOnTheScreen();
       expect(queryByTestId('unified-transactions-view-mock')).toBeNull();
       expect(
         queryByTestId(ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW),

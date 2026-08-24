@@ -65,6 +65,7 @@ import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TraceName } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useHaptics } from '../../../../../util/haptics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsNavigationParamList } from '../../types/navigation';
 import { normalizeFilterKey } from '../../utils/marketCategoryMapping';
@@ -91,6 +92,7 @@ const PerpsMarketListView = ({
   );
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
+  const { playSelection } = useHaptics();
 
   const perpsNavigation = usePerpsNavigation();
   const navigation = useNavigation<AppNavigationProp>();
@@ -107,6 +109,7 @@ const PerpsMarketListView = ({
   const defaultSortDirection = route.params?.defaultSortDirection;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
   const replaceOnSelect = route.params?.replaceOnSelect === true;
+  const enableHaptics = route.params?.enableHaptics === true;
 
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   const isRecentlyViewedEnabled = useSelector(
@@ -246,9 +249,14 @@ const PerpsMarketListView = ({
     ],
   );
 
-  // Handler for market press (defined early to avoid use-before-define)
+  // Handler for market press (defined early to avoid use-before-define).
+  // Covers FlashList rows, watchlist rows, and recently-viewed tiles.
   const handleMarketPress = useCallback(
     (market: PerpsMarketData, sourceSectionOverride?: string) => {
+      if (enableHaptics) {
+        playSelection().catch(() => undefined);
+      }
+
       if (onMarketSelect) {
         onMarketSelect(market);
       } else {
@@ -340,6 +348,8 @@ const PerpsMarketListView = ({
       }
     },
     [
+      enableHaptics,
+      playSelection,
       onMarketSelect,
       navigation,
       replaceOnSelect,

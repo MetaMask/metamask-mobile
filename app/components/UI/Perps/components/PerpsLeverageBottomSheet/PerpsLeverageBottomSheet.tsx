@@ -30,6 +30,7 @@ import {
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
 import { usePerpsLivePrices } from '../../hooks';
 import { PerpsLeverageBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import { getProspectiveExecutionPrice } from '../../utils/orderSizing';
 import {
   Box,
   BottomSheet,
@@ -62,7 +63,9 @@ interface PerpsLeverageBottomSheetProps {
   direction: 'long' | 'short';
   asset?: string;
   limitPrice?: string;
+  triggerPrice?: string;
   orderType?: OrderType;
+  enableConfirmHaptics?: boolean;
 }
 
 interface LeverageSliderEntry {
@@ -92,7 +95,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   direction,
   asset = '',
   limitPrice,
+  triggerPrice,
   orderType = 'market',
+  enableConfirmHaptics = false,
 }) => {
   const styles = createStyles();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -140,13 +145,16 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const currentPrice = parseFloat(currentLivePrice[asset]?.price);
 
   // Dynamically calculate liquidation price based on tempLeverage
-  // Use limit price for limit orders, market price for market orders
+  // Use the prospective execution price for priced placements, else live mid.
   const entryPrice = useMemo(
     () =>
-      orderType === 'limit' && limitPrice
-        ? Number.parseFloat(limitPrice)
-        : currentPrice,
-    [orderType, limitPrice, currentPrice],
+      getProspectiveExecutionPrice({
+        orderType,
+        limitPrice,
+        triggerPrice,
+        marketPrice: currentPrice,
+      }),
+    [orderType, limitPrice, triggerPrice, currentPrice],
   );
 
   // Always use tempLeverage for precise API calls (debounced)
@@ -402,9 +410,13 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       `Confirming leverage: ${tempLeverage}, method: ${inputMethod}`,
     );
 
+    if (enableConfirmHaptics) {
+      playSelection().catch(() => undefined);
+    }
     onConfirm(tempLeverage, inputMethod);
     onClose();
   }, [
+    enableConfirmHaptics,
     handleSliderDragCancel,
     inputMethod,
     isDragging,

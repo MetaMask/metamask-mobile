@@ -6,6 +6,11 @@ import {
 } from './usePerpsLivePositions';
 import { type Position, type PriceUpdate } from '@metamask/perps-controller';
 
+let mockSelectedAddress = '0x1111111111111111111111111111111111111111';
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => mockSelectedAddress),
+}));
+
 // Mock Engine for lazy isInitialLoading check
 let mockCachedUserData: {
   positions: Position[];
@@ -71,6 +76,7 @@ describe('usePerpsLivePositions', () => {
     jest.useFakeTimers();
     mockCachedUserData = null;
     mockChannelPositionsSnapshot = undefined;
+    mockSelectedAddress = '0x1111111111111111111111111111111111111111';
   });
 
   afterEach(() => {
@@ -346,7 +352,7 @@ describe('usePerpsLivePositions', () => {
       });
       mockPricesSubscribe.mockReturnValue(jest.fn());
 
-      const { result } = renderHook(() => usePerpsLivePositions());
+      const { result, rerender } = renderHook(() => usePerpsLivePositions());
 
       // First: receive real positions (simulate loaded state)
       act(() => {
@@ -357,6 +363,11 @@ describe('usePerpsLivePositions', () => {
         expect(result.current.isInitialLoading).toBe(false);
         expect(result.current.positions).toEqual([mockPosition]);
       });
+
+      mockSelectedAddress = '0x2222222222222222222222222222222222222222';
+      rerender(undefined);
+      expect(result.current.positions).toEqual([]);
+      expect(result.current.isInitialLoading).toBe(true);
 
       // Account switch: receive null (clearCache)
       act(() => {

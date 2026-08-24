@@ -1195,9 +1195,14 @@ describe('OAuthRehydration', () => {
         params: {
           locked: false,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: journeyCtx,
         },
       });
+      (getTraceContextMock as jest.Mock).mockImplementation(
+        (req: { name: string }) => {
+          if (req.name === 'OnboardingJourneyOverall') return journeyCtx;
+          return undefined;
+        },
+      );
 
       renderWithProvider(<OAuthRehydration />);
 
@@ -1216,10 +1221,16 @@ describe('OAuthRehydration', () => {
         params: {
           locked: false,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: journeyCtx,
         },
       });
-      (getTraceContextMock as jest.Mock).mockReturnValue(existingSocialCtx);
+      (getTraceContextMock as jest.Mock).mockImplementation(
+        (req: { name: string }) => {
+          if (req.name === 'OnboardingJourneyOverall') return journeyCtx;
+          if (req.name === 'OnboardingExistingSocialLogin')
+            return existingSocialCtx;
+          return undefined;
+        },
+      );
       (traceMock as jest.Mock).mockImplementation(
         (config: { name?: string }, fn?: () => Promise<void>) => {
           if (fn) {
@@ -1253,16 +1264,20 @@ describe('OAuthRehydration', () => {
       });
     });
 
-    it('falls back to journey context when Existing Social Login span is not open', async () => {
+    it('falls back to journey trace context when Existing Social Login span is not open', async () => {
       const journeyCtx = { traceId: 'journey' };
       mockRoute.mockReturnValue({
         params: {
           locked: false,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: journeyCtx,
         },
       });
-      (getTraceContextMock as jest.Mock).mockReturnValue(undefined);
+      (getTraceContextMock as jest.Mock).mockImplementation(
+        (req: { name: string }) => {
+          if (req.name === 'OnboardingJourneyOverall') return journeyCtx;
+          return undefined;
+        },
+      );
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       await enterPasswordAndSubmit(getByTestId);
@@ -1277,16 +1292,21 @@ describe('OAuthRehydration', () => {
       });
     });
 
-    it('traces login error under password login attempt when onboardingTraceCtx is provided', async () => {
+    it('traces login error under password login attempt when journey trace context is available via getTraceContext', async () => {
       const journeyCtx = { traceId: 'journey' };
       const passwordAttemptCtx = { traceId: 'password-attempt' };
       mockRoute.mockReturnValue({
         params: {
           locked: false,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: journeyCtx,
         },
       });
+      (getTraceContextMock as jest.Mock).mockImplementation(
+        (req: { name: string }) => {
+          if (req.name === 'OnboardingJourneyOverall') return journeyCtx;
+          return undefined;
+        },
+      );
       (traceMock as jest.Mock).mockImplementation(
         (config: { name?: string }, fn?: () => Promise<void>) => {
           if (fn) {
@@ -1327,9 +1347,14 @@ describe('OAuthRehydration', () => {
         params: {
           locked: false,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: journeyCtx,
         },
       });
+      (getTraceContextMock as jest.Mock).mockImplementation(
+        (req: { name: string }) => {
+          if (req.name === 'OnboardingJourneyOverall') return journeyCtx;
+          return undefined;
+        },
+      );
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       await enterPasswordAndSubmit(getByTestId);
 
@@ -1358,9 +1383,14 @@ describe('OAuthRehydration', () => {
         params: {
           locked: false,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: journeyCtx,
         },
       });
+      (getTraceContextMock as jest.Mock).mockImplementation(
+        (req: { name: string }) => {
+          if (req.name === 'OnboardingJourneyOverall') return journeyCtx;
+          return undefined;
+        },
+      );
 
       // Simulate unlockWallet: run onBeforeNavigate first, then reset navigation
       // to home (which is what unmounts the Onboarding screen in production).

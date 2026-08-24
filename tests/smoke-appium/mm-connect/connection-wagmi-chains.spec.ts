@@ -18,7 +18,7 @@ import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomS
 import {
   DappServer,
   DappVariants,
-  PlaywrightGestures,
+  Gestures,
   TestDapps,
   sleep,
 } from '../../framework/index.js';
@@ -157,7 +157,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi chain switching'), () => {
         await BrowserPlaygroundDapp.assertWagmiChainIdValue('11155111');
         // Sign a message on Sepolia
         await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello Sepolia');
-        await PlaywrightGestures.hideKeyboard();
+        await Gestures.hideKeyboard();
         await BrowserPlaygroundDapp.tapWagmiSignMessage({
           shouldCooldown: true,
           timeToCooldown: 2000,
@@ -199,7 +199,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi chain switching'), () => {
       await PlaywrightContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertWagmiChainIdValue('10');
         await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello OP');
-        await PlaywrightGestures.hideKeyboard();
+        await Gestures.hideKeyboard();
         await BrowserPlaygroundDapp.tapWagmiSignMessage();
       }, DAPP_URL);
 
@@ -249,7 +249,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi chain switching'), () => {
       await PlaywrightContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertWagmiChainIdValue('42220');
         await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello Celo');
-        await PlaywrightGestures.hideKeyboard();
+        await Gestures.hideKeyboard();
         await BrowserPlaygroundDapp.tapWagmiSignMessage({
           shouldCooldown: true,
           timeToCooldown: 2000,

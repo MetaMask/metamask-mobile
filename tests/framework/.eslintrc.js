@@ -1,10 +1,6 @@
 /* eslint-disable import-x/no-commonjs -- ESLint config must use CommonJS */
-const {
-  pageObjectsAndFlows: dualFrameworkPoFlowBurndown,
-  smokeAppium: dualFrameworkSmokeBurndown,
-} = require('./dual-framework-burndown.js');
 
-/** Shared dual-framework import restrictions (MMQA-2230). */
+/** Dual-framework import restrictions. Error everywhere; no allowlist. */
 const dualFrameworkRestrictedImportOptions = {
   patterns: [
     {
@@ -116,7 +112,6 @@ module.exports = {
     {
       files: ['**/*.{js,ts}'],
       rules: {
-        // E2E Framework Best Practices (starting with warnings, we will be changing to errors when the migration is complete)
         'no-console': 'off',
       },
     },
@@ -186,49 +181,24 @@ module.exports = {
         ],
       },
     },
-    // MMQA-2230: ban dual-framework imports in new PO/flow files (error)
     {
-      files: ['**/page-objects/**/*.{js,ts}', '**/flows/**/*.{js,ts}'],
+      files: [
+        '**/page-objects/**/*.{js,ts}',
+        '**/flows/**/*.{js,ts}',
+        '**/smoke-appium/**/*.{js,ts}',
+      ],
       excludedFiles: [
         '**/page-objects/**/*.test.ts',
         '**/page-objects/**/*.test.js',
         '**/flows/**/*.test.ts',
         '**/flows/**/*.test.js',
-        ...dualFrameworkPoFlowBurndown,
-      ],
-      rules: {
-        'no-restricted-imports': [
-          'error',
-          dualFrameworkRestrictedImportOptions,
-        ],
-      },
-    },
-    // MMQA-2230: allowlisted PO/flow dual-framework debt (warn until Phase 3)
-    {
-      files: dualFrameworkPoFlowBurndown,
-      rules: {
-        'no-restricted-imports': ['warn', dualFrameworkRestrictedImportOptions],
-      },
-    },
-    // MMQA-2230: ban dual-framework imports in new smoke-appium files (error)
-    {
-      files: ['**/smoke-appium/**/*.{js,ts}'],
-      excludedFiles: [
         '**/smoke-appium/**/*.test.ts',
-        ...dualFrameworkSmokeBurndown,
       ],
       rules: {
         'no-restricted-imports': [
           'error',
           dualFrameworkRestrictedImportOptions,
         ],
-      },
-    },
-    // MMQA-2230: allowlisted smoke-appium dual-framework debt (warn)
-    {
-      files: dualFrameworkSmokeBurndown,
-      rules: {
-        'no-restricted-imports': ['warn', dualFrameworkRestrictedImportOptions],
       },
     },
   ],
