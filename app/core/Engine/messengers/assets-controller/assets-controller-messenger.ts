@@ -38,6 +38,9 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   // Real-time post-tx balances (AccountActivityService WS path)
   'AccountActivityService:balanceUpdated',
   'AccountActivityService:statusChanged',
+  // Correlates a confirmed tx with its WS push to skip a redundant Accounts
+  // API call (see AssetsController#waitForWsTransactionUpdate)
+  'AccountActivityService:transactionUpdated',
   // AccountsApiDataSource: re-evaluate Accounts API vs RPC when remote flags change
   'RemoteFeatureFlagController:stateChange',
 ] as const;

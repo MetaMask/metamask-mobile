@@ -38,6 +38,7 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'TransactionController:unapprovedTransactionAdded',
   'AccountActivityService:balanceUpdated',
   'AccountActivityService:statusChanged',
+  'AccountActivityService:transactionUpdated',
   'RemoteFeatureFlagController:stateChange',
 ] as const;
 
@@ -159,6 +160,21 @@ describe('getAssetsControllerMessenger', () => {
       expect.objectContaining({
         events: expect.arrayContaining([
           'AccountActivityService:statusChanged',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates AccountActivityService transactionUpdated event', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: expect.arrayContaining([
+          'AccountActivityService:transactionUpdated',
         ]),
       }),
     );
