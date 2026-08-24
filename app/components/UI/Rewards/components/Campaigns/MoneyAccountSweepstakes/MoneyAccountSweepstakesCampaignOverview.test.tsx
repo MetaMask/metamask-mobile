@@ -19,6 +19,10 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 jest.mock('../../../utils/formatUtils', () => ({
   formatUsd: (value: number | null) =>
     value == null ? '—' : `$${value.toFixed(2)}`,
+  // Stubbed to a fixed shape so the assertions don't depend on the test
+  // machine's locale or timezone.
+  formatRewardsTimeOnly: (date: Date) =>
+    `T-${date.toISOString().slice(11, 16)}`,
 }));
 
 jest.mock('../../../../Money/hooks/useMoneyAccountBalance', () => ({
@@ -182,4 +186,46 @@ describe('MoneyAccountSweepstakesCampaignOverview', () => {
     expect(getByText('Balance')).toBeOnTheScreen();
     expect(getByText('$1,250.00')).toBeOnTheScreen();
   });
+
+  it('renders the last-checked row from the backend ingest watermark', () => {
+    const { getByTestId, getByText } = render(
+      <MoneyAccountSweepstakesCampaignOverview
+        campaign={campaign}
+        localizedText={localizedText}
+        isParticipating
+        stats={{ ...stats, dataAsOf: '2026-08-24T09:15:00.000Z' }}
+      />,
+    );
+
+    expect(
+      getByTestId(
+        MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.LAST_CHECKED_ROW,
+      ),
+    ).toBeOnTheScreen();
+    expect(getByText('T-09:15')).toBeOnTheScreen();
+  });
+
+  it.each([
+    ['the field is absent (older backend build)', undefined],
+    ['the ingest has never run', null],
+    ['the timestamp is unparseable', 'not-a-date'],
+  ])(
+    'hides the last-checked row rather than showing a bogus date when %s',
+    (_case, dataAsOf) => {
+      const { queryByTestId } = render(
+        <MoneyAccountSweepstakesCampaignOverview
+          campaign={campaign}
+          localizedText={localizedText}
+          isParticipating
+          stats={{ ...stats, dataAsOf }}
+        />,
+      );
+
+      expect(
+        queryByTestId(
+          MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.LAST_CHECKED_ROW,
+        ),
+      ).toBeNull();
+    },
+  );
 });

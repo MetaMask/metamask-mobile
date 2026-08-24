@@ -10229,6 +10229,7 @@
       "stats_error_title": "Unable to load stats",
       "stats_error_description": "We had a problem loading your stats. Please try again.",
       "retry": "Retry",
+      "last_checked_at": "Last checked at",
       "ondo": {
         "entries_closed_title": "Entries closed",
         "entries_closed_description": "You missed the opt-in window. Check back for more campaigns in the future."
