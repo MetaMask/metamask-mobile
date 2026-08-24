@@ -211,6 +211,24 @@ if (typeof global.MessageEvent === 'undefined') {
     require('react-native/src/private/webapis/html/events/MessageEvent').default;
 }
 
+// RN's MessageEvent leaves `source` unimplemented, but
+// @metamask/post-message-stream asserts the getter exists at module scope.
+// That assert throws while `@metamask/snaps-controllers/react-native` is being
+// evaluated, so its namespace resolves to undefined and Engine init aborts with
+// "Engine does not exist". Only WindowPostMessageStream reads the value, and it
+// is never instantiated on React Native, so null is sufficient.
+if (
+  global.MessageEvent &&
+  !Object.getOwnPropertyDescriptor(global.MessageEvent.prototype, 'source')
+) {
+  Object.defineProperty(global.MessageEvent.prototype, 'source', {
+    configurable: true,
+    get() {
+      return null;
+    },
+  });
+}
+
 class AbortError extends Error {
   constructor(message) {
     super(message);
