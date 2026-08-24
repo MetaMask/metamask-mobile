@@ -63,6 +63,7 @@ import {
   resolvePerpsMarketSource,
 } from '../../../../UI/Perps/utils/perpsLoadingSession';
 import { usePerpsHomepageLoadingSession } from './hooks/usePerpsHomepageLoadingSession';
+import { useHomepagePerpsSurfaceMetrics } from './hooks/useHomepagePerpsSurfaceMetrics';
 
 /**
  * PerpsSection — single "Perps" section on the homepage.
@@ -343,13 +344,34 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       }),
       [accountSource, contentVariant, lifecycle, marketSource],
     );
+    const contentReady =
+      sessionReady && (Boolean(connectionError) || !isLoadingSection);
+    const { onLayout: onSurfaceMetricsLayout } = useHomepagePerpsSurfaceMetrics(
+      {
+        sectionRef: sectionViewRef,
+        sessionId,
+        lifecycle,
+        contentVariant: connectionError ? 'error' : contentVariant,
+        contentReady,
+        hasError: Boolean(connectionError),
+        resolvedSource:
+          contentVariant === 'positions' ||
+          contentVariant === 'orders' ||
+          contentVariant === 'positions_and_orders'
+            ? accountSource
+            : marketSource,
+      },
+    );
+    const handleSectionLayout = useCallback(() => {
+      onLayout();
+      onSurfaceMetricsLayout();
+    }, [onLayout, onSurfaceMetricsLayout]);
 
     useSectionPerformance({
       sectionId: HomeSectionNames.PERPS,
       enabled: Boolean(sessionId),
       generationKey: sessionId,
-      contentReady:
-        sessionReady && (Boolean(connectionError) || !isLoadingSection),
+      contentReady,
       isEmpty: !hasItems,
       contentStateForTrace: connectionError ? 'error' : undefined,
       isLoading: isLoadingSection,
@@ -399,7 +421,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     if (connectionError) {
       return (
-        <View ref={sectionViewRef} onLayout={onLayout}>
+        <View ref={sectionViewRef} onLayout={handleSectionLayout}>
           <Box paddingBottom={3}>
             <SectionDivider />
             <SectionHeader
@@ -489,7 +511,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     );
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View ref={sectionViewRef} onLayout={handleSectionLayout}>
         {showsVerticalPositions ? (
           sectionContent
         ) : (
