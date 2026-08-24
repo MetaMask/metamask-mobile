@@ -12,8 +12,10 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, {
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -164,6 +166,25 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   );
 };
 
+interface ShareTokenBottomSheetControllerRef {
+  open: () => void;
+}
+
+const ShareTokenBottomSheetController = forwardRef<
+  ShareTokenBottomSheetControllerRef,
+  Omit<React.ComponentProps<typeof ShareTokenBottomSheet>, 'onClose'>
+>((props, ref) => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useImperativeHandle(ref, () => ({ open: () => setIsVisible(true) }), []);
+
+  return isVisible ? (
+    <ShareTokenBottomSheet {...props} onClose={() => setIsVisible(false)} />
+  ) : null;
+});
+
+ShareTokenBottomSheetController.displayName = 'ShareTokenBottomSheetController';
+
 /**
  * TokenDetails component - Clean orchestrator that fetches data and sets layout.
  * All business logic is delegated to hooks and presentation to AssetOverviewContent.
@@ -195,7 +216,7 @@ const TokenDetails: React.FC<{
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
-  const [isShareSheetVisible, setIsShareSheetVisible] = useState(false);
+  const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
   const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
     token,
     source: 'asset_details',
@@ -253,7 +274,7 @@ const TokenDetails: React.FC<{
         .build(),
     );
 
-    setIsShareSheetVisible(true);
+    shareSheetRef.current?.open();
   }, [
     shareUrl,
     createEventBuilder,
@@ -631,8 +652,9 @@ const TokenDetails: React.FC<{
           onClose={() => setIsInsightsDisclaimerVisible(false)}
         />
       )}
-      {isShareSheetVisible && shareUrl && (
-        <ShareTokenBottomSheet
+      {shareUrl && (
+        <ShareTokenBottomSheetController
+          ref={shareSheetRef}
           shareUrl={shareUrl}
           token={token}
           currentPrice={currentPrice}
@@ -641,7 +663,6 @@ const TokenDetails: React.FC<{
           currentCurrency={currentCurrency}
           securityData={securityData}
           networkName={networkName}
-          onClose={() => setIsShareSheetVisible(false)}
         />
       )}
       {quickBuySheet}

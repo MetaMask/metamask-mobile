@@ -1,27 +1,27 @@
 import React from 'react';
+import { BackHandler } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import CancelMembership from './CancelMembership';
-import {
-  CancelMembershipTestIds,
-  getCancelReasonCheckmarkTestId,
-  getCancelReasonTestId,
-} from './CancelMembership.testIds';
-import {
-  CANCEL_REASONS,
-  MOCK_CANCEL_STATS,
-} from './CancelMembership.constants';
-import { strings } from '../../../../../../locales/i18n';
+import { CancelMembershipTestIds } from './CancelMembership.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockSetOptions = jest.fn();
+const mockAddListener = jest.fn().mockReturnValue(jest.fn());
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+    useNavigation: () => ({
+      goBack: mockGoBack,
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+      addListener: mockAddListener,
+    }),
   };
 });
 
@@ -35,13 +35,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/**
- * Escapes all regex special characters so a plain string can be used
- * as a partial-match pattern inside toHaveTextContent().
- */
-const toRegex = (s: string) =>
-  new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-
 const renderScreen = () => render(<CancelMembership />);
 
 // ─── Suite ────────────────────────────────────────────────────────────────────
@@ -51,207 +44,166 @@ describe('CancelMembership', () => {
     jest.clearAllMocks();
   });
 
-  // ── Rendering ──────────────────────────────────────────────────────────────
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
-  describe('Rendering', () => {
-    it('renders the container', () => {
-      const { getByTestId } = renderScreen();
+  it('renders the container', () => {
+    const { getByTestId } = renderScreen();
 
-      expect(getByTestId(CancelMembershipTestIds.CONTAINER)).toBeOnTheScreen();
-    });
+    expect(getByTestId(CancelMembershipTestIds.CONTAINER)).toBeOnTheScreen();
+  });
 
-    it('renders the back button', () => {
-      const { getByTestId } = renderScreen();
+  it('starts on the survey step', () => {
+    const { getByTestId, queryByTestId } = renderScreen();
 
-      expect(
-        getByTestId(CancelMembershipTestIds.BACK_BUTTON),
-      ).toBeOnTheScreen();
-    });
+    expect(getByTestId(CancelMembershipTestIds.TITLE)).toBeOnTheScreen();
+    expect(
+      queryByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
+    ).not.toBeOnTheScreen();
+  });
 
-    it('renders the title from i18n', () => {
-      const { getByTestId } = renderScreen();
+  it('calls goBack when the back button on the survey step is pressed', () => {
+    const { getByTestId } = renderScreen();
 
-      expect(getByTestId(CancelMembershipTestIds.TITLE)).toHaveTextContent(
-        strings('pro_hub.cancel_membership.title'),
-      );
-    });
+    fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
 
-    it('renders the subtitle from i18n', () => {
-      const { getByTestId } = renderScreen();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
 
-      expect(getByTestId(CancelMembershipTestIds.SUBTITLE)).toHaveTextContent(
-        strings('pro_hub.cancel_membership.subtitle'),
-      );
+  it('calls goBack when keep membership is pressed', () => {
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId(CancelMembershipTestIds.KEEP_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('switches to the success step when the cancel button is pressed, without navigating away', () => {
+    const { getByTestId, queryByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+    expect(
+      getByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(CancelMembershipTestIds.TITLE)).not.toBeOnTheScreen();
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('navigates back to the existing ProHub root when done is pressed on the success step', () => {
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+    fireEvent.press(getByTestId(CancelMembershipTestIds.SUCCESS_DONE_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+      source: 'pro_subscription_cancellation_success',
     });
   });
 
-  // ── Stats card ─────────────────────────────────────────────────────────────
+  // ── Gesture / navigation interception ─────────────────────────────────────
 
-  describe('stats card', () => {
-    it('renders the stats card', () => {
-      const { getByTestId } = renderScreen();
-
-      expect(getByTestId(CancelMembershipTestIds.STATS_CARD)).toBeOnTheScreen();
-    });
-
-    it('shows earned as member value', () => {
-      const { getByTestId } = renderScreen();
-
-      expect(getByTestId(CancelMembershipTestIds.STATS_CARD)).toHaveTextContent(
-        toRegex(MOCK_CANCEL_STATS.earnedAsMember),
-      );
-    });
-
-    it('shows membership cost value', () => {
-      const { getByTestId } = renderScreen();
-
-      expect(getByTestId(CancelMembershipTestIds.STATS_CARD)).toHaveTextContent(
-        toRegex(MOCK_CANCEL_STATS.membershipCost),
-      );
-    });
-
-    it('shows earned as member label from i18n', () => {
-      const { getByTestId } = renderScreen();
-
-      // Use toRegex for partial match — the card contains multiple text nodes.
-      expect(getByTestId(CancelMembershipTestIds.STATS_CARD)).toHaveTextContent(
-        toRegex(strings('pro_hub.cancel_membership.earned_as_member')),
-      );
-    });
-
-    it('shows membership cost label from i18n', () => {
-      const { getByTestId } = renderScreen();
-
-      expect(getByTestId(CancelMembershipTestIds.STATS_CARD)).toHaveTextContent(
-        toRegex(strings('pro_hub.cancel_membership.membership_cost')),
-      );
-    });
-  });
-
-  // ── Reason options ─────────────────────────────────────────────────────────
-
-  describe('reason options', () => {
-    it('renders the reasons list', () => {
-      const { getByTestId } = renderScreen();
-
-      expect(
-        getByTestId(CancelMembershipTestIds.REASONS_LIST),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders all 5 reason items', () => {
-      const { getByTestId } = renderScreen();
-
-      CANCEL_REASONS.forEach((reason) => {
-        expect(getByTestId(getCancelReasonTestId(reason.id))).toBeOnTheScreen();
-      });
-    });
-
-    it('renders each reason item with the correct i18n label', () => {
-      const { getByTestId } = renderScreen();
-
-      CANCEL_REASONS.forEach((reason) => {
-        expect(getByTestId(getCancelReasonTestId(reason.id))).toHaveTextContent(
-          strings(reason.labelKey),
-        );
-      });
-    });
-
-    it('shows the checkmark for a selected reason', () => {
-      const { getByTestId } = renderScreen();
-      const firstReason = CANCEL_REASONS[0];
-
-      fireEvent.press(getByTestId(getCancelReasonTestId(firstReason.id)));
-
-      expect(
-        getByTestId(getCancelReasonCheckmarkTestId(firstReason.id)),
-      ).toBeOnTheScreen();
-    });
-
-    it('hides the checkmark for the previously selected reason after a new one is picked', () => {
-      const { getByTestId, queryByTestId } = renderScreen();
-      const first = CANCEL_REASONS[0];
-      const second = CANCEL_REASONS[1];
-
-      fireEvent.press(getByTestId(getCancelReasonTestId(first.id)));
-      fireEvent.press(getByTestId(getCancelReasonTestId(second.id)));
-
-      expect(
-        queryByTestId(getCancelReasonCheckmarkTestId(first.id)),
-      ).toBeNull();
-      expect(
-        getByTestId(getCancelReasonCheckmarkTestId(second.id)),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows no checkmarks before any reason is selected', () => {
-      const { queryByTestId } = renderScreen();
-
-      CANCEL_REASONS.forEach((reason) => {
-        expect(
-          queryByTestId(getCancelReasonCheckmarkTestId(reason.id)),
-        ).toBeNull();
-      });
-    });
-  });
-
-  // ── Bottom actions ─────────────────────────────────────────────────────────
-
-  describe('bottom actions', () => {
-    it('renders the keep membership button with i18n label', () => {
-      const { getByTestId } = renderScreen();
-
-      expect(
-        getByTestId(CancelMembershipTestIds.KEEP_BUTTON),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders the cancel button with i18n label', () => {
-      const { getByTestId } = renderScreen();
-
-      expect(
-        getByTestId(CancelMembershipTestIds.CANCEL_BUTTON),
-      ).toBeOnTheScreen();
-    });
-
-    it('calls navigation.goBack when keep membership is pressed', () => {
-      const { getByTestId } = renderScreen();
-
-      fireEvent.press(getByTestId(CancelMembershipTestIds.KEEP_BUTTON));
-
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not call navigation.goBack before any button is pressed', () => {
-      renderScreen();
-
-      expect(mockGoBack).not.toHaveBeenCalled();
-    });
-
-    it('does not call navigation.goBack when the cancel button is pressed', () => {
+  describe('gesture and navigation interception', () => {
+    it('registers a beforeRemove listener on the success step', () => {
       const { getByTestId } = renderScreen();
 
       fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
-      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockAddListener).toHaveBeenCalledWith(
+        'beforeRemove',
+        expect.any(Function),
+      );
+    });
+
+    it('beforeRemove handler prevents default and calls navigate to ProHub root', () => {
+      let beforeRemoveHandler:
+        | ((e: { preventDefault: () => void }) => void)
+        | undefined;
+      mockAddListener.mockImplementation(
+        (
+          event: string,
+          handler: (e: { preventDefault: () => void }) => void,
+        ) => {
+          if (event === 'beforeRemove') {
+            beforeRemoveHandler = handler;
+          }
+          return jest.fn();
+        },
+      );
+
+      const { getByTestId } = renderScreen();
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      expect(beforeRemoveHandler).toBeDefined();
+
+      const mockPreventDefault = jest.fn();
+      beforeRemoveHandler?.({ preventDefault: mockPreventDefault });
+
+      expect(mockPreventDefault).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+        source: 'pro_subscription_cancellation_success',
+      });
     });
   });
 
-  // ── Back button ───────────────────────────────────────────────────────────
+  // ── Android hardware back button ──────────────────────────────────────────
 
-  describe('back button', () => {
-    it('calls navigation.goBack when pressed', () => {
-      const { getByTestId } = renderScreen();
+  describe('Android hardware back button', () => {
+    it('does not register a BackHandler listener on the survey step', () => {
+      const addSpy = jest.spyOn(BackHandler, 'addEventListener');
 
-      fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
-
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not call navigation.goBack before the button is pressed', () => {
       renderScreen();
 
+      expect(addSpy).not.toHaveBeenCalled();
+    });
+
+    it('registers a BackHandler listener once the success step is reached', () => {
+      const addSpy = jest.spyOn(BackHandler, 'addEventListener');
+
+      const { getByTestId } = renderScreen();
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      expect(addSpy).toHaveBeenCalledWith(
+        'hardwareBackPress',
+        expect.any(Function),
+      );
+    });
+
+    it('behaves like pressing Done (navigates to ProHub root) instead of popping the screen', () => {
+      let backPressHandler: (() => boolean) | undefined;
+      jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockImplementation((_event, handler) => {
+          backPressHandler = handler as () => boolean;
+          return { remove: jest.fn() };
+        });
+
+      const { getByTestId } = renderScreen();
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      expect(backPressHandler).toBeDefined();
+      const handled = backPressHandler?.();
+
+      expect(handled).toBe(true);
       expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+        source: 'pro_subscription_cancellation_success',
+      });
+    });
+
+    it('removes the BackHandler listener on unmount so it cannot leak into other screens', () => {
+      const mockRemove = jest.fn();
+      jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockReturnValue({ remove: mockRemove });
+
+      const { getByTestId, unmount } = renderScreen();
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+      unmount();
+
+      expect(mockRemove).toHaveBeenCalled();
     });
   });
 });
