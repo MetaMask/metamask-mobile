@@ -356,34 +356,37 @@ describe('PerpsConnectionManager', () => {
     it('reconnects when the selected account changes during initial preload', async () => {
       const initialAddress = '0x1111111111111111111111111111111111111111';
       const nextAddress = '0x2222222222222222222222222222222222222222';
-      let resolveInitialPrewarm: ((cleanup: () => void) => void) | undefined;
+      let notifyPrewarmStarted: () => void = () => undefined;
+      const prewarmStarted = new Promise<void>((resolve) => {
+        notifyPrewarmStarted = resolve;
+      });
+      let resolveInitialPrewarm: (() => void) | undefined;
 
-      jest
-        .mocked(selectSelectedInternalAccountByScope)
-        .mockReturnValue(() => ({ address: initialAddress }));
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: initialAddress }));
       mockPerpsController.init.mockResolvedValue();
       mockStreamManagerInstance.prices.prewarm.mockImplementationOnce(
         () =>
           new Promise((resolve) => {
-            resolveInitialPrewarm = resolve;
+            resolveInitialPrewarm = () => resolve(jest.fn());
+            notifyPrewarmStarted();
           }),
       );
 
       const connectPromise = PerpsConnectionManager.connect();
-      await Promise.resolve();
-      await Promise.resolve();
-      await Promise.resolve();
+      await prewarmStarted;
       if (!resolveInitialPrewarm) {
         throw new Error('Initial preload did not start.');
       }
 
-      jest
-        .mocked(selectSelectedInternalAccountByScope)
-        .mockReturnValue(() => ({ address: nextAddress }));
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: nextAddress }));
       storeCallbacks[storeCallbacks.length - 1]();
 
       await new Promise((resolve) => setTimeout(resolve, 60));
-      resolveInitialPrewarm(jest.fn());
+      resolveInitialPrewarm();
       await connectPromise;
 
       for (let attempt = 0; attempt < 10; attempt++) {
@@ -401,6 +404,12 @@ describe('PerpsConnectionManager', () => {
 
       expect(mockPerpsController.init).toHaveBeenCalledTimes(2);
       expect(PerpsConnectionManager.isSelectedUserContextReady()).toBe(true);
+
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({
+        address: '0x1234567890123456789012345678901234567890',
+      }));
     });
 
     it('sets error state and resets flags when connection fails', async () => {
