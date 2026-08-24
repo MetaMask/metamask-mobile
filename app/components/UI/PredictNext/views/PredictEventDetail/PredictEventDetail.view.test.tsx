@@ -2,6 +2,7 @@ import '../../../../../../tests/component-view/mocks';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
 import Engine from '../../../../../core/Engine';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import { processColor } from 'react-native';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictEventDetailTestIds } from './PredictEventDetail.testIds';
 import { PredictMarketHistoryTestIds } from '../../components/PredictMarketHistory/PredictMarketHistory.testIds';
@@ -290,6 +291,16 @@ describe('PredictEventDetail', () => {
     expect(
       view.queryByTestId(PredictEventDetailTestIds.MARKETS),
     ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(
+        `${PredictMarketHistoryTestIds.CHART}-line-${gameEvent.markets[0].id}`,
+      ).props.stroke.payload,
+    ).toEqual(processColor(gameEvent.sports?.game?.homeTeam.primaryColor));
+    expect(
+      view.getByTestId(
+        `${PredictMarketHistoryTestIds.CHART}-line-${gameEvent.markets[1].id}`,
+      ).props.stroke.payload,
+    ).toEqual(processColor(gameEvent.sports?.game?.awayTeam.primaryColor));
     expect(messengerCall).toHaveBeenCalledWith(
       'PredictMarketDataService:getMarketHistory',
       gameEvent.venueId,

@@ -36,13 +36,11 @@ const HISTORY_RANGES: readonly PredictMarketHistoryRange[] = [
 ];
 
 const styles = StyleSheet.create({
-  chartFrame: {
-    marginHorizontal: -16,
-  },
   rangeRow: {
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 12,
+    gap: 24,
+    marginTop: 12,
     width: '100%',
   },
   wordmark: {
@@ -134,13 +132,10 @@ const MarketHistoryContent = ({
           </Text>
         </Box>
       ) : (
-        <Box style={styles.chartFrame}>
-          <PredictMarketChart
-            testID={PredictMarketHistoryTestIds.CHART}
-            series={chartSeries}
-            height={170}
-          />
-        </Box>
+        <PredictMarketChart
+          testID={PredictMarketHistoryTestIds.CHART}
+          series={chartSeries}
+        />
       )}
 
       <Box style={styles.rangeRow}>
@@ -286,13 +281,13 @@ export const PredictGameMarketHistory = ({
     {
       id: home.market.id,
       label: getCompactTeamLabel(home.team),
-      color: colors.error.default,
+      color: home.team.primaryColor ?? colors.success.default,
       points: homePoints,
     },
     {
       id: away.market.id,
       label: getCompactTeamLabel(away.team),
-      color: colors.primary.default,
+      color: away.team.primaryColor ?? colors.info.default,
       points: awayPoints,
     },
   ];
