@@ -572,7 +572,7 @@ const PerpsProOrderBookPanel = ({
   );
 
   const spreadDisplay = useMemo(() => {
-    if (!rawOrderBook) {
+    if (!rawOrderBook || rawOrderBookSymbol !== symbol) {
       return null;
     }
     const spread = Number.parseFloat(rawOrderBook.spread);
@@ -583,7 +583,7 @@ const PerpsProOrderBookPanel = ({
     return `${formatPerpsFiat(spread, {
       ranges: PRICE_RANGES_UNIVERSAL,
     })} (${formatSpreadPercent(spreadPercent)})`;
-  }, [rawOrderBook]);
+  }, [rawOrderBook, rawOrderBookSymbol, symbol]);
 
   const handleApplyConfig = useCallback(
     (next: {

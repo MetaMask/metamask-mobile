@@ -469,6 +469,26 @@ describe('usePerpsLiveOrderBook', () => {
       expect(result.current.error).toEqual(setupError);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.orderBook).toBeNull();
+      expect(result.current.dataSymbol).toBe('BTC');
+    });
+
+    it('associates an aggregated setup failure with the requested symbol', () => {
+      const setupError = new Error('Conflicting aggregated payload');
+      mockAggregatedSubscribe.mockImplementation(() => {
+        throw setupError;
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsLiveOrderBook({
+          symbol: 'BTC',
+          channel: 'orderBookAggregated',
+        }),
+      );
+
+      expect(result.current.error).toEqual(setupError);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.connectionStatus).toBe('error');
+      expect(result.current.dataSymbol).toBe('BTC');
     });
 
     it('converts non-Error objects to Error during setup', () => {
