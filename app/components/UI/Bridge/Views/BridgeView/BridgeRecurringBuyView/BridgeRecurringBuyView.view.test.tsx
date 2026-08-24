@@ -544,15 +544,61 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
         ),
       ).toHaveDisplayValue('1');
     });
+
+    it('shows You get on dest and does not fill a dest amount after source amount is entered', async () => {
+      const renderResult = renderBridgeView();
+
+      await openRecurringTab(renderResult);
+      await openAmountKeypad(renderResult);
+      fireEvent.press(renderResult.getByTestId('keypad-key-2'));
+
+      await waitFor(() => {
+        expect(
+          renderResult.getByTestId(
+            BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_INPUT,
+          ),
+        ).toHaveDisplayValue('2');
+      });
+      expect(
+        renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_DEST_YOU_GET),
+      ).toBeOnTheScreen();
+      expect(
+        renderResult.getByText(strings('bridge.recurring.you_get')),
+      ).toBeOnTheScreen();
+      expect(
+        renderResult.queryByTestId(
+          BridgeViewSelectorsIDs.RECURRING_DEST_TOKEN_INPUT,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        renderResult.getByTestId(
+          BridgeViewSelectorsIDs.RECURRING_DEST_TOKEN_AREA,
+        ),
+      ).toBeOnTheScreen();
+    });
   });
 
-  it('shows history empty copy after pressing the History tab', async () => {
+  it('shows a filled history row after pressing the History tab', async () => {
     const renderResult = renderBridgeView();
 
     await openRecurringTab(renderResult);
 
+    const pair = strings('bridge.recurring.pair', {
+      source: 'ETH',
+      dest: 'USDC',
+    });
+    const scheduleSummary = strings('bridge.recurring.schedule_summary', {
+      interval: '1 day',
+      count: '5',
+    });
+
+    expect(renderResult.getAllByText(pair)).toHaveLength(2);
     expect(
-      renderResult.getByText(strings('bridge.orders.empty.open_orders')),
+      renderResult.getByText(strings('bridge.all_networks')),
+    ).toBeOnTheScreen();
+    expect(renderResult.getByText(scheduleSummary)).toBeOnTheScreen();
+    expect(
+      renderResult.getByText(strings('bridge.recurring.filled')),
     ).toBeOnTheScreen();
 
     fireEvent.press(
@@ -560,12 +606,21 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     );
 
     await waitFor(() => {
-      expect(
-        renderResult.getByText(strings('bridge.orders.empty.history')),
-      ).toBeOnTheScreen();
+      expect(renderResult.queryByText(scheduleSummary)).toBeNull();
     });
     expect(
-      renderResult.queryByText(strings('bridge.orders.empty.open_orders')),
+      renderResult.queryByText(strings('bridge.orders.empty.history')),
     ).toBeNull();
+    expect(
+      renderResult.getByText(strings('bridge.all_networks')),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.getAllByText(strings('bridge.tabs.recurring')).length,
+    ).toBeGreaterThan(0);
+    expect(
+      renderResult.getByText(strings('bridge.recurring.filled')),
+    ).toBeOnTheScreen();
+    expect(renderResult.getByText('+0.325 USDC')).toBeOnTheScreen();
+    expect(renderResult.getAllByText(pair)).toHaveLength(1);
   });
 });

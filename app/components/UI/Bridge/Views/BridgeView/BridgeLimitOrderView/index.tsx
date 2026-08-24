@@ -14,7 +14,7 @@ import OrdersTabs from '../../../components/OrdersTabs';
 import {
   HardwareWalletUnsupportedBanner,
   InsufficientNativeReserveBanner,
-  MissingPriceDataBanner,
+  MissingQuoteAndAssetsPriceDataBanner,
   QuoteErrorBanner,
   SwapsBanners,
   TokenWarningBanner,
@@ -27,6 +27,8 @@ import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { createStyles } from '../orderViewShell.styles';
 import { useLimitOrderSwapInputs } from './useLimitOrderSwapInputs';
+import { LIMIT_MOCK_HISTORY_TAB } from './BridgeLimitOrderView.mockHistory';
+import { LIMIT_MOCK_OPEN_ORDERS_TAB } from './BridgeLimitOrderView.mockOpenOrders';
 
 interface BridgeLimitOrderViewContentProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -110,10 +112,14 @@ const BridgeLimitOrderViewContent = ({
             <QuoteErrorBanner />
             <TokenWarningBanner />
             <InsufficientNativeReserveBanner />
-            <MissingPriceDataBanner />
+            <MissingQuoteAndAssetsPriceDataBanner />
           </SwapsBanners>
 
-          <OrdersTabs openOrders={{ items: [] }} history={{ items: [] }} />
+          <OrdersTabs
+            enabledChainIds={enabledChainIds}
+            openOrders={LIMIT_MOCK_OPEN_ORDERS_TAB}
+            history={LIMIT_MOCK_HISTORY_TAB}
+          />
         </ScrollView>
 
         <SwapsKeypad

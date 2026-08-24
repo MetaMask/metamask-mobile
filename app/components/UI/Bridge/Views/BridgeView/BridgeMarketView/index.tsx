@@ -110,7 +110,7 @@ import { useTrackSwapPageViewed } from '../../../hooks/useTrackSwapPageViewed/in
 import { BridgeMarketViewFooter } from './BridgeMarketViewFooter.tsx';
 import {
   InsufficientNativeReserveBanner,
-  MissingPriceDataBanner,
+  MissingQuotePriceDataBanner,
   QuoteErrorBanner,
   SwapsBanners,
   TokenWarningBanner,
@@ -607,7 +607,7 @@ const BridgeMarketViewContent = ({
             <QuoteErrorBanner />
             <TokenWarningBanner />
             <InsufficientNativeReserveBanner />
-            <MissingPriceDataBanner />
+            <MissingQuotePriceDataBanner />
           </SwapsBanners>
 
           <Box

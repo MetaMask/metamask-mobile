@@ -1,7 +1,7 @@
 # Predict canonical read model and REST API
 
 - **Status:** Agreed working direction for team review; not yet implemented
-- **Scope:** Public, read-only Predict navigation and Event detail
+- **Scope:** Public, read-only Predict navigation and Event Screens
 - **Venues:** Kalshi first, with a future Polymarket backend mapping
 
 ## Recommendation
@@ -230,7 +230,7 @@ Series: btc-up-down-5m               Series: btc-up-down-5m
 Event:  btc-1200-1205       ->       Event:  btc-1205-1210
 ```
 
-For a rolling card or detail screen:
+For a rolling card or Event Screen:
 
 1. Render the Event returned by the Feed or current-Series endpoint.
 2. Revalidate at or shortly after the Event's `closesAt`.
@@ -330,7 +330,7 @@ GET /v1/venues/{venueId}/events/{eventId}
 
 Response: `PredictEvent`
 
-This route always returns the requested Event. It must never rotate to a newer Event in the same Series. Use it for ordinary cards, deep links, history, Positions, and fixed Event detail.
+This route always returns the requested Event. It must never rotate to a newer Event in the same Series. Use it for ordinary cards, deep links, history, Positions, and immutable Event Screens.
 
 ### Read the current Event in a rolling Series
 

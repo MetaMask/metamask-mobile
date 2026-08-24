@@ -15,7 +15,7 @@ import RecurringScheduleFields from '../../../components/RecurringScheduleFields
 import {
   HardwareWalletUnsupportedBanner,
   InsufficientNativeReserveBanner,
-  MissingPriceDataBanner,
+  MissingQuoteAndAssetsPriceDataBanner,
   QuoteErrorBanner,
   SwapsBanners,
   TokenWarningBanner,
@@ -28,6 +28,8 @@ import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { createStyles } from '../orderViewShell.styles';
 import { useRecurringBuyKeypad } from './useRecurringBuyKeypad';
 import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
+import { RECURRING_MOCK_HISTORY_TAB } from './BridgeRecurringBuyView.mockHistory';
+import { RECURRING_MOCK_OPEN_ORDERS_TAB } from './BridgeRecurringBuyView.mockOpenOrders';
 
 interface BridgeRecurringBuyViewContentProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -110,6 +112,10 @@ const BridgeRecurringBuyViewContent = ({
             sourceAmountTypeToggleTestID={
               BridgeViewSelectorsIDs.RECURRING_SOURCE_AMOUNT_TYPE_TOGGLE
             }
+            hideDestAmount
+            destAmountReplacementLabelTestID={
+              BridgeViewSelectorsIDs.RECURRING_DEST_YOU_GET
+            }
           />
 
           <SwapsBanners
@@ -120,7 +126,7 @@ const BridgeRecurringBuyViewContent = ({
             <QuoteErrorBanner />
             <TokenWarningBanner />
             <InsufficientNativeReserveBanner />
-            <MissingPriceDataBanner />
+            <MissingQuoteAndAssetsPriceDataBanner />
           </SwapsBanners>
 
           <RecurringScheduleFields
@@ -129,7 +135,11 @@ const BridgeRecurringBuyViewContent = ({
             onDismissKeypad={dismissInputAndKeypad}
           />
 
-          <OrdersTabs openOrders={{ items: [] }} history={{ items: [] }} />
+          <OrdersTabs
+            enabledChainIds={enabledChainIds}
+            openOrders={RECURRING_MOCK_OPEN_ORDERS_TAB}
+            history={RECURRING_MOCK_HISTORY_TAB}
+          />
         </ScrollView>
 
         <SwapsKeypad
