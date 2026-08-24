@@ -169,6 +169,33 @@ interface PerpsProMarketViewProps {
   generationTrigger?: 'initial' | 'market_switch' | 'mode_switch';
 }
 
+const resolveProMarketSectionState = (
+  hasContent: boolean,
+  hasError: boolean,
+  isLoading: boolean,
+): PerpsMarketDetailSectionState => {
+  if (hasContent) return 'content';
+  if (hasError) return 'error';
+  return isLoading ? 'loading' : 'empty';
+};
+
+const resolveProAccountSectionState = (
+  isLoading: boolean,
+  hasAccount: boolean,
+): PerpsMarketDetailSectionState => {
+  if (isLoading) return 'loading';
+  return hasAccount ? 'content' : 'empty';
+};
+
+const resolveProMarketSource = (
+  hasRouteMarket: boolean,
+  hasEnrichedMarket: boolean,
+): 'route' | 'stream_enrichment' | 'unknown' => {
+  if (hasRouteMarket) return 'route';
+  if (hasEnrichedMarket) return 'stream_enrichment';
+  return 'unknown';
+};
+
 /**
  * Pro-mode replacement for `PerpsMarketDetailsView`.
  *
@@ -215,7 +242,7 @@ const PerpsProMarketView = ({
   );
   const market = useMemo(() => {
     if (hasFormattedMaxLeverage) return routeMarket;
-    return enrichedMarket || routeMarket;
+    return enrichedMarket ?? routeMarket;
   }, [enrichedMarket, hasFormattedMaxLeverage, routeMarket]);
   const [isOrderBookCollapsed, setIsOrderBookCollapsed] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -394,23 +421,20 @@ const PerpsProMarketView = ({
 
   const currentSymbol = market?.symbol;
   const chartContextKey = `${marketSectionContextKey}|${selectedCandlePeriod}|${configuredChartLibrary}`;
-  const marketSectionState: PerpsMarketDetailSectionState =
-    currentSymbol &&
-    (hasFormattedMaxLeverage || enrichedMarket?.symbol === currentSymbol)
-      ? 'content'
-      : marketsError
-        ? 'error'
-        : areMarketsLoading || !haveMarketsResolved
-          ? 'loading'
-          : 'empty';
+  const marketSectionState = resolveProMarketSectionState(
+    Boolean(
+      currentSymbol &&
+        (hasFormattedMaxLeverage || enrichedMarket?.symbol === currentSymbol),
+    ),
+    Boolean(marketsError),
+    areMarketsLoading || !haveMarketsResolved,
+  );
   const priceSectionState: PerpsMarketDetailSectionState =
     isMarketContextReady && syncedChartCurrentPrice > 0 ? 'content' : 'loading';
-  const accountSectionState: PerpsMarketDetailSectionState =
-    !isMarketContextReady || !isUserContextReady || isLoadingAccount
-      ? 'loading'
-      : account
-        ? 'content'
-        : 'empty';
+  const accountSectionState = resolveProAccountSectionState(
+    !isMarketContextReady || !isUserContextReady || isLoadingAccount,
+    Boolean(account),
+  );
   const {
     onChartResolved: handleChartResolvedStateChange,
     onOrderBookResolved: handleOrderBookResolvedStateChange,
@@ -434,11 +458,10 @@ const PerpsProMarketView = ({
     symbol: currentSymbol,
     configuredChartLibrary,
     renderedChartLibrary: effectiveChartLibrary,
-    marketSource: hasFormattedMaxLeverage
-      ? 'route'
-      : enrichedMarket
-        ? 'stream_enrichment'
-        : 'unknown',
+    marketSource: resolveProMarketSource(
+      hasFormattedMaxLeverage,
+      Boolean(enrichedMarket),
+    ),
     surfaceTrigger: generationTrigger,
     entrySource: source,
     sections: detailSections,

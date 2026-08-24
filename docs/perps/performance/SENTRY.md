@@ -4,7 +4,7 @@ This maps the approved event model to Sentry. It contains no performance values.
 
 ## Rule
 
-Reuse existing startup, preload, connection, first-data, Homepage-section, and critical-user-flow traces. Add only missing attributes, targeted child measurements, and one slim bootstrap-relative loading session. No boundary may have two producers.
+Reuse existing startup, preload, connection, first-data, Homepage-section, and critical-user-flow traces. Add only emitted attributes, the existing preload measurements, and one slim bootstrap-relative loading session. No boundary may have two producers.
 
 ## Trace topology
 
@@ -34,37 +34,58 @@ The market-detail session is also an independent root. It shares bounded
 lifecycle/provider/network/mode attributes with the reused traces but does not
 join or copy them.
 
+`Perps Connection Establishment` belongs to the singleton connection plane,
+not to the screen that happens to be visible when an attempt runs. The
+wallet-root lifecycle owner and any guarded screen recovery request converge on
+the same manager. One attempt may serve Wallet Homepage, Perps Home, Market
+Detail, and later flows. Do not add a screen attribute to reinterpret that
+duration. Each screen keeps the user-perceived trace whose start and end it
+owns.
+
 ## Existing authoritative traces
 
-| Stage                  | Existing trace                                                     | Minimal change                                                                |
-| ---------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| Script load            | `Load Scripts`                                                     | Query by release/platform/app-start type                                      |
-| UI mount               | `UI Startup`                                                       | Query by release/platform/app-start type                                      |
-| Authentication         | `Authenticate User`                                                | Query only where authentication occurs                                        |
-| Homepage readiness     | `Homepage Ready`                                                   | Reuse unchanged; aggregate separately by release/platform                     |
-| Global market preload  | `Perps Market Data Preload`                                        | Add source, counts, snapshot status, and targeted Terminal child measurements |
-| User preload           | `Perps User Data Preload`                                          | Remove raw address; add bounded cache identity/source attributes              |
-| Connection             | `Perps Connection Establishment`                                   | Reuse provider-init, health, socket, and subscription measurements            |
-| First live streams     | `Perps WebSocket First Price/Positions/Orders/Account`             | Add lifecycle/source/session context to all four                              |
-| Homepage Perps TTC/DFD | `Homepage Section Time To Content` / `Homepage Section Data Fetch` | Add lifecycle, market source, account source, content variant                 |
-| Critical flows         | Existing Perps CUF traces                                          | Query by release/platform/network/provider                                    |
+| Stage                  | Existing trace                                                     | Minimal change                                                             |
+| ---------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| Script load            | `Load Scripts`                                                     | Query by release/platform/app-start type                                   |
+| UI mount               | `UI Startup`                                                       | Query by release/platform/app-start type                                   |
+| Authentication         | `Authenticate User`                                                | Query only where authentication occurs                                     |
+| Homepage readiness     | `Homepage Ready`                                                   | Reuse unchanged; aggregate separately by release/platform                  |
+| Global market preload  | `Perps Market Data Preload`                                        | Reuse overall duration, outcome, market count, and loading-session context |
+| User preload           | `Perps User Data Preload`                                          | Reuse overall duration, outcome, item counts, and loading-session context  |
+| Connection             | `Perps Connection Establishment`                                   | Reuse provider-init, health, socket, and subscription measurements         |
+| First live streams     | `Perps WebSocket First Price/Positions/Orders/Account`             | Add lifecycle/source/session context to all four                           |
+| Homepage Perps TTC/DFD | `Homepage Section Time To Content` / `Homepage Section Data Fetch` | Add lifecycle, market source, account source, content variant              |
+| Critical flows         | Existing Perps CUF traces                                          | Query by release/platform/network/provider                                 |
 
 ## Measurements by authoritative trace
 
 ### `Perps Market Data Preload`
 
-- `terminal_request_duration_ms`
-- `terminal_parse_validate_duration_ms`
-- `terminal_mobile_adoption_duration_ms`
+- `perps.operation.market_data_preload`
 
-These measurements are emitted once by Core and written to the explicit market-preload span handle through the Mobile tracing adapter. They do not appear on the loading session.
+Core emits this overall duration once and Mobile writes it to the explicit
+market-preload span handle. The span also records success and market count. It
+does not currently split Terminal request, parse, validation, and Mobile
+adoption time. Those values must not appear in dashboard queries until Core
+emits them.
+
+### `Perps User Data Preload`
+
+- `perps.operation.user_data_preload`
+
+Core emits this overall duration once and Mobile writes it to the explicit
+user-preload span handle. The span records success plus position and order
+counts. Neither preload measurement appears on the loading session.
 
 ### `Perps Loading Session`
 
-All measurements are non-negative bootstrap-relative offsets:
+Process-relative measurements:
 
 - `process_to_perps_bootstrap_start_ms`
 - `process_to_perps_controller_constructed_ms`
+
+Non-negative bootstrap-relative readiness offsets:
+
 - `markets_ready_ms`
 - `account_cache_ready_ms`
 - `account_live_ms`
@@ -80,7 +101,7 @@ Do not add another Homepage TTC or DFD transaction.
 
 - Existing TTC remains the resolved-content duration.
 - Existing DFD remains the loading duration.
-- Add `surface_initial_ui_ms` and `surface_live_content_ms` as measurements on that existing surface trace only where applicable.
+- Keep Homepage frame-stage boundaries recipe-only. They are not measurements on the production section trace.
 - Keep `socket_to_visible_ms` recipe-only until on-device evidence justifies promotion.
 - Keep socket→subscriber→commit→frame components recipe-only.
 
@@ -104,12 +125,8 @@ source of truth.
 - `lifecycle`
 - `provider`
 - `network`
-- `market_source`: `terminal_v2`, `provider`, `memory_cache`, `disk_cache`
-- `account_source`: `provider_snapshot`, `memory_cache`, `disk_cache`, `fresh_socket`
-- `terminal_snapshot_status`: `accepted`, `stale`, `invalid`, `http_error`, `not_attempted`
-- `cache_identity_valid`
-- `cache_age_bucket`
-- `data_ready_at_demand`
+- `market_source`: `terminal_v2`, `provider`, `memory_cache`
+- `account_source`: `provider_snapshot`, `memory_cache`, `fresh_socket`
 - `required_live_streams_complete`
 - `content_state`
 - `success`
@@ -121,12 +138,16 @@ source of truth.
 - `account_generation`
 - `context_generation`
 - `connection_generation` on structured fresh-socket proof records
-- `enabled_dex_fingerprint`
-- market coverage counts
+- `marketCount`, `positionCount`, and `orderCount` on their preload traces
 
 `hip3_config_version` may be indexed only if its production value space is demonstrably bounded.
 
-Never attach wallet addresses, account names, order IDs, position IDs, balances, or raw upstream error bodies. The existing raw `userAddress` on `Perps User Data Preload` must be removed before this contract ships.
+`data_ready_at_demand` and the Homepage surface-stage fields are recipe log
+data. They are not Sentry cohort attributes. `terminal_snapshot_status`,
+`cache_identity_valid`, `cache_age_bucket`, and `enabled_dex_fingerprint` are
+not emitted by this stack and must not be queried as if they were.
+
+Never attach wallet addresses, account names, order IDs, position IDs, balances, or raw upstream error bodies. `@metamask/perps-controller` 12.1.0 does not attach the wallet address to the user-preload trace. Do not reintroduce it.
 
 The numeric generation fields are process-local correlation data. A Homepage
 session assigns `account_generation` and `context_generation` at bootstrap.
@@ -146,12 +167,18 @@ released Core trace-targeting API provides the post-hydration controller
 construction timestamp and routes preload measurements to their explicit trace
 IDs; no values are inferred from ambient spans.
 
-`disk_cache` and the `cold_disk_cache` lifecycle remain reserved until Core
-exposes durable-cache provenance to Mobile. Cold-disk-cache recipe evidence is
-currently excluded, so production widgets must not label memory-hydrated rows
-as disk cache.
+Durable-cache provenance is not emitted by this Mobile stack. Production
+widgets must not label memory-hydrated rows as disk cache.
 
 Dashboards aggregate each authoritative transaction independently using the same bounded release/platform/lifecycle/source attributes. Bootstrap-relative Perps widgets query the slim loading session; app startup and Homepage Ready remain separate release/platform cohorts.
+
+Connection widgets query `Perps Connection Establishment`. The contract
+requires release, platform, provider, network, lifecycle, and outcome cohorts;
+until an identifiable release emits a field, the dashboard must leave it
+unknown rather than infer it from the visible screen. Screen widgets query
+their own trace names. A screen can legitimately be fast when it consumes an
+already ready connection, and a connection can complete without any Perps
+screen being visible.
 
 ## Dashboard proposal
 
@@ -180,11 +207,11 @@ populate a production trend.
 ### Cold Perps
 
 - Controller construction and existing controller-init measurements.
-- Terminal network versus parse/adoption from market-preload trace.
+- Overall market-preload duration and outcome.
 - Bootstrap-relative markets/account-cache/live readiness from loading session.
 - Existing Homepage TTC/DFD split by `content_variant` and filtered to `content_state != error`.
 - Visible error rate in its own widget.
-- Market coverage and Terminal acceptance rate.
+- Market count and preload success rate.
 
 ### Cached/resume
 
@@ -192,7 +219,6 @@ populate a production trend.
 - Disk-cache hydration and cache-to-visible recipe result.
 - Short resume TTC and continuity.
 - Reconnect cached visibility then live takeover.
-- Cache identity rejection rate.
 
 ### Critical Perps flows
 
@@ -262,7 +288,7 @@ Every latency widget splits by platform and identifiable release. Android and iO
 
 - Core snapshot and atomic user-data behavior is released in `@metamask/perps-controller` 12.0.0.
 - Explicit preload span targeting, controller-construction timing, and user-address removal are released in `@metamask/perps-controller` 12.1.0 and wired by this Mobile change.
-- Terminal snapshot availability hardening from [terminal-backend#49](https://github.com/consensys-vertical-apps/terminal-backend/pull/49) is deployed to Dev and UAT; PRD remains approval pending.
+- Terminal snapshot availability hardening is tracked in [terminal-backend#49](https://github.com/consensys-vertical-apps/terminal-backend/pull/49). Mobile retains provider fallback when the snapshot is unavailable.
 - Production dashboard widgets remain `release pending` until an identifiable Mobile release contains this instrumentation; absence of data is not a zero-duration result.
 
 ## Status vocabulary

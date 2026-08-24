@@ -266,7 +266,6 @@ All loading-session offsets are non-negative and bootstrap-relative.
 | Lifecycle              | Start condition                                   | Required proof                                                     |
 | ---------------------- | ------------------------------------------------- | ------------------------------------------------------------------ |
 | `cold_no_cache`        | New process, Perps caches cleared                 | Resolved surface plus bounded required-stream completion           |
-| `cold_disk_cache`      | New process, valid persisted cache retained       | Identity-correct cached frame, then fresh takeover                 |
 | `navigate_return`      | Surface remounted in same process                 | Resident frame; fresh tick optional                                |
 | `background_short`     | Background below documented grace period          | Resident frame and connection continuity; fresh tick optional      |
 | `background_reconnect` | Background beyond grace period                    | Cached/LKG frame allowed, then fresh takeover                      |

@@ -490,7 +490,7 @@ export function usePerpsMarketDetailSession({
 
     const timeout = setTimeout(() => {
       const active = activeSessionRef.current;
-      if (!active || active.id !== id) {
+      if (active?.id !== id) {
         return;
       }
       const missingSections = active.expectedSections.filter(
@@ -518,8 +518,10 @@ export function usePerpsMarketDetailSession({
         : null;
     const requiresConnectionGenerationAdvance =
       generationTrigger === 'background_resume';
+    const deliveryBaseline =
+      foregroundDeliveryBaseline ?? contextSwitchDeliveryBaseline;
     foregroundDeliveryBaselineRef.current = null;
-    activeSessionRef.current = {
+    const activeSession: ActiveDetailSession = {
       id,
       mode,
       symbol,
@@ -530,10 +532,13 @@ export function usePerpsMarketDetailSession({
       sectionStates: {},
       requiresCandleFreshness:
         configuredChartLibrary === PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
-      ...(foregroundDeliveryBaseline ?? contextSwitchDeliveryBaseline ?? {}),
       requiresConnectionGenerationAdvance,
       timeout,
     };
+    if (deliveryBaseline) {
+      Object.assign(activeSession, deliveryBaseline);
+    }
+    activeSessionRef.current = activeSession;
     setIsSessionActive(true);
     setSessionRevision((revision) => revision + 1);
     DevLogger.log(
