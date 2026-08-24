@@ -1,5 +1,5 @@
 /**
- * Integration tests — perps order lifecycle (open / open-limit / close).
+ * Integration tests — perps order lifecycle (open / open-limit / strategy / close).
  *
  * Phase 1 of the perps integration rollout. Each test covers one row of the
  * order-lifecycle section of `tests/integration/harnesses/perps/perps-use-cases.md`. Real
@@ -104,6 +104,70 @@ describe('Perps order lifecycle — integration', () => {
           ],
         }),
       );
+    });
+
+    it('starts a randomized TWAP through the venue strategy action', async () => {
+      // Arrange
+      const { provider, setupTradingReady, mocks } =
+        buildPerpsIntegrationHarness();
+      setupTradingReady();
+
+      // Act
+      const result = await provider.placeOrder({
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'twap',
+        currentPrice: 50_000,
+        twapDuration: 90,
+        twapRandomize: true,
+      });
+
+      // Assert
+      expect(result).toEqual({
+        success: true,
+        orderId: '123',
+        submittedSize: '0.1',
+      });
+      expect(mocks.exchangeClient.twapOrder).toHaveBeenCalledWith({
+        twap: {
+          a: 0,
+          b: true,
+          s: '0.1',
+          r: false,
+          m: 90,
+          t: true,
+        },
+      });
+      expect(mocks.exchangeClient.order).not.toHaveBeenCalled();
+    });
+
+    it('returns a failed placement when the venue rejects a TWAP', async () => {
+      // Arrange
+      const { provider, setupTradingReady, mocks } =
+        buildPerpsIntegrationHarness();
+      setupTradingReady();
+      mocks.exchangeClient.twapOrder.mockResolvedValueOnce({
+        status: 'ok',
+        response: { data: { status: { error: 'TWAP capacity reached' } } },
+      });
+
+      // Act
+      const result = await provider.placeOrder({
+        symbol: 'BTC',
+        isBuy: false,
+        size: '0.1',
+        orderType: 'twap',
+        currentPrice: 50_000,
+        twapDuration: 30,
+        twapRandomize: false,
+      });
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('TWAP capacity reached');
+      expect(mocks.exchangeClient.twapOrder).toHaveBeenCalledTimes(1);
+      expect(mocks.exchangeClient.order).not.toHaveBeenCalled();
     });
   });
 

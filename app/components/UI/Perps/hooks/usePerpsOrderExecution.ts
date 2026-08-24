@@ -52,6 +52,13 @@ interface UsePerpsOrderExecutionReturn {
 type PerpsOrderTrackingValue = string | number | boolean;
 type PerpsOrderPositionSnapshot = Pick<Position, 'size'>;
 
+interface ControllerPlacementHandlers {
+  onSuccess: (result: OrderResult) => void | Promise<void>;
+  onFailure?: () => void;
+  onException?: () => void;
+  onSettled?: () => void;
+}
+
 const getPerpsOrderPositionSnapshot = (
   position?: PerpsOrderPositionSnapshot | null,
 ) => (position ? position.size : undefined);
@@ -91,6 +98,99 @@ export function usePerpsOrderExecution(
     resetConditions: [!isPlacing], // Reset when not placing
   });
 
+  const executeControllerPlacement = useCallback(
+    async (
+      orderParams: OrderParams,
+      handlers: ControllerPlacementHandlers,
+    ): Promise<OrderResult | undefined> => {
+      let controllerSettled = false;
+      const markControllerSettled = () => {
+        if (!controllerSettled) {
+          controllerSettled = true;
+          handlers.onSettled?.();
+        }
+      };
+
+      try {
+        setIsPlacing(true);
+        setError(undefined);
+        setLastResult(undefined);
+
+        DevLogger.log(
+          'usePerpsOrderExecution: Placing order',
+          JSON.stringify(orderParams, null, 2),
+        );
+
+        onSubmitted?.();
+
+        const result = await controllerPlaceOrder(orderParams);
+        markControllerSettled();
+        setLastResult(result);
+
+        if (result.success) {
+          DevLogger.log(
+            'usePerpsOrderExecution: Order placed successfully',
+            result,
+          );
+          await handlers.onSuccess(result);
+        } else {
+          handlers.onFailure?.();
+          const errorMessage =
+            result.error || strings('perps.order.error.unknown');
+          setError(errorMessage);
+          DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
+          onError?.(errorMessage);
+        }
+
+        return result;
+      } catch (err) {
+        markControllerSettled();
+        handlers.onException?.();
+        const errorObject = ensureError(
+          err,
+          'usePerpsOrderExecution.placeOrder',
+        );
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : strings('perps.order.error.unknown');
+        setError(errorMessage);
+        DevLogger.log('usePerpsOrderExecution: Error placing order', err);
+
+        Logger.error(errorObject, {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            component: 'usePerpsOrderExecution',
+            action: 'order_creation',
+            operation: 'order_management',
+          },
+          context: {
+            name: 'usePerpsOrderExecution',
+            data: {
+              symbol: orderParams.symbol,
+              isBuy: orderParams.isBuy,
+              orderType: orderParams.orderType,
+              size: orderParams.size,
+              price: orderParams.price,
+              leverage: orderParams.leverage,
+              takeProfitPrice: orderParams.takeProfitPrice,
+              stopLossPrice: orderParams.stopLossPrice,
+              twapDuration: orderParams.twapDuration,
+              twapRandomize: orderParams.twapRandomize,
+            },
+          },
+        });
+
+        onError?.(errorMessage);
+
+        return undefined;
+      } finally {
+        setIsPlacing(false);
+      }
+    },
+    [controllerPlaceOrder, onError, onSubmitted],
+  );
+
   const placeOrder = useCallback(
     async (orderParams: OrderParams): Promise<OrderResult | undefined> => {
       // Market orders measure submit -> position rendered (toast coupled to the
@@ -101,78 +201,11 @@ export function usePerpsOrderExecution(
       // overlapping orders never collide.
       const placementKind = getOrderPlacementKind(orderParams.orderType);
       if (placementKind === 'strategy') {
-        try {
-          setIsPlacing(true);
-          setError(undefined);
-          setLastResult(undefined);
-
-          DevLogger.log(
-            'usePerpsOrderExecution: Placing order',
-            JSON.stringify(orderParams, null, 2),
-          );
-
-          onSubmitted?.();
-
-          const result = await controllerPlaceOrder(orderParams);
-          setLastResult(result);
-
-          if (result.success) {
-            // Strategy acceptance starts a schedule; it does not imply that a
-            // position or resting child order has rendered yet.
-            DevLogger.log(
-              'usePerpsOrderExecution: Order placed successfully',
-              result,
-            );
-            onSuccess?.();
-          } else {
-            const errorMessage =
-              result.error || strings('perps.order.error.unknown');
-            setError(errorMessage);
-            DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
-            onError?.(errorMessage);
-          }
-
-          return result;
-        } catch (err) {
-          const errorObject = ensureError(
-            err,
-            'usePerpsOrderExecution.placeOrder',
-          );
-          const errorMessage =
-            err instanceof Error
-              ? err.message
-              : strings('perps.order.error.unknown');
-          setError(errorMessage);
-          DevLogger.log('usePerpsOrderExecution: Error placing order', err);
-
-          Logger.error(errorObject, {
-            tags: {
-              feature: PERPS_CONSTANTS.FeatureName,
-              component: 'usePerpsOrderExecution',
-              action: 'order_creation',
-              operation: 'order_management',
-            },
-            context: {
-              name: 'usePerpsOrderExecution',
-              data: {
-                symbol: orderParams.symbol,
-                isBuy: orderParams.isBuy,
-                orderType: orderParams.orderType,
-                size: orderParams.size,
-                price: orderParams.price,
-                leverage: orderParams.leverage,
-                takeProfitPrice: orderParams.takeProfitPrice,
-                stopLossPrice: orderParams.stopLossPrice,
-              },
-            },
-          });
-
-          onError?.(errorMessage);
-
-          return undefined;
-        } finally {
-          setIsPlacing(false);
-        }
+        return executeControllerPlacement(orderParams, {
+          // Strategy acceptance starts a schedule; it does not imply that a
+          // position or resting child order has rendered yet.
+          onSuccess: () => onSuccess?.(),
+        });
       }
 
       const isRestingOrder = placementKind === 'resting';
@@ -258,28 +291,11 @@ export function usePerpsOrderExecution(
         }
       }, PERPS_CUF_STREAM_TIMEOUT_MS);
 
-      try {
-        setIsPlacing(true);
-        setError(undefined);
-        setLastResult(undefined);
-
-        DevLogger.log(
-          'usePerpsOrderExecution: Placing order',
-          JSON.stringify(orderParams, null, 2),
-        );
-
-        onSubmitted?.();
-
-        const result = await controllerPlaceOrder(orderParams);
-        controllerSettled = true;
-        setLastResult(result);
-
-        if (result.success) {
-          DevLogger.log(
-            'usePerpsOrderExecution: Order placed successfully',
-            result,
-          );
-
+      return executeControllerPlacement(orderParams, {
+        onSettled: () => {
+          controllerSettled = true;
+        },
+        onSuccess: async (result) => {
           if (isRestingOrder) {
             // Resting orders: accepted, no position renders now. Confirm
             // immediately, then end the order-render CUF when the resting order
@@ -384,67 +400,22 @@ export function usePerpsOrderExecution(
               });
             }
           }
-        } else {
-          const errorMessage =
-            result.error || strings('perps.order.error.unknown');
+        },
+        onFailure: () => {
           endCuf({
             [PERPS_CUF_TAG.SUCCESS]: false,
             [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ORDER_FAILED,
           });
-          setError(errorMessage);
-          DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
-
-          onError?.(errorMessage);
-        }
-
-        return result;
-      } catch (err) {
-        controllerSettled = true;
-        endCuf({
-          [PERPS_CUF_TAG.SUCCESS]: false,
-          [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
-        });
-        const errorObject = ensureError(
-          err,
-          'usePerpsOrderExecution.placeOrder',
-        );
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : strings('perps.order.error.unknown');
-        setError(errorMessage);
-        DevLogger.log('usePerpsOrderExecution: Error placing order', err);
-
-        Logger.error(errorObject, {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            component: 'usePerpsOrderExecution',
-            action: 'order_creation',
-            operation: 'order_management',
-          },
-          context: {
-            name: 'usePerpsOrderExecution',
-            data: {
-              symbol: orderParams.symbol,
-              isBuy: orderParams.isBuy,
-              orderType: orderParams.orderType,
-              size: orderParams.size,
-              price: orderParams.price,
-              leverage: orderParams.leverage,
-              takeProfitPrice: orderParams.takeProfitPrice,
-              stopLossPrice: orderParams.stopLossPrice,
-            },
-          },
-        });
-
-        onError?.(errorMessage);
-
-        return undefined;
-      } finally {
-        setIsPlacing(false);
-      }
+        },
+        onException: () => {
+          endCuf({
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+          });
+        },
+      });
     },
-    [controllerPlaceOrder, stream, onSubmitted, onSuccess, onError],
+    [executeControllerPlacement, stream, onSuccess],
   );
 
   return {

@@ -19,7 +19,6 @@ import {
   playImpact,
   playSelection,
 } from '../../../../../../../util/haptics';
-import { strings } from '../../../../../../../../locales/i18n';
 
 jest.mock('../../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
@@ -55,8 +54,8 @@ const createSizeSlider = (
 });
 
 const createTwap = (
-  overrides: Partial<NonNullable<PerpsProOrderFormProps['twap']>> = {},
-): NonNullable<PerpsProOrderFormProps['twap']> => ({
+  overrides: Partial<PerpsProOrderFormProps['twap']> = {},
+): PerpsProOrderFormProps['twap'] => ({
   days: '',
   hours: '',
   minutes: '5',
@@ -87,6 +86,7 @@ const createProps = (
     availableBalance: '-- available',
     reduceOnly: false,
     onReduceOnlyChange: jest.fn(),
+    twap: createTwap(),
     isTPSLConfigured: false,
     notices: [],
     summary: { margin: '--', liquidationPrice: '--', slippage: '--' },
@@ -111,84 +111,6 @@ describe('PerpsProOrderForm', () => {
   });
 
   describe('inputs', () => {
-    it('renders TWAP controls', () => {
-      renderForm({
-        orderType: 'twap',
-        twap: createTwap({
-          days: '1',
-          hours: '2',
-          minutes: '3',
-        }),
-      });
-
-      expect(screen.getByTestId(ids.TWAP_DURATION)).toBeOnTheScreen();
-      expect(screen.getByTestId(ids.TWAP_DURATION_LABEL)).toHaveTextContent(
-        strings('perps.pro_order_form.twap.running_time'),
-      );
-    });
-
-    it('hides incompatible order fields for TWAP', () => {
-      renderForm({
-        orderType: 'twap',
-        onTPSLPress: jest.fn(),
-        twap: createTwap(),
-      });
-
-      expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),
-      ).not.toBeOnTheScreen();
-      expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
-    });
-
-    it('forwards TWAP day input changes', () => {
-      const onDaysChange = jest.fn();
-      renderForm({
-        orderType: 'twap',
-        twap: createTwap({ days: '1', onDaysChange }),
-      });
-
-      fireEvent.changeText(screen.getByTestId(ids.TWAP_DAYS), '2');
-
-      expect(onDaysChange).toHaveBeenCalledWith('2');
-    });
-
-    it('forwards TWAP hour input changes', () => {
-      const onHoursChange = jest.fn();
-      renderForm({
-        orderType: 'twap',
-        twap: createTwap({ hours: '2', onHoursChange }),
-      });
-
-      fireEvent.changeText(screen.getByTestId(ids.TWAP_HOURS), '4');
-
-      expect(onHoursChange).toHaveBeenCalledWith('4');
-    });
-
-    it('forwards TWAP minute input changes', () => {
-      const onMinutesChange = jest.fn();
-      renderForm({
-        orderType: 'twap',
-        twap: createTwap({ minutes: '3', onMinutesChange }),
-      });
-
-      fireEvent.changeText(screen.getByTestId(ids.TWAP_MINUTES), '5');
-
-      expect(onMinutesChange).toHaveBeenCalledWith('5');
-    });
-
-    it('forwards the next TWAP Randomize value', () => {
-      const onRandomizeChange = jest.fn();
-      renderForm({
-        orderType: 'twap',
-        twap: createTwap({ randomize: false, onRandomizeChange }),
-      });
-
-      fireEvent.press(screen.getByTestId(ids.TWAP_RANDOMIZE));
-
-      expect(onRandomizeChange).toHaveBeenCalledWith(true);
-    });
-
     it('passes raw size text to sizeInput.onChange', () => {
       const onChange = jest.fn();
       renderForm({ sizeInput: createSizeInput({ onChange }) });

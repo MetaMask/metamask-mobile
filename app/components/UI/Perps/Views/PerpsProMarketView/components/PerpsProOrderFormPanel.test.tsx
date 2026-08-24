@@ -1,7 +1,6 @@
 // Unit test: `usePerpsProOrderForm` is mocked to isolate container → presentational
-// prop/sheet wiring from business logic. A full component-view test (real Redux
-// state + stream fixtures) is deferred until the Pro form's view-test renderer is
-// established alongside PerpsOrderView.view.test.tsx.
+// prop/sheet wiring from business logic. User-visible order-type behavior is
+// covered by PerpsProMarketView.view.test.tsx with real Redux selectors.
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { PerpsMarketData } from '@metamask/perps-controller';
@@ -15,10 +14,7 @@ import {
   PerpsProOrderFormSelectorsIDs,
 } from '../../../Perps.testIds';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
-import {
-  selectPerpsProTriggeredOrdersEnabledFlag,
-  selectPerpsProTwapEnabledFlag,
-} from '../../../selectors/featureFlags';
+import { selectPerpsProTriggeredOrdersEnabledFlag } from '../../../selectors/featureFlags';
 
 const mockUseSelector = jest.fn();
 const mockUsePerpsProvider = jest.fn();
@@ -87,6 +83,16 @@ const DEFAULT_MOCK_HOOK_RESULT = {
   onAddFundsPress: jest.fn(),
   reduceOnly: false,
   onReduceOnlyChange: jest.fn(),
+  twap: {
+    days: '',
+    hours: '',
+    minutes: '5',
+    randomize: false,
+    onDaysChange: jest.fn(),
+    onHoursChange: jest.fn(),
+    onMinutesChange: jest.fn(),
+    onRandomizeChange: jest.fn(),
+  },
   isTPSLConfigured: false,
   onTPSLPress: jest.fn(),
   notices: [] as { id: string; variant: string; message?: string }[],
@@ -449,46 +455,6 @@ describe('PerpsProOrderFormPanel', () => {
     expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
       expect.objectContaining({
         showTriggeredTypes: false,
-      }),
-    );
-  });
-
-  it('shows TWAP for Hyperliquid when its remote flag is enabled', () => {
-    mockHookResult.isOrderTypeVisible = true;
-
-    renderPanel();
-
-    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
-      expect.objectContaining({
-        showTwapType: true,
-      }),
-    );
-  });
-
-  it('hides TWAP when its remote flag is disabled', () => {
-    mockUseSelector.mockImplementation(
-      (selector: unknown) => selector !== selectPerpsProTwapEnabledFlag,
-    );
-    mockHookResult.isOrderTypeVisible = true;
-
-    renderPanel();
-
-    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
-      expect.objectContaining({
-        showTwapType: false,
-      }),
-    );
-  });
-
-  it('hides TWAP for providers without strategy placement support', () => {
-    mockUsePerpsProvider.mockReturnValue({ isHyperLiquidProvider: false });
-    mockHookResult.isOrderTypeVisible = true;
-
-    renderPanel();
-
-    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
-      expect.objectContaining({
-        showTwapType: false,
       }),
     );
   });

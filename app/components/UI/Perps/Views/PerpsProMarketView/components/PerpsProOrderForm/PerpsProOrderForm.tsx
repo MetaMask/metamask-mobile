@@ -26,7 +26,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
-  HYPERLIQUID_TWAP_LIMITS,
   isLimitExecutionOrderType,
   isTriggerOrderType,
 } from '@metamask/perps-controller';
@@ -39,6 +38,7 @@ import {
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useHaptics } from '../../../../../../../util/haptics';
+import { PERPS_TWAP_UI_CONFIG } from '../../../../constants/perpsConfig';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
@@ -56,23 +56,6 @@ import type {
 } from './PerpsProOrderForm.types';
 
 const ids = PerpsProOrderFormSelectorsIDs;
-const MINUTES_PER_HOUR = 60;
-const TWAP_DURATION_RANGE_I18N_VALUES = {
-  minDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
-  maxDurationHours:
-    HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes / MINUTES_PER_HOUR,
-};
-
-const EMPTY_TWAP_MODEL = {
-  days: '',
-  hours: '',
-  minutes: '5',
-  randomize: false,
-  onDaysChange: () => undefined,
-  onHoursChange: () => undefined,
-  onMinutesChange: () => undefined,
-  onRandomizeChange: () => undefined,
-};
 
 const buttonIcon = (iconName: IconName, testID: string, onPress?: () => void) =>
   ({
@@ -359,7 +342,7 @@ const PerpsProOrderForm = ({
   onAddFundsPress,
   reduceOnly,
   onReduceOnlyChange,
-  twap = EMPTY_TWAP_MODEL,
+  twap,
   onTPSLPress,
   notices,
   summary,
@@ -588,7 +571,7 @@ const PerpsProOrderForm = ({
               >
                 {strings(
                   'perps.pro_order_form.twap.valid_range',
-                  TWAP_DURATION_RANGE_I18N_VALUES,
+                  PERPS_TWAP_UI_CONFIG.DurationRangeI18nValues,
                 )}
               </Text>
               <Box twClassName="flex-row gap-2">
@@ -598,6 +581,7 @@ const PerpsProOrderForm = ({
                     value={twap.days}
                     onChangeText={twap.onDaysChange}
                     testID={ids.TWAP_DAYS}
+                    keyboardType="number-pad"
                   />
                 </Box>
                 <Box twClassName="flex-1">
@@ -606,6 +590,7 @@ const PerpsProOrderForm = ({
                     value={twap.hours}
                     onChangeText={twap.onHoursChange}
                     testID={ids.TWAP_HOURS}
+                    keyboardType="number-pad"
                   />
                 </Box>
                 <Box twClassName="flex-1">
@@ -614,6 +599,7 @@ const PerpsProOrderForm = ({
                     value={twap.minutes}
                     onChangeText={twap.onMinutesChange}
                     testID={ids.TWAP_MINUTES}
+                    keyboardType="number-pad"
                   />
                 </Box>
               </Box>
@@ -623,7 +609,7 @@ const PerpsProOrderForm = ({
                   labelProps={{
                     variant: TextVariant.BodySm,
                     fontWeight: FontWeight.Medium,
-                    style: { marginLeft: 0, flex: 1 },
+                    twClassName: 'ml-0 flex-1',
                   }}
                   isSelected={twap.randomize}
                   onChange={twap.onRandomizeChange}
@@ -635,7 +621,10 @@ const PerpsProOrderForm = ({
                   color={TextColor.TextAlternative}
                   twClassName="mt-1"
                 >
-                  {strings('perps.pro_order_form.twap.randomize_description')}
+                  {strings(
+                    'perps.pro_order_form.twap.randomize_description',
+                    PERPS_TWAP_UI_CONFIG.RandomizeI18nValues,
+                  )}
                 </Text>
               </Box>
             </Box>

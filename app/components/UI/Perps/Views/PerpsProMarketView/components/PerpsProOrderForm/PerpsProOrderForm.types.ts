@@ -117,7 +117,7 @@ export interface PerpsProOrderFormProps {
   onAddFundsPress?: () => void;
   reduceOnly: boolean;
   onReduceOnlyChange: (value: boolean) => void;
-  twap?: PerpsProTwapModel;
+  twap: PerpsProTwapModel;
   isTPSLConfigured: boolean;
   onTPSLPress?: () => void;
   notices: PerpsProOrderNotice[];

@@ -89,11 +89,13 @@ export interface PerpsToastOptionsConfig {
         direction: OrderDirection,
         amount: string,
         assetSymbol: string,
+        durationMinutes?: number,
       ) => PerpsToastOptions;
       confirmed: (
         direction: OrderDirection,
         amount: string,
         assetSymbol: string,
+        durationMinutes?: number,
       ) => PerpsToastOptions;
       creationFailed: (error?: string) => PerpsToastOptions;
     };
@@ -125,11 +127,13 @@ export interface PerpsToastOptionsConfig {
         direction: OrderDirection,
         amount: string,
         assetSymbol: string,
+        durationMinutes?: number,
       ) => PerpsToastOptions;
       confirmed: (
         direction: OrderDirection,
         amount: string,
         assetSymbol: string,
+        durationMinutes?: number,
       ) => PerpsToastOptions;
       creationFailed: (error?: string) => PerpsToastOptions;
       editSubmitting: () => PerpsToastOptions;

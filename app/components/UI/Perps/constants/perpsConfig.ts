@@ -9,6 +9,7 @@
  * - Mobile-specific exports (TokenI)
  */
 import type { Hex } from '@metamask/utils';
+import { HYPERLIQUID_TWAP_LIMITS } from '@metamask/perps-controller';
 import { TokenI } from '../../Tokens/types';
 import {
   PERPS_ADL_URL,
@@ -100,6 +101,37 @@ export const LEVERAGE_SLIDER_CONFIG = {
  * Prevents overflow and keeps inputs within safe numeric range.
  */
 export const MAX_PERPS_INPUT_DIGITS = 9;
+
+const MINUTES_PER_HOUR = 60;
+const HOURS_PER_DAY = 24;
+const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
+
+/**
+ * Mobile-only TWAP input and copy configuration derived from the controller's
+ * executable Hyperliquid limits.
+ */
+export const PERPS_TWAP_UI_CONFIG = {
+  MinutesPerHour: MINUTES_PER_HOUR,
+  HoursPerDay: HOURS_PER_DAY,
+  DefaultMinutes: String(HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes),
+  MaximumDays: Math.floor(
+    HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes /
+      (HOURS_PER_DAY * MINUTES_PER_HOUR),
+  ),
+  MaximumHours: HOURS_PER_DAY - 1,
+  MaximumMinutes: MINUTES_PER_HOUR - 1,
+  DurationRangeI18nValues: {
+    minDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
+    maxDurationHours:
+      HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes / MINUTES_PER_HOUR,
+  },
+  MinimumSizeI18nValues: {
+    minNotionalUsd: HYPERLIQUID_TWAP_LIMITS.MinNotionalUsd,
+  },
+  RandomizeI18nValues: {
+    randomizeVariancePercent: TWAP_RANDOMIZE_VARIANCE_PERCENT,
+  },
+} as const;
 
 /**
  * Decimal places used when displaying how far a position's current price sits

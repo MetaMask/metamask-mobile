@@ -7,7 +7,12 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useRef } from 'react';
-import { Platform, Pressable, type TextInput } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  type KeyboardTypeOptions,
+  type TextInput,
+} from 'react-native';
 
 export const getPerpsProInputAccessoryID = (testID: string) =>
   `${testID}-input-accessory`;
@@ -23,6 +28,7 @@ interface PerpsProCompactInputProps {
   footer?: React.ReactNode;
   placeholder?: string;
   placeholderColor?: 'default' | 'muted';
+  keyboardType?: KeyboardTypeOptions;
   onFocus?: () => void;
   onBlur?: () => void;
   /** Fires on every field tap, including while already focused. Idempotent. */
@@ -45,6 +51,7 @@ const PerpsProCompactInput = ({
   footer,
   placeholder = '0',
   placeholderColor = 'muted',
+  keyboardType = 'decimal-pad',
   onFocus,
   onBlur,
   onFieldPress,
@@ -78,7 +85,7 @@ const PerpsProCompactInput = ({
       ref={inputRef}
       value={value}
       onChangeText={onChangeText}
-      keyboardType="decimal-pad"
+      keyboardType={keyboardType}
       onFocus={onFocus}
       onBlur={onBlur}
       // A tap landing here is consumed by the input, so neither the inline

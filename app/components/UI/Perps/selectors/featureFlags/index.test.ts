@@ -2240,6 +2240,30 @@ describe('Perps Feature Flag Selectors', () => {
 
       expect(result).toBe(true);
     });
+
+    it('falls back to an enabled local flag when the remote flag is malformed', () => {
+      process.env.MM_PERPS_TWAP_ENABLED = 'true';
+      const state = createStateWithFlag({
+        enabled: 'yes',
+        minimumVersion: 1,
+      });
+
+      const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('falls back to a disabled local flag when the remote flag is malformed', () => {
+      process.env.MM_PERPS_TWAP_ENABLED = 'false';
+      const state = createStateWithFlag({
+        enabled: 'yes',
+        minimumVersion: 1,
+      });
+
+      const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
   });
 
   describe('selectPerpsRecentlyAddedEnabledFlag', () => {

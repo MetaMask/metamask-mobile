@@ -5,6 +5,10 @@ import {
   BottomSheet,
   BottomSheetHeader,
   FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   type BottomSheetRef,
   ListItemSelect,
   Text,
@@ -44,6 +48,14 @@ interface OrderTypeOption {
 const DESCRIPTION_PROPS = {
   fontWeight: FontWeight.Regular,
 } as const;
+
+const TwapOrderTypeIcon: OrderTypeIcon = () => (
+  <Icon
+    name={IconName.Clock}
+    size={IconSize.Xl}
+    color={IconColor.IconDefault}
+  />
+);
 
 const BASIC_ORDER_TYPES: readonly OrderTypeOption[] = [
   {
@@ -105,8 +117,8 @@ const TWAP_ORDER_TYPE: OrderTypeOption = {
   type: 'twap',
   titleKey: 'perps.order.type.twap.title',
   descriptionKey: 'perps.order.type.twap.description',
-  LightIcon: MarketIconLight,
-  DarkIcon: MarketIconDark,
+  LightIcon: TwapOrderTypeIcon,
+  DarkIcon: TwapOrderTypeIcon,
   testID: PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION,
 };
 
@@ -252,12 +264,15 @@ const PerpsOrderTypeBottomSheetView = ({
           PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_SECTION_HEADER,
         )}
       {showTriggeredTypes && TRIGGERED_ORDER_TYPES.map(renderOrderType)}
-      {showTwapType &&
-        renderSectionHeader(
-          strings('perps.order.type.advanced'),
-          PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_SECTION_HEADER,
-        )}
-      {showTwapType && renderOrderType(TWAP_ORDER_TYPE)}
+      {showTwapType ? (
+        <>
+          {renderSectionHeader(
+            strings('perps.order.type.advanced'),
+            PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_SECTION_HEADER,
+          )}
+          {renderOrderType(TWAP_ORDER_TYPE)}
+        </>
+      ) : null}
     </BottomSheet>
   );
 };

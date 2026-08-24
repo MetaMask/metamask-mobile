@@ -19,6 +19,7 @@ import {
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
+import { PERPS_TWAP_UI_CONFIG } from '../../constants/perpsConfig';
 import {
   PerpsBalanceBottomSheetSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
@@ -58,6 +59,37 @@ const renderProMarketWithTriggeredOrdersFlag = (enabled: boolean) =>
                 minimumVersion: '0.0.0',
               },
               perpsProTriggeredOrdersEnabled: {
+                enabled,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+const renderProMarketWithTwapFlag = (
+  enabled: boolean,
+  activeProvider: 'hyperliquid' | 'myx' = 'hyperliquid',
+) =>
+  renderPerpsProMarketView({
+    streamOverrides: {
+      account: createFundedAccountForViews('1000'),
+    },
+    overrides: {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            activeProvider,
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsProModeEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+              perpsMobileTwap: {
                 enabled,
                 minimumVersion: '0.0.0',
               },
@@ -165,6 +197,125 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       for (const testID of triggeredOrderTypeIDs) {
         expect(screen.queryByTestId(testID)).not.toBeOnTheScreen();
       }
+    },
+  );
+
+  itForPlatforms(
+    'configures a randomized TWAP after resolving minimum-size validation',
+    async () => {
+      renderProMarketWithTwapFlag(true);
+      const sizeInput = await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      expect(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_SECTION_HEADER,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
+      );
+
+      const duration = await screen.findByTestId(ids.TWAP_DURATION);
+      const days = screen.getByTestId(ids.TWAP_DAYS);
+      const hours = screen.getByTestId(ids.TWAP_HOURS);
+      const minutes = screen.getByTestId(ids.TWAP_MINUTES);
+      const randomize = screen.getByTestId(ids.TWAP_RANDOMIZE);
+      expect(duration).toBeOnTheScreen();
+      expect(days).toHaveProp('keyboardType', 'number-pad');
+      expect(hours).toHaveProp('keyboardType', 'number-pad');
+      expect(minutes).toHaveProp('keyboardType', 'number-pad');
+      expect(randomize).not.toBeChecked();
+      expect(
+        screen.getByText(
+          strings(
+            'perps.pro_order_form.twap.randomize_description',
+            PERPS_TWAP_UI_CONFIG.RandomizeI18nValues,
+          ),
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.REDUCE_ONLY)).toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
+
+      fireEvent.changeText(sizeInput, '99');
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(`${ids.NOTICE}-twap-min-size`),
+        ).toHaveTextContent(
+          strings(
+            'perps.pro_order_form.twap.minimum_size',
+            PERPS_TWAP_UI_CONFIG.MinimumSizeI18nValues,
+          ),
+        );
+        expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+      });
+
+      fireEvent.changeText(sizeInput, '100');
+      fireEvent.changeText(minutes, '30');
+      fireEvent.press(randomize);
+
+      await waitFor(
+        () => {
+          expect(
+            screen.queryByTestId(`${ids.NOTICE}-twap-min-size`),
+          ).not.toBeOnTheScreen();
+          expect(randomize).toBeChecked();
+          expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    },
+  );
+
+  itForPlatforms('hides TWAP when its remote flag is disabled', async () => {
+    renderProMarketWithTwapFlag(false);
+    await findSizeInput();
+
+    fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+    await screen.findByTestId(
+      PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+
+    expect(
+      screen.queryByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_SECTION_HEADER,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
+    ).not.toBeOnTheScreen();
+  });
+
+  itForPlatforms(
+    'hides TWAP for a provider without strategy placement support',
+    async () => {
+      renderProMarketWithTwapFlag(true, 'myx');
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_SECTION_HEADER,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
+      ).not.toBeOnTheScreen();
     },
   );
 

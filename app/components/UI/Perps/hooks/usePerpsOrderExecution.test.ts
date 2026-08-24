@@ -147,6 +147,62 @@ describe('usePerpsOrderExecution', () => {
       expect(mockTrace).not.toHaveBeenCalled();
       expect(mockEndTrace).not.toHaveBeenCalled();
     });
+
+    it('reports a rejected TWAP without creating a render CUF', async () => {
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+      mockPlaceOrder.mockResolvedValue({
+        success: false,
+        error: 'TWAP order rejected',
+      });
+      const { result } = renderHook(() =>
+        usePerpsOrderExecution({ onSuccess, onError }),
+      );
+
+      await act(async () => {
+        await result.current.placeOrder({
+          ...mockOrderParams,
+          orderType: 'twap',
+          twapDuration: 90,
+          twapRandomize: false,
+        });
+      });
+
+      expect(onError).toHaveBeenCalledWith('TWAP order rejected');
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(result.current.error).toBe('TWAP order rejected');
+      expect(result.current.lastResult).toEqual({
+        success: false,
+        error: 'TWAP order rejected',
+      });
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('reports a thrown TWAP placement error without creating a render CUF', async () => {
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+      mockPlaceOrder.mockRejectedValue(new Error('TWAP network timeout'));
+      const { result } = renderHook(() =>
+        usePerpsOrderExecution({ onSuccess, onError }),
+      );
+
+      await act(async () => {
+        await result.current.placeOrder({
+          ...mockOrderParams,
+          orderType: 'twap',
+          twapDuration: 90,
+          twapRandomize: true,
+        });
+      });
+
+      expect(onError).toHaveBeenCalledWith('TWAP network timeout');
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(result.current.error).toBe('TWAP network timeout');
+      expect(result.current.lastResult).toBeUndefined();
+      expect(mockTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
   });
 
   describe('limit orders (order-render CUF, not position-render)', () => {

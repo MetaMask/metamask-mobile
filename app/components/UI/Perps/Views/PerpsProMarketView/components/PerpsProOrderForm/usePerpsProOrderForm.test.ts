@@ -1,11 +1,13 @@
 import { act, renderHook } from '@testing-library/react-native';
 import {
+  HYPERLIQUID_TWAP_LIMITS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
+import { PERPS_TWAP_UI_CONFIG } from '../../../../constants/perpsConfig';
 import type { OrderFormFieldIssue } from '../../../../utils/triggerOrderValidation';
 import { ImpactMoment, playImpact } from '../../../../../../../util/haptics';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -369,7 +371,14 @@ describe('usePerpsProOrderForm', () => {
 
       expect(
         result.current.notices.find((notice) => notice.id === 'twap-duration'),
-      ).toBeDefined();
+      ).toEqual({
+        id: 'twap-duration',
+        variant: 'inline',
+        message: strings(
+          'perps.pro_order_form.twap.duration_range',
+          PERPS_TWAP_UI_CONFIG.DurationRangeI18nValues,
+        ),
+      });
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
@@ -381,8 +390,41 @@ describe('usePerpsProOrderForm', () => {
 
       expect(
         result.current.notices.find((notice) => notice.id === 'twap-min-size'),
-      ).toBeDefined();
+      ).toEqual({
+        id: 'twap-min-size',
+        variant: 'inline',
+        message: strings(
+          'perps.pro_order_form.twap.minimum_size',
+          PERPS_TWAP_UI_CONFIG.MinimumSizeI18nValues,
+        ),
+      });
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('keeps an empty TWAP duration silent while disabling placement', () => {
+      mockOrderForm.type = 'twap';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.twap.onMinutesChange('');
+      });
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(
+        result.current.notices.find((notice) => notice.id === 'twap-duration'),
+      ).toBeUndefined();
+    });
+
+    it('keeps an empty TWAP size silent while disabling placement', () => {
+      mockOrderForm.type = 'twap';
+      mockOrderForm.amount = '';
+
+      const { result } = renderProForm();
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(
+        result.current.notices.find((notice) => notice.id === 'twap-min-size'),
+      ).toBeUndefined();
     });
 
     it('maps a margin validation error to a priority banner', () => {
@@ -573,7 +615,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.twap).toMatchObject({
         days: '',
         hours: '',
-        minutes: '5',
+        minutes: PERPS_TWAP_UI_CONFIG.DefaultMinutes,
         randomize: false,
       });
       expect(mockUpdateOrderForm).toHaveBeenCalledWith(
@@ -602,6 +644,18 @@ describe('usePerpsProOrderForm', () => {
         45,
       );
       expect(confirmed).not.toHaveBeenCalled();
+    });
+
+    it('shows strategy-specific failure copy for a rejected TWAP placement', () => {
+      mockOrderForm.type = 'twap';
+      renderProForm();
+
+      act(() => {
+        mockExecutionOptions.onError?.('TWAP rejected');
+      });
+
+      expect(strategyCreationFailed).toHaveBeenCalledWith('TWAP rejected');
+      expect(creationFailed).not.toHaveBeenCalled();
     });
 
     it('blocks TWAP placement after the feature gate is disabled', async () => {
@@ -2020,6 +2074,51 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(mockSetOrderType).not.toHaveBeenCalled();
+    });
+
+    it('clamps TWAP duration parts to the supported clock bounds', () => {
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.twap.onDaysChange('99');
+        result.current.twap.onHoursChange('88');
+        result.current.twap.onMinutesChange('77');
+      });
+
+      expect(result.current.twap).toMatchObject({
+        days: String(PERPS_TWAP_UI_CONFIG.MaximumDays),
+        hours: String(PERPS_TWAP_UI_CONFIG.MaximumHours),
+        minutes: String(PERPS_TWAP_UI_CONFIG.MaximumMinutes),
+      });
+    });
+
+    it('preserves TWAP callback identities while its draft changes', () => {
+      const { result } = renderProForm();
+      const initialCallbacks = {
+        onDaysChange: result.current.twap.onDaysChange,
+        onHoursChange: result.current.twap.onHoursChange,
+        onMinutesChange: result.current.twap.onMinutesChange,
+        onRandomizeChange: result.current.twap.onRandomizeChange,
+      };
+
+      act(() => {
+        result.current.twap.onMinutesChange(
+          String(HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes + 1),
+        );
+      });
+
+      expect(result.current.twap).toEqual(
+        expect.objectContaining(initialCallbacks),
+      );
+    });
+
+    it('memoizes the TWAP model between unchanged renders', () => {
+      const { result, rerender } = renderProForm();
+      const initialTwap = result.current.twap;
+
+      rerender({});
+
+      expect(result.current.twap).toBe(initialTwap);
     });
 
     it('ignores size input over nine digits and forwards valid input', () => {
