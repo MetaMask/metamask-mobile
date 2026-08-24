@@ -1,7 +1,7 @@
-import { Box, TabEmptyState } from '@metamask/design-system-react-native';
+import { TabEmptyState } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { Image } from 'react-native';
+import { Image, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useAssetFromTheme } from '../../../../../../util/theme';
 import emptyStatePerpsLight from '../../../../../../images/empty-state-perps-light.png';
@@ -46,8 +46,8 @@ const PerpsProTabEmptyState = ({
 
   return (
     // TabEmptyState does not forward testID to a measurable native view, so the
-    // locator lives on a wrapping Box that automated checks can resolve.
-    <Box testID={testID}>
+    // locator lives on a wrapping View that automated checks can resolve.
+    <View testID={testID}>
       <TabEmptyState
         icon={
           <Image
@@ -59,7 +59,7 @@ const PerpsProTabEmptyState = ({
         }
         description={description}
       />
-    </Box>
+    </View>
   );
 };
 
