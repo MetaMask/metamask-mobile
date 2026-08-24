@@ -3,6 +3,14 @@
 # This Workflow is responsible for triggering release candidate builds (iOS & Android).
 # It runs automatically on every commit pushed to a release branch that has an open PR.
 #
+# Manual / dispatched entry:
+#   The open-PR requirement means the pushes made during a release cut (Runway creating the
+#   branch, then the version-bump commit) all land before the release PR exists, so none of
+#   them can build. auto-create-release-pr.yml therefore dispatches this workflow on the
+#   release branch once the PR is open — that dispatch is the first RC build of a cycle.
+#   Because a dispatch run shares github.workflow and github.ref with a push run, the
+#   concurrency group below still collapses the two into a single build.
+#
 # Rolling builds: when a new run starts for the same release branch, any queued or
 # in-progress run of this workflow for that branch is cancelled (one branch + one
 # workflow at a time).
@@ -43,6 +51,8 @@ on:
   push:
     branches:
       - 'release/*'
+
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
