@@ -18,6 +18,7 @@ import {
   SNAP_UI_DROPDOWN_SHEET_TITLE,
   snapUIJsxCountAndroidXPath,
   snapUIJsxCountIosXPath,
+  snapUIJsxIncrementCardIosXPath,
   TEST_SNAPS_URL,
   testSnapsAndroidScrollOptions,
 } from '../../selectors/Browser/TestSnaps.selectors';
@@ -143,11 +144,40 @@ class TestSnaps {
   }
 
   async tapJsxIncrementButton(): Promise<void> {
-    const button = Matchers.getElementByText(/^Increment$/i);
+    if (PlatformDetector.isIOSAppium()) {
+      await this.tapIosJsxIncrementOnGroupedCard();
+      return;
+    }
     await Gestures.waitAndTap(
-      button,
+      Matchers.getElementByText(/^Increment$/i),
       this.snapUiTapOptions({ elemDescription: 'JSX Increment' }),
     );
+  }
+
+  /**
+   * iOS groups Increment into the Count card label, so a center tap hits
+   * Count and the value never changes. Tap the bottom of that card instead.
+   */
+  private async tapIosJsxIncrementOnGroupedCard(): Promise<void> {
+    const drv = getDriver();
+    if (!drv) {
+      throw new Error('Driver is not available');
+    }
+
+    const xpath = snapUIJsxIncrementCardIosXPath();
+    const el = await drv.$(xpath);
+    const location = await el.getLocation();
+    const size = await el.getSize();
+    const x = Math.round(location.x + size.width / 2);
+    const y = Math.round(location.y + Math.max(12, size.height * 0.88));
+
+    await drv
+      .action('pointer', { parameters: { pointerType: 'touch' } })
+      .move({ x, y })
+      .down()
+      .pause(50)
+      .up()
+      .perform();
   }
 
   /** iOS: skip displayed/enabled waits for Snap UI nodes with visible=false. */

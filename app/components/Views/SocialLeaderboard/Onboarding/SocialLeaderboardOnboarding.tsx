@@ -850,7 +850,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
           shows. */}
       {referencedAssets && (
         <Animated.View
-          style={[StyleSheet.absoluteFillObject, { opacity: riveOpacity }]}
+          style={[StyleSheet.absoluteFill, { opacity: riveOpacity }]}
         >
           <Rive
             ref={ref}
@@ -863,7 +863,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
             layoutScaleFactor={PixelRatio.get()}
             onPlay={revealRive}
             onError={handleError}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             testID={SocialLeaderboardOnboardingSelectorsIDs.RIVE_ANIMATION}
           />
         </Animated.View>

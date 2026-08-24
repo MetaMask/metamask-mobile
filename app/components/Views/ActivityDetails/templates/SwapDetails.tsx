@@ -52,7 +52,6 @@ type SwapDetailsItem = Extract<
   {
     type:
       | 'swap'
-      | 'swapIncomplete'
       | 'convert'
       | 'lendingDeposit'
       | 'lendingWithdrawal'
