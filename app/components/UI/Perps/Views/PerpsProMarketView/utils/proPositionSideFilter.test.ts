@@ -1,5 +1,6 @@
 import type { Order, Position } from '@metamask/perps-controller';
 import {
+  DEFAULT_PRO_ORDER_SIDE_FILTER,
   DEFAULT_PRO_POSITION_SIDE_FILTER,
   filterProOrdersBySide,
   filterProPositionsBySide,
@@ -84,10 +85,7 @@ describe('filterProOrdersBySide', () => {
       makeOrder({ orderId: 'short', side: 'sell' }),
     ];
 
-    const result = filterProOrdersBySide(
-      orders,
-      DEFAULT_PRO_POSITION_SIDE_FILTER,
-    );
+    const result = filterProOrdersBySide(orders, DEFAULT_PRO_ORDER_SIDE_FILTER);
 
     expect(result).toEqual(orders);
   });
@@ -154,10 +152,7 @@ describe('filterProOrdersBySide', () => {
     });
     const orders = [makeOrder({ orderId: 'open-long' }), closeLongOrder];
 
-    const result = filterProOrdersBySide(
-      orders,
-      DEFAULT_PRO_POSITION_SIDE_FILTER,
-    );
+    const result = filterProOrdersBySide(orders, DEFAULT_PRO_ORDER_SIDE_FILTER);
 
     expect(result).toEqual(orders);
   });
