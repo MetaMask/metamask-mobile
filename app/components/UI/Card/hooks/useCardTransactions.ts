@@ -113,13 +113,26 @@ export function useCardTransactions(
   const loadMore = useCallback(() => {
     if (hasMore && !isFetchingNextPage) {
       setFetchKind('loadMore');
-      fetchNextPage();
+      fetchNextPage()
+        .then((result) => {
+          if (!result.error) {
+            setFetchKind('initial');
+          }
+        })
+        .catch(() => {
+          // Keep fetchKind as 'loadMore' so the footer retries this page.
+        });
     }
   }, [hasMore, isFetchingNextPage, fetchNextPage]);
 
   const refetch = useCallback(() => {
     setFetchKind('refresh');
-    return refetchQuery();
+    return refetchQuery().then((result) => {
+      if (!result.error) {
+        setFetchKind('initial');
+      }
+      return result;
+    });
   }, [refetchQuery]);
 
   return {

@@ -108,28 +108,13 @@ const CardReportTransaction = () => {
     }
 
     try {
-      const mailto = `mailto:${supportEmail || CARD_SUPPORT_EMAIL}`;
-      const canOpen = await Linking.canOpenURL(mailto);
-      if (canOpen) {
-        await Linking.openURL(mailto);
-      } else {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [
-            {
-              label: strings('card.transactions.load_error'),
-            },
-          ],
-          iconName: LegacyIconName.Warning,
-          hasNoTimeout: false,
-        });
-      }
+      await Linking.openURL(`mailto:${supportEmail || CARD_SUPPORT_EMAIL}`);
     } catch {
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         labelOptions: [
           {
-            label: strings('card.transactions.load_error'),
+            label: strings('card.transactions.report_open_error'),
           },
         ],
         iconName: LegacyIconName.Warning,

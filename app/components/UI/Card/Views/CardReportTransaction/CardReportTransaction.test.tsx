@@ -147,7 +147,6 @@ describe('CardReportTransaction', () => {
     jest.clearAllMocks();
     mockGetCardSupportEmail.mockReturnValue('support@example.com');
     mockSelectors();
-    jest.spyOn(Linking, 'canOpenURL').mockResolvedValue(true);
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined as never);
   });
 
@@ -232,9 +231,6 @@ describe('CardReportTransaction', () => {
     fireEvent.press(getByTestId('card-report-transaction-file-button'));
 
     await waitFor(() => {
-      expect(Linking.canOpenURL).toHaveBeenCalledWith(
-        'mailto:support@example.com',
-      );
       expect(Linking.openURL).toHaveBeenCalledWith(
         'mailto:support@example.com',
       );
@@ -256,24 +252,8 @@ describe('CardReportTransaction', () => {
     });
   });
 
-  it('shows a toast when mailto cannot be opened', async () => {
-    jest.spyOn(Linking, 'canOpenURL').mockResolvedValue(false);
-    const { getByTestId } = render(<CardReportTransaction />);
-
-    fireEvent.press(getByTestId('card-report-transaction-file-button'));
-
-    await waitFor(() => {
-      expect(mockShowToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          labelOptions: [{ label: 'card.transactions.load_error' }],
-        }),
-      );
-    });
-    expect(Linking.openURL).not.toHaveBeenCalled();
-  });
-
   it('shows an error toast when opening mailto throws', async () => {
-    jest.spyOn(Linking, 'canOpenURL').mockRejectedValue(new Error('boom'));
+    jest.spyOn(Linking, 'openURL').mockRejectedValue(new Error('boom'));
     const { getByTestId } = render(<CardReportTransaction />);
 
     fireEvent.press(getByTestId('card-report-transaction-file-button'));
@@ -281,7 +261,7 @@ describe('CardReportTransaction', () => {
     await waitFor(() => {
       expect(mockShowToast).toHaveBeenCalledWith(
         expect.objectContaining({
-          labelOptions: [{ label: 'card.transactions.load_error' }],
+          labelOptions: [{ label: 'card.transactions.report_open_error' }],
         }),
       );
     });

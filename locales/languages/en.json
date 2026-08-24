@@ -9578,6 +9578,7 @@
       "report_body_merchant": "Most transaction issues get resolved faster when you reach out to the merchant directly.",
       "report_body_continue": "If you've already tried that, we're here to help.",
       "report_file": "File a report",
+      "report_open_error": "Couldn't open your mail app",
       "report_back": "Cancel",
       "manage_entry_title": "Transaction history",
       "manage_entry_description": "Card purchases and activity"
