@@ -27,7 +27,7 @@ import {
   cancelDeeplinkProcessedTrace,
   type DeeplinkPerfAppStartType,
 } from '../Performance/DeeplinkPerformance';
-import { getUnlockDeeplinkAppStartType } from '../Performance/unlockDeeplinkTraces';
+import { getUnlockAppStartType } from '../Performance/unlockTraces';
 
 // `false` means the deeplink was handled but intentionally rejected, for
 // example when the user dismisses the interstitial during startup resolution.
@@ -136,7 +136,7 @@ export class DeeplinkManager {
     url: string,
     {
       origin,
-      appStartType = getUnlockDeeplinkAppStartType(),
+      appStartType = getUnlockAppStartType(),
     }: {
       origin: string;
       appStartType?: DeeplinkPerfAppStartType;

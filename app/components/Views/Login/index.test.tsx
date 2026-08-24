@@ -276,15 +276,13 @@ const UNLOCK_TRACE_TOKENS = {
   homepageReadyTraceToken: 1,
   deeplinkNavigatedTraceToken: 2,
 };
-const mockStartUnlockDeeplinkTraces = jest.fn(
+const mockStartUnlockTraces = jest.fn(
   (..._args: unknown[]) => UNLOCK_TRACE_TOKENS,
 );
-const mockCancelUnlockDeeplinkTraces = jest.fn();
-jest.mock('../../../core/Performance/unlockDeeplinkTraces', () => ({
-  startUnlockDeeplinkTraces: (...args: unknown[]) =>
-    mockStartUnlockDeeplinkTraces(...args),
-  cancelUnlockDeeplinkTraces: (...args: unknown[]) =>
-    mockCancelUnlockDeeplinkTraces(...args),
+const mockCancelUnlockTraces = jest.fn();
+jest.mock('../../../core/Performance/unlockTraces', () => ({
+  startUnlockTraces: (...args: unknown[]) => mockStartUnlockTraces(...args),
+  cancelUnlockTraces: (...args: unknown[]) => mockCancelUnlockTraces(...args),
 }));
 
 jest.mock('@react-native-community/netinfo', () => ({
@@ -2177,10 +2175,10 @@ describe('Login', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(mockStartUnlockDeeplinkTraces).toHaveBeenCalledWith({
+      expect(mockStartUnlockTraces).toHaveBeenCalledWith({
         appStartType: LOGIN_APP_START_TYPE.COLD,
       });
-      expect(mockCancelUnlockDeeplinkTraces).not.toHaveBeenCalled();
+      expect(mockCancelUnlockTraces).not.toHaveBeenCalled();
     });
 
     it('cancels the unlock CUF traces when password unlock fails', async () => {
@@ -2193,9 +2191,7 @@ describe('Login', () => {
         fireEvent(passwordInput, 'submitEditing');
       });
 
-      expect(mockCancelUnlockDeeplinkTraces).toHaveBeenCalledWith(
-        UNLOCK_TRACE_TOKENS,
-      );
+      expect(mockCancelUnlockTraces).toHaveBeenCalledWith(UNLOCK_TRACE_TOKENS);
     });
 
     it('cancels the unlock CUF traces when device authentication fails', async () => {
@@ -2217,9 +2213,7 @@ describe('Login', () => {
         );
       });
 
-      expect(mockCancelUnlockDeeplinkTraces).toHaveBeenCalledWith(
-        UNLOCK_TRACE_TOKENS,
-      );
+      expect(mockCancelUnlockTraces).toHaveBeenCalledWith(UNLOCK_TRACE_TOKENS);
     });
   });
 

@@ -32,7 +32,7 @@ import EngineService from '../../core/EngineService';
 import { AppStateEventProcessor } from '../../core/AppStateEventListener';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
 import { consumeNextParseAppStartType } from '../../core/DeeplinkManager/utils/startupDeeplinkNavigation';
-import { getUnlockDeeplinkAppStartType } from '../../core/Performance/unlockDeeplinkTraces';
+import { getUnlockAppStartType } from '../../core/Performance/unlockTraces';
 import AppConstants from '../../core/AppConstants';
 import {
   SET_COMPLETED_ONBOARDING,
@@ -421,7 +421,7 @@ export function* handleDeeplinkSaga() {
         parseDeeplinkAfterNavReady,
         deeplink,
         deeplinkSource,
-        consumeNextParseAppStartType() ?? getUnlockDeeplinkAppStartType(),
+        consumeNextParseAppStartType() ?? getUnlockAppStartType(),
       );
       AppStateEventProcessor.clearPendingDeeplink();
     }

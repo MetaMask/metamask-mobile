@@ -14,9 +14,9 @@ import {
   type DeeplinkPerfAppStartType,
 } from '../../Performance/DeeplinkPerformance';
 import {
-  clearUnlockDeeplinkAppStartType,
-  getUnlockDeeplinkAppStartType,
-} from '../../Performance/unlockDeeplinkTraces';
+  clearUnlockAppStartType,
+  getUnlockAppStartType,
+} from '../../Performance/unlockTraces';
 
 /**
  * When startup `resolve` yields no intent, Home resets and the saga `parse`s.
@@ -36,8 +36,8 @@ export const consumeNextParseAppStartType = ():
     return undefined;
   }
   nextParseIsUnlockSession = false;
-  const appStartType = getUnlockDeeplinkAppStartType();
-  clearUnlockDeeplinkAppStartType();
+  const appStartType = getUnlockAppStartType();
+  clearUnlockAppStartType();
   return appStartType;
 };
 
@@ -57,14 +57,14 @@ const scheduleAfterNavigation = (callback: () => void) => {
 export const navigateToPendingStartupDeeplink = async (): Promise<boolean> => {
   const deeplink = AppStateEventProcessor.pendingDeeplink;
   if (!deeplink) {
-    clearUnlockDeeplinkAppStartType();
+    clearUnlockAppStartType();
     return false;
   }
 
   const origin =
     AppStateEventProcessor.pendingDeeplinkSource ??
     AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
-  const appStartType = getUnlockDeeplinkAppStartType();
+  const appStartType = getUnlockAppStartType();
 
   // Saga-driven biometric auto-unlock reaches here without passing through an
   // unlock screen; the in-flight guard makes this a no-op when Login or OAuth
@@ -85,7 +85,7 @@ export const navigateToPendingStartupDeeplink = async (): Promise<boolean> => {
       // rejected it. Clear the pending link so the Home fallback does not
       // redispatch the same deeplink and show the interstitial again.
       AppStateEventProcessor.clearPendingDeeplink();
-      clearUnlockDeeplinkAppStartType();
+      clearUnlockAppStartType();
       return false;
     }
 
@@ -96,7 +96,7 @@ export const navigateToPendingStartupDeeplink = async (): Promise<boolean> => {
     const handled = await executeStartupDeeplinkIntent(intent);
     if (handled) {
       AppStateEventProcessor.clearPendingDeeplink();
-      clearUnlockDeeplinkAppStartType();
+      clearUnlockAppStartType();
     }
 
     return handled;

@@ -8,11 +8,11 @@ import {
   startDeeplinkNavigatedTrace,
 } from './DeeplinkPerformance';
 import {
-  cancelUnlockDeeplinkTraces,
-  getUnlockDeeplinkAppStartType,
-  resetUnlockDeeplinkAppStartTypeForTesting,
-  startUnlockDeeplinkTraces,
-} from './unlockDeeplinkTraces';
+  cancelUnlockTraces,
+  getUnlockAppStartType,
+  resetUnlockAppStartTypeForTesting,
+  startUnlockTraces,
+} from './unlockTraces';
 import { resetLoginAppStartTypeForTesting } from '../../components/Views/Login/loginPerformanceTags';
 
 jest.mock('../AppStateEventListener', () => ({
@@ -39,16 +39,16 @@ const mockStartNavigated = jest.mocked(startDeeplinkNavigatedTrace);
 const mockCancelHomepage = jest.mocked(cancelHomepageReadyTrace);
 const mockCancelNavigated = jest.mocked(cancelDeeplinkNavigatedTrace);
 
-describe('unlockDeeplinkTraces', () => {
+describe('unlockTraces', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAppState.pendingDeeplink = null;
-    resetUnlockDeeplinkAppStartTypeForTesting();
+    resetUnlockAppStartTypeForTesting();
     resetLoginAppStartTypeForTesting();
   });
 
   it('starts only Homepage Ready when no deeplink is pending', () => {
-    const tokens = startUnlockDeeplinkTraces({ appStartType: 'cold' });
+    const tokens = startUnlockTraces({ appStartType: 'cold' });
 
     expect(mockStartHomepage).toHaveBeenCalledWith({
       source: 'unlock',
@@ -64,7 +64,7 @@ describe('unlockDeeplinkTraces', () => {
   it('also starts Deeplink Navigated when a pending deeplink will divert the launch', () => {
     mockAppState.pendingDeeplink = 'https://link.metamask.io/trending';
 
-    const tokens = startUnlockDeeplinkTraces({ appStartType: 'cold' });
+    const tokens = startUnlockTraces({ appStartType: 'cold' });
 
     expect(mockStartNavigated).toHaveBeenCalledWith({
       url: 'https://link.metamask.io/trending',
@@ -78,28 +78,28 @@ describe('unlockDeeplinkTraces', () => {
   });
 
   it('remembers the unlock-session app start type for later resolve/parse', () => {
-    startUnlockDeeplinkTraces({ appStartType: 'warm' });
+    startUnlockTraces({ appStartType: 'warm' });
 
-    expect(getUnlockDeeplinkAppStartType()).toBe('warm');
+    expect(getUnlockAppStartType()).toBe('warm');
   });
 
   it('falls back to getLoginAppStartType when nothing was captured', () => {
-    expect(getUnlockDeeplinkAppStartType()).toBe('cold');
+    expect(getUnlockAppStartType()).toBe('cold');
   });
 
   it('clears the captured type after a failed unlock', () => {
-    startUnlockDeeplinkTraces({ appStartType: 'warm' });
+    startUnlockTraces({ appStartType: 'warm' });
 
-    cancelUnlockDeeplinkTraces({
+    cancelUnlockTraces({
       homepageReadyTraceToken: 1,
       deeplinkNavigatedTraceToken: 2,
     });
 
-    expect(getUnlockDeeplinkAppStartType()).toBe('cold');
+    expect(getUnlockAppStartType()).toBe('cold');
   });
 
   it('cancels both traces with the tokens the start returned', () => {
-    cancelUnlockDeeplinkTraces({
+    cancelUnlockTraces({
       homepageReadyTraceToken: 1,
       deeplinkNavigatedTraceToken: 2,
     });

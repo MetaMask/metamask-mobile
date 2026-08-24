@@ -10,9 +10,9 @@ import {
   resetNextParseAppStartTypeForTesting,
 } from './startupDeeplinkNavigation';
 import {
-  rememberUnlockDeeplinkAppStartType,
-  resetUnlockDeeplinkAppStartTypeForTesting,
-} from '../../Performance/unlockDeeplinkTraces';
+  rememberUnlockAppStartType,
+  resetUnlockAppStartTypeForTesting,
+} from '../../Performance/unlockTraces';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 
 const mockDispatch = jest.fn();
@@ -109,7 +109,7 @@ describe('startupDeeplinkNavigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     resetNextParseAppStartTypeForTesting();
-    resetUnlockDeeplinkAppStartTypeForTesting();
+    resetUnlockAppStartTypeForTesting();
     AppStateEventProcessor.pendingDeeplink = null;
     AppStateEventProcessor.pendingDeeplinkSource = null;
     setRequestAnimationFrame(mockRequestAnimationFrame);
@@ -210,7 +210,7 @@ describe('startupDeeplinkNavigation', () => {
   });
 
   it('keeps the unlock-session app start type after a throw for leftover parse', async () => {
-    rememberUnlockDeeplinkAppStartType('warm');
+    rememberUnlockAppStartType('warm');
     AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
     mockExecuteStartupDeeplinkIntent.mockRejectedValueOnce(
       new Error('reset failed'),
@@ -235,7 +235,7 @@ describe('startupDeeplinkNavigation', () => {
   });
 
   it('reuses the unlock-session app start type for leftover parse after a warm lock-unlock', () => {
-    rememberUnlockDeeplinkAppStartType('warm');
+    rememberUnlockAppStartType('warm');
     AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/swap';
 
     retryPendingDeeplinkAfterDefaultNavigation();

@@ -62,10 +62,10 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import {
-  cancelUnlockDeeplinkTraces,
-  startUnlockDeeplinkTraces,
-  type UnlockDeeplinkTraceTokens,
-} from '../../../core/Performance/unlockDeeplinkTraces';
+  cancelUnlockTraces,
+  startUnlockTraces,
+  type UnlockTraceTokens,
+} from '../../../core/Performance/unlockTraces';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { getLoginAppStartType } from '../Login/loginPerformanceTags';
 import { useNetInfo } from '@react-native-community/netinfo';
@@ -576,12 +576,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       account_type: accountType,
       biometrics: biometryChoice,
     });
-    let unlockTraceTokens: UnlockDeeplinkTraceTokens | null = null;
+    let unlockTraceTokens: UnlockTraceTokens | null = null;
 
     try {
       if (finalLoading) return;
 
-      unlockTraceTokens = startUnlockDeeplinkTraces({
+      unlockTraceTokens = startUnlockTraces({
         appStartType: getLoginAppStartType(),
       });
       setLoading(true);
@@ -660,7 +660,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setError(null);
     } catch (loginErr) {
       if (unlockTraceTokens) {
-        cancelUnlockDeeplinkTraces(unlockTraceTokens);
+        cancelUnlockTraces(unlockTraceTokens);
       }
       await handleLoginError(ensureError(loginErr, 'Rehydrate login failed'));
       if (passwordLoginAttemptTraceCtxRef.current) {
@@ -686,12 +686,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
-    let unlockTraceTokens: UnlockDeeplinkTraceTokens | null = null;
+    let unlockTraceTokens: UnlockTraceTokens | null = null;
 
     try {
       if (finalLoading) return;
 
-      unlockTraceTokens = startUnlockDeeplinkTraces({
+      unlockTraceTokens = startUnlockTraces({
         appStartType: getLoginAppStartType(),
       });
       setLoading(true);
@@ -728,7 +728,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setError(null);
     } catch (loginErr) {
       if (unlockTraceTokens) {
-        cancelUnlockDeeplinkTraces(unlockTraceTokens);
+        cancelUnlockTraces(unlockTraceTokens);
       }
       await handleLoginError(
         ensureError(loginErr, 'Global password login failed'),

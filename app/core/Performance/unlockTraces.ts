@@ -13,7 +13,7 @@ import {
   type DeeplinkTraceToken,
 } from './DeeplinkPerformance';
 
-export interface UnlockDeeplinkTraceTokens {
+export interface UnlockTraceTokens {
   homepageReadyTraceToken: HomepageReadyTraceToken | null;
   deeplinkNavigatedTraceToken: DeeplinkTraceToken | null;
 }
@@ -24,35 +24,37 @@ export interface UnlockDeeplinkTraceTokens {
  */
 let unlockAppStartType: DeeplinkPerfAppStartType | undefined;
 
-export const rememberUnlockDeeplinkAppStartType = (
+export const rememberUnlockAppStartType = (
   appStartType: DeeplinkPerfAppStartType,
 ) => {
   unlockAppStartType = appStartType;
 };
 
-export const getUnlockDeeplinkAppStartType = (): DeeplinkPerfAppStartType =>
+export const getUnlockAppStartType = (): DeeplinkPerfAppStartType =>
   unlockAppStartType ?? getLoginAppStartType();
 
-export const clearUnlockDeeplinkAppStartType = () => {
+export const clearUnlockAppStartType = () => {
   unlockAppStartType = undefined;
 };
 
-export const resetUnlockDeeplinkAppStartTypeForTesting = () => {
+export const resetUnlockAppStartTypeForTesting = () => {
   unlockAppStartType = undefined;
 };
 
 /**
- * Starts the unlock-anchored CUFs from a single seam: Homepage Ready always,
- * Deeplink Navigated only when a pending deeplink will divert the launch.
+ * Starts the unlock-anchored CUFs from a single seam:
+ * - **HomepageReady** — always started
+ * - **DeeplinkNavigated** — only when a pending deeplink will divert the launch
+ *
  * Every unlock entry point (password, biometric, OAuth rehydration) calls this
  * pair instead of repeating the start/cancel blocks per trace.
  */
-export const startUnlockDeeplinkTraces = ({
+export const startUnlockTraces = ({
   appStartType,
 }: {
   appStartType: HomepageReadyAppStartType;
-}): UnlockDeeplinkTraceTokens => {
-  rememberUnlockDeeplinkAppStartType(appStartType);
+}): UnlockTraceTokens => {
+  rememberUnlockAppStartType(appStartType);
   const pendingDeeplink = AppStateEventProcessor.pendingDeeplink;
   return {
     homepageReadyTraceToken: startHomepageReadyTrace({
@@ -71,15 +73,15 @@ export const startUnlockDeeplinkTraces = ({
 };
 
 /**
- * Cancels whatever {@link startUnlockDeeplinkTraces} opened after a failed
- * unlock, so a retry starts from its own submit rather than inheriting time
- * from the failed attempt.
+ * Cancels whatever {@link startUnlockTraces} opened after a failed unlock,
+ * so a retry starts from its own submit rather than inheriting time from the
+ * failed attempt.
  */
-export const cancelUnlockDeeplinkTraces = ({
+export const cancelUnlockTraces = ({
   homepageReadyTraceToken,
   deeplinkNavigatedTraceToken,
-}: UnlockDeeplinkTraceTokens) => {
-  clearUnlockDeeplinkAppStartType();
+}: UnlockTraceTokens) => {
+  clearUnlockAppStartType();
   cancelHomepageReadyTrace({
     reason: 'unlock_failed',
     traceToken: homepageReadyTraceToken,

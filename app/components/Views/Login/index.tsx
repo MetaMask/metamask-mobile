@@ -100,10 +100,10 @@ import {
   markLoginInteractionCompleted,
 } from './loginPerformanceTags';
 import {
-  cancelUnlockDeeplinkTraces,
-  startUnlockDeeplinkTraces,
-  type UnlockDeeplinkTraceTokens,
-} from '../../../core/Performance/unlockDeeplinkTraces';
+  cancelUnlockTraces,
+  startUnlockTraces,
+  type UnlockTraceTokens,
+} from '../../../core/Performance/unlockTraces';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 /** Returns true if `candidatePassword` decrypts the on-device vault backup. */
@@ -332,10 +332,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
-    const unlockTraceTokens: UnlockDeeplinkTraceTokens =
-      startUnlockDeeplinkTraces({
-        appStartType: loginPerformanceTags.current.app_start_type,
-      });
+    const unlockTraceTokens: UnlockTraceTokens = startUnlockTraces({
+      appStartType: loginPerformanceTags.current.app_start_type,
+    });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -379,7 +378,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
     } catch (loginErr) {
-      cancelUnlockDeeplinkTraces(unlockTraceTokens);
+      cancelUnlockTraces(unlockTraceTokens);
       await handleLoginError(loginErr as Error);
     }
     setLoading(false);
@@ -401,10 +400,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     setLoading(true);
     setError(null);
 
-    const unlockTraceTokens: UnlockDeeplinkTraceTokens =
-      startUnlockDeeplinkTraces({
-        appStartType: loginPerformanceTags.current.app_start_type,
-      });
+    const unlockTraceTokens: UnlockTraceTokens = startUnlockTraces({
+      appStartType: loginPerformanceTags.current.app_start_type,
+    });
     endTrace({
       name: TraceName.LoginUserInteraction,
       data: getLoginInteractionEndData(),
@@ -423,7 +421,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         },
       );
     } catch (loginerror) {
-      cancelUnlockDeeplinkTraces(unlockTraceTokens);
+      cancelUnlockTraces(unlockTraceTokens);
       await handleLoginError(loginerror as Error);
     }
     setLoading(false);

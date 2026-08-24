@@ -29,7 +29,7 @@ import {
   markNextParseAsUnlockSession,
   resetNextParseAppStartTypeForTesting,
 } from '../../core/DeeplinkManager/utils/startupDeeplinkNavigation';
-import { resetUnlockDeeplinkAppStartTypeForTesting } from '../../core/Performance/unlockDeeplinkTraces';
+import { resetUnlockAppStartTypeForTesting } from '../../core/Performance/unlockTraces';
 import { resetLoginAppStartTypeForTesting } from '../../components/Views/Login/loginPerformanceTags';
 import Engine from '../../core/Engine';
 import SharedDeeplinkManager from '../../core/DeeplinkManager/DeeplinkManager';
@@ -684,7 +684,7 @@ describe('handleDeeplinkSaga', () => {
     __setMainNavigatorReadyForTesting(true);
     __resetSDKServicesInitializationForTesting();
     resetNextParseAppStartTypeForTesting();
-    resetUnlockDeeplinkAppStartTypeForTesting();
+    resetUnlockAppStartTypeForTesting();
     resetLoginAppStartTypeForTesting();
     AppStateEventProcessor.pendingDeeplink = null;
     AppStateEventProcessor.pendingDeeplinkSource = null;
