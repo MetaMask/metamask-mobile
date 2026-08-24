@@ -294,7 +294,14 @@ function isRecordedMilestone(
   itemCount: number,
 ): boolean {
   if (stream === 'markets') {
-    return itemCount <= 0 || recordedMilestones.has('markets_ready');
+    if (itemCount <= 0 || !recordedMilestones.has('markets_ready')) {
+      return itemCount <= 0;
+    }
+    return !(
+      isFreshMarketSource(source) &&
+      marketsReadySource !== null &&
+      !isFreshMarketSource(marketsReadySource)
+    );
   }
   if (source === 'fresh_socket') {
     if ((stream === 'account' || stream === 'prices') && itemCount <= 0) {
@@ -310,6 +317,10 @@ function isRecordedMilestone(
     return true;
   }
   return cacheObservedBySource.get(source)?.has(stream as CacheStream) ?? false;
+}
+
+function isFreshMarketSource(source: PerpsLoadingSource): boolean {
+  return source === 'terminal_global_snapshot_v2' || source === 'provider';
 }
 
 function matchesActiveSessionIdentity(
@@ -383,7 +394,16 @@ function recordValuesReady({
     cacheObservedBySource.set(source, observed);
     milestone = observed.size === 3 ? 'account_cache_ready' : null;
   }
-  if (!milestone || recordedMilestones.has(milestone)) {
+  const upgradesMarketSource =
+    milestone === 'markets_ready' &&
+    recordedMilestones.has(milestone) &&
+    marketsReadySource !== null &&
+    !isFreshMarketSource(marketsReadySource) &&
+    isFreshMarketSource(source);
+  if (
+    !milestone ||
+    (recordedMilestones.has(milestone) && !upgradesMarketSource)
+  ) {
     return;
   }
   recordedMilestones.add(milestone);

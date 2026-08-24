@@ -683,6 +683,7 @@ describe('perpsLoadingSession', () => {
 
       expect(endTrace).not.toHaveBeenCalled();
 
+      recordPerpsLoadingSessionValuesReady('markets', 'memory_cache', 4);
       recordFresh('positions', 0);
       recordFresh('orders', 0);
       recordFresh('account', 1);
