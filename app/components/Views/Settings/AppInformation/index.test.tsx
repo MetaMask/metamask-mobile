@@ -1,10 +1,6 @@
 import React from 'react';
 import { waitFor, fireEvent } from '@testing-library/react-native';
 import { Image, InteractionManager, TouchableOpacity } from 'react-native';
-// Namespace import so jest.replaceProperty can override a value on the same expo-updates
-// module instance the components read from.
-// eslint-disable-next-line import-x/no-namespace
-import * as ExpoUpdates from 'expo-updates';
 import renderWithProvider, {
   DeepPartial,
   renderScreen,
@@ -48,12 +44,8 @@ jest.mock(
   }),
 );
 
-let mockOtaRcAutoCommit = '';
 jest.mock('../../../../constants/ota', () => ({
   OTA_VERSION: 'v0',
-  get OTA_RC_AUTO_COMMIT() {
-    return mockOtaRcAutoCommit;
-  },
 }));
 
 const MOCK_STATE = {
@@ -81,7 +73,6 @@ const MOCK_STATE = {
 describe('AppInformation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockOtaRcAutoCommit = '';
     jest
       .spyOn(InteractionManager, 'runAfterInteractions')
       .mockImplementation((task) => {
@@ -607,99 +598,6 @@ describe('AppInformation', () => {
         expect(getByText(/OTA Update runtime version: 1.0.0/)).toBeTruthy();
         expect(getByText(/Check Automatically: NEVER/)).toBeTruthy();
         expect(getByText(/OTA Update status:/)).toBeTruthy();
-      });
-    });
-
-    it('displays the Auto RC OTA commit after long-pressing the fox icon when CI set one', async () => {
-      mockOtaRcAutoCommit = 'a1b2c3d';
-
-      const { getByText, UNSAFE_getAllByType } = renderScreen(
-        AppInformation,
-        { name: 'AppInformation' },
-        { state: MOCK_STATE },
-      );
-
-      const foxTouchable = UNSAFE_getAllByType(TouchableOpacity).find(
-        (item) => item.props.onLongPress !== undefined,
-      );
-      if (foxTouchable) {
-        fireEvent(foxTouchable, 'longPress');
-      }
-
-      await waitFor(() => {
-        expect(getByText('Auto RC OTA commit: a1b2c3d')).toBeOnTheScreen();
-      });
-    });
-
-    it('omits the Auto RC OTA commit line when CI did not set one', async () => {
-      const { getByText, queryByText, UNSAFE_getAllByType } = renderScreen(
-        AppInformation,
-        { name: 'AppInformation' },
-        { state: MOCK_STATE },
-      );
-
-      const foxTouchable = UNSAFE_getAllByType(TouchableOpacity).find(
-        (item) => item.props.onLongPress !== undefined,
-      );
-      if (foxTouchable) {
-        fireEvent(foxTouchable, 'longPress');
-      }
-
-      await waitFor(() => {
-        expect(getByText('OTA Version: v0')).toBeOnTheScreen();
-      });
-      expect(queryByText(/Auto RC OTA commit:/)).not.toBeOnTheScreen();
-    });
-  });
-
-  describe('Version Display', () => {
-    // The version line only shows an OTA identity when the app is running a downloaded
-    // update rather than the bundle embedded in the binary. restoreAllMocks puts the
-    // shared expo-updates mock back afterwards.
-    const runningAnUpdate = () => {
-      jest.replaceProperty(ExpoUpdates, 'isEmbeddedLaunch', false);
-    };
-
-    it('identifies an Auto RC OTA update by its commit', async () => {
-      runningAnUpdate();
-      mockOtaRcAutoCommit = 'a1b2c3d';
-
-      const { getByText } = renderScreen(
-        AppInformation,
-        { name: 'AppInformation' },
-        { state: MOCK_STATE },
-      );
-
-      await waitFor(() => {
-        expect(getByText('MetaMask ota a1b2c3d (1000)')).toBeOnTheScreen();
-      });
-    });
-
-    it('falls back to OTA_VERSION for updates published outside the Auto RC path', async () => {
-      runningAnUpdate();
-
-      const { getByText } = renderScreen(
-        AppInformation,
-        { name: 'AppInformation' },
-        { state: MOCK_STATE },
-      );
-
-      await waitFor(() => {
-        expect(getByText('MetaMask ota v0 (1000)')).toBeOnTheScreen();
-      });
-    });
-
-    it('shows the native version when running the embedded bundle, even with a commit set', async () => {
-      mockOtaRcAutoCommit = 'a1b2c3d';
-
-      const { getByText } = renderScreen(
-        AppInformation,
-        { name: 'AppInformation' },
-        { state: MOCK_STATE },
-      );
-
-      await waitFor(() => {
-        expect(getByText('MetaMask v7.0.0 (1000)')).toBeOnTheScreen();
       });
     });
   });

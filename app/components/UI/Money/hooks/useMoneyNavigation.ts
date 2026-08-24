@@ -63,13 +63,17 @@ export const useMoneyNavigation = () => {
         return;
       }
 
-      NavigationService.navigation.navigate(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: {
-          screen: Routes.MONEY.HOME,
-          ...(entryPoint ? { params: { entryPoint } } : {}),
+      NavigationService.navigation.navigate(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: {
+            screen: Routes.MONEY.HOME,
+            ...(entryPoint ? { params: { entryPoint } } : {}),
+          },
         },
-      });
+        { pop: true },
+      );
     },
     [redirectToOnboardingIfNeeded],
   );

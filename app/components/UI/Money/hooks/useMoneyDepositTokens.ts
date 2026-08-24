@@ -1,11 +1,13 @@
 import { useSelector } from 'react-redux';
 import { useCallback, useMemo } from 'react';
 import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
-import { AssetType } from '../../../Views/confirmations/types/token';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
-import { selectMoneyDepositEligibleAssets } from '../selectors/depositTokens';
+import {
+  type MoneyDepositAsset,
+  selectMoneyDepositEligibleAssets,
+} from '../selectors/depositTokens';
 import { isMoneyDepositFeeSubsidized } from '../utils/isMoneyDepositFeeSubsidized';
 
 /**
@@ -14,12 +16,12 @@ import { isMoneyDepositFeeSubsidized } from '../utils/isMoneyDepositFeeSubsidize
  * the wrong currency when the USD rate can't be resolved.
  */
 const toUsdToken = (
-  token: AssetType,
+  token: MoneyDepositAsset,
   currencyRates: ReturnType<typeof selectCurrencyRates>,
   networkConfigurationsByChainId: ReturnType<
     typeof selectNetworkConfigurations
   >,
-): AssetType => {
+): MoneyDepositAsset => {
   if (token.fiat?.balance === undefined) {
     return token;
   }
@@ -66,7 +68,8 @@ export const useMoneyDepositTokens = ({
   );
 
   const isNoFeeToken = useCallback(
-    (token: AssetType) => isMoneyDepositFeeSubsidized(relayFixedSpread, token),
+    (token: { address: string; chainId?: string }) =>
+      isMoneyDepositFeeSubsidized(relayFixedSpread, token),
     [relayFixedSpread],
   );
 

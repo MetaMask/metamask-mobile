@@ -14,7 +14,7 @@ import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.j
 import {
   DappServer,
   DappVariants,
-  PlaywrightGestures,
+  Gestures,
   TestDapps,
   sleep,
 } from '../../framework/index.js';
@@ -139,7 +139,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
         await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
         await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_1_ADDRESS);
         await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello MetaMask');
-        await PlaywrightGestures.hideKeyboard();
+        await Gestures.hideKeyboard();
         await BrowserPlaygroundDapp.tapWagmiSignMessage();
       }, DAPP_URL);
 
@@ -172,7 +172,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
         await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
         await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_1_ADDRESS);
         await BrowserPlaygroundDapp.typeWagmiSignMessage('After refresh');
-        await PlaywrightGestures.hideKeyboard();
+        await Gestures.hideKeyboard();
         await BrowserPlaygroundDapp.tapWagmiSignMessage();
       }, DAPP_URL);
 
