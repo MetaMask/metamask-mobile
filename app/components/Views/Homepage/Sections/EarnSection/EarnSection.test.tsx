@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import type { Asset } from '@metamask/assets-controllers';
 import { EthAccountType } from '@metamask/keyring-api';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
@@ -19,6 +19,7 @@ import useEarnSectionAssets from '../../../../UI/Earn/hooks/useEarnSectionAssets
 import useHomeViewedEvent from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
+import type { SectionRefreshHandle } from '../../types';
 import type { EarnAssetId } from '../../../../UI/Earn/types/earnAssets';
 import type {
   EarnSectionAssetSlot,
@@ -33,21 +34,22 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 jest.mock('@metamask/design-system-twrnc-preset');
-jest.mock('../../hooks/useEarnSectionAssets');
-jest.mock('../../../Money/hooks/useMoneyAccountBalance');
-jest.mock('../../../Money/selectors/visibility');
-jest.mock('../../../Money/hooks/useMoneyNavigation');
+jest.mock('../../../../UI/Earn/hooks/useEarnSectionAssets');
+jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
+jest.mock('../../../../UI/Money/selectors/visibility');
+jest.mock('../../../../UI/Money/hooks/useMoneyNavigation');
 jest.mock('../../../../Views/Homepage/hooks/useHomeViewedEvent');
 jest.mock('../../../../Views/Homepage/hooks/useSectionPerformance');
-jest.mock('../../../Assets/components/AssetLogo/AssetLogo', () => () => null);
+jest.mock(
+  '../../../../UI/Assets/components/AssetLogo/AssetLogo',
+  () => () => null,
+);
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
 const mockUseTailwind = useTailwind as jest.MockedFunction<typeof useTailwind>;
-const mockUseEarnSectionAssets = useEarnSectionAssets as jest.MockedFunction<
-  typeof useEarnSectionAssets
->;
+const mockUseEarnSectionAssets = jest.mocked(useEarnSectionAssets);
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
 const mockUseSelector = jest.mocked(useSelector);
@@ -131,6 +133,7 @@ const zeroBalanceAssetSlot: typeof assetSlot = {
   },
 };
 const navigate = jest.fn();
+const mockRefetchBalance = jest.fn();
 let mockMoneyAccountVisible = false;
 
 const mockSectionResult = (
@@ -177,7 +180,8 @@ describe('EarnSection', () => {
       totalFiatFormatted: '$0.00',
       totalFiatRaw: '0',
       isBalanceLoading: false,
-    } as ReturnType<typeof useMoneyAccountBalance>);
+      refetchBalance: mockRefetchBalance,
+    } as unknown as ReturnType<typeof useMoneyAccountBalance>);
     mockUseMoneyNavigation.mockReturnValue({
       isOnboardingRedirectNeeded: false,
       navigateToMoneyHome: jest.fn(),
@@ -459,6 +463,21 @@ describe('EarnSection', () => {
     });
 
     expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('refreshes catalogue sources and Money balance from the section refresh handle', async () => {
+    const refresh = jest.fn().mockResolvedValue(undefined);
+    mockSectionResult({ refresh });
+    const ref = createRef<SectionRefreshHandle>();
+
+    render(<EarnSection ref={ref} sectionIndex={0} totalSectionsLoaded={1} />);
+
+    await act(async () => {
+      await ref.current?.refresh();
+    });
+
+    expect(refresh).toHaveBeenCalledTimes(1);
+    expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
   });
 
   it('prevents duplicate retries while a refresh is pending', async () => {

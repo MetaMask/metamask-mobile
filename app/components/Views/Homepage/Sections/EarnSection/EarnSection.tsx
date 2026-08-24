@@ -132,13 +132,14 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       moneyRateStatus,
       isLoading,
       hasError,
-      refresh,
+      refresh: refreshEarnSectionAssets,
     } = useEarnSectionAssets();
 
     const {
       totalFiatFormatted: moneyAccountBalanceFiat,
       totalFiatRaw: moneyAccountBalanceRaw,
       isBalanceLoading: isMoneyAccountBalanceLoading,
+      refetchBalance: refetchMoneyAccountBalance,
     } = useMoneyAccountBalance({ enabled: isMoneyAccountVisible });
 
     const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
@@ -148,6 +149,11 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       assetSlots.length +
       (isMoneyAccountVisible ? 1 : 0) +
       (!isLoading && hasMoreAssets ? 1 : 0);
+
+    const refresh = useCallback(async () => {
+      refetchMoneyAccountBalance();
+      await refreshEarnSectionAssets();
+    }, [refetchMoneyAccountBalance, refreshEarnSectionAssets]);
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
