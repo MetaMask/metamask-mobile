@@ -83,6 +83,8 @@ export interface PerpsProOrderBookPanelProps {
   szDecimals?: number;
   /** Whether the selected provider/network context has reinitialized. */
   isMarketContextReady?: boolean;
+  /** Changes whenever the active stream generation changes. */
+  marketContextKey?: string;
   /** Called when a ladder row is tapped (limit-price prefills). */
   onSelectPrice?: (price: string) => void;
   /** Hides the order-book column so the order form can go full width. */
@@ -394,6 +396,7 @@ const PerpsProOrderBookPanel = ({
   marketPrice,
   szDecimals,
   isMarketContextReady = true,
+  marketContextKey = '',
   onSelectPrice,
   onCollapse,
   onResolvedStateChange,
@@ -558,6 +561,17 @@ const PerpsProOrderBookPanel = ({
     [aggregatedOrderBook],
   );
 
+  const readinessBaselineRef = useRef<{
+    contextKey: string;
+    updatedAt: number | null;
+  }>({ contextKey: marketContextKey, updatedAt: null });
+  if (readinessBaselineRef.current.contextKey !== marketContextKey) {
+    readinessBaselineRef.current = {
+      contextKey: marketContextKey,
+      updatedAt: aggregatedOrderBook?.lastUpdated ?? null,
+    };
+  }
+
   // Asks render above the spread, farthest-to-closest top to bottom (highest
   // ask first) — the standard order-book convention, with the ask nearest
   // the spread sitting right above it.
@@ -600,9 +614,13 @@ const PerpsProOrderBookPanel = ({
   );
 
   const isOrderBookForCurrentSymbol = aggregatedOrderBookSymbol === symbol;
+  const hasFreshContextDelivery =
+    readinessBaselineRef.current.updatedAt === null ||
+    readinessBaselineRef.current.updatedAt !== aggregatedOrderBook?.lastUpdated;
   const hasLadder = Boolean(
     isMarketContextReady &&
       isOrderBookForCurrentSymbol &&
+      hasFreshContextDelivery &&
       grouped &&
       (grouped.bids.length > 0 || grouped.asks.length > 0),
   );
@@ -615,6 +633,7 @@ const PerpsProOrderBookPanel = ({
     !hasLadder &&
     (!isMarketContextReady ||
       !isOrderBookForCurrentSymbol ||
+      !hasFreshContextDelivery ||
       isInitialLoading ||
       connectionStatus === 'connecting');
   const showEmptyPlaceholder =
@@ -622,7 +641,7 @@ const PerpsProOrderBookPanel = ({
 
   useEffect(() => {
     onResolvedStateChange?.(symbol, 'loading');
-  }, [onResolvedStateChange, symbol]);
+  }, [marketContextKey, onResolvedStateChange, symbol]);
   useEffect(() => {
     if (!isMarketContextReady) {
       onResolvedStateChange?.(symbol, 'loading');

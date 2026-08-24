@@ -305,6 +305,56 @@ describe('PerpsProOrderBookPanel', () => {
     expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'loading');
   });
 
+  it('waits for a new aggregated delivery after the market context changes', () => {
+    const onResolvedStateChange = jest.fn();
+    let aggregatedOrderBook = mockOrderBook;
+    mockUsePerpsLiveOrderBook.mockImplementation(
+      (params: { channel?: string }) => ({
+        orderBook:
+          params.channel === 'orderBookAggregated'
+            ? aggregatedOrderBook
+            : mockOrderBook,
+        dataSymbol: 'BTC',
+        isLoading: false,
+        error: null,
+        connectionStatus: 'connected',
+        reconnect: mockReconnect,
+      }),
+    );
+
+    const view = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        marketContextKey="generation-1"
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'content');
+
+    view.rerender(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        marketContextKey="generation-2"
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+    );
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'loading');
+
+    aggregatedOrderBook = { ...mockOrderBook, lastUpdated: 1700000000001 };
+    view.rerender(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        marketContextKey="generation-2"
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+    );
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'content');
+  });
+
   it('disables both order-book sockets until the market context is ready', () => {
     const view = renderWithProvider(
       <PerpsProOrderBookPanel
