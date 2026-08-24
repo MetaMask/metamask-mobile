@@ -1,112 +1,49 @@
-jest.mock('./Gestures.ts', () => ({
+/**
+ * @jest-environment node
+ */
+
+jest.mock('./AppiumGestures.ts', () => ({
   __esModule: true,
   default: {
-    scrollToElement: jest.fn(),
-    typeText: jest.fn(),
+    waitAndTap: jest.fn(),
+    hideKeyboard: jest.fn(),
   },
 }));
 
-import Gestures from './Gestures.ts';
-import { DetoxGestureStrategy } from './GestureStrategy.ts';
-import { asDetoxElement } from './EncapsulatedElement.ts';
+import { AppiumGestureStrategy } from './GestureStrategy.ts';
+import AppiumGestures from './AppiumGestures.ts';
+import type { AppiumElement } from './AppiumElement.ts';
 
-jest.mock('./EncapsulatedElement.ts', () => ({
-  asDetoxElement: jest.fn((elem) => elem),
-}));
-
-describe('DetoxGestureStrategy.scrollToElement', () => {
-  const strategy = new DetoxGestureStrategy();
-
-  const createDetoxElement = (): DetoxElement =>
-    ({ tap: jest.fn() }) as unknown as DetoxElement;
+describe('AppiumGestureStrategy', () => {
+  const strategy = new AppiumGestureStrategy();
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('forwards matcher scrollView to Gestures.scrollToElement', async () => {
-    const target = createDetoxElement();
-    const matcher = {
-      type: 'id',
-      value: 'scroll-view',
-    } as unknown as Detox.NativeMatcher;
-    const scrollView = Promise.resolve(matcher);
+  it('taps a Playwright element via AppiumGestures.waitAndTap', async () => {
+    const elem = {
+      click: jest.fn(),
+    } as unknown as AppiumElement;
 
-    await strategy.scrollToElement(target, scrollView, {
-      timeout: 1000,
-      description: 'scroll to token',
-    });
+    await strategy.tap(Promise.resolve(elem), { timeout: 1000 });
 
-    expect(Gestures.scrollToElement).toHaveBeenCalledTimes(1);
-
-    const [forwardedTarget, forwardedScrollView, forwardedOpts] = (
-      Gestures.scrollToElement as jest.Mock
-    ).mock.calls[0];
-
-    expect(forwardedTarget).toBe(target);
-    await expect(forwardedScrollView).resolves.toBe(matcher);
-    expect(forwardedOpts).toEqual(
+    expect(AppiumGestures.waitAndTap).toHaveBeenCalledWith(
+      elem,
       expect.objectContaining({
         timeout: 1000,
-        elemDescription: 'scroll to token',
+        checkForDisplayed: true,
       }),
     );
   });
 
-  it('rejects DetoxElement passed as scrollView', async () => {
-    const target = createDetoxElement();
-    const invalidScrollView = createDetoxElement();
+  it('types text and hides keyboard by default', async () => {
+    const fill = jest.fn();
+    const elem = { fill } as unknown as AppiumElement;
 
-    await expect(
-      strategy.scrollToElement(
-        target,
-        invalidScrollView as unknown as Promise<Detox.NativeMatcher>,
-      ),
-    ).rejects.toThrow(
-      'DetoxGestureStrategy.scrollToElement requires a Detox NativeMatcher',
-    );
-  });
-});
+    await strategy.typeText(Promise.resolve(elem), 'hello');
 
-describe('DetoxGestureStrategy.typeText', () => {
-  const strategy = new DetoxGestureStrategy();
-
-  const createDetoxElement = (): DetoxElement =>
-    ({ tap: jest.fn() }) as unknown as DetoxElement;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('forwards hideKeyboard and clearFirst defaults to Gestures.typeText', async () => {
-    const elem = createDetoxElement();
-
-    await strategy.typeText(elem, 'hello');
-
-    expect(asDetoxElement).toHaveBeenCalledWith(elem);
-    expect(Gestures.typeText).toHaveBeenCalledWith(elem, 'hello', {
-      hideKeyboard: true,
-      clearFirst: true,
-      timeout: undefined,
-      elemDescription: undefined,
-    });
-  });
-
-  it('forwards explicit hideKeyboard and clearFirst options', async () => {
-    const elem = createDetoxElement();
-
-    await strategy.typeText(elem, 'secret', {
-      hideKeyboard: false,
-      clearFirst: false,
-      timeout: 5000,
-      description: 'password field',
-    });
-
-    expect(Gestures.typeText).toHaveBeenCalledWith(elem, 'secret', {
-      hideKeyboard: false,
-      clearFirst: false,
-      timeout: 5000,
-      elemDescription: 'password field',
-    });
+    expect(fill).toHaveBeenCalledWith('hello');
+    expect(AppiumGestures.hideKeyboard).toHaveBeenCalled();
   });
 });

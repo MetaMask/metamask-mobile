@@ -27,7 +27,7 @@ export {
   addOverhead,
   stopOverheadTracking,
   isOverheadTrackingActive,
-} from './PlaywrightUtilities.ts';
+} from './AppiumUtilities.ts';
 
 // Mock server utilities
 export { safeGetBodyText } from '../api-mocking/MockServerE2E.ts';
@@ -44,19 +44,31 @@ export { DappVariants, TestDapps } from './Constants.ts';
 // Example usage:
 // import { Assertions, Gestures, Matchers, sleep, PortManager, ResourceType } from '../framework';
 
-export { PlaywrightElement, wrapElement, $, $$ } from './PlaywrightAdapter.ts';
-export { default as PlaywrightMatchers } from './PlaywrightMatchers.ts';
-export { default as PlaywrightGestures } from './PlaywrightGestures.ts';
-export { default as PlaywrightAssertions } from './PlaywrightAssertions.ts';
+export {
+  AppiumElement,
+  wrapElement,
+  $,
+  $$,
+  type AppiumElementRef,
+} from './AppiumElement.ts';
+export { default as AppiumMatchers } from './AppiumMatchers.ts';
+export { default as AppiumGestures } from './AppiumGestures.ts';
+export { default as AppiumAssertions } from './AppiumAssertions.ts';
 
 export {
   EncapsulatedElement,
-  type EncapsulatedElementType,
   LocatorStrategy,
   type LocatorConfig,
   type PlatformLocator,
+  type EncapsulatedElementType,
   asPlaywrightElement,
 } from './EncapsulatedElement.ts';
+
+// Temporary compatibility re-exports for unmigrated call sites (remove after PO stacks land)
+export { default as PlaywrightMatchers } from './PlaywrightMatchers.ts';
+export { default as PlaywrightGestures } from './PlaywrightGestures.ts';
+export { default as PlaywrightAssertions } from './PlaywrightAssertions.ts';
+export { AppiumElement as PlaywrightElement } from './AppiumElement.ts';
 
 export { resolve, isSelector, type Selector } from './Selector.ts';
 export { PlatformDetector } from './PlatformLocator.ts';

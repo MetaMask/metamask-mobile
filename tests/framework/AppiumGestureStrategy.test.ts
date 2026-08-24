@@ -1,67 +1,49 @@
-jest.mock('./PlaywrightGestures.ts', () => ({
+/**
+ * @jest-environment node
+ */
+
+jest.mock('./AppiumGestures.ts', () => ({
   __esModule: true,
   default: {
     dblTap: jest.fn(),
     hideKeyboard: jest.fn(),
+    waitAndTap: jest.fn(),
   },
 }));
 
-jest.mock('./EncapsulatedElement.ts', () => ({
-  asPlaywrightElement: jest.fn(),
-}));
-
-import PlaywrightGestures from './PlaywrightGestures.ts';
-import { asPlaywrightElement } from './EncapsulatedElement.ts';
+import AppiumGestures from './AppiumGestures.ts';
 import { AppiumGestureStrategy } from './GestureStrategy.ts';
-import { PlaywrightElement } from './PlaywrightAdapter.ts';
+import type { AppiumElement } from './AppiumElement.ts';
 
-describe('AppiumGestureStrategy.dblTap', () => {
+describe('AppiumGestureStrategy', () => {
   const strategy = new AppiumGestureStrategy();
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('delegates to PlaywrightGestures.dblTap with resolved element', async () => {
-    const elem = Promise.resolve({}) as never;
-    const playwrightElement = { unwrap: jest.fn() } as never;
-    (asPlaywrightElement as jest.Mock).mockResolvedValue(playwrightElement);
+  it('delegates dblTap to AppiumGestures with the resolved element', async () => {
+    const resolved = { unwrap: jest.fn() } as unknown as AppiumElement;
 
-    await strategy.dblTap(elem);
+    await strategy.dblTap(Promise.resolve(resolved));
 
-    expect(asPlaywrightElement).toHaveBeenCalledWith(elem);
-    expect(PlaywrightGestures.dblTap).toHaveBeenCalledWith(playwrightElement);
-  });
-});
-
-describe('AppiumGestureStrategy.tapAtIndex', () => {
-  const strategy = new AppiumGestureStrategy();
-
-  beforeEach(() => {
-    jest.clearAllMocks();
+    expect(AppiumGestures.dblTap).toHaveBeenCalledWith(resolved);
   });
 
-  const createPlaywrightElement = (): PlaywrightElement =>
-    ({
-      click: jest.fn(),
-      unwrap: jest.fn(),
-    }) as unknown as PlaywrightElement;
-
-  it('clicks indexed element when PlaywrightElement array is provided', async () => {
-    const first = createPlaywrightElement();
-    const second = createPlaywrightElement();
-    const third = createPlaywrightElement();
+  it('clicks indexed element when AppiumElement array is provided', async () => {
+    const first = { click: jest.fn() } as unknown as AppiumElement;
+    const second = { click: jest.fn() } as unknown as AppiumElement;
+    const third = { click: jest.fn() } as unknown as AppiumElement;
 
     await strategy.tapAtIndex([first, second, third], 2);
 
     expect(third.click).toHaveBeenCalledTimes(1);
     expect(second.click).not.toHaveBeenCalled();
     expect(first.click).not.toHaveBeenCalled();
-    expect(asPlaywrightElement).not.toHaveBeenCalled();
   });
 
   it('throws when array index is out of bounds', async () => {
-    const only = createPlaywrightElement();
+    const only = { click: jest.fn() } as unknown as AppiumElement;
 
     await expect(strategy.tapAtIndex([only], 2)).rejects.toThrow(
       'tapAtIndex: index 2 is out of bounds (1 elements)',
@@ -69,57 +51,44 @@ describe('AppiumGestureStrategy.tapAtIndex', () => {
   });
 
   it('throws for single element when index is greater than zero', async () => {
-    const elem = Promise.resolve({}) as never;
+    const elem = Promise.resolve({
+      click: jest.fn(),
+    } as unknown as AppiumElement);
 
     await expect(strategy.tapAtIndex(elem, 2)).rejects.toThrow(
-      'tapAtIndex: Appium requires a PlaywrightElement[] array for index > 0.',
+      'tapAtIndex: Appium requires a AppiumElement[] array for index > 0.',
     );
   });
 
   it('uses single element pass-through when index is zero', async () => {
-    const elem = Promise.resolve({}) as never;
-    const playwrightElement = createPlaywrightElement();
-    (asPlaywrightElement as jest.Mock).mockResolvedValue(playwrightElement);
+    const resolved = { click: jest.fn() } as unknown as AppiumElement;
 
-    await strategy.tapAtIndex(elem, 0);
+    await strategy.tapAtIndex(Promise.resolve(resolved), 0);
 
-    expect(asPlaywrightElement).toHaveBeenCalledWith(elem);
-    expect(playwrightElement.click).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe('AppiumGestureStrategy.typeText', () => {
-  const strategy = new AppiumGestureStrategy();
-
-  beforeEach(() => {
-    jest.clearAllMocks();
+    expect(resolved.click).toHaveBeenCalledTimes(1);
   });
 
   it('fills text and hides keyboard by default', async () => {
-    const elem = Promise.resolve({}) as never;
-    const playwrightElement = {
+    const resolved = {
       fill: jest.fn(),
-      unwrap: jest.fn(),
-    } as unknown as PlaywrightElement;
-    (asPlaywrightElement as jest.Mock).mockResolvedValue(playwrightElement);
+    } as unknown as AppiumElement;
 
-    await strategy.typeText(elem, 'hello');
+    await strategy.typeText(Promise.resolve(resolved), 'hello');
 
-    expect(playwrightElement.fill).toHaveBeenCalledWith('hello');
-    expect(PlaywrightGestures.hideKeyboard).toHaveBeenCalledTimes(1);
+    expect(resolved.fill).toHaveBeenCalledWith('hello');
+    expect(AppiumGestures.hideKeyboard).toHaveBeenCalledTimes(1);
   });
 
   it('skips hideKeyboard when hideKeyboard is false', async () => {
-    const elem = Promise.resolve({}) as never;
-    const playwrightElement = {
+    const resolved = {
       fill: jest.fn(),
-      unwrap: jest.fn(),
-    } as unknown as PlaywrightElement;
-    (asPlaywrightElement as jest.Mock).mockResolvedValue(playwrightElement);
+    } as unknown as AppiumElement;
 
-    await strategy.typeText(elem, 'hello', { hideKeyboard: false });
+    await strategy.typeText(Promise.resolve(resolved), 'hello', {
+      hideKeyboard: false,
+    });
 
-    expect(playwrightElement.fill).toHaveBeenCalledWith('hello');
-    expect(PlaywrightGestures.hideKeyboard).not.toHaveBeenCalled();
+    expect(resolved.fill).toHaveBeenCalledWith('hello');
+    expect(AppiumGestures.hideKeyboard).not.toHaveBeenCalled();
   });
 });
