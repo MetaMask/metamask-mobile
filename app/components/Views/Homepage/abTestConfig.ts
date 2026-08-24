@@ -322,12 +322,6 @@ export enum HeaderNavBarVariant {
 }
 
 interface HeaderNavBarVariantConfig {
-  /**
-   * Treatment ships the refreshed chrome as one bundle: a rewards icon replaces
-   * the header Activity entry point, the account list and settings consolidate
-   * behind the hamburger menu, and the bottom NavBar is reorganized. The arms
-   * cannot be split — a 2-arm test cannot attribute an outcome to one of them.
-   */
   useRefreshedHeaderAndNavBar: boolean;
 }
 
