@@ -5,8 +5,6 @@ import {
   type ProOrdersSideFilter,
   type ProPositionsSideFilter,
 } from '@metamask/perps-controller';
-import { getOrderPositionDirection } from '../../../utils/orderUtils';
-import DevLogger from '../../../../../../core/SDKConnect/utils/DevLogger';
 
 export type ProPositionSideFilter = ProPositionsSideFilter;
 
@@ -59,23 +57,19 @@ export const filterProPositionsBySide = (
   sideFilter: ProPositionSideFilter,
 ): Position[] => filterProItemsBySide(positions, sideFilter, getPositionSide);
 
+const getOrderSide = (order: Order): 'long' | 'short' =>
+  order.side === 'buy' ? 'long' : 'short';
+
 /**
- * Filters orders by the position direction they create or reduce.
- * Returns the original array when filter is `all`.
+ * Filters orders by their own side: a buy is a long order, a sell is a short
+ * order. Closing orders are not inverted here — a "Close long" order is a sell,
+ * so it belongs to the short side of this filter even though its label names the
+ * long position it reduces. Returns the original array when filter is `all`.
  */
 export const filterProOrdersBySide = (
   orders: Order[],
   sideFilter: ProPositionSideFilter,
-): Order[] =>
-  filterProItemsBySide(orders, sideFilter, (order) => {
-    const resolved = getOrderPositionDirection(order);
-    if ((order.reduceOnly || order.isTrigger) && resolved === sideFilter) {
-      DevLogger.log(
-        `[TAT-3807] BUG_MARKER: closing order ${order.orderId} side=${order.side} matched sideFilter=${sideFilter}`,
-      );
-    }
-    return resolved;
-  });
+): Order[] => filterProItemsBySide(orders, sideFilter, getOrderSide);
 
 export const getProPositionSideFilterButtonLabelKey = (
   sideFilter: ProPositionSideFilter,
