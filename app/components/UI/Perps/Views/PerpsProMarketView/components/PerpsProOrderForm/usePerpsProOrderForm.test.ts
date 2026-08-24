@@ -1860,6 +1860,69 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.scaleOrder.sizeSkew).toBe('1.00');
     });
 
+    it('shows localized Scale-specific copy while the ladder is submitted', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockShowToast).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          labelOptions: [
+            {
+              label: strings('perps.pro_order_form.scale.orders_submitted'),
+            },
+            {
+              label: strings('perps.pro_order_form.scale.submission_summary', {
+                totalCount: 3,
+                size: '3.725',
+                assetSymbol: 'BTC',
+              }),
+            },
+          ],
+        }),
+      );
+    });
+
+    it('shows localized Scale-specific copy when the full ladder is placed', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockExecuteOrder.mockResolvedValueOnce({
+        success: true,
+        childOrderIds: ['101', '102', '103'],
+        submittedSize: '3.725',
+      });
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [
+            {
+              label: strings('perps.pro_order_form.scale.orders_placed'),
+            },
+            {
+              label: strings('perps.pro_order_form.scale.placement_summary', {
+                submittedCount: 3,
+                totalCount: 3,
+                size: '3.725',
+                assetSymbol: 'BTC',
+              }),
+            },
+          ],
+        }),
+      );
+    });
+
     it('shows localized Scale-specific copy for a partial controller result', async () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';

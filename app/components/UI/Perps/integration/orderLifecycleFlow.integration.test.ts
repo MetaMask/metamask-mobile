@@ -220,6 +220,78 @@ describe('Perps order lifecycle — FLOW integration', () => {
         remaining_amount: 0.05,
       });
     });
+
+    it.each([
+      {
+        placement: 'full',
+        statuses: [
+          { resting: { oid: 101 } },
+          { resting: { oid: 102 } },
+          { resting: { oid: 103 } },
+        ],
+        childOrderIds: ['101', '102', '103'],
+        submittedSize: '0.6',
+        submittedValue: 30_134,
+      },
+      {
+        placement: 'partial',
+        statuses: [
+          { resting: { oid: 101 } },
+          { resting: { oid: 102 } },
+          { error: 'Insufficient margin' },
+        ],
+        childOrderIds: ['101', '102'],
+        submittedSize: '0.333',
+        submittedValue: 16_517,
+      },
+    ])(
+      'reports $placement Scale submitted size and weighted telemetry',
+      async ({ statuses, childOrderIds, submittedSize, submittedValue }) => {
+        // Arrange
+        const perps = buildPerpsFlowHarness();
+        perps.harness.setupTradingReady();
+        perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce({
+          status: 'ok',
+          response: { data: { statuses } },
+        });
+        const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+        // Act
+        let placeOrderResult: OrderResult | null = null;
+        await act(async () => {
+          placeOrderResult = await result.current.placeOrder({
+            symbol: 'BTC',
+            isBuy: true,
+            size: '0.6',
+            orderType: 'scale',
+            currentPrice: 50_000,
+            scaleMinPrice: '49000',
+            scaleMaxPrice: '51000',
+            scaleNumOrders: 3,
+            scaleSkew: 2,
+          });
+        });
+
+        // Assert
+        expect(placeOrderResult).toMatchObject({
+          success: true,
+          childOrderIds,
+          submittedSize,
+        });
+        expect(Number(placeOrderResult?.averagePrice)).toBeCloseTo(
+          submittedValue / Number(submittedSize),
+        );
+        expect(
+          perps.analytics.lastByName(PerpsAnalyticsEvent.TradeTransaction),
+        ).toMatchObject({
+          status: PERPS_EVENT_VALUE.STATUS.EXECUTED,
+          asset: 'BTC',
+          order_type: 'scale',
+          order_size: Number(submittedSize),
+          order_value: submittedValue,
+        });
+      },
+    );
   });
 
   /*
